@@ -43,19 +43,19 @@ private fun changeWidthHeight(value: String): String? {
 private fun submitX(model: Model, widget: SettingsWidget, value: String) {
     val x = value.toIntOrNull() ?: return
     widget.crop.x = x
-    model.resetSelectedScene(changeScene = false)
+    TODO("model.resetSelectedScene(changeScene = false)")
 }
 
 private fun submitY(model: Model, widget: SettingsWidget, value: String) {
     val y = value.toIntOrNull() ?: return
     widget.crop.y = y
-    model.resetSelectedScene(changeScene = false)
+    TODO("model.resetSelectedScene(changeScene = false)")
 }
 
 private fun submitWidth(model: Model, widget: SettingsWidget, value: String) {
     val width = value.toIntOrNull() ?: return
     widget.crop.width = width
-    model.resetSelectedScene(changeScene = false)
+    TODO("model.resetSelectedScene(changeScene = false)")
 }
 
 private fun submitHeight(model: Model, widget: SettingsWidget, value: String) {
@@ -64,17 +64,17 @@ private fun submitHeight(model: Model, widget: SettingsWidget, value: String) {
         return
     }
     widget.crop.height = height
-    model.resetSelectedScene(changeScene = false)
+    TODO("model.resetSelectedScene(changeScene = false)")
 }
 
 private fun sourceWidgetExists(model: Model, widget: SettingsWidget): Boolean {
-    return model.database.value.widgets.any { it.id == widget.crop.sourceWidgetId }
+    return model.database.widgets.any { it.id == widget.crop.sourceWidgetId }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetCropSettingsView(model: Model = LocalModel.current, widget: SettingsWidget) {
-    val database = model.database.collectAsState().value
+    val database = model.database
     var expanded by remember { mutableStateOf(false) }
     val sourceWidgetId = if (sourceWidgetExists(model, widget)) {
         widget.crop.sourceWidgetId
@@ -105,9 +105,7 @@ fun WidgetCropSettingsView(model: Model = LocalModel.current, widget: SettingsWi
                     DropdownMenuItem(
                         text = { Text("") },
                         onClick = {
-                            widget.crop.sourceWidgetId = null
-                            model.resetSelectedScene(changeScene = false)
-                            expanded = false
+                            TODO("widget.crop.sourceWidgetId = null")
                         }
                     )
                 }
@@ -118,7 +116,7 @@ fun WidgetCropSettingsView(model: Model = LocalModel.current, widget: SettingsWi
                             text = { Text(browserWidget.name) },
                             onClick = {
                                 widget.crop.sourceWidgetId = browserWidget.id
-                                model.resetSelectedScene(changeScene = false)
+                                TODO("model.resetSelectedScene(changeScene = false)")
                                 expanded = false
                             }
                         )

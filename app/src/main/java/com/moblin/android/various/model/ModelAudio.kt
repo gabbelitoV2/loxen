@@ -8,6 +8,7 @@ import com.moblin.android.media.haishinkit.media.processorControlQueue
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.various.KeepSpeakerAlivePlayer
 import com.moblin.android.various.SimpleTimer
+import com.moblin.android.various.shared
 import com.moblin.android.various.settings.SettingsMic
 import com.moblin.android.various.settings.SettingsMicsMic
 import com.moblin.android.various.utils.isMac
@@ -15,6 +16,7 @@ import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import kotlin.math.abs
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -31,7 +33,7 @@ class AudioLevel {
     val level = MutableStateFlow(defaultAudioLevel)
 
     fun setLevel(level: Float) {
-        level.value = level
+        this.level.value = level
     }
 }
 
@@ -42,15 +44,15 @@ class AudioProvider {
     val sampleRate = MutableStateFlow(0.0)
 
     fun setMuted(muted: Boolean) {
-        muted.value = muted
+        this.muted.value = muted
     }
 
     fun setNumberOfChannels(numberOfChannels: Int) {
-        numberOfChannels.value = numberOfChannels
+        this.numberOfChannels.value = numberOfChannels
     }
 
     fun setSampleRate(sampleRate: Double) {
-        sampleRate.value = sampleRate
+        this.sampleRate.value = sampleRate
     }
 }
 
@@ -58,24 +60,24 @@ class Mic {
     val current = MutableStateFlow(noMic)
     val inputGain = MutableStateFlow(1.0f)
     val inputGainSettable = MutableStateFlow(false)
-    val inputGainTimer = SimpleTimer(queue = processorControlQueue)
+    val inputGainTimer = SimpleTimer(queue = processorControlQueue.coroutineContext as CoroutineDispatcher)
     var requested: SettingsMicsMic? = null
     val isSwitchTimerRunning = MutableStateFlow(false)
 
     fun setCurrent(current: SettingsMicsMic) {
-        current.value = current
+        this.current.value = current
     }
 
     fun setInputGain(inputGain: Float) {
-        inputGain.value = inputGain
+        this.inputGain.value = inputGain
     }
 
     fun setInputGainSettable(inputGainSettable: Boolean) {
-        inputGainSettable.value = inputGainSettable
+        this.inputGainSettable.value = inputGainSettable
     }
 
     fun setIsSwitchTimerRunning(isSwitchTimerRunning: Boolean) {
-        isSwitchTimerRunning.value = isSwitchTimerRunning
+        this.isSwitchTimerRunning.value = isSwitchTimerRunning
     }
 }
 
@@ -86,12 +88,12 @@ fun Model.setupInputGainObserver() {
 fun Model.setupAudio() {
     updateMicsList()
     if (database.mics.defaultMic.isEmpty()) {
-        database.mics.defaultMic = database.mics.mics
+        database.mics.defaultMic = database.mics.mics.value
             .firstOrNull { it.builtInOrientation == database.mic }
             ?.id ?: ""
     }
     val mic = getMicById(id = database.mics.defaultMic)
-    if (mic != null && mic.connected) {
+    if (mic != null && mic.connected.value) {
         defaultMic = mic
     } else {
         defaultMic = getHighestPriorityConnectedMic() ?: noMic
@@ -118,7 +120,7 @@ fun Model.reloadAudioSession() {
     if (isChatPhone()) {
         return
     }
-    media.attachDefaultAudioDevice(builtinDelay = database.debug.builtinAudioAndVideoDelay)
+    media.attachDefaultAudioDevice(builtinDelay = database.debug.builtinAudioAndVideoDelay.value)
 }
 
 fun Model.setInputGainIfSupported(inputGain: Float) {
@@ -137,7 +139,7 @@ fun Model.teardownAudioSession() {
 
 fun Model.switchMicIfNeededAfterSceneSwitch() {
     updateMicsList()
-    if (database.mics.autoSwitch) {
+    if (database.mics.autoSwitch.value) {
         val scene = getSelectedScene()
         if (scene != null && scene.overrideMic) {
             val sceneMic = getConnectedMicById(id = scene.micId)
@@ -146,7 +148,7 @@ fun Model.switchMicIfNeededAfterSceneSwitch() {
                 return
             }
         }
-        if (defaultMic.connected) {
+        if (defaultMic.connected.value) {
             selectMic(mic = defaultMic)
         } else {
             val highestPrioMic = getHighestPriorityConnectedMic()
@@ -158,7 +160,7 @@ fun Model.switchMicIfNeededAfterSceneSwitch() {
 }
 
 fun Model.switchMicIfNeededAfterNetworkCameraChange() {
-    if (database.mics.autoSwitch) {
+    if (database.mics.autoSwitch.value) {
         updateMicsList()
         val scene = getSelectedScene()
         if (scene != null && scene.overrideMic) {
@@ -181,11 +183,11 @@ fun Model.switchMicIfNeededAfterNetworkCameraChange() {
 }
 
 fun Model.markMicAsConnected(id: String) {
-    database.mics.mics.firstOrNull { it.id == id }?.connected = true
+    database.mics.mics.value.firstOrNull { it.id == id }?._connected.value = true
 }
 
 fun Model.markMicAsDisconnected(id: String) {
-    database.mics.mics.firstOrNull { it.id == id }?.connected = false
+    database.mics.mics.value.firstOrNull { it.id == id }?._connected.value = false
 }
 
 fun Model.updateMicsList() {
@@ -201,7 +203,7 @@ fun Model.updateMicsListAsync(onCompleted: (() -> Unit)? = null) {
 
 private fun Model.updateMicsListDatabase(foundMics: List<SettingsMicsMic>) {
     val databaseMics = mutableListOf<SettingsMicsMic>()
-    for (mic in database.mics.mics) {
+    for (mic in database.mics.mics.value) {
         if ((mic.isRtmp()
                 || mic.isSrtla()
                 || mic.isSrtClient()
@@ -214,12 +216,12 @@ private fun Model.updateMicsListDatabase(foundMics: List<SettingsMicsMic>) {
             continue
         }
         if (mic.isExternal()) {
-            mic.connected = foundMics.contains(mic)
+            mic._connected.value = foundMics.contains(mic)
             databaseMics.add(mic)
         } else {
             val foundMic = foundMics.firstOrNull { it == mic }
             if (foundMic != null) {
-                mic.connected = foundMic.connected
+                mic._connected.value = foundMic.connected.value
                 databaseMics.add(mic)
             } else {
                 databaseMics.add(mic)
@@ -232,11 +234,11 @@ private fun Model.updateMicsListDatabase(foundMics: List<SettingsMicsMic>) {
             databaseMics.add(0, mic)
         }
     }
-    database.mics.mics = databaseMics
+    database.mics._mics.value = databaseMics
 }
 
 fun Model.getMicById(id: String): SettingsMicsMic? {
-    return database.mics.mics.firstOrNull { it.id == id }
+    return database.mics.mics.value.firstOrNull { it.id == id }
 }
 
 fun Model.manualSelectMicById(id: String) {
@@ -246,20 +248,20 @@ fun Model.manualSelectMicById(id: String) {
 }
 
 fun Model.updateMicDelay() {
-    media.setAudioDelay(delay = getMicById(id = mic.current.value.id)?.delay ?: 0.0)
+    media.setAudioDelay(delay = getMicById(id = mic.current.value.id)?.delay?.value ?: 0.0)
 }
 
 fun Model.selectMicDefault(mic: SettingsMicsMic) {
     media.attachBufferedAudio(cameraId = null)
-    mainScope.launch(processorControlQueue) {
+    processorControlQueue.launch {
         TODO("no Android counterpart for AVAudioSession input port selection (preferStereoMic=${database.audio.preferStereoMic})")
     }
-    media.attachDefaultAudioDevice(builtinDelay = database.debug.builtinAudioAndVideoDelay)
+    media.attachDefaultAudioDevice(builtinDelay = database.debug.builtinAudioAndVideoDelay.value)
     remoteControlStateChanged(state = RemoteControlAssistantStreamerState(mic = mic.id))
 }
 
 fun Model.keepSpeakerAlive(now: Instant) {
-    KeepSpeakerAlivePlayer.playIfNeeded(now = now)
+    shared.playIfNeeded(now = now)
 }
 
 fun Model.updateAudioLevel() {
@@ -284,13 +286,13 @@ fun Model.updateAudioLevel() {
 }
 
 fun Model.setTalkbackMic(id: String) {
-    database.talkback.micId = id
+    database.talkback.micId.value = id
     updateTalkback()
 }
 
 fun Model.updateTalkback() {
-    if (database.talkback.enabled) {
-        val mic = getMicById(id = database.talkback.micId)
+    if (database.talkback.enabled.value) {
+        val mic = getMicById(id = database.talkback.micId.value)
         if (mic != null) {
             startTalkback(mic = mic)
         } else {
@@ -324,7 +326,7 @@ private fun Model.handleSystemVolumeDidChange(volume: Float, reason: String, seq
         return
     }
     latestVolumeChangeSequenceNumber = sequenceNumber
-    if (reason == "ExplicitVolumeChange" && database.selfieStick.enabled && isAppActive) {
+    if (reason == "ExplicitVolumeChange" && database.selfieStick.enabled.value && isAppActive) {
         if (initialVolume == null) {
             initialVolume = volume
         }
@@ -345,8 +347,8 @@ private fun Model.handleSystemVolumeDidChange(volume: Float, reason: String, seq
 private fun Model.executeSelfieStickAction() {
     handleControllerFunction(
         buttonId = "s:button",
-        function = database.selfieStick.function,
-        functionData = database.selfieStick.functionData,
+        function = database.selfieStick.function.value,
+        functionData = database.selfieStick.functionData.value,
         pressed = false
     )
 }
@@ -361,7 +363,7 @@ private fun Model.setSystemVolume(volume: Float) {
 
 private fun Model.switchMicIfNeededAfterRouteChange() {
     updateMicsListAsync {
-        if (database.mics.autoSwitch) {
+        if (database.mics.autoSwitch.value) {
             autoSwitchMicIfNeededAfterRouteChange()
         } else {
             manualSwitchMicIfNeededAfterRouteChange()
@@ -396,7 +398,7 @@ private fun Model.autoSwitchMicIfNeededAfterRouteChange() {
             selectMic(mic = activeMic)
             defaultMic = activeMic
         } else if (getActiveAudioSessionMic() == mic.current.value) {
-        } else if (mic.current.value.connected && mic.current.value.isAudioSession()) {
+        } else if (mic.current.value.connected.value && mic.current.value.isAudioSession()) {
             selectMicDefault(mic = mic.current.value)
         } else {
             val highestPrioMic = getHighestPriorityConnectedMic()
@@ -415,12 +417,12 @@ private fun Model.manualSwitchMicIfNeededAfterRouteChange() {
 }
 
 private fun Model.getMicPriority(mic: SettingsMicsMic): Int {
-    val priority = database.mics.mics.indexOfFirst { it.id == mic.id }
+    val priority = database.mics.mics.value.indexOfFirst { it.id == mic.id }
     return if (priority != -1) -priority else Int.MIN_VALUE
 }
 
 private fun Model.getHighestPriorityConnectedMic(): SettingsMicsMic? {
-    return database.mics.mics.firstOrNull { it.connected }
+    return database.mics.mics.value.firstOrNull { it.connected.value }
 }
 
 private fun Model.makeMicChangeToast(name: String) {
@@ -449,7 +451,7 @@ private fun Model.listMicsAsync(onCompleted: (List<SettingsMicsMic>) -> Unit) {
     listRtmpMics(mics)
     listWhipMics(mics)
     listWhepMics(mics)
-    mainScope.launch(processorControlQueue) {
+    processorControlQueue.launch {
         val audioSessionMics = mics.toMutableList()
         listAudioSessionMics(audioSessionMics)
         mainScope.launch {
@@ -463,7 +465,7 @@ private fun Model.listRtmpMics(mics: MutableList<SettingsMicsMic>) {
         val mic = SettingsMicsMic()
         mic.name = stream.camera()
         mic.inputUid = stream.id.toString()
-        mic.connected = isRtmpStreamConnected(streamKey = stream.streamKey)
+        mic._connected.value = isRtmpStreamConnected(streamKey = stream.streamKey)
         mics.add(mic)
     }
 }
@@ -473,7 +475,7 @@ private fun Model.listSrtlaMics(mics: MutableList<SettingsMicsMic>) {
         val mic = SettingsMicsMic()
         mic.name = stream.camera()
         mic.inputUid = stream.id.toString()
-        mic.connected = isSrtlaStreamConnected(streamId = stream.streamId)
+        mic._connected.value = isSrtlaStreamConnected(streamId = stream.streamId)
         mics.add(mic)
     }
 }
@@ -483,7 +485,7 @@ private fun Model.listSrtClientMics(mics: MutableList<SettingsMicsMic>) {
         val mic = SettingsMicsMic()
         mic.name = stream.camera()
         mic.inputUid = stream.id.toString()
-        mic.connected = isSrtClientStreamConnected(id = stream.id)
+        mic._connected.value = isSrtClientStreamConnected(id = stream.id)
         mics.add(mic)
     }
 }
@@ -493,7 +495,7 @@ private fun Model.listRistMics(mics: MutableList<SettingsMicsMic>) {
         val mic = SettingsMicsMic()
         mic.name = stream.camera()
         mic.inputUid = stream.id.toString()
-        mic.connected = isRistStreamConnected(port = stream.virtualDestinationPort)
+        mic._connected.value = isRistStreamConnected(port = stream.virtualDestinationPort.toUShort())
         mics.add(mic)
     }
 }
@@ -503,7 +505,7 @@ private fun Model.listWhipMics(mics: MutableList<SettingsMicsMic>) {
         val mic = SettingsMicsMic()
         mic.name = stream.camera()
         mic.inputUid = stream.id.toString()
-        mic.connected = isWhipStreamConnected(streamId = stream.id)
+        mic._connected.value = isWhipStreamConnected(streamId = stream.id)
         mics.add(mic)
     }
 }
@@ -513,7 +515,7 @@ private fun Model.listWhepMics(mics: MutableList<SettingsMicsMic>) {
         val mic = SettingsMicsMic()
         mic.name = stream.camera()
         mic.inputUid = stream.id.toString()
-        mic.connected = isWhepStreamConnected(streamId = stream.id)
+        mic._connected.value = isWhepStreamConnected(streamId = stream.id)
         mics.add(mic)
     }
 }
@@ -523,14 +525,14 @@ private fun Model.listMediaPlayerMics(mics: MutableList<SettingsMicsMic>) {
         val mic = SettingsMicsMic()
         mic.name = mediaPlayer.camera()
         mic.inputUid = mediaPlayer.id.toString()
-        mic.connected = true
+        mic._connected.value = true
         mics.add(mic)
     }
 }
 
 private fun Model.getConnectedMicById(id: String): SettingsMicsMic? {
-    val mic = database.mics.mics.firstOrNull { it.id == id }
-    if (mic == null || !mic.connected) {
+    val mic = database.mics.mics.value.firstOrNull { it.id == id }
+    if (mic == null || !mic.connected.value) {
         return null
     }
     return mic

@@ -99,7 +99,69 @@ private enum class Amf0Type(val rawValue: UByte) {
     }
 }
 
-class Amf0Encoder : ByteWriter {
+class Amf0Encoder {
+    private val writer = ByteWriter()
+
+    var data: ByteArray
+        get() = writer.data
+        set(value) {
+            writer.data = value
+        }
+
+    var length: Int
+        get() = writer.length
+        set(value) {
+            writer.length = value
+        }
+
+    fun writeUInt8(value: UByte) {
+        writer.writeUInt8(value)
+    }
+
+    fun writeUInt16(value: UShort) {
+        writer.writeUInt16(value)
+    }
+
+    fun writeUInt16Le(value: UShort) {
+        writer.writeUInt16Le(value)
+    }
+
+    fun writeUInt24(value: UInt) {
+        writer.writeUInt24(value)
+    }
+
+    fun writeUInt24Le(value: UInt) {
+        writer.writeUInt24Le(value)
+    }
+
+    fun writeUInt32(value: UInt) {
+        writer.writeUInt32(value)
+    }
+
+    fun writeUInt32Le(value: UInt) {
+        writer.writeUInt32Le(value)
+    }
+
+    fun writeUInt64(value: ULong) {
+        writer.writeUInt64(value)
+    }
+
+    fun writeInt32(value: Int) {
+        writer.writeInt32(value)
+    }
+
+    fun writeDouble(value: Double) {
+        writer.writeDouble(value)
+    }
+
+    fun writeUTF8Bytes(value: String) {
+        writer.writeUTF8Bytes(value)
+    }
+
+    fun writeBytes(value: ByteArray) {
+        writer.writeBytes(value)
+    }
+
     fun encode(value: AsValue) {
         when (value) {
             is AsValue.Number -> encodeDouble(value.value)
@@ -115,11 +177,11 @@ class Amf0Encoder : ByteWriter {
 
     private fun encodeDouble(value: Double) {
         writeAmf0Type(Amf0Type.Number)
-        writeDouble(value)
+        writer.writeDouble(value)
     }
 
     private fun encodeBool(value: Boolean) {
-        writeBytes(
+        writer.writeBytes(
             byteArrayOf(
                 Amf0Type.Bool.rawValue.toByte(),
                 if (value) 0x01.toByte() else 0x00.toByte(),
@@ -153,8 +215,8 @@ class Amf0Encoder : ByteWriter {
 
     private fun encodeDate(value: Instant) {
         writeAmf0Type(Amf0Type.Date)
-        writeDouble(value.epochSecond * 1000.0 + value.nano / 1_000_000.0)
-        writeUInt16(0.toUShort())
+        writer.writeDouble(value.epochSecond * 1000.0 + value.nano / 1_000_000.0)
+        writer.writeUInt16(0.toUShort())
     }
 
     private fun encodeShortString(value: String) {
@@ -162,22 +224,39 @@ class Amf0Encoder : ByteWriter {
     }
 
     private fun encodeShortString(data: ByteArray) {
-        writeUInt16(data.size.toUShort())
-        writeBytes(data)
+        writer.writeUInt16(data.size.toUShort())
+        writer.writeBytes(data)
     }
 
     private fun encodeLongString(data: ByteArray) {
-        writeUInt32(data.size.toUInt())
-        writeBytes(data)
+        writer.writeUInt32(data.size.toUInt())
+        writer.writeBytes(data)
     }
 
     private fun writeAmf0Type(value: Amf0Type) {
-        writeUInt8(value.rawValue)
+        writer.writeUInt8(value.rawValue)
     }
 }
 
-class Amf0Decoder : ByteReader {
+class Amf0Decoder(data: ByteArray) {
+    private val reader = ByteReader(data)
+
     private var depth = 0
+
+    var data: ByteArray
+        get() = reader.data
+        set(value) {
+            reader.data = value
+        }
+
+    var position: Int
+        get() = reader.position
+        set(value) {
+            reader.position = value
+        }
+
+    val bytesAvailable: Int
+        get() = reader.bytesAvailable
 
     fun decode(): AsValue {
         if (depth >= 32) {
@@ -250,11 +329,11 @@ class Amf0Decoder : ByteReader {
     }
 
     private fun decodeDoubleValue(): Double {
-        return readDouble()
+        return reader.readDouble()
     }
 
     private fun decodeBoolValue(): Boolean {
-        return readUInt8() == 0x01.toUByte()
+        return reader.readUInt8() == 0x01.toUByte()
     }
 
     private fun decodeEcmaArrayValue(): AsEcmaArray {
@@ -272,7 +351,7 @@ class Amf0Decoder : ByteReader {
     }
 
     private fun readNumberOfArrayElements(): UInt {
-        val numberOfElements = readUInt32()
+        val numberOfElements = reader.readUInt32()
         if (numberOfElements >= 128u) {
             throw AmfError.ArrayTooBig
         }
@@ -280,10 +359,10 @@ class Amf0Decoder : ByteReader {
     }
 
     private fun decodeDateValue(): Instant {
-        val seconds = readDouble() / 1000.0
+        val seconds = reader.readDouble() / 1000.0
         val wholeSeconds = truncate(seconds).toLong()
         val nanos = ((seconds - wholeSeconds) * 1_000_000_000.0).roundToLong()
-        readUInt16()
+        reader.readUInt16()
         return Instant.ofEpochSecond(wholeSeconds, nanos)
     }
 
@@ -298,20 +377,20 @@ class Amf0Decoder : ByteReader {
     }
 
     private fun decodeStringValue(): String {
-        return readUtf8Bytes(readUInt16().toInt())
+        return reader.readUtf8Bytes(reader.readUInt16().toInt())
     }
 
     private fun decodeLongStringValue(): String {
-        return readUtf8Bytes(readUInt32().toInt())
+        return reader.readUtf8Bytes(reader.readUInt32().toInt())
     }
 
     private fun readAmf0Type(): Amf0Type {
-        val value = readUInt8()
+        val value = reader.readUInt8()
         return Amf0Type.fromRawValue(value) ?: throw AmfError.NotAmf0
     }
 
     private fun parseObjectEnd() {
-        if (readUInt8() != Amf0Type.ObjectEnd.rawValue) {
+        if (reader.readUInt8() != Amf0Type.ObjectEnd.rawValue) {
             throw AmfError.NotObjectEnd
         }
     }

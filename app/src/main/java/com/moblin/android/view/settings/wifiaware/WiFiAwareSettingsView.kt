@@ -69,8 +69,8 @@ private fun SearchView() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WiFiAwareSettingsView(model: Model = LocalModel.current, wiFiAware: SettingsWiFiAware) {
-    val enabled by wiFiAware.enabled.collectAsState()
-    val role by wiFiAware.role.collectAsState()
+    val enabled = wiFiAware.enabled
+    val role = wiFiAware.role
     var roleExpanded by remember { mutableStateOf(false) }
 
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
@@ -88,8 +88,8 @@ fun WiFiAwareSettingsView(model: Model = LocalModel.current, wiFiAware: Settings
                     Switch(
                         checked = enabled,
                         onCheckedChange = { newValue ->
-                            wiFiAware.enabled.value = newValue
-                            model.wiFiAwareUpdated()
+                            wiFiAware.enabled = newValue
+                            TODO("model.wiFiAwareUpdated()")
                         },
                     )
                 }
@@ -127,7 +127,7 @@ fun WiFiAwareSettingsView(model: Model = LocalModel.current, wiFiAware: Settings
                             DropdownMenuItem(
                                 text = { Text(roleCase.toString()) },
                                 onClick = {
-                                    wiFiAware.role.value = roleCase
+                                    wiFiAware.role = roleCase
                                     roleExpanded = false
                                 },
                             )

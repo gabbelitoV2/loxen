@@ -39,7 +39,7 @@ import com.moblin.android.LocalOnNavigate
 
 private fun widgets(database: Database): List<SettingsWidget> =
     database.widgets.filter {
-        it.type == SettingsWidgetType.TEXT || it.type == SettingsWidgetType.IMAGE
+        it.type == SettingsWidgetType.text || it.type == SettingsWidgetType.image
     }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -106,7 +106,7 @@ fun WidgetSlideshowSlideSummaryView(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         DraggableItemPrefixView()
-        val widget = slide.widgetId?.let { model.findWidget(id = it) }
+        val widget = slide.widgetId?.let { id -> model.database.widgets.firstOrNull { it.id == id } }
         if (widget != null) {
             WidgetNameView(widget = widget)
         } else {
@@ -136,10 +136,10 @@ private fun SlideView(
 private fun deleteSlide(
     model: Model,
     slideshow: SettingsWidgetSlideshow,
-    at: List<Int>,
+    at: Int,
 ) {
-    at.sortedDescending().forEach { index -> slideshow.slides.removeAt(index) }
-    model.resetSelectedScene(changeScene = false, attachCamera = false)
+    slideshow.slides = slideshow.slides.filterIndexed { index, _ -> index != at }
+    TODO("Model.resetSelectedScene has no Android counterpart")
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -158,8 +158,9 @@ private fun SlidesView(
                     .combinedClickable(
                         onClick = {},
                         onLongClick = {
-                            makeOffsets(slideshow.slides, slide.id)?.let { offsets ->
-                                deleteSlide(model = model, slideshow = slideshow, at = offsets)
+                            val index = slideshow.slides.indexOfFirst { it.id == slide.id }
+                            if (index != -1) {
+                                deleteSlide(model = model, slideshow = slideshow, at = index)
                             }
                         },
                     ),
@@ -173,8 +174,8 @@ private fun SlidesView(
             }
         }
         AddButtonView {
-            slideshow.slides.add(SettingsWidgetSlideshowSlide())
-            model.resetSelectedScene(changeScene = false, attachCamera = false)
+            slideshow.slides = slideshow.slides + SettingsWidgetSlideshowSlide()
+            TODO("Model.resetSelectedScene has no Android counterpart")
         }
         SwipeLeftToDeleteHelpView(kind = localized("a slide"))
     }

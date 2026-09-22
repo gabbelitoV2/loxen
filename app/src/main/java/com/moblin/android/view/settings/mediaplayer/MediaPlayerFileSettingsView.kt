@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.Model
@@ -33,7 +34,7 @@ private fun submitName(
     value: String,
 ) {
     file.name = value.trim()
-    model.updateMediaPlayerSettings(playerId = player.id, settings = player)
+    TODO("model.updateMediaPlayerSettings")
 }
 
 @Composable
@@ -46,7 +47,7 @@ fun MediaPlayerFileSettingsView(
     var image by remember { mutableStateOf<Bitmap?>(null) }
 
     LaunchedEffect(Unit) {
-        createThumbnail(model.mediaStorage.makePath(file.id)) { thumbnail ->
+        createThumbnail(model.mediaStorage.makePath(file.id).absolutePath) { thumbnail ->
             image = thumbnail
         }
     }
@@ -59,7 +60,7 @@ fun MediaPlayerFileSettingsView(
         val currentImage = image
         if (currentImage != null) {
             androidx.compose.foundation.Image(
-                bitmap = currentImage,
+                bitmap = currentImage.asImageBitmap(),
                 contentDescription = null,
                 modifier = Modifier.width(90.dp),
                 contentScale = ContentScale.Fit,

@@ -1,40 +1,40 @@
 package com.moblin.android.streamingplatforms.kick
 
-import com.moblin.android.common.various.sleep
 import com.moblin.android.various.model.PlatformStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 class KickPlatformStatus {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var task: Job? = null
-    var platformStatus: PlatformStatus = PlatformStatus.Unknown
+    var platformStatus: PlatformStatus = PlatformStatus.unknown
 
     fun start(channelName: String) {
         task = scope.launch {
-            var delay = 1.0
+            var delaySeconds = 1.0
             while (true) {
                 try {
-                    sleep(seconds = delay)
+                    delay((delaySeconds * 1000).toLong())
                     val info = getKickChannelInfo(channelName = channelName)
                     val livestream = info.livestream
                     if (livestream != null) {
-                        setNumberOfViewers(PlatformStatus.Live(viewerCount = livestream.viewers))
+                        setNumberOfViewers(PlatformStatus.live(viewerCount = livestream.viewers))
                     } else {
-                        setNumberOfViewers(PlatformStatus.Offline)
+                        setNumberOfViewers(PlatformStatus.offline)
                     }
                 } catch (e: Exception) {
-                    setNumberOfViewers(PlatformStatus.Unknown)
+                    setNumberOfViewers(PlatformStatus.unknown)
                 }
                 if (!isActive) {
-                    setNumberOfViewers(PlatformStatus.Unknown)
+                    setNumberOfViewers(PlatformStatus.unknown)
                     break
                 }
-                delay = 30.0
+                delaySeconds = 30.0
             }
         }
     }

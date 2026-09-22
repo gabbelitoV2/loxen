@@ -64,11 +64,14 @@ fun TeamViewDetail(
             onChange = {
                 team.name = it
                 updated()
+                null
             },
+            onSubmit = {},
         )
         RgbColorPickerView(
             title = "Text",
             color = team.textColorColor,
+            onColorChanged = {},
             onChange = {
                 team.textColor = it
                 updated()
@@ -77,6 +80,7 @@ fun TeamViewDetail(
         RgbColorPickerView(
             title = "Background",
             color = team.backgroundColorColor,
+            onColorChanged = {},
             onChange = {
                 team.backgroundColor = it
                 updated()
@@ -238,7 +242,7 @@ fun WidgetScoreboardModularLayoutDetailView(
             Slider(
                 value = modular.width.toFloat(),
                 onValueChange = {
-                    modular.width = it.toDouble()
+                    modular.width = it
                     updated()
                 },
                 valueRange = 100f..1000f,
@@ -254,7 +258,7 @@ fun WidgetScoreboardModularLayoutDetailView(
             Slider(
                 value = modular.rowHeight.toFloat(),
                 onValueChange = {
-                    modular.rowHeight = it.toDouble()
+                    modular.rowHeight = it
                     updated()
                 },
                 valueRange = 10f..150f,

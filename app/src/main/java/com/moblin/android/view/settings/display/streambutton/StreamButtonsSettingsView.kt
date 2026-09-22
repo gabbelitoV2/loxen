@@ -16,7 +16,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.moblin.android.localized
 import com.moblin.android.various.settings.Database
-import com.moblin.android.various.settings.color
 import com.moblin.android.various.settings.defaultStreamButtonColor
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextButtonView
@@ -24,7 +23,7 @@ import com.moblin.android.view.utils.TextButtonView
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamButtonsSettingsView(database: Database) {
-    val streamButtonColorColor by database.streamButtonColorColor.collectAsState()
+    val streamButtonColorColor = database.streamButtonColorColor
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(localized("Stream button")) })
@@ -43,15 +42,18 @@ fun StreamButtonsSettingsView(database: Database) {
             RgbColorPickerView(
                 title = localized("Background"),
                 color = streamButtonColorColor,
+                onColorChanged = { color ->
+                    database.streamButtonColorColor = color
+                },
                 onChange = { color ->
-                    database.streamButtonColor.value = color
+                    database.streamButtonColor = color
                 },
             )
             TextButtonView(
-                text = localized("Reset"),
-                onClick = {
-                    database.streamButtonColor.value = defaultStreamButtonColor
-                    database.streamButtonColorColor.value = database.streamButtonColor.value.color()
+                title = localized("Reset"),
+                action = {
+                    database.streamButtonColor = defaultStreamButtonColor
+                    database.streamButtonColorColor = database.streamButtonColor.color()
                 },
             )
         }

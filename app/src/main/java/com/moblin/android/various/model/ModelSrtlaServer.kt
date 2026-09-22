@@ -34,21 +34,28 @@ fun Model.srtlaServerEnabled(): Boolean {
 }
 
 fun Model.srtlaCameras(): List<Camera> {
-    return database.srtlaServer.streams.map { Camera(id = it.id.uuidString, name = it.camera()) }
+    return database.srtlaServer.streams.map { Camera(id = it.id.toString(), name = it.camera()) }
 }
 
 fun Model.getSrtlaStream(id: UUID): SettingsSrtlaServerStream? {
     return database.srtlaServer.streams.firstOrNull { it.id == id }
 }
 
-@JvmName("getSrtlaStreamIdString")
-fun Model.getSrtlaStream(idString: String): SettingsSrtlaServerStream? {
-    return database.srtlaServer.streams.firstOrNull { it.id.uuidString == idString }
-}
-
-@JvmName("getSrtlaStreamStreamId")
-fun Model.getSrtlaStream(streamId: String): SettingsSrtlaServerStream? {
-    return database.srtlaServer.streams.firstOrNull { it.streamId == streamId }
+fun Model.getSrtlaStream(
+    streamId: String? = null,
+    idString: String? = null,
+): SettingsSrtlaServerStream? {
+    if (streamId != null) {
+        database.srtlaServer.streams.firstOrNull { it.streamId == streamId }?.let {
+            return it
+        }
+    }
+    if (idString != null) {
+        database.srtlaServer.streams.firstOrNull { it.id.toString() == idString }?.let {
+            return it
+        }
+    }
+    return null
 }
 
 fun Model.isSrtlaStreamConnected(streamId: String): Boolean {

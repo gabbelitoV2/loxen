@@ -45,7 +45,7 @@ fun DebugSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var presentingLog by remember { mutableStateOf(false) }
-    val log = remember { mutableStateOf(ArrayDeque<LogEntry>()) }
+    val log = remember { mutableStateOf<List<LogEntry>>(emptyList()) }
 
     fun changeLogLines(value: String): String? {
         val lines = value.toIntOrNull() ?: return localized("Not a number")
@@ -60,14 +60,14 @@ fun DebugSettingsView(
 
     fun submitLogLines(value: String) {
         val lines = value.toIntOrNull() ?: return
-        debug.setMaximumLogLines(lines)
+        debug.maximumLogLines = lines
     }
 
     fun reloadLog() {
-        log.value = model.log.value
+        log.value = model.log
     }
 
-    val maximumLogLines by debug.maximumLogLines.collectAsState()
+    val maximumLogLines = debug.maximumLogLines
     val debugLogging by debug.debugLogging.collectAsState()
     val debugOverlay by debug.debugOverlay.collectAsState()
     val bitrateDropFix by debug.bitrateDropFix.collectAsState()
@@ -93,13 +93,13 @@ fun DebugSettingsView(
                     .padding(padding),
             ) {
                 item {
-                    TextButtonView(text = "Log", onClick = { presentingLog = true })
+                    TextButtonView(title = "Log", action = { presentingLog = true })
                 }
                 item {
                     FilesLocationView(
                         model = model,
                         text = "Logs directory",
-                        path = model.logsStorage.storageDirectory(),
+                        path = model.logsStorage.storageDirectory().toURI(),
                     )
                 }
                 item {
@@ -108,7 +108,7 @@ fun DebugSettingsView(
                         Switch(
                             checked = debugLogging,
                             onCheckedChange = {
-                                debug.setDebugLogging(it)
+                                debug.debugLogging.value = it
                                 model.setDebugLogging(on = it)
                             },
                         )
@@ -128,8 +128,8 @@ fun DebugSettingsView(
                         Switch(
                             checked = debugOverlay,
                             onCheckedChange = {
-                                debug.setDebugOverlay(it)
-                                model.updateDebugOverlay()
+                                debug.debugOverlay.value = it
+                                TODO("model.updateDebugOverlay()")
                             },
                         )
                     }
@@ -139,8 +139,8 @@ fun DebugSettingsView(
                 }
                 item {
                     TextButtonView(
-                        text = "Video",
-                        onClick = { onNavigate("DebugVideoSettingsView") },
+                        title = "Video",
+                        action = { onNavigate("DebugVideoSettingsView") },
                     )
                 }
                 item {
@@ -149,7 +149,7 @@ fun DebugSettingsView(
                         Switch(
                             checked = bitrateDropFix,
                             onCheckedChange = {
-                                debug.setBitrateDropFix(it)
+                                debug.bitrateDropFix.value = it
                                 model.setBitrateDropFix()
                             },
                         )
@@ -160,7 +160,7 @@ fun DebugSettingsView(
                         Text("Data rate limit")
                         Slider(
                             value = dataRateLimitFactor.toFloat(),
-                            onValueChange = { debug.setDataRateLimitFactor(it.toDouble()) },
+                            onValueChange = { debug.dataRateLimitFactor.value = it },
                             modifier = Modifier.weight(1f),
                             valueRange = 1.2f..2.5f,
                             steps = ((2.5 - 1.2) / 0.1).roundToInt() - 1,
@@ -180,7 +180,7 @@ fun DebugSettingsView(
                         )
                         Switch(
                             checked = relaxedBitrate,
-                            onCheckedChange = { debug.setRelaxedBitrate(it) },
+                            onCheckedChange = { debug.relaxedBitrate.value = it },
                         )
                     }
                 }
@@ -189,7 +189,7 @@ fun DebugSettingsView(
                         Text("Twitch rewards", modifier = Modifier.weight(1f))
                         Switch(
                             checked = twitchRewards,
-                            onCheckedChange = { debug.setTwitchRewards(it) },
+                            onCheckedChange = { debug.twitchRewards.value = it },
                         )
                     }
                 }
@@ -200,7 +200,7 @@ fun DebugSettingsView(
                             Slider(
                                 value = builtinAudioAndVideoDelay.toFloat(),
                                 onValueChange = {
-                                    debug.setBuiltinAudioAndVideoDelay(it.toDouble())
+                                    debug.builtinAudioAndVideoDelay.value = it.toDouble()
                                 },
                                 modifier = Modifier.weight(1f),
                                 valueRange = 0.0f..4.0f,
@@ -218,14 +218,14 @@ fun DebugSettingsView(
                         Text("Enhanced Moblin SRT", modifier = Modifier.weight(1f))
                         Switch(
                             checked = enhancedMoblinSrt,
-                            onCheckedChange = { debug.setEnhancedMoblinSrt(it) },
+                            onCheckedChange = { debug.enhancedMoblinSrt.value = it },
                         )
                     }
                 }
                 item {
                     TextButtonView(
-                        text = "HTTP proxy",
-                        onClick = { onNavigate("HttpProxySettingsView") },
+                        title = "HTTP proxy",
+                        action = { onNavigate("HttpProxySettingsView") },
                     )
                 }
                 item {
@@ -233,7 +233,7 @@ fun DebugSettingsView(
                         Text("SRT(LA) packet padding", modifier = Modifier.weight(1f))
                         Switch(
                             checked = packetPadding,
-                            onCheckedChange = { debug.setPacketPadding(it) },
+                            onCheckedChange = { debug.packetPadding.value = it },
                         )
                     }
                 }
@@ -246,7 +246,7 @@ fun DebugSettingsView(
                         Switch(
                             checked = cameraManMoveVertically,
                             onCheckedChange = {
-                                debug.setCameraManMoveVertically(it)
+                                debug.cameraManMoveVertically.value = it
                                 model.cameraManEffect.setSettings(
                                     moveVertically = it,
                                     speed = cameraManSpeed,
@@ -262,7 +262,7 @@ fun DebugSettingsView(
                         Switch(
                             checked = cameraManAlwaysMove,
                             onCheckedChange = {
-                                debug.setCameraManAlwaysMove(it)
+                                debug.cameraManAlwaysMove.value = it
                                 model.cameraManEffect.setSettings(
                                     moveVertically = cameraManMoveVertically,
                                     speed = cameraManSpeed,
@@ -277,7 +277,7 @@ fun DebugSettingsView(
                         Text("Speed")
                         Slider(
                             value = cameraManSpeed.toFloat(),
-                            onValueChange = { debug.setCameraManSpeed(it.toDouble()) },
+                            onValueChange = { debug.cameraManSpeed.value = it.toDouble() },
                             modifier = Modifier.weight(1f),
                             valueRange = 0.2f..4.0f,
                             onValueChangeFinished = {
@@ -301,7 +301,7 @@ fun DebugSettingsView(
                 presentingLog = presentingLog,
                 onPresentingLogChange = { presentingLog = it },
                 reloadLog = { reloadLog() },
-                clearLog = { model.clearLog() },
+                clearLog = { TODO("model.clearLog()") },
             )
             LaunchedEffect(Unit) {
                 reloadLog()

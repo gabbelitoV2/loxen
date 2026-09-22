@@ -35,17 +35,7 @@ fun QuickButtonStreamSwitcherView(model: Model = LocalModel.current, database: D
     var isFirstComposition by remember { mutableStateOf(true) }
     LaunchedEffect(currentStreamId) {
         if (!isFirstComposition) {
-            model.stopStream()
-            model.stopRecording()
-            if (model.setCurrentStream(streamId = currentStreamId)) {
-                model.reloadStream()
-                model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
-                model.setIsLive(value = true)
-                delay(3000)
-                model.startStream(delayed = true)
-            } else {
-                model.makeErrorToast(title = "Failed to switch stream")
-            }
+            TODO("Switching stream is not implemented")
         }
         isFirstComposition = false
     }
@@ -64,7 +54,7 @@ fun QuickButtonStreamSwitcherView(model: Model = LocalModel.current, database: D
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            model.currentStreamId = stream.id
+                            model.currentStreamId.value = stream.id
                         }
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -72,7 +62,7 @@ fun QuickButtonStreamSwitcherView(model: Model = LocalModel.current, database: D
                     RadioButton(
                         selected = stream.id == currentStreamId,
                         onClick = {
-                            model.currentStreamId = stream.id
+                            model.currentStreamId.value = stream.id
                         }
                     )
                     Text(stream.name)

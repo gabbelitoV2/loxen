@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -24,6 +25,7 @@ import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.UrlsView
 import com.moblin.android.LocalModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HttpProxySettingsView(
     model: Model = LocalModel.current,
@@ -35,13 +37,13 @@ fun HttpProxySettingsView(
     val localNetwork = httpProxy.localNetwork.collectAsState().value
 
     fun submitPort(value: String) {
-        val newPort = value.trim().toUShortOrNull()
+        val newPort = value.trim().toIntOrNull()
         if (newPort == null) {
             model.makePortErrorToast(port = value)
             return
         }
-        httpProxy.setPort(newPort)
-        model.reloadHttpProxyServer()
+        httpProxy.port.value = newPort
+        TODO("reloadHttpProxyServer")
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -80,8 +82,8 @@ fun HttpProxySettingsView(
                     Switch(
                         checked = enabled,
                         onCheckedChange = {
-                            httpProxy.setEnabled(it)
-                            model.httpProxyServerChanged()
+                            httpProxy.enabled.value = it
+                            TODO("httpProxyServerChanged")
                         },
                     )
                 }
@@ -110,8 +112,8 @@ fun HttpProxySettingsView(
                     Switch(
                         checked = localNetwork,
                         onCheckedChange = {
-                            httpProxy.setLocalNetwork(it)
-                            model.httpProxyServerChanged()
+                            httpProxy.localNetwork.value = it
+                            TODO("httpProxyServerChanged")
                         },
                     )
                 }

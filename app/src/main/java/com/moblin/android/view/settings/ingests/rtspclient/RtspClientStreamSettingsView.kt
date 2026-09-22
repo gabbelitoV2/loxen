@@ -103,7 +103,7 @@ fun UrlSettingsView(
                 Column {
                     MultiLineTextFieldView(
                         value = valueState,
-                        onChange = { newValue ->
+                        onValueChange = { newValue ->
                             valueState = newValue
                             error = isValidUrl(newValue, allowedSchemes)
                             changed = true
@@ -112,16 +112,15 @@ fun UrlSettingsView(
                                 submitUrl()
                             }
                         },
-                        placeholder = placeholder,
-                        enabled = !disabled
+                        placeholder = placeholder
                     )
                     error?.let { FormFieldError(error = it) }
                 }
             }
             item {
                 TextButtonView(
-                    text = localized("Examples"),
-                    onClick = { presentingHelp = true }
+                    title = localized("Examples"),
+                    action = { presentingHelp = true }
                 )
             }
         }
@@ -136,7 +135,7 @@ fun UrlSettingsView(
                         actions = {
                             CloseToolbar(
                                 presenting = presentingHelp,
-                                onChange = { presentingHelp = it }
+                                onPresentingChange = { presentingHelp = it }
                             )
                         }
                     )
@@ -175,7 +174,7 @@ fun RtspClientStreamSettingsView(
             checked = stream.enabled,
             onCheckedChange = { enabled ->
                 stream.enabled = enabled
-                model.reloadRtspClient()
+                TODO("reloadRtspClient")
             }
         )
     }
@@ -200,7 +199,7 @@ fun RtspClientStreamSettingsViewDestination(
             item {
                 NameEditView(
                     name = stream.name,
-                    onChangeName = { stream.name = it },
+                    onNameChange = { stream.name = it },
                     existingNames = rtspClient.streams
                 )
             }
@@ -247,7 +246,7 @@ fun RtspClientStreamSettingsViewDestination(
                                         onClick = {
                                             stream.transport = transport
                                             transportExpanded = false
-                                            model.reloadRtspClient()
+                                            TODO("reloadRtspClient")
                                         }
                                     )
                                 }
@@ -266,7 +265,7 @@ fun RtspClientStreamSettingsViewDestination(
                             val latency = text.toIntOrNull()
                             if (latency != null) {
                                 stream.latency = latency
-                                model.reloadRtspClient()
+                                TODO("reloadRtspClient")
                             }
                         },
                         footers = listOf(

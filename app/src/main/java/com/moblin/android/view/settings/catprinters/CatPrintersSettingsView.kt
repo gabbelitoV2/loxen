@@ -73,8 +73,9 @@ private fun CatPrinterSettingsWrapperView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
     modifier: Modifier = Modifier,
 ) {
+    val name by device.name.collectAsState()
     Text(
-        text = device.name,
+        text = name,
         modifier = modifier
             .fillMaxWidth()
             .clickable { onNavigate("CatPrinterSettingsView") },
@@ -88,7 +89,7 @@ fun CatPrintersSettingsView(
     catPrinters: SettingsCatPrinters,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val statusTopRight = model.statusTopRight.collectAsState().value
+    val statusTopRight = model.statusTopRight
     val devices = catPrinters.devices.collectAsState().value
     val backgroundPrinting = catPrinters.backgroundPrinting.collectAsState().value
     val onDelete: (Set<Int>) -> Unit = { offsets ->
@@ -169,7 +170,7 @@ fun CatPrintersSettingsView(
             item {
                 CreateButtonView {
                     val device = SettingsCatPrinter()
-                    device.name = makeUniqueName(
+                    device.name.value = makeUniqueName(
                         name = SettingsCatPrinter.baseName,
                         existingNames = catPrinters.devices.value,
                     )

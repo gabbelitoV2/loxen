@@ -42,14 +42,14 @@ class MpegTsVideoConfigHevc(hvcC: ByteArray) {
         val reader = ByteReader(hvcC)
         try {
             reader.readBytes(22)
-            val numberOfArrays = reader.readUInt8()
+            val numberOfArrays = reader.readUInt8().toInt()
             for (i in 0 until numberOfArrays) {
-                val header = reader.readUInt8()
-                val nalUnitType = HevcNalUnitType.fromRawValue(header and 0b0011_1111)
+                val header = reader.readUInt8().toInt()
+                val nalUnitType = HevcNalUnitType.fromRawValue((header and 0b0011_1111).toUByte())
                     ?: HevcNalUnitType.unspec
-                val numNalus = reader.readUInt16()
+                val numNalus = reader.readUInt16().toInt()
                 for (j in 0 until numNalus) {
-                    val length = reader.readUInt16()
+                    val length = reader.readUInt16().toInt()
                     val data = reader.readBytes(length)
                     when (nalUnitType) {
                         HevcNalUnitType.vps -> videoParameterSet = data

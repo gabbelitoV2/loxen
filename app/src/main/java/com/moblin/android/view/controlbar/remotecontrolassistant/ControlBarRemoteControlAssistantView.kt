@@ -41,6 +41,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -90,7 +91,7 @@ import com.moblin.android.remotecontrol.RemoteControlSettingsSrtConnectionPriori
 import com.moblin.android.remotecontrol.RemoteControlStatusGeneral
 import com.moblin.android.remotecontrol.RemoteControlStatusItem
 import com.moblin.android.view.CloseButtonView
-import com.moblin.android.view.TextButtonView
+import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.settings.debug.DebugLogSettingsView
 import com.moblin.android.view.settings.remotecontrol.RemoteControlStreamersView
 import com.moblin.android.view.settings.streams.stream.srt.clampConnectionPriority
@@ -100,9 +101,27 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.various.model.LogEntry
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
-import com.moblin.android.various.model.QuickButtonType
 import com.moblin.android.various.model.RemoteControl
 import com.moblin.android.various.model.RemoteControlAssistantPreviewUser
+import com.moblin.android.various.model.clearRemoteControlAssistantLog
+import com.moblin.android.various.model.isRemoteControlAssistantConfigured
+import com.moblin.android.various.model.isRemoteControlAssistantConnected
+import com.moblin.android.various.model.remoteControlAssistantReloadBrowserWidgets
+import com.moblin.android.various.model.remoteControlAssistantSetAutoSceneSwitcher
+import com.moblin.android.various.model.remoteControlAssistantSetBitratePreset
+import com.moblin.android.various.model.remoteControlAssistantSetDebugLogging
+import com.moblin.android.various.model.remoteControlAssistantSetLive
+import com.moblin.android.various.model.remoteControlAssistantSetMic
+import com.moblin.android.various.model.remoteControlAssistantSetMute
+import com.moblin.android.various.model.remoteControlAssistantSetPreviewStream
+import com.moblin.android.various.model.remoteControlAssistantSetRecord
+import com.moblin.android.various.model.remoteControlAssistantSetScene
+import com.moblin.android.various.model.remoteControlAssistantSetSrtConnectionPriority
+import com.moblin.android.various.model.remoteControlAssistantSetSrtConnectionPriorityEnabled
+import com.moblin.android.various.model.remoteControlAssistantSetStealthMode
+import com.moblin.android.various.model.remoteControlAssistantSetZoom
+import com.moblin.android.various.model.remoteControlAssistantSetZoomPreset
+import com.moblin.android.various.model.updateRemoteControlAssistantStatus
 import com.moblin.android.various.settings.SettingsRemoteControl
 import java.util.UUID
 import kotlin.math.min
@@ -119,7 +138,7 @@ private fun StatusItemView(icon: String, status: RemoteControlStatusItem?) {
                 tint = if (status.ok) LocalContentColor.current else Color.Red,
                 modifier = Modifier.width(20.dp),
             )
-            Text(text = status.message, fontSize = smallFont)
+            Text(text = status.message, style = smallFont)
         }
     }
 }
@@ -136,7 +155,7 @@ private fun RemoteControlSrtConnectionPriorityView(
 
     fun makeName(): String {
         val name = model.database.networkInterfaceNames
-            .firstOrNull { interface -> interface.interfaceName == priority.name }
+            .firstOrNull { iface -> iface.interfaceName == priority.name }
             ?.name
         return if (name != null && name.isNotEmpty()) {
             name
@@ -252,9 +271,9 @@ private fun RemoteControlAudioLevelView(level: Float, channels: Int?) {
         Row(horizontalArrangement = Arrangement.spacedBy(1.dp)) {
             if (level.isNaN()) {
                 if (channels == null) {
-                    Text("Muted", fontSize = smallFont)
+                    Text("Muted", style = smallFont)
                 } else {
-                    Text("Muted,", fontSize = smallFont)
+                    Text("Muted,", style = smallFont)
                 }
             } else {
                 Row(modifier = Modifier.padding(bottom = 3.dp)) {
@@ -262,33 +281,33 @@ private fun RemoteControlAudioLevelView(level: Float, channels: Int?) {
                         Text(
                             clippingText(),
                             color = Color.Red,
-                            fontSize = smallFont,
+                            style = smallFont,
                             fontWeight = FontWeight.Bold,
                         )
                     } else {
                         Text(
                             redText(),
                             color = Color.Red,
-                            fontSize = smallFont,
+                            style = smallFont,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
                             yellowText(),
                             color = Color.Yellow,
-                            fontSize = smallFont,
+                            style = smallFont,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
                             greenText(),
                             color = Color.Green,
-                            fontSize = smallFont,
+                            style = smallFont,
                             fontWeight = FontWeight.Bold,
                         )
                     }
                 }
             }
             if (channels != null) {
-                Text(formatAudioLevelChannels(channels = channels), fontSize = smallFont)
+                Text(formatAudioLevelChannels(channels = channels), style = smallFont)
             }
         }
     }
@@ -343,13 +362,11 @@ private fun ControlBarRemoteControlAssistantStatusView(
                         .pointerInput(Unit) {
                             detectTapGestures(
                                 onDoubleTap = {
-                                    remoteControl.presentingPreviewFullScreen = true
+                                    remoteControl.presentingPreviewFullScreen.value = true
                                 },
                                 onTap = {
-                                    model.remoteControlAssistantStopPreview(
-                                        user = RemoteControlAssistantPreviewUser.Panel,
-                                    )
-                                    remoteControl.presentingPreview = false
+                                    TODO("remoteControlAssistantStopPreview not available")
+                                    remoteControl.presentingPreview.value = false
                                 },
                             )
                         },
@@ -360,10 +377,8 @@ private fun ControlBarRemoteControlAssistantStatusView(
             }
         } else {
             TextButtonView("Show") {
-                model.remoteControlAssistantStartPreview(
-                    user = RemoteControlAssistantPreviewUser.Panel,
-                )
-                remoteControl.presentingPreview = true
+                TODO("remoteControlAssistantStartPreview not available")
+                remoteControl.presentingPreview.value = true
             }
         }
         if (presentingPreview) {
@@ -471,7 +486,7 @@ private fun LiveView(model: Model = LocalModel.current, remoteControl: RemoteCon
             confirmButton = {
                 TextButton(onClick = {
                     model.remoteControlAssistantSetLive(on = pendingStreaming)
-                    remoteControl.streaming = pendingStreaming
+                    remoteControl.streaming.value = pendingStreaming
                     checked = pendingStreaming
                     presentingConfirm = false
                 }) {
@@ -508,7 +523,7 @@ private fun RecordingView(model: Model = LocalModel.current, remoteControl: Remo
             confirmButton = {
                 TextButton(onClick = {
                     model.remoteControlAssistantSetRecord(on = pendingRecording)
-                    remoteControl.recording = pendingRecording
+                    remoteControl.recording.value = pendingRecording
                     checked = pendingRecording
                     presentingConfirm = false
                 }) {
@@ -686,7 +701,7 @@ private fun BitrateView(model: Model = LocalModel.current, remoteControl: Remote
     RemoteControlPicker(
         label = "Bitrate",
         options = bitratePresets.map { preset ->
-            val name = if (preset.bitrate > 0) {
+            val name = if (preset.bitrate.toLong() > 0) {
                 formatBytesPerSecond(speed = preset.bitrate.toLong())
             } else {
                 "Unknown"
@@ -711,7 +726,7 @@ private fun GimbalPresetView(model: Model = LocalModel.current, remoteControl: R
         if (gimbalPresets.isNotEmpty()) {
             gimbalPresets.forEach { preset ->
                 TextButtonView(title = preset.name) {
-                    model.remoteControlAssistantMoveToGimbalPreset(id = preset.id)
+                    TODO("remoteControlAssistantMoveToGimbalPreset not available")
                 }
             }
         } else {
@@ -729,13 +744,13 @@ private fun MacroView(model: Model = LocalModel.current, macro: RemoteControlMac
         Spacer(Modifier.weight(1f))
         if (macro.running) {
             TextButton(onClick = {
-                model.remoteControlAssistantStopMacro(id = macro.id)
+                TODO("remoteControlAssistantStopMacro not available")
             }) {
                 Text("Cancel", color = Color.Red)
             }
         } else {
             TextButton(onClick = {
-                model.remoteControlAssistantStartMacro(id = macro.id)
+                TODO("remoteControlAssistantStartMacro not available")
             }) {
                 Text("Run")
             }
@@ -785,7 +800,7 @@ private fun FilterToggleView(model: Model = LocalModel.current, filter: RemoteCo
     }
     LaunchedEffect(valueState) {
         if (valueState != model.remoteControlAssistantStreamerState.filters?.get(filter)) {
-            model.remoteControlAssistantSetFilter(filter = filter, on = valueState)
+            TODO("remoteControlAssistantSetFilter not available")
         }
     }
 }
@@ -841,7 +856,7 @@ private fun SendMessageView(model: Model = LocalModel.current) {
         if (trimmed.isEmpty()) {
             return
         }
-        model.remoteControlAssistantSendMessage(text = trimmed)
+        TODO("remoteControlAssistantSendMessage not available")
         text = ""
     }
 
@@ -937,6 +952,7 @@ private fun ControlBarRemoteControlAssistantControlView(
                     onPresentingLogChange = { presentingLog = it },
                     reloadLog = { reloadLog() },
                     clearLog = { model.clearRemoteControlAssistantLog() },
+                    onLogChange = { log = it },
                 )
                 LaunchedEffect(Unit) {
                     reloadLog()
@@ -949,7 +965,7 @@ private fun ControlBarRemoteControlAssistantControlView(
 @Composable
 private fun StreamerSelectionButtonView(remoteControl: RemoteControl) {
     TextButton(onClick = {
-        remoteControl.presentingStreamers = true
+        remoteControl.presentingStreamers.value = true
     }) {
         Icon(
             imageVector = Icons.Default.Person,
@@ -970,12 +986,9 @@ private fun ButtonsView(model: Model = LocalModel.current) {
         Column(horizontalAlignment = Alignment.End) {
             Row {
                 StreamerSelectionButtonView(remoteControl = model.remoteControl)
-                CloseButtonView(onClick = {
-                    model.showingRemoteControl = false
-                    model.setQuickButton(
-                        type = QuickButtonType.Remote,
-                        isOn = model.showingRemoteControl,
-                    )
+                CloseButtonView(onClose = {
+                    model.showingRemoteControl.value = false
+                    TODO("setQuickButton with QuickButtonType.Remote not available")
                 })
             }
             Spacer(Modifier.weight(1f))
@@ -1007,6 +1020,7 @@ private fun WaitingForStreamerView() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ControlBarRemoteControlAssistantInnerView(
     model: Model = LocalModel.current,
@@ -1035,7 +1049,7 @@ private fun ControlBarRemoteControlAssistantInnerView(
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onDoubleTap = {
-                                        remoteControl.presentingPreviewFullScreen = false
+                                        remoteControl.presentingPreviewFullScreen.value = false
                                     },
                                 )
                             },
@@ -1097,17 +1111,15 @@ private fun ControlBarRemoteControlAssistantInnerView(
     }
     LaunchedEffect(Unit) {
         model.updateRemoteControlAssistantStatus()
-        didDetachCamera = !(model.isLive || model.isRecording)
+        didDetachCamera = !(model.isLive.value || model.isRecording.value)
         if (didDetachCamera) {
             model.detachCamera()
         }
         model.updateScreenAutoOff()
         if (presentingPreview) {
-            model.remoteControlAssistantStartPreview(
-                user = RemoteControlAssistantPreviewUser.Panel,
-            )
+            TODO("remoteControlAssistantStartPreview not available")
         }
-        model.remoteControlAssistantStartStatus()
+        TODO("remoteControlAssistantStartStatus not available")
     }
     DisposableEffect(Unit) {
         onDispose {
@@ -1115,15 +1127,13 @@ private fun ControlBarRemoteControlAssistantInnerView(
                 model.attachCamera()
             }
             model.updateScreenAutoOff()
-            model.remoteControlAssistantStopPreview(
-                user = RemoteControlAssistantPreviewUser.Panel,
-            )
-            model.remoteControlAssistantStopStatus()
+            TODO("remoteControlAssistantStopPreview not available")
+            TODO("remoteControlAssistantStopStatus not available")
         }
     }
     if (presentingStreamers) {
         ModalBottomSheet(onDismissRequest = {
-            remoteControl.presentingStreamers = false
+            remoteControl.presentingStreamers.value = false
         }) {
             Column(
                 modifier = Modifier
@@ -1208,6 +1218,7 @@ private fun statusIcon(name: String): ImageVector = when (name) {
     else -> Icons.Default.Info
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun <T> RemoteControlPicker(
     label: String,

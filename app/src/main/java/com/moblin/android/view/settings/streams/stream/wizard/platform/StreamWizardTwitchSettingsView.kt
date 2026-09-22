@@ -25,6 +25,7 @@ import com.moblin.android.streamingplatforms.twitch.TwitchApi
 import com.moblin.android.streamingplatforms.twitch.TwitchLoginView
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.WizardPlatform
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
@@ -41,35 +42,38 @@ fun StreamWizardTwitchSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val scope = rememberCoroutineScope()
-    val twitchChannelName by createStreamWizard.twitchChannelName.collectAsState()
-    val twitchChannelId by createStreamWizard.twitchChannelId.collectAsState()
-    val showTwitchAuth by createStreamWizard.showTwitchAuth.collectAsState()
+    val twitchChannelName = createStreamWizard.twitchChannelName
+    val twitchChannelId = createStreamWizard.twitchChannelId
+    val showTwitchAuth = createStreamWizard.showTwitchAuth
 
     fun nextDisabled(): Boolean {
-        return createStreamWizard.twitchChannelName.value.trim().isEmpty()
+        return createStreamWizard.twitchChannelName.trim().isEmpty()
     }
 
     fun onLoginComplete() {
-        createStreamWizard.twitchChannelName.value = createStreamWizard.twitchStream.twitchChannelName
-        createStreamWizard.twitchChannelId.value = createStreamWizard.twitchStream.twitchChannelId
-        createStreamWizard.twitchAccessToken.value = createStreamWizard.twitchStream.twitchAccessToken
-        createStreamWizard.twitchLoggedIn.value = createStreamWizard.twitchStream.twitchLoggedIn
+        createStreamWizard.twitchChannelName = createStreamWizard.twitchStream.twitchChannelName
+        createStreamWizard.twitchChannelId = createStreamWizard.twitchStream.twitchChannelId
+        createStreamWizard.twitchAccessToken = createStreamWizard.twitchStream.twitchAccessToken
+        createStreamWizard.twitchLoggedIn = createStreamWizard.twitchStream.twitchLoggedIn
         scope.launch {
-            val streamKey = TwitchApi(createStreamWizard.twitchAccessToken.value)
-                .getStreamKey(createStreamWizard.twitchChannelId.value)
-            if (streamKey != null) {
-                createStreamWizard.directStreamKey.value = streamKey
-            }
+            TwitchApi(createStreamWizard.twitchAccessToken)
+                .getStreamKey(
+                    broadcasterId = createStreamWizard.twitchChannelId,
+                ) { streamKey ->
+                    if (streamKey != null) {
+                        createStreamWizard.directStreamKey = streamKey
+                    }
+                }
         }
     }
 
     LaunchedEffect(Unit) {
-        createStreamWizard.platform = CreateStreamWizard.Platform.Twitch
-        createStreamWizard.name.value = makeUniqueName(
+        createStreamWizard.platform = WizardPlatform.twitch
+        createStreamWizard.name = makeUniqueName(
             localized("Twitch"),
             model.database.streams,
         )
-        createStreamWizard.directIngest.value = "rtmp://ingest.global-contribute.live-video.net/app"
+        createStreamWizard.directIngest = "rtmp://ingest.global-contribute.live-video.net/app"
         createStreamWizard.twitchStream.twitchAccessToken = ""
     }
 
@@ -92,15 +96,11 @@ fun StreamWizardTwitchSettingsView(
                 Column {
                     if (createStreamWizard.twitchStream.twitchAccessToken.isEmpty()) {
                         TextButtonView("Login") {
-                            model.twitchLogin(
-                                createStreamWizard.twitchStream,
-                                { onLoginComplete() },
-                                { createStreamWizard.showTwitchAuth.value = true },
-                            )
+                            TODO("model.twitchLogin")
                         }
                     } else {
                         TextButtonView("Logout") {
-                            model.twitchLogout(createStreamWizard.twitchStream)
+                            TODO("model.twitchLogout")
                         }
                     }
                     Text(
@@ -114,7 +114,7 @@ fun StreamWizardTwitchSettingsView(
                     Text("Channel name", style = MaterialTheme.typography.titleSmall)
                     OutlinedTextField(
                         value = twitchChannelName,
-                        onValueChange = { createStreamWizard.twitchChannelName.value = it },
+                        onValueChange = { createStreamWizard.twitchChannelName = it },
                         placeholder = { Text("MyChannel") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -129,7 +129,7 @@ fun StreamWizardTwitchSettingsView(
                     Text("Channel id", style = MaterialTheme.typography.titleSmall)
                     OutlinedTextField(
                         value = twitchChannelId,
-                        onValueChange = { createStreamWizard.twitchChannelId.value = it },
+                        onValueChange = { createStreamWizard.twitchChannelId = it },
                         placeholder = { Text("908123903") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -141,10 +141,7 @@ fun StreamWizardTwitchSettingsView(
             }
             item {
                 Column {
-                    WizardNextButtonView(
-                        enabled = !nextDisabled(),
-                        onClick = { onNavigate("StreamWizardNetworkSetupSettingsView") },
-                    )
+                    WizardNextButtonView()
                 }
             }
         }
@@ -152,12 +149,12 @@ fun StreamWizardTwitchSettingsView(
 
     if (showTwitchAuth) {
         ModalBottomSheet(
-            onDismissRequest = { createStreamWizard.showTwitchAuth.value = false },
+            onDismissRequest = { createStreamWizard.showTwitchAuth = false },
         ) {
             TwitchLoginView(
                 model = model,
                 presenting = showTwitchAuth,
-                onPresentingChange = { createStreamWizard.showTwitchAuth.value = it },
+                onPresentingChange = { createStreamWizard.showTwitchAuth = it },
             )
         }
     }

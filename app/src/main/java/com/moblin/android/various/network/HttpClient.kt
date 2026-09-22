@@ -21,7 +21,7 @@ import okhttp3.Response
 
 private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-class HttpParser {
+open class HttpParser {
     var data: ByteArray = ByteArray(0)
 
     fun append(data: ByteArray) {
@@ -131,7 +131,7 @@ private class InterfaceTypeHttpClient {
             return
         }
         this.completion = completion
-        timer.startSingleShot(60) {
+        timer.startSingleShot(60.0) {
             completed(null)
         }
         connect(created.host, created.port, created.useTls) { index ->

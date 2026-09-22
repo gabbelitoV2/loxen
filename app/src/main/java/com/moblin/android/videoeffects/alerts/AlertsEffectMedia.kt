@@ -43,15 +43,15 @@ private val alertsEffectMediaScope = CoroutineScope(SupervisorJob() + Dispatcher
 
 class AlertsEffectMedia {
     private var mediaType: SettingsWidgetAlertsAlertMediaType =
-        SettingsWidgetAlertsAlertMediaType.GIF_AND_SOUND
+        SettingsWidgetAlertsAlertMediaType.gifAndSound
     private var gifImages: ArrayDeque<AlertsEffectGifImage> = ArrayDeque()
     private var videoUrl: String? = null
     private var soundUrl: String? = null
 
     fun getPlayer(): AlertsEffectPlayer {
         val images: AlertsEffectImages = when (mediaType) {
-            SettingsWidgetAlertsAlertMediaType.GIF_AND_SOUND -> AlertsEffectGifImages(ArrayDeque(gifImages))
-            SettingsWidgetAlertsAlertMediaType.VIDEO -> AlertsEffectVideoImages(videoUrl)
+            SettingsWidgetAlertsAlertMediaType.gifAndSound -> AlertsEffectGifImages(ArrayDeque(gifImages))
+            SettingsWidgetAlertsAlertMediaType.video -> AlertsEffectVideoImages(videoUrl)
         }
         return AlertsEffectPlayer(images = images, soundUrl = soundUrl)
     }
@@ -67,10 +67,10 @@ class AlertsEffectMedia {
         }
         mediaType = alert.mediaType
         when (alert.mediaType) {
-            SettingsWidgetAlertsAlertMediaType.GIF_AND_SOUND ->
+            SettingsWidgetAlertsAlertMediaType.gifAndSound ->
                 updateGifAndSound(alert, mediaStorage, bundledImages, bundledSounds)
 
-            SettingsWidgetAlertsAlertMediaType.VIDEO ->
+            SettingsWidgetAlertsAlertMediaType.video ->
                 updateVideo(alert, mediaStorage)
         }
     }
@@ -89,7 +89,7 @@ class AlertsEffectMedia {
         videoUrl = null
         soundUrl = null
         val filename = alert.makeVideoFilename() ?: return
-        videoUrl = mediaStorage.videos.makePath(filename)
+        videoUrl = mediaStorage.videos.makePath(filename).path
         val url = videoUrl ?: return
         loadVideoSound(url) {
             soundUrl = it
@@ -104,7 +104,7 @@ class AlertsEffectMedia {
         val image: AlertsEffectMediaItem = bundledImages
             .firstOrNull { it.id == alert.imageId }
             ?.let { AlertsEffectMediaItem.BundledName(it.name) }
-            ?: AlertsEffectMediaItem.CustomUrl(mediaStorage.makePath(alert.imageId))
+            ?: AlertsEffectMediaItem.CustomUrl(mediaStorage.makePath(alert.imageId).path)
         val loopCount = alert.imageLoopCount
         alertsEffectMediaScope.launch {
             var images = ArrayDeque<AlertsEffectGifImage>()
@@ -136,7 +136,7 @@ class AlertsEffectMedia {
         val sound: AlertsEffectMediaItem = bundledSounds
             .firstOrNull { it.id == alert.soundId }
             ?.let { AlertsEffectMediaItem.BundledName(it.name) }
-            ?: AlertsEffectMediaItem.CustomUrl(mediaStorage.makePath(alert.soundId))
+            ?: AlertsEffectMediaItem.CustomUrl(mediaStorage.makePath(alert.soundId).path)
         when (sound) {
             is AlertsEffectMediaItem.BundledName ->
                 soundUrl = TODO("no Android counterpart for Bundle.main resource lookup")
@@ -355,11 +355,15 @@ private fun loadVideoSound(path: String, onCompleted: (String?) -> Unit) {
                     }
                     resampled
                 }
-                val wav = createWav(sampleRate = 48000, samples = listOf(wavSamples))
+                val wav = createWav(sampleRate = 48000, samples = listOf(wavSamples.toList()))
                 val soundFile = File("$path.wav")
                 try {
-                    soundFile.writeBytes(wav)
-                    soundFile.path
+                    if (wav != null) {
+                        soundFile.writeBytes(wav)
+                        soundFile.path
+                    } else {
+                        null
+                    }
                 } catch (error: IOException) {
                     null
                 }

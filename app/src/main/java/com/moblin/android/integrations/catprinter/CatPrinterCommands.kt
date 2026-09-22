@@ -7,7 +7,7 @@ import java.io.ByteArrayOutputStream
 
 val catPrinterFeedPaperPixels: UShort = 50.toUShort()
 
-private enum class CatPrinterCommandId(val rawValue: UByte) {
+private enum class CatPrinterPrintCommandId(val rawValue: UByte) {
     FeedPaper(0xA1u.toUByte()),
     DrawRow(0xA2u.toUByte()),
     GetDeviceState(0xA3u.toUByte()),
@@ -18,7 +18,7 @@ private enum class CatPrinterCommandId(val rawValue: UByte) {
     SetDrawMode(0xBEu.toUByte());
 
     companion object {
-        fun fromRawValue(value: Int): CatPrinterCommandId? =
+        fun fromRawValue(value: Int): CatPrinterPrintCommandId? =
             entries.firstOrNull { it.rawValue.toInt() == value }
     }
 }
@@ -55,27 +55,28 @@ sealed class CatPrinterCommand {
     fun pack(): ByteArray {
         return when (this) {
             is GetDeviceState ->
-                packCommand(CatPrinterCommandId.GetDeviceState, byteArrayOf(0x00))
+                packCommand(CatPrinterPrintCommandId.GetDeviceState, byteArrayOf(0x00))
             is WritePacing ->
-                packCommand(CatPrinterCommandId.WritePacing, byteArrayOf(0x00))
+                packCommand(CatPrinterPrintCommandId.WritePacing, byteArrayOf(0x00))
             is SetQuality ->
-                packCommand(CatPrinterCommandId.SetQuality, byteArrayOf(level.toByte()))
+                packCommand(CatPrinterPrintCommandId.SetQuality, byteArrayOf(level.toByte()))
             is SetEnergy -> {
                 val writer = ByteWriter()
                 writer.writeUInt16Le(energy)
-                packCommand(CatPrinterCommandId.SetEnergy, writer.data)
+                packCommand(CatPrinterPrintCommandId.SetEnergy, writer.data)
             }
             is FeedPaper -> {
                 val writer = ByteWriter()
                 writer.writeUInt16Le(pixels)
-                packCommand(CatPrinterCommandId.FeedPaper, writer.data)
+                packCommand(CatPrinterPrintCommandId.FeedPaper, writer.data)
             }
             is SetDrawMode ->
-                packCommand(CatPrinterCommandId.SetDrawMode, byteArrayOf(mode.rawValue.toByte()))
+                packCommand(CatPrinterPrintCommandId.SetDrawMode, byteArrayOf(mode.rawValue.toByte()))
             is DrawRow ->
-                packCommand(CatPrinterCommandId.DrawRow, catPrinterEncodeImageRow(imageRow, printMode))
+                packCommand(CatPrinterPrintCommandId.DrawRow,
+                    catPrinterEncodeImageRow(imageRow.toUByteArray(), printMode))
             is Lattice ->
-                packCommand(CatPrinterCommandId.Lattice, data)
+                packCommand(CatPrinterPrintCommandId.Lattice, data)
         }
     }
 
@@ -94,7 +95,7 @@ sealed class CatPrinterCommand {
             return try {
                 val (command, payload) = unpack(data)
                 when (command) {
-                    CatPrinterCommandId.GetDeviceState -> {
+                    CatPrinterPrintCommandId.GetDeviceState -> {
                         if (payload.size < 1) {
                             return null
                         }
@@ -108,7 +109,7 @@ sealed class CatPrinterCommand {
                             )
                         )
                     }
-                    CatPrinterCommandId.WritePacing -> {
+                    CatPrinterPrintCommandId.WritePacing -> {
                         if (payload.size != 1) {
                             return null
                         }
@@ -121,7 +122,7 @@ sealed class CatPrinterCommand {
             }
         }
 
-        private fun packCommand(command: CatPrinterCommandId, data: ByteArray): ByteArray {
+        private fun packCommand(command: CatPrinterPrintCommandId, data: ByteArray): ByteArray {
             if (data.size > 0xFFFF) {
                 Log.i("CatPrinterCommand", "Command data too big (${data.size} > 0xFFFF)")
                 return ByteArray(0)
@@ -138,7 +139,7 @@ sealed class CatPrinterCommand {
             return writer.data
         }
 
-        private fun unpack(data: ByteArray): Pair<CatPrinterCommandId, ByteArray> {
+        private fun unpack(data: ByteArray): Pair<CatPrinterPrintCommandId, ByteArray> {
             val reader = ByteReader(data)
             if (reader.readUInt8().toInt() != 0x51) {
                 throw IllegalArgumentException("Wrong first byte")
@@ -146,7 +147,7 @@ sealed class CatPrinterCommand {
             if (reader.readUInt8().toInt() != 0x78) {
                 throw IllegalArgumentException("Wrong second byte")
             }
-            val command = CatPrinterCommandId.fromRawValue(reader.readUInt8().toInt())
+            val command = CatPrinterPrintCommandId.fromRawValue(reader.readUInt8().toInt())
                 ?: throw IllegalArgumentException("Unsupported command.")
             reader.readUInt8()
             val length = reader.readUInt16Le()

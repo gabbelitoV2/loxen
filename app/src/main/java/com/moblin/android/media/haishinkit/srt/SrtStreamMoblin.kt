@@ -1,10 +1,13 @@
 package com.moblin.android.media.haishinkit.srt
 
+import com.moblin.android.media.haishinkit.media.AudioVideoEncoderDelegate
 import com.moblin.android.media.haishinkit.media.Processor
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.mpeg.MpegTsWriter
 import com.moblin.android.media.haishinkit.mpeg.MpegTsWriterDelegate
+import com.moblin.android.media.haishinkit.mpeg.payloadSize
 import com.moblin.android.media.srtla.client.srtlaClientQueue
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 interface SrtStreamMoblinDelegate {
@@ -47,7 +50,7 @@ class SrtStreamMoblin : MpegTsWriterDelegate, SrtSenderDelegate {
 
     private fun write(data: ByteArray, containsAudio: Boolean) {
         val srtSender = srtSender ?: return
-        val now = SrtClock.now
+        val now = System.nanoTime()
         var offset = 0
         while (offset < data.size) {
             val length = minOf(payloadSize, data.size - offset)
@@ -61,7 +64,7 @@ class SrtStreamMoblin : MpegTsWriterDelegate, SrtSenderDelegate {
     }
 
     override fun writer(writer: MpegTsWriter, doOutput: ByteArray, containsAudio: Boolean) {
-        srtlaClientQueue.launch {
+        CoroutineScope(srtlaClientQueue).launch {
             this@SrtStreamMoblin.write(data = doOutput, containsAudio = containsAudio)
         }
     }
@@ -71,7 +74,7 @@ class SrtStreamMoblin : MpegTsWriterDelegate, SrtSenderDelegate {
 
     override fun srtSenderConnected() {
         processorPipelineQueue.launch {
-            processor.startEncoding(writer)
+            processor.startEncoding(writer as AudioVideoEncoderDelegate)
             writer.startRunning()
             delegate.srtStreamMoblinConnected()
         }
@@ -80,7 +83,7 @@ class SrtStreamMoblin : MpegTsWriterDelegate, SrtSenderDelegate {
     override fun srtSenderDisconnected() {
         processorPipelineQueue.launch {
             writer.stopRunning()
-            processor.stopEncoding(writer)
+            processor.stopEncoding(writer as AudioVideoEncoderDelegate)
             delegate.srtStreamMoblinDisconnected()
         }
     }

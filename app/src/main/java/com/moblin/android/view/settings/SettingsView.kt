@@ -42,7 +42,6 @@ import androidx.compose.material.icons.filled.Watch
 import androidx.compose.material.icons.filled.Wifi
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -83,10 +82,10 @@ private fun AppModeView(
 ) {
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
-    val appMode by database.appMode.collectAsState()
+    val appMode = database.appMode
     var expanded by remember { mutableStateOf(false) }
     LaunchedEffect(appMode) {
-        model.appModeChanged()
+        TODO("model.appModeChanged()")
     }
     Row(
         modifier = Modifier
@@ -122,7 +121,7 @@ private fun AppModeView(
                     DropdownMenuItem(
                         text = { Text(mode.toString()) },
                         onClick = {
-                            database.appMode.value = mode
+                            database.appMode = mode
                             expanded = false
                         },
                     )
@@ -140,7 +139,7 @@ fun SettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isLive by model.isLive.collectAsState()
-    val showAllSettings by database.showAllSettings.collectAsState()
+    val showAllSettings = database.showAllSettings
     Scaffold(
         topBar = { TopAppBar(title = { Text("Settings") }) },
     ) { paddingValues ->
@@ -631,7 +630,7 @@ fun SettingsView(
                     Text("Show all settings", modifier = Modifier.weight(1f))
                     Switch(
                         checked = showAllSettings,
-                        onCheckedChange = { database.showAllSettings.value = it },
+                        onCheckedChange = { database.showAllSettings = it },
                     )
                 }
             }

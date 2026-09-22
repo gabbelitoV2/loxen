@@ -36,8 +36,27 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.CameraShow
 import com.moblin.android.various.model.CameraShowType
 import com.moblin.android.various.model.CameraState
-import com.moblin.android.various.model.Database
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.getExposureFactorStep
+import com.moblin.android.various.model.isCameraSupportingManualExposureAndIso
+import com.moblin.android.various.model.isCameraSupportingManualFocus
+import com.moblin.android.various.model.isCameraSupportingManualWhiteBalance
+import com.moblin.android.various.model.setAutoExposureAndIso
+import com.moblin.android.various.model.setAutoFocus
+import com.moblin.android.various.model.setAutoWhiteBalance
+import com.moblin.android.various.model.setManualExposure
+import com.moblin.android.various.model.setManualFocus
+import com.moblin.android.various.model.setManualIso
+import com.moblin.android.various.model.setManualWhiteBalance
+import com.moblin.android.various.model.startObservingExposure
+import com.moblin.android.various.model.startObservingFocus
+import com.moblin.android.various.model.startObservingIso
+import com.moblin.android.various.model.startObservingWhiteBalance
+import com.moblin.android.various.model.stopObservingExposure
+import com.moblin.android.various.model.stopObservingFocus
+import com.moblin.android.various.model.stopObservingIso
+import com.moblin.android.various.model.stopObservingWhiteBalance
+import com.moblin.android.various.settings.Database
 import com.moblin.android.various.utils.factorToIso
 import com.moblin.android.various.utils.formatExposure
 import com.moblin.android.various.utils.maximumWhiteBalanceTemperature
@@ -55,7 +74,7 @@ private fun CameraSettingButtonView(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .widthIn(max = cameraButtonWidth)
+            .widthIn(max = cameraButtonWidth.dp)
             .heightIn(max = height)
             .background(pickerBackgroundColor, RoundedCornerShape(7.dp))
             .border(
@@ -96,7 +115,7 @@ private fun NotSupportedForThisCameraView() {
         color = Color.White,
         modifier = Modifier
             .padding(vertical = 5.dp, horizontal = 7.dp)
-            .height(sliderHeight)
+            .height(sliderHeight.dp)
             .background(backgroundColor, RoundedCornerShape(7.dp))
             .padding(bottom = 5.dp),
     )
@@ -128,8 +147,8 @@ private fun SliderAndLockView(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .padding(vertical = 5.dp, horizontal = 7.dp)
-            .width(sliderWidth)
-            .height(sliderHeight)
+            .width(sliderWidth.dp)
+            .height(sliderHeight.dp)
             .background(backgroundColor, RoundedCornerShape(7.dp))
             .padding(bottom = 5.dp),
     ) {
@@ -179,20 +198,19 @@ private fun ExposureBiasView(model: Model = LocalModel.current, camera: CameraSt
     Slider(
         value = bias,
         onValueChange = {
-            camera.bias.value = it
-            model.setExposureBias(bias = it)
+            camera.setBias(value = it)
             model.updateImageButtonState()
         },
         onValueChangeFinished = {
-            model.setExposureBias(bias = camera.bias.value)
+            camera.setBias(value = camera.bias.value)
             model.updateImageButtonState()
         },
         valueRange = -2f..2f,
         steps = 39,
         modifier = Modifier
             .padding(vertical = 5.dp, horizontal = 7.dp)
-            .width(sliderWidth)
-            .height(sliderHeight)
+            .width(sliderWidth.dp)
+            .height(sliderHeight.dp)
             .background(backgroundColor, RoundedCornerShape(7.dp))
             .padding(bottom = 5.dp),
     )
@@ -202,7 +220,7 @@ private fun ExposureBiasView(model: Model = LocalModel.current, camera: CameraSt
 private fun WhiteBalanceView(model: Model = LocalModel.current, camera: CameraState) {
     val lockedWhiteBalance by camera.lockedWhiteBalance.collectAsState()
     val isWhiteBalanceLocked by camera.isWhiteBalanceLocked.collectAsState()
-    val editingLockedWhiteBalance by camera.editingLockedWhiteBalance.collectAsState()
+    val editingLockedWhiteBalance = camera.editingLockedWhiteBalance
 
     TitleView(title = "WHITE BALANCE")
     if (model.isCameraSupportingManualWhiteBalance()) {
@@ -213,7 +231,7 @@ private fun WhiteBalanceView(model: Model = LocalModel.current, camera: CameraSt
             locked = isWhiteBalanceLocked,
             editingLocked = editingLockedWhiteBalance,
             onEditingChanged = { begin ->
-                camera.editingLockedWhiteBalance.value = begin
+                camera.editingLockedWhiteBalance = begin
                 if (!begin) {
                     model.setManualWhiteBalance(factor = camera.lockedWhiteBalance.value)
                 }
@@ -230,7 +248,7 @@ private fun WhiteBalanceView(model: Model = LocalModel.current, camera: CameraSt
 private fun IsoView(model: Model = LocalModel.current, camera: CameraState) {
     val lockedIso by camera.lockedIso.collectAsState()
     val isExposureAndIsoLocked by camera.isExposureAndIsoLocked.collectAsState()
-    val editingLockedIso by camera.editingLockedIso.collectAsState()
+    val editingLockedIso = camera.editingLockedIso
 
     TitleView(title = "ISO")
     if (model.isCameraSupportingManualExposureAndIso()) {
@@ -241,7 +259,7 @@ private fun IsoView(model: Model = LocalModel.current, camera: CameraState) {
             locked = isExposureAndIsoLocked,
             editingLocked = editingLockedIso,
             onEditingChanged = { begin ->
-                camera.editingLockedIso.value = begin
+                camera.editingLockedIso = begin
                 if (!begin) {
                     model.setManualIso(factor = camera.lockedIso.value)
                 }
@@ -258,7 +276,7 @@ private fun IsoView(model: Model = LocalModel.current, camera: CameraState) {
 private fun ExposureView(model: Model = LocalModel.current, camera: CameraState) {
     val lockedExposure by camera.lockedExposure.collectAsState()
     val isExposureAndIsoLocked by camera.isExposureAndIsoLocked.collectAsState()
-    val editingLockedExposure by camera.editingLockedExposure.collectAsState()
+    val editingLockedExposure = camera.editingLockedExposure
 
     TitleView(title = "EXPOSURE")
     if (model.isCameraSupportingManualExposureAndIso()) {
@@ -269,7 +287,7 @@ private fun ExposureView(model: Model = LocalModel.current, camera: CameraState)
             locked = isExposureAndIsoLocked,
             editingLocked = editingLockedExposure,
             onEditingChanged = { begin ->
-                camera.editingLockedExposure.value = begin
+                camera.editingLockedExposure = begin
                 if (!begin) {
                     model.setManualExposure(factor = camera.lockedExposure.value)
                 }
@@ -287,7 +305,7 @@ private fun ExposureView(model: Model = LocalModel.current, camera: CameraState)
 fun FocusView(model: Model = LocalModel.current, camera: CameraState) {
     val lockedFocus by camera.lockedFocus.collectAsState()
     val isFocusLocked by camera.isFocusLocked.collectAsState()
-    val editingLockedFocus by camera.editingLockedFocus.collectAsState()
+    val editingLockedFocus = camera.editingLockedFocus
 
     TitleView(title = "FOCUS")
     if (model.isCameraSupportingManualFocus()) {
@@ -298,7 +316,7 @@ fun FocusView(model: Model = LocalModel.current, camera: CameraState) {
             locked = isFocusLocked,
             editingLocked = editingLockedFocus,
             onEditingChanged = { begin ->
-                camera.editingLockedFocus.value = begin
+                camera.editingLockedFocus = begin
                 if (!begin) {
                     model.setManualFocus(lensPosition = camera.lockedFocus.value)
                 }
@@ -347,7 +365,7 @@ private fun ButtonsView(
 
     fun formatIso(): String {
         val device = model.cameraDevice ?: return ""
-        return factorToIso(device, lockedIso).toInt().toString()
+        return TODO("factorToIso needs an AVCaptureDevice, model.cameraDevice is a CaptureDevice")
     }
 
     fun formatFocus(): String {
@@ -356,65 +374,65 @@ private fun ButtonsView(
 
     fun height(): Dp {
         return if (bigButtons) {
-            segmentHeightBig
+            segmentHeightBig.dp
         } else {
-            segmentHeight
+            segmentHeight.dp
         }
     }
 
     Row(modifier = modifier) {
         IconButton(
-            onClick = { show.toggle(buttonType = CameraShowType.BIAS) },
+            onClick = { show.toggle(buttonType = CameraShowType.bias) },
         ) {
             CameraSettingButtonView(
                 title = "EXB",
                 value = formatExposureBias(),
                 locked = true,
-                on = showType == CameraShowType.BIAS,
+                on = showType == CameraShowType.bias,
                 height = height(),
             )
         }
         IconButton(
-            onClick = { show.toggle(buttonType = CameraShowType.WHITE_BALANCE) },
+            onClick = { show.toggle(buttonType = CameraShowType.whiteBalance) },
         ) {
             CameraSettingButtonView(
                 title = "WB",
                 value = formatWhiteBalance(),
                 locked = isWhiteBalanceLocked,
-                on = showType == CameraShowType.WHITE_BALANCE,
+                on = showType == CameraShowType.whiteBalance,
                 height = height(),
             )
         }
         IconButton(
-            onClick = { show.toggle(buttonType = CameraShowType.ISO) },
+            onClick = { show.toggle(buttonType = CameraShowType.iso) },
         ) {
             CameraSettingButtonView(
                 title = "ISO",
                 value = formatIso(),
                 locked = isExposureAndIsoLocked,
-                on = showType == CameraShowType.ISO,
+                on = showType == CameraShowType.iso,
                 height = height(),
             )
         }
         IconButton(
-            onClick = { show.toggle(buttonType = CameraShowType.EXPOSURE) },
+            onClick = { show.toggle(buttonType = CameraShowType.exposure) },
         ) {
             CameraSettingButtonView(
                 title = "EXP",
                 value = formatExposure(exposure),
                 locked = isExposureAndIsoLocked,
-                on = showType == CameraShowType.EXPOSURE,
+                on = showType == CameraShowType.exposure,
                 height = height(),
             )
         }
         IconButton(
-            onClick = { show.toggle(buttonType = CameraShowType.FOCUS) },
+            onClick = { show.toggle(buttonType = CameraShowType.focus) },
         ) {
             CameraSettingButtonView(
                 title = "FOC",
                 value = formatFocus(),
                 locked = isFocusLocked,
-                on = showType == CameraShowType.FOCUS,
+                on = showType == CameraShowType.focus,
                 height = height(),
             )
         }
@@ -434,11 +452,11 @@ fun StreamOverlayRightCameraSettingsControlView(
         verticalArrangement = Arrangement.spacedBy(1.dp),
     ) {
         when (showType) {
-            CameraShowType.BIAS -> ExposureBiasView(model = model, camera = camera)
-            CameraShowType.WHITE_BALANCE -> WhiteBalanceView(model = model, camera = camera)
-            CameraShowType.ISO -> IsoView(model = model, camera = camera)
-            CameraShowType.EXPOSURE -> ExposureView(model = model, camera = camera)
-            CameraShowType.FOCUS -> FocusView(model = model, camera = camera)
+            CameraShowType.bias -> ExposureBiasView(model = model, camera = camera)
+            CameraShowType.whiteBalance -> WhiteBalanceView(model = model, camera = camera)
+            CameraShowType.iso -> IsoView(model = model, camera = camera)
+            CameraShowType.exposure -> ExposureView(model = model, camera = camera)
+            CameraShowType.focus -> FocusView(model = model, camera = camera)
             null -> Unit
         }
         ButtonsView(

@@ -2,11 +2,11 @@ package com.moblin.android.integrations.gopro.protobuf
 
 private const val _protobuf_package = "open_gopro"
 
-private interface ProtobufAPIVersionCheck
+interface ProtobufAPIVersionCheck
 
-private interface ProtobufAPIVersion_2 : ProtobufAPIVersionCheck
+interface ProtobufAPIVersion_2 : ProtobufAPIVersionCheck
 
-private object _GeneratedWithProtocGenSwiftVersion : ProtobufAPIVersionCheck {
+object _GeneratedWithProtocGenSwiftVersion : ProtobufAPIVersionCheck {
     interface _2 : ProtobufAPIVersion_2
 
     interface Version : _2

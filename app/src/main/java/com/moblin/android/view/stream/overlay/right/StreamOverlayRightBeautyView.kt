@@ -34,28 +34,28 @@ import com.moblin.android.LocalModel
 
 @Composable
 private fun SmoothnessView(model: Model = LocalModel.current, beauty: SettingsBeauty) {
-    val smoothnessRadius by beauty.smoothnessRadius.collectAsState()
-    val smoothnessStrength by beauty.smoothnessStrength.collectAsState()
+    val smoothnessRadius = beauty.smoothnessRadius
+    val smoothnessStrength = beauty.smoothnessStrength
 
     fun setSettings() {
         model.beautyEffect.setSmoothnessSettings(
-            radius = beauty.smoothnessRadius.value,
-            strength = beauty.smoothnessStrength.value,
+            radius = beauty.smoothnessRadius,
+            strength = beauty.smoothnessStrength,
         )
     }
 
     Column {
         EffectSlider(
             title = "RADIUS",
-            range = 5.0..20.0,
+            range = 5f..20f,
             value = smoothnessRadius,
-            onValueChange = { beauty.smoothnessRadius.value = it },
+            onValueChange = { beauty.smoothnessRadius = it },
         )
         EffectSlider(
             title = "STRENGTH",
-            range = 0.0..1.0,
+            range = 0f..1f,
             value = smoothnessStrength,
-            onValueChange = { beauty.smoothnessStrength.value = it },
+            onValueChange = { beauty.smoothnessStrength = it },
         )
     }
     LaunchedEffect(smoothnessRadius) {
@@ -68,36 +68,36 @@ private fun SmoothnessView(model: Model = LocalModel.current, beauty: SettingsBe
 
 @Composable
 private fun ShapeView(model: Model = LocalModel.current, beauty: SettingsBeauty) {
-    val shapePosition by beauty.shapePosition.collectAsState()
-    val shapeRadius by beauty.shapeRadius.collectAsState()
-    val shapeStrength by beauty.shapeStrength.collectAsState()
+    val shapePosition = beauty.shapePosition
+    val shapeRadius = beauty.shapeRadius
+    val shapeStrength = beauty.shapeStrength
 
     fun setSettings() {
         model.beautyEffect.setShapeSettings(
-            position = beauty.shapePosition.value,
-            radius = beauty.shapeRadius.value,
-            strength = beauty.shapeStrength.value,
+            position = beauty.shapePosition,
+            radius = beauty.shapeRadius,
+            strength = beauty.shapeStrength,
         )
     }
 
     Column {
         EffectSlider(
             title = "POSITION",
-            range = 0.0..1.0,
+            range = 0f..1f,
             value = shapePosition,
-            onValueChange = { beauty.shapePosition.value = it },
+            onValueChange = { beauty.shapePosition = it },
         )
         EffectSlider(
             title = "RADIUS",
-            range = 0.0..1.0,
+            range = 0f..1f,
             value = shapeRadius,
-            onValueChange = { beauty.shapeRadius.value = it },
+            onValueChange = { beauty.shapeRadius = it },
         )
         EffectSlider(
             title = "STRENGTH",
-            range = 0.0..1.0,
+            range = 0f..1f,
             value = shapeStrength,
-            onValueChange = { beauty.shapeStrength.value = it },
+            onValueChange = { beauty.shapeStrength = it },
         )
     }
     LaunchedEffect(shapePosition) {
@@ -114,8 +114,8 @@ private fun ShapeView(model: Model = LocalModel.current, beauty: SettingsBeauty)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamOverlayRightBeautyView(model: Model = LocalModel.current, beauty: SettingsBeauty) {
-    val settings by beauty.settings.collectAsState()
-    val enabled by beauty.enabled.collectAsState()
+    val settings = beauty.settings
+    val enabled = beauty.enabled
     var expanded by remember { mutableStateOf(false) }
 
     Column {
@@ -126,7 +126,7 @@ fun StreamOverlayRightBeautyView(model: Model = LocalModel.current, beauty: Sett
         Row(
             modifier = Modifier
                 .padding(end = 10.dp)
-                .height(segmentHeight)
+                .height(segmentHeight.dp)
                 .clip(RoundedCornerShape(7.dp))
                 .background(pickerBackgroundColor)
                 .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
@@ -153,7 +153,7 @@ fun StreamOverlayRightBeautyView(model: Model = LocalModel.current, beauty: Sett
                         DropdownMenuItem(
                             text = { Text(setting.toString()) },
                             onClick = {
-                                beauty.settings.value = setting
+                                beauty.settings = setting
                                 expanded = false
                             },
                         )
@@ -162,13 +162,13 @@ fun StreamOverlayRightBeautyView(model: Model = LocalModel.current, beauty: Sett
             }
             Switch(
                 checked = enabled,
-                onCheckedChange = { beauty.enabled.value = it },
+                onCheckedChange = { beauty.enabled = it },
             )
         }
     }
     LaunchedEffect(enabled) {
         model.updateBeautyButtonState()
-        model.sceneUpdated(updateRemoteScene = false)
+        TODO("sceneUpdated")
         if (enabled) {
             model.makeToast(
                 title = localized("Other widgets will not work with Beauty filters enabled"),

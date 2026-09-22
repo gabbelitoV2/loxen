@@ -11,6 +11,7 @@ import kotlinx.serialization.Transient
 
 @Serializable
 class SettingsGoProWifiCredentials : Named {
+    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var id: UUID = UUID.randomUUID()
     override var name: String = baseName
     var ssid: String = ""
@@ -23,9 +24,11 @@ class SettingsGoProWifiCredentials : Named {
 
 @Serializable
 class SettingsGoProRtmpUrl : Named {
+    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var id: UUID = UUID.randomUUID()
     override var name: String = baseName
     var type: SettingsDjiDeviceUrlType = SettingsDjiDeviceUrlType.server
+    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var serverStreamId: UUID = UUID.randomUUID()
     var serverUrl: String = ""
     var customUrl: String = ""
@@ -90,13 +93,16 @@ val goProDeviceBitrates: List<Int> = listOf(
 
 @Serializable
 class SettingsGoProDevice : Named {
+    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var id: UUID = UUID.randomUUID()
     override var name: String = baseName
     var bluetoothPeripheralName: String? = null
+    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var bluetoothPeripheralId: UUID? = null
     var wifiSsid: String = ""
     var wifiPassword: String = ""
     var rtmpUrlType: SettingsDjiDeviceUrlType = SettingsDjiDeviceUrlType.server
+    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var serverRtmpStreamId: UUID = UUID.randomUUID()
     var serverRtmpUrl: String? = null
     var customRtmpUrl: String = ""
@@ -137,6 +143,7 @@ class SettingsGoProDevice : Named {
 
 @Serializable
 class SettingsGoProLaunchLiveStream : Named {
+    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var id: UUID = UUID.randomUUID()
     override var name: String = baseName
     var isHero12Or13: Boolean = true
@@ -151,9 +158,12 @@ class SettingsGoProLaunchLiveStream : Named {
 class SettingsGoPro {
     var devices: MutableList<SettingsGoProDevice> = mutableListOf()
     var launchLiveStream: MutableList<SettingsGoProLaunchLiveStream> = mutableListOf()
+    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var selectedLaunchLiveStream: UUID? = null
     var wifiCredentials: MutableList<SettingsGoProWifiCredentials> = mutableListOf()
+    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var selectedWifiCredentials: UUID? = null
     var rtmpUrls: MutableList<SettingsGoProRtmpUrl> = mutableListOf()
+    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var selectedRtmpUrl: UUID? = null
 }

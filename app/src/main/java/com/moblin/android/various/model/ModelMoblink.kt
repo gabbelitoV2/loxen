@@ -2,13 +2,18 @@ package com.moblin.android.various.model
 
 import android.os.Build
 import android.util.Log
+import com.moblin.android.common.various.ThermalState
 import com.moblin.android.common.various.noValue
 import com.moblin.android.moblink.MoblinkRelay
+import com.moblin.android.moblink.MoblinkRelayDelegate
 import com.moblin.android.moblink.MoblinkRelayState
 import com.moblin.android.moblink.MoblinkScanner
+import com.moblin.android.moblink.MoblinkScannerDelegate
 import com.moblin.android.moblink.MoblinkScannerStreamer
 import com.moblin.android.moblink.MoblinkStreamer
+import com.moblin.android.moblink.MoblinkStreamerDelegate
 import com.moblin.android.moblink.MoblinkThermalState
+import com.moblin.android.moblink.applicationContext
 import com.moblin.android.various.settings.SettingsStreamSrtConnectionPriority
 import java.net.URI
 import java.util.UUID
@@ -19,7 +24,9 @@ class Moblink {
     var streamer: MoblinkStreamer? = null
     var relays: MutableList<MoblinkRelay> = mutableListOf()
     var scanner: MoblinkScanner? = null
-    var relayState: MoblinkRelayState = MoblinkRelayState.waitingForStreamers
+    var relayState: MoblinkRelayState =
+        MoblinkRelayState.values().firstOrNull { it.rawValue == "waiting-for-streamers" }
+            ?: MoblinkRelayState.values().first()
     internal val _streamerOk = MutableStateFlow(true)
     val streamerOk: StateFlow<Boolean> = _streamerOk
     internal val _status = MutableStateFlow(noValue)
@@ -36,18 +43,28 @@ fun Model.stopMoblinkStreamer() {
 fun Model.reloadMoblinkStreamer() {
     stopMoblinkStreamer()
     if (isMoblinkStreamerConfigured()) {
+        val model = this
         moblink.streamer = MoblinkStreamer(
-            port = database.moblink.streamer.port,
+            context = applicationContext,
+            port = database.moblink.streamer.port.value,
             password = database.moblink.password,
             name = Build.MODEL
         )
-        moblink.streamer?.start(delegate = this)
+        moblink.streamer?.start(delegate = object : MoblinkStreamerDelegate {
+            override fun moblinkStreamerTunnelAdded(host: String, port: Int, relayId: UUID, relayName: String) {
+                model.moblinkStreamerTunnelAdded(host, port, relayId, relayName)
+            }
+
+            override fun moblinkStreamerTunnelRemoved(host: String, port: Int) {
+                model.moblinkStreamerTunnelRemoved(host, port)
+            }
+        })
     }
 }
 
 fun Model.isMoblinkStreamerConfigured(): Boolean {
     val server = database.moblink.streamer
-    return server.enabled && server.port > 0 && database.moblink.password.isNotEmpty()
+    return server.enabled.value && server.port.value > 0 && database.moblink.password.isNotEmpty()
 }
 
 fun Model.reloadMoblinkRelay() {
@@ -55,7 +72,7 @@ fun Model.reloadMoblinkRelay() {
     stopMoblinkScanner()
     if (isMoblinkRelayConfigured()) {
         reloadMoblinkScanner()
-        if (database.moblink.relay.manual) {
+        if (database.moblink.relay.manual.value) {
             startMoblinkRelayManual()
         } else {
             startMoblinkRelayAutomatic()
@@ -64,19 +81,21 @@ fun Model.reloadMoblinkRelay() {
 }
 
 private fun Model.startMoblinkRelayManual() {
-    val streamerUrl = runCatching { URI(database.moblink.relay.url) }.getOrNull() ?: return
+    val streamerUrl = database.moblink.relay.url.value
+    if (streamerUrl.isEmpty()) {
+        return
+    }
     addMoblinkRelay(streamerUrl)
 }
 
 private fun Model.startMoblinkRelayAutomatic() {
     for (streamer in moblink.scannerDiscoveredStreamers.value) {
         val url = streamer.urls.firstOrNull() ?: continue
-        val streamerUrl = runCatching { URI(url) }.getOrNull() ?: continue
-        addMoblinkRelay(streamerUrl)
+        addMoblinkRelay(url)
     }
 }
 
-private fun Model.addMoblinkRelay(streamerUrl: URI) {
+private fun Model.addMoblinkRelay(streamerUrl: String) {
     if (moblink.relays.any { it.streamerUrl == streamerUrl }) {
         return
     }
@@ -84,11 +103,20 @@ private fun Model.addMoblinkRelay(streamerUrl: URI) {
         Log.i("Model", "Not adding Moblink relay to ourselves: $streamerUrl")
         return
     }
+    val model = this
     val relay = MoblinkRelay(
-        name = database.moblink.relay.name,
+        name = database.moblink.relay.name.value,
         streamerUrl = streamerUrl,
         password = database.moblink.password,
-        delegate = this
+        delegate = object : MoblinkRelayDelegate {
+            override fun moblinkRelayNewState(state: MoblinkRelayState) {
+                model.moblinkRelayNewState(state)
+            }
+
+            override fun moblinkRelayGetStatus(): Pair<Int?, MoblinkThermalState?> {
+                return model.moblinkRelayGetStatus()
+            }
+        }
     )
     relay.start()
     moblink.relays.add(relay)
@@ -96,19 +124,19 @@ private fun Model.addMoblinkRelay(streamerUrl: URI) {
 
 fun Model.isMoblinkRelayConfigured(): Boolean {
     val client = database.moblink.relay
-    if (!client.enabled) {
+    if (!client.enabled.value) {
         return false
     }
-    return if (client.manual) {
-        client.url.isNotEmpty() && database.moblink.password.isNotEmpty()
+    return if (client.manual.value) {
+        client.url.value.isNotEmpty() && database.moblink.password.isNotEmpty()
     } else {
         true
     }
 }
 
 fun Model.areMoblinkRelaysOk(): Boolean {
-    return moblink.relayState == MoblinkRelayState.connected ||
-        moblink.relayState == MoblinkRelayState.waitingForStreamers
+    return moblink.relayState.rawValue == "connected" ||
+        moblink.relayState.rawValue == "waiting-for-streamers"
 }
 
 fun Model.moblinkIpStatusesUpdated() {
@@ -125,9 +153,9 @@ fun Model.moblinkIpStatusesUpdated() {
     }
 }
 
-private fun Model.isMoblinkRelayOnThisDevice(streamerUrl: URI): Boolean {
-    val host = streamerUrl.host
-    return statusOther.ipStatuses.any { it.ipType.formatAddress(it.ip) == host }
+private fun Model.isMoblinkRelayOnThisDevice(streamerUrl: String): Boolean {
+    val host = runCatching { URI(streamerUrl).host }.getOrNull() ?: return false
+    return statusOther.ipStatuses.value.any { it.ipType.formatAddress(it.ip) == host }
 }
 
 fun Model.stopMoblinkRelay() {
@@ -140,7 +168,15 @@ fun Model.stopMoblinkRelay() {
 
 fun Model.reloadMoblinkScanner() {
     stopMoblinkScanner()
-    moblink.scanner = MoblinkScanner(delegate = this)
+    val model = this
+    moblink.scanner = MoblinkScanner(
+        context = applicationContext,
+        delegate = object : MoblinkScannerDelegate {
+            override fun moblinkScannerDiscoveredStreamers(streamers: List<MoblinkScannerStreamer>) {
+                model.moblinkScannerDiscoveredStreamers(streamers)
+            }
+        }
+    )
     moblink.scanner?.start()
 }
 
@@ -193,7 +229,7 @@ private fun Model.moblinkStreamerStatus(): Pair<String, Boolean> {
 }
 
 fun Model.moblinkStreamerTunnelAdded(host: String, port: Int, relayId: UUID, relayName: String) {
-    val connectionPriorities = stream.srt.connectionPriorities
+    val connectionPriorities = stream.value.srt.connectionPriorities
     val existing = connectionPriorities.priorities.firstOrNull { it.relayId == relayId }
     if (existing != null) {
         existing.name = relayName
@@ -214,18 +250,18 @@ fun Model.moblinkRelayNewState(state: MoblinkRelayState) {
 }
 
 fun Model.moblinkRelayGetStatus(): Pair<Int?, MoblinkThermalState?> {
-    val thermalState: MoblinkThermalState? = when (statusOther.thermalState) {
+    val thermalState: MoblinkThermalState? = when (statusOther.thermalState.value) {
         ThermalState.nominal, ThermalState.fair -> MoblinkThermalState.white
         ThermalState.serious -> MoblinkThermalState.yellow
         ThermalState.critical -> MoblinkThermalState.red
         else -> null
     }
-    return Pair((100 * battery.level).toInt(), thermalState)
+    return Pair((100 * battery.level.value).toInt(), thermalState)
 }
 
 fun Model.moblinkScannerDiscoveredStreamers(streamers: List<MoblinkScannerStreamer>) {
     moblink._scannerDiscoveredStreamers.value = streamers
-    if (!database.moblink.relay.manual) {
+    if (!database.moblink.relay.manual.value) {
         startMoblinkRelayAutomatic()
     }
 }

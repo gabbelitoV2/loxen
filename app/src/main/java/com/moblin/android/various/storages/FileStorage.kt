@@ -1,8 +1,8 @@
 package com.moblin.android.various.storages
 
 import android.util.Log
+import com.moblin.android.various.utils.FileManager
 import com.moblin.android.various.utils.createAndGetDirectory
-import com.moblin.android.various.utils.ids
 import java.io.File
 import java.io.IOException
 import java.util.UUID
@@ -15,7 +15,7 @@ class FileStorage(directory: String) {
     }
 
     fun ids(): List<UUID> {
-        return ids(directory.path)
+        return FileManager.ids(directory.path)
     }
 
     fun add(id: UUID, url: File) {

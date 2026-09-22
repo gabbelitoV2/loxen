@@ -207,15 +207,21 @@ private fun getBestBackCameraId(): CameraId {
 
 val bestBackCameraId: CameraId by lazy { getBestBackCameraId() }
 
+private fun cameraPosition(rawValue: String): SettingsSceneCameraPosition {
+    return SettingsSceneCameraPosition.fromRawValue(rawValue)
+        ?: SettingsSceneCameraPosition.fromRawValue("back")
+        ?: TODO("SettingsSceneCameraPosition has no back case")
+}
+
 private fun getDefaultBackCameraPosition(): SettingsSceneCameraPosition {
     return if (hasTripleBackCamera) {
-        SettingsSceneCameraPosition.BACK_TRIPLE_LOW_ENERGY
+        cameraPosition("backTripleLowEnergy")
     } else if (hasWideDualBackCamera) {
-        SettingsSceneCameraPosition.BACK_WIDE_DUAL_LOW_ENERGY
+        cameraPosition("backWideDualLowEnergy")
     } else if (hasDualBackCamera) {
-        SettingsSceneCameraPosition.BACK_DUAL_LOW_ENERGY
+        cameraPosition("backDualLowEnergy")
     } else {
-        SettingsSceneCameraPosition.BACK
+        cameraPosition("back")
     }
 }
 

@@ -1,5 +1,6 @@
 package com.moblin.android.videoeffects
 
+import android.media.Image
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
@@ -135,22 +136,22 @@ class ShapeEffect : VideoEffect() {
         TODO("OpenGL ES port")
     }
 
-    private fun makeSharpCornersImage(image: EffectImage, settings: ShapeEffectSettings): EffectImage {
+    private fun makeSharpCornersImage(image: Image, settings: ShapeEffectSettings): Image {
         if (settings.borderWidth == 0.0) {
             return image
         }
         TODO("OpenGL ES port")
     }
 
-    private fun makeRoundedCornersImage(image: EffectImage, settings: ShapeEffectSettings): EffectImage {
+    private fun makeRoundedCornersImage(image: Image, settings: ShapeEffectSettings): Image {
         TODO("OpenGL ES port")
     }
 
-    private fun crop(image: EffectImage): EffectImage {
+    private fun crop(image: Image): Image {
         TODO("OpenGL ES port")
     }
 
-    override fun executeEarly(image: EffectImage, info: VideoEffectInfo): EffectImage {
+    override fun executeEarly(image: Image, info: VideoEffectInfo): Image {
         return if (settings.cropEnabled) {
             crop(image)
         } else {
@@ -158,7 +159,7 @@ class ShapeEffect : VideoEffect() {
         }
     }
 
-    override fun execute(image: EffectImage, info: VideoEffectInfo): EffectImage {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         return if (settings.cornerRadius == 0.0f) {
             makeSharpCornersImage(image, settings)
         } else {

@@ -10,12 +10,6 @@ import com.moblin.android.common.various.runningPowerType
 import com.moblin.android.common.various.stepCountType
 import java.time.Instant
 
-enum class WatchProtocolWorkoutType {
-    WALKING,
-    RUNNING,
-    CYCLING,
-}
-
 private fun types(): MutableSet<Any> {
     val types = mutableSetOf<Any>(
         heartRateType,

@@ -19,6 +19,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,26 +68,18 @@ private fun TimePickerView(
                 title = "Minutes",
                 range = 0 until 120,
                 time = minutes,
-                onTimeChange = { minutes = it }
+                onChange = { minutes = it }
             )
             TimeComponentPickerView(
                 title = "Seconds",
                 range = 0 until 60,
                 time = seconds,
-                onTimeChange = { seconds = it }
+                onChange = { seconds = it }
             )
         }
         Row(modifier = Modifier.padding(16.dp)) {
             TimeButtonView(text = "Set") {
-                model.handleUpdateGenericScoreboard(
-                    Model.GenericScoreboardAction(
-                        id = widget.id,
-                        action = Model.GenericScoreboardAction.Action.SetClock(
-                            minutes = minutes,
-                            seconds = seconds
-                        )
-                    )
-                )
+                TODO("handleUpdateGenericScoreboard")
                 onPresentingChange(false)
             }
             TimeButtonView(text = "Cancel") {
@@ -211,38 +204,18 @@ fun WidgetScoreboardGenericQuickButtonControlsView(model: Model = LocalModel.cur
         VerticalDivider()
         Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
             ScoreboardUndoButtonView {
-                model.handleUpdateGenericScoreboard(
-                    Model.GenericScoreboardAction(
-                        id = widget.id,
-                        action = Model.GenericScoreboardAction.Action.Undo
-                    )
-                )
+                TODO("handleUpdateGenericScoreboard")
             }
             ScoreboardResetScoreButtonView {
-                model.handleUpdateGenericScoreboard(
-                    Model.GenericScoreboardAction(
-                        id = widget.id,
-                        action = Model.GenericScoreboardAction.Action.Reset
-                    )
-                )
+                TODO("handleUpdateGenericScoreboard")
             }
         }
         Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
             ScoreboardIncrementButtonView {
-                model.handleUpdateGenericScoreboard(
-                    Model.GenericScoreboardAction(
-                        id = widget.id,
-                        action = Model.GenericScoreboardAction.Action.IncrementHome
-                    )
-                )
+                TODO("handleUpdateGenericScoreboard")
             }
             ScoreboardIncrementButtonView {
-                model.handleUpdateGenericScoreboard(
-                    Model.GenericScoreboardAction(
-                        id = widget.id,
-                        action = Model.GenericScoreboardAction.Action.IncrementAway
-                    )
-                )
+                TODO("handleUpdateGenericScoreboard")
             }
         }
     }
@@ -258,7 +231,8 @@ fun WidgetScoreboardGenericGeneralSettingsView(
     TextEditNavigationView(
         title = localized("Title"),
         value = generic.title,
-        onChange = { title -> generic.title = title }
+        onChange = { title -> generic.title = title; null },
+        onSubmit = { title -> generic.title = title }
     )
     LaunchedEffect(generic.title) {
         updated()
@@ -266,6 +240,7 @@ fun WidgetScoreboardGenericGeneralSettingsView(
     ScoreboardColorsView(scoreboard = scoreboard, updated = updated)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetScoreboardGenericSettingsView(
     generic: SettingsWidgetGenericScoreboard,
@@ -298,7 +273,8 @@ fun WidgetScoreboardGenericSettingsView(
         TextEditNavigationView(
             title = localized("Home"),
             value = generic.home,
-            onChange = { home -> generic.home = home }
+            onChange = { home -> generic.home = home; null },
+            onSubmit = { home -> generic.home = home }
         )
         LaunchedEffect(generic.home) {
             updated()
@@ -306,7 +282,8 @@ fun WidgetScoreboardGenericSettingsView(
         TextEditNavigationView(
             title = localized("Away"),
             value = generic.away,
-            onChange = { away -> generic.away = away }
+            onChange = { away -> generic.away = away; null },
+            onSubmit = { away -> generic.away = away }
         )
         LaunchedEffect(generic.away) {
             updated()

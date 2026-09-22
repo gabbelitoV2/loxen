@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
 import com.moblin.android.various.model.Model
-import com.moblin.android.various.model.WidgetLayoutAlignment
+import com.moblin.android.various.settings.SettingsAlignment
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamReplay
@@ -119,7 +119,7 @@ private fun StingerView(
         val filename = stinger.makeFilename()
         if (filename != null) {
             model.replayTransitionsStorage.remove(filename = filename)
-            model.replayTransitionsStorage.add(filename = filename, url = url)
+            model.replayTransitionsStorage.add(filename = filename, url = File(url))
         }
     }
 
@@ -157,8 +157,8 @@ private fun StingerView(
                 }
                 Text(localized("Use the HEVC/H.265 codec with alpha channel for transparent background."))
                 TextButtonView(
-                    text = localized("Help"),
-                    onClick = { presentingHelp = true },
+                    title = localized("Help"),
+                    action = { presentingHelp = true },
                 )
                 if (presentingHelp) {
                     HelpView(
@@ -189,8 +189,10 @@ private fun LayoutView(
     database: Database,
     replay: SettingsStreamReplay,
 ) {
+    val layout = remember { mutableStateOf(replay.layout) }
+
     fun dimensions(): Size {
-        return model.stream.resolution.dimensions(model.stream.portrait)
+        return model.stream.value.resolution.dimensions(model.stream.value.portrait)
     }
 
     fun horizontalIncrement(): Double {
@@ -222,8 +224,7 @@ private fun LayoutView(
         Row {
             Row(modifier = Modifier.weight(1f)) {
                 SaveLoadLayoutView(
-                    layout = replay.layout,
-                    onLayoutChange = { replay.layout = it },
+                    layout = layout,
                 )
                 Spacer(modifier = Modifier.weight(1f))
             }
@@ -231,53 +232,44 @@ private fun LayoutView(
             Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                     AlignmentOptionView(
-                        layout = replay.layout,
-                        onLayoutChange = { replay.layout = it },
-                        alignment = WidgetLayoutAlignment.topLeft,
+                        layout = layout,
+                        alignment = SettingsAlignment.topLeft,
                     )
                     AlignmentOptionView(
-                        layout = replay.layout,
-                        onLayoutChange = { replay.layout = it },
-                        alignment = WidgetLayoutAlignment.topCenter,
+                        layout = layout,
+                        alignment = SettingsAlignment.topCenter,
                     )
                     AlignmentOptionView(
-                        layout = replay.layout,
-                        onLayoutChange = { replay.layout = it },
-                        alignment = WidgetLayoutAlignment.topRight,
+                        layout = layout,
+                        alignment = SettingsAlignment.topRight,
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                     AlignmentOptionView(
-                        layout = replay.layout,
-                        onLayoutChange = { replay.layout = it },
-                        alignment = WidgetLayoutAlignment.leftCenter,
+                        layout = layout,
+                        alignment = SettingsAlignment.leftCenter,
                     )
                     AlignmentOptionView(
-                        layout = replay.layout,
-                        onLayoutChange = { replay.layout = it },
-                        alignment = WidgetLayoutAlignment.center,
+                        layout = layout,
+                        alignment = SettingsAlignment.center,
                     )
                     AlignmentOptionView(
-                        layout = replay.layout,
-                        onLayoutChange = { replay.layout = it },
-                        alignment = WidgetLayoutAlignment.rightCenter,
+                        layout = layout,
+                        alignment = SettingsAlignment.rightCenter,
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                     AlignmentOptionView(
-                        layout = replay.layout,
-                        onLayoutChange = { replay.layout = it },
-                        alignment = WidgetLayoutAlignment.bottomLeft,
+                        layout = layout,
+                        alignment = SettingsAlignment.bottomLeft,
                     )
                     AlignmentOptionView(
-                        layout = replay.layout,
-                        onLayoutChange = { replay.layout = it },
-                        alignment = WidgetLayoutAlignment.bottomCenter,
+                        layout = layout,
+                        alignment = SettingsAlignment.bottomCenter,
                     )
                     AlignmentOptionView(
-                        layout = replay.layout,
-                        onLayoutChange = { replay.layout = it },
-                        alignment = WidgetLayoutAlignment.bottomRight,
+                        layout = layout,
+                        alignment = SettingsAlignment.bottomRight,
                     )
                 }
             }
@@ -399,6 +391,10 @@ private fun LayoutView(
     ) {
         model.replayEffect?.setLayout(layout = replay.layout)
     }
+
+    LaunchedEffect(layout.value) {
+        replay.layout = layout.value
+    }
 }
 
 @Composable
@@ -436,7 +432,7 @@ fun StreamReplaySettingsView(
                 onCheckedChange = { enabled ->
                     replay.enabled = enabled
                     if (stream.enabled) {
-                        model.streamReplayEnabledUpdated()
+                        TODO("streamReplayEnabledUpdated")
                     }
                 },
             )

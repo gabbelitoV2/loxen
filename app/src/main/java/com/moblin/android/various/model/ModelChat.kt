@@ -1,5 +1,6 @@
 package com.moblin.android.various.model
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -15,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.localized
 import com.moblin.android.streamingplatforms.Platform
+import com.moblin.android.streamingplatforms.twitch.TwitchChatSendMessageResult
 import com.moblin.android.various.CacheAsyncImage
 import com.moblin.android.various.ChatBotMessage
 import com.moblin.android.various.ChatHighlight
@@ -25,6 +27,7 @@ import com.moblin.android.various.ChatPostState
 import com.moblin.android.various.model.chat.ChatProvider
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatFilter
+import java.net.URI
 import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
@@ -59,8 +62,8 @@ fun Model.endOfQuickButtonChatReachedWhenPaused() {
 }
 
 fun Model.pauseQuickButtonChatAlerts() {
-    quickButtonChatState.chatAlertsPaused = true
-    quickButtonChatState.pausedChatAlertsPostsCount = 0
+    quickButtonChatState.chatAlertsPaused.value = true
+    quickButtonChatState.pausedChatAlertsPostsCount.value = 0
     pausedQuickButtonChatAlertsPosts = ArrayDeque(listOf(createRedLineChatPost()))
     while (true) {
         val post = newQuickButtonChatAlertsPosts.removeFirstOrNull() ?: break
@@ -72,19 +75,19 @@ fun Model.endOfQuickButtonChatAlertsReachedWhenPaused() {
     while (true) {
         val post = pausedQuickButtonChatAlertsPosts.removeFirstOrNull() ?: break
         if (post.isRedLine()) {
-            if (quickButtonChatState.chatAlertsPosts.firstOrNull()?.isRedLine() == true) {
+            if (quickButtonChatState.chatAlertsPosts.value.firstOrNull()?.isRedLine() == true) {
                 continue
             }
             if (pausedQuickButtonChatAlertsPosts.isEmpty()) {
                 continue
             }
         }
-        if (quickButtonChatState.chatAlertsPosts.size > maximumNumberOfInteractiveChatMessages - 1) {
-            quickButtonChatState.chatAlertsPosts.removeLast()
+        if (quickButtonChatState.chatAlertsPosts.value.size > maximumNumberOfInteractiveChatMessages - 1) {
+            quickButtonChatState.chatAlertsPosts.value.removeLast()
         }
-        quickButtonChatState.chatAlertsPosts.addFirst(post)
+        quickButtonChatState.chatAlertsPosts.value.addFirst(post)
     }
-    quickButtonChatState.chatAlertsPaused = false
+    quickButtonChatState.chatAlertsPaused.value = false
 }
 
 fun Model.removeOldChatMessages(now: Instant) {
@@ -95,13 +98,13 @@ fun Model.removeOldChatMessages(now: Instant) {
 }
 
 private fun Model.removeOldChatMessages(now: Instant, chat: ChatProvider) {
-    if (chat.paused) {
+    if (chat.paused.value) {
         return
     }
     while (true) {
-        val post = chat.posts.lastOrNull() ?: break
+        val post = chat.posts.value.lastOrNull() ?: break
         if (Duration.between(post.timestampTime, now).seconds > database.chat.maximumAge) {
-            chat.posts.removeLast()
+            chat.posts.value = chat.posts.value.dropLast(1)
         } else {
             break
         }
@@ -112,18 +115,18 @@ fun Model.updateChat() {
     chat.update()
     chatActivityFeed.update()
     quickButtonChat.update()
-    if (externalDisplay.chatEnabled) {
+    if (externalDisplay.chatEnabled.value) {
         externalDisplayChat.update()
     }
-    if (quickButtonChatState.chatAlertsPaused) {
-        quickButtonChatState.pausedChatAlertsPostsCount = maxOf(pausedQuickButtonChatAlertsPosts.size - 1, 0)
+    if (quickButtonChatState.chatAlertsPaused.value) {
+        quickButtonChatState.pausedChatAlertsPostsCount.value = maxOf(pausedQuickButtonChatAlertsPosts.size - 1, 0)
     } else {
         while (true) {
             val post = newQuickButtonChatAlertsPosts.removeFirstOrNull() ?: break
-            if (quickButtonChatState.chatAlertsPosts.size > maximumNumberOfInteractiveChatMessages - 1) {
-                quickButtonChatState.chatAlertsPosts.removeLast()
+            if (quickButtonChatState.chatAlertsPosts.value.size > maximumNumberOfInteractiveChatMessages - 1) {
+                quickButtonChatState.chatAlertsPosts.value.removeLast()
             }
-            quickButtonChatState.chatAlertsPosts.addFirst(post)
+            quickButtonChatState.chatAlertsPosts.value.addFirst(post)
         }
     }
     chatWidgetChat.update()
@@ -131,8 +134,8 @@ fun Model.updateChat() {
 
 fun Model.isAlertMessage(post: ChatPost): Boolean {
     return when (post.highlight?.kind) {
-        ChatHighlightKind.REDEMPTION -> true
-        ChatHighlightKind.NEW_FOLLOWER -> true
+        ChatHighlightKind.redemption -> true
+        ChatHighlightKind.newFollower -> true
         else -> false
     }
 }
@@ -147,11 +150,11 @@ fun Model.reloadChats() {
 
 fun Model.updateChatMoreThanOneChatConfigured() {
     val moreThanOneStreamingPlatform = isMoreThanOneChatConfigured()
-    chat.moreThanOneStreamingPlatform = moreThanOneStreamingPlatform
-    chatActivityFeed.moreThanOneStreamingPlatform = moreThanOneStreamingPlatform
-    quickButtonChat.moreThanOneStreamingPlatform = moreThanOneStreamingPlatform
-    externalDisplayChat.moreThanOneStreamingPlatform = moreThanOneStreamingPlatform
-    chatWidgetChat.moreThanOneStreamingPlatform = moreThanOneStreamingPlatform
+    chat.moreThanOneStreamingPlatform.value = moreThanOneStreamingPlatform
+    chatActivityFeed.moreThanOneStreamingPlatform.value = moreThanOneStreamingPlatform
+    quickButtonChat.moreThanOneStreamingPlatform.value = moreThanOneStreamingPlatform
+    externalDisplayChat.moreThanOneStreamingPlatform.value = moreThanOneStreamingPlatform
+    chatWidgetChat.moreThanOneStreamingPlatform.value = moreThanOneStreamingPlatform
 }
 
 private fun Model.createRedLineChatPost(): ChatPost {
@@ -160,6 +163,7 @@ private fun Model.createRedLineChatPost(): ChatPost {
         messageId = null,
         displayName = null,
         user = null,
+        userId = null,
         userColor = RgbColor(red = 0, green = 0, blue = 0),
         userBadges = emptyList(),
         segments = emptyList(),
@@ -207,7 +211,7 @@ fun Model.isChatConfigured(): Boolean {
 
 fun Model.isRemoteControlChatAndEvents(platform: Platform?): Boolean {
     when (platform) {
-        Platform.TWITCH, null -> Unit
+        Platform.twitch, null -> Unit
         else -> return false
     }
     return useRemoteControlForChatAndEvents
@@ -245,32 +249,32 @@ fun Model.resetChat() {
 }
 
 fun Model.sendChatMessage(message: String) {
-    if (stream.twitchSendMessagesTo && stream.twitchLoggedIn) {
+    if (stream.value.twitchSendMessagesTo && stream.value.twitchLoggedIn) {
         sendTwitchChatMessage(message = message) { }
     }
-    if (stream.kickSendMessagesTo && stream.kickLoggedIn) {
+    if (stream.value.kickSendMessagesTo && stream.value.kickLoggedIn) {
         sendKickChatMessage(message = message)
     }
 }
 
 fun Model.sendChatMessageShowLogin(message: String) {
-    if (stream.twitchSendMessagesTo) {
+    if (stream.value.twitchSendMessagesTo) {
         sendTwitchChatMessage(message = message) { result ->
             when (result) {
-                TwitchChatSendMessageResult.AUTH_ERROR -> {
-                    twitchLogin(stream = stream) {
-                        showTwitchAuth = true
+                TwitchChatSendMessageResult.authError -> {
+                    twitchLogin(stream = stream.value) {
+                        showTwitchAuth.value = true
                     }
                 }
                 else -> Unit
             }
         }
     }
-    if (stream.kickSendMessagesTo) {
-        if (stream.kickLoggedIn) {
+    if (stream.value.kickSendMessagesTo) {
+        if (stream.value.kickLoggedIn) {
             sendKickChatMessage(message = message)
         } else {
-            makeNotLoggedInToToast(platform = Platform.KICK)
+            makeNotLoggedInToToast(platform = Platform.kick)
         }
     }
 }
@@ -365,16 +369,16 @@ fun Model.appendChatMessage(
         chat.appendMessage(post = post)
         quickButtonChat.appendMessage(post = post)
         for (browserEffect in browserEffects.values) {
-            browserEffect.sendChatMessage(post = post)
+            browserEffect.sendChatMessage(message = post.text())
         }
         if (isWatchLocal()) {
             sendChatMessageToWatch(post = post)
         }
-        if (externalDisplay.chatEnabled) {
+        if (externalDisplay.chatEnabled.value) {
             externalDisplayChat.appendMessage(post = post)
         }
         if (isAlert) {
-            if (quickButtonChatState.chatAlertsPaused) {
+            if (quickButtonChatState.chatAlertsPaused.value) {
                 if (pausedQuickButtonChatAlertsPosts.size < 2 * maximumNumberOfInteractiveChatMessages) {
                     pausedQuickButtonChatAlertsPosts.addLast(post)
                 }
@@ -399,19 +403,21 @@ private fun Model.makeUserColor(userColor: RgbColor?): RgbColor {
 }
 
 fun Model.reloadChatMessages() {
-    chat.posts = newPostIds(posts = chat.posts)
-    chatActivityFeed.posts = newPostIds(posts = chatActivityFeed.posts)
-    quickButtonChat.posts = newPostIds(posts = quickButtonChat.posts)
-    externalDisplayChat.posts = newPostIds(posts = externalDisplayChat.posts)
-    chatWidgetChat.posts = newPostIds(posts = chatWidgetChat.posts)
-    quickButtonChatState.chatAlertsPosts = newPostIds(posts = quickButtonChatState.chatAlertsPosts)
+    chat.posts.value = newPostIds(posts = chat.posts.value.toMutableList())
+    chatActivityFeed.posts.value = newPostIds(posts = chatActivityFeed.posts.value.toMutableList())
+    quickButtonChat.posts.value = newPostIds(posts = quickButtonChat.posts.value.toMutableList())
+    externalDisplayChat.posts.value = newPostIds(posts = externalDisplayChat.posts.value.toMutableList())
+    chatWidgetChat.posts.value = newPostIds(posts = chatWidgetChat.posts.value.toMutableList())
+    quickButtonChatState.chatAlertsPosts.value =
+        newPostIds(posts = quickButtonChatState.chatAlertsPosts.value.toMutableList())
 }
 
 private fun Model.newPostIds(posts: MutableList<ChatPost>): ArrayDeque<ChatPost> {
     val newPosts = ArrayDeque<ChatPost>()
     for (post in posts) {
-        newPosts.addLast(post.copy(id = chatPostId))
+        post.id = chatPostId
         chatPostId += 1
+        newPosts.addLast(post)
     }
     return newPosts
 }
@@ -433,21 +439,21 @@ fun Model.updateStatusChatText() {
         }
     } else {
         if (isTwitchChatConfigured()) {
-            statuses.add(ChatPlatformStatus(platform = Platform.TWITCH, connected = isTwitchChatConnected()))
+            statuses.add(ChatPlatformStatus(platform = Platform.twitch, connected = isTwitchChatConnected()))
         }
         if (isKickPusherConfigured()) {
-            statuses.add(ChatPlatformStatus(platform = Platform.KICK, connected = isKickPusherConnected()))
+            statuses.add(ChatPlatformStatus(platform = Platform.kick, connected = isKickPusherConnected()))
         }
         if (isYouTubeLiveChatConfigured()) {
-            statuses.add(ChatPlatformStatus(platform = Platform.YOUTUBE, connected = isYouTubeLiveChatConnected()))
+            statuses.add(ChatPlatformStatus(platform = Platform.youTube, connected = isYouTubeLiveChatConnected()))
         }
         if (isSoopChatConfigured()) {
-            statuses.add(ChatPlatformStatus(platform = Platform.SOOP, connected = isSoopChatConnected()))
+            statuses.add(ChatPlatformStatus(platform = Platform.soop, connected = isSoopChatConnected()))
         }
         if (isOpenStreamingPlatformChatConfigured()) {
             statuses.add(
                 ChatPlatformStatus(
-                    platform = Platform.OPEN_STREAMING_PLATFORM,
+                    platform = Platform.openStreamingPlatform,
                     connected = isOpenStreamingPlatformChatConnected()
                 )
             )
@@ -458,11 +464,11 @@ fun Model.updateStatusChatText() {
             status = localized("Disconnected")
         }
     }
-    if (status != statusTopLeft.statusChatText) {
-        statusTopLeft.statusChatText = status
+    if (status != statusTopLeft.statusChatText.value) {
+        statusTopLeft.statusChatText.value = status
     }
-    if (statuses != statusTopLeft.chatPlatformStatuses) {
-        statusTopLeft.chatPlatformStatuses = statuses
+    if (statuses != statusTopLeft.chatPlatformStatuses.value) {
+        statusTopLeft.chatPlatformStatuses.value = statuses
     }
 }
 
@@ -476,8 +482,8 @@ fun Model.printChatMessage(post: ChatPost) {
         delay(2_000)
         val image = TODO("no Android counterpart for SwiftUI ImageRenderer and CIImage based CatPrinter rendering")
         for (catPrinter in catPrinters.values) {
-            if (getCatPrinterSettings(catPrinter = catPrinter)?.printChat == true) {
-                catPrinter.print(image = image, feedPaperDelay = 3)
+            if (getCatPrinterSettings(catPrinter = catPrinter)?.printChat?.value == true) {
+                catPrinter.print(image = image, feedPaperDelay = 3.0)
             }
         }
     }
@@ -486,11 +492,11 @@ fun Model.printChatMessage(post: ChatPost) {
 fun Model.banUser(post: ChatPost) {
     val user = post.user ?: return
     when (post.platform) {
-        Platform.TWITCH -> {
+        Platform.twitch -> {
             val userId = post.userId ?: return
             banTwitchUser(user = user, userId = userId, duration = null) { }
         }
-        Platform.KICK -> banKickUser(user = user, duration = null) { }
+        Platform.kick -> banKickUser(user = user, duration = null) { }
         else -> makeErrorToast(title = "Ban not supported for this platform")
     }
 }
@@ -498,11 +504,11 @@ fun Model.banUser(post: ChatPost) {
 fun Model.timeoutUser(post: ChatPost, duration: Int) {
     val user = post.user ?: return
     when (post.platform) {
-        Platform.TWITCH -> {
+        Platform.twitch -> {
             val userId = post.userId ?: return
             banTwitchUser(user = user, userId = userId, duration = duration) { }
         }
-        Platform.KICK -> banKickUser(user = user, duration = duration) { }
+        Platform.kick -> banKickUser(user = user, duration = duration) { }
         else -> makeErrorToast(title = "Timeout not supported for this platform")
     }
 }
@@ -510,8 +516,8 @@ fun Model.timeoutUser(post: ChatPost, duration: Int) {
 fun Model.deleteMessage(post: ChatPost) {
     val messageId = post.messageId ?: return
     when (post.platform) {
-        Platform.TWITCH -> deleteTwitchChatMessage(messageId = messageId)
-        Platform.KICK -> deleteKickMessage(messageId = messageId)
+        Platform.twitch -> deleteTwitchChatMessage(messageId = messageId)
+        Platform.kick -> deleteKickMessage(messageId = messageId)
         else -> makeErrorToast(title = "Delete message not supported for this platform")
     }
 }
@@ -568,7 +574,17 @@ fun ChatPrinterMessage(post: ChatPost, chat: SettingsChat) {
                 }
                 val url = (segment.url ?: segment.bigGifUrl)?.url(animated = false)
                 if (url != null) {
-                    CacheAsyncImage(url = url, modifier = Modifier.height(45.dp))
+                    CacheAsyncImage(
+                        url = URI(url),
+                        content = { image ->
+                            Image(
+                                bitmap = image,
+                                contentDescription = null,
+                                modifier = Modifier.height(45.dp)
+                            )
+                        },
+                        placeholder = { }
+                    )
                     Text(
                         text = " ",
                         color = Color.Black,

@@ -4,5 +4,5 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun AddButtonView(action: () -> Unit) {
-    TextButtonView(text = "Add", action = action)
+    TextButtonView(title = "Add", action = action)
 }

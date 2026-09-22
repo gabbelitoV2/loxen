@@ -88,7 +88,7 @@ class SrtClient(
 
     fun updateStats(): BitrateStatsInstant {
         return bitrateStats.mutate {
-            it.update()
+            it.value.update()
         }
     }
 
@@ -127,8 +127,8 @@ class SrtClient(
             }
             return
         }
-        val options = SrtSocketOption.from(url)
-        val failures = SrtSocketOption.configure(socket, SrtSocketOption.Binding.PRE, options)
+        val options = SrtSocketOption.from(url.toString())
+        val failures = SrtSocketOption.configure(socket, SrtSocketOption.Binding.pre, options)
         if (failures.isNotEmpty()) {
             Log.i(tag, "srt-client: $cameraId: Failed to set pre-bind options: $failures.")
         }
@@ -142,7 +142,7 @@ class SrtClient(
             }
             return
         }
-        val postFailures = SrtSocketOption.configure(socket, SrtSocketOption.Binding.POST, options)
+        val postFailures = SrtSocketOption.configure(socket, SrtSocketOption.Binding.post, options)
         if (postFailures.isNotEmpty()) {
             Log.i(tag, "srt-client: $cameraId: Failed to set post-bind options: $postFailures.")
         }
@@ -171,7 +171,7 @@ class SrtClient(
                 break
             }
             bitrateStats.mutate {
-                it.add(bytesTransferred = count)
+                it.value.add(bytesTransferred = count)
             }
             try {
                 reader.handlePacketFromClient(packet.copyOf(count))

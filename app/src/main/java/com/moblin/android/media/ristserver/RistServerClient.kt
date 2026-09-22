@@ -5,8 +5,15 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReader
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReaderDelegate
 import java.util.UUID
+import kotlinx.coroutines.ContinuationInterceptor
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 
 private const val TAG = "RistServerClient"
+
+private val ristServerDispatcher: CoroutineDispatcher =
+    ristServerQueue.coroutineContext[ContinuationInterceptor] as? CoroutineDispatcher
+        ?: Dispatchers.Default
 
 class RistServerClient(
     private val cameraId: UUID,
@@ -16,7 +23,7 @@ class RistServerClient(
     var server: RistServer? = null
     private val reader: MpegTsReader = MpegTsReader(
         name = "rist-server",
-        decoderQueue = ristServerQueue,
+        decoderQueue = ristServerDispatcher,
         timecodesEnabled = false,
         softwareDecoding = softwareDecoding,
         targetLatency = latency,

@@ -13,8 +13,8 @@ val adaptiveBitrateRistFastSettings = AdaptiveBitrateSettings(
 
 class AdaptiveBitrateRistExperiment(
     targetBitrate: Int,
-    delegate: AdaptiveBitrateDelegate,
-) : AdaptiveBitrate(delegate) {
+    private val delegate: AdaptiveBitrateDelegate,
+) {
     private var avgRtt: Double = 0.0
     private var fastRtt: Double = 0.0
     private var currentBitrate: Long
@@ -32,11 +32,11 @@ class AdaptiveBitrateRistExperiment(
         currentMaximumBitrate = adaptiveBitrateStart
     }
 
-    override fun setTargetBitrate(bitrate: Int) {
+    fun setTargetBitrate(bitrate: Int) {
         targetBitrate = bitrate.toLong()
     }
 
-    override fun setSettings(settings: AdaptiveBitrateSettings) {
+    fun setSettings(settings: AdaptiveBitrateSettings) {
         Log.i(
             "AdaptiveBitrateRistExperiment",
             "adaptive-bitrate-rist-experiment: Using settings $settings",
@@ -44,23 +44,23 @@ class AdaptiveBitrateRistExperiment(
         this.settings = settings
     }
 
-    override fun getCurrentBitrate(): Int {
+    fun getCurrentBitrate(): Int {
         return currentBitrate.toInt()
     }
 
-    override fun getCurrentMaximumBitrateInKbps(): Long {
+    fun getCurrentMaximumBitrateInKbps(): Long {
         return currentMaximumBitrate / 1000
     }
 
-    override fun getFastPif(): Long {
+    fun getFastPif(): Long {
         return fastPif.toLong()
     }
 
-    override fun getSmoothPif(): Long {
+    fun getSmoothPif(): Long {
         return smoothPif.toLong()
     }
 
-    override fun update(stats: StreamStats) {
+    fun update(stats: StreamStats) {
         calcPifs(stats)
         calcRtts(stats)
         increaseCurrentMaxBitrate(stats, allowedRttJitter = 15.0, allowedPifJitter = 10.0)
@@ -74,10 +74,13 @@ class AdaptiveBitrateRistExperiment(
         )
         calculateCurrentBitrate(stats)
         if (previousBitrate != currentBitrate) {
-            delegate?.adaptiveBitrateSetVideoStreamBitrate(currentBitrate.toInt())
+            delegate.adaptiveBitrateSetVideoStreamBitrate(currentBitrate.toInt())
             previousBitrate = currentBitrate
         }
-        super.update(stats)
+    }
+
+    private fun logAdaptiveAcion(actionTaken: String) {
+        Log.i("AdaptiveBitrateRistExperiment", actionTaken)
     }
 
     private fun calcPifs(stats: StreamStats) {

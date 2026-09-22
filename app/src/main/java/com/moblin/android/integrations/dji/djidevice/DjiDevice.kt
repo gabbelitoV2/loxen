@@ -22,27 +22,27 @@ import java.util.UUID
 
 private const val tag = "DjiDevice"
 
-private val pairTransactionId: UShort = 0x8092u.toUShort()
-private val stopStreamingTransactionId: UShort = 0xEAC8u.toUShort()
-private val preparingToLivestreamTransactionId: UShort = 0x8C12u.toUShort()
-private val setupWifiTransactionId: UShort = 0x8C19u.toUShort()
-private val startStreamingTransactionId: UShort = 0x8C2Cu.toUShort()
-private val configureTransactionId: UShort = 0x8C2Du.toUShort()
+private val pairTransactionId: Int = 0x8092
+private val stopStreamingTransactionId: Int = 0xEAC8
+private val preparingToLivestreamTransactionId: Int = 0x8C12
+private val setupWifiTransactionId: Int = 0x8C19
+private val startStreamingTransactionId: Int = 0x8C2C
+private val configureTransactionId: Int = 0x8C2D
 
-private val pairTarget: UShort = 0x0702u.toUShort()
-private val stopStreamingTarget: UShort = 0x0802u.toUShort()
-private val preparingToLivestreamTarget: UShort = 0x0802u.toUShort()
-private val setupWifiTarget: UShort = 0x0702u.toUShort()
-private val configureTarget: UShort = 0x0102u.toUShort()
-private val startStreamingTarget: UShort = 0x0802u.toUShort()
+private val pairTarget: Int = 0x0702
+private val stopStreamingTarget: Int = 0x0802
+private val preparingToLivestreamTarget: Int = 0x0802
+private val setupWifiTarget: Int = 0x0702
+private val configureTarget: Int = 0x0102
+private val startStreamingTarget: Int = 0x0802
 
-private val pairType: UInt = 0x450740u
-private val stopStreamingType: UInt = 0x8E0240u
-private val preparingToLivestreamType: UInt = 0xE10240u
-private val setupWifiType: UInt = 0x470740u
-private val configureType: UInt = 0x8E0240u
-private val startStreamingType: UInt = 0x780840u
-private val statusType: UInt = 0x020D00u
+private val pairType: Int = 0x450740
+private val stopStreamingType: Int = 0x8E0240
+private val preparingToLivestreamType: Int = 0xE10240
+private val setupWifiType: Int = 0x470740
+private val configureType: Int = 0x8E0240
+private val startStreamingType: Int = 0x780840
+private val statusType: Int = 0x020D00
 
 private val fff4Id: UUID = UUID.fromString("0000fff4-0000-1000-8000-00805f9b34fb")
 private val fff5Id: UUID = UUID.fromString("0000fff5-0000-1000-8000-00805f9b34fb")
@@ -257,7 +257,7 @@ class DjiDevice(private val context: Context) {
     fun peripheralDidDiscoverServices(gatt: BluetoothGatt) {
         val peripheralServices = gatt.services ?: return
         for (service in peripheralServices) {
-            gatt.discoverCharacteristics(service)
+            peripheralDidDiscoverCharacteristicsFor(gatt, service)
         }
     }
 
@@ -302,13 +302,13 @@ class DjiDevice(private val context: Context) {
     }
 
     private fun sendStopStream() {
-        val payload = DjiStopStreamingMessagePayload()
+        val payload = byteArrayOf(0x01, 0x01, 0x1A, 0x00, 0x01, 0x02)
         writeMessage(
             DjiMessage(
                 target = stopStreamingTarget,
                 id = stopStreamingTransactionId,
                 type = stopStreamingType,
-                payload = payload.encode(),
+                payload = payload,
             ),
         )
     }
@@ -333,13 +333,13 @@ class DjiDevice(private val context: Context) {
         if (response.id != stopStreamingTransactionId) {
             return
         }
-        val payload = DjiPreparingToLivestreamMessagePayload()
+        val payload = byteArrayOf(0x1A)
         writeMessage(
             DjiMessage(
                 target = preparingToLivestreamTarget,
                 id = preparingToLivestreamTransactionId,
                 type = preparingToLivestreamType,
-                payload = payload.encode(),
+                payload = payload,
             ),
         )
         setState(DjiDeviceState.preparingStream)
@@ -488,13 +488,13 @@ class DjiDevice(private val context: Context) {
             }
         }
         if (model.hasNewProtocol()) {
-            val confirmStartStreamPayload = DjiConfirmStartStreamingMessagePayload()
+            val confirmStartStreamPayload = byteArrayOf(0x01, 0x01, 0x1A, 0x00, 0x01, 0x01)
             writeMessage(
                 DjiMessage(
                     target = stopStreamingTarget,
                     id = stopStreamingTransactionId,
                     type = stopStreamingType,
-                    payload = confirmStartStreamPayload.encode(),
+                    payload = confirmStartStreamPayload,
                 ),
             )
         }

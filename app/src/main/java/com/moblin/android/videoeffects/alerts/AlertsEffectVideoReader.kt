@@ -42,7 +42,7 @@ class AlertsEffectVideoReader(path: String) {
                     break
                 }
             }
-            loadVideoTrackCompletion(track: videoTrackIndex, error: null)
+            loadVideoTrackCompletion(videoTrackIndex, null)
         }
     }
 

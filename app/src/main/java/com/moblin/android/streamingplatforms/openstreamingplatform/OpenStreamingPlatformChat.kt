@@ -4,14 +4,13 @@ import android.util.Log
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.makeChatPostTextSegments
-import com.moblin.android.various.model.ChatPlatform
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.utils.randomString
 import java.io.ByteArrayOutputStream
 import java.time.Instant
 import java.util.Base64
 import javax.xml.parsers.DocumentBuilderFactory
-import kotlin.coroutines.currentCoroutineContext
+import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -184,7 +183,7 @@ class OpenStreamingPlatformChat(
     private suspend fun receiveMessages() {
         while (true) {
             val message = messageChannel.receive()
-            if (!currentCoroutineContext().isActive) {
+            if (!coroutineContext.isActive) {
                 break
             }
             handleMessage(message)
@@ -224,25 +223,7 @@ class OpenStreamingPlatformChat(
     private suspend fun handleMessageMessage(message: Message) {
         val segments = createSegments(message.body)
         val user = message.user() ?: "unknown"
-        model.appendChatMessage(
-            platform = ChatPlatform.openStreamingPlatform,
-            messageId = null,
-            displayName = user,
-            user = user,
-            userId = null,
-            userColor = RgbColor.fromHex(message.color ?: ""),
-            userBadges = emptyList(),
-            segments = segments,
-            timestamp = model.statusOther.digitalClock,
-            timestampTime = Instant.now(),
-            isAction = false,
-            isSubscriber = false,
-            isModerator = false,
-            isOwner = false,
-            bits = null,
-            highlight = null,
-            live = true,
-        )
+        TODO("no Android counterpart for Model.appendChatMessage")
     }
 
     private suspend fun handleMessageIq(message: Iq) {
@@ -332,8 +313,8 @@ class OpenStreamingPlatformChat(
     }
 
     private fun createSegments(message: String): List<ChatPostSegment> {
-        val id = intArrayOf(0)
-        return makeChatPostTextSegments(message, id)
+        val id = 0
+        return makeChatPostTextSegments(message, id).first
     }
 
     companion object {

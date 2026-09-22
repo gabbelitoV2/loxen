@@ -1,9 +1,9 @@
 package com.moblin.android.videoeffects
 
 import android.media.Image
-import com.moblin.android.media.haishinkit.media.VideoEffect
-import com.moblin.android.media.haishinkit.media.VideoEffectInfo
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
+import com.moblin.android.media.haishinkit.media.video.VideoEffect
+import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.storages.ImageStorage
 import java.util.UUID

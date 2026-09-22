@@ -196,6 +196,17 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
     }
 }
 
+private fun Size.convertTo(dimension: Int): Size? {
+    if (width <= dimension && height <= dimension) {
+        return null
+    }
+    return if (width >= height) {
+        Size(dimension, (height.toDouble() * dimension / width).toInt())
+    } else {
+        Size((width.toDouble() * dimension / height).toInt(), dimension)
+    }
+}
+
 private fun MediaCodec.encodeFrame(
     imageBuffer: Image,
     presentationTimeStamp: Long,

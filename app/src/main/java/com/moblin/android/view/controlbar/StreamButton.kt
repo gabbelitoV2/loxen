@@ -31,6 +31,12 @@ import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Show
 import com.moblin.android.various.model.ShowingPanel
+import com.moblin.android.various.model.isGoLiveNotificationConfigured
+import com.moblin.android.various.model.isStreamConfigured
+import com.moblin.android.various.model.resetWizard
+import com.moblin.android.various.model.sendGoLiveNotification
+import com.moblin.android.various.model.startStream
+import com.moblin.android.various.model.stopStream
 import com.moblin.android.various.settings.Database
 import com.moblin.android.view.settings.streams.stream.StreamWizardSettingsView
 import com.moblin.android.LocalModel
@@ -57,7 +63,7 @@ private fun EndButtonView(
     onPresentingGoLiveNotificationConfirmChange: (Boolean) -> Unit,
     enabled: Boolean = true,
 ) {
-    val database by model.database.collectAsState()
+    val database = model.database
     val stream by model.stream.collectAsState()
     var presentingStopConfirm by remember { mutableStateOf(false) }
 
@@ -162,7 +168,7 @@ private fun GoLiveButtonView(
     onPresentingGoLiveNotificationConfirmChange: (Boolean) -> Unit,
     enabled: Boolean = true,
 ) {
-    val database by model.database.collectAsState()
+    val database = model.database
     val stream by model.stream.collectAsState()
     var presentingGoLiveConfirm by remember { mutableStateOf(false) }
 
@@ -218,15 +224,15 @@ private fun GoLiveButtonView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SetupButtonView(model: Model = LocalModel.current, createStreamWizard: CreateStreamWizard) {
-    val database by model.database.collectAsState()
-    val presentingSetup by createStreamWizard.presentingSetup.collectAsState()
+    val database = model.database
+    val presentingSetup = createStreamWizard.presentingSetup
 
     Box(
         modifier = Modifier.pointerInput(Unit) {
             detectTapGestures(
                 onTap = {
                     model.resetWizard()
-                    createStreamWizard.presentingSetup.value = true
+                    createStreamWizard.presentingSetup = true
                 },
                 onLongPress = {
                     model.toggleShowingPanel(
@@ -243,7 +249,7 @@ private fun SetupButtonView(model: Model = LocalModel.current, createStreamWizar
     if (presentingSetup) {
         ModalBottomSheet(
             onDismissRequest = {
-                createStreamWizard.presentingSetup.value = false
+                createStreamWizard.presentingSetup = false
             },
         ) {
             StreamWizardSettingsView(model = model, createStreamWizard = createStreamWizard)

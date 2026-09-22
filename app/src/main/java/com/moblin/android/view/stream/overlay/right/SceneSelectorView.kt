@@ -32,6 +32,15 @@ import com.moblin.android.various.settings.defaultSegmentedPickerSelectedColor
 import kotlin.math.max
 import kotlin.math.min
 import com.moblin.android.LocalModel
+import com.moblin.android.common.various.RgbColor
+
+private fun RgbColor.color(): Color = Color(
+    red = red.toFloat() / 255f,
+    green = green.toFloat() / 255f,
+    blue = blue.toFloat() / 255f,
+)
+
+private fun Color.color(): Color = this
 
 @Composable
 private fun SceneItemView(
@@ -40,17 +49,17 @@ private fun SceneItemView(
     scene: SettingsScene,
     width: Float,
 ) {
-    val enabledScenes by model.enabledScenes.collectAsState()
+    val enabledScenes = model.enabledScenes
 
-    fun height(): Float = if (database.bigButtons) segmentHeightBig else segmentHeight
+    fun height(): Double = if (database.bigButtons) segmentHeightBig else segmentHeight
 
     Box {
         Text(
             text = scene.name,
             modifier = Modifier.size(
                 width = min(
-                    sceneSegmentWidth,
-                    max((width - 20f) / enabledScenes.size.toFloat(), 1f),
+                    sceneSegmentWidth.toDouble(),
+                    max((width - 20f) / enabledScenes.size.toFloat(), 1f).toDouble(),
                 ).dp,
                 height = height().dp,
             ),
@@ -78,18 +87,18 @@ fun StreamOverlayRightSceneSelectorView(
     sceneSelector: SceneSelector,
     width: Float,
 ) {
-    val enabledScenes by model.enabledScenes.collectAsState()
+    val enabledScenes = model.enabledScenes
     val sceneIndex by sceneSelector.sceneIndex.collectAsState()
 
     fun selectedScene(): SettingsScene? =
         if (sceneIndex < enabledScenes.size) enabledScenes[sceneIndex] else null
 
     fun selectedSceneColor(): Color =
-        (selectedScene()?.backgroundColor ?: defaultSegmentedPickerSelectedColor).color()
+        selectedScene()?.backgroundColor?.color() ?: defaultSegmentedPickerSelectedColor.color()
 
     LaunchedEffect(sceneIndex) {
         if (sceneIndex < enabledScenes.size) {
-            model.selectScene(id = enabledScenes[sceneIndex].id)
+            TODO("selectScene")
         }
     }
 
@@ -101,8 +110,8 @@ fun StreamOverlayRightSceneSelectorView(
                 .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp))
                 .width(
                     min(
-                        sceneSegmentWidth * enabledScenes.size,
-                        max(width - 20f, 1f),
+                        sceneSegmentWidth.toDouble() * enabledScenes.size,
+                        max((width - 20f).toDouble(), 1.0),
                     ).dp,
                 ),
         ) {
@@ -116,8 +125,9 @@ fun StreamOverlayRightSceneSelectorView(
                 selectedColor = selectedSceneColor(),
                 onLongPress = { index ->
                     if (index < enabledScenes.size) {
-                        model.showSceneSettings(scene = enabledScenes[index])
+                        TODO("showSceneSettings")
                     }
+                    null
                 },
                 content = { scene ->
                     SceneItemView(
@@ -139,18 +149,18 @@ fun StreamOverlayRightSceneVSelectorView(
     sceneSelector: SceneSelector,
     width: Float,
 ) {
-    val enabledScenes by model.enabledScenes.collectAsState()
+    val enabledScenes = model.enabledScenes
     val sceneIndex by sceneSelector.sceneIndex.collectAsState()
 
     fun selectedScene(): SettingsScene? =
         if (sceneIndex < enabledScenes.size) enabledScenes[sceneIndex] else null
 
     fun selectedSceneColor(): Color =
-        (selectedScene()?.backgroundColor ?: defaultSegmentedPickerSelectedColor).color()
+        selectedScene()?.backgroundColor?.color() ?: defaultSegmentedPickerSelectedColor.color()
 
     LaunchedEffect(sceneIndex) {
         if (sceneIndex < enabledScenes.size) {
-            model.selectScene(id = enabledScenes[sceneIndex].id)
+            TODO("selectScene")
         }
     }
 
@@ -173,8 +183,9 @@ fun StreamOverlayRightSceneVSelectorView(
                 selectedColor = selectedSceneColor(),
                 onLongPress = { index ->
                     if (index < enabledScenes.size) {
-                        model.showSceneSettings(scene = enabledScenes[index])
+                        TODO("showSceneSettings")
                     }
+                    null
                 },
                 content = { scene ->
                     SceneItemView(

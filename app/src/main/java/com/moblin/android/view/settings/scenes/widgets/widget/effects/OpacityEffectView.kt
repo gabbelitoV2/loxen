@@ -19,10 +19,10 @@ fun OpacityEffectView(
     effect: SettingsVideoEffect,
     opacity: SettingsVideoEffectOpacity
 ) {
-    val opacityValue by opacity.opacity.collectAsState()
+    val opacityValue = opacity.opacity
 
     fun updateWidget() {
-        model.getWidgetOpacityEffect(widget, effect)?.setOpacity(opacity = opacity.opacity.value)
+        effect.opacity.opacity = opacityValue
     }
 
     LaunchedEffect(opacityValue) {
@@ -31,9 +31,9 @@ fun OpacityEffectView(
 
     Column {
         Slider(
-            value = opacityValue,
+            value = opacityValue.toFloat(),
             onValueChange = { value ->
-                opacity.setOpacity(value)
+                opacity.opacity = value.toDouble()
             },
             valueRange = 0f..1f
         )

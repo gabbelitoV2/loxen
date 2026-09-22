@@ -50,7 +50,7 @@ class FixedHorizonEffect : VideoEffect() {
     private var motionManager: SensorManager? = null
     private var sensorListener: SensorEventListener? = null
     private var started = false
-    private val operationQueue = CoroutineScope(processorPipelineQueue)
+    private val operationQueue = CoroutineScope(processorPipelineQueue.coroutineContext)
 
     protected fun finalize() {
         stop()
@@ -60,7 +60,7 @@ class FixedHorizonEffect : VideoEffect() {
         if (started || isMac()) {
             return
         }
-        val sensorManager = getWindow().context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+        val sensorManager = getWindow()?.context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
             ?: return
         val gravitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY) ?: return
         started = true
@@ -68,7 +68,7 @@ class FixedHorizonEffect : VideoEffect() {
             override fun onSensorChanged(event: SensorEvent) {
                 val gravity = event.values.copyOf()
                 operationQueue.launch {
-                    targetAngle = calcCameraAngle(gravity = gravity, portrait = portrait).toDouble()
+                    targetAngle = calcCameraAngle(gravity = TODO("CMAcceleration is iOS-only"), portrait = portrait).toDouble()
                 }
             }
 
@@ -118,7 +118,7 @@ class FixedHorizonEffect : VideoEffect() {
         return TODO("OpenGL ES port")
     }
 
-    override fun executeMetalPetal(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         val targetSize = SizeF(image.width.toFloat(), image.height.toFloat())
         if (calcScale(targetSize) == null) {
             return image

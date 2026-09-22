@@ -76,7 +76,7 @@ fun WebSocket.sendWebSocket(
 ) {
     when (opcode) {
         NWProtocolWebSocketOpcode.Text -> send(data?.decodeToString() ?: "")
-        NWProtocolWebSocketOpcode.Binary -> send(ByteString.of(*data.orEmpty()))
+        NWProtocolWebSocketOpcode.Binary -> send(ByteString.of(data ?: ByteArray(0)))
         NWProtocolWebSocketOpcode.Close -> close(1000, data?.decodeToString())
         NWProtocolWebSocketOpcode.Ping -> TODO("no OkHttp public API to send a ping frame")
         NWProtocolWebSocketOpcode.Pong -> TODO("no OkHttp public API to send a pong frame")
@@ -135,7 +135,7 @@ fun httpRequest(
         }
 
         override fun onResponse(call: Call, response: Response) {
-            val body = runCatching { response.body.bytes() }.getOrNull()
+            val body = runCatching { response.body?.bytes() }.getOrNull()
             response.close()
             val callback = completion ?: return
             scope.launch {

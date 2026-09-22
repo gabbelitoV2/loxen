@@ -5,12 +5,13 @@ import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
 class SettingsPrivacyRegion(
-    var id: UUID = UUID.randomUUID(),
+    @Contextual var id: UUID = UUID.randomUUID(),
     var latitude: Double = 0.0,
     var longitude: Double = 0.0,
     var latitudeDelta: Double = 30.0,
@@ -68,13 +69,14 @@ class SettingsLocation {
     var enabled: Boolean = false
         set(value) {
             field = value
-            enabled.value = value
+            _enabled.value = value
         }
 
     @Transient
-    private val enabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val _enabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    val enabledFlow: StateFlow<Boolean> = enabled.asStateFlow()
+    @Transient
+    val enabledFlow: StateFlow<Boolean> = _enabled.asStateFlow()
 
     var privacyRegions: List<SettingsPrivacyRegion> = emptyList()
         set(value) {
@@ -86,6 +88,7 @@ class SettingsLocation {
     private val _privacyRegions: MutableStateFlow<List<SettingsPrivacyRegion>> =
         MutableStateFlow(emptyList())
 
+    @Transient
     val privacyRegionsFlow: StateFlow<List<SettingsPrivacyRegion>> = _privacyRegions.asStateFlow()
 
     var distance: Double = 0.0
@@ -97,6 +100,7 @@ class SettingsLocation {
     @Transient
     private val _distance: MutableStateFlow<Double> = MutableStateFlow(0.0)
 
+    @Transient
     val distanceFlow: StateFlow<Double> = _distance.asStateFlow()
 
     var splitDistance: Double = 0.0
@@ -108,6 +112,7 @@ class SettingsLocation {
     @Transient
     private val _splitDistance: MutableStateFlow<Double> = MutableStateFlow(0.0)
 
+    @Transient
     val splitDistanceFlow: StateFlow<Double> = _splitDistance.asStateFlow()
 
     var altitudeAscent: Double = 0.0
@@ -119,6 +124,7 @@ class SettingsLocation {
     @Transient
     private val _altitudeAscent: MutableStateFlow<Double> = MutableStateFlow(0.0)
 
+    @Transient
     val altitudeAscentFlow: StateFlow<Double> = _altitudeAscent.asStateFlow()
 
     var altitudeDescent: Double = 0.0
@@ -130,6 +136,7 @@ class SettingsLocation {
     @Transient
     private val _altitudeDescent: MutableStateFlow<Double> = MutableStateFlow(0.0)
 
+    @Transient
     val altitudeDescentFlow: StateFlow<Double> = _altitudeDescent.asStateFlow()
 
     var splitAltitudeAscent: Double = 0.0
@@ -141,6 +148,7 @@ class SettingsLocation {
     @Transient
     private val _splitAltitudeAscent: MutableStateFlow<Double> = MutableStateFlow(0.0)
 
+    @Transient
     val splitAltitudeAscentFlow: StateFlow<Double> = _splitAltitudeAscent.asStateFlow()
 
     var splitAltitudeDescent: Double = 0.0
@@ -152,6 +160,7 @@ class SettingsLocation {
     @Transient
     private val _splitAltitudeDescent: MutableStateFlow<Double> = MutableStateFlow(0.0)
 
+    @Transient
     val splitAltitudeDescentFlow: StateFlow<Double> = _splitAltitudeDescent.asStateFlow()
 
     var resetWhenGoingLive: Boolean = false
@@ -163,6 +172,7 @@ class SettingsLocation {
     @Transient
     private val _resetWhenGoingLive: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
+    @Transient
     val resetWhenGoingLiveFlow: StateFlow<Boolean> = _resetWhenGoingLive.asStateFlow()
 
     var desiredAccuracy: SettingsLocationDesiredAccuracy = SettingsLocationDesiredAccuracy.best
@@ -175,6 +185,7 @@ class SettingsLocation {
     private val _desiredAccuracy: MutableStateFlow<SettingsLocationDesiredAccuracy> =
         MutableStateFlow(SettingsLocationDesiredAccuracy.best)
 
+    @Transient
     val desiredAccuracyFlow: StateFlow<SettingsLocationDesiredAccuracy> = _desiredAccuracy.asStateFlow()
 
     var distanceFilter: SettingsLocationDistanceFilter = SettingsLocationDistanceFilter.none
@@ -187,5 +198,6 @@ class SettingsLocation {
     private val _distanceFilter: MutableStateFlow<SettingsLocationDistanceFilter> =
         MutableStateFlow(SettingsLocationDistanceFilter.none)
 
+    @Transient
     val distanceFilterFlow: StateFlow<SettingsLocationDistanceFilter> = _distanceFilter.asStateFlow()
 }

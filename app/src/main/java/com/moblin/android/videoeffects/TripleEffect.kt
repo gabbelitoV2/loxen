@@ -2,11 +2,12 @@ package com.moblin.android.videoeffects
 
 import android.graphics.Bitmap
 import android.graphics.Rect
+import android.media.Image
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 
 class TripleEffect : VideoEffect() {
-    override fun execute(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         val width = image.width / 3
         val height = image.height
         val centerRegion = Rect(width, 0, width * 2, height)
@@ -17,7 +18,7 @@ class TripleEffect : VideoEffect() {
         )
     }
 
-    override fun executeMetalPetal(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         val width = image.width / 3
         val height = image.height
         val centerRegion = Rect(width, 0, width * 2, height)

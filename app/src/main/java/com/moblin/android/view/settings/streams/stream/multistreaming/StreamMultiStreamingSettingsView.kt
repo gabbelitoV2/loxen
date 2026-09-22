@@ -74,7 +74,7 @@ fun DestinationView(
             onCheckedChange = {
                 destination.enabled = it
                 scope.launch {
-                    model.reloadStreamIfEnabled(stream)
+                    TODO("model.reloadStreamIfEnabled")
                 }
             },
             enabled = !locked,
@@ -108,7 +108,7 @@ fun DestinationSettingsView(
             NameEditView(
                 name = destination.name,
                 existingNames = stream.multiStreaming.destinations,
-                onChange = { destination.name = it },
+                onNameChange = { destination.name = it },
             )
             Row(
                 modifier = Modifier
@@ -204,8 +204,7 @@ fun MultiStreamingSettingsView(
             item {
                 Column(modifier = Modifier.padding(16.dp)) {
                     CreateButtonView(
-                        enabled = !locked,
-                        onClick = {
+                        action = {
                             val destination = SettingsStreamMultiStreamingDestination()
                             destination.name = makeUniqueName(
                                 name = SettingsStreamMultiStreamingDestination.baseName,

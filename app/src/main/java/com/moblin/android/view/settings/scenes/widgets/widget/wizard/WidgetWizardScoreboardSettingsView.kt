@@ -41,7 +41,7 @@ fun WidgetWizardScoreboardSettingsView(
     onChangePresentingCreateWizard: (Boolean) -> Unit,
     onChangeSport: (SettingsWidgetScoreboardSport) -> Unit,
 ) {
-    val sport by scoreboard.sport.collectAsState()
+    val sport = scoreboard.sport
     var expanded by remember { mutableStateOf(false) }
     Scaffold(
         topBar = {
@@ -52,7 +52,7 @@ fun WidgetWizardScoreboardSettingsView(
                 actions = {
                     CloseToolbarButtonView(
                         presenting = presentingCreateWizard,
-                        onChangePresenting = onChangePresentingCreateWizard,
+                        onPresentingChange = onChangePresentingCreateWizard,
                     )
                 },
             )
@@ -103,7 +103,7 @@ fun WidgetWizardScoreboardSettingsView(
                     database = database,
                     createWidgetWizard = createWidgetWizard,
                     presentingCreateWizard = presentingCreateWizard,
-                    onChangePresentingCreateWizard = onChangePresentingCreateWizard,
+                    onPresentingCreateWizardChange = onChangePresentingCreateWizard,
                 )
             }
         }

@@ -49,9 +49,9 @@ import com.moblin.android.common.various.personalHotspotLocalAddress
 import com.moblin.android.common.various.urlImage
 import com.moblin.android.integrations.dji.djidevice.DjiDeviceScanner
 import com.moblin.android.integrations.dji.djidevice.DjiDeviceState
+import com.moblin.android.integrations.dji.djidevice.canStartLive
 import com.moblin.android.localized
 import com.moblin.android.media.rtmpserver.rtmpServerApp
-import com.moblin.android.various.model.IpType
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.model.StatusTopRight
@@ -73,6 +73,7 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import java.util.UUID
@@ -106,17 +107,17 @@ private fun ColumnScope.DjiDeviceSelectDeviceSettingsView(
     onNavigate: (String) -> Unit,
 ) {
     val djiScanner = DjiDeviceScanner.shared
-    val isStarted by device.isStarted.collectAsState()
-    val bluetoothPeripheralName by device.bluetoothPeripheralName.collectAsState()
+    val isStarted = device.isStarted
+    val bluetoothPeripheralName = device.bluetoothPeripheralName
 
     fun onDeviceChange(value: String) {
         val deviceId = runCatching { UUID.fromString(value) }.getOrNull() ?: return
         val djiDevice = djiScanner.discoveredDevices.value.firstOrNull {
-            it.peripheral.identifier == deviceId
+            it.peripheral.address == value
         } ?: return
-        device.bluetoothPeripheralName.value = djiDevice.peripheral.name
-        device.bluetoothPeripheralId.value = deviceId
-        device.model.value = djiDevice.model
+        device.bluetoothPeripheralName = djiDevice.peripheral.name
+        device.bluetoothPeripheralId = deviceId
+        device.model = djiDevice.model
     }
 
     Text(
@@ -146,8 +147,8 @@ private fun ColumnScope.DjiDeviceWiFiSettingsView(
     device: SettingsDjiDevice,
     onNavigate: (String) -> Unit,
 ) {
-    val isStarted by device.isStarted.collectAsState()
-    val wifiSsid by device.wifiSsid.collectAsState()
+    val isStarted = device.isStarted
+    val wifiSsid = device.wifiSsid
 
     Text(
         text = "WiFi",
@@ -189,9 +190,9 @@ private fun DjiDeviceWiFiSettingsInnerView(
     device: SettingsDjiDevice,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val wifiSsid by device.wifiSsid.collectAsState()
-    val wifiPassword by device.wifiPassword.collectAsState()
-    val savedWifiNetworks by database.savedWifiNetworks.collectAsState()
+    val wifiSsid = device.wifiSsid
+    val wifiPassword = device.wifiPassword
+    val savedWifiNetworks = database.savedWifiNetworks
 
     fun updateSavedNetworks() {
         if (wifiSsid.isEmpty()) {
@@ -204,7 +205,8 @@ private fun DjiDeviceWiFiSettingsInnerView(
             val newNetwork = SettingsWiFi()
             newNetwork.ssid = wifiSsid
             newNetwork.password = wifiPassword
-            database.savedWifiNetworks.value = database.savedWifiNetworks.value + newNetwork
+            database.savedWifiNetworks =
+                (database.savedWifiNetworks + newNetwork).toMutableList()
         }
     }
 
@@ -259,8 +261,8 @@ private fun DjiDeviceWiFiSettingsInnerView(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                device.wifiSsid.value = network.ssid
-                                device.wifiPassword.value = network.password
+                                device.wifiSsid = network.ssid
+                                device.wifiPassword = network.password
                             }
                             .padding(start = 16.dp, top = 4.dp, bottom = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -272,10 +274,12 @@ private fun DjiDeviceWiFiSettingsInnerView(
                         }
                         IconButton(
                             onClick = {
-                                database.savedWifiNetworks.value =
-                                    database.savedWifiNetworks.value.filterNot {
-                                        it.ssid == network.ssid
-                                    }
+                                database.savedWifiNetworks =
+                                    database.savedWifiNetworks
+                                        .filterNot {
+                                            it.ssid == network.ssid
+                                        }
+                                        .toMutableList()
                             },
                         ) {
                             Icon(Icons.Default.Delete, contentDescription = null)
@@ -299,30 +303,30 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
     rtmpServer: SettingsRtmpServer,
     onNavigate: (String) -> Unit,
 ) {
-    val isStarted by device.isStarted.collectAsState()
-    val rtmpUrlType by device.rtmpUrlType.collectAsState()
-    val serverRtmpStreamId by device.serverRtmpStreamId.collectAsState()
-    val serverRtmpUrl by device.serverRtmpUrl.collectAsState()
-    val customRtmpUrl by device.customRtmpUrl.collectAsState()
-    val rtmpServerStreams by rtmpServer.streams.collectAsState()
-    val rtmpServerEnabled by rtmpServer.enabled.collectAsState()
+    val isStarted = device.isStarted
+    val rtmpUrlType = device.rtmpUrlType
+    val serverRtmpStreamId = device.serverRtmpStreamId
+    val serverRtmpUrl = device.serverRtmpUrl
+    val customRtmpUrl = device.customRtmpUrl
+    val rtmpServerStreams = rtmpServer.streams
+    val rtmpServerEnabled = rtmpServer.enabled
     val ipStatuses by status.ipStatuses.collectAsState()
     var typeMenuExpanded by remember { mutableStateOf(false) }
     var streamMenuExpanded by remember { mutableStateOf(false) }
     var urlMenuExpanded by remember { mutableStateOf(false) }
 
     fun serverUrls(): List<RtmpUrlAndImage> {
-        val stream = model.getRtmpStream(serverRtmpStreamId) ?: return emptyList()
+        val streamKey: String = TODO("getRtmpStream")
         val serverUrls = mutableListOf<RtmpUrlAndImage>()
-        for (ipStatus in ipStatuses.filter { it.ipType == IpType.ipv4 }) {
+        for (ipStatus in ipStatuses.filter { it.ipType.toString() == "ipv4" }) {
             serverUrls.add(
                 RtmpUrlAndImage(
                     url = rtmpServerStreamUrl(
                         ipStatus.ipType.formatAddress(ipStatus.ip),
                         rtmpServer.port,
-                        stream.streamKey,
+                        streamKey,
                     ),
-                    image = urlImage(ipStatus.interfaceType),
+                    image = urlImage(ipStatus.interfaceType.ordinal),
                 ),
             )
         }
@@ -331,20 +335,20 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
                 url = rtmpServerStreamUrl(
                     personalHotspotLocalAddress,
                     rtmpServer.port,
-                    stream.streamKey,
+                    streamKey,
                 ),
                 image = "personalhotspot",
             ),
         )
-        for (ipStatus in ipStatuses.filter { it.ipType == IpType.ipv6 }) {
+        for (ipStatus in ipStatuses.filter { it.ipType.toString() == "ipv6" }) {
             serverUrls.add(
                 RtmpUrlAndImage(
                     url = rtmpServerStreamUrl(
                         ipStatus.ipType.formatAddress(ipStatus.ip),
                         rtmpServer.port,
-                        stream.streamKey,
+                        streamKey,
                     ),
-                    image = urlImage(ipStatus.interfaceType),
+                    image = urlImage(ipStatus.interfaceType.ordinal),
                 ),
             )
         }
@@ -355,15 +359,15 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
     }
 
     LaunchedEffect(Unit) {
-        val streams = rtmpServer.streams.value
+        val streams = rtmpServer.streams
         if (streams.isNotEmpty()) {
-            if (streams.none { it.id == device.serverRtmpStreamId.value }) {
-                device.serverRtmpStreamId.value = streams.first().id
+            if (streams.none { it.id == device.serverRtmpStreamId }) {
+                device.serverRtmpStreamId = streams.first().id
             }
         }
     }
     LaunchedEffect(serverRtmpStreamId) {
-        device.serverRtmpUrl.value = null
+        device.serverRtmpUrl = null
     }
 
     Text(
@@ -397,7 +401,7 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
                 DropdownMenuItem(
                     text = { Text(type.toString()) },
                     onClick = {
-                        device.rtmpUrlType.value = type
+                        device.rtmpUrlType = type
                         typeMenuExpanded = false
                     },
                 )
@@ -436,7 +440,7 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
                         DropdownMenuItem(
                             text = { Text(stream.name) },
                             onClick = {
-                                device.serverRtmpStreamId.value = stream.id
+                                device.serverRtmpStreamId = stream.id
                                 streamMenuExpanded = false
                             },
                         )
@@ -448,7 +452,7 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
                 onExpandedChange = { if (!isStarted) urlMenuExpanded = it },
             ) {
                 OutlinedTextField(
-                    value = serverRtmpUrl ?: model.automaticServerRtmpUrl(device) ?: "",
+                    value = serverRtmpUrl ?: TODO("automaticServerRtmpUrl") ?: "",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("URL") },
@@ -469,11 +473,11 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Wifi, contentDescription = null)
                                 Spacer(Modifier.width(8.dp))
-                                Text(model.automaticServerRtmpUrl(device) ?: "")
+                                Text(TODO("automaticServerRtmpUrl") ?: "")
                             }
                         },
                         onClick = {
-                            device.serverRtmpUrl.value = null
+                            device.serverRtmpUrl = null
                             urlMenuExpanded = false
                         },
                     )
@@ -487,7 +491,7 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
                                 }
                             },
                             onClick = {
-                                device.serverRtmpUrl.value = item.url
+                                device.serverRtmpUrl = item.url
                                 urlMenuExpanded = false
                             },
                         )
@@ -511,7 +515,7 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
         TextEditNavigationView(
             title = localized("URL"),
             value = customRtmpUrl,
-            onSubmit = { device.customRtmpUrl.value = it },
+            onSubmit = { device.customRtmpUrl = it },
             onNavigate = onNavigate,
         )
         if (customRtmpUrl.isEmpty()) {
@@ -535,13 +539,13 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ColumnScope.DjiDeviceSettingsSettingsView(device: SettingsDjiDevice) {
-    val isStarted by device.isStarted.collectAsState()
-    val resolution by device.resolution.collectAsState()
-    val bitrate by device.bitrate.collectAsState()
-    val imageStabilization by device.imageStabilization.collectAsState()
-    val fps by device.fps.collectAsState()
-    val videoCodec by device.videoCodec.collectAsState()
-    val model by device.model.collectAsState()
+    val isStarted = device.isStarted
+    val resolution = device.resolution
+    val bitrate = device.bitrate
+    val imageStabilization = device.imageStabilization
+    val fps = device.fps
+    val videoCodec = device.videoCodec
+    val model = device.model
     var resolutionMenuExpanded by remember { mutableStateOf(false) }
     var bitrateMenuExpanded by remember { mutableStateOf(false) }
     var imageStabilizationMenuExpanded by remember { mutableStateOf(false) }
@@ -579,7 +583,7 @@ private fun ColumnScope.DjiDeviceSettingsSettingsView(device: SettingsDjiDevice)
                 DropdownMenuItem(
                     text = { Text(value.rawValue) },
                     onClick = {
-                        device.resolution.value = value
+                        device.resolution = value
                         resolutionMenuExpanded = false
                     },
                 )
@@ -611,7 +615,7 @@ private fun ColumnScope.DjiDeviceSettingsSettingsView(device: SettingsDjiDevice)
                 DropdownMenuItem(
                     text = { Text(formatBytesPerSecond(value.toLong())) },
                     onClick = {
-                        device.bitrate.value = value
+                        device.bitrate = value
                         bitrateMenuExpanded = false
                     },
                 )
@@ -646,7 +650,7 @@ private fun ColumnScope.DjiDeviceSettingsSettingsView(device: SettingsDjiDevice)
                     DropdownMenuItem(
                         text = { Text(value.toString()) },
                         onClick = {
-                            device.imageStabilization.value = value
+                            device.imageStabilization = value
                             imageStabilizationMenuExpanded = false
                         },
                     )
@@ -680,7 +684,7 @@ private fun ColumnScope.DjiDeviceSettingsSettingsView(device: SettingsDjiDevice)
                     DropdownMenuItem(
                         text = { Text(value.toString()) },
                         onClick = {
-                            device.fps.value = value
+                            device.fps = value
                             fpsMenuExpanded = false
                         },
                     )
@@ -714,7 +718,7 @@ private fun ColumnScope.DjiDeviceSettingsSettingsView(device: SettingsDjiDevice)
                     DropdownMenuItem(
                         text = { Text(value.rawValue) },
                         onClick = {
-                            device.videoCodec.value = value
+                            device.videoCodec = value
                             videoCodecMenuExpanded = false
                         },
                     )
@@ -732,8 +736,8 @@ private fun ColumnScope.DjiDeviceSettingsSettingsView(device: SettingsDjiDevice)
 
 @Composable
 private fun ColumnScope.DjiDeviceAutoRestartSettingsView(device: SettingsDjiDevice) {
-    val rtmpUrlType by device.rtmpUrlType.collectAsState()
-    val autoRestartStream by device.autoRestartStream.collectAsState()
+    val rtmpUrlType = device.rtmpUrlType
+    val autoRestartStream = device.autoRestartStream
 
     if (rtmpUrlType == SettingsDjiDeviceUrlType.server) {
         Row(
@@ -746,7 +750,7 @@ private fun ColumnScope.DjiDeviceAutoRestartSettingsView(device: SettingsDjiDevi
             Spacer(Modifier.weight(1f))
             Switch(
                 checked = autoRestartStream,
-                onCheckedChange = { device.autoRestartStream.value = it },
+                onCheckedChange = { device.autoRestartStream = it },
             )
         }
     }
@@ -758,7 +762,7 @@ private fun ColumnScope.DjiDeviceStartStopButtonSettingsView(
     status: StatusOther,
     device: SettingsDjiDevice,
 ) {
-    val isStarted by device.isStarted.collectAsState()
+    val isStarted = device.isStarted
 
     if (!isStarted) {
         Box(
@@ -766,11 +770,11 @@ private fun ColumnScope.DjiDeviceStartStopButtonSettingsView(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            TextButtonView(
-                text = "Start live stream",
-                enabled = device.canStartLive(status.isConnectedToIpv4WiFi()),
-                onClick = { model.startDjiDeviceLiveStream(device) },
-            )
+            if (device.canStartLive(status.isConnectedToIpv4WiFi())) {
+                TextButtonView(title = "Start live stream") {
+                    TODO("startDjiDeviceLiveStream")
+                }
+            }
         }
     } else {
         Box(
@@ -779,10 +783,9 @@ private fun ColumnScope.DjiDeviceStartStopButtonSettingsView(
                 .background(Color.Blue)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            TextButtonView(
-                text = "Stop live stream",
-                onClick = { model.stopDjiDeviceLiveStream(device) },
-            )
+            TextButtonView(title = "Stop live stream") {
+                TODO("stopDjiDeviceLiveStream")
+            }
         }
     }
 }
@@ -796,8 +799,8 @@ fun DjiDeviceSettingsView(
     status: StatusTopRight,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val name by device.name.collectAsState()
-    val existingNames by djiDevices.devices.collectAsState()
+    val name = device.name
+    val existingNames = djiDevices.devices
     val djiDeviceStreamingState by status.djiDeviceStreamingState.collectAsState()
 
     fun state(): String {
@@ -805,7 +808,7 @@ fun DjiDeviceSettingsView(
     }
 
     LaunchedEffect(Unit) {
-        model.setCurrentDjiDevice(device)
+        TODO("setCurrentDjiDevice")
     }
 
     Scaffold(
@@ -821,8 +824,8 @@ fun DjiDeviceSettingsView(
         ) {
             NameEditView(
                 name = name,
+                onNameChange = { device.name = it },
                 existingNames = existingNames,
-                onChange = { device.name.value = it },
             )
             DjiDeviceSelectDeviceSettingsView(device = device, onNavigate = onNavigate)
             DjiDeviceWiFiSettingsView(

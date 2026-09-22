@@ -18,12 +18,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.integrations.catprinter.CatPrinterState
+import com.moblin.android.integrations.catprinter.catPrinterScanner
 import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusTopRight
 import com.moblin.android.various.settings.SettingsCatPrinter
 import com.moblin.android.various.settings.SettingsCatPrinters
-import com.moblin.android.view.utils.GrayTextView
+import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextButtonView
@@ -33,10 +34,10 @@ import com.moblin.android.LocalOnNavigate
 
 private fun formatCatPrinterState(state: CatPrinterState?): String {
     return when (state) {
-        null, CatPrinterState.Disconnected -> localized("Disconnected")
-        CatPrinterState.Discovering -> localized("Discovering")
-        CatPrinterState.Connecting -> localized("Connecting")
-        CatPrinterState.Connected -> localized("Connected")
+        null, CatPrinterState.disconnected -> localized("Disconnected")
+        CatPrinterState.discovering -> localized("Discovering")
+        CatPrinterState.connecting -> localized("Connecting")
+        CatPrinterState.connected -> localized("Connected")
         else -> localized("Unknown")
     }
 }
@@ -44,7 +45,7 @@ private fun formatCatPrinterState(state: CatPrinterState?): String {
 fun onDeviceChange(device: SettingsCatPrinter, value: String) {
     val deviceId = runCatching { UUID.fromString(value) }.getOrNull() ?: return
     val peripheral = catPrinterScanner.discoveredPeripherals.value
-        .firstOrNull { it.identifier == deviceId } ?: return
+        .firstOrNull { it.identifier == deviceId.toString() } ?: return
     TODO(
         "No setter for SettingsCatPrinter.bluetoothPeripheralName and bluetoothPeripheralId: " +
             "${peripheral.name} / $deviceId"
@@ -59,7 +60,7 @@ fun CatPrinterSettingsView(
     status: StatusTopRight,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val name by device.name.collectAsState()
+    val name = device.name
     val bluetoothPeripheralId by device.bluetoothPeripheralId.collectAsState()
     val bluetoothPeripheralName by device.bluetoothPeripheralName.collectAsState()
     val enabled by device.enabled.collectAsState()
@@ -78,14 +79,14 @@ fun CatPrinterSettingsView(
     }
 
     LaunchedEffect(Unit) {
-        model.setCurrentCatPrinter(device = device)
+        TODO("Model.setCurrentCatPrinter is not available in this port")
     }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
             NameEditView(
                 name = name,
-                onChange = { newName ->
+                onNameChange = { newName ->
                     TODO("No setter for SettingsCatPrinter.name in this port: $newName")
                 },
                 existingNames = devices,
@@ -102,7 +103,7 @@ fun CatPrinterSettingsView(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(enabled = !model.isCatPrinterEnabled(device = device)) {
+                    .clickable(enabled = !TODO("Model.isCatPrinterEnabled is not available in this port")) {
                         onNavigate("CatPrinterScannerSettingsView")
                     }
                     .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -125,9 +126,9 @@ fun CatPrinterSettingsView(
                     checked = enabled,
                     onCheckedChange = { value ->
                         if (value) {
-                            model.enableCatPrinter(device = device)
+                            TODO("Model.enableCatPrinter is not available in this port")
                         } else {
-                            model.disableCatPrinter(device = device)
+                            TODO("Model.disableCatPrinter is not available in this port")
                         }
                     },
                     enabled = canEnable(),
@@ -199,7 +200,6 @@ fun CatPrinterSettingsView(
                     checked = faxMeowSound,
                     onCheckedChange = { value ->
                         TODO("No setter for SettingsCatPrinter.faxMeowSound in this port: $value")
-                        model.catPrinterSetFaxMeowSound(device = device)
                     },
                 )
             }
@@ -212,7 +212,7 @@ fun CatPrinterSettingsView(
             }
             item {
                 TextButtonView("Test") {
-                    model.catPrinterPrintTestImage(device = device)
+                    TODO("Model.catPrinterPrintTestImage is not available in this port")
                 }
             }
         }

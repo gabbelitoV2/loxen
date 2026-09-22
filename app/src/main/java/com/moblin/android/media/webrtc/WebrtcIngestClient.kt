@@ -8,7 +8,6 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.media.WrappingTimestamp
 import com.moblin.android.media.haishinkit.codec.video.VideoDecoder
 import com.moblin.android.media.haishinkit.codec.video.VideoDecoderDelegate
-import com.moblin.android.media.haishinkit.mpeg.NalUnitType
 import com.moblin.android.media.haishinkit.mpeg.getNalUnits
 import com.moblin.android.media.haishinkit.mpeg.readH264NalUnits
 import com.moblin.android.media.haishinkit.mpeg.readH265NalUnits
@@ -93,7 +92,7 @@ private object IngestClientHandles {
     }
 }
 
-private class RtcTrackInit(
+internal class RtcTrackInit(
     val direction: Int,
     val codec: Int,
     val payloadType: Int,
@@ -493,16 +492,8 @@ class WebrtcIngestClient(
         val frameData = data
         val nalUnits = getNalUnits(frameData)
         val formatDescription: MediaFormat? = when (videoCodec) {
-            VideoCodec.H264 -> readH264NalUnits(
-                frameData,
-                nalUnits,
-                listOf(NalUnitType.SPS, NalUnitType.PPS, NalUnitType.IDR),
-            ).makeFormatDescription()
-            VideoCodec.H265 -> readH265NalUnits(
-                frameData,
-                nalUnits,
-                listOf(NalUnitType.SPS, NalUnitType.PPS, NalUnitType.VPS),
-            ).makeFormatDescription()
+            VideoCodec.H264 -> TODO("no Android counterpart for makeFormatDescription")
+            VideoCodec.H265 -> TODO("no Android counterpart for makeFormatDescription")
         }
         if (formatDescription != null &&
             !isSameFormatDescription(videoFormatDescription, formatDescription)
@@ -525,7 +516,7 @@ class WebrtcIngestClient(
         if (videoDecoder == null) {
             val decoder = VideoDecoder(
                 name = name,
-                lockQueue = dispatchQueue,
+                lockQueue = scope,
                 softwareDecoding = softwareDecoding,
             )
             decoder.delegate = this

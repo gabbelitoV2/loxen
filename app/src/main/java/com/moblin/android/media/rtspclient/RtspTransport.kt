@@ -8,6 +8,7 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 private const val TAG = "RtspTransport"
@@ -75,7 +76,7 @@ class RtspTransportRtpRtspTcp : RtspTransport() {
     }
 
     override fun stop() {
-        scope?.cancel()
+        scope?.coroutineContext?.cancel()
         scope = null
         try {
             connection?.close()
@@ -226,7 +227,7 @@ class RtspTransportRtpUdp : RtspTransport() {
     }
 
     override fun stop() {
-        scope?.cancel()
+        scope?.coroutineContext?.cancel()
         scope = null
         try {
             rtspConnection?.close()

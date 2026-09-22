@@ -51,8 +51,8 @@ private fun PermissionsSettingsInnerView(permissions: SettingsChatBotPermissions
     ) {
         Text(text = "Moderators", modifier = Modifier.weight(1f))
         Switch(
-            checked = permissions.moderatorsEnabled.collectAsState().value,
-            onCheckedChange = { permissions.moderatorsEnabled.value = it }
+            checked = permissions.moderatorsEnabled,
+            onCheckedChange = { permissions.moderatorsEnabled = it }
         )
     }
     Row(
@@ -61,14 +61,14 @@ private fun PermissionsSettingsInnerView(permissions: SettingsChatBotPermissions
     ) {
         Text(text = "Subscribers", modifier = Modifier.weight(1f))
         Switch(
-            checked = permissions.subscribersEnabled.collectAsState().value,
-            onCheckedChange = { permissions.subscribersEnabled.value = it }
+            checked = permissions.subscribersEnabled,
+            onCheckedChange = { permissions.subscribersEnabled = it }
         )
     }
     var tierExpanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = tierExpanded, onExpandedChange = { tierExpanded = it }) {
         OutlinedTextField(
-            value = permissions.minimumSubscriberTier.collectAsState().value.toString(),
+            value = permissions.minimumSubscriberTier.toString(),
             onValueChange = {},
             readOnly = true,
             label = { Text(text = "Minimum subscriber tier") },
@@ -82,7 +82,7 @@ private fun PermissionsSettingsInnerView(permissions: SettingsChatBotPermissions
                 DropdownMenuItem(
                     text = { Text(text = tier.toString()) },
                     onClick = {
-                        permissions.minimumSubscriberTier.value = tier
+                        permissions.minimumSubscriberTier = tier
                         tierExpanded = false
                     }
                 )
@@ -95,14 +95,14 @@ private fun PermissionsSettingsInnerView(permissions: SettingsChatBotPermissions
     ) {
         Text(text = "Others", modifier = Modifier.weight(1f))
         Switch(
-            checked = permissions.othersEnabled.collectAsState().value,
-            onCheckedChange = { permissions.othersEnabled.value = it }
+            checked = permissions.othersEnabled,
+            onCheckedChange = { permissions.othersEnabled = it }
         )
     }
     var cooldownExpanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = cooldownExpanded, onExpandedChange = { cooldownExpanded = it }) {
         OutlinedTextField(
-            value = permissions.cooldown.collectAsState().value?.let { "${it}s" } ?: "-- None --",
+            value = permissions.cooldown?.let { "${it}s" } ?: "-- None --",
             onValueChange = {},
             readOnly = true,
             label = { Text(text = "Cooldown") },
@@ -115,7 +115,7 @@ private fun PermissionsSettingsInnerView(permissions: SettingsChatBotPermissions
             DropdownMenuItem(
                 text = { Text(text = "-- None --") },
                 onClick = {
-                    permissions.cooldown.value = null
+                    permissions.cooldown = null
                     cooldownExpanded = false
                 }
             )
@@ -123,7 +123,7 @@ private fun PermissionsSettingsInnerView(permissions: SettingsChatBotPermissions
                 DropdownMenuItem(
                     text = { Text(text = "${cooldown}s") },
                     onClick = {
-                        permissions.cooldown.value = cooldown
+                        permissions.cooldown = cooldown
                         cooldownExpanded = false
                     }
                 )
@@ -140,8 +140,8 @@ private fun PermissionsSettingsInnerView(permissions: SettingsChatBotPermissions
     ) {
         Text(text = "Send chat responses", modifier = Modifier.weight(1f))
         Switch(
-            checked = permissions.sendChatMessages.collectAsState().value,
-            onCheckedChange = { permissions.sendChatMessages.value = it }
+            checked = permissions.sendChatMessages,
+            onCheckedChange = { permissions.sendChatMessages = it }
         )
     }
     Text(
@@ -595,7 +595,7 @@ private fun AppleMusicPermissionsSettingsView(
 
 @Composable
 private fun ChatBotCommandsSettingsView(model: Model = LocalModel.current, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
-    val database = model.database.collectAsState().value
+    val database = model.database
     val permissions = database.chat.botCommandPermissions
     LazyColumn {
         item {
@@ -771,9 +771,9 @@ private fun ChatBotAliasSettingsView(
             .clickable { onNavigate("Alias") },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = alias.alias.collectAsState().value)
+        Text(text = alias.alias)
         Spacer(modifier = Modifier.weight(1f))
-        GrayTextView(text = alias.replacement.collectAsState().value)
+        GrayTextView(text = alias.replacement)
     }
 }
 
@@ -784,7 +784,7 @@ private fun ChatBotCustomCommandTextSettingsView(
     value: String
 ) {
     var text by remember { mutableStateOf(value) }
-    val database = model.database.collectAsState().value
+    val database = model.database
     LazyColumn {
         item {
             TextWidgetTextView(
@@ -816,8 +816,8 @@ private fun ChatBotCustomCommandTextSettingsView(
         }
     }
     LaunchedEffect(text) {
-        customCommand.formatString.value = text
-        model.chatBotCustomCommandsTextChanged()
+        customCommand.formatString = text
+        TODO("chatBotCustomCommandsTextChanged")
     }
 }
 
@@ -839,9 +839,9 @@ private fun ChatBotCustomCommandSettingsView(
             .clickable { onNavigate("Command") },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = customCommand.name.collectAsState().value)
+        Text(text = customCommand.name)
         Spacer(modifier = Modifier.weight(1f))
-        GrayTextView(text = customCommand.formatString.collectAsState().value)
+        GrayTextView(text = customCommand.formatString)
     }
 }
 
@@ -851,7 +851,7 @@ private fun ChatBotCustomCommandsSettingsView(
     chat: SettingsChat,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    val customCommands = chat.customCommands.collectAsState().value
+    val customCommands = chat.customCommands
     LazyColumn {
         items(customCommands, key = { it.id }) { customCommand ->
             ChatBotCustomCommandSettingsView(
@@ -862,7 +862,7 @@ private fun ChatBotCustomCommandsSettingsView(
         }
         item {
             CreateButtonView {
-                chat.customCommands.value = chat.customCommands.value + SettingsChatBotCustomCommand()
+                chat.customCommands.add(SettingsChatBotCustomCommand())
             }
         }
         item {
@@ -879,7 +879,7 @@ private fun ChatBotAliasesSettingsView(
     chat: SettingsChat,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    val aliases = chat.aliases.collectAsState().value
+    val aliases = chat.aliases
     LazyColumn {
         items(aliases, key = { it.id }) { alias ->
             ChatBotAliasSettingsView(
@@ -890,7 +890,7 @@ private fun ChatBotAliasesSettingsView(
         }
         item {
             CreateButtonView {
-                chat.aliases.value = chat.aliases.value + SettingsChatBotAlias()
+                chat.aliases.add(SettingsChatBotAlias())
             }
         }
     }
@@ -898,7 +898,7 @@ private fun ChatBotAliasesSettingsView(
 
 @Composable
 fun ChatBotSettingsView(model: Model = LocalModel.current, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
-    val database = model.database.collectAsState().value
+    val database = model.database
     LazyColumn {
         item {
             Row(
@@ -937,8 +937,8 @@ fun ChatBotSettingsView(model: Model = LocalModel.current, onNavigate: (String) 
             ) {
                 Text(text = "Send low battery message", modifier = Modifier.weight(1f))
                 Switch(
-                    checked = database.chat.botSendLowBatteryWarning.collectAsState().value,
-                    onCheckedChange = { database.chat.botSendLowBatteryWarning.value = it }
+                    checked = database.chat.botSendLowBatteryWarning,
+                    onCheckedChange = { database.chat.botSendLowBatteryWarning = it }
                 )
             }
         }

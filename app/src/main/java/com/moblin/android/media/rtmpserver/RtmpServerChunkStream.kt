@@ -33,6 +33,7 @@ import com.moblin.android.media.haishinkit.rtmp.message.RtmpSetChunkSizeMessage
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpSetPeerBandwidthMessage
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpWindowAcknowledgementSizeMessage
 import java.net.URI
+import kotlinx.coroutines.CoroutineScope
 
 private const val TAG = "RtmpServerChunkStream"
 
@@ -119,7 +120,8 @@ class RtmpServerChunkStream(
 
     private fun processMessageAmf0Command() {
         val client = this.client ?: return
-        val decoder = Amf0Decoder(messageBody)
+        val decoder = Amf0Decoder()
+        decoder.data = messageBody
         var commandName: RtmpCommandName = RtmpCommandName.unknown
         var transactionId = 0
         var commandObject: AsObject? = null
@@ -172,21 +174,24 @@ class RtmpServerChunkStream(
             RtmpChunk(
                 type = RtmpChunkType.zero,
                 chunkStreamId = RtmpChunk.ChunkStreamId.control.rawValue,
-                message = RtmpWindowAcknowledgementSizeMessage(2_500_000),
+                message = RtmpWindowAcknowledgementSizeMessage(2_500_000u),
             )
         )
         client.sendMessage(
             RtmpChunk(
                 type = RtmpChunkType.zero,
                 chunkStreamId = RtmpChunk.ChunkStreamId.control.rawValue,
-                message = RtmpSetPeerBandwidthMessage(2_500_000, RtmpSetPeerBandwidthMessage.Limit.dynamic),
+                message = RtmpSetPeerBandwidthMessage(
+                    2_500_000u,
+                    RtmpSetPeerBandwidthMessage.Limit.fromRawValue(2u),
+                ),
             )
         )
         client.sendMessage(
             RtmpChunk(
                 type = RtmpChunkType.zero,
                 chunkStreamId = RtmpChunk.ChunkStreamId.control.rawValue,
-                message = RtmpSetChunkSizeMessage(1024),
+                message = RtmpSetChunkSizeMessage(1024u),
             )
         )
         client.chunkSizeToClient = 1024
@@ -251,7 +256,7 @@ class RtmpServerChunkStream(
             return
         }
         val streamKey = firstArgument.value
-        val stream = client.server?.settings.streams
+        val stream = client.server?.settings?.streams
             ?.filter { it.streamKey.isNotEmpty() }
             ?.firstOrNull { it.streamKey == streamKey }
         val isStreamKeyConfigured: Boolean
@@ -344,7 +349,8 @@ class RtmpServerChunkStream(
     }
 
     private fun processMessageAudioTypeSeq(client: RtmpServerClient, codec: FlvAudioCodec) {
-        val config = MpegTsAudioConfig(messageBody.copyOfRange(codec.headerSize, messageBody.size)) ?: return
+        val config = MpegTsAudioConfig.fromData(messageBody.copyOfRange(codec.headerSize, messageBody.size))
+            ?: return
         Log.i(TAG, "rtmp-server: client: $config")
         audioBuffer = TODO("AVAudioCompressedBuffer port: allocate the compressed AAC packet buffer")
         audioDecoder = TODO("AVAudioConverter port: configure a MediaCodec audio/mp4a-latm decoder with csd-0 from the sequence header")
@@ -366,7 +372,7 @@ class RtmpServerChunkStream(
         if (audioDecoder == null || pcmAudioBuffer == null) {
             return
         }
-        val pcm = TODO<ShortArray>("MediaCodec audio/mp4a-latm decode of the $length byte AAC packet")
+        val pcm: ShortArray = TODO("MediaCodec audio/mp4a-latm decode of the $length byte AAC packet")
         val sampleBuffer = makeAudioSampleBuffer(client, pcm) ?: return
         client.handleAudioBuffer(sampleBuffer)
     }
@@ -443,7 +449,15 @@ class RtmpServerChunkStream(
         val configRecord = messageBody.copyOfRange(FlvTagType.video.headerSize, messageBody.size)
         val newFormatDescription = when (format) {
             FlvVideoCodec.avc -> MpegTsVideoConfigAvc(configRecord).makeFormatDescription()
-            FlvVideoCodec.hevc -> MpegTsVideoConfigHevc(configRecord).makeFormatDescription()
+            FlvVideoCodec.hevc -> {
+                val formatDescriptionOut = arrayOfNulls<MediaFormat>(1)
+                val videoConfig = MpegTsVideoConfigHevc(configRecord)
+                if (videoConfig.makeFormatDescription(formatDescriptionOut) == 0) {
+                    formatDescriptionOut[0]
+                } else {
+                    null
+                }
+            }
             else -> null
         }
         if (newFormatDescription != null) {
@@ -460,9 +474,10 @@ class RtmpServerChunkStream(
         }
         val hvcC = messageBody.copyOfRange(FlvTagType.video.headerSize, messageBody.size)
         val videoConfig = MpegTsVideoConfigHevc(hvcC)
-        val newFormatDescription = videoConfig.makeFormatDescription()
-        if (newFormatDescription != null) {
-            formatDescription = newFormatDescription
+        val formatDescriptionOut = arrayOfNulls<MediaFormat>(1)
+        val status = videoConfig.makeFormatDescription(formatDescriptionOut)
+        if (status == 0) {
+            formatDescription = formatDescriptionOut[0]
             setupVideoEncoderIfNeeded(formatDescription)
         } else {
             client.stopInternal("H.265/HEVC format description error")
@@ -475,7 +490,7 @@ class RtmpServerChunkStream(
         }
         videoDecoder = VideoDecoder(
             name = "rtmp-server",
-            lockQueue = rtmpServerDispatchQueue,
+            lockQueue = CoroutineScope(rtmpServerDispatchQueue),
             softwareDecoding = softwareDecoding,
         )
         videoDecoder?.delegate = this

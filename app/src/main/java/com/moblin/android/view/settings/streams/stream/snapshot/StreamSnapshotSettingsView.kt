@@ -37,24 +37,24 @@ fun StreamSnapshotSettingsView(
     recording: SettingsStreamRecording,
 ) {
     fun submitSnapshotWebhookUrl(value: String) {
-        val url = cleanUrl(url = value)
-        stream.discordSnapshotWebhook.value = url
+        val url = cleanUrl(value)
+        stream.discordSnapshotWebhook = url
     }
 
     fun submitSnapshotChatBotWebhookUrl(value: String) {
-        val url = cleanUrl(url = value)
-        stream.discordChatBotSnapshotWebhook.value = url
+        val url = cleanUrl(value)
+        stream.discordChatBotSnapshotWebhook = url
     }
 
-    val cleanSnapshots by recording.cleanSnapshots.collectAsState()
-    val discordSnapshotWebhook by stream.discordSnapshotWebhook.collectAsState()
-    val discordChatBotSnapshotWebhook by stream.discordChatBotSnapshotWebhook.collectAsState()
-    val discordSnapshotWebhookOnlyWhenLive by stream.discordSnapshotWebhookOnlyWhenLive.collectAsState()
+    val cleanSnapshots = recording.cleanSnapshots
+    val discordSnapshotWebhook = stream.discordSnapshotWebhook
+    val discordChatBotSnapshotWebhook = stream.discordChatBotSnapshotWebhook
+    val discordSnapshotWebhookOnlyWhenLive = stream.discordSnapshotWebhookOnlyWhenLive
 
     var initialized by remember { mutableStateOf(false) }
     LaunchedEffect(cleanSnapshots) {
         if (initialized) {
-            model.setCleanSnapshots()
+            TODO("model.setCleanSnapshots()")
         } else {
             initialized = true
         }
@@ -76,7 +76,7 @@ fun StreamSnapshotSettingsView(
                         Spacer(Modifier.weight(1f))
                         Switch(
                             checked = cleanSnapshots,
-                            onCheckedChange = { recording.cleanSnapshots.value = it },
+                            onCheckedChange = { recording.cleanSnapshots = it },
                         )
                     }
                     Text("Do not show widgets in snapshots.")
@@ -106,7 +106,7 @@ fun StreamSnapshotSettingsView(
                         Switch(
                             checked = discordSnapshotWebhookOnlyWhenLive,
                             onCheckedChange = {
-                                stream.discordSnapshotWebhookOnlyWhenLive.value = it
+                                stream.discordSnapshotWebhookOnlyWhenLive = it
                             },
                         )
                     }

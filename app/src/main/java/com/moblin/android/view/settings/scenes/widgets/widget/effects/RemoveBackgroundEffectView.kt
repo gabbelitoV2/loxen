@@ -20,14 +20,11 @@ fun RemoveBackgroundEffectView(
     effect: SettingsVideoEffect,
     removeBackground: SettingsVideoEffectRemoveBackground,
 ) {
-    val fromColor by removeBackground.fromColor.collectAsState()
-    val toColor by removeBackground.toColor.collectAsState()
+    val fromColor = removeBackground.fromColor
+    val toColor = removeBackground.toColor
 
     fun updateWidget() {
-        model.getWidgetRemoveBackgroundEffect(widget, effect)?.setColorRange(
-            from = removeBackground.from.value,
-            to = removeBackground.to.value,
-        )
+        TODO("model.getWidgetRemoveBackgroundEffect(widget, effect)?.setColorRange(from = removeBackground.from, to = removeBackground.to)")
     }
 
     Column {
@@ -38,18 +35,22 @@ fun RemoveBackgroundEffectView(
         RgbColorPickerView(
             title = "From",
             color = fromColor,
+            onColorChanged = { color ->
+                removeBackground.fromColor = color
+            },
             onChange = { color ->
-                removeBackground.fromColor.value = color
-                removeBackground.from.value = color
+                removeBackground.from = color
                 updateWidget()
             },
         )
         RgbColorPickerView(
             title = "To",
             color = toColor,
+            onColorChanged = { color ->
+                removeBackground.toColor = color
+            },
             onChange = { color ->
-                removeBackground.toColor.value = color
-                removeBackground.to.value = color
+                removeBackground.to = color
                 updateWidget()
             },
         )

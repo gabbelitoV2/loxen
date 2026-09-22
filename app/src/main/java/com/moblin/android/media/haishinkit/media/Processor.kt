@@ -145,7 +145,7 @@ class Processor(val delegate: ProcessorDelegate) :
     }
 
     fun setVideoEncoderSettings(settings: VideoEncoderSettings) {
-        video.encoder.settings = settings
+        video.encoder.settings.set(settings)
     }
 
     fun attachCamera(
@@ -264,7 +264,7 @@ class Processor(val delegate: ProcessorDelegate) :
         video.setSceneSwitchTransition(sceneSwitchTransition)
     }
 
-    fun takeSnapshot(age: Float, onComplete: (Bitmap, Image, Image) -> Unit) {
+    fun takeSnapshot(age: Float, onComplete: suspend (Bitmap, Bitmap, Bitmap) -> Unit) {
         video.takeSnapshot(age, onComplete)
     }
 
@@ -307,7 +307,7 @@ class Processor(val delegate: ProcessorDelegate) :
         videoSettings: Map<String, Any>,
     ) {
         recorder.startRunning(
-            url,
+            url?.toString(),
             replay,
             audioSettings,
             videoSettings,
@@ -319,7 +319,7 @@ class Processor(val delegate: ProcessorDelegate) :
     }
 
     fun setUrl(url: URI?) {
-        recorder.setUrl(url)
+        recorder.setUrl(url?.toString())
     }
 
     fun setReplayBuffering(enabled: Boolean) {

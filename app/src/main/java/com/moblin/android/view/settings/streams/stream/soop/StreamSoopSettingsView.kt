@@ -2,6 +2,7 @@ package com.moblin.android.view.settings.streams.stream.soop
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -20,14 +21,14 @@ import com.moblin.android.LocalModel
 private fun submitChannelName(model: Model, stream: SettingsStream, value: String) {
     stream.soopChannelName = value
     if (stream.enabled) {
-        model.soopChannelNameUpdated()
+        TODO("model.soopChannelNameUpdated()")
     }
 }
 
 private fun submitStreamId(model: Model, stream: SettingsStream, value: String) {
     stream.soopStreamId = value
     if (stream.enabled) {
-        model.soopStreamIdUpdated()
+        TODO("model.soopStreamIdUpdated()")
     }
 }
 

@@ -43,9 +43,9 @@ fun StreamPreviewStreamSettingsView(
     previewStream: SettingsStreamPreviewStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val url by previewStream.url.collectAsState()
-    val resolution by previewStream.resolution.collectAsState()
-    val bitrate by previewStream.bitrate.collectAsState()
+    val url = previewStream.url
+    val resolution = previewStream.resolution
+    val bitrate = previewStream.bitrate
     var resolutionExpanded by remember { mutableStateOf(false) }
     var bitrateExpanded by remember { mutableStateOf(false) }
     Column(
@@ -88,7 +88,7 @@ fun StreamPreviewStreamSettingsView(
                     DropdownMenuItem(
                         text = { Text(item.shortString()) },
                         onClick = {
-                            previewStream.resolution.value = item
+                            previewStream.resolution = item
                             resolutionExpanded = false
                         },
                     )
@@ -119,7 +119,7 @@ fun StreamPreviewStreamSettingsView(
                     DropdownMenuItem(
                         text = { Text(formatBytesPerSecond(speed = item.toLong())) },
                         onClick = {
-                            previewStream.bitrate.value = item
+                            previewStream.bitrate = item
                             bitrateExpanded = false
                         },
                     )

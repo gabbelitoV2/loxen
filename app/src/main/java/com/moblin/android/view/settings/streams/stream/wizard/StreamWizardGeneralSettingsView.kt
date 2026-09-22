@@ -34,11 +34,11 @@ import com.moblin.android.LocalModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardGeneralSettingsView(model: Model = LocalModel.current, createStreamWizard: CreateStreamWizard) {
-    val name by createStreamWizard.name.collectAsState()
-    val platform by createStreamWizard.platform.collectAsState()
-    val autoGoLive by createStreamWizard.autoGoLive.collectAsState()
-    val backgroundStreaming by createStreamWizard.backgroundStreaming.collectAsState()
-    val goLiveNotificationMoblinWebsite by createStreamWizard.goLiveNotificationMoblinWebsite.collectAsState()
+    val name = createStreamWizard.name
+    val platform = createStreamWizard.platform
+    val autoGoLive = createStreamWizard.autoGoLive
+    val backgroundStreaming = createStreamWizard.backgroundStreaming
+    val goLiveNotificationMoblinWebsite = createStreamWizard.goLiveNotificationMoblinWebsite
     val isMacOs = isMac()
     val scope = rememberCoroutineScope()
 
@@ -64,14 +64,14 @@ fun StreamWizardGeneralSettingsView(model: Model = LocalModel.current, createStr
                     Text("Stream name", style = MaterialTheme.typography.titleSmall)
                     OutlinedTextField(
                         value = name,
-                        onValueChange = { createStreamWizard.name.value = it },
+                        onValueChange = { createStreamWizard.name = it },
                         label = { Text("Name") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
-            if (platform == CreateStreamWizard.Platform.MOBCAM) {
+            if (platform == CreateStreamWizard.WizardPlatform.mobcam) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(
@@ -81,7 +81,7 @@ fun StreamWizardGeneralSettingsView(model: Model = LocalModel.current, createStr
                             Text("Auto go live", modifier = Modifier.weight(1f))
                             Switch(
                                 checked = autoGoLive,
-                                onCheckedChange = { createStreamWizard.autoGoLive.value = it }
+                                onCheckedChange = { createStreamWizard.autoGoLive = it }
                             )
                         }
                         AutoGoLiveFooterView()
@@ -97,7 +97,7 @@ fun StreamWizardGeneralSettingsView(model: Model = LocalModel.current, createStr
                             Text("Background streaming", modifier = Modifier.weight(1f))
                             Switch(
                                 checked = backgroundStreaming,
-                                onCheckedChange = { createStreamWizard.backgroundStreaming.value = it }
+                                onCheckedChange = { createStreamWizard.backgroundStreaming = it }
                             )
                         }
                         BackgroundStreamingFooterView()
@@ -117,18 +117,20 @@ fun StreamWizardGeneralSettingsView(model: Model = LocalModel.current, createStr
                         Switch(
                             checked = goLiveNotificationMoblinWebsite,
                             onCheckedChange = {
-                                createStreamWizard.goLiveNotificationMoblinWebsite.value = it
+                                createStreamWizard.goLiveNotificationMoblinWebsite = it
                             }
                         )
                     }
                 }
             }
             item {
-                TextButtonView("Create", enabled = name.isNotEmpty()) {
-                    scope.launch {
-                        model.createStreamFromWizard()
-                        createStreamWizard.presenting.value = false
-                        createStreamWizard.presentingSetup.value = false
+                TextButtonView("Create") {
+                    if (name.isNotEmpty()) {
+                        scope.launch {
+                            TODO("model.createStreamFromWizard()")
+                            createStreamWizard.presenting = false
+                            createStreamWizard.presentingSetup = false
+                        }
                     }
                 }
             }

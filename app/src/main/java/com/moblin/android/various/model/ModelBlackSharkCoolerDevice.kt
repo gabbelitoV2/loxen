@@ -1,19 +1,30 @@
 package com.moblin.android.various.model
 
 import com.moblin.android.integrations.blacksharkcooler.BlackSharkCoolerDevice
+import com.moblin.android.integrations.blacksharkcooler.BlackSharkCoolerDeviceDelegate
 import com.moblin.android.integrations.blacksharkcooler.BlackSharkCoolerDeviceState
+import com.moblin.android.integrations.blacksharkcooler.BlackSharkLib
 import com.moblin.android.various.settings.SettingsBlackSharkCoolerDevice
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
+private class BlackSharkCoolerDeviceDelegateImpl(private val model: Model) : BlackSharkCoolerDeviceDelegate {
+    override fun blackSharkCoolerDeviceState(device: BlackSharkCoolerDevice, state: BlackSharkCoolerDeviceState) {
+        model.blackSharkCoolerDeviceState(device, state)
+    }
+    override fun blackSharkCoolerDeviceStatus(device: BlackSharkCoolerDevice, status: BlackSharkLib.CoolingState) {
+        model.blackSharkCoolerDeviceStatus(device, status.phoneTemperature.toDouble(), status.heatsinkTemperature.toDouble())
+    }
+}
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
 fun Model.enableBlackSharkDevice(device: SettingsBlackSharkCoolerDevice) {
     val peripheralId = device.bluetoothPeripheralId ?: return
     if (!blackSharkCoolerDevices.containsKey(peripheralId)) {
-        val blackSharkCoolerDevice = BlackSharkCoolerDevice()
-        blackSharkCoolerDevice.delegate = this
+        val blackSharkCoolerDevice = BlackSharkCoolerDevice(context = TODO("no Android context available"))
+        blackSharkCoolerDevice.delegate = BlackSharkCoolerDeviceDelegateImpl(this)
         blackSharkCoolerDevices[peripheralId] = blackSharkCoolerDevice
     }
     blackSharkCoolerDevices[peripheralId]?.start(deviceId = peripheralId)
@@ -25,7 +36,7 @@ fun Model.disableBlackSharkCoolerDevice(device: SettingsBlackSharkCoolerDevice) 
 
 fun Model.blackSharkCoolerDeviceState(device: BlackSharkCoolerDevice, state: BlackSharkCoolerDeviceState) {
     mainScope.launch {
-        statusTopRight.blackSharkCoolerDeviceState = state
+        statusTopRight.blackSharkCoolerDeviceState.value = state
     }
 }
 
@@ -35,8 +46,8 @@ fun Model.blackSharkCoolerDeviceStatus(
     heatsinkTemperature: Double,
 ) {
     mainScope.launch {
-        statusTopRight.blackSharkCoolerPhoneTemp = phoneTemperature
-        statusTopRight.blackSharkCoolerExhaustTemp = heatsinkTemperature
+        statusTopRight.blackSharkCoolerPhoneTemp.value = phoneTemperature.toInt()
+        statusTopRight.blackSharkCoolerExhaustTemp.value = heatsinkTemperature.toInt()
     }
 }
 

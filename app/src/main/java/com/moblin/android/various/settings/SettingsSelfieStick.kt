@@ -14,7 +14,7 @@ import kotlinx.serialization.encoding.Encoder
 @Serializable(with = SettingsSelfieStickSerializer::class)
 class SettingsSelfieStick(
     enabled: Boolean = false,
-    function: SettingsControllerFunction = SettingsControllerFunction.switchScene,
+    function: SettingsControllerFunction = SettingsControllerFunction.SWITCH_SCENE,
     functionData: SettingsControllerFunctionData = SettingsControllerFunctionData(),
 ) {
     val enabled = MutableStateFlow(enabled)
@@ -64,14 +64,14 @@ object SettingsSelfieStickSerializer : KSerializer<SettingsSelfieStick> {
         functionData.gimbalPresetId = shape.gimbalPresetId.toUUIDOrNull()
         functionData.gimbalMotion = shape.gimbalMotion
             ?.let { SettingsGimbalMotion.fromRawValue(it) }
-            ?: SettingsGimbalMotion.kapow
+            ?: SettingsGimbalMotion.KAPOW
         functionData.macroId = shape.macroId.toUUIDOrNull()
         functionData.streamDeckLayoutId = shape.streamDeckLayoutId.toUUIDOrNull()
         return SettingsSelfieStick(
             enabled = shape.enabled,
             function = shape.function
                 ?.let { SettingsControllerFunction.fromRawValue(it) }
-                ?: SettingsControllerFunction.switchScene,
+                ?: SettingsControllerFunction.SWITCH_SCENE,
             functionData = functionData,
         )
     }

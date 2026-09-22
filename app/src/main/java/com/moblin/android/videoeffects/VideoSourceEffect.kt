@@ -91,9 +91,9 @@ class VideoSourceEffect : VideoEffect() {
         biggestBoundingBox: RectF,
         videoSourceImageSize: SizeF,
     ): Boolean {
-        return if (boundingBox.height < videoSourceImageSize.height / 10) {
+        return if (boundingBox.height() < videoSourceImageSize.height / 10) {
             false
-        } else if (boundingBox.height < biggestBoundingBox.height / 2) {
+        } else if (boundingBox.height() < biggestBoundingBox.height() / 2) {
             false
         } else {
             true
@@ -182,8 +182,8 @@ class VideoSourceEffect : VideoEffect() {
             videoSourceImage,
             cropRegion.left.toInt(),
             cropY.toInt(),
-            cropRegion.width.toInt(),
-            cropRegion.height.toInt(),
+            cropRegion.width().toInt(),
+            cropRegion.height().toInt(),
         )
     }
 
@@ -207,11 +207,11 @@ class VideoSourceEffect : VideoEffect() {
         )
     }
 
-    override fun execute(backgroundImage: Bitmap, info: VideoEffectInfo): Bitmap {
+    fun execute(backgroundImage: Bitmap, info: VideoEffectInfo): Bitmap {
         TODO("OpenGL ES port")
     }
 
-    override fun executeMetalPetal(backgroundImage: Bitmap, info: VideoEffectInfo): Bitmap {
+    fun executeMetalPetal(backgroundImage: Bitmap, info: VideoEffectInfo): Bitmap {
         TODO("OpenGL ES port")
     }
 }

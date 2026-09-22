@@ -14,7 +14,7 @@ import com.moblin.android.LocalModel
 
 @Composable
 fun StreamOverlayRightWhirlpoolView(model: Model = LocalModel.current, database: Database) {
-    val databaseAngle by database.whirlpoolAngle.collectAsState()
+    val databaseAngle = database.whirlpoolAngle
     var angle by remember { mutableStateOf(databaseAngle) }
     LaunchedEffect(databaseAngle) {
         angle = databaseAngle
@@ -23,7 +23,7 @@ fun StreamOverlayRightWhirlpoolView(model: Model = LocalModel.current, database:
         title = "WHIRLPOOL ANGLE",
         range = (PI / 2).toFloat()..(PI * 2).toFloat(),
         value = angle,
-        onChange = {
+        onValueChange = {
             angle = it
             model.setWhirlpoolAngle(it)
         },

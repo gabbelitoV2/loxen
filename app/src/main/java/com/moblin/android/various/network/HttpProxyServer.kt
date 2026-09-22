@@ -1,5 +1,6 @@
 package com.moblin.android.various.network
 
+import android.content.Context
 import android.net.Network
 import android.util.Log
 import com.moblin.android.various.SimpleTimer
@@ -19,13 +20,35 @@ private const val TAG = "HttpProxyServer"
 
 private val queue = CoroutineScope(Dispatchers.IO)
 
-class HttpConnectRequestParser : HttpParser() {
+class HttpConnectRequestParser {
     data class Result(
         val destinationHost: String,
         val destinationPort: Int,
         val version: String,
         val bodyOffset: Int,
     )
+
+    var data: ByteArray = ByteArray(0)
+
+    fun append(data: ByteArray) {
+        this.data += data
+    }
+
+    private fun getLine(data: ByteArray, offset: Int): Pair<String, Int>? {
+        val remaining = data.copyOfRange(offset, data.size)
+        var rIndex = -1
+        for (i in 0 until remaining.size - 1) {
+            if (remaining[i] == '\r'.code.toByte() && remaining[i + 1] == '\n'.code.toByte()) {
+                rIndex = i
+                break
+            }
+        }
+        if (rIndex == -1) {
+            return null
+        }
+        val line = String(remaining, 0, rIndex, Charsets.UTF_8)
+        return Pair(line, offset + rIndex + 2)
+    }
 
     fun parse(): Pair<Boolean, Result?> {
         var offset = 0
@@ -44,13 +67,13 @@ class HttpConnectRequestParser : HttpParser() {
         if (hostPort.size != 2) {
             return Pair(true, null)
         }
-        val port = hostPort[1].toUShortOrNull() ?: return Pair(true, null)
+        val port = hostPort[1].toIntOrNull() ?: return Pair(true, null)
         val host = hostPort[0]
         while (true) {
             val lineResult = getLine(data, offset) ?: return Pair(false, null)
             offset = lineResult.second
             if (lineResult.first.isEmpty()) {
-                return Pair(true, Result(host, port.toInt(), version, offset))
+                return Pair(true, Result(host, port, version, offset))
             }
         }
     }
@@ -66,7 +89,7 @@ private class Connection(
     private var tunneling = false
     private var body: ByteArray? = null
     private var stopping = false
-    private val stopSoonTimer = SimpleTimer(queue)
+    private val stopSoonTimer = SimpleTimer(Dispatchers.IO)
     private var clientJob: Job? = null
     private var destinationJob: Job? = null
 
@@ -91,7 +114,7 @@ private class Connection(
             return
         }
         stopping = true
-        stopSoonTimer.startSingleShot(10) {
+        stopSoonTimer.startSingleShot(10.0) {
             cancel()
             onStopped(this@Connection)
         }
@@ -161,7 +184,7 @@ private class Connection(
         val socket = Socket()
         try {
             if (interfaceType != null) {
-                runCatching { interfaceType.bindSocket(socket) }
+                TODO("bind socket to network interface type")
             }
             socket.connect(InetSocketAddress(host, port))
         } catch (e: Exception) {
@@ -188,7 +211,7 @@ private class Connection(
         connection: Socket,
         version: String,
         error: Exception,
-        interfaceType: Network?,
+        interfaceType: InterfaceType?,
     ) {
         runCatching { connection.close() }
         destination = null
@@ -264,14 +287,14 @@ interface HttpProxyServerDelegate {
     fun httpProxyServerPortReady(port: Int)
 }
 
-class HttpProxyServer {
+class HttpProxyServer(private val context: Context) {
     private var listener: ServerSocket? = null
-    private val retryTimer = SimpleTimer(queue)
+    private val retryTimer = SimpleTimer(Dispatchers.IO)
     private var started = false
     private var port: Int = 0
     private var localNetwork = false
     private var connections: MutableList<Connection> = mutableListOf()
-    private val networkInterfaceTypeSelector = NetworkInterfaceTypeSelector(queue)
+    private val networkInterfaceTypeSelector = NetworkInterfaceTypeSelector(context, Dispatchers.IO)
     var delegate: HttpProxyServerDelegate? = null
 
     fun start(port: Int, localNetwork: Boolean) {
@@ -330,7 +353,7 @@ class HttpProxyServer {
             delegate?.httpProxyServerPortReady(port)
         } else {
             Log.i(TAG, "http-proxy: Listener failed with $error")
-            retryTimer.startSingleShot(1) {
+            retryTimer.startSingleShot(1.0) {
                 if (started) {
                     setupListener()
                 }

@@ -334,24 +334,24 @@ object SettingsMacrosActionSerializer : KSerializer<SettingsMacrosAction> {
             element("sceneId", UUIDSerializer.nullable.descriptor)
             element("sceneIds", uuidSetSerializer.descriptor)
             element("autoSceneSwitcherId", UUIDSerializer.nullable.descriptor)
-            element<Float>("zoomX")
+            element("zoomX", PrimitiveSerialDescriptor("Float", PrimitiveKind.FLOAT))
             element("gimbalPresetId", UUIDSerializer.nullable.descriptor)
-            element<String>("chatMessage")
-            element<Double>("delay")
+            element("chatMessage", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
+            element("delay", PrimitiveSerialDescriptor("Double", PrimitiveKind.DOUBLE))
             element("macroId", UUIDSerializer.nullable.descriptor)
             element("djiDevices", uuidSetSerializer.descriptor)
             element("filters", quickButtonTypeSetSerializer.descriptor)
-            element<Boolean>("record")
-            element<Boolean>("mute")
-            element<Boolean>("torch")
+            element("record", PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN))
+            element("mute", PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN))
+            element("torch", PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN))
             element("reaction", settingsReactionSerializer.descriptor)
-            element<String>("ifValue")
+            element("ifValue", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
             element("ifComparison", settingsMacrosActionIfComparisonSerializer.descriptor)
-            element<String>("ifOtherValue")
-            element<Int>("ifRunCount")
+            element("ifOtherValue", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
+            element("ifRunCount", PrimitiveSerialDescriptor("Int", PrimitiveKind.INT))
             element("event", settingsMacrosEventSerializer.descriptor)
-            element<Int>("eventMinimumAmount")
-            element<String>("eventText")
+            element("eventMinimumAmount", PrimitiveSerialDescriptor("Int", PrimitiveKind.INT))
+            element("eventText", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
             element("eventSceneId", UUIDSerializer.nullable.descriptor)
         }
 
@@ -513,11 +513,11 @@ object SettingsMacrosActionSerializer : KSerializer<SettingsMacrosAction> {
 class SettingsMacrosAction {
     var id: UUID = UUID.randomUUID()
 
-    @Transient private val function = MutableStateFlow<SettingsMacrosActionFunction?>(null)
+    @Transient private val _function = MutableStateFlow<SettingsMacrosActionFunction?>(null)
     var function: SettingsMacrosActionFunction?
-        get() = function.value
+        get() = _function.value
         set(value) {
-            function.value = value
+            _function.value = value
         }
 
     @Transient private val _sceneId = MutableStateFlow<UUID?>(null)
@@ -723,12 +723,12 @@ object SettingsMacrosMacroSerializer : KSerializer<SettingsMacrosMacro> {
     override val descriptor: SerialDescriptor =
         buildClassSerialDescriptor("SettingsMacrosMacro") {
             element("id", UUIDSerializer.descriptor)
-            element<String>("name")
+            element("name", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
             element("actions", ListSerializer(SettingsMacrosActionSerializer).descriptor)
             element("repeatMode", settingsMacrosMacroRepeatModeSerializer.descriptor)
-            element<Int>("repeatCount")
-            element<Boolean>("closePanelOnRun")
-            element<Boolean>("runAtAppStart")
+            element("repeatCount", PrimitiveSerialDescriptor("Int", PrimitiveKind.INT))
+            element("closePanelOnRun", PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN))
+            element("runAtAppStart", PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN))
         }
 
     override fun serialize(encoder: Encoder, value: SettingsMacrosMacro) {
@@ -789,11 +789,11 @@ object SettingsMacrosMacroSerializer : KSerializer<SettingsMacrosMacro> {
 class SettingsMacrosMacro : Named {
     var id: UUID = UUID.randomUUID()
 
-    @Transient private val name = MutableStateFlow(baseName)
+    @Transient private val _name = MutableStateFlow(baseName)
     override var name: String
-        get() = name.value
+        get() = _name.value
         set(value) {
-            name.value = value
+            _name.value = value
         }
 
     @Transient private val _actions = MutableStateFlow<List<SettingsMacrosAction>>(emptyList())
@@ -909,10 +909,10 @@ object SettingsMacrosSerializer : KSerializer<SettingsMacros> {
 
 @Serializable(with = SettingsMacrosSerializer::class)
 class SettingsMacros {
-    @Transient private val macros = MutableStateFlow<List<SettingsMacrosMacro>>(emptyList())
+    @Transient private val _macros = MutableStateFlow<List<SettingsMacrosMacro>>(emptyList())
     var macros: List<SettingsMacrosMacro>
-        get() = macros.value
+        get() = _macros.value
         set(value) {
-            macros.value = value
+            _macros.value = value
         }
 }

@@ -14,7 +14,7 @@ data class ReplayImage(
     val isLast: Boolean,
 )
 
-class ReplayEffectReplayReader(
+class ReplayEffectReplayReader internal constructor(
     video: ReplayBufferFile,
     start: Double,
     duration: Double,
@@ -35,7 +35,7 @@ class ReplayEffectReplayReader(
         this.size = size
         scope.launch(Dispatchers.Main) {
             overlay = createOverlay(size)
-            scope.launch(replayEffectQueue) {
+            replayEffectQueue.launch {
                 val startTimeUs = (start * 1_000_000.0).toLong()
                 val durationUs = (duration * 1_000_000.0).toLong()
                 TODO("AVAsset and AVAssetReader have no Android counterpart; read ${video.url} from ${startTimeUs}us for ${durationUs}us with MediaExtractor and decode frames with MediaCodec")
@@ -76,13 +76,13 @@ class ReplayEffectReplayReader(
     }
 
     private fun markCompleted() {
-        scope.launch(processorPipelineQueue) {
+        processorPipelineQueue.launch {
             images.addLast(ReplayImage(image = null, offset = null, isLast = true))
         }
     }
 
     private fun fill() {
-        scope.launch(replayEffectQueue) {
+        replayEffectQueue.launch {
             fillInternal()
         }
     }

@@ -200,7 +200,7 @@ class VideoCaptureSession {
     }
 
     private fun handleSessionRuntimeError(notification: Any) {
-        val message = TODO<String>("no Android counterpart for AVCaptureSessionErrorKey / AVError")
+        val message = TODO("no Android counterpart for AVCaptureSessionErrorKey / AVError")
         processor?.delegate?.streamVideoCaptureSessionError(message)
         processorControlQueue.launch {
             delay(500)
@@ -319,8 +319,8 @@ class VideoCaptureSession {
     }
 
     fun captureOutput(output: Any, sampleBuffer: MediaSample, connection: Any) {
-        val device = TODO<Any>("no Android counterpart for AVCaptureConnection.inputPorts; use ImageAnalysis.Analyzer")
-        val cameraId = devices.firstOrNull { it.device.device == device }?.device.id
+        val device: Any = TODO("no Android counterpart for AVCaptureConnection.inputPorts; use ImageAnalysis.Analyzer")
+        val cameraId = devices.firstOrNull { it.device.device == device }?.device?.id
         delegate?.videoCaptureSessionDidOutput(device, cameraId, sampleBuffer)
     }
 

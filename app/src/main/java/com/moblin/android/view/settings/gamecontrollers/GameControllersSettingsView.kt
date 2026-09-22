@@ -29,7 +29,7 @@ import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 
 private fun gameControllerIndex(database: Database, gameController: SettingsGameController): Int {
-    val index = database.gameControllers.value.indexOfFirst { gameController2 ->
+    val index = database.gameControllers.indexOfFirst { gameController2 ->
         gameController.id == gameController2.id
     }
     return if (index >= 0) index + 1 else 1
@@ -42,7 +42,7 @@ fun GameControllersSettingsView(
     database: Database,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val gameControllers by database.gameControllers.collectAsState()
+    val gameControllers = database.gameControllers
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Game controllers") })
@@ -72,8 +72,8 @@ fun GameControllersSettingsView(
                                 onNavigate("GameControllersControllerSettingsView/${gameController.id}")
                             },
                             onLongClick = {
-                                database.gameControllers.value =
-                                    database.gameControllers.value.filterNot { it.id == gameController.id }
+                                database.gameControllers =
+                                    database.gameControllers.filterNot { it.id == gameController.id }
                             },
                         )
                         .padding(16.dp),
@@ -84,8 +84,8 @@ fun GameControllersSettingsView(
             }
             item {
                 CreateButtonView {
-                    database.gameControllers.value =
-                        database.gameControllers.value + SettingsGameController()
+                    database.gameControllers =
+                        database.gameControllers + SettingsGameController()
                 }
             }
             item {

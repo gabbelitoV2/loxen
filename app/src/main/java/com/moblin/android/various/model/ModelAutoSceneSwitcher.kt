@@ -20,11 +20,13 @@ fun Model.setAutoSceneSwitcher(id: UUID?) {
     database.autoSceneSwitchers.switcherId = id
     autoSceneSwitcher.switchTime = Instant.now()
     autoSceneSwitcher.sceneIds.clear()
-    remoteControlStateChanged(RemoteControlState(autoSceneSwitcher = RemoteControlAutoSceneSwitcher(id = id)))
+    remoteControlStateChanged(TODO("RemoteControlState"))
 }
 
 fun Model.deleteAutoSceneSwitchers(offsets: Set<Int>) {
-    offsets.sortedDescending().forEach { database.autoSceneSwitchers.switchers.removeAt(it) }
+    val switchers = database.autoSceneSwitchers.switchers.toMutableList()
+    offsets.sortedDescending().forEach { switchers.removeAt(it) }
+    database.autoSceneSwitchers.switchers = switchers
     if (database.autoSceneSwitchers.switchers.none { it.id == autoSceneSwitcher.currentSwitcherId.value }) {
         autoSceneSwitcher.currentSwitcherId.value = null
         setAutoSceneSwitcher(id = null)
@@ -98,8 +100,8 @@ fun Model.updateAutoSceneSwitcherButtonState() {
     if (database.autoSceneSwitchers.switcherId != null) {
         isOn = true
     }
-    if (showingPanel == ShowingPanel.autoSceneSwitcher) {
+    if (showingPanel.value == ShowingPanel.autoSceneSwitcher) {
         isOn = true
     }
-    setQuickButton(type = QuickButtonType.autoSceneSwitcher, isOn = isOn)
+    setQuickButton(type = TODO("QuickButtonType.autoSceneSwitcher"), isOn = isOn)
 }

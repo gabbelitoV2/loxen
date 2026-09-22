@@ -19,25 +19,25 @@ fun Model.reloadSoopPlatformStatus() {
     if (isSoopViewersConfigured()) {
         val platformStatus = SoopPlatformStatus()
         soopPlatformStatus = platformStatus
-        platformStatus.start(userId = stream.soopChannelName)
+        platformStatus.start(userId = stream.value.soopChannelName)
     }
 }
 
 fun Model.updateViewersSoop(): StreamingPlatformStatus {
     val platformStatus = soopPlatformStatus?.platformStatus
     return if (platformStatus != null) {
-        StreamingPlatformStatus(platform = Platform.Soop, status = platformStatus)
+        StreamingPlatformStatus(platform = "soop", status = platformStatus)
     } else {
-        StreamingPlatformStatus(platform = Platform.Soop, status = PlatformStatus.Unknown)
+        StreamingPlatformStatus(platform = "soop", status = PlatformStatus.unknown)
     }
 }
 
 fun Model.isSoopChatConfigured(): Boolean {
-    return database.chat.enabled && stream.soopChannelName != "" && stream.soopStreamId != ""
+    return database.chat.enabled && stream.value.soopChannelName != "" && stream.value.soopStreamId != ""
 }
 
 fun Model.isSoopViewersConfigured(): Boolean {
-    return stream.soopChannelName.isNotEmpty()
+    return stream.value.soopChannelName.isNotEmpty()
 }
 
 fun Model.isSoopChatConnected(): Boolean {
@@ -52,11 +52,11 @@ fun Model.reloadSoopChat() {
     soopChat?.stop()
     soopChat = null
     setTextToSpeechStreamerMentions()
-    if (isSoopChatConfigured() && !isRemoteControlChatAndEvents(platform = Platform.Soop)) {
+    if (isSoopChatConfigured() && !isRemoteControlChatAndEvents(platform = "soop")) {
         val chat = SoopChat(
             model = this,
-            channelName = stream.soopChannelName,
-            streamId = stream.soopStreamId
+            channelName = stream.value.soopChannelName,
+            streamId = stream.value.soopStreamId
         )
         soopChat = chat
         chat.start()

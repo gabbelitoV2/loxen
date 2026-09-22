@@ -29,7 +29,7 @@ import com.moblin.android.view.utils.CreateButtonView
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun DeepLinkCreatorStreamsSettingsView(deepLinkCreator: DeepLinkCreator) {
-    val streams by deepLinkCreator.streams.collectAsState()
+    val streams = deepLinkCreator.streams
     var streamToDelete by remember { mutableStateOf<DeepLinkCreatorStream?>(null) }
 
     Scaffold(
@@ -51,7 +51,7 @@ fun DeepLinkCreatorStreamsSettingsView(deepLinkCreator: DeepLinkCreator) {
                 CreateButtonView {
                     val stream = DeepLinkCreatorStream()
                     stream.name = makeUniqueName(DeepLinkCreatorStream.baseName, streams)
-                    deepLinkCreator.streams.value = deepLinkCreator.streams.value + stream
+                    deepLinkCreator.streams.add(stream)
                 }
             }
         }
@@ -63,8 +63,7 @@ fun DeepLinkCreatorStreamsSettingsView(deepLinkCreator: DeepLinkCreator) {
             title = { Text(localized("Delete stream")) },
             confirmButton = {
                 TextButton(onClick = {
-                    deepLinkCreator.streams.value =
-                        deepLinkCreator.streams.value.filterNot { it.id == stream.id }
+                    deepLinkCreator.streams.removeAll { it.id == stream.id }
                     streamToDelete = null
                 }) {
                     Text(localized("Delete"))

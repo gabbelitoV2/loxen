@@ -40,13 +40,13 @@ fun WidgetScoreboardQuickButtonControlsView(
     widget: SettingsWidget,
     scoreboard: SettingsWidgetScoreboard,
 ) {
-    val sport by scoreboard.sport.collectAsState()
+    val sport = scoreboard.sport
     when (sport) {
-        SettingsWidgetScoreboardSport.GENERIC -> WidgetScoreboardGenericQuickButtonControlsView(
+        SettingsWidgetScoreboardSport.generic -> WidgetScoreboardGenericQuickButtonControlsView(
             model = model,
             widget = widget,
         )
-        SettingsWidgetScoreboardSport.PADEL -> WidgetScoreboardPadelQuickButtonControlsView(
+        SettingsWidgetScoreboardSport.padel -> WidgetScoreboardPadelQuickButtonControlsView(
             model = model,
             widget = widget,
         )
@@ -75,29 +75,32 @@ fun ScoreboardColorsFormView(
     scoreboard: SettingsWidgetScoreboard,
     updated: () -> Unit,
 ) {
-    val textColorColor by scoreboard.textColorColor.collectAsState()
-    val primaryBackgroundColorColor by scoreboard.primaryBackgroundColorColor.collectAsState()
-    val secondaryBackgroundColorColor by scoreboard.secondaryBackgroundColorColor.collectAsState()
+    val textColorColor = scoreboard.textColorColor
+    val primaryBackgroundColorColor = scoreboard.primaryBackgroundColorColor
+    val secondaryBackgroundColorColor = scoreboard.secondaryBackgroundColorColor
     Column(modifier = Modifier.fillMaxWidth()) {
         RgbColorPickerView(
             title = localized("Text"),
             color = textColorColor,
+            onColorChanged = {},
         ) { color ->
-            scoreboard.textColor.value = color
+            scoreboard.textColor = color
             updated()
         }
         RgbColorPickerView(
             title = localized("Primary background"),
             color = primaryBackgroundColorColor,
+            onColorChanged = {},
         ) { color ->
-            scoreboard.primaryBackgroundColor.value = color
+            scoreboard.primaryBackgroundColor = color
             updated()
         }
         RgbColorPickerView(
             title = localized("Secondary background"),
             color = secondaryBackgroundColorColor,
+            onColorChanged = {},
         ) { color ->
-            scoreboard.secondaryBackgroundColor.value = color
+            scoreboard.secondaryBackgroundColor = color
             updated()
         }
         TextButtonView(localized("Reset")) {
@@ -115,36 +118,25 @@ fun WidgetScoreboardSettingsView(
     scoreboard: SettingsWidgetScoreboard,
     web: SettingsRemoteControlWeb,
 ) {
-    val sport by scoreboard.sport.collectAsState()
-    val modular by scoreboard.modular.collectAsState()
-    val generic by scoreboard.generic.collectAsState()
-    val padel by scoreboard.padel.collectAsState()
-    val golf by scoreboard.golf.collectAsState()
-    val webEnabled by web.enabled.collectAsState()
+    val sport = scoreboard.sport
+    val modular = scoreboard.modular
+    val generic = scoreboard.generic
+    val padel = scoreboard.padel
+    val golf = scoreboard.golf
+    val webEnabled = web.enabled
     var sportExpanded by remember { mutableStateOf(false) }
 
     val updated: () -> Unit = {
         when (sport) {
-            SettingsWidgetScoreboardSport.GENERIC -> model.sendUpdateGenericScoreboardToWatch(
-                id = widget.id,
-                generic = generic,
-            )
-            SettingsWidgetScoreboardSport.PADEL -> model.sendUpdatePadelScoreboardToWatch(
-                id = widget.id,
-                padel = padel,
-            )
+            SettingsWidgetScoreboardSport.generic -> TODO("sendUpdateGenericScoreboardToWatch")
+            SettingsWidgetScoreboardSport.padel -> TODO("sendUpdatePadelScoreboardToWatch")
             else -> Unit
         }
-        model.remoteControlScoreboardUpdate(scoreboard = scoreboard)
-        model.getScoreboardEffect(id = widget.id)?.update(
-            scoreboard = scoreboard,
-            config = model.getModularScoreboardConfig(scoreboard = scoreboard),
-            players = model.database.scoreboardPlayers,
-        )
+        TODO("remoteControlScoreboardUpdate, getScoreboardEffect and getModularScoreboardConfig")
     }
 
     LaunchedEffect(sport) {
-        modular.config.value = null
+        modular.config = null
         updated()
     }
 
@@ -179,7 +171,7 @@ fun WidgetScoreboardSettingsView(
                         DropdownMenuItem(
                             text = { Text(option.toString()) },
                             onClick = {
-                                scoreboard.sport.value = option
+                                scoreboard.sport = option
                                 sportExpanded = false
                             },
                         )
@@ -188,24 +180,24 @@ fun WidgetScoreboardSettingsView(
             }
         }
         when (sport) {
-            SettingsWidgetScoreboardSport.PADEL -> WidgetScoreboardPadelGeneralSettingsView(
+            SettingsWidgetScoreboardSport.padel -> WidgetScoreboardPadelGeneralSettingsView(
                 widget = widget,
                 scoreboard = scoreboard,
                 padel = padel,
                 updated = updated,
             )
-            SettingsWidgetScoreboardSport.GENERIC -> WidgetScoreboardGenericGeneralSettingsView(
+            SettingsWidgetScoreboardSport.generic -> WidgetScoreboardGenericGeneralSettingsView(
                 widget = widget,
                 scoreboard = scoreboard,
                 generic = generic,
                 updated = updated,
             )
-            SettingsWidgetScoreboardSport.GOLF -> WidgetScoreboardGolfGeneralSettingsView(
+            SettingsWidgetScoreboardSport.golf -> WidgetScoreboardGolfGeneralSettingsView(
                 scoreboard = scoreboard,
                 golf = golf,
                 updated = updated,
             )
-            SettingsWidgetScoreboardSport.GOLF_FULL_SCORECARD -> WidgetScoreboardGolfFullScorecardGeneralSettingsView(
+            SettingsWidgetScoreboardSport.golfFullScorecard -> WidgetScoreboardGolfFullScorecardGeneralSettingsView(
                 scoreboard = scoreboard,
                 golf = golf,
                 updated = updated,
@@ -221,10 +213,10 @@ fun WidgetScoreboardSettingsView(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
         when (sport) {
-            SettingsWidgetScoreboardSport.PADEL, SettingsWidgetScoreboardSport.GENERIC -> Text(
+            SettingsWidgetScoreboardSport.padel, SettingsWidgetScoreboardSport.generic -> Text(
                 text = localized("Use your Apple Watch to update the scoreboard."),
             )
-            SettingsWidgetScoreboardSport.GOLF -> {
+            SettingsWidgetScoreboardSport.golf -> {
                 Text(
                     text = localized(
                         "Use the web based remote control on another device to update the scoreboard.",
@@ -242,7 +234,7 @@ fun WidgetScoreboardSettingsView(
                     Text(text = localized("⚠️ The web based remote control is not enabled."))
                 }
             }
-            SettingsWidgetScoreboardSport.GOLF_FULL_SCORECARD -> Text(
+            SettingsWidgetScoreboardSport.golfFullScorecard -> Text(
                 text = localized("Use a golf scoreboard widget to control this widget."),
             )
             else -> {
@@ -265,24 +257,24 @@ fun WidgetScoreboardSettingsView(
             }
         }
         when (sport) {
-            SettingsWidgetScoreboardSport.PADEL -> WidgetScoreboardPadelSettingsView(
+            SettingsWidgetScoreboardSport.padel -> WidgetScoreboardPadelSettingsView(
                 model = model,
                 padel = padel,
                 updated = updated,
             )
-            SettingsWidgetScoreboardSport.GENERIC -> WidgetScoreboardGenericSettingsView(
+            SettingsWidgetScoreboardSport.generic -> WidgetScoreboardGenericSettingsView(
                 generic = generic,
-                clock = generic.clock.value,
+                clock = generic.clock,
                 updated = updated,
             )
-            SettingsWidgetScoreboardSport.GOLF -> WidgetScoreboardGolfSettingsView(
+            SettingsWidgetScoreboardSport.golf -> WidgetScoreboardGolfSettingsView(
                 golf = golf,
                 updated = updated,
             )
-            SettingsWidgetScoreboardSport.GOLF_FULL_SCORECARD -> Unit
+            SettingsWidgetScoreboardSport.golfFullScorecard -> Unit
             else -> WidgetScoreboardModularSettingsView(
                 modular = modular,
-                clock = modular.clock.value,
+                clock = modular.clock,
                 updated = updated,
             )
         }

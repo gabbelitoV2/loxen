@@ -30,6 +30,8 @@ import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
 import com.moblin.android.various.model.AutoSceneSwitcherProvider
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.deleteAutoSceneSwitchers
+import com.moblin.android.various.model.setAutoSceneSwitcher
 import com.moblin.android.various.settings.SettingsAutoSceneSwitcher
 import com.moblin.android.various.settings.SettingsAutoSceneSwitcherScene
 import com.moblin.android.various.settings.SettingsAutoSceneSwitchers
@@ -52,7 +54,7 @@ private const val AUTO_SWITCHER_SCENE_SETTINGS_VIEW_DESTINATION = "AutoSwitcherS
 
 private fun getSceneName(model: Model, sceneId: UUID?): String {
     if (sceneId != null) {
-        val sceneName = model.getSceneName(sceneId)
+        val sceneName = model.database.scenes.firstOrNull { it.id == sceneId }?.name
         if (sceneName != null) {
             return sceneName
         }
@@ -104,8 +106,8 @@ private fun AutoSwitcherSceneSettingsDestinationView(
     model: Model = LocalModel.current,
     scene: SettingsAutoSceneSwitcherScene
 ) {
-    val sceneId by scene.sceneId.collectAsState()
-    val time by scene.time.collectAsState()
+    val sceneId = scene.sceneId
+    val time = scene.time
     var expanded by remember { mutableStateOf(false) }
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
@@ -124,7 +126,7 @@ private fun AutoSwitcherSceneSettingsDestinationView(
                     DropdownMenuItem(
                         text = { Text(localized("-- None --")) },
                         onClick = {
-                            scene.sceneId.value = null
+                            scene.sceneId = null
                             expanded = false
                         }
                     )
@@ -132,7 +134,7 @@ private fun AutoSwitcherSceneSettingsDestinationView(
                         DropdownMenuItem(
                             text = { SceneNameView(item) },
                             onClick = {
-                                scene.sceneId.value = item.id
+                                scene.sceneId = item.id
                                 expanded = false
                             }
                         )
@@ -141,7 +143,7 @@ private fun AutoSwitcherSceneSettingsDestinationView(
             }
         }
         item {
-            SwitcherTimePickerView(time = time, onTimeChange = { scene.time.value = it })
+            SwitcherTimePickerView(time = time, onTimeChange = { scene.time = it })
         }
     }
 }
@@ -152,8 +154,8 @@ private fun AutoSwitcherSceneSettingsView(
     scene: SettingsAutoSceneSwitcherScene,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    val sceneId by scene.sceneId.collectAsState()
-    val time by scene.time.collectAsState()
+    val sceneId = scene.sceneId
+    val time = scene.time
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -175,9 +177,9 @@ private fun AutoSwitcherScenesSettingsView(
     autoSwitcher: SettingsAutoSceneSwitcher,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    val scenes by autoSwitcher.scenes.collectAsState()
+    val scenes = autoSwitcher.scenes
     val onDeleteScene: (SettingsAutoSceneSwitcherScene) -> Unit = { target ->
-        autoSwitcher.scenes.value = autoSwitcher.scenes.value.filterNot { it.id == target.id }
+        autoSwitcher.scenes = autoSwitcher.scenes.filterNot { it.id == target.id }.toMutableList()
     }
     Column(modifier = Modifier.fillMaxWidth()) {
         scenes.forEach { scene ->
@@ -187,7 +189,7 @@ private fun AutoSwitcherScenesSettingsView(
         TODO("no Android counterpart for drag to reorder list items")
         TODO("no Android counterpart for swipe to delete list items")
         AddButtonView {
-            autoSwitcher.scenes.value = autoSwitcher.scenes.value + SettingsAutoSceneSwitcherScene()
+            autoSwitcher.scenes = (autoSwitcher.scenes + SettingsAutoSceneSwitcherScene()).toMutableList()
         }
         SwipeLeftToDeleteHelpView(localized("a scene"))
     }
@@ -201,9 +203,9 @@ private fun AutoSwitcherSettingsView(
     autoSwitcher: SettingsAutoSceneSwitcher,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    val name by autoSwitcher.name.collectAsState()
-    val shuffle by autoSwitcher.shuffle.collectAsState()
-    val switchers by autoSceneSwitchers.switchers.collectAsState()
+    val name = autoSwitcher.name
+    val shuffle = autoSwitcher.shuffle
+    val switchers = autoSceneSwitchers.switchers
     Scaffold(
         topBar = { TopAppBar(title = { Text("Auto scene switcher") }) }
     ) { innerPadding ->
@@ -215,7 +217,7 @@ private fun AutoSwitcherSettingsView(
             item {
                 NameEditView(
                     name = name,
-                    onNameChange = { autoSwitcher.name.value = it },
+                    onNameChange = { autoSwitcher.name = it },
                     existingNames = switchers
                 )
             }
@@ -225,7 +227,7 @@ private fun AutoSwitcherSettingsView(
                     Spacer(Modifier.weight(1f))
                     Switch(
                         checked = shuffle,
-                        onCheckedChange = { autoSwitcher.shuffle.value = it }
+                        onCheckedChange = { autoSwitcher.shuffle = it }
                     )
                 }
             }
@@ -246,7 +248,7 @@ private fun AutoSwitcherSettingsItemView(
     autoSwitcher: SettingsAutoSceneSwitcher,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    val name by autoSwitcher.name.collectAsState()
+    val name = autoSwitcher.name
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -261,7 +263,7 @@ private fun AutoSwitcherSettingsItemView(
 
 @Composable
 private fun AutoSceneSwitcherItemView(autoSceneSwitcher: SettingsAutoSceneSwitcher) {
-    val name by autoSceneSwitcher.name.collectAsState()
+    val name = autoSceneSwitcher.name
     Text(name)
 }
 
@@ -273,13 +275,13 @@ fun AutoSwitchersSelectView(
     autoSceneSwitchers: SettingsAutoSceneSwitchers
 ) {
     val currentSwitcherId by autoSceneSwitcher.currentSwitcherId.collectAsState()
-    val switchers by autoSceneSwitchers.switchers.collectAsState()
+    val switchers = autoSceneSwitchers.switchers
     var expanded by remember { mutableStateOf(false) }
     val currentSwitcher = switchers.firstOrNull { it.id == currentSwitcherId }
     val currentName: String = if (currentSwitcher == null) {
         localized("-- None --")
     } else {
-        val name by currentSwitcher.name.collectAsState()
+        val name = currentSwitcher.name
         name
     }
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -327,11 +329,11 @@ fun AutoSwitchersView(
     showSelector: Boolean,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    val switchers by autoSceneSwitchers.switchers.collectAsState()
+    val switchers = autoSceneSwitchers.switchers
     val onDeleteAutoSwitcher: (SettingsAutoSceneSwitcher) -> Unit = { target ->
-        val offsets = makeOffsets(autoSceneSwitchers.switchers.value, target.id)
+        val offsets = makeOffsets(autoSceneSwitchers.switchers, target.id)
         if (offsets != null) {
-            deleteAutoSceneSwitcher(model, offsets)
+            deleteAutoSceneSwitcher(model, setOf(offsets))
         }
     }
     Scaffold(
@@ -365,12 +367,12 @@ fun AutoSwitchersView(
                     TODO("no Android counterpart for swipe to delete list items")
                     CreateButtonView {
                         val switcher = SettingsAutoSceneSwitcher()
-                        switcher.name.value = makeUniqueName(
+                        switcher.name = makeUniqueName(
                             SettingsAutoSceneSwitcher.baseName,
-                            autoSceneSwitchers.switchers.value
+                            autoSceneSwitchers.switchers
                         )
-                        autoSceneSwitchers.switchers.value =
-                            autoSceneSwitchers.switchers.value + switcher
+                        autoSceneSwitchers.switchers =
+                            (autoSceneSwitchers.switchers + switcher).toMutableList()
                     }
                     SwipeLeftToDeleteHelpView(localized("an auto scene switcher"))
                 }

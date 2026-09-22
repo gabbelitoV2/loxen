@@ -27,6 +27,10 @@ private fun formatX(x: Float): String {
     return formatOneDecimal(x)
 }
 
+private fun getMinMaxZoomX(position: Int): Pair<Float, Float> {
+    TODO("model.getMinMaxZoomX(position)")
+}
+
 @Composable
 fun ZoomSwitchToSettingsView(
     model: Model = LocalModel.current,
@@ -43,15 +47,16 @@ fun ZoomSwitchToSettingsView(
             onChange = { value ->
                 val newX = value.toFloatOrNull()
                 if (newX != null) {
-                    val (minX, maxX) = model.getMinMaxZoomX(position)
+                    val (minX, maxX) = getMinMaxZoomX(position)
                     if (newX < minX || newX > maxX) {
                         model.makeErrorToast(localized("X must be $minX - $maxX"))
                     } else {
                         defaultZoom.x = newX
                     }
                 }
+                null
             },
-            onDone = { editing = false },
+            onSubmit = { editing = false },
         )
     } else {
         Row(

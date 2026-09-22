@@ -1,5 +1,6 @@
 package com.moblin.android.videoeffects
 
+import android.media.Image
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectDetectionsMode
@@ -37,7 +38,7 @@ class BeautyEffect(fps: Float) : VideoEffect() {
         }
     }
 
-    override fun executeMetalPetal(image: Any?, info: VideoEffectInfo): Any? {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         val detections = info.sceneFaceDetections()
         updateLastFaceDetectionsBefore(info.isFirstAfterAttach)
         updateScaleFactors(detections, info.isFirstAfterAttach)
@@ -100,15 +101,15 @@ class BeautyEffect(fps: Float) : VideoEffect() {
         }
     }
 
-    private fun addBeautySmoothnessMetalPetal(image: Any?): Any? {
+    private fun addBeautySmoothnessMetalPetal(image: Image?): Image? {
         TODO("OpenGL ES port")
     }
 
     private fun addBeautyShapeMetalPetal(
-        image: Any?,
+        image: Image?,
         detections: List<Any>?,
         info: VideoEffectInfo,
-    ): Any? {
+    ): Image? {
         if (image == null || detections == null) {
             return image
         }
@@ -116,7 +117,7 @@ class BeautyEffect(fps: Float) : VideoEffect() {
         if (faceDetections.isEmpty()) {
             faceDetections = lastFaceDetections
         }
-        var outputImage: Any? = image
+        var outputImage: Image? = image
         for (detection in faceDetections) {
             TODO("OpenGL ES port")
         }

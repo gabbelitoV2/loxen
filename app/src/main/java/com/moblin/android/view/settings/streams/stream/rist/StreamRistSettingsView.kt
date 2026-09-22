@@ -11,6 +11,8 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -21,6 +23,7 @@ import com.moblin.android.LocalModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamRistSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
+    val isLive by model.isLive.collectAsState()
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("RIST") })
@@ -46,9 +49,9 @@ fun StreamRistSettingsView(model: Model = LocalModel.current, stream: SettingsSt
                         checked = stream.rist.adaptiveBitrateEnabled,
                         onCheckedChange = { value ->
                             stream.rist.adaptiveBitrateEnabled = value
-                            model.reloadStreamIfEnabled(stream)
+                            TODO("reloadStreamIfEnabled")
                         },
-                        enabled = !(stream.enabled && model.isLive),
+                        enabled = !(stream.enabled && isLive),
                     )
                 }
             }
@@ -67,9 +70,9 @@ fun StreamRistSettingsView(model: Model = LocalModel.current, stream: SettingsSt
                         checked = stream.rist.bonding,
                         onCheckedChange = { value ->
                             stream.rist.bonding = value
-                            model.reloadStreamIfEnabled(stream)
+                            TODO("reloadStreamIfEnabled")
                         },
-                        enabled = !(stream.enabled && model.isLive),
+                        enabled = !(stream.enabled && isLive),
                     )
                 }
             }

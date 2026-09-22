@@ -26,9 +26,13 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.moblin.android.common.various.RgbColor
 import com.moblin.android.localized
 import com.moblin.android.various.settings.SettingsWidgetGolfScoreboard
 import com.moblin.android.various.settings.SettingsWidgetGolfScoreboardPlayer
+
+private fun RgbColor.color(): Color =
+    Color(red.toFloat() / 255f, green.toFloat() / 255f, blue.toFloat() / 255f)
 
 @Composable
 private fun PlayerNameView(
@@ -62,7 +66,7 @@ private fun format(player: SettingsWidgetGolfScoreboardPlayer, numberOfHoles: In
     val thru = player.holesPlayed(numberOfHoles)
     return when {
         thru == 0 -> ""
-        thru < numberOfHoles -> localized("THRU \(thru)")
+        thru < numberOfHoles -> localized("THRU $thru")
         else -> localized("F")
     }
 }
@@ -119,12 +123,12 @@ fun ScoreboardEffectGolfView(
     golf: SettingsWidgetGolfScoreboard,
     scale: Double,
 ) {
-    val title by golf.title.collectAsState()
-    val currentHole by golf.currentHole.collectAsState()
-    val numberOfHoles by golf.numberOfHoles.collectAsState()
-    val pars by golf.pars.collectAsState()
-    val players by golf.players.collectAsState()
-    val playerColors by golf.playerColors.collectAsState()
+    val title = golf.title
+    val currentHole = golf.currentHole
+    val numberOfHoles = golf.numberOfHoles
+    val pars = golf.pars
+    val players = golf.players
+    val playerColors = golf.playerColors
 
     val holeIndex = minOf(currentHole, numberOfHoles - 1)
     val par = if (holeIndex in pars.indices) pars[holeIndex] else 4

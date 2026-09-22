@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -31,6 +31,7 @@ import com.moblin.android.view.settings.chat.sliderValuePercentageWidth
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.LocalModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetChatSettingsView(
     model: Model = LocalModel.current,
@@ -39,7 +40,7 @@ fun WidgetChatSettingsView(
     chat: SettingsWidgetChat,
 ) {
     fun setEffectSettings() {
-        model.getChatEffect(id = widget.id)?.setSettings(settings = chat)
+        TODO("getChatEffect has no Android counterpart")
     }
 
     val showAllSettings = database.showAllSettings
@@ -49,7 +50,7 @@ fun WidgetChatSettingsView(
             Text("Font size")
             Slider(
                 value = chat.fontSize.toFloat(),
-                onValueChange = { chat.fontSize = it.toDouble() },
+                onValueChange = { chat.fontSize = it },
                 valueRange = 10f..50f,
                 steps = 39,
                 onValueChangeFinished = { setEffectSettings() },
@@ -99,14 +100,14 @@ fun WidgetChatSettingsView(
             Text("Height")
             Slider(
                 value = chat.height.toFloat(),
-                onValueChange = { chat.height = it.toDouble() },
+                onValueChange = { chat.height = it },
                 valueRange = 0.1f..1f,
                 steps = 89,
                 onValueChangeFinished = { setEffectSettings() },
             )
             Text(
                 "${(100 * chat.height).toInt()}%",
-                modifier = Modifier.width(sliderValuePercentageWidth),
+                modifier = Modifier.width(sliderValuePercentageWidth.dp),
             )
         }
         LaunchedEffect(chat.height) {
@@ -193,6 +194,7 @@ fun WidgetChatSettingsView(
             RgbColorPickerView(
                 title = "Name",
                 color = chat.usernameColorColor,
+                onColorChanged = { chat.usernameColorColor = it },
             ) { newColor: RgbColor ->
                 chat.usernameColor = newColor
                 setEffectSettings()
@@ -200,6 +202,7 @@ fun WidgetChatSettingsView(
             RgbColorPickerView(
                 title = "Message",
                 color = chat.messageColorColor,
+                onColorChanged = { chat.messageColorColor = it },
             ) { newColor: RgbColor ->
                 chat.messageColor = newColor
                 setEffectSettings()
@@ -209,6 +212,7 @@ fun WidgetChatSettingsView(
             RgbColorPickerView(
                 title = "Background",
                 color = chat.backgroundColorColor,
+                onColorChanged = { chat.backgroundColorColor = it },
             ) { newColor: RgbColor ->
                 chat.backgroundColor = newColor
                 setEffectSettings()
@@ -225,6 +229,7 @@ fun WidgetChatSettingsView(
             RgbColorPickerView(
                 title = "Border",
                 color = chat.shadowColorColor,
+                onColorChanged = { chat.shadowColorColor = it },
             ) { newColor: RgbColor ->
                 chat.shadowColor = newColor
                 setEffectSettings()

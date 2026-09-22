@@ -93,33 +93,14 @@ class Gimbal(private val model: Model) {
         if (shutterCount % 2 != 0) {
             return
         }
-        val gimbal = model.database.gimbal
-        model.handleControllerFunction(buttonId = "g:shutter",
-                                       function = gimbal.functionShutter,
-                                       functionData = gimbal.functionDataShutter,
-                                       pressed = false)
+        TODO("no Android counterpart for DockKit")
     }
 
     private fun handleAccessoryEventCameraFlip() {
-        val gimbal = model.database.gimbal
-        model.handleControllerFunction(buttonId = "g:flip",
-                                       function = gimbal.functionFlip,
-                                       functionData = gimbal.functionDataFlip,
-                                       pressed = false)
+        TODO("no Android counterpart for DockKit")
     }
 
     private fun handleAccessoryEventCameraZoom(factor: Double) {
-        val gimbal = model.database.gimbal
-        var zoomIn = factor <= 0
-        if (!gimbal.naturalZoom) {
-            zoomIn = !zoomIn
-        }
-        val zoomSpeed = 1f + gimbal.zoomSpeed.toFloat() / 1000f
-        val rate = 1f + 2f * pow(gimbal.zoomSpeed.toFloat() / 50f, 1.3f)
-        if (zoomIn) {
-            model.setZoomX(x = model.zoom.x.toFloat() * zoomSpeed, rate = rate)
-        } else {
-            model.setZoomX(x = model.zoom.x.toFloat() / zoomSpeed, rate = rate)
-        }
+        TODO("no Android counterpart for DockKit")
     }
 }

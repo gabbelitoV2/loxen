@@ -31,11 +31,11 @@ fun ScoreboardEffectGenericView(
     generic: SettingsWidgetGenericScoreboard,
     scale: Double,
 ) {
-    val title by generic.title.collectAsState()
-    val clock by generic.clock.collectAsState()
-    val home by generic.home.collectAsState()
-    val away by generic.away.collectAsState()
-    val score by generic.score.collectAsState()
+    val title = generic.title
+    val clock = generic.clock
+    val home = generic.home
+    val away = generic.away
+    val score = generic.score
 
     Column(
         horizontalAlignment = Alignment.Start,

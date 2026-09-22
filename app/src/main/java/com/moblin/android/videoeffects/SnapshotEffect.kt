@@ -1,13 +1,13 @@
 package com.moblin.android.videoeffects
 
-import com.moblin.android.media.haishinkit.media.VideoEffectInfo
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
+import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 import com.moblin.android.various.settings.SettingsSceneWidget
 import kotlinx.coroutines.launch
 
 class SnapshotEffect(showtime: Int) : VideoEffect() {
-    private val snapshots: ArrayDeque<EffectImageCiImage> = ArrayDeque()
+    private val snapshots: ArrayDeque<CIImage> = ArrayDeque()
     private var sceneWidget: SettingsSceneWidget? = null
     private var currentSnapshot: EffectImageCiImage? = null
     private var hideSnapshotTime: Double? = null
@@ -25,26 +25,26 @@ class SnapshotEffect(showtime: Int) : VideoEffect() {
         }
     }
 
-    fun appendSnapshot(image: EffectImageCiImage) {
+    fun appendSnapshot(image: CIImage) {
         processorPipelineQueue.launch {
             appendSnapshotInternal(image)
         }
     }
 
-    override fun execute(image: EffectImageCiImage, info: VideoEffectInfo): EffectImageCiImage {
+    override fun execute(image: MTIImage, info: VideoEffectInfo): MTIImage {
         val sceneWidget = this.sceneWidget ?: return image
         updateCurrentSnapshot(info)
         val currentSnapshot = this.currentSnapshot ?: return image
         return applyEffectsResizeMirrorMove(
-            currentSnapshot.getCiImage(),
+            currentSnapshot.getMetalPetalImage(),
             sceneWidget,
             false,
             image.extent,
             info
-        ).composited(image)
+        ).moveComposited(sceneWidget.layout, image)
     }
 
-    override fun executeMetalPetal(image: EffectImageCiImage, info: VideoEffectInfo): EffectImageCiImage =
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage =
         TODO("OpenGL ES port")
 
     override fun isEnabled(): Boolean {
@@ -63,11 +63,11 @@ class SnapshotEffect(showtime: Int) : VideoEffect() {
         }
     }
 
-    private fun setCurrentSnapshot(image: EffectImageCiImage?) {
+    private fun setCurrentSnapshot(image: CIImage?) {
         currentSnapshot = image?.toEffectImage(isOpaque = true)
     }
 
-    private fun appendSnapshotInternal(image: EffectImageCiImage) {
+    private fun appendSnapshotInternal(image: CIImage) {
         snapshots.addLast(image)
         if (currentSnapshot != null) {
             return

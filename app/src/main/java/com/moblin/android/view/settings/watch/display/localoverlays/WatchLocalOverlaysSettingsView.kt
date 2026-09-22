@@ -19,7 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.Model
-import com.moblin.android.view.settings.watch.WatchSettingsShow
+import com.moblin.android.moblinwatch.shared.WatchSettingsShow
 import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,15 +30,15 @@ fun WatchLocalOverlaysSettingsView(model: Model = LocalModel.current, show: Watc
     val speed by show.speed.collectAsState()
 
     LaunchedEffect(thermalState) {
-        model.sendSettingsToWatch()
+        TODO("sendSettingsToWatch")
     }
 
     LaunchedEffect(audioLevel) {
-        model.sendSettingsToWatch()
+        TODO("sendSettingsToWatch")
     }
 
     LaunchedEffect(speed) {
-        model.sendSettingsToWatch()
+        TODO("sendSettingsToWatch")
     }
 
     Scaffold(
@@ -65,7 +65,7 @@ fun WatchLocalOverlaysSettingsView(model: Model = LocalModel.current, show: Watc
                     )
                     Switch(
                         checked = thermalState,
-                        onCheckedChange = { show.thermalState.value = it },
+                        onCheckedChange = { TODO("set thermalState") },
                     )
                 }
             }
@@ -83,7 +83,7 @@ fun WatchLocalOverlaysSettingsView(model: Model = LocalModel.current, show: Watc
                     )
                     Switch(
                         checked = audioLevel,
-                        onCheckedChange = { show.audioLevel.value = it },
+                        onCheckedChange = { TODO("set audioLevel") },
                     )
                 }
             }
@@ -101,7 +101,7 @@ fun WatchLocalOverlaysSettingsView(model: Model = LocalModel.current, show: Watc
                     )
                     Switch(
                         checked = speed,
-                        onCheckedChange = { show.speed.value = it },
+                        onCheckedChange = { TODO("set speed") },
                     )
                 }
             }

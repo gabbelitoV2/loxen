@@ -36,6 +36,18 @@ private enum class ImportState {
     fromClipboard,
 }
 
+private fun Model.importSettingsWithConfirmation(block: () -> Unit) {
+    TODO("importSettingsWithConfirmation")
+}
+
+private fun Model.importSettingsFromFile(url: String, block: () -> Unit) {
+    TODO("importSettingsFromFile")
+}
+
+private fun Model.importSettingsFromClipboard(block: () -> Unit) {
+    TODO("importSettingsFromClipboard")
+}
+
 @Composable
 fun ImportSettingsView(model: Model = LocalModel.current) {
     val isLive by model.isLive.collectAsState()
@@ -49,8 +61,7 @@ fun ImportSettingsView(model: Model = LocalModel.current) {
             }
         } else {
             TextButtonView(
-                text = "Import from file",
-                enabled = !isLive && !isRecording && importState == ImportState.idle,
+                title = "Import from file",
             ) {
                 showPicker = true
                 model.onDocumentPickerUrl = { url ->
@@ -69,8 +80,7 @@ fun ImportSettingsView(model: Model = LocalModel.current) {
             }
         } else {
             TextButtonView(
-                text = "Import from clipboard",
-                enabled = !isLive && !isRecording && importState == ImportState.idle,
+                title = "Import from clipboard",
             ) {
                 model.importSettingsWithConfirmation {
                     importState = ImportState.fromClipboard

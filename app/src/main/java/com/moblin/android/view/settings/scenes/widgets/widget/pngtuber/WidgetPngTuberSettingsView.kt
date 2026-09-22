@@ -53,7 +53,7 @@ private fun onUrl(
     onSelected: (() -> Unit)?,
 ) {
     pngTuber.modelName = url.substringAfterLast('/')
-    model.pngTuberStorage.add(id = pngTuber.id, url = url)
+    model.pngTuberStorage.add(id = pngTuber.id, url = java.io.File(url))
     onSelected?.invoke()
 }
 
@@ -107,8 +107,8 @@ fun WidgetSensitivityView(
         Row {
             Text(text = "Mouth")
             Slider(
-                value = sensitivity.mouth,
-                onValueChange = { onChange(sensitivity.copy(mouth = it)) },
+                value = sensitivity.mouth.toFloat(),
+                onValueChange = { onChange(sensitivity.copy(mouth = it.toDouble())) },
                 valueRange = 0.05f..3f,
                 modifier = Modifier.weight(1f),
             )
@@ -116,8 +116,8 @@ fun WidgetSensitivityView(
         Row {
             Text(text = "Eyes")
             Slider(
-                value = sensitivity.eyes,
-                onValueChange = { onChange(sensitivity.copy(eyes = it)) },
+                value = sensitivity.eyes.toFloat(),
+                onValueChange = { onChange(sensitivity.copy(eyes = it.toDouble())) },
                 valueRange = 0.05f..5f,
                 modifier = Modifier.weight(1f),
             )
@@ -130,8 +130,7 @@ private fun onCameraChange(
     pngTuber: SettingsWidgetPngTuber,
     cameraId: String,
 ) {
-    pngTuber.updateCameraId(settingsCameraId = model.cameraIdToSettingsCameraId(cameraId = cameraId))
-    model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
+    TODO("Model.cameraIdToSettingsCameraId and Model.sceneUpdated are not available")
 }
 
 private fun setEffectSettings(
@@ -139,10 +138,7 @@ private fun setEffectSettings(
     widget: SettingsWidget,
     pngTuber: SettingsWidgetPngTuber,
 ) {
-    model.getPngTuberEffect(id = widget.id)?.setSettings(
-        mirror = pngTuber.mirror,
-        sensitivity = pngTuber.sensitivity,
-    )
+    TODO("Model.getPngTuberEffect is not available")
 }
 
 @Composable
@@ -162,21 +158,19 @@ fun WidgetPngTuberSettingsView(
         ) {
             Text(text = "Video source")
             Spacer(Modifier.weight(1f))
-            GrayTextView(text = model.getCameraPositionName(pngTuberWidget = pngTuber))
+            GrayTextView(text = TODO("Model.getCameraPositionName is not available"))
         }
     }
     if (showVideoSourcePicker) {
         InlinePickerView(
             title = "Video source",
             onChange = { cameraId -> onCameraChange(model, pngTuber, cameraId) },
-            items = model.listCameras(excludeBuiltin = false).map {
-                InlinePickerItem(id = it.id, text = it.name)
-            },
-            selectedId = model.getCameraId(pngTuberWidget = pngTuber),
+            items = TODO("Model.listCameras is not available"),
+            initialSelectedId = TODO("Model.getCameraId is not available"),
         )
     }
     WidgetPngTuberPickerView(model = model, pngTuber = pngTuber) {
-        model.resetSelectedScene(changeScene = false)
+        TODO("Model.resetSelectedScene is not available")
     }
     WidgetSensitivityView(
         sensitivity = sensitivity,

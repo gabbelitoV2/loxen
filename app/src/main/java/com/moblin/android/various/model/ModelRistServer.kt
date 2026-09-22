@@ -50,20 +50,20 @@ fun Model.getRistStream(idString: String): SettingsRistServerStream? {
     return database.ristServer.streams.firstOrNull { it.id.toString() == idString }
 }
 
-fun Model.getRistStream(virtualDestinationPort: UShort): SettingsRistServerStream? {
+fun Model.getRistStream(virtualDestinationPort: Int): SettingsRistServerStream? {
     return database.ristServer.streams.firstOrNull { it.virtualDestinationPort == virtualDestinationPort }
 }
 
-fun Model.isRistStreamConnected(port: UShort): Boolean {
+fun Model.isRistStreamConnected(port: Int): Boolean {
     return database.ristServer.streams.firstOrNull { it.virtualDestinationPort == port }?.connected == true
 }
 
 class ModelRistServerDelegate(private val model: Model) : RistServerDelegate {
-    override fun ristServerOnConnected(port: UShort) {
+    override fun ristServerOnConnected(port: Int) {
         model.ristServerOnConnected(port)
     }
 
-    override fun ristServerOnDisconnected(port: UShort, reason: String) {
+    override fun ristServerOnDisconnected(port: Int, reason: String) {
         model.ristServerOnDisconnected(port, reason)
     }
 
@@ -76,13 +76,13 @@ class ModelRistServerDelegate(private val model: Model) : RistServerDelegate {
     }
 }
 
-fun Model.ristServerOnConnected(port: UShort) {
+fun Model.ristServerOnConnected(port: Int) {
     mainScope.launch {
         this@ristServerOnConnected.ristServerOnConnectedInternal(virtualDestinationPort = port)
     }
 }
 
-fun Model.ristServerOnDisconnected(port: UShort, reason: String) {
+fun Model.ristServerOnDisconnected(port: Int, reason: String) {
     mainScope.launch {
         this@ristServerOnDisconnected.ristServerOnDisconnectedInternal(virtualDestinationPort = port, reason = reason)
     }
@@ -96,7 +96,7 @@ fun Model.ristServerOnVideoBuffer(cameraId: UUID, sampleBuffer: MediaSample) {
     media.appendBufferedVideoSampleBuffer(cameraId = cameraId, sampleBuffer = sampleBuffer)
 }
 
-private fun Model.ristServerOnConnectedInternal(virtualDestinationPort: UShort) {
+private fun Model.ristServerOnConnectedInternal(virtualDestinationPort: Int) {
     val stream = getRistStream(virtualDestinationPort = virtualDestinationPort) ?: return
     val camera = stream.camera()
     makeToast(title = localized("$camera connected"))
@@ -105,7 +105,7 @@ private fun Model.ristServerOnConnectedInternal(virtualDestinationPort: UShort) 
     media.addBufferedAudio(cameraId = stream.id, name = camera, latency = latency)
 }
 
-private fun Model.ristServerOnDisconnectedInternal(virtualDestinationPort: UShort, reason: String) {
+private fun Model.ristServerOnDisconnectedInternal(virtualDestinationPort: Int, reason: String) {
     val stream = getRistStream(virtualDestinationPort = virtualDestinationPort) ?: return
     makeToast(title = localized("${stream.camera()} disconnected"))
     media.removeBufferedVideo(cameraId = stream.id)

@@ -1,6 +1,7 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.effects
 
 import android.graphics.Bitmap
+import android.graphics.PointF
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -47,9 +49,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -90,8 +94,8 @@ private fun MaskCanvasView(
     selectedEdgeIndex: Int?,
     onSelectedEdgeIndexChange: (Int?) -> Unit,
 ) {
-    val points by mask.points.collectAsState()
-    val tension by mask.tension.collectAsState()
+    val points = mask.points
+    val tension = mask.tension
     var dragIndex by remember { mutableStateOf<Int?>(null) }
     var pendingDragIndex by remember { mutableStateOf<Int?>(null) }
     var panStartPoints by remember { mutableStateOf<List<SettingsVideoEffectMaskEffectPoint>?>(null) }
@@ -112,7 +116,7 @@ private fun MaskCanvasView(
     fun closestPointIndex(location: Offset, size: Size): Int? {
         var closest: Int? = null
         var closestDist = maskPointHandleRadius * 1.2f
-        mask.points.value.forEachIndexed { index, point ->
+        mask.points.forEachIndexed { index, point ->
             val pt = canvasPoint(point, size)
             val dist = hypot(location.x - pt.x, location.y - pt.y)
             if (dist < closestDist) {
@@ -137,7 +141,7 @@ private fun MaskCanvasView(
     }
 
     fun closestEdgeIndex(location: Offset, size: Size): Int? {
-        val currentPoints = mask.points.value
+        val currentPoints = mask.points
         if (currentPoints.size < 2) {
             return null
         }
@@ -158,7 +162,7 @@ private fun MaskCanvasView(
 
     fun drawPolygon(scope: DrawScope, size: Size) {
         val pts = points.map { canvasPoint(it, size) }
-        val path = makeCatmullRomPath(pts, tension.toFloat())
+        val path = makeCatmullRomPath(pts.map { PointF(it.x, it.y) }, tension.toFloat()).asComposePath()
         scope.drawPath(path, color = Color.White.copy(alpha = 0.25f))
         scope.drawPath(path, color = Color.White, style = Stroke(width = 1.5f))
     }
@@ -208,7 +212,7 @@ private fun MaskCanvasView(
                 onSelectedPointIndexChange(index)
                 onSelectedEdgeIndexChange(null)
             } else {
-                panStartPoints = mask.points.value
+                panStartPoints = mask.points
                 panStartLocation = startLocation
             }
         }
@@ -222,10 +226,10 @@ private fun MaskCanvasView(
         }
         val currentDragIndex = dragIndex
         if (currentDragIndex != null) {
-            val updated = mask.points.value.toMutableList()
+            val updated = mask.points.toMutableList()
             if (currentDragIndex in updated.indices) {
                 updated[currentDragIndex] = normalizedPoint(location, size)
-                mask.points.value = updated
+                mask.points = updated
                 updateWidget()
             }
         } else {
@@ -234,7 +238,7 @@ private fun MaskCanvasView(
             if (startPoints != null && startLoc != null) {
                 val dx = (location.x - startLoc.x) / size.width * 100.0
                 val dy = (location.y - startLoc.y) / size.height * 100.0
-                mask.points.value = startPoints.map { point ->
+                mask.points = startPoints.map { point ->
                     SettingsVideoEffectMaskEffectPoint(
                         x = (point.x + dx).coerceIn(0.0, 100.0),
                         y = (point.y + dy).coerceIn(0.0, 100.0)
@@ -272,13 +276,13 @@ private fun MaskCanvasView(
     }
 
     fun resizeShape(scale: Double) {
-        val currentPoints = mask.points.value
+        val currentPoints = mask.points
         if (currentPoints.isEmpty()) {
             return
         }
         val centerX = currentPoints.sumOf { it.x } / currentPoints.size
         val centerY = currentPoints.sumOf { it.y } / currentPoints.size
-        mask.points.value = currentPoints.map { point ->
+        mask.points = currentPoints.map { point ->
             SettingsVideoEffectMaskEffectPoint(
                 x = (centerX + (point.x - centerX) * scale).coerceIn(0.0, 100.0),
                 y = (centerY + (point.y - centerY) * scale).coerceIn(0.0, 100.0)
@@ -303,7 +307,7 @@ private fun MaskCanvasView(
                 )
             } else {
                 Image(
-                    painter = painterResource(id = R.drawable.gamla_linkoping),
+                    painter = ColorPainter(Color.Gray),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
@@ -363,13 +367,13 @@ private fun MaskEditorView(
     selectedEdgeIndex: Int?,
     onSelectedEdgeIndexChange: (Int?) -> Unit,
 ) {
-    val points by mask.points.collectAsState()
+    val points = mask.points
     var xText by remember { mutableStateOf("") }
     var yText by remember { mutableStateOf("") }
 
     fun updateXYText() {
         val index = selectedPointIndex ?: return
-        val allPoints = mask.points.value
+        val allPoints = mask.points
         if (index !in allPoints.indices) {
             return
         }
@@ -380,7 +384,7 @@ private fun MaskEditorView(
 
     fun setX(value: Double) {
         val index = selectedPointIndex ?: return
-        val allPoints = mask.points.value
+        val allPoints = mask.points
         if (index !in allPoints.indices) {
             return
         }
@@ -390,13 +394,13 @@ private fun MaskEditorView(
         }
         val updated = allPoints.toMutableList()
         updated[index] = SettingsVideoEffectMaskEffectPoint(x = x, y = allPoints[index].y)
-        mask.points.value = updated
+        mask.points = updated
         updateWidget()
     }
 
     fun setY(value: Double) {
         val index = selectedPointIndex ?: return
-        val allPoints = mask.points.value
+        val allPoints = mask.points
         if (index !in allPoints.indices) {
             return
         }
@@ -406,7 +410,7 @@ private fun MaskEditorView(
         }
         val updated = allPoints.toMutableList()
         updated[index] = SettingsVideoEffectMaskEffectPoint(x = allPoints[index].x, y = y)
-        mask.points.value = updated
+        mask.points = updated
         updateWidget()
     }
 
@@ -428,7 +432,7 @@ private fun MaskEditorView(
 
     fun adjustX(delta: Double) {
         val index = selectedPointIndex ?: return
-        val allPoints = mask.points.value
+        val allPoints = mask.points
         if (index !in allPoints.indices) {
             return
         }
@@ -437,7 +441,7 @@ private fun MaskEditorView(
 
     fun adjustY(delta: Double) {
         val index = selectedPointIndex ?: return
-        val allPoints = mask.points.value
+        val allPoints = mask.points
         if (index !in allPoints.indices) {
             return
         }
@@ -498,11 +502,11 @@ private fun MaskEditorView(
             }
             Button(
                 onClick = {
-                    val allPoints = mask.points.value
+                    val allPoints = mask.points
                     if (currentPointIndex in allPoints.indices) {
                         val updated = allPoints.toMutableList()
                         updated.removeAt(currentPointIndex)
-                        mask.points.value = updated
+                        mask.points = updated
                     }
                     onSelectedPointIndexChange(null)
                     updateWidget()
@@ -521,7 +525,7 @@ private fun MaskEditorView(
     } else if (currentEdgeIndex != null) {
         Button(
             onClick = {
-                val allPoints = mask.points.value
+                val allPoints = mask.points
                 if (currentEdgeIndex in allPoints.indices) {
                     val point1 = allPoints[currentEdgeIndex]
                     val point2 = allPoints[(currentEdgeIndex + 1) % allPoints.size]
@@ -531,7 +535,7 @@ private fun MaskEditorView(
                     )
                     val updated = allPoints.toMutableList()
                     updated.add(currentEdgeIndex + 1, newPoint)
-                    mask.points.value = updated
+                    mask.points = updated
                 }
                 onSelectedEdgeIndexChange(null)
                 onSelectedPointIndexChange(currentEdgeIndex + 1)
@@ -545,6 +549,7 @@ private fun MaskEditorView(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaskEffectView(
     model: Model = LocalModel.current,
@@ -557,20 +562,18 @@ fun MaskEffectView(
     var selectedEdgeIndex by remember { mutableStateOf<Int?>(null) }
     var backgroundTypeExpanded by remember { mutableStateOf(false) }
 
-    val inverted by mask.inverted.collectAsState()
-    val tension by mask.tension.collectAsState()
-    val backgroundType by mask.backgroundType.collectAsState()
-    val backgroundColorColor by mask.backgroundColorColor.collectAsState()
-    val backgroundColorColor2 by mask.backgroundColorColor2.collectAsState()
+    val inverted = mask.inverted
+    val tension = mask.tension
+    val backgroundType = mask.backgroundType
+    val backgroundColorColor = mask.backgroundColorColor
+    val backgroundColorColor2 = mask.backgroundColorColor2
 
     fun updateWidget() {
-        model.getWidgetMaskEffect(widget, effect)?.setSettings(mask.toEffectSettings())
+        TODO("no Android counterpart for Model.getWidgetMaskEffect")
     }
 
     fun refreshPreviewImage() {
-        model.takeVideoSourcePreviewImage(widget) { image ->
-            previewImage = image
-        }
+        TODO("no Android counterpart for Model.takeVideoSourcePreviewImage")
     }
 
     Column {
@@ -580,7 +583,7 @@ fun MaskEffectView(
             updateWidget = { updateWidget() },
             refreshPreviewImage = { refreshPreviewImage() },
             previewImage = previewImage,
-            isPortrait = model.stream.portrait,
+            isPortrait = TODO("no Android counterpart for SettingsStream.portrait"),
             selectedPointIndex = selectedPointIndex,
             onSelectedPointIndexChange = { selectedPointIndex = it },
             selectedEdgeIndex = selectedEdgeIndex,
@@ -604,7 +607,7 @@ fun MaskEffectView(
             Switch(
                 checked = inverted,
                 onCheckedChange = {
-                    mask.inverted.value = it
+                    mask.inverted = it
                     updateWidget()
                 }
             )
@@ -617,7 +620,7 @@ fun MaskEffectView(
             Slider(
                 value = tension.toFloat(),
                 onValueChange = {
-                    mask.tension.value = it.toDouble()
+                    mask.tension = it.toDouble()
                     updateWidget()
                 },
                 valueRange = 0f..0.5f,
@@ -650,7 +653,7 @@ fun MaskEffectView(
                         DropdownMenuItem(
                             text = { Text(text = type.toString()) },
                             onClick = {
-                                mask.backgroundType.value = type
+                                mask.backgroundType = type
                                 backgroundTypeExpanded = false
                                 updateWidget()
                             }
@@ -663,8 +666,11 @@ fun MaskEffectView(
             RgbColorPickerView(
                 title = "Color",
                 color = backgroundColorColor,
-                onColorChange = {
-                    mask.backgroundColor.value = it
+                onColorChanged = {
+                    mask.backgroundColorColor = it
+                },
+                onChange = {
+                    mask.backgroundColor = it
                     updateWidget()
                 }
             )
@@ -673,8 +679,11 @@ fun MaskEffectView(
             RgbColorPickerView(
                 title = "Color 2",
                 color = backgroundColorColor2,
-                onColorChange = {
-                    mask.backgroundColorColor2.value = it
+                onColorChanged = {
+                    mask.backgroundColorColor2 = it
+                },
+                onChange = {
+                    mask.backgroundColor2 = it
                     updateWidget()
                 }
             )

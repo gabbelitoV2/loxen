@@ -19,6 +19,7 @@ private const val tag = "WorkoutDevice"
 private val dispatchQueue = CoroutineScope(Dispatchers.IO)
 
 val workoutDeviceScanner = BluetoothScanner(
+    context = TODO("Android Context must be supplied by the application layer"),
     serviceIds = listOf(
         workoutDeviceHeartRateServiceId,
         workoutDeviceCyclingPowerServiceId,

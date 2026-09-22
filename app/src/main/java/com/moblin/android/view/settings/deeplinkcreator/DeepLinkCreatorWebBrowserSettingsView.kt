@@ -18,13 +18,13 @@ import com.moblin.android.various.settings.DeepLinkCreatorWebBrowser
 import com.moblin.android.view.utils.TextEditNavigationView
 
 private fun submitHome(webBrowser: DeepLinkCreatorWebBrowser, value: String) {
-    webBrowser.home.value = value
+    webBrowser.home = value
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeepLinkCreatorWebBrowserSettingsView(webBrowser: DeepLinkCreatorWebBrowser) {
-    val home by webBrowser.home.collectAsState()
+    val home = webBrowser.home
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(localized("Web browser")) })
@@ -41,8 +41,10 @@ fun DeepLinkCreatorWebBrowserSettingsView(webBrowser: DeepLinkCreatorWebBrowser)
                     TextEditNavigationView(
                         title = localized("Home"),
                         value = home,
-                        onSubmit = { submitHome(webBrowser, it) },
-                        capitalize = false
+                        onChange = { newValue ->
+                            submitHome(webBrowser, newValue)
+                            null
+                        }
                     )
                 }
             }

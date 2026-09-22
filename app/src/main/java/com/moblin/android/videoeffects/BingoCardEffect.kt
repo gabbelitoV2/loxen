@@ -114,7 +114,7 @@ class BingoCardEffect(canvasSize: Size) : VideoEffect() {
         setup()
     }
 
-    override fun execute(image: EffectImageCiImage, info: VideoEffectInfo): EffectImageCiImage {
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
         return bingoImage
             ?.getCiImage()
             ?.move(sceneWidgetPipeline.layout, image.extent.size)
@@ -123,9 +123,13 @@ class BingoCardEffect(canvasSize: Size) : VideoEffect() {
             ?: image
     }
 
-    override fun executeMetalPetal(image: EffectImage, info: VideoEffectInfo): EffectImage {
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
         return bingoImage?.getMetalPetalImage()?.moveComposited(sceneWidgetPipeline.layout, image) ?: image
     }
+
+    private fun CIImage.cropped(extent: Any): CIImage = TODO("no Android counterpart for CIImage.cropped(to:)")
+
+    private fun CIImage.composited(over: CIImage): CIImage = TODO("no Android counterpart for CIImage.composited(over:)")
 
     private fun setup() {
         cancellable?.cancel()

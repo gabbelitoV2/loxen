@@ -194,8 +194,8 @@ private class Sdp(value: String) {
             ?: throw Exception("Failed to decode SPS.")
         val pps = runCatching { Base64.getDecoder().decode(ppsBase64) }.getOrNull()
             ?: throw Exception("Failed to decode PPS.")
-        val spsNalUnit = AvcNalUnit(sps, 0) ?: throw Exception("Failed to parse SPS NAL unit.")
-        val ppsNalUnit = AvcNalUnit(pps, 0) ?: throw Exception("Failed to parse PPS NAL unit.")
+        val spsNalUnit = AvcNalUnit.create(sps, 0) ?: throw Exception("Failed to parse SPS NAL unit.")
+        val ppsNalUnit = AvcNalUnit.create(pps, 0) ?: throw Exception("Failed to parse PPS NAL unit.")
         video.codec = SdpVideoCodec.H264(SdpVideoH264(sps = spsNalUnit, pps = ppsNalUnit))
     }
 
@@ -305,7 +305,7 @@ private open class RtpVideoProcessor(
         this.client = client
         decoder = VideoDecoder(
             name = "rtsp-client",
-            lockQueue = rtspClientQueue,
+            lockQueue = rtspClientScope,
             softwareDecoding = client.softwareDecoding,
         )
         decoder.delegate = this
@@ -413,7 +413,7 @@ private class RtpProcessorVideoH264(
         if (data.size <= 4) {
             return
         }
-        if (!AvcNalUnitType.isPicture(data[4].toInt() and 0x1F)) {
+        if (!AvcNalUnitType.isPicture((data[4].toInt() and 0x1F).toUByte())) {
             return
         }
         tryDecodeFrame()
@@ -484,7 +484,7 @@ private class RtpProcessorVideoH265(
         if (data.size <= 4) {
             return
         }
-        if (!HevcNalUnitType.isPicture((data[4].toInt() and 0xFF) shr 1 and 0x3F)) {
+        if (!HevcNalUnitType.isPicture(((data[4].toInt() and 0xFF) shr 1 and 0x3F).toUByte())) {
             return
         }
         tryDecodeFrame()

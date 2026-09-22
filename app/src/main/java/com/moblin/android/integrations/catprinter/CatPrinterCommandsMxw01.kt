@@ -8,14 +8,14 @@ import java.nio.charset.CodingErrorAction
 
 private const val TAG = "CatPrinterCommandMxw01"
 
-private enum class CatPrinterCommandId(val rawValue: UByte) {
+private enum class Mxw01CommandId(val rawValue: UByte) {
     getVersion(0xB1u),
     status(0xA1u),
     print(0xA9u),
     printComplete(0xAAu);
 
     companion object {
-        fun fromRawValue(value: UByte): CatPrinterCommandId? =
+        fun fromRawValue(value: UByte): Mxw01CommandId? =
             entries.firstOrNull { it.rawValue == value }
     }
 }
@@ -48,19 +48,19 @@ sealed class CatPrinterCommandMxw01 {
     data class printCompleteIndication(val value: ByteArray) : CatPrinterCommandMxw01()
 
     fun pack(): ByteArray {
-        val command: CatPrinterCommandId
+        val command: Mxw01CommandId
         val data: ByteArray
         when (this) {
             is getVersionRequest -> {
-                command = CatPrinterCommandId.getVersion
+                command = Mxw01CommandId.getVersion
                 data = byteArrayOf(0x00)
             }
             is statusRequest -> {
-                command = CatPrinterCommandId.status
+                command = Mxw01CommandId.status
                 data = byteArrayOf(0x00)
             }
             is printRequest -> {
-                command = CatPrinterCommandId.print
+                command = Mxw01CommandId.print
                 val writer = ByteWriter()
                 writer.writeUInt16Le(count)
                 writer.writeUInt8(0x30u)
@@ -82,7 +82,7 @@ sealed class CatPrinterCommandMxw01 {
             }
             val (command, payload) = unpacked
             return when (command) {
-                CatPrinterCommandId.getVersion -> {
+                Mxw01CommandId.getVersion -> {
                     val decoder = Charsets.UTF_8.newDecoder()
                     decoder.onMalformedInput(CodingErrorAction.REPORT)
                     val value = runCatching {
@@ -90,7 +90,7 @@ sealed class CatPrinterCommandMxw01 {
                     }.getOrNull()
                     getVersionResponse(value ?: "unknown")
                 }
-                CatPrinterCommandId.status -> {
+                Mxw01CommandId.status -> {
                     val reader = ByteReader(payload)
                     try {
                         reader.readBytes(6)
@@ -105,13 +105,13 @@ sealed class CatPrinterCommandMxw01 {
                         null
                     }
                 }
-                CatPrinterCommandId.print ->
+                Mxw01CommandId.print ->
                     if (payload.isNotEmpty()) printResponse(payload[0].toUByte()) else null
-                CatPrinterCommandId.printComplete -> printCompleteIndication(payload)
+                Mxw01CommandId.printComplete -> printCompleteIndication(payload)
             }
         }
 
-        private fun packCommand(command: CatPrinterCommandId, data: ByteArray): ByteArray {
+        private fun packCommand(command: Mxw01CommandId, data: ByteArray): ByteArray {
             if (data.size > 0xFFFF) {
                 Log.i(TAG, "Command data too big (${data.size} > 0xFFFF)")
                 return ByteArray(0)
@@ -128,7 +128,7 @@ sealed class CatPrinterCommandMxw01 {
             return writer.data
         }
 
-        private fun unpack(data: ByteArray): Pair<CatPrinterCommandId, ByteArray> {
+        private fun unpack(data: ByteArray): Pair<Mxw01CommandId, ByteArray> {
             val reader = ByteReader(data)
             if (reader.readUInt8().toInt() != 0x22) {
                 throw IllegalStateException("Wrong first byte")
@@ -136,7 +136,7 @@ sealed class CatPrinterCommandMxw01 {
             if (reader.readUInt8().toInt() != 0x21) {
                 throw IllegalStateException("Wrong second byte")
             }
-            val command = CatPrinterCommandId.fromRawValue(reader.readUInt8())
+            val command = Mxw01CommandId.fromRawValue(reader.readUInt8())
                 ?: throw IllegalStateException("Unsupported command.")
             reader.readUInt8()
             val length = reader.readUInt16Le()
@@ -163,7 +163,7 @@ private fun computeCrc8(data: ByteArray): UByte {
 
 // One bit per pixel, often 384 pixels wide.
 fun catPrinterPackPrintImageCommandsMxw01(
-    image: List<List<UByte>>,
+    image: Array<UByteArray>,
     printMode: CatPrinterPrintMode,
 ): ByteArray {
     var data = ByteArray(0)

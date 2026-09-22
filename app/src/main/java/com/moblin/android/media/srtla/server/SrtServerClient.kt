@@ -1,11 +1,13 @@
 package com.moblin.android.media.srtla.server
 
 import android.util.Log
+import com.moblin.android.media.BitrateStats
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReader
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReaderDelegate
 import java.lang.ref.WeakReference
 import java.util.UUID
+import kotlinx.coroutines.Dispatchers
 
 val srtServerClientLatency = 0.5
 
@@ -18,7 +20,7 @@ class SrtServerClient(
     private val server: WeakReference<SrtServer> = WeakReference(server)
     private val reader: MpegTsReader = MpegTsReader(
         name = "srt-server",
-        decoderQueue = srtlaServerQueue,
+        decoderQueue = Dispatchers.IO,
         timecodesEnabled = timecodesEnabled,
         softwareDecoding = softwareDecoding,
         targetLatency = srtServerClientLatency,
@@ -37,7 +39,7 @@ class SrtServerClient(
                 break
             }
             val payload = if (count == packetSize) packet else packet.copyOf(count)
-            server.get()?.srtlaServer?.bitrateStats?.mutate {
+            server.get()?.srtlaServer?.bitrateStats?.mutate { it: BitrateStats ->
                 it.add(bytesTransferred = payload.size)
             }
             try {

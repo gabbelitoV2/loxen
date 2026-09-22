@@ -16,6 +16,7 @@ import java.net.URI
 import java.time.Instant
 import java.util.Base64
 import java.util.UUID
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -289,6 +290,7 @@ class SettingsStreamSrtConnectionPriority(
     var name: String = "",
 ) {
     @SerialName("id")
+    @Contextual
     var id: UUID = UUID.randomUUID()
 
     @SerialName("priority")
@@ -298,6 +300,7 @@ class SettingsStreamSrtConnectionPriority(
     var enabled: Boolean = true
 
     @SerialName("relayId")
+    @Contextual
     var relayId: UUID? = null
 
     fun clone(): SettingsStreamSrtConnectionPriority {
@@ -741,6 +744,7 @@ enum class SettingsStreamReplayTransitionType(val rawValue: String) {
 @Serializable
 data class SettingsStreamReplayStinger(
     @SerialName("id")
+    @Contextual
     var id: UUID = UUID.randomUUID(),
 
     @SerialName("name")
@@ -836,6 +840,7 @@ class SettingsStreamReplay(
 @Serializable
 class SettingsStreamTwitchReward(
     @SerialName("id")
+    @Contextual
     var id: UUID = UUID.randomUUID(),
 
     @SerialName("rewardId")
@@ -859,6 +864,7 @@ class SettingsStreamTwitchRaidChannel(
     var channelName: String = "",
 
     @SerialName("timestamp")
+    @Contextual
     var timestamp: Instant = Instant.now(),
 ) {
     val id: String
@@ -1028,6 +1034,7 @@ class SettingsStream(
     override var name: String = "My stream",
 
     @SerialName("id")
+    @Contextual
     var id: UUID = UUID.randomUUID(),
 
     @SerialName("enabled")
@@ -1109,6 +1116,7 @@ class SettingsStream(
     var kickToastAlerts: SettingsKickAlerts = SettingsKickAlerts(),
 
     @SerialName("youTubeAuthState")
+    @Contextual
     var youTubeAuthState: Any? = null,
 
     @SerialName("youTubeWantsToBeLoggedIn")

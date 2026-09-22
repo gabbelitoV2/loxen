@@ -22,7 +22,7 @@ sealed class Dewarp360EffectSettings {
     ) : Dewarp360EffectSettings()
 }
 
-class Dewarp360Effect : VideoEffect {
+class Dewarp360Effect : VideoEffect() {
     private val filter = Dewarp360Filter()
     private var settings: Dewarp360EffectSettings = Dewarp360EffectSettings.Direct()
     private var currentPan: Float = 0f
@@ -38,7 +38,10 @@ class Dewarp360Effect : VideoEffect {
     override fun executeEarly(image: Image, info: VideoEffectInfo): Image {
         updateParameters()
         filter.inputImage = image
-        filter.outputSize = info.videoUnit.canvasSize
+        filter.outputSize = SizeF(
+            info.videoUnit.canvasSize.width.toFloat(),
+            info.videoUnit.canvasSize.height.toFloat()
+        )
         filter.pan = currentPan
         filter.tilt = currentTilt
         filter.fieldOfView = currentFieldOfView

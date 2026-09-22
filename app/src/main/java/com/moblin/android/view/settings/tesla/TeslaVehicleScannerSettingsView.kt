@@ -16,7 +16,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.moblin.android.integrations.tesla.TeslaVehicleScanner
+import com.moblin.android.integrations.tesla.discoveredPeripherals
+import com.moblin.android.integrations.tesla.startScanningForDevices
+import com.moblin.android.integrations.tesla.stopScanningForDevices
 import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.bluetoothNotAllowedMessage
@@ -32,14 +36,15 @@ fun TeslaVehicleScannerSettingsView(
     onDismiss: () -> Unit,
 ) {
     val bluetoothAllowed by model.bluetoothAllowed.collectAsState()
-    val discoveredPeripherals by TeslaVehicleScanner.discoveredPeripherals.collectAsState()
+    val peripherals by discoveredPeripherals.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        TeslaVehicleScanner.startScanningForDevices()
+        startScanningForDevices(context)
     }
     DisposableEffect(Unit) {
         onDispose {
-            TeslaVehicleScanner.stopScanningForDevices()
+            stopScanningForDevices()
         }
     }
 
@@ -58,7 +63,7 @@ fun TeslaVehicleScannerSettingsView(
                     !bluetoothAllowed -> {
                         Text(bluetoothNotAllowedMessage)
                     }
-                    discoveredPeripherals.isEmpty() -> {
+                    peripherals.isEmpty() -> {
                         HCenter {
                             CircularProgressIndicator()
                         }
@@ -66,11 +71,11 @@ fun TeslaVehicleScannerSettingsView(
                     else -> Unit
                 }
             }
-            if (bluetoothAllowed && discoveredPeripherals.isNotEmpty()) {
+            if (bluetoothAllowed && peripherals.isNotEmpty()) {
                 items(
-                    items = discoveredPeripherals.map { peripheral ->
+                    items = peripherals.map { peripheral ->
                         InlinePickerItem(
-                            id = peripheral.identifier.toString(),
+                            id = peripheral.address,
                             text = peripheral.name ?: localized("Unknown"),
                         )
                     },

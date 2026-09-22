@@ -30,6 +30,7 @@ import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.LocalModel
+import java.io.File
 
 data class Video(val url: String) {
     companion object {
@@ -40,16 +41,16 @@ data class Video(val url: String) {
 
 private fun appendMedia(model: Model, player: SettingsMediaPlayer, url: String) {
     val file = SettingsMediaPlayerFile()
-    model.mediaStorage.add(id = file.id, url = url)
+    model.mediaStorage.add(id = file.id, url = File(url))
     player.playlist.add(file)
-    model.updateMediaPlayerSettings(playerId = player.id, settings = player)
+    TODO("updateMediaPlayerSettings")
 }
 
 private fun deletePlaylistFile(model: Model, player: SettingsMediaPlayer, offsets: List<Int>) {
     offsets.sortedDescending().forEach { index ->
         player.playlist.removeAt(index)
     }
-    model.updateMediaPlayerSettings(playerId = player.id, settings = player)
+    TODO("updateMediaPlayerSettings")
 }
 
 private suspend fun loadTransferableVideo(item: Uri): Result<Video?> =
@@ -66,9 +67,9 @@ fun MediaPlayerSettingsView(
     val presentingPicker = remember { mutableStateOf(false) }
     val selectedVideoItem = remember { mutableStateOf<Uri?>(null) }
     val onContextMenuDelete: (SettingsMediaPlayerFile) -> Unit = { file ->
-        val offsets = makeOffsets(player.playlist, file.id)
-        if (offsets != null) {
-            deletePlaylistFile(model = model, player = player, offsets = offsets)
+        val index = player.playlist.indexOfFirst { it.id == file.id }
+        if (index != -1) {
+            deletePlaylistFile(model = model, player = player, offsets = listOf(index))
         }
     }
 
@@ -84,7 +85,7 @@ fun MediaPlayerSettingsView(
                     existingNames = mediaPlayers.players,
                     onNameChange = { name ->
                         player.name = name
-                        model.updateMediaPlayerSettings(playerId = player.id, settings = player)
+                        TODO("updateMediaPlayerSettings")
                     },
                 )
             }

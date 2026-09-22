@@ -28,6 +28,7 @@ import com.moblin.android.various.ChatBotWidgetTimerArgument
 import com.moblin.android.various.ChatBotWidgetWheelOfLuckArgument
 import com.moblin.android.various.settings.SettingsChatBotPermissionsCommand
 import com.moblin.android.various.settings.SettingsMacrosMacro
+import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsReaction
 import com.moblin.android.various.settings.SettingsVideoEffectType
 import com.moblin.android.various.settings.SettingsWidget
@@ -113,14 +114,14 @@ private fun Model.handleChatBotMessageObs(command: ChatBotCommand) {
 
 private fun Model.handleChatBotMessageMap(command: ChatBotCommand) {
     if (command.popFirstArgument<ChatBotMapArgument>() == ChatBotMapArgument.zoom) {
-        if (command.popFirstArgument<ChatBotMapZoomArgument>() == ChatBotMapZoomArgument.out) {
+        if (command.popFirstArgument<ChatBotMapZoomArgument>()?.rawValue == "out") {
             handleChatBotMessageMapZoomOut(command = command)
         }
     }
 }
 
 private fun Model.handleChatBotMessageLocation(command: ChatBotCommand) {
-    if (command.popFirstArgument<ChatBotLocationArgument>() != ChatBotLocationArgument.data) {
+    if (command.popFirstArgument<ChatBotLocationArgument>()?.rawValue != "data") {
         return
     }
     when (command.popFirstArgument<ChatBotLocationDataArgument>()) {
@@ -309,13 +310,13 @@ private fun Model.handleChatBotMessageMute(command: ChatBotCommand) {
         permissions = database.chat.botCommandPermissions.audio,
         command = command,
         onCompleted = {
-            if (!audio.muted) {
+            if (!audio.muted.value) {
                 makeToast(
                     title = localized("Chat bot"),
                     subTitle = localized("Muting audio")
                 )
                 setMuted(value = true)
-                setQuickButton(type = QuickButtonType.mute, isOn = true)
+                setQuickButton(type = SettingsQuickButtonType.mute, isOn = true)
             }
         }
     )
@@ -326,13 +327,13 @@ private fun Model.handleChatBotMessageUnmute(command: ChatBotCommand) {
         permissions = database.chat.botCommandPermissions.audio,
         command = command,
         onCompleted = {
-            if (audio.muted) {
+            if (audio.muted.value) {
                 makeToast(
                     title = localized("Chat bot"),
                     subTitle = localized("Unmuting audio")
                 )
                 setMuted(value = false)
-                setQuickButton(type = QuickButtonType.mute, isOn = false)
+                setQuickButton(type = SettingsQuickButtonType.mute, isOn = false)
             }
         }
     )
@@ -393,7 +394,7 @@ private fun Model.handleChatBotMessageTwitch(command: ChatBotCommand) {
 
 private fun Model.handleChatBotMessageTwitchRaid(command: ChatBotCommand) {
     val channelName = command.rest()
-    searchTwitchChannel(stream = stream, channelName = channelName) { channel ->
+    searchTwitchChannel(stream = stream.value, channelName = channelName) { channel ->
         if (channel == null) {
             makeErrorToast(
                 title = localized("Raid failed"),
@@ -402,7 +403,7 @@ private fun Model.handleChatBotMessageTwitchRaid(command: ChatBotCommand) {
             return@searchTwitchChannel
         }
         startRaidTwitchChannel(channelId = channel.id) { result ->
-            if (result.isFailure) {
+            if (result != null) {
                 makeErrorToast(title = localized("Failed to raid $channelName"))
             }
         }
@@ -543,13 +544,16 @@ private fun Model.handleChatBotMessageMusicAdd(command: ChatBotCommand) {
     val platform = command.message.platform
     val user = command.user() ?: localized("Unknown")
     addMusic(title = title) { result ->
-        when (result) {
-            is AddMusicResult.Added -> sendChatBotReply(
-                message = localized("${result.song} added to the queue by $user."),
+        val resultDescription = result.toString()
+        if (resultDescription.contains("SongNotFound")) {
+            sendChatBotReply(
+                message = localized("$title requested by $user not found."),
                 platform = platform
             )
-            AddMusicResult.SongNotFound -> sendChatBotReply(
-                message = localized("$title requested by $user not found."),
+        } else {
+            val song = resultDescription.removePrefix("Added(song=").removeSuffix(")")
+            sendChatBotReply(
+                message = localized("$song added to the queue by $user."),
                 platform = platform
             )
         }
@@ -628,9 +632,9 @@ fun Model.triggerReaction(reaction: SettingsReaction) {
     if (systemReaction != null) {
         triggerAppleReaction(reaction = systemReaction)
     } else {
-        when (reaction) {
-            SettingsReaction.glasses -> triggerGlasses()
-            SettingsReaction.sparkle -> triggerSparkle()
+        when (reaction.rawValue) {
+            "glasses" -> triggerGlasses()
+            "sparkle" -> triggerSparkle()
             else -> Unit
         }
     }
@@ -676,13 +680,13 @@ private fun Model.handleChatBotMessageStreamStop() {
 }
 
 private fun Model.handleChatBotMessageStreamTitle(command: ChatBotCommand) {
-    setTwitchStreamTitle(stream = stream, title = command.rest())
+    setTwitchStreamTitle(stream = stream.value, title = command.rest())
 }
 
 private fun Model.handleChatBotMessageStreamCategory(command: ChatBotCommand) {
-    fetchTwitchGameId(stream = stream, name = command.rest()) { gameId ->
+    fetchTwitchGameId(stream = stream.value, name = command.rest()) { gameId ->
         if (gameId != null) {
-            setTwitchStreamCategory(stream = stream, categoryId = gameId)
+            setTwitchStreamCategory(stream = stream.value, categoryId = gameId)
         }
     }
 }
@@ -742,8 +746,9 @@ private fun Model.handleChatBotMessageWidgetTimer(command: ChatBotCommand, widge
         ChatBotWidgetTimerArgument.add -> {
             val delta = command.popFirstDouble(-3600.0..3600.0) ?: return
             timer.add(delta = delta)
+            val endTime = (timer.textEffectEndTime() as? Long) ?: 0L
             for (effect in effects) {
-                effect.setEndTime(index = index, endTime = timer.textEffectEndTime())
+                effect.setEndTime(index = index, endTime = endTime)
             }
         }
         else -> Unit
@@ -773,7 +778,7 @@ private fun Model.handleChatBotMessageAlert(command: ChatBotCommand) {
         onCompleted = {
             val alert = command.popFirst()
             if (alert != null) {
-                playAlert(alert = Alert.ChatBotCommand(alert, command.user() ?: "Unknown"))
+                playAlert(alert = TODO("no Android counterpart for Alert"))
             }
         }
     )
@@ -787,7 +792,7 @@ private fun Model.handleChatBotMessageFax(command: ChatBotCommand) {
             val urlString = command.peekFirst()
             val url = urlString?.let { value -> runCatching { URI(value) }.getOrNull() }
             if (url != null) {
-                faxReceiver.add(url = url)
+                faxReceiver.add(url = url.toString())
             }
         }
     )
@@ -805,28 +810,28 @@ private fun Model.handleChatBotMessageFilter(command: ChatBotCommand) {
                     val on = state == ChatBotOnOffArgument.on
                     when (filter) {
                         ChatBotFilterArgument.movie -> setFilterQuickButton(
-                            type = SettingsVideoEffectType.movie,
+                            type = SettingsQuickButtonType.movie,
                             on = on
                         )
                         ChatBotFilterArgument.grayscale -> setFilterQuickButton(
-                            type = SettingsVideoEffectType.grayScale,
+                            type = SettingsQuickButtonType.grayScale,
                             on = on
                         )
                         ChatBotFilterArgument.sepia -> setFilterQuickButton(
-                            type = SettingsVideoEffectType.sepia,
+                            type = SettingsQuickButtonType.sepia,
                             on = on
                         )
                         ChatBotFilterArgument.triple -> setFilterQuickButton(
-                            type = SettingsVideoEffectType.triple,
+                            type = SettingsQuickButtonType.triple,
                             on = on
                         )
                         ChatBotFilterArgument.twin -> setFilterQuickButton(
-                            type = SettingsVideoEffectType.twin,
+                            type = SettingsQuickButtonType.twin,
                             on = on
                         )
                         ChatBotFilterArgument.pixellate -> setPixellateQuickButton(on = on)
                         ChatBotFilterArgument.fourThree -> setFilterQuickButton(
-                            type = SettingsVideoEffectType.fourThree,
+                            type = SettingsQuickButtonType.fourThree,
                             on = on
                         )
                         ChatBotFilterArgument.whirlpool -> setWhirlpoolQuickButton(on = on)
@@ -875,9 +880,9 @@ private fun Model.handleChatBotMessageTesla(command: ChatBotCommand) {
 }
 
 private fun Model.handleChatBotMessageTeslaTrunk(command: ChatBotCommand) {
-    when (command.popFirstArgument<ChatBotTeslaTrunkArgument>()) {
-        ChatBotTeslaTrunkArgument.open -> tesla.vehicle?.openTrunk()
-        ChatBotTeslaTrunkArgument.close -> tesla.vehicle?.closeTrunk()
+    when (command.popFirstArgument<ChatBotTeslaTrunkArgument>()?.rawValue) {
+        "open" -> tesla.vehicle?.openTrunk()
+        "close" -> tesla.vehicle?.closeTrunk()
         else -> Unit
     }
 }
@@ -907,12 +912,12 @@ private fun Model.executeIfUserAllowedToUseChatBot(
 ) {
     val now = Instant.now()
     if (isChannelOwner(command = command)) {
-        permissions.latestExecutionTime = now
+        permissions.latestExecutionTime = now.toEpochMilli()
         onCompleted()
         return
     }
     if (command.message.isModerator && permissions.moderatorsEnabled) {
-        permissions.latestExecutionTime = now
+        permissions.latestExecutionTime = now.toEpochMilli()
         onCompleted()
         return
     }
@@ -921,7 +926,7 @@ private fun Model.executeIfUserAllowedToUseChatBot(
         val latestExecutionTime = permissions.latestExecutionTime
         var onCooldown = false
         if (cooldown != null && latestExecutionTime != null) {
-            val elapsed = Duration.between(latestExecutionTime, now)
+            val elapsed = Duration.between(Instant.ofEpochMilli(latestExecutionTime), now)
             val timeLeftOfCooldown = Duration.ofSeconds(cooldown.toLong()) - elapsed
             if (!timeLeftOfCooldown.isNegative) {
                 onCooldown = true
@@ -940,7 +945,7 @@ private fun Model.executeIfUserAllowedToUseChatBot(
             }
         }
         if (!onCooldown) {
-            permissions.latestExecutionTime = now
+            permissions.latestExecutionTime = now.toEpochMilli()
             onCompleted()
         }
     }
@@ -965,8 +970,8 @@ private fun Model.executeIfUserAllowedToUseChatBot(
             if (permissions.minimumSubscriberTier > 1) {
                 val userId = command.message.userId
                 if (userId != null) {
-                    createTwitchApi(stream = stream).getBroadcasterSubscriptions(
-                        broadcasterId = stream.twitchChannelId,
+                    createTwitchApi(stream = stream.value).getBroadcasterSubscriptions(
+                        broadcasterId = stream.value.twitchChannelId,
                         userId = userId
                     ) { data ->
                         val tier = data?.tierAsNumber()
@@ -1001,8 +1006,8 @@ private fun Model.executeIfUserAllowedToUseChatBot(
 private fun Model.isChannelOwner(command: ChatBotCommand): Boolean {
     val user = command.user() ?: return false
     return when (command.message.platform) {
-        Platform.twitch -> user.lowercase() == stream.twitchChannelName.lowercase()
-        Platform.kick -> user.lowercase() == stream.kickChannelName.lowercase()
+        Platform.twitch -> user.lowercase() == stream.value.twitchChannelName.lowercase()
+        Platform.kick -> user.lowercase() == stream.value.kickChannelName.lowercase()
         Platform.youTube -> command.message.isOwner
         else -> false
     }

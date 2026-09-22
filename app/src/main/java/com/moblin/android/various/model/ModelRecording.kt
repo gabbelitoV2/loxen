@@ -6,6 +6,7 @@ import com.moblin.android.localized
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.various.settings.MacroEvent
 import com.moblin.android.various.settings.SettingsMacrosEvent
+import com.moblin.android.various.settings.SettingsQuickButtonType
 import java.io.File
 import java.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +27,7 @@ fun Model.startRecording() {
     }
     setIsRecording(value = true)
     if (!resumeRecording()) {
-        if (stream.recording.isDefaultRecordingPath()) {
+        if (stream.value.recording.isDefaultRecordingPath()) {
             makeErrorToast(title = localized("Failed to start recording"))
         } else {
             makeErrorToast(
@@ -41,7 +42,7 @@ fun Model.startRecording() {
 }
 
 fun Model.stopRecording(toastTitle: String? = null, toastSubTitle: String? = null) {
-    if (!isRecording) {
+    if (!isRecording.value) {
         return
     }
     macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.STOP_RECORDING))
@@ -54,11 +55,11 @@ fun Model.stopRecording(toastTitle: String? = null, toastSubTitle: String? = nul
 }
 
 fun Model.resumeRecording(): Boolean {
-    currentRecording = recordingsStorage.createRecording(recording = stream.recording.clone())
+    currentRecording = recordingsStorage.createRecording(recording = stream.value.recording.clone())
     if (currentRecording == null) {
         return false
     }
-    media.setRecordUrl(url = currentRecording?.url())
+    media.setRecordUrl(url = currentRecording?.url()?.toString())
     startRecorderIfNeeded()
     return true
 }
@@ -73,17 +74,17 @@ fun Model.startRecorderIfNeeded() {
     if (isRecorderRecording) {
         return
     }
-    if (!(isRecording || stream.replay.enabled)) {
+    if (!(isRecording.value || stream.value.replay.enabled)) {
         return
     }
     isRecorderRecording = true
-    val bitrate = stream.recording.videoBitrate.toInt()
-    val keyFrameInterval = stream.recording.maxKeyFrameInterval.toInt()
-    val audioBitrate = stream.recording.audioBitrate.toInt()
+    val bitrate = stream.value.recording.videoBitrate.toInt()
+    val keyFrameInterval = stream.value.recording.maxKeyFrameInterval.toInt()
+    val audioBitrate = stream.value.recording.audioBitrate.toInt()
     media.startRecording(
-        url = if (isRecording) currentRecording?.url() else null,
-        replay = stream.replay.enabled,
-        videoCodec = stream.recording.videoCodec,
+        url = if (isRecording.value) currentRecording?.url()?.toString() else null,
+        replay = stream.value.replay.enabled,
+        videoCodec = stream.value.recording.videoCodec,
         videoBitrate = if (bitrate != 0) bitrate else null,
         keyFrameInterval = if (keyFrameInterval != 0) keyFrameInterval else null,
         audioBitrate = if (audioBitrate != 0) audioBitrate else null
@@ -94,7 +95,7 @@ fun Model.stopRecorderIfNeeded(forceStop: Boolean = false) {
     if (!isRecorderRecording) {
         return
     }
-    if (forceStop || (!isRecording && !stream.replay.enabled)) {
+    if (forceStop || (!isRecording.value && !stream.value.replay.enabled)) {
         media.stopRecording()
         isRecorderRecording = false
     }
@@ -105,7 +106,7 @@ fun Model.updateRecordingLength(now: Instant) {
     if (current != null) {
         val elapsed = TODO("uptimeFormatter.string(from:) has no direct Android equivalent")
         val url = current.url()
-        val size = if (url != null) File(url).length().formatBytes() else "-"
+        val size = if (url != null) url.length().formatBytes() else "-"
         recording.length = "$elapsed ($size)"
         if (isWatchLocal()) {
             sendRecordingLengthToWatch(recordingLength = recording.length)
@@ -119,7 +120,7 @@ fun Model.updateRecordingLength(now: Instant) {
 }
 
 fun Model.toggleRecording() {
-    if (isRecording) {
+    if (isRecording.value) {
         stopRecording()
     } else {
         startRecording()
@@ -127,10 +128,10 @@ fun Model.toggleRecording() {
 }
 
 fun Model.setIsRecording(value: Boolean) {
-    isRecording = value
+    isRecording.value = value
     updateLiveActivity()
     updateMacStatusItem()
-    setQuickButton(type = QuickButtonType.RECORD, isOn = value)
+    setQuickButton(type = SettingsQuickButtonType.RECORD, isOn = value)
     updatePictureInPicture()
     if (isWatchLocal()) {
         sendIsRecordingToWatch(isRecording = isRecording)
@@ -139,9 +140,9 @@ fun Model.setIsRecording(value: Boolean) {
 }
 
 fun Model.setCleanRecordings() {
-    media.setCleanRecordings(enabled = stream.recording.cleanRecordings)
+    media.setCleanRecordings(enabled = stream.value.recording.cleanRecordings)
 }
 
 fun Model.isShowingStatusRecording(): Boolean {
-    return isRecording
+    return isRecording.value
 }

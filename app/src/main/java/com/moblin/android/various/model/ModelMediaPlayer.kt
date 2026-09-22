@@ -2,7 +2,9 @@ package com.moblin.android.various.model
 
 import com.moblin.android.media.MediaSample
 import com.moblin.android.various.MediaPlayer
+import com.moblin.android.various.MediaPlayerDelegate
 import com.moblin.android.various.mediaPlayerLatency
+import com.moblin.android.various.settings.SettingsCameraId
 import com.moblin.android.various.settings.SettingsMediaPlayer
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
@@ -49,7 +51,7 @@ private fun Model.removeUnusedMediaPlayerFiles() {
 
 fun Model.addMediaPlayer(settings: SettingsMediaPlayer) {
     val mediaPlayer = MediaPlayer(settings = settings, mediaStorage = mediaStorage)
-    mediaPlayer.delegate = this
+    mediaPlayer.delegate = MediaPlayerDelegateImpl(model = this)
     mediaPlayers[settings.id] = mediaPlayer
     updateMicsListAsync()
 }
@@ -91,7 +93,7 @@ fun Model.mediaPlayerSetSeeking(on: Boolean) {
 
 fun Model.getCurrentMediaPlayer(): MediaPlayer? {
     val scene = getSelectedScene() ?: return null
-    if (scene.videoSource.cameraPosition != CameraPosition.mediaPlayer) {
+    if (scene.videoSource.cameraPosition !is SettingsCameraId.MediaPlayer) {
         return null
     }
     val mediaPlayerSettings = getMediaPlayer(id = scene.videoSource.mediaPlayerCameraId) ?: return null
@@ -153,4 +155,38 @@ fun Model.mediaPlayerVideoBuffer(playerId: UUID, sampleBuffer: MediaSample) {
 
 fun Model.mediaPlayerAudioBuffer(playerId: UUID, sampleBuffer: MediaSample) {
     media.appendBufferedAudioSampleBuffer(cameraId = playerId, sampleBuffer = sampleBuffer)
+}
+
+private class MediaPlayerDelegateImpl(private val model: Model) : MediaPlayerDelegate {
+    override fun mediaPlayerFileLoaded(playerId: UUID, name: String) {
+        model.mediaPlayerFileLoaded(playerId = playerId, name = name)
+    }
+
+    override fun mediaPlayerFileUnloaded(playerId: UUID) {
+        model.mediaPlayerFileUnloaded(playerId = playerId)
+    }
+
+    override fun mediaPlayerStateUpdate(
+        playerId: UUID,
+        name: String,
+        playing: Boolean,
+        position: Double,
+        time: String,
+    ) {
+        model.mediaPlayerStateUpdate(
+            playerId = playerId,
+            name = name,
+            playing = playing,
+            position = position,
+            time = time,
+        )
+    }
+
+    override fun mediaPlayerVideoBuffer(playerId: UUID, sampleBuffer: MediaSample) {
+        model.mediaPlayerVideoBuffer(playerId = playerId, sampleBuffer = sampleBuffer)
+    }
+
+    override fun mediaPlayerAudioBuffer(playerId: UUID, sampleBuffer: MediaSample) {
+        model.mediaPlayerAudioBuffer(playerId = playerId, sampleBuffer = sampleBuffer)
+    }
 }

@@ -1,9 +1,10 @@
 package com.moblin.android.various.model
 
+import com.moblin.android.settings.QuickButtonType
 import com.moblin.android.various.ChatPost
 
 fun Model.toggleTextToSpeechPaused() {
-    if (getQuickButton(type = QuickButtonType.pauseTts)?.isOn == false) {
+    if (getQuickButton(type = QuickButtonType.pauseTts)?.isOn?.value == false) {
         chatTextToSpeech.pause()
     } else {
         chatTextToSpeech.play()
@@ -57,13 +58,13 @@ private fun Model.isTextToSpeechEnabledForAnyAlertWidget(): Boolean {
 fun Model.setTextToSpeechStreamerMentions() {
     val streamerMentions = mutableListOf<String>()
     if (isTwitchChatConfigured()) {
-        streamerMentions.add("@${stream.twitchChannelName}")
+        streamerMentions.add("@${stream.twitchChannelName()}")
     }
     if (isKickPusherConfigured()) {
-        streamerMentions.add("@${stream.kickChannelName}")
+        streamerMentions.add("@${stream.kickChannelName()}")
     }
     if (isSoopChatConfigured()) {
-        streamerMentions.add("@${stream.soopChannelName}")
+        streamerMentions.add("@${stream.soopChannelName()}")
     }
     chatTextToSpeech.setStreamerMentions(streamerMentions)
 }

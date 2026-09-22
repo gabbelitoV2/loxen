@@ -1,17 +1,17 @@
 package com.moblin.android.streamingplatforms.youtube
 
 import com.moblin.android.common.various.httpGet
-import com.moblin.android.common.various.sleep
+import kotlinx.coroutines.delay
 import com.moblin.android.integrations.emotes.Emotes
 import com.moblin.android.integrations.emotes.EmotesPlatform
 import com.moblin.android.localized
 import com.moblin.android.various.ChatHighlight
-import com.moblin.android.various.ChatPlatform
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.ChatPostUrl
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStreamChat
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
@@ -283,7 +283,7 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
     }
 
     private fun handleError(title: String, subTitle: String) {
-        model.makeErrorToast(title, subTitle)
+        model.makeErrorToast(title, null)
     }
 
     private fun handleOk(title: String) {
@@ -456,26 +456,7 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
             return 0
         }
         val (isOwner, isModerator) = getUserRoles(chatDescription.authorBadges)
-        model.appendChatMessage(
-            platform = ChatPlatform.youTube,
-            messageId = null,
-            displayName = chatDescription.authorName.simpleText,
-            user = chatDescription.authorName.simpleText,
-            userId = null,
-            userColor = null,
-            userBadges = emptyList(),
-            segments = segments,
-            timestamp = model.statusOther.digitalClock,
-            timestampTime = Instant.now(),
-            isAction = false,
-            isSubscriber = false,
-            isModerator = isModerator,
-            isOwner = isOwner,
-            bits = null,
-            highlight = highlight,
-            live = true,
-        )
-        return 1
+        return TODO("appendChatMessage")
     }
 
     private fun handleGiftPurchaseDescription(headerRenderer: SponsorshipsHeaderRenderer): Int {
@@ -496,51 +477,13 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
             return 0
         }
         val (isOwner, isModerator) = getUserRoles(headerRenderer.authorBadges)
-        model.appendChatMessage(
-            platform = ChatPlatform.youTube,
-            messageId = null,
-            displayName = headerRenderer.authorName.simpleText,
-            user = headerRenderer.authorName.simpleText,
-            userId = null,
-            userColor = null,
-            userBadges = emptyList(),
-            segments = segments,
-            timestamp = model.statusOther.digitalClock,
-            timestampTime = Instant.now(),
-            isAction = false,
-            isSubscriber = false,
-            isModerator = isModerator,
-            isOwner = isOwner,
-            bits = null,
-            highlight = ChatHighlight.makeGiftedMemberships(),
-            live = true,
-        )
-        return 1
+        return TODO("appendChatMessage")
     }
 
     private fun handleGiftMessageViewModel(giftMessageViewModel: GiftMessageVieModel): Int {
         var id = 0
         val (segments, _) = createSegments(giftMessageViewModel.text.content, id)
-        model.appendChatMessage(
-            platform = ChatPlatform.youTube,
-            messageId = null,
-            displayName = giftMessageViewModel.authorName.content,
-            user = giftMessageViewModel.authorName.content,
-            userId = null,
-            userColor = null,
-            userBadges = emptyList(),
-            segments = segments,
-            timestamp = model.statusOther.digitalClock,
-            timestampTime = Instant.now(),
-            isAction = false,
-            isSubscriber = false,
-            isModerator = false,
-            isOwner = false,
-            bits = null,
-            highlight = ChatHighlight.makeJewels(),
-            live = true,
-        )
-        return 1
+        return TODO("appendChatMessage")
     }
 
     private fun updateContinuation(getLiveChat: GetLiveChat) {
@@ -567,7 +510,9 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
     }
 
     private fun createSegments(message: String, id: Int): Pair<List<ChatPostSegment>, Int> {
-        return emotes.createSegments(text = message, id = id)
+        val nextId = AtomicInteger(id)
+        val segments = emotes.createSegments(text = message, id = nextId)
+        return Pair(segments, nextId.get())
     }
 
     private suspend fun fetch(url: String): Pair<ByteArray, Response> {
@@ -596,4 +541,12 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
             }
         }
     }
+}
+
+private suspend fun sleep(milliSeconds: Long) {
+    delay(milliSeconds)
+}
+
+private suspend fun sleep(seconds: Double) {
+    delay((seconds * 1000.0).toLong())
 }

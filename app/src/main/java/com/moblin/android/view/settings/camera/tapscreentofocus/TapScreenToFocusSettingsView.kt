@@ -18,7 +18,7 @@ import com.moblin.android.LocalModel
 
 @Composable
 fun TapScreenToFocusSettingsView(model: Model = LocalModel.current, database: Database) {
-    val tapToFocus by database.tapToFocus.collectAsState()
+    val tapToFocus = database.tapToFocus
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -31,13 +31,13 @@ fun TapScreenToFocusSettingsView(model: Model = LocalModel.current, database: Da
         Switch(
             checked = tapToFocus,
             onCheckedChange = { value ->
-                database.tapToFocus.value = value
+                database.tapToFocus = value
             }
         )
     }
     LaunchedEffect(tapToFocus) {
         if (!tapToFocus) {
-            model.setAutoFocus()
+            TODO("setAutoFocus")
         }
     }
 }

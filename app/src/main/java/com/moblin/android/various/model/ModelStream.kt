@@ -7,8 +7,10 @@ import android.os.SystemClock
 import android.util.Log
 import android.util.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import com.moblin.android.common.various.formatBytesPerSecond
+import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.common.various.noValue
 import com.moblin.android.common.various.sizeFormatter
 import com.moblin.android.common.various.uptimeFormatter
@@ -22,13 +24,25 @@ import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.BondingConnection
 import com.moblin.android.various.network.httpRequest
+import com.moblin.android.various.settings.MacroEvent
+import com.moblin.android.various.settings.SettingsBitratePreset
+import com.moblin.android.various.settings.SettingsColorSpace
 import com.moblin.android.various.settings.SettingsHttpHeader
+import com.moblin.android.various.settings.SettingsMacrosEvent
 import com.moblin.android.various.settings.SettingsStream
+import com.moblin.android.various.settings.SettingsStreamCodec
+import com.moblin.android.various.settings.SettingsStreamH264Profile
+import com.moblin.android.various.settings.SettingsStreamProtocol
+import com.moblin.android.various.settings.SettingsStreamRateControl
+import com.moblin.android.various.settings.SettingsStreamResolution
 import com.moblin.android.various.settings.SettingsStreamWhipHttpTransport
 import com.moblin.android.various.settings.defaultStreamUrl
+import com.moblin.android.various.settings.pixelFormatTypes
+import com.moblin.android.various.settings.pixelFormats
 import com.moblin.android.various.storages.StreamingHistoryStream
 import com.moblin.android.various.storages.ThermalState
 import com.moblin.android.various.utils.tryGetToastSubTitle
+import com.moblin.android.various.utils.uploadImage
 import java.io.ByteArrayOutputStream
 import java.time.Instant
 import java.util.Locale
@@ -78,11 +92,11 @@ class CreateStreamWizard {
         set(value) {
             _presentingSetup.value = value
         }
-    private val showTwitchAuth = MutableStateFlow(false)
+    private val _showTwitchAuth = MutableStateFlow(false)
     var showTwitchAuth: Boolean
-        get() = showTwitchAuth.value
+        get() = _showTwitchAuth.value
         set(value) {
-            showTwitchAuth.value = value
+            _showTwitchAuth.value = value
         }
     private val _showKickAuth = MutableStateFlow(false)
     var showKickAuth: Boolean
@@ -90,11 +104,11 @@ class CreateStreamWizard {
         set(value) {
             _showKickAuth.value = value
         }
-    private val name = MutableStateFlow("")
+    private val _name = MutableStateFlow("")
     var name: String
-        get() = name.value
+        get() = _name.value
         set(value) {
-            name.value = value
+            _name.value = value
         }
     private val _backgroundStreaming = MutableStateFlow(false)
     var backgroundStreaming: Boolean
@@ -275,13 +289,13 @@ fun Model.startStream(delayed: Boolean = false) {
     if (streaming) {
         return
     }
-    if (delayed && !isLive) {
+    if (delayed && !isLive.value) {
         return
     }
-    if (stream.url == defaultStreamUrl) {
+    if (stream.value.url == defaultStreamUrl) {
         makeErrorToast(
             title = localized("Please enter your stream URL in stream settings before going live."),
-            subTitle = localized("Configure it in Settings → Streams → ${stream.name} → URL."),
+            subTitle = localized("Configure it in Settings → Streams → ${stream.value.name} → URL."),
         )
         return
     }
@@ -291,24 +305,24 @@ fun Model.startStream(delayed: Boolean = false) {
     macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.goLive))
     setIsLive(value = true)
     streaming = true
-    streamTotalBytes = 0u
+    streamTotalBytes = 0L
     updateScreenAutoOff()
     startNetStream()
     startFetchingYouTubeChatVideoId()
     reloadViewers()
-    if (stream.recording.autoStartRecording) {
+    if (stream.value.recording.autoStartRecording) {
         startRecording()
     }
-    if (stream.obsAutoStartStream) {
+    if (stream.value.obsAutoStartStream) {
         obsStartStream()
     }
-    if (stream.obsAutoStartRecording) {
+    if (stream.value.obsAutoStartRecording) {
         obsStartRecording()
     }
-    val historyStream = StreamingHistoryStream(settings = stream.clone())
+    val historyStream = StreamingHistoryStream(settings = stream.value.clone())
     streamingHistoryStream = historyStream
-    historyStream.updateHighestThermalState(thermalState = ThermalState.from(statusOther.thermalState))
-    historyStream.updateLowestBatteryLevel(level = battery.level)
+    historyStream.updateHighestThermalState(thermalState = ThermalState.from(statusOther.thermalState.value))
+    historyStream.updateLowestBatteryLevel(level = battery.level.value)
 }
 
 fun Model.stopStream(
@@ -324,15 +338,15 @@ fun Model.stopStream(
     }
     Log.i(TAG, "stream: Stop")
     macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.end))
-    streamTotalBytes += media.streamTotal().toULong()
+    streamTotalBytes += media.streamTotal()
     streaming = false
-    if (stream.recording.autoStopRecording) {
+    if (stream.value.recording.autoStopRecording) {
         stopRecording()
     }
-    if (stopObsStreamIfEnabled && stream.obsAutoStopStream) {
+    if (stopObsStreamIfEnabled && stream.value.obsAutoStopStream) {
         obsStopStream()
     }
-    if (stopObsRecordingIfEnabled && stream.obsAutoStopRecording) {
+    if (stopObsRecordingIfEnabled && stream.value.obsAutoStopRecording) {
         obsStopRecording()
     }
     stopNetStream()
@@ -348,14 +362,14 @@ fun Model.stopStream(
 }
 
 fun Model.isGoLiveNotificationConfigured(): Boolean {
-    return isGoLiveNotificationDiscordConfigured() || stream.goLiveNotificationMoblinWebsite
+    return isGoLiveNotificationDiscordConfigured() || stream.value.goLiveNotificationMoblinWebsite
 }
 
 private fun Model.isGoLiveNotificationDiscordConfigured(): Boolean {
-    if (stream.goLiveNotificationDiscordMessage.isEmpty()) {
+    if (stream.value.goLiveNotificationDiscordMessage.isEmpty()) {
         return false
     }
-    if (stream.goLiveNotificationDiscordWebhookUrl.isEmpty()) {
+    if (stream.value.goLiveNotificationDiscordWebhookUrl.isEmpty()) {
         return false
     }
     return true
@@ -371,10 +385,10 @@ fun Model.sendGoLiveNotification(onCompleted: (() -> Unit)? = null) {
         }
     }
     if (sendToDiscord) {
-        val discordUrl = stream.goLiveNotificationDiscordWebhookUrl
+        val discordUrl = stream.value.goLiveNotificationDiscordWebhookUrl
         if (discordUrl.isNotEmpty()) {
             pending += 1
-            media.takeSnapshot(age = 0.0) { image, _, _ ->
+            media.takeSnapshot(age = 0.0f) { image, _, _ ->
                 val out = ByteArrayOutputStream()
                 if (!image.compress(Bitmap.CompressFormat.JPEG, 90, out)) {
                     completeOne()
@@ -397,7 +411,7 @@ private fun Model.tryUploadGoLiveNotificationToDiscord(
         paramName = "snapshot",
         fileName = "snapshot.jpg",
         image = image,
-        message = stream.goLiveNotificationDiscordMessage,
+        message = stream.value.goLiveNotificationDiscordMessage,
     ) { _ ->
         onCompleted()
     }
@@ -405,9 +419,9 @@ private fun Model.tryUploadGoLiveNotificationToDiscord(
 
 fun Model.startNetStream() {
     streamState = StreamState.connecting
-    latestLowBitrateTime = SystemClock.elapsedRealtime()
+    latestLowBitrateTime = Instant.now()
     moblink.streamer?.stopTunnels()
-    when (stream.getProtocol()) {
+    when (stream.value.getProtocol()) {
         SettingsStreamProtocol.rtmp -> startNetStreamRtmp()
         SettingsStreamProtocol.srt -> startNetStreamSrt()
         SettingsStreamProtocol.rist -> startNetStreamRist()
@@ -419,35 +433,34 @@ fun Model.startNetStream() {
 }
 
 private fun Model.startNetStreamRtmp() {
-    val rtmp = stream.rtmp
+    val rtmp = stream.value.rtmp
     media.rtmpStartStream(
-        url = stream.url,
-        targetBitrate = getBitrate(),
-        adaptiveBitrate = rtmp.adaptiveBitrateEnabled,
+        url = stream.value.url,
+        targetBitrate = getBitrate().toInt(),
+        adaptiveBitrateEnabled = rtmp.adaptiveBitrateEnabled,
     )
     updateAdaptiveBitrateRtmpIfEnabled()
 }
 
 private fun Model.startNetStreamSrt() {
-    val srt = stream.srt
-    payloadSize = srt.mpegtsPacketsPerPacket() * MpegTsPacket.size
+    val srt = stream.value.srt
     previousSrtDroppedPacketsTotal = 0
     media.srtStartStream(
-        isSrtla = stream.isSrtla(),
-        url = stream.url,
+        isSrtla = stream.value.isSrtla(),
+        url = stream.value.url,
         reconnectTime = 5.0,
-        targetBitrate = getBitrate(),
+        targetBitrate = getBitrate().toInt(),
         adaptiveBitrateAlgorithm = if (srt.adaptiveBitrateEnabled) {
             srt.adaptiveBitrate.algorithm
         } else {
             null
         },
         latency = srt.latency,
-        experimental = database.debug.enhancedMoblinSrt,
+        experimental = database.debug.enhancedMoblinSrt.value,
         overheadBandwidth = srt.overheadBandwidth,
         maximumBandwidthFollowInput = srt.maximumBandwidthFollowInput,
         mpegtsPacketsPerPacket = srt.mpegtsPacketsPerPacket(),
-        packetPadding = database.debug.packetPadding,
+        packetPadding = database.debug.packetPadding.value,
         networkInterfaceNames = database.networkInterfaceNames,
         connectionPriorities = srt.connectionPriorities,
         dnsLookupStrategy = srt.dnsLookupStrategy,
@@ -456,48 +469,48 @@ private fun Model.startNetStreamSrt() {
 }
 
 private fun Model.startNetStreamRist() {
-    val rist = stream.rist
+    val rist = stream.value.rist
     media.ristStartStream(
-        url = stream.url,
+        url = stream.value.url,
         bonding = rist.bonding,
-        targetBitrate = getBitrate(),
-        adaptiveBitrate = rist.adaptiveBitrateEnabled,
+        targetBitrate = getBitrate().toInt(),
+        adaptiveBitrateEnabled = rist.adaptiveBitrateEnabled,
     )
     updateAdaptiveBitrateRistIfEnabled()
 }
 
 private fun Model.startNetStreamWhip() {
     media.whipStartStream(
-        url = stream.url,
-        headers = stream.whip.headers,
-        videoCodec = stream.codec,
-        audioCodec = stream.audioCodec,
-        videoBitrate = stream.bitrate.toDouble(),
+        url = stream.value.url,
+        headers = stream.value.whip.headers,
+        videoCodec = stream.value.codec,
+        audioCodec = stream.value.audioCodec,
+        videoBitrate = stream.value.bitrate.toDouble(),
     )
 }
 
 private fun Model.startNetStreamMobcam() {
-    media.mobcamStartStream(port = stream.mobcamPort(), deviceName = Build.MODEL)
+    media.mobcamStartStream(port = stream.value.mobcamPort(), deviceName = Build.MODEL)
 }
 
 fun Model.startPreviewStream() {
-    if (isPreviewStreaming) {
+    if (isPreviewStreaming.value) {
         return
     }
-    if (stream.previewStream.url.isEmpty()) {
+    if (stream.value.previewStream.url.isEmpty()) {
         makeErrorToast(title = localized("Preview stream not configured"))
         return
     }
     media.startPreviewStream(
-        url = stream.previewStream.url,
-        resolution = stream.previewStream.resolution,
-        bitrate = stream.previewStream.bitrate,
+        url = stream.value.previewStream.url,
+        resolution = stream.value.previewStream.resolution,
+        bitrate = stream.value.previewStream.bitrate,
     )
     setIsPreviewStreaming(value = true)
 }
 
 fun Model.stopPreviewStream() {
-    if (!isPreviewStreaming) {
+    if (!isPreviewStreaming.value) {
         return
     }
     media.stopPreviewStream()
@@ -505,7 +518,7 @@ fun Model.stopPreviewStream() {
 }
 
 fun Model.togglePreviewStream() {
-    if (isPreviewStreaming) {
+    if (isPreviewStreaming.value) {
         stopPreviewStream()
     } else {
         startPreviewStream()
@@ -513,8 +526,8 @@ fun Model.togglePreviewStream() {
 }
 
 fun Model.setIsPreviewStreaming(value: Boolean) {
-    isPreviewStreaming = value
-    setQuickButton(type = QuickButtonType.previewStream, isOn = value)
+    isPreviewStreaming.value = value
+    setQuickButton(type = TODO("QuickButtonType"), isOn = value)
     remoteControlStateChanged(state = RemoteControlAssistantStreamerState(previewStream = value))
 }
 
@@ -530,18 +543,18 @@ fun Model.stopNetStream() {
     updateStreamUptime(now = SystemClock.elapsedRealtime())
     updateSpeed(now = SystemClock.elapsedRealtime())
     updateAudioLevel()
-    bonding.statistics = noValue
+    bonding.statistics.value = noValue
 }
 
 fun Model.setCurrentStream(stream: SettingsStream) {
-    this.stream = stream
+    this.stream.value = stream
     stream.enabled = true
     for (ostream in database.streams) {
         if (ostream.id != stream.id) {
             ostream.enabled = false
         }
     }
-    currentStreamId = stream.id
+    currentStreamId.value = stream.id
     updateOrientationLock()
     updateStatusStreamText()
     reloadCameraLevel()
@@ -574,18 +587,18 @@ fun Model.reloadStream() {
     setStreamCodec()
     setStreamAdaptiveResolution()
     setStreamKeyFrameInterval()
-    setStreamBitrate(stream = stream)
-    setStreamRateControl(stream = stream)
+    setStreamBitrate(stream = stream.value)
+    setStreamRateControl(stream = stream.value)
     setGraphicsImplementation()
-    setAudioStreamBitrate(stream = stream)
-    setAudioStreamFormat(format = stream.audioCodec.toEncoder())
+    setAudioStreamBitrate(stream = stream.value)
+    setAudioStreamFormat(format = stream.value.audioCodec.toEncoder())
     setAudioChannelsMap(
         channelsMap = mapOf(
             0 to database.audio.outputToInputChannelsMap.channel1,
             1 to database.audio.outputToInputChannelsMap.channel2,
         ),
     )
-    setAudioGain(gainDb = database.audio.gainDb)
+    setAudioGain(gainDb = database.audio.gainDb.value)
     updateMicDelay()
     startRecorderIfNeeded()
     reloadConnections()
@@ -606,16 +619,16 @@ fun Model.reloadStreamIfEnabled(stream: SettingsStream) {
 }
 
 private fun Model.setNetStream() {
-    cameraPreviewView.setDevices(ids = emptyList())
+    cameraPreviewView.setDevices(ids = emptyList<UUID>())
     media.setNetStream(
-        proto = stream.getProtocol(),
-        portrait = stream.portrait,
+        proto = stream.value.getProtocol(),
+        portrait = stream.value.portrait,
         timecodesEnabled = isTimecodesEnabled(),
-        builtinAudioDelay = database.debug.builtinAudioAndVideoDelay,
+        builtinAudioDelay = database.debug.builtinAudioAndVideoDelay.value,
         attachDefaultAudio = !isChatPhone(),
-        destinations = stream.multiStreaming.destinations,
-        srtImplementation = stream.srt.implementation,
-        limitAdaptiveBitrateByTransportBitrate = stream.rateControl != SettingsStreamRateControl.cbr,
+        destinations = stream.value.multiStreaming.destinations,
+        srtImplementation = stream.value.srt.implementation,
+        limitAdaptiveBitrateByTransportBitrate = stream.value.rateControl != SettingsStreamRateControl.cbr,
     )
     updateTorch()
     updateMute()
@@ -635,7 +648,7 @@ private fun Model.attachStream() {
         this.processor = null
         return
     }
-    CoroutineScope(processorControlQueue).launch {
+    processorControlQueue.launch {
         processor.setDrawable(drawable = streamPreviewView)
         processor.setExternalDisplayDrawable(drawable = externalDisplayStreamPreviewView)
         mainScope.launch {
@@ -646,14 +659,14 @@ private fun Model.attachStream() {
 }
 
 fun Model.setStreamResolution() {
-    val resolution: SettingsStreamResolution = if (stream.recording.overrideStream) {
-        if (stream.recording.resolution > stream.resolution) {
-            stream.recording.resolution
+    val resolution: SettingsStreamResolution = if (stream.value.recording.overrideStream) {
+        if (stream.value.recording.resolution > stream.value.resolution) {
+            stream.value.recording.resolution
         } else {
-            stream.resolution
+            stream.value.resolution
         }
     } else {
-        stream.resolution
+        stream.value.resolution
     }
     val captureSize: Size = when (resolution) {
         SettingsStreamResolution.r4032x3024 -> Size(4032, 3024)
@@ -671,50 +684,50 @@ fun Model.setStreamResolution() {
     }
     media.setVideoSize(
         capture = captureSize,
-        canvas = resolution.dimensions(portrait = stream.portrait).toSize(),
-        stream = stream.resolution.dimensions(portrait = stream.portrait),
+        canvas = resolution.dimensions(portrait = stream.value.portrait).toSize(),
+        stream = stream.value.resolution.dimensions(portrait = stream.value.portrait),
     )
 }
 
 private fun Model.setStreamCodec() {
-    when (stream.codec) {
+    when (stream.value.codec) {
         SettingsStreamCodec.h264avc -> {
-            when (stream.h264Profile) {
+            when (stream.value.h264Profile) {
                 SettingsStreamH264Profile.baseline -> {
-                    media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline)
+                    media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline.toString())
                 }
                 SettingsStreamH264Profile.main -> {
-                    media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.AVCProfileMain)
+                    media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.AVCProfileMain.toString())
                 }
                 SettingsStreamH264Profile.high -> {
-                    media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.AVCProfileHigh)
+                    media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.AVCProfileHigh.toString())
                 }
             }
         }
         SettingsStreamCodec.h265hevc -> {
             if (database.color.space == SettingsColorSpace.hlgBt2020) {
-                media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10)
+                media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10.toString())
             } else {
-                media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.HEVCProfileMain)
+                media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.HEVCProfileMain.toString())
             }
         }
     }
-    media.setAllowFrameReordering(value = stream.bFrames)
+    media.setAllowFrameReordering(value = stream.value.bFrames)
 }
 
 private fun Model.setStreamAdaptiveResolution() {
     media.setStreamAdaptiveResolution(
-        value = stream.adaptiveEncoderResolution,
-        thresholdsFactor = stream.adaptiveEncoderResolutionThreashold,
+        value = stream.value.adaptiveEncoderResolution,
+        thresholdsFactor = stream.value.adaptiveEncoderResolutionThreashold,
     )
 }
 
 private fun Model.setStreamKeyFrameInterval() {
-    media.setStreamKeyFrameInterval(seconds = stream.maxKeyFrameInterval)
+    media.setStreamKeyFrameInterval(seconds = stream.value.maxKeyFrameInterval)
 }
 
 fun Model.isStreamConfigured(): Boolean {
-    return stream != fallbackStream
+    return stream.value != fallbackStream
 }
 
 fun Model.isStreamConnected(): Boolean {
@@ -728,15 +741,15 @@ fun Model.isStreaming(): Boolean {
 fun Model.updateStreamUptime(now: Long) {
     val startTime = streamStartTime
     if (startTime != null && isStreamConnected()) {
-        val elapsed = now - startTime
-        streamUptime.uptime = uptimeFormatter.format((elapsed / 1000).toDouble())
-    } else if (streamUptime.uptime != noValue) {
-        streamUptime.uptime = noValue
+        val elapsed = now - startTime.toEpochMilli()
+        streamUptime.uptime.value = formatShortDuration(seconds = (elapsed / 1000).toInt())
+    } else if (streamUptime.uptime.value != noValue) {
+        streamUptime.uptime.value = noValue
     }
 }
 
 private fun Model.makeYouAreLiveToast() {
-    makeToast(title = localized("🎉 You are LIVE at ${stream.name} 🎉"))
+    makeToast(title = localized("🎉 You are LIVE at ${stream.value.name} 🎉"))
 }
 
 fun Model.makeStreamEndedToast(subTitle: String? = null, onTapped: (() -> Unit)? = null) {
@@ -752,7 +765,7 @@ fun Model.makeNotLoggedInToToast(platform: Platform) {
 
 private fun Model.makeConnectFailureToast(subTitle: String) {
     makeErrorToast(
-        title = failedToConnectMessage(stream.name),
+        title = failedToConnectMessage(stream.value.name),
         subTitle = subTitle,
         vibrate = true,
     )
@@ -761,7 +774,7 @@ private fun Model.makeConnectFailureToast(subTitle: String) {
 private fun Model.makeFffffToast(subTitle: String) {
     makeErrorToast(
         title = fffffMessage,
-        font = FontWeight.Bold,
+        font = FontFamily.Default,
         subTitle = subTitle,
         vibrate = true,
     )
@@ -769,7 +782,7 @@ private fun Model.makeFffffToast(subTitle: String) {
 
 private fun Model.onConnected() {
     makeYouAreLiveToast()
-    streamStartTime = SystemClock.elapsedRealtime()
+    streamStartTime = Instant.now()
     streamState = StreamState.connected
     updateStreamUptime(now = SystemClock.elapsedRealtime())
 }
@@ -781,7 +794,7 @@ private fun Model.onDisconnected(reason: String) {
     Log.i(TAG, "stream: Disconnected with reason: $reason")
     val subTitle = localized("Attempting again in 5 seconds.")
     if (streamState == StreamState.connected) {
-        streamTotalBytes += media.streamTotal().toULong()
+        streamTotalBytes += media.streamTotal()
         makeFffffToast(subTitle = subTitle)
     } else if (streamState == StreamState.connecting) {
         makeConnectFailureToast(subTitle = subTitle)
@@ -816,57 +829,57 @@ fun Model.updateBondingStatistics() {
             return
         }
     }
-    if (bonding.statistics != noValue) {
-        bonding.statistics = noValue
+    if (bonding.statistics.value != noValue) {
+        bonding.statistics.value = noValue
     }
 }
 
 private fun Model.handleBondingStatistics(connections: List<BondingConnection>) {
     bonding.statisticsFormatter.format(connections)?.let { (message, rtts, percentages) ->
-        bonding.statistics = message
-        bonding.rtts = rtts
-        bonding.pieChartPercentages = percentages
+        bonding.statistics.value = message
+        bonding.rtts.value = rtts
+        bonding.pieChartPercentages.value = percentages
     }
 }
 
 fun Model.updateSpeed(now: Long) {
-    if (isLive) {
-        val speed = media.getVideoStreamBitrate(bitrate = stream.bitrate).toLong()
+    if (isLive.value) {
+        val speed = media.getVideoStreamBitrate(bitrate = stream.value.bitrate).toLong()
         checkLowBitrate(speed = speed, now = now)
         streamingHistoryStream?.updateBitrate(bitrate = speed)
         val speedMbpsOneDecimal = String.format(Locale.US, "%.1f", speed.toDouble() / 1_000_000)
-        if (speedMbpsOneDecimal != bitrate.speedMbpsOneDecimal) {
-            bitrate.speedMbpsOneDecimal = speedMbpsOneDecimal
+        if (speedMbpsOneDecimal != bitrate.speedMbpsOneDecimal.value) {
+            bitrate.speedMbpsOneDecimal.value = speedMbpsOneDecimal
         }
         val speedString = formatBytesPerSecond(speed = speed)
-        val total = sizeFormatter.format(media.streamTotal())
+        val total = sizeFormatter.string(fromByteCount = media.streamTotal())
         val numberOfDestinations = media.getNumberOfDestinations()
         val speedAndTotal = if (numberOfDestinations == 1) {
             localized("$speedString ($total)")
         } else {
             localized("$speedString x$numberOfDestinations ($total)")
         }
-        if (speedAndTotal != bitrate.speedAndTotal) {
-            bitrate.speedAndTotal = speedAndTotal
+        if (speedAndTotal != bitrate.speedAndTotal.value) {
+            bitrate.speedAndTotal.value = speedAndTotal
         }
-        val bitrateStatusIconColor: Color? = if (speed < stream.bitrate.toLong() / 5) {
+        val bitrateStatusIconColor: Color? = if (speed < stream.value.bitrate.toLong() / 5) {
             Color.Red
-        } else if (speed < stream.bitrate.toLong() / 2) {
+        } else if (speed < stream.value.bitrate.toLong() / 2) {
             Color(0xFFFFA500)
         } else {
             null
         }
-        if (bitrateStatusIconColor != bitrate.statusIconColor) {
-            bitrate.statusIconColor = bitrateStatusIconColor
+        if (bitrateStatusIconColor != bitrate.statusIconColor.value) {
+            bitrate.statusIconColor.value = bitrateStatusIconColor
         }
         if (isWatchLocal()) {
-            sendSpeedAndTotalToWatch(speedAndTotal = bitrate.speedAndTotal)
+            sendSpeedAndTotalToWatch(speedAndTotal = bitrate.speedAndTotal.value)
         }
-    } else if (bitrate.speedAndTotal != noValue) {
-        bitrate.speedMbpsOneDecimal = noValue
-        bitrate.speedAndTotal = noValue
+    } else if (bitrate.speedAndTotal.value != noValue) {
+        bitrate.speedMbpsOneDecimal.value = noValue
+        bitrate.speedAndTotal.value = noValue
         if (isWatchLocal()) {
-            sendSpeedAndTotalToWatch(speedAndTotal = bitrate.speedAndTotal)
+            sendSpeedAndTotalToWatch(speedAndTotal = bitrate.speedAndTotal.value)
         }
     }
 }
@@ -876,12 +889,12 @@ private fun Model.updateCameraControls() {
 }
 
 fun Model.setCameraControlsEnabled() {
-    cameraControlEnabled = database.cameraControlsEnabled
+    cameraControlEnabled.value = database.cameraControlsEnabled
     media.setCameraControls(enabled = database.cameraControlsEnabled)
 }
 
 fun Model.updateSrtlaPriorities() {
-    media.setConnectionPriorities(connectionPriorities = stream.srt.connectionPriorities.clone())
+    media.setConnectionPriorities(connectionPriorities = stream.value.srt.connectionPriorities.clone())
 }
 
 private fun Model.checkLowBitrate(speed: Long, now: Long) {
@@ -891,9 +904,9 @@ private fun Model.checkLowBitrate(speed: Long, now: Long) {
     if (streamState != StreamState.connected) {
         return
     }
-    if (speed < 500_000 && now > latestLowBitrateTime + 15_000) {
+    if (speed < 500_000 && now > latestLowBitrateTime.toEpochMilli() + 15_000) {
         makeWarningToast(title = lowBitrateMessage, vibrate = true)
-        latestLowBitrateTime = now
+        latestLowBitrateTime = Instant.now()
     }
 }
 
@@ -965,7 +978,7 @@ private fun Model.handleBufferedVideoRemoved(cameraId: UUID) {
 }
 
 private fun Model.handleNoTorch() {
-    if (!streamOverlay.isFrontCameraSelected) {
+    if (!streamOverlay.isFrontCameraSelected.value) {
         makeErrorToast(
             title = localized("Torch unavailable in this scene."),
             subTitle = localized("Normally only available for built-in cameras."),
@@ -974,14 +987,14 @@ private fun Model.handleNoTorch() {
 }
 
 fun Model.startStreamIfAutoGoLive() {
-    if (!stream.autoGoLive || stream.getProtocol() != SettingsStreamProtocol.mobcam || isLive) {
+    if (!stream.value.autoGoLive || stream.value.getProtocol() != SettingsStreamProtocol.mobcam || isLive.value) {
         return
     }
     startStream()
 }
 
 fun Model.toggleStream() {
-    if (isLive) {
+    if (isLive.value) {
         stopStream()
     } else {
         startStream()
@@ -989,21 +1002,21 @@ fun Model.toggleStream() {
 }
 
 fun Model.setIsLive(value: Boolean) {
-    isLive = value
+    isLive.value = value
     updateLiveActivity()
     updateMacStatusItem()
     updatePictureInPicture()
     if (isWatchLocal()) {
-        sendIsLiveToWatch(isLive = isLive)
+        sendIsLiveToWatch(isLive = isLive.value)
     }
-    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(streaming = isLive))
+    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(streaming = isLive.value))
 }
 
 fun Model.setStreamFps(fps: Int? = null) {
     if (isChatPhone()) {
         media.setFps(fps = 1, preferAutoFps = false)
     } else {
-        media.setFps(fps = fps ?: stream.fps, preferAutoFps = stream.lowLightBoost)
+        media.setFps(fps = fps ?: stream.value.fps, preferAutoFps = stream.value.lowLightBoost)
     }
 }
 
@@ -1021,25 +1034,25 @@ fun Model.setGraphicsImplementation() {
 }
 
 fun Model.getBitratePresetByBitrate(bitrate: UInt): SettingsBitratePreset? {
-    return database.bitratePresets.firstOrNull { it.bitrate == bitrate }
+    return database.bitratePresets.firstOrNull { it.bitrate == bitrate.toInt() }
 }
 
 fun Model.setBitrate(bitrate: UInt) {
-    if (bitrate != stream.bitrate) {
-        stream.bitrate = bitrate
+    if (bitrate != stream.value.bitrate) {
+        stream.value.bitrate = bitrate
     }
-    if (stream.enabled) {
-        setStreamBitrate(stream = stream)
+    if (stream.value.enabled) {
+        setStreamBitrate(stream = stream.value)
     }
     val preset = getBitratePresetByBitrate(bitrate = bitrate) ?: return
     remoteControlStateChanged(state = RemoteControlAssistantStreamerState(bitrate = preset.id))
 }
 
 private fun Model.getBitrate(): UInt {
-    return if (statusTopRight.isLowPowerMode) {
+    return if (statusTopRight.isLowPowerMode.value) {
         lowPowerBitrate
     } else {
-        stream.bitrate
+        stream.value.bitrate
     }
 }
 
@@ -1071,17 +1084,17 @@ fun Model.updateBitrateStatus() {
             previousBitrateStatusColorSrtDroppedPacketsTotal
         ) {
             Color.Red
-        } else if (numberOfFailedEncodings > previousBitrateStatusNumberOfFailedEncodings) {
+        } else if (media.numberOfFailedEncodings > previousBitrateStatusNumberOfFailedEncodings) {
             Color.Red
         } else {
             Color.White
         }
-        if (newBitrateStatusColor != bitrate.statusColor) {
-            bitrate.statusColor = newBitrateStatusColor
+        if (newBitrateStatusColor != bitrate.statusColor.value) {
+            bitrate.statusColor.value = newBitrateStatusColor
         }
     } finally {
         previousBitrateStatusColorSrtDroppedPacketsTotal = media.srtDroppedPacketsTotal
-        previousBitrateStatusNumberOfFailedEncodings = numberOfFailedEncodings
+        previousBitrateStatusNumberOfFailedEncodings = media.numberOfFailedEncodings
     }
 }
 
@@ -1090,7 +1103,7 @@ fun Model.updateAdaptiveBitrate() {
         return
     }
     val result = media.updateAdaptiveBitrate(
-        overlay = database.debug.debugOverlay,
+        overlay = database.debug.debugOverlay.value,
         relaxed = relaxedBitrate,
     )
     result?.let { (lines, actions) ->
@@ -1100,13 +1113,13 @@ fun Model.updateAdaptiveBitrate() {
 }
 
 fun Model.updateDebugOverlay() {
-    if (database.debug.debugOverlay) {
-        debugOverlay.debugLines = latestDebugLines + latestDebugActions
-        if (Log.isLoggable(TAG, Log.DEBUG) && isLive) {
+    if (database.debug.debugOverlay.value) {
+        debugOverlay.debugLines.value = latestDebugLines + latestDebugActions
+        if (Log.isLoggable(TAG, Log.DEBUG) && isLive.value) {
             Log.d(TAG, latestDebugLines.joinToString(separator = ", "))
         }
-    } else if (debugOverlay.debugLines.isNotEmpty()) {
-        debugOverlay.debugLines = emptyList()
+    } else if (debugOverlay.debugLines.value.isNotEmpty()) {
+        debugOverlay.debugLines.value = emptyList()
     }
 }
 
@@ -1114,7 +1127,6 @@ fun Model.setPixelFormat() {
     for ((format, type) in pixelFormats.zip(pixelFormatTypes)) {
         if (database.debug.pixelFormat == format) {
             Log.i(TAG, "Setting pixel format $format")
-            pixelFormatType = type
         }
     }
 }
@@ -1263,7 +1275,7 @@ fun Model.mediaOnFps(fps: Int) {
     }
 }
 
-fun Model.mediaMoblinkStreamerDestinationAddress(address: String, port: UShort) {
+fun Model.mediaMoblinkStreamerDestinationAddress(address: String, port: Int) {
     mainScope.launch {
         moblink.streamer?.startTunnels(address = address, port = port)
     }
@@ -1303,7 +1315,7 @@ fun Model.mediaOnWhipPerform(
     completion: ((ByteArray?, Response?, Throwable?) -> Unit)?,
 ) {
     mainScope.launch {
-        when (stream.whip.httpTransport) {
+        when (stream.value.whip.httpTransport) {
             SettingsStreamWhipHttpTransport.standard -> {
                 httpRequest(request = request, queue = queue, completion = completion)
             }

@@ -49,7 +49,7 @@ private fun CornerRadiusView(
     shape: SettingsVideoEffectShape,
     updateWidget: () -> Unit
 ) {
-    val cornerRadius by shape.cornerRadius.collectAsState()
+    val cornerRadius = shape.cornerRadius
     LaunchedEffect(cornerRadius) {
         updateWidget()
     }
@@ -58,7 +58,7 @@ private fun CornerRadiusView(
         Row {
             Slider(
                 value = cornerRadius.toFloat(),
-                onValueChange = { shape.cornerRadius.value = it.toDouble() },
+                onValueChange = { shape.cornerRadius = it.toFloat() },
                 valueRange = 0f..1f,
                 steps = 99,
                 modifier = Modifier.weight(1f)
@@ -73,8 +73,8 @@ private fun BorderView(
     shape: SettingsVideoEffectShape,
     updateWidget: () -> Unit
 ) {
-    val borderWidth by shape.borderWidth.collectAsState()
-    val borderColorColor by shape.borderColorColor.collectAsState()
+    val borderWidth = shape.borderWidth
+    val borderColorColor = shape.borderColorColor
     LaunchedEffect(borderWidth) {
         updateWidget()
     }
@@ -84,7 +84,7 @@ private fun BorderView(
             Text("Width")
             Slider(
                 value = borderWidth.toFloat(),
-                onValueChange = { shape.borderWidth.value = it.toDouble() },
+                onValueChange = { shape.borderWidth = it.toDouble() },
                 valueRange = 0f..1f,
                 steps = 99,
                 modifier = Modifier.weight(1f)
@@ -93,9 +93,12 @@ private fun BorderView(
         RgbColorPickerView(
             title = "Color",
             color = borderColorColor,
-            onChange = { color: Color ->
-                shape.borderColorColor.value = color
-                shape.borderColor.value = color
+            onColorChanged = { color: Color ->
+                shape.borderColorColor = color
+                updateWidget()
+            },
+            onChange = { color ->
+                shape.borderColor = color
                 updateWidget()
             }
         )
@@ -112,17 +115,17 @@ private fun CropView(
     var position by remember { mutableStateOf(Offset(100f, 100f)) }
     var positionOffset by remember { mutableStateOf(Size(0f, 0f)) }
     var positionAnchorPoint by remember { mutableStateOf<AnchorPoint?>(null) }
-    val cropEnabled by shape.cropEnabled.collectAsState()
+    val cropEnabled = shape.cropEnabled
 
     fun updatePositionAnchorPoint(location: Offset, size: Size) {
         if (positionAnchorPoint == null) {
             val (anchorPoint, offset) = calculatePositioningAnchorPoint(
                 location,
                 size,
-                shape.cropX.value,
-                shape.cropY.value,
-                shape.cropWidth.value,
-                shape.cropHeight.value
+                shape.cropX,
+                shape.cropY,
+                shape.cropWidth,
+                shape.cropHeight
             )
             positionAnchorPoint = anchorPoint
             positionOffset = offset
@@ -132,24 +135,24 @@ private fun CropView(
     fun createPositionRectangle(size: Size): Rect {
         val (xTopLeft, yTopLeft, xBottomRight, yBottomRight) = calculatePositioningRectangle(
             positionAnchorPoint,
-            shape.cropX.value,
-            shape.cropY.value,
-            shape.cropWidth.value,
-            shape.cropHeight.value,
+            shape.cropX,
+            shape.cropY,
+            shape.cropWidth,
+            shape.cropHeight,
             position,
             size,
             positionOffset
         )
-        shape.cropX.value = xTopLeft
-        shape.cropY.value = yTopLeft
-        shape.cropWidth.value = xBottomRight - xTopLeft
-        shape.cropHeight.value = yBottomRight - yTopLeft
+        shape.cropX = xTopLeft
+        shape.cropY = yTopLeft
+        shape.cropWidth = xBottomRight - xTopLeft
+        shape.cropHeight = yBottomRight - yTopLeft
         updateWidget()
         return Rect(
-            x = (shape.cropX.value * size.width).toFloat(),
-            y = (shape.cropY.value * size.height).toFloat(),
-            width = (shape.cropWidth.value * size.width).toFloat(),
-            height = (shape.cropHeight.value * size.height).toFloat()
+            left = (shape.cropX * size.width).toFloat(),
+            top = (shape.cropY * size.height).toFloat(),
+            right = ((shape.cropX + shape.cropWidth) * size.width).toFloat(),
+            bottom = ((shape.cropY + shape.cropHeight) * size.height).toFloat()
         )
     }
 
@@ -170,12 +173,7 @@ private fun CropView(
                     contentScale = ContentScale.Fit
                 )
             } else {
-                Image(
-                    painter = painterResource(id = R.drawable.gamla_linkoping),
-                    contentDescription = null,
-                    modifier = Modifier.aspectRatio(aspectRatio),
-                    contentScale = ContentScale.Fit
-                )
+                TODO("GamlaLinkoping image asset is not available")
             }
             Canvas(
                 modifier = Modifier
@@ -209,7 +207,7 @@ private fun CropView(
             Text("Enabled")
             Switch(
                 checked = cropEnabled,
-                onCheckedChange = { shape.cropEnabled.value = it }
+                onCheckedChange = { shape.cropEnabled = it }
             )
         }
     }
@@ -223,16 +221,14 @@ fun ShapeEffectView(
     shape: SettingsVideoEffectShape
 ) {
     var previewImage by remember { mutableStateOf<Bitmap?>(null) }
-    val isPortrait = model.stream.portrait.collectAsState().value
+    val isPortrait = TODO("model.stream.portrait is not available")
 
     fun updateWidget() {
-        model.getWidgetShapeEffect(widget, effect)?.setSettings(shape.toSettings())
+        TODO("model.getWidgetShapeEffect is not available")
     }
 
     LaunchedEffect(Unit) {
-        model.takeVideoSourcePreviewImage(widget) { image ->
-            previewImage = image
-        }
+        TODO("model.takeVideoSourcePreviewImage is not available")
     }
 
     Column {

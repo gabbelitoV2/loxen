@@ -144,11 +144,11 @@ class YouTubeApi(private val accessToken: String) {
         )
         doGet(subPath) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val response = runCatching {
                         Json.decodeFromString(
                             YouTubeApiListVideosResponse.serializer(),
-                            String(result.data, Charsets.UTF_8),
+                            String(result.value, Charsets.UTF_8),
                         )
                     }.getOrNull()
                     if (response != null) {
@@ -157,8 +157,8 @@ class YouTubeApi(private val accessToken: String) {
                         onCompleted(NetworkResponse.Error)
                     }
                 }
-                is OperationResult.AuthError -> onCompleted(NetworkResponse.AuthError)
-                is OperationResult.Error -> onCompleted(NetworkResponse.Error)
+                NetworkResponse.AuthError -> onCompleted(NetworkResponse.AuthError)
+                NetworkResponse.Error -> onCompleted(NetworkResponse.Error)
             }
         }
     }
@@ -176,11 +176,11 @@ class YouTubeApi(private val accessToken: String) {
         )
         doGet(subPath) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val response = runCatching {
                         Json.decodeFromString(
                             YouTubeApiLiveBroadcastListResponse.serializer(),
-                            String(result.data, Charsets.UTF_8),
+                            String(result.value, Charsets.UTF_8),
                         )
                     }.getOrNull()
                     if (response != null) {
@@ -189,8 +189,8 @@ class YouTubeApi(private val accessToken: String) {
                         onCompleted(NetworkResponse.Error)
                     }
                 }
-                is OperationResult.AuthError -> onCompleted(NetworkResponse.AuthError)
-                is OperationResult.Error -> onCompleted(NetworkResponse.Error)
+                NetworkResponse.AuthError -> onCompleted(NetworkResponse.AuthError)
+                NetworkResponse.Error -> onCompleted(NetworkResponse.Error)
             }
         }
     }
@@ -227,11 +227,11 @@ class YouTubeApi(private val accessToken: String) {
         }
         doPost(subPath, serialize(body)) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val response = runCatching {
                         Json.decodeFromString(
                             YouTubeApiLiveBroadcast.serializer(),
-                            String(result.data, Charsets.UTF_8),
+                            String(result.value, Charsets.UTF_8),
                         )
                     }.getOrNull()
                     if (response != null) {
@@ -240,8 +240,8 @@ class YouTubeApi(private val accessToken: String) {
                         onCompleted(NetworkResponse.Error)
                     }
                 }
-                is OperationResult.AuthError -> onCompleted(NetworkResponse.AuthError)
-                is OperationResult.Error -> onCompleted(NetworkResponse.Error)
+                NetworkResponse.AuthError -> onCompleted(NetworkResponse.AuthError)
+                NetworkResponse.Error -> onCompleted(NetworkResponse.Error)
             }
         }
     }
@@ -250,9 +250,9 @@ class YouTubeApi(private val accessToken: String) {
         val subPath = makeUrl("liveBroadcasts", listOf("id" to id))
         doDelete(subPath) { result ->
             when (result) {
-                is OperationResult.Success -> onCompleted(NetworkResponse.Success(Unit))
-                is OperationResult.AuthError -> onCompleted(NetworkResponse.AuthError)
-                is OperationResult.Error -> onCompleted(NetworkResponse.Error)
+                is NetworkResponse.Success -> onCompleted(NetworkResponse.Success(Unit))
+                NetworkResponse.AuthError -> onCompleted(NetworkResponse.AuthError)
+                NetworkResponse.Error -> onCompleted(NetworkResponse.Error)
             }
         }
     }
@@ -272,7 +272,7 @@ class YouTubeApi(private val accessToken: String) {
         )
         doPost(subPath, ByteArray(0)) { result ->
             when (result) {
-                is OperationResult.Success -> onCompleted(true)
+                is NetworkResponse.Success -> onCompleted(true)
                 else -> onCompleted(false)
             }
         }
@@ -289,7 +289,7 @@ class YouTubeApi(private val accessToken: String) {
         )
         doPost(subPath, ByteArray(0)) { result ->
             when (result) {
-                is OperationResult.Success -> onCompleted(true)
+                is NetworkResponse.Success -> onCompleted(true)
                 else -> onCompleted(false)
             }
         }
@@ -305,11 +305,11 @@ class YouTubeApi(private val accessToken: String) {
         )
         doGet(subPath) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val response = runCatching {
                         Json.decodeFromString(
                             YouTubeApiLiveStreamsListResponse.serializer(),
-                            String(result.data, Charsets.UTF_8),
+                            String(result.value, Charsets.UTF_8),
                         )
                     }.getOrNull()
                     if (response != null) {
@@ -318,8 +318,8 @@ class YouTubeApi(private val accessToken: String) {
                         onCompleted(NetworkResponse.Error)
                     }
                 }
-                is OperationResult.AuthError -> onCompleted(NetworkResponse.AuthError)
-                is OperationResult.Error -> onCompleted(NetworkResponse.Error)
+                NetworkResponse.AuthError -> onCompleted(NetworkResponse.AuthError)
+                NetworkResponse.Error -> onCompleted(NetworkResponse.Error)
             }
         }
     }
@@ -334,11 +334,11 @@ class YouTubeApi(private val accessToken: String) {
         )
         doGet(subPath) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val response = runCatching {
                         Json.decodeFromString(
                             YouTubeApiChannelListResponse.serializer(),
-                            String(result.data, Charsets.UTF_8),
+                            String(result.value, Charsets.UTF_8),
                         )
                     }.getOrNull()
                     if (response != null) {
@@ -347,8 +347,8 @@ class YouTubeApi(private val accessToken: String) {
                         onCompleted(NetworkResponse.Error)
                     }
                 }
-                is OperationResult.AuthError -> onCompleted(NetworkResponse.AuthError)
-                is OperationResult.Error -> onCompleted(NetworkResponse.Error)
+                NetworkResponse.AuthError -> onCompleted(NetworkResponse.AuthError)
+                NetworkResponse.Error -> onCompleted(NetworkResponse.Error)
             }
         }
     }
@@ -376,13 +376,13 @@ class YouTubeApi(private val accessToken: String) {
                 }
                 if (response?.code == 401) {
                     delegate?.youTubeApiUnauthorized()
-                    onComplete(OperationResult.AuthError)
+                    onComplete(NetworkResponse.AuthError)
                 } else {
-                    onComplete(OperationResult.Error)
+                    onComplete(NetworkResponse.Error)
                 }
                 return@httpRequest
             }
-            onComplete(OperationResult.Success(data))
+            onComplete(NetworkResponse.Success(data))
         }
     }
 

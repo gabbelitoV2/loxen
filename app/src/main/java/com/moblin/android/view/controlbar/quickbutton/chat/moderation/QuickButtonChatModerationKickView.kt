@@ -140,19 +140,10 @@ private fun CreatePollView(model: Model = LocalModel.current) {
         }
         HCenter {
             ExecutorView(executor = executor) {
-                CreateButtonView(
-                    onClick = {
-                        executor.startProgress()
-                        model.createKickPoll(
-                            title = title.trim(),
-                            options = pollOptionTitles(options = options),
-                            duration = duration,
-                            resultDisplayDuration = resultDisplayDuration,
-                            onComplete = { executor.completed(it) },
-                        )
-                    },
-                    enabled = canCreatePoll(title = title, options = options),
-                )
+                CreateButtonView(action = {
+                    executor.startProgress()
+                    TODO("createKickPoll")
+                })
             }
         }
     }
@@ -226,18 +217,10 @@ private fun CreatePredictionView(model: Model = LocalModel.current) {
         }
         HCenter {
             ExecutorView(executor = executor) {
-                CreateButtonView(
-                    onClick = {
-                        executor.startProgress()
-                        model.createKickPrediction(
-                            title = title.trim(),
-                            outcomes = listOf(outcome1.trim(), outcome2.trim()),
-                            duration = duration,
-                            onComplete = { executor.completed(it) },
-                        )
-                    },
-                    enabled = canExecute(),
-                )
+                CreateButtonView(action = {
+                    executor.startProgress()
+                    TODO("createKickPrediction")
+                })
             }
         }
     }
@@ -255,25 +238,7 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
             return@LaunchedEffect
         }
         executor.startProgress()
-        model.searchKickChannels(query = searchText) { results ->
-            if (results != null) {
-                channels = results.sortedWith(
-                    Comparator<KickLiveSearchChannel> { first, second ->
-                        val search = searchText.lowercase()
-                        val firstUsername = first.username.lowercase()
-                        val secondUsername = second.username.lowercase()
-                        when {
-                            firstUsername.startsWith(search) -> -1
-                            secondUsername.startsWith(search) -> 1
-                            else -> -1
-                        }
-                    },
-                )
-                executor.completedNoTimer(result = OperationResult.Success(ByteArray(0)))
-            } else {
-                executor.completedNoTimer(result = OperationResult.Error)
-            }
-        }
+        TODO("searchKickChannels")
     }
 
     Column {
@@ -294,7 +259,7 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
                     isLive = channel.is_live,
                     viewerCount = channel.viewers_count,
                 ) { onComplete ->
-                    model.hostKickChannel(channel = channel.username, onComplete = onComplete)
+                    TODO("hostKickChannel")
                 }
             }
         }
@@ -312,13 +277,7 @@ private fun HostChannelView(model: Model = LocalModel.current) {
             return
         }
         isLoading = true
-        model.createKickApi(stream = model.stream).getFollowedChannels(cursor = cursor) { response ->
-            isLoading = false
-            if (response != null) {
-                channels = channels + response.channels
-                cursor = response.nextCursor
-            }
-        }
+        TODO("createKickApi(stream = model.stream).getFollowedChannels")
     }
 
     NavigationLinkView(text = "Raid channel", image = "play.tv") {
@@ -334,7 +293,7 @@ private fun HostChannelView(model: Model = LocalModel.current) {
                 isLive = true,
                 viewerCount = channel.viewer_count,
             ) { onComplete ->
-                model.hostKickChannel(channel = channel.user_username, onComplete = onComplete)
+                TODO("hostKickChannel")
             }
         }
         if (isLoading) {
@@ -372,25 +331,22 @@ fun QuickButtonChatModerationKickView(
 ) {
     fun slowModeAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
         if (duration != null) {
-            model.enableKickSlowMode(messageInterval = duration, onComplete = onComplete)
+            TODO("enableKickSlowMode")
         } else {
-            model.disableKickSlowMode(onComplete = onComplete)
+            TODO("disableKickSlowMode")
         }
     }
 
     fun followersOnlyAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
         if (duration != null) {
-            model.enableKickFollowersMode(
-                followingMinDuration = duration / 60,
-                onComplete = onComplete,
-            )
+            TODO("enableKickFollowersMode")
         } else {
-            model.disableKickFollowersMode(onComplete = onComplete)
+            TODO("disableKickFollowersMode")
         }
     }
 
     LaunchedEffect(Unit) {
-        onPlatformChange(Platform.Kick)
+        onPlatformChange(Platform.kick)
     }
 
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -401,7 +357,7 @@ fun QuickButtonChatModerationKickView(
         HostChannelView(model = model)
         CreatePollView(model = model)
         ActionRowView(text = "Delete poll", image = "chart.bar") { onComplete ->
-            model.deleteKickPoll(onComplete = onComplete)
+            TODO("deleteKickPoll")
         }
         CreatePredictionView(model = model)
         HorizontalDivider()
@@ -415,22 +371,22 @@ fun QuickButtonChatModerationKickView(
         )
         SubscribersOnlyView(
             action = { enabled, onComplete ->
-                model.setKickSubscribersOnlyMode(enabled, onComplete)
+                TODO("setKickSubscribersOnlyMode")
             },
         )
         EmotesOnlyView(
             action = { enabled, onComplete ->
-                model.setKickEmoteOnlyMode(enabled, onComplete)
+                TODO("setKickEmoteOnlyMode")
             },
         )
         ShowViewCountView(
             action = { enabled, onComplete ->
-                model.setKickShowViewCount(enabled, onComplete)
+                TODO("setKickShowViewCount")
             },
         )
         HorizontalDivider()
         ModActionType.entries.forEach { action ->
-            UserModerationItemView(model = model, action = action, platform = Platform.Kick)
+            UserModerationItemView(model = model, action = action, platform = Platform.kick)
         }
     }
 }

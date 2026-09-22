@@ -22,6 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.getMicById
+import com.moblin.android.various.model.updateTalkback
 import com.moblin.android.various.settings.SettingsMics
 import com.moblin.android.various.settings.SettingsTalkback
 import com.moblin.android.view.settings.streams.stream.GrayTextView
@@ -45,6 +47,7 @@ fun TalkbackSettingsView(
 ) {
     val enabled by talkback.enabled.collectAsState()
     val micId by talkback.micId.collectAsState()
+    val micList by mics.mics.collectAsState()
     var showMicPicker by remember { mutableStateOf(false) }
 
     if (showMicPicker) {
@@ -54,10 +57,10 @@ fun TalkbackSettingsView(
                 onChange(id, model, talkback)
                 showMicPicker = false
             },
-            items = model.database.mics.mics
+            items = micList
                 .filter { it.isNetwork() }
                 .map { InlinePickerItem(id = it.id, text = it.name) },
-            selectedId = micId,
+            initialSelectedId = micId,
         )
     } else {
         Scaffold(

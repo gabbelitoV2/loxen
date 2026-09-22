@@ -196,7 +196,7 @@ class RemoteControlStreamer(
     }
 
     private fun startKeepAlive() {
-        keepAliveTimer.startPeriodic(30) {
+        keepAliveTimer.startPeriodic(30.0) {
             if (gotPong) {
                 gotPong = false
                 send(RemoteControlMessageToAssistant.Ping)
@@ -253,13 +253,13 @@ class RemoteControlStreamer(
 
     private fun handleIdentified(result: RemoteControlResult): Boolean {
         when (result) {
-            RemoteControlResult.ok -> {
+            RemoteControlResult.OK -> {
                 connected = true
                 wrongPassword = false
                 delegate?.remoteControlStreamerConnected()
                 return true
             }
-            RemoteControlResult.wrongPassword -> {
+            RemoteControlResult.WRONG_PASSWORD -> {
                 connectionErrorMessage = localized("Wrong password")
                 if (!wrongPassword) {
                     wrongPassword = true
@@ -281,7 +281,7 @@ class RemoteControlStreamer(
                 send(
                     RemoteControlMessageToAssistant.Response(
                         id,
-                        RemoteControlResult.ok,
+                        RemoteControlResult.OK,
                         RemoteControlResponse.GetStatus(general, topLeft, topRight),
                     ),
                 )
@@ -291,7 +291,7 @@ class RemoteControlStreamer(
                 send(
                     RemoteControlMessageToAssistant.Response(
                         id,
-                        RemoteControlResult.ok,
+                        RemoteControlResult.OK,
                         RemoteControlResponse.GetSettings(settings),
                     ),
                 )
@@ -417,7 +417,7 @@ class RemoteControlStreamer(
                 send(
                     RemoteControlMessageToAssistant.Response(
                         id,
-                        RemoteControlResult.ok,
+                        RemoteControlResult.OK,
                         RemoteControlResponse.GetScoreboardSports(sports),
                     ),
                 )
@@ -452,7 +452,7 @@ class RemoteControlStreamer(
                     send(
                         RemoteControlMessageToAssistant.Response(
                             id,
-                            RemoteControlResult.ok,
+                            RemoteControlResult.OK,
                             RemoteControlResponse.Whip(status, headers, body),
                         ),
                     )
@@ -497,7 +497,7 @@ class RemoteControlStreamer(
                     send(
                         RemoteControlMessageToAssistant.Response(
                             id,
-                            if (succeeded) RemoteControlResult.ok else RemoteControlResult.error,
+                            if (succeeded) RemoteControlResult.OK else RemoteControlResult.ERROR,
                             null,
                         ),
                     )
@@ -527,7 +527,7 @@ class RemoteControlStreamer(
     }
 
     private fun sendEmptyOkResponse(id: Int) {
-        send(RemoteControlMessageToAssistant.Response(id, RemoteControlResult.ok, null))
+        send(RemoteControlMessageToAssistant.Response(id, RemoteControlResult.OK, null))
     }
 
     override fun webSocketClientConnected(client: WebSocketClient) {

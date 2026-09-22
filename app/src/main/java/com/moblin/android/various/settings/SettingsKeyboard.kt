@@ -21,20 +21,20 @@ class SettingsKeyboardKey {
             _key.value = value
         }
 
-    private val function = MutableStateFlow(SettingsControllerFunction.unused)
+    private val _function = MutableStateFlow(SettingsControllerFunction.UNUSED)
 
     var function: SettingsControllerFunction
-        get() = function.value
+        get() = _function.value
         set(value) {
-            function.value = value
+            _function.value = value
         }
 
-    private val functionData = MutableStateFlow(SettingsControllerFunctionData())
+    private val _functionData = MutableStateFlow(SettingsControllerFunctionData())
 
     var functionData: SettingsControllerFunctionData
-        get() = functionData.value
+        get() = _functionData.value
         set(value) {
-            functionData.value = value
+            _functionData.value = value
         }
 }
 
@@ -57,12 +57,12 @@ private class SettingsKeyboardKeyData(
     @SerialName("id") val id: String = UUID.randomUUID().toString(),
     @SerialName("key") val key: String = "",
     @SerialName("function") val function: String =
-        encodeControllerFunctionRawValue(SettingsControllerFunction.unused),
+        encodeControllerFunctionRawValue(SettingsControllerFunction.UNUSED),
     @SerialName("sceneId") val sceneId: String? = null,
     @SerialName("widgetId") val widgetId: String? = null,
     @SerialName("gimbalPresetId") val gimbalPresetId: String? = null,
     @SerialName("gimbalMotion") val gimbalMotion: String =
-        encodeGimbalMotionRawValue(SettingsGimbalMotion.kapow),
+        encodeGimbalMotionRawValue(SettingsGimbalMotion.KAPOW),
     @SerialName("macroId") val macroId: String? = null,
     @SerialName("streamDeckLayoutId") val streamDeckLayoutId: String? = null
 )
@@ -140,7 +140,7 @@ private fun encodeControllerFunctionRawValue(value: SettingsControllerFunction):
 
 private fun decodeControllerFunctionRawValue(value: String): SettingsControllerFunction {
     return SettingsControllerFunction.entries.firstOrNull { it.rawValue.toString() == value }
-        ?: SettingsControllerFunction.unused
+        ?: SettingsControllerFunction.UNUSED
 }
 
 private fun encodeGimbalMotionRawValue(value: SettingsGimbalMotion): String {
@@ -149,5 +149,5 @@ private fun encodeGimbalMotionRawValue(value: SettingsGimbalMotion): String {
 
 private fun decodeGimbalMotionRawValue(value: String): SettingsGimbalMotion {
     return SettingsGimbalMotion.entries.firstOrNull { it.rawValue.toString() == value }
-        ?: SettingsGimbalMotion.kapow
+        ?: SettingsGimbalMotion.KAPOW
 }

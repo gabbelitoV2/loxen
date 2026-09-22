@@ -220,7 +220,7 @@ class RtmpServerClient(
         chunkStream!!.isAbsoluteTimeStamp = true
         chunkStream!!.messageTimestamp = data.getThreeBytesBe()
         chunkStream!!.messageLength = data.getThreeBytesBe(offset = 3).toInt()
-        chunkStream!!.messageTypeId = data[6]
+        chunkStream!!.messageTypeId = data[6].toUByte()
         chunkStream!!.messageStreamId = data.getFourBytesLe(offset = 7)
         receiveExtendedTimestampOrData()
     }
@@ -233,7 +233,7 @@ class RtmpServerClient(
         chunkStream!!.isAbsoluteTimeStamp = false
         chunkStream!!.messageTimestamp = data.getThreeBytesBe()
         chunkStream!!.messageLength = data.getThreeBytesBe(offset = 3).toInt()
-        chunkStream!!.messageTypeId = data[6]
+        chunkStream!!.messageTypeId = data[6].toUByte()
         receiveExtendedTimestampOrData()
     }
 
@@ -338,7 +338,7 @@ class RtmpServerClient(
 
     private fun processReceivedData(data: ByteArray) {
         totalBytesReceived += data.size.toULong()
-        server?.bitrateStats?.mutate { it.add(bytesTransferred = data.size) }
+        server?.bitrateStats?.mutate { stats: BitrateStats -> stats.add(bytesTransferred = data.size) }
         latestReceiveTime = System.nanoTime()
         inputBuffer += data
         isProcessing = true

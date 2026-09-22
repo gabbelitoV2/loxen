@@ -20,9 +20,14 @@ import kotlin.math.abs
 import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlinx.coroutines.ContinuationInterceptor
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 
 private const val TAG = "AudioUnit"
+
+private val processorPipelineDispatcher: CoroutineDispatcher
+    get() = processorPipelineQueue.coroutineContext[ContinuationInterceptor] as CoroutineDispatcher
 
 private class TalkbackPlayer {
     private var engine: AudioTrack? = null
@@ -164,7 +169,7 @@ private class AudioMeasurement {
 }
 
 class AudioUnit : BufferedAudioSampleBufferDelegate {
-    val encoder = AudioEncoder(processorPipelineQueue)
+    val encoder = AudioEncoder(processorPipelineDispatcher)
     var previewEncoder: AudioEncoder? = null
     private var input: AudioRecord? = null
     private var output: Any? = null
@@ -231,7 +236,7 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
     }
 
     fun startPreviewEncoding(delegate: AudioEncoderDelegate, settings: AudioEncoderSettings) {
-        val encoder = AudioEncoder(processorPipelineQueue)
+        val encoder = AudioEncoder(processorPipelineDispatcher)
         encoder.setSettings(settings)
         encoder.delegate = delegate
         encoder.startRunning()
@@ -389,7 +394,7 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
         processor?.delegate?.streamAudioLevel(
             audioLevel = audioLevel,
             numberOfAudioChannels = numberOfAudioChannels,
-            sampleRate = sampleRate
+            sampleRate = sampleRate.toDouble()
         )
     }
 
@@ -408,7 +413,7 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
         var sampleBuffer = didOutput
         val bufferedAudio = appendBufferedBuiltinAudio(sampleBuffer, presentationTimeUs)
         if (bufferedAudio != null) {
-            sampleBuffer = bufferedAudio.getSampleBuffer(presentationTimeUs) ?: sampleBuffer
+            sampleBuffer = bufferedAudio.getSampleBuffer(presentationTimeUs / 1_000_000.0) ?: sampleBuffer
         }
         if (selectedBufferedAudioId != null) {
             return

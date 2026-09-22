@@ -42,7 +42,7 @@ fun StreamOverlayIconAndTextView(
             ),
     ) {
         if (textPlacement == StreamOverlayIconAndTextPlacement.BeforeIcon) {
-            StreamOverlayTextView(text = text, style = smallFont)
+            StreamOverlayTextView(text = text)
         }
         Icon(
             painter = TODO("no Android counterpart for SF Symbols icon lookup: $icon"),
@@ -55,7 +55,7 @@ fun StreamOverlayIconAndTextView(
                 .background(iconBackgroundColor),
         )
         if (textPlacement == StreamOverlayIconAndTextPlacement.AfterIcon) {
-            StreamOverlayTextView(text = text, style = smallFont)
+            StreamOverlayTextView(text = text)
         }
     }
 }

@@ -116,10 +116,10 @@ fun ScoreboardEffectGolfFullScorecardView(
     golf: SettingsWidgetGolfScoreboard,
     scale: Double,
 ) {
-    val numberOfHoles by golf.numberOfHoles.collectAsState()
-    val showPars by golf.showPars.collectAsState()
-    val pars by golf.pars.collectAsState()
-    val players by golf.players.collectAsState()
+    val numberOfHoles = golf.numberOfHoles
+    val showPars = golf.showPars
+    val pars = golf.pars
+    val players = golf.players
 
     CompositionLocalProvider(LocalContentColor provides textColor) {
         Column(
@@ -168,8 +168,8 @@ fun ScoreboardEffectGolfFullScorecardView(
                 }
             }
             for (player in players) {
-                val playerName by player.name.collectAsState()
-                val playerScores by player.scores.collectAsState()
+                val playerName = player.name
+                val playerScores = player.scores
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.background(primaryBackgroundColor),

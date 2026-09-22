@@ -10,6 +10,9 @@ import kotlinx.serialization.json.Json
 
 private const val TAG = "Seventv"
 
+private val EmotesPlatform.rawValue: String
+    get() = name.lowercase()
+
 private val json = Json {
     ignoreUnknownKeys = true
 }
@@ -120,7 +123,7 @@ private suspend fun fetchChannelEmotes(
     }
     val url = "https://7tv.io/v3/users/${platform.rawValue}/$channelId"
     val (data, response) = httpGet(url)
-    if (response.isNotFound) {
+    if (response.code == 404) {
         Log.i(TAG, "emotes: ${platform.rawValue}: $channelId: 7TV channel emotes not found (HTTP 404)")
         return emptyMap()
     }
@@ -128,7 +131,7 @@ private suspend fun fetchChannelEmotes(
         Log.i(
             TAG,
             "emotes: ${platform.rawValue}: $channelId: Failed to fetch 7TV channel emotes " +
-                "(HTTP ${response.statusCode})",
+                "(HTTP ${response.code})",
         )
         throw IllegalStateException("Not successful")
     }

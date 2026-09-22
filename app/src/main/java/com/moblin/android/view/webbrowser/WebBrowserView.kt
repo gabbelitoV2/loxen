@@ -57,6 +57,9 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.WebBrowserState
+import com.moblin.android.various.model.getWebBrowser
+import com.moblin.android.various.model.loadWebBrowserPage
+import com.moblin.android.various.model.loadWebBrowserUrl
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.WebBrowserBookmarkSettings
 import com.moblin.android.various.settings.WebBrowserSettings
@@ -167,17 +170,13 @@ private fun BookmarksView(
     presentingBookmarks: Boolean,
     onPresentingBookmarksChange: (Boolean) -> Unit,
 ) {
-    val bookmarks by webBrowser.bookmarks.collectAsState()
+    val bookmarks = webBrowser.bookmarks
     val onDelete: (List<Int>) -> Unit = { offsets ->
-        val updated = webBrowser.bookmarks.value.toMutableList()
-        offsets.sortedDescending().forEach { index -> updated.removeAt(index) }
-        webBrowser.bookmarks.value = updated
+        offsets.sortedDescending().forEach { index -> webBrowser.bookmarks.removeAt(index) }
     }
     val onMove: (Int, Int) -> Unit = { froms, to ->
-        val updated = webBrowser.bookmarks.value.toMutableList()
-        val item = updated.removeAt(froms)
-        updated.add(to, item)
-        webBrowser.bookmarks.value = updated
+        val item = webBrowser.bookmarks.removeAt(froms)
+        webBrowser.bookmarks.add(to, item)
     }
     Column(modifier = Modifier.fillMaxWidth()) {
         TopAppBar(
@@ -213,7 +212,7 @@ private fun BookmarksView(
         TextButtonView("Create bookmark") {
             val bookmark = WebBrowserBookmarkSettings()
             bookmark.url = model.webBrowserUrl.value
-            webBrowser.bookmarks.value = webBrowser.bookmarks.value + bookmark
+            webBrowser.bookmarks.add(bookmark)
         }
     }
 }
@@ -225,11 +224,10 @@ private fun mapSide(maximum: Dp): Dp {
 
 @Composable
 private fun offset(database: Database): Dp {
-    val bigButtons by database.bigButtons.collectAsState()
-    return if (bigButtons) {
-        -(2 * segmentHeightBig + 10)
+    return if (database.bigButtons) {
+        (-(2 * segmentHeightBig + 10)).dp
     } else {
-        -(2 * segmentHeight + 10)
+        (-(2 * segmentHeight + 10)).dp
     }
 }
 
@@ -264,7 +262,7 @@ private fun WebBrowserSmallView(
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(
                         onClick = {
-                            webBrowserState.isSmall.value = !webBrowserState.isSmall.value
+                            webBrowserState.setIsSmall(!webBrowserState.isSmall.value)
                         },
                     ) {
                         Icon(
@@ -314,7 +312,7 @@ private fun WebBrowserBigView(
                         showingBookmarks = presentingBookmarks,
                         onShowingBookmarksChange = { presentingBookmarks = it },
                         isSmall = isSmall,
-                        onIsSmallChange = { webBrowserState.isSmall.value = it },
+                        onIsSmallChange = { webBrowserState.setIsSmall(it) },
                     )
                 }
             }
@@ -332,7 +330,7 @@ private fun WebBrowserBigView(
                     showingBookmarks = presentingBookmarks,
                     onShowingBookmarksChange = { presentingBookmarks = it },
                     isSmall = isSmall,
-                    onIsSmallChange = { webBrowserState.isSmall.value = it },
+                    onIsSmallChange = { webBrowserState.setIsSmall(it) },
                 )
             }
         }

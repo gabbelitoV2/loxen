@@ -31,6 +31,9 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.Mic
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.fallbackStream
+import com.moblin.android.various.model.reloadAudioSession
+import com.moblin.android.various.model.selectMicDefault
+import com.moblin.android.various.model.setInputGainIfSupported
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsAudio
 import com.moblin.android.various.settings.SettingsDebug
@@ -49,6 +52,7 @@ private fun MicView(
     mic: Mic,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
+    val currentMic by mic.current.collectAsState()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -60,7 +64,7 @@ private fun MicView(
         Spacer(Modifier.width(16.dp))
         Text("Mic")
         Spacer(Modifier.weight(1f))
-        GrayTextView(text = mic.current.name)
+        GrayTextView(text = currentMic.name)
     }
 }
 
@@ -74,14 +78,16 @@ fun AudioSettingsView(
     audio: SettingsAudio,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val showAllSettings by database.showAllSettings.collectAsState()
-    val audioBitrate by stream.audioBitrate.collectAsState()
+    val showAllSettings = database.showAllSettings
+    val audioBitrate = stream.audioBitrate
     val inputGain by mic.inputGain.collectAsState()
     val gainDb by audio.gainDb.collectAsState()
     val bluetoothOutputOnly by debug.bluetoothOutputOnly.collectAsState()
     val preferStereoMic by audio.preferStereoMic.collectAsState()
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
+    val currentMic by mic.current.collectAsState()
+    val inputGainSettable by mic.inputGainSettable.collectAsState()
 
     fun changeOutputChannel(value: String): String? {
         return if (value.toIntOrNull() != null) {
@@ -94,13 +100,13 @@ fun AudioSettingsView(
     fun submitOutputChannel1(value: String) {
         val channel = value.toIntOrNull() ?: return
         audio.outputToInputChannelsMap.channel1 = maxOf(channel - 1, -1)
-        model.reloadStreamIfEnabled(stream)
+        TODO("reloadStreamIfEnabled")
     }
 
     fun submitOutputChannel2(value: String) {
         val channel = value.toIntOrNull() ?: return
         audio.outputToInputChannelsMap.channel2 = maxOf(channel - 1, -1)
-        model.reloadStreamIfEnabled(stream)
+        TODO("reloadStreamIfEnabled")
     }
 
     Column(
@@ -152,7 +158,7 @@ fun AudioSettingsView(
                     modifier = Modifier
                         .weight(1f)
                         .padding(horizontal = 8.dp),
-                    enabled = !(mic.current.isAudioSession() && !mic.inputGainSettable),
+                    enabled = !(currentMic.isAudioSession() && !inputGainSettable),
                     valueRange = 0.0f..1.0f,
                     steps = 9,
                 )
@@ -173,8 +179,8 @@ fun AudioSettingsView(
                 Slider(
                     value = gainDb,
                     onValueChange = {
-                        audio.gainDb.value = it
-                        model.setAudioGain(it)
+                        audio._gainDb.value = it
+                        TODO("setAudioGain")
                     },
                     modifier = Modifier
                         .weight(1f)
@@ -225,10 +231,10 @@ fun AudioSettingsView(
                 Switch(
                     checked = preferStereoMic,
                     onCheckedChange = {
-                        audio.preferStereoMic.value = it
-                        if (mic.current.isAudioSession()) {
+                        audio._preferStereoMic.value = it
+                        if (currentMic.isAudioSession()) {
                             model.reloadAudioSession()
-                            model.selectMicDefault(mic.current)
+                            model.selectMicDefault(currentMic)
                         }
                     },
                 )
@@ -256,14 +262,12 @@ fun AudioSettingsView(
                 value = (audio.outputToInputChannelsMap.channel1 + 1).toString(),
                 onChange = { changeOutputChannel(it) },
                 onSubmit = { submitOutputChannel1(it) },
-                enabled = !(isLive || isRecording),
             )
             TextEditNavigationView(
                 title = localized("Output channel 2"),
                 value = (audio.outputToInputChannelsMap.channel2 + 1).toString(),
                 onChange = { changeOutputChannel(it) },
                 onSubmit = { submitOutputChannel2(it) },
-                enabled = !(isLive || isRecording),
             )
             Text(
                 "Mono audio only uses output channel 1. Stereo audio uses both output channels.",

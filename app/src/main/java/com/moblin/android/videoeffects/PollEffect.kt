@@ -22,6 +22,7 @@ import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.streamingplatforms.youtube.Image
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -36,7 +37,7 @@ private class PollState(val size: Size) {
     val text = MutableStateFlow(localized("No votes yet"))
 
     fun setText(text: String) {
-        text.value = text
+        this.text.value = text
     }
 }
 
@@ -99,7 +100,7 @@ class PollEffect(canvasSize: Size) : VideoEffect() {
     }
 
     private fun setOverlay(image: EffectImageCgImage?) {
-        scope.launch(processorPipelineQueue) {
+        processorPipelineQueue.launch {
             overlay = image
         }
     }
@@ -108,7 +109,7 @@ class PollEffect(canvasSize: Size) : VideoEffect() {
         return TODO("no Android counterpart for CIImage translation and cropping")
     }
 
-    override fun execute(image: EffectImage, info: VideoEffectInfo): EffectImage {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         if (overlay == null) {
             return image
         }

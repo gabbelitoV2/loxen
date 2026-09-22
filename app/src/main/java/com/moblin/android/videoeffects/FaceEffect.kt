@@ -1,5 +1,6 @@
 package com.moblin.android.videoeffects
 
+import android.media.Image
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.Detections
 import com.moblin.android.media.haishinkit.media.video.TextDetection
@@ -30,14 +31,10 @@ sealed class FaceEffectPrivacyMode {
 
 class FaceEffect : VideoEffect() {
     private var settings = FaceEffectSettings()
-    private val moblinImage: EffectImageCgImage?
+    private val moblinImage: EffectImageCgImage? = TODO("OpenGL ES port")
     private var backgroundImage: EffectImageCiImage? = null
     private var iconImage: EffectImageCgImage? = null
     private var faceMasks: MutableMap<Float, Any?> = mutableMapOf()
-
-    init {
-        moblinImage = TODO("OpenGL ES port")
-    }
 
     fun setSettings(settings: FaceEffectSettings) {
         val backgroundImage: EffectImageCiImage? = when (settings.privacyMode) {
@@ -71,10 +68,10 @@ class FaceEffect : VideoEffect() {
         }
     }
 
-    override fun execute(image: EffectImage, info: VideoEffectInfo): EffectImage =
+    override fun execute(image: Image, info: VideoEffectInfo): Image =
         TODO("OpenGL ES port")
 
-    override fun executeMetalPetal(image: EffectImage, info: VideoEffectInfo): EffectImage =
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image =
         TODO("OpenGL ES port")
 
     private fun makePrivacyImageMetalPetal(image: Any): Any? = TODO("OpenGL ES port")

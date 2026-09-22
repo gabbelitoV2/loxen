@@ -47,6 +47,7 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
+import java.io.File
 import java.util.UUID
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
@@ -78,7 +79,7 @@ fun CustomImageView(
     var imageState by remember { mutableStateOf(image) }
 
     fun onUrl(url: String) {
-        model.alertMediaStorage.add(media.id, url)
+        model.alertMediaStorage.add(media.id, File(url))
         loadedImages.remove(media.id)
         imageState = loadAlertImage(model, media.id)
         model.updateAlertsSettings()
@@ -129,7 +130,7 @@ fun CustomImageView(
         }
         if (showPicker) {
             ModalBottomSheet(onDismissRequest = { showPicker = false }) {
-                AlertPickerView(type = AlertPickerViewType.Gif)
+                AlertPickerView(type = "gif")
             }
         }
     }
@@ -178,7 +179,7 @@ fun ImageGalleryView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     fun deleteImage(index: Int) {
-        gallery.customImages.removeAt(index)
+        gallery.customImages = gallery.customImages.toMutableList().also { it.removeAt(index) }
         model.fixAlertMedias()
         onImageIdChange(alert.imageId)
     }
@@ -197,8 +198,8 @@ fun ImageGalleryView(
                             image = image,
                             onNavigate = onNavigate,
                             onDelete = {
-                                val index = makeOffsets(gallery.customImages, image.id)
-                                if (index != null) {
+                                val index = gallery.customImages.indexOfFirst { it.id == image.id }
+                                if (index >= 0) {
                                     deleteImage(index)
                                 }
                             },
@@ -208,7 +209,7 @@ fun ImageGalleryView(
             }
             item {
                 TextButtonView("Add") {
-                    gallery.customImages.add(SettingsAlertsMediaGalleryItem(name = "My image"))
+                    gallery.customImages = gallery.customImages + SettingsAlertsMediaGalleryItem(name = "My image")
                 }
             }
             item {

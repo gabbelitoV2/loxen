@@ -5,8 +5,6 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.media.webrtc.whepclient.WhepClient
 import com.moblin.android.media.webrtc.whepclient.WhepClientDelegate
 import com.moblin.android.various.settings.SettingsWhepClientStream
-import com.moblin.android.various.settings.camera
-import com.moblin.android.various.settings.latencySeconds
 import java.net.URI
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
@@ -18,7 +16,7 @@ private val whepMainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
 fun Model.whepCameras(): List<Camera> {
     return database.whepClient.streams.map { stream ->
-        Camera(id = stream.id.uuidString, name = stream.camera())
+        Camera(id = stream.id.toString(), name = stream.camera())
     }
 }
 
@@ -30,7 +28,7 @@ fun Model.getWhepStream(id: UUID): SettingsWhepClientStream? {
 
 fun Model.getWhepStream(idString: String): SettingsWhepClientStream? {
     return database.whepClient.streams.firstOrNull { stream ->
-        idString == stream.id.uuidString
+        idString == stream.id.toString()
     }
 }
 
@@ -44,10 +42,9 @@ fun Model.reloadWhepClient() {
         if (!stream.enabled) {
             continue
         }
-        val url = runCatching { URI(stream.url) }.getOrNull() ?: continue
         val client = WhepClient(
             streamId = stream.id,
-            url = url,
+            url = stream.url,
             latency = stream.latencySeconds(),
             syncTimestamps = stream.syncTimestamps,
             softwareDecoding = database.ingestsSoftwareVideoDecoding,

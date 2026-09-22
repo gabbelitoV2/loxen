@@ -18,9 +18,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.moblin.android.various.model.CameraPosition
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Zoom
+import com.moblin.android.various.model.setZoomPreset
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsZoomPreset
 import java.util.UUID
@@ -28,7 +28,7 @@ import com.moblin.android.LocalModel
 
 @Composable
 private fun PickerItemView(preset: SettingsZoomPreset, modifier: Modifier = Modifier) {
-    val name by preset.name.collectAsState()
+    val name = preset.name
     Text(
         text = name,
         modifier = modifier,
@@ -47,35 +47,38 @@ private fun ZoomPresetView(
     selectedColor: Color,
     width: Float,
 ) {
-    val bigButtons by database.bigButtons.collectAsState()
+    val bigButtons = database.bigButtons
 
-    fun segmentWidth(): Float = if (bigButtons) zoomSegmentWidthBig else zoomSegmentWidth
+    fun segmentWidth(): Float = (if (bigButtons) zoomSegmentWidthBig else zoomSegmentWidth).toFloat()
 
-    fun height(): Float = if (bigButtons) segmentHeightBig else segmentHeight
+    fun height(): Float = (if (bigButtons) segmentHeightBig else segmentHeight).toFloat()
 
     val selectedPreset = presets.firstOrNull { it.id == selectedPresetId }
-    SegmentedHPicker(
-        items = presets,
-        selectedItem = selectedPreset,
-        onSelectedItemChange = { value ->
-            value?.let { model.setZoomPreset(id = it.id) }
-        },
-        selectedColor = selectedColor,
+    Column(
         modifier = Modifier
             .padding(bottom = 5.dp)
             .width(minOf(segmentWidth() * presets.size, maxOf(width - 20f, 1f)).dp)
             .clip(RoundedCornerShape(7.dp))
             .background(pickerBackgroundColor)
             .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
-        content = { preset ->
-            PickerItemView(
-                preset = preset,
-                modifier = Modifier
-                    .width(minOf(segmentWidth(), (width - 20f) / presets.size).dp)
-                    .height(height().dp),
-            )
-        },
-    )
+    ) {
+        SegmentedHPicker(
+            items = presets,
+            selectedItem = selectedPreset,
+            onSelectedItemChange = { value ->
+                value?.let { model.setZoomPreset(id = it.id) }
+            },
+            selectedColor = selectedColor,
+            content = { preset ->
+                PickerItemView(
+                    preset = preset,
+                    modifier = Modifier
+                        .width(minOf(segmentWidth(), (width - 20f) / presets.size).dp)
+                        .height(height().dp),
+                )
+            },
+        )
+    }
 }
 
 @Composable
@@ -87,50 +90,53 @@ private fun ZoomPresetVView(
     selectedColor: Color,
     width: Float,
 ) {
-    val bigButtons by database.bigButtons.collectAsState()
+    val bigButtons = database.bigButtons
 
-    fun segmentWidth(): Float = if (bigButtons) zoomSegmentWidthBig else zoomSegmentWidth
+    fun segmentWidth(): Float = (if (bigButtons) zoomSegmentWidthBig else zoomSegmentWidth).toFloat()
 
-    fun height(): Float = if (bigButtons) segmentHeightBig else segmentHeight
+    fun height(): Float = (if (bigButtons) segmentHeightBig else segmentHeight).toFloat()
 
     val selectedPreset = presets.firstOrNull { it.id == selectedPresetId }
-    SegmentedVPicker(
-        items = presets.reversed(),
-        selectedItem = selectedPreset,
-        onSelectedItemChange = { value ->
-            value?.let { model.setZoomPreset(id = it.id) }
-        },
-        selectedColor = selectedColor,
+    Column(
         modifier = Modifier
             .padding(bottom = 5.dp)
             .width(segmentWidth().dp)
             .clip(RoundedCornerShape(7.dp))
             .background(pickerBackgroundColor)
             .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
-        content = { preset ->
-            PickerItemView(
-                preset = preset,
-                modifier = Modifier
-                    .width(minOf(segmentWidth(), (width - 20f) / presets.size).dp)
-                    .height(height().dp),
-            )
-        },
-    )
+    ) {
+        SegmentedVPicker(
+            items = presets.reversed(),
+            selectedItem = selectedPreset,
+            onSelectedItemChange = { value ->
+                value?.let { model.setZoomPreset(id = it.id) }
+            },
+            selectedColor = selectedColor,
+            content = { preset ->
+                PickerItemView(
+                    preset = preset,
+                    modifier = Modifier
+                        .width(minOf(segmentWidth(), (width - 20f) / presets.size).dp)
+                        .height(height().dp),
+                )
+            },
+        )
+    }
 }
 
 @Composable
 fun StreamOverlayRightZoomPresetSelctorView(model: Model = LocalModel.current, zoom: Zoom, width: Float) {
-    val cameraPosition by model.cameraPosition.collectAsState()
+    val cameraPosition = model.cameraPosition
     val frontZoomPresets by zoom.frontZoomPresets.collectAsState()
     val backZoomPresets by zoom.backZoomPresets.collectAsState()
     val frontPresetId by zoom.frontPresetId.collectAsState()
     val backPresetId by zoom.backPresetId.collectAsState()
 
     fun presets(): List<SettingsZoomPreset> =
-        if (cameraPosition == CameraPosition.front) frontZoomPresets else backZoomPresets
+        if (cameraPosition.toString() == "front") frontZoomPresets else backZoomPresets
 
     fun selectedPresetId(): UUID =
-        if (cameraPosition == CameraPosition.front) frontPresetId else backPresetId
+        if (cameraPosition.toString() == "front") frontPresetId else backPresetId
 
     Column(
         horizontalAlignment = Alignment.End,
@@ -141,7 +147,7 @@ fun StreamOverlayRightZoomPresetSelctorView(model: Model = LocalModel.current, z
             database = model.database,
             presets = presets(),
             selectedPresetId = selectedPresetId(),
-            selectedColor = model.database.zoom.backgroundColor.color(),
+            selectedColor = model.database.zoom.backgroundColorColor,
             width = width,
         )
     }
@@ -149,24 +155,24 @@ fun StreamOverlayRightZoomPresetSelctorView(model: Model = LocalModel.current, z
 
 @Composable
 fun StreamOverlayRightZoomPresetVSelctorView(model: Model = LocalModel.current, zoom: Zoom, width: Float) {
-    val cameraPosition by model.cameraPosition.collectAsState()
+    val cameraPosition = model.cameraPosition
     val frontZoomPresets by zoom.frontZoomPresets.collectAsState()
     val backZoomPresets by zoom.backZoomPresets.collectAsState()
     val frontPresetId by zoom.frontPresetId.collectAsState()
     val backPresetId by zoom.backPresetId.collectAsState()
 
     fun presets(): List<SettingsZoomPreset> =
-        if (cameraPosition == CameraPosition.front) frontZoomPresets else backZoomPresets
+        if (cameraPosition.toString() == "front") frontZoomPresets else backZoomPresets
 
     fun selectedPresetId(): UUID =
-        if (cameraPosition == CameraPosition.front) frontPresetId else backPresetId
+        if (cameraPosition.toString() == "front") frontPresetId else backPresetId
 
     ZoomPresetVView(
         model = model,
         database = model.database,
         presets = presets(),
         selectedPresetId = selectedPresetId(),
-        selectedColor = model.database.zoom.backgroundColor.color(),
+        selectedColor = model.database.zoom.backgroundColorColor,
         width = width,
     )
 }

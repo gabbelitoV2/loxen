@@ -19,9 +19,9 @@ class Translator(private val targetIdentifier: String) {
     }
 
     private var ready = true
-    private var latestText: String?
+    private var latestText: String? = null
 
-    var delegate: TranslatorDelegate?
+    var delegate: TranslatorDelegate? = null
 
     companion object {
         var translators: MutableList<Translator> = mutableListOf()

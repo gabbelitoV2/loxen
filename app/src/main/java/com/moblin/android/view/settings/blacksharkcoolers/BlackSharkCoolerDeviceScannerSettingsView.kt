@@ -24,6 +24,7 @@ import com.moblin.android.various.model.bluetoothNotAllowedMessage
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.InlinePickerItem
 import com.moblin.android.LocalModel
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,3 +90,18 @@ fun BlackSharkCoolerDeviceScannerSettingsView(
         }
     }
 }
+
+class BlackSharkCoolerScanner {
+    val discoveredPeripherals = MutableStateFlow<List<BlackSharkCoolerPeripheral>>(emptyList())
+
+    fun startScanningForDevices() {
+    }
+
+    fun stopScanningForDevices() {
+    }
+}
+
+data class BlackSharkCoolerPeripheral(
+    val identifier: String,
+    val name: String?,
+)

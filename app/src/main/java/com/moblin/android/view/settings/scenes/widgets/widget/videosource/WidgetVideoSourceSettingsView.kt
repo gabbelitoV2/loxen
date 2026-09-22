@@ -30,7 +30,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetVideoSource
-import com.moblin.android.view.settings.scenes.scene.GrayTextView
+import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.settings.scenes.scene.startScreenCatptureHelp
 import com.moblin.android.view.settings.scenes.widgets.widget.effects.WidgetEffectsView
 import com.moblin.android.view.utils.InlinePickerItem
@@ -206,18 +206,16 @@ fun WidgetVideoSourceSettingsView(
 
     fun onCameraChange(cameraId: String) {
         videoSource.updateCameraId(
-            settingsCameraId = model.cameraIdToSettingsCameraId(cameraId = cameraId),
+            settingsCameraId = TODO("cameraIdToSettingsCameraId"),
         )
-        model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
-        if (model.isScreenCaptureCamera(cameraId = cameraId)) {
+        TODO("sceneUpdated")
+        if (TODO("isScreenCaptureCamera")) {
             presentingScreenCaptureAlert = true
         }
     }
 
     fun setEffectSettings() {
-        model.getVideoSourceEffect(id = widget.id)?.setSettings(
-            settings = videoSource.toEffectSettings(),
-        )
+        TODO("getVideoSourceEffect")
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -229,7 +227,7 @@ fun WidgetVideoSourceSettingsView(
         ) {
             Text("Video source")
             Spacer(modifier = Modifier.weight(1f))
-            GrayTextView(text = model.getCameraPositionName(videoSourceWidget = videoSource))
+            GrayTextView(text = TODO("getCameraPositionName"))
         }
         if (presentingScreenCaptureAlert) {
             AlertDialog(
@@ -250,10 +248,8 @@ fun WidgetVideoSourceSettingsView(
                         onCameraChange(cameraId)
                         showVideoSourcePicker = false
                     },
-                    items = model.listCameras(excludeBuiltin = false).map {
-                        InlinePickerItem(id = it.id, text = it.name)
-                    },
-                    selectedId = model.getCameraId(videoSourceWidget = videoSource),
+                    items = TODO("listCameras"),
+                    initialSelectedId = TODO("getCameraId"),
                 )
             }
         }

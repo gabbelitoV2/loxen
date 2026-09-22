@@ -62,7 +62,7 @@ private fun submitMaxKeyFrameInterval(video: DeepLinkCreatorStreamVideo, value: 
     if (interval < 0 || interval > 10) {
         return
     }
-    video.maxKeyFrameInterval.value = interval
+    video.maxKeyFrameInterval = interval
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,13 +72,13 @@ private fun DeepLinkCreatorStreamVideoView(
     video: DeepLinkCreatorStreamVideo,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val bitratePresets = model.database.bitratePresets.collectAsState().value
-    val resolution by video.resolution.collectAsState()
-    val fps by video.fps.collectAsState()
-    val codec by video.codec.collectAsState()
-    val bitrate by video.bitrate.collectAsState()
-    val maxKeyFrameInterval by video.maxKeyFrameInterval.collectAsState()
-    val bFrames by video.bFrames.collectAsState()
+    val bitratePresets = model.database.bitratePresets
+    val resolution = video.resolution
+    val fps = video.fps
+    val codec = video.codec
+    val bitrate = video.bitrate
+    val maxKeyFrameInterval = video.maxKeyFrameInterval
+    val bFrames = video.bFrames
 
     Scaffold(
         topBar = {
@@ -116,7 +116,7 @@ private fun DeepLinkCreatorStreamVideoView(
                             DropdownMenuItem(
                                 text = { Text(value.shortString()) },
                                 onClick = {
-                                    video.resolution.value = value
+                                    video.resolution = value
                                     expanded = false
                                 },
                             )
@@ -150,7 +150,7 @@ private fun DeepLinkCreatorStreamVideoView(
                             DropdownMenuItem(
                                 text = { Text(value.toString()) },
                                 onClick = {
-                                    video.fps.value = value
+                                    video.fps = value
                                     expanded = false
                                 },
                             )
@@ -184,7 +184,7 @@ private fun DeepLinkCreatorStreamVideoView(
                             DropdownMenuItem(
                                 text = { Text(value.rawValue) },
                                 onClick = {
-                                    video.codec.value = value
+                                    video.codec = value
                                     expanded = false
                                 },
                             )
@@ -220,7 +220,7 @@ private fun DeepLinkCreatorStreamVideoView(
                                     Text(formatBytesPerSecond(speed = preset.bitrate.toLong()))
                                 },
                                 onClick = {
-                                    video.bitrate.value = preset.bitrate
+                                    video.bitrate = preset.bitrate
                                     expanded = false
                                 },
                             )
@@ -252,7 +252,7 @@ private fun DeepLinkCreatorStreamVideoView(
                     )
                     Switch(
                         checked = bFrames,
-                        onCheckedChange = { video.bFrames.value = it },
+                        onCheckedChange = { video.bFrames = it },
                     )
                 }
             }
@@ -261,12 +261,12 @@ private fun DeepLinkCreatorStreamVideoView(
 }
 
 private fun calcBitrate(audio: DeepLinkCreatorStreamAudio): Int =
-    ceil(audio.bitrateFloat.value * 1000.0).toInt()
+    ceil(audio.bitrateFloat * 1000.0).toInt()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeepLinkCreatorStreamAudioView(audio: DeepLinkCreatorStreamAudio) {
-    val bitrateFloat by audio.bitrateFloat.collectAsState()
+    val bitrateFloat = audio.bitrateFloat
 
     Scaffold(
         topBar = {
@@ -285,11 +285,11 @@ private fun DeepLinkCreatorStreamAudioView(audio: DeepLinkCreatorStreamAudio) {
                 ) {
                     Slider(
                         value = bitrateFloat,
-                        onValueChange = { audio.bitrateFloat.value = it },
+                        onValueChange = { audio.bitrateFloat = it },
                         valueRange = 32f..320f,
                         steps = 8,
                         onValueChangeFinished = {
-                            audio.bitrate.value = calcBitrate(audio)
+                            audio.bitrate = calcBitrate(audio)
                         },
                         modifier = Modifier.weight(1f),
                     )
@@ -315,18 +315,18 @@ private fun submitLatency(srt: DeepLinkCreatorStreamSrt, value: String) {
     if (latency < 0) {
         return
     }
-    srt.latency.value = latency
+    srt.latency = latency
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeepLinkCreatorStreamSrtView(srt: DeepLinkCreatorStreamSrt) {
-    val latency by srt.latency.collectAsState()
-    val adaptiveBitrateEnabled by srt.adaptiveBitrateEnabled.collectAsState()
-    val dnsLookupStrategy by srt.dnsLookupStrategy.collectAsState()
+    val latency = srt.latency
+    val adaptiveBitrateEnabled = srt.adaptiveBitrateEnabled
+    val dnsLookupStrategy = srt.dnsLookupStrategy
 
     LaunchedEffect(dnsLookupStrategy) {
-        srt.dnsLookupStrategy.value = dnsLookupStrategy
+        srt.dnsLookupStrategy = dnsLookupStrategy
     }
 
     Scaffold(
@@ -359,7 +359,7 @@ private fun DeepLinkCreatorStreamSrtView(srt: DeepLinkCreatorStreamSrt) {
                     )
                     Switch(
                         checked = adaptiveBitrateEnabled,
-                        onCheckedChange = { srt.adaptiveBitrateEnabled.value = it },
+                        onCheckedChange = { srt.adaptiveBitrateEnabled = it },
                     )
                 }
             }
@@ -389,7 +389,7 @@ private fun DeepLinkCreatorStreamSrtView(srt: DeepLinkCreatorStreamSrt) {
                             DropdownMenuItem(
                                 text = { Text(strategy.rawValue) },
                                 onClick = {
-                                    srt.dnsLookupStrategy.value = strategy
+                                    srt.dnsLookupStrategy = strategy
                                     expanded = false
                                 },
                             )
@@ -402,20 +402,20 @@ private fun DeepLinkCreatorStreamSrtView(srt: DeepLinkCreatorStreamSrt) {
 }
 
 private fun changeWebSocketUrl(value: String): String? =
-    isValidWebSocketUrl(url = cleanUrl(url = value))
+    isValidWebSocketUrl(value = cleanUrl(value = value))
 
 private fun submitWebSocketUrl(
     model: Model,
     obs: DeepLinkCreatorStreamObs,
     value: String,
 ) {
-    val url = cleanUrl(url = value)
-    val message = isValidWebSocketUrl(url = url)
+    val url = cleanUrl(value = value)
+    val message = isValidWebSocketUrl(value = url)
     if (message != null) {
         model.makeErrorToast(title = message)
         return
     }
-    obs.webSocketUrl.value = url
+    obs.webSocketUrl = url
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -424,8 +424,8 @@ private fun DeepLinkCreatorStreamObsView(
     model: Model = LocalModel.current,
     obs: DeepLinkCreatorStreamObs,
 ) {
-    val webSocketUrl by obs.webSocketUrl.collectAsState()
-    val webSocketPassword by obs.webSocketPassword.collectAsState()
+    val webSocketUrl = obs.webSocketUrl
+    val webSocketPassword = obs.webSocketPassword
 
     Scaffold(
         topBar = {
@@ -456,7 +456,7 @@ private fun DeepLinkCreatorStreamObsView(
                 TextEditNavigationView(
                     title = localized("Password"),
                     value = webSocketPassword,
-                    onSubmit = { obs.webSocketPassword.value = it },
+                    onSubmit = { obs.webSocketPassword = it },
                     sensitive = true,
                 )
             }
@@ -472,8 +472,8 @@ private fun DeepLinkCreatorStreamObsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeepLinkCreatorStreamTwitchView(twitch: DeepLinkCreatorStreamTwitch) {
-    val channelName by twitch.channelName.collectAsState()
-    val channelId by twitch.channelId.collectAsState()
+    val channelName = twitch.channelName
+    val channelId = twitch.channelId
 
     Scaffold(
         topBar = {
@@ -489,7 +489,7 @@ private fun DeepLinkCreatorStreamTwitchView(twitch: DeepLinkCreatorStreamTwitch)
                 TextEditNavigationView(
                     title = localized("Channel name"),
                     value = channelName,
-                    onSubmit = { twitch.channelName.value = it },
+                    onSubmit = { twitch.channelName = it },
                     capitalize = true,
                 )
             }
@@ -497,7 +497,7 @@ private fun DeepLinkCreatorStreamTwitchView(twitch: DeepLinkCreatorStreamTwitch)
                 TextEditNavigationView(
                     title = localized("Channel id"),
                     value = channelId,
-                    onSubmit = { twitch.channelId.value = it },
+                    onSubmit = { twitch.channelId = it },
                 )
             }
         }
@@ -507,7 +507,7 @@ private fun DeepLinkCreatorStreamTwitchView(twitch: DeepLinkCreatorStreamTwitch)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeepLinkCreatorStreamKickView(kick: DeepLinkCreatorStreamKick) {
-    val channelName by kick.channelName.collectAsState()
+    val channelName = kick.channelName
 
     Scaffold(
         topBar = {
@@ -523,7 +523,7 @@ private fun DeepLinkCreatorStreamKickView(kick: DeepLinkCreatorStreamKick) {
                 TextEditNavigationView(
                     title = localized("Channel name"),
                     value = channelName,
-                    onSubmit = { kick.channelName.value = it },
+                    onSubmit = { kick.channelName = it },
                     capitalize = true,
                 )
             }
@@ -538,10 +538,10 @@ fun DeepLinkCreatorStreamSettingsView(
     stream: DeepLinkCreatorStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val streams = deepLinkCreator.streams.collectAsState().value
-    val name by stream.name.collectAsState()
-    val url by stream.url.collectAsState()
-    val selected by stream.selected.collectAsState()
+    val streams = deepLinkCreator.streams
+    val name = stream.name
+    val url = stream.url
+    val selected = stream.selected
 
     val uri = remember(url) {
         runCatching { java.net.URI(url) }.getOrNull()
@@ -578,14 +578,14 @@ fun DeepLinkCreatorStreamSettingsView(
                 NameEditView(
                     name = name,
                     existingNames = streams,
-                    onChange = { stream.name.value = it },
+                    onNameChange = { stream.name = it },
                 )
             }
             item {
                 TextEditNavigationView(
                     title = localized("URL"),
                     value = url,
-                    onSubmit = { stream.url.value = it },
+                    onSubmit = { stream.url = it },
                 )
             }
             item {
@@ -667,7 +667,7 @@ fun DeepLinkCreatorStreamSettingsView(
                     )
                     Switch(
                         checked = selected,
-                        onCheckedChange = { stream.selected.value = it },
+                        onCheckedChange = { stream.selected = it },
                     )
                 }
             }

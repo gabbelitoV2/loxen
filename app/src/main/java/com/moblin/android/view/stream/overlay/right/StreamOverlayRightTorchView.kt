@@ -9,13 +9,13 @@ import com.moblin.android.LocalModel
 
 @Composable
 fun StreamOverlayRightTorchView(model: Model = LocalModel.current, database: Database) {
-    val torchLevel by database.torchLevel.collectAsState()
+    val torchLevel = database.torchLevel
     EffectSlider(
         title = "TORCH BRIGHTNESS",
         range = 0.01f..1f,
         value = torchLevel,
         onValueChange = { newValue ->
-            database.torchLevel.value = newValue
+            database.torchLevel = newValue
             model.setTorchLevel(level = newValue)
         }
     )

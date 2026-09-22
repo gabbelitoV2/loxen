@@ -28,8 +28,8 @@ fun WidgetChatEmoteComboSettingsView(
     widget: SettingsWidget,
     chatEmoteCombo: SettingsWidgetChatEmoteCombo,
 ) {
-    val minimumCombo by chatEmoteCombo.minimumCombo.collectAsState()
-    val resetAfter by chatEmoteCombo.resetAfter.collectAsState()
+    val minimumCombo = chatEmoteCombo.minimumCombo
+    val resetAfter = chatEmoteCombo.resetAfter
     LaunchedEffect(minimumCombo) {
         setEffectSettings(model, widget, chatEmoteCombo)
     }
@@ -42,14 +42,14 @@ fun WidgetChatEmoteComboSettingsView(
             options = listOf(2, 3, 4, 5, 6, 7, 8, 9, 10),
             selected = minimumCombo,
             optionLabel = { it.toString() },
-            onSelected = { chatEmoteCombo.minimumCombo.value = it },
+            onSelected = { chatEmoteCombo.minimumCombo = it },
         )
         ComboPicker(
             label = "Timeout",
             options = listOf(3, 4, 5, 6, 7, 8, 9, 10),
             selected = resetAfter,
             optionLabel = { "${it}s" },
-            onSelected = { chatEmoteCombo.resetAfter.value = it },
+            onSelected = { chatEmoteCombo.resetAfter = it },
         )
     }
 }
@@ -59,7 +59,7 @@ private fun setEffectSettings(
     widget: SettingsWidget,
     chatEmoteCombo: SettingsWidgetChatEmoteCombo,
 ) {
-    model.getChatEmoteComboEffect(widget.id)?.setSettings(chatEmoteCombo)
+    TODO("Model.getChatEmoteComboEffect is not available")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

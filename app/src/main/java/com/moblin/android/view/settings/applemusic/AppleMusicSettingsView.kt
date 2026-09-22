@@ -95,7 +95,7 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
                 ) {
                     Spacer(Modifier.weight(1f))
                     IconButton(
-                        onClick = { model.previousMusic(count = 1) },
+                        onClick = { TODO("no Android counterpart for MusicKit") },
                         enabled = queueEnabled,
                     ) {
                         Icon(
@@ -107,7 +107,7 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
                     Spacer(Modifier.weight(1f))
                     if (playerState.isPlaying) {
                         IconButton(
-                            onClick = { model.pauseMusic() },
+                            onClick = { TODO("no Android counterpart for MusicKit") },
                             enabled = queueEnabled,
                         ) {
                             Icon(
@@ -118,7 +118,7 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
                         }
                     } else {
                         IconButton(
-                            onClick = { model.playMusic() },
+                            onClick = { TODO("no Android counterpart for MusicKit") },
                             enabled = queueEnabled,
                         ) {
                             Icon(
@@ -130,7 +130,7 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
                     }
                     Spacer(Modifier.weight(1f))
                     IconButton(
-                        onClick = { model.nextMusic(count = 1) },
+                        onClick = { TODO("no Android counterpart for MusicKit") },
                         enabled = queueEnabled,
                     ) {
                         Icon(
@@ -149,7 +149,7 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
                     label = { Text("Add song") },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = {
-                        model.addMusic(title = searchText) { }
+                        TODO("no Android counterpart for MusicKit")
                     }),
                     modifier = Modifier
                         .fillMaxWidth()

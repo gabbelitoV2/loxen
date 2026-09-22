@@ -8,7 +8,7 @@ import com.moblin.android.media.haishinkit.codec.video.VideoEncoder
 import com.moblin.android.media.haishinkit.codec.video.VideoEncoderDelegate
 import com.moblin.android.media.haishinkit.mpeg.avc.MpegTsVideoConfigAvc
 import com.moblin.android.media.haishinkit.mpeg.hevc.MpegTsVideoConfigHevc
-import com.moblin.android.media.processorControlQueue
+import com.moblin.android.media.haishinkit.media.processorControlQueue
 import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.settings.SettingsHttpHeader
 import com.moblin.android.various.settings.SettingsStreamAudioCodec
@@ -207,7 +207,7 @@ private data class RtcTrackConfig(
 ) {
     companion object {
         fun makeAudio(ssrc: UInt, codec: SettingsStreamAudioCodec): RtcTrackConfig = when (codec) {
-            SettingsStreamAudioCodec.OPUS -> RtcTrackConfig(
+            SettingsStreamAudioCodec.opus -> RtcTrackConfig(
                 name = "audio",
                 codec = rtcCodec.OPUS,
                 payloadType = opusPayloadType.toInt(),
@@ -216,7 +216,7 @@ private data class RtcTrackConfig(
                 profile = "",
                 bitrate = 0.0,
             )
-            SettingsStreamAudioCodec.AAC -> RtcTrackConfig(
+            SettingsStreamAudioCodec.aac -> RtcTrackConfig(
                 name = "audio",
                 codec = rtcCodec.AAC,
                 payloadType = aacPayloadType.toInt(),
@@ -228,7 +228,7 @@ private data class RtcTrackConfig(
         }
 
         fun makeVideo(ssrc: UInt, codec: SettingsStreamCodec, bitrate: Double): RtcTrackConfig = when (codec) {
-            SettingsStreamCodec.H264AVC -> RtcTrackConfig(
+            SettingsStreamCodec.h264avc -> RtcTrackConfig(
                 name = "video",
                 codec = rtcCodec.H264,
                 payloadType = h264PayloadType.toInt(),
@@ -237,7 +237,7 @@ private data class RtcTrackConfig(
                 profile = "level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f",
                 bitrate = bitrate,
             )
-            SettingsStreamCodec.H265HEVC -> RtcTrackConfig(
+            SettingsStreamCodec.h265hevc -> RtcTrackConfig(
                 name = "video",
                 codec = rtcCodec.H265,
                 payloadType = h265PayloadType.toInt(),
@@ -270,11 +270,8 @@ private class PeerConnection(
     private var delegate: PeerConnectionDelegate?,
     iceServers: List<String>,
 ) {
-    private val peerConnectionId: Int
-
-    init {
-        peerConnectionId = TODO("libdatachannel JNI bridge is unavailable: rtcCreatePeerConnection")
-    }
+    private val peerConnectionId: Int =
+        TODO("libdatachannel JNI bridge is unavailable: rtcCreatePeerConnection")
 
     fun close() {
         TODO("libdatachannel JNI bridge is unavailable: rtcDeletePeerConnection")
@@ -370,7 +367,7 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
     private var audioTrack: RtcTrack? = null
     private var h264NalUnits = H264NalUnits()
     private var h265NalUnits = H265NalUnits()
-    private var videoCodec: SettingsStreamCodec = SettingsStreamCodec.H264AVC
+    private var videoCodec: SettingsStreamCodec = SettingsStreamCodec.h264avc
     private var totalByteCount: Long = 0
     private var sessionUrl: String? = null
     private var endpointUrl: String? = null
@@ -572,13 +569,13 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
     }
 
     private fun startEncoding() {
-        CoroutineScope(processorControlQueue).launch {
+        processorControlQueue.launch {
             delegate?.whipStreamStartEncoding(this@WhipStream, this@WhipStream)
         }
     }
 
     private fun stopEncoding() {
-        CoroutineScope(processorControlQueue).launch {
+        processorControlQueue.launch {
             delegate?.whipStreamStopEncoding(this@WhipStream, this@WhipStream)
         }
     }
@@ -594,13 +591,14 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
     private fun rebaseTimestamp(presentationTimeStampUs: Long): Double? =
         timeStampRebaser.rebase(presentationTimeStampUs / 1_000_000.0)
 
-    private fun handleAudioEncoderOutputBuffer(buffer: ByteArray, presentationTimeStampUs: Long) {
+    private fun handleAudioEncoderOutputBuffer(buffer: MediaSample, presentationTimeStampUs: Long) {
         if (!connected) {
             return
         }
         val audioTrack = audioTrack ?: return
         val presentationTimeStamp = rebaseTimestamp(presentationTimeStampUs) ?: return
-        if (buffer.isEmpty()) {
+        val data = buffer.data
+        if (data.isEmpty()) {
             return
         }
         try {
@@ -609,18 +607,18 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
             Log.i(TAG, "whip: Failed to set audio timestamp")
             return
         }
-        if (audioTrack.send(buffer)) {
-            totalByteCount += buffer.size.toLong()
+        if (audioTrack.send(data)) {
+            totalByteCount += data.size.toLong()
         }
     }
 
     private fun handleVideoEncoderOutputFormat(format: MediaFormat) {
         when (videoCodec) {
-            SettingsStreamCodec.H264AVC -> {
-                val config = MpegTsVideoConfigAvc.create(format) ?: return
+            SettingsStreamCodec.h264avc -> {
+                val config = MpegTsVideoConfigAvc.fromFormatDescription(format) ?: return
                 h264NalUnits.setParameterSets(config.sequenceParameterSet, config.pictureParameterSet)
             }
-            SettingsStreamCodec.H265HEVC -> {
+            SettingsStreamCodec.h265hevc -> {
                 val config = MpegTsVideoConfigHevc.create(format) ?: return
                 h265NalUnits.setParameterSets(
                     config.videoParameterSet,
@@ -644,8 +642,8 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
             return
         }
         val data: ByteArray? = when (videoCodec) {
-            SettingsStreamCodec.H264AVC -> h264NalUnits.process(sampleBuffer)
-            SettingsStreamCodec.H265HEVC -> h265NalUnits.process(sampleBuffer)
+            SettingsStreamCodec.h264avc -> h264NalUnits.process(sampleBuffer)
+            SettingsStreamCodec.h265hevc -> h265NalUnits.process(sampleBuffer)
         }
         val payload = data ?: return
         if (videoTrack.send(payload)) {
@@ -668,7 +666,7 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
     override fun audioEncoderOutputFormat(format: MediaFormat) {
     }
 
-    override fun audioEncoderOutputBuffer(buffer: ByteArray, presentationTimeStamp: Long) {
+    override fun audioEncoderOutputBuffer(buffer: MediaSample, presentationTimeStamp: Long) {
         whipScope.launch {
             handleAudioEncoderOutputBuffer(buffer, presentationTimeStamp)
         }

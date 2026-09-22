@@ -18,8 +18,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.moblin.android.moblinwatch.shared.WatchSettings
 import com.moblin.android.various.model.Model
-import com.moblin.android.various.model.WatchSettings
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 
@@ -33,7 +33,7 @@ fun WatchSettingsView(
 ) {
     val viaRemoteControl by watch.viaRemoteControl.collectAsState()
     LaunchedEffect(viaRemoteControl) {
-        model.sendInitToWatch()
+        TODO("sendInitToWatch")
     }
     Scaffold(
         topBar = {

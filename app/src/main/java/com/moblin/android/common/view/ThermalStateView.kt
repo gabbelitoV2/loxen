@@ -21,9 +21,9 @@ fun ThermalStateView(thermalState: ThermalState) {
 }
 
 fun ThermalState.color(): Color = when (this) {
-    ThermalState.nominal -> Color(0xFF34C759)
-    ThermalState.fair -> Color(0xFFFFCC00)
-    ThermalState.serious -> Color(0xFFFF9500)
-    ThermalState.critical -> Color(0xFFFF3B30)
+    ThermalState.NOMINAL -> Color(0xFF34C759)
+    ThermalState.FAIR -> Color(0xFFFFCC00)
+    ThermalState.SERIOUS -> Color(0xFFFF9500)
+    ThermalState.CRITICAL -> Color(0xFFFF3B30)
     else -> Color(0xFF8E8E93)
 }

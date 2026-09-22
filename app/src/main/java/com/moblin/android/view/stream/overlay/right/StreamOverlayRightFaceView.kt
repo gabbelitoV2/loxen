@@ -59,7 +59,7 @@ fun EffectSlider(
             modifier = Modifier
                 .padding(vertical = 5.dp)
                 .padding(horizontal = 7.dp)
-                .size(width = sliderWidth, height = sliderHeight)
+                .size(width = sliderWidth.dp, height = sliderHeight.dp)
                 .clip(RoundedCornerShape(7.dp))
                 .background(backgroundColor)
                 .padding(bottom = 5.dp),
@@ -78,12 +78,12 @@ fun EffectSlider(
 @Composable
 fun StreamOverlayRightFaceView(model: Model = LocalModel.current, face: SettingsFace) {
     var selectedImageItem by remember { mutableStateOf<ByteArray?>(null) }
-    val blurFaces by face.blurFaces.collectAsState()
-    val blurText by face.blurText.collectAsState()
-    val blurBackground by face.blurBackground.collectAsState()
-    val privacyMode by face.privacyMode.collectAsState()
-    val blurStrength by face.blurStrength.collectAsState()
-    val pixellateStrength by face.pixellateStrength.collectAsState()
+    val blurFaces = face.blurFaces
+    val blurText = face.blurText
+    val blurBackground = face.blurBackground
+    val privacyMode = face.privacyMode
+    val blurStrength = face.blurStrength
+    val pixellateStrength = face.pixellateStrength
 
     if (blurFaces || blurText || blurBackground) {
         Row(
@@ -135,7 +135,7 @@ fun StreamOverlayRightFaceView(model: Model = LocalModel.current, face: Settings
                     expanded = expanded,
                     onExpandedChange = { expanded = it },
                     modifier = Modifier
-                        .height(segmentHeight)
+                        .height(segmentHeight.dp)
                         .clip(RoundedCornerShape(7.dp))
                         .background(pickerBackgroundColor)
                         .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
@@ -143,7 +143,7 @@ fun StreamOverlayRightFaceView(model: Model = LocalModel.current, face: Settings
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(segmentHeight)
+                            .height(segmentHeight.dp)
                             .clickable { expanded = true },
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,

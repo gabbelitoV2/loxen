@@ -407,8 +407,8 @@ class GoProDevice(private val context: Context) {
         }
     }
 
-    private fun send(payload: ByteArray, to characteristicId: UUID) {
-        val characteristic = characteristics[characteristicId] ?: return
+    private fun send(payload: ByteArray, to: UUID) {
+        val characteristic = characteristics[to] ?: return
         for (packet in goProBlePackets(payload)) {
             pendingWrites.add(Pair(characteristic, packet))
         }
@@ -427,7 +427,7 @@ class GoProDevice(private val context: Context) {
         gatt.writeCharacteristic(next.first)
     }
 
-    private fun processMessage(message: ByteArray, from characteristic: UUID) {
+    private fun processMessage(message: ByteArray, characteristic: UUID) {
         if (message.size < 2) {
             return
         }
@@ -462,16 +462,16 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processStartScanResponse(payload: ByteArray) {
-        val response =
-            runCatching { OpenGopro_ResponseStartScanning.parseFrom(payload) }.getOrNull() ?: return
+        val response: OpenGopro_ResponseStartScanning =
+            TODO("parseFrom is unavailable")
         if (response.result != OpenGopro_EnumResultGeneric.resultSuccess) {
             fail(GoProDeviceState.wifiSetupFailed)
         }
     }
 
     private fun processScanningNotification(payload: ByteArray) {
-        val notification =
-            runCatching { OpenGopro_NotifStartScanning.parseFrom(payload) }.getOrNull() ?: return
+        val notification: OpenGopro_NotifStartScanning =
+            TODO("parseFrom is unavailable")
         if (state != GoProDeviceState.settingUpWifi) {
             return
         }
@@ -500,8 +500,8 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processGetApEntriesResponse(payload: ByteArray) {
-        val response =
-            runCatching { OpenGopro_ResponseGetApEntries.parseFrom(payload) }.getOrNull() ?: return
+        val response: OpenGopro_ResponseGetApEntries =
+            TODO("parseFrom is unavailable")
         if (state != GoProDeviceState.settingUpWifi || scanId == null) {
             return
         }
@@ -521,8 +521,8 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processConnectResponse(payload: ByteArray) {
-        val response =
-            runCatching { OpenGopro_ResponseConnect.parseFrom(payload) }.getOrNull() ?: return
+        val response: OpenGopro_ResponseConnect =
+            TODO("parseFrom is unavailable")
         if (response.result != OpenGopro_EnumResultGeneric.resultSuccess) {
             fail(GoProDeviceState.wifiSetupFailed)
             return
@@ -539,8 +539,8 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processProvisioningNotification(payload: ByteArray) {
-        val notification =
-            runCatching { OpenGopro_NotifProvisioningState.parseFrom(payload) }.getOrNull() ?: return
+        val notification: OpenGopro_NotifProvisioningState =
+            TODO("parseFrom is unavailable")
         handleProvisioningState(notification.provisioningState)
     }
 
@@ -576,8 +576,8 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processSetLiveStreamModeResponse(payload: ByteArray) {
-        val response =
-            runCatching { OpenGopro_ResponseGeneric.parseFrom(payload) }.getOrNull() ?: return
+        val response: OpenGopro_ResponseGeneric =
+            TODO("parseFrom is unavailable")
         if (response.result != OpenGopro_EnumResultGeneric.resultSuccess) {
             fail()
         }
@@ -611,8 +611,8 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processLiveStreamStatus(payload: ByteArray, isResponse: Boolean) {
-        val status =
-            runCatching { OpenGopro_NotifyLiveStreamStatus.parseFrom(payload) }.getOrNull() ?: return
+        val status: OpenGopro_NotifyLiveStreamStatus =
+            TODO("parseFrom is unavailable")
         if (isResponse && supportedLenses == null) {
             supportedLenses =
                 if (status.liveStreamLensSupported) status.liveStreamLensSupportedArray
@@ -699,7 +699,7 @@ class GoProDevice(private val context: Context) {
     }
 
     fun centralManagerDidConnect(peripheral: BluetoothGatt) {
-        peripheral.discoverServices(listOf(goProControlServiceId, goProCameraManagementServiceId))
+        peripheral.discoverServices()
     }
 
     fun centralManagerDidDisconnectPeripheral(status: Int) {
@@ -724,7 +724,7 @@ class GoProDevice(private val context: Context) {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
                 mainScope.launch {
                     runCatching {
-                        scanner.stopScan(this@GoProDevice.scanCallback ?: this)
+                        this@GoProDevice.scanCallback?.let { scanner.stopScan(it) }
                     }
                     this@GoProDevice.scanCallback = null
                     connectToPeripheral(result.device)
@@ -759,7 +759,7 @@ class GoProDevice(private val context: Context) {
             return
         }
         for (service in gatt.services ?: emptyList()) {
-            gatt.discoverCharacteristics(service)
+            TODO("BluetoothGatt.discoverCharacteristics is unavailable")
         }
     }
 

@@ -456,18 +456,18 @@ private fun TimerWidgetView(
     indented: Boolean,
 ) {
     var presentingSetTime by remember { mutableStateOf(false) }
-    val delta by timer.delta.collectAsState()
+    val delta = timer.delta
 
     fun updateTextEffect() {
         for (effect in textEffects) {
-            effect.setEndTime(index = index, endTime = timer.textEffectEndTime())
+            effect.setEndTime(index = index, endTime = TODO("timer.textEffectEndTime()"))
         }
     }
 
     Row {
         if (indented) {
             Text("")
-            Text("", modifier = Modifier.width(iconWidth))
+            Text("", modifier = Modifier.width(iconWidth.dp))
         }
         Column(horizontalAlignment = Alignment.Start) {
             Row {
@@ -480,7 +480,7 @@ private fun TimerWidgetView(
                     selection = delta,
                     options = listOf(1, 2, 5, 15, 60),
                     optionLabel = { formatShortDuration(60 * it) },
-                    onSelectionChange = { timer.delta.value = it },
+                    onSelectionChange = { timer.delta = it },
                 )
                 IconButton(onClick = {
                     timer.add(delta = -60.0 * delta)
@@ -526,7 +526,7 @@ private fun StopwatchWidgetView(
     indented: Boolean,
 ) {
     var presentingSetTime by remember { mutableStateOf(false) }
-    val running by stopwatch.running.collectAsState()
+    val running = stopwatch.running
 
     fun updateTextEffect() {
         for (effect in textEffects) {
@@ -537,7 +537,7 @@ private fun StopwatchWidgetView(
     Row {
         if (indented) {
             Text("")
-            Text("", modifier = Modifier.width(iconWidth))
+            Text("", modifier = Modifier.width(iconWidth.dp))
         }
         Column(horizontalAlignment = Alignment.Start) {
             Row {
@@ -550,19 +550,19 @@ private fun StopwatchWidgetView(
                     Icon(Icons.Default.Schedule, contentDescription = null, modifier = Modifier.size(24.dp))
                 }
                 IconButton(onClick = {
-                    stopwatch.totalElapsed.value = 0.0
-                    stopwatch.running.value = false
+                    stopwatch.totalElapsed = 0.0
+                    stopwatch.running = false
                     updateTextEffect()
                 }) {
                     Icon(Icons.Default.RestartAlt, contentDescription = null, modifier = Modifier.size(24.dp))
                 }
                 IconButton(onClick = {
-                    stopwatch.running.value = !running
-                    if (stopwatch.running.value) {
-                        stopwatch.playPressedTime.value = Instant.now()
+                    stopwatch.running = !running
+                    if (stopwatch.running) {
+                        stopwatch.playPressedTime = Instant.now()
                     } else {
-                        stopwatch.totalElapsed.value += Duration
-                            .between(stopwatch.playPressedTime.value, Instant.now())
+                        stopwatch.totalElapsed += Duration
+                            .between(stopwatch.playPressedTime, Instant.now())
                             .toMillis() / 1000.0
                     }
                     updateTextEffect()
@@ -582,8 +582,8 @@ private fun StopwatchWidgetView(
                 TimePickerView(
                     time = stopwatch.currentTime(),
                     onSet = { time ->
-                        stopwatch.playPressedTime.value = Instant.now()
-                        stopwatch.totalElapsed.value = time
+                        stopwatch.playPressedTime = Instant.now()
+                        stopwatch.totalElapsed = time
                         updateTextEffect()
                         presentingSetTime = false
                     },
@@ -602,27 +602,27 @@ private fun CheckboxWidgetView(
     textEffects: List<TextEffect>,
     indented: Boolean,
 ) {
-    val checked by checkbox.checked.collectAsState()
+    val checked = checkbox.checked
     var image by remember {
-        mutableStateOf(if (checkbox.checked.value) "checkmark.square" else "square")
+        mutableStateOf(if (checkbox.checked) "checkmark.square" else "square")
     }
 
     fun updateTextEffect() {
         for (effect in textEffects) {
-            effect.setCheckbox(index = index, checked = checkbox.checked.value)
+            effect.setCheckbox(index = index, checked = checkbox.checked)
         }
     }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (indented) {
             Text("")
-            Text("", modifier = Modifier.width(iconWidth))
+            Text("", modifier = Modifier.width(iconWidth.dp))
         }
         Text(name)
         Spacer(Modifier.weight(1f))
         IconButton(onClick = {
-            checkbox.checked.value = !checked
-            image = if (checkbox.checked.value) "checkmark.square" else "square"
+            checkbox.checked = !checked
+            image = if (checkbox.checked) "checkmark.square" else "square"
             updateTextEffect()
         }) {
             Icon(
@@ -646,18 +646,18 @@ private fun RatingWidgetView(
     textEffects: List<TextEffect>,
     indented: Boolean,
 ) {
-    var ratingSelection by remember { mutableStateOf(rating.rating.value) }
+    var ratingSelection by remember { mutableStateOf(rating.rating) }
 
     fun updateTextEffect() {
         for (effect in textEffects) {
-            effect.setRating(index = index, rating = rating.rating.value)
+            effect.setRating(index = index, rating = rating.rating)
         }
     }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         if (indented) {
             Text("")
-            Text("", modifier = Modifier.width(iconWidth))
+            Text("", modifier = Modifier.width(iconWidth.dp))
         }
         PickerRow(
             selection = ratingSelection,
@@ -665,7 +665,7 @@ private fun RatingWidgetView(
             optionLabel = { it.toString() },
             onSelectionChange = {
                 ratingSelection = it
-                rating.rating.value = it
+                rating.rating = it
                 updateTextEffect()
             },
         )
@@ -683,7 +683,7 @@ private fun LapTimesWidgetView(
 ) {
     fun updateTextEffect() {
         for (effect in textEffects) {
-            effect.setLapTimes(index = index, lapTimes = lapTimes.lapTimes.value)
+            effect.setLapTimes(index = index, lapTimes = lapTimes.lapTimes.toMutableList())
         }
     }
 
@@ -693,40 +693,44 @@ private fun LapTimesWidgetView(
     ) {
         if (indented) {
             Text("")
-            Text("", modifier = Modifier.width(iconWidth))
+            Text("", modifier = Modifier.width(iconWidth.dp))
         }
         Text(name)
         Spacer(Modifier.weight(1f))
         IconButton(onClick = {
-            lapTimes.currentLapStartTime.value = null
-            lapTimes.lapTimes.value = mutableListOf()
+            lapTimes.currentLapStartTime = null
+            lapTimes.lapTimes = mutableListOf<Double>()
             updateTextEffect()
         }) {
             Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red, modifier = Modifier.size(24.dp))
         }
         IconButton(onClick = {
             val now = Instant.now().toEpochMilli() / 1000.0
-            val lastIndex = lapTimes.lapTimes.value.size - 1
-            val currentLapStartTime = lapTimes.currentLapStartTime.value
+            val updated = lapTimes.lapTimes.toMutableList()
+            val lastIndex = updated.size - 1
+            val currentLapStartTime = lapTimes.currentLapStartTime
             if (lastIndex >= 0 && currentLapStartTime != null) {
-                lapTimes.lapTimes.value[lastIndex] = now - currentLapStartTime
+                updated[lastIndex] = now - currentLapStartTime
             }
-            lapTimes.currentLapStartTime.value = now
-            lapTimes.lapTimes.value.add(0.0)
+            lapTimes.currentLapStartTime = now
+            updated.add(0.0)
+            lapTimes.lapTimes = updated
             updateTextEffect()
         }) {
             Icon(Icons.Default.Timer, contentDescription = null, modifier = Modifier.size(24.dp))
         }
         IconButton(onClick = {
-            val currentLapStartTime = lapTimes.currentLapStartTime.value
+            val currentLapStartTime = lapTimes.currentLapStartTime
             if (currentLapStartTime != null) {
-                val lastIndex = lapTimes.lapTimes.value.size - 1
+                val updated = lapTimes.lapTimes.toMutableList()
+                val lastIndex = updated.size - 1
                 if (lastIndex >= 0) {
                     val now = Instant.now().toEpochMilli() / 1000.0
-                    lapTimes.lapTimes.value[lastIndex] = now - currentLapStartTime
+                    updated[lastIndex] = now - currentLapStartTime
                 }
-                lapTimes.currentLapStartTime.value = null
-                lapTimes.lapTimes.value.add(Double.POSITIVE_INFINITY)
+                lapTimes.currentLapStartTime = null
+                updated.add(Double.POSITIVE_INFINITY)
+                lapTimes.lapTimes = updated
             }
             updateTextEffect()
         }) {
@@ -1165,7 +1169,7 @@ private fun WorkoutVariablesView(
     value: String,
     onChange: (String) -> Unit,
 ) {
-    val database by model.database.collectAsState()
+    val database = model.database
     Column {
         Text(localized("Workout"), style = MaterialTheme.typography.titleLarge)
         Text(localized("Apple workout"), style = MaterialTheme.typography.titleSmall)
@@ -1415,10 +1419,10 @@ fun TextSelectionView(
     text: SettingsWidgetText,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val value by text.formatString.collectAsState()
-    val database by model.database.collectAsState()
+    val value = text.formatString
+    val database = model.database
     val onValueChange: (String) -> Unit = { newValue ->
-        text.formatString.value = newValue
+        text.formatString = newValue
         model.textWidgetTextChanged(widget = widget)
     }
     Column {
@@ -1456,11 +1460,11 @@ fun TextWidgetTextView(
         MultiLineTextFieldView(
             value = value,
             placeholder = localized("My text"),
-            onChange = onChange,
+            onValueChange = onChange,
         )
         MultiLineTextFieldDoneButtonView(
             editingText = editingText,
-            onChange = { editingText = it },
+            onEditingTextChange = { editingText = it },
         )
     }
 }
@@ -1473,7 +1477,7 @@ fun TextFormatWarningsView(
     onChange: (String) -> Unit,
 ) {
     val textFormat = loadTextFormat(format = value)
-    val enabled by location.enabled.collectAsState()
+    val enabled = location.enabled
     val workoutType by model.workoutType.collectAsState()
     Column {
         if (textFormat.isWorkoutVariable() && workoutType == null) {
@@ -1492,7 +1496,7 @@ fun TextFormatWarningsView(
                 Switch(
                     checked = enabled,
                     onCheckedChange = {
-                        location.enabled.value = it
+                        location.enabled = it
                         model.reloadLocation()
                     },
                 )
@@ -1506,7 +1510,7 @@ fun TextFormatWarningsView(
                 Switch(
                     checked = enabled,
                     onCheckedChange = {
-                        location.enabled.value = it
+                        location.enabled = it
                         model.reloadLocation()
                     },
                 )
@@ -1522,12 +1526,12 @@ fun WidgetTextQuickButtonControlsView(
     text: SettingsWidgetText,
 ) {
     val textEffects = model.getTextEffects(id = widget.id)
-    val timers by text.timers.collectAsState()
-    val stopwatches by text.stopwatches.collectAsState()
-    val checkboxes by text.checkboxes.collectAsState()
-    val ratings by text.ratings.collectAsState()
-    val lapTimes by text.lapTimes.collectAsState()
-    val formatString by text.formatString.collectAsState()
+    val timers = text.timers
+    val stopwatches = text.stopwatches
+    val checkboxes = text.checkboxes
+    val ratings = text.ratings
+    val lapTimes = text.lapTimes
+    val formatString = text.formatString
     if (textEffects.isNotEmpty()) {
         val textFormat = loadTextFormat(format = formatString)
         Column {
@@ -1606,13 +1610,13 @@ private fun FontFamilyPickerView(
     var fontFamilies by remember { mutableStateOf(listOf<String>()) }
 
     fun selectFamily(family: String?) {
-        text.fontFamily.value = family
+        text.fontFamily = family
         if (family != null) {
-            text.fontStyle.value = fontStyles(fontFamily = family).firstOrNull() ?: ""
+            text.fontStyle = fontStyles(fontFamily = family).firstOrNull() ?: ""
         }
         for (effect in model.getTextEffects(id = widget.id)) {
-            effect.setFontFamily(family = text.fontFamily.value)
-            effect.setFontStyle(style = text.fontStyle.value)
+            effect.setFontFamily(family = text.fontFamily)
+            effect.setFontStyle(style = text.fontStyle)
         }
         model.remoteSceneSettingsUpdated()
     }
@@ -1628,7 +1632,7 @@ private fun FontFamilyPickerView(
             Text(localized("System"))
             Spacer(Modifier.weight(1f))
             IconButton(onClick = { selectFamily(null) }) {
-                if (text.fontFamily.value == null) {
+                if (text.fontFamily == null) {
                     Icon(Icons.Default.Check, contentDescription = null)
                 }
             }
@@ -1638,7 +1642,7 @@ private fun FontFamilyPickerView(
                 Text(family)
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = { selectFamily(family) }) {
-                    if (text.fontFamily.value == family) {
+                    if (text.fontFamily == family) {
                         Icon(Icons.Default.Check, contentDescription = null)
                     }
                 }
@@ -1677,13 +1681,13 @@ private fun FontStylePickerView(
                 Text(fontStyleName(family = fontFamily, fontName = style))
                 Spacer(Modifier.weight(1f))
                 IconButton(onClick = {
-                    text.fontStyle.value = style
+                    text.fontStyle = style
                     for (effect in model.getTextEffects(id = widget.id)) {
-                        effect.setFontStyle(style = text.fontStyle.value)
+                        effect.setFontStyle(style = text.fontStyle)
                     }
                     model.remoteSceneSettingsUpdated()
                 }) {
-                    if (text.fontStyle.value == style) {
+                    if (text.fontStyle == style) {
                         Icon(Icons.Default.Check, contentDescription = null)
                     }
                 }
@@ -1710,9 +1714,20 @@ fun WidgetTextSettingsView(
         return null
     }
 
+    fun setLayout() {
+        for (effect in model.getTextEffects(id = widget.id)) {
+            effect.setLayout(
+                alignment = text.horizontalAlignment.toSystem(),
+                width = if (text.widthEnabled) text.width else null,
+                cornerRadius = text.cornerRadius.toDouble(),
+            )
+        }
+        model.remoteSceneSettingsUpdated()
+    }
+
     fun submitWidth(value: String) {
         val width = value.toIntOrNull() ?: return
-        text.width.value = width
+        text.width = width
         setLayout()
     }
 
@@ -1729,42 +1744,31 @@ fun WidgetTextSettingsView(
 
     fun submitCornerRadius(value: String) {
         val cornerRadius = value.toIntOrNull() ?: return
-        text.cornerRadius.value = cornerRadius
+        text.cornerRadius = cornerRadius
         setLayout()
     }
 
-    fun setLayout() {
-        for (effect in model.getTextEffects(id = widget.id)) {
-            effect.setLayout(
-                alignment = text.horizontalAlignment.value.toSystem(),
-                width = if (text.widthEnabled.value) text.width.value else null,
-                cornerRadius = text.cornerRadius.value.toDouble(),
-            )
-        }
-        model.remoteSceneSettingsUpdated()
-    }
-
-    val database by model.database.collectAsState()
+    val database = model.database
     val textEffects = model.getTextEffects(id = widget.id)
-    val timers by text.timers.collectAsState()
-    val stopwatches by text.stopwatches.collectAsState()
-    val checkboxes by text.checkboxes.collectAsState()
-    val ratings by text.ratings.collectAsState()
-    val lapTimes by text.lapTimes.collectAsState()
-    val formatString by text.formatString.collectAsState()
-    val horizontalAlignment by text.horizontalAlignment.collectAsState()
-    val widthEnabled by text.widthEnabled.collectAsState()
-    val width by text.width.collectAsState()
-    val cornerRadius by text.cornerRadius.collectAsState()
-    val backgroundColorColor by text.backgroundColorColor.collectAsState()
-    val foregroundColorColor by text.foregroundColorColor.collectAsState()
-    val fontSizeFloat by text.fontSizeFloat.collectAsState()
-    val fontFamily by text.fontFamily.collectAsState()
-    val fontStyle by text.fontStyle.collectAsState()
-    val fontDesign by text.fontDesign.collectAsState()
-    val fontWeight by text.fontWeight.collectAsState()
-    val fontMonospacedDigits by text.fontMonospacedDigits.collectAsState()
-    val delay by text.delay.collectAsState()
+    val timers = text.timers
+    val stopwatches = text.stopwatches
+    val checkboxes = text.checkboxes
+    val ratings = text.ratings
+    val lapTimes = text.lapTimes
+    val formatString = text.formatString
+    val horizontalAlignment = text.horizontalAlignment
+    val widthEnabled = text.widthEnabled
+    val width = text.width
+    val cornerRadius = text.cornerRadius
+    val backgroundColorColor = text.backgroundColorColor
+    val foregroundColorColor = text.foregroundColorColor
+    val fontSizeFloat = text.fontSizeFloat
+    val fontFamily = text.fontFamily
+    val fontStyle = text.fontStyle
+    val fontDesign = text.fontDesign
+    val fontWeight = text.fontWeight
+    val fontMonospacedDigits = text.fontMonospacedDigits
+    val delay = text.delay
 
     Column {
         Row(
@@ -1777,7 +1781,7 @@ fun WidgetTextSettingsView(
             model = model,
             location = database.location,
             value = formatString,
-            onChange = { text.formatString.value = it },
+            onChange = { text.formatString = it },
         )
         if (textEffects.isNotEmpty()) {
             if (timers.isNotEmpty()) {
@@ -1851,9 +1855,10 @@ fun WidgetTextSettingsView(
         RgbColorPickerView(
             title = "Background",
             color = backgroundColorColor,
+            onColorChanged = { text.backgroundColorColor = it },
             opacity = true,
             onChange = { color ->
-                text.backgroundColor.value = color
+                text.backgroundColor = color
                 for (effect in model.getTextEffects(id = widget.id)) {
                     effect.setBackgroundColor(color = color)
                 }
@@ -1863,9 +1868,10 @@ fun WidgetTextSettingsView(
         RgbColorPickerView(
             title = "Foreground",
             color = foregroundColorColor,
+            onColorChanged = { text.foregroundColorColor = it },
             opacity = true,
             onChange = { color ->
-                text.foregroundColor.value = color
+                text.foregroundColor = color
                 for (effect in model.getTextEffects(id = widget.id)) {
                     effect.setForegroundColor(color = color)
                 }
@@ -1878,8 +1884,8 @@ fun WidgetTextSettingsView(
             Slider(
                 value = fontSizeFloat,
                 onValueChange = { value ->
-                    text.fontSizeFloat.value = value
-                    text.fontSize.value = value.toInt()
+                    text.fontSizeFloat = value
+                    text.fontSize = value.toInt()
                     for (effect in model.getTextEffects(id = widget.id)) {
                         effect.setFontSize(size = value)
                     }
@@ -1915,7 +1921,7 @@ fun WidgetTextSettingsView(
                 options = SettingsFontDesign.entries.toList(),
                 optionLabel = { it.toString() },
                 onSelectionChange = { design ->
-                    text.fontDesign.value = design
+                    text.fontDesign = design
                     for (effect in model.getTextEffects(id = widget.id)) {
                         effect.setFontDesign(design = design.toSystem())
                     }
@@ -1927,7 +1933,7 @@ fun WidgetTextSettingsView(
                 options = SettingsFontWeight.entries.toList(),
                 optionLabel = { it.toString() },
                 onSelectionChange = { weight ->
-                    text.fontWeight.value = weight
+                    text.fontWeight = weight
                     for (effect in model.getTextEffects(id = widget.id)) {
                         effect.setFontWeight(weight = weight.toSystem())
                     }
@@ -1940,7 +1946,7 @@ fun WidgetTextSettingsView(
                 Switch(
                     checked = fontMonospacedDigits,
                     onCheckedChange = { enabled ->
-                        text.fontMonospacedDigits.value = enabled
+                        text.fontMonospacedDigits = enabled
                         for (effect in model.getTextEffects(id = widget.id)) {
                             effect.setFontMonospacedDigits(enabled = enabled)
                         }
@@ -1955,7 +1961,7 @@ fun WidgetTextSettingsView(
             options = SettingsHorizontalAlignment.entries.toList(),
             optionLabel = { it.toString() },
             onSelectionChange = {
-                text.horizontalAlignment.value = it
+                text.horizontalAlignment = it
                 setLayout()
             },
         )
@@ -1965,7 +1971,7 @@ fun WidgetTextSettingsView(
             Switch(
                 checked = widthEnabled,
                 onCheckedChange = {
-                    text.widthEnabled.value = it
+                    text.widthEnabled = it
                     setLayout()
                 },
             )
@@ -1989,7 +1995,7 @@ fun WidgetTextSettingsView(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Slider(
                 value = delay.toFloat(),
-                onValueChange = { text.delay.value = it.toDouble() },
+                onValueChange = { text.delay = it.toDouble() },
                 valueRange = 0f..10f,
                 steps = 19,
                 onValueChangeFinished = { model.resetSelectedScene(changeScene = false) },
@@ -1999,3 +2005,30 @@ fun WidgetTextSettingsView(
         Text(localized("To show the widget in sync with high latency cameras."))
     }
 }
+
+private fun Model.getTextEffects(id: Any?): List<TextEffect> =
+    TODO("Model.getTextEffects(id:)")
+
+private fun Model.remoteSceneSettingsUpdated(): Unit =
+    TODO("Model.remoteSceneSettingsUpdated()")
+
+private fun Model.reloadLocation(): Unit =
+    TODO("Model.reloadLocation()")
+
+private fun Model.resetSelectedScene(changeScene: Boolean): Unit =
+    TODO("Model.resetSelectedScene(changeScene:)")
+
+private fun Model.textWidgetTextChanged(widget: SettingsWidget): Unit =
+    TODO("Model.textWidgetTextChanged(widget:)")
+
+private fun Any?.isWorkoutVariable(): Boolean =
+    TODO("TextFormat.isWorkoutVariable()")
+
+private fun Any?.isLocationVariable(): Boolean =
+    TODO("TextFormat.isLocationVariable()")
+
+private fun Any?.isWeatherVariable(): Boolean =
+    TODO("TextFormat.isWeatherVariable()")
+
+private fun Any?.getCheckboxText(index: Int): String =
+    TODO("TextFormat.getCheckboxText(index:)")

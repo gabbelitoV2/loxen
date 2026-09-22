@@ -1,9 +1,10 @@
 package com.moblin.android.various.model
 
-import com.moblin.android.media.CameraPosition
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.remotecontrol.RemoteControlZoomPreset
+import com.moblin.android.various.settings.SettingsSceneCameraPosition
 import com.moblin.android.various.settings.SettingsZoomPreset
+import com.moblin.android.various.utils.AVCaptureDevice
 import com.moblin.android.various.utils.hasUltraWideBackCamera
 import com.moblin.android.various.utils.hasUltraWideFrontCamera
 import java.util.Locale
@@ -33,16 +34,16 @@ fun Model.setZoomPreset(id: UUID) {
     val preset = findZoomPreset(id)
     if (preset != null) {
         when (cameraPosition) {
-            CameraPosition.BACK -> setBackZoomPreset(id)
-            CameraPosition.FRONT -> setFrontZoomPreset(id)
+            AVCaptureDevice.Position.BACK -> setBackZoomPreset(id)
+            AVCaptureDevice.Position.FRONT -> setFrontZoomPreset(id)
             else -> {}
         }
         if (setCameraZoomX(preset.x, database.zoom.speed) != null) {
             setZoomXWhenInRange(preset.x)
             when (getSelectedScene()?.videoSource?.cameraPosition) {
-                CameraPosition.BACK_TRIPLE_LOW_ENERGY -> attachBackTripleLowEnergyCamera(false)
-                CameraPosition.BACK_DUAL_LOW_ENERGY -> attachBackDualLowEnergyCamera(false)
-                CameraPosition.BACK_WIDE_DUAL_LOW_ENERGY -> attachBackWideDualLowEnergyCamera(false)
+                SettingsSceneCameraPosition.backTripleLowEnergy -> attachBackTripleLowEnergyCamera(false)
+                SettingsSceneCameraPosition.backDualLowEnergy -> attachBackDualLowEnergyCamera(false)
+                SettingsSceneCameraPosition.backWideDualLowEnergy -> attachBackWideDualLowEnergyCamera(false)
                 else -> {}
             }
         }
@@ -61,11 +62,11 @@ fun Model.setZoomX(x: Float, rate: Float? = null, setPinch: Boolean = true) {
 
 fun Model.setZoomXWhenInRange(x: Float, setPinch: Boolean = true) {
     when (cameraPosition) {
-        CameraPosition.BACK -> {
+        AVCaptureDevice.Position.BACK -> {
             zoom.backX = x
             updateBackZoomPresetId()
         }
-        CameraPosition.FRONT -> {
+        AVCaptureDevice.Position.FRONT -> {
             zoom.frontX = x
             updateFrontZoomPresetId()
         }
@@ -97,15 +98,15 @@ fun Model.commitZoomX(amount: Float, rate: Float? = null) {
 
 private fun Model.clearZoomPresetId() {
     when (cameraPosition) {
-        CameraPosition.BACK -> setBackZoomPreset(noBackZoomPresetId)
-        CameraPosition.FRONT -> setFrontZoomPreset(noFrontZoomPresetId)
+        AVCaptureDevice.Position.BACK -> setBackZoomPreset(noBackZoomPresetId)
+        AVCaptureDevice.Position.FRONT -> setFrontZoomPreset(noFrontZoomPresetId)
         else -> {}
     }
 }
 
 private fun Model.setBackZoomPreset(presetId: UUID) {
     zoom.backPresetId.value = presetId
-    if (cameraPosition == CameraPosition.BACK) {
+    if (cameraPosition == AVCaptureDevice.Position.BACK) {
         remoteControlStateChanged(RemoteControlAssistantStreamerState(zoomPreset = presetId))
         if (isWatchLocal()) {
             sendZoomPresetToWatch()
@@ -115,7 +116,7 @@ private fun Model.setBackZoomPreset(presetId: UUID) {
 
 private fun Model.setFrontZoomPreset(presetId: UUID) {
     zoom.frontPresetId.value = presetId
-    if (cameraPosition == CameraPosition.FRONT) {
+    if (cameraPosition == AVCaptureDevice.Position.FRONT) {
         remoteControlStateChanged(RemoteControlAssistantStreamerState(zoomPreset = presetId))
         if (isWatchLocal()) {
             sendZoomPresetToWatch()
@@ -125,8 +126,8 @@ private fun Model.setFrontZoomPreset(presetId: UUID) {
 
 private fun Model.findZoomPreset(id: UUID): SettingsZoomPreset? {
     return when (cameraPosition) {
-        CameraPosition.BACK -> database.zoom.back.firstOrNull { it.id == id }
-        CameraPosition.FRONT -> database.zoom.front.firstOrNull { it.id == id }
+        AVCaptureDevice.Position.BACK -> database.zoom.back.firstOrNull { it.id == id }
+        AVCaptureDevice.Position.FRONT -> database.zoom.front.firstOrNull { it.id == id }
         else -> null
     }
 }
@@ -147,22 +148,22 @@ fun Model.frontZoomPresetSettingUpdated() {
 
 fun Model.updateFrontZoomPresets() {
     zoom.frontZoomPresets.value = database.zoom.front.filter { showPreset(it) }
-    if (cameraPosition == CameraPosition.FRONT) {
+    if (cameraPosition == AVCaptureDevice.Position.FRONT) {
         zoomPresetsMayHaveChanged()
     }
 }
 
 fun Model.updateBackZoomPresets() {
     zoom.backZoomPresets.value = database.zoom.back.filter { showPreset(it) }
-    if (cameraPosition == CameraPosition.BACK) {
+    if (cameraPosition == AVCaptureDevice.Position.BACK) {
         zoomPresetsMayHaveChanged()
     }
 }
 
 fun Model.zoomPresetsMayHaveChanged() {
     val presets: List<SettingsZoomPreset> = when (cameraPosition) {
-        CameraPosition.BACK -> zoom.backZoomPresets.value
-        CameraPosition.FRONT -> zoom.frontZoomPresets.value
+        AVCaptureDevice.Position.BACK -> zoom.backZoomPresets.value
+        AVCaptureDevice.Position.FRONT -> zoom.frontZoomPresets.value
         else -> emptyList()
     }
     val zoomPresets = presets.map { RemoteControlZoomPreset(it.id, it.name) }
@@ -208,28 +209,22 @@ fun Model.updateFrontZoomSwitchTo() {
     }
 }
 
-private fun Model.factorToX(position: CameraPosition, factor: Float): Float {
-    if (position == CameraPosition.BACK && hasUltraWideBackCamera) {
+private fun Model.factorToX(position: AVCaptureDevice.Position, factor: Float): Float {
+    if (position == AVCaptureDevice.Position.BACK && hasUltraWideBackCamera) {
         return factor / 2
-    } else if (position == CameraPosition.FRONT && hasUltraWideFrontCamera) {
+    } else if (position == AVCaptureDevice.Position.FRONT && hasUltraWideFrontCamera) {
         return factor / 2
     }
     return factor
 }
 
-fun Model.getMinMaxZoomX(position: CameraPosition): Pair<Float, Float> {
+fun Model.getMinMaxZoomX(position: AVCaptureDevice.Position): Pair<Float, Float> {
     var minX: Float
     var maxX: Float
     val camera = preferredCamera(position)
     if (camera != null) {
-        val zoomState = camera.cameraInfo.zoomState.value
-        if (zoomState != null) {
-            minX = factorToX(position, zoomState.minZoomRatio)
-            maxX = factorToX(position, zoomState.maxZoomRatio)
-        } else {
-            minX = 1.0f
-            maxX = 1.0f
-        }
+        minX = factorToX(position, camera.minAvailableVideoZoomFactor)
+        maxX = factorToX(position, camera.maxAvailableVideoZoomFactor)
     } else {
         minX = 1.0f
         maxX = 1.0f

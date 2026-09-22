@@ -71,6 +71,14 @@ class RemoteConnection(
     val relayId: UUID? = null,
     private val relayName: String? = null,
 ) {
+    private enum class State {
+        idle,
+        socketConnecting,
+        shouldSendRegisterRequest,
+        waitForRegisterResponse,
+        registered,
+    }
+
     private var connection: Socket? = null
         set(value) {
             val previous = field
@@ -125,7 +133,7 @@ class RemoteConnection(
 
     var delegate: RemoteConnectionDelegate? = null
 
-    override fun finalize() {
+    fun finalize() {
         Log.d(TAG, "srtla: $typeString: deinit remote connection")
     }
 
@@ -150,7 +158,7 @@ class RemoteConnection(
             `interface`?.socketFactory?.createSocket() ?: Socket()
         } catch (e: IOException) {
             Log.i(TAG, "srtla: $typeString: Create socket failed $e")
-            handleStateUpdate(to = ConnectionState.failed)
+            handleStateUpdate(state = ConnectionState.failed)
             return
         }
         connection = socket
@@ -165,15 +173,15 @@ class RemoteConnection(
             }
             if (connected) {
                 receivePackets()
-                handleStateUpdate(to = ConnectionState.ready)
+                handleStateUpdate(state = ConnectionState.ready)
             } else {
-                handleStateUpdate(to = ConnectionState.failed)
+                handleStateUpdate(state = ConnectionState.failed)
             }
         }
     }
 
     fun stop(reason: String) {
-        val sent = sizeFormatter.format(totalDataSentByteCount)
+        val sent = sizeFormatter.string(fromByteCount = totalDataSentByteCount)
         Log.d(TAG, "srtla: $typeString: Stop with reason: $reason ($sent sent)")
         connection = null
         cancelAllTimers()
@@ -239,8 +247,8 @@ class RemoteConnection(
         sendPacket(packet = packet)
     }
 
-    fun handleSrtAckSn(sn ackSn: UInt) {
-        packetsInFlight.retainAll { sn -> !isSrtSnAcked(sn = sn, ackSn = ackSn) }
+    fun handleSrtAckSn(sn: UInt) {
+        packetsInFlight.retainAll { packetSn -> !isSrtSnAcked(sn = packetSn, ackSn = sn) }
     }
 
     fun handleSrtNakSn(sn: UInt) {
@@ -291,12 +299,12 @@ class RemoteConnection(
         return relayId != null
     }
 
-    private fun handleStateUpdate(to state: ConnectionState) {
+    private fun handleStateUpdate(state: ConnectionState) {
         Log.d(TAG, "srtla: $typeString: State change to $state")
         when (state) {
             ConnectionState.ready -> {
                 cancelAllTimers()
-                connectTimer.startSingleShot(timeout = 5) {
+                connectTimer.startSingleShot(timeout = 5.0) {
                     reconnect(reason = "Connection timeout")
                 }
                 latestReceivedTime = System.nanoTime()
@@ -494,11 +502,11 @@ class RemoteConnection(
         state = State.registered
         delegate?.remoteConnectionOnRegistered()
         connectTimer.stop()
-        keepaliveTimer.startPeriodic(interval = 1) {
+        keepaliveTimer.startPeriodic(interval = 1.0) {
             val now = System.nanoTime()
             sendSrtlaKeepalive()
             if (latestReceivedTime < now - 5_000_000_000L) {
-                reconnect(reason = "No packet received in 5 seconds")
+                reconnect(reason: "No packet received in 5 seconds")
             }
         }
     }

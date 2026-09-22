@@ -8,10 +8,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class VideoPreviewFeed(val cameraId: UUID, val name: String) {
-    val previewView: PreviewView = PreviewView()
+    val previewView: PreviewView = TODO("PreviewView needs an Android Context, which is not available here")
 
     init {
-        previewView.videoGravity = VideoGravity.RESIZE_ASPECT
+        previewView.videoGravity = VideoGravity.values().first { it.rawValue == "resizeAspect" }
     }
 }
 
@@ -30,15 +30,15 @@ class VideoPreviewProvider {
 fun Model.updateVideoPreviews() {
     val oldFeeds = videoPreview.feeds.value
     videoPreview.removeAllFeeds()
-    if (streamOverlay.showingVideoPreview) {
+    if (streamOverlay.showingVideoPreview.value) {
         val scene = getSelectedScene() ?: return
-        val devices = getBuiltinCameraDevices(scene = scene, sceneDevice = cameraDevice)
+        val devices = getBuiltinCameraDevices(scene = scene, sceneDevice = cameraDevice?.device)
         for (camera in listCameras()) {
-            val device = devices.devices.firstOrNull { it.device.uniqueID == camera.id }
+            val device = devices.devices.firstOrNull { it.id.toString() == camera.id }
             if (device != null) {
                 appendVideoPreviewIfNeeded(
                     cameraId = device.id,
-                    name = device.device.name(),
+                    name = camera.name,
                     oldFeeds = oldFeeds,
                 )
                 continue

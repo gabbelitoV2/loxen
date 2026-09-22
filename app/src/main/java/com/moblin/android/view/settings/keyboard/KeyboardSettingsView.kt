@@ -35,7 +35,6 @@ fun KeyboardSettingsView(
     model: Model = LocalModel.current,
     keyboard: SettingsKeyboard,
 ) {
-    val keys by keyboard.keys.collectAsState()
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Keyboard") })
@@ -49,7 +48,7 @@ fun KeyboardSettingsView(
             item {
                 Text("Use a keyboard to zoom, set scene, and more.")
             }
-            items(items = keys, key = { it.id }) { key ->
+            items(items = keyboard.keys, key = { it.id }) { key ->
                 var menuExpanded by remember { mutableStateOf(false) }
                 Box(
                     modifier = Modifier
@@ -67,8 +66,8 @@ fun KeyboardSettingsView(
                             text = { Text(localized("Delete")) },
                             onClick = {
                                 menuExpanded = false
-                                keyboard.keys.value =
-                                    keys.filterNot { it.id == key.id }.toMutableList()
+                                keyboard.keys =
+                                    keyboard.keys.filterNot { it.id == key.id }
                             },
                         )
                     }
@@ -76,7 +75,7 @@ fun KeyboardSettingsView(
             }
             item {
                 CreateButtonView {
-                    keyboard.keys.value = (keys + SettingsKeyboardKey()).toMutableList()
+                    keyboard.keys = keyboard.keys + SettingsKeyboardKey()
                 }
             }
             item {

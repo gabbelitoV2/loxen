@@ -3,8 +3,8 @@ package com.moblin.android.integrations.gopro
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothLeScanner
 import android.bluetooth.BluetoothManager
+import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanRecord
@@ -70,7 +70,7 @@ class GoProDeviceScanner {
 
     @SuppressLint("MissingPermission")
     fun stopScanningForDevices() {
-        centralManager?.stopScan()
+        centralManager?.stopScan(scanCallback)
         centralManager = null
         scanContext?.let { context ->
             runCatching { context.unregisterReceiver(adapterStateReceiver) }

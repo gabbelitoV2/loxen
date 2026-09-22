@@ -68,7 +68,7 @@ class ApiBackend:
     def complete(self, system, user):
         kwargs = {
             "model": self.model,
-            "max_tokens": 100000,
+            "max_tokens": 200000,
             "system": [{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
             "messages": [{"role": "user", "content": user}],
             "output_config": {"effort": self.effort},

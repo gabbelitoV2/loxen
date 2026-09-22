@@ -54,7 +54,6 @@ fun WidgetWizardPngTuberSettingsView(
                     createWidgetWizard = createWidgetWizard,
                     presentingCreateWizard = presentingCreateWizard,
                     onPresentingCreateWizardChange = onPresentingCreateWizardChange,
-                    enabled = pngTuber.modelName.isNotEmpty(),
                 )
             }
         }

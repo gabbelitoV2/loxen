@@ -5,7 +5,6 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.media.rtmpserver.RtmpServer
 import com.moblin.android.media.rtmpserver.RtmpServerDelegate
 import com.moblin.android.various.settings.SettingsDjiDeviceUrlType
-import com.moblin.android.various.settings.SettingsGoProUrlType
 import com.moblin.android.various.settings.SettingsRtmpServerStream
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +22,7 @@ fun Model.getRtmpStream(id: UUID): SettingsRtmpServerStream? {
 }
 
 @JvmName("getRtmpStreamByIdString")
-fun Model.getRtmpStream(idString: String): SettingsRtmpServerStream? {
+fun Model.getRtmpStreamByIdString(idString: String): SettingsRtmpServerStream? {
     return database.rtmpServer.streams.firstOrNull { it.id.toString() == idString }
 }
 
@@ -78,9 +77,7 @@ private fun Model.stopRtmpServerStream(
         restartDjiLiveStreamIfNeededAfterDelay(device = device)
     }
     for (device in database.goPro.devices) {
-        if (device.rtmpUrlType != SettingsGoProUrlType.server ||
-            device.serverRtmpStreamId != stream.id
-        ) {
+        if (device.serverRtmpStreamId != stream.id) {
             continue
         }
         restartGoProLiveStreamIfNeededAfterDelay(device = device)
@@ -96,10 +93,27 @@ fun Model.stopRtmpServer() {
 fun Model.reloadRtmpServer() {
     stopRtmpServer()
     if (database.rtmpServer.enabled) {
+        val model = this
         ingests.rtmp = RtmpServer(
             settings = database.rtmpServer.clone(),
             softwareDecoding = database.ingestsSoftwareVideoDecoding,
-            delegate = this,
+            delegate = object : RtmpServerDelegate {
+                override fun rtmpServerOnPublishStart(streamKey: String) {
+                    model.rtmpServerOnPublishStart(streamKey = streamKey)
+                }
+
+                override fun rtmpServerOnPublishStop(streamKey: String, reason: String) {
+                    model.rtmpServerOnPublishStop(streamKey = streamKey, reason = reason)
+                }
+
+                override fun rtmpServerOnVideoBuffer(cameraId: UUID, sampleBuffer: MediaSample) {
+                    model.rtmpServerOnVideoBuffer(cameraId = cameraId, sampleBuffer = sampleBuffer)
+                }
+
+                override fun rtmpServerOnAudioBuffer(cameraId: UUID, sampleBuffer: MediaSample) {
+                    model.rtmpServerOnAudioBuffer(cameraId = cameraId, sampleBuffer = sampleBuffer)
+                }
+            },
         )
         ingests.rtmp?.start()
     }

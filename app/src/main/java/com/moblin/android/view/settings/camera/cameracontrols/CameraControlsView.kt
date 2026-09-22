@@ -18,10 +18,6 @@ import com.moblin.android.LocalModel
 
 @Composable
 fun CameraControlsView(model: Model = LocalModel.current, database: Database) {
-    val cameraControlsEnabled by database.cameraControlsEnabled.collectAsState()
-    LaunchedEffect(cameraControlsEnabled) {
-        model.setCameraControlsEnabled()
-    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -33,8 +29,11 @@ fun CameraControlsView(model: Model = LocalModel.current, database: Database) {
             modifier = Modifier.weight(1f),
         )
         Switch(
-            checked = cameraControlsEnabled,
-            onCheckedChange = { database.cameraControlsEnabled.value = it },
+            checked = database.cameraControlsEnabled,
+            onCheckedChange = {
+                database.cameraControlsEnabled = it
+                TODO("model.setCameraControlsEnabled()")
+            },
         )
     }
 }

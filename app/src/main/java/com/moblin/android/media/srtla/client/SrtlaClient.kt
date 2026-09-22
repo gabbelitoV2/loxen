@@ -108,7 +108,7 @@ class SrtlaClient(
                     type = null,
                     mpegtsPacketsPerPacket = mpegtsPacketsPerPacket,
                     packetPadding = packetPadding,
-                    networkInterface = null,
+                    `interface` = null,
                     networkInterfaces = networkInterfaces,
                     priority = 1.0f,
                 )
@@ -230,7 +230,7 @@ class SrtlaClient(
                 type = null,
                 mpegtsPacketsPerPacket = mpegtsPacketsPerPacket,
                 packetPadding = packetPadding,
-                networkInterface = null,
+                `interface` = null,
                 networkInterfaces = networkInterfaces,
                 priority = getRelayConnectionPriority(id),
                 relayId = id,
@@ -272,7 +272,7 @@ class SrtlaClient(
                 if (relayId != null) {
                     connection.setPriority(getRelayConnectionPriority(relayId))
                 } else {
-                    val name = interfaceName(connection.type, connection.networkInterface)
+                    val name = interfaceName(connection.type, connection.`interface`)
                     connection.setPriority(getConnectionPriority(name))
                 }
             }
@@ -367,7 +367,7 @@ class SrtlaClient(
     private fun handleNetworkPathUpdate(network: Network) {
         val newRemoteConnections = mutableListOf<RemoteConnection>()
         for (connection in remoteConnections) {
-            val connectionNetwork = connection.networkInterface
+            val connectionNetwork = connection.`interface`
             if (connectionNetwork != null) {
                 if (networkPathInterfaces.containsKey(connectionNetwork)) {
                     newRemoteConnections.add(connection)
@@ -387,7 +387,7 @@ class SrtlaClient(
             if (type !in interfaceTypes) {
                 continue
             }
-            if (newRemoteConnections.any { it.networkInterface == availableNetwork }) {
+            if (newRemoteConnections.any { it.`interface` == availableNetwork }) {
                 continue
             }
             val name = interfaceName(type, availableNetwork)
@@ -395,7 +395,7 @@ class SrtlaClient(
                 type = type,
                 mpegtsPacketsPerPacket = mpegtsPacketsPerPacket,
                 packetPadding = packetPadding,
-                networkInterface = availableNetwork,
+                `interface` = availableNetwork,
                 networkInterfaces = networkInterfaces,
                 priority = getConnectionPriority(name),
             )
@@ -545,7 +545,7 @@ class SrtlaClient(
 
     override fun remoteConnectionOnSrtAck(sn: UInt) {
         for (connection in remoteConnections) {
-            connection.handleSrtAckSn(sn)
+            connection.handleSrtAckSn(sn, sn)
         }
     }
 

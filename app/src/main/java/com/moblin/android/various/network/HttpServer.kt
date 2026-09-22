@@ -28,10 +28,16 @@ private data class HttpRequestParseResult(
     val data: ByteArray,
 )
 
-private class HttpRequestParser : HttpParser() {
+private class HttpRequestParser {
+    private val parser = HttpParser()
+
+    fun append(data: ByteArray) {
+        parser.append(data)
+    }
+
     fun parse(): Pair<Boolean, HttpRequestParseResult?> {
         var offset = 0
-        val startLineResult = getLine(data, offset) ?: return Pair(false, null)
+        val startLineResult = parser.getLine(parser.data, offset) ?: return Pair(false, null)
         val startLine = startLineResult.first
         var nextLineOffset = startLineResult.second
         offset = nextLineOffset
@@ -50,7 +56,7 @@ private class HttpRequestParser : HttpParser() {
         }
         val headers = mutableListOf<SettingsHttpHeader>()
         while (true) {
-            val lineResult = getLine(data, offset) ?: break
+            val lineResult = parser.getLine(parser.data, offset) ?: break
             val line = lineResult.first
             nextLineOffset = lineResult.second
             val parts = line.lowercase().split(" ").filter { it.isNotEmpty() }
@@ -63,7 +69,7 @@ private class HttpRequestParser : HttpParser() {
                 if (contentLength < 0) {
                     return Pair(true, null)
                 }
-                val body = data.copyOfRange(nextLineOffset.coerceAtMost(data.size), data.size)
+                val body = parser.data.copyOfRange(nextLineOffset.coerceAtMost(parser.data.size), parser.data.size)
                 if (body.size < contentLength) {
                     return Pair(false, null)
                 }

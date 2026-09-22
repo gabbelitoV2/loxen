@@ -127,11 +127,11 @@ enum class ChatBotMapArgument(override val rawValue: String) : ChatBotArgument {
 }
 
 enum class ChatBotMapZoomArgument(override val rawValue: String) : ChatBotArgument {
-    out("out"),
+    `out`("out"),
 }
 
 enum class ChatBotLocationArgument(override val rawValue: String) : ChatBotArgument {
-    data("data"),
+    `data`("data"),
 }
 
 enum class ChatBotLocationDataArgument(override val rawValue: String) : ChatBotArgument {
@@ -217,7 +217,7 @@ enum class ChatBotTeslaArgument(override val rawValue: String) : ChatBotArgument
 }
 
 enum class ChatBotTeslaTrunkArgument(override val rawValue: String) : ChatBotArgument {
-    open("open"),
+    `open`("open"),
     close("close"),
 }
 

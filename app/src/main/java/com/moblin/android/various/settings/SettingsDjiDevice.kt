@@ -180,25 +180,25 @@ class SettingsDjiDevice : Named {
 
     var id: UUID = UUID.randomUUID()
 
-    private val name = MutableStateFlow(baseName)
+    private val _name = MutableStateFlow(baseName)
     override var name: String
-        get() = name.value
+        get() = _name.value
         set(value) {
-            name.value = value
+            _name.value = value
         }
 
-    private val bluetoothPeripheralName = MutableStateFlow<String?>(null)
+    private val _bluetoothPeripheralName = MutableStateFlow<String?>(null)
     var bluetoothPeripheralName: String?
-        get() = bluetoothPeripheralName.value
+        get() = _bluetoothPeripheralName.value
         set(value) {
-            bluetoothPeripheralName.value = value
+            _bluetoothPeripheralName.value = value
         }
 
-    private val bluetoothPeripheralId = MutableStateFlow<UUID?>(null)
+    private val _bluetoothPeripheralId = MutableStateFlow<UUID?>(null)
     var bluetoothPeripheralId: UUID?
-        get() = bluetoothPeripheralId.value
+        get() = _bluetoothPeripheralId.value
         set(value) {
-            bluetoothPeripheralId.value = value
+            _bluetoothPeripheralId.value = value
         }
 
     private val _wifiSsid = MutableStateFlow("")
@@ -271,11 +271,11 @@ class SettingsDjiDevice : Named {
             _fps.value = value
         }
 
-    private val bitrate = MutableStateFlow<UInt>(6_000_000u)
+    private val _bitrate = MutableStateFlow<UInt>(6_000_000u)
     var bitrate: UInt
-        get() = bitrate.value
+        get() = _bitrate.value
         set(value) {
-            bitrate.value = value
+            _bitrate.value = value
         }
 
     private val _videoCodec = MutableStateFlow(SettingsDjiDeviceVideoCodec.h265hevc)
@@ -299,11 +299,11 @@ class SettingsDjiDevice : Named {
             _model.value = value
         }
 
-    private val state = MutableStateFlow<DjiDeviceState?>(null)
+    private val _state = MutableStateFlow<DjiDeviceState?>(null)
     var state: DjiDeviceState?
-        get() = state.value
+        get() = _state.value
         set(value) {
-            state.value = value
+            _state.value = value
         }
 
     val autoRestartStreamTimer = MainTimer()
@@ -315,7 +315,7 @@ class SettingsDjiDevice : Named {
 
     enum class CodingKeys {
         id,
-        name,
+        nameKey,
         bluetoothPeripheralName,
         bluetoothPeripheralId,
         wifiSsid,
@@ -337,11 +337,11 @@ class SettingsDjiDevice : Named {
 
 @Serializable(with = SettingsDjiDevicesSerializer::class)
 class SettingsDjiDevices {
-    private val devices = MutableStateFlow<List<SettingsDjiDevice>>(emptyList())
+    private val _devices = MutableStateFlow<List<SettingsDjiDevice>>(emptyList())
     var devices: List<SettingsDjiDevice>
-        get() = devices.value
+        get() = _devices.value
         set(value) {
-            devices.value = value
+            _devices.value = value
         }
 
     init {
@@ -394,7 +394,7 @@ object SettingsDjiDeviceVideoCodecSerializer : KSerializer<SettingsDjiDeviceVide
     }
 }
 
-private object UuidSerializer : KSerializer<UUID> {
+object SettingsDjiDeviceUuidSerializer : KSerializer<UUID> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("java.util.UUID", PrimitiveKind.STRING)
 
@@ -410,14 +410,14 @@ private object UuidSerializer : KSerializer<UUID> {
 object SettingsDjiDeviceSerializer : KSerializer<SettingsDjiDevice> {
     @Serializable
     private data class Surrogate(
-        @Serializable(with = UuidSerializer::class) val id: UUID = UUID.randomUUID(),
+        @Serializable(with = SettingsDjiDeviceUuidSerializer::class) val id: UUID = UUID.randomUUID(),
         val name: String = SettingsDjiDevice.baseName,
         val bluetoothPeripheralName: String? = null,
-        @Serializable(with = UuidSerializer::class) val bluetoothPeripheralId: UUID? = null,
+        @Serializable(with = SettingsDjiDeviceUuidSerializer::class) val bluetoothPeripheralId: UUID? = null,
         val wifiSsid: String = "",
         val wifiPassword: String = "",
         val rtmpUrlType: SettingsDjiDeviceUrlType = SettingsDjiDeviceUrlType.server,
-        @Serializable(with = UuidSerializer::class) val serverRtmpStreamId: UUID = UUID.randomUUID(),
+        @Serializable(with = SettingsDjiDeviceUuidSerializer::class) val serverRtmpStreamId: UUID = UUID.randomUUID(),
         val serverRtmpUrl: String? = null,
         val customRtmpUrl: String = "",
         val autoRestartStream: Boolean = false,

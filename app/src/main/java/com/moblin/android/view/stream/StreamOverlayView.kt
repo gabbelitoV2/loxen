@@ -235,7 +235,7 @@ fun StreamOverlayView(
     val isFrontCameraSelected by streamOverlay.isFrontCameraSelected.collectAsState()
     val showingPanel by model.showingPanel.collectAsState()
     val isPortrait by orientation.isPortrait.collectAsState()
-    val chatEnabled by chatSettings.enabled.collectAsState()
+    val chatEnabled = chatSettings.enabled
     Box {
         if (isTorchOn && isFrontCameraSelected) {
             FrontTorchView(orientation = orientation)

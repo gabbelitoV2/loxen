@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -38,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.moblin.android.common.various.formatBytesPerSecond
 import com.moblin.android.common.various.personalHotspotLocalAddress
@@ -57,7 +57,7 @@ import com.moblin.android.various.settings.SettingsGoProLens
 import com.moblin.android.various.settings.SettingsRtmpServer
 import com.moblin.android.various.settings.SettingsWiFi
 import com.moblin.android.various.settings.goProDeviceBitrates
-import com.moblin.android.various.utils.makeOffsets
+import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.djidevices.rtmpServerStreamUrl
 import com.moblin.android.view.settings.ingests.rtmpserver.RtmpServerSettingsView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
@@ -72,20 +72,21 @@ import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.view.utils.WiFiSsidEditView
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
+import java.util.UUID
 
 fun formatGoProDeviceState(state: GoProDeviceState?): String {
     return when (state) {
-        null, GoProDeviceState.IDLE -> localized("Not started")
-        GoProDeviceState.DISCOVERING -> localized("Discovering")
-        GoProDeviceState.CONNECTING -> localized("Connecting")
-        GoProDeviceState.PAIRING -> localized("Pairing")
-        GoProDeviceState.SETTING_UP_WIFI -> localized("Setting up WiFi")
-        GoProDeviceState.WIFI_SETUP_FAILED -> localized("WiFi setup failed")
-        GoProDeviceState.CONFIGURING -> localized("Configuring")
-        GoProDeviceState.STARTING_STREAM -> localized("Starting stream")
-        GoProDeviceState.STREAMING -> localized("Streaming")
-        GoProDeviceState.STOPPING_STREAM -> localized("Stopping stream")
-        GoProDeviceState.FAILED -> localized("Failed")
+        null, GoProDeviceState.idle -> localized("Not started")
+        GoProDeviceState.discovering -> localized("Discovering")
+        GoProDeviceState.connecting -> localized("Connecting")
+        GoProDeviceState.pairing -> localized("Pairing")
+        GoProDeviceState.settingUpWifi -> localized("Setting up WiFi")
+        GoProDeviceState.wifiSetupFailed -> localized("WiFi setup failed")
+        GoProDeviceState.configuring -> localized("Configuring")
+        GoProDeviceState.startingStream -> localized("Starting stream")
+        GoProDeviceState.streaming -> localized("Streaming")
+        GoProDeviceState.stoppingStream -> localized("Stopping stream")
+        GoProDeviceState.failed -> localized("Failed")
     }
 }
 
@@ -96,6 +97,7 @@ private fun GoProDeviceScannerSettingsView(
     onSelect: (GoProDiscoveredDevice) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val context = LocalContext.current
     val scanner = GoProDeviceScanner.shared
     val bluetoothAllowed by model.bluetoothAllowed.collectAsState()
     val discoveredDevices by scanner.discoveredDevices.collectAsState()
@@ -135,7 +137,7 @@ private fun GoProDeviceScannerSettingsView(
         }
     }
     LaunchedEffect(Unit) {
-        scanner.startScanningForDevices()
+        scanner.startScanningForDevices(context)
     }
     DisposableEffect(Unit) {
         onDispose {
@@ -146,8 +148,8 @@ private fun GoProDeviceScannerSettingsView(
 
 @Composable
 private fun GoProDeviceSelectionSection(model: Model = LocalModel.current, device: SettingsGoProDevice) {
-    val bluetoothPeripheralId by device.bluetoothPeripheralId.collectAsState()
-    val bluetoothPeripheralName by device.bluetoothPeripheralName.collectAsState()
+    val bluetoothPeripheralId = device.bluetoothPeripheralId
+    val bluetoothPeripheralName = device.bluetoothPeripheralName
     var showScanner by remember { mutableStateOf(false) }
     Text(localized("Device"), style = MaterialTheme.typography.titleSmall)
     Row(
@@ -169,8 +171,9 @@ private fun GoProDeviceSelectionSection(model: Model = LocalModel.current, devic
         GoProDeviceScannerSettingsView(
             model = model,
             onSelect = { discoveredDevice ->
-                device.bluetoothPeripheralId.value = discoveredDevice.peripheral.identifier
-                device.bluetoothPeripheralName.value = discoveredDevice.name
+                device.bluetoothPeripheralId =
+                    UUID.nameUUIDFromBytes(discoveredDevice.peripheral.address.toByteArray())
+                device.bluetoothPeripheralName = discoveredDevice.name
             },
             onDismiss = { showScanner = false },
         )
@@ -179,8 +182,8 @@ private fun GoProDeviceSelectionSection(model: Model = LocalModel.current, devic
 
 @Composable
 private fun GoProDeviceWifiSection(model: Model = LocalModel.current, device: SettingsGoProDevice) {
-    val wifiSsid by device.wifiSsid.collectAsState()
-    val wifiPassword by device.wifiPassword.collectAsState()
+    val wifiSsid = device.wifiSsid
+    val wifiPassword = device.wifiPassword
     var showSsidEdit by remember { mutableStateOf(false) }
     Text(localized("WiFi"), style = MaterialTheme.typography.titleSmall)
     Row(
@@ -196,16 +199,16 @@ private fun GoProDeviceWifiSection(model: Model = LocalModel.current, device: Se
         title = localized("Password"),
         value = wifiPassword,
         onSubmit = { value ->
-            device.wifiPassword.value = value
-            if (device.wifiSsid.value.isNotEmpty()) {
-                val network = model.database.getSavedWiFiNetwork(ssid = device.wifiSsid.value)
+            device.wifiPassword = value
+            if (device.wifiSsid.isNotEmpty()) {
+                val network = model.database.getSavedWiFiNetwork(ssid = device.wifiSsid)
                 if (network != null) {
                     network.password = value
                 } else {
                     val newNetwork = SettingsWiFi()
-                    newNetwork.ssid = device.wifiSsid.value
+                    newNetwork.ssid = device.wifiSsid
                     newNetwork.password = value
-                    model.database.savedWifiNetworks.add(newNetwork)
+                    model.database.savedWifiNetworks = model.database.savedWifiNetworks + newNetwork
                 }
             }
         },
@@ -216,14 +219,19 @@ private fun GoProDeviceWifiSection(model: Model = LocalModel.current, device: Se
     }
     Text(localized("Moblin sends these credentials securely to the paired GoPro over Bluetooth."))
     if (showSsidEdit) {
-        WiFiSsidEditView(value = wifiSsid) { ssid ->
-            device.wifiSsid.value = ssid
-            if (device.wifiPassword.value.isEmpty()) {
-                device.wifiPassword.value =
+        val update = { ssid: String ->
+            device.wifiSsid = ssid
+            if (device.wifiPassword.isEmpty()) {
+                device.wifiPassword =
                     model.database.getSavedWiFiNetwork(ssid = ssid)?.password ?: ""
             }
-            showSsidEdit = false
         }
+        WiFiSsidEditView(
+            value = wifiSsid,
+            onValueChange = update,
+            onSubmit = update,
+            onDismiss = { showSsidEdit = false },
+        )
     }
 }
 
@@ -235,32 +243,47 @@ private fun serverUrls(
     status: StatusOther,
     rtmpServer: SettingsRtmpServer,
 ): List<GoProRtmpUrlAndImage> {
-    val stream = model.getRtmpStream(id = device.serverRtmpStreamId.value) ?: return emptyList()
+    val stream = rtmpServer.streams.firstOrNull { it.id == device.serverRtmpStreamId }
+        ?: return emptyList()
     val urls = status.ipStatuses.value.map { ipStatus ->
         GoProRtmpUrlAndImage(
             url = rtmpServerStreamUrl(
                 address = ipStatus.ipType.formatAddress(ipStatus.ip),
-                port = rtmpServer.port.value,
+                port = rtmpServer.port,
                 streamKey = stream.streamKey,
             ),
-            image = urlImage(ipStatus.interfaceType),
+            image = urlImage(ipStatus.interfaceType.ordinal),
         )
     }.toMutableList()
     urls.add(
         GoProRtmpUrlAndImage(
             url = rtmpServerStreamUrl(
                 address = personalHotspotLocalAddress,
-                port = rtmpServer.port.value,
+                port = rtmpServer.port,
                 streamKey = stream.streamKey,
             ),
             image = "personalhotspot",
         ),
     )
-    val fixedUrl = device.serverRtmpUrl.value
+    val fixedUrl = device.serverRtmpUrl
     if (fixedUrl != null && urls.none { it.url == fixedUrl }) {
         urls.add(0, GoProRtmpUrlAndImage(url = fixedUrl, image = "questionmark"))
     }
     return urls
+}
+
+private fun automaticServerRtmpUrl(
+    device: SettingsGoProDevice,
+    status: StatusOther,
+    rtmpServer: SettingsRtmpServer,
+): String? {
+    val stream = rtmpServer.streams.firstOrNull { it.id == device.serverRtmpStreamId } ?: return null
+    val ipStatus = status.ipStatuses.value.firstOrNull() ?: return null
+    return rtmpServerStreamUrl(
+        address = ipStatus.ipType.formatAddress(ipStatus.ip),
+        port = rtmpServer.port,
+        streamKey = stream.streamKey,
+    )
 }
 
 @Composable
@@ -270,13 +293,14 @@ private fun GoProDeviceRtmpSection(
     status: StatusOther,
     rtmpServer: SettingsRtmpServer,
 ) {
-    val rtmpUrlType by device.rtmpUrlType.collectAsState()
-    val serverRtmpStreamId by device.serverRtmpStreamId.collectAsState()
-    val serverRtmpUrl by device.serverRtmpUrl.collectAsState()
-    val customRtmpUrl by device.customRtmpUrl.collectAsState()
-    val streams by rtmpServer.streams.collectAsState()
-    val rtmpServerEnabled by rtmpServer.enabled.collectAsState()
+    val rtmpUrlType = device.rtmpUrlType
+    val serverRtmpStreamId = device.serverRtmpStreamId
+    val serverRtmpUrl = device.serverRtmpUrl
+    val customRtmpUrl = device.customRtmpUrl
+    val streams = rtmpServer.streams
+    val rtmpServerEnabled = rtmpServer.enabled
     val started = device.isStarted
+    val automaticUrl = automaticServerRtmpUrl(device, status, rtmpServer)
 
     var typeExpanded by remember { mutableStateOf(false) }
     var streamExpanded by remember { mutableStateOf(false) }
@@ -299,7 +323,7 @@ private fun GoProDeviceRtmpSection(
                     DropdownMenuItem(
                         text = { Text(type.toString()) },
                         onClick = {
-                            device.rtmpUrlType.value = type
+                            device.rtmpUrlType = type
                             typeExpanded = false
                         },
                     )
@@ -307,7 +331,7 @@ private fun GoProDeviceRtmpSection(
             }
         }
     }
-    if (rtmpUrlType == SettingsDjiDeviceUrlType.SERVER) {
+    if (rtmpUrlType == SettingsDjiDeviceUrlType.server) {
         if (streams.isEmpty()) {
             Text(localized("No RTMP server streams exists"))
         } else {
@@ -331,8 +355,8 @@ private fun GoProDeviceRtmpSection(
                             DropdownMenuItem(
                                 text = { Text(stream.name) },
                                 onClick = {
-                                    device.serverRtmpStreamId.value = stream.id
-                                    device.serverRtmpUrl.value = null
+                                    device.serverRtmpStreamId = stream.id
+                                    device.serverRtmpUrl = null
                                     streamExpanded = false
                                 },
                             )
@@ -349,7 +373,7 @@ private fun GoProDeviceRtmpSection(
                 Text(localized("URL"), modifier = Modifier.weight(1f))
                 Box {
                     TextButton(onClick = { urlExpanded = true }, enabled = !started) {
-                        Text(serverRtmpUrl ?: model.automaticServerRtmpUrl(device = device) ?: "")
+                        Text(serverRtmpUrl ?: automaticUrl ?: "")
                     }
                     DropdownMenu(
                         expanded = urlExpanded,
@@ -364,14 +388,14 @@ private fun GoProDeviceRtmpSection(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
-                                    device.serverRtmpUrl.value = null
+                                    device.serverRtmpUrl = null
                                     urlExpanded = false
                                 }
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Icon(Icons.Default.Info, contentDescription = null)
-                            Text(model.automaticServerRtmpUrl(device = device) ?: "")
+                            Text(automaticUrl ?: "")
                         }
                         Text(
                             localized("Fixed IP address"),
@@ -383,7 +407,7 @@ private fun GoProDeviceRtmpSection(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        device.serverRtmpUrl.value = item.url
+                                        device.serverRtmpUrl = item.url
                                         urlExpanded = false
                                     }
                                     .padding(horizontal = 12.dp, vertical = 8.dp),
@@ -408,7 +432,7 @@ private fun GoProDeviceRtmpSection(
             title = localized("URL"),
             value = customRtmpUrl,
             onSubmit = { value ->
-                device.customRtmpUrl.value = value
+                device.customRtmpUrl = value
             },
         )
         if (customRtmpUrl.isEmpty()) {
@@ -421,8 +445,8 @@ private fun GoProDeviceRtmpSection(
         ),
     )
     LaunchedEffect(Unit) {
-        if (streams.isNotEmpty() && streams.none { it.id == device.serverRtmpStreamId.value }) {
-            device.serverRtmpStreamId.value = streams.first().id
+        if (streams.isNotEmpty() && streams.none { it.id == device.serverRtmpStreamId }) {
+            device.serverRtmpStreamId = streams.first().id
         }
     }
     ShortcutSectionView {
@@ -432,11 +456,11 @@ private fun GoProDeviceRtmpSection(
 
 @Composable
 private fun GoProDeviceStreamSettingsSection(device: SettingsGoProDevice) {
-    val resolution by device.resolution.collectAsState()
-    val bitrate by device.bitrate.collectAsState()
-    val lens by device.lens.collectAsState()
-    val autoRestartStream by device.autoRestartStream.collectAsState()
-    val rtmpUrlType by device.rtmpUrlType.collectAsState()
+    val resolution = device.resolution
+    val bitrate = device.bitrate
+    val lens = device.lens
+    val autoRestartStream = device.autoRestartStream
+    val rtmpUrlType = device.rtmpUrlType
     val started = device.isStarted
 
     var resolutionExpanded by remember { mutableStateOf(false) }
@@ -463,7 +487,7 @@ private fun GoProDeviceStreamSettingsSection(device: SettingsGoProDevice) {
                     DropdownMenuItem(
                         text = { Text(item.rawValue) },
                         onClick = {
-                            device.resolution.value = item
+                            device.resolution = item
                             resolutionExpanded = false
                         },
                     )
@@ -490,7 +514,7 @@ private fun GoProDeviceStreamSettingsSection(device: SettingsGoProDevice) {
                     DropdownMenuItem(
                         text = { Text(formatBytesPerSecond(item.toLong())) },
                         onClick = {
-                            device.bitrate.value = item
+                            device.bitrate = item
                             bitrateExpanded = false
                         },
                     )
@@ -514,7 +538,7 @@ private fun GoProDeviceStreamSettingsSection(device: SettingsGoProDevice) {
                     DropdownMenuItem(
                         text = { Text(item.toString()) },
                         onClick = {
-                            device.lens.value = item
+                            device.lens = item
                             lensExpanded = false
                         },
                     )
@@ -522,7 +546,7 @@ private fun GoProDeviceStreamSettingsSection(device: SettingsGoProDevice) {
             }
         }
     }
-    if (rtmpUrlType == SettingsDjiDeviceUrlType.SERVER) {
+    if (rtmpUrlType == SettingsDjiDeviceUrlType.server) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -535,7 +559,7 @@ private fun GoProDeviceStreamSettingsSection(device: SettingsGoProDevice) {
             )
             Switch(
                 checked = autoRestartStream,
-                onCheckedChange = { device.autoRestartStream.value = it },
+                onCheckedChange = { device.autoRestartStream = it },
             )
         }
     }
@@ -555,13 +579,13 @@ private fun GoProDeviceStartStopSection(
                 .padding(8.dp),
         ) {
             TextButtonView("Stop live stream") {
-                model.stopGoProDeviceLiveStream(device = device)
+                TODO("stopGoProDeviceLiveStream")
             }
         }
     } else {
         TextButtonView("Start live stream") {
             if (device.canStartLive(status.isConnectedToIpv4WiFi())) {
-                model.startGoProDeviceLiveStream(device = device)
+                TODO("startGoProDeviceLiveStream")
             }
         }
     }
@@ -570,7 +594,7 @@ private fun GoProDeviceStartStopSection(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GoProBleDeviceSettingsView(model: Model = LocalModel.current, device: SettingsGoProDevice) {
-    val state by device.state.collectAsState()
+    val state = device.state
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(localized("GoPro device")) })
@@ -584,11 +608,12 @@ fun GoProBleDeviceSettingsView(model: Model = LocalModel.current, device: Settin
                 .padding(16.dp),
         ) {
             NameEditView(
-                name = device.name.value,
-                existingNames = model.database.goPro.devices.value,
-            ) { name ->
-                device.name.value = name
-            }
+                name = device.name,
+                onNameChange = { name ->
+                    device.name = name
+                },
+                existingNames = model.database.goPro.devices,
+            )
             GoProDeviceSelectionSection(model = model, device = device)
             GoProDeviceWifiSection(model = model, device = device)
             GoProDeviceRtmpSection(
@@ -617,21 +642,18 @@ fun GoProBleDevicesSettingsSection(
     goPro: SettingsGoPro,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val devices by goPro.devices.collectAsState()
+    val devices = goPro.devices
     Text(localized("Devices"), style = MaterialTheme.typography.titleSmall)
     for (device in devices) {
-        val name by device.name.collectAsState()
-        val state by device.state.collectAsState()
+        val name = device.name
+        val state = device.state
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .combinedClickable(
                     onClick = { onNavigate("GoProBleDeviceSettingsView") },
                     onLongClick = {
-                        val offsets = makeOffsets(devices, device.id)
-                        if (offsets != null) {
-                            model.removeGoProDevices(offsets = offsets)
-                        }
+                        TODO("removeGoProDevices")
                     },
                 )
                 .padding(vertical = 8.dp),
@@ -646,11 +668,11 @@ fun GoProBleDevicesSettingsSection(
     TODO("no Compose counterpart for drag reordering of a list (onMove)")
     CreateButtonView {
         val device = SettingsGoProDevice()
-        device.name.value = makeUniqueName(
+        device.name = makeUniqueName(
             name = SettingsGoProDevice.baseName,
             existingNames = devices,
         )
-        goPro.devices.value = devices + device
+        goPro.devices.add(device)
     }
     Text(
         localized(

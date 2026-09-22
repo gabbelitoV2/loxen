@@ -19,32 +19,20 @@ class RtmpSetPeerBandwidthMessage : RtmpMessage {
     var size: UInt = 0u
     var limit: Limit = Limit.HARD
 
-    constructor() : super(RtmpMessageType.BANDWIDTH)
-
-    constructor(size: UInt, limit: Limit) : super(RtmpMessageType.BANDWIDTH) {
-        this.size = size
-        this.limit = limit
+    constructor() : super(RtmpMessageType.entries.first { it.rawValue.toInt() == 0x06 }) {
+        encoded = createEncoded()
     }
 
-    override var encoded: ByteArray
-        get() {
-            if (super.encoded.isNotEmpty()) {
-                return super.encoded
-            }
-            val payload = ByteBuffer.allocate(5)
-            payload.putInt(size.toInt())
-            payload.put(limit.rawValue.toByte())
-            super.encoded = payload.array()
-            return super.encoded
-        }
-        set(value) {
-            if (super.encoded.contentEquals(value)) {
-                return
-            }
-            if (value.size >= 5) {
-                size = ByteBuffer.wrap(value, 0, 4).int.toUInt()
-                limit = Limit.fromRawValue(value[4].toUByte())
-            }
-            super.encoded = value
-        }
+    constructor(size: UInt, limit: Limit) : super(RtmpMessageType.entries.first { it.rawValue.toInt() == 0x06 }) {
+        this.size = size
+        this.limit = limit
+        encoded = createEncoded()
+    }
+
+    private fun createEncoded(): ByteArray {
+        val payload = ByteBuffer.allocate(5)
+        payload.putInt(size.toInt())
+        payload.put(limit.rawValue.toByte())
+        return payload.array()
+    }
 }

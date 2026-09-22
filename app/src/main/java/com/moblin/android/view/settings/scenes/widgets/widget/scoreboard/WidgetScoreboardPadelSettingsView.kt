@@ -53,11 +53,11 @@ private fun PlayersPlayerView(
     NameEditView(
         name = player.name,
         existingNames = database.scoreboardPlayers,
-        onChange = { player.name = it }
+        onNameChange = { player.name = it }
     )
     LaunchedEffect(player.name) {
-        model.sceneUpdated()
-        model.sendScoreboardPlayersToWatch()
+        TODO("model.sceneUpdated() not available in the port")
+        TODO("model.sendScoreboardPlayersToWatch() not available in the port")
     }
 }
 
@@ -73,7 +73,7 @@ private fun deletePlayer(
         }
     }
     updated()
-    model.sendScoreboardPlayersToWatch()
+    TODO("model.sendScoreboardPlayersToWatch() not available in the port")
 }
 
 @Composable
@@ -91,14 +91,14 @@ private fun PlayersView(
             }
         }
         TODO("no Android counterpart for list reordering")
-        CreateButtonView(onClick = {
+        CreateButtonView(action = {
             val player = SettingsWidgetScoreboardPlayer()
             player.name = makeUniqueName(
                 name = SettingsWidgetScoreboardPlayer.baseName,
                 existingNames = database.scoreboardPlayers
             )
             database.scoreboardPlayers.add(player)
-            model.sendScoreboardPlayersToWatch()
+            TODO("model.sendScoreboardPlayersToWatch() not available in the port")
         })
         SwipeLeftToDeleteHelpView(kind = localized("a player"))
     }
@@ -135,7 +135,7 @@ private fun PlayerView(
                 items = model.database.scoreboardPlayers.map {
                     InlinePickerItem(id = it.id.toString(), text = it.name)
                 },
-                selectedId = playerId.toString()
+                initialSelectedId = playerId.toString()
             )
         }
     }
@@ -155,15 +155,11 @@ fun WidgetScoreboardPadelQuickButtonControlsView(
             horizontalArrangement = Arrangement.spacedBy(13.dp)
         ) {
             Spacer(modifier = Modifier.weight(1f))
-            ScoreboardUndoButtonView(onClick = {
-                model.handleUpdatePadelScoreboard(
-                    action = TODO("PadelScoreboardAction(undo) type not in the port glossary")
-                )
+            ScoreboardUndoButtonView(action = {
+                TODO("PadelScoreboardAction(undo) type not in the port glossary")
             })
-            ScoreboardIncrementButtonView(onClick = {
-                model.handleUpdatePadelScoreboard(
-                    action = TODO("PadelScoreboardAction(incrementHome) type not in the port glossary")
-                )
+            ScoreboardIncrementButtonView(action = {
+                TODO("PadelScoreboardAction(incrementHome) type not in the port glossary")
             })
         }
         Row(
@@ -171,15 +167,11 @@ fun WidgetScoreboardPadelQuickButtonControlsView(
             horizontalArrangement = Arrangement.spacedBy(13.dp)
         ) {
             Spacer(modifier = Modifier.weight(1f))
-            ScoreboardResetScoreButtonView(onClick = {
-                model.handleUpdatePadelScoreboard(
-                    action = TODO("PadelScoreboardAction(reset) type not in the port glossary")
-                )
+            ScoreboardResetScoreButtonView(action = {
+                TODO("PadelScoreboardAction(reset) type not in the port glossary")
             })
-            ScoreboardIncrementButtonView(onClick = {
-                model.handleUpdatePadelScoreboard(
-                    action = TODO("PadelScoreboardAction(incrementAway) type not in the port glossary")
-                )
+            ScoreboardIncrementButtonView(action = {
+                TODO("PadelScoreboardAction(incrementAway) type not in the port glossary")
             })
         }
     }

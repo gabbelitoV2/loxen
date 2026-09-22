@@ -10,7 +10,7 @@ import com.moblin.android.LocalModel
 
 private fun submitMessage(model: Model, widget: SettingsWidget, value: String) {
     widget.qrCode.message = value
-    model.resetSelectedScene(changeScene = false)
+    TODO("resetSelectedScene(changeScene = false)")
 }
 
 @Composable

@@ -85,6 +85,10 @@ private class FontSpan(private val typeface: Typeface) : MetricAffectingSpan() {
     override fun updateMeasureState(paint: TextPaint) {
         paint.typeface = typeface
     }
+
+    override fun updateDrawState(tp: TextPaint) {
+        tp.typeface = typeface
+    }
 }
 
 private class LinkSpan(val link: String) : CharacterStyle() {
@@ -170,7 +174,7 @@ private fun makeFont(content: ChatLineContent, style: ChatLineTextStyle): Typefa
 }
 
 private fun makeLayout(content: ChatLineContent, availableWidth: Float): ChatLineLayout {
-    val sizesVersion = EmotesPlayer.sizesVersion
+    val sizesVersion = EmotesPlayer.shared.sizesVersion.value
     val basePaint = TextPaint()
     basePaint.isAntiAlias = true
     basePaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
@@ -218,15 +222,15 @@ private fun makeLayout(content: ChatLineContent, availableWidth: Float): ChatLin
                 val image = item.image
                 var contentWidth = 0f
                 var contentHeight = 0f
-                val imageSize = EmotesPlayer.size(image.source)
-                if (imageSize != null && imageSize.width > 0f && imageSize.height > 0f) {
+                val imageSize = EmotesPlayer.shared.size(image.source)
+                if (imageSize != null && imageSize.width.toFloat() > 0f && imageSize.height.toFloat() > 0f) {
                     val height = image.height
                     if (height != null) {
                         contentHeight = max(height - 2 * image.verticalPadding, 0f)
-                        contentWidth = contentHeight * imageSize.width / imageSize.height
+                        contentWidth = contentHeight * imageSize.width.toFloat() / imageSize.height.toFloat()
                     } else {
-                        contentWidth = imageSize.width
-                        contentHeight = imageSize.height
+                        contentWidth = imageSize.width.toFloat()
+                        contentHeight = imageSize.height.toFloat()
                     }
                 } else {
                     hasUnknownImageSize = true
@@ -374,7 +378,7 @@ class ChatLineUiView(context: Context) : FrameLayout(context) {
         val content = this.content ?: return null
         for (layout in layouts) {
             if (layout.availableWidth == availableWidth) {
-                if (!layout.hasUnknownImageSize || layout.sizesVersion == EmotesPlayer.sizesVersion) {
+                if (!layout.hasUnknownImageSize || layout.sizesVersion == EmotesPlayer.shared.sizesVersion.value) {
                     return layout
                 }
                 layouts.remove(layout)
@@ -419,28 +423,18 @@ class ChatLineUiView(context: Context) : FrameLayout(context) {
         currentLayout = layout
         val images = layout.images
         while (imageViews.size < images.size) {
-            val imageView = EmoteUiView(context)
+            val imageView = EmoteUiView()
             imageView.onLoaded = { onImageLoaded?.invoke() }
-            addView(imageView)
             imageViews.add(imageView)
         }
         while (imageViews.size > images.size) {
             val imageView = imageViews.removeAt(imageViews.size - 1)
             imageView.unregister()
-            removeView(imageView)
         }
         val borderWidth = if (content.borderColor != null) content.borderWidth else 0f
         for (index in images.indices) {
             val image = images[index]
             val imageView = imageViews[index]
-            val frame = layout.imageFrames[index]
-            imageView.layout(
-                (frame.left - borderWidth).toInt(),
-                (frame.top - borderWidth).toInt(),
-                (frame.right + borderWidth).toInt(),
-                (frame.bottom + borderWidth).toInt(),
-            )
-            imageView.alpha = image.opacity
             imageView.setEmote(
                 source = image.source,
                 animated = image.animated,
@@ -506,7 +500,7 @@ class ChatLineViewCoordinator(var onTap: ((String?) -> Unit)?) {
 
 @Composable
 fun ChatLineView(content: ChatLineContent, onTap: ((String?) -> Unit)? = null) {
-    val sizesVersion by EmotesPlayer.sizesVersion.collectAsState()
+    val sizesVersion by EmotesPlayer.shared.sizesVersion.collectAsState()
     val coordinator = remember { ChatLineViewCoordinator(onTap) }
     val viewState = remember { mutableStateOf<ChatLineUiView?>(null) }
     AndroidView(

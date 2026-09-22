@@ -1,7 +1,7 @@
 package com.moblin.android.streamingplatforms.soop
 
 import com.moblin.android.common.various.httpGet
-import com.moblin.android.common.various.sleep
+import kotlinx.coroutines.delay
 import com.moblin.android.various.model.PlatformStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,23 +22,23 @@ private const val baseUrl = "https://api-channel.sooplive.com"
 class SoopPlatformStatus {
     private val scope = CoroutineScope(Dispatchers.Main)
     private var task: Job? = null
-    var platformStatus: PlatformStatus = PlatformStatus.Unknown
+    var platformStatus: PlatformStatus = PlatformStatus.unknown
 
     fun start(userId: String) {
-        platformStatus = PlatformStatus.Unknown
+        platformStatus = PlatformStatus.unknown
         val url = "$baseUrl/v1.1/channel/$userId/home/section/broad"
         task = scope.launch {
             var delaySeconds = 5
             while (true) {
                 try {
-                    sleep(seconds = delaySeconds)
+                    delay(delaySeconds * 1000L)
                     val channelInfo = getChannelInfo(url)
-                    platformStatus = PlatformStatus.Live(viewerCount = channelInfo.currentSumViewer)
+                    platformStatus = PlatformStatus.live(viewerCount = channelInfo.currentSumViewer)
                 } catch (e: Exception) {
-                    platformStatus = PlatformStatus.Unknown
+                    platformStatus = PlatformStatus.unknown
                 }
                 if (!isActive) {
-                    platformStatus = PlatformStatus.Unknown
+                    platformStatus = PlatformStatus.unknown
                     break
                 }
                 delaySeconds = 60
@@ -52,8 +52,8 @@ class SoopPlatformStatus {
     }
 
     private suspend fun getChannelInfo(url: String): SoopChannelInfo {
-        val response = httpGet(url)
-        val data = response.body?.bytes() ?: ByteArray(0)
-        return Json.decodeFromString(data.decodeToString())
+        val response: Any = httpGet(url)
+        val data = if (response is ByteArray) response.decodeToString() else response.toString()
+        return Json.decodeFromString(data)
     }
 }

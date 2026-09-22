@@ -46,8 +46,6 @@ data class ElementaryStreamSpecificData(
 ) {
     private var esDescriptors: ByteArray = ByteArray(0)
 
-    constructor()
-
     constructor(reader: ByteReader) : this() {
         streamType = ElementaryStreamType.fromRawValue(reader.readUInt8()) ?: ElementaryStreamType.unspecific
         elementaryPacketId = (reader.readUInt16().toInt() and 0x0FFF).toUShort()

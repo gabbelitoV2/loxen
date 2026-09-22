@@ -51,10 +51,10 @@ fun Model.macStatusItemToggleRecording() {
 
 private fun Model.makeMacStatusItemStatusTitle(): String {
     val titles = mutableListOf<String>()
-    if (isLive) {
+    if (isLive.value) {
         titles.add(localized("Live"))
     }
-    if (isRecording) {
+    if (isRecording.value) {
         titles.add(localized("Recording"))
     }
     if (titles.isEmpty()) {

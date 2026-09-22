@@ -117,11 +117,7 @@ fun WidgetAlertsSpeechToTextSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     fun deleteString(indexes: Set<Int>) {
-        for (index in indexes.sortedDescending()) {
-            if (index in speechToText.strings.indices) {
-                speechToText.strings.removeAt(index)
-            }
-        }
+        speechToText.strings = speechToText.strings.filterIndexed { index, _ -> index !in indexes }
         model.updateAlertsSettings()
     }
 
@@ -135,8 +131,9 @@ fun WidgetAlertsSpeechToTextSettingsView(
                     string = string,
                     onNavigate = onNavigate,
                     onDelete = {
-                        makeOffsets(speechToText.strings, string.id)?.let { offsets ->
-                            deleteString(offsets)
+                        val index = speechToText.strings.indexOfFirst { it.id == string.id }
+                        if (index >= 0) {
+                            deleteString(setOf(index))
                         }
                     },
                 )
@@ -145,7 +142,7 @@ fun WidgetAlertsSpeechToTextSettingsView(
             item {
                 CreateButtonView {
                     val string = SettingsWidgetAlertsSpeechToTextString()
-                    speechToText.strings.add(string)
+                    speechToText.strings = speechToText.strings + string
                     model.fixAlertMedias()
                     model.updateAlertsSettings()
                 }

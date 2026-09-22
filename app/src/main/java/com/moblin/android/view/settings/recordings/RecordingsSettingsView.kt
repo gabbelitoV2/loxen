@@ -30,6 +30,7 @@ import com.moblin.android.view.utils.CloseToolbar
 import com.moblin.android.view.utils.CommandCopyView
 import com.moblin.android.view.utils.ExternalButtonView
 import com.moblin.android.view.utils.TextButtonView
+import java.io.File
 import java.net.URI
 import com.moblin.android.LocalModel
 
@@ -47,7 +48,7 @@ ffmpeg -i input.mp4 -af "asetrate=48002.2,aresample=48000" -c:v copy -c:a aac ou
 fun FilesLocationView(model: Model = LocalModel.current, text: String, path: URI) {
     val clipboard = LocalClipboardManager.current
     ExternalButtonView(
-        onClick = {
+        action = {
             if (isMac()) {
                 openInFinder(path = path)
             } else {
@@ -181,10 +182,10 @@ fun RecordingsSettingsView(model: Model = LocalModel.current) {
                 FilesLocationView(
                     model = model,
                     text = localized("Default recordings directory"),
-                    path = model.recordingsStorage.defaultStorageDirectory(),
+                    path = model.recordingsStorage.defaultStorageDirectory().toURI(),
                 )
             }
-            val recordingPath = model.stream.recording.recordingPath
+            val recordingPath = model.stream.value.recording.recordingPath
             if (recordingPath != null) {
                 item {
                     val path = makeRecordingPath(recordingPath)
@@ -192,7 +193,7 @@ fun RecordingsSettingsView(model: Model = LocalModel.current) {
                         FilesLocationView(
                             model = model,
                             text = localized("Current recordings directory"),
-                            path = path,
+                            path = File(path).toURI(),
                         )
                     } else {
                         Text(localized("Current recordings directory unavailable"))
@@ -203,12 +204,12 @@ fun RecordingsSettingsView(model: Model = LocalModel.current) {
                 FilesLocationView(
                     model = model,
                     text = localized("Replays directory"),
-                    path = model.replaysStorage.defaultStorageDirectory(),
+                    path = model.replaysStorage.defaultStorageDirectory().toURI(),
                 )
             }
             item {
                 TextButtonView(
-                    text = localized("Help"),
+                    title = localized("Help"),
                     action = { presentingHelp = true },
                 )
             }

@@ -44,21 +44,21 @@ fun ChatSettingsAppearanceView(
     chat: SettingsChat,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val showAllSettings = database.showAllSettings.collectAsState().value
-    val fontSize = chat.fontSize.collectAsState().value
-    val bigGifScale = chat.bigGifScale.collectAsState().value
-    val displayStyle = chat.displayStyle.collectAsState().value
-    val timestampColorEnabled = chat.timestampColorEnabled.collectAsState().value
-    val boldUsername = chat.boldUsername.collectAsState().value
-    val boldMessage = chat.boldMessage.collectAsState().value
-    val badges = chat.badges.collectAsState().value
-    val animatedEmotes = chat.animatedEmotes.collectAsState().value
-    val sharedChatIcons = chat.sharedChatIcons.collectAsState().value
-    val compactEvents = chat.compactEvents.collectAsState().value
-    val sameUsernameColor = chat.sameUsernameColor.collectAsState().value
-    val backgroundColorEnabled = chat.backgroundColorEnabled.collectAsState().value
-    val shadowColorEnabled = chat.shadowColorEnabled.collectAsState().value
-    val meInUsernameColor = chat.meInUsernameColor.collectAsState().value
+    val showAllSettings = database.showAllSettings
+    val fontSize = chat.fontSize
+    val bigGifScale = chat.bigGifScale
+    val displayStyle = chat.displayStyle
+    val timestampColorEnabled = chat.timestampColorEnabled
+    val boldUsername = chat.boldUsername
+    val boldMessage = chat.boldMessage
+    val badges = chat.badges
+    val animatedEmotes = chat.animatedEmotes
+    val sharedChatIcons = chat.sharedChatIcons
+    val compactEvents = chat.compactEvents
+    val sameUsernameColor = chat.sameUsernameColor
+    val backgroundColorEnabled = chat.backgroundColorEnabled
+    val shadowColorEnabled = chat.shadowColorEnabled
+    val meInUsernameColor = chat.meInUsernameColor
     var displayStyleExpanded by remember { mutableStateOf(false) }
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {
@@ -76,16 +76,16 @@ fun ChatSettingsAppearanceView(
                 Text(localized("Font size"))
                 Slider(
                     value = fontSize.toFloat(),
-                    onValueChange = { chat.fontSize.value = it.toDouble() },
+                    onValueChange = { chat.fontSize = it.toDouble() },
                     valueRange = 10f..30f,
                     steps = 19,
-                    onValueChangeFinished = { model.reloadChatMessages() },
+                    onValueChangeFinished = { TODO("reloadChatMessages") },
                     modifier = Modifier.weight(1f),
                 )
                 Text(fontSize.toInt().toString(), modifier = Modifier.width(25.dp))
             }
             LaunchedEffect(fontSize) {
-                model.reloadChatMessages()
+                TODO("reloadChatMessages")
             }
         }
         item {
@@ -98,16 +98,16 @@ fun ChatSettingsAppearanceView(
                 Text(localized("Big GIF scale"))
                 Slider(
                     value = bigGifScale.toFloat(),
-                    onValueChange = { chat.bigGifScale.value = it.toDouble() },
+                    onValueChange = { chat.bigGifScale = it.toDouble() },
                     valueRange = 1f..10f,
                     steps = 8,
-                    onValueChangeFinished = { model.reloadChatMessages() },
+                    onValueChangeFinished = { TODO("reloadChatMessages") },
                     modifier = Modifier.weight(1f),
                 )
                 Text(bigGifScale.toInt().toString(), modifier = Modifier.width(25.dp))
             }
             LaunchedEffect(bigGifScale) {
-                model.reloadChatMessages()
+                TODO("reloadChatMessages")
             }
         }
         if (showAllSettings) {
@@ -137,7 +137,7 @@ fun ChatSettingsAppearanceView(
                             DropdownMenuItem(
                                 text = { Text(style.toString()) },
                                 onClick = {
-                                    chat.displayStyle.value = style
+                                    chat.displayStyle = style
                                     displayStyleExpanded = false
                                 },
                             )
@@ -155,11 +155,11 @@ fun ChatSettingsAppearanceView(
                     Text(localized("Timestamp"), modifier = Modifier.weight(1f))
                     Switch(
                         checked = timestampColorEnabled,
-                        onCheckedChange = { chat.timestampColorEnabled.value = it },
+                        onCheckedChange = { chat.timestampColorEnabled = it },
                     )
                 }
                 LaunchedEffect(timestampColorEnabled) {
-                    model.reloadChatMessages()
+                    TODO("reloadChatMessages")
                 }
             }
             item {
@@ -172,11 +172,11 @@ fun ChatSettingsAppearanceView(
                     Text(localized("Bold name"), modifier = Modifier.weight(1f))
                     Switch(
                         checked = boldUsername,
-                        onCheckedChange = { chat.boldUsername.value = it },
+                        onCheckedChange = { chat.boldUsername = it },
                     )
                 }
                 LaunchedEffect(boldUsername) {
-                    model.reloadChatMessages()
+                    TODO("reloadChatMessages")
                 }
             }
             item {
@@ -189,11 +189,11 @@ fun ChatSettingsAppearanceView(
                     Text(localized("Bold message"), modifier = Modifier.weight(1f))
                     Switch(
                         checked = boldMessage,
-                        onCheckedChange = { chat.boldMessage.value = it },
+                        onCheckedChange = { chat.boldMessage = it },
                     )
                 }
                 LaunchedEffect(boldMessage) {
-                    model.reloadChatMessages()
+                    TODO("reloadChatMessages")
                 }
             }
             item {
@@ -206,11 +206,11 @@ fun ChatSettingsAppearanceView(
                     Text(localized("Badges"), modifier = Modifier.weight(1f))
                     Switch(
                         checked = badges,
-                        onCheckedChange = { chat.badges.value = it },
+                        onCheckedChange = { chat.badges = it },
                     )
                 }
                 LaunchedEffect(badges) {
-                    model.reloadChatMessages()
+                    TODO("reloadChatMessages")
                 }
             }
             item {
@@ -223,11 +223,11 @@ fun ChatSettingsAppearanceView(
                     Text(localized("Animated emotes"), modifier = Modifier.weight(1f))
                     Switch(
                         checked = animatedEmotes,
-                        onCheckedChange = { chat.animatedEmotes.value = it },
+                        onCheckedChange = { chat.animatedEmotes = it },
                     )
                 }
                 LaunchedEffect(animatedEmotes) {
-                    model.reloadChatMessages()
+                    TODO("reloadChatMessages")
                 }
             }
             item {
@@ -240,11 +240,11 @@ fun ChatSettingsAppearanceView(
                     Text(localized("Shared chat icons"), modifier = Modifier.weight(1f))
                     Switch(
                         checked = sharedChatIcons,
-                        onCheckedChange = { chat.sharedChatIcons.value = it },
+                        onCheckedChange = { chat.sharedChatIcons = it },
                     )
                 }
                 LaunchedEffect(sharedChatIcons) {
-                    model.reloadChatMessages()
+                    TODO("reloadChatMessages")
                 }
             }
             item {
@@ -257,11 +257,11 @@ fun ChatSettingsAppearanceView(
                     Text(localized("Compact events"), modifier = Modifier.weight(1f))
                     Switch(
                         checked = compactEvents,
-                        onCheckedChange = { chat.compactEvents.value = it },
+                        onCheckedChange = { chat.compactEvents = it },
                     )
                 }
                 LaunchedEffect(compactEvents) {
-                    model.reloadChatMessages()
+                    TODO("reloadChatMessages")
                 }
             }
         }
@@ -276,13 +276,21 @@ fun ChatSettingsAppearanceView(
         }
         item {
             if (showAllSettings) {
-                RgbColorPickerView(title = "Timestamp", color = chat.timestampColorColor) {
-                    chat.timestampColor.value = it
-                    model.reloadChatMessages()
+                RgbColorPickerView(
+                    title = "Timestamp",
+                    color = chat.timestampColorColor,
+                    onColorChanged = {},
+                ) {
+                    chat.timestampColor = it
+                    TODO("reloadChatMessages")
                 }
-                RgbColorPickerView(title = "Name", color = chat.usernameColorColor) {
-                    chat.usernameColor.value = it
-                    model.reloadChatMessages()
+                RgbColorPickerView(
+                    title = "Name",
+                    color = chat.usernameColorColor,
+                    onColorChanged = {},
+                ) {
+                    chat.usernameColor = it
+                    TODO("reloadChatMessages")
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -293,12 +301,16 @@ fun ChatSettingsAppearanceView(
                     Text(localized("Same color for all names"), modifier = Modifier.weight(1f))
                     Switch(
                         checked = sameUsernameColor,
-                        onCheckedChange = { chat.sameUsernameColor.value = it },
+                        onCheckedChange = { chat.sameUsernameColor = it },
                     )
                 }
-                RgbColorPickerView(title = "Message", color = chat.messageColorColor) {
-                    chat.messageColor.value = it
-                    model.reloadChatMessages()
+                RgbColorPickerView(
+                    title = "Message",
+                    color = chat.messageColorColor,
+                    onColorChanged = {},
+                ) {
+                    chat.messageColor = it
+                    TODO("reloadChatMessages")
                 }
             }
         }
@@ -309,17 +321,21 @@ fun ChatSettingsAppearanceView(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
             ) {
-                RgbColorPickerView(title = "Background", color = chat.backgroundColorColor) {
-                    chat.backgroundColor.value = it
-                    model.reloadChatMessages()
+                RgbColorPickerView(
+                    title = "Background",
+                    color = chat.backgroundColorColor,
+                    onColorChanged = {},
+                ) {
+                    chat.backgroundColor = it
+                    TODO("reloadChatMessages")
                 }
                 Switch(
                     checked = backgroundColorEnabled,
-                    onCheckedChange = { chat.backgroundColorEnabled.value = it },
+                    onCheckedChange = { chat.backgroundColorEnabled = it },
                 )
             }
             LaunchedEffect(backgroundColorEnabled) {
-                model.reloadChatMessages()
+                TODO("reloadChatMessages")
             }
         }
         item {
@@ -329,17 +345,21 @@ fun ChatSettingsAppearanceView(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
             ) {
-                RgbColorPickerView(title = "Border", color = chat.shadowColorColor) {
-                    chat.shadowColor.value = it
-                    model.reloadChatMessages()
+                RgbColorPickerView(
+                    title = "Border",
+                    color = chat.shadowColorColor,
+                    onColorChanged = {},
+                ) {
+                    chat.shadowColor = it
+                    TODO("reloadChatMessages")
                 }
                 Switch(
                     checked = shadowColorEnabled,
-                    onCheckedChange = { chat.shadowColorEnabled.value = it },
+                    onCheckedChange = { chat.shadowColorEnabled = it },
                 )
             }
             LaunchedEffect(shadowColorEnabled) {
-                model.reloadChatMessages()
+                TODO("reloadChatMessages")
             }
         }
         if (showAllSettings) {
@@ -353,7 +373,7 @@ fun ChatSettingsAppearanceView(
                     Text(localized("Me in name color"), modifier = Modifier.weight(1f))
                     Switch(
                         checked = meInUsernameColor,
-                        onCheckedChange = { chat.meInUsernameColor.value = it },
+                        onCheckedChange = { chat.meInUsernameColor = it },
                     )
                 }
             }

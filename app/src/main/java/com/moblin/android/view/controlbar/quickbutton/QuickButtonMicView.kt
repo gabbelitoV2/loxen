@@ -34,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
 import com.moblin.android.various.model.Mic
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.manualSelectMicById
+import com.moblin.android.various.model.updateMicsListAsync
 import com.moblin.android.various.settings.SettingsMics
 import com.moblin.android.various.settings.SettingsMicsMic
 import com.moblin.android.view.utils.DraggableItemPrefixView
@@ -52,6 +54,7 @@ private fun QuickButtonMicMicView(
 ) {
     val scope = rememberCoroutineScope()
     val currentMic by modelMic.current.collectAsState()
+    val micConnected by mic.connected.collectAsState()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -59,7 +62,7 @@ private fun QuickButtonMicMicView(
                 onClick = {
                     scope.launch {
                         model.updateMicsListAsync()
-                        if (mic.connected) {
+                        if (micConnected) {
                             model.manualSelectMicById(mic.id)
                         }
                     }
@@ -75,7 +78,7 @@ private fun QuickButtonMicMicView(
     ) {
         DraggableItemPrefixView()
         Icon(
-            imageVector = if (mic.connected) Icons.Filled.Cable else Icons.Filled.LinkOff,
+            imageVector = if (micConnected) Icons.Filled.Cable else Icons.Filled.LinkOff,
             contentDescription = null,
         )
         Text(
@@ -121,7 +124,7 @@ fun QuickButtonMicView(
                 val dismissState = rememberSwipeToDismissBoxState(
                     confirmValueChange = { value ->
                         if (value == SwipeToDismissBoxValue.EndToStart && mic != currentMic) {
-                            mics.mics.value = mics.mics.value.filterNot { it.id == mic.id }
+                            mics._mics.value = mics._mics.value.filterNot { it.id == mic.id }
                             true
                         } else {
                             false
@@ -159,7 +162,7 @@ fun QuickButtonMicView(
                             Text(localized("Auto switch"))
                             Switch(
                                 checked = autoSwitch,
-                                onCheckedChange = { mics.autoSwitch.value = it },
+                                onCheckedChange = { mics._autoSwitch.value = it },
                             )
                         }
                         Text(localized("Automatically switch to highest priority mic when plugged in."))

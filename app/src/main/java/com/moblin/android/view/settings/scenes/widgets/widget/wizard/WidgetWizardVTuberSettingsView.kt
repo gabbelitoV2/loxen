@@ -32,7 +32,7 @@ fun WidgetWizardVTuberSettingsView(
     presentingCreateWizard: Boolean,
     onChangePresentingCreateWizard: (Boolean) -> Unit,
 ) {
-    val modelName = vTuber.modelName.collectAsState().value
+    val modelName = vTuber.modelName
     Scaffold(
         topBar = {
             TopAppBar(
@@ -41,9 +41,8 @@ fun WidgetWizardVTuberSettingsView(
                 },
                 actions = {
                     CloseToolbarButtonView(
-                        onClick = {
-                            onChangePresentingCreateWizard(false)
-                        },
+                        presenting = presentingCreateWizard,
+                        onPresentingChange = onChangePresentingCreateWizard,
                     )
                 },
             )
@@ -69,7 +68,7 @@ fun WidgetWizardVTuberSettingsView(
                         database = database,
                         createWidgetWizard = createWidgetWizard,
                         presentingCreateWizard = presentingCreateWizard,
-                        onChangePresentingCreateWizard = onChangePresentingCreateWizard,
+                        onPresentingCreateWizardChange = onChangePresentingCreateWizard,
                     )
                 }
             }

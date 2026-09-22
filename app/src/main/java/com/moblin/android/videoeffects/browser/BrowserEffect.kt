@@ -89,13 +89,13 @@ class BrowserEffect(
     private val snapshotConfiguration: Double
 
     init {
-        scale = screenScale()
+        scale = screenScale().toDouble()
         this.url = url
         baseFps = widget.baseFps.toDouble()
         fps = baseFps
         isLoaded = false
         mode = if (widget.localOnly) {
-            SettingsWidgetBrowserMode.AUDIO_ONLY
+            SettingsWidgetBrowserMode.audioOnly
         } else {
             widget.mode
         }
@@ -122,7 +122,7 @@ class BrowserEffect(
     }
 
     override fun isEnabled(): Boolean {
-        return mode != SettingsWidgetBrowserMode.AUDIO_ONLY && snapshot != null
+        return mode != SettingsWidgetBrowserMode.audioOnly && snapshot != null
     }
 
     fun sendChatMessage(post: ChatPost) {
@@ -204,7 +204,7 @@ class BrowserEffect(
     }
 
     private fun startTakeSnapshots() {
-        if (stopped || mode != SettingsWidgetBrowserMode.PERIODIC_AUDIO_AND_VIDEO) {
+        if (stopped || mode != SettingsWidgetBrowserMode.periodicAudioAndVideo) {
             return
         }
         resumeTakeSnapshots()
@@ -245,14 +245,14 @@ class BrowserEffect(
 
     override fun browserEffectServerVideoPlaying() {
         fps = 30.0
-        if (mode != SettingsWidgetBrowserMode.AUDIO_ONLY) {
+        if (mode != SettingsWidgetBrowserMode.audioOnly) {
             resumeTakeSnapshots()
         }
     }
 
     override fun browserEffectServerVideoEnded() {
         fps = baseFps
-        if (mode == SettingsWidgetBrowserMode.PERIODIC_AUDIO_AND_VIDEO) {
+        if (mode == SettingsWidgetBrowserMode.periodicAudioAndVideo) {
             return
         }
         suspendTakeSnapshots()

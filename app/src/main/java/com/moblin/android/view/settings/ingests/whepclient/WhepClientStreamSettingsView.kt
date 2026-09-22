@@ -51,7 +51,7 @@ fun WhepClientStreamSettingsView(
             checked = stream.enabled,
             onCheckedChange = {
                 stream.enabled = it
-                model.reloadWhepClient()
+                TODO("reloadWhepClient")
             },
         )
     }
@@ -80,7 +80,6 @@ fun WhepClientStreamSettingsViewInner(
                     name = stream.name,
                     onNameChange = { stream.name = it },
                     existingNames = whepClient.streams,
-                    enabled = !stream.enabled,
                 )
             }
             item { HorizontalDivider() }
@@ -109,7 +108,7 @@ fun WhepClientStreamSettingsViewInner(
                         val latency = value.toIntOrNull()
                         if (latency != null) {
                             stream.latency = latency
-                            model.reloadWhepClient()
+                            TODO("reloadWhepClient")
                         }
                     },
                     footers = listOf(
@@ -117,7 +116,6 @@ fun WhepClientStreamSettingsViewInner(
                     ),
                     keyboardType = KeyboardType.Number,
                     valueFormat = { "$it ms" },
-                    enabled = !stream.enabled,
                 )
                 Text(
                     text = localized("The higher, the lower risk of stuttering."),
@@ -141,7 +139,7 @@ fun WhepClientStreamSettingsViewInner(
                         checked = stream.syncTimestamps,
                         onCheckedChange = {
                             stream.syncTimestamps = it
-                            model.reloadWhepClient()
+                            TODO("reloadWhepClient")
                         },
                         enabled = !stream.enabled,
                     )

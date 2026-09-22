@@ -95,7 +95,7 @@ class MoblinkRelayInterface(
 
 private data class Endpoint(val host: String, val port: Int)
 
-private class Relay(
+private class MoblinkRelayConnection(
     private var id: String,
     private val name: String,
     private var streamerUrl: String,
@@ -210,8 +210,8 @@ private class Relay(
 
     private fun handleIdentified(result: MoblinkResult): Boolean {
         when (result) {
-            MoblinkResult.Ok -> return true
-            MoblinkResult.WrongPassword -> {
+            MoblinkResult.ok -> return true
+            MoblinkResult.wrongPassword -> {
                 reconnect(reason = "Wrong password")
                 setState(RelayState.WrongPassword)
             }
@@ -226,7 +226,7 @@ private class Relay(
     private fun handleRequest(id: Int, data: MoblinkRequest) {
         when (data) {
             is MoblinkRequest.StartTunnel -> {
-                handleStartTunnel(id, data.address, data.port)
+                handleStartTunnel(id, data.address, data.port.toInt())
             }
             is MoblinkRequest.Status -> {
                 handleStatus(id)
@@ -251,8 +251,8 @@ private class Relay(
         send(
             MoblinkMessageToStreamer.Response(
                 id,
-                MoblinkResult.Ok,
-                MoblinkResponse.StartTunnel(listener.localPort),
+                MoblinkResult.ok,
+                MoblinkResponse.StartTunnel(listener.localPort.toUShort()),
             )
         )
         receiveStreamerPacket()
@@ -288,7 +288,7 @@ private class Relay(
         send(
             MoblinkMessageToStreamer.Response(
                 id,
-                MoblinkResult.Ok,
+                MoblinkResult.ok,
                 MoblinkResponse.Status(batteryPercentage, thermalState),
             )
         )
@@ -413,7 +413,7 @@ class MoblinkRelay(
     delegate: MoblinkRelayDelegate,
 ) {
     private var delegate: MoblinkRelayDelegate? = delegate
-    private var relays: MutableList<Relay> = mutableListOf()
+    private var relays: MutableList<MoblinkRelayConnection> = mutableListOf()
     private var started = false
 
     private val networkCallback = object : ConnectivityManager.NetworkCallback() {
@@ -499,13 +499,13 @@ class MoblinkRelay(
         if (!started) {
             return
         }
-        val newRelays = mutableListOf<Relay>()
+        val newRelays = mutableListOf<MoblinkRelayConnection>()
         for (networkInterface in availableInterfaces()) {
             val existing = relays.firstOrNull { it.destinationInterface == networkInterface }
             if (existing != null) {
                 newRelays.add(existing)
             } else {
-                val relay = Relay(
+                val relay = MoblinkRelayConnection(
                     id = makeRelayId(networkInterface),
                     name = makeRelayName(networkInterface),
                     streamerUrl = streamerUrl,
@@ -523,7 +523,7 @@ class MoblinkRelay(
                 relay.stop()
             }
         }
-        var mainRelay: Relay? = newRelays.firstOrNull()
+        var mainRelay: MoblinkRelayConnection? = newRelays.firstOrNull()
         for (relay in newRelays) {
             relay.isMain = false
             if (relay.destinationInterface.type == MoblinkRelayInterface.Type.cellular) {

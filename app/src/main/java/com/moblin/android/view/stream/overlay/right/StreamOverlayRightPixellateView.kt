@@ -13,12 +13,12 @@ fun StreamOverlayRightPixellateView(
     model: Model = LocalModel.current,
     database: Database,
 ) {
-    val pixellateStrength by database.pixellateStrength.collectAsState()
+    val pixellateStrength = database.pixellateStrength
     EffectSlider(
         title = "PIXELLATE STRENGTH",
         range = 0f..1f,
         value = pixellateStrength,
-        onChange = { database.pixellateStrength.value = it },
+        onValueChange = { database.pixellateStrength = it },
     )
     LaunchedEffect(pixellateStrength) {
         model.setPixellateStrength(strength = pixellateStrength)

@@ -11,6 +11,7 @@ import com.moblin.android.various.network.HttpServerRequest
 import com.moblin.android.various.network.HttpServerResponse
 import com.moblin.android.various.network.HttpServerRoute
 import com.moblin.android.various.network.HttpServerStatus
+import com.moblin.android.various.settings.SettingsHttpHeader
 import com.moblin.android.various.settings.SettingsWhipServer
 import com.moblin.android.various.settings.SettingsWhipServerStream
 import java.util.UUID
@@ -66,7 +67,7 @@ class WhipServer(
     }
 
     fun updateStats(): BitrateStatsInstant {
-        return bitrateStats.mutate { it.update() }
+        return bitrateStats.mutate { it.value.update() }
     }
 
     fun isStreamConnected(streamId: UUID): Boolean {
@@ -154,7 +155,9 @@ class WhipServer(
                 data = sdpAnswer.toByteArray(Charsets.UTF_8),
                 status = HttpServerStatus.created,
                 contentType = "application/sdp",
-                headers = mapOf("Location" to "/whip/session/${stream.id}"),
+                headers = listOf(
+                    SettingsHttpHeader(name = "Location", value = "/whip/session/${stream.id}"),
+                ),
             )
         }
     }
@@ -180,9 +183,9 @@ class WhipServer(
 
     private fun clientsChanged() {
         val count = clients.size
-        numberOfClients.value = count
+        numberOfClients.mutate { it.value = count }
         val streamIds = clients.keys.toList()
-        connectedStreamIds.value = streamIds
+        connectedStreamIds.mutate { it.value = streamIds }
     }
 
     private fun handleWhipSession(request: HttpServerRequest, response: HttpServerResponse) {
@@ -224,6 +227,6 @@ class WhipServer(
     }
 
     override fun whipServerClientOnDataReceived(streamId: UUID, count: Int) {
-        bitrateStats.mutate { it.add(bytesTransferred = count) }
+        bitrateStats.mutate { it.value.add(bytesTransferred = count) }
     }
 }

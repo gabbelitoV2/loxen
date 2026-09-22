@@ -8,8 +8,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
@@ -29,7 +32,10 @@ fun SceneWidgetSettingsView(
     sceneWidget: SettingsSceneWidget,
     widget: SettingsWidget,
 ) {
-    val sceneNumericInput by database.sceneNumericInput.collectAsState()
+    val layout = remember { mutableStateOf(sceneWidget.layout) }
+    val numericInput = remember { mutableStateOf(database.sceneNumericInput) }
+    LaunchedEffect(layout.value) { sceneWidget.layout = layout.value }
+    LaunchedEffect(numericInput.value) { database.sceneNumericInput = numericInput.value }
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(widget.name) })
@@ -44,11 +50,9 @@ fun SceneWidgetSettingsView(
                 WidgetLayoutView(
                     model = model,
                     database = database,
-                    layout = sceneWidget.layout,
+                    layout = layout,
                     widget = widget,
-                    numericInput = sceneNumericInput,
-                    onLayoutChange = { newLayout -> sceneWidget.layout = newLayout },
-                    onNumericInputChange = { newValue -> database.sceneNumericInput.value = newValue },
+                    numericInput = numericInput,
                 )
             }
             item {

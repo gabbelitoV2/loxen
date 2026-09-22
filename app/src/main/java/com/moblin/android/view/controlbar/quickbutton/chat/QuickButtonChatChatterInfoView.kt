@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -38,6 +39,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.view.CloseButtonTopRightView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.LocalModel
+import java.net.URI
 
 enum class ChatterRole {
     owner,
@@ -122,14 +124,18 @@ private fun profileHeader(model: Model = LocalModel.current, post: ChatPost, inf
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 post.userBadges.forEach { url ->
-                    CacheAsyncImage(url = url) { image ->
-                        Image(
-                            bitmap = image,
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.height(18.dp),
-                        )
-                    }
+                    CacheAsyncImage(
+                        url = URI(url),
+                        content = { image: ImageBitmap ->
+                            Image(
+                                bitmap = image,
+                                contentDescription = null,
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.height(18.dp),
+                            )
+                        },
+                        placeholder = {},
+                    )
                 }
             }
         }
@@ -212,7 +218,7 @@ fun QuickButtonChatChatterInfoView(
         }
         when (post.platform?.name?.lowercase()) {
             "kick" -> {
-                val info = model.getKickChatterInfo(user)
+                val info: ChatterInfo? = TODO("no Android counterpart for getKickChatterInfo")
                 if (info != null) {
                     chatterInfo = info
                 } else {

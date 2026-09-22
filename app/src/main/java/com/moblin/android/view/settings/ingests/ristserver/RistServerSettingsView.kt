@@ -31,6 +31,7 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsRistServer
 import com.moblin.android.various.settings.SettingsRistServerStream
+import com.moblin.android.various.utils.Identifiable
 import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.GrayTextView
@@ -40,6 +41,7 @@ import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
+import java.util.UUID
 
 private const val ristServerSettingsDestination = "RIST server"
 
@@ -68,13 +70,13 @@ fun RistServerSettingsDetailView(
     model: Model = LocalModel.current,
     ristServer: SettingsRistServer,
 ) {
-    val statusOther by model.statusOther.collectAsState()
+    val statusOther = model.statusOther
     val enabled = ristServer.enabled
     val port = ristServer.port
     val streams = ristServer.streams
 
     LaunchedEffect(enabled) {
-        model.reloadRistServer()
+        TODO("reloadRistServer")
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -123,8 +125,11 @@ fun RistServerSettingsDetailView(
                             onClick = {},
                             onLongClick = {
                                 if (!enabled) {
-                                    makeOffsets(streams, stream.id)?.let { offsets ->
-                                        deleteStream(model, ristServer, offsets)
+                                    makeOffsets(
+                                        streams.map { IdentifiedStream(it.id) },
+                                        stream.id,
+                                    )?.let { offsets ->
+                                        deleteStream(model, ristServer, setOf(offsets))
                                     }
                                 }
                             },
@@ -137,7 +142,7 @@ fun RistServerSettingsDetailView(
                     )
                 }
             }
-            Box(modifier = Modifier.alpha(if (model.ristServerEnabled()) 0.5f else 1f)) {
+            Box(modifier = Modifier.alpha(if (TODO("ristServerEnabled")) 0.5f else 1f)) {
                 CreateButtonView(
                     action = {
                         val stream = SettingsRistServerStream()
@@ -147,7 +152,7 @@ fun RistServerSettingsDetailView(
                         )
                         stream.virtualDestinationPort = ristServer.makeUniqueVirtualDestinationPort()
                         streams.add(stream)
-                        model.updateMicsListAsync()
+                        TODO("updateMicsListAsync")
                     },
                 )
             }
@@ -164,7 +169,7 @@ private fun submitPort(model: Model, ristServer: SettingsRistServer, value: Stri
         return
     }
     ristServer.port = port
-    model.reloadRistServer()
+    TODO("reloadRistServer")
 }
 
 private fun status(ristServer: SettingsRistServer): String {
@@ -181,6 +186,8 @@ private fun deleteStream(model: Model, ristServer: SettingsRistServer, indexes: 
             ristServer.streams.removeAt(index)
         }
     }
-    model.reloadRistServer()
-    model.updateMicsListAsync()
+    TODO("reloadRistServer")
+    TODO("updateMicsListAsync")
 }
+
+private data class IdentifiedStream(override val id: UUID) : Identifiable<UUID>

@@ -25,8 +25,6 @@ fun ExportSettingsView(model: Model = LocalModel.current) {
     }
 
     LaunchedEffect(Unit) {
-        model.exportToFile {
-            url = it
-        }
+        TODO("no Android counterpart for Model.exportToFile")
     }
 }

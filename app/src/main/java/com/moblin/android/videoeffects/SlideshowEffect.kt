@@ -6,6 +6,7 @@ import android.util.Size
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 import com.moblin.android.various.settings.SettingsSceneWidget
+import com.moblin.android.videoeffects.text.TextEffect
 import java.util.UUID
 
 data class SlideshowEffectSlide(
@@ -36,13 +37,13 @@ class SlideshowEffect(val slides: List<SlideshowEffectSlide>) : VideoEffect() {
         }
     }
 
-    override fun execute(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         val (effect, prepareEffect) = getEffects(info.presentationTimeStamp / 1_000_000.0)
         prepareEffect?.prepare(Size(image.width, image.height), info)
         return effect?.execute(image, info) ?: image
     }
 
-    override fun executeMetalPetal(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         val (effect, prepareEffect) = getEffects(info.presentationTimeStamp / 1_000_000.0)
         prepareEffect?.prepare(Size(image.width, image.height), info)
         return effect?.executeMetalPetal(image, info) ?: image

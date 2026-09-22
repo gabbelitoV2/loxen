@@ -21,10 +21,11 @@ import com.moblin.android.common.various.cleanUrl
 import com.moblin.android.common.various.isValidUrl
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.WizardCustomProtocol
 import com.moblin.android.various.utils.extractSrtStreamId
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
-import com.moblin.android.view.settings.streams.stream.StreamWizardGeneralSettingsView
+import com.moblin.android.view.settings.streams.stream.wizard.StreamWizardGeneralSettingsView
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.FormFieldError
 import com.moblin.android.localized
@@ -39,11 +40,11 @@ fun StreamWizardSrtUrlSettingsView(
 ) {
     val url = createStreamWizard.customSrtUrl
     LaunchedEffect(url) {
-        val cleaned = cleanUrl(url = url)
+        val cleaned = cleanUrl(value = url)
         if (cleaned.isEmpty()) {
             onUrlErrorChange("")
         } else {
-            onUrlErrorChange(isValidUrl(url = cleaned, allowedSchemes = listOf("srt", "srtla")) ?: "")
+            onUrlErrorChange(isValidUrl(value = cleaned, allowedSchemes = listOf("srt", "srtla")) ?: "")
         }
         createStreamWizard.customSrtStreamId = extractSrtStreamId(url = url) ?: ""
     }
@@ -107,7 +108,7 @@ fun StreamWizardCustomSrtSettingsView(
         }
     }
     LaunchedEffect(Unit) {
-        createStreamWizard.customProtocol = .srt
+        createStreamWizard.customProtocol = WizardCustomProtocol.srt
         createStreamWizard.name = makeUniqueName(
             name = localized("Custom SRT"),
             existingNames = model.database.streams,

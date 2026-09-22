@@ -36,7 +36,7 @@ private fun MicDelayView(model: Model = LocalModel.current, mic: SettingsMicsMic
         Row(verticalAlignment = Alignment.CenterVertically) {
             Slider(
                 value = delay.toFloat(),
-                onValueChange = { mic.setDelay(it.toDouble()) },
+                onValueChange = { mic._delay.value = it.toDouble() },
                 modifier = Modifier.weight(1f),
                 valueRange = -0.5f..0.5f,
                 steps = 99,
@@ -49,7 +49,7 @@ private fun MicDelayView(model: Model = LocalModel.current, mic: SettingsMicsMic
     }
     LaunchedEffect(delay) {
         if (initialized) {
-            model.updateMicDelay()
+            TODO("no Android counterpart for updateMicDelay")
         } else {
             initialized = true
         }

@@ -22,6 +22,7 @@ import com.moblin.android.various.model.bluetoothNotAllowedMessage
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.InlinePickerItem
 import com.moblin.android.LocalModel
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,7 +70,7 @@ fun CatPrinterScannerSettingsView(
                 items(
                     items = discoveredPeripherals.map { peripheral ->
                         InlinePickerItem(
-                            id = peripheral.identifier.uuidString,
+                            id = peripheral.identifier,
                             text = peripheral.name ?: localized("Unknown"),
                         )
                     },
@@ -85,5 +86,20 @@ fun CatPrinterScannerSettingsView(
                 }
             }
         }
+    }
+}
+
+data class CatPrinterPeripheral(
+    val identifier: String,
+    val name: String?,
+)
+
+class CatPrinterScanner {
+    val discoveredPeripherals = MutableStateFlow<List<CatPrinterPeripheral>>(emptyList())
+
+    fun startScanningForDevices() {
+    }
+
+    fun stopScanningForDevices() {
     }
 }

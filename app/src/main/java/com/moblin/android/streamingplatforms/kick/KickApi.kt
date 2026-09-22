@@ -82,10 +82,10 @@ data class KickChatterInfo(
         followers: Int?,
     ): ChatterInfo {
         val role: ChatterRole = when {
-            is_channel_owner -> ChatterRole.Owner
-            is_staff -> ChatterRole.Staff
-            is_moderator -> ChatterRole.Moderator
-            else -> ChatterRole.Viewer
+            is_channel_owner -> ChatterRole.OWNER
+            is_staff -> ChatterRole.STAFF
+            is_moderator -> ChatterRole.MODERATOR
+            else -> ChatterRole.VIEWER
         }
         val giftedSubs = badges.firstOrNull { it.type == "sub_gifter" }?.count
         return ChatterInfo(
@@ -355,27 +355,27 @@ class KickApi(
             body = mapOf("command" to "host", "parameter" to channel),
         ) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success<*> -> {
                     val response = runCatching {
                         json.decodeFromString(
                             KickHostChannelResponse.serializer(),
-                            result.data.decodeToString(),
+                            (result.value as ByteArray).decodeToString(),
                         )
                     }.getOrNull()
                     if (response != null) {
                         onComplete(
                             if (response.success) {
-                                OperationResult.Success(result.data)
+                                NetworkResponse.Success(result.value as ByteArray)
                             } else {
-                                OperationResult.Error
+                                NetworkResponse.Error
                             },
                         )
                     } else {
-                        onComplete(OperationResult.Error)
+                        onComplete(NetworkResponse.Error)
                     }
                 }
-                OperationResult.AuthError -> onComplete(OperationResult.AuthError)
-                OperationResult.Error -> onComplete(OperationResult.Error)
+                NetworkResponse.AuthError -> onComplete(NetworkResponse.AuthError)
+                NetworkResponse.Error -> onComplete(NetworkResponse.Error)
             }
         }
     }
@@ -501,9 +501,9 @@ class KickApi(
     fun getStreamInfo(onComplete: (NetworkResponse<KickStreamInfo>) -> Unit) {
         doV2Request(method = "GET", subPath = "channels/$slug/stream-info") { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success<*> -> {
                     val jsonObject = runCatching {
-                        json.parseToJsonElement(result.data.decodeToString()).jsonObject
+                        json.parseToJsonElement((result.value as ByteArray).decodeToString()).jsonObject
                     }.getOrNull()
                     val title = (jsonObject?.get("stream_title") as? JsonPrimitive)?.contentOrNull
                     if (title == null) {
@@ -519,8 +519,8 @@ class KickApi(
                         ),
                     )
                 }
-                OperationResult.AuthError -> onComplete(NetworkResponse.AuthError)
-                OperationResult.Error -> onComplete(NetworkResponse.Error)
+                NetworkResponse.AuthError -> onComplete(NetworkResponse.AuthError)
+                NetworkResponse.Error -> onComplete(NetworkResponse.Error)
             }
         }
     }
@@ -576,11 +576,11 @@ class KickApi(
         val subPath = makeUrl("live/search", listOf("q" to query))
         doInternalV1Request(method = "GET", subPath = subPath) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success<*> -> {
                     val response = runCatching {
                         json.decodeFromString(
                             KickLiveSearchResponse.serializer(),
-                            result.data.decodeToString(),
+                            (result.value as ByteArray).decodeToString(),
                         )
                     }.getOrNull()
                     onComplete(response?.data?.channels)
@@ -601,12 +601,12 @@ class KickApi(
         val subPath = makeUrl("channels/followed", parameters)
         doV2Request(method = "GET", subPath = subPath) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success<*> -> {
                     onComplete(
                         runCatching {
                             json.decodeFromString(
                                 KickFollowedChannelsResponse.serializer(),
-                                result.data.decodeToString(),
+                                (result.value as ByteArray).decodeToString(),
                             )
                         }.getOrNull(),
                     )
@@ -638,12 +638,12 @@ class KickApi(
     fun getChatterInfo(user: String, onComplete: (KickChatterInfo?) -> Unit) {
         doV2Request(method = "GET", subPath = "channels/$slug/users/$user") { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success<*> -> {
                     onComplete(
                         runCatching {
                             json.decodeFromString(
                                 KickChatterInfo.serializer(),
-                                result.data.decodeToString(),
+                                (result.value as ByteArray).decodeToString(),
                             )
                         }.getOrNull(),
                     )
@@ -715,13 +715,13 @@ class KickApi(
                 }
                 if (response?.code == 401) {
                     delegate?.kickApiUnauthorized()
-                    onComplete(OperationResult.AuthError)
+                    onComplete(NetworkResponse.AuthError)
                 } else {
-                    onComplete(OperationResult.Error)
+                    onComplete(NetworkResponse.Error)
                 }
                 return@httpRequest
             }
-            onComplete(OperationResult.Success(data))
+            onComplete(NetworkResponse.Success(data))
         }
     }
 }

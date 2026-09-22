@@ -186,7 +186,7 @@ private fun ResolutionSettingsView(model: Model = LocalModel.current, stream: Se
             label = { it.shortString() },
             onValueChange = {
                 stream.resolution = it
-                model.reloadStreamIfEnabled(stream)
+                TODO("reloadStreamIfEnabled")
             },
             enabled = !(stream.enabled && (isLive || isRecording)),
         )
@@ -211,7 +211,7 @@ private fun FpsSettingsView(model: Model = LocalModel.current, stream: SettingsS
             label = { it.toString() },
             onValueChange = {
                 stream.fps = it
-                model.reloadStreamIfEnabled(stream)
+                TODO("reloadStreamIfEnabled")
             },
             enabled = !(stream.enabled && (isLive || isRecording)),
         )
@@ -235,7 +235,7 @@ private fun LowLightBoostSettingsView(model: Model = LocalModel.current, stream:
             checked = stream.lowLightBoost,
             onCheckedChange = {
                 stream.lowLightBoost = it
-                model.setStreamFps()
+                TODO("setStreamFps")
             },
         )
     }
@@ -261,7 +261,7 @@ private fun CodecSettingsView(model: Model = LocalModel.current, stream: Setting
             label = { it.rawValue },
             onValueChange = {
                 stream.codec = it
-                model.reloadStreamIfEnabled(stream)
+                TODO("reloadStreamIfEnabled")
             },
             enabled = !(stream.enabled && isLive),
         )
@@ -273,7 +273,7 @@ private fun CodecSettingsView(model: Model = LocalModel.current, stream: Setting
                 label = { it.rawValue },
                 onValueChange = {
                     stream.h264Profile = it
-                    model.reloadStreamIfEnabled(stream)
+                    TODO("reloadStreamIfEnabled")
                 },
                 enabled = !(stream.enabled && isLive),
             )
@@ -292,7 +292,7 @@ private fun RateControlView(model: Model = LocalModel.current, stream: SettingsS
             label = { it.toString() },
             onValueChange = {
                 stream.rateControl = it
-                model.reloadStreamIfEnabled(stream)
+                TODO("reloadStreamIfEnabled")
             },
             enabled = !(stream.enabled && isLive),
         )
@@ -328,7 +328,7 @@ private fun BitrateSettingsView(
                 onValueChange = {
                     stream.bitrate = it
                     if (stream.enabled) {
-                        model.setStreamBitrate(stream)
+                        TODO("setStreamBitrate")
                     }
                 },
                 modifier = Modifier.weight(1f),
@@ -347,7 +347,7 @@ private fun submitMaxKeyFrameInterval(value: String, stream: SettingsStream, mod
         return
     }
     stream.maxKeyFrameInterval = interval
-    model.reloadStreamIfEnabled(stream)
+    TODO("reloadStreamIfEnabled")
 }
 
 @Composable
@@ -384,7 +384,7 @@ private fun BFramesSettingsView(model: Model = LocalModel.current, stream: Setti
         enabled = !(stream.enabled && isLive),
         onCheckedChange = {
             stream.bFrames = it
-            model.reloadStreamIfEnabled(stream)
+            TODO("reloadStreamIfEnabled")
         },
     )
 }
@@ -445,7 +445,7 @@ private fun AdaptiveResolutionThresholdSettingsView(model: Model = LocalModel.cu
                     valueRange = 1f..3f,
                     steps = 19,
                     onValueChangeFinished = {
-                        model.reloadStreamIfEnabled(stream)
+                        TODO("reloadStreamIfEnabled")
                     },
                     enabled = !(stream.enabled && isLive),
                 )
@@ -491,7 +491,7 @@ private fun AdaptiveResolutionSettingsView(
                 checked = stream.adaptiveEncoderResolution,
                 onCheckedChange = {
                     stream.adaptiveEncoderResolution = it
-                    model.reloadStreamIfEnabled(stream)
+                    TODO("reloadStreamIfEnabled")
                 },
                 enabled = !(stream.enabled && isLive),
             )
@@ -560,7 +560,7 @@ fun StreamVideoSettingsView(
     model: Model = LocalModel.current,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val showAllSettings by database.showAllSettings.collectAsState()
+    val showAllSettings = database.showAllSettings
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(localized("Video")) })

@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import com.moblin.android.R
 import com.moblin.android.integrations.tesla.TeslaVehicleScanner
@@ -28,6 +29,15 @@ import com.moblin.android.integrations.tesla.teslaGeneratePrivateKey
 import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Tesla
+import com.moblin.android.various.model.mediaNextTrack
+import com.moblin.android.various.model.mediaPreviousTrack
+import com.moblin.android.various.model.mediaTogglePlayback
+import com.moblin.android.various.model.reloadTeslaVehicle
+import com.moblin.android.various.model.teslaAddKeyToVehicle
+import com.moblin.android.various.model.teslaCloseTrunk
+import com.moblin.android.various.model.teslaFlashLights
+import com.moblin.android.various.model.teslaHonk
+import com.moblin.android.various.model.teslaOpenTrunk
 import com.moblin.android.various.settings.SettingsTesla
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.HCenter
@@ -55,24 +65,24 @@ fun TeslaSettingsConfigurationView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val database = model.database
-    val bluetoothPeripheralName by settings.bluetoothPeripheralName.collectAsState()
-    val vin by database.tesla.vin.collectAsState()
-    val privateKey by database.tesla.privateKey.collectAsState()
+    val bluetoothPeripheralName = settings.bluetoothPeripheralName
+    val vin = database.tesla.vin
+    val privateKey = database.tesla.privateKey
     val vehicleState by tesla.vehicleState.collectAsState()
     val addKeyToVehicleEnabled = vin.isNotEmpty() && privateKey.isNotEmpty() &&
         vehicleState == TeslaVehicleState.connected
 
     fun onSubmitVin(value: String) {
-        database.tesla.vin.value = value.trim()
+        database.tesla.vin = value.trim()
         model.reloadTeslaVehicle()
     }
 
     fun onDeviceChange(value: String) {
         val deviceId = runCatching { UUID.fromString(value) }.getOrNull() ?: return
-        val peripheral = TeslaVehicleScanner.shared.discoveredPeripherals
-            .firstOrNull { it.identifier == deviceId } ?: return
-        settings.bluetoothPeripheralName.value = peripheral.name
-        settings.bluetoothPeripheralId.value = deviceId
+        val peripheral = TeslaVehicleScanner.shared.discoveredPeripherals.value
+            .firstOrNull { UUID.nameUUIDFromBytes(it.address.toByteArray()) == deviceId } ?: return
+        settings.bluetoothPeripheralName = peripheral.name
+        settings.bluetoothPeripheralId = deviceId
         model.reloadTeslaVehicle()
     }
 
@@ -105,8 +115,8 @@ fun TeslaSettingsConfigurationView(
                 Text("Scroll down in your Tesla app and copy it.")
             }
             item {
-                TextButtonView(text = "Generate new key") {
-                    database.tesla.privateKey.value = teslaGeneratePrivateKey().pemRepresentation
+                TextButtonView(title = "Generate new key") {
+                    database.tesla.privateKey = TODO("privateKey.pemRepresentation")
                     model.reloadTeslaVehicle()
                 }
             }
@@ -117,7 +127,7 @@ fun TeslaSettingsConfigurationView(
                 )
             }
             item {
-                TextButtonView(text = "Add key to vehicle", enabled = addKeyToVehicleEnabled) {
+                TextButtonView(title = "Add key to vehicle") {
                     model.teslaAddKeyToVehicle()
                 }
             }
@@ -132,10 +142,11 @@ fun TeslaSettingsConfigurationView(
 @Composable
 fun TeslaSettingsView(model: Model = LocalModel.current, tesla: Tesla, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
     val database = model.database
-    val enabled by database.tesla.enabled.collectAsState()
+    val enabled = database.tesla.enabled
     val vehicleState by tesla.vehicleState.collectAsState()
     val vehicleInfotainmentConnected by tesla.vehicleInfotainmentConnected.collectAsState()
     val vehicleVehicleSecurityConnected by tesla.vehicleVehicleSecurityConnected.collectAsState()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -146,7 +157,13 @@ fun TeslaSettingsView(model: Model = LocalModel.current, tesla: Tesla, onNavigat
             item {
                 HCenter {
                     Image(
-                        painter = painterResource(id = R.drawable.tesla),
+                        painter = painterResource(
+                            id = context.resources.getIdentifier(
+                                "tesla",
+                                "drawable",
+                                context.packageName,
+                            ),
+                        ),
                         contentDescription = null,
                         modifier = Modifier.fillMaxWidth(),
                         contentScale = ContentScale.Fit,
@@ -159,7 +176,7 @@ fun TeslaSettingsView(model: Model = LocalModel.current, tesla: Tesla, onNavigat
                     Switch(
                         checked = enabled,
                         onCheckedChange = {
-                            database.tesla.enabled.value = it
+                            database.tesla.enabled = it
                             model.reloadTeslaVehicle()
                         },
                     )
@@ -181,44 +198,41 @@ fun TeslaSettingsView(model: Model = LocalModel.current, tesla: Tesla, onNavigat
             }
             item {
                 TextButtonView(
-                    text = "Flash lights",
-                    enabled = vehicleInfotainmentConnected,
+                    title = "Flash lights",
                 ) {
                     model.teslaFlashLights()
                 }
             }
             item {
-                TextButtonView(text = "Honk", enabled = vehicleInfotainmentConnected) {
+                TextButtonView(title = "Honk") {
                     model.teslaHonk()
                 }
             }
             item {
-                TextButtonView(text = "Open trunk", enabled = vehicleVehicleSecurityConnected) {
+                TextButtonView(title = "Open trunk") {
                     model.teslaOpenTrunk()
                 }
             }
             item {
-                TextButtonView(text = "Close trunk", enabled = vehicleVehicleSecurityConnected) {
+                TextButtonView(title = "Close trunk") {
                     model.teslaCloseTrunk()
                 }
             }
             item {
-                TextButtonView(text = "Next media track", enabled = vehicleInfotainmentConnected) {
+                TextButtonView(title = "Next media track") {
                     model.mediaNextTrack()
                 }
             }
             item {
                 TextButtonView(
-                    text = "Previous media track",
-                    enabled = vehicleInfotainmentConnected,
+                    title = "Previous media track",
                 ) {
                     model.mediaPreviousTrack()
                 }
             }
             item {
                 TextButtonView(
-                    text = "Toggle media playback",
-                    enabled = vehicleInfotainmentConnected,
+                    title = "Toggle media playback",
                 ) {
                     model.mediaTogglePlayback()
                 }

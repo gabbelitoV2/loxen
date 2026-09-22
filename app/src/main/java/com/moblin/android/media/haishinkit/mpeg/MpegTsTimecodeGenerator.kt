@@ -7,7 +7,7 @@ import kotlin.math.max
 
 data class MpegTsTimecode(
     val clock: Instant,
-    val frame: UInt32,
+    val frame: Int,
 )
 
 class MpegTsTimecodeGenerator {
@@ -62,7 +62,7 @@ class MpegTsTimecodeGenerator {
         ) {
             offsetingFrames = !offsetingFrames
         }
-        return MpegTsTimecode(clock = now, frame = frame.toUInt())
+        return MpegTsTimecode(clock = now, frame = frame.toInt())
     }
 
     companion object {

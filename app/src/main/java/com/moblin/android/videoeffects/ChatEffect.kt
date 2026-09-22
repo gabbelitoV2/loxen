@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.IntSize
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
@@ -26,19 +27,19 @@ import kotlinx.coroutines.launch
 private fun makeChatLineStyle(settings: SettingsWidgetChat): ChatLineStyle {
     return ChatLineStyle(
         fontSize = settings.fontSize.toFloat(),
-        borderColor = if (settings.shadowColorEnabled) settings.shadowColor else null,
+        borderColor = if (settings.shadowColorEnabled) settings.shadowColor.color() else null,
         borderWidth = 1.5f,
         backgroundColor = if (settings.backgroundColorEnabled) {
-            settings.backgroundColor.copy(alpha = 0.6f)
+            settings.backgroundColor.color().copy(alpha = 0.6f)
         } else {
             null
         },
-        messageColor = settings.messageColor,
+        messageColor = settings.messageColor.color(),
         boldUsername = settings.boldUsername,
         boldMessage = settings.boldMessage,
         badges = settings.badges,
         sharedChatIcons = settings.sharedChatIcons,
-        bigGifScale = 3,
+        bigGifScale = 3f,
         highlightSymbolColor = Color.White,
         highlightDefaultColor = settings.messageColorColor,
         nicknames = settings.nicknames,
@@ -81,9 +82,7 @@ private class ChatRenderer(
             }
         })
         cancellables.add(mainScope.launch {
-            settings.objectWillChange.collect {
-                scheduleRender()
-            }
+            TODO("Combine objectWillChange has no Android counterpart")
         })
         cancellables.add(mainScope.launch {
             EmotesPlayer.shared.sizesVersion.drop(1).collect {
@@ -119,7 +118,7 @@ private class ChatRenderer(
         if (existing != null) {
             return existing
         }
-        val lineView = ChatLineUiView()
+        val lineView = ChatLineUiView(TODO("no Android Context available"))
         lineView.onImageLoaded = {
             scheduleRender()
         }
@@ -141,24 +140,20 @@ private class ChatRenderer(
         content: ChatLineContent,
         x: Float,
         y: Float,
-    ): Size {
+    ): IntSize {
         lineView.setContent(content)
-        val size = lineView.size(availableWidth = width - x)
-        lineView.frame = Rect(Offset(x, y), Size(size.width, size.height))
-        return size
+        return lineView.size(availableWidth = width - x)
     }
 
     private fun render() {
         val posts = chat.posts.value
             .take(settings.maximumNumberOfMessages)
             .reversed()
-            .filter { !it.state.deleted }
+            .filter { !it.state.deleted.value }
         stateCancellables.forEach { it.cancel() }
         stateCancellables = posts.map { post ->
             mainScope.launch {
-                post.state.objectWillChange.collect {
-                    scheduleRender()
-                }
+                TODO("Combine objectWillChange has no Android counterpart")
             }
         }.toMutableList()
         val style = makeChatLineStyle(settings)
@@ -172,7 +167,7 @@ private class ChatRenderer(
             val startY = y
             var x = 3f
             var highlightImageLineView: ChatLineUiView? = null
-            var highlightImageSize = Size.Zero
+            var highlightImageSize = IntSize.Zero
             val highlight = post.highlight
             if (highlight != null && highlight.titleSegments != null) {
                 val highlightStyle = style.copy(backgroundColor = null)
@@ -192,10 +187,6 @@ private class ChatRenderer(
             val key = ChatLineKey(post.id, false)
             keys.add(key)
             val size = place(lineView(key), content, x, y)
-            highlightImageLineView?.frame = Rect(
-                Offset(3f, y + (size.height - highlightImageSize.height) / 2f),
-                Size(highlightImageSize.width, highlightImageSize.height),
-            )
             y += size.height
             val postHighlight = post.highlight
             if (postHighlight != null) {
@@ -286,27 +277,21 @@ class ChatEffect(private val chat: ChatProvider) : VideoEffect() {
         }
     }
 
-    override fun execute(image: EffectImageCiImage, info: VideoEffectInfo): EffectImageCiImage {
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
         var chatImage = chatImage?.getCiImage() ?: return image
         val height = image.extent.height * this.height
         if (chatImage.extent.height > height) {
-            chatImage = chatImage.cropped(
-                Rect(
-                    Offset(chatImage.extent.left, chatImage.extent.top),
-                    Size(chatImage.extent.width, height.toFloat()),
-                ),
-            )
+            chatImage = TODO("CIImage.cropped has no Android counterpart")
         }
         return chatImage
             .move(sceneWidget.layout, image.extent.size)
-            .cropped(image.extent)
-            .composited(over = image)
+            .let { TODO("CIImage.cropped and CIImage.composited have no Android counterpart") }
     }
 
     override fun executeMetalPetal(
-        image: EffectImagePixelBuffer,
+        image: MTIImage,
         info: VideoEffectInfo,
-    ): EffectImagePixelBuffer {
+    ): MTIImage {
         val chatImage = chatImage?.getMetalPetalImage() ?: return image
         var contentRegion = chatImage.extent
         val height = image.extent.height * this.height

@@ -53,6 +53,9 @@ import com.moblin.android.LocalOnNavigate
 
 val wheelOfLuckOptionWeights = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 40, 60, 80, 100)
 
+private fun getWheelOfLuckEffect(model: Model, widget: SettingsWidget): WheelOfLuckEffect? =
+    TODO("Model.getWheelOfLuckEffect is not available")
+
 @Composable
 private fun WheelOfLuckWidgetView(
     model: Model = LocalModel.current,
@@ -72,7 +75,7 @@ private fun WheelOfLuckWidgetView(
         Spacer(modifier = Modifier.weight(1f))
         IconButton(onClick = {
             widget.wheelOfLuck.shuffle()
-            model.getWheelOfLuckEffect(widget.id)?.setSettings(widget.wheelOfLuck)
+            getWheelOfLuckEffect(model, widget)?.setSettings(widget.wheelOfLuck)
         }) {
             Icon(
                 Icons.Filled.Shuffle,
@@ -103,13 +106,13 @@ private fun OptionView(
     onDelete: () -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val optionsText by options.text.collectAsState()
-    val weight by options.weight.collectAsState()
+    val optionsText = options.text
+    val weight = options.weight
     var showDestination by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
 
     fun updateEffect() {
-        model.getWheelOfLuckEffect(widget.id)?.setSettings(wheelOfLuck)
+        getWheelOfLuckEffect(model, widget)?.setSettings(wheelOfLuck)
     }
 
     fun calcPercent(): Int {
@@ -142,9 +145,11 @@ private fun OptionView(
                     title = localized("Text"),
                     value = optionsText,
                     onChange = {
-                        options.text.value = it
+                        options.text = it
                         updateEffect()
+                        null
                     },
+                    onSubmit = {},
                 )
                 ExposedDropdownMenuBox(
                     expanded = expanded,
@@ -168,7 +173,7 @@ private fun OptionView(
                             DropdownMenuItem(
                                 text = { Text(weightOption.toString()) },
                                 onClick = {
-                                    options.weight.value = weightOption
+                                    options.weight = weightOption
                                     wheelOfLuck.updateTotalWeight()
                                     updateEffect()
                                     expanded = false
@@ -187,7 +192,7 @@ fun WidgetWheelOfLuckQuickButtonControlsView(
     model: Model = LocalModel.current,
     widget: SettingsWidget,
 ) {
-    model.getWheelOfLuckEffect(widget.id)?.let { effect ->
+    getWheelOfLuckEffect(model, widget)?.let { effect ->
         WheelOfLuckWidgetView(
             model = model,
             widget = widget,
@@ -208,12 +213,12 @@ fun WheelOfLuckWidgetOptionsView(
         Text(localized("Options"), style = MaterialTheme.typography.titleSmall)
         MultiLineTextFieldView(
             value = value,
-            onChange = onChange,
+            onValueChange = onChange,
             placeholder = localized("My text"),
         )
         MultiLineTextFieldDoneButtonView(
             editingText = editingText,
-            onChange = { editingText = it },
+            onEditingTextChange = { editingText = it },
         )
     }
 }
@@ -225,30 +230,30 @@ fun WidgetWheelOfLuckSettingsView(
     wheelOfLuck: SettingsWidgetWheelOfLuck,
     onNavigate: (String) -> Unit = {},
 ) {
-    val advanced by wheelOfLuck.advanced.collectAsState()
-    val text by wheelOfLuck.text.collectAsState()
-    val options by wheelOfLuck.options.collectAsState()
+    val advanced = wheelOfLuck.advanced
+    val text = wheelOfLuck.text
+    val options = wheelOfLuck.options
 
     fun updateEffect() {
-        model.getWheelOfLuckEffect(widget.id)?.setSettings(wheelOfLuck)
+        getWheelOfLuckEffect(model, widget)?.setSettings(wheelOfLuck)
     }
 
-    fun deleteOption(offsets: Set<Int>) {
-        wheelOfLuck.options.value = wheelOfLuck.options.value
-            .filterIndexed { index, _ -> index !in offsets }
+    fun deleteOption(offset: Int) {
+        wheelOfLuck.options = wheelOfLuck.options
+            .filterIndexed { index, _ -> index != offset }
         wheelOfLuck.updateText()
         wheelOfLuck.updateTotalWeight()
         updateEffect()
     }
 
     fun moveOptions(froms: Set<Int>, to: Int) {
-        val moved = wheelOfLuck.options.value.toMutableList()
+        val moved = wheelOfLuck.options.toMutableList()
         val sortedFroms = froms.sorted()
         val moving = sortedFroms.map { moved[it] }
         sortedFroms.sortedDescending().forEach { moved.removeAt(it) }
         val insertAt = (to - sortedFroms.count { it < to }).coerceIn(0, moved.size)
         moved.addAll(insertAt, moving)
-        wheelOfLuck.options.value = moved
+        wheelOfLuck.options = moved
         wheelOfLuck.updateText()
         updateEffect()
     }
@@ -265,16 +270,16 @@ fun WidgetWheelOfLuckSettingsView(
                         options = option,
                         deleteDisabled = options.size < 2,
                         onDelete = {
-                            makeOffsets(options, option.id)?.let { offsets ->
-                                deleteOption(offsets)
+                            makeOffsets(options, option.id)?.let { offset ->
+                                deleteOption(offset)
                             }
                         },
                         onNavigate = onNavigate,
                     )
                 }
-                CreateButtonView(onClick = {
-                    wheelOfLuck.options.value =
-                        wheelOfLuck.options.value + SettingsWidgetWheelOfLuckOption()
+                CreateButtonView(action = {
+                    wheelOfLuck.options =
+                        wheelOfLuck.options + SettingsWidgetWheelOfLuckOption()
                     wheelOfLuck.updateText()
                     wheelOfLuck.updateTotalWeight()
                     updateEffect()
@@ -283,7 +288,7 @@ fun WidgetWheelOfLuckSettingsView(
         } else {
             WheelOfLuckWidgetOptionsView(
                 value = text,
-                onChange = { wheelOfLuck.text.value = it },
+                onChange = { wheelOfLuck.text = it },
             )
             LaunchedEffect(Unit) {
                 wheelOfLuck.optionsFromText(text)
@@ -300,12 +305,12 @@ fun WidgetWheelOfLuckSettingsView(
                 Spacer(modifier = Modifier.weight(1f))
                 Switch(
                     checked = advanced,
-                    onCheckedChange = { wheelOfLuck.advanced.value = it },
+                    onCheckedChange = { wheelOfLuck.advanced = it },
                 )
             }
         }
         Column {
-            model.getWheelOfLuckEffect(widget.id)?.let { effect ->
+            getWheelOfLuckEffect(model, widget)?.let { effect ->
                 WheelOfLuckWidgetView(
                     model = model,
                     widget = widget,

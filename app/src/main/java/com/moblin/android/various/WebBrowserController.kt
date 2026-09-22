@@ -43,7 +43,7 @@ class WebBrowserController {
         alertCompletionHandler = completionHandler
         confirmCompletionHandler = null
         textInputCompletionHandler = null
-        message.value = message
+        this.message.value = message
         defaultText.value = null
         panel.value = WebBrowserPanel.Alert
         showAlert.value = true
@@ -57,7 +57,7 @@ class WebBrowserController {
         alertCompletionHandler = null
         confirmCompletionHandler = completionHandler
         textInputCompletionHandler = null
-        message.value = message
+        this.message.value = message
         defaultText.value = null
         panel.value = WebBrowserPanel.Confirm
         showAlert.value = true
@@ -73,7 +73,7 @@ class WebBrowserController {
         confirmCompletionHandler = null
         textInputCompletionHandler = completionHandler
         message.value = prompt
-        defaultText.value = defaultText
+        this.defaultText.value = defaultText
         panel.value = WebBrowserPanel.TextInput
         showAlert.value = true
     }

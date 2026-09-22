@@ -86,8 +86,8 @@ class MacScreenCapture {
         } else {
             return
         }
-        val adjusted = sampleBuffer.copy(presentationTimeUs = presentationTimeUs)
-        delegate?.macScreenCaptureDidOutputSampleBuffer(adjusted)
+        sampleBuffer.presentationTimeUs = presentationTimeUs
+        delegate?.macScreenCaptureDidOutputSampleBuffer(sampleBuffer)
     }
 
     fun stream(stream: Any, didStopWithError: Throwable) {

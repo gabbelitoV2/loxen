@@ -8,7 +8,7 @@ private enum class TableIdentifier(val rawValue: UByte) {
     programMapping(2u),
 }
 
-class MpegTsProgramSpecificInformation {
+open class MpegTsProgramSpecificInformation {
     private var pointerField: UByte = 0u
     private var pointerSkippedBytes: ByteArray = ByteArray(0)
     var tableId: UByte = TableIdentifier.programAssociation.rawValue
@@ -27,14 +27,14 @@ class MpegTsProgramSpecificInformation {
         pointerSkippedBytes = reader.readBytes(pointerField.toInt())
         tableId = reader.readUInt8()
         val value = reader.readUInt16()
-        val sectionSyntaxIndicator = (value and 0x8000u) == 0x8000u
-        privateBit = (value and 0x4000u) == 0x4000u
+        val sectionSyntaxIndicator = (value.toInt() and 0x8000) == 0x8000
+        privateBit = (value.toInt() and 0x4000) == 0x4000
         var sectionLength = (value and 0x3FFu).toInt()
         if (sectionSyntaxIndicator) {
             tableIdExtension = reader.readUInt16()
             val value2 = reader.readUInt8()
-            currentNextIndicator = (value2 and 0x01u) == 0x01u
-            versionNumber = (value2 and 0b0011_1110u) shr 1
+            currentNextIndicator = (value2.toInt() and 0x01) == 0x01
+            versionNumber = ((value2.toInt() and 0b0011_1110) shr 1).toUByte()
             sectionNumber = reader.readUInt8()
             lastSectionNumber = reader.readUInt8()
             sectionLength -= 5
@@ -69,13 +69,13 @@ class MpegTsProgramSpecificInformation {
         if (privateBit) {
             value = value or 0x4000u
         }
-        value = value or (MpegTsProgramSpecificInformation.reservedBits.toUShort() shl 12)
+        value = value or ((MpegTsProgramSpecificInformation.reservedBits.toInt() shl 12).toUShort())
         value = value or sectionLength
         writer.writeUInt16(value)
         writer.writeUInt16(tableIdExtension)
         var value2: UByte = 0u
-        value2 = value2 or (MpegTsProgramSpecificInformation.reservedBits shl 6)
-        value2 = value2 or (versionNumber shl 1)
+        value2 = value2 or ((MpegTsProgramSpecificInformation.reservedBits.toInt() shl 6).toUByte())
+        value2 = value2 or ((versionNumber.toInt() shl 1).toUByte())
         if (currentNextIndicator) {
             value2 = value2 or 1u
         }

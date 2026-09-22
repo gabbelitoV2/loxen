@@ -2,12 +2,16 @@ package com.moblin.android.various.managers
 
 import android.location.Location
 import android.util.Log
-import com.moblin.android.common.various.sleep
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+
+private suspend fun sleep(seconds: Double) {
+    delay((seconds * 1000.0).toLong())
+}
 
 class WeatherManager {
     private val mainScope = CoroutineScope(Dispatchers.Main)

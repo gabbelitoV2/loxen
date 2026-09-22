@@ -142,10 +142,10 @@ fun StreamPlatformsSettingsView(
     stream: SettingsStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val twitchChannelName by stream.twitchChannelName.collectAsState()
-    val kickChannelName by stream.kickChannelName.collectAsState()
-    val youTubeHandle by stream.youTubeHandle.collectAsState()
-    val soopChannelName by stream.soopChannelName.collectAsState()
+    val twitchChannelName = stream.twitchChannelName
+    val kickChannelName = stream.kickChannelName
+    val youTubeHandle = stream.youTubeHandle
+    val soopChannelName = stream.soopChannelName
 
     Column {
         Row(
@@ -215,12 +215,12 @@ private fun BackgroundStreamingView(
     stream: SettingsStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val backgroundStreaming by stream.backgroundStreaming.collectAsState()
-    val enabled by stream.enabled.collectAsState()
+    val backgroundStreaming = stream.backgroundStreaming
+    val enabled = stream.enabled
 
     LaunchedEffect(backgroundStreaming) {
         if (enabled) {
-            model.updatePictureInPicture()
+            TODO("updatePictureInPicture")
         }
     }
 
@@ -234,7 +234,7 @@ private fun BackgroundStreamingView(
             Text(localized("Background streaming"), modifier = Modifier.weight(1f))
             Switch(
                 checked = backgroundStreaming,
-                onCheckedChange = { stream.backgroundStreaming.value = it },
+                onCheckedChange = { stream.backgroundStreaming = it },
             )
         }
         BackgroundStreamingFooterView()
@@ -249,16 +249,16 @@ fun StreamSettingsView(
     stream: SettingsStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val showAllSettings by database.showAllSettings.collectAsState()
-    val streams by database.streams.collectAsState()
-    val streamName by stream.name.collectAsState()
-    val streamUrl by stream.url.collectAsState()
-    val enabled by stream.enabled.collectAsState()
-    val portrait by stream.portrait.collectAsState()
-    val obsWebSocketEnabled by stream.obsWebSocketEnabled.collectAsState()
-    val realtimeIrlEnabled by stream.realtimeIrlEnabled.collectAsState()
-    val estimatedViewerDelay by stream.estimatedViewerDelay.collectAsState()
-    val autoGoLive by stream.autoGoLive.collectAsState()
+    val showAllSettings = database.showAllSettings
+    val streams = database.streams
+    val streamName = stream.name
+    val streamUrl = stream.url
+    val enabled = stream.enabled
+    val portrait = stream.portrait
+    val obsWebSocketEnabled = stream.obsWebSocketEnabled
+    val realtimeIrlEnabled = stream.realtimeIrlEnabled
+    val estimatedViewerDelay = stream.estimatedViewerDelay
+    val autoGoLive = stream.autoGoLive
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
 
@@ -269,7 +269,7 @@ fun StreamSettingsView(
             item {
                 NameEditView(
                     name = streamName,
-                    onNameChange = { stream.name.value = it },
+                    onNameChange = { stream.name = it },
                     existingNames = streams,
                 )
             }
@@ -303,7 +303,6 @@ fun StreamSettingsView(
                                     Text(localized("RTMP"))
                                 }
                                 StreamMultiStreamingSettingsView(
-                                    stream = stream,
                                     multiStreaming = stream.multiStreaming,
                                     onNavigate = onNavigate,
                                 )
@@ -394,15 +393,15 @@ fun StreamSettingsView(
                             Text(localized("Portrait"), modifier = Modifier.weight(1f))
                             Switch(
                                 checked = portrait,
-                                onCheckedChange = { stream.portrait.value = it },
+                                onCheckedChange = { stream.portrait = it },
                                 enabled = !(enabled && (isLive || isRecording)),
                             )
                         }
                         LaunchedEffect(portrait) {
                             if (enabled) {
-                                model.setCurrentStream(stream)
-                                model.reloadStream()
-                                model.resetSelectedScene(false)
+                                TODO("setCurrentStream")
+                                TODO("reloadStream")
+                                TODO("resetSelectedScene")
                                 model.updateOrientation()
                                 model.updateOrientationLock()
                             }
@@ -439,7 +438,7 @@ fun StreamSettingsView(
                             Text(localized("Auto go live"), modifier = Modifier.weight(1f))
                             Switch(
                                 checked = autoGoLive,
-                                onCheckedChange = { stream.autoGoLive.value = it },
+                                onCheckedChange = { stream.autoGoLive = it },
                             )
                         }
                         AutoGoLiveFooterView()
@@ -457,12 +456,12 @@ fun StreamSettingsView(
                         Text(localized("OBS remote control"), modifier = Modifier.weight(1f))
                         Switch(
                             checked = obsWebSocketEnabled,
-                            onCheckedChange = { stream.obsWebSocketEnabled.value = it },
+                            onCheckedChange = { stream.obsWebSocketEnabled = it },
                         )
                     }
                     LaunchedEffect(obsWebSocketEnabled) {
                         if (enabled) {
-                            model.obsWebSocketEnabledUpdated()
+                            TODO("obsWebSocketEnabledUpdated")
                         }
                     }
                     if (showAllSettings) {
@@ -483,9 +482,9 @@ fun StreamSettingsView(
                             Switch(
                                 checked = realtimeIrlEnabled,
                                 onCheckedChange = { value ->
-                                    stream.realtimeIrlEnabled.value = value
+                                    stream.realtimeIrlEnabled = value
                                     if (enabled) {
-                                        model.reloadLocation()
+                                        TODO("reloadLocation")
                                     }
                                 },
                             )

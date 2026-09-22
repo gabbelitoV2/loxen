@@ -10,6 +10,7 @@ import android.graphics.Typeface
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import androidx.compose.ui.graphics.asAndroidBitmap
 import com.moblin.android.integrations.catprinter.CatPrinter
 import com.moblin.android.integrations.catprinter.CatPrinterDelegate
 import com.moblin.android.integrations.catprinter.CatPrinterState
@@ -69,7 +70,7 @@ fun Model.printAllCatPrinters(image: Bitmap, feedPaperDelay: Double? = null) {
 
 fun Model.printSnapshotCatPrinters(image: Bitmap) {
     for (catPrinter in catPrinters.values) {
-        if (getCatPrinterSettings(catPrinter)?.printSnapshots == true) {
+        if (getCatPrinterSettings(catPrinter)?.printSnapshots?.value == true) {
             catPrinter.print(image, null)
         }
     }
@@ -105,7 +106,7 @@ fun Model.catPrinterPrintTestImage(device: SettingsCatPrinter) {
 }
 
 fun Model.isCatPrinterEnabled(device: SettingsCatPrinter): Boolean {
-    return device.enabled
+    return device.enabled.value
 }
 
 fun Model.enableCatPrinter(device: SettingsCatPrinter) {
@@ -115,13 +116,13 @@ fun Model.enableCatPrinter(device: SettingsCatPrinter) {
         catPrinters[device.id] = catPrinter
     }
     catPrinters[device.id]?.start(
-        deviceId = device.bluetoothPeripheralId,
-        meowSoundEnabled = device.faxMeowSound
+        deviceId = device.bluetoothPeripheralId.value,
+        meowSoundEnabled = device.faxMeowSound.value
     )
 }
 
 fun Model.catPrinterSetFaxMeowSound(device: SettingsCatPrinter) {
-    catPrinters[device.id]?.setMeowSoundEnabled(meowSoundEnabled = device.faxMeowSound)
+    catPrinters[device.id]?.setMeowSoundEnabled(meowSoundEnabled = device.faxMeowSound.value)
 }
 
 fun Model.disableCatPrinter(device: SettingsCatPrinter) {
@@ -129,12 +130,12 @@ fun Model.disableCatPrinter(device: SettingsCatPrinter) {
 }
 
 fun Model.getCatPrinterSettings(catPrinter: CatPrinter): SettingsCatPrinter? {
-    return database.catPrinters.devices.firstOrNull { catPrinters[it.id] === catPrinter }
+    return database.catPrinters.devices.value.firstOrNull { catPrinters[it.id] === catPrinter }
 }
 
 fun Model.setCurrentCatPrinter(device: SettingsCatPrinter) {
     currentCatPrinterSettings = device
-    statusTopRight.catPrinterState = getCatPrinterState(device)
+    statusTopRight.catPrinterState.value = getCatPrinterState(device)
 }
 
 fun Model.getCatPrinterState(device: SettingsCatPrinter): CatPrinterState {
@@ -142,8 +143,8 @@ fun Model.getCatPrinterState(device: SettingsCatPrinter): CatPrinterState {
 }
 
 fun Model.autoStartCatPrinters() {
-    for (device in database.catPrinters.devices) {
-        if (device.enabled) {
+    for (device in database.catPrinters.devices.value) {
+        if (device.enabled.value) {
             enableCatPrinter(device)
         }
     }
@@ -158,17 +159,17 @@ fun Model.stopCatPrinters() {
 fun Model.isAnyConnectedCatPrinterPrintingChat(): Boolean {
     return catPrinters.values.any {
         it.getState() == CatPrinterState.connected &&
-            getCatPrinterSettings(it)?.printChat == true
+            getCatPrinterSettings(it)?.printChat?.value == true
     }
 }
 
 fun Model.isAnyCatPrinterConfigured(): Boolean {
-    return database.catPrinters.devices.any { it.enabled }
+    return database.catPrinters.devices.value.any { it.enabled.value }
 }
 
 fun Model.areAllCatPrintersConnected(): Boolean {
     return catPrinters.values.none {
-        getCatPrinterSettings(it)?.enabled == true && it.getState() != CatPrinterState.connected
+        getCatPrinterSettings(it)?.enabled?.value == true && it.getState() != CatPrinterState.connected
     }
 }
 
@@ -177,18 +178,18 @@ private fun Model.isCatPrinterEventEnabled(
     settings: SettingsCatPrinter
 ): Boolean {
     return when (event) {
-        is CatPrinterEvent.TwitchFollow -> settings.printTwitch.follows
-        is CatPrinterEvent.TwitchSubscribe -> settings.printTwitch.subscriptions
-        is CatPrinterEvent.TwitchSubscriptionGift -> settings.printTwitch.giftSubscriptions
-        is CatPrinterEvent.TwitchResubscribe -> settings.printTwitch.resubscriptions
-        is CatPrinterEvent.TwitchRaid -> settings.printTwitch.raids
-        is CatPrinterEvent.TwitchCheer -> settings.printTwitch.isBitsEnabled(amount = event.amount)
-        is CatPrinterEvent.TwitchReward -> settings.printTwitch.rewards
-        is CatPrinterEvent.KickSubscription -> settings.printKick.subscriptions
-        is CatPrinterEvent.KickGiftedSubscriptions -> settings.printKick.giftedSubscriptions
-        is CatPrinterEvent.KickHost -> settings.printKick.hosts
-        is CatPrinterEvent.KickReward -> settings.printKick.rewards
-        is CatPrinterEvent.KickKicks -> settings.printKick.isKicksEnabled(amount = event.amount)
+        is CatPrinterEvent.TwitchFollow -> settings.printTwitch.value.follows
+        is CatPrinterEvent.TwitchSubscribe -> settings.printTwitch.value.subscriptions
+        is CatPrinterEvent.TwitchSubscriptionGift -> settings.printTwitch.value.giftSubscriptions
+        is CatPrinterEvent.TwitchResubscribe -> settings.printTwitch.value.resubscriptions
+        is CatPrinterEvent.TwitchRaid -> settings.printTwitch.value.raids
+        is CatPrinterEvent.TwitchCheer -> settings.printTwitch.value.isBitsEnabled(amount = event.amount)
+        is CatPrinterEvent.TwitchReward -> settings.printTwitch.value.rewards
+        is CatPrinterEvent.KickSubscription -> settings.printKick.value.subscriptions
+        is CatPrinterEvent.KickGiftedSubscriptions -> settings.printKick.value.giftedSubscriptions
+        is CatPrinterEvent.KickHost -> settings.printKick.value.hosts
+        is CatPrinterEvent.KickReward -> settings.printKick.value.rewards
+        is CatPrinterEvent.KickKicks -> settings.printKick.value.isKicksEnabled(amount = event.amount)
     }
 }
 
@@ -323,7 +324,7 @@ private suspend fun Model.createEventImage(
 
 private suspend fun Model.fetchProfilePicture(username: String, platform: Platform): Bitmap? {
     return when (platform) {
-        Platform.twitch -> fetchTwitchProfilePicture(username = username)
+        Platform.twitch -> fetchTwitchProfilePicture(username = username)?.asAndroidBitmap()
         Platform.kick -> fetchKickProfilePicture(username = username)
         else -> null
     }
@@ -334,7 +335,7 @@ class ModelCatPrinterDelegate(private val model: Model) : CatPrinterDelegate {
         mainScope.launch {
             val device = model.getCatPrinterSettings(catPrinter) ?: return@launch
             if (device === model.currentCatPrinterSettings) {
-                model.statusTopRight.catPrinterState = state
+                model.statusTopRight.catPrinterState.value = state
             }
         }
     }

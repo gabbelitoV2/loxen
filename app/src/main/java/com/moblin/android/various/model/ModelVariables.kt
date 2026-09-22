@@ -5,23 +5,24 @@ import com.moblin.android.various.Variables
 import com.moblin.android.various.utils.emojiFlag
 import com.moblin.android.videoeffects.text.TextEffectFormatter
 import com.moblin.android.videoeffects.text.loadTextFormat
+import com.moblin.android.videoeffects.text.toPlainText
 import java.time.Instant
 import kotlin.time.TimeSource
 
 fun Model.createVariables(now: Instant, timestamp: TimeSource.Monotonic.ValueTimeMark): Variables {
     val location = locationManager.getLatestKnownLocation()
-    val weather = weatherManager.getLatestWeather()?.currentWeather
+    val weather = weatherManager.getLatestWeather()
     val placemark = geographyManager.getLatestPlacemark()
     return Variables(
-        timestamp = timestamp,
-        bitrate = bitrate.speedMbpsOneDecimal,
-        bitrateAndTotal = bitrate.speedAndTotal,
-        bonding = bonding.statistics,
+        timestamp = timestamp.elapsedNow().inWholeNanoseconds,
+        bitrate = bitrate.speedMbpsOneDecimal.value,
+        bitrateAndTotal = bitrate.speedAndTotal.value,
+        bonding = bonding.statistics.value,
         resolution = currentResolution,
         fps = currentFps,
         date = now,
-        debugOverlayLines = debugOverlay.debugLines,
-        speed = location?.speed ?: 0.0,
+        debugOverlayLines = debugOverlay.debugLines.value,
+        speed = location?.speed?.toDouble() ?: 0.0,
         averageSpeed = averageSpeed,
         altitude = location?.altitude ?: 0.0,
         distance = database.location.distance,
@@ -37,13 +38,13 @@ fun Model.createVariables(now: Instant, timestamp: TimeSource.Monotonic.ValueTim
         feelsLikeTemperature = weather?.apparentTemperature,
         windSpeed = weather?.wind.speed,
         windGust = weather?.wind.gust,
-        country = placemark?.country ?: "",
-        countryFlag = emojiFlag(placemark?.isoCountryCode),
-        state = placemark?.administrativeArea,
-        area = placemark?.subAdministrativeArea,
+        country = placemark?.countryName ?: "",
+        countryFlag = emojiFlag(placemark?.countryCode),
+        state = placemark?.adminArea,
+        area = placemark?.subAdminArea,
         city = placemark?.locality,
         neighborhood = placemark?.subLocality,
-        muted = audio.muted,
+        muted = audio.muted.value,
         heartRates = heartRates,
         activeEnergyBurned = workoutActiveEnergyBurned,
         workoutDistance = workoutDistance,
@@ -75,11 +76,11 @@ fun Model.formatPlainText(formatString: String): String {
         ratings = emptyList(),
         lapTimes = emptyList()
     )
-    return formatter.format(variables, now).toPlainText()
+    return formatter.format(variables, now.elapsedNow().inWholeNanoseconds).toPlainText()
 }
 
 private fun Model.getSystemMonitor(): String {
-    return if (database.show.systemMonitor) {
+    return if (database.show.systemMonitor.value) {
         systemMonitor.format()
     } else {
         "-% - MB"

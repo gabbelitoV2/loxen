@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 private val mainScope = CoroutineScope(Dispatchers.Main)
 private val globalScope = CoroutineScope(Dispatchers.Default)
 
+private fun Image.isPortrait(): Boolean = height > width
+
 class VideoSnapshots(private val context: Context) {
     private var cleanSnapshots = false
     private var takeSnapshotAge: Float = 0.0f

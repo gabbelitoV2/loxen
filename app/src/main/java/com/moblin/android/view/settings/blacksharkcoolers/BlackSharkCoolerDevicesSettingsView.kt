@@ -30,7 +30,7 @@ fun BlackSharkCoolerDevicesSettingsView(
     model: Model = LocalModel.current,
     blackSharkCoolerDevices: SettingsBlackSharkCoolerDevices,
 ) {
-    val statusTopRight by model.statusTopRight.collectAsState()
+    val statusTopRight = model.statusTopRight
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
         item {
             HCenter {
@@ -47,7 +47,8 @@ fun BlackSharkCoolerDevicesSettingsView(
                     )
                 }
                 IconButton(onClick = {
-                    blackSharkCoolerDevices.devices.removeAll { it.id == device.id }
+                    blackSharkCoolerDevices.devices =
+                        blackSharkCoolerDevices.devices.filterNot { it.id == device.id }
                 }) {
                     Icon(Icons.Default.Delete, contentDescription = null)
                 }
@@ -60,7 +61,7 @@ fun BlackSharkCoolerDevicesSettingsView(
                     name = SettingsBlackSharkCoolerDevice.baseName,
                     existingNames = blackSharkCoolerDevices.devices,
                 )
-                blackSharkCoolerDevices.devices.add(device)
+                blackSharkCoolerDevices.devices = blackSharkCoolerDevices.devices + device
             }
         }
         item {

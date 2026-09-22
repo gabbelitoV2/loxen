@@ -49,11 +49,11 @@ fun WidgetScoreboardGolfGeneralSettingsView(
 
 @Composable
 private fun GolfPlayerView(player: SettingsWidgetGolfScoreboardPlayer, updated: () -> Unit) {
-    val name by player.name.collectAsState()
-    TextEditNavigationView(title = localized("Name"), value = name) {
-        player.name.value = it
+    val name = player.name
+    TextEditNavigationView(title = localized("Name"), value = name, onSubmit = {
+        player.name = it
         updated()
-    }
+    })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,12 +65,12 @@ fun WidgetScoreboardGolfSettingsView(
 ) {
     Column {
         Text("Round", style = MaterialTheme.typography.titleSmall)
-        val title by golf.title.collectAsState()
-        TextEditNavigationView(title = localized("Title"), value = title) {
-            golf.title.value = it
+        val title = golf.title
+        TextEditNavigationView(title = localized("Title"), value = title, onSubmit = {
+            golf.title = it
             updated()
-        }
-        val numberOfHoles by golf.numberOfHoles.collectAsState()
+        })
+        val numberOfHoles = golf.numberOfHoles
         var holesExpanded by remember { mutableStateOf(false) }
         ExposedDropdownMenuBox(
             expanded = holesExpanded,
@@ -96,7 +96,7 @@ fun WidgetScoreboardGolfSettingsView(
                     DropdownMenuItem(
                         text = { Text(option.toString()) },
                         onClick = {
-                            golf.numberOfHoles.value = option
+                            golf.numberOfHoles = option
                             holesExpanded = false
                         }
                     )
@@ -104,10 +104,10 @@ fun WidgetScoreboardGolfSettingsView(
             }
         }
         LaunchedEffect(numberOfHoles) {
-            golf.currentHole.value = 0
+            golf.currentHole = 0
             updated()
         }
-        val pars by golf.pars.collectAsState()
+        val pars = golf.pars
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -123,7 +123,7 @@ fun WidgetScoreboardGolfSettingsView(
             )
         }
         Text("Players", style = MaterialTheme.typography.titleSmall)
-        val players by golf.players.collectAsState()
+        val players = golf.players
         players.forEach { player ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -136,8 +136,8 @@ fun WidgetScoreboardGolfSettingsView(
                     onClick = {
                         val offsets = makeOffsets(players, player.id)
                         if (offsets != null) {
-                            golf.players.value = players.filterIndexed { index, _ ->
-                                index !in offsets
+                            golf.players = players.filterIndexed { index, _ ->
+                                index != offsets
                             }
                             updated()
                         }
@@ -150,7 +150,7 @@ fun WidgetScoreboardGolfSettingsView(
         if (players.size < 4) {
             CreateButtonView {
                 val n = players.size + 1
-                golf.players.value = players + SettingsWidgetGolfScoreboardPlayer(name = "Player $n")
+                golf.players = players + SettingsWidgetGolfScoreboardPlayer(name = "Player $n")
                 updated()
             }
         }
@@ -165,8 +165,8 @@ fun WidgetScoreboardGolfParsView(
     updated: () -> Unit
 ) {
     Column {
-        val pars by golf.pars.collectAsState()
-        val numberOfHoles by golf.numberOfHoles.collectAsState()
+        val pars = golf.pars
+        val numberOfHoles = golf.numberOfHoles
         for (i in 0 until numberOfHoles) {
             var parExpanded by remember(i) { mutableStateOf(false) }
             ExposedDropdownMenuBox(
@@ -193,10 +193,10 @@ fun WidgetScoreboardGolfParsView(
                         DropdownMenuItem(
                             text = { Text(option.toString()) },
                             onClick = {
-                                val updatedPars = golf.pars.value.toMutableList()
+                                val updatedPars = golf.pars.toMutableList()
                                 if (i < updatedPars.size) {
                                     updatedPars[i] = option
-                                    golf.pars.value = updatedPars
+                                    golf.pars = updatedPars
                                 }
                                 parExpanded = false
                                 updated()

@@ -278,16 +278,16 @@ fun formatDistance(distance: Double): String {
 
 fun ThermalState.string(): String {
     return when (this) {
-        ThermalState.nominal -> "nominal"
-        ThermalState.fair -> "fair"
-        ThermalState.serious -> "serious"
-        ThermalState.critical -> "critical"
+        ThermalState.NOMINAL -> "nominal"
+        ThermalState.FAIR -> "fair"
+        ThermalState.SERIOUS -> "serious"
+        ThermalState.CRITICAL -> "critical"
         else -> "unknown"
     }
 }
 
 fun appVersion(): String {
-    return com.moblin.android.BuildConfig.VERSION_NAME.ifEmpty { "-" }
+    return TODO("BuildConfig.VERSION_NAME")
 }
 
 fun <T : Number> formatOneDecimal(value: T): String {
@@ -400,10 +400,10 @@ fun ULong.formatBytes(): String {
 
 fun ThermalState.color(): Color {
     return when (this) {
-        ThermalState.nominal -> Color.White
-        ThermalState.fair -> Color.White
-        ThermalState.serious -> Color.Yellow
-        ThermalState.critical -> Color.Red
+        ThermalState.NOMINAL -> Color.White
+        ThermalState.FAIR -> Color.White
+        ThermalState.SERIOUS -> Color.Yellow
+        ThermalState.CRITICAL -> Color.Red
         else -> Color(0xFFFFC0CB)
     }
 }

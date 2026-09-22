@@ -31,7 +31,7 @@ private val ristDispatcher = Executors.newSingleThreadExecutor { runnable ->
 
 private val ristScope = CoroutineScope(ristDispatcher)
 
-private val weigthTargetBitrate: UInt = 10_000_000u
+private val weigthTargetBitrate: Int = 10_000_000
 
 private const val tag = "RistStream"
 
@@ -62,7 +62,7 @@ private class RistRemotePeer(
     var stats: RistSenderStats? = null
     var adaptiveWeight: AdaptiveBitrateRistExperiment? = null
     private var state: RistPeerState = RistPeerState.CONNECTING
-    private var connectingTimer = SimpleTimer(ristScope)
+    private var connectingTimer = SimpleTimer(ristDispatcher)
 
     init {
         adaptiveWeight = AdaptiveBitrateRistExperiment(
@@ -109,7 +109,7 @@ private class RistRemotePeer(
         connectingTimer.stop()
     }
 
-    override fun adaptiveBitrateSetVideoStreamBitrate(bitrate: UInt) {}
+    override fun adaptiveBitrateSetVideoStreamBitrate(bitrate: Int) {}
 }
 
 private enum class RistStreamState {
@@ -190,12 +190,12 @@ class RistStream(
             for (peer in peers) {
                 val connection = BondingConnection(
                     name = peer.bondingConnectionName(),
-                    usage = 0u,
+                    usage = 0L,
                     rtt = null,
                 )
                 val stats = peer.stats
                 if (stats != null) {
-                    connection.usage = stats.bandwidth + stats.retryBandwidth
+                    connection.usage = (stats.bandwidth + stats.retryBandwidth).toLong()
                     connection.rtt = stats.rtt.toInt()
                 }
                 connections.add(connection)
@@ -261,7 +261,7 @@ class RistStream(
             return
         }
         processorPipelineQueue.launch {
-            processor.startEncoding(writer)
+            TODO("processor.startEncoding(writer): MpegTsWriter does not implement AudioVideoEncoderDelegate")
             writer.startRunning()
         }
         val uri = runCatching { URI(url) }.getOrNull() ?: return
@@ -277,7 +277,7 @@ class RistStream(
         stopNetworkPathMonitor()
         processorPipelineQueue.launch {
             writer.stopRunning()
-            processor.stopEncoding(writer)
+            TODO("processor.stopEncoding(writer): MpegTsWriter does not implement AudioVideoEncoderDelegate")
         }
         peers.forEach { it.close() }
         peers.clear()
@@ -315,16 +315,16 @@ class RistStream(
             adaptiveWeight.update(
                 StreamStats(
                     rttMs = stats.rtt.toDouble(),
-                    packetsInFlight = 10,
+                    packetsInFlight = 10.0,
                     transportBitrate = null,
                     latency = null,
                     mbpsSendRate = null,
                     relaxed = null,
                 ),
             )
-            val weight = maxOf(adaptiveWeight.getCurrentBitrate() / (weigthTargetBitrate / 25u), 1u)
+            val weight = maxOf(adaptiveWeight.getCurrentBitrate() / (weigthTargetBitrate / 25), 1)
             Log.d(tag, "rist: peer ${stats.peerId}: weight $weight")
-            peer.peer.setWeight(weight)
+            peer.peer.setWeight(weight.toUInt())
         }
     }
 
@@ -397,12 +397,12 @@ class RistStream(
     }
 
     private fun send(data: ByteArray) {
-        totalByteCount.mutate { it + data.size.toLong() }
+        totalByteCount.mutate { it.value + data.size.toLong() }
         context?.send(data)
     }
 
     private fun send(dataPointer: ByteArray, count: Int) {
-        totalByteCount.mutate { it + count.toLong() }
+        totalByteCount.mutate { it.value + count.toLong() }
         context?.send(dataPointer, count)
     }
 

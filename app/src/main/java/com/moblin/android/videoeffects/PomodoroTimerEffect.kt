@@ -1,6 +1,7 @@
 package com.moblin.android.videoeffects
 
 import android.graphics.Bitmap
+import android.media.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,8 +45,8 @@ import java.util.UUID
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-private fun width(size: Size, canvasSize: Size): Double {
-    return toPixels(size, minOf(canvasSize.width, canvasSize.height))
+private fun width(size: Double, canvasSize: Size): Double {
+    return toPixels(size, minOf(canvasSize.width, canvasSize.height).toDouble())
 }
 
 private fun progress(secondsRemaining: Int, total: Int): Double {
@@ -62,13 +63,13 @@ private fun timeString(secondsRemaining: Int): String {
 }
 
 private fun phaseColor(phase: PomodoroPhase, focusColor: Color, breakColor: Color): Color {
-    return if (phase == PomodoroPhase.FOCUS) focusColor else breakColor
+    return if (phase == PomodoroPhase.focus) focusColor else breakColor
 }
 
 private fun phaseIcon(phase: PomodoroPhase,
                       focusIcon: PomodoroFocusIcon,
                       breakIcon: PomodoroBreakIcon): ImageVector {
-    return pomodoroIconVector(if (phase == PomodoroPhase.FOCUS) focusIcon.rawValue else breakIcon.rawValue)
+    return pomodoroIconVector(if (phase == PomodoroPhase.focus) focusIcon.rawValue else breakIcon.rawValue)
 }
 
 private fun pomodoroIconVector(rawValue: String): ImageVector {
@@ -80,25 +81,25 @@ private fun pomodoroIconVector(rawValue: String): ImageVector {
 }
 
 private fun phaseName(phase: PomodoroPhase, focusName: String, breakName: String): String {
-    return if (phase == PomodoroPhase.FOCUS) focusName else breakName
+    return if (phase == PomodoroPhase.focus) focusName else breakName
 }
 
 @Composable
 private fun PomodoroTimerView(settings: SettingsWidgetPomodoroTimer,
                               sceneWidget: SettingsSceneWidget,
                               canvasSize: Size) {
-    val phase = settings.phase.collectAsState().value
-    val secondsRemaining = settings.secondsRemaining.collectAsState().value
-    val foregroundColor = settings.foregroundColorColor.collectAsState().value
-    val backgroundColor = settings.backgroundColorColor.collectAsState().value
-    val focusName = settings.focusName.collectAsState().value
-    val breakName = settings.breakName.collectAsState().value
-    val focusIcon = settings.focusIcon.collectAsState().value
-    val breakIcon = settings.breakIcon.collectAsState().value
-    val focusColor = settings.focusColorColor.collectAsState().value
-    val breakColor = settings.breakColorColor.collectAsState().value
-    val settingsWidth = settings.width.collectAsState().value
-    val layout = sceneWidget.layout.collectAsState().value
+    val phase = settings.phase
+    val secondsRemaining = settings.secondsRemaining
+    val foregroundColor = settings.foregroundColorColor
+    val backgroundColor = settings.backgroundColorColor
+    val focusName = settings.focusName
+    val breakName = settings.breakName
+    val focusIcon = settings.focusIcon
+    val breakIcon = settings.breakIcon
+    val focusColor = settings.focusColorColor
+    val breakColor = settings.breakColorColor
+    val settingsWidth = settings.width
+    val layout = sceneWidget.layout
 
     val effectWidth = width(layout.size, canvasSize)
     val padding = effectWidth * 0.06
@@ -202,14 +203,14 @@ class PomodoroTimerEffect(private val canvasSize: Size) : VideoEffect() {
         setup()
     }
 
-    override fun execute(image: EffectImage, info: VideoEffectInfo): EffectImage {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         if (timerImage == null) {
             return image
         }
         return TODO("no Android counterpart for CIImage move/cropped/composited")
     }
 
-    override fun executeMetalPetal(image: EffectImage, info: VideoEffectInfo): EffectImage {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         if (timerImage == null) {
             return image
         }

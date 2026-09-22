@@ -35,11 +35,11 @@ fun WidgetWizardBingoCardSettingsView(
     presentingCreateWizard: Boolean,
     onPresentingCreateWizardChange: (Boolean) -> Unit,
 ) {
-    var squaresText by remember { mutableStateOf(bingoCard.squaresText.value) }
-    var lastSquaresText by remember { mutableStateOf(bingoCard.squaresText.value) }
+    var squaresText by remember { mutableStateOf(bingoCard.squaresText) }
+    var lastSquaresText by remember { mutableStateOf(bingoCard.squaresText) }
 
-    LaunchedEffect(bingoCard.squaresText.value) {
-        squaresText = bingoCard.squaresText.value
+    LaunchedEffect(bingoCard.squaresText) {
+        squaresText = bingoCard.squaresText
     }
 
     LaunchedEffect(squaresText) {

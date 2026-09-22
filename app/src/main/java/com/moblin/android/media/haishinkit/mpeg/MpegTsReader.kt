@@ -11,6 +11,7 @@ import com.moblin.android.media.haishinkit.codec.video.VideoDecoderDelegate
 import com.moblin.android.media.haishinkit.util.ByteReader
 import com.moblin.android.various.utils.currentPresentationTimeStamp
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.roundToInt
@@ -51,7 +52,7 @@ class MpegTsReader(
     var delegate: MpegTsReaderDelegate? = null
     private val wrappingTimestamp = WrappingTimestamp(
         "MpegTsReader",
-        (0x2_0000_0000L * 1_000_000L) / TSTimestamp.resolution,
+        ((0x2_0000_0000L * 1_000_000L) / TSTimestamp.resolution).toLong(),
     )
 
     fun handlePacketFromClient(packet: ByteArray) {
@@ -71,7 +72,8 @@ class MpegTsReader(
     }
 
     private fun handleProgramAssociationTable(packet: MpegTsPacket) {
-        programAssociationTable = MpegTsProgramAssociation(packet.payload)
+        programAssociationTable = MpegTsProgramAssociation()
+        programAssociationTable.decodeSectionData(packet.payload)
         for ((programNumber, programId) in programAssociationTable.programs) {
             programs[programId] = programNumber
         }
@@ -238,7 +240,7 @@ class MpegTsReader(
         val height = formatDescription.getInteger(MediaFormat.KEY_HEIGHT)
         Log.i(logTag, "mpeg-ts-reader: Got new video dimensions ${width}x${height}")
         videoDecoder?.stopRunning()
-        videoDecoder = VideoDecoder(name, decoderQueue, softwareDecoding)
+        videoDecoder = VideoDecoder(name, CoroutineScope(decoderQueue), softwareDecoding)
         videoDecoder?.delegate = this
         videoDecoder?.startRunning(formatDescription)
     }
@@ -382,7 +384,7 @@ class MpegTsReader(
         val units = readH264NalUnits(
             packetizedElementaryStream.data,
             nalUnits,
-            listOf(NalUnitType.pps, NalUnitType.sps, NalUnitType.idr),
+            listOf(AvcNalUnitType.pps, AvcNalUnitType.sps, AvcNalUnitType.idr),
         )
         val formatDescription = units.makeFormatDescription()
         if (formatDescription != null &&
@@ -401,7 +403,7 @@ class MpegTsReader(
             formatDescriptions[packetId],
             data,
             sampleSizes,
-            units.any { it.header.type == NalUnitType.idr },
+            units.any { it.header.type == AvcNalUnitType.idr },
         ) ?: return
         handleVideoSampleBuffer(sampleBuffer)
     }
@@ -414,7 +416,12 @@ class MpegTsReader(
         val units = readH265NalUnits(
             packetizedElementaryStream.data,
             nalUnits,
-            listOf(NalUnitType.sps, NalUnitType.pps, NalUnitType.vps, NalUnitType.prefixSeiNut),
+            listOf(
+                HevcNalUnitType.sps,
+                HevcNalUnitType.pps,
+                HevcNalUnitType.vps,
+                HevcNalUnitType.prefixSeiNut,
+            ),
         )
         val formatDescription = units.makeFormatDescription()
         if (formatDescription != null &&
@@ -443,13 +450,16 @@ class MpegTsReader(
             formatDescriptions[packetId],
             data,
             sampleSizes,
-            units.any { it.header.type == NalUnitType.sps },
+            units.any { it.header.type == HevcNalUnitType.sps },
         ) ?: return
         handleVideoSampleBuffer(sampleBuffer)
     }
 
     private fun readHevcTimecode(unit: NalUnit): Pair<String, Int>? =
         TODO("H.265 SEI timecode extraction port")
+
+    private fun List<NalUnit>.makeFormatDescription(): MediaFormat? =
+        TODO("MediaFormat (csd-0) from H.264/H.265 nal units port")
 
     private fun makeSampleBuffer(
         packetId: UShort,

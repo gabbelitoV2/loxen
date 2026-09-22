@@ -17,7 +17,7 @@ class QrCodeEffect(private val widget: SettingsWidgetQrCode) : VideoEffect() {
     private var qrCodeImage: EffectImageCiImage? = null
 
     fun setSceneWidget(sceneWidget: SettingsSceneWidget) {
-        CoroutineScope(processorPipelineQueue).launch {
+        processorPipelineQueue.launch {
             newSceneWidget = sceneWidget
         }
     }
@@ -31,7 +31,7 @@ class QrCodeEffect(private val widget: SettingsWidgetQrCode) : VideoEffect() {
     }
 
     private fun update(newSceneWidget: SettingsSceneWidget, size: Size) {
-        if (newSceneWidget.layout.extent() == sceneWidget?.layout.extent() && size == this.size) {
+        if (newSceneWidget.layout.extent() == sceneWidget?.layout?.extent() && size == this.size) {
             return
         }
         val data = widget.message.toByteArray(Charsets.UTF_8)

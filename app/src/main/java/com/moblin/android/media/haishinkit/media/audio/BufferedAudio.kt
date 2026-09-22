@@ -12,6 +12,8 @@ import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.utils.currentPresentationTimeStamp
 import java.util.UUID
 import kotlin.math.abs
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 
 private const val deltaLimit = 0.03
 private const val tag = "BufferedAudio"
@@ -30,7 +32,7 @@ class BufferedAudio(
     private var sampleRate: Double = 0.0
     private var frameLength: Double = 0.0
     private val sampleBuffers = ArrayDeque<MediaSample>()
-    private val outputTimer = SimpleTimer(processorPipelineQueue)
+    private val outputTimer = SimpleTimer(processorPipelineQueue.coroutineContext[CoroutineDispatcher] ?: Dispatchers.Default)
     private var isInitialized: Boolean = false
     private var isOutputting: Boolean = false
     private var latestSampleBuffer: MediaSample? = null
@@ -46,7 +48,7 @@ class BufferedAudio(
         if (manualOutput) {
             isOutputting = true
         }
-        driftTracker?.addMedia(DriftTrackerMedia.Audio, latency)
+        driftTracker?.addMedia(DriftTrackerMedia.audio, latency)
     }
 
     fun numberOfBuffers(): Int {
@@ -121,7 +123,7 @@ class BufferedAudio(
             val newestSampleBuffer = sampleBuffers.lastOrNull() ?: latestSampleBuffer
             if (tracker != null && newestSampleBuffer != null) {
                 tracker.update(
-                    DriftTrackerMedia.Audio,
+                    DriftTrackerMedia.audio,
                     outputPresentationTimeStamp,
                     newestSampleBuffer.presentationTimeUs / 1_000_000.0
                 )

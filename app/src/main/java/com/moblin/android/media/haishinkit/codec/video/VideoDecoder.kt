@@ -143,7 +143,7 @@ class VideoDecoder(
             }
 
             override fun onError(codec: MediaCodec, e: MediaCodec.CodecException) {
-                Log.i(TAG, "video-decoder: $name: Codec error \(${e.message}).")
+                Log.i(TAG, "video-decoder: $name: Codec error (${e.message}).")
                 countFailedFrame(e.errorCode)
                 invalidateSession = true
             }

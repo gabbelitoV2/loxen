@@ -63,7 +63,7 @@ class AvcNalUnit(val header: AvcNalUnitHeader, val payload: AvcNalUnitPayload) :
         }
     }
 
-    override fun encode(): ByteArray {
+    fun encode(): ByteArray {
         val writer = NalUnitWriter()
         header.encode(writer)
         payload.encode(writer)

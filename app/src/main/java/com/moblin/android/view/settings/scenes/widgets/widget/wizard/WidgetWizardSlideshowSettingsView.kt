@@ -69,20 +69,20 @@ private fun SlidesView(
                 actions = buildList<Pair<String, () -> Unit>> {
                     add(
                         localized("Delete") to {
-                            slideshow.slides.removeAll { it.id == slide.id }
+                            slideshow.slides = slideshow.slides.filterNot { it.id == slide.id }
                         },
                     )
                     if (index > 0) {
                         add(
                             localized("Move Up") to {
-                                slideshow.slides.moveElement(index, index - 1)
+                                slideshow.slides = slideshow.slides.moveElement(index, index - 1)
                             },
                         )
                     }
                     if (index < slideshow.slides.size - 1) {
                         add(
                             localized("Move Down") to {
-                                slideshow.slides.moveElement(index, index + 1)
+                                slideshow.slides = slideshow.slides.moveElement(index, index + 1)
                             },
                         )
                     }
@@ -99,7 +99,7 @@ private fun SlidesView(
             }
         }
         AddButtonView {
-            slideshow.slides.add(SettingsWidgetSlideshowSlide())
+            slideshow.slides = slideshow.slides + SettingsWidgetSlideshowSlide()
         }
         SwipeLeftToDeleteHelpView(kind = localized("a slide"))
     }
@@ -123,7 +123,7 @@ fun WidgetWizardSlideshowSettingsView(
                 actions = {
                     CloseToolbar(
                         presenting = presentingCreateWizard,
-                        onChangePresenting = onChangePresentingCreateWizard,
+                        onPresentingChange = onChangePresentingCreateWizard,
                     )
                 },
             )
@@ -149,8 +149,7 @@ fun WidgetWizardSlideshowSettingsView(
                     database = database,
                     createWidgetWizard = createWidgetWizard,
                     presentingCreateWizard = presentingCreateWizard,
-                    onChangePresentingCreateWizard = onChangePresentingCreateWizard,
-                    enabled = slideshow.slides.isNotEmpty(),
+                    onPresentingCreateWizardChange = onChangePresentingCreateWizard,
                 )
             }
         }
@@ -185,10 +184,12 @@ private fun ContextMenuActions(
     }
 }
 
-private fun <T> MutableList<T>.moveElement(fromIndex: Int, toIndex: Int) {
+private fun <T> List<T>.moveElement(fromIndex: Int, toIndex: Int): List<T> {
     if (fromIndex == toIndex) {
-        return
+        return this
     }
-    val element = removeAt(fromIndex)
-    add(toIndex, element)
+    val list = toMutableList()
+    val element = list.removeAt(fromIndex)
+    list.add(toIndex, element)
+    return list
 }

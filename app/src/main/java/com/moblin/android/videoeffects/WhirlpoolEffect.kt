@@ -17,7 +17,7 @@ class WhirlpoolEffect(private var angle: Float) : VideoEffect() {
         TODO("OpenGL ES port")
     }
 
-    fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         TODO("OpenGL ES port")
     }
 }

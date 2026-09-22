@@ -111,7 +111,7 @@ fun StreamOverlayRightVideoPreviewView(
                 orientation = orientation,
                 name = feed.name,
                 previewView = feed.previewView,
-                onTap = { model.setCurrentSceneVideoSource(cameraId = feed.cameraId) },
+                onTap = { TODO("Model.setCurrentSceneVideoSource is not available on Android") },
             )
         }
     }

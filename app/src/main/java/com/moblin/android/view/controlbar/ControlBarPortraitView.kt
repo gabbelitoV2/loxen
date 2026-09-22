@@ -24,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -52,16 +53,6 @@ import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.model.Store
 import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.LocalModel
-
-private class ControlBarPageScrollTargetBehavior(private val model: Model) {
-    fun updateTarget(targetRectMinY: Double, containerHeight: Double): Double {
-        return controlBarScrollTargetBehavior(
-            model = model,
-            containerWidth = containerHeight,
-            targetPosition = targetRectMinY,
-        )
-    }
-}
 
 private fun buttonSize(bigButtons: Boolean) =
     if (bigButtons) controlBarQuickButtonSingleQuickButtonSize else controlBarButtonSize
@@ -208,6 +199,7 @@ private fun IconAndSettingsView(model: Model = LocalModel.current, store: Store)
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainPageView(
     model: Model = LocalModel.current,
@@ -216,7 +208,7 @@ private fun MainPageView(
     status: StatusOther,
     height: Double,
 ) {
-    val thermalState by status.thermalState.collectAsState()
+    val thermalState = status.thermalState
     val presentingThermalState = remember { mutableStateOf(false) }
     Row(
         modifier = Modifier

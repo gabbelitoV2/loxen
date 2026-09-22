@@ -21,6 +21,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -53,40 +55,44 @@ private fun DrawOnStreamCanvasView(
     orientation: Orientation,
     drawOnStream: DrawOnStream,
 ) {
+    val lines by drawOnStream.lines.collectAsState()
     BoxWithConstraints {
-        val layout = model.streamViewLayout(maxWidth, maxHeight)
         Canvas(
             modifier = Modifier
-                .size(layout.size.width, layout.size.height)
-                .offset(layout.offset.x, layout.offset.y)
+                .size(maxWidth, maxHeight)
                 .pointerInput(Unit) {
                     detectDragGestures(
                         onDragStart = { position ->
                             if (!drawing) {
-                                drawOnStream.lines.add(
-                                    DrawOnStreamLine(
-                                        points = mutableListOf(position),
-                                        width = drawOnStream.selectedWidth,
-                                        color = drawOnStream.selectedColor,
-                                    )
+                                val newLine = DrawOnStreamLine(
+                                    points = mutableListOf(position),
+                                    width = drawOnStream.selectedWidth.value,
+                                    color = drawOnStream.selectedColor.value,
                                 )
+                                drawOnStream.lines.value =
+                                    (drawOnStream.lines.value + newLine).toMutableList()
                             }
                             drawing = true
                         },
                         onDrag = { change, _ ->
-                            val lastIndex = drawOnStream.lines.indices.lastOrNull()
+                            val currentLines = drawOnStream.lines.value
+                            val lastIndex = currentLines.indices.lastOrNull()
                             if (lastIndex != null) {
-                                drawOnStream.lines[lastIndex].points.add(change.position)
+                                val last = currentLines[lastIndex]
+                                val updated = currentLines.toMutableList()
+                                updated[lastIndex] = last.copy(
+                                    points = (last.points + change.position).toMutableList()
+                                )
+                                drawOnStream.lines.value = updated
                             }
                         },
                         onDragEnd = {
-                            model.drawOnStreamLineComplete()
                             drawing = false
                         },
                     )
                 },
         ) {
-            for (line in drawOnStream.lines) {
+            for (line in lines) {
                 val width = line.width
                 if (line.points.size > 1) {
                     drawPath(
@@ -110,7 +116,7 @@ private fun DrawOnStreamCanvasView(
 }
 
 private fun buttonColor(drawOnStream: DrawOnStream): Color {
-    return if (drawOnStream.lines.isEmpty()) {
+    return if (drawOnStream.lines.value.isEmpty()) {
         Color.Gray
     } else {
         Color.White
@@ -122,6 +128,9 @@ private fun DrawOnStreamControlsView(
     model: Model = LocalModel.current,
     drawOnStream: DrawOnStream,
 ) {
+    val lines by drawOnStream.lines.collectAsState()
+    val selectedWidth by drawOnStream.selectedWidth.collectAsState()
+    val selectedColor by drawOnStream.selectedColor.collectAsState()
     Column {
         Spacer(modifier = Modifier.weight(1f))
         Row(
@@ -136,9 +145,9 @@ private fun DrawOnStreamControlsView(
             ) {
                 IconButton(
                     onClick = {
-                        model.drawOnStreamWipe()
+                        drawOnStream.lines.value = mutableListOf()
                     },
-                    enabled = drawOnStream.lines.isNotEmpty(),
+                    enabled = lines.isNotEmpty(),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
@@ -149,9 +158,9 @@ private fun DrawOnStreamControlsView(
                 }
                 IconButton(
                     onClick = {
-                        model.drawOnStreamUndo()
+                        drawOnStream.lines.value = drawOnStream.lines.value.dropLast(1).toMutableList()
                     },
-                    enabled = drawOnStream.lines.isNotEmpty(),
+                    enabled = lines.isNotEmpty(),
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Undo,
@@ -162,15 +171,15 @@ private fun DrawOnStreamControlsView(
                 }
                 TODO("no Compose counterpart for ColorPicker")
                 Slider(
-                    value = drawOnStream.selectedWidth,
+                    value = selectedWidth,
                     onValueChange = {
-                        drawOnStream.selectedWidth = it
+                        drawOnStream.selectedWidth.value = it
                     },
                     valueRange = 1f..20f,
                     modifier = Modifier.width(150.dp),
                     colors = SliderDefaults.colors(
-                        thumbColor = drawOnStream.selectedColor,
-                        activeTrackColor = drawOnStream.selectedColor,
+                        thumbColor = selectedColor,
+                        activeTrackColor = selectedColor,
                     ),
                 )
             }
@@ -180,10 +189,11 @@ private fun DrawOnStreamControlsView(
 
 @Composable
 fun DrawOnStreamView(model: Model = LocalModel.current) {
+    val stream by model.stream.collectAsState()
     Box {
         DrawOnStreamCanvasView(
             model = model,
-            stream = model.stream,
+            stream = stream,
             orientation = model.orientation,
             drawOnStream = model.drawOnStream,
         )

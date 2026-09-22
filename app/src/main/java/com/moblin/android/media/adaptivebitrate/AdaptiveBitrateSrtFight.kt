@@ -21,11 +21,12 @@ val adaptiveBitrateSlowSettings = AdaptiveBitrateSettings(
 )
 
 class AdaptiveBitrateSrtFight(
-    targetBitrate: UInt32,
-    delegate: AdaptiveBitrateDelegate,
+    targetBitrate: Int,
+    private val delegate: AdaptiveBitrateDelegate,
     private val rttMax: Double = 250.0,
     private val pifMax: Double = 100.0
-) : AdaptiveBitrate(delegate) {
+) {
+    private val base = AdaptiveBitrate(delegate)
     private var avgRtt: Double = 0.0
     private var fastRtt: Double = 0.0
     private var currentBitrate: Long = adaptiveBitrateStart
@@ -36,32 +37,32 @@ class AdaptiveBitrateSrtFight(
     private var fastPif: Double = 0.0
     private var settings: AdaptiveBitrateSettings = adaptiveBitrateFastSettings
 
-    override fun setTargetBitrate(bitrate: UInt32) {
+    fun setTargetBitrate(bitrate: Int) {
         targetBitrate = bitrate.toLong()
     }
 
-    override fun setSettings(settings: AdaptiveBitrateSettings) {
+    fun setSettings(settings: AdaptiveBitrateSettings) {
         Log.i("AdaptiveBitrateSrtFight", "adaptive-bitrate: Using settings $settings")
         this.settings = settings
     }
 
-    override fun getCurrentBitrate(): UInt32 {
-        return currentBitrate.toUInt()
+    fun getCurrentBitrate(): Int {
+        return currentBitrate.toInt()
     }
 
-    override fun getCurrentMaximumBitrateInKbps(): Long {
+    fun getCurrentMaximumBitrateInKbps(): Long {
         return currentMaximumBitrate / 1000
     }
 
-    override fun getFastPif(): Long {
+    fun getFastPif(): Long {
         return fastPif.toLong()
     }
 
-    override fun getSmoothPif(): Long {
+    fun getSmoothPif(): Long {
         return smoothPif.toLong()
     }
 
-    override fun update(stats: StreamStats) {
+    fun update(stats: StreamStats) {
         calcPifs(stats)
         calcRtts(stats)
         increaseCurrentMaxBitrate(stats, allowedRttJitter = 15.0, allowedPifJitter = 10.0)
@@ -75,10 +76,10 @@ class AdaptiveBitrateSrtFight(
         )
         calculateCurrentBitrate(stats)
         if (previousBitrate != currentBitrate) {
-            delegate?.adaptiveBitrateSetVideoStreamBitrate(bitrate = currentBitrate.toUInt())
+            delegate?.adaptiveBitrateSetVideoStreamBitrate(bitrate = currentBitrate.toInt())
             previousBitrate = currentBitrate
         }
-        super.update(stats)
+        base.update(stats)
     }
 
     private fun calcPifs(stats: StreamStats) {
@@ -151,7 +152,7 @@ class AdaptiveBitrateSrtFight(
         val factorDecrease = (currentMaximumBitrate.toDouble() * (1 - factor)).toLong()
         val decrease = maxOf(factorDecrease, minimumDecrease)
         currentMaximumBitrate -= decrease
-        logAdaptiveAcion(
+        base.logAdaptiveAcion(
             actionTaken = "PIF: Decreasing bitrate by ${decrease / 1000}k, " +
                 "smooth ${smoothPif.toInt()} > max ${pifMax.toInt()}"
         )
@@ -164,7 +165,7 @@ class AdaptiveBitrateSrtFight(
         val factorDecrease = (currentMaximumBitrate.toDouble() * (1 - factor)).toLong()
         val decrease = maxOf(factorDecrease, minimumDecrease)
         currentMaximumBitrate -= decrease
-        logAdaptiveAcion(
+        base.logAdaptiveAcion(
             actionTaken = "RTT: Decrease bitrate by $decrease, avg $avgRtt > max $rttMax"
         )
     }
@@ -181,7 +182,7 @@ class AdaptiveBitrateSrtFight(
         val factorDecrease = (currentMaximumBitrate.toDouble() * (1 - factor)).toLong()
         val decrease = maxOf(factorDecrease, minimumDecrease)
         currentMaximumBitrate -= decrease
-        logAdaptiveAcion(
+        base.logAdaptiveAcion(
             actionTaken = "RTT: Decreasing bitrate by ${decrease / 1000}k, " +
                 "${stats.rttMs.toInt()} > avg + allow ${avgRtt.toInt()} + ${rttSpikeAllowed.toInt()}"
         )
@@ -190,7 +191,7 @@ class AdaptiveBitrateSrtFight(
     private fun calculateCurrentBitrate(stats: StreamStats) {
         var pifSpikeDiff = fastPif.toLong() - smoothPif.toLong()
         if (pifSpikeDiff > settings.packetsInFlight) {
-            logAdaptiveAcion(
+            base.logAdaptiveAcion(
                 actionTaken = "PIF: Lazy decrease diff $pifSpikeDiff > ${settings.packetsInFlight}"
             )
             currentMaximumBitrate = (currentMaximumBitrate.toDouble() * 0.95).toLong()
@@ -206,7 +207,7 @@ class AdaptiveBitrateSrtFight(
         }
         if (pifSpikeDiff == settings.packetsInFlight) {
             currentMaximumBitrate -= 500_000
-            logAdaptiveAcion(
+            base.logAdaptiveAcion(
                 actionTaken = "PIF: -500 dec diff $pifSpikeDiff == ${settings.packetsInFlight}"
             )
         }

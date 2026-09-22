@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.OutlinedTextField
@@ -25,6 +26,7 @@ import com.moblin.android.view.utils.SliderView
 import kotlin.math.pow
 import com.moblin.android.LocalModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamSrtAdaptiveBitrateSettingsView(
     model: Model = LocalModel.current,
@@ -163,6 +165,7 @@ fun StreamSrtAdaptiveBitrateSettingsView(
                     minimum = 200f,
                     maximum = 700f,
                     step = 10f,
+                    onChange = {},
                     onSubmit = { submitFastIrlPacketsInFlight(it) },
                     width = 70f,
                     format = { formatPacketsInFlight(it) },
@@ -186,6 +189,7 @@ fun StreamSrtAdaptiveBitrateSettingsView(
                     minimum = 50000f,
                     maximum = 2_000_000f,
                     step = 50000f,
+                    onChange = {},
                     onSubmit = { submitFastMinimumBitrate(it) },
                     width = 80f,
                     format = { formatMinimumBitrate(it) },
@@ -213,6 +217,7 @@ fun StreamSrtAdaptiveBitrateSettingsView(
                     minimum = 5f,
                     maximum = 500f,
                     step = 5f,
+                    onChange = {},
                     onSubmit = { submitBitrateIncreaseSpeed(it) },
                     width = 120f,
                     format = { formatBitrateIncreaseSpeed(it) },
@@ -227,6 +232,7 @@ fun StreamSrtAdaptiveBitrateSettingsView(
                     minimum = 10f,
                     maximum = 50f,
                     step = 1f,
+                    onChange = {},
                     onSubmit = { submitBitrateDecreaseSpeed(it) },
                     width = 80f,
                     format = { formatBitrateDecreaseSpeed(it) },
@@ -244,6 +250,7 @@ fun StreamSrtAdaptiveBitrateSettingsView(
                     minimum = 25000f,
                     maximum = 2_000_000f,
                     step = 5000f,
+                    onChange = {},
                     onSubmit = { submitMinimumBitrateDecreaseSpeed(it) },
                     width = 120f,
                     format = { formatMinimumBitrateDecreaseSpeed(it) },
@@ -261,6 +268,7 @@ fun StreamSrtAdaptiveBitrateSettingsView(
                     minimum = 50f,
                     maximum = 5000f,
                     step = 5f,
+                    onChange = {},
                     onSubmit = { submitPacketsInFlight(it) },
                     width = 100f,
                     format = { formatPacketsInFlight(it) },
@@ -281,6 +289,7 @@ fun StreamSrtAdaptiveBitrateSettingsView(
                     minimum = 25f,
                     maximum = 1000f,
                     step = 5f,
+                    onChange = {},
                     onSubmit = { submitAllowedRttSpike(it) },
                     width = 80f,
                     format = { formatAllowedRttSpike(it) },
@@ -298,6 +307,7 @@ fun StreamSrtAdaptiveBitrateSettingsView(
                     minimum = 50000f,
                     maximum = 2_000_000f,
                     step = 50000f,
+                    onChange = {},
                     onSubmit = { submitMinimumBitrate(it) },
                     width = 80f,
                     format = { formatMinimumBitrate(it) },
@@ -316,6 +326,7 @@ fun StreamSrtAdaptiveBitrateSettingsView(
                     minimum = 50000f,
                     maximum = 2_000_000f,
                     step = 50000f,
+                    onChange = {},
                     onSubmit = { submitBelaboxMinimumBitrate(it) },
                     width = 80f,
                     format = { formatMinimumBitrate(it) },

@@ -58,21 +58,17 @@ private fun SceneItemView(
     scene: SettingsScene,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val name by scene.name.collectAsState()
-    val enabled by scene.enabled.collectAsState()
+    val name = scene.name
+    val enabled = scene.enabled
 
     fun duplicate() {
         val clone = scene.clone()
-        clone.name.value = makeUniqueName(name, database.scenes.value)
-        database.scenes.value = database.scenes.value + clone
+        clone.name = makeUniqueName(name, database.scenes)
+        database.scenes.add(clone)
     }
 
     fun delete() {
-        val deletedCurrentScene = model.getSelectedScene() === scene
-        database.scenes.value = database.scenes.value.filter { it !== scene }
-        if (deletedCurrentScene) {
-            model.resetSelectedScene()
-        }
+        database.scenes.removeAll { it !== scene }
     }
 
     Box(modifier = Modifier.fillMaxWidth()) {
@@ -88,16 +84,11 @@ private fun SceneItemView(
             Switch(
                 checked = enabled,
                 onCheckedChange = { value ->
-                    scene.enabled.value = value
-                    if (model.getSelectedScene() === scene) {
-                        model.resetSelectedScene()
-                    } else {
-                        model.sceneSelector.value.sceneIndex.value += 0
-                    }
+                    scene.enabled = value
                 },
             )
         }
-        SwipeLeftToDeleteButtonView { delete() }
+        SwipeLeftToDeleteButtonView(action = { delete() })
         SwipeLeftToDuplicateButtonView { duplicate() }
         if (isMac()) {
             ContextMenuDuplicateButtonView { duplicate() }
@@ -112,10 +103,10 @@ private fun ScenesListView(
     database: Database,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val scenes by database.scenes.collectAsState()
+    val scenes = database.scenes
 
     fun move(froms: List<Int>, to: Int) {
-        val list = database.scenes.value.toMutableList()
+        val list = database.scenes.toMutableList()
         val moving = froms.mapNotNull { list.getOrNull(it) }
         froms.sortedDescending().forEach { index ->
             if (index in list.indices) {
@@ -124,7 +115,8 @@ private fun ScenesListView(
         }
         val insertAt = if (froms.isNotEmpty() && to > froms.max()) to - froms.size else to
         list.addAll(insertAt.coerceIn(0, list.size), moving)
-        database.scenes.value = list
+        database.scenes.clear()
+        database.scenes.addAll(list)
     }
 
     Column {
@@ -140,9 +132,9 @@ private fun ScenesListView(
             }
         }
         CreateButtonView {
-            val name = makeUniqueName(SettingsScene.baseName, database.scenes.value)
+            val name = makeUniqueName(SettingsScene.baseName, database.scenes)
             val scene = SettingsScene(name)
-            database.scenes.value = database.scenes.value + scene
+            database.scenes.add(scene)
         }
         SwipeLeftToDuplicateOrDeleteHelpView(kind = localized("a scene"))
     }
@@ -168,8 +160,8 @@ private fun SceneSwitchingDetail(
     database: Database,
     debug: SettingsDebug,
 ) {
-    val transition by database.sceneSwitchTransition.collectAsState()
-    val forceTransition by database.forceSceneSwitchTransition.collectAsState()
+    val transition = database.sceneSwitchTransition
+    val forceTransition = database.forceSceneSwitchTransition
     val cameraSwitchRemoveBlackish by debug.cameraSwitchRemoveBlackish.collectAsState()
     var transitionExpanded by remember { mutableStateOf(false) }
 
@@ -199,7 +191,7 @@ private fun SceneSwitchingDetail(
                     DropdownMenuItem(
                         text = { Text(item.toString()) },
                         onClick = {
-                            database.sceneSwitchTransition.value = item
+                            database.sceneSwitchTransition = item
                             model.setSceneSwitchTransition()
                             transitionExpanded = false
                         },
@@ -213,8 +205,7 @@ private fun SceneSwitchingDetail(
             Switch(
                 checked = forceTransition,
                 onCheckedChange = { value ->
-                    database.forceSceneSwitchTransition.value = value
-                    model.resetSelectedScene(changeScene = false, attachCamera = true)
+                    database.forceSceneSwitchTransition = value
                 },
             )
         }
@@ -222,7 +213,7 @@ private fun SceneSwitchingDetail(
             Text("Video blackish")
             Slider(
                 value = cameraSwitchRemoveBlackish.toFloat(),
-                onValueChange = { debug.cameraSwitchRemoveBlackish.value = it.toDouble() },
+                onValueChange = { debug.cameraSwitchRemoveBlackish.value = it.toFloat() },
                 valueRange = 0.0f..1.0f,
                 steps = 9,
                 modifier = Modifier.weight(1f),
@@ -242,9 +233,9 @@ private fun SceneSwitchingDetail(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RemoteSceneView(model: Model = LocalModel.current) {
-    var selectedSceneId by remember { mutableStateOf(model.database.remoteSceneId.value) }
+    var selectedSceneId by remember { mutableStateOf<UUID?>(model.database.remoteSceneId) }
     var expanded by remember { mutableStateOf(false) }
-    val scenes by model.database.scenes.collectAsState()
+    val scenes = model.database.scenes
     val selectedScene = scenes.firstOrNull { it.id == selectedSceneId }
 
     Column {
@@ -253,7 +244,7 @@ private fun RemoteSceneView(model: Model = LocalModel.current) {
             onExpandedChange = { expanded = it },
         ) {
             OutlinedTextField(
-                value = selectedScene?.name?.value ?: "-- None --",
+                value = selectedScene?.name ?: "-- None --",
                 onValueChange = {},
                 readOnly = true,
                 label = { Text("Remote scene") },
@@ -272,8 +263,7 @@ private fun RemoteSceneView(model: Model = LocalModel.current) {
                     text = { Text("-- None --") },
                     onClick = {
                         selectedSceneId = null
-                        model.database.remoteSceneId.value = null
-                        model.remoteSceneSettingsUpdated()
+                        model.database.remoteSceneId = null
                         expanded = false
                     },
                 )
@@ -282,8 +272,7 @@ private fun RemoteSceneView(model: Model = LocalModel.current) {
                         text = { SceneNameView(scene = scene) },
                         onClick = {
                             selectedSceneId = scene.id
-                            model.database.remoteSceneId.value = scene.id
-                            model.remoteSceneSettingsUpdated()
+                            model.database.remoteSceneId = scene.id
                             expanded = false
                         },
                     )
@@ -315,8 +304,8 @@ private fun GraphicsDetail(
     model: Model = LocalModel.current,
     database: Database,
 ) {
-    val implementation by database.graphicsImplementation.collectAsState()
-    val highQualityDownsampling by database.graphicsHighQualityDownsampling.collectAsState()
+    val implementation = database.graphicsImplementation
+    val highQualityDownsampling = database.graphicsHighQualityDownsampling
     var expanded by remember { mutableStateOf(false) }
 
     Column {
@@ -345,8 +334,7 @@ private fun GraphicsDetail(
                     DropdownMenuItem(
                         text = { Text(item.toString()) },
                         onClick = {
-                            database.graphicsImplementation.value = item
-                            model.setGraphicsImplementation()
+                            database.graphicsImplementation = item
                             expanded = false
                         },
                     )
@@ -367,7 +355,7 @@ private fun GraphicsDetail(
                 Switch(
                     checked = highQualityDownsampling,
                     onCheckedChange = { value ->
-                        database.graphicsHighQualityDownsampling.value = value
+                        database.graphicsHighQualityDownsampling = value
                         model.setHighQualityDownsampling()
                     },
                 )
@@ -382,7 +370,7 @@ private fun GraphicsDetail(
 
 @Composable
 fun SceneNameView(scene: SettingsScene) {
-    val name by scene.name.collectAsState()
+    val name = scene.name
     Text(name)
 }
 
@@ -392,7 +380,7 @@ fun ScenesSettingsView(
     database: Database,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val showAllSettings by database.showAllSettings.collectAsState()
+    val showAllSettings = database.showAllSettings
 
     Column {
         Text("Scenes", style = MaterialTheme.typography.titleLarge)
@@ -406,12 +394,12 @@ fun ScenesSettingsView(
                 onNavigate = onNavigate,
             )
             AutoSwitchersSettingsView(
-                autoSceneSwitchers = database.autoSceneSwitchers.value,
+                autoSceneSwitchers = database.autoSceneSwitchers,
                 showSelector = true,
             )
             DisconnectProtectionSettingsView(
                 database = database,
-                disconnectProtection = database.disconnectProtection.value,
+                disconnectProtection = database.disconnectProtection,
             )
             RemoteSceneView(model = model)
             GraphicsView(model = model, database = database, onNavigate = onNavigate)

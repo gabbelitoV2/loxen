@@ -1,15 +1,16 @@
 package com.moblin.android.various.model
 
 import com.moblin.android.integrations.tesla.TeslaVehicle
+import com.moblin.android.integrations.tesla.TeslaVehicleDelegate
 import com.moblin.android.integrations.tesla.TeslaVehicleState
 import com.moblin.android.localized
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class Tesla {
     var vehicle: TeslaVehicle? = null
-    var chargeState = CarServer_ChargeState()
-    var driveState = CarServer_DriveState()
-    var mediaState = CarServer_MediaState()
+    var chargeState: Any? = null
+    var driveState: Any? = null
+    var mediaState: Any? = null
     val vehicleState = MutableStateFlow<TeslaVehicleState?>(null)
     val vehicleVehicleSecurityConnected = MutableStateFlow(false)
     val vehicleInfotainmentConnected = MutableStateFlow(false)
@@ -24,8 +25,22 @@ fun Model.reloadTeslaVehicle() {
             privateKeyPem = database.tesla.privateKey,
             peripheralId = peripheralId,
         )
-        tesla.vehicle?.delegate = this
-        tesla.vehicleState.value = TeslaVehicleState.IDLE
+        val model = this
+        tesla.vehicle?.delegate = object :
+            TeslaVehicleDelegate {
+            override fun teslaVehicleState(vehicle: TeslaVehicle, state: TeslaVehicleState) {
+                model.teslaVehicleState(vehicle, state)
+            }
+
+            override fun teslaVehicleVehicleSecurityConnected(vehicle: TeslaVehicle) {
+                model.teslaVehicleVehicleSecurityConnected(vehicle)
+            }
+
+            override fun teslaVehicleInfotainmentConnected(vehicle: TeslaVehicle) {
+                model.teslaVehicleInfotainmentConnected(vehicle)
+            }
+        }
+        tesla.vehicleState.value = TeslaVehicleState.idle
         tesla.vehicle?.start()
     }
 }
@@ -35,9 +50,9 @@ fun Model.stopTeslaVehicle() {
     tesla.vehicle?.stop()
     tesla.vehicle = null
     tesla.vehicleState.value = null
-    tesla.chargeState = CarServer_ChargeState()
-    tesla.driveState = CarServer_DriveState()
-    tesla.mediaState = CarServer_MediaState()
+    tesla.chargeState = null
+    tesla.driveState = null
+    tesla.mediaState = null
     tesla.vehicleVehicleSecurityConnected.value = false
     tesla.vehicleInfotainmentConnected.value = false
 }
@@ -56,21 +71,15 @@ fun Model.teslaHonk() {
 }
 
 fun Model.teslaGetChargeState() {
-    tesla.vehicle?.getChargeState { state ->
-        tesla.chargeState = state
-    }
+    TODO("no Android counterpart for CarServer_ChargeState")
 }
 
 fun Model.teslaGetDriveState() {
-    tesla.vehicle?.getDriveState { state ->
-        tesla.driveState = state
-    }
+    TODO("no Android counterpart for CarServer_DriveState")
 }
 
 fun Model.teslaGetMediaState() {
-    tesla.vehicle?.getMediaState { state ->
-        tesla.mediaState = state
-    }
+    TODO("no Android counterpart for CarServer_MediaState")
 }
 
 fun Model.teslaOpenTrunk() {
@@ -94,70 +103,25 @@ fun Model.mediaTogglePlayback() {
 }
 
 fun Model.textEffectTeslaBatteryLevel(): String {
-    var teslaBatteryLevel = "-"
-    if (tesla.chargeState.optionalBatteryLevel != null) {
-        teslaBatteryLevel = "${tesla.chargeState.batteryLevel}%"
-        if (tesla.chargeState.chargerPower != 0) {
-            teslaBatteryLevel += " ${tesla.chargeState.chargerPower} kW"
-        }
-        if (tesla.chargeState.optionalMinutesToChargeLimit != null) {
-            teslaBatteryLevel += " ${tesla.chargeState.minutesToChargeLimit} minutes left"
-        }
-    }
-    return teslaBatteryLevel
+    TODO("no Android counterpart for CarServer_ChargeState")
 }
 
 fun Model.textEffectTeslaDrive(): String {
-    var teslaDrive = "-"
-    val shift = tesla.driveState.shiftState.type
-    if (shift != null) {
-        when (shift) {
-            CarServer_DriveState.ShiftState.Type.INVALID -> teslaDrive = "-"
-            CarServer_DriveState.ShiftState.Type.P -> teslaDrive = "P"
-            CarServer_DriveState.ShiftState.Type.R -> teslaDrive = "R"
-            CarServer_DriveState.ShiftState.Type.N -> teslaDrive = "N"
-            CarServer_DriveState.ShiftState.Type.D -> teslaDrive = "D"
-            CarServer_DriveState.ShiftState.Type.SNA -> teslaDrive = "SNA"
-        }
-        if (teslaDrive != "P") {
-            val speed = (tesla.driveState.optionalSpeed as? CarServer_DriveState.OptionalSpeed.Speed)?.value
-            if (speed != null) {
-                val metersPerSecond = speed * 0.44704
-                teslaDrive += " ${format(metersPerSecond)}"
-            }
-            val power = (tesla.driveState.optionalPower as? CarServer_DriveState.OptionalPower.Power)?.value
-            if (power != null) {
-                teslaDrive += " $power kW"
-            }
-        }
-    }
-    return teslaDrive
+    TODO("no Android counterpart for CarServer_DriveState")
 }
 
 fun Model.textEffectTeslaMedia(): String {
-    var teslaMedia = "-"
-    val artist = (tesla.mediaState.optionalNowPlayingArtist
-        as? CarServer_MediaState.OptionalNowPlayingArtist.NowPlayingArtist)?.value
-    val title = (tesla.mediaState.optionalNowPlayingTitle
-        as? CarServer_MediaState.OptionalNowPlayingTitle.NowPlayingTitle)?.value
-    if (artist != null && title != null) {
-        teslaMedia = if (artist.isEmpty()) {
-            title
-        } else {
-            "$artist - $title"
-        }
-    }
-    return teslaMedia
+    TODO("no Android counterpart for CarServer_MediaState")
 }
 
 fun Model.teslaVehicleState(vehicle: TeslaVehicle, state: TeslaVehicleState) {
     when (state) {
-        TeslaVehicleState.IDLE -> reloadTeslaVehicle()
-        TeslaVehicleState.CONNECTING -> {
+        TeslaVehicleState.idle -> reloadTeslaVehicle()
+        TeslaVehicleState.connecting -> {
             tesla.vehicleVehicleSecurityConnected.value = false
             tesla.vehicleInfotainmentConnected.value = false
         }
-        TeslaVehicleState.CONNECTED -> makeToast(title = localized("Connected to your Tesla"))
+        TeslaVehicleState.connected -> makeToast(title = localized("Connected to your Tesla"))
     }
     tesla.vehicleState.value = state
 }

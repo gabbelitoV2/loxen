@@ -42,7 +42,7 @@ fun WidgetWizardImageSettingsView(
                 actions = {
                     CloseToolbar(
                         presenting = presentingCreateWizard,
-                        onChangePresenting = onChangePresentingCreateWizard,
+                        onPresentingChange = onChangePresentingCreateWizard,
                     )
                 },
             )
@@ -54,8 +54,8 @@ fun WidgetWizardImageSettingsView(
                     model = model,
                     widget = widget,
                     image = image,
-                    onChangeImage = { image = it },
-                    sizeScale = 5,
+                    onImageChange = { image = it },
+                    sizeScale = 5.0,
                 )
             }
             item {
@@ -64,8 +64,7 @@ fun WidgetWizardImageSettingsView(
                     database = database,
                     createWidgetWizard = createWidgetWizard,
                     presentingCreateWizard = presentingCreateWizard,
-                    onChangePresentingCreateWizard = onChangePresentingCreateWizard,
-                    enabled = image != null,
+                    onPresentingCreateWizardChange = onChangePresentingCreateWizard,
                 )
             }
         }

@@ -50,38 +50,38 @@ private fun canEnable(bluetoothPeripheralId: UUID?): Boolean {
 
 private fun onDeviceChange(value: String, device: SettingsBlackSharkCoolerDevice) {
     val deviceId = runCatching { UUID.fromString(value) }.getOrNull() ?: return
-    val peripheral = blackSharkCoolerScanner.discoveredPeripherals
-        .firstOrNull { it.identifier == deviceId } ?: return
-    device.bluetoothPeripheralName.value = peripheral.name
-    device.bluetoothPeripheralId.value = deviceId
+    val peripheral = blackSharkCoolerScanner.discoveredPeripherals.value
+        .firstOrNull { it.identifier == value } ?: return
+    device.bluetoothPeripheralName = peripheral.name
+    device.bluetoothPeripheralId = deviceId
 }
 
 private fun changeColor(model: Model, device: SettingsBlackSharkCoolerDevice) {
     val blackSharkCoolerDevice = model.blackSharkCoolerDevices
         .entries
-        .firstOrNull { it.key == device.bluetoothPeripheralId.value }?.value
+        .firstOrNull { it.key == device.bluetoothPeripheralId }?.value
     if (blackSharkCoolerDevice == null) {
         Log.i("BlackSharkCoolerDeviceSettingsView", "Could not find phone cooler")
         return
     }
     blackSharkCoolerDevice.setLedColor(
-        color = device.rgbLightColor.value,
-        brightness = device.rgbLightBrightness.value.toInt(),
+        color = device.rgbLightColor,
+        brightness = device.rgbLightBrightness.toInt(),
     )
 }
 
 private fun toggleLight(model: Model, device: SettingsBlackSharkCoolerDevice) {
     val blackSharkCoolerDevice = model.blackSharkCoolerDevices
         .entries
-        .firstOrNull { it.key == device.bluetoothPeripheralId.value }?.value
+        .firstOrNull { it.key == device.bluetoothPeripheralId }?.value
     if (blackSharkCoolerDevice == null) {
         Log.i("BlackSharkCoolerDeviceSettingsView", "Could not find phone cooler")
         return
     }
-    if (device.rgbLightEnabled.value) {
+    if (device.rgbLightEnabled) {
         blackSharkCoolerDevice.setLedColor(
-            color = device.rgbLightColor.value,
-            brightness = device.rgbLightBrightness.value.toInt(),
+            color = device.rgbLightColor,
+            brightness = device.rgbLightBrightness.toInt(),
         )
     } else {
         blackSharkCoolerDevice.turnLedOff()
@@ -97,7 +97,7 @@ fun BlackSharkCoolerDeviceSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Text(
-        text = device.name.collectAsState().value,
+        text = device.name,
         modifier = Modifier
             .fillMaxWidth()
             .clickable {
@@ -114,12 +114,12 @@ fun BlackSharkCoolerDeviceSettingsViewContent(
     status: StatusTopRight,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val name = device.name.collectAsState().value
-    val bluetoothPeripheralName = device.bluetoothPeripheralName.collectAsState().value
-    val bluetoothPeripheralId = device.bluetoothPeripheralId.collectAsState().value
-    val enabled = device.enabled.collectAsState().value
-    val rgbLightEnabled = device.rgbLightEnabled.collectAsState().value
-    val rgbLightBrightness = device.rgbLightBrightness.collectAsState().value
+    val name = device.name
+    val bluetoothPeripheralName = device.bluetoothPeripheralName
+    val bluetoothPeripheralId = device.bluetoothPeripheralId
+    val enabled = device.enabled
+    val rgbLightEnabled = device.rgbLightEnabled
+    val rgbLightBrightness = device.rgbLightBrightness
     val phoneTemp = status.blackSharkCoolerPhoneTemp.collectAsState().value
     val exhaustTemp = status.blackSharkCoolerExhaustTemp.collectAsState().value
 
@@ -128,21 +128,24 @@ fun BlackSharkCoolerDeviceSettingsViewContent(
             NameEditView(
                 name = name,
                 existingNames = blackSharkCoolerDevices.devices,
-                onChange = {
-                    device.name.value = it
+                onNameChange = {
+                    device.name = it
                 },
             )
         }
         item {
             Text(localized("Device"))
-            GrayTextView(
-                text = bluetoothPeripheralName ?: localized("Select device"),
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable(enabled = !enabled) {
                         onNavigate("BlackSharkCoolerDeviceScannerSettingsView")
                     },
-            )
+            ) {
+                GrayTextView(
+                    text = bluetoothPeripheralName ?: localized("Select device"),
+                )
+            }
             if (phoneTemp != null && exhaustTemp != null) {
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Text("Phone: $phoneTemp °C")
@@ -160,16 +163,16 @@ fun BlackSharkCoolerDeviceSettingsViewContent(
                 Switch(
                     checked = enabled,
                     onCheckedChange = {
-                        device.enabled.value = it
+                        device.enabled = it
                     },
                     enabled = canEnable(bluetoothPeripheralId),
                 )
             }
             LaunchedEffect(enabled) {
                 if (enabled) {
-                    model.enableBlackSharkDevice(device = device)
+                    TODO("enableBlackSharkDevice not available")
                 } else {
-                    model.disableBlackSharkCoolerDevice(device = device)
+                    TODO("disableBlackSharkCoolerDevice not available")
                 }
             }
         }
@@ -189,7 +192,7 @@ fun BlackSharkCoolerDeviceSettingsViewContent(
                 Switch(
                     checked = rgbLightEnabled,
                     onCheckedChange = {
-                        device.rgbLightEnabled.value = it
+                        device.rgbLightEnabled = it
                     },
                 )
             }
@@ -208,7 +211,7 @@ fun BlackSharkCoolerDeviceSettingsViewContent(
                     Slider(
                         value = rgbLightBrightness.toFloat(),
                         onValueChange = {
-                            device.rgbLightBrightness.value = it.toDouble()
+                            device.rgbLightBrightness = it.toDouble()
                         },
                         valueRange = 0f..100f,
                         modifier = Modifier.weight(1f),

@@ -12,14 +12,14 @@ fun StreamOverlayRightPinchView(
     model: Model = LocalModel.current,
     database: Database,
 ) {
-    val pinchScale by database.pinchScale.collectAsState()
+    val pinchScale = database.pinchScale
 
     EffectSlider(
         title = "PINCH SCALE",
-        range = 0.5..1.0,
+        range = 0.5f..1.0f,
         value = pinchScale,
-        onChange = { newValue ->
-            database.setPinchScale(newValue)
+        onValueChange = { newValue ->
+            database.pinchScale = newValue
             model.setPinchScale(scale = newValue)
         }
     )

@@ -52,6 +52,14 @@ import com.moblin.android.common.various.backgroundColor
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.ReplayProvider
+import com.moblin.android.various.model.deleteSelectedReplay
+import com.moblin.android.various.model.loadReplay
+import com.moblin.android.various.model.makeReplayIsNotEnabledToast
+import com.moblin.android.various.model.replayCancel
+import com.moblin.android.various.model.replayPlay
+import com.moblin.android.various.model.replaySpeedChanged
+import com.moblin.android.various.model.saveReplay
+import com.moblin.android.various.model.setReplayPosition
 import com.moblin.android.various.settings.SettingsReplay
 import com.moblin.android.various.settings.SettingsReplaySpeed
 import com.moblin.android.various.storages.ReplaySettings
@@ -115,12 +123,12 @@ private fun ReplayControlsInterval(
     val startFromEnd by replay.startFromEnd.collectAsState()
     Row(verticalAlignment = Alignment.CenterVertically) {
         Slider(
-            value = startFromEnd,
+            value = startFromEnd.toFloat(),
             onValueChange = {
-                replay.startFromEnd.value = it
-                model.setReplayPosition(SettingsReplay.stop - it)
+                replay.startFromEnd.value = it.toDouble()
+                model.setReplayPosition(SettingsReplay.stop - it.toDouble())
             },
-            valueRange = 0f..SettingsReplay.stop,
+            valueRange = 0f..SettingsReplay.stop.toFloat(),
             steps = ((SettingsReplay.stop - 0f) / 0.1f).toInt() - 1,
             modifier = Modifier
                 .width(250.dp)
@@ -141,24 +149,27 @@ private fun ReplayControlsSpeedPicker(
     replay: ReplayProvider,
 ) {
     val speed by replay.speed.collectAsState()
-    SegmentedHPicker(
-        items = SettingsReplaySpeed.entries,
-        selectedItem = speed,
-        onSelectedItemChange = {
-            replay.speed.value = it
-            model.replaySpeedChanged()
-        },
+    Box(
         modifier = Modifier
             .width(90.dp)
             .clip(RoundedCornerShape(7.dp))
             .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
-    ) { item ->
-        Text(
-            text = item.rawValue,
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.White,
-            modifier = Modifier.height(35.dp),
-        )
+    ) {
+        SegmentedHPicker(
+            items = SettingsReplaySpeed.entries,
+            selectedItem = speed,
+            onSelectedItemChange = {
+                replay.speed.value = it
+                model.replaySpeedChanged()
+            },
+        ) { item ->
+            Text(
+                text = item.rawValue,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White,
+                modifier = Modifier.height(35.dp),
+            )
+        }
     }
 }
 
@@ -208,7 +219,8 @@ private fun ReplayControlsSaveButton(
     } else {
         Button(
             onClick = {
-                if (model.stream.replay.enabled) {
+                val replayEnabled: Boolean = TODO("stream.replay.enabled")
+                if (replayEnabled) {
                     model.saveReplay()
                 } else {
                     model.makeReplayIsNotEnabledToast()
@@ -313,7 +325,7 @@ private fun ReplayHistoryItem(
         }
     }
     LaunchedEffect(Unit) {
-        createThumbnail(video.url(), video.thumbnailOffset()) { thumbnail ->
+        createThumbnail(video.url().path, video.thumbnailOffset()) { thumbnail ->
             image = thumbnail
         }
     }

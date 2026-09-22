@@ -61,28 +61,28 @@ class DjiMessage {
 
     constructor(data: ByteArray) {
         val reader = ByteReader(data)
-        if (reader.readUInt8() != firstByte) {
+        if (reader.readUInt8().toInt() != firstByte) {
             throw IllegalArgumentException("Bad first byte")
         }
-        val length = reader.readUInt8()
+        val length = reader.readUInt8().toInt()
         if (data.size != length) {
             throw IllegalArgumentException("Bad length")
         }
-        if (reader.readUInt8() != version) {
+        if (reader.readUInt8().toInt() != version) {
             throw IllegalArgumentException("Bad version")
         }
-        val headerCrc = reader.readUInt8()
+        val headerCrc = reader.readUInt8().toInt()
         val calculatedHeaderCrc = djiCrc8(data.copyOfRange(0, 3))
         if (headerCrc != calculatedHeaderCrc) {
             throw IllegalArgumentException(
                 "Calculated CRC $calculatedHeaderCrc does not match received CRC $headerCrc"
             )
         }
-        target = reader.readUInt16Le()
-        id = reader.readUInt16Le()
-        type = reader.readUInt24Le()
+        target = reader.readUInt16Le().toInt()
+        id = reader.readUInt16Le().toInt()
+        type = reader.readUInt24Le().toInt()
         payload = reader.readBytes(reader.bytesAvailable - 2)
-        val crc = reader.readUInt16Le()
+        val crc = reader.readUInt16Le().toInt()
         val dataWithoutCrc = data.copyOfRange(0, data.size - 2)
         val calculatedCrc = djiCrc16(dataWithoutCrc)
         if (crc != calculatedCrc) {
@@ -94,16 +94,16 @@ class DjiMessage {
 
     fun encode(): ByteArray {
         val writer = ByteWriter()
-        writer.writeUInt8(firstByte)
-        writer.writeUInt8((13 + payload.size) and 0xFF)
-        writer.writeUInt8(version)
-        writer.writeUInt8(djiCrc8(writer.data))
-        writer.writeUInt16Le(target)
-        writer.writeUInt16Le(id)
-        writer.writeUInt24Le(type)
+        writer.writeUInt8(firstByte.toUByte())
+        writer.writeUInt8(((13 + payload.size) and 0xFF).toUByte())
+        writer.writeUInt8(version.toUByte())
+        writer.writeUInt8(djiCrc8(writer.data).toUByte())
+        writer.writeUInt16Le(target.toUShort())
+        writer.writeUInt16Le(id.toUShort())
+        writer.writeUInt24Le(type.toUInt())
         writer.writeBytes(payload)
         val crc = djiCrc16(writer.data)
-        writer.writeUInt16Le(crc)
+        writer.writeUInt16Le(crc.toUShort())
         return writer.data
     }
 

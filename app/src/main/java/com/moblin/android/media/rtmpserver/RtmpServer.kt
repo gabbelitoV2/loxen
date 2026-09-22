@@ -127,7 +127,7 @@ class RtmpServer(
     private fun cleanupClients() {
         val clientsToRemove = mutableListOf<RtmpServerClient>()
         for (client in clients) {
-            if (Duration.between(client.latestReceiveTime, Instant.now()) > Duration.ofSeconds(10)) {
+            if (System.nanoTime() - client.latestReceiveTime > 10_000_000_000L) {
                 clientsToRemove.add(client)
             }
         }
@@ -181,9 +181,9 @@ class RtmpServer(
 
     private fun clientsChanged() {
         val count = clients.size
-        numberOfClients.value = count
+        numberOfClients.mutate { it.value = count }
         val streamKeys = clients.map { it.streamKey }.filter { it.isNotEmpty() }
-        connectedStreamKeys.value = streamKeys
+        connectedStreamKeys.mutate { it.value = streamKeys }
     }
 
     private fun logNumberOfClients() {

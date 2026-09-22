@@ -11,7 +11,7 @@ fun controlBarScrollTargetBehavior(model: Model, containerWidth: Double, targetP
     } else if (distance < -15) {
         model.quickButtons.page -= 1
     }
-    val pages = model.quickButtons.pairs.count { !it.isEmpty }
+    val pages = model.quickButtons.pairs.value.count { !it.isEmpty }
     model.quickButtons.page = model.quickButtons.page.coerceIn(1, pages)
     return (model.quickButtons.page - 1).toDouble() * (containerWidth + spacing)
 }

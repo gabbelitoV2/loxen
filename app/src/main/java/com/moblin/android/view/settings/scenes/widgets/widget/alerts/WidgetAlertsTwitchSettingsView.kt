@@ -1,5 +1,6 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.alerts
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -54,7 +55,6 @@ import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
-import kotlin.random.random
 import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,8 +97,8 @@ private fun TwitchFollowsView(
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color(),
+                    textColor = alert.textColor,
+                    accentColor = alert.accentColor,
                 )
             }
             item {
@@ -109,11 +109,11 @@ private fun TwitchFollowsView(
                     fontWeight = alert.fontWeight,
                 )
             }
-            item { AlertTextToSpeechView(alert = alert, ttsDelay = alert.textToSpeechDelay) }
+            item { AlertTextToSpeechView(alert = alert) }
             item {
                 TextButtonView("Test") {
                     val event = TwitchEventSubNotificationChannelFollowEvent(
-                        userName = alertTestNames.random(),
+                        user_name = alertTestNames.random(),
                     )
                     model.testAlert(TODO("testAlert with the twitchFollow alert case"))
                 }
@@ -162,8 +162,8 @@ private fun TwitchSubscriptionsView(
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color(),
+                    textColor = alert.textColor,
+                    accentColor = alert.accentColor,
                 )
             }
             item {
@@ -174,14 +174,14 @@ private fun TwitchSubscriptionsView(
                     fontWeight = alert.fontWeight,
                 )
             }
-            item { AlertTextToSpeechView(alert = alert, ttsDelay = alert.textToSpeechDelay) }
+            item { AlertTextToSpeechView(alert = alert) }
             item {
                 TextButtonView("Test") {
                     val event = TwitchEventSubNotificationChannelSubscribeEvent(
-                        userName = alertTestNames.random(),
+                        user_name = alertTestNames.random(),
                         tier = "2000",
-                        isGift = false,
-                        isPrime = false,
+                        is_gift = false,
+                        is_prime = false,
                     )
                     model.testAlert(TODO("testAlert with the twitchSubscribe alert case"))
                 }
@@ -230,8 +230,8 @@ private fun TwitchRaidsView(
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color(),
+                    textColor = alert.textColor,
+                    accentColor = alert.accentColor,
                 )
             }
             item {
@@ -242,12 +242,12 @@ private fun TwitchRaidsView(
                     fontWeight = alert.fontWeight,
                 )
             }
-            item { AlertTextToSpeechView(alert = alert, ttsDelay = alert.textToSpeechDelay) }
+            item { AlertTextToSpeechView(alert = alert) }
             item {
                 TextButtonView("Test") {
                     val event = TwitchEventSubChannelRaidEvent(
-                        fromBroadcasterUserId = "1234",
-                        fromBroadcasterUserName = alertTestNames.random(),
+                        from_broadcaster_user_id = "1234",
+                        from_broadcaster_user_name = alertTestNames.random(),
                         viewers = (1 until 1000).random(),
                     )
                     model.testAlert(TODO("testAlert with the twitchRaid alert case"))
@@ -379,8 +379,8 @@ private fun TwitchCheerView(
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color(),
+                    textColor = alert.textColor,
+                    accentColor = alert.accentColor,
                 )
             }
             item {
@@ -391,11 +391,11 @@ private fun TwitchCheerView(
                     fontWeight = alert.fontWeight,
                 )
             }
-            item { AlertTextToSpeechView(alert = alert, ttsDelay = alert.textToSpeechDelay) }
+            item { AlertTextToSpeechView(alert = alert) }
             item {
                 TextButtonView("Test") {
                     val event = TwitchEventSubChannelCheerEvent(
-                        userName = alertTestNames.random(),
+                        user_name = alertTestNames.random(),
                         message = "A test message!",
                         bits = cheerBit.bits,
                     )
@@ -440,17 +440,15 @@ private fun TwitchCheerBitsItemView(
 private fun deleteCheerBit(
     twitch: SettingsWidgetAlertsTwitch,
     model: Model,
-    offsets: Set<Int>,
+    index: Int,
 ) {
-    offsets.sortedDescending().forEach { index ->
-        if (index in twitch.cheerBits.indices) {
-            twitch.cheerBits.removeAt(index)
-        }
+    if (index in twitch.cheerBits.indices) {
+        twitch.cheerBits = twitch.cheerBits.filterIndexed { i, _ -> i != index }
     }
     model.updateAlertsSettings()
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun TwitchCheerBitsView(
     model: Model = LocalModel.current,
@@ -475,9 +473,7 @@ private fun TwitchCheerBitsView(
                     modifier = Modifier.combinedClickable(
                         onClick = {},
                         onLongClick = {
-                            makeOffsets(twitch.cheerBits, cheerBit.id)?.let { offsets ->
-                                deleteCheerBit(twitch, model, offsets)
-                            }
+                            deleteCheerBit(twitch, model, twitch.cheerBits.indexOf(cheerBit))
                         },
                     ),
                 ) {
@@ -490,7 +486,7 @@ private fun TwitchCheerBitsView(
             }
             item {
                 CreateButtonView {
-                    twitch.cheerBits.add(SettingsWidgetAlertsCheerBitsAlert())
+                    twitch.cheerBits = twitch.cheerBits + SettingsWidgetAlertsCheerBitsAlert()
                     model.updateAlertsSettings()
                 }
             }
@@ -562,7 +558,7 @@ private fun TwitchRewardsView(
         )
     } else {
         LaunchedEffect(Unit) {
-            model.fetchTwitchRewards()
+            TODO("fetchTwitchRewards is not available")
         }
         Scaffold(
             topBar = {
@@ -603,7 +599,7 @@ fun WidgetAlertsTwitchSettingsView(
     model: Model = LocalModel.current,
     twitch: SettingsWidgetAlertsTwitch,
 ) {
-    val database by model.database.collectAsState()
+    val database = model.database
     var destination by remember { mutableStateOf<String?>(null) }
     when (destination) {
         "Follows" -> TwitchFollowsView(

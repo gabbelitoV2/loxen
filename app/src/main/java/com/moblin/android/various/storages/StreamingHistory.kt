@@ -27,10 +27,6 @@ enum class ThermalState(val rawValue: Int) : Comparable<ThermalState> {
     SERIOUS(2),
     CRITICAL(3);
 
-    override fun compareTo(other: ThermalState): Int {
-        return rawValue.compareTo(other.rawValue)
-    }
-
     fun toProcessInfo(): Int {
         return when (this) {
             NOMINAL -> PowerManager.THERMAL_STATUS_NONE

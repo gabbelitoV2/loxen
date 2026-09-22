@@ -60,9 +60,9 @@ fun LocalOverlaysNetworkInterfaceNamesSettingsView(
                         }
                         IconButton(
                             onClick = {
-                                val offsets = makeOffsets(database.networkInterfaceNames, interfaceName.id)
-                                if (offsets != null) {
-                                    deleteNetworkInterface(model, database, offsets)
+                                val offset = database.networkInterfaceNames.indexOfFirst { it.id == interfaceName.id }
+                                if (offset != -1) {
+                                    deleteNetworkInterface(model, database, offset)
                                 }
                             }
                         ) {
@@ -81,12 +81,10 @@ fun LocalOverlaysNetworkInterfaceNamesSettingsView(
 private fun deleteNetworkInterface(
     model: Model,
     database: Database,
-    offsets: List<Int>
+    offset: Int
 ) {
-    for (offset in offsets.sortedDescending()) {
-        if (offset in database.networkInterfaceNames.indices) {
-            database.networkInterfaceNames.removeAt(offset)
-        }
+    if (offset in database.networkInterfaceNames.indices) {
+        database.networkInterfaceNames.removeAt(offset)
     }
     model.networkInterfaceNamesUpdated()
 }

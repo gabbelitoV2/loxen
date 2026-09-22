@@ -1,7 +1,7 @@
 package com.moblin.android.videoeffects.vtuber
 
 import android.util.Log
-import androidx.compose.ui.geometry.Size
+import android.util.Size
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.videoeffects.EffectImage
 import java.io.File

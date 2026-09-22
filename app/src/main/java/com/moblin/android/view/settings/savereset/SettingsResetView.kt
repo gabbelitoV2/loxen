@@ -39,13 +39,8 @@ fun SettingsResetView(model: Model = LocalModel.current) {
                     presentingResetConfirm = false
                     scope.launch {
                         model.settings.reset()
-                        model.setCurrentStream()
-                        model.reloadStream()
-                        model.resetSelectedScene()
                         model.updateQuickButtonPairs()
-                        model.loadStealthModeImage()
-                        model.loadControlBarBackgroundImage()
-                        model.loadFaceBackgroundImage()
+                        TODO("setCurrentStream, reloadStream, resetSelectedScene, loadStealthModeImage, loadControlBarBackgroundImage, loadFaceBackgroundImage")
                     }
                 }) {
                     Text(

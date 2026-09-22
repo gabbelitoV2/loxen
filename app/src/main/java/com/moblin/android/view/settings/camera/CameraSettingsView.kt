@@ -44,7 +44,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.addLutCube
+import com.moblin.android.various.model.colorSpaceUpdated
 import com.moblin.android.various.model.fallbackStream
+import com.moblin.android.various.model.lutEnabledUpdated
+import com.moblin.android.various.model.lutUpdated
+import com.moblin.android.various.model.removeLutCube
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsColor
 import com.moblin.android.various.settings.SettingsColorLut
@@ -114,9 +119,9 @@ fun CustomLutDestinationView(
         ) {
             NameEditView(
                 name = nameState,
-                onChange = { newName ->
+                onNameChange = { newName ->
                     nameState = newName
-                    model.setLutName(lut, newName)
+                    lut.name = newName
                 },
             )
             if (image != null) {
@@ -125,7 +130,7 @@ fun CustomLutDestinationView(
                         bitmap = image,
                         contentDescription = null,
                         contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(1920 / 6, 1080 / 6),
+                        modifier = Modifier.size((1920 / 6).dp, (1080 / 6).dp),
                     )
                 }
             }
@@ -145,11 +150,11 @@ private fun CameraSettingsCubeLutsView(
         model.addLutCube(url)
     }
 
-    fun deleteLutCube(offsets: IntArray) {
+    fun deleteLutCube(offsets: List<Int>) {
         model.removeLutCube(offsets)
     }
 
-    val diskLutsCube by color.diskLutsCube.collectAsState()
+    val diskLutsCube = color.diskLutsCube
 
     Column {
         Text("My .cube LUTs", style = MaterialTheme.typography.titleSmall)
@@ -164,9 +169,9 @@ private fun CameraSettingsCubeLutsView(
                     )
                 }
                 IconButton(onClick = {
-                    val offsets = makeOffsets(diskLutsCube, lut.id)
-                    if (offsets != null) {
-                        deleteLutCube(offsets)
+                    val offsets = diskLutsCube.indexOf(lut)
+                    if (offsets != -1) {
+                        deleteLutCube(listOf(offsets))
                     }
                 }) {
                     Icon(Icons.Default.Delete, contentDescription = null)
@@ -179,7 +184,7 @@ private fun CameraSettingsCubeLutsView(
         }
         if (showPicker) {
             ModalBottomSheet(onDismissRequest = { showPicker = false }) {
-                AlertPickerView(type = AlertPickerType.item)
+                AlertPickerView(type = "item")
             }
         }
     }
@@ -193,11 +198,11 @@ private fun CameraSettingsPngLutsView(
     var presentingPicker by remember { mutableStateOf(false) }
     var selectedImageItem: Any? by remember { mutableStateOf<Any?>(null) }
 
-    fun deleteLutPng(offsets: IntArray) {
-        model.removeLutPng(offsets)
+    fun deleteLutPng(offsets: List<Int>) {
+        color.diskLutsPng = color.diskLutsPng.filterIndexed { index, _ -> index !in offsets }
     }
 
-    val diskLutsPng by color.diskLutsPng.collectAsState()
+    val diskLutsPng = color.diskLutsPng
 
     Column {
         Text("My .png LUTs", style = MaterialTheme.typography.titleSmall)
@@ -212,9 +217,9 @@ private fun CameraSettingsPngLutsView(
                     )
                 }
                 IconButton(onClick = {
-                    val offsets = makeOffsets(diskLutsPng, lut.id)
-                    if (offsets != null) {
-                        deleteLutPng(offsets)
+                    val offsets = diskLutsPng.indexOf(lut)
+                    if (offsets != -1) {
+                        deleteLutPng(listOf(offsets))
                     }
                 }) {
                     Icon(Icons.Default.Delete, contentDescription = null)
@@ -246,7 +251,7 @@ fun CameraSettingsLutsView(
 ) {
     var selectedImageItem: Any? by remember { mutableStateOf<Any?>(null) }
 
-    val bundledLuts by color.bundledLuts.collectAsState()
+    val bundledLuts = color.bundledLuts
 
     Scaffold(
         topBar = {
@@ -319,8 +324,8 @@ private fun CameraSettingsAppleLogLutView(
     color: SettingsColor,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val lutEnabled by color.lutEnabled.collectAsState()
-    val lut by color.lut.collectAsState()
+    val lutEnabled = color.lutEnabled
+    val lut = color.lut
 
     Scaffold(
         topBar = {
@@ -338,7 +343,7 @@ private fun CameraSettingsAppleLogLutView(
                 Switch(
                     checked = lutEnabled,
                     onCheckedChange = {
-                        color.lutEnabled.value = it
+                        color.lutEnabled = it
                         model.lutEnabledUpdated()
                     },
                 )
@@ -353,12 +358,12 @@ private fun CameraSettingsAppleLogLutView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            color.lut.value = item
+                            color.lut = item.id
                             model.lutUpdated()
                         },
                 ) {
                     RadioButton(
-                        selected = lut.id == item.id,
+                        selected = lut == item.id,
                         onClick = null,
                     )
                     Text(item.name)
@@ -373,7 +378,7 @@ private fun CameraPreviewSettingsView(
     model: Model = LocalModel.current,
     database: Database,
 ) {
-    val alwaysAttachCameraPreview by database.alwaysAttachCameraPreview.collectAsState()
+    val alwaysAttachCameraPreview = database.alwaysAttachCameraPreview
 
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -381,7 +386,7 @@ private fun CameraPreviewSettingsView(
             Switch(
                 checked = alwaysAttachCameraPreview,
                 onCheckedChange = {
-                    database.alwaysAttachCameraPreview.value = it
+                    database.alwaysAttachCameraPreview = it
                     model.reattachCamera()
                 },
             )
@@ -399,7 +404,7 @@ private fun PhotoShootSettingsView(
     model: Model = LocalModel.current,
     database: Database,
 ) {
-    val alwaysAttachPhotoShoot by database.alwaysAttachPhotoShoot.collectAsState()
+    val alwaysAttachPhotoShoot = database.alwaysAttachPhotoShoot
 
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -407,7 +412,7 @@ private fun PhotoShootSettingsView(
             Switch(
                 checked = alwaysAttachPhotoShoot,
                 onCheckedChange = {
-                    database.alwaysAttachPhotoShoot.value = it
+                    database.alwaysAttachPhotoShoot = it
                     model.reattachCamera()
                 },
             )
@@ -429,11 +434,11 @@ fun CameraSettingsView(
     color: SettingsColor,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val showAllSettings by database.showAllSettings.collectAsState()
-    val zoom by database.zoom.collectAsState()
-    val videoStabilizationMode by database.videoStabilizationMode.collectAsState()
-    val selfieStick by database.selfieStick.collectAsState()
-    val colorSpace by color.space.collectAsState()
+    val showAllSettings = database.showAllSettings
+    val zoom = database.zoom
+    val videoStabilizationMode = database.videoStabilizationMode
+    val selfieStick = database.selfieStick
+    val colorSpace = color.space
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
 
@@ -502,7 +507,7 @@ fun CameraSettingsView(
                             selected = colorSpace,
                             enabled = !(isLive || isRecording),
                             onSelect = {
-                                color.space.value = it
+                                color.space = it
                                 model.colorSpaceUpdated()
                                 Unit
                             },
@@ -525,7 +530,7 @@ fun CameraSettingsView(
                             selected = colorSpace,
                             enabled = !(isLive || isRecording),
                             onSelect = {
-                                color.space.value = it
+                                color.space = it
                                 model.colorSpaceUpdated()
                                 Unit
                             },

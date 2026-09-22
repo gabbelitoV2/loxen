@@ -147,7 +147,13 @@ class AudioEncoderRingBuffer private constructor(
             if (pcmEncoding != AudioFormat.ENCODING_PCM_16BIT) {
                 return null
             }
-            val format = AudioEncoder.makeAudioFormat(inputBasicDescription) ?: return null
+            val inputFormat = AudioEncoder.makeAudioFormat(inputBasicDescription) ?: return null
+            val format = PcmAudioFormat(
+                sampleRate = inputFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE),
+                channels = inputFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT),
+                isInterleaved = true,
+                commonFormat = PcmCommonFormat.INT16,
+            )
             val bytesPerFrame = format.bytesPerFrame
             if (bytesPerFrame <= 0 || numSamplesPerBuffer <= 0) {
                 return null

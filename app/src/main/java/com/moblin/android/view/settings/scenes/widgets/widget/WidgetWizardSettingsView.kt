@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -33,6 +34,10 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
 import com.moblin.android.various.model.CreateWidgetWizard
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.appendWidgetToScene
+import com.moblin.android.various.model.getSelectedScene
+import com.moblin.android.various.model.resetSelectedScene
+import com.moblin.android.various.model.textWidgetTextChanged
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsWidget
@@ -99,14 +104,14 @@ private fun SelectScenesView(
     fun create() {
         onPresentingCreateWizardChange(false)
         val name: String = if (createWidgetWizard.name.value.isEmpty()) {
-            makeUniqueName(SettingsWidget.baseName, database.widgets.value)
+            makeUniqueName(SettingsWidget.baseName, database.widgets)
         } else {
             createWidgetWizard.name.value
         }
         val widget = createWidgetWizard.widget
         widget.type = createWidgetWizard.type.value
         widget.name = name
-        database.widgets.value = database.widgets.value + widget
+        database.widgets += widget
         model.fixAlertMedias()
         model.resetSelectedScene(changeScene = false, attachCamera = false)
         for (sceneToAddWidgetTo in scenesToAddWidgetTo) {
@@ -135,7 +140,7 @@ private fun SelectScenesView(
     }
 
     LaunchedEffect(Unit) {
-        scenesToAddWidgetTo = database.scenes.value.map {
+        scenesToAddWidgetTo = database.scenes.map {
             SceneToAddWidgetTo(scene = it, enabled = it === model.getSelectedScene())
         }
     }
@@ -151,10 +156,11 @@ fun WidgetWizardSelectScenesNavigationView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Column {
-        WizardNextButtonView(onClick = { onNavigate("SelectScenesView") })
+        WizardNextButtonView()
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetWizardSettingsView(
     model: Model = LocalModel.current,
@@ -164,11 +170,11 @@ fun WidgetWizardSettingsView(
     onPresentingCreateWizardChange: (Boolean) -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val type by createWidgetWizard.type.collectAsState()
+    val type: SettingsWidgetType = createWidgetWizard.type.value
     val name by createWidgetWizard.name.collectAsState()
 
     fun isValidName(): String? {
-        if (database.widgets.value.any { it.name == name }) {
+        if (database.widgets.any { it.name == name }) {
             return localized("The name '$name' is already in use.")
         }
         return null
@@ -217,7 +223,7 @@ fun WidgetWizardSettingsView(
                         }
                     }
                     Text(
-                        text = type.description(),
+                        text = type.toString(),
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
@@ -240,21 +246,7 @@ fun WidgetWizardSettingsView(
                 }
             }
             item {
-                WizardNextButtonView(enabled = canGoNext()) {
-                    when (type) {
-                        SettingsWidgetType.text -> onNavigate("WidgetWizardTextSettingsView")
-                        SettingsWidgetType.browser -> onNavigate("WidgetWizardBrowserSettingsView")
-                        SettingsWidgetType.videoSource -> onNavigate("WidgetWizardVideoSourceSettingsView")
-                        SettingsWidgetType.image -> onNavigate("WidgetWizardImageSettingsView")
-                        SettingsWidgetType.slideshow -> onNavigate("WidgetWizardSlideshowSettingsView")
-                        SettingsWidgetType.vTuber -> onNavigate("WidgetWizardVTuberSettingsView")
-                        SettingsWidgetType.pngTuber -> onNavigate("WidgetWizardPngTuberSettingsView")
-                        SettingsWidgetType.wheelOfLuck -> onNavigate("WidgetWizardWheelOfLuckSettingsView")
-                        SettingsWidgetType.bingoCard -> onNavigate("WidgetWizardBingoCardSettingsView")
-                        SettingsWidgetType.scoreboard -> onNavigate("WidgetWizardScoreboardSettingsView")
-                        else -> onNavigate("SelectScenesView")
-                    }
-                }
+                WizardNextButtonView()
             }
         }
     }

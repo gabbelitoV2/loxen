@@ -38,7 +38,7 @@ fun WidgetEffectWizardSettingsView(
     presentingCreateWizard: Boolean,
     onChangePresentingCreateWizard: (Boolean) -> Unit,
 ) {
-    val effectType by effect.type.collectAsState()
+    val effectType = effect.type
     var expanded by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -46,9 +46,10 @@ fun WidgetEffectWizardSettingsView(
             TopAppBar(
                 title = { Text("Create effect wizard") },
                 actions = {
-                    CloseToolbarButtonView {
-                        onChangePresentingCreateWizard(false)
-                    }
+                    CloseToolbarButtonView(
+                        presenting = presentingCreateWizard,
+                        onPresentingChange = onChangePresentingCreateWizard,
+                    )
                 },
             )
         },
@@ -89,7 +90,7 @@ fun WidgetEffectWizardSettingsView(
                             DropdownMenuItem(
                                 text = { Text(type.toString()) },
                                 onClick = {
-                                    effect.type.value = type
+                                    effect.type = type
                                     expanded = false
                                 },
                             )
@@ -120,6 +121,6 @@ private fun create(
     onChangePresentingCreateWizard: (Boolean) -> Unit,
 ) {
     onChangePresentingCreateWizard(false)
-    widget.effects.add(effect)
-    model.resetSelectedScene(changeScene = false)
+    widget.effects = widget.effects + effect
+    TODO("model.resetSelectedScene is not available on the Android Model")
 }

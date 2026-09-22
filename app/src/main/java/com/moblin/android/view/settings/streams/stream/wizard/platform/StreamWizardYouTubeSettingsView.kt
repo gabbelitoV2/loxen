@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,10 +23,14 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.YouTube
+import com.moblin.android.various.model.getYouTubeApi
+import com.moblin.android.various.model.youTubeSignIn
+import com.moblin.android.various.model.youTubeSignOut
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
+import com.moblin.android.view.utils.ExternalButtonView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
@@ -36,10 +40,8 @@ private fun fetchLiveStreams(
     createStreamWizard: CreateStreamWizard,
     youTubeStream: SettingsStream
 ) {
-    model.getYouTubeApi(stream = youTubeStream) { youTubeApi ->
-        youTubeApi?.listLiveStreams { result ->
-            TODO("YouTubeApi.listLiveStreams result handling is not available in this port: $result")
-        }
+    model.getYouTubeApi(stream = youTubeStream) {
+        TODO("YouTubeApi.listLiveStreams result handling is not available in this port")
     }
 }
 
@@ -48,10 +50,8 @@ private fun fetchChannelHandle(
     createStreamWizard: CreateStreamWizard,
     youTubeStream: SettingsStream
 ) {
-    model.getYouTubeApi(stream = youTubeStream) { youTubeApi ->
-        youTubeApi?.listChannels { result ->
-            TODO("YouTubeApi.listChannels result handling is not available in this port: $result")
-        }
+    model.getYouTubeApi(stream = youTubeStream) {
+        TODO("YouTubeApi.listChannels result handling is not available in this port")
     }
 }
 
@@ -63,17 +63,17 @@ fun StreamWizardYouTubeSettingsView(
     youTubeStream: SettingsStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    val youTubeAuthState by youTubeStream.youTubeAuthState.collectAsState()
-    val youTubeHandle by createStreamWizard.youTubeHandle.collectAsState()
+    val youTubeAuthState = youTubeStream.youTubeAuthState
+    val youTubeHandle = createStreamWizard.youTubeHandle
 
     LaunchedEffect(Unit) {
-        createStreamWizard.platform.value = YouTube
-        createStreamWizard.name.value = makeUniqueName(
+        createStreamWizard.platform = TODO("WizardPlatform for YouTube is not available in this port")
+        createStreamWizard.name = makeUniqueName(
             name = localized("YouTube"),
             existingNames = model.database.streams
         )
-        createStreamWizard.directIngest.value = "rtmp://a.rtmp.youtube.com/live2"
-        youTubeStream.youTubeAuthState.value = null
+        createStreamWizard.directIngest = "rtmp://a.rtmp.youtube.com/live2"
+        youTubeStream.youTubeAuthState = null
     }
 
     LaunchedEffect(youTubeAuthState) {
@@ -117,7 +117,7 @@ fun StreamWizardYouTubeSettingsView(
             OutlinedTextField(
                 value = youTubeHandle,
                 onValueChange = {
-                    createStreamWizard.youTubeHandle.value = it
+                    createStreamWizard.youTubeHandle = it
                 },
                 placeholder = {
                     Text("@erimo144")
@@ -131,8 +131,10 @@ fun StreamWizardYouTubeSettingsView(
             )
             Text(localized("Only needed for chat."))
 
-            WizardNextButtonView {
+            ExternalButtonView(action = {
                 onNavigate("StreamWizardNetworkSetupSettingsView")
+            }) {
+                WizardNextButtonView()
             }
         }
     }

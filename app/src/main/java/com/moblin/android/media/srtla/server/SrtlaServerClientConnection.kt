@@ -96,7 +96,7 @@ class SrtlaServerClientConnection(val connection: Socket) {
             return
         }
         latestReceivedTime = System.nanoTime()
-        if (packet.isSrtDataPacket()) {
+        if (isSrtDataPacket(packet)) {
             handleDataPacket(packet)
         } else {
             handleControlPacket(packet)
@@ -104,7 +104,7 @@ class SrtlaServerClientConnection(val connection: Socket) {
     }
 
     private fun handleControlPacket(packet: ByteArray) {
-        val type = packet.getSrtControlPacketType()
+        val type = getSrtControlPacketType(packet)
         val srtlaType = SrtlaPacketType.fromRawValue(type)
         if (srtlaType != null) {
             handleSrtlaControlPacket(srtlaType, packet)
@@ -139,7 +139,7 @@ class SrtlaServerClientConnection(val connection: Socket) {
         if (packet.size < 4) {
             return
         }
-        if (ackPacket.appendSequenceNumber(packet.getSrtSequenceNumber().toLong())) {
+        if (ackPacket.appendSequenceNumber(getSrtSequenceNumber(packet).toLong())) {
             sendPacket(ackPacket.data)
         }
         delegate?.handlePacketFromSrtClient(this, packet)

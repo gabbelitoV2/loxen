@@ -36,7 +36,7 @@ class RistReceiverContext(val inputUrl: String) {
 
     fun start(): Boolean = TODO("no Android binding for librist receiver context start")
 
-    fun stop() = TODO("no Android binding for librist receiver context stop")
+    fun stop(): Unit = TODO("no Android binding for librist receiver context stop")
 }
 
 val ristServerQueue = CoroutineScope(
@@ -66,7 +66,7 @@ class RistServer(
         }
     }
 
-    fun updateStats(): BitrateStatsInstant = bitrateStats.mutate { it.update() }
+    fun updateStats(): BitrateStatsInstant = bitrateStats.mutate { it.value.update() }
 
     fun getNumberOfClients(): Int = numberOfClients.value
 
@@ -125,13 +125,13 @@ class RistServer(
 
     private fun clientsChanged() {
         val count = clientsByVirtualDestinationPort.size
-        numberOfClients.value = count
+        numberOfClients.mutate { it.value = count }
     }
 
     private fun peerReceivedData(virtualDestinationPort: Int, packets: List<ByteArray>) {
         val client = clientsByVirtualDestinationPort[virtualDestinationPort] ?: return
         for (packet in packets) {
-            bitrateStats.mutate { it.add(bytesTransferred = packet.size) }
+            bitrateStats.mutate { it.value.add(bytesTransferred = packet.size) }
             client.handlePacketFromClient(packet)
         }
     }

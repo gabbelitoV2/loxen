@@ -1,6 +1,7 @@
 package com.moblin.android.videoeffects.scoreboard
 
 import android.graphics.Bitmap
+import android.media.Image
 import android.util.Size
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -130,11 +131,11 @@ class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
         }
     }
 
-    override fun execute(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         return TODO("no Android counterpart for the CIImage move/crop/composite pipeline")
     }
 
-    override fun executeMetalPetal(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         return TODO("no Android counterpart for MetalPetal")
     }
 

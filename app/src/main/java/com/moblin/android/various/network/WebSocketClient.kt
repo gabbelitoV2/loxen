@@ -1,11 +1,12 @@
 package com.moblin.android.various.network
 
+import android.content.Context
 import android.util.Log
 import com.moblin.android.various.MainTimer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.ByteString
+import okio.ByteString
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -25,6 +26,7 @@ interface WebSocketClientDelegate {
 }
 
 class WebSocketClient(
+    context: Context,
     url: String,
     loopback: Boolean = false,
     cellular: Boolean = true,
@@ -54,7 +56,7 @@ class WebSocketClient(
         this.url = url
         this.loopback = loopback
         this.protocols = protocols
-        networkInterfaceTypeSelector = NetworkInterfaceTypeSelector(Dispatchers.Main, cellular)
+        networkInterfaceTypeSelector = NetworkInterfaceTypeSelector(context, Dispatchers.Main, cellular)
     }
 
     fun start() {

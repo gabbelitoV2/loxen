@@ -38,7 +38,7 @@ private fun AppearanceSettingsView(database: Database, quickButtons: SettingsQui
             style = MaterialTheme.typography.titleSmall,
             modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp),
         )
-        if (database.showAllSettings.collectAsState().value) {
+        if (database.showAllSettings) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -111,8 +111,8 @@ private fun ButtonSettingsView(
             .fillMaxWidth()
             .clickable {
                 model.quickButtons.selectedButtonType.value = button.type
-                model.quickButtons.page.value = button.page
-                model.quickButtons.activePage.value = button.page
+                model.quickButtons.page = button.page.value
+                model.quickButtons.activePage.value = button.page.value
                 onNavigate("QuickButtonsButtonSettingsView")
             }
             .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -122,12 +122,11 @@ private fun ButtonSettingsView(
             image = button.imageOff,
             text = button.name,
             longDivider = true,
-            modifier = Modifier.weight(1f),
         )
         Switch(
             checked = enabled,
             onCheckedChange = { button.enabled.value = it },
-            enabled = !(button.isOn && enabled),
+            enabled = !(button.isOn.value && enabled),
         )
     }
 }
@@ -138,7 +137,7 @@ private fun ButtonsSettingsView(
     database: Database,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val quickButtons by database.quickButtons.collectAsState()
+    val quickButtons = database.quickButtons
     for (page in 1..controlBarPages) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
@@ -146,7 +145,7 @@ private fun ButtonsSettingsView(
                 style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp),
             )
-            quickButtons.reversed().filter { it.page == page }.forEach { button ->
+            for (button in quickButtons.reversed().filter { it.page.value == page }) {
                 ButtonSettingsView(
                     model = model,
                     button = button,

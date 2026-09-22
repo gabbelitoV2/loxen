@@ -3,6 +3,7 @@ package com.moblin.android.remotecontrol
 import android.util.Log
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.digitalClockFormatter
+import com.moblin.android.common.various.formatDate
 import com.moblin.android.streamingplatforms.twitch.TwitchChat
 import com.moblin.android.streamingplatforms.twitch.TwitchChatDelegate
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSub
@@ -37,6 +38,7 @@ import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
 import java.security.MessageDigest
+import java.time.Instant
 import java.time.ZonedDateTime
 import java.util.ArrayDeque
 import java.util.Base64
@@ -469,7 +471,7 @@ class RemoteControlAssistant(
     }
 
     private fun startRetryStartTimer() {
-        retryStartTimer.startSingleShot(timeout = 5) {
+        retryStartTimer.startSingleShot(timeout = 5.0) {
             startInternal()
         }
     }
@@ -480,7 +482,7 @@ class RemoteControlAssistant(
 
     private fun startPingTimer() {
         pongReceived = true
-        pingTimer.startPeriodic(interval = 30, initial = 0) {
+        pingTimer.startPeriodic(interval = 30.0, initial = 0.0) {
             if (pongReceived) {
                 pongReceived = false
                 streamerWebSocket?.sendPing()
@@ -497,7 +499,7 @@ class RemoteControlAssistant(
 
     private fun startKeepAlive() {
         gotPing = false
-        keepAliveTimer.startPeriodic(interval = 60) {
+        keepAliveTimer.startPeriodic(interval = 60.0) {
             if (!gotPing) {
                 Log.i(assistantLogTag, "remote-control-assistant: Ping not received")
                 closeStreamer()
@@ -838,10 +840,10 @@ class RemoteControlAssistant(
         highlight: ChatHighlight?,
         sourceChannelIcon: String?
     ) {
-        val timestamp = digitalClockFormatter.format(ZonedDateTime.now())
+        val timestamp = formatDate(Instant.now())
         val message = RemoteControlChatMessage(
             id = getNextChatMessageId(),
-            platform = RemoteControlChatMessage.Platform.Twitch,
+            platform = "twitch",
             messageId = messageId,
             displayName = displayName,
             user = user,

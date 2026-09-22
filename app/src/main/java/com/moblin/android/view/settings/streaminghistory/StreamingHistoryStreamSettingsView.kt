@@ -29,6 +29,41 @@ import com.moblin.android.view.utils.TextValueView
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import kotlin.time.Duration
+
+private fun Duration.formatWithSeconds(): String {
+    val totalSeconds = this.inWholeSeconds
+    val hours = totalSeconds / 3600
+    val minutes = (totalSeconds % 3600) / 60
+    val seconds = totalSeconds % 60
+    return if (hours > 0) {
+        String.format("%d:%02d:%02d", hours, minutes, seconds)
+    } else {
+        String.format("%d:%02d", minutes, seconds)
+    }
+}
+
+private fun Long.formatBytes(): String {
+    if (this < 1000L) {
+        return "$this B"
+    }
+    val units = listOf("kB", "MB", "GB", "TB")
+    var value = this.toDouble()
+    var unitIndex = -1
+    while (value >= 1000.0 && unitIndex < units.size - 1) {
+        value /= 1000.0
+        unitIndex++
+    }
+    return String.format("%.1f %s", value, units[unitIndex])
+}
+
+private fun Int.color(): Color = when (this) {
+    0 -> Color(0xFF34C759)
+    1 -> Color(0xFFFFCC00)
+    2 -> Color(0xFFFF9500)
+    3 -> Color(0xFFFF3B30)
+    else -> Color.Gray
+}
 
 @Composable
 private fun StreamingHistoryStreamSettingsGeneralView(stream: StreamingHistoryStream) {

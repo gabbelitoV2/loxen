@@ -2,8 +2,15 @@ package com.moblin.android.moblinwatch.shared
 
 import androidx.compose.ui.graphics.Color
 import java.util.UUID
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
 enum class WatchMessageToWatch(val rawValue: String) {
     chatMessage("chatMessage"),
@@ -124,13 +131,13 @@ data class WatchProtocolColor(
 
 @Serializable
 data class WatchProtocolScene(
-    var id: UUID,
+    @Serializable(with = WatchProtocolUuidSerializer::class) var id: UUID,
     var name: String,
 )
 
 @Serializable
 data class WatchProtocolZoomPreset(
-    var id: UUID,
+    @Serializable(with = WatchProtocolUuidSerializer::class) var id: UUID,
     var name: String,
 )
 
@@ -164,15 +171,15 @@ data class WatchProtocolPadelScoreboardScore(
 
 @Serializable
 data class WatchProtocolPadelScoreboard(
-    var id: UUID,
-    var home: List<UUID>,
-    var away: List<UUID>,
+    @Serializable(with = WatchProtocolUuidSerializer::class) var id: UUID,
+    @Serializable(with = WatchProtocolUuidListSerializer::class) var home: List<UUID>,
+    @Serializable(with = WatchProtocolUuidListSerializer::class) var away: List<UUID>,
     var score: List<WatchProtocolPadelScoreboardScore>,
 )
 
 @Serializable
 data class WatchProtocolGenericScoreboard(
-    var id: UUID,
+    @Serializable(with = WatchProtocolUuidSerializer::class) var id: UUID,
     var homeTeam: String,
     var awayTeam: String,
     var homeScore: Int,
@@ -186,14 +193,14 @@ data class WatchProtocolGenericScoreboard(
 
 @Serializable
 data class WatchProtocolPadelScoreboardAction(
-    val id: UUID,
+    @Serializable(with = WatchProtocolUuidSerializer::class) val id: UUID,
     val action: WatchProtocolPadelScoreboardActionType,
 )
 
 @Serializable
 data class WatchProtocolPadelScoreboardActionPlayers(
-    var home: List<UUID>,
-    var away: List<UUID>,
+    @Serializable(with = WatchProtocolUuidListSerializer::class) var home: List<UUID>,
+    @Serializable(with = WatchProtocolUuidListSerializer::class) var away: List<UUID>,
 )
 
 @Serializable
@@ -223,7 +230,7 @@ sealed class WatchProtocolPadelScoreboardActionType {
 
 @Serializable
 data class WatchProtocolGenericScoreboardAction(
-    val id: UUID,
+    @Serializable(with = WatchProtocolUuidSerializer::class) val id: UUID,
     val action: WatchProtocolGenericScoreboardActionType,
 )
 
@@ -267,7 +274,7 @@ sealed class WatchProtocolGenericScoreboardActionType {
 
 @Serializable
 data class WatchProtocolScoreboardPlayer(
-    var id: UUID,
+    @Serializable(with = WatchProtocolUuidSerializer::class) var id: UUID,
     var name: String,
 )
 
@@ -283,3 +290,27 @@ fun WatchProtocolColor.color(): Color = Color(
     green = colorScale(green).toFloat(),
     blue = colorScale(blue).toFloat(),
 )
+
+object WatchProtocolUuidSerializer : KSerializer<UUID> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("com.moblin.android.moblinwatch.shared.UUID", PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: UUID) {
+        encoder.encodeString(value.toString())
+    }
+
+    override fun deserialize(decoder: Decoder): UUID = UUID.fromString(decoder.decodeString())
+}
+
+object WatchProtocolUuidListSerializer : KSerializer<List<UUID>> {
+    private val delegate = ListSerializer(WatchProtocolUuidSerializer)
+
+    override val descriptor: SerialDescriptor
+        get() = delegate.descriptor
+
+    override fun serialize(encoder: Encoder, value: List<UUID>) {
+        delegate.serialize(encoder, value)
+    }
+
+    override fun deserialize(decoder: Decoder): List<UUID> = delegate.deserialize(decoder)
+}

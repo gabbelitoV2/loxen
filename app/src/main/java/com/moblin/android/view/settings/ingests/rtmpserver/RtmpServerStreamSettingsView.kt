@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -66,11 +67,11 @@ fun RtmpServerStreamSettingsView(
     stream: SettingsRtmpServerStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val name by stream.name.collectAsState()
-    val streamKey by stream.streamKey.collectAsState()
+    val name = stream.name
+    val streamKey = stream.streamKey
     IngestStreamItemView(
         name = name,
-        connected = model.isRtmpStreamConnected(streamKey = streamKey),
+        connected = model.ingests.rtmp?.isStreamConnected(streamKey = streamKey) ?: false,
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onNavigate("RtmpServerStreamSettingsForm") }
@@ -78,30 +79,31 @@ fun RtmpServerStreamSettingsView(
     )
 }
 
-private fun changeStreamKey(model: Model, value: String): String? {
-    if (model.getRtmpStream(streamKey = value.trim()) == null) {
+private fun changeStreamKey(rtmpServer: SettingsRtmpServer, value: String): String? {
+    if (rtmpServer.streams.none { it.streamKey == value.trim() }) {
         return null
     }
     return localized("Already in use")
 }
 
 private fun submitStreamKey(
-    model: Model,
+    rtmpServer: SettingsRtmpServer,
     stream: SettingsRtmpServerStream,
     value: String,
 ) {
     val streamKey = value.trim()
-    if (model.getRtmpStream(streamKey = streamKey) != null) {
+    if (rtmpServer.streams.any { it.streamKey == streamKey }) {
         return
     }
-    stream.streamKey.value = streamKey
+    stream.streamKey = streamKey
 }
 
 private fun submitLatency(stream: SettingsRtmpServerStream, value: String) {
     val latency = value.toIntOrNull() ?: return
-    stream.latency.value = latency
+    stream.latency = latency
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RtmpServerStreamSettingsForm(
     model: Model = LocalModel.current,
@@ -109,12 +111,12 @@ fun RtmpServerStreamSettingsForm(
     rtmpServer: SettingsRtmpServer,
     stream: SettingsRtmpServerStream,
 ) {
-    val streams by rtmpServer.streams.collectAsState()
-    val port by rtmpServer.port.collectAsState()
-    val name by stream.name.collectAsState()
-    val streamKey by stream.streamKey.collectAsState()
-    val latency by stream.latency.collectAsState()
-    val rtmpServerEnabled = model.rtmpServerEnabled()
+    val streams = rtmpServer.streams
+    val port = rtmpServer.port
+    val name = stream.name
+    val streamKey = stream.streamKey
+    val latency = stream.latency
+    val rtmpServerEnabled = rtmpServer.enabled
 
     Scaffold(
         topBar = {
@@ -130,16 +132,14 @@ fun RtmpServerStreamSettingsForm(
                 Column(modifier = Modifier.padding(16.dp)) {
                     NameEditView(
                         name = name,
+                        onNameChange = { stream.name = it },
                         existingNames = streams,
-                        onChange = { stream.name.value = it },
-                        enabled = !rtmpServerEnabled,
                     )
                     TextEditNavigationView(
                         title = localized("Stream key"),
                         value = streamKey,
-                        onChange = { changeStreamKey(model, it) },
-                        onSubmit = { submitStreamKey(model, stream, it) },
-                        enabled = !rtmpServerEnabled,
+                        onChange = { changeStreamKey(rtmpServer, it) },
+                        onSubmit = { submitStreamKey(rtmpServer, stream, it) },
                     )
                     Text(localized("The stream name is shown in the list of cameras in scene settings."))
                 }
@@ -154,7 +154,6 @@ fun RtmpServerStreamSettingsForm(
                         footers = listOf(localized("5 or more milliseconds. 2000 ms by default.")),
                         keyboardType = KeyboardType.Number,
                         valueFormat = { "$it ms" },
-                        enabled = !rtmpServerEnabled,
                     )
                     Text(localized("The higher, the lower risk of stuttering."))
                 }

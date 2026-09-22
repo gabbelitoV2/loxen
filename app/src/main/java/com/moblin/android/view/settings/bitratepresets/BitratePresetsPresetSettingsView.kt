@@ -23,7 +23,7 @@ data class BitratePresetsPresetSettingsView(
 ) {
     fun submit(bitrate: String) {
         val value = bitrate.toFloatOrNull() ?: return
-        preset.bitrate = bitrateFromMbps(value.coerceIn(0.05f, 50f).toDouble())
+        preset.bitrate = bitrateFromMbps(value.coerceIn(0.05f, 50f)).toInt()
     }
 
     @Composable
@@ -33,18 +33,19 @@ data class BitratePresetsPresetSettingsView(
             DraggableItemPrefixView()
             TextItemView(
                 name = formatBytesPerSecond(preset.bitrate.toLong()),
-                value = bitrateToMbps(preset.bitrate).toString(),
+                value = bitrateToMbps(preset.bitrate.toUInt()).toString(),
             )
         }
         if (editing) {
             TextEditView(
                 title = localized("Bitrate"),
-                value = bitrateToMbps(preset.bitrate).toString(),
+                value = bitrateToMbps(preset.bitrate.toUInt()).toString(),
                 keyboardType = KeyboardType.Decimal,
-            ) {
-                submit(it)
-                editing = false
-            }
+                onSubmit = {
+                    submit(it)
+                    editing = false
+                },
+            )
         }
     }
 }

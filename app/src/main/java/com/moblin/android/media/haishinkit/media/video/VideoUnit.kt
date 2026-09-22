@@ -1,13 +1,16 @@
 package com.moblin.android.media.haishinkit.media.video
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.ImageFormat
 import android.graphics.RectF
 import android.media.Image
 import android.media.MediaFormat
+import android.os.SystemClock
 import android.util.Log
 import android.util.Size
+import android.util.SizeF
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.codec.video.VideoEncoder
 import com.moblin.android.media.haishinkit.codec.video.VideoEncoderControlDelegate
@@ -25,11 +28,13 @@ import com.moblin.android.various.settings.SettingsGraphicsImplementation
 import com.moblin.android.various.utils.currentPresentationTimeStamp
 import java.util.UUID
 import kotlin.math.abs
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
@@ -146,9 +151,12 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     private val completedDetections: MutableMap<Long, DetectionsCompletion> = mutableMapOf()
 
     var canvasSize: Size
-        get() = effectsProcessor.canvasSize
+        get() {
+            val canvas = effectsProcessor.canvasSize
+            return Size(canvas.width.toInt(), canvas.height.toInt())
+        }
         set(value) {
-            effectsProcessor.canvasSize = value
+            effectsProcessor.canvasSize = SizeF(value.width.toFloat(), value.height.toFloat())
         }
 
     val encoder = VideoEncoder(lockQueue = processorPipelineQueue)
@@ -164,13 +172,15 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     private var sceneVideoSourceId: UUID = UUID.randomUUID()
     private var selectedBufferedVideoCameraId: UUID? = null
     private val bufferedVideos: MutableMap<UUID, BufferedVideo> = mutableMapOf()
-    private val bufferedVideoBuiltins: MutableMap<CaptureDevice, BufferedVideo> = mutableMapOf()
+    private val bufferedVideoBuiltins: MutableMap<Any, BufferedVideo> = mutableMapOf()
     private var blackImageBuffer: Image? = null
     private var blackFormatDescription: MediaFormat? = null
     private var blackPixelBufferPool: Any? = null
     private var latestSampleBuffer: MediaSample? = null
     private var sceneSwitchEndRendered = false
-    private val frameTimer = SimpleTimer(queue = processorPipelineQueue)
+    private val frameTimer = SimpleTimer(
+        queue = processorPipelineQueue.coroutineContext[CoroutineDispatcher] ?: Dispatchers.Default
+    )
     private var firstFrameTime: TimeSource.Monotonic.ValueTimeMark? = null
     private var isFirstAfterAttach = false
     private var ignoreFramesAfterAttachSeconds = 0.0
@@ -211,8 +221,8 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     init {
         val effectsProcessor = VideoEffectsProcessor()
         this.effectsProcessor = effectsProcessor
-        snapshots = VideoSnapshots(context = effectsProcessor.context)
-        lowFpsImage = VideoLowFpsImage(context = effectsProcessor.context)
+        snapshots = VideoSnapshots(context = effectsProcessor.context as Context)
+        lowFpsImage = VideoLowFpsImage(context = effectsProcessor.context ?: TODO("no Android counterpart for CIContext"))
         pixelTransferSession = null
         captureSession.delegate = this
         startFrameTimer()
@@ -342,7 +352,11 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
 
     fun takeSnapshot(age: Float, onComplete: suspend (Bitmap, Bitmap, Bitmap) -> Unit) {
         processorPipelineQueue.launch {
-            snapshots.takeSnapshot(age = age, onComplete = onComplete)
+            snapshots.takeSnapshot(age = age) { a, b, c ->
+                processorPipelineQueue.launch {
+                    onComplete(a, b, c)
+                }
+            }
         }
     }
 
@@ -356,7 +370,11 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
                 }
                 return@launch
             }
-            snapshots.takeVideoSourceSnapshot(imageBuffer, onComplete)
+            snapshots.takeVideoSourceSnapshot(imageBuffer) { bitmap ->
+                processorPipelineQueue.launch {
+                    onComplete(bitmap)
+                }
+            }
         }
     }
 
@@ -415,7 +433,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
 
     fun startPreviewEncoding(delegate: VideoEncoderDelegate, settings: VideoEncoderSettings) {
         val encoder = VideoEncoder(lockQueue = processorPipelineQueue)
-        encoder.settings = settings
+        encoder.settings.value = settings
         encoder.delegate = delegate
         encoder.startRunning()
         processorPipelineQueue.launch {
@@ -513,7 +531,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
             for (device in params.devices.devices) {
                 val bufferedVideo = BufferedVideo(
                     cameraId = device.id,
-                    name = device.device.localizedName,
+                    name = TODO("no Android counterpart for AVCaptureDevice.localizedName"),
                     update = false,
                     latency = params.builtinDelay,
                     processor = processor,
@@ -624,7 +642,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         }
         var latestSampleBuffer = this.latestSampleBuffer ?: return
         val latestSampleBufferTime = effectsProcessor.latestSampleBufferTime ?: return
-        val delta = latestSampleBufferTime.elapsedNow()
+        val delta = (SystemClock.elapsedRealtimeNanos() - latestSampleBufferTime).nanoseconds
         if (delta <= 0.05.seconds) {
             return
         }
@@ -724,8 +742,8 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         val presentationTimeUs = sampleBuffer.presentationTimeUs
         fpsEstimator.update(presentationTimeUs / 1_000_000.0, captureSession.getFps())
         val detectionJobs = prepareDetectionJobs(
-            effectsProcessor.needsFaceDetections(presentationTimeUs, sceneVideoSourceId),
-            effectsProcessor.needsTextDetections(presentationTimeUs, sceneVideoSourceId),
+            effectsProcessor.needsFaceDetections(presentationTimeUs / 1_000_000.0, sceneVideoSourceId),
+            effectsProcessor.needsTextDetections(presentationTimeUs / 1_000_000.0, sceneVideoSourceId),
             sampleBuffer.presentationTimeUs,
             imageBuffer
         )
@@ -804,20 +822,20 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         }
         encoder.encodeImageBuffer(
             modImageBuffer,
-            presentationTimeUs = modSampleBuffer.presentationTimeUs,
-            durationUs = modSampleBuffer.durationUs
+            presentationTimeStamp = modSampleBuffer.presentationTimeUs,
+            duration = modSampleBuffer.durationUs
         )
         previewEncoder?.encodeImageBuffer(
             modImageBuffer,
-            presentationTimeUs = modSampleBuffer.presentationTimeUs,
-            durationUs = modSampleBuffer.durationUs
+            presentationTimeStamp = modSampleBuffer.presentationTimeUs,
+            duration = modSampleBuffer.durationUs
         )
         val presentationTimeUs = sampleBuffer.presentationTimeUs
-        lowFpsImage.handleImageBuffer(modImageBuffer, presentationTimeUs)
+        lowFpsImage.handleImageBuffer(modImageBuffer, presentationTimeUs / 1_000_000.0)
         snapshots.handleTakeSnapshot(
             sampleBuffer,
             modSampleBuffer,
-            presentationTimeUs,
+            presentationTimeUs / 1_000_000.0,
             ::makeCopy
         )
     }
@@ -863,7 +881,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
             return
         }
         latestSampleBuffer = sampleBuffer
-        effectsProcessor.latestSampleBufferTime = now
+        effectsProcessor.latestSampleBufferTime = SystemClock.elapsedRealtimeNanos()
         sceneSwitchEndRendered = false
         if (appendSampleBuffer(
                 sampleBuffer,
@@ -880,7 +898,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         TODO("VTPixelTransferSessionTransferImage has no Android counterpart; copy the android.media.Image planes")
     }
 
-    private fun appendBufferedBuiltinVideo(sampleBuffer: MediaSample, device: CaptureDevice): BufferedVideo? {
+    private fun appendBufferedBuiltinVideo(sampleBuffer: MediaSample, device: Any): BufferedVideo? {
         val bufferedVideo = bufferedVideoBuiltins[device] ?: return null
         if (bufferedVideo.latency <= 0) {
             bufferedVideo.setLatestSampleBuffer(sampleBuffer)
@@ -904,7 +922,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         drawable.enqueue(sampleBuffer, isFirstAfterAttach = false)
     }
 
-    override fun videoCaptureSessionDidOutput(device: CaptureDevice, cameraId: UUID?, sampleBuffer: MediaSample) {
+    override fun videoCaptureSessionDidOutput(device: Any, cameraId: UUID?, sampleBuffer: MediaSample) {
         if (videoPreviewEnabled && cameraId != null) {
             enqueueVideoPreview(cameraId = cameraId, sampleBuffer = sampleBuffer)
         }

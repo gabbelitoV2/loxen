@@ -45,7 +45,7 @@ private fun EffectLabelView(model: Model = LocalModel.current, effect: SettingsV
                 checked = effect.enabled,
                 onCheckedChange = { enabled ->
                     effect.enabled = enabled
-                    model.resetSelectedScene(changeScene = false)
+                    TODO("model.resetSelectedScene is not available")
                 },
             )
         }
@@ -60,10 +60,10 @@ private fun EffectView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     when (effect.type) {
-        SettingsVideoEffectType.GRAY_SCALE,
-        SettingsVideoEffectType.SEPIA,
-        SettingsVideoEffectType.WHIRLPOOL,
-        SettingsVideoEffectType.PINCH,
+        SettingsVideoEffectType.grayScale,
+        SettingsVideoEffectType.sepia,
+        SettingsVideoEffectType.whirlpool,
+        SettingsVideoEffectType.pinch,
         -> {
             EffectLabelView(model = model, effect = effect)
         }
@@ -90,19 +90,22 @@ fun WidgetEffectsView(
     var newEffect by remember { mutableStateOf(SettingsVideoEffect()) }
 
     fun deleteEffect(offsets: List<Int>) {
+        val effects = widget.effects.toMutableList()
         for (offset in offsets.sortedDescending()) {
-            if (offset in widget.effects.indices) {
-                widget.effects.removeAt(offset)
+            if (offset in effects.indices) {
+                effects.removeAt(offset)
             }
         }
-        model.resetSelectedScene(changeScene = false)
+        widget.effects = effects
+        TODO("model.resetSelectedScene is not available")
     }
 
     fun moveEffects(fromOffsets: List<Int>, toOffset: Int) {
-        val moved = fromOffsets.sorted().map { widget.effects[it] }
+        val effects = widget.effects.toMutableList()
+        val moved = fromOffsets.sorted().map { effects[it] }
         for (index in fromOffsets.sortedDescending()) {
-            if (index in widget.effects.indices) {
-                widget.effects.removeAt(index)
+            if (index in effects.indices) {
+                effects.removeAt(index)
             }
         }
         var destination = toOffset
@@ -111,8 +114,9 @@ fun WidgetEffectsView(
                 destination -= 1
             }
         }
-        widget.effects.addAll(destination.coerceIn(0, widget.effects.size), moved)
-        model.resetSelectedScene(changeScene = false)
+        effects.addAll(destination.coerceIn(0, effects.size), moved)
+        widget.effects = effects
+        TODO("model.resetSelectedScene is not available")
     }
 
     Text(

@@ -41,7 +41,7 @@ import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun SelectedKeyView(key: SettingsKeyboardKey) {
-    val keyValue by key.key.collectAsState()
+    val keyValue = key.key
     if (keyValue.isEmpty()) {
         Text(text = "No key set", color = Color.Gray)
     } else {
@@ -51,7 +51,7 @@ private fun SelectedKeyView(key: SettingsKeyboardKey) {
 
 @Composable
 private fun KeyPickerView(key: SettingsKeyboardKey, onDismiss: () -> Unit) {
-    val keyValue by key.key.collectAsState()
+    val keyValue = key.key
     val focusRequester = remember { FocusRequester() }
     var editingText by remember { mutableStateOf(false) }
 
@@ -65,17 +65,17 @@ private fun KeyPickerView(key: SettingsKeyboardKey, onDismiss: () -> Unit) {
         if (!editingText) {
             return@LaunchedEffect
         }
-        key.key.value = ""
+        key.key = ""
     }
     LaunchedEffect(Unit) {
-        if (key.key.value.isEmpty()) {
+        if (key.key.isEmpty()) {
             editingText = true
             focusRequester.requestFocus()
         }
     }
     OutlinedTextField(
         value = keyValue,
-        onValueChange = { key.key.value = it },
+        onValueChange = { key.key = it },
         label = { Text(text = "No key set") },
         singleLine = true,
         keyboardOptions = KeyboardOptions(
@@ -92,7 +92,7 @@ private fun KeyPickerView(key: SettingsKeyboardKey, onDismiss: () -> Unit) {
 
 private fun functions(): List<SettingsControllerFunction> {
     return SettingsControllerFunction.entries.filter {
-        it != SettingsControllerFunction.zoomIn && it != SettingsControllerFunction.zoomOut
+        it != SettingsControllerFunction.ZOOM_IN && it != SettingsControllerFunction.ZOOM_OUT
     }
 }
 
@@ -102,8 +102,8 @@ fun KeyboardKeySettingsView(
     key: SettingsKeyboardKey,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val function by key.function.collectAsState()
-    val functionData by key.functionData.collectAsState()
+    val function = key.function
+    val functionData = key.functionData
 
     Row(
         modifier = Modifier
@@ -116,12 +116,8 @@ fun KeyboardKeySettingsView(
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = function.toString(
-                sceneName = model.getSceneName(
-                    id = functionData.sceneId ?: UUID.randomUUID(),
-                ),
-                widgetName = model.getWidgetName(
-                    id = functionData.widgetId ?: UUID.randomUUID(),
-                ),
+                sceneName = TODO("getSceneName"),
+                widgetName = TODO("getWidgetName"),
             ),
             color = function.color(),
         )
@@ -160,10 +156,10 @@ fun KeyboardKeySettingsForm(
             ControllerButtonView(
                 model = model,
                 functions = functions(),
-                function = key.function.value,
-                onFunctionChange = { key.function.value = it },
-                functionData = key.functionData.value,
-                onFunctionDataChange = { key.functionData.value = it },
+                function = key.function,
+                onFunctionChange = { key.function = it },
+                functionData = key.functionData,
+                onFunctionDataChange = { key.functionData = it },
             )
         }
     }

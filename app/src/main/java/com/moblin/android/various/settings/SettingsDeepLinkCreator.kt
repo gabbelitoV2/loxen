@@ -87,11 +87,11 @@ class DeepLinkCreatorStream : Named {
     }
 
     @SerialName("id")
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = DeepLinkCreatorUuidSerializer::class)
     var id: UUID = UUID.randomUUID()
 
     @SerialName("name")
-    var name: String = baseName
+    override var name: String = baseName
 
     @SerialName("url")
     var url: String = defaultStreamUrl
@@ -121,7 +121,7 @@ class DeepLinkCreatorStream : Named {
 @Serializable
 class DeepLinkCreatorQuickButton {
     @SerialName("id")
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = DeepLinkCreatorUuidSerializer::class)
     var id: UUID = UUID.randomUUID()
 
     @SerialName("type")
@@ -173,7 +173,7 @@ class DeepLinkCreator {
     var webBrowser: DeepLinkCreatorWebBrowser = DeepLinkCreatorWebBrowser()
 }
 
-object UuidSerializer : KSerializer<UUID> {
+private object DeepLinkCreatorUuidSerializer : KSerializer<UUID> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("java.util.UUID", PrimitiveKind.STRING)
 

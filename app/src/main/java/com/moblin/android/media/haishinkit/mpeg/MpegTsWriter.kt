@@ -4,10 +4,10 @@ import android.media.MediaFormat
 import android.util.Log
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderDelegate
-import com.moblin.android.media.haishinkit.codec.video.VideoCodec
 import com.moblin.android.media.haishinkit.codec.video.VideoEncoder
 import com.moblin.android.media.haishinkit.codec.video.VideoEncoderDelegate
 import com.moblin.android.media.haishinkit.mpeg.avc.AvcNalUnit
+import com.moblin.android.media.haishinkit.mpeg.avc.AvcNalUnitHeader
 import com.moblin.android.media.haishinkit.mpeg.avc.AvcNalUnitPayload
 import com.moblin.android.media.haishinkit.mpeg.avc.AvcNalUnitSei
 import com.moblin.android.media.haishinkit.mpeg.avc.AvcNalUnitSeiPayload
@@ -57,7 +57,7 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
 
     private val programAssociationTable: MpegTsProgramAssociation = MpegTsProgramAssociation().apply {
         programs.clear()
-        programs[1] = programMappingTablePacketId
+        programs[1.toUShort()] = programMappingTablePacketId
     }
 
     private var programMappingTable = MpegTsProgramMapping()
@@ -80,7 +80,7 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
         patContinuityCounter = 0u
         pmtContinuityCounter = 0u
         programAssociationTable.programs.clear()
-        programAssociationTable.programs[1] = programMappingTablePacketId
+        programAssociationTable.programs[1.toUShort()] = programMappingTablePacketId
         programMappingTable = MpegTsProgramMapping()
         audioConfig = null
         videoConfig = null
@@ -331,7 +331,7 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
 
     private fun makeAudioHeader(config: MpegTsAudioConfig, length: Int): ByteArray {
         return when (config.type) {
-            MpegTsAudioConfig.Format.OPUS -> makeAudioOpusHeader(length)
+            MpegTsAudioConfig.AudioObjectType.opus -> makeAudioOpusHeader(length)
             else -> makeAudioAacHeader(config, length)
         }
     }
@@ -354,16 +354,16 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
         val data = ElementaryStreamSpecificData()
         when (format.getString(MediaFormat.KEY_MIME)) {
             MediaFormat.MIMETYPE_AUDIO_AAC -> {
-                data.streamType = ElementaryStreamType.ADTS_AAC
+                data.streamType = ElementaryStreamType.adtsAac
             }
             MediaFormat.MIMETYPE_AUDIO_OPUS -> {
-                data.streamType = ElementaryStreamType.MPEG2_PACKETIZED_DATA
+                data.streamType = ElementaryStreamType.mpeg2PacketizedData
                 data.appendDescriptor(
-                    tag = ElementaryStreamDescriptiorTag.REGISTRATION,
+                    tag = ElementaryStreamDescriptiorTag.registration,
                     data = ElementaryStreamDescriptiorRegistration.opus
                 )
                 data.appendDescriptor(
-                    tag = ElementaryStreamDescriptiorTag.EXTENSION,
+                    tag = ElementaryStreamDescriptiorTag.extension,
                     data = byteArrayOf(
                         0x80.toByte(),
                         format.getInteger(MediaFormat.KEY_CHANNEL_COUNT).toByte()
@@ -381,18 +381,18 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
         setAudioConfig(MpegTsAudioConfig(format))
     }
 
-    override fun audioEncoderOutputBuffer(buffer: ByteArray, presentationTimeStamp: Long) {
+    override fun audioEncoderOutputBuffer(buffer: MediaSample, presentationTimeStamp: Long) {
         if (!canWriteFor()) {
             return
         }
         val config = audioConfig ?: return
-        val length = buffer.size
+        val length = buffer.data.size
         var data = makeAudioHeader(config, length)
-        data += buffer.copyOf(length)
+        data += buffer.data.copyOf(length)
         val packetizedElementaryStream = MpegTsPacketizedElementaryStream(
             streamId = audioStreamId,
             presentationTimeStamp = presentationTimeStamp,
-            decodeTimeStamp = null,
+            decodeTimeStamp = OptionalHeader.invalidTimestamp,
             data = data
         )
         val programClockReference = updateProgramClockReference(presentationTimeStamp)
@@ -409,9 +409,9 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
         val data = ElementaryStreamSpecificData()
         data.elementaryPacketId = videoPacketId
         videoContinuityCounter = 0u
-        val videoConfig: MpegTsVideoConfig = when (encoder.settings.value.format) {
-            VideoCodec.H264 -> {
-                data.streamType = ElementaryStreamType.H264
+        val videoConfig: MpegTsVideoConfig = when (encoder.settings.value.format.name) {
+            "h264" -> {
+                data.streamType = ElementaryStreamType.h264
                 val config = MpegTsVideoConfigAvc.fromFormatDescription(formatDescription)
                 if (config == null) {
                     Log.i(TAG, "mpeg-ts: Failed to create avcC")
@@ -419,15 +419,16 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
                 }
                 MpegTsVideoConfig.Avc(config)
             }
-            VideoCodec.HEVC -> {
-                data.streamType = ElementaryStreamType.H265
-                val config = MpegTsVideoConfigHevc.fromFormatDescription(formatDescription)
+            "hevc" -> {
+                data.streamType = ElementaryStreamType.h265
+                val config = MpegTsVideoConfigHevc.create(formatDescription)
                 if (config == null) {
                     Log.i(TAG, "mpeg-ts: Failed to create hvcC")
                     return
                 }
                 MpegTsVideoConfig.Hevc(config)
             }
+            else -> return
         }
         addVideoSpecificDatas(data)
         setVideoConfig(videoConfig)
@@ -449,9 +450,9 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
         val timecode = makeTimecode(sampleBuffer.presentationTimeUs, decodeTimeStamp)
         val data: ByteArray = when (config) {
             is MpegTsVideoConfig.Avc ->
-                packH264(randomAccessIndicator, config.value, timecode, bytes, length)
+                packH264(randomAccessIndicator, config.config, timecode, bytes, length)
             is MpegTsVideoConfig.Hevc ->
-                packH265(randomAccessIndicator, config.value, timecode, bytes, length)
+                packH265(randomAccessIndicator, config.config, timecode, bytes, length)
         }
         val packetizedElementaryStream = MpegTsPacketizedElementaryStream(
             streamId = videoStreamId,
@@ -494,7 +495,10 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
             data += nalUnitStartCode
             val pictureTiming = AvcSeiPayloadPictureTiming(timecode.clock, timecode.frame)
             val sei = AvcNalUnitSei(AvcNalUnitSeiPayload.PictureTiming(pictureTiming))
-            data += AvcNalUnit(AvcNalUnitType.SEI, AvcNalUnitPayload.Sei(sei)).encode()
+            data += AvcNalUnit(
+                AvcNalUnitHeader(0u, AvcNalUnitType.sei),
+                AvcNalUnitPayload.Sei(sei)
+            ).encode()
         }
         val payload = addNalUnitStartCodes(bytes.copyOf(length))
         data += payload
@@ -531,9 +535,9 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
             val timeCode = HevcSeiPayloadTimeCode(timecode.clock, timecode.frame)
             val sei = HevcNalUnitSei(HevcNalUnitSeiPayload.TimeCode(timeCode))
             data += HevcNalUnit(
-                HevcNalUnitType.PREFIX_SEI_NUT,
-                temporalIdPlusOne = 1,
-                payload = HevcNalUnitSeiPayload.PrefixSeiNut(sei)
+                HevcNalUnitType.prefixSeiNut,
+                temporalIdPlusOne = 1u,
+                payload = HevcNalUnitSeiPayload.prefixSeiNut(sei)
             ).encode()
         }
         val payload = addNalUnitStartCodes(bytes.copyOf(length))

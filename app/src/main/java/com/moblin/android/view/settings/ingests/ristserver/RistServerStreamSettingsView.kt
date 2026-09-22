@@ -41,8 +41,8 @@ fun RistServerStreamSettingsView(
         if (parsedPort == null || parsedPort !in 0..65535) {
             return
         }
-        stream.virtualDestinationPort.value = parsedPort
-        model.reloadRistServer()
+        stream.virtualDestinationPort = parsedPort
+        TODO("model.reloadRistServer()")
     }
 
     fun submitLatency(value: String) {
@@ -50,15 +50,14 @@ fun RistServerStreamSettingsView(
         if (parsedLatency == null) {
             return
         }
-        stream.latency.value = parsedLatency
+        stream.latency = parsedLatency
     }
 
-    val streamName by stream.name.collectAsState()
-    val virtualDestinationPort by stream.virtualDestinationPort.collectAsState()
-    val streamLatency by stream.latency.collectAsState()
-    val ristServerEnabled by ristServer.enabled.collectAsState()
-    val ristServerPort by ristServer.port.collectAsState()
-    val isRistServerEnabled = model.ristServerEnabled()
+    val streamName = stream.name
+    val virtualDestinationPort = stream.virtualDestinationPort
+    val streamLatency = stream.latency
+    val ristServerEnabled = ristServer.enabled
+    val ristServerPort = ristServer.port
 
     Scaffold(
         topBar = {
@@ -74,8 +73,7 @@ fun RistServerStreamSettingsView(
                 NameEditView(
                     name = streamName,
                     existingNames = ristServer.streams,
-                    onChange = { stream.name.value = it },
-                    enabled = !isRistServerEnabled,
+                    onNameChange = { stream.name = it },
                 )
                 Text(
                     text = localized(
@@ -92,7 +90,6 @@ fun RistServerStreamSettingsView(
                     onSubmit = { submitPort(it) },
                     footers = emptyList(),
                     onNavigate = onNavigate,
-                    enabled = !ristServerEnabled,
                     keyboardType = KeyboardType.Number,
                 )
                 Text(
@@ -110,7 +107,6 @@ fun RistServerStreamSettingsView(
                         localized("5 or more milliseconds. 2000 ms by default."),
                     ),
                     onNavigate = onNavigate,
-                    enabled = !ristServerEnabled,
                     keyboardType = KeyboardType.Number,
                     valueFormat = { value -> "$value ms" },
                 )

@@ -4,13 +4,15 @@ import android.graphics.Bitmap
 import com.moblin.android.localized
 import com.moblin.android.various.ReplayBuffer
 import com.moblin.android.various.ReplayBufferFile
+import com.moblin.android.various.ReplayDelegate
 import com.moblin.android.various.ReplayFrameExtractor
 import com.moblin.android.various.settings.SettingsReplay
 import com.moblin.android.various.settings.SettingsReplaySpeed
-import com.moblin.android.various.settings.SettingsReplayTransitionType
 import com.moblin.android.various.storages.ReplaySettings
 import com.moblin.android.videoeffects.replay.ReplayEffect
+import com.moblin.android.videoeffects.replay.ReplayEffectDelegate
 import com.moblin.android.videoeffects.replay.ReplayEffectTransitionMode
+import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +35,52 @@ class ReplayProvider {
     val timeLeft = MutableStateFlow(0)
 }
 
+private class ReplayDelegateAdapter(private val model: Model) : ReplayDelegate {
+    override fun replayOutputFrame(
+        image: Bitmap,
+        offset: Double,
+        video: ReplayBufferFile,
+        completion: (suspend () -> Unit)?,
+    ) {
+        model.replayOutputFrame(
+            image = image,
+            offset = offset,
+            video = video,
+            completion = unitCompletion(completion),
+        )
+    }
+}
+
+private class ReplayEffectDelegateAdapter(private val model: Model) : ReplayEffectDelegate {
+    override fun replayEffectStatus(timeLeft: Int) {
+        model.replayEffectStatus(timeLeft = timeLeft)
+    }
+
+    override fun replayEffectCompleted() {
+        model.replayEffectCompleted()
+    }
+
+    override fun replayEffectError(message: String) {
+        model.replayEffectError(message = message)
+    }
+}
+
+private fun suspendCompletion(completion: (() -> Unit)?): (suspend () -> Unit)? {
+    if (completion == null) {
+        return null
+    }
+    val result: suspend () -> Unit = { completion() }
+    return result
+}
+
+private fun unitCompletion(completion: (suspend () -> Unit)?): (() -> Unit)? {
+    if (completion == null) {
+        return null
+    }
+    val result: () -> Unit = { mainScope.launch { completion() } }
+    return result
+}
+
 fun Model.saveReplay(
     start: Double? = null,
     delay: Int? = null,
@@ -42,7 +90,7 @@ fun Model.saveReplay(
         return false
     }
     replay.isSaving.value = true
-    val delaySeconds = delay ?: stream.replay.postTriggerDelay
+    val delaySeconds = delay ?: TODO("stream.replay.postTriggerDelay")
     mainScope.launch {
         kotlinx.coroutines.delay(delaySeconds * 1000L)
         replayBuffer.createFile { file ->
@@ -54,7 +102,7 @@ fun Model.saveReplay(
                 replaySettings.stop = database.replay.stop
                 replaySettings.duration = createdFile.duration
                 runCatching {
-                    createdFile.url.copyTo(replaySettings.url(), overwrite = true)
+                    File(createdFile.url).copyTo(replaySettings.url(), overwrite = true)
                 }
                 replaysStorage.append(replay = replaySettings)
                 completion?.invoke(replaySettings)
@@ -69,10 +117,10 @@ fun Model.loadReplay(video: ReplaySettings, completion: (() -> Unit)? = null) {
     replay.startFromEnd.value = video.startFromEnd()
     replay.selectedId.value = video.id
     replayFrameExtractor = ReplayFrameExtractor(
-        video = ReplayBufferFile(url = video.url(), duration = video.duration, remove = false),
+        video = ReplayBufferFile(url = video.url().path, duration = video.duration, remove = false),
         offset = video.thumbnailOffset(),
-        delegate = this,
-        completion = completion,
+        delegate = ReplayDelegateAdapter(this),
+        completion = suspendCompletion(completion),
     )
 }
 
@@ -89,7 +137,7 @@ fun Model.instantReplay(start: Double? = null, delay: Int? = null) {
     if (replay.instantReplayCountdown.value != 0) {
         return
     }
-    val delaySeconds = delay ?: stream.replay.postTriggerDelay
+    val delaySeconds = delay ?: TODO("stream.replay.postTriggerDelay")
     val savingStarted = saveReplay(start = start, delay = delaySeconds) { video ->
         loadReplay(video = video) {
             replay.isPlaying.value = true
@@ -120,17 +168,19 @@ fun Model.makeReplayIsNotEnabledToast() {
         title = localized("Replay is not enabled"),
         subTitle = localized("Tap here to enable it."),
     ) {
-        stream.replay.enabled = true
+        TODO("stream.replay.enabled = true")
         streamReplayEnabledUpdated()
         makeToast(title = localized("Replay enabled"))
     }
 }
 
 fun Model.makeReplayShouldBeDisabledToastIfNeeded() {
-    if (!stream.replay.enabled) {
+    val replayEnabled: Boolean = TODO("stream.replay.enabled")
+    if (!replayEnabled) {
         return
     }
-    val enterForegroundCountAtLatestUsage = stream.replay.enterForegroundCountAtLatestUsage ?: return
+    val enterForegroundCountAtLatestUsage: Int =
+        TODO("stream.replay.enterForegroundCountAtLatestUsage")
     val unusedCount = enterForegroundCount - enterForegroundCountAtLatestUsage
     if (unusedCount < 20 || unusedCount % 3 != 0) {
         return
@@ -139,7 +189,7 @@ fun Model.makeReplayShouldBeDisabledToastIfNeeded() {
         title = localized("Replay is enabled but seems unused"),
         subTitle = localized("Tap here to disable it."),
     ) {
-        stream.replay.enabled = false
+        TODO("stream.replay.enabled = false")
         streamReplayEnabledUpdated()
         makeToast(title = localized("Replay disabled"))
     }
@@ -157,31 +207,17 @@ fun Model.replayPlay(): Boolean {
     replayCancel()
     val replayVideo = replayVideo ?: return false
     val replaySettings = replaySettings ?: return false
-    val replay = stream.replay
-    replay.enterForegroundCountAtLatestUsage = enterForegroundCount
-    val transitionMode: ReplayEffectTransitionMode = when (replay.transitionType) {
-        SettingsReplayTransitionType.none -> ReplayEffectTransitionMode.none
-        SettingsReplayTransitionType.fade -> ReplayEffectTransitionMode.fade
-        SettingsReplayTransitionType.stingers -> {
-            val inPath = replayTransitionsStorage.makePath(filename = replay.inStinger.makeFilename() ?: "")
-            val outPath = replayTransitionsStorage.makePath(filename = replay.outStinger.makeFilename() ?: "")
-            ReplayEffectTransitionMode.stingers(
-                inPath = inPath,
-                inTransitionPoint = replay.inStinger.transitionPoint,
-                outPath = outPath,
-                outTransitionPoint = replay.outStinger.transitionPoint,
-            )
-        }
-    }
+    TODO("stream.replay.enterForegroundCountAtLatestUsage = enterForegroundCount")
+    val transitionMode: ReplayEffectTransitionMode = TODO("stream.replay.transitionType")
     replayEffect = ReplayEffect(
         video = replayVideo,
         start = replaySettings.startFromVideoStart(),
         stop = replaySettings.stopFromVideoStart(),
         speed = database.replay.speed.toNumber(),
-        size = stream.dimensions(),
-        layout = replay.layout,
+        size = TODO("stream.dimensions()"),
+        layout = TODO("stream.replay.layout"),
         transitionMode = transitionMode,
-        delegate = this,
+        delegate = ReplayEffectDelegateAdapter(this),
     )
     media.registerEffectBack(replayEffect!!)
     return true
@@ -194,16 +230,17 @@ fun Model.replayCancel() {
 
 fun Model.streamReplayEnabledUpdated() {
     replayBuffer = ReplayBuffer()
-    media.setReplayBuffering(enabled = stream.replay.enabled)
-    if (stream.replay.enabled) {
+    val replayEnabled: Boolean = TODO("stream.replay.enabled")
+    media.setReplayBuffering(enabled = replayEnabled)
+    if (replayEnabled) {
         startRecorderIfNeeded()
     } else {
         stopRecorderIfNeeded()
     }
-    stream.replay.enterForegroundCountAtLatestUsage = enterForegroundCount
+    TODO("stream.replay.enterForegroundCountAtLatestUsage = enterForegroundCount")
 }
 
-fun Model.replayOutputFrame(
+internal fun Model.replayOutputFrame(
     image: Bitmap,
     offset: Double,
     video: ReplayBufferFile,

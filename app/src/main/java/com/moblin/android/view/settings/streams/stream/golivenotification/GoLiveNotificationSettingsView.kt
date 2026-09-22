@@ -24,7 +24,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import com.moblin.android.common.various.cleanUrl
-import com.moblin.android.common.various.isMac
+import com.moblin.android.various.utils.isMac
 import com.moblin.android.localized
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.settings.streams.stream.DiscordLogoAndNameView
@@ -35,19 +35,14 @@ import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun GoLiveNotificationDiscordTextSettingsView(stream: SettingsStream) {
-    val message by stream.goLiveNotificationDiscordMessage.collectAsState()
+    val message = stream.goLiveNotificationDiscordMessage
     var editingText by remember { mutableStateOf(false) }
     Column {
         Text("Message")
         MultiLineTextFieldView(
             value = message,
-            onValueChange = { stream.goLiveNotificationDiscordMessage.value = it },
+            onValueChange = { stream.goLiveNotificationDiscordMessage = it },
             placeholder = "My text",
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                capitalization = KeyboardCapitalization.None,
-                autoCorrectEnabled = false,
-            ),
             modifier = Modifier.onFocusChanged { editingText = it.isFocused },
         )
         Column(horizontalAlignment = Alignment.Start) {
@@ -68,7 +63,7 @@ fun GoLiveNotificationDiscordTextSettingsView(stream: SettingsStream) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GoLiveNotificationDiscordSettingsView(stream: SettingsStream) {
-    val webhookUrl by stream.goLiveNotificationDiscordWebhookUrl.collectAsState()
+    val webhookUrl = stream.goLiveNotificationDiscordWebhookUrl
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Discord") })
@@ -83,7 +78,7 @@ private fun GoLiveNotificationDiscordSettingsView(stream: SettingsStream) {
                     title = localized("Webhook URL"),
                     value = webhookUrl,
                     onSubmit = {
-                        stream.goLiveNotificationDiscordWebhookUrl.value = cleanUrl(it)
+                        stream.goLiveNotificationDiscordWebhookUrl = cleanUrl(it)
                     },
                     placeholder = "https://discord.com/api/webhooks/foobar",
                 )
@@ -115,7 +110,7 @@ fun GoLiveNotificationSettingsView(
             }
             if (!isMac()) {
                 item {
-                    val moblinWebsite by stream.goLiveNotificationMoblinWebsite.collectAsState()
+                    val moblinWebsite = stream.goLiveNotificationMoblinWebsite
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
@@ -123,7 +118,7 @@ fun GoLiveNotificationSettingsView(
                         Text("[Moblin website](https://moblin.app/#streamers)")
                         Switch(
                             checked = moblinWebsite,
-                            onCheckedChange = { stream.goLiveNotificationMoblinWebsite.value = it },
+                            onCheckedChange = { stream.goLiveNotificationMoblinWebsite = it },
                         )
                     }
                 }

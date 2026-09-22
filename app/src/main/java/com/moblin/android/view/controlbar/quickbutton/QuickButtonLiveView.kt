@@ -53,8 +53,8 @@ private fun TwitchView(
     category: String?,
     onCategoryChange: (String?) -> Unit,
 ) {
-    val twitchChannelName by stream.twitchChannelName.collectAsState()
-    val twitchLoggedIn by stream.twitchLoggedIn.collectAsState()
+    val twitchChannelName = stream.twitchChannelName
+    val twitchLoggedIn = stream.twitchLoggedIn
     Column {
         TwitchLogoAndNameView(channel = twitchChannelName)
         if (twitchLoggedIn) {
@@ -62,9 +62,7 @@ private fun TwitchView(
                 model = model,
                 stream = stream,
                 title = title,
-                onTitleChange = onTitleChange,
                 category = category,
-                onCategoryChange = onCategoryChange,
             )
         }
     }
@@ -79,8 +77,8 @@ private fun KickView(
     category: String?,
     onCategoryChange: (String?) -> Unit,
 ) {
-    val kickChannelName by stream.kickChannelName.collectAsState()
-    val kickLoggedIn by stream.kickLoggedIn.collectAsState()
+    val kickChannelName = stream.kickChannelName
+    val kickLoggedIn = stream.kickLoggedIn
     Column {
         KickLogoAndNameView(channel = kickChannelName)
         if (kickLoggedIn) {
@@ -102,7 +100,7 @@ private fun YouTubeView(
     debug: SettingsDebug,
     stream: SettingsStream,
 ) {
-    val youTubeHandle by stream.youTubeHandle.collectAsState()
+    val youTubeHandle = stream.youTubeHandle
     Column {
         YouTubeLogoAndNameView(handle = youTubeHandle)
         StreamYouTubeScheduleStreamView(model = model, stream = stream)
@@ -113,7 +111,7 @@ private fun YouTubeView(
 private fun SoopView(
     stream: SettingsStream,
 ) {
-    val soopChannelName by stream.soopChannelName.collectAsState()
+    val soopChannelName = stream.soopChannelName
     Column {
         SoopLogoAndNameView(channel = soopChannelName)
     }
@@ -125,7 +123,7 @@ private fun GoLiveNotificationView(
     stream: SettingsStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val goLiveNotificationDiscordWebhookUrl by stream.goLiveNotificationDiscordWebhookUrl.collectAsState()
+    val goLiveNotificationDiscordWebhookUrl = stream.goLiveNotificationDiscordWebhookUrl
     var sending by remember { mutableStateOf(false) }
     Column {
         Text("Go live notification")
@@ -141,11 +139,12 @@ private fun GoLiveNotificationView(
         Button(
             onClick = {
                 sending = true
-                model.sendGoLiveNotification {
-                    sending = false
-                }
+                TODO("sendGoLiveNotification")
             },
-            enabled = !sending && model.isGoLiveNotificationConfigured(),
+            enabled = !sending && isGoLiveNotificationConfigured(
+                goLiveNotificationDiscordWebhookUrl,
+                stream.goLiveNotificationMoblinWebsite,
+            ),
         ) {
             HCenter {
                 if (sending) {
@@ -165,7 +164,7 @@ private fun ShortcutView(
     stream: SettingsStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val showAllSettings by database.showAllSettings.collectAsState()
+    val showAllSettings = database.showAllSettings
     ShortcutSectionView {
         StreamingPlatformsShortcutView(model = model, stream = stream)
         if (showAllSettings) {
@@ -222,16 +221,16 @@ fun QuickButtonLiveView(
     var kickTitle by remember { mutableStateOf<String?>(null) }
     var kickCategory by remember { mutableStateOf<String?>(null) }
 
-    val twitchChannelName by stream.twitchChannelName.collectAsState()
-    val kickChannelName by stream.kickChannelName.collectAsState()
-    val youTubeHandle by stream.youTubeHandle.collectAsState()
-    val soopChannelName by stream.soopChannelName.collectAsState()
-    val twitchLoggedIn by stream.twitchLoggedIn.collectAsState()
-    val kickLoggedIn by stream.kickLoggedIn.collectAsState()
-    val goLiveNotificationDiscordWebhookUrl by stream.goLiveNotificationDiscordWebhookUrl.collectAsState()
-    val goLiveNotificationMoblinWebsite by stream.goLiveNotificationMoblinWebsite.collectAsState()
-    val showAllSettings by database.showAllSettings.collectAsState()
-    val debug by database.debug.collectAsState()
+    val twitchChannelName = stream.twitchChannelName
+    val kickChannelName = stream.kickChannelName
+    val youTubeHandle = stream.youTubeHandle
+    val soopChannelName = stream.soopChannelName
+    val twitchLoggedIn = stream.twitchLoggedIn
+    val kickLoggedIn = stream.kickLoggedIn
+    val goLiveNotificationDiscordWebhookUrl = stream.goLiveNotificationDiscordWebhookUrl
+    val goLiveNotificationMoblinWebsite = stream.goLiveNotificationMoblinWebsite
+    val showAllSettings = database.showAllSettings
+    val debug = database.debug
 
     LaunchedEffect(Unit) {
         loadTwitchStreamInfo(model = model, stream = stream, loggedIn = twitchLoggedIn) { title, category ->

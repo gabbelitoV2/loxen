@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +58,7 @@ import com.moblin.android.view.settings.streams.stream.KickLogoAndNameView
 import com.moblin.android.view.settings.streams.stream.TwitchLogoAndNameView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextItemLocalizedView
+import java.io.File
 import java.util.UUID
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
@@ -81,11 +81,11 @@ fun AlertTextToSpeechView(
     var volume by remember { mutableFloatStateOf(0.6f) }
 
     val onVoiceChange: (String, SettingsVoice) -> Unit = { languageCode, voice ->
-        alert.textToSpeechLanguageVoices[languageCode] = voice
+        alert.textToSpeechLanguageVoices = alert.textToSpeechLanguageVoices + (languageCode to voice)
         model.updateAlertsSettings()
     }
     val onLanguageReset: (String) -> Unit = { languageCode ->
-        alert.textToSpeechLanguageVoices.remove(languageCode)
+        alert.textToSpeechLanguageVoices = alert.textToSpeechLanguageVoices - languageCode
         model.updateAlertsSettings()
     }
 
@@ -142,7 +142,7 @@ private fun VideoView(model: Model = LocalModel.current, alert: SettingsWidgetAl
         val filename = alert.makeVideoFilename()
         if (filename != null) {
             model.alertMediaStorage.videos.remove(filename)
-            model.alertMediaStorage.videos.add(filename, url)
+            model.alertMediaStorage.videos.add(filename, File(url))
             model.updateAlertsSettings()
         }
     }
@@ -282,13 +282,13 @@ private fun AlertPositionFaceView(model: Model = LocalModel.current, alert: Sett
         val yPoints = alert.facePosition.y * size.height
         val widthPoints = alert.facePosition.width * size.width
         val heightPoints = alert.facePosition.height * size.height
-        imageWidth = widthPoints
-        imageHeight = heightPoints
+        imageWidth = widthPoints.toFloat()
+        imageHeight = heightPoints.toFloat()
         imageOffset = Size(
-            width = xPoints + widthPoints / 2 - size.width / 2,
-            height = yPoints + heightPoints / 2 - size.height / 2,
+            width = (xPoints + widthPoints / 2 - size.width / 2).toFloat(),
+            height = (yPoints + heightPoints / 2 - size.height / 2).toFloat(),
         )
-        return Rect(xPoints, yPoints, xPoints + widthPoints, yPoints + heightPoints)
+        return Rect(xPoints.toFloat(), yPoints.toFloat(), (xPoints + widthPoints).toFloat(), (yPoints + heightPoints).toFloat())
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

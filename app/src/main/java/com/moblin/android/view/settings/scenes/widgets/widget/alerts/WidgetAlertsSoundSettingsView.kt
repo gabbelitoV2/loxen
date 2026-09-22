@@ -41,6 +41,7 @@ import com.moblin.android.various.settings.SettingsWidgetAlertsAlertMediaType
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
+import java.io.File
 import java.util.UUID
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
@@ -53,7 +54,7 @@ private fun loadSound(model: Model, soundId: UUID): AudioPlayer? {
         model.alertMediaStorage.makePath(soundId)
     }
     val path = url ?: return null
-    return runCatching { AudioPlayer(path) }.getOrNull()
+    return runCatching { AudioPlayer() }.getOrNull()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,7 +68,7 @@ fun CustomSoundView(
     var audioPlayer by remember { mutableStateOf(initialAudioPlayer) }
 
     fun onUrl(url: String) {
-        model.alertMediaStorage.add(media.id, url)
+        model.alertMediaStorage.add(media.id, File(url))
         audioPlayer = loadSound(model, media.id)
         model.updateAlertsSettings()
     }
@@ -116,7 +117,7 @@ fun CustomSoundView(
     }
     if (showPicker) {
         ModalBottomSheet(onDismissRequest = { showPicker = false }) {
-            AlertPickerView(type = SettingsWidgetAlertsAlertMediaType.Audio)
+            AlertPickerView(type = "audio")
         }
     }
 }
@@ -153,7 +154,7 @@ fun SoundGalleryView(
         if (index == -1) {
             return
         }
-        gallery.customSounds.removeAt(index)
+        gallery.customSounds = gallery.customSounds.filterNot { it.id == sound.id }
         model.fixAlertMedias()
         onSoundIdChange(alert.soundId)
     }
@@ -189,7 +190,7 @@ fun SoundGalleryView(
             }
             item {
                 TextButtonView("Add") {
-                    gallery.customSounds.add(SettingsAlertsMediaGalleryItem(name = "My sound"))
+                    gallery.customSounds = gallery.customSounds + SettingsAlertsMediaGalleryItem(name = "My sound")
                 }
             }
             item {

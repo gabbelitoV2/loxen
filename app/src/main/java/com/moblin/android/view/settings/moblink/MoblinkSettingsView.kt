@@ -42,6 +42,8 @@ import com.moblin.android.moblink.moblinkRelayResetId
 import com.moblin.android.various.model.Moblink
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
+import com.moblin.android.various.model.reloadMoblinkRelay
+import com.moblin.android.various.model.reloadMoblinkStreamer
 import com.moblin.android.various.network.DefaultTcpPorts
 import com.moblin.android.various.settings.SettingsMoblinkRelay
 import com.moblin.android.various.settings.SettingsMoblinkStreamer
@@ -132,9 +134,8 @@ private fun PasswordView(
             }
             item {
                 TextButtonView(
-                    text = "Reset to default",
-                    enabled = !isLive,
-                    onClick = {
+                    title = "Reset to default",
+                    action = {
                         value = "1234"
                         submit()
                     },
@@ -155,8 +156,8 @@ private fun RelayStreamerServerView(
         Text(server.name, style = MaterialTheme.typography.titleSmall)
         server.urls.forEach { url ->
             TextButtonView(
-                text = url,
-                onClick = {
+                title = url,
+                action = {
                     onStreamerUrlChange(url)
                     submitUrl(url)
                 },
@@ -177,7 +178,7 @@ private fun RelayStreamerUrlView(
     var streamerUrl by remember { mutableStateOf(initialStreamerUrl) }
 
     fun submitUrl(value: String) {
-        if (isValidWebSocketUrl(url = value) != null) {
+        if (isValidWebSocketUrl(value = value) != null) {
             streamerUrl = model.database.moblink.relay.url.value
             return
         }
@@ -279,8 +280,8 @@ private fun RelayView(
             }
         }
         TextButtonView(
-            text = "Reset id",
-            onClick = {
+            title = "Reset id",
+            action = {
                 moblinkRelayResetId()
                 model.reloadMoblinkRelay()
                 relayId = getMoblinkRelayId()
@@ -311,7 +312,7 @@ private fun StreamerView(
     val port by streamer.port.collectAsState()
 
     fun submitPort(value: String) {
-        val parsedPort = value.trim().toUInt16OrNull()?.toInt()
+        val parsedPort = value.trim().toIntOrNull()?.takeIf { it in 0..65535 }
         if (parsedPort == null) {
             model.makePortErrorToast(port = value)
             return
@@ -342,7 +343,6 @@ private fun StreamerView(
             onSubmit = { submitPort(it) },
             keyboardType = KeyboardType.Number,
             placeholder = DefaultTcpPorts.moblinkStreamer.toString(),
-            enabled = !isLive,
         )
         Text(
             "Enable this on your streaming device. Configure relay devices to connect to this device.",
@@ -358,12 +358,12 @@ fun MoblinkSettingsView(
     streamer: SettingsMoblinkStreamer,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val password by model.database.moblink.password.collectAsState()
+    val password = model.database.moblink.password
     val streamerEnabled by streamer.enabled.collectAsState()
     val streamerPort by streamer.port.collectAsState()
 
     fun submitPassword(value: String) {
-        model.database.moblink.password.value = value.trim()
+        model.database.moblink.password = value.trim()
         model.reloadMoblinkRelay()
         model.reloadMoblinkStreamer()
     }

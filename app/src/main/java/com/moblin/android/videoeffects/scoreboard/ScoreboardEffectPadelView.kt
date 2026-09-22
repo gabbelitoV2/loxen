@@ -69,7 +69,7 @@ private fun padelScoreboardSettingsToEffect(
 ): PadelScoreboard {
     val homePlayers = mutableListOf(createPadelPlayer(players, scoreboard.homePlayer1))
     val awayPlayers = mutableListOf(createPadelPlayer(players, scoreboard.awayPlayer1))
-    if (scoreboard.type == SettingsWidgetPadelScoreboardGameType.DOUBLES) {
+    if (scoreboard.type == SettingsWidgetPadelScoreboardGameType.doubles) {
         homePlayers.add(createPadelPlayer(players, scoreboard.homePlayer2))
         awayPlayers.add(createPadelPlayer(players, scoreboard.awayPlayer2))
     }
@@ -81,8 +81,8 @@ private fun padelScoreboardSettingsToEffect(
 
 private fun scoreFontSize(padel: SettingsWidgetPadelScoreboard): Double {
     return when (padel.type) {
-        SettingsWidgetPadelScoreboardGameType.DOUBLES -> scoreboardScoreBigFontSize
-        SettingsWidgetPadelScoreboardGameType.SINGLES -> scoreboardScoreFontSize
+        SettingsWidgetPadelScoreboardGameType.doubles -> scoreboardScoreBigFontSize
+        SettingsWidgetPadelScoreboardGameType.singles -> scoreboardScoreFontSize
     }
 }
 
@@ -136,8 +136,8 @@ fun ScoreboardEffectPadelView(
                                 modifier = Modifier.width((28 * scale).dp),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                             ) {
-                                TeamScoreView(score = score.home, bold = score.isHomeWin())
-                                TeamScoreView(score = score.away, bold = score.isAwayWin())
+                                TeamScoreView(score = score.home)
+                                TeamScoreView(score = score.away)
                             }
                         }
                     }

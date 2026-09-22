@@ -19,37 +19,37 @@ fun Model.handleControllerFunction(
     pressed: Boolean
 ) {
     when (function) {
-        SettingsControllerFunction.unused -> {
+        SettingsControllerFunction.UNUSED -> {
         }
-        SettingsControllerFunction.record -> {
+        SettingsControllerFunction.RECORD -> {
             if (!pressed) {
                 toggleRecording()
             }
         }
-        SettingsControllerFunction.stream -> {
+        SettingsControllerFunction.STREAM -> {
             if (!pressed) {
                 toggleStream()
             }
         }
-        SettingsControllerFunction.zoomIn -> {
+        SettingsControllerFunction.ZOOM_IN -> {
             handleGameControllerButtonZoom(pressed = pressed, x = Float.POSITIVE_INFINITY)
         }
-        SettingsControllerFunction.zoomOut -> {
+        SettingsControllerFunction.ZOOM_OUT -> {
             handleGameControllerButtonZoom(pressed = pressed, x = 0f)
         }
-        SettingsControllerFunction.gimbalUp -> {
+        SettingsControllerFunction.GIMBAL_UP -> {
             setGimbalMovement(x = if (pressed) 1f else 0f, y = 0f)
         }
-        SettingsControllerFunction.gimbalDown -> {
+        SettingsControllerFunction.GIMBAL_DOWN -> {
             setGimbalMovement(x = if (pressed) -1f else 0f, y = 0f)
         }
-        SettingsControllerFunction.gimbalLeft -> {
+        SettingsControllerFunction.GIMBAL_LEFT -> {
             setGimbalMovement(x = 0f, y = if (pressed) 1f else 0f)
         }
-        SettingsControllerFunction.gimbalRight -> {
+        SettingsControllerFunction.GIMBAL_RIGHT -> {
             setGimbalMovement(x = 0f, y = if (pressed) -1f else 0f)
         }
-        SettingsControllerFunction.gimbalPreset -> {
+        SettingsControllerFunction.GIMBAL_PRESET -> {
             val timer = gimbalPresetLongPressTimers.remove(buttonId)
             timer?.stop()
             if (!pressed) {
@@ -70,149 +70,149 @@ fun Model.handleControllerFunction(
                 }
             }
         }
-        SettingsControllerFunction.gimbalAnimate -> {
+        SettingsControllerFunction.GIMBAL_ANIMATE -> {
             if (!pressed) {
                 Gimbal.shared?.animate(motion = functionData.gimbalMotion)
             }
         }
-        SettingsControllerFunction.torch -> {
+        SettingsControllerFunction.TORCH -> {
             if (!pressed) {
                 toggleTorch()
                 toggleQuickButton(type = SettingsQuickButtonType.torch)
             }
         }
-        SettingsControllerFunction.mute -> {
+        SettingsControllerFunction.MUTE -> {
             if (!pressed) {
                 toggleMute()
                 toggleQuickButton(type = SettingsQuickButtonType.mute)
             }
         }
-        SettingsControllerFunction.blackScreen -> {
+        SettingsControllerFunction.BLACK_SCREEN -> {
             if (!pressed) {
                 toggleStealthMode()
             }
         }
-        SettingsControllerFunction.scene -> {
+        SettingsControllerFunction.SCENE -> {
             val sceneId = functionData.sceneId
             if (sceneId != null && !pressed) {
                 selectScene(id = sceneId)
             }
         }
-        SettingsControllerFunction.switchScene -> {
+        SettingsControllerFunction.SWITCH_SCENE -> {
             if (!pressed) {
                 switchToNextSceneRoundRobin()
             }
         }
-        SettingsControllerFunction.widget -> {
+        SettingsControllerFunction.WIDGET -> {
             val widgetId = functionData.widgetId
             if (widgetId != null && !pressed) {
                 toggleWidgetOnOff(id = widgetId)
             }
         }
-        SettingsControllerFunction.macro -> {
+        SettingsControllerFunction.MACRO -> {
             val macroId = functionData.macroId
             if (macroId != null && !pressed) {
                 toggleMacroStartStop(id = macroId)
             }
         }
-        SettingsControllerFunction.streamDeckLayout -> {
+        SettingsControllerFunction.STREAM_DECK_LAYOUT -> {
             if (!pressed) {
-                database.streamDecks.selectedId = functionData.streamDeckLayoutId
+                database.streamDecks.selectedId.value = functionData.streamDeckLayoutId
                 setSelectedStreamDeck()
             }
         }
-        SettingsControllerFunction.instantReplay -> {
+        SettingsControllerFunction.INSTANT_REPLAY -> {
             if (!pressed) {
                 instantReplay()
             }
         }
-        SettingsControllerFunction.stopReplay -> {
+        SettingsControllerFunction.STOP_REPLAY -> {
             if (!pressed) {
-                replay.isPlaying = false
+                replay.isPlaying.value = false
                 replayCancel()
             }
         }
-        SettingsControllerFunction.snapshot -> {
+        SettingsControllerFunction.SNAPSHOT -> {
             if (!pressed) {
                 takeSnapshot()
             }
         }
-        SettingsControllerFunction.pauseTts -> {
+        SettingsControllerFunction.PAUSE_TTS -> {
             if (!pressed) {
                 toggleTextToSpeechPaused()
             }
         }
-        SettingsControllerFunction.pixellate -> {
+        SettingsControllerFunction.PIXELLATE -> {
             if (!pressed) {
                 togglePixellateQuickButton()
             }
         }
-        SettingsControllerFunction.movie -> {
+        SettingsControllerFunction.MOVIE -> {
             if (!pressed) {
                 toggleFilterQuickButton(type = SettingsQuickButtonType.movie)
             }
         }
-        SettingsControllerFunction.grayScale -> {
+        SettingsControllerFunction.GRAY_SCALE -> {
             if (!pressed) {
                 toggleFilterQuickButton(type = SettingsQuickButtonType.grayScale)
             }
         }
-        SettingsControllerFunction.sepia -> {
+        SettingsControllerFunction.SEPIA -> {
             if (!pressed) {
                 toggleFilterQuickButton(type = SettingsQuickButtonType.sepia)
             }
         }
-        SettingsControllerFunction.triple -> {
+        SettingsControllerFunction.TRIPLE -> {
             if (!pressed) {
                 toggleFilterQuickButton(type = SettingsQuickButtonType.triple)
             }
         }
-        SettingsControllerFunction.twin -> {
+        SettingsControllerFunction.TWIN -> {
             if (!pressed) {
                 toggleFilterQuickButton(type = SettingsQuickButtonType.twin)
             }
         }
-        SettingsControllerFunction.cameraMan -> {
+        SettingsControllerFunction.CAMERA_MAN -> {
             if (!pressed) {
                 toggleCameraManQuickButton()
             }
         }
-        SettingsControllerFunction.fourThree -> {
+        SettingsControllerFunction.FOUR_THREE -> {
             if (!pressed) {
                 toggleFilterQuickButton(type = SettingsQuickButtonType.fourThree)
             }
         }
-        SettingsControllerFunction.pinch -> {
+        SettingsControllerFunction.PINCH -> {
             if (!pressed) {
                 togglePinchQuickButton()
             }
         }
-        SettingsControllerFunction.whirlpool -> {
+        SettingsControllerFunction.WHIRLPOOL -> {
             if (!pressed) {
                 toggleWhirlpoolQuickButton()
             }
         }
-        SettingsControllerFunction.poll -> {
+        SettingsControllerFunction.POLL -> {
             if (!pressed) {
                 togglePollQuickButton()
             }
         }
-        SettingsControllerFunction.blurFaces -> {
+        SettingsControllerFunction.BLUR_FACES -> {
             if (!pressed) {
                 toggleBlurFaces()
             }
         }
-        SettingsControllerFunction.privacy -> {
+        SettingsControllerFunction.PRIVACY -> {
             if (!pressed) {
                 togglePrivacy()
             }
         }
-        SettingsControllerFunction.beauty -> {
+        SettingsControllerFunction.BEAUTY -> {
             if (!pressed) {
                 toggleBeautyQuickButton()
             }
         }
-        SettingsControllerFunction.gimbalTracking -> {
+        SettingsControllerFunction.GIMBAL_TRACKING -> {
             if (!pressed) {
                 toggleGimbalTracking()
             }
@@ -241,13 +241,13 @@ fun Model.handleGameControllerThumbStick(
     xValue: Float,
     yValue: Float
 ) {
-    if (function == SettingsControllerThumbStickFunction.unused) {
+    if (function == SettingsControllerThumbStickFunction.UNUSED) {
         return
     }
     when (function) {
-        SettingsControllerThumbStickFunction.unused -> {
+        SettingsControllerThumbStickFunction.UNUSED -> {
         }
-        SettingsControllerThumbStickFunction.gimbalPanTilt -> {
+        SettingsControllerThumbStickFunction.GIMBAL_PAN_TILT -> {
             val x = if (abs(xValue) > thumbStickDeadZone) xValue else 0f
             val y = if (abs(yValue) > thumbStickDeadZone) yValue else 0f
             setGimbalMovement(x = y, y = -x)
@@ -275,11 +275,11 @@ fun Model.handleGameControllerButton(
     pressed: Boolean
 ) {
     val index = getGameControllerIndex(gameController) ?: return
-    val button = database.gameControllers[index].buttons.firstOrNull { it.name == buttonId } ?: return
+    val button = database.gameControllers[index].buttons.value.firstOrNull { it.name == buttonId } ?: return
     handleControllerFunction(
         buttonId = "gc:$index:$buttonId",
-        function = button.function,
-        functionData = button.functionData,
+        function = button.function.value,
+        functionData = button.functionData.value,
         pressed = pressed
     )
 }
@@ -289,7 +289,7 @@ private fun Model.numberOfGameControllers(): Int {
 }
 
 private fun Model.updateGameControllers() {
-    statusTopRight.gameControllersTotal = numberOfGameControllers().toString()
+    statusTopRight.gameControllersTotal.value = numberOfGameControllers().toString()
 }
 
 private fun Model.gameControllerNumber(gameController: InputDevice): Int? {

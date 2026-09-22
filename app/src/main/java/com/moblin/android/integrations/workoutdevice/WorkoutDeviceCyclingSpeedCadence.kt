@@ -2,6 +2,8 @@ package com.moblin.android.integrations.workoutdevice
 
 import android.bluetooth.BluetoothGattCharacteristic
 import com.moblin.android.media.haishinkit.util.ByteReader
+import java.time.Duration
+import java.time.Instant
 import java.util.UUID
 import kotlin.math.min
 
@@ -42,7 +44,7 @@ class WorkoutDeviceCyclingSpeedCadence(wheelCircumference: Int) {
     private var previousWheelRevolutionsTime: UShort? = null
     private val crankCadence = WorkoutDeviceCrankCadence()
     private val averageSpeed = WorkoutDeviceAverageCalculator()
-    private var latestAverageSpeedUpdateTime = System.nanoTime()
+    private var latestAverageSpeedUpdateTime = Instant.now()
     private var reportsWheelRevolutions = false
     private var wheelCircumferenceMeters: Double = wheelCircumference.toDouble() / 1000.0
 
@@ -73,7 +75,7 @@ class WorkoutDeviceCyclingSpeedCadence(wheelCircumference: Int) {
 
     fun handleMeasurement(value: ByteArray): Pair<Double?, Int?> {
         val measurement = CyclingSpeedCadenceMeasurement(value)
-        val now = System.nanoTime()
+        val now = Instant.now()
         val cadence = crankCadence.update(revolutions = measurement.cumulativeCrankRevolutions,
                                           time = measurement.lastCrankEventTime,
                                           now = now)
@@ -82,7 +84,7 @@ class WorkoutDeviceCyclingSpeedCadence(wheelCircumference: Int) {
                     cadence)
     }
 
-    private fun updateSpeed(measurement: CyclingSpeedCadenceMeasurement, now: Long) {
+    private fun updateSpeed(measurement: CyclingSpeedCadenceMeasurement, now: Instant) {
         var speed = -1.0
         val revolutions = measurement.cumulativeWheelRevolutions
         val time = measurement.lastWheelEventTime
@@ -112,7 +114,7 @@ class WorkoutDeviceCyclingSpeedCadence(wheelCircumference: Int) {
         if (speed != -1.0) {
             averageSpeed.update(value = speed)
             latestAverageSpeedUpdateTime = now
-        } else if (now - latestAverageSpeedUpdateTime > 3_000_000_000L) {
+        } else if (Duration.between(latestAverageSpeedUpdateTime, now).seconds > 3) {
             averageSpeed.update(value = 0.0)
         }
     }

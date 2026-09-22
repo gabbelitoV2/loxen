@@ -1,5 +1,6 @@
 package com.moblin.android.videoeffects
 
+import android.media.Image
 import androidx.compose.ui.geometry.Size
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
@@ -33,15 +34,14 @@ class MapCamera {
 private fun MapCoordinate.translateMeters(x: Double, y: Double): MapCoordinate =
     TODO("port of CLLocationCoordinate2D.translateMeters from the CoreLocation extension")
 
-class MapEffect(widget: SettingsWidgetMap) : VideoEffect() {
+class MapEffect(private var widget: SettingsWidgetMap) : VideoEffect() {
     private var mapSnapshot: EffectImageCiImage? = null
-    private val widget: SettingsWidgetMap
     private var sceneWidget: SettingsSceneWidget? = null
     private var location: MapLocation = MapLocation()
     private var size: Size = Size.Zero
     private var newLocations: ArrayDeque<MapLocation> = ArrayDeque(listOf(MapLocation()))
     private var mapSnapshotter: MapCamera? = null
-    private val dot: EffectImageCgImage?
+    private var dot: EffectImageCgImage? = null
     private var dotOffsetRatio = 0.0
     private var zoomOutFactor: Int? = null
     private var isLocationUpdated: Boolean = true
@@ -75,8 +75,8 @@ class MapEffect(widget: SettingsWidgetMap) : VideoEffect() {
         }
     }
 
-    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
-        val size = image.extent.size
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
+        val size = Size(image.width.toFloat(), image.height.toFloat())
         update(size)
         val sceneWidget = this.sceneWidget
         val dot = this.dot
@@ -84,14 +84,14 @@ class MapEffect(widget: SettingsWidgetMap) : VideoEffect() {
         if (sceneWidget == null || dot == null || mapSnapshot == null) {
             return image
         }
-        val height = toPixels(sceneWidget.layout.size, size.height)
-        val width = toPixels(sceneWidget.layout.size, size.width)
-        val side = maxOf(40f, minOf(height, width))
+        val height = toPixels(sceneWidget.layout.size, size.height.toDouble())
+        val width = toPixels(sceneWidget.layout.size, size.width.toDouble())
+        val side = maxOf(40.0, minOf(height, width))
         return TODO("OpenGL ES port")
     }
 
-    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
-        val size = image.extent.size
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
+        val size = Size(image.width.toFloat(), image.height.toFloat())
         update(size)
         val sceneWidget = this.sceneWidget
         val dot = this.dot
@@ -170,7 +170,7 @@ class MapEffect(widget: SettingsWidgetMap) : VideoEffect() {
                 this.zoomOutFactor = factor + 1
             }
         }
-        return MapCameraHolder(camera) to dotOffsetRatio
+        return camera to dotOffsetRatio
     }
 
     private fun startMapSnapshotter(mapSnapshotter: MapCamera, dotOffsetRatio: Double) {

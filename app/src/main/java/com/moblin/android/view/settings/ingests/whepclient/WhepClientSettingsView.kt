@@ -44,14 +44,15 @@ private fun status(numberOfEnabledStreams: Int): String {
 }
 
 private fun deleteStream(model: Model, whepClient: SettingsWhepClient, indexes: List<Int>) {
-    val streams = whepClient.streams.value.toMutableList()
+    val streams = whepClient.streams.toMutableList()
     indexes.sortedDescending().forEach { index ->
         if (index in streams.indices) {
             streams.removeAt(index)
         }
     }
-    whepClient.streams.value = streams
-    model.reloadWhepClient()
+    whepClient.streams.clear()
+    whepClient.streams.addAll(streams)
+    TODO("model.reloadWhepClient()")
 }
 
 @Composable
@@ -62,7 +63,7 @@ fun WhepClientSettingsView(
 ) {
     var numberOfEnabledStreams by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
-        numberOfEnabledStreams = whepClient.streams.value.count { it.enabled }
+        numberOfEnabledStreams = whepClient.streams.count { it.enabled }
     }
     Row(
         modifier = Modifier
@@ -84,7 +85,7 @@ fun WhepClientSettingsDestinationView(
     whepClient: SettingsWhepClient,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val streams by whepClient.streams.collectAsState()
+    val streams = whepClient.streams
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("WHEP client") })
@@ -136,9 +137,9 @@ fun WhepClientSettingsDestinationView(
                     val stream = SettingsWhepClientStream()
                     stream.name = makeUniqueName(
                         name = SettingsWhepClientStream.baseName,
-                        existingNames = whepClient.streams.value,
+                        existingNames = whepClient.streams,
                     )
-                    whepClient.streams.value = whepClient.streams.value + stream
+                    whepClient.streams.add(stream)
                 }
             }
             item {

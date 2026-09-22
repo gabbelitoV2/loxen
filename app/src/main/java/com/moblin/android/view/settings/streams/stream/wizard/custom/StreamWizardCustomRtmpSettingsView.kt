@@ -59,8 +59,8 @@ fun StreamWizardCustomRtmpSettingsView(
     onNameChange: (String) -> Unit = {},
     onNavigate: (String) -> Unit = {},
 ) {
-    val customRtmpUrl by createStreamWizard.customRtmpUrl.collectAsState()
-    val customRtmpStreamKey by createStreamWizard.customRtmpStreamKey.collectAsState()
+    val customRtmpUrl = createStreamWizard.customRtmpUrl
+    val customRtmpStreamKey = createStreamWizard.customRtmpStreamKey
     var urlError by remember { mutableStateOf("") }
 
     LaunchedEffect(customRtmpUrl) {
@@ -72,7 +72,7 @@ fun StreamWizardCustomRtmpSettingsView(
         onNameChange(
             makeUniqueName(
                 localized("Custom RTMP"),
-                model.database.streams.value
+                model.database.streams
             )
         )
     }

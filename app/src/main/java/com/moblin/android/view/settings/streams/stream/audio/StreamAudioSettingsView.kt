@@ -43,15 +43,15 @@ fun StreamAudioSettingsView(
     model: Model = LocalModel.current,
     stream: SettingsStream,
 ) {
-    var bitrate by remember { mutableStateOf(stream.audioBitrate.value / 1000.0f) }
+    var bitrate by remember { mutableStateOf(stream.audioBitrate / 1000.0f) }
     var codecExpanded by remember { mutableStateOf(false) }
-    val audioCodec by stream.audioCodec.collectAsState()
-    val streamEnabled by stream.enabled.collectAsState()
+    val audioCodec = stream.audioCodec
+    val streamEnabled = stream.enabled
     val isLive by model.isLive.collectAsState()
     val locked = streamEnabled && isLive
 
     LaunchedEffect(audioCodec) {
-        model.reloadStreamIfEnabled(stream)
+        TODO("model.reloadStreamIfEnabled")
     }
 
     Scaffold(
@@ -91,7 +91,7 @@ fun StreamAudioSettingsView(
                             DropdownMenuItem(
                                 text = { Text(codec.toString()) },
                                 onClick = {
-                                    stream.audioCodec.value = codec
+                                    stream.audioCodec = codec
                                     codecExpanded = false
                                 },
                             )
@@ -121,9 +121,9 @@ fun StreamAudioSettingsView(
                         steps = 8,
                         enabled = !locked,
                         onValueChangeFinished = {
-                            stream.audioBitrate.value = calcBitrate(bitrate)
+                            stream.audioBitrate = calcBitrate(bitrate)
                             if (streamEnabled) {
-                                model.setAudioStreamBitrate(stream)
+                                TODO("model.setAudioStreamBitrate")
                             }
                         },
                         modifier = Modifier.weight(1f),

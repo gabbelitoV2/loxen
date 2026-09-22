@@ -32,12 +32,13 @@ import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun LutView(model: Model = LocalModel.current, lut: SettingsColorLut) {
-    val enabled by lut.enabled.collectAsState()
+    var enabled by remember { mutableStateOf(lut.enabled) }
     var previousEnabled by remember { mutableStateOf(enabled) }
     LaunchedEffect(enabled) {
         if (enabled != previousEnabled) {
             previousEnabled = enabled
-            model.sceneUpdated(updateRemoteScene = false)
+            lut.enabled = enabled
+            TODO("sceneUpdated")
         }
     }
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -47,7 +48,7 @@ private fun LutView(model: Model = LocalModel.current, lut: SettingsColorLut) {
         )
         Switch(
             checked = enabled,
-            onCheckedChange = { lut.setEnabled(it) },
+            onCheckedChange = { enabled = it },
         )
     }
 }

@@ -18,7 +18,7 @@ fun AnamorphicLensEffectView(
     effect: SettingsVideoEffect,
     anamorphicLens: SettingsVideoEffectAnamorphicLens
 ) {
-    val scale by anamorphicLens.scale.collectAsState()
+    val scale = anamorphicLens.scale
     TextEditNavigationView(
         title = localized("Desqueeze factor"),
         value = scale.toString(),
@@ -42,7 +42,7 @@ private fun updateWidget(
     effect: SettingsVideoEffect,
     anamorphicLens: SettingsVideoEffectAnamorphicLens
 ) {
-    model.getWidgetAnamorphicLensEffect(widget, effect)?.setSettings(anamorphicLens.clone())
+    TODO("getWidgetAnamorphicLensEffect is not available on Model")
 }
 
 private fun changeScale(value: String): String? {
@@ -64,7 +64,7 @@ private fun submitScale(
     anamorphicLens: SettingsVideoEffectAnamorphicLens
 ) {
     val scale = value.toDoubleOrNull() ?: return
-    anamorphicLens.scale.value = scale
+    anamorphicLens.scale = scale
     updateWidget(
         model = model,
         widget = widget,

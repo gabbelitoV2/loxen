@@ -10,7 +10,7 @@ import com.moblin.android.various.ChatPostUrl
 import com.moblin.android.various.network.WebSocketClient
 import com.moblin.android.various.network.WebSocketClientDelegate
 import com.moblin.android.various.settings.SettingsStreamChat
-import kotlin.jvm.internal.Ref
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
@@ -47,7 +47,7 @@ private val emoteRegex = Regex("""\[emote:(\d+):[^\]]+\]""")
 fun createKickSegments(
     message: String,
     emotesManager: Emotes,
-    id: Ref.IntRef,
+    id: AtomicInteger,
 ): List<ChatPostSegment> {
     val segments = mutableListOf<ChatPostSegment>()
     var startIndex = 0
@@ -56,8 +56,8 @@ fun createKickSegments(
         val textBeforeEmote = message.substring(startIndex, match.range.first)
         val url = "https://files.kick.com/emotes/$emoteId/fullsize"
         segments.addAll(emotesManager.createSegments(textBeforeEmote, id))
-        segments.add(ChatPostSegment(id = id.element, url = ChatPostUrl(moving = url, still = url)))
-        id.element += 1
+        segments.add(ChatPostSegment(id = id.get(), url = ChatPostUrl(moving = url, still = url)))
+        id.incrementAndGet()
         startIndex = match.range.last + 1
     }
     if (startIndex != message.length) {
@@ -328,7 +328,7 @@ class KickPusher(
     private fun connect() {
         emotes.stop()
         emotes.start(
-            EmotesPlatform.KICK,
+            EmotesPlatform.kick,
             channelId,
             ::handleError,
             ::handleOk,
@@ -465,7 +465,7 @@ class KickPusher(
     }
 
     fun makeChatPostSegments(content: String): List<ChatPostSegment> {
-        val id = Ref.IntRef(0)
+        val id = AtomicInteger(0)
         return createKickSegments(message = content, emotesManager = emotes, id = id)
     }
 

@@ -69,7 +69,7 @@ fun NicknameViewDestination(
             value = nickname.user,
             onSubmit = { value ->
                 nickname.user = value
-                model.reloadChatMessages()
+                TODO("Model.reloadChatMessages is not available")
             },
         )
         TextEditNavigationView(
@@ -77,14 +77,11 @@ fun NicknameViewDestination(
             value = nickname.nickname,
             onSubmit = { value ->
                 nickname.nickname = value
-                model.reloadChatMessages()
+                TODO("Model.reloadChatMessages is not available")
             },
         )
-        TextButtonView("Test", enabled = nickname.nickname.isNotEmpty()) {
-            model.previewTextToSpeech(
-                username = nickname.nickname,
-                message = "This is a test message",
-            )
+        TextButtonView("Test") {
+            TODO("Model.previewTextToSpeech is not available")
         }
     }
 }
@@ -95,7 +92,7 @@ fun ChatNicknamesSettingsView(
     nicknames: SettingsChatNicknames,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val nicknameList by nicknames.nicknames.collectAsState()
+    val nicknameList = nicknames.nicknames
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -114,10 +111,12 @@ private fun deleteNickname(
     offsets: List<Int>,
 ) {
     val removed = offsets.toSet()
-    nicknames.nicknames.value = nicknames.nicknames.value.filterIndexed { index, _ ->
+    val kept = nicknames.nicknames.filterIndexed { index, _ ->
         index !in removed
     }
-    model.reloadChatMessages()
+    nicknames.nicknames.clear()
+    nicknames.nicknames.addAll(kept)
+    TODO("Model.reloadChatMessages is not available")
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -127,7 +126,7 @@ fun ChatNicknamesSettingsViewDestination(
     nicknames: SettingsChatNicknames,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val nicknameList by nicknames.nicknames.collectAsState()
+    val nicknameList = nicknames.nicknames
     val onMove: (List<Int>, Int) -> Unit = { _, _ ->
         TODO("SwiftUI List.onMove drag to reorder has no Compose counterpart")
     }
@@ -153,8 +152,8 @@ fun ChatNicknamesSettingsViewDestination(
                     nickname = nickname,
                     onNavigate = onNavigate,
                     onDelete = {
-                        makeOffsets(nicknameList, nickname.id)?.let { offsets ->
-                            deleteNickname(model, nicknames, offsets)
+                        makeOffsets(nicknameList, nickname.id)?.let { offset ->
+                            deleteNickname(model, nicknames, listOf(offset))
                         }
                     },
                 )
@@ -165,7 +164,7 @@ fun ChatNicknamesSettingsViewDestination(
         }
         item {
             CreateButtonView {
-                nicknames.nicknames.value = nicknames.nicknames.value + SettingsChatNickname()
+                nicknames.nicknames.add(SettingsChatNickname())
             }
         }
     }

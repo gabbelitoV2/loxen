@@ -14,7 +14,7 @@ data class RtmpStreamStats(
 )
 
 class RtmpStreamInfo {
-    var bitrateStats: Atomic<BitrateStats> = Atomic(BitrateStats(speedChangeRate = 30))
+    var bitrateStats: Atomic<BitrateStats> = Atomic(BitrateStats(speedChangeRate = 30uL))
     var stats: Atomic<RtmpStreamStats> = Atomic(RtmpStreamStats())
         private set
     private var sendTimings: ArrayDeque<SendTiming> = ArrayDeque()
@@ -32,7 +32,7 @@ class RtmpStreamInfo {
 
     fun onTimeout() {
         bitrateStats.mutate { value ->
-            value.update()
+            value.value.update()
             value
         }
     }
@@ -44,7 +44,7 @@ class RtmpStreamInfo {
         }
         val packetsInFlight = packetsInFlight()
         stats.mutate { value ->
-            value.packetsInFlight = packetsInFlight
+            value.value.packetsInFlight = packetsInFlight
             value
         }
     }
@@ -72,8 +72,8 @@ class RtmpStreamInfo {
             val rttMs = (System.nanoTime() - timing.timestamp) / 1_000_000.0
             val packetsInFlight = packetsInFlight()
             stats.mutate { value ->
-                value.rttMs = rttMs
-                value.packetsInFlight = packetsInFlight
+                value.value.rttMs = rttMs
+                value.value.packetsInFlight = packetsInFlight
                 value
             }
         }

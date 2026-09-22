@@ -36,12 +36,12 @@ fun Dewarp360EffectView(
     dewarp360: SettingsVideoEffectDewarp360,
 ) {
     fun updateWidget() {
-        model.getWidgetDewarp360Effect(widget, effect)?.setSettings(dewarp360.toSettings())
+        TODO("model.getWidgetDewarp360Effect is not available")
     }
 
-    val pan by dewarp360.pan.collectAsState()
-    val tilt by dewarp360.tilt.collectAsState()
-    val inverseFieldOfView by dewarp360.inverseFieldOfView.collectAsState()
+    val pan = dewarp360.pan
+    val tilt = dewarp360.tilt
+    val inverseFieldOfView = dewarp360.inverseFieldOfView
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -53,7 +53,7 @@ fun Dewarp360EffectView(
             Icon(Icons.Default.ArrowBack, contentDescription = null)
             Slider(
                 value = pan.toFloat(),
-                onValueChange = { dewarp360.pan.value = it.toDouble() },
+                onValueChange = { dewarp360.pan = it },
                 valueRange = -180f..180f,
                 steps = 359,
                 modifier = Modifier.weight(1f),
@@ -67,7 +67,7 @@ fun Dewarp360EffectView(
             Icon(Icons.Default.ArrowDownward, contentDescription = null)
             Slider(
                 value = tilt.toFloat(),
-                onValueChange = { dewarp360.tilt.value = it.toDouble() },
+                onValueChange = { dewarp360.tilt = it },
                 valueRange = -90f..90f,
                 steps = 179,
                 modifier = Modifier.weight(1f),
@@ -81,7 +81,7 @@ fun Dewarp360EffectView(
             Icon(Icons.Default.ZoomOut, contentDescription = null)
             Slider(
                 value = inverseFieldOfView.toFloat(),
-                onValueChange = { dewarp360.inverseFieldOfView.value = it.toDouble() },
+                onValueChange = { dewarp360.inverseFieldOfView = it },
                 valueRange = 30f..170f,
                 steps = 139,
                 modifier = Modifier.weight(1f),

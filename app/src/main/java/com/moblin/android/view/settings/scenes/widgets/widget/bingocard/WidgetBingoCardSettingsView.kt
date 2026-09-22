@@ -41,7 +41,6 @@ fun BingCardWidgetSquaresView(value: String, onValueChange: (String) -> Unit) {
         value = value,
         onValueChange = onValueChange,
         placeholder = localized("My text"),
-        onFocusChanged = { editingText = it },
     )
     MultiLineTextFieldDoneButtonView(
         editingText = editingText,
@@ -57,7 +56,9 @@ fun BingoCardMarksView(bingoCard: SettingsWidgetBingoCard, updateEffect: () -> U
             Spacer(modifier = Modifier.weight(1f))
             IconButton(
                 onClick = {
-                    bingoCard.squares[index].checked = !bingoCard.squares[index].checked
+                    val squares = bingoCard.squares.toMutableList()
+                    squares[index] = squares[index].copy(checked = !squares[index].checked)
+                    bingoCard.squares = squares
                     updateEffect()
                 },
             ) {
@@ -93,7 +94,9 @@ fun WidgetBingoCardQuickButtonControlsView(
                     if (index < bingoCard.squares.count()) {
                         IconButton(
                             onClick = {
-                                bingoCard.squares[index].checked = !bingoCard.squares[index].checked
+                                val squares = bingoCard.squares.toMutableList()
+                                squares[index] = squares[index].copy(checked = !squares[index].checked)
+                                bingoCard.squares = squares
                                 updateEffect()
                             },
                         ) {
@@ -128,7 +131,7 @@ fun WidgetBingoCardSettingsView(
     bingoCard: SettingsWidgetBingoCard,
 ) {
     val updateEffect: () -> Unit = {
-        model.getBingoCardEffect(widget.id)?.setSettings(bingoCard)
+        TODO("model.getBingoCardEffect has no Android counterpart")
     }
 
     BingCardWidgetSquaresView(
@@ -141,7 +144,7 @@ fun WidgetBingoCardSettingsView(
     }
     Text(text = "Marks", style = MaterialTheme.typography.titleSmall)
     BingoCardMarksView(bingoCard = bingoCard, updateEffect = updateEffect)
-    TextButtonView("Reset", onClick = {
+    TextButtonView("Reset", action = {
         bingoCard.uncheckAll()
         updateEffect()
     })
@@ -150,7 +153,8 @@ fun WidgetBingoCardSettingsView(
         title = "Background",
         color = bingoCard.backgroundColorColor,
         opacity = true,
-        onColorChange = { color: RgbColor ->
+        onColorChanged = {},
+        onChange = { color: RgbColor ->
             bingoCard.backgroundColor = color
             updateEffect()
         },
@@ -158,7 +162,8 @@ fun WidgetBingoCardSettingsView(
     RgbColorPickerView(
         title = "Foreground",
         color = bingoCard.foregroundColorColor,
-        onColorChange = { color: RgbColor ->
+        onColorChanged = {},
+        onChange = { color: RgbColor ->
             bingoCard.foregroundColor = color
             updateEffect()
         },

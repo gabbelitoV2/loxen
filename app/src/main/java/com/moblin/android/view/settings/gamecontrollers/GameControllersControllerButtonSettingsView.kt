@@ -51,7 +51,7 @@ fun ControllerButtonView(
             onSelected = onFunctionChange,
         )
         when (function) {
-            SettingsControllerFunction.scene -> {
+            SettingsControllerFunction.SCENE -> {
                 SettingsPicker(
                     label = "Scene",
                     options = listOf<UUID?>(null) + model.database.scenes.map { scene -> scene.id },
@@ -68,7 +68,7 @@ fun ControllerButtonView(
                     onSelected = { id -> onFunctionDataChange(functionData.copy(sceneId = id)) },
                 )
             }
-            SettingsControllerFunction.widget -> {
+            SettingsControllerFunction.WIDGET -> {
                 SettingsPicker(
                     label = "Widget",
                     options = listOf<UUID?>(null) + model.database.widgets.map { widget -> widget.id },
@@ -85,7 +85,7 @@ fun ControllerButtonView(
                     onSelected = { id -> onFunctionDataChange(functionData.copy(widgetId = id)) },
                 )
             }
-            SettingsControllerFunction.gimbalPreset -> {
+            SettingsControllerFunction.GIMBAL_PRESET -> {
                 val presets = model.database.gimbal.presets
                 SettingsPicker(
                     label = "Preset",
@@ -104,7 +104,7 @@ fun ControllerButtonView(
                     onSelected = { id -> onFunctionDataChange(functionData.copy(gimbalPresetId = id)) },
                 )
             }
-            SettingsControllerFunction.gimbalAnimate -> {
+            SettingsControllerFunction.GIMBAL_ANIMATE -> {
                 SettingsPicker(
                     label = "Motion",
                     options = SettingsGimbalMotion.entries.toList(),
@@ -114,7 +114,7 @@ fun ControllerButtonView(
                     onSelected = { motion -> onFunctionDataChange(functionData.copy(gimbalMotion = motion)) },
                 )
             }
-            SettingsControllerFunction.macro -> {
+            SettingsControllerFunction.MACRO -> {
                 val macros = model.database.macros.macros
                 SettingsPicker(
                     label = "Macro",
@@ -133,8 +133,8 @@ fun ControllerButtonView(
                     onSelected = { id -> onFunctionDataChange(functionData.copy(macroId = id)) },
                 )
             }
-            SettingsControllerFunction.streamDeckLayout -> {
-                val layouts = model.database.streamDecks.layouts
+            SettingsControllerFunction.STREAM_DECK_LAYOUT -> {
+                val layouts = model.database.streamDecks.layouts.value
                 SettingsPicker(
                     label = "Layout",
                     options = listOf<UUID?>(null) + layouts.map { layout -> layout.id },
@@ -245,7 +245,7 @@ private fun FunctionPicker(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
             functions
-                .filter { it.section() == SettingsControllerFunctionSection.general }
+                .filter { it.section() == SettingsControllerFunctionSection.GENERAL }
                 .forEach { function ->
                     DropdownMenuItem(
                         text = { Text(function.toString()) },
@@ -261,7 +261,7 @@ private fun FunctionPicker(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
             functions
-                .filter { it.section() == SettingsControllerFunctionSection.filters }
+                .filter { it.section() == SettingsControllerFunctionSection.FILTERS }
                 .forEach { function ->
                     DropdownMenuItem(
                         text = { Text(function.toString()) },
@@ -315,4 +315,18 @@ private fun <T> SettingsPicker(
             }
         }
     }
+}
+
+private fun Model.getSceneName(id: UUID?): String? {
+    if (id == null) {
+        return null
+    }
+    return database.scenes.firstOrNull { it.id == id }?.name
+}
+
+private fun Model.getWidgetName(id: UUID?): String? {
+    if (id == null) {
+        return null
+    }
+    return database.widgets.firstOrNull { it.id == id }?.name
 }

@@ -47,7 +47,7 @@ private fun submitSrtPort(srtlaServer: SettingsSrtlaServer, model: Model, value:
         return
     }
     srtlaServer.srtPort = port
-    model.reloadSrtlaServer()
+    TODO("reloadSrtlaServer is not available on Model")
 }
 
 private fun submitSrtlaPort(srtlaServer: SettingsSrtlaServer, model: Model, value: String) {
@@ -56,7 +56,7 @@ private fun submitSrtlaPort(srtlaServer: SettingsSrtlaServer, model: Model, valu
         return
     }
     srtlaServer.srtlaPort = port
-    model.reloadSrtlaServer()
+    TODO("reloadSrtlaServer is not available on Model")
 }
 
 private fun status(srtlaServer: SettingsSrtlaServer): String {
@@ -73,8 +73,7 @@ private fun deleteStream(srtlaServer: SettingsSrtlaServer, model: Model, indexes
             srtlaServer.streams.removeAt(index)
         }
     }
-    model.reloadSrtlaServer()
-    model.updateMicsListAsync()
+    TODO("reloadSrtlaServer and updateMicsListAsync are not available on Model")
 }
 
 @Composable
@@ -115,7 +114,7 @@ fun SrtlaServerSettingsForm(
                         checked = srtlaServer.enabled,
                         onCheckedChange = { enabled ->
                             srtlaServer.enabled = enabled
-                            model.reloadSrtlaServer()
+                            TODO("reloadSrtlaServer is not available on Model")
                         },
                     )
                 }
@@ -132,7 +131,6 @@ fun SrtlaServerSettingsForm(
                     onChange = { value -> isValidPort(value) },
                     onSubmit = { value -> submitSrtPort(srtlaServer, model, value) },
                     keyboardType = KeyboardType.Number,
-                    enabled = !srtlaServer.enabled,
                 )
             }
             item {
@@ -145,7 +143,6 @@ fun SrtlaServerSettingsForm(
                     onChange = { value -> isValidPort(value) },
                     onSubmit = { value -> submitSrtlaPort(srtlaServer, model, value) },
                     keyboardType = KeyboardType.Number,
-                    enabled = !srtlaServer.enabled,
                 )
             }
             item {
@@ -169,7 +166,7 @@ fun SrtlaServerSettingsForm(
                             .combinedClickable(
                                 onClick = {},
                                 onLongClick = {
-                                    if (!model.srtlaServerEnabled()) {
+                                    if (!srtlaServer.enabled) {
                                         TODO("contextMenuDeleteButton has no Android counterpart")
                                     }
                                 },
@@ -181,12 +178,12 @@ fun SrtlaServerSettingsForm(
                             stream = stream,
                         )
                     }
-                    if (!model.srtlaServerEnabled()) {
+                    if (!srtlaServer.enabled) {
                         IconButton(
                             onClick = {
-                                val offsets = makeOffsets(srtlaServer.streams, stream.id)
-                                if (offsets != null) {
-                                    deleteStream(srtlaServer, model, offsets)
+                                val index = srtlaServer.streams.indexOfFirst { it.id == stream.id }
+                                if (index != -1) {
+                                    deleteStream(srtlaServer, model, listOf(index))
                                 }
                             },
                         ) {
@@ -196,7 +193,7 @@ fun SrtlaServerSettingsForm(
                 }
             }
             item {
-                CreateButtonView(enabled = !srtlaServer.enabled) {
+                CreateButtonView {
                     val stream = SettingsSrtlaServerStream()
                     stream.name = makeUniqueName(
                         name = SettingsSrtlaServerStream.baseName,
@@ -204,12 +201,12 @@ fun SrtlaServerSettingsForm(
                     )
                     while (true) {
                         stream.streamId = randomHumanString()
-                        if (model.getSrtlaStream(streamId = stream.streamId) == null) {
+                        if (TODO("getSrtlaStream is not available on Model") == null) {
                             break
                         }
                     }
                     srtlaServer.streams.add(stream)
-                    model.updateMicsListAsync()
+                    TODO("updateMicsListAsync is not available on Model")
                 }
             }
             item {

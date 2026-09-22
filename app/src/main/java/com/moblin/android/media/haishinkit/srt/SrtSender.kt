@@ -8,10 +8,13 @@ import com.moblin.android.media.srtla.client.srtlaClientQueue
 import com.moblin.android.media.srtla.common.isSrtSnAcked
 import com.moblin.android.media.srtla.common.isSrtSnRange
 import com.moblin.android.various.SimpleTimer
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 private const val TAG = "SrtSender"
+
+private val srtSenderScope = CoroutineScope(srtlaClientQueue)
 
 private const val srtDataPacketHeaderSize = 16
 private val srtHandshakeVersion4: UInt = 4u
@@ -82,11 +85,11 @@ private class KeepAlivePacket {
         data = createCommonControlPacketHeader(ControlPacketType.keepAlive, 0u, 0u, 0u)
     }
 
-    fun update(timestamp: UInt) {
+    fun updateTimestamp(timestamp: UInt) {
         data.writeUInt32(timestamp, 8)
     }
 
-    fun update(destinationSocketId: UInt) {
+    fun updateDestinationSocketId(destinationSocketId: UInt) {
         data.writeUInt32(destinationSocketId, 12)
     }
 }
@@ -189,7 +192,15 @@ class SrtSender(private val streamId: String?,
     private var audioSequenceNumbersToRetransmit: MutableSet<UInt> = linkedSetOf()
     private var videoSequenceNumbersToRetransmit: MutableSet<UInt> = linkedSetOf()
     private var state: SrtSenderState = SrtSenderState.connecting
-    private var performanceData: Atomic<SrtPerformanceData> = Atomic(SrtPerformanceData())
+    private var performanceData: Atomic<SrtPerformanceData> = Atomic(SrtPerformanceData(
+        pktRetransTotal = 0,
+        pktRecvNakTotal = 0,
+        pktSndDropTotal = 0,
+        pktFlightSize = 0,
+        msRtt = 0.0,
+        pktSndBuf = 0,
+        mbpsSendRate = 0.0,
+    ))
     private var numberOfBytesSent: ULong = 0uL
     private var latestNumberOfBytesSentTime = System.nanoTime()
     private var pktRetransTotal: Int = 0
@@ -218,7 +229,7 @@ class SrtSender(private val streamId: String?,
     }
 
     fun start() {
-        srtlaClientQueue.launch {
+        srtSenderScope.launch {
             clock = SrtClock()
             latestReceivedPacketTime = System.nanoTime()
             setState(SrtSenderState.connecting)
@@ -230,7 +241,7 @@ class SrtSender(private val streamId: String?,
     }
 
     fun stop() {
-        srtlaClientQueue.launch {
+        srtSenderScope.launch {
             setDisconnected()
         }
     }
@@ -505,14 +516,14 @@ class SrtSender(private val streamId: String?,
     private fun handleHandshakeConclusion(peerSocketId: UInt) {
         peerDestinationSrtSocketId = peerSocketId
         ackAckPacket.update(peerSocketId)
-        keepAlivePacket.update(peerSocketId)
+        keepAlivePacket.updateDestinationSocketId(peerSocketId)
         connectTimer.stop()
         setState(SrtSenderState.connected)
         delegate?.srtSenderConnected()
     }
 
     private fun handleKeepAlivePacket() {
-        keepAlivePacket.update(clock.timestamp())
+        keepAlivePacket.updateTimestamp(clock.timestamp())
         outputPacket(keepAlivePacket.data)
     }
 
@@ -533,12 +544,12 @@ class SrtSender(private val streamId: String?,
 
     private fun updatePerformanceData() {
         performanceData.mutate {
-            it.pktRetransTotal = pktRetransTotal
-            it.pktRecvNakTotal = pktRecvNakTotal
-            it.pktSndDropTotal = pktSndDropTotal
-            it.pktFlightSize = packetsInFlight.size
-            it.msRtt = rttUs.toDouble() / 1000
-            it.mbpsSendRate = mbpsSendRate
+            it.value.pktRetransTotal = pktRetransTotal
+            it.value.pktRecvNakTotal = pktRecvNakTotal
+            it.value.pktSndDropTotal = pktSndDropTotal
+            it.value.pktFlightSize = packetsInFlight.size
+            it.value.msRtt = rttUs.toDouble() / 1000
+            it.value.mbpsSendRate = mbpsSendRate
         }
     }
 
@@ -562,7 +573,9 @@ class SrtSender(private val streamId: String?,
             for (index in 0 until lastAcknowledgedPacketIndex) {
                 packetsInFlightBySequenceNumber.remove(packetsInFlight[index].sequenceNumber)
             }
-            packetsInFlight.removeFirst(lastAcknowledgedPacketIndex)
+            repeat(lastAcknowledgedPacketIndex) {
+                packetsInFlight.removeFirst()
+            }
         } else {
             packetsInFlightBySequenceNumber.clear()
             packetsInFlight.clear()

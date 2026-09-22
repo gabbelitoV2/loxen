@@ -6,9 +6,9 @@ import android.util.Base64
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.integrations.workoutdevice.WorkoutDeviceRunningMetrics
 import com.moblin.android.localized
+import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.ChatHighlightKind
 import com.moblin.android.various.ChatPostSegment
-import com.moblin.android.various.Platform
 import com.moblin.android.various.Variables
 import com.moblin.android.various.managers.GForce
 import com.moblin.android.various.settings.SettingsAlignment
@@ -28,6 +28,7 @@ import com.moblin.android.various.settings.SettingsWidgetMap
 import com.moblin.android.various.settings.SettingsWidgetScene
 import com.moblin.android.various.settings.SettingsWidgetText
 import com.moblin.android.various.settings.SettingsWidgetType
+import com.moblin.android.various.storages.UuidSerializer
 import com.moblin.android.various.utils.clockAsMinutesAndSeconds
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -927,14 +928,14 @@ enum class RemoteControlReaction(val wireName: String) {
     ;
 
     fun toSettings(): SettingsReaction = when (this) {
-        Fireworks -> SettingsReaction.Fireworks
-        Balloons -> SettingsReaction.Balloons
-        Hearts -> SettingsReaction.Hearts
-        Confetti -> SettingsReaction.Confetti
-        Lasers -> SettingsReaction.Lasers
-        Rain -> SettingsReaction.Rain
-        Glasses -> SettingsReaction.Glasses
-        Sparkle -> SettingsReaction.Sparkle
+        Fireworks -> SettingsReaction.fireworks
+        Balloons -> SettingsReaction.balloons
+        Hearts -> SettingsReaction.hearts
+        Confetti -> SettingsReaction.confetti
+        Lasers -> SettingsReaction.lasers
+        Rain -> SettingsReaction.rain
+        Glasses -> SettingsReaction.glasses
+        Sparkle -> SettingsReaction.sparkle
     }
 
     companion object {
@@ -996,22 +997,22 @@ enum class RemoteControlFilter(val wireName: String) {
     ;
 
     fun toSettings(): SettingsQuickButtonType = when (this) {
-        Pixellate -> SettingsQuickButtonType.Pixellate
-        Movie -> SettingsQuickButtonType.Movie
-        GrayScale -> SettingsQuickButtonType.GrayScale
-        Sepia -> SettingsQuickButtonType.Sepia
-        Triple -> SettingsQuickButtonType.Triple
-        Twin -> SettingsQuickButtonType.Twin
-        FourThree -> SettingsQuickButtonType.FourThree
-        Crt -> SettingsQuickButtonType.Crt
-        Pinch -> SettingsQuickButtonType.Pinch
-        Whirlpool -> SettingsQuickButtonType.Whirlpool
-        Poll -> SettingsQuickButtonType.Poll
-        BlurFaces -> SettingsQuickButtonType.BlurFaces
-        Privacy -> SettingsQuickButtonType.Privacy
-        Beauty -> SettingsQuickButtonType.Beauty
-        MoblinInMouth -> SettingsQuickButtonType.MoblinInMouth
-        CameraMan -> SettingsQuickButtonType.CameraMan
+        Pixellate -> SettingsQuickButtonType.pixellate
+        Movie -> SettingsQuickButtonType.movie
+        GrayScale -> SettingsQuickButtonType.grayScale
+        Sepia -> SettingsQuickButtonType.sepia
+        Triple -> SettingsQuickButtonType.triple
+        Twin -> SettingsQuickButtonType.twin
+        FourThree -> SettingsQuickButtonType.fourThree
+        Crt -> SettingsQuickButtonType.crt
+        Pinch -> SettingsQuickButtonType.pinch
+        Whirlpool -> SettingsQuickButtonType.whirlpool
+        Poll -> SettingsQuickButtonType.poll
+        BlurFaces -> SettingsQuickButtonType.blurFaces
+        Privacy -> SettingsQuickButtonType.privacy
+        Beauty -> SettingsQuickButtonType.beauty
+        MoblinInMouth -> SettingsQuickButtonType.moblinInMouth
+        CameraMan -> SettingsQuickButtonType.cameraMan
     }
 
     override fun toString(): String = when (this) {
@@ -1039,22 +1040,22 @@ enum class RemoteControlFilter(val wireName: String) {
         fun fromName(name: String): RemoteControlFilter? = entries.firstOrNull { it.wireName == name }
 
         fun fromType(type: SettingsQuickButtonType): RemoteControlFilter? = when (type) {
-            SettingsQuickButtonType.Pixellate -> Pixellate
-            SettingsQuickButtonType.Movie -> Movie
-            SettingsQuickButtonType.GrayScale -> GrayScale
-            SettingsQuickButtonType.Sepia -> Sepia
-            SettingsQuickButtonType.Triple -> Triple
-            SettingsQuickButtonType.Twin -> Twin
-            SettingsQuickButtonType.FourThree -> FourThree
-            SettingsQuickButtonType.Crt -> Crt
-            SettingsQuickButtonType.Pinch -> Pinch
-            SettingsQuickButtonType.Whirlpool -> Whirlpool
-            SettingsQuickButtonType.Poll -> Poll
-            SettingsQuickButtonType.BlurFaces -> BlurFaces
-            SettingsQuickButtonType.Privacy -> Privacy
-            SettingsQuickButtonType.Beauty -> Beauty
-            SettingsQuickButtonType.MoblinInMouth -> MoblinInMouth
-            SettingsQuickButtonType.CameraMan -> CameraMan
+            SettingsQuickButtonType.pixellate -> Pixellate
+            SettingsQuickButtonType.movie -> Movie
+            SettingsQuickButtonType.grayScale -> GrayScale
+            SettingsQuickButtonType.sepia -> Sepia
+            SettingsQuickButtonType.triple -> Triple
+            SettingsQuickButtonType.twin -> Twin
+            SettingsQuickButtonType.fourThree -> FourThree
+            SettingsQuickButtonType.crt -> Crt
+            SettingsQuickButtonType.pinch -> Pinch
+            SettingsQuickButtonType.whirlpool -> Whirlpool
+            SettingsQuickButtonType.poll -> Poll
+            SettingsQuickButtonType.blurFaces -> BlurFaces
+            SettingsQuickButtonType.privacy -> Privacy
+            SettingsQuickButtonType.beauty -> Beauty
+            SettingsQuickButtonType.moblinInMouth -> MoblinInMouth
+            SettingsQuickButtonType.cameraMan -> CameraMan
             else -> null
         }
     }
@@ -1064,6 +1065,7 @@ enum class RemoteControlFilter(val wireName: String) {
 data class RemoteControlRemoteSceneSettings(
     var scenes: List<RemoteControlRemoteSceneSettingsScene>,
     var widgets: List<RemoteControlRemoteSceneSettingsWidget>,
+    @Serializable(with = UuidSerializer::class)
     var selectedSceneId: UUID? = null,
 ) {
     constructor(scenes: List<SettingsScene>, widgets: List<SettingsWidget>, selectedSceneId: UUID?) : this(
@@ -1081,6 +1083,7 @@ data class RemoteControlRemoteSceneSettings(
 
 @Serializable
 data class RemoteControlRemoteSceneSettingsScene(
+    @Serializable(with = UuidSerializer::class)
     var id: UUID,
     var widgets: List<RemoteControlRemoteSceneSettingsSceneWidget>,
 ) {
@@ -1107,6 +1110,7 @@ data class RemoteControlRemoteSceneSettingsSceneWidgetLayout(
 
 @Serializable
 data class RemoteControlRemoteSceneSettingsSceneWidget(
+    @Serializable(with = UuidSerializer::class)
     val id: UUID,
     val layout: RemoteControlRemoteSceneSettingsSceneWidgetLayout,
 ) {
@@ -1132,6 +1136,7 @@ data class RemoteControlRemoteSceneSettingsSceneWidget(
 
 @Serializable
 data class RemoteControlRemoteSceneSettingsWidget(
+    @Serializable(with = UuidSerializer::class)
     val id: UUID,
     val enabled: Boolean,
     val type: RemoteControlRemoteSceneSettingsWidgetType,
@@ -1142,19 +1147,19 @@ data class RemoteControlRemoteSceneSettingsWidget(
         widget.enabled = enabled
         when (val data = type) {
             is RemoteControlRemoteSceneSettingsWidgetType.Browser -> {
-                widget.type = SettingsWidgetType.Browser
+                widget.type = SettingsWidgetType.browser
                 widget.browser = data.data.toSettings()
             }
             is RemoteControlRemoteSceneSettingsWidgetType.Text -> {
-                widget.type = SettingsWidgetType.Text
+                widget.type = SettingsWidgetType.text
                 widget.text = data.data.toSettings()
             }
             is RemoteControlRemoteSceneSettingsWidgetType.Map -> {
-                widget.type = SettingsWidgetType.Map
+                widget.type = SettingsWidgetType.map
                 widget.map = data.data.toSettings()
             }
             is RemoteControlRemoteSceneSettingsWidgetType.Scene -> {
-                widget.type = SettingsWidgetType.Scene
+                widget.type = SettingsWidgetType.scene
                 widget.scene = data.data.toSettings()
             }
         }
@@ -1164,16 +1169,16 @@ data class RemoteControlRemoteSceneSettingsWidget(
     companion object {
         fun fromWidget(widget: SettingsWidget): RemoteControlRemoteSceneSettingsWidget? {
             val type = when (widget.type) {
-                SettingsWidgetType.Browser -> RemoteControlRemoteSceneSettingsWidgetType.Browser(
+                SettingsWidgetType.browser -> RemoteControlRemoteSceneSettingsWidgetType.Browser(
                     RemoteControlRemoteSceneSettingsWidgetTypeBrowser(widget.browser),
                 )
-                SettingsWidgetType.Text -> RemoteControlRemoteSceneSettingsWidgetType.Text(
+                SettingsWidgetType.text -> RemoteControlRemoteSceneSettingsWidgetType.Text(
                     RemoteControlRemoteSceneSettingsWidgetTypeText(widget.text),
                 )
-                SettingsWidgetType.Map -> RemoteControlRemoteSceneSettingsWidgetType.Map(
+                SettingsWidgetType.map -> RemoteControlRemoteSceneSettingsWidgetType.Map(
                     RemoteControlRemoteSceneSettingsWidgetTypeMap(widget.map),
                 )
-                SettingsWidgetType.Scene -> RemoteControlRemoteSceneSettingsWidgetType.Scene(
+                SettingsWidgetType.scene -> RemoteControlRemoteSceneSettingsWidgetType.Scene(
                     RemoteControlRemoteSceneSettingsWidgetTypeScene(widget.scene),
                 )
                 else -> return null
@@ -1333,17 +1338,17 @@ enum class RemoteControlRemoteSceneSettingsHorizontalAlignment {
     ;
 
     fun toSettings(): SettingsHorizontalAlignment = when (this) {
-        Leading -> SettingsHorizontalAlignment.Leading
-        Trailing -> SettingsHorizontalAlignment.Trailing
-        Center -> SettingsHorizontalAlignment.Center
+        Leading -> SettingsHorizontalAlignment.leading
+        Trailing -> SettingsHorizontalAlignment.trailing
+        Center -> SettingsHorizontalAlignment.center
     }
 
     companion object {
         fun fromAlignment(alignment: SettingsHorizontalAlignment): RemoteControlRemoteSceneSettingsHorizontalAlignment =
             when (alignment) {
-                SettingsHorizontalAlignment.Leading -> Leading
-                SettingsHorizontalAlignment.Trailing -> Trailing
-                SettingsHorizontalAlignment.Center -> Center
+                SettingsHorizontalAlignment.leading -> Leading
+                SettingsHorizontalAlignment.trailing -> Trailing
+                SettingsHorizontalAlignment.center -> Center
             }
     }
 }
@@ -1365,6 +1370,7 @@ data class RemoteControlRemoteSceneSettingsWidgetTypeMap(
 
 @Serializable
 data class RemoteControlRemoteSceneSettingsWidgetTypeScene(
+    @Serializable(with = UuidSerializer::class)
     val sceneId: UUID,
 ) {
     constructor(scene: SettingsWidgetScene) : this(
@@ -1485,7 +1491,7 @@ data class RemoteControlRemoteSceneDataVariables(
     )
 
     fun toVariables(): Variables = Variables(
-        timestamp = Instant.now(),
+        timestamp = System.currentTimeMillis(),
         bitrate = bitrate,
         bitrateAndTotal = bitrateAndTotal,
         bonding = bonding,
@@ -1696,24 +1702,28 @@ data class RemoteControlStatusTopRight(
 
 @Serializable
 data class RemoteControlSettingsStream(
+    @Serializable(with = UuidSerializer::class)
     val id: UUID,
     val name: String,
 )
 
 @Serializable
 data class RemoteControlSettingsScene(
+    @Serializable(with = UuidSerializer::class)
     val id: UUID,
     val name: String,
 )
 
 @Serializable
 data class RemoteControlSettingsAutoSceneSwitcher(
+    @Serializable(with = UuidSerializer::class)
     val id: UUID,
     val name: String,
 )
 
 @Serializable
 data class RemoteControlSettingsBitratePreset(
+    @Serializable(with = UuidSerializer::class)
     val id: UUID,
     val bitrate: UInt,
 )
@@ -1726,6 +1736,7 @@ data class RemoteControlSettingsMic(
 
 @Serializable
 data class RemoteControlSettingsSrtConnectionPriority(
+    @Serializable(with = UuidSerializer::class)
     val id: UUID,
     val name: String,
     var priority: Int,
@@ -1740,6 +1751,7 @@ data class RemoteControlSettingsSrt(
 
 @Serializable
 data class RemoteControlSettingsGimbalPreset(
+    @Serializable(with = UuidSerializer::class)
     val id: UUID,
     val name: String,
 )
@@ -1756,17 +1768,20 @@ data class RemoteControlSettings(
 
 @Serializable
 data class RemoteControlStateAutoSceneSwitcher(
+    @Serializable(with = UuidSerializer::class)
     val id: UUID? = null,
 )
 
 @Serializable
 data class RemoteControlZoomPreset(
+    @Serializable(with = UuidSerializer::class)
     val id: UUID,
     val name: String,
 )
 
 @Serializable
 data class RemoteControlMacro(
+    @Serializable(with = UuidSerializer::class)
     val id: UUID,
     val name: String,
     val running: Boolean,
@@ -1774,12 +1789,15 @@ data class RemoteControlMacro(
 
 @Serializable
 data class RemoteControlAssistantStreamerState(
+    @Serializable(with = UuidSerializer::class)
     var scene: UUID? = null,
     var autoSceneSwitcher: RemoteControlStateAutoSceneSwitcher? = null,
     var mic: String? = null,
+    @Serializable(with = UuidSerializer::class)
     var bitrate: UUID? = null,
     var zoom: Float? = null,
     var zoomPresets: List<RemoteControlZoomPreset>? = null,
+    @Serializable(with = UuidSerializer::class)
     var zoomPreset: UUID? = null,
     var debugLogging: Boolean? = null,
     var streaming: Boolean? = null,
@@ -1885,23 +1903,7 @@ data class RemoteControlGolfScoreboard(
     val currentHole: Int,
     val players: List<RemoteControlGolfPlayer>,
     val playerColors: Boolean,
-) {
-    constructor(
-        title: String,
-        numberOfHoles: Int,
-        pars: List<Int>,
-        currentHole: Int,
-        players: List<RemoteControlGolfPlayer>,
-        playerColors: Boolean,
-    ) : this(
-        title = title,
-        numberOfHoles = numberOfHoles,
-        pars = pars,
-        currentHole = currentHole,
-        players = players,
-        playerColors = playerColors,
-    )
-}
+)
 
 @Serializable
 data class RemoteControlAuthentication(
@@ -2121,14 +2123,12 @@ fun remoteControlHashPassword(challenge: String, salt: String, password: String)
     return Base64.encodeToString(hash, Base64.NO_WRAP)
 }
 
-class RemoteControlEncryption {
+class RemoteControlEncryption(password: String) {
     private val key: ByteArray
 
     init {
         key = MessageDigest.getInstance("SHA-256").digest(password.toByteArray(Charsets.UTF_8))
     }
-
-    constructor(password: String)
 
     fun encrypt(data: ByteArray): ByteArray? = runCatching {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")

@@ -34,20 +34,20 @@ class HevcSeiPayloadTimeCode {
         val unitFieldBasedFlag = true
         val fullTimestampFlag = true
         val writer = NalUnitWriter(emulationPrevention = false)
-        writer.writeBits(numClockTs.toInt(), count = 2)
+        writer.writeBits(numClockTs, count = 2)
         writer.writeBit(clockTimestampFlag)
         writer.writeBit(unitFieldBasedFlag)
-        writer.writeBits(0, count = 5)
+        writer.writeBits(0u, count = 5)
         writer.writeBit(fullTimestampFlag)
         writer.writeBit(false)
         writer.writeBit(false)
         writer.writeBitsU32(frame, count = 9)
         if (fullTimestampFlag) {
-            writer.writeBits(seconds.toInt(), count = 6)
-            writer.writeBits(minutes.toInt(), count = 6)
-            writer.writeBits(hours.toInt(), count = 5)
+            writer.writeBits(seconds, count = 6)
+            writer.writeBits(minutes, count = 6)
+            writer.writeBits(hours, count = 5)
         }
-        writer.writeBits(0, count = 5)
+        writer.writeBits(0u, count = 5)
         writeMoreDataInPayload(writer)
         return writer.data
     }
@@ -69,7 +69,7 @@ class HevcSeiPayloadTimeCode {
 
         fun from(reader: NalUnitReader): HevcSeiPayloadTimeCode? {
             return try {
-                if (reader.readBits(2) != 1) {
+                if (reader.readBits(2).toInt() != 1) {
                     Log.i(TAG, "SEI timecode: Not exactly one entry")
                     return null
                 }
@@ -124,11 +124,11 @@ class HevcNalUnitSei {
 
     constructor(reader: NalUnitReader) {
         val type = reader.readBits(8)
-        if (type == 0xFF) {
+        if (type.toInt() == 0xFF) {
             throw IllegalStateException("SEI message type too long")
         }
         val length = reader.readBits(8)
-        if (length == 0xFF) {
+        if (length.toInt() == 0xFF) {
             throw IllegalStateException("SEI message length too long")
         }
         when (HevcSeiPayloadType.fromRawValue(type.toUByte())) {
@@ -150,8 +150,8 @@ class HevcNalUnitSei {
                 data = p.payload.encode()
             }
         }
-        writer.writeBits(type.rawValue.toInt(), count = 8)
-        writer.writeBits(data.size, count = 8)
+        writer.writeBits(type.rawValue, count = 8)
+        writer.writeBits(data.size.toUByte(), count = 8)
         writer.writeBytes(data)
         writeRbspTrailingBits(writer)
     }

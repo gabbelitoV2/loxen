@@ -2,14 +2,15 @@ package com.moblin.android.various.model
 
 import android.location.Location
 import com.moblin.android.integrations.realtimeirl.RealtimeIrl
+import java.time.Instant
 import kotlin.math.abs
 import kotlin.math.max
 
 fun Model.updateLocation() {
     var location = locationManager.status()
     realtimeIrl?.let { location += it.status() }
-    if (location != statusTopRight.location) {
-        statusTopRight.location = location
+    if (location != statusTopRight.location.value) {
+        statusTopRight.location.value = location
     }
 }
 
@@ -43,7 +44,7 @@ fun Model.isLocationEnabled(): Boolean {
 
 fun Model.isLocationInPrivacyRegion(location: Location): Boolean {
     for (region in database.location.privacyRegions) {
-        if (region.contains(location.latitude, location.longitude)) {
+        if (region.contains(TODO("privacy region coordinate"))) {
             return true
         }
     }
@@ -60,8 +61,8 @@ fun Model.getLatestKnownLocation(): Pair<Double, Double>? {
 }
 
 fun Model.isRealtimeIrlConfigured(): Boolean {
-    return stream.realtimeIrlEnabled && stream.realtimeIrlBaseUrl.isNotEmpty() &&
-        stream.realtimeIrlPushKey.isNotEmpty()
+    return stream.value.realtimeIrlEnabled && stream.value.realtimeIrlBaseUrl.isNotEmpty() &&
+        stream.value.realtimeIrlPushKey.isNotEmpty()
 }
 
 fun Model.reloadRealtimeIrl() {
@@ -69,8 +70,8 @@ fun Model.reloadRealtimeIrl() {
     realtimeIrl = null
     if (isRealtimeIrlConfigured()) {
         realtimeIrl = RealtimeIrl(
-            baseUrl = stream.realtimeIrlBaseUrl,
-            pushKey = stream.realtimeIrlPushKey,
+            baseUrl = stream.value.realtimeIrlBaseUrl,
+            pushKey = stream.value.realtimeIrlPushKey,
         )
     }
 }
@@ -79,14 +80,14 @@ fun Model.updateDistance() {
     val location = locationManager.getLatestKnownLocation()
     val lastKnownLocation = latestKnownLocation
     if (lastKnownLocation != null) {
-        val distance = location?.distanceTo(lastKnownLocation)?.toDouble() ?: 0.0
-        if (distance > lastKnownLocation.accuracy.toDouble()) {
+        val distance = location?.distanceTo(TODO("Convert last known location to an android location"))?.toDouble() ?: 0.0
+        if (distance > (location?.accuracy?.toDouble() ?: 0.0)) {
             database.location.distance += distance
             database.location.splitDistance += distance
-            latestKnownLocation = location
+            latestKnownLocation = TODO("Convert android location to a model location")
         }
     } else {
-        latestKnownLocation = location
+        latestKnownLocation = TODO("Convert android location to a model location")
     }
 }
 
@@ -134,13 +135,13 @@ fun Model.updateSlope() {
 
 fun Model.resetAverageSpeed() {
     averageSpeed = 0.0
-    averageSpeedStartTime = System.nanoTime()
+    averageSpeedStartTime = Instant.now()
     averageSpeedStartDistance = database.location.distance
 }
 
 fun Model.updateAverageSpeed(now: Long) {
     val distance = database.location.distance - averageSpeedStartDistance
-    val elapsed = (now - averageSpeedStartTime) / 1_000_000_000.0
+    val elapsed = (now - averageSpeedStartTime.toEpochMilli()) / 1_000_000_000.0
     averageSpeed = distance / elapsed
 }
 
@@ -171,7 +172,7 @@ private fun Model.resetSplitAltitude() {
 }
 
 private fun Model.handleLocationUpdate(location: Location) {
-    if (!isLive) {
+    if (!isLive.value) {
         return
     }
     if (isLocationInPrivacyRegion(location)) {

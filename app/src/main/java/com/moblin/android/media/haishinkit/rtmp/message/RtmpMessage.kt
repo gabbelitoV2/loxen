@@ -39,10 +39,10 @@ open class RtmpMessage(val type: RtmpMessageType) {
                 RtmpMessageType.bandwidth -> RtmpSetPeerBandwidthMessage()
                 RtmpMessageType.audio -> RtmpAudioMessage()
                 RtmpMessageType.video -> RtmpVideoMessage()
-                RtmpMessageType.amf3Data -> RtmpDataMessage(dataType = RtmpDataMessage.DataType.amf3Data)
-                RtmpMessageType.amf3Command -> RtmpCommandMessage(commandType = RtmpCommandMessage.CommandType.amf3Command)
-                RtmpMessageType.amf0Data -> RtmpDataMessage(dataType = RtmpDataMessage.DataType.amf0Data)
-                RtmpMessageType.amf0Command -> RtmpCommandMessage(commandType = RtmpCommandMessage.CommandType.amf0Command)
+                RtmpMessageType.amf3Data -> RtmpDataMessage(dataType = RtmpMessageType.amf3Data)
+                RtmpMessageType.amf3Command -> RtmpCommandMessage(commandType = RtmpMessageType.amf3Command)
+                RtmpMessageType.amf0Data -> RtmpDataMessage(dataType = RtmpMessageType.amf0Data)
+                RtmpMessageType.amf0Command -> RtmpCommandMessage(commandType = RtmpMessageType.amf0Command)
                 RtmpMessageType.aggregate -> RtmpAggregateMessage()
             }
         }

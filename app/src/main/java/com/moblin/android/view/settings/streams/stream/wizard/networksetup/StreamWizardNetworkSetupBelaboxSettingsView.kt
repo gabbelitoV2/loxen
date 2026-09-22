@@ -32,6 +32,7 @@ import com.moblin.android.common.various.cleanUrl
 import com.moblin.android.common.various.isValidUrl
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.WizardNetworkSetup
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.FormFieldError
@@ -47,7 +48,7 @@ fun StreamWizardNetworkSetupBelaboxSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var urlError by remember { mutableStateOf("") }
-    val belaboxUrl by createStreamWizard.belaboxUrl.collectAsState()
+    var belaboxUrl by remember { mutableStateOf(createStreamWizard.belaboxUrl) }
 
     fun updateUrlError() {
         val url = cleanUrl(belaboxUrl)
@@ -63,7 +64,7 @@ fun StreamWizardNetworkSetupBelaboxSettingsView(
     }
 
     LaunchedEffect(Unit) {
-        createStreamWizard.networkSetup.value = CreateStreamWizard.NetworkSetup.belaboxCloudObs
+        createStreamWizard.networkSetup = WizardNetworkSetup.belaboxCloudObs
         updateUrlError()
     }
 
@@ -91,7 +92,8 @@ fun StreamWizardNetworkSetupBelaboxSettingsView(
                 OutlinedTextField(
                     value = belaboxUrl,
                     onValueChange = {
-                        createStreamWizard.belaboxUrl.value = it
+                        belaboxUrl = it
+                        createStreamWizard.belaboxUrl = it
                     },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = {
@@ -113,7 +115,7 @@ fun StreamWizardNetworkSetupBelaboxSettingsView(
                     )
                     HCenter {
                         Image(
-                            painter = painterResource(id = R.drawable.belabox_cloud_ingest),
+                            painter = TODO("BelaboxCloudIngest drawable not available"),
                             contentDescription = null,
                             modifier = Modifier.widthIn(max = 400.dp),
                             contentScale = ContentScale.Fit,

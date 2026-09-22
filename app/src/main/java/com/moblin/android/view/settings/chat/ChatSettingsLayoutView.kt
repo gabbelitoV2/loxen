@@ -35,13 +35,13 @@ fun ChatSettingsLayoutView(
     database: Database,
     chat: SettingsChat,
 ) {
-    val appMode by database.appMode.collectAsState()
-    val showAllSettings by database.showAllSettings.collectAsState()
-    val height by chat.height.collectAsState()
-    val width by chat.width.collectAsState()
-    val bottomPoints by chat.bottomPoints.collectAsState()
-    val newMessagesAtTop by chat.newMessagesAtTop.collectAsState()
-    val mirrored by chat.mirrored.collectAsState()
+    val appMode = database.appMode
+    val showAllSettings = database.showAllSettings
+    val height = chat.height
+    val width = chat.width
+    val bottomPoints = chat.bottomPoints
+    val newMessagesAtTop = chat.newMessagesAtTop
+    val mirrored = chat.mirrored
 
     Scaffold(
         topBar = {
@@ -61,10 +61,10 @@ fun ChatSettingsLayoutView(
                     Text("Height")
                     Slider(
                         value = height.toFloat(),
-                        onValueChange = { chat.height.value = it.toDouble() },
+                        onValueChange = { chat.height = it.toDouble() },
                         valueRange = 0.2f..1.0f,
                         steps = 79,
-                        onValueChangeFinished = { model.reloadChatMessages() },
+                        onValueChangeFinished = { TODO("reloadChatMessages") },
                         modifier = Modifier.weight(1f),
                     )
                     Text(
@@ -79,10 +79,10 @@ fun ChatSettingsLayoutView(
                     Text("Width")
                     Slider(
                         value = width.toFloat(),
-                        onValueChange = { chat.width.value = it.toDouble() },
+                        onValueChange = { chat.width = it.toDouble() },
                         valueRange = 0.2f..1.0f,
                         steps = 79,
-                        onValueChangeFinished = { model.reloadChatMessages() },
+                        onValueChangeFinished = { TODO("reloadChatMessages") },
                         modifier = Modifier.weight(1f),
                     )
                     Text(
@@ -97,10 +97,10 @@ fun ChatSettingsLayoutView(
                     Text("Bottom")
                     Slider(
                         value = bottomPoints.toFloat(),
-                        onValueChange = { chat.bottomPoints.value = it.toDouble() },
+                        onValueChange = { chat.bottomPoints = it.toDouble() },
                         valueRange = 0.0f..200.0f,
                         steps = 39,
-                        onValueChangeFinished = { model.reloadChatMessages() },
+                        onValueChangeFinished = { TODO("reloadChatMessages") },
                         modifier = Modifier.weight(1f),
                     )
                     Text(
@@ -118,7 +118,7 @@ fun ChatSettingsLayoutView(
                     Text("New messages at top")
                     Switch(
                         checked = newMessagesAtTop,
-                        onCheckedChange = { chat.newMessagesAtTop.value = it },
+                        onCheckedChange = { chat.newMessagesAtTop = it },
                     )
                 }
                 Row(
@@ -129,7 +129,7 @@ fun ChatSettingsLayoutView(
                     Text("Mirrored")
                     Switch(
                         checked = mirrored,
-                        onCheckedChange = { chat.mirrored.value = it },
+                        onCheckedChange = { chat.mirrored = it },
                     )
                 }
             }

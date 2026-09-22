@@ -157,11 +157,11 @@ data class DjiConfigureMessagePayload(
 
     fun encode(): ByteArray {
         val imageStabilizationByte: UByte = when (imageStabilization) {
-            SettingsDjiDeviceImageStabilization.OFF -> 0.toUByte()
-            SettingsDjiDeviceImageStabilization.ROCK_STEADY -> 1.toUByte()
-            SettingsDjiDeviceImageStabilization.ROCK_STEADY_PLUS -> 3.toUByte()
-            SettingsDjiDeviceImageStabilization.HORIZON_BALANCING -> 4.toUByte()
-            SettingsDjiDeviceImageStabilization.HORIZON_STEADY -> 2.toUByte()
+            SettingsDjiDeviceImageStabilization.off -> 0.toUByte()
+            SettingsDjiDeviceImageStabilization.rockSteady -> 1.toUByte()
+            SettingsDjiDeviceImageStabilization.rockSteadyPlus -> 3.toUByte()
+            SettingsDjiDeviceImageStabilization.horizonBalancing -> 4.toUByte()
+            SettingsDjiDeviceImageStabilization.horizonSteady -> 2.toUByte()
         }
         val byte1: UByte = if (oa5) {
             0x1A.toUByte()
@@ -195,7 +195,7 @@ private fun toDjiFps(fps: Int): UByte = when (fps) {
 }
 
 private fun toDjiResolution(resolution: SettingsDjiDeviceResolution): UByte = when (resolution) {
-    SettingsDjiDeviceResolution.R480P -> 0x47.toUByte()
-    SettingsDjiDeviceResolution.R720P -> 0x04.toUByte()
-    SettingsDjiDeviceResolution.R1080P -> 0x0A.toUByte()
+    SettingsDjiDeviceResolution.r480p -> 0x47.toUByte()
+    SettingsDjiDeviceResolution.r720p -> 0x04.toUByte()
+    SettingsDjiDeviceResolution.r1080p -> 0x0A.toUByte()
 }

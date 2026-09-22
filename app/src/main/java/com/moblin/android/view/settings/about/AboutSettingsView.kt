@@ -55,7 +55,7 @@ fun AboutSettingsView(
                 )
             }
             item {
-                TextButtonView(text = "Version history", onClick = { presentingVersionHistory = true })
+                TextButtonView(title = "Version history", action = { presentingVersionHistory = true })
             }
             item {
                 ExternalUrlButtonView(url = "https://moblin.app") {
@@ -79,7 +79,7 @@ fun AboutSettingsView(
         ModalBottomSheet(onDismissRequest = { presentingVersionHistory = false }) {
             Box {
                 AboutVersionHistorySettingsView()
-                CloseButtonTopRightView(onClick = { presentingVersionHistory = false })
+                CloseButtonTopRightView(onClose = { presentingVersionHistory = false })
             }
         }
     }

@@ -49,8 +49,8 @@ private fun WidgetsSettingsItemView(
 ) {
     val deleteWidget: () -> Unit = {
         database.widgets.removeAll { it === widget }
-        model.removeDeadWidgetsFromScenes()
-        model.resetSelectedScene()
+        TODO("removeDeadWidgetsFromScenes is not available on Model")
+        TODO("resetSelectedScene is not available on Model")
     }
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
@@ -63,7 +63,7 @@ private fun WidgetsSettingsItemView(
         },
     )
     LaunchedEffect(widget.enabled) {
-        model.sceneUpdated(attachCamera = model.isCaptureDeviceWidget(widget))
+        TODO("sceneUpdated is not available on Model")
     }
     SwipeToDismissBox(
         state = dismissState,
@@ -74,9 +74,9 @@ private fun WidgetsSettingsItemView(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.CenterEnd,
             ) {
-                SwipeLeftToDeleteButtonView {
+                SwipeLeftToDeleteButtonView(action = {
                     deleteWidget()
-                }
+                })
             }
         },
         content = {

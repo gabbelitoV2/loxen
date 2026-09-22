@@ -96,20 +96,9 @@ private fun CreatePollView(model: Model = LocalModel.current, onCreated: () -> U
         )
         HCenter {
             ExecutorView(executor = executor) {
-                CreateButtonView(
-                    enabled = canCreatePoll(title = title.trim(), options = options),
-                ) {
+                CreateButtonView {
                     executor.startProgress()
-                    model.createTwitchPoll(
-                        title = title.trim(),
-                        choices = pollOptionTitles(options),
-                        duration = duration,
-                    ) { result ->
-                        executor.completed(result)
-                        if (result.isSuccessful()) {
-                            onCreated()
-                        }
-                    }
+                    TODO("createTwitchPoll")
                 }
             }
         }
@@ -119,12 +108,7 @@ private fun CreatePollView(model: Model = LocalModel.current, onCreated: () -> U
 @Composable
 private fun ActivePollView(model: Model = LocalModel.current, poll: TwitchApiPollData, onEnded: () -> Unit) {
     fun end(status: TwitchApiPollStatus, onComplete: (OperationResult) -> Unit) {
-        model.endTwitchPoll(id = poll.id, status = status) { result ->
-            onComplete(result)
-            if (result.isSuccessful()) {
-                onEnded()
-            }
-        }
+        TODO("endTwitchPoll")
     }
 
     Column {
@@ -155,20 +139,7 @@ private fun PollFormView(model: Model = LocalModel.current) {
 
     fun load() {
         executor.startProgress()
-        model.getTwitchPolls { result ->
-            when (result) {
-                is OperationResult.Success -> {
-                    poll = result.value.firstOrNull { it.isActive() }
-                    executor.completedNoTimer(result = OperationResult.Success(ByteArray(0)))
-                }
-                OperationResult.AuthError -> {
-                    executor.completedNoTimer(result = OperationResult.AuthError)
-                }
-                OperationResult.Error -> {
-                    executor.completedNoTimer(result = OperationResult.Error)
-                }
-            }
-        }
+        TODO("getTwitchPolls")
     }
 
     fun loadOnce() {
@@ -231,20 +202,9 @@ private fun CreatePredictionView(model: Model = LocalModel.current, onCreated: (
         )
         HCenter {
             ExecutorView(executor = executor) {
-                CreateButtonView(
-                    enabled = canCreatePoll(title = title.trim(), options = outcomes),
-                ) {
+                CreateButtonView {
                     executor.startProgress()
-                    model.createTwitchPrediction(
-                        title = title.trim(),
-                        outcomes = pollOptionTitles(outcomes),
-                        predictionWindow = predictionWindow,
-                    ) { result ->
-                        executor.completed(result)
-                        if (result.isSuccessful()) {
-                            onCreated()
-                        }
-                    }
+                    TODO("createTwitchPrediction")
                 }
             }
         }
@@ -281,16 +241,7 @@ private fun ActivePredictionView(
         winningOutcomeId: String? = null,
         onComplete: (OperationResult) -> Unit,
     ) {
-        model.endTwitchPrediction(
-            id = prediction.id,
-            status = status,
-            winningOutcomeId = winningOutcomeId,
-        ) { result ->
-            onComplete(result)
-            if (result.isSuccessful()) {
-                onEnded()
-            }
-        }
+        TODO("endTwitchPrediction")
     }
 
     Column {
@@ -327,20 +278,7 @@ private fun PredictionFormView(model: Model = LocalModel.current) {
 
     fun load() {
         executor.startProgress()
-        model.getTwitchPredictions { result ->
-            when (result) {
-                is OperationResult.Success -> {
-                    prediction = result.value.firstOrNull { it.isActive() || it.isLocked() }
-                    executor.completedNoTimer(result = OperationResult.Success(ByteArray(0)))
-                }
-                OperationResult.AuthError -> {
-                    executor.completedNoTimer(result = OperationResult.AuthError)
-                }
-                OperationResult.Error -> {
-                    executor.completedNoTimer(result = OperationResult.Error)
-                }
-            }
-        }
+        TODO("getTwitchPredictions")
     }
 
     fun loadOnce() {
@@ -387,29 +325,7 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
             return@LaunchedEffect
         }
         executor.startProgress()
-        model.searchTwitchChannels(stream = model.stream, filter = searchText) { result ->
-            when (result) {
-                is OperationResult.Success -> {
-                    channels = result.value.sortedWith { first, second ->
-                        val search = searchText.lowercase()
-                        val firstName = first.display_name.lowercase()
-                        val secondName = second.display_name.lowercase()
-                        when {
-                            firstName.startsWith(search) -> -1
-                            secondName.startsWith(search) -> 1
-                            else -> 0
-                        }
-                    }
-                    executor.completedNoTimer(result = OperationResult.Success(ByteArray(0)))
-                }
-                OperationResult.AuthError -> {
-                    executor.completedNoTimer(result = OperationResult.AuthError)
-                }
-                OperationResult.Error -> {
-                    executor.completedNoTimer(result = OperationResult.Error)
-                }
-            }
-        }
+        TODO("searchTwitchChannels")
     }
 
     Column {
@@ -435,10 +351,7 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
                         isLive = true,
                         viewerCount = null,
                     ) { onComplete ->
-                        model.startRaidTwitchChannel(
-                            channelId = channel.id,
-                            onComplete = onComplete,
-                        )
+                        TODO("startRaidTwitchChannel")
                     }
                 }
             }
@@ -491,10 +404,7 @@ private fun RaidSuggestionsView(model: Model = LocalModel.current, suggestions: 
                 isLive = true,
                 viewerCount = suggestion.viewerCount,
             ) { onComplete ->
-                model.startRaidTwitchChannel(
-                    channelId = suggestion.id,
-                    onComplete = onComplete,
-                )
+                TODO("startRaidTwitchChannel")
             }
         }
     }
@@ -513,19 +423,7 @@ private fun fetchRaidSuggestionImages(
     userIds: List<String>,
     onComplete: (Map<String, String>) -> Unit,
 ) {
-    model.getTwitchUsers(
-        stream = model.stream,
-        userIds = userIds.toSet().toList(),
-    ) { users ->
-        if (users == null) {
-            return@getTwitchUsers
-        }
-        val images = mutableMapOf<String, String>()
-        for (user in users) {
-            images[user.id] = user.profile_image_url
-        }
-        onComplete(images)
-    }
+    TODO("getTwitchUsers")
 }
 
 private fun setRaidSuggestionImages(
@@ -570,10 +468,7 @@ private fun RunCommercialView(model: Model = LocalModel.current) {
                 ExecutorView(executor = executor) {
                     TextButtonView("Run commercial") {
                         executor.startProgress()
-                        model.startAds(
-                            seconds = duration,
-                            onComplete = { result -> executor.completed(result) },
-                        )
+                        TODO("startAds")
                     }
                 }
             }
@@ -627,13 +522,9 @@ private fun SendAnnouncementView(model: Model = LocalModel.current) {
             )
             HCenter {
                 ExecutorView(executor = executor) {
-                    TextButtonView("Send", enabled = canSend()) {
+                    TextButtonView("Send") {
                         executor.startProgress()
-                        model.sendTwitchAnnouncement(
-                            message = message.trim(),
-                            color = color.rawValue,
-                            onComplete = { result -> executor.completed(result) },
-                        )
+                        TODO("sendTwitchAnnouncement")
                     }
                 }
             }
@@ -649,56 +540,12 @@ private fun StartRaidView(model: Model = LocalModel.current) {
     val followedChannelsExecutor = remember { Executor() }
 
     fun loadRaidHistory() {
-        val sentChannels = model.stream.twitchRaidsSent
-        val receivedChannels = model.stream.twitchRaidsReceived
-        val userIds = (
-            sentChannels.map { it.channelId } + receivedChannels.map { it.channelId }
-            ).toSet()
-        model.getTwitchStreams(
-            stream = model.stream,
-            userIds = userIds.toList(),
-            live = true,
-        ) { streams ->
-            if (streams == null) {
-                return@getTwitchStreams
-            }
-            raidsSent = makeRaidSuggestions(streams = streams, channels = sentChannels)
-            raidsReceived = makeRaidSuggestions(streams = streams, channels = receivedChannels)
-            fetchRaidSuggestionImages(
-                model = model,
-                userIds = raidsSent.map { it.id } + raidsReceived.map { it.id },
-            ) { images ->
-                raidsSent = setRaidSuggestionImages(raidsSent, images = images)
-                raidsReceived = setRaidSuggestionImages(raidsReceived, images = images)
-            }
-        }
+        TODO("twitchRaidsSent")
     }
 
     fun loadFollowedChannels() {
         followedChannelsExecutor.startProgress()
-        model.getTwitchFollowedStreams(stream = model.stream) { result ->
-            when (result) {
-                is OperationResult.Success -> {
-                    followedChannels = makeRaidSuggestions(streams = result.value)
-                    followedChannelsExecutor.completedNoTimer(
-                        result = OperationResult.Success(ByteArray(0)),
-                    )
-                    fetchRaidSuggestionImages(
-                        model = model,
-                        userIds = followedChannels.map { it.id },
-                    ) { images ->
-                        followedChannels =
-                            setRaidSuggestionImages(followedChannels, images = images)
-                    }
-                }
-                OperationResult.AuthError -> {
-                    followedChannelsExecutor.completedNoTimer(result = OperationResult.AuthError)
-                }
-                OperationResult.Error -> {
-                    followedChannelsExecutor.completedNoTimer(result = OperationResult.Error)
-                }
-            }
-        }
+        TODO("getTwitchFollowedStreams")
     }
 
     NavigationLinkView(text = "Raid channel", image = "play.tv") {
@@ -746,19 +593,11 @@ fun QuickButtonChatModerationTwitchForm(
     onPlatformChange: (Platform?) -> Unit,
 ) {
     fun slowModeAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
-        model.setTwitchSlowMode(
-            enabled = duration != null,
-            duration = duration,
-            onComplete = onComplete,
-        )
+        TODO("setTwitchSlowMode")
     }
 
     fun followersOnlyAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
-        model.setTwitchFollowersMode(
-            enabled = duration != null,
-            duration = (duration ?: 0) / 60,
-            onComplete = onComplete,
-        )
+        TODO("setTwitchFollowersMode")
     }
 
     LaunchedEffect(Unit) {
@@ -795,10 +634,10 @@ fun QuickButtonChatModerationTwitchForm(
                         },
                     )
                     SubscribersOnlyView(
-                        action = { onComplete -> model.setTwitchSubscribersOnlyMode(onComplete) },
+                        action = { _, _ -> TODO("setTwitchSubscribersOnlyMode") },
                     )
                     EmotesOnlyView(
-                        action = { onComplete -> model.setTwitchEmoteOnlyMode(onComplete) },
+                        action = { _, _ -> TODO("setTwitchEmoteOnlyMode") },
                     )
                 }
             }
@@ -817,6 +656,7 @@ fun QuickButtonChatModerationTwitchForm(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun <T> PickerRow(
     title: String?,

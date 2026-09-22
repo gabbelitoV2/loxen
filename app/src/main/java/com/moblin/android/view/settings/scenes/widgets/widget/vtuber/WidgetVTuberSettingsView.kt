@@ -1,5 +1,7 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.vtuber
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +28,6 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetVTuber
 import com.moblin.android.various.settings.SettingsWidgetVTuberType
-import com.moblin.android.view.settings.scenes.widgets.widget.pngtuber.PickerView
 import com.moblin.android.view.settings.scenes.widgets.widget.pngtuber.WidgetSensitivityView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.TextButtonView
@@ -62,6 +63,18 @@ private fun unzipLive2DModel(from: String, to: File) {
     }
 }
 
+@Composable
+private fun PickerView(model: Model = LocalModel.current) {
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        uri?.let { model.onDocumentPickerUrl?.invoke(it.toString()) }
+    }
+    LaunchedEffect(Unit) {
+        launcher.launch(arrayOf("*/*"))
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetVTuberPickerView(
@@ -73,17 +86,6 @@ fun WidgetVTuberPickerView(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var showPicker by remember { mutableStateOf(false) }
-
-    fun onUrl(url: String) {
-        if (url.substringAfterLast('.', "").lowercase() == "zip") {
-            onLive2DUrl(url)
-        } else {
-            vTuber.type = SettingsWidgetVTuberType.vrm
-            vTuber.modelName = url.substringAfterLast('/')
-            model.vTuberStorage.add(id = vTuber.id, url = url)
-            onSelected?.invoke()
-        }
-    }
 
     fun onLive2DUrl(url: String) {
         val directory = File(context.cacheDir, UUID.randomUUID().toString())
@@ -102,7 +104,18 @@ fun WidgetVTuberPickerView(
             }
             vTuber.type = SettingsWidgetVTuberType.live2D
             vTuber.modelName = url.substringAfterLast('/')
-            model.vTuberStorage.add(id = vTuber.id, url = directory.path)
+            model.vTuberStorage.add(id = vTuber.id, url = directory)
+            onSelected?.invoke()
+        }
+    }
+
+    fun onUrl(url: String) {
+        if (url.substringAfterLast('.', "").lowercase() == "zip") {
+            onLive2DUrl(url)
+        } else {
+            vTuber.type = SettingsWidgetVTuberType.vrm
+            vTuber.modelName = url.substringAfterLast('/')
+            model.vTuberStorage.add(id = vTuber.id, url = File(url))
             onSelected?.invoke()
         }
     }
@@ -135,19 +148,12 @@ fun WidgetVTuberSettingsView(
     modifier: Modifier = Modifier,
 ) {
     fun onCameraChange(cameraId: String) {
-        vTuber.updateCameraId(settingsCameraId = model.cameraIdToSettingsCameraId(cameraId = cameraId))
-        model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
+        vTuber.updateCameraId(settingsCameraId = TODO("model.cameraIdToSettingsCameraId is not available"))
+        TODO("model.sceneUpdated is not available")
     }
 
     fun setEffectSettings() {
-        model.getVTuberEffect(id = widget.id)?
-            .setSettings(
-                cameraFieldOfView = vTuber.cameraFieldOfView,
-                cameraPositionY = vTuber.cameraPositionY,
-                mirror = vTuber.mirror,
-                sensitivity = vTuber.sensitivity,
-                armsAngle = vTuber.armsAngle,
-            )
+        TODO("model.getVTuberEffect is not available")
     }
 
     var cameraPositionY by remember { mutableStateOf(vTuber.cameraPositionY) }
@@ -165,13 +171,13 @@ fun WidgetVTuberSettingsView(
         ) {
             Text("Video source")
             Spacer(Modifier.weight(1f))
-            GrayTextView(text = model.getCameraPositionName(vTuberWidget = vTuber))
+            GrayTextView(text = TODO("model.getCameraPositionName is not available"))
         }
 
         WidgetVTuberPickerView(
             model = model,
             vTuber = vTuber,
-            onSelected = { model.resetSelectedScene(changeScene = false) },
+            onSelected = { TODO("model.resetSelectedScene is not available") },
         )
 
         if (vTuber.type == SettingsWidgetVTuberType.vrm) {

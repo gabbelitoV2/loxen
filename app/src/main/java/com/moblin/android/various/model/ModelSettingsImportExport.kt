@@ -14,12 +14,12 @@ private val settingsImportScope = CoroutineScope(Dispatchers.IO)
 
 fun Model.importSettingsWithConfirmation(action: () -> Unit) {
     pendingSettingsImportAction = action
-    presentingSettingsImportConfirmation = true
+    presentingSettingsImportConfirmation.value = true
 }
 
 fun Model.importSettingsFromFile(url: String, completion: (Boolean) -> Unit) {
     cleanupBeforeImport()
-    settings.importFromFile(url) { message ->
+    settings.importFromFile(File(url).toURI()) { message ->
         importDone(message)
         completion(message == null)
     }
@@ -83,7 +83,7 @@ fun Model.importSettingsFromClipboard(context: Context, completion: () -> Unit) 
 }
 
 fun Model.exportToFile(completion: (String?) -> Unit) {
-    settings.exportToFile(completion)
+    settings.exportToFile { uri -> completion(uri?.path) }
 }
 
 private fun Model.cleanupBeforeImport() {
@@ -99,11 +99,11 @@ private fun Model.importDone(message: String?) {
 }
 
 private fun Model.importSucceeded() {
-    setDebugLogging(database.debug.debugLogging)
+    setDebugLogging(database.debug.debugLogging.value)
     setCurrentStream()
     updateIconImageFromDatabase()
     updateMicsList()
-    show.chatPhone = isChatPhone()
+    show.chatPhone.value = isChatPhone()
     updateScreenAutoOff()
     reloadStream()
     chatBotCustomCommandsTextChanged()
@@ -121,5 +121,5 @@ private fun Model.importSucceeded() {
 }
 
 private fun Model.importFailed(message: String) {
-    makeErrorToast(localized("Import settings failed"), message)
+    makeErrorToast(localized("Import settings failed"), subTitle = message)
 }

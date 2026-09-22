@@ -29,6 +29,11 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.common.various.backgroundColor
 import com.moblin.android.various.model.MediaPlayerPlayer
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.mediaPlayerNext
+import com.moblin.android.various.model.mediaPlayerPrevious
+import com.moblin.android.various.model.mediaPlayerSeek
+import com.moblin.android.various.model.mediaPlayerSetSeeking
+import com.moblin.android.various.model.mediaPlayerTogglePlaying
 import com.moblin.android.LocalModel
 
 private fun playPauseImage(playing: Boolean): String {

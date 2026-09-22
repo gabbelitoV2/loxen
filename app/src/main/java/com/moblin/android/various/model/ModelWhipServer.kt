@@ -28,9 +28,9 @@ fun Model.getWhipStream(id: UUID): SettingsWhipServerStream? {
     }
 }
 
-fun Model.getWhipStream(idString: String): SettingsWhipServerStream? {
+fun Model.getWhipStream(idString: CharSequence): SettingsWhipServerStream? {
     return database.whipServer.streams.firstOrNull { stream ->
-        idString == stream.id.toString()
+        idString.toString() == stream.id.toString()
     }
 }
 

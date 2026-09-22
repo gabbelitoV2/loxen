@@ -1,9 +1,12 @@
 package com.moblin.android.videoeffects.alerts
 
+import android.media.Image
+import android.speech.tts.TextToSpeech
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import com.moblin.android.localized
+import com.moblin.android.common.various.color
 import com.moblin.android.common.various.countFormatter
 import com.moblin.android.integrations.openai.OpenAi
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
@@ -44,6 +47,7 @@ import com.moblin.android.videoeffects.EffectImageCiImage
 import com.moblin.android.view.utils.ChatLineItem
 import com.moblin.android.view.utils.ChatLineStyle
 import com.moblin.android.view.utils.ChatLineUiView
+import java.net.URI
 import java.util.Locale
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
@@ -170,11 +174,11 @@ class AlertsEffect(
         }
     }
 
-    override fun execute(image: EffectImage, info: VideoEffectInfo): EffectImage {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         TODO("OpenGL ES port")
     }
 
-    override fun executeMetalPetal(image: EffectImage, info: VideoEffectInfo): EffectImage {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         TODO("OpenGL ES port")
     }
 
@@ -273,7 +277,7 @@ class AlertsEffect(
         val media = chatBotCommandsMedias[commandIndex]
         val commandSettings = settings.chatBot.commands[commandIndex]
         when (commandSettings.imageType) {
-            SettingsWidgetAlertsChatBotCommandImageType.File -> play(
+            SettingsWidgetAlertsChatBotCommandImageType.file -> play(
                 media = media,
                 username = name,
                 message = command,
@@ -322,7 +326,7 @@ class AlertsEffect(
         val ai = this.settings.ai
         val aiBaseUrl = this.aiBaseUrl
         if (this.settings.aiEnabled && aiBaseUrl != null && ai.isConfigured()) {
-            OpenAi(baseUrl = aiBaseUrl, apiKey = ai.apiKey)
+            OpenAi(baseUrl = URI(aiBaseUrl), apiKey = ai.apiKey)
                 .ask(message, model = ai.model, role = ai.personality) { result ->
                     var message = message
                     result
@@ -379,12 +383,14 @@ class AlertsEffect(
         val voice = getVoice(settings) ?: return
         mainScope.launch {
             delay((settings.textToSpeechDelay * 1000.0).toLong())
+            synthesizer.setSpeechRate(rate)
+            synthesizer.setPitch(0.8f)
+            synthesizer.setVolume(volume)
             synthesizer.speak(
-                text = "$username $message",
-                rate = rate,
-                pitchMultiplier = 0.8f,
-                volume = volume,
-                voice = voice
+                "$username $message",
+                TextToSpeech.QUEUE_FLUSH,
+                null,
+                null
             )
             KeepSpeakerAlivePlayer.shared.audioPlayed()
         }
@@ -406,8 +412,8 @@ class AlertsEffect(
             borderColor = Color.Black,
             borderWidth = 2f,
             leadingPadding = 0f,
-            fontWeight = settings.fontWeight.toUiKit(),
-            fontDesign = settings.fontDesign.toUiKit()
+            fontWeight = settings.fontWeight.toSystem(),
+            fontDesign = settings.fontDesign.toSystem()
         )
         val textColor = settings.textColor.color()
         val items = mutableListOf<ChatLineItem>()
@@ -438,7 +444,7 @@ class AlertsEffect(
         if (messageLineView != null) {
             return messageLineView
         }
-        val lineView = ChatLineUiView()
+        val lineView = ChatLineUiView(context = TODO("no Android counterpart for a UIView context here"))
         lineView.onImageLoaded = {
             updateMessageImage()
         }
@@ -463,28 +469,28 @@ class AlertsEffect(
         val centerX = settings.facePosition.x + settings.facePosition.width / 2
         val centerY = settings.facePosition.y + settings.facePosition.height / 2
         return if (isInRectangle(centerX, centerY, alertsEffectBackgroundLeftEyeRectangle)) {
-            AlertsEffectFaceLandmark.LeftEye
+            AlertsEffectFaceLandmark.LEFT_EYE
         } else if (isInRectangle(centerX, centerY, alertsEffectBackgroundRightEyeRectangle)) {
-            AlertsEffectFaceLandmark.RightEye
+            AlertsEffectFaceLandmark.RIGHT_EYE
         } else if (isInRectangle(centerX, centerY, alertsEffectBackgroundMouthRectangle)) {
-            AlertsEffectFaceLandmark.Mouth
+            AlertsEffectFaceLandmark.MOUTH
         } else {
-            AlertsEffectFaceLandmark.Face
+            AlertsEffectFaceLandmark.FACE
         }
     }
 
     private fun calculateLandmarkSettings(
         settings: SettingsWidgetAlertsAlert
     ): AlertsEffectLandmarkSettings? {
-        if (settings.positionType == SettingsWidgetAlertPositionType.Face) {
+        if (settings.positionType == SettingsWidgetAlertPositionType.face) {
             val landmark = calculateLandmark(settings)
             val centerX = settings.facePosition.x + settings.facePosition.width / 2
             val centerY = settings.facePosition.y + settings.facePosition.height / 2
             val landmarkRectangle = when (landmark) {
-                AlertsEffectFaceLandmark.Face -> alertsEffectBackgroundFaceRectangle
-                AlertsEffectFaceLandmark.LeftEye -> alertsEffectBackgroundLeftEyeRectangle
-                AlertsEffectFaceLandmark.RightEye -> alertsEffectBackgroundRightEyeRectangle
-                AlertsEffectFaceLandmark.Mouth -> alertsEffectBackgroundMouthRectangle
+                AlertsEffectFaceLandmark.FACE -> alertsEffectBackgroundFaceRectangle
+                AlertsEffectFaceLandmark.LEFT_EYE -> alertsEffectBackgroundLeftEyeRectangle
+                AlertsEffectFaceLandmark.RIGHT_EYE -> alertsEffectBackgroundRightEyeRectangle
+                AlertsEffectFaceLandmark.MOUTH -> alertsEffectBackgroundMouthRectangle
             }
             val x = (centerX - landmarkRectangle.topLeftX) / landmarkRectangle.width()
             val y = (centerY - landmarkRectangle.topLeftY) / landmarkRectangle.height()
@@ -715,12 +721,12 @@ class AlertsEffect(
                 continue
             }
             when (cheerBit.comparisonOperator) {
-                SettingsWidgetAlertsCheerBitsAlertOperator.Equal -> {
+                SettingsWidgetAlertsCheerBitsAlertOperator.equal -> {
                     if (event.bits != cheerBit.bits) {
                         continue
                     }
                 }
-                SettingsWidgetAlertsCheerBitsAlertOperator.GreaterEqual -> {
+                SettingsWidgetAlertsCheerBitsAlertOperator.greaterEqual -> {
                     if (event.bits < cheerBit.bits) {
                         continue
                     }
@@ -822,9 +828,9 @@ class AlertsEffect(
     private fun playKickKicks(event: KickPusherKicksGiftedEvent) {
         for ((index, kickGift) in settings.kick.kickGifts.withIndex()) {
             val matches = when (kickGift.comparisonOperator) {
-                SettingsWidgetAlertsCheerBitsAlertOperator.Equal ->
+                SettingsWidgetAlertsCheerBitsAlertOperator.equal ->
                     event.gift.amount == kickGift.amount
-                SettingsWidgetAlertsCheerBitsAlertOperator.GreaterEqual ->
+                SettingsWidgetAlertsCheerBitsAlertOperator.greaterEqual ->
                     event.gift.amount >= kickGift.amount
             }
             if (!matches || !kickGift.alert.enabled) {

@@ -48,13 +48,13 @@ fun StreamSrtSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isLive = model.isLive.collectAsState().value
-    val latency = srt.latency.collectAsState().value
-    val overheadBandwidth = srt.overheadBandwidth.collectAsState().value
-    val adaptiveBitrateEnabled = srt.adaptiveBitrateEnabled.collectAsState().value
-    val maximumBandwidthFollowInput = srt.maximumBandwidthFollowInput.collectAsState().value
-    val bigPackets = srt.bigPackets.collectAsState().value
-    val dnsLookupStrategy = srt.dnsLookupStrategy.collectAsState().value
-    val implementation = srt.implementation.collectAsState().value
+    val latency = srt.latency
+    val overheadBandwidth = srt.overheadBandwidth
+    val adaptiveBitrateEnabled = srt.adaptiveBitrateEnabled
+    val maximumBandwidthFollowInput = srt.maximumBandwidthFollowInput
+    val bigPackets = srt.bigPackets
+    val dnsLookupStrategy = srt.dnsLookupStrategy
+    val implementation = srt.implementation
     val disabled = stream.enabled && isLive
 
     fun changeLatency(value: String): String? {
@@ -70,8 +70,8 @@ fun StreamSrtSettingsView(
 
     fun submitLatency(value: String) {
         val parsed = value.toIntOrNull() ?: return
-        srt.setLatency(parsed)
-        model.reloadStreamIfEnabled(stream)
+        srt.latency = parsed
+        TODO("model.reloadStreamIfEnabled(stream)")
     }
 
     fun changeOverheadBandwidth(value: String): String? {
@@ -87,8 +87,8 @@ fun StreamSrtSettingsView(
 
     fun submitOverheadBandwidth(value: String) {
         val parsed = value.toIntOrNull() ?: return
-        srt.setOverheadBandwidth(parsed)
-        model.reloadStreamIfEnabled(stream)
+        srt.overheadBandwidth = parsed
+        TODO("model.reloadStreamIfEnabled(stream)")
     }
 
     var dnsExpanded by remember { mutableStateOf(false) }
@@ -112,7 +112,6 @@ fun StreamSrtSettingsView(
                         onChange = { changeLatency(it) },
                         onSubmit = { submitLatency(it) },
                         valueFormat = { "$it ms" },
-                        enabled = !disabled,
                     )
                     if (implementation == SettingsStreamSrtImplementation.moblin && latency < 1000) {
                         Text(
@@ -135,8 +134,8 @@ fun StreamSrtSettingsView(
                         Switch(
                             checked = adaptiveBitrateEnabled,
                             onCheckedChange = {
-                                srt.setAdaptiveBitrateEnabled(it)
-                                model.reloadStreamIfEnabled(stream)
+                                srt.adaptiveBitrateEnabled = it
+                                TODO("model.reloadStreamIfEnabled(stream)")
                             },
                             enabled = !disabled,
                         )
@@ -166,8 +165,8 @@ fun StreamSrtSettingsView(
                                 Switch(
                                     checked = maximumBandwidthFollowInput,
                                     onCheckedChange = {
-                                        srt.setMaximumBandwidthFollowInput(it)
-                                        model.reloadStreamIfEnabled(stream)
+                                        srt.maximumBandwidthFollowInput = it
+                                        TODO("model.reloadStreamIfEnabled(stream)")
                                     },
                                     enabled = !disabled,
                                 )
@@ -178,7 +177,6 @@ fun StreamSrtSettingsView(
                                 onChange = { changeOverheadBandwidth(it) },
                                 onSubmit = { submitOverheadBandwidth(it) },
                                 valueFormat = { "$it%" },
-                                enabled = !disabled,
                             )
                         }
                         SettingsStreamSrtImplementation.moblin -> Unit
@@ -193,8 +191,8 @@ fun StreamSrtSettingsView(
                         Switch(
                             checked = bigPackets,
                             onCheckedChange = {
-                                srt.setBigPackets(it)
-                                model.reloadStreamIfEnabled(stream)
+                                srt.bigPackets = it
+                                TODO("model.reloadStreamIfEnabled(stream)")
                             },
                             enabled = !disabled,
                         )
@@ -235,7 +233,7 @@ fun StreamSrtSettingsView(
                                 DropdownMenuItem(
                                     text = { Text(strategy.rawValue) },
                                     onClick = {
-                                        srt.setDnsLookupStrategy(strategy)
+                                        srt.dnsLookupStrategy = strategy
                                         dnsExpanded = false
                                     },
                                 )
@@ -280,9 +278,9 @@ fun StreamSrtSettingsView(
                                 DropdownMenuItem(
                                     text = { Text(item.toString()) },
                                     onClick = {
-                                        srt.setImplementation(item)
+                                        srt.implementation = item
                                         implementationExpanded = false
-                                        model.reloadStreamIfEnabled(stream)
+                                        TODO("model.reloadStreamIfEnabled(stream)")
                                     },
                                 )
                             }

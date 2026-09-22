@@ -39,9 +39,9 @@ private fun DeviceView(
     status: StatusOther,
     device: SettingsDjiDevice,
 ) {
-    val name by device.name.collectAsState()
-    val isStarted by device.isStarted.collectAsState()
-    val state by device.state.collectAsState()
+    val name = device.name
+    val isStarted = device.isStarted
+    val state = device.state
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -56,12 +56,12 @@ private fun DeviceView(
             checked = isStarted,
             onCheckedChange = { value ->
                 if (value) {
-                    model.startDjiDeviceLiveStream(device = device)
+                    TODO("startDjiDeviceLiveStream")
                 } else {
-                    model.stopDjiDeviceLiveStream(device = device)
+                    TODO("stopDjiDeviceLiveStream")
                 }
             },
-            enabled = device.canStartLive(status.isConnectedToIpv4WiFi()),
+            enabled = TODO("canStartLive"),
         )
     }
 }
@@ -73,7 +73,7 @@ fun QuickButtonDjiDevicesView(
     djiDevices: SettingsDjiDevices,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val devices by djiDevices.devices.collectAsState()
+    val devices = djiDevices.devices
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(title = { Text("DJI devices") })
         LazyColumn(modifier = Modifier.fillMaxSize()) {

@@ -12,9 +12,9 @@ class RtmpDataMessage : RtmpMessage {
     constructor(dataType: RtmpMessageType) : super(dataType)
 
     constructor(
-        streamId: UInt32,
+        streamId: UInt,
         dataType: RtmpMessageType,
-        timestamp: UInt32,
+        timestamp: UInt,
         handlerName: String,
         arguments: List<AsValue> = emptyList()
     ) : super(dataType) {
@@ -24,10 +24,10 @@ class RtmpDataMessage : RtmpMessage {
         this.streamId = streamId
     }
 
-    override var encoded: ByteArray
+    var encodedData: ByteArray
         get() {
-            if (super.encoded.isNotEmpty()) {
-                return super.encoded
+            if (encoded.isNotEmpty()) {
+                return encoded
             }
             val serializer = Amf0Encoder()
             if (type == RtmpMessageType.amf3Data) {
@@ -37,15 +37,15 @@ class RtmpDataMessage : RtmpMessage {
             for (argument in arguments) {
                 serializer.encode(argument)
             }
-            super.encoded = serializer.data
-            return super.encoded
+            encoded = serializer.data
+            return encoded
         }
         set(value) {
-            if (super.encoded.contentEquals(value)) {
+            if (encoded.contentEquals(value)) {
                 return
             }
             if (length == value.size) {
-                val decoder = Amf0Decoder(data = value)
+                val decoder = Amf0Decoder(value)
                 if (type == RtmpMessageType.amf3Data) {
                     decoder.position = 1
                 }
@@ -58,7 +58,7 @@ class RtmpDataMessage : RtmpMessage {
                     Log.i(TAG, "rtmp-data-message: $decoder")
                 }
             }
-            super.encoded = value
+            encoded = value
         }
 
     companion object {

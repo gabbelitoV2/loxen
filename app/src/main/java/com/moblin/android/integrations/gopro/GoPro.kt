@@ -10,9 +10,9 @@ object GoPro {
         resolution: SettingsGoProLaunchLiveStreamResolution,
     ): Bitmap? {
         val suffix = when (resolution) {
-            SettingsGoProLaunchLiveStreamResolution.R1080P -> "!GL"
-            SettingsGoProLaunchLiveStreamResolution.R720P -> "!GM"
-            SettingsGoProLaunchLiveStreamResolution.R480P -> "!GS"
+            SettingsGoProLaunchLiveStreamResolution.r1080p -> "!GL"
+            SettingsGoProLaunchLiveStreamResolution.r720p -> "!GM"
+            SettingsGoProLaunchLiveStreamResolution.r480p -> "!GS"
         }
         return if (isHero12Or13) {
             generateQrCode(suffix)

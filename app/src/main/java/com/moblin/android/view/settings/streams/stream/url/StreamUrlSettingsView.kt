@@ -41,17 +41,19 @@ fun StreamUrlSettingsView(
 ) {
     val isLive = model.isLive.collectAsState().value
     val isRecording = model.isRecording.collectAsState().value
-    val url = stream.url.collectAsState().value
+    val url = stream.url
     UrlSettingsView(
         disabled = isLive || isRecording,
         url = url,
-        onUrlChange = { stream.url.value = it },
+        onChangeUrl = { stream.url = it },
         value = url,
         placeholder = "srtla://foobar.org:4432",
         allowedSchemes = null,
         examples = rtmpExamples + srtExamples + whipExamples + mobcamExamples,
         onSubmitted = {
-            model.reloadStreamIfEnabled(stream)
+            TODO("reloadStreamIfEnabled")
+        },
+        onDismiss = {
         },
     )
 }
@@ -64,17 +66,19 @@ fun StreamMultiStreamingUrlView(
 ) {
     val isLive = model.isLive.collectAsState().value
     val isRecording = model.isRecording.collectAsState().value
-    val url = destination.url.collectAsState().value
+    val url = destination.url
     UrlSettingsView(
         disabled = isLive || isRecording,
         url = url,
-        onUrlChange = { destination.url.value = it },
+        onChangeUrl = { destination.url = it },
         value = url,
         placeholder = "rtmp://foobar.org:3321/app/5678",
         allowedSchemes = listOf("rtmp", "rtmps"),
         examples = rtmpExamples,
         onSubmitted = {
-            model.reloadStreamIfEnabled(stream)
+            TODO("reloadStreamIfEnabled")
+        },
+        onDismiss = {
         },
     )
 }

@@ -77,18 +77,18 @@ class ColorCubeFilter(
 ) {
     var colorSpace: ColorSpace? = null
 
-    var inputImage: Bitmap? = null
+    var inputImage: Image? = null
 
-    val outputImage: Bitmap?
+    val outputImage: Image?
         get() = TODO("OpenGL ES port")
 }
 
 class MTIColorLookupFilter {
-    var inputImage: Bitmap? = null
+    var inputImage: Image? = null
 
     var inputColorLookupTable: Bitmap? = null
 
-    val outputImage: Bitmap?
+    val outputImage: Image?
         get() = TODO("OpenGL ES port")
 }
 
@@ -140,7 +140,7 @@ fun convertLutTo64(bigLut: List<SIMD3>, bigDimension: Int): List<SIMD3> {
 fun lutEffectConvertCube(data: ByteArray): SC3DLut {
     val sc3dLut = SC3DLut(data)
     if (sc3dLut.size > 64) {
-        val bigLut = sc3dLut.entries.map { entry in SIMD3(entry.red, entry.green, entry.blue) }
+        val bigLut = sc3dLut.entries.map { entry -> SIMD3(entry.red, entry.green, entry.blue) }
         sc3dLut.entries = convertLutTo64(bigLut = bigLut, bigDimension = sc3dLut.size).map { entry ->
             LutEntry(red = entry.x, green = entry.y, blue = entry.z)
         }.toMutableList()
@@ -299,7 +299,7 @@ private fun floatArrayToByteArray(values: FloatArray): ByteArray {
     return buffer.array()
 }
 
-class LutEffect : VideoEffect {
+class LutEffect : VideoEffect() {
     private var filter: ColorCubeFilter? = null
     private val filterMetalPetal = MTIColorLookupFilter()
 
@@ -328,9 +328,9 @@ class LutEffect : VideoEffect {
                     else -> "$error"
                 }
                 val title = when (lut?.type) {
-                    SettingsColorLutType.BUNDLED -> localized("Failed to load bundled file")
-                    SettingsColorLutType.DISK -> localized("Failed to load .png file")
-                    SettingsColorLutType.DISK_CUBE -> localized("Failed to load .cube file")
+                    SettingsColorLutType.bundled -> localized("Failed to load bundled file")
+                    SettingsColorLutType.disk -> localized("Failed to load .png file")
+                    SettingsColorLutType.diskCube -> localized("Failed to load .cube file")
                     null -> ""
                 }
                 mainScope.launch {
@@ -344,13 +344,13 @@ class LutEffect : VideoEffect {
         return filter != null
     }
 
-    override fun execute(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         val currentFilter = filter ?: return image
         currentFilter.inputImage = image
         return currentFilter.outputImage ?: image
     }
 
-    override fun executeMetalPetal(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         if (filterMetalPetal.inputColorLookupTable == null) {
             return image
         }
@@ -361,9 +361,9 @@ class LutEffect : VideoEffect {
     private fun loadLut(lut: SettingsColorLut?, imageStorage: ImageStorage) {
         if (lut != null) {
             when (lut.type) {
-                SettingsColorLutType.BUNDLED -> loadBundledPngLut(lut = lut)
-                SettingsColorLutType.DISK -> loadDiskPngLut(lut = lut, imageStorage = imageStorage)
-                SettingsColorLutType.DISK_CUBE -> loadDiskCubeLut(
+                SettingsColorLutType.bundled -> loadBundledPngLut(lut = lut)
+                SettingsColorLutType.disk -> loadDiskPngLut(lut = lut, imageStorage = imageStorage)
+                SettingsColorLutType.diskCube -> loadDiskCubeLut(
                     lut = lut,
                     imageStorage = imageStorage,
                 )
@@ -381,7 +381,7 @@ class LutEffect : VideoEffect {
     }
 
     private fun loadDiskPngLut(lut: SettingsColorLut, imageStorage: ImageStorage) {
-        val data = File(imageStorage.makePath(id = lut.id)).readBytes()
+        val data = imageStorage.makePath(id = lut.id).readBytes()
         val image = BitmapFactory.decodeByteArray(data, 0, data.size)
             ?: throw Exception(localized("Failed to create LUT image"))
         loadImageLut(image = image)
@@ -389,7 +389,7 @@ class LutEffect : VideoEffect {
 
     private fun loadDiskCubeLut(lut: SettingsColorLut, imageStorage: ImageStorage) {
         val sc3dLut = lutEffectConvertCube(
-            File(imageStorage.makePath(id = lut.id)).readBytes(),
+            imageStorage.makePath(id = lut.id).readBytes(),
         )
         val filter = sc3dLut.ciFilter()
         val lutImage = makeLutImage(

@@ -43,6 +43,9 @@ private data class ShareItem(
 private fun isMessageVisible(logFilter: String, message: String): Boolean =
     logFilter.isEmpty() || message.lowercase().contains(logFilter.lowercase())
 
+private fun formatLog(log: List<LogEntry>): String =
+    log.joinToString("\n") { it.message }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DebugLogSettingsView(
@@ -73,7 +76,7 @@ fun DebugLogSettingsView(
                         enabled = log.isNotEmpty(),
                         onClick = {
                             shareItem = ShareItem(
-                                url = model.formatLog(
+                                url = formatLog(
                                     log.filter { isMessageVisible(logFilter, it.message) },
                                 ),
                             )

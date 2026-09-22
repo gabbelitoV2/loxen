@@ -23,8 +23,8 @@ fun Model.takeSnapshot(isChatBot: Boolean = false, message: String? = null, noDe
     if (isChatPhone()) {
         return
     }
-    val age = if (isChatBot && !noDelay) stream.estimatedViewerDelay else 0.0
-    media.takeSnapshot(age = age) { uiImage, image, portraitImage ->
+    val age = if (isChatBot && !noDelay) stream.value.estimatedViewerDelay else 0.0
+    media.takeSnapshot(age = age.toFloat()) { uiImage, image, portraitImage ->
         val output = ByteArrayOutputStream()
         if (uiImage.compress(Bitmap.CompressFormat.JPEG, 90, output)) {
             val imageJpeg = output.toByteArray()
@@ -39,19 +39,19 @@ fun Model.takeSnapshot(isChatBot: Boolean = false, message: String? = null, noDe
 
 private fun Model.appendSnapshotToSnapshotWidgets(image: Bitmap) {
     for (snapshotEffect in enabledSnapshotEffects) {
-        snapshotEffect.appendSnapshot(image = image)
+        snapshotEffect.appendSnapshot(image = EffectImageCiImage(image))
     }
 }
 
 private fun Model.tryTakeNextSnapshot() {
-    if (snapshot.currentJob != null) {
+    if (snapshot.currentJob.value != null) {
         return
     }
-    snapshot.currentJob = snapshotJobs.removeFirstOrNull()
-    if (snapshot.currentJob == null) {
+    snapshot.currentJob.value = snapshotJobs.removeFirstOrNull()
+    if (snapshot.currentJob.value == null) {
         return
     }
-    snapshot.countdown = 5
+    snapshot.countdown.value = 5
     snapshotCountdownTick()
 }
 
@@ -70,12 +70,12 @@ fun Model.formatSnapshotTakenNotAllowed(user: String): String {
 private fun Model.snapshotCountdownTick() {
     mainScope.launch {
         delay(1_000)
-        snapshot.countdown -= 1
-        if (snapshot.countdown != 0) {
+        snapshot.countdown.value = snapshot.countdown.value - 1
+        if (snapshot.countdown.value != 0) {
             snapshotCountdownTick()
             return@launch
         }
-        val snapshotJob = snapshot.currentJob ?: return@launch
+        val snapshotJob = snapshot.currentJob.value ?: return@launch
         var message = snapshotJob.message
         snapshotJob.user?.let { user ->
             message += "\n"
@@ -84,7 +84,7 @@ private fun Model.snapshotCountdownTick() {
         takeSnapshot(isChatBot = snapshotJob.isChatBot, message = message, noDelay = true)
         mainScope.launch {
             delay(10_000)
-            snapshot.currentJob = null
+            snapshot.currentJob.value = null
             tryTakeNextSnapshot()
         }
     }
@@ -100,15 +100,15 @@ fun Model.takeSnapshotWithCountdown(isChatBot: Boolean, message: String, user: S
 
 private fun Model.getDiscordWebhookUrl(isChatBot: Boolean): String? {
     return if (isChatBot) {
-        stream.discordChatBotSnapshotWebhook.takeIf { it.isNotBlank() }
+        stream.value.discordChatBotSnapshotWebhook.takeIf { it.isNotBlank() }
     } else {
-        stream.discordSnapshotWebhook.takeIf { it.isNotBlank() }
+        stream.value.discordSnapshotWebhook.takeIf { it.isNotBlank() }
     }
 }
 
 private fun Model.tryUploadSnapshotToDiscord(image: ByteArray, message: String?, isChatBot: Boolean) {
     val url = getDiscordWebhookUrl(isChatBot)
-    if ((!stream.discordSnapshotWebhookOnlyWhenLive || isLive) && url != null) {
+    if ((!stream.value.discordSnapshotWebhookOnlyWhenLive || isLive.value) && url != null) {
         uploadImage(
             url = url,
             paramName = "snapshot",
@@ -138,5 +138,5 @@ fun Model.takeVideoSourcePreviewImage(
 }
 
 fun Model.setCleanSnapshots() {
-    media.setCleanSnapshots(enabled = stream.recording.cleanSnapshots)
+    media.setCleanSnapshots(enabled = stream.value.recording.cleanSnapshots)
 }

@@ -4,7 +4,7 @@ import android.media.MediaPlayer
 import com.moblin.android.various.settings.SettingsQuickButtonType
 
 fun Model.isChatPhone(): Boolean {
-    return database.appMode == AppMode.chatPhone
+    return database.appMode.toString() == "chatPhone"
 }
 
 fun Model.isQuickButtonAllowed(type: SettingsQuickButtonType): Boolean {
@@ -62,8 +62,8 @@ fun Model.isQuickButtonAllowed(type: SettingsQuickButtonType): Boolean {
 }
 
 fun Model.appModeChanged() {
-    show.chatPhone = isChatPhone()
-    mic.current = noMic
+    show.chatPhone.value = isChatPhone()
+    mic.current.value = noMic
     updateQuickButtonPairs()
     updateScreenAutoOff()
     reloadAudioSession()
@@ -78,10 +78,7 @@ fun Model.startChatPhoneBackgroundAudio() {
     if (!isChatPhone()) {
         return
     }
-    val player: MediaPlayer = TODO("Resolve Alerts.bundle/Silence.mp3 from assets and create a MediaPlayer")
-    player.isLooping = true
-    player.start()
-    chatPhoneBackgroundAudioPlayer = player
+    TODO("Resolve Alerts.bundle/Silence.mp3 from assets and create an AudioPlayer")
 }
 
 fun Model.stopChatPhoneBackgroundAudio() {

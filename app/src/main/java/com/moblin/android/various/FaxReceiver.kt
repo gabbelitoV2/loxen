@@ -21,7 +21,7 @@ class FaxReceiver {
         httpRequest(
             Request.Builder().url(url).build(),
         ) { data, response, _ ->
-            if (data == null || response?.http?.isSuccessful != true) {
+            if (data == null || response?.isSuccessful != true) {
                 return@httpRequest
             }
             val image = BitmapFactory.decodeByteArray(data, 0, data.size) ?: return@httpRequest

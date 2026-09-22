@@ -17,13 +17,13 @@ data class BondingPercentage(
 )
 
 private val colors: List<Color> = listOf(
-    RgbColor(red = 0xE6, green = 0x9F, blue = 0x00).color(),
-    RgbColor(red = 0x00, green = 0x9E, blue = 0x73).color(),
-    RgbColor(red = 0xF0, green = 0xE4, blue = 0x42).color(),
-    RgbColor(red = 0x00, green = 0x72, blue = 0xB2).color(),
-    RgbColor(red = 0xCC, green = 0x79, blue = 0xA7).color(),
-    RgbColor(red = 0x56, green = 0xB4, blue = 0xE9).color(),
-    RgbColor(red = 0xD5, green = 0x5E, blue = 0x00).color(),
+    Color(red = 0xE6, green = 0x9F, blue = 0x00),
+    Color(red = 0x00, green = 0x9E, blue = 0x73),
+    Color(red = 0xF0, green = 0xE4, blue = 0x42),
+    Color(red = 0x00, green = 0x72, blue = 0xB2),
+    Color(red = 0xCC, green = 0x79, blue = 0xA7),
+    Color(red = 0x56, green = 0xB4, blue = 0xE9),
+    Color(red = 0xD5, green = 0x5E, blue = 0x00),
 )
 
 class BondingStatisticsFormatter {

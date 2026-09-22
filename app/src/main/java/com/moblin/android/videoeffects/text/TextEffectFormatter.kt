@@ -71,10 +71,10 @@ class TextEffectFormatter {
     var formatParts: List<TextFormatPart>
     var timersEndTime: List<Long>
     var stopwatches: List<SettingsWidgetTextStopwatch>
-    var temperatureFormatter = MeasurementFormatter()
-    val speedFormatter = MeasurementFormatter()
-    val altitudeFormatter = MeasurementFormatter()
-    val lengthFormatter = MeasurementFormatter()
+    private var temperatureFormatter = MeasurementFormatter()
+    private val speedFormatter = MeasurementFormatter()
+    private val altitudeFormatter = MeasurementFormatter()
+    private val lengthFormatter = MeasurementFormatter()
     var checkboxes: List<Boolean>
     var ratings: List<Int>
     var subtitles: MutableMap<String?, Subtitles> = mutableMapOf()
@@ -167,10 +167,10 @@ class TextEffectFormatter {
                 TextFormatPart.Neighborhood -> formatNeighborhood(variables = variables)
                 TextFormatPart.Checkbox -> formatCheckbox()
                 TextFormatPart.Rating -> formatRating()
-                is TextFormatPart.Subtitles -> formatSubtitles(identifier = formatPart.identifier)
+                is TextFormatPart.Subtitles -> formatSubtitles(identifier = formatPart.language)
                 TextFormatPart.Muted -> formatMuted(variables = variables)
                 is TextFormatPart.HeartRate ->
-                    formatHeartRate(variables = variables, deviceName = formatPart.deviceName)
+                    formatHeartRate(variables = variables, deviceName = formatPart.value)
                 TextFormatPart.ActiveEnergyBurned -> formatActiveEnergyBurned(variables = variables)
                 TextFormatPart.Power -> formatPower(variables = variables)
                 TextFormatPart.StepCount -> formatStepCount(variables = variables)
@@ -183,16 +183,16 @@ class TextEffectFormatter {
                 is TextFormatPart.CyclingSpeed ->
                     formatCyclingSpeed(variables = variables, unit = formatPart.unit)
                 is TextFormatPart.RunningPace ->
-                    formatRunningPace(variables = variables, deviceName = formatPart.deviceName)
+                    formatRunningPace(variables = variables, deviceName = formatPart.value)
                 is TextFormatPart.RunningCadence ->
-                    formatRunningCadence(variables = variables, deviceName = formatPart.deviceName)
+                    formatRunningCadence(variables = variables, deviceName = formatPart.value)
                 is TextFormatPart.RunningDistance ->
-                    formatRunningDistance(variables = variables, deviceName = formatPart.deviceName)
+                    formatRunningDistance(variables = variables, deviceName = formatPart.value)
                 TextFormatPart.LapTimes -> formatLapTimes()
                 TextFormatPart.BrowserTitle -> formatBrowserTitle(variables = variables)
-                TextFormatPart.GForce -> formatGForce(variables = variables)
-                TextFormatPart.GForceRecentMax -> formatGForceRecentMax(variables = variables)
-                TextFormatPart.GForceMax -> formatGForceMax(variables = variables)
+                is TextFormatPart.GForce -> formatGForce(variables = variables)
+                is TextFormatPart.GForceRecentMax -> formatGForceRecentMax(variables = variables)
+                is TextFormatPart.GForceMax -> formatGForceMax(variables = variables)
                 TextFormatPart.LatestSubscriber -> formatLatestSubscriber(variables = variables)
                 TextFormatPart.LatestFollower -> formatLatestFollower(variables = variables)
                 TextFormatPart.SystemMonitor -> formatSystemMonitor(variables = variables)
@@ -291,19 +291,19 @@ class TextEffectFormatter {
 
     private fun formatAltitude(altitude: Double, unit: TextFormatLengthUnit) {
         val (value, measureUnit) = when (unit) {
-            TextFormatLengthUnit.System ->
+            TextFormatLengthUnit.system ->
                 if (systemUsesImperialUnits) {
                     altitude / 0.3048 to MeasureUnit.FOOT
                 } else {
                     altitude to MeasureUnit.METER
                 }
-            TextFormatLengthUnit.Meters -> altitude to MeasureUnit.METER
-            TextFormatLengthUnit.Kilometers -> altitude / 1000.0 to MeasureUnit.KILOMETER
-            TextFormatLengthUnit.Feet -> altitude / 0.3048 to MeasureUnit.FOOT
-            TextFormatLengthUnit.Yards -> altitude / 0.9144 to MeasureUnit.YARD
-            TextFormatLengthUnit.Miles -> altitude / 1609.344 to MeasureUnit.MILE
-            TextFormatLengthUnit.NauticalMiles -> altitude / 1852.0 to MeasureUnit.NAUTICAL_MILE
-            TextFormatLengthUnit.LightYears -> altitude / 9.4607304725808e15 to MeasureUnit.LIGHT_YEAR
+            TextFormatLengthUnit.meters -> altitude to MeasureUnit.METER
+            TextFormatLengthUnit.kilometers -> altitude / 1000.0 to MeasureUnit.KILOMETER
+            TextFormatLengthUnit.feet -> altitude / 0.3048 to MeasureUnit.FOOT
+            TextFormatLengthUnit.yards -> altitude / 0.9144 to MeasureUnit.YARD
+            TextFormatLengthUnit.miles -> altitude / 1609.344 to MeasureUnit.MILE
+            TextFormatLengthUnit.nauticalMiles -> altitude / 1852.0 to MeasureUnit.NAUTICAL_MILE
+            else -> altitude / 9.4607304725808e15 to MeasureUnit.LIGHT_YEAR
         }
         appendTextPart(value = altitudeFormatter.string(value, measureUnit))
     }
@@ -333,7 +333,9 @@ class TextEffectFormatter {
             val stopwatch = stopwatches[stopwatchIndex]
             var elapsed = stopwatch.totalElapsed
             if (stopwatch.running) {
-                elapsed += (now - stopwatch.playPressedTime) / 1_000_000_000.0
+                val playPressedTime = stopwatch.playPressedTime.epochSecond * 1_000_000_000L +
+                    stopwatch.playPressedTime.nano
+                elapsed += (now - playPressedTime) / 1_000_000_000.0
             }
             appendTextPart(value = uptimeFormatter.string(elapsed) ?: "")
         }
@@ -371,14 +373,11 @@ class TextEffectFormatter {
             val windGust = variables.windGust
             if (windGust != null) {
                 appendTextPart(
-                    value = formatWindAndGustSpeed(
-                        speed = windSpeed,
-                        gust = windGust,
-                        unit = unit.toSystem(),
-                    ),
+                    value = formatSpeed(speed = windSpeed, unit = unit) + " " +
+                        formatSpeed(speed = windGust, unit = unit),
                 )
             } else {
-                appendTextPart(value = formatWindSpeed(speed = windSpeed, unit = unit.toSystem()))
+                appendTextPart(value = formatSpeed(speed = windSpeed, unit = unit))
             }
         } else {
             appendTextPart(value = "-")
@@ -526,7 +525,7 @@ class TextEffectFormatter {
     private fun formatRunningDistance(variables: Variables, deviceName: String) {
         val distance = variables.runningMetrics[deviceName]?.distance
         if (distance != null) {
-            appendTextPart(value = format(distance = distance))
+            appendTextPart(value = formatSystemDistance(distance = distance))
         } else {
             appendTextPart(value = "-")
         }
@@ -608,28 +607,22 @@ class TextEffectFormatter {
 
     private fun formatSpeed(speed: Double, unit: TextFormatSpeedUnit): String {
         val value = maxOf(speed, 0.0)
-        val converted: Double
-        val measureUnit: MeasureUnit
-        when (unit) {
-            TextFormatSpeedUnit.System -> {
+        val (converted, measureUnit) = when (unit) {
+            TextFormatSpeedUnit.system -> {
                 speedFormatter.unitOptions = emptySet()
-                converted = value
-                measureUnit = MeasureUnit.METER_PER_SECOND
+                value to MeasureUnit.METER_PER_SECOND
             }
-            TextFormatSpeedUnit.MetersPerSecond -> {
+            TextFormatSpeedUnit.metersPerSecond -> {
                 speedFormatter.unitOptions = setOf(UnitOptions.ProvidedUnit)
-                converted = value
-                measureUnit = MeasureUnit.METER_PER_SECOND
+                value to MeasureUnit.METER_PER_SECOND
             }
-            TextFormatSpeedUnit.KilometersPerHour -> {
+            TextFormatSpeedUnit.kilometersPerHour -> {
                 speedFormatter.unitOptions = setOf(UnitOptions.ProvidedUnit)
-                converted = value * 3.6
-                measureUnit = MeasureUnit.KILOMETER_PER_HOUR
+                value * 3.6 to MeasureUnit.KILOMETER_PER_HOUR
             }
-            TextFormatSpeedUnit.MilesPerHour -> {
+            TextFormatSpeedUnit.milesPerHour -> {
                 speedFormatter.unitOptions = setOf(UnitOptions.ProvidedUnit)
-                converted = value * 2.2369362920544
-                measureUnit = MeasureUnit.MILE_PER_HOUR
+                value * 2.2369362920544 to MeasureUnit.MILE_PER_HOUR
             }
         }
         return speedFormatter.string(converted, measureUnit)
@@ -637,28 +630,22 @@ class TextEffectFormatter {
 
     private fun formatTemperature(temperature: Double?, unit: TextFormatTemperatureUnit): String {
         if (temperature != null) {
-            val value: Double
-            val measureUnit: MeasureUnit
-            when (unit) {
-                TextFormatTemperatureUnit.System -> {
+            val (value, measureUnit) = when (unit) {
+                TextFormatTemperatureUnit.system -> {
                     temperatureFormatter.unitOptions = emptySet()
-                    value = temperature
-                    measureUnit = MeasureUnit.CELSIUS
+                    temperature to MeasureUnit.CELSIUS
                 }
-                TextFormatTemperatureUnit.Kelvin -> {
+                TextFormatTemperatureUnit.kelvin -> {
                     temperatureFormatter.unitOptions = setOf(UnitOptions.ProvidedUnit)
-                    value = temperature + 273.15
-                    measureUnit = MeasureUnit.KELVIN
+                    temperature + 273.15 to MeasureUnit.KELVIN
                 }
-                TextFormatTemperatureUnit.Celsius -> {
+                TextFormatTemperatureUnit.celsius -> {
                     temperatureFormatter.unitOptions = setOf(UnitOptions.ProvidedUnit)
-                    value = temperature
-                    measureUnit = MeasureUnit.CELSIUS
+                    temperature to MeasureUnit.CELSIUS
                 }
-                TextFormatTemperatureUnit.Fahrenheit -> {
+                TextFormatTemperatureUnit.fahrenheit -> {
                     temperatureFormatter.unitOptions = setOf(UnitOptions.ProvidedUnit)
-                    value = temperature * 9.0 / 5.0 + 32.0
-                    measureUnit = MeasureUnit.FAHRENHEIT
+                    temperature * 9.0 / 5.0 + 32.0 to MeasureUnit.FAHRENHEIT
                 }
             }
             return temperatureFormatter.string(value, measureUnit)
@@ -668,21 +655,29 @@ class TextEffectFormatter {
     }
 
     private fun formatDistance(distance: Double, unit: TextFormatLengthUnit) {
-        if (unit == TextFormatLengthUnit.System) {
-            appendTextPart(value = format(distance = distance))
+        if (unit == TextFormatLengthUnit.system) {
+            appendTextPart(value = formatSystemDistance(distance = distance))
             return
         }
         val (value, measureUnit) = when (unit) {
-            TextFormatLengthUnit.System -> distance to MeasureUnit.METER
-            TextFormatLengthUnit.Meters -> distance to MeasureUnit.METER
-            TextFormatLengthUnit.Kilometers -> distance / 1000.0 to MeasureUnit.KILOMETER
-            TextFormatLengthUnit.Feet -> distance / 0.3048 to MeasureUnit.FOOT
-            TextFormatLengthUnit.Yards -> distance / 0.9144 to MeasureUnit.YARD
-            TextFormatLengthUnit.Miles -> distance / 1609.344 to MeasureUnit.MILE
-            TextFormatLengthUnit.NauticalMiles -> distance / 1852.0 to MeasureUnit.NAUTICAL_MILE
-            TextFormatLengthUnit.LightYears -> distance / 9.4607304725808e15 to MeasureUnit.LIGHT_YEAR
+            TextFormatLengthUnit.system -> distance to MeasureUnit.METER
+            TextFormatLengthUnit.meters -> distance to MeasureUnit.METER
+            TextFormatLengthUnit.kilometers -> distance / 1000.0 to MeasureUnit.KILOMETER
+            TextFormatLengthUnit.feet -> distance / 0.3048 to MeasureUnit.FOOT
+            TextFormatLengthUnit.yards -> distance / 0.9144 to MeasureUnit.YARD
+            TextFormatLengthUnit.miles -> distance / 1609.344 to MeasureUnit.MILE
+            TextFormatLengthUnit.nauticalMiles -> distance / 1852.0 to MeasureUnit.NAUTICAL_MILE
+            else -> distance / 9.4607304725808e15 to MeasureUnit.LIGHT_YEAR
         }
         appendTextPart(value = lengthFormatter.string(value, measureUnit))
+    }
+
+    private fun formatSystemDistance(distance: Double): String {
+        return if (systemUsesImperialUnits) {
+            lengthFormatter.string(distance / 1609.344, MeasureUnit.MILE)
+        } else {
+            lengthFormatter.string(distance / 1000.0, MeasureUnit.KILOMETER)
+        }
     }
 
     private fun appendTextPart(value: String) {
@@ -724,7 +719,7 @@ private class MeasurementFormatter {
         }
         return NumberFormatter.withLocale(Locale.getDefault())
             .unit(convertedUnit)
-            .precision(Precision.maxFractionDigits(numberFormatter.maximumFractionDigits))
+            .precision(Precision.maxFraction(numberFormatter.maximumFractionDigits))
             .format(convertedValue)
             .toString()
     }

@@ -25,7 +25,7 @@ import com.moblin.android.common.various.cleanUrl
 import com.moblin.android.common.various.isValidUrl
 import com.moblin.android.localized
 import com.moblin.android.various.model.CreateStreamWizard
-import com.moblin.android.various.model.CustomProtocol
+import com.moblin.android.various.model.WizardCustomProtocol
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
@@ -42,7 +42,7 @@ fun StreamWizardCustomRistSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val urlError = remember { mutableStateOf("") }
-    val customRistUrl by createStreamWizard.customRistUrl.collectAsState()
+    val customRistUrl = createStreamWizard.customRistUrl
 
     fun nextDisabled(): Boolean = customRistUrl.isEmpty() || urlError.value.isNotEmpty()
 
@@ -60,9 +60,9 @@ fun StreamWizardCustomRistSettingsView(
     }
 
     LaunchedEffect(Unit) {
-        createStreamWizard.setCustomProtocol(CustomProtocol.rist)
-        createStreamWizard.setName(
-            makeUniqueName(localized("Custom RIST"), model.database.streams),
+        createStreamWizard.customProtocol = WizardCustomProtocol.rist
+        createStreamWizard.name = makeUniqueName(
+            localized("Custom RIST"), model.database.streams,
         )
     }
 
@@ -85,7 +85,7 @@ fun StreamWizardCustomRistSettingsView(
                 Text("URL", style = MaterialTheme.typography.titleSmall)
                 OutlinedTextField(
                     value = customRistUrl,
-                    onValueChange = { createStreamWizard.setCustomRistUrl(it) },
+                    onValueChange = { createStreamWizard.customRistUrl = it },
                     modifier = Modifier.fillMaxWidth(),
                     placeholder = { Text("rist://120.35.234.2:2030") },
                     singleLine = true,

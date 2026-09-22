@@ -123,8 +123,8 @@ class OpenAi(baseUrl: URI, private val apiKey: String) {
                     onComplete(Result.failure(OpenAiError.MalformedResponse))
                     return@launch
                 }
-                if (response.statusCode !in 200..299) {
-                    if (response.statusCode == 429) {
+                if (response.code !in 200..299) {
+                    if (response.code == 429) {
                         onComplete(Result.failure(OpenAiError.RateLimited))
                     } else {
                         val message = runCatching {
@@ -134,7 +134,7 @@ class OpenAi(baseUrl: URI, private val apiKey: String) {
                             )
                         }.getOrNull()?.errors?.firstOrNull()?.error?.message ?: ""
                         onComplete(
-                            Result.failure(OpenAiError.HttpError(response.statusCode, message)),
+                            Result.failure(OpenAiError.HttpError(response.code, message)),
                         )
                     }
                     return@launch

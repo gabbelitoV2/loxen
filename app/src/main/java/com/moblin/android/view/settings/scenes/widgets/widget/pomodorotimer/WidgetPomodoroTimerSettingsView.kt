@@ -111,7 +111,7 @@ fun PomodoroSoundSelectorView(
 
 @Composable
 fun WidgetPomodoroTimerQuickButtonControlsView(pomodoroTimer: SettingsWidgetPomodoroTimer) {
-    val isRunning by pomodoroTimer.isRunning.collectAsState()
+    val isRunning = pomodoroTimer.isRunning
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -159,17 +159,17 @@ fun WidgetPomodoroTimerSettingsView(
     pomodoroTimer: SettingsWidgetPomodoroTimer,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val focusDuration by pomodoroTimer.focusDuration.collectAsState()
-    val breakDuration by pomodoroTimer.breakDuration.collectAsState()
-    val focusName by pomodoroTimer.focusName.collectAsState()
-    val breakName by pomodoroTimer.breakName.collectAsState()
-    val focusIcon by pomodoroTimer.focusIcon.collectAsState()
-    val breakIcon by pomodoroTimer.breakIcon.collectAsState()
-    val width by pomodoroTimer.width.collectAsState()
-    val focusToBreakSoundId by pomodoroTimer.focusToBreakSoundId.collectAsState()
-    val breakToFocusSoundId by pomodoroTimer.breakToFocusSoundId.collectAsState()
-    val focusToBreakChatMessage by pomodoroTimer.focusToBreakChatMessage.collectAsState()
-    val breakToFocusChatMessage by pomodoroTimer.breakToFocusChatMessage.collectAsState()
+    val focusDuration = pomodoroTimer.focusDuration
+    val breakDuration = pomodoroTimer.breakDuration
+    val focusName = pomodoroTimer.focusName
+    val breakName = pomodoroTimer.breakName
+    val focusIcon = pomodoroTimer.focusIcon
+    val breakIcon = pomodoroTimer.breakIcon
+    val width = pomodoroTimer.width
+    val focusToBreakSoundId = pomodoroTimer.focusToBreakSoundId
+    val breakToFocusSoundId = pomodoroTimer.breakToFocusSoundId
+    val focusToBreakChatMessage = pomodoroTimer.focusToBreakChatMessage
+    val breakToFocusChatMessage = pomodoroTimer.breakToFocusChatMessage
 
     var focusDurationExpanded by remember { mutableStateOf(false) }
     var breakDurationExpanded by remember { mutableStateOf(false) }
@@ -180,13 +180,13 @@ fun WidgetPomodoroTimerSettingsView(
     val breakDurationValues = listOf(1, 2, 3, 5, 7, 10, 15, 20, 25, 30)
 
     LaunchedEffect(focusDuration) {
-        if (pomodoroTimer.phase.value == PomodoroPhase.Focus && !pomodoroTimer.isRunning.value) {
-            pomodoroTimer.setSecondsRemaining(focusDuration * 60)
+        if (pomodoroTimer.phase == PomodoroPhase.focus && !pomodoroTimer.isRunning) {
+            pomodoroTimer.secondsRemaining = focusDuration * 60
         }
     }
     LaunchedEffect(breakDuration) {
-        if (pomodoroTimer.phase.value == PomodoroPhase.ShortBreak && !pomodoroTimer.isRunning.value) {
-            pomodoroTimer.setSecondsRemaining(breakDuration * 60)
+        if (pomodoroTimer.phase == PomodoroPhase.shortBreak && !pomodoroTimer.isRunning) {
+            pomodoroTimer.secondsRemaining = breakDuration * 60
         }
     }
 
@@ -228,7 +228,7 @@ fun WidgetPomodoroTimerSettingsView(
                     DropdownMenuItem(
                         text = { Text("$value min") },
                         onClick = {
-                            pomodoroTimer.setFocusDuration(value)
+                            pomodoroTimer.focusDuration = value
                             focusDurationExpanded = false
                         },
                     )
@@ -260,7 +260,7 @@ fun WidgetPomodoroTimerSettingsView(
                     DropdownMenuItem(
                         text = { Text("$value min") },
                         onClick = {
-                            pomodoroTimer.setBreakDuration(value)
+                            pomodoroTimer.breakDuration = value
                             breakDurationExpanded = false
                         },
                     )
@@ -276,12 +276,12 @@ fun WidgetPomodoroTimerSettingsView(
         TextEditNavigationView(
             title = localized("Focus"),
             value = focusName,
-            onSubmit = { pomodoroTimer.setFocusName(it) },
+            onSubmit = { pomodoroTimer.focusName = it },
         )
         TextEditNavigationView(
             title = localized("Break"),
             value = breakName,
-            onSubmit = { pomodoroTimer.setBreakName(it) },
+            onSubmit = { pomodoroTimer.breakName = it },
         )
 
         Text(
@@ -322,7 +322,7 @@ fun WidgetPomodoroTimerSettingsView(
                             }
                         },
                         onClick = {
-                            pomodoroTimer.setFocusIcon(icon)
+                            pomodoroTimer.focusIcon = icon
                             focusIconExpanded = false
                         },
                     )
@@ -362,7 +362,7 @@ fun WidgetPomodoroTimerSettingsView(
                             }
                         },
                         onClick = {
-                            pomodoroTimer.setBreakIcon(icon)
+                            pomodoroTimer.breakIcon = icon
                             breakIconExpanded = false
                         },
                     )
@@ -384,7 +384,7 @@ fun WidgetPomodoroTimerSettingsView(
             Text("Width")
             Slider(
                 value = width,
-                onValueChange = { pomodoroTimer.setWidth(it) },
+                onValueChange = { pomodoroTimer.width = it },
                 valueRange = 1f..5f,
                 steps = 79,
                 modifier = Modifier.weight(1f),
@@ -398,28 +398,32 @@ fun WidgetPomodoroTimerSettingsView(
         )
         RgbColorPickerView(
             title = "Background",
-            color = pomodoroTimer.backgroundColorColor.collectAsState().value,
+            color = pomodoroTimer.backgroundColorColor,
+            onColorChanged = { pomodoroTimer.backgroundColorColor = it },
             opacity = true,
         ) {
-            pomodoroTimer.setBackgroundColor(it)
+            pomodoroTimer.backgroundColor = it
         }
         RgbColorPickerView(
             title = "Text",
-            color = pomodoroTimer.foregroundColorColor.collectAsState().value,
+            color = pomodoroTimer.foregroundColorColor,
+            onColorChanged = { pomodoroTimer.foregroundColorColor = it },
         ) {
-            pomodoroTimer.setForegroundColor(it)
+            pomodoroTimer.foregroundColor = it
         }
         RgbColorPickerView(
             title = "Focus",
-            color = pomodoroTimer.focusColorColor.collectAsState().value,
+            color = pomodoroTimer.focusColorColor,
+            onColorChanged = { pomodoroTimer.focusColorColor = it },
         ) {
-            pomodoroTimer.setFocusColor(it)
+            pomodoroTimer.focusColor = it
         }
         RgbColorPickerView(
             title = "Break",
-            color = pomodoroTimer.breakColorColor.collectAsState().value,
+            color = pomodoroTimer.breakColorColor,
+            onColorChanged = { pomodoroTimer.breakColorColor = it },
         ) {
-            pomodoroTimer.setBreakColor(it)
+            pomodoroTimer.breakColor = it
         }
 
         Text(
@@ -462,12 +466,12 @@ fun WidgetPomodoroTimerSettingsView(
         TextEditNavigationView(
             title = localized("Focus to break"),
             value = focusToBreakChatMessage,
-            onSubmit = { pomodoroTimer.setFocusToBreakChatMessage(it) },
+            onSubmit = { pomodoroTimer.focusToBreakChatMessage = it },
         )
         TextEditNavigationView(
             title = localized("Break to focus"),
             value = breakToFocusChatMessage,
-            onSubmit = { pomodoroTimer.setBreakToFocusChatMessage(it) },
+            onSubmit = { pomodoroTimer.breakToFocusChatMessage = it },
         )
     }
 }

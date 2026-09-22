@@ -18,7 +18,7 @@ object MoblinShortcuts {
 
     val appShortcuts: List<AppShortcut> = listOf(
         AppShortcut(
-            intent = MuteIntent(),
+            intent = MuteIntent::class,
             phrases = listOf(
                 "\${applicationName}, mute",
             ),
@@ -26,7 +26,7 @@ object MoblinShortcuts {
             systemImageName = "microphone.slash",
         ),
         AppShortcut(
-            intent = UnmuteIntent(),
+            intent = UnmuteIntent::class,
             phrases = listOf(
                 "\${applicationName}, unmute",
             ),
@@ -34,7 +34,7 @@ object MoblinShortcuts {
             systemImageName = "microphone",
         ),
         AppShortcut(
-            intent = SnapshotIntent(),
+            intent = SnapshotIntent::class,
             phrases = listOf(
                 "\${applicationName}, take snapshot",
             ),

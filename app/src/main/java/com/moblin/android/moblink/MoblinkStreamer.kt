@@ -144,7 +144,7 @@ private class WebSocketConnection(private val socket: Socket) {
     }
 }
 
-private class Relay(
+private class MoblinkRelay(
     val webSocket: WebSocketConnection,
     private val password: String,
     private val streamer: MoblinkStreamer?,
@@ -289,10 +289,10 @@ private class Relay(
     ) {
         Log.i(TAG, "moblink-streamer: $name: Starting tunnel to destination $address:$port")
         performRequest(
-            data = MoblinkRequest.StartTunnel(address = address, port = port),
+            data = MoblinkRequest.StartTunnel(address = address, port = port.toUShort()),
             onSuccess = { response ->
                 if (response is MoblinkResponse.StartTunnel) {
-                    onSuccess(relayId, name, response.port)
+                    onSuccess(relayId, name, response.port.toInt())
                 }
             },
             onError = { error ->
@@ -307,11 +307,11 @@ private class Relay(
             this.relayId = relayId
             this.name = name.substringBefore("\n").trim().take(30)
             identified = true
-            send(MoblinkMessageToRelay.Identified(result = MoblinkResult.OK))
+            send(MoblinkMessageToRelay.Identified(result = MoblinkResult.ok))
             startTunnelInternal()
             updateStatus()
         } else {
-            send(MoblinkMessageToRelay.Identified(result = MoblinkResult.WRONG_PASSWORD))
+            send(MoblinkMessageToRelay.Identified(result = MoblinkResult.wrongPassword))
             throw IllegalStateException("Relay sent wrong password")
         }
     }
@@ -326,11 +326,11 @@ private class Relay(
             return
         }
         when (result) {
-            MoblinkResult.OK -> request.onSuccess(data)
-            MoblinkResult.WRONG_PASSWORD -> request.onError("Wrong password")
-            MoblinkResult.NOT_IDENTIFIED -> Log.i(TAG, "moblink-streamer: $name: Not identified")
-            MoblinkResult.ALREADY_IDENTIFIED -> Log.i(TAG, "moblink-streamer: $name: Already identified")
-            MoblinkResult.UNKNOWN_REQUEST -> Log.i(TAG, "moblink-streamer: $name: Unknown request")
+            MoblinkResult.ok -> request.onSuccess(data)
+            MoblinkResult.wrongPassword -> request.onError("Wrong password")
+            MoblinkResult.notIdentified -> Log.i(TAG, "moblink-streamer: $name: Not identified")
+            MoblinkResult.alreadyIdentified -> Log.i(TAG, "moblink-streamer: $name: Already identified")
+            MoblinkResult.unknownRequest -> Log.i(TAG, "moblink-streamer: $name: Unknown request")
         }
     }
 
@@ -367,7 +367,7 @@ class MoblinkStreamer(
     var connectionErrorMessage = ""
     private var retryStartTimer = MainTimer()
     internal var delegate: MoblinkStreamerDelegate? = null
-    private val relays = mutableListOf<Relay>()
+    private val relays = mutableListOf<MoblinkRelay>()
     private var destinationAddress: String? = null
     private var destinationPort: Int? = null
     private val mainScope = CoroutineScope(Dispatchers.Main)
@@ -486,7 +486,7 @@ class MoblinkStreamer(
     private fun handleNewConnection(connection: WebSocketConnection) {
         Log.d(TAG, "moblink-streamer: Relay connected")
         receivePacket(connection)
-        val relay = Relay(webSocket = connection, password = password, streamer = this)
+        val relay = MoblinkRelay(webSocket = connection, password = password, streamer = this)
         relay.start()
         relays.add(relay)
         val address = destinationAddress

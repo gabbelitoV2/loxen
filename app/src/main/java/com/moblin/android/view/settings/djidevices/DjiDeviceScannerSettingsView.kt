@@ -28,7 +28,7 @@ import com.moblin.android.LocalModel
 @Composable
 fun DjiDeviceScannerSettingsView(
     model: Model = LocalModel.current,
-    djiScanner: DjiDeviceScanner = DjiDeviceScanner,
+    djiScanner: DjiDeviceScanner = DjiDeviceScanner.shared,
     onChange: (String) -> Unit,
     selectedId: String,
     onDismiss: () -> Unit,
@@ -37,7 +37,7 @@ fun DjiDeviceScannerSettingsView(
     val discoveredDevices by djiScanner.discoveredDevices.collectAsState()
     val pickerItems = discoveredDevices.map { discoveredDevice ->
         InlinePickerItem(
-            id = discoveredDevice.peripheral.identifier.uuidString,
+            id = discoveredDevice.peripheral.address,
             text = discoveredDevice.peripheral.name ?: localized("Unknown"),
         )
     }

@@ -5,10 +5,10 @@ import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.util.Log
-import com.moblin.android.common.various.sleep
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -71,4 +71,8 @@ class GeographyManager(private val context: Context) {
         location = null
         placemark = null
     }
+}
+
+private suspend fun sleep(seconds: Int) {
+    delay(seconds * 1000L)
 }

@@ -1,5 +1,6 @@
 package com.moblin.android.view.controlbar.quickbutton.chat
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,7 +49,10 @@ import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.streamingplatforms.twitch.TwitchLoginView
 import com.moblin.android.various.CacheAsyncImage
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.network.AuthError
+import com.moblin.android.various.network.Error
 import com.moblin.android.various.network.OperationResult
+import com.moblin.android.various.network.Success
 import com.moblin.android.view.controlbar.quickbutton.chat.moderation.QuickButtonChatModerationKickView
 import com.moblin.android.view.controlbar.quickbutton.chat.moderation.QuickButtonChatModerationTwitchView
 import com.moblin.android.view.utils.AddButtonView
@@ -60,6 +64,7 @@ import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.StreamingPlatformsShortcutView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
+import java.net.URI
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -88,9 +93,9 @@ class Executor {
 
     fun completed(result: OperationResult) {
         state.value = when (result) {
-            OperationResult.success -> ExecutorState.success
-            OperationResult.authError -> ExecutorState.authError
-            OperationResult.error -> ExecutorState.error
+            is Success<*> -> ExecutorState.success
+            AuthError -> ExecutorState.authError
+            Error -> ExecutorState.error
         }
         scope.launch {
             delay(3000)
@@ -100,9 +105,9 @@ class Executor {
 
     fun completedNoTimer(result: OperationResult) {
         state.value = when (result) {
-            OperationResult.success -> ExecutorState.idle
-            OperationResult.authError -> ExecutorState.authError
-            OperationResult.error -> ExecutorState.error
+            is Success<*> -> ExecutorState.idle
+            AuthError -> ExecutorState.authError
+            Error -> ExecutorState.error
         }
     }
 }
@@ -118,9 +123,7 @@ fun ExecutorView(
 
     val handleState: () -> Unit = {
         if (executor.state.value == ExecutorState.authError) {
-            model.twitchLogin(stream = model.stream) {
-                model.showModerationAuth.value = true
-            }
+            TODO("model.twitchLogin(stream) { showModerationAuth = true }")
         }
     }
 
@@ -320,38 +323,19 @@ fun UserModerationItemView(
         return username.trim().isNotEmpty()
     }
 
-    fun executeAction(onComplete: (OperationResult) -> Unit) {
-        val user = username.trim()
-        val banReason = reason.trim()
-        when (platform) {
-            Platform.kick -> executeKickAction(user, banReason, onComplete)
-            Platform.twitch -> executeTwitchAction(user, banReason, onComplete)
-            else -> Unit
-        }
-    }
-
     fun executeKickAction(
         user: String,
         banReason: String,
         onComplete: (OperationResult) -> Unit,
     ) {
         when (action) {
-            ModActionType.ban -> model.banKickUser(
-                user = user,
-                duration = null,
-                reason = banReason.ifEmpty { null },
-                onComplete = onComplete,
-            )
-            ModActionType.timeout -> model.banKickUser(
-                user = user,
-                duration = timeoutDuration,
-                onComplete = onComplete,
-            )
-            ModActionType.unban -> model.unbanKickUser(user = user, onComplete = onComplete)
-            ModActionType.mod -> model.modKickUser(user = user, onComplete = onComplete)
-            ModActionType.unmod -> model.unmodKickUser(user = user, onComplete = onComplete)
-            ModActionType.vip -> model.vipKickUser(user = user, onComplete = onComplete)
-            ModActionType.unvip -> model.unvipKickUser(user = user, onComplete = onComplete)
+            ModActionType.ban -> TODO("model.banKickUser(user, duration = null, reason, onComplete)")
+            ModActionType.timeout -> TODO("model.banKickUser(user, duration = timeoutDuration, onComplete)")
+            ModActionType.unban -> TODO("model.unbanKickUser(user, onComplete)")
+            ModActionType.mod -> TODO("model.modKickUser(user, onComplete)")
+            ModActionType.unmod -> TODO("model.unmodKickUser(user, onComplete)")
+            ModActionType.vip -> TODO("model.vipKickUser(user, onComplete)")
+            ModActionType.unvip -> TODO("model.unvipKickUser(user, onComplete)")
         }
     }
 
@@ -361,23 +345,23 @@ fun UserModerationItemView(
         onComplete: (OperationResult) -> Unit,
     ) {
         when (action) {
-            ModActionType.ban -> model.banTwitchUser(
-                user = user,
-                duration = null,
-                reason = banReason.ifEmpty { null },
-                onComplete = onComplete,
-            )
-            ModActionType.timeout -> model.banTwitchUser(
-                user = user,
-                duration = timeoutDuration,
-                reason = null,
-                onComplete = onComplete,
-            )
-            ModActionType.unban -> model.unbanTwitchUser(user = user, onComplete = onComplete)
-            ModActionType.mod -> model.modTwitchUser(user = user, onComplete = onComplete)
-            ModActionType.unmod -> model.unmodTwitchUser(user = user, onComplete = onComplete)
-            ModActionType.vip -> model.vipTwitchUser(user = user, onComplete = onComplete)
-            ModActionType.unvip -> model.unvipTwitchUser(user = user, onComplete = onComplete)
+            ModActionType.ban -> TODO("model.banTwitchUser(user, duration = null, reason, onComplete)")
+            ModActionType.timeout -> TODO("model.banTwitchUser(user, duration = timeoutDuration, reason = null, onComplete)")
+            ModActionType.unban -> TODO("model.unbanTwitchUser(user, onComplete)")
+            ModActionType.mod -> TODO("model.modTwitchUser(user, onComplete)")
+            ModActionType.unmod -> TODO("model.unmodTwitchUser(user, onComplete)")
+            ModActionType.vip -> TODO("model.vipTwitchUser(user, onComplete)")
+            ModActionType.unvip -> TODO("model.unvipTwitchUser(user, onComplete)")
+        }
+    }
+
+    fun executeAction(onComplete: (OperationResult) -> Unit) {
+        val user = username.trim()
+        val banReason = reason.trim()
+        when (platform) {
+            Platform.kick -> executeKickAction(user, banReason, onComplete)
+            Platform.twitch -> executeTwitchAction(user, banReason, onComplete)
+            else -> Unit
         }
     }
 
@@ -435,9 +419,11 @@ fun UserModerationItemView(
             }
             HCenter {
                 ExecutorView(model = model, executor = executor) {
-                    TextButtonView("Send", enabled = canExecute()) {
-                        executor.startProgress()
-                        executeAction(executor::completed)
+                    TextButtonView("Send") {
+                        if (canExecute()) {
+                            executor.startProgress()
+                            executeAction(executor::completed)
+                        }
                     }
                 }
             }
@@ -533,10 +519,20 @@ fun ChannelImageView(image: String?) {
             .clip(CircleShape),
     ) {
         if (!image.isNullOrEmpty()) {
-            CacheAsyncImage(url = image, modifier = Modifier.fillMaxSize())
+            CacheAsyncImage(
+                url = URI(image),
+                content = { bitmap ->
+                    Image(
+                        bitmap = bitmap,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                },
+                placeholder = {},
+            )
         } else {
             Icon(
-                painter = painterResource(id = R.drawable.app_icon_no_background),
+                painter = painterResource(id = TODO("app icon drawable is missing")),
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -693,10 +689,18 @@ fun QuickButtonChatModerationView(
             },
         )
         Column {
-            QuickButtonChatModerationTwitchView(model, platform) { platform = it }
-            QuickButtonChatModerationKickView(model, platform) { platform = it }
+            QuickButtonChatModerationTwitchView(
+                model = model,
+                platform = platform,
+                onPlatformChange = { platform = it },
+            )
+            QuickButtonChatModerationKickView(
+                model = model,
+                platform = platform,
+                onPlatformChange = { platform = it },
+            )
             ShortcutSectionView {
-                StreamingPlatformsShortcutView(model = model, stream = model.stream)
+                StreamingPlatformsShortcutView(model = model, stream = model.stream.value)
             }
         }
     }

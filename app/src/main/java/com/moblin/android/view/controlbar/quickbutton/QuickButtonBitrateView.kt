@@ -91,10 +91,10 @@ fun QuickButtonBitrateView(
     stream: SettingsStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val bitrate by stream.bitrate.collectAsState()
-    val bitratePresets by database.bitratePresets.collectAsState()
+    val bitrate = stream.bitrate
+    val bitratePresets = database.bitratePresets
     LaunchedEffect(bitrate) {
-        model.setBitrate(bitrate = bitrate)
+        TODO("setBitrate is not available on Model")
     }
     Scaffold(
         topBar = {
@@ -111,7 +111,7 @@ fun QuickButtonBitrateView(
                     BitratePicker(
                         bitratePresets = bitratePresets,
                         bitrate = bitrate,
-                        onBitrateChange = { stream.bitrate.value = it },
+                        onBitrateChange = { stream.bitrate = it },
                     )
                 }
             }

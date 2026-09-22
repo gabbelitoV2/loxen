@@ -31,7 +31,7 @@ fun ControlBarBackgroundView(controlBar: ControlBar) {
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxSize()
-                    .alpha(backgroundImageOpacity),
+                    .alpha(backgroundImageOpacity.toFloat()),
                 contentScale = ContentScale.Crop,
             )
         }

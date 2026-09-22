@@ -1,7 +1,7 @@
 package com.moblin.android.view.utils
 
+import android.os.Bundle
 import android.speech.tts.TextToSpeech
-import android.speech.tts.Voice
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -50,10 +50,10 @@ import kotlinx.coroutines.launch
 import com.moblin.android.LocalOnNavigate
 
 private fun getVoice(
-    appleVoices: List<Voice>,
+    appleVoices: List<android.speech.tts.Voice>,
     languageCode: String,
     identifier: String,
-): Voice? {
+): android.speech.tts.Voice? {
     return appleVoices.firstOrNull {
         it.locale.language == languageCode && it.name == identifier
     }
@@ -110,8 +110,8 @@ private sealed class Voice {
     companion object {
         fun fromSettings(voice: SettingsVoice): Voice {
             return when (voice.type) {
-                SettingsVoiceType.APPLE -> Apple(name = "", identifier = voice.apple.voice)
-                SettingsVoiceType.TTS_MONSTER -> TtsMonster(
+                SettingsVoiceType.apple -> Apple(name = "", identifier = voice.apple.voice)
+                SettingsVoiceType.ttsMonster -> TtsMonster(
                     name = voice.ttsMonster.name,
                     voiceId = voice.ttsMonster.voiceId,
                 )
@@ -134,11 +134,11 @@ private data class VoicePickerItem(
         val settings = SettingsVoice()
         when (val voice = voice) {
             is Voice.Apple -> {
-                settings.type = SettingsVoiceType.APPLE
+                settings.type = SettingsVoiceType.apple
                 settings.apple.voice = voice.identifier
             }
             is Voice.TtsMonster -> {
-                settings.type = SettingsVoiceType.TTS_MONSTER
+                settings.type = SettingsVoiceType.ttsMonster
                 settings.ttsMonster.name = voice.name
                 settings.ttsMonster.voiceId = voice.voiceId
             }
@@ -150,7 +150,7 @@ private data class VoicePickerItem(
 @Composable
 private fun VoiceView(
     voiceItem: VoicePickerItem,
-    appleVoices: List<Voice>,
+    appleVoices: List<android.speech.tts.Voice>,
     languageCode: String,
     synthesizer: TextToSpeech,
     rate: Float,
@@ -165,7 +165,8 @@ private fun VoiceView(
     fun playAppleTestMessage(languageCode: String, identifier: String) {
         synthesizer.setSpeechRate(rate)
         synthesizer.setPitch(0.8f)
-        synthesizer.setVolume(volume)
+        val params = Bundle()
+        params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
         val voice = getVoice(appleVoices, languageCode, identifier)
         if (voice != null) {
             synthesizer.setVoice(voice)
@@ -173,7 +174,7 @@ private fun VoiceView(
         synthesizer.speak(
             getTestMessage(languageCode),
             TextToSpeech.QUEUE_FLUSH,
-            null,
+            params,
             identifier,
         )
         KeepSpeakerAlivePlayer.shared.audioPlayed()
@@ -220,7 +221,7 @@ private fun VoiceView(
             }
             is Voice.TtsMonster -> {
                 Image(
-                    painter = painterResource(id = R.drawable.ttsmonster),
+                    painter = TODO("No Android drawable resource for the TtsMonster logo"),
                     contentDescription = null,
                     modifier = Modifier.size(15.dp),
                 )
@@ -243,7 +244,7 @@ private fun VoiceView(
 }
 
 private fun voices(
-    appleVoices: List<Voice>,
+    appleVoices: List<android.speech.tts.Voice>,
     ttsMonsterVoices: TtsMonsterVoicesResponse?,
     languageCode: String,
 ): List<VoicePickerItem> {
@@ -279,7 +280,7 @@ private fun voices(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LanguageView(
-    appleVoices: List<Voice>,
+    appleVoices: List<android.speech.tts.Voice>,
     ttsMonsterVoices: TtsMonsterVoicesResponse?,
     languageCode: String,
     initialSelectedVoice: VoicePickerItem?,
@@ -352,7 +353,7 @@ private data class Language(
 
 private fun languages(
     textToSpeechLanguageVoices: Map<String, SettingsVoice>,
-    appleVoices: List<Voice>,
+    appleVoices: List<android.speech.tts.Voice>,
 ): List<Language> {
     return textToSpeechLanguages(appleVoices).map {
         Language(
@@ -383,7 +384,7 @@ fun VoicesView(
     ttsMonsterApiToken: String,
 ) {
     val synthesizer = remember { createSpeechSynthesizer() }
-    var appleVoices by remember { mutableStateOf<List<Voice>>(emptyList()) }
+    var appleVoices by remember { mutableStateOf<List<android.speech.tts.Voice>>(emptyList()) }
     var ttsMonsterVoices by remember { mutableStateOf<TtsMonsterVoicesResponse?>(null) }
 
     Scaffold(
@@ -411,7 +412,7 @@ fun VoicesView(
                     val selectedVoice = language.selectedVoice
                     if (selectedVoice != null) {
                         when (selectedVoice.type) {
-                            SettingsVoiceType.APPLE -> {
+                            SettingsVoiceType.apple -> {
                                 Icon(
                                     imageVector = Icons.Default.Phone,
                                     contentDescription = null,
@@ -425,9 +426,9 @@ fun VoicesView(
                                     )?.name ?: localized("Unknown"),
                                 )
                             }
-                            SettingsVoiceType.TTS_MONSTER -> {
+                            SettingsVoiceType.ttsMonster -> {
                                 Image(
-                                    painter = painterResource(id = R.drawable.ttsmonster),
+                                    painter = TODO("No Android drawable resource for the TtsMonster logo"),
                                     contentDescription = null,
                                     modifier = Modifier.size(15.dp),
                                 )

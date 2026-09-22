@@ -51,7 +51,7 @@ class Navigation {
 
     fun updateCameraPosition(settings: SettingsNavigation, region: Any? = null) {
         val region = region ?: cameraRegion ?: return
-        if (settings.followUser) {
+        if (settings.followUser.value) {
             cameraPosition.value = TODO("no Android counterpart for MapKit MapCameraPosition userLocation")
         } else {
             cameraPosition.value = TODO("no Android counterpart for MapKit MapCameraPosition region")

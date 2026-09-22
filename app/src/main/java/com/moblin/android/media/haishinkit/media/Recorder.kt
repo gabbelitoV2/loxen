@@ -142,7 +142,7 @@ class Recorder {
         queue.launch {
             startRunningInternal(url, replay, audioOutputSettings, videoOutputSettings)
         }
-        CoroutineScope(processorPipelineQueue).launch {
+        processorPipelineQueue.launch {
             this@Recorder.isRecording = true
         }
     }
@@ -151,7 +151,7 @@ class Recorder {
         queue.launch {
             stopRunningInternal()
         }
-        CoroutineScope(processorPipelineQueue).launch {
+        processorPipelineQueue.launch {
             this@Recorder.isRecording = false
         }
     }
@@ -219,7 +219,8 @@ class Recorder {
             appendAudioSilence(writer, input, next, adjustedPresentationTimeStamp)
         }
         val adjustedSampleBuffer =
-            convertedSampleBuffer.copy(presentationTimeUs = adjustedPresentationTimeStamp)
+            convertedSampleBuffer.replacePresentationTimeStamp(adjustedPresentationTimeStamp)
+                ?: return
         if (!appendAudioSampleBuffer(writer, input, adjustedSampleBuffer)) {
             return
         }
@@ -286,7 +287,8 @@ class Recorder {
         }
         val base = basePresentationTimeStamp ?: return
         val adjustedSampleBuffer =
-            sampleBuffer.copy(presentationTimeUs = sampleBuffer.presentationTimeUs - base)
+            sampleBuffer.replacePresentationTimeStamp(sampleBuffer.presentationTimeUs - base)
+                ?: return
         try {
             input.append(adjustedSampleBuffer)
         } catch (e: Exception) {

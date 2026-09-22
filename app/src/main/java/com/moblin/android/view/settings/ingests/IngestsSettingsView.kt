@@ -39,7 +39,7 @@ fun IngestsSettingsView(
     database: Database,
     onNavigate: (String) -> Unit = {},
 ) {
-    val softwareVideoDecoding by database.ingestsSoftwareVideoDecoding.collectAsState()
+    val softwareVideoDecoding = database.ingestsSoftwareVideoDecoding
     val showWiFiAware = false
 
     LaunchedEffect(softwareVideoDecoding) {
@@ -91,7 +91,6 @@ fun IngestsSettingsView(
                     WiFiAwareSettingsView(
                         model = model,
                         wiFiAware = database.wiFiAware,
-                        onNavigate = onNavigate,
                     )
                 }
             }
@@ -109,7 +108,7 @@ fun IngestsSettingsView(
                     Switch(
                         checked = softwareVideoDecoding,
                         onCheckedChange = { value ->
-                            database.ingestsSoftwareVideoDecoding.value = value
+                            database.ingestsSoftwareVideoDecoding = value
                         },
                     )
                 }

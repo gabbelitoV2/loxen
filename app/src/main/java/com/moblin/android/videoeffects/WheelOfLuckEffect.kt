@@ -1,6 +1,7 @@
 package com.moblin.android.videoeffects
 
 import android.graphics.Bitmap
+import android.media.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -90,7 +91,7 @@ class WheelOfLuckEffect(private val canvasSize: Size) : VideoEffect() {
         }
     }
 
-    override fun execute(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         if (wheel == null || arrow == null) {
             return image
         }
@@ -98,7 +99,7 @@ class WheelOfLuckEffect(private val canvasSize: Size) : VideoEffect() {
         return TODO("OpenGL ES port: Core Image wheel and arrow compositing")
     }
 
-    override fun executeMetalPetal(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         if (wheel == null || arrow == null) {
             return image
         }

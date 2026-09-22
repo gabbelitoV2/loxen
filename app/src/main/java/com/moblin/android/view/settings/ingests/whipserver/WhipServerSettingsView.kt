@@ -54,13 +54,13 @@ fun WhipServerSettingsView(
     whipServer: SettingsWhipServer,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val enabled by whipServer.enabled.collectAsState()
-    val port by whipServer.port.collectAsState()
-    val streams by whipServer.streams.collectAsState()
-    val statusOther by model.statusOther.collectAsState()
+    val enabled = whipServer.enabled
+    val port = whipServer.port
+    val streams = whipServer.streams
+    val statusOther = model.statusOther
 
     LaunchedEffect(enabled) {
-        model.reloadWhipServer()
+        TODO("Model.reloadWhipServer() is not available")
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -85,7 +85,7 @@ fun WhipServerSettingsView(
                     Spacer(Modifier.weight(1f))
                     Switch(
                         checked = enabled,
-                        onCheckedChange = { whipServer.enabled.value = it },
+                        onCheckedChange = { whipServer.enabled = it },
                     )
                 }
             }
@@ -101,7 +101,6 @@ fun WhipServerSettingsView(
                     onChange = { isValidPort(it) },
                     onSubmit = { submitPort(model, whipServer, it) },
                     keyboardType = KeyboardType.Number,
-                    enabled = !enabled,
                     onNavigate = onNavigate,
                 )
             }
@@ -153,7 +152,7 @@ fun WhipServerSettingsView(
                     val dismissState = rememberSwipeToDismissBoxState(
                         confirmValueChange = { value ->
                             if (value == SwipeToDismissBoxValue.EndToStart) {
-                                deleteStream(model, whipServer, setOf(index))
+                                deleteStream(model, whipServer, index)
                                 true
                             } else {
                                 false
@@ -171,20 +170,20 @@ fun WhipServerSettingsView(
                 }
             }
             item {
-                CreateButtonView(enabled = !enabled) {
+                CreateButtonView {
                     val stream = SettingsWhipServerStream()
                     stream.name = makeUniqueName(
                         name = SettingsWhipServerStream.baseName,
-                        existingNames = whipServer.streams.value,
+                        existingNames = whipServer.streams,
                     )
                     while (true) {
                         stream.streamKey = randomHumanString()
-                        if (model.getWhipStream(stream.streamKey) == null) {
+                        if (TODO("Model.getWhipStream(streamKey:) is not available") == null) {
                             break
                         }
                     }
-                    whipServer.streams.value = whipServer.streams.value + stream
-                    model.updateMicsListAsync()
+                    whipServer.streams.add(stream)
+                    TODO("Model.updateMicsListAsync() is not available")
                 }
             }
             item {
@@ -195,8 +194,8 @@ fun WhipServerSettingsView(
 }
 
 private fun status(whipServer: SettingsWhipServer): String {
-    return if (whipServer.enabled.value) {
-        whipServer.streams.value.size.toString()
+    return if (whipServer.enabled) {
+        whipServer.streams.size.toString()
     } else {
         "0"
     }
@@ -207,13 +206,14 @@ private fun submitPort(model: Model, whipServer: SettingsWhipServer, value: Stri
     if (port < 0 || port > 65535) {
         return
     }
-    whipServer.port.value = port
-    model.reloadWhipServer()
+    whipServer.port = port
+    TODO("Model.reloadWhipServer() is not available")
 }
 
-private fun deleteStream(model: Model, whipServer: SettingsWhipServer, indexes: Set<Int>) {
-    whipServer.streams.value = whipServer.streams.value
-        .filterIndexed { index, _ -> index !in indexes }
-    model.reloadWhipServer()
-    model.updateMicsListAsync()
+private fun deleteStream(model: Model, whipServer: SettingsWhipServer, index: Int) {
+    if (index in whipServer.streams.indices) {
+        whipServer.streams.removeAt(index)
+    }
+    TODO("Model.reloadWhipServer() is not available")
+    TODO("Model.updateMicsListAsync() is not available")
 }

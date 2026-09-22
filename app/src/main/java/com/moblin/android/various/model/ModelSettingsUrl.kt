@@ -46,7 +46,7 @@ private fun Model.handleSettingsUrlsDefaultStreams(settings: MoblinSettingsUrl,
         stream.video?.let { video ->
             video.resolution?.let { targetStream.resolution = it }
             video.fps?.let { if (fpss.contains(it)) targetStream.fps = it }
-            video.bitrate?.let { if (it >= 50000 && it <= 50_000_000) targetStream.bitrate = it }
+            video.bitrate?.let { if (it.toInt() >= 50000 && it.toInt() <= 50_000_000) targetStream.bitrate = it.toInt() }
             video.codec?.let { targetStream.codec = it }
             video.bFrames?.let { targetStream.bFrames = it }
             video.maxKeyFrameInterval?.let { if (it >= 0 && it <= 10) targetStream.maxKeyFrameInterval = it }
@@ -80,19 +80,19 @@ private fun Model.handleSettingsUrlsDefaultStreams(settings: MoblinSettingsUrl,
 
 private fun Model.handleSettingsUrlsDefaultQuickButtons(settings: MoblinSettingsUrl) {
     val quickButtons = settings.quickButtons ?: return
-    quickButtons.twoColumns?.let { database.quickButtonsGeneral.twoColumns = it }
-    quickButtons.showName?.let { database.quickButtonsGeneral.showName = it }
-    quickButtons.enableScroll?.let { database.quickButtonsGeneral.enableScroll = it }
+    quickButtons.twoColumns?.let { database.quickButtonsGeneral.twoColumns.value = it }
+    quickButtons.showName?.let { database.quickButtonsGeneral.showName.value = it }
+    quickButtons.enableScroll?.let { database.quickButtonsGeneral.enableScroll.value = it }
     if (quickButtons.disableAllButtons == true) {
         for (databaseQuickButton in database.quickButtons) {
-            databaseQuickButton.enabled = false
+            databaseQuickButton.enabled.value = false
         }
     }
     for (quickButton in quickButtons.buttons ?: emptyList()) {
         val databaseQuickButton = database.quickButtons.firstOrNull { quickButton.type == it.type }
         if (databaseQuickButton != null) {
-            quickButton.enabled?.let { databaseQuickButton.enabled = it }
-            quickButton.page?.let { databaseQuickButton.page = it }
+            quickButton.enabled?.let { databaseQuickButton.enabled.value = it }
+            quickButton.page?.let { databaseQuickButton.page.value = it }
         }
     }
 }
@@ -106,7 +106,7 @@ private fun Model.handleSettingsUrlsDefaultRemoteControl(settings: MoblinSetting
     val remoteControl = settings.remoteControl ?: return
     remoteControl.assistant?.let { assistant ->
         database.remoteControl.assistant.enabled = assistant.enabled
-        database.remoteControl.assistant.port = assistant.port
+        database.remoteControl.assistant.port = assistant.port.toInt()
         assistant.relay?.let { relay ->
             database.remoteControl.assistant.relay.enabled = relay.enabled
             database.remoteControl.assistant.relay.baseUrl = relay.baseUrl.trim()
@@ -138,7 +138,7 @@ private fun Model.handleSettingsUrlsDefault(settings: MoblinSettingsUrl) {
                 replaceStreamCollisions = replaceStreamCollisions
             )
         }
-        presentingStreamImportCollisionConfirmation = true
+        presentingStreamImportCollisionConfirmation.value = true
     }
 }
 
@@ -166,7 +166,7 @@ private fun Model.findCollidingStreamNames(streams: List<MoblinSettingsUrlStream
 }
 
 fun Model.handleSettingsUrls(urls: Set<Uri>) {
-    if (isLive || isRecording) {
+    if (isLive.value || isRecording.value) {
         makeErrorToast(title = localized("Cannot import settings when live or recording"))
         return
     }
@@ -191,11 +191,11 @@ fun Model.handleSettingsUrls(urls: Set<Uri>) {
 }
 
 private fun Model.handleSettingsFileImport(url: Uri) {
-    if (isLive || isRecording) {
+    if (isLive.value || isRecording.value) {
         return
     }
     TODO("no Android counterpart for security-scoped resource access")
-    importSettingsFromFile(url) { _ ->
+    importSettingsFromFile(url.toString()) { _ ->
         TODO("no Android counterpart for security-scoped resource access")
     }
 }

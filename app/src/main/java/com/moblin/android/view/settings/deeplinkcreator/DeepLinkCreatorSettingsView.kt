@@ -25,21 +25,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.MoblinQuickButtons
 import com.moblin.android.various.MoblinSettingsButton
+import com.moblin.android.various.MoblinSettingsSrt
 import com.moblin.android.various.MoblinSettingsUrl
 import com.moblin.android.various.MoblinSettingsUrlStream
 import com.moblin.android.various.MoblinSettingsUrlStreamAudio
 import com.moblin.android.various.MoblinSettingsUrlStreamKick
 import com.moblin.android.various.MoblinSettingsUrlStreamObs
-import com.moblin.android.various.MoblinSettingsUrlStreamSrt
 import com.moblin.android.various.MoblinSettingsUrlStreamTwitch
 import com.moblin.android.various.MoblinSettingsUrlStreamVideo
 import com.moblin.android.various.MoblinSettingsWebBrowser
 import com.moblin.android.various.settings.DeepLinkCreator
 import com.moblin.android.various.settings.DeepLinkCreatorStream
+import com.moblin.android.various.settings.DeepLinkCreatorStreamVideo
 import com.moblin.android.various.utils.generateQrCode
 import com.moblin.android.view.settings.gopro.qrCodeHeight
 import com.moblin.android.view.utils.QrCodeImageView
@@ -57,14 +60,14 @@ private fun createDeepLinkStream(stream: DeepLinkCreatorStream): MoblinSettingsU
         newStream.selected = true
     }
     newStream.video = MoblinSettingsUrlStreamVideo()
-    if (stream.video.resolution != MoblinSettingsUrlStreamVideo.Resolution.r1920x1080) {
+    if (stream.video.resolution != DeepLinkCreatorStreamVideo().resolution) {
         newStream.video!!.resolution = stream.video.resolution
     }
     if (stream.video.fps != 30) {
         newStream.video!!.fps = stream.video.fps
     }
     if (stream.video.bitrate != 5_000_000) {
-        newStream.video!!.bitrate = stream.video.bitrate
+        newStream.video!!.bitrate = stream.video.bitrate.toUInt()
     }
     newStream.video!!.codec = stream.video.codec
     if (stream.video.bFrames) {
@@ -79,7 +82,7 @@ private fun createDeepLinkStream(stream: DeepLinkCreatorStream): MoblinSettingsU
             newStream.audio!!.bitrate = stream.audio.bitrate
         }
     }
-    newStream.srt = MoblinSettingsUrlStreamSrt()
+    newStream.srt = MoblinSettingsSrt()
     newStream.srt!!.latency = stream.srt.latency
     newStream.srt!!.adaptiveBitrateEnabled = stream.srt.adaptiveBitrateEnabled
     newStream.srt!!.dnsLookupStrategy = stream.srt.dnsLookupStrategy
@@ -107,12 +110,12 @@ private fun updateDeepLinkStreams(deepLinkCreator: DeepLinkCreator, settings: Mo
     }
     settings.streams = mutableListOf()
     for (stream in deepLinkCreator.streams) {
-        settings.streams!!.add(createDeepLinkStream(stream))
+        settings.streams = (settings.streams ?: listOf()) + createDeepLinkStream(stream)
     }
 }
 
 private fun updateDeepLinkQuickButtons(deepLinkCreator: DeepLinkCreator, settings: MoblinSettingsUrl) {
-    if (!deepLinkCreator.quickButtonsEnabled.value) {
+    if (!deepLinkCreator.quickButtonsEnabled) {
         return
     }
     settings.quickButtons = MoblinQuickButtons()
@@ -129,12 +132,12 @@ private fun updateDeepLinkQuickButtons(deepLinkCreator: DeepLinkCreator, setting
         val newButton = MoblinSettingsButton(type = button.type)
         newButton.enabled = true
         newButton.page = button.page
-        settings.quickButtons!!.buttons!!.add(newButton)
+        settings.quickButtons!!.buttons = settings.quickButtons!!.buttons!! + newButton
     }
 }
 
 private fun updateDeepLinkWebBrowser(deepLinkCreator: DeepLinkCreator, settings: MoblinSettingsUrl) {
-    if (!deepLinkCreator.webBrowserEnabled.value) {
+    if (!deepLinkCreator.webBrowserEnabled) {
         return
     }
     settings.webBrowser = MoblinSettingsWebBrowser()
@@ -169,9 +172,10 @@ fun DeepLinkCreatorSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var deepLink by remember { mutableStateOf(defaultDeepLink) }
-    val quickButtonsEnabled by deepLinkCreator.quickButtonsEnabled.collectAsState()
-    val webBrowserEnabled by deepLinkCreator.webBrowserEnabled.collectAsState()
+    val quickButtonsEnabled = deepLinkCreator.quickButtonsEnabled
+    val webBrowserEnabled = deepLinkCreator.webBrowserEnabled
     val context = LocalContext.current
+    val metrics = LocalConfiguration.current.screenWidthDp.dp
 
     LaunchedEffect(quickButtonsEnabled, webBrowserEnabled) {
         updateDeepLink(deepLinkCreator)?.let { deepLink = it }
@@ -212,7 +216,7 @@ fun DeepLinkCreatorSettingsView(
                     )
                     Switch(
                         checked = quickButtonsEnabled,
-                        onCheckedChange = { deepLinkCreator.quickButtonsEnabled.value = it }
+                        onCheckedChange = { deepLinkCreator.quickButtonsEnabled = it }
                     )
                 }
             }
@@ -231,7 +235,7 @@ fun DeepLinkCreatorSettingsView(
                     )
                     Switch(
                         checked = webBrowserEnabled,
-                        onCheckedChange = { deepLinkCreator.webBrowserEnabled.value = it }
+                        onCheckedChange = { deepLinkCreator.webBrowserEnabled = it }
                     )
                 }
             }
@@ -245,7 +249,7 @@ fun DeepLinkCreatorSettingsView(
                 item {
                     val image = generateQrCode(deepLink)
                     if (image != null) {
-                        QrCodeImageView(image = image, height = qrCodeHeight())
+                        QrCodeImageView(image = image.asImageBitmap(), height = qrCodeHeight(metrics).value.toDouble())
                     } else {
                         Text("Failed to create QR-code.")
                     }

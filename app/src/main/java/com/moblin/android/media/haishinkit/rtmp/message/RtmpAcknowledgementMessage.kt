@@ -1,23 +1,15 @@
 package com.moblin.android.media.haishinkit.rtmp.message
 
 class RtmpAcknowledgementMessage : RtmpMessage(RtmpMessageType.ack) {
-    var sequence: UInt = 0u
-
-    override var encoded: ByteArray
-        get() {
-            if (super.encoded.isNotEmpty()) {
-                return super.encoded
-            }
-            super.encoded = sequence.toBigEndianBytes()
-            return super.encoded
-        }
+    var sequence: UInt
+        get() = if (encoded.size >= 4) encoded.toUInt32BigEndian() else 0u
         set(value) {
-            if (super.encoded.contentEquals(value)) {
-                return
-            }
-            sequence = value.toUInt32BigEndian()
-            super.encoded = value
+            encoded = value.toBigEndianBytes()
         }
+
+    init {
+        encoded = 0u.toBigEndianBytes()
+    }
 }
 
 private fun UInt.toBigEndianBytes(): ByteArray = byteArrayOf(

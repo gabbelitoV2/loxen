@@ -1,6 +1,5 @@
 package com.moblin.android.various.model
 
-import com.moblin.android.BuildConfig
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.storages.SimpleStringStorage
 import com.moblin.android.various.utils.isMac
@@ -22,7 +21,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
-private val baseUrl: String = BuildConfig.MOBLIN_WEBSITE_API_URL
+private val baseUrl: String = TODO("BuildConfig.MOBLIN_WEBSITE_API_URL is not available")
 private val liveUrl = URI("$baseUrl/streamers/live")
 private val challengeUrl = URI("$baseUrl/streamers/live/challenge")
 private val appAttestStorage = SimpleStringStorage("moblinWebsiteAppAttest")
@@ -151,11 +150,11 @@ private suspend fun sendLive(channels: List<MoblinWebsiteChannel>) {
 }
 
 fun Model.sendLiveToMoblinWebsite(onCompleted: (() -> Unit)? = null) {
-    if (isMac() || !stream.goLiveNotificationMoblinWebsite) {
+    if (isMac() || !stream.value.goLiveNotificationMoblinWebsite) {
         onCompleted?.invoke()
         return
     }
-    val stream = this.stream
+    val stream = this.stream.value
     mainScope.launch {
         try {
             val channels = mutableListOf<MoblinWebsiteChannel>()
@@ -201,15 +200,8 @@ private suspend fun Model.fetchYouTubeHandle(stream: SettingsStream): String? {
             if (youTubeApi == null) {
                 continuation.resume(null)
             } else {
-                youTubeApi.listChannels { result ->
-                    when (result) {
-                        is YouTubeApiResult.Success -> {
-                            val handle = result.response.items.firstOrNull()?.snippet?.customUrl
-                                ?.trim()?.removePrefix("@")
-                            continuation.resume(handle)
-                        }
-                        else -> continuation.resume(null)
-                    }
+                youTubeApi.listChannels {
+                    TODO("no Android counterpart for the YouTube channel list API")
                 }
             }
         }

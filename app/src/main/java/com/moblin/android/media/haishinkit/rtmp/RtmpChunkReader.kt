@@ -74,19 +74,19 @@ class RtmpChunkReader {
             return null
         }
         val firstByte = reader.readUInt8()
-        val type = RtmpChunkType.fromRawValue(firstByte shr 6) ?: return null
+        val type = RtmpChunkType.fromRawValue(((firstByte.toInt() and 0xFF) shr 6).toUByte()) ?: return null
         return when (val chunkStreamId = firstByte.toInt() and 0b0011_1111) {
             0 -> {
                 if (!reader.canRead(1)) {
                     return null
                 }
-                RtmpBasicHeader(type, reader.readUInt8().toUShort() + 64u.toUShort())
+                RtmpBasicHeader(type, (reader.readUInt8().toUShort() + 64u.toUShort()).toUShort())
             }
             1 -> {
                 if (!reader.canRead(2)) {
                     return null
                 }
-                RtmpBasicHeader(type, reader.readUInt16Le() + 64u.toUShort())
+                RtmpBasicHeader(type, (reader.readUInt16Le() + 64u.toUShort()).toUShort())
             }
             else -> RtmpBasicHeader(type, chunkStreamId.toUShort())
         }
@@ -102,24 +102,24 @@ class RtmpChunkReader {
         }
         var timestamp = chunkStream.timestampDelta
         when (type) {
-            RtmpChunkType.ZERO -> {
+            RtmpChunkType.zero -> {
                 timestamp = reader.readUInt24()
                 chunkStream.messageLength = reader.readUInt24().toInt()
                 chunkStream.messageType = RtmpMessageType.fromRawValue(reader.readUInt8())
                 chunkStream.messageStreamId = reader.readUInt32Le()
             }
-            RtmpChunkType.ONE -> {
+            RtmpChunkType.one -> {
                 timestamp = reader.readUInt24()
                 chunkStream.messageLength = reader.readUInt24().toInt()
                 chunkStream.messageType = RtmpMessageType.fromRawValue(reader.readUInt8())
             }
-            RtmpChunkType.TWO -> {
+            RtmpChunkType.two -> {
                 timestamp = reader.readUInt24()
             }
-            RtmpChunkType.THREE -> {
+            RtmpChunkType.three -> {
             }
         }
-        if (type != RtmpChunkType.THREE) {
+        if (type != RtmpChunkType.three) {
             chunkStream.hasExtendedTimestamp = timestamp == extendedTimestampMarker
         }
         if (chunkStream.hasExtendedTimestamp) {
@@ -128,16 +128,16 @@ class RtmpChunkReader {
             }
             timestamp = reader.readUInt32()
         }
-        val isFirstChunkOfMessage = type != RtmpChunkType.THREE || chunkStream.payload.isEmpty()
+        val isFirstChunkOfMessage = type != RtmpChunkType.three || chunkStream.payload.isEmpty()
         if (isFirstChunkOfMessage) {
             chunkStream.payload = ByteArray(0)
-            if (type == RtmpChunkType.ZERO) {
+            if (type == RtmpChunkType.zero) {
                 chunkStream.timestamp = timestamp
             } else {
                 chunkStream.timestamp += timestamp
             }
         }
-        chunkStream.timestampDelta = if (type == RtmpChunkType.ZERO) 0u else timestamp
+        chunkStream.timestampDelta = if (type == RtmpChunkType.zero) 0u else timestamp
         return true
     }
 

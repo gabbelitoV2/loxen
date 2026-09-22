@@ -60,13 +60,12 @@ private fun StoreSettingsRestoreView(model: Model = LocalModel.current) {
         ) {
             Box(modifier = Modifier.alpha(if (isRestoring) 0.0f else 1.0f)) {
                 TextButtonView(
-                    text = "Restore purchases",
-                    enabled = !isRestoring,
+                    title = "Restore purchases",
                     action = {
                         isRestoring = true
                         scope.launch {
                             runCatching {
-                                model.restorePurchases()
+                                TODO("no Android counterpart for StoreKit restorePurchases")
                             }.onFailure {
                                 showErrorAlert = true
                             }
@@ -116,7 +115,7 @@ private fun StoreSettingsIconsToBuyView(model: Model = LocalModel.current, store
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("")
                 Image(
-                    painter = painterResource(id = icon.imageNoBackground()),
+                    painter = TODO("no Android counterpart for Image(icon.imageNoBackground())"),
                     contentDescription = null,
                     modifier = Modifier
                         .size(controlBarButtonSize.dp)
@@ -131,7 +130,7 @@ private fun StoreSettingsIconsToBuyView(model: Model = LocalModel.current, store
                             disabledPurchaseButtons = disabledPurchaseButtons + icon.id
                             scope.launch {
                                 runCatching {
-                                    model.purchaseProduct(id = icon.id)
+                                    TODO("no Android counterpart for StoreKit purchaseProduct")
                                 }.onFailure { error ->
                                     Log.i(
                                         TAG,
@@ -196,7 +195,7 @@ private fun StoreSettingsMyIconsView(model: Model = LocalModel.current, store: S
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("")
                                 Image(
-                                    painter = painterResource(id = icon.imageNoBackground()),
+                                    painter = TODO("no Android counterpart for Image(icon.imageNoBackground())"),
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(controlBarButtonSize.dp)

@@ -16,6 +16,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.json.JSONArray
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.ServerSocket
@@ -328,7 +329,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
                         value = "attachment; filename=\"$filename\"",
                     ),
                 )
-                response.sendFile(url = fileUrl, contentType = "video/mp4", headers = headers)
+                response.sendFile(url = File(fileUrl), contentType = "video/mp4", headers = headers)
             }
             "DELETE" -> {
                 delegate?.remoteControlWebDeleteRecording(filename = filename)
@@ -458,7 +459,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
                     connection = connection,
                     message = RemoteControlMessageToAssistant.Response(
                         id = id,
-                        result = RemoteControlResult.ok,
+                        result = RemoteControlResult.OK,
                         data = RemoteControlResponse.GetStatus(
                             general = general,
                             topLeft = topLeft,
@@ -473,7 +474,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
                     connection = connection,
                     message = RemoteControlMessageToAssistant.Response(
                         id = id,
-                        result = RemoteControlResult.ok,
+                        result = RemoteControlResult.OK,
                         data = RemoteControlResponse.GetSettings(data = settings),
                     ),
                 )
@@ -572,7 +573,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
                     connection = connection,
                     message = RemoteControlMessageToAssistant.Response(
                         id = id,
-                        result = RemoteControlResult.ok,
+                        result = RemoteControlResult.OK,
                         data = RemoteControlResponse.GetScoreboardSports(names = sports),
                     ),
                 )
@@ -603,7 +604,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
                     connection = connection,
                     message = RemoteControlMessageToAssistant.Response(
                         id = id,
-                        result = RemoteControlResult.ok,
+                        result = RemoteControlResult.OK,
                         data = RemoteControlResponse.GetGolfScoreboard(data = golfScoreboard),
                     ),
                 )
@@ -655,7 +656,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
             connection = connection,
             message = RemoteControlMessageToAssistant.Response(
                 id = id,
-                result = RemoteControlResult.ok,
+                result = RemoteControlResult.OK,
                 data = null,
             ),
         )

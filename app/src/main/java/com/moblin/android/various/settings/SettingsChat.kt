@@ -6,6 +6,7 @@ import com.moblin.android.common.various.isValidHttpUrl
 import com.moblin.android.localized
 import com.moblin.android.various.ChatPostSegment
 import java.util.UUID
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -13,6 +14,7 @@ import kotlinx.serialization.Transient
 @Serializable
 class SettingsChatFilter {
     @SerialName("id")
+    @Contextual
     var id: UUID = UUID.randomUUID()
 
     @SerialName("enabled")
@@ -216,6 +218,7 @@ class SettingsChatBotAlias {
 @Serializable
 class SettingsChatBotCustomCommand {
     @SerialName("id")
+    @Contextual
     var id: UUID = UUID.randomUUID()
 
     @SerialName("name")
@@ -248,6 +251,7 @@ class SettingsChatPredefinedMessage {
     }
 
     @SerialName("id")
+    @Contextual
     var id: UUID = UUID.randomUUID()
 
     @SerialName("text")
@@ -314,6 +318,7 @@ class SettingsChatPredefinedMessagesFilter {
 @Serializable
 class SettingsChatNickname {
     @SerialName("id")
+    @Contextual
     var id: UUID = UUID.randomUUID()
 
     @SerialName("user")
@@ -452,7 +457,8 @@ class SettingsChat {
     var usernameColor: RgbColor = RgbColor(red = 255, green = 163, blue = 0)
 
     @Transient
-    var usernameColorColor: Color = usernameColor.color()
+    var usernameColorColor: Color =
+        Color(usernameColor.red, usernameColor.green, usernameColor.blue)
 
     @SerialName("sameUsernameColor")
     var sameUsernameColor: Boolean = false
@@ -461,13 +467,14 @@ class SettingsChat {
     var messageColor: RgbColor = RgbColor(red = 255, green = 255, blue = 255)
 
     @Transient
-    var messageColorColor: Color = messageColor.color()
+    var messageColorColor: Color = Color(messageColor.red, messageColor.green, messageColor.blue)
 
     @SerialName("backgroundColor")
     var backgroundColor: RgbColor = RgbColor(red = 0, green = 0, blue = 0)
 
     @Transient
-    var backgroundColorColor: Color = backgroundColor.color()
+    var backgroundColorColor: Color =
+        Color(backgroundColor.red, backgroundColor.green, backgroundColor.blue)
 
     @SerialName("backgroundColorEnabled")
     var backgroundColorEnabled: Boolean = false
@@ -476,7 +483,7 @@ class SettingsChat {
     var shadowColor: RgbColor = RgbColor(red = 0, green = 0, blue = 0)
 
     @Transient
-    var shadowColorColor: Color = shadowColor.color()
+    var shadowColorColor: Color = Color(shadowColor.red, shadowColor.green, shadowColor.blue)
 
     @SerialName("shadowColorEnabled")
     var shadowColorEnabled: Boolean = true
@@ -494,7 +501,8 @@ class SettingsChat {
     var timestampColor: RgbColor = RgbColor(red = 180, green = 180, blue = 180)
 
     @Transient
-    var timestampColorColor: Color = timestampColor.color()
+    var timestampColorColor: Color =
+        Color(timestampColor.red, timestampColor.green, timestampColor.blue)
 
     @SerialName("timestampColorEnabled")
     var timestampColorEnabled: Boolean = false

@@ -103,20 +103,20 @@ object SettingsGimbalSerializer : KSerializer<SettingsGimbal> {
         settings.zoomSpeed = data.zoomSpeed ?: SettingsGimbal.zoomSpeedDefault
         settings.naturalZoom = data.naturalZoom ?: true
         settings.tracking = data.tracking ?: true
-        settings.functionShutter = data.functionShutter ?: SettingsControllerFunction.record
+        settings.functionShutter = data.functionShutter ?: SettingsControllerFunction.RECORD
         settings.functionDataShutter.sceneId = data.shutterSceneId?.let { UUID.fromString(it) }
         settings.functionDataShutter.widgetId = data.shutterWidgetId?.let { UUID.fromString(it) }
         settings.functionDataShutter.gimbalPresetId =
             data.shutterGimbalPresetId?.let { UUID.fromString(it) }
-        settings.functionDataShutter.gimbalMotion = data.shutterMotion ?: SettingsGimbalMotion.kapow
+        settings.functionDataShutter.gimbalMotion = data.shutterMotion ?: SettingsGimbalMotion.KAPOW
         settings.functionDataShutter.macroId = data.shutterMacroId?.let { UUID.fromString(it) }
         settings.functionDataShutter.streamDeckLayoutId =
             data.shutterStreamDeckLayoutId?.let { UUID.fromString(it) }
-        settings.functionFlip = data.functionFlip ?: SettingsControllerFunction.switchScene
+        settings.functionFlip = data.functionFlip ?: SettingsControllerFunction.SWITCH_SCENE
         settings.functionDataFlip.sceneId = data.flipSceneId?.let { UUID.fromString(it) }
         settings.functionDataFlip.widgetId = data.flipWidgetId?.let { UUID.fromString(it) }
         settings.functionDataFlip.gimbalPresetId = data.flipGimbalPresetId?.let { UUID.fromString(it) }
-        settings.functionDataFlip.gimbalMotion = data.flipMotion ?: SettingsGimbalMotion.kapow
+        settings.functionDataFlip.gimbalMotion = data.flipMotion ?: SettingsGimbalMotion.KAPOW
         settings.functionDataFlip.macroId = data.flipMacroId?.let { UUID.fromString(it) }
         settings.functionDataFlip.streamDeckLayoutId =
             data.flipStreamDeckLayoutId?.let { UUID.fromString(it) }
@@ -137,11 +137,11 @@ class SettingsGimbal {
 
     var tracking: Boolean = true
 
-    var functionShutter: SettingsControllerFunction = SettingsControllerFunction.record
+    var functionShutter: SettingsControllerFunction = SettingsControllerFunction.RECORD
 
     var functionDataShutter: SettingsControllerFunctionData = SettingsControllerFunctionData()
 
-    var functionFlip: SettingsControllerFunction = SettingsControllerFunction.switchScene
+    var functionFlip: SettingsControllerFunction = SettingsControllerFunction.SWITCH_SCENE
 
     var functionDataFlip: SettingsControllerFunctionData = SettingsControllerFunctionData()
 

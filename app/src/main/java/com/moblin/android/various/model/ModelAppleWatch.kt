@@ -196,11 +196,11 @@ private fun Model.handleUpdateWorkoutStats(data: Any) {
     TODO("no Android counterpart for WatchConnectivity")
 }
 
-private fun Model.handleUpdatePadelScoreboard(data: Any) {
+private fun Model.handleUpdatePadelScoreboardFromWatch(data: Any) {
     TODO("no Android counterpart for WatchConnectivity")
 }
 
-private fun Model.handleUpdateGenericScoreboard(data: Any) {
+private fun Model.handleUpdateGenericScoreboardFromWatch(data: Any) {
     TODO("no Android counterpart for WatchConnectivity")
 }
 

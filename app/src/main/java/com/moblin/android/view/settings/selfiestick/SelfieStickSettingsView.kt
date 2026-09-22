@@ -25,7 +25,7 @@ import com.moblin.android.LocalModel
 
 @Composable
 fun SelfieStickDoesNotWorkView(database: Database, selfieStick: SettingsSelfieStick) {
-    val cameraControlsEnabled = database.cameraControlsEnabled.collectAsState().value
+    val cameraControlsEnabled = database.cameraControlsEnabled
     val enabled = selfieStick.enabled.collectAsState().value
     if (cameraControlsEnabled && enabled) {
         Text("⚠️ Selfie stick button does not work with Camera controls enabled.")
@@ -34,9 +34,9 @@ fun SelfieStickDoesNotWorkView(database: Database, selfieStick: SettingsSelfieSt
 
 private fun functions(): List<SettingsControllerFunction> {
     return SettingsControllerFunction.entries.filter {
-        it != SettingsControllerFunction.unused &&
-            it != SettingsControllerFunction.zoomIn &&
-            it != SettingsControllerFunction.zoomOut
+        it != SettingsControllerFunction.UNUSED &&
+            it != SettingsControllerFunction.ZOOM_IN &&
+            it != SettingsControllerFunction.ZOOM_OUT
     }
 }
 

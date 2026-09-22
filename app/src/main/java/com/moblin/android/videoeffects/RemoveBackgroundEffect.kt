@@ -1,5 +1,6 @@
 package com.moblin.android.videoeffects
 
+import android.media.Image
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
@@ -142,6 +143,12 @@ private fun makeSaturatedColor(hue: Double): MtiColor {
     return MtiColor(red = red, green = green, blue = blue, alpha = 1f)
 }
 
+private fun RgbColor.hue(): Double = rgbToHsv(
+    red = red.toFloat() / 255f,
+    green = green.toFloat() / 255f,
+    blue = blue.toFloat() / 255f,
+).hue.toDouble()
+
 private fun makeChromaKeySettings(from: RgbColor, to: RgbColor): ChromaKeySettings {
     val fromHue = from.hue()
     val toHue = to.hue()
@@ -217,9 +224,9 @@ class RemoveBackgroundEffect : VideoEffect() {
         }
     }
 
-    override fun execute(image: MediaSample, videoEffectInfo: VideoEffectInfo): MediaSample =
+    override fun execute(image: Image, videoEffectInfo: VideoEffectInfo): Image =
         TODO("no Android counterpart for CoreImage CIColorCubeWithColorSpace")
 
-    override fun executeMetalPetal(image: MediaSample, videoEffectInfo: VideoEffectInfo): MediaSample =
+    override fun executeMetalPetal(image: Image, videoEffectInfo: VideoEffectInfo): Image =
         TODO("no Android counterpart for MetalPetal MTIChromaKeyBlendFilter")
 }

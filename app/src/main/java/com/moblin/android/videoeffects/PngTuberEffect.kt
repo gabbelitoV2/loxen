@@ -46,8 +46,8 @@ private class PngCoordinate(val x: Double, val y: Double) {
 }
 
 private enum class BlinkTalkState(val rawValue: Int) {
-    closed(1),
-    open(2);
+    Closed(1),
+    Open(2);
 
     companion object {
         fun fromRawValue(rawValue: Int): BlinkTalkState? = entries.firstOrNull { it.rawValue == rawValue }
@@ -159,13 +159,13 @@ class PngTuberEffect(modelPath: String, costume: Int) : VideoEffect() {
 
     private fun shouldShowImage(image: PngTuberImage): Boolean {
         when (image.showBlink) {
-            BlinkTalkState.closed -> if (isLeftEyeOpen) return false
-            BlinkTalkState.open -> if (!isLeftEyeOpen) return false
+            BlinkTalkState.Closed -> if (isLeftEyeOpen) return false
+            BlinkTalkState.Open -> if (!isLeftEyeOpen) return false
             else -> {}
         }
         when (image.showTalk) {
-            BlinkTalkState.closed -> if (isMouthOpen) return false
-            BlinkTalkState.open -> if (!isMouthOpen) return false
+            BlinkTalkState.Closed -> if (isMouthOpen) return false
+            BlinkTalkState.Open -> if (!isMouthOpen) return false
             else -> {}
         }
         return true
@@ -173,9 +173,7 @@ class PngTuberEffect(modelPath: String, costume: Int) : VideoEffect() {
 
     private fun updateModelPose(size: SizeF, info: VideoEffectInfo) {
         val detection = info.faceDetections(videoSourceId)?.firstOrNull() ?: return
-        val rotationAngle = detection.calcFaceAngle(size) ?: return
-        isMouthOpen = detection.isMouthOpen(rotationAngle, sensitivity.mouth) > 0.15
-        isLeftEyeOpen = -(detection.isLeftEyeOpen(rotationAngle, sensitivity.eyes) - 1.0) > 0.1
+        TODO("Vision face landmark helpers are not available on Android")
     }
 
     private fun setCostume(number: Int) {
@@ -193,7 +191,7 @@ class PngTuberEffect(modelPath: String, costume: Int) : VideoEffect() {
     }
 
     override fun needsFaceDetections(interval: Double): VideoEffectDetectionsMode {
-        return VideoEffectDetectionsMode.interval(videoSourceId, 0.1)
+        return VideoEffectDetectionsMode.Interval(videoSourceId, 0.1)
     }
 
     companion object {

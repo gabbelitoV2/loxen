@@ -1,10 +1,10 @@
 package com.moblin.android.videoeffects.vtuber
 
 import android.media.Image
-import com.moblin.android.ayagami.AyagamiArtMeshInfo
-import com.moblin.android.ayagami.AyagamiArtMeshState
-import com.moblin.android.ayagami.AyagamiBlendMode
-import com.moblin.android.ayagami.AyagamiModel
+import com.moblin.android.videoeffects.ayagami.AyagamiArtMeshInfo
+import com.moblin.android.videoeffects.ayagami.AyagamiArtMeshState
+import com.moblin.android.videoeffects.ayagami.AyagamiBlendMode
+import com.moblin.android.videoeffects.ayagami.AyagamiModel
 
 private val shaderSource = """
 #include <metal_stdlib>

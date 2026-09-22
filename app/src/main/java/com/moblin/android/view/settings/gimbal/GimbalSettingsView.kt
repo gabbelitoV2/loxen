@@ -63,7 +63,7 @@ private fun ZoomValueView(
     zoomX: Float,
     onZoomXChange: (Float) -> Unit,
 ) {
-    val presetZoomX by preset.zoomX.collectAsState()
+    val presetZoomX = preset.zoomX
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text("Zoom")
         Spacer(Modifier.weight(1f))
@@ -84,7 +84,7 @@ private fun GimbalPresetView(
     preset: SettingsGimbalPreset,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val presetName by preset.name.collectAsState()
+    val presetName = preset.name
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -101,8 +101,8 @@ fun GimbalPresetDetailView(
     gimbal: SettingsGimbal,
     preset: SettingsGimbalPreset,
 ) {
-    val presetName by preset.name.collectAsState()
-    val presets by gimbal.presets.collectAsState()
+    val presetName = preset.name
+    val presets = gimbal.presets
     var presentingConfirm by remember { mutableStateOf(false) }
     var moveAllowed by remember { mutableStateOf(false) }
     var x by remember { mutableStateOf(0f) }
@@ -110,24 +110,24 @@ fun GimbalPresetDetailView(
     var zoomX by remember { mutableStateOf(1f) }
 
     fun localFromSettings() {
-        x = preset.x.value
-        y = preset.y.value
-        zoomX = preset.zoomX.value
+        x = preset.x
+        y = preset.y
+        zoomX = preset.zoomX
     }
 
     fun localToSettings() {
-        preset.x.value = x
-        preset.y.value = y
-        preset.zoomX.value = zoomX
+        preset.x = x
+        preset.y = y
+        preset.zoomX = zoomX
     }
 
     fun settingChanged() {
-        if (x == preset.x.value && y == preset.y.value && zoomX == preset.zoomX.value) {
+        if (x == preset.x && y == preset.y && zoomX == preset.zoomX) {
             return
         }
         if (moveAllowed) {
             localToSettings()
-            model.moveToGimbalPreset(preset.id)
+            TODO("Model.moveToGimbalPreset is not available")
         } else {
             presentingConfirm = true
         }
@@ -163,7 +163,7 @@ fun GimbalPresetDetailView(
             NameEditView(
                 name = presetName,
                 existingNames = presets,
-                onNameChange = { preset.name.value = it },
+                onNameChange = { preset.name = it },
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Position")
@@ -172,19 +172,19 @@ fun GimbalPresetDetailView(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(7.dp),
                 ) {
-                    PositionButtonView(image = "arrow.up.circle") {
+                    PositionButtonView(image = "arrow.up.circle", action = {
                         x += 0.1f * (PI.toFloat() / 180f)
-                    }
+                    })
                     Row {
-                        PositionButtonView(image = "arrow.left.circle") {
+                        PositionButtonView(image = "arrow.left.circle", action = {
                             y += 0.1f * (PI.toFloat() / 180f)
-                        }
-                        PositionButtonView(image = "arrow.down.circle") {
+                        })
+                        PositionButtonView(image = "arrow.down.circle", action = {
                             x -= 0.1f * (PI.toFloat() / 180f)
-                        }
-                        PositionButtonView(image = "arrow.right.circle") {
+                        })
+                        PositionButtonView(image = "arrow.right.circle", action = {
                             y -= 0.1f * (PI.toFloat() / 180f)
-                        }
+                        })
                     }
                 }
             }
@@ -220,27 +220,27 @@ fun GimbalSettingsView(
     gimbal: SettingsGimbal,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val zoomSpeed by gimbal.zoomSpeed.collectAsState()
-    val naturalZoom by gimbal.naturalZoom.collectAsState()
-    val tracking by gimbal.tracking.collectAsState()
-    val presets by gimbal.presets.collectAsState()
-    val functionShutter by gimbal.functionShutter.collectAsState()
-    val functionDataShutter by gimbal.functionDataShutter.collectAsState()
-    val functionFlip by gimbal.functionFlip.collectAsState()
-    val functionDataFlip by gimbal.functionDataFlip.collectAsState()
+    val zoomSpeed = gimbal.zoomSpeed
+    val naturalZoom = gimbal.naturalZoom
+    val tracking = gimbal.tracking
+    val presets = gimbal.presets
+    val functionShutter = gimbal.functionShutter
+    val functionDataShutter = gimbal.functionDataShutter
+    val functionFlip = gimbal.functionFlip
+    val functionDataFlip = gimbal.functionDataFlip
 
     val functions = SettingsControllerFunction.entries.filter {
-        it != SettingsControllerFunction.unused &&
-            it != SettingsControllerFunction.zoomIn &&
-            it != SettingsControllerFunction.zoomOut
+        it != SettingsControllerFunction.UNUSED &&
+            it != SettingsControllerFunction.ZOOM_IN &&
+            it != SettingsControllerFunction.ZOOM_OUT
     }
 
     fun deletePreset(offsets: Set<Int>) {
-        gimbal.presets.value = gimbal.presets.value.filterIndexed { index, _ -> index !in offsets }
+        gimbal.presets = gimbal.presets.filterIndexed { index, _ -> index !in offsets }
     }
 
     LaunchedEffect(tracking) {
-        model.setGimbalTracking(tracking)
+        Gimbal.shared?.setTracking(tracking)
     }
 
     Scaffold(
@@ -258,7 +258,7 @@ fun GimbalSettingsView(
                     Text("Speed")
                     Slider(
                         value = zoomSpeed,
-                        onValueChange = { gimbal.zoomSpeed.value = it },
+                        onValueChange = { gimbal.zoomSpeed = it },
                         modifier = Modifier.weight(1f),
                         valueRange = 10f..100f,
                         steps = 89,
@@ -271,7 +271,7 @@ fun GimbalSettingsView(
                     Text("Natural")
                     Switch(
                         checked = naturalZoom,
-                        onCheckedChange = { gimbal.naturalZoom.value = it },
+                        onCheckedChange = { gimbal.naturalZoom = it },
                     )
                 }
             }
@@ -283,7 +283,7 @@ fun GimbalSettingsView(
                     Text("Enabled")
                     Switch(
                         checked = tracking,
-                        onCheckedChange = { gimbal.tracking.value = it },
+                        onCheckedChange = { gimbal.tracking = it },
                     )
                 }
             }
@@ -296,8 +296,8 @@ fun GimbalSettingsView(
                     functions = functions,
                     function = functionShutter,
                     functionData = functionDataShutter,
-                    onFunctionChange = { gimbal.functionShutter.value = it },
-                    onFunctionDataChange = { gimbal.functionDataShutter.value = it },
+                    onFunctionChange = { gimbal.functionShutter = it },
+                    onFunctionDataChange = { gimbal.functionDataShutter = it },
                 )
             }
             item {
@@ -309,8 +309,8 @@ fun GimbalSettingsView(
                     functions = functions,
                     function = functionFlip,
                     functionData = functionDataFlip,
-                    onFunctionChange = { gimbal.functionFlip.value = it },
-                    onFunctionDataChange = { gimbal.functionDataFlip.value = it },
+                    onFunctionChange = { gimbal.functionFlip = it },
+                    onFunctionDataChange = { gimbal.functionDataFlip = it },
                 )
             }
             item {
@@ -348,11 +348,9 @@ fun GimbalSettingsView(
                 }
             }
             item {
-                TextButtonView(
-                    text = "Save current position",
-                    enabled = Gimbal.shared?.isConnected() == true,
-                    onClick = { model.saveGimbalPreset(null) },
-                )
+                TextButtonView(title = "Save current position") {
+                    TODO("Model.saveGimbalPreset is not available")
+                }
             }
             item {
                 SwipeLeftToDeleteHelpView(kind = localized("preset"))

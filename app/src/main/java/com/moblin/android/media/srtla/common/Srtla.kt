@@ -18,6 +18,8 @@ enum class SrtlaPacketType(val rawValue: UShort) {
 
 fun createSrtlaPacket(type: SrtlaPacketType, length: Int): ByteArray {
     val packet = ByteArray(length)
-    packet.setUInt16Be(type.rawValue or srtControlPacketTypeBit)
+    val value = (type.rawValue.toInt() or srtControlPacketTypeBit.toInt()) and 0xFFFF
+    packet[0] = ((value shr 8) and 0xFF).toByte()
+    packet[1] = (value and 0xFF).toByte()
     return packet
 }

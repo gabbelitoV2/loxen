@@ -13,6 +13,7 @@ import com.moblin.android.various.network.WebSocketClient
 import com.moblin.android.various.network.WebSocketClientDelegate
 import com.moblin.android.various.settings.SettingsStreamChat
 import java.net.URI
+import java.util.concurrent.atomic.AtomicInteger
 
 private sealed class MessageError(message: String) : Exception(message) {
     class InvalidCommand(val command: String) : MessageError("Invalid command: $command")
@@ -157,7 +158,7 @@ fun createTwitchSegments(
     text: String,
     emotes: List<ChatMessageEmote>,
     emotesManager: Emotes,
-    id: IntArray,
+    id: AtomicInteger,
 ): List<ChatPostSegment> {
     val segments = mutableListOf<ChatPostSegment>()
     val unicodeText = text.codePoints().toArray()
@@ -179,18 +180,18 @@ fun createTwitchSegments(
             )
         }
         if (emote.isGif) {
-            segments.add(ChatPostSegment(id = id[0], bigGifUrl = ChatPostUrl(moving = emote.url, still = null)))
+            segments.add(ChatPostSegment(id = id.get(), bigGifUrl = ChatPostUrl(moving = emote.url, still = null)))
         } else {
             segments.add(
                 ChatPostSegment(
-                    id = id[0],
+                    id = id.get(),
                     url = ChatPostUrl(moving = emote.url, still = emote.stillUrl),
                 )
             )
         }
-        id[0] += 1
-        segments.add(ChatPostSegment(id = id[0], text = ""))
-        id[0] += 1
+        id.incrementAndGet()
+        segments.add(ChatPostSegment(id = id.get(), text = ""))
+        id.incrementAndGet()
         startIndex = startIndex + (emote.range.last + 1 - startOffset)
         startOffset = emote.range.last + 1
     }
@@ -206,7 +207,7 @@ fun createTwitchSegments(
 fun createTwitchSegments(
     fragments: List<TwitchEventSubMessageFragment>,
     emotesManager: Emotes,
-    id: IntArray,
+    id: AtomicInteger,
 ): List<ChatPostSegment> {
     val segments = mutableListOf<ChatPostSegment>()
     for (fragment in fragments) {
@@ -217,10 +218,10 @@ fun createTwitchSegments(
             null
         }
         if (urls != null) {
-            segments.add(ChatPostSegment(id = id[0], url = ChatPostUrl(moving = urls.moving, still = urls.still)))
-            id[0] += 1
-            segments.add(ChatPostSegment(id = id[0], text = ""))
-            id[0] += 1
+            segments.add(ChatPostSegment(id = id.get(), url = ChatPostUrl(moving = urls.moving, still = urls.still)))
+            id.incrementAndGet()
+            segments.add(ChatPostSegment(id = id.get(), text = ""))
+            id.incrementAndGet()
         } else {
             segments += emotesManager.createSegments(text = fragment.text, id = id)
         }
@@ -512,7 +513,7 @@ class TwitchChat(private val delegate: TwitchChatDelegate?) : WebSocketClientDel
         fragments: List<TwitchEventSubMessageFragment>,
         bits: String?,
     ): List<ChatPostSegment> {
-        val id = intArrayOf(0)
+        val id = AtomicInteger(0)
         var segments = createTwitchSegments(text = text, emotes = emptyList(), emotesManager = emotes, id = id)
         segments = segments + createTwitchSegments(fragments = fragments, emotesManager = emotes, id = id)
         if (bits != null) {
@@ -692,7 +693,7 @@ class TwitchChat(private val delegate: TwitchChatDelegate?) : WebSocketClientDel
         emotesManager: Emotes,
         bits: String?,
     ): List<ChatPostSegment> {
-        val id = intArrayOf(0)
+        val id = AtomicInteger(0)
         var segments = createTwitchSegments(text = text, emotes = emotes, emotesManager = emotesManager, id = id)
         if (bits != null) {
             segments = replaceCheermotes(segments)

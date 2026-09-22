@@ -45,12 +45,12 @@ import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 
 private fun status(srtClient: SettingsSrtClient): String =
-    srtClient.streams.value.count { it.enabled }.toString()
+    srtClient.streams.count { it.enabled }.toString()
 
 private fun deleteStream(model: Model, srtClient: SettingsSrtClient, indexes: Set<Int>) {
-    val streams = srtClient.streams.value
-    srtClient.streams.value = streams.filterIndexed { index, _ -> index !in indexes }
-    model.reloadSrtClient()
+    val streams = srtClient.streams
+    srtClient.streams = streams.filterIndexed { index, _ -> index !in indexes }.toMutableList()
+    TODO("model.reloadSrtClient() has no Android counterpart")
 }
 
 @Composable
@@ -78,7 +78,7 @@ fun SrtClientSettingsDestination(
     model: Model = LocalModel.current,
     srtClient: SettingsSrtClient,
 ) {
-    val streams by srtClient.streams.collectAsState()
+    val streams = srtClient.streams
     var deleteMenuStreamId by remember { mutableStateOf<UUID?>(null) }
     Scaffold(
         topBar = {
@@ -127,7 +127,14 @@ fun SrtClientSettingsDestination(
                                 onClick = {},
                             ),
                     ) {
-                        SrtClientStreamSettingsView(srtClient = srtClient, stream = stream)
+                        SrtClientStreamSettingsView(
+                            model = model,
+                            srtClient = srtClient,
+                            stream = stream,
+                            onNameChange = { name -> stream.name = name },
+                            onEnabledChange = { enabled -> stream.enabled = enabled },
+                            onUrlChange = { url -> stream.url = url },
+                        )
                         DropdownMenu(
                             expanded = deleteMenuStreamId == stream.id,
                             onDismissRequest = { deleteMenuStreamId = null },
@@ -138,7 +145,7 @@ fun SrtClientSettingsDestination(
                                     deleteMenuStreamId = null
                                     val offsets = makeOffsets(streams, stream.id)
                                     if (offsets != null) {
-                                        deleteStream(model, srtClient, offsets)
+                                        deleteStream(model, srtClient, setOf(offsets))
                                     }
                                 },
                             )
@@ -153,7 +160,7 @@ fun SrtClientSettingsDestination(
                         SettingsSrtClientStream.baseName,
                         streams,
                     )
-                    srtClient.streams.value = streams + stream
+                    srtClient.streams = (streams + stream).toMutableList()
                 }
             }
             item {

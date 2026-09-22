@@ -144,7 +144,7 @@ private fun ChannelsView(audio: AudioProvider) {
 @Composable
 private fun SampleRateView(audio: AudioProvider) {
     val sampleRate by audio.sampleRate.collectAsState()
-    if (sampleRate != 48000) {
+    if (sampleRate != 48000.0) {
         Text(
             text = formatAudioLevelSampleRate(sampleRate),
             color = Color.White,

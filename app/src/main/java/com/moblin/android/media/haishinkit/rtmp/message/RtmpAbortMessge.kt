@@ -5,7 +5,7 @@ class RtmpAbortMessge : RtmpMessage {
 
     constructor() : super(RtmpMessageType.abort)
 
-    override var encoded: ByteArray
+    var encodedData: ByteArray
         get() {
             if (super.encoded.isNotEmpty()) {
                 return super.encoded

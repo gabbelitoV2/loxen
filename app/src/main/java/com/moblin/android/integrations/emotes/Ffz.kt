@@ -81,7 +81,7 @@ private suspend fun fetchEmotes(
         return emptyMap()
     }
     val (data, response) = httpGet(url)
-    if (response.isNotFound) {
+    if (response.code == 404) {
         Log.i(TAG, "emotes: $platform: FFZ emotes not found (HTTP 404)")
         return emptyMap()
     }

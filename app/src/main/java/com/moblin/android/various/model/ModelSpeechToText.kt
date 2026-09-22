@@ -14,15 +14,23 @@ fun Model.reloadSpeechToText() {
 }
 
 fun Model.startSpeechToText() {
-    val newSpeechToText = SpeechToText()
+    val newSpeechToText = SpeechToText(this.context)
     speechToText = newSpeechToText
-    newSpeechToText.delegate = this
+    newSpeechToText.delegate = object : SpeechToTextDelegate {
+        override fun speechToTextPartialResult(position: Int, text: String) {
+            this@startSpeechToText.speechToTextPartialResult(position = position, text = text)
+        }
+
+        override fun speechToTextClear() {
+            this@startSpeechToText.speechToTextClear()
+        }
+    }
     newSpeechToText.start { message ->
         makeErrorToast(title = message)
     }
     for (widget in widgetsInCurrentScene(onlyEnabled = true)) {
         when (widget.widget.type) {
-            WidgetType.text -> {
+            SettingsWidgetType.text -> {
                 val languageIdentifiers = widget.widget.text.subtitles.map { it.identifier }.toSet()
                 for (languageIdentifier in languageIdentifiers) {
                     if (languageIdentifier != null) {
@@ -40,10 +48,10 @@ fun Model.stopSpeechToText() {
     speechToText?.stop()
     speechToText = null
     for (textEffect in textEffects.values) {
-        textEffect.clearSubtitles()
+        TODO("clearSubtitles")
     }
     for (browserEffect in browserEffects.values) {
-        browserEffect.sendSpeechToTextClear()
+        TODO("sendSpeechToTextClear")
     }
     speechToTextTextAligners.clear()
 }
@@ -61,17 +69,17 @@ fun Model.updateSpeechToText() {
 fun Model.isSpeechToTextNeeded(): Boolean {
     for (widget in widgetsInCurrentScene(onlyEnabled = true)) {
         when (widget.widget.type) {
-            WidgetType.text -> {
+            SettingsWidgetType.text -> {
                 if (widget.widget.text.needsSubtitles) {
                     return true
                 }
             }
-            WidgetType.alerts -> {
+            SettingsWidgetType.alerts -> {
                 if (widget.widget.alerts.needsSubtitles) {
                     return true
                 }
             }
-            WidgetType.browser -> {
+            SettingsWidgetType.browser -> {
                 if (widget.widget.browser.moblinAccess && widget.widget.browser.speechToText) {
                     return true
                 }
@@ -84,10 +92,10 @@ fun Model.isSpeechToTextNeeded(): Boolean {
 
 fun Model.speechToTextClear() {
     for (textEffect in textEffects.values) {
-        textEffect.clearSubtitles()
+        TODO("clearSubtitles")
     }
     for (browserEffect in browserEffects.values) {
-        browserEffect.sendSpeechToTextClear()
+        TODO("sendSpeechToTextClear")
     }
     speechToTextTextAligners.clear()
     speechToTextAlertMatchOffset = 0
@@ -99,7 +107,14 @@ private fun Model.removeAllTranslators() {
 
 private fun Model.addTranslator(targetIdentifier: String) {
     val translator = Translator(targetIdentifier = targetIdentifier)
-    translator.delegate = this
+    translator.delegate = object : TranslatorDelegate {
+        override fun translatorTranslated(languageIdentifier: String, text: String) {
+            this@addTranslator.translatorTranslated(
+                languageIdentifier = languageIdentifier,
+                text = text,
+            )
+        }
+    }
     Translator.translators.add(translator)
 }
 
@@ -109,17 +124,13 @@ private fun Model.speechToTextPartialResultTextWidgets(
     languageIdentifier: String?,
 ) {
     for (textEffect in textEffects.values) {
-        textEffect.updateSubtitles(
-            position = position,
-            text = text,
-            languageIdentifier = languageIdentifier,
-        )
+        TODO("updateSubtitles")
     }
 }
 
 private fun Model.speechToTextPartialResultBrowserWidgets(position: Int, text: String) {
     for (browserEffect in browserEffects.values) {
-        browserEffect.sendSpeechToText(position = position, text = text)
+        TODO("sendSpeechToText")
     }
 }
 
@@ -146,7 +157,7 @@ private fun Model.speechToTextPartialResultAlertsWidget(text: String) {
             if (offset > speechToTextAlertMatchOffset) {
                 speechToTextAlertMatchOffset = offset
             }
-            playAlert(Alert.SpeechToTextString(string.id))
+            playAlert(TODO("speechToTextString"))
         }
     }
 }
@@ -177,7 +188,7 @@ fun Model.translatorTranslated(languageIdentifier: String, text: String) {
     val position: Int
     val existingTextAligner = speechToTextTextAligners[languageIdentifier]
     if (existingTextAligner != null) {
-        existingTextAligner.update(text = text)
+        existingTextAligner.update(newText = text)
         position = existingTextAligner.position
     } else {
         val textAligner = TextAligner(text = text)

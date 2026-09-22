@@ -7,12 +7,12 @@ val stealthModeImagePath: File
     get() = TODO("no Android counterpart for URL.documentsDirectory: needs File(context.filesDir, \"stealthModeImage.img\")")
 
 fun Model.setStealthMode(on: Boolean) {
-    showStealthMode = on
-    remoteControlStateChanged(state = RemoteControlState(stealthMode = on))
+    showStealthMode.value = on
+    remoteControlStateChanged(state = TODO("RemoteControlState is not available"))
 }
 
 fun Model.toggleStealthMode() {
-    setStealthMode(on = !showStealthMode)
+    setStealthMode(on = !showStealthMode.value)
 }
 
 fun Model.saveStealthModeImage(data: ByteArray) {
@@ -22,10 +22,10 @@ fun Model.saveStealthModeImage(data: ByteArray) {
 fun Model.loadStealthModeImage() {
     val data = runCatching { stealthModeImagePath.readBytes() }.getOrNull()
     if (data == null) {
-        stealthMode.image = null
+        stealthMode.image.value = null
         return
     }
-    stealthMode.image = BitmapFactory.decodeByteArray(data, 0, data.size)
+    stealthMode.image.value = BitmapFactory.decodeByteArray(data, 0, data.size)
 }
 
 fun Model.deleteStealthModeImage() {

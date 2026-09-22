@@ -47,9 +47,9 @@ fun DisconnectProtectionSettingsForm(
     database: Database,
     disconnectProtection: SettingsDisconnectProtection,
 ) {
-    val scenes by database.scenes.collectAsState()
-    val liveSceneId by disconnectProtection.liveSceneId.collectAsState()
-    val fallbackSceneId by disconnectProtection.fallbackSceneId.collectAsState()
+    val scenes = database.scenes
+    val liveSceneId = disconnectProtection.liveSceneId
+    val fallbackSceneId = disconnectProtection.fallbackSceneId
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(localized("Disconnect protection")) })
@@ -61,7 +61,7 @@ fun DisconnectProtectionSettingsForm(
                     label = localized("Live scene"),
                     selection = liveSceneId,
                     scenes = scenes,
-                    onSelectionChange = { disconnectProtection.liveSceneId.value = it },
+                    onSelectionChange = { disconnectProtection.liveSceneId = it },
                 )
             }
             item {
@@ -69,7 +69,7 @@ fun DisconnectProtectionSettingsForm(
                     label = localized("Fallback scene"),
                     selection = fallbackSceneId,
                     scenes = scenes,
-                    onSelectionChange = { disconnectProtection.fallbackSceneId.value = it },
+                    onSelectionChange = { disconnectProtection.fallbackSceneId = it },
                 )
             }
             item {

@@ -1,5 +1,6 @@
 package com.moblin.android.media.haishinkit.media.video
 
+import android.graphics.Bitmap
 import android.graphics.ColorSpace
 import android.media.Image
 import android.media.MediaFormat
@@ -15,7 +16,7 @@ class VideoEffectsProcessor {
     private var metalPetalContext: Any? = null
     var canvasSize = SizeF(1920f, 1080f)
     var fillFrame = true
-    var sceneSwitchTransition: SceneSwitchTransition = SceneSwitchTransition.blur
+    var sceneSwitchTransition: SceneSwitchTransition = SceneSwitchTransition.Blur
     var latestSampleBufferTime: Long? = null
     private var rotation: Double = 0.0
     private var mirror: Boolean = false
@@ -25,7 +26,7 @@ class VideoEffectsProcessor {
     private var pendingAfterAttachMirror: Boolean? = null
     private var isMetalPetalGraphicsForcedByEffects: Boolean = false
     private var isMetalPetalGraphics: Boolean = false
-    private var blackImage: Image? = null
+    private var blackImage: Bitmap? = null
     private var blackImageMetalPetal: Image? = null
     private var pool: Any? = null
     private var poolColorSpace: ColorSpace? = null
@@ -249,7 +250,7 @@ class VideoEffectsProcessor {
             sceneVideoSourceId = completion.sceneVideoSourceId,
             detectionJobs = completion.detectionJobs,
             detections = completion.detections,
-            presentationTimeStamp = sampleBuffer.presentationTimeUs / 1_000_000.0,
+            presentationTimeStamp = (sampleBuffer.presentationTimeUs / 1_000_000.0).toLong(),
             videoUnit = videoUnit,
             isFirstAfterAttach = completion.isFirstAfterAttach
         )
@@ -277,7 +278,7 @@ class VideoEffectsProcessor {
     fun isAtEndOfSceneSwitchTransition(): Boolean {
         val latest = latestSampleBufferTime ?: return false
         val offset = (SystemClock.elapsedRealtimeNanos() - latest) / 1_000_000_000.0
-        return if (sceneSwitchTransition == SceneSwitchTransition.blurAndZoom) {
+        return if (sceneSwitchTransition == SceneSwitchTransition.BlurAndZoom) {
             offset >= 5
         } else {
             offset >= 2
@@ -302,10 +303,10 @@ class VideoEffectsProcessor {
         return TODO("no Android counterpart for CVPixelBufferPool")
     }
 
-    private fun getBlackImage(width: Double, height: Double): Image {
+    private fun getBlackImage(width: Double, height: Double): Bitmap {
         val currentBlackImage = blackImage
         if (currentBlackImage == null) {
-            val image = createBlackImage(width.toInt(), height.toInt())
+            val image = createBlackImage(width, height)
             blackImage = image
             return image
         }
@@ -368,7 +369,7 @@ class VideoEffectsProcessor {
         val latest = latestSampleBufferTime
         if (latest != null) {
             val offset = (SystemClock.elapsedRealtimeNanos() - latest) / 1_000_000_000.0
-            return if (sceneSwitchTransition == SceneSwitchTransition.blurAndZoom) {
+            return if (sceneSwitchTransition == SceneSwitchTransition.BlurAndZoom) {
                 (0f + minOf(offset, 5.0).toFloat() * 5f)
             } else {
                 (15f + minOf(offset, 2.0).toFloat() * 15f)

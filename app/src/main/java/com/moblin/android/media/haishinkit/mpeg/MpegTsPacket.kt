@@ -35,7 +35,7 @@ class MpegTsPacket(
     }
 
     fun maximumPayloadSize(): Int {
-        return size - fixedHeaderSize - (adaptationField?.calcLength() ?: 0)
+        return size - fixedHeaderSize - (adaptationField?.calcLength()?.toInt() ?: 0)
     }
 
     fun setAdaptionFieldStuffing(size: Int) {

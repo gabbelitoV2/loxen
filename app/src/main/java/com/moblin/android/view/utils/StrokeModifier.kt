@@ -18,6 +18,7 @@ fun Modifier.stroke(color: Color, width: Float = 1f): Modifier {
         return this
     }
     return this.drawWithContent {
+        val contentScope = this
         val density = this.density
         val widthPx = width * density
         val radiusPx = shadowRadius * density
@@ -31,7 +32,7 @@ fun Modifier.stroke(color: Color, width: Float = 1f): Modifier {
                 drawIntoCanvas { canvas ->
                     val nativeCanvas = canvas.nativeCanvas
                     nativeCanvas.saveLayer(-bleed, -bleed, size.width + bleed, size.height + bleed, paint)
-                    drawContent()
+                    contentScope.drawContent()
                     nativeCanvas.restore()
                 }
             }
@@ -40,6 +41,6 @@ fun Modifier.stroke(color: Color, width: Float = 1f): Modifier {
         drawShadow(-widthPx, 0f)
         drawShadow(0f, widthPx)
         drawShadow(0f, -widthPx)
-        drawContent()
+        contentScope.drawContent()
     }
 }

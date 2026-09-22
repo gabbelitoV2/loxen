@@ -27,6 +27,8 @@ import androidx.compose.ui.Modifier
 import com.moblin.android.localized
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.reloadStreamIfEnabled
+import com.moblin.android.various.model.setCurrentStream
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.utils.isMac
@@ -106,9 +108,9 @@ private fun StreamItemView(
         }
         Row {
             if (!stream.enabled) {
-                SwipeLeftToDeleteButtonView {
+                SwipeLeftToDeleteButtonView(action = {
                     delete()
-                }
+                })
             }
             SwipeLeftToDuplicateButtonView {
                 duplicate()
@@ -135,7 +137,7 @@ fun StreamsSettingsView(
     database: Database,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val presenting by createStreamWizard.presenting.collectAsState()
+    val presenting = createStreamWizard.presenting
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
 
@@ -154,9 +156,9 @@ fun StreamsSettingsView(
                 )
             }
             item {
-                CreateButtonView(enabled = !(isLive || isRecording)) {
-                    model.resetWizard()
-                    createStreamWizard.presenting.value = true
+                CreateButtonView {
+                    TODO("resetWizard")
+                    createStreamWizard.presenting = true
                 }
             }
             item {
@@ -167,7 +169,7 @@ fun StreamsSettingsView(
 
     if (presenting) {
         ModalBottomSheet(
-            onDismissRequest = { createStreamWizard.presenting.value = false },
+            onDismissRequest = { createStreamWizard.presenting = false },
         ) {
             StreamWizardSettingsView(
                 model = model,

@@ -11,7 +11,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,7 +21,7 @@ import com.moblin.android.common.various.cleanUrl
 import com.moblin.android.common.various.isValidUrl
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
-import com.moblin.android.various.model.SettingsStreamProtocol
+import com.moblin.android.various.model.WizardCustomProtocol
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.FormFieldError
@@ -30,13 +29,13 @@ import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 
 private fun nextDisabled(createStreamWizard: CreateStreamWizard, urlError: String): Boolean {
-    return createStreamWizard.customRtmpUrl.value.isEmpty() ||
-        createStreamWizard.customRtmpStreamKey.value.isEmpty() ||
+    return createStreamWizard.customRtmpUrl.isEmpty() ||
+        createStreamWizard.customRtmpStreamKey.isEmpty() ||
         urlError.isNotEmpty()
 }
 
 private fun updateUrlError(createStreamWizard: CreateStreamWizard): String {
-    val url = cleanUrl(createStreamWizard.customRtmpUrl.value)
+    val url = cleanUrl(createStreamWizard.customRtmpUrl)
     if (url.isEmpty()) {
         return ""
     }
@@ -49,12 +48,12 @@ fun StreamWizardNetworkSetupMyServersRtmpSettingsView(
     createStreamWizard: CreateStreamWizard,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    val customRtmpUrl by createStreamWizard.customRtmpUrl.collectAsState()
-    val customRtmpStreamKey by createStreamWizard.customRtmpStreamKey.collectAsState()
+    val customRtmpUrl = createStreamWizard.customRtmpUrl
+    val customRtmpStreamKey = createStreamWizard.customRtmpStreamKey
     var urlError by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        createStreamWizard.customProtocol.value = SettingsStreamProtocol.rtmp
+        createStreamWizard.customProtocol = WizardCustomProtocol.rtmp
     }
     LaunchedEffect(customRtmpUrl) {
         urlError = updateUrlError(createStreamWizard)
@@ -76,7 +75,7 @@ fun StreamWizardNetworkSetupMyServersRtmpSettingsView(
                     OutlinedTextField(
                         value = customRtmpUrl,
                         onValueChange = {
-                            createStreamWizard.customRtmpUrl.value = it
+                            createStreamWizard.customRtmpUrl = it
                         },
                         placeholder = {
                             Text("rtmp://arn03.contribute.live-video.net/app/")
@@ -97,7 +96,7 @@ fun StreamWizardNetworkSetupMyServersRtmpSettingsView(
                     OutlinedTextField(
                         value = customRtmpStreamKey,
                         onValueChange = {
-                            createStreamWizard.customRtmpStreamKey.value = it
+                            createStreamWizard.customRtmpStreamKey = it
                         },
                         placeholder = {
                             Text("live_48950233_okF4f455GRWEF443fFr23GRbt5rEv")
@@ -112,12 +111,7 @@ fun StreamWizardNetworkSetupMyServersRtmpSettingsView(
                 }
             }
             item {
-                WizardNextButtonView(
-                    onClick = {
-                        onNavigate("StreamWizardObsRemoteControlSettingsView")
-                    },
-                    enabled = !nextDisabled(createStreamWizard, urlError)
-                )
+                WizardNextButtonView()
             }
         }
     }

@@ -81,8 +81,8 @@ private fun Model.updateIcons(myProductIds: List<String>) {
             iconsInStore.add(icon)
         }
     }
-    store.myIcons = myIcons + globalMyIcons
-    store.iconsInStore = iconsInStore
+    store.myIcons.value = myIcons + globalMyIcons
+    store.iconsInStore.value = iconsInStore
 }
 
 private fun Model.findProduct(id: String): Any? = products[id]
@@ -95,11 +95,11 @@ suspend fun Model.purchaseProduct(id: String) {
     TODO("no Android counterpart for StoreKit")
 }
 
-private fun Model.isInMyIcons(id: String): Boolean = store.myIcons.any { it.id == id }
+private fun Model.isInMyIcons(id: String): Boolean = store.myIcons.value.any { it.id == id }
 
 fun Model.updateIconImageFromDatabase() {
     if (!isInMyIcons(id = database.iconImage)) {
         database.iconImage = plainIcon.id
     }
-    store.iconImage = database.iconImage
+    store.iconImage.value = database.iconImage
 }

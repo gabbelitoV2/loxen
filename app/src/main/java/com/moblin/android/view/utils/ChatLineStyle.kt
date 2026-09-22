@@ -33,9 +33,9 @@ data class ChatLineStyle(
     var highlightSymbolColor: Color? = null,
     var highlightDefaultColor: Color = Color.White,
     var nicknames: SettingsChatNicknames = SettingsChatNicknames(),
-    var displayStyle: SettingsChatDisplayStyle = SettingsChatDisplayStyle.Username,
+    var displayStyle: SettingsChatDisplayStyle = SettingsChatDisplayStyle.username,
     var fontWeight: FontWeight = FontWeight.Normal,
-    var fontDesign: FontFamily = FontFamily.Default,
+    var fontDesign: FontDesign = FontDesign.Default,
 ) {
     fun content(items: MutableList<ChatLineItem>, topAligned: Boolean = false): ChatLineContent {
         return ChatLineContent(
@@ -118,7 +118,7 @@ data class ChatLineStyle(
             return textItem(text = text, color = color, bold = bold, italic = italic, deleted = true)
         }
         val style = ChatLineTextStyle(color = Color(0xFF007AFF), bold = bold, italic = italic)
-        style.link = url
+        style.link = url.toString()
         return ChatLineItem.Text(text, style)
     }
 
@@ -151,7 +151,7 @@ data class ChatLineStyle(
                 items.add(badgeItem(source = ChatImageSource.Url(url), deleted = deleted))
             }
         }
-        val usernameColor = post.userColor.uiColor()
+        val usernameColor = post.userColor.color()
         items.add(
             textItem(
                 text = post.displayName(nicknames = nicknames, displayStyle = displayStyle),

@@ -104,13 +104,13 @@ class DrawOnStreamEffect : VideoEffect() {
                 }
             }
             val newOverlay = bitmap.toEffectImage()
-            withContext(processorPipelineQueue) {
+            processorPipelineQueue.launch {
                 this@DrawOnStreamEffect.overlay = newOverlay
             }
         }
     }
 
-    override fun execute(image: Bitmap, info: VideoEffectInfo): Bitmap = TODO("OpenGL ES port")
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage = TODO("OpenGL ES port")
 
-    override fun executeMetalPetal(image: Bitmap, info: VideoEffectInfo): Bitmap = TODO("OpenGL ES port")
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage = TODO("OpenGL ES port")
 }

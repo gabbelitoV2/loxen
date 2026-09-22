@@ -38,7 +38,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
-import com.moblin.android.various.ChatPlatform
 import com.moblin.android.various.ChatPost
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsChat
@@ -98,7 +97,7 @@ private fun banButton(
             text = null,
             confirmButton = {
                 TextButton(onClick = {
-                    model.banUser(post = selectedPost)
+                    TODO("banUser is not implemented on Android")
                     onDismiss()
                 }) {
                     Text(localized("Ban"), color = MaterialTheme.colorScheme.error)
@@ -132,19 +131,19 @@ private fun timeoutButton(
             confirmButton = {
                 Column {
                     TextButton(onClick = {
-                        model.timeoutUser(post = selectedPost, duration = 5 * 60)
+                        TODO("timeoutUser is not implemented on Android")
                         onDismiss()
                     }) {
                         Text(localized("5 minutes timeout"), color = MaterialTheme.colorScheme.error)
                     }
                     TextButton(onClick = {
-                        model.timeoutUser(post = selectedPost, duration = 3600)
+                        TODO("timeoutUser is not implemented on Android")
                         onDismiss()
                     }) {
                         Text(localized("1 hour timeout"), color = MaterialTheme.colorScheme.error)
                     }
                     TextButton(onClick = {
-                        model.timeoutUser(post = selectedPost, duration = 24 * 3600)
+                        TODO("timeoutUser is not implemented on Android")
                         onDismiss()
                     }) {
                         Text(localized("24 hours timeout"), color = MaterialTheme.colorScheme.error)
@@ -178,7 +177,7 @@ private fun deleteButton(
             text = null,
             confirmButton = {
                 TextButton(onClick = {
-                    model.deleteMessage(post = selectedPost)
+                    TODO("deleteMessage is not implemented on Android")
                     onDismiss()
                 }) {
                     Text(localized("Delete message"), color = MaterialTheme.colorScheme.error)
@@ -200,7 +199,7 @@ private fun copyButton(
     onDismiss: () -> Unit,
 ) {
     ActionButtonView(image = Icons.Default.ContentCopy, text = "Copy", foreground = null) {
-        model.copyMessage(post = selectedPost)
+        TODO("copyMessage is not implemented on Android")
         onDismiss()
     }
 }
@@ -283,10 +282,10 @@ private fun saveNickname(
             val item = SettingsChatNickname()
             item.user = user
             item.nickname = nickname
-            chat.nicknames.nicknames.append(item)
+            chat.nicknames.nicknames.add(item)
         }
     }
-    model.reloadChatMessages()
+    TODO("reloadChatMessages is not implemented on Android")
 }
 
 @Composable
@@ -298,8 +297,8 @@ private fun lineView(
 ) {
     val content = style.makeContent(
         post = selectedPost,
-        platform = model.chat.moreThanOneStreamingPlatform,
-        deleted = selectedPost.state.deleted,
+        platform = model.chat.moreThanOneStreamingPlatform.value,
+        deleted = selectedPost.state.deleted.value,
     )
     ChatLineView(content = content) { url ->
         if (url != null) {
@@ -419,7 +418,7 @@ fun ChatActionButtonsView(
                             onDismiss = { dismiss() },
                         )
                         Spacer(Modifier.weight(1f))
-                        infoButton(enabled = post.platform == ChatPlatform.kick) {
+                        infoButton(enabled = post.platform?.name == "kick") {
                             showingChatterInfo = true
                         }
                         Spacer(Modifier.weight(1f))

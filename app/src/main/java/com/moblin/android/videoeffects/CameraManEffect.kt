@@ -10,7 +10,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlinx.coroutines.launch
 
-class CameraManEffect(moveVertically: Boolean, speed: Double, alwaysMove: Boolean) : VideoEffect {
+class CameraManEffect(moveVertically: Boolean, speed: Double, alwaysMove: Boolean) : VideoEffect() {
     private var startTime: Double? = null
     private val minScale: Double = 0.92
     private val xSpeed: Double = 0.27

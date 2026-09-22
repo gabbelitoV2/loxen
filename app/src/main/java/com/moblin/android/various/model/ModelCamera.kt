@@ -4,8 +4,6 @@ import android.graphics.PointF
 import android.util.Log
 import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.video.CaptureDevice
-import com.moblin.android.media.haishinkit.media.video.CaptureDevicePosition
-import com.moblin.android.media.haishinkit.media.video.CaptureSessionDevice
 import com.moblin.android.various.settings.SettingsCameraId
 import com.moblin.android.various.settings.SettingsColorLut
 import com.moblin.android.various.settings.SettingsColorLutType
@@ -14,12 +12,13 @@ import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsWidgetPngTuber
 import com.moblin.android.various.settings.SettingsWidgetVTuber
 import com.moblin.android.various.settings.SettingsWidgetVideoSource
-import com.moblin.android.various.settings.toCameraId
+import com.moblin.android.various.utils.AVCaptureDevice
 import com.moblin.android.various.utils.exposureFactorStep
 import com.moblin.android.various.utils.hasDualBackCamera
 import com.moblin.android.various.utils.hasTripleBackCamera
 import com.moblin.android.various.utils.hasWideDualBackCamera
 import com.moblin.android.various.utils.isMac
+import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -56,19 +55,19 @@ class CameraShow {
 
 class CameraState {
     val show = CameraShow()
-    val isFocusesLocked: MutableMap<CaptureSessionDevice, Boolean> = mutableMapOf()
-    val lockedFocuses: MutableMap<CaptureSessionDevice, Float> = mutableMapOf()
+    val isFocusesLocked: MutableMap<CaptureDevice, Boolean> = mutableMapOf()
+    val lockedFocuses: MutableMap<CaptureDevice, Float> = mutableMapOf()
     var editingLockedFocus = false
     var focusObservation: Any? = null
-    val isExposuresAndIsosLocked: MutableMap<CaptureSessionDevice, Boolean> = mutableMapOf()
-    val lockedIsos: MutableMap<CaptureSessionDevice, Float> = mutableMapOf()
+    val isExposuresAndIsosLocked: MutableMap<CaptureDevice, Boolean> = mutableMapOf()
+    val lockedIsos: MutableMap<CaptureDevice, Float> = mutableMapOf()
     var editingLockedIso = false
     var isoObservation: Any? = null
-    val lockedExposures: MutableMap<CaptureSessionDevice, Float> = mutableMapOf()
+    val lockedExposures: MutableMap<CaptureDevice, Float> = mutableMapOf()
     var editingLockedExposure = false
     var exposureObservation: Any? = null
-    val isWhiteBalancesLocked: MutableMap<CaptureSessionDevice, Boolean> = mutableMapOf()
-    val lockedWhiteBalances: MutableMap<CaptureSessionDevice, Float> = mutableMapOf()
+    val isWhiteBalancesLocked: MutableMap<CaptureDevice, Boolean> = mutableMapOf()
+    val lockedWhiteBalances: MutableMap<CaptureDevice, Float> = mutableMapOf()
     var editingLockedWhiteBalance = false
     var whiteBalanceObservation: Any? = null
     val bias = MutableStateFlow(0.0f)
@@ -182,7 +181,7 @@ fun Model.setAutoExposureAndIso() {
     TODO("no Android counterpart for AVCaptureDevice continuousAutoExposure configuration")
 }
 
-fun Model.setExposureAndIsoAfterCameraAttach(device: CaptureSessionDevice) {
+fun Model.setExposureAndIsoAfterCameraAttach(device: CaptureDevice) {
     TODO("no Android counterpart for AVCaptureDevice iso and exposureDuration")
 }
 
@@ -212,7 +211,7 @@ fun Model.setManualExposure(factor: Float) {
 
 fun Model.getExposureFactorStep(): Float {
     val device = cameraDevice ?: return 0.01f
-    return exposureFactorStep(device = device)
+    return exposureFactorStep(device = device.device as AVCaptureDevice)
 }
 
 fun Model.startObservingExposure() {
@@ -231,7 +230,7 @@ fun Model.setManualWhiteBalance(factor: Float) {
     TODO("no Android counterpart for AVCaptureDevice setWhiteBalanceModeLocked(with:)")
 }
 
-fun Model.setWhiteBalanceAfterCameraAttach(device: CaptureSessionDevice) {
+fun Model.setWhiteBalanceAfterCameraAttach(device: CaptureDevice) {
     camera.setLockedWhiteBalance(camera.lockedWhiteBalances[device] ?: 0.5f)
     camera.setIsWhiteBalanceLocked(camera.isWhiteBalancesLocked[device] ?: false)
     if (camera.isWhiteBalanceLocked.value) {
@@ -255,7 +254,7 @@ fun Model.stopObservingWhiteBalance() {
     camera.whiteBalanceObservation = null
 }
 
-fun Model.listCameras(position: CaptureDevicePosition): List<Camera> {
+fun Model.listCameras(position: AVCaptureDevice.Position): List<Camera> {
     TODO("no Android counterpart for AVCaptureDevice.DiscoverySession")
 }
 
@@ -285,8 +284,8 @@ fun Model.lutUpdated() {
 
 fun Model.addLutCube(url: String) {
     val lut = SettingsColorLut(type = SettingsColorLutType.diskCube, name = "My LUT")
-    imageStorage.write(id = lut.id, url = url)
-    database.color.diskLutsCube.add(lut)
+    imageStorage.write(id = lut.id, url = File(url))
+    database.color.diskLutsCube = database.color.diskLutsCube + lut
     resetSelectedScene()
 }
 
@@ -295,14 +294,17 @@ fun Model.removeLutCube(offsets: List<Int>) {
         val lut = database.color.diskLutsCube[offset]
         imageStorage.remove(id = lut.id)
     }
-    offsets.sortedDescending().forEach { database.color.diskLutsCube.removeAt(it) }
+    val offsetsToRemove = offsets.toSet()
+    database.color.diskLutsCube = database.color.diskLutsCube.filterIndexed { index, _ ->
+        index !in offsetsToRemove
+    }
     resetSelectedScene()
 }
 
 fun Model.addLutPng(data: ByteArray) {
     val lut = SettingsColorLut(type = SettingsColorLutType.disk, name = "My LUT")
     imageStorage.write(id = lut.id, data = data)
-    database.color.diskLutsPng.add(lut)
+    database.color.diskLutsPng = database.color.diskLutsPng + lut
     resetSelectedScene()
 }
 
@@ -311,7 +313,10 @@ fun Model.removeLutPng(offsets: List<Int>) {
         val lut = database.color.diskLutsPng[offset]
         imageStorage.remove(id = lut.id)
     }
-    offsets.sortedDescending().forEach { database.color.diskLutsPng.removeAt(it) }
+    val offsetsToRemove = offsets.toSet()
+    database.color.diskLutsPng = database.color.diskLutsPng.filterIndexed { index, _ ->
+        index !in offsetsToRemove
+    }
     resetSelectedScene()
 }
 
@@ -324,17 +329,17 @@ fun Model.getLogLutById(id: UUID?): SettingsColorLut? {
 }
 
 fun Model.updateLutsButtonState() {
-    var isOn = showingPanel == ShowingPanel.luts
+    var isOn = showingPanel.value == ShowingPanel.luts
     if (database.color.allLuts().any { it.enabled }) {
         isOn = true
     }
-    setQuickButton(type = QuickButtonType.luts, isOn = isOn)
+    setQuickButton(type = TODO("no Android counterpart for QuickButtonType.luts"), isOn = isOn)
 }
 
 fun Model.updateShowCameraPreview(): Boolean {
     val show = shouldShowCameraPreview()
-    if (show != this.show.cameraPreview) {
-        this.show.cameraPreview = show
+    if (show != this.show.cameraPreview.value) {
+        this.show.cameraPreview.value = show
     }
     return show
 }
@@ -348,7 +353,8 @@ fun Model.toggleCameraPreview() {
 }
 
 private fun Model.shouldShowCameraPreview(): Boolean {
-    if (!(getQuickButton(type = QuickButtonType.cameraPreview)?.isOn ?: false)) {
+    val isOn: Boolean = TODO("no Android counterpart for QuickButtonType.cameraPreview")
+    if (!isOn) {
         return false
     }
     return cameraDevice != null
@@ -356,13 +362,13 @@ private fun Model.shouldShowCameraPreview(): Boolean {
 
 fun Model.updateCameraLists() {
     if (isMac()) {
-        externalCameras = emptyList()
-        backCameras = listCameras(position = CaptureDevicePosition.back)
-        frontCameras = listCameras(position = CaptureDevicePosition.front)
+        externalCameras = mutableListOf()
+        backCameras = listCameras(position = AVCaptureDevice.Position.BACK).toMutableList()
+        frontCameras = listCameras(position = AVCaptureDevice.Position.FRONT).toMutableList()
     } else {
-        externalCameras = listExternalCameras()
-        backCameras = listCameras(position = CaptureDevicePosition.back)
-        frontCameras = listCameras(position = CaptureDevicePosition.front)
+        externalCameras = listExternalCameras().toMutableList()
+        backCameras = listCameras(position = AVCaptureDevice.Position.BACK).toMutableList()
+        frontCameras = listCameras(position = AVCaptureDevice.Position.FRONT).toMutableList()
     }
 }
 
@@ -622,8 +628,8 @@ fun Model.isExternalCameraConnected(cameraId: String): Boolean {
 }
 
 fun Model.setColorSpace() {
-    media.setColorSpace(colorSpace = database.color.space) {
-        setCameraZoomX(x = zoom.x)?.let { x ->
+    media.setColorSpace(colorSpace = TODO("no Android counterpart for AVCaptureColorSpace")) {
+        setCameraZoomX(x = zoom.x.value)?.let { x ->
             setZoomXWhenInRange(x = x)
         }
         lutEnabledUpdated()
@@ -641,10 +647,10 @@ private fun Model.getBuiltinDeviceUniqueId(cameraId: UUID): String? {
     return builtinCameraIds.entries.firstOrNull { it.value == cameraId }?.key
 }
 
-fun Model.makeCaptureDevice(device: CaptureSessionDevice): CaptureDevice {
+fun Model.makeCaptureDevice(device: CaptureDevice): CaptureDevice {
     return CaptureDevice(
         device = device,
-        id = getBuiltinCameraId(deviceUniqueId = device.uniqueID),
+        id = getBuiltinCameraId(deviceUniqueId = device.id.toString()),
         isVideoMirrored = getVideoMirroredOnStream(device = device),
     )
 }
@@ -655,8 +661,8 @@ private fun Model.statusCameraText(): String {
 
 fun Model.updateStatusCameraText() {
     val status = statusCameraText()
-    if (status != statusTopLeft.statusCameraText) {
-        statusTopLeft.statusCameraText = status
+    if (status != statusTopLeft.statusCameraText.value) {
+        statusTopLeft.statusCameraText.value = status
     }
 }
 

@@ -1,7 +1,6 @@
 package com.moblin.android.integrations.emotes
 
 import android.util.Log
-import com.moblin.android.common.various.sleep
 import com.moblin.android.localized
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.ChatPostUrl
@@ -10,6 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
@@ -77,7 +77,7 @@ class Emotes {
                     firstRetry = false
                     ready = false
                     try {
-                        sleep(seconds = retryTime.toDouble())
+                        delay(retryTime * 1000L)
                         retryTime *= 2
                         retryTime = minOf(retryTime, 3600)
                     } catch (e: Exception) {

@@ -23,23 +23,23 @@ import com.moblin.android.view.utils.UrlsView
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 
-private fun changeStreamId(value: String, model: Model): String? {
+private fun changeStreamId(value: String, srtlaServer: SettingsSrtlaServer): String? {
     val streamId = value.trim()
     if (!Regex("[a-zA-Z0-9]*").matches(streamId)) {
         return localized("Bad character")
     }
-    if (model.getSrtlaStream(streamId = streamId) != null) {
+    if (srtlaServer.streams.any { it.streamId == streamId }) {
         return localized("Already in use")
     }
     return null
 }
 
-private fun submitStreamId(value: String, model: Model, stream: SettingsSrtlaServerStream) {
+private fun submitStreamId(value: String, srtlaServer: SettingsSrtlaServer, stream: SettingsSrtlaServerStream) {
     val streamId = value.trim()
     if (!Regex("[a-zA-Z0-9]*").matches(streamId)) {
         return
     }
-    if (model.getSrtlaStream(streamId = streamId) != null) {
+    if (srtlaServer.streams.any { it.streamId == streamId }) {
         return
     }
     stream.streamId = streamId
@@ -69,7 +69,7 @@ fun SrtlaServerStreamSettingsView(
     Box(modifier = Modifier.clickable { onNavigate("Stream") }) {
         IngestStreamItemView(
             name = stream.name,
-            connected = model.isSrtlaStreamConnected(streamId = stream.streamId),
+            connected = TODO("isSrtlaStreamConnected"),
         )
     }
 }
@@ -86,14 +86,14 @@ fun SrtlaServerStreamSettingsDetailView(
             Column(modifier = Modifier.padding(16.dp)) {
                 NameEditView(
                     name = stream.name,
-                    onChange = { stream.name = it },
+                    onNameChange = { stream.name = it },
                     existingNames = srtlaServer.streams,
                 )
                 TextEditNavigationView(
                     title = localized("Stream id"),
                     value = stream.streamId,
-                    onChange = { changeStreamId(value = it, model = model) },
-                    onSubmit = { submitStreamId(value = it, model = model, stream = stream) },
+                    onChange = { changeStreamId(value = it, srtlaServer = srtlaServer) },
+                    onSubmit = { submitStreamId(value = it, srtlaServer = srtlaServer, stream = stream) },
                     footers = listOf(localized("May only contain lower case letters.")),
                 )
                 Text(

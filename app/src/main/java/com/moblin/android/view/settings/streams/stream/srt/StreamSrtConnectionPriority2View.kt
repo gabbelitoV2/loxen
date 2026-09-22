@@ -45,6 +45,10 @@ fun clampConnectionPriority(value: Int): Int {
     return value.coerceIn(minimumSrtConnectionPriority, maximumSrtConnectionPriority)
 }
 
+private fun Model.updateSrtlaPriorities() {
+    TODO("Update SRTLA priorities in the running stream")
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun NoConnectionPrioritiesView(protocolName: String) {
@@ -178,12 +182,11 @@ private fun SrtlaConnectionPriorityView(
                     IconButton(
                         enabled = !deleteDisabled,
                         onClick = {
-                            makeOffsets(
-                                stream.srt.connectionPriorities.priorities,
-                                priority.id,
-                            )?.let { offsets ->
-                                deletePriority(model, stream, offsets.toList())
-                            }
+                            val offsets = stream.srt.connectionPriorities.priorities
+                                .mapIndexedNotNull { index, item ->
+                                    if (item.id == priority.id) index else null
+                                }
+                            deletePriority(model, stream, offsets)
                         },
                     ) {
                         Icon(Icons.Default.Delete, contentDescription = null)
@@ -208,7 +211,6 @@ private fun SrtlaConnectionPriorityView(
             Spacer(modifier = Modifier.height(8.dp))
             SwipeLeftToDeleteHelpView(
                 kind = localized("a connection"),
-                modifier = Modifier.padding(horizontal = 16.dp),
             )
         }
     }
@@ -220,7 +222,7 @@ fun StreamSrtConnectionPriorityView(
     stream: SettingsStream,
 ) {
     when (stream.getDetailedProtocol()) {
-        SettingsStreamDetailedProtocol.SRTLA -> SrtlaConnectionPriorityView(
+        SettingsStreamDetailedProtocol.srtla -> SrtlaConnectionPriorityView(
             model = model,
             stream = stream,
         )

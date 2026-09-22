@@ -28,7 +28,7 @@ fun StreamWizardNetworkSetupMyServersSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     LaunchedEffect(Unit) {
-        createStreamWizard.networkSetup.value = TODO("CreateStreamWizard network setup value myServers")
+        createStreamWizard.networkSetup = TODO("CreateStreamWizard network setup value myServers")
     }
     Scaffold(
         topBar = {

@@ -15,6 +15,6 @@ class SnapshotIntent(private val model: Model) {
     }
 
     suspend fun perform() {
-        model.takeSnapshot()
+        TODO("no Android counterpart for Model.takeSnapshot()")
     }
 }

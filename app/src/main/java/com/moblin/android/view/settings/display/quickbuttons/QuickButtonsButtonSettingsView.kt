@@ -18,7 +18,6 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -42,6 +41,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.moblin.android.common.various.RgbColor
+import com.moblin.android.common.various.color
 import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
@@ -95,14 +95,14 @@ private fun QuickButtonStealthModeView(
             if (imageItem != null) {
                 val data: ByteArray =
                     TODO("no Android counterpart for PhotosPicker loadTransferable")
-                model.saveStealthModeImage(data)
+                TODO("no Android counterpart for saveStealthModeImage")
                 stealthMode.image.value = BitmapFactory.decodeByteArray(data, 0, data.size)
             }
         }
         if (image != null) {
             TextButtonView(localized("Delete image")) {
                 stealthMode.image.value = null
-                model.deleteStealthModeImage()
+                TODO("no Android counterpart for deleteStealthModeImage")
             }
         }
         Text(localized("Show selected image instead of a black screen."))
@@ -142,6 +142,8 @@ fun QuickButtonsButtonSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isPortrait = orientation.isPortrait.collectAsState().value
+    val enabled by button.enabled.collectAsState()
+    val isOn by button.isOn.collectAsState()
     Column {
         TopAppBar(title = { Text("${button.name} quick button") })
         LazyColumn(modifier = Modifier.weight(1f)) {
@@ -175,8 +177,8 @@ fun QuickButtonsButtonSettingsView(
                             DropdownMenuItem(
                                 text = { Text(page.toString()) },
                                 onClick = {
-                                    button.page = page
-                                    model.quickButtons.page.value = page
+                                    button.page.value = page
+                                    model.quickButtons.page = page
                                     model.quickButtons.activePage.value = page
                                     model.updateQuickButtonPairs()
                                     expanded = false
@@ -212,14 +214,15 @@ fun QuickButtonsButtonSettingsView(
             item {
                 RgbColorPickerView(
                     title = localized("Background"),
-                    color = button.color,
+                    color = button.color.collectAsState().value,
+                    onColorChanged = { button.color.value = it },
                 ) { newColor ->
                     button.backgroundColor = newColor
                     model.updateQuickButtonPairs()
                 }
                 TextButtonView(localized("Reset")) {
                     button.backgroundColor = defaultQuickButtonColor
-                    button.color = (button.backgroundColor as RgbColor).color()
+                    button.color.value = (button.backgroundColor as RgbColor).color()
                     model.updateQuickButtonPairs()
                 }
             }
@@ -240,12 +243,12 @@ fun QuickButtonsButtonSettingsView(
                         Text(localized("Enabled"))
                         Spacer(Modifier.weight(1f))
                         Switch(
-                            checked = button.enabled,
+                            checked = enabled,
                             onCheckedChange = { enabled ->
-                                button.enabled = enabled
+                                button.enabled.value = enabled
                                 model.updateQuickButtonPairs()
                             },
-                            enabled = !(button.isOn && button.enabled),
+                            enabled = !(isOn && enabled),
                         )
                     }
                 }
@@ -274,10 +277,11 @@ private fun positionPortrait(
     quickButtonsSettings: SettingsQuickButtons,
     button: SettingsQuickButton,
 ) {
+    val twoColumns by quickButtonsSettings.twoColumns.collectAsState()
     PositionButtonView(
         image = "arrow.up.circle",
         action = { moveLeftRight(model, button) },
-        enabled = quickButtonsSettings.twoColumns,
+        enabled = twoColumns,
     )
     Row {
         PositionButtonView(
@@ -287,7 +291,7 @@ private fun positionPortrait(
         PositionButtonView(
             image = "arrow.down.circle",
             action = { moveLeftRight(model, button) },
-            enabled = quickButtonsSettings.twoColumns,
+            enabled = twoColumns,
         )
         PositionButtonView(
             image = "arrow.right.circle",
@@ -302,6 +306,7 @@ private fun positionLandscape(
     quickButtonsSettings: SettingsQuickButtons,
     button: SettingsQuickButton,
 ) {
+    val twoColumns by quickButtonsSettings.twoColumns.collectAsState()
     PositionButtonView(
         image = "arrow.up.circle",
         action = { moveUp(model, quickButtonsSettings, button) },
@@ -310,7 +315,7 @@ private fun positionLandscape(
         PositionButtonView(
             image = "arrow.left.circle",
             action = { moveLeftRight(model, button) },
-            enabled = quickButtonsSettings.twoColumns,
+            enabled = twoColumns,
         )
         PositionButtonView(
             image = "arrow.down.circle",
@@ -319,7 +324,7 @@ private fun positionLandscape(
         PositionButtonView(
             image = "arrow.right.circle",
             action = { moveLeftRight(model, button) },
-            enabled = quickButtonsSettings.twoColumns,
+            enabled = twoColumns,
         )
     }
 }
@@ -330,11 +335,11 @@ private fun moveUp(
     button: SettingsQuickButton,
 ) {
     var otherButton: SettingsQuickButton? = null
-    val pairs = model.getQuickButtonPairs(button.page)
+    val pairs = model.getQuickButtonPairs(button.page.value)
     for ((pairIndex, pair) in pairs.withIndex()) {
         val otherPair = pairs[(pairIndex + 1) % pairs.size]
         if (pair.first.id == button.id) {
-            if (quickButtonsSettings.twoColumns) {
+            if (quickButtonsSettings.twoColumns.value) {
                 otherButton = otherPair.first
             } else {
                 otherButton = otherPair.second
@@ -344,7 +349,7 @@ private fun moveUp(
             }
             break
         } else if (pair.second?.id == button.id) {
-            if (quickButtonsSettings.twoColumns) {
+            if (quickButtonsSettings.twoColumns.value) {
                 otherButton = otherPair.second
                 if (otherButton == null) {
                     otherButton = pairs[0].second
@@ -364,11 +369,11 @@ private fun moveDown(
     button: SettingsQuickButton,
 ) {
     var otherButton: SettingsQuickButton? = null
-    val pairs = model.getQuickButtonPairs(button.page)
+    val pairs = model.getQuickButtonPairs(button.page.value)
     for ((pairIndex, pair) in pairs.withIndex()) {
         val otherPair = pairs[(pairs.size + pairIndex - 1) % pairs.size]
         if (pair.first.id == button.id) {
-            if (quickButtonsSettings.twoColumns) {
+            if (quickButtonsSettings.twoColumns.value) {
                 otherButton = otherPair.first
             } else {
                 otherButton = pair.second
@@ -378,7 +383,7 @@ private fun moveDown(
             }
             break
         } else if (pair.second?.id == button.id) {
-            if (quickButtonsSettings.twoColumns) {
+            if (quickButtonsSettings.twoColumns.value) {
                 otherButton = otherPair.second
                 if (otherButton == null) {
                     otherButton = pairs[pairs.size - 2].second
@@ -396,7 +401,7 @@ private fun moveLeftRight(
     model: Model,
     button: SettingsQuickButton,
 ) {
-    val pair = model.getQuickButtonPairs(button.page).firstOrNull {
+    val pair = model.getQuickButtonPairs(button.page.value).firstOrNull {
         it.first.id == button.id || it.second?.id == button.id
     } ?: return
     swapButtons(model, pair.first, pair.second)

@@ -19,5 +19,5 @@ fun isBluetoothAllowed(context: Context): Boolean {
 }
 
 fun Model.centralManagerDidUpdateState(context: Context, central: BluetoothAdapter?) {
-    bluetoothAllowed = isBluetoothAllowed(context)
+    bluetoothAllowed.value = isBluetoothAllowed(context)
 }

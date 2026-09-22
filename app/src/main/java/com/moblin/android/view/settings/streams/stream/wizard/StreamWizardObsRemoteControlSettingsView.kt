@@ -42,9 +42,9 @@ import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 
 private fun nextDisabled(createStreamWizard: CreateStreamWizard, urlError: String): Boolean {
-    if (createStreamWizard.obsRemoteControlEnabled.value) {
-        if (createStreamWizard.obsRemoteControlUrl.value.isEmpty() ||
-            createStreamWizard.obsRemoteControlPassword.value.isEmpty() ||
+    if (createStreamWizard.obsRemoteControlEnabled) {
+        if (createStreamWizard.obsRemoteControlUrl.isEmpty() ||
+            createStreamWizard.obsRemoteControlPassword.isEmpty() ||
             urlError.isNotEmpty()
         ) {
             return true
@@ -60,17 +60,17 @@ fun StreamWizardObsRemoteControlSettingsView(
     createStreamWizard: CreateStreamWizard,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val obsRemoteControlEnabled by createStreamWizard.obsRemoteControlEnabled.collectAsState()
-    val obsRemoteControlUrl by createStreamWizard.obsRemoteControlUrl.collectAsState()
-    val obsRemoteControlPassword by createStreamWizard.obsRemoteControlPassword.collectAsState()
-    val obsRemoteControlMainScene by createStreamWizard.obsRemoteControlMainScene.collectAsState()
-    val obsRemoteControlBrbScene by createStreamWizard.obsRemoteControlBrbScene.collectAsState()
-    val obsRemoteControlSourceName by createStreamWizard.obsRemoteControlSourceName.collectAsState()
+    var obsRemoteControlEnabled by remember { mutableStateOf(createStreamWizard.obsRemoteControlEnabled) }
+    var obsRemoteControlUrl by remember { mutableStateOf(createStreamWizard.obsRemoteControlUrl) }
+    var obsRemoteControlPassword by remember { mutableStateOf(createStreamWizard.obsRemoteControlPassword) }
+    var obsRemoteControlMainScene by remember { mutableStateOf(createStreamWizard.obsRemoteControlMainScene) }
+    var obsRemoteControlBrbScene by remember { mutableStateOf(createStreamWizard.obsRemoteControlBrbScene) }
+    var obsRemoteControlSourceName by remember { mutableStateOf(createStreamWizard.obsRemoteControlSourceName) }
     var urlError by remember { mutableStateOf("") }
 
     val updateUrlError: () -> Unit = {
-        val url = cleanUrl(url = createStreamWizard.obsRemoteControlUrl.value)
-        val message = isValidWebSocketUrl(url = url)
+        val url = cleanUrl(value = obsRemoteControlUrl)
+        val message = isValidWebSocketUrl(value = url)
         urlError = message ?: ""
     }
 
@@ -102,7 +102,10 @@ fun StreamWizardObsRemoteControlSettingsView(
                     Text("Enabled", modifier = Modifier.weight(1f))
                     Switch(
                         checked = obsRemoteControlEnabled,
-                        onCheckedChange = { createStreamWizard.obsRemoteControlEnabled.value = it },
+                        onCheckedChange = {
+                            obsRemoteControlEnabled = it
+                            createStreamWizard.obsRemoteControlEnabled = it
+                        },
                     )
                 }
             }
@@ -117,7 +120,10 @@ fun StreamWizardObsRemoteControlSettingsView(
                 item {
                     OutlinedTextField(
                         value = obsRemoteControlUrl,
-                        onValueChange = { createStreamWizard.obsRemoteControlUrl.value = it },
+                        onValueChange = {
+                            obsRemoteControlUrl = it
+                            createStreamWizard.obsRemoteControlUrl = it
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -146,7 +152,10 @@ fun StreamWizardObsRemoteControlSettingsView(
                 item {
                     OutlinedTextField(
                         value = obsRemoteControlPassword,
-                        onValueChange = { createStreamWizard.obsRemoteControlPassword.value = it },
+                        onValueChange = {
+                            obsRemoteControlPassword = it
+                            createStreamWizard.obsRemoteControlPassword = it
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -166,7 +175,7 @@ fun StreamWizardObsRemoteControlSettingsView(
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Spacer(modifier = Modifier.weight(1f))
                             Image(
-                                painter = painterResource(id = R.drawable.obs_remote_control),
+                                painter = TODO("Add the OBS remote control screenshot drawable"),
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxWidth(),
                                 contentScale = ContentScale.Fit,
@@ -185,7 +194,10 @@ fun StreamWizardObsRemoteControlSettingsView(
                 item {
                     OutlinedTextField(
                         value = obsRemoteControlMainScene,
-                        onValueChange = { createStreamWizard.obsRemoteControlMainScene.value = it },
+                        onValueChange = {
+                            obsRemoteControlMainScene = it
+                            createStreamWizard.obsRemoteControlMainScene = it
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -211,7 +223,10 @@ fun StreamWizardObsRemoteControlSettingsView(
                 item {
                     OutlinedTextField(
                         value = obsRemoteControlBrbScene,
-                        onValueChange = { createStreamWizard.obsRemoteControlBrbScene.value = it },
+                        onValueChange = {
+                            obsRemoteControlBrbScene = it
+                            createStreamWizard.obsRemoteControlBrbScene = it
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
@@ -237,7 +252,10 @@ fun StreamWizardObsRemoteControlSettingsView(
                 item {
                     OutlinedTextField(
                         value = obsRemoteControlSourceName,
-                        onValueChange = { createStreamWizard.obsRemoteControlSourceName.value = it },
+                        onValueChange = {
+                            obsRemoteControlSourceName = it
+                            createStreamWizard.obsRemoteControlSourceName = it
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),

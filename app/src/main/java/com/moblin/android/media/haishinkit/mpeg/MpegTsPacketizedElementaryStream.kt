@@ -196,7 +196,7 @@ class MpegTsPacketizedElementaryStream {
         val adaptationField = MpegTsAdaptationField()
         adaptationField.randomAccessIndicator = randomAccessIndicator
         programClockReference?.let {
-            adaptationField.programClockReference = TSProgramClockReference.encode(it, 0)
+            adaptationField.programClockReference = TSProgramClockReference.encode(it, 0.toUShort())
         }
         packet.adaptationField = adaptationField
         val maximumPayloadSize = packet.maximumPayloadSize()

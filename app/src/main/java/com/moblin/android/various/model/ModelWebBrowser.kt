@@ -13,43 +13,43 @@ import kotlinx.coroutines.launch
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
 class WebBrowserState {
-    private val isSmall = MutableStateFlow(false)
-    val isSmall: StateFlow<Boolean> = isSmall
+    private val _isSmall = MutableStateFlow(false)
+    val isSmall: StateFlow<Boolean> = _isSmall
 
     fun setIsSmall(value: Boolean) {
-        isSmall.value = value
+        _isSmall.value = value
     }
 }
 
 private fun Model.getWebBrowserUrl(): String? {
-    val parsed = runCatching { URI(webBrowserUrl) }.getOrNull()
+    val parsed = runCatching { URI(webBrowserUrl.value) }.getOrNull()
     val scheme = parsed?.scheme
     if (parsed != null && !scheme.isNullOrEmpty()) {
-        return webBrowserUrl
+        return webBrowserUrl.value
     }
-    if (webBrowserUrl.contains(".")) {
-        return "https://$webBrowserUrl"
+    if (webBrowserUrl.value.contains(".")) {
+        return "https://${webBrowserUrl.value}"
     }
-    return "https://www.google.com/search?q=$webBrowserUrl"
+    return "https://www.google.com/search?q=${webBrowserUrl.value}"
 }
 
 fun Model.loadWebBrowserUrl() {
     val url = getWebBrowserUrl() ?: return
-    webBrowser?.loadUrl(url)
+    (webBrowser as? WebView)?.loadUrl(url)
 }
 
 fun Model.loadWebBrowserHome() {
-    webBrowserUrl = database.webBrowser.home
+    webBrowserUrl.value = database.webBrowser.home
     loadWebBrowserUrl()
 }
 
 fun Model.loadWebBrowserPage(url: String) {
-    webBrowserUrl = url
+    webBrowserUrl.value = url
     loadWebBrowserUrl()
 }
 
 fun Model.getWebBrowser(): WebView {
-    webBrowser?.let { return it }
+    (webBrowser as? WebView)?.let { return it }
     val model = this
     val browser = WebView(TODO("android.webkit.WebView requires a Context to be constructed"))
     browser.settings.javaScriptCanOpenWindowsAutomatically = true
@@ -73,6 +73,6 @@ fun Model.setWebBrowserProxy() {
 }
 
 fun Model.webViewDidStartProvisionalNavigation(webView: WebView?, url: String?) {
-    webBrowserUrl = webView?.url ?: ""
-    database.webBrowser.home = webBrowserUrl
+    webBrowserUrl.value = webView?.url ?: ""
+    database.webBrowser.home = webBrowserUrl.value
 }

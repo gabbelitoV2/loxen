@@ -1,11 +1,12 @@
 package com.moblin.android.media.haishinkit.media.video
 
+import android.graphics.Rect
 import android.graphics.RectF
 import android.media.Image
 import android.util.Size
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.videoeffects.MetalPetalWidgetShape
-import com.moblin.android.videoeffects.graphicsEpsilon
+import com.moblin.android.videoeffects.dewarp360.graphicsEpsilon
 import java.util.UUID
 
 data class VideoEffectInfo(
@@ -104,10 +105,7 @@ open class VideoEffect {
             backgroundImageExtent.height().toInt(),
         )
         val resizedImage = applyEarlyEffects(image, info)
-            .resizeMirror(sceneWidget.layout, backgroundSize, mirror)
-        return applyEffects(resizedImage, info)
-            .move(sceneWidget.layout, backgroundSize)
-            .cropped(backgroundImageExtent)
+        return TODO("CIImage resizeMirror/move/cropped has no Android counterpart")
     }
 
     open fun applyEffectsResizeMirrorMoveMetalPetal(
@@ -119,17 +117,12 @@ open class VideoEffect {
         widgetShape: MetalPetalWidgetShape? = null,
     ): Image {
         val shape = widgetShape
-            ?: MetalPetalWidgetShape(RectF(0f, 0f, image.width.toFloat(), image.height.toFloat()))
+            ?: MetalPetalWidgetShape(Rect(0, 0, image.width, image.height))
         val processed = applyEffectsMetalPetal(image, info)
         for (effect in effects) {
             effect.modifyMetalPetalWidgetShape(shape)
         }
-        return processed.resizeMirrorMoveComposited(
-            sceneWidget.layout,
-            mirror,
-            backgroundImage,
-            shape,
-        )
+        return TODO("MTIImage resizeMirrorMoveComposited has no Android counterpart")
     }
 
     open fun modifyMetalPetalWidgetShape(shape: MetalPetalWidgetShape) {
@@ -150,7 +143,7 @@ open class VideoEffect {
         }
         val extent = RectF(0f, 0f, result.width.toFloat(), result.height.toFloat())
         extent.inset(graphicsEpsilon.toFloat(), graphicsEpsilon.toFloat())
-        return result.cropped(extent)
+        return TODO("CIImage cropped(to:) has no Android counterpart")
     }
 
     private fun applyEffectsMetalPetal(image: Image, info: VideoEffectInfo): Image {

@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.verticalAlignment
-import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DropdownMenuItem
@@ -83,8 +81,8 @@ private fun KickSubscriptionsView(model: Model = LocalModel.current, alert: Sett
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color()
+                    textColor = alert.textColor,
+                    accentColor = alert.accentColor
                 )
             }
             item {
@@ -96,7 +94,7 @@ private fun KickSubscriptionsView(model: Model = LocalModel.current, alert: Sett
                 )
             }
             item {
-                AlertTextToSpeechView(alert = alert, ttsDelay = alert.textToSpeechDelay)
+                AlertTextToSpeechView(alert = alert)
             }
             item {
                 TextButtonView("Test") {
@@ -141,8 +139,8 @@ private fun KickGiftedSubscriptionsView(model: Model = LocalModel.current, alert
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color()
+                    textColor = alert.textColor,
+                    accentColor = alert.accentColor
                 )
             }
             item {
@@ -154,14 +152,14 @@ private fun KickGiftedSubscriptionsView(model: Model = LocalModel.current, alert
                 )
             }
             item {
-                AlertTextToSpeechView(alert = alert, ttsDelay = alert.textToSpeechDelay)
+                AlertTextToSpeechView(alert = alert)
             }
             item {
                 TextButtonView("Test") {
                     val event = KickPusherGiftedSubscriptionsEvent(
-                        giftedUsernames = listOf("1", "2"),
-                        gifterUsername = alertTestNames.random(),
-                        gifterTotal = (1..50).random()
+                        gifted_usernames = listOf("1", "2"),
+                        gifter_username = alertTestNames.random(),
+                        gifter_total = (1..50).random()
                     )
                     model.testAlert(TODO("Model test alert case for kickGiftedSubscriptions"))
                 }
@@ -200,8 +198,8 @@ private fun KickHostsView(model: Model = LocalModel.current, alert: SettingsWidg
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color()
+                    textColor = alert.textColor,
+                    accentColor = alert.accentColor
                 )
             }
             item {
@@ -213,13 +211,13 @@ private fun KickHostsView(model: Model = LocalModel.current, alert: SettingsWidg
                 )
             }
             item {
-                AlertTextToSpeechView(alert = alert, ttsDelay = alert.textToSpeechDelay)
+                AlertTextToSpeechView(alert = alert)
             }
             item {
                 TextButtonView("Test") {
                     val event = KickPusherStreamHostEvent(
-                        hostUsername = alertTestNames.random(),
-                        numberViewers = (1..1000).random()
+                        host_username = alertTestNames.random(),
+                        number_viewers = (1..1000).random()
                     )
                     model.testAlert(TODO("Model test alert case for kickHost"))
                 }
@@ -258,8 +256,8 @@ private fun KickRewardsView(model: Model = LocalModel.current, alert: SettingsWi
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color()
+                    textColor = alert.textColor,
+                    accentColor = alert.accentColor
                 )
             }
             item {
@@ -271,14 +269,14 @@ private fun KickRewardsView(model: Model = LocalModel.current, alert: SettingsWi
                 )
             }
             item {
-                AlertTextToSpeechView(alert = alert, ttsDelay = alert.textToSpeechDelay)
+                AlertTextToSpeechView(alert = alert)
             }
             item {
                 TextButtonView("Test") {
                     val event = KickPusherRewardRedeemedEvent(
-                        rewardTitle = "Test Reward",
+                        reward_title = "Test Reward",
                         username = alertTestNames.random(),
-                        userInput = ""
+                        user_input = ""
                     )
                     model.testAlert(TODO("Model test alert case for kickReward"))
                 }
@@ -290,8 +288,8 @@ private fun KickRewardsView(model: Model = LocalModel.current, alert: SettingsWi
 private fun formatKickGiftTitle(amount: Int, comparisonOperator: String): String {
     val amountText = countFormatter.format(amount)
     return when (SettingsWidgetAlertsCheerBitsAlertOperator.fromRawValue(comparisonOperator)) {
-        SettingsWidgetAlertsCheerBitsAlertOperator.EQUAL -> "Kicks $amountText"
-        SettingsWidgetAlertsCheerBitsAlertOperator.GREATER_EQUAL -> "Kicks $amountText+"
+        SettingsWidgetAlertsCheerBitsAlertOperator.equal -> "Kicks $amountText"
+        SettingsWidgetAlertsCheerBitsAlertOperator.greaterEqual -> "Kicks $amountText+"
         else -> ""
     }
 }
@@ -310,7 +308,7 @@ private fun KickGiftView(
     var expanded by remember { mutableStateOf(false) }
     LaunchedEffect(comparisonOperator) {
         val operator = SettingsWidgetAlertsCheerBitsAlertOperator.fromRawValue(comparisonOperator)
-        kickGift.comparisonOperator = operator ?: SettingsWidgetAlertsCheerBitsAlertOperator.GREATER_EQUAL
+        kickGift.comparisonOperator = operator ?: SettingsWidgetAlertsCheerBitsAlertOperator.greaterEqual
         model.updateAlertsSettings()
     }
     Scaffold(
@@ -397,8 +395,8 @@ private fun KickGiftView(
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color()
+                    textColor = alert.textColor,
+                    accentColor = alert.accentColor
                 )
             }
             item {
@@ -410,7 +408,7 @@ private fun KickGiftView(
                 )
             }
             item {
-                AlertTextToSpeechView(alert = alert, ttsDelay = alert.textToSpeechDelay)
+                AlertTextToSpeechView(alert = alert)
             }
             item {
                 TextButtonView("Test") {
@@ -450,9 +448,7 @@ private fun KickGiftItemView(
 @Composable
 private fun KickGiftsView(model: Model = LocalModel.current, kick: SettingsWidgetAlertsKick, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
     fun deleteKickGift(offsets: List<Int>) {
-        offsets.sortedDescending().forEach { offset ->
-            kick.kickGifts.removeAt(offset)
-        }
+        kick.kickGifts = kick.kickGifts.filterIndexed { index, _ -> index !in offsets }
         model.updateAlertsSettings()
     }
 
@@ -472,7 +468,7 @@ private fun KickGiftsView(model: Model = LocalModel.current, kick: SettingsWidge
             }
             item {
                 CreateButtonView {
-                    kick.kickGifts.add(SettingsWidgetAlertsKickGiftsAlert())
+                    kick.kickGifts = kick.kickGifts + SettingsWidgetAlertsKickGiftsAlert()
                     model.updateAlertsSettings()
                 }
             }

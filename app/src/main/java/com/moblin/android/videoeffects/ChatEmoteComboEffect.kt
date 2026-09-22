@@ -1,5 +1,6 @@
 package com.moblin.android.videoeffects
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -25,6 +26,7 @@ import com.moblin.android.various.ChatPost
 import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidgetChatEmoteCombo
+import java.net.URI
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +55,7 @@ private class EmoteComboState {
 }
 
 private fun widgetSize(sceneWidget: SettingsSceneWidget, canvasSize: Size): Double {
-    return toPixels(sceneWidget.layout.size, minOf(canvasSize.width, canvasSize.height))
+    return toPixels(sceneWidget.layout.size, minOf(canvasSize.width, canvasSize.height).toDouble())
 }
 
 @Composable
@@ -71,8 +73,15 @@ private fun EmoteComboView(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         CacheAsyncImage(
-            url = url,
-            modifier = Modifier.size(size.dp),
+            url = URI.create(url),
+            content = { image ->
+                Image(
+                    bitmap = image,
+                    contentDescription = null,
+                    modifier = Modifier.size(size.dp),
+                )
+            },
+            placeholder = {},
         )
         Box {
             Text(
@@ -106,7 +115,7 @@ class ChatEmoteComboEffect(private val canvasSize: Size) : VideoEffect() {
     private var settings = SettingsWidgetChatEmoteCombo()
     private var currentEmoteUrl: String? = null
     private var comboCount: Int = 0
-    private val timer = SimpleTimer(mainScope)
+    private val timer = SimpleTimer(Dispatchers.Main)
 
     fun setSceneWidget(sceneWidget: SettingsSceneWidget) {
         processorPipelineQueue.launch {
@@ -164,7 +173,7 @@ class ChatEmoteComboEffect(private val canvasSize: Size) : VideoEffect() {
         }
     }
 
-    override fun execute(image: EffectImageCiImage, info: VideoEffectInfo): EffectImageCiImage {
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
         val comboImage = comboImage ?: return image
         return comboImage.getCiImage()
             .move(sceneWidgetPipeline.layout, image.extent.size)
@@ -172,7 +181,8 @@ class ChatEmoteComboEffect(private val canvasSize: Size) : VideoEffect() {
             .composited(over = image)
     }
 
-    override fun executeMetalPetal(image: EffectImage, info: VideoEffectInfo): EffectImage {
-        TODO("no Android counterpart for MetalPetal")
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
+        val comboImage = comboImage ?: return image
+        return comboImage.getMetalPetalImage().moveComposited(sceneWidgetPipeline.layout, image)
     }
 }

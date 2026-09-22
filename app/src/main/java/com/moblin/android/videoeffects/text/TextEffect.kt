@@ -42,9 +42,16 @@ import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
+
+private fun RgbColor.color(): Color = Color(
+    (red / 255.0).toFloat(),
+    (green / 255.0).toFloat(),
+    (blue / 255.0).toFloat(),
+)
 
 private class TextViewState(
     fontSize: Float,
@@ -95,11 +102,7 @@ private fun TextView(state: TextViewState) {
     }
     Column(
         modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = when (horizontalAlignment) {
-            SettingsHorizontalAlignment.Leading -> Alignment.Start
-            SettingsHorizontalAlignment.Trailing -> Alignment.End
-            else -> Alignment.CenterHorizontally
-        },
+        horizontalAlignment = horizontalAlignment.toSystem(),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         lines.forEach { line ->
@@ -116,7 +119,7 @@ private fun TextView(state: TextViewState) {
                     .background(backgroundColor),
                 horizontalArrangement = Arrangement.spacedBy(0.dp),
             ) {
-                if (horizontalAlignment != SettingsHorizontalAlignment.Leading && minWidth != 0.0) {
+                if (horizontalAlignment.toSystem() != Alignment.Start && minWidth != 0.0) {
                     Spacer(Modifier.weight(1f))
                 }
                 line.parts.forEach { part ->
@@ -149,7 +152,7 @@ private fun TextView(state: TextViewState) {
                         }
                     }
                 }
-                if (horizontalAlignment != SettingsHorizontalAlignment.Trailing && minWidth != 0.0) {
+                if (horizontalAlignment.toSystem() != Alignment.End && minWidth != 0.0) {
                     Spacer(Modifier.weight(1f))
                 }
             }
@@ -304,7 +307,7 @@ class TextEffect(
         if (index >= formatter.timersEndTime.size) {
             return
         }
-        formatter.timersEndTime[index] = endTime
+        formatter.timersEndTime = formatter.timersEndTime.toMutableList().also { it[index] = endTime }
         forceOverlayUpdate()
     }
 
@@ -317,7 +320,7 @@ class TextEffect(
         if (index >= formatter.stopwatches.size) {
             return
         }
-        formatter.stopwatches[index] = stopwatch
+        formatter.stopwatches = formatter.stopwatches.toMutableList().also { it[index] = stopwatch }
         forceOverlayUpdate()
     }
 
@@ -330,7 +333,7 @@ class TextEffect(
         if (index >= formatter.checkboxes.size) {
             return
         }
-        formatter.checkboxes[index] = checked
+        formatter.checkboxes = formatter.checkboxes.toMutableList().also { it[index] = checked }
         forceOverlayUpdate()
     }
 
@@ -343,7 +346,7 @@ class TextEffect(
         if (index >= formatter.ratings.size) {
             return
         }
-        formatter.ratings[index] = rating
+        formatter.ratings = formatter.ratings.toMutableList().also { it[index] = rating }
         forceOverlayUpdate()
     }
 
@@ -356,7 +359,7 @@ class TextEffect(
         if (index >= formatter.lapTimes.size) {
             return
         }
-        formatter.lapTimes[index] = lapTimes
+        formatter.lapTimes = formatter.lapTimes.toMutableList().also { it[index] = lapTimes }
         forceOverlayUpdate()
     }
 
@@ -389,7 +392,7 @@ class TextEffect(
         return TODO("no Android counterpart for CoreImage compositing")
     }
 
-    fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         updateOverlayIfNeeded(size = Size(image.width, image.height))
         return TODO("no Android counterpart for MetalPetal")
     }

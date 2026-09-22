@@ -47,21 +47,25 @@ fun WhipServerStreamSettingsView(
     ) {
         IngestStreamItemView(
             name = stream.name,
-            connected = model.isWhipStreamConnected(streamId = stream.id)
+            connected = TODO("isWhipStreamConnected")
         )
     }
 }
 
-private fun changeStreamKey(model: Model, value: String): String? {
-    if (model.getWhipStream(streamKey = value.trim()) == null) {
+private fun changeStreamKey(whipServer: SettingsWhipServer, value: String): String? {
+    if (whipServer.streams.none { it.streamKey == value.trim() }) {
         return null
     }
     return localized("Already in use")
 }
 
-private fun submitStreamKey(model: Model, stream: SettingsWhipServerStream, value: String) {
+private fun submitStreamKey(
+    whipServer: SettingsWhipServer,
+    stream: SettingsWhipServerStream,
+    value: String
+) {
     val streamKey = value.trim()
-    if (model.getWhipStream(streamKey = streamKey) != null) {
+    if (whipServer.streams.any { it.streamKey == streamKey }) {
         return
     }
     stream.streamKey = streamKey
@@ -98,17 +102,15 @@ fun WhipServerStreamSettingsDetail(
                 NameEditView(
                     name = stream.name,
                     existingNames = whipServer.streams,
-                    onNameChange = { stream.name = it },
-                    enabled = !whipServer.enabled
+                    onNameChange = { stream.name = it }
                 )
             }
             item {
                 TextEditNavigationView(
                     title = localized("Stream key"),
                     value = stream.streamKey,
-                    onChange = { changeStreamKey(model, it) },
-                    onSubmit = { submitStreamKey(model, stream, it) },
-                    enabled = !whipServer.enabled
+                    onChange = { changeStreamKey(whipServer, it) },
+                    onSubmit = { submitStreamKey(whipServer, stream, it) }
                 )
             }
             item {
@@ -125,8 +127,7 @@ fun WhipServerStreamSettingsDetail(
                     onSubmit = { submitLatency(stream, it) },
                     footers = listOf(localized("5 or more milliseconds. 100 ms by default.")),
                     keyboardType = KeyboardType.Number,
-                    valueFormat = { "$it ms" },
-                    enabled = !whipServer.enabled
+                    valueFormat = { "$it ms" }
                 )
             }
             item {

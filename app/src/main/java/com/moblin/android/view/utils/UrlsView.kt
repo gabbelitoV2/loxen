@@ -35,7 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.ImageVector
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -121,10 +121,10 @@ fun UrlsIpv4View(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(text = localized("IPv4"), style = MaterialTheme.typography.titleMedium)
         val ipStatuses = status.ipStatuses.collectAsState().value
-        ipStatuses.filter { it.ipType.rawValue == "ipv4" }.forEach { ipStatus ->
+        ipStatuses.filter { it.ipType.toString() == "ipv4" }.forEach { ipStatus ->
             UrlCopyView(
                 url = formatUrl(ipStatus.ipType.formatAddress(ipStatus.ip)),
-                image = urlImage(interfaceType = ipStatus.interfaceType),
+                image = urlImage(interfaceType = ipStatus.interfaceType.ordinal),
             )
         }
         UrlCopyView(url = formatUrl(personalHotspotLocalAddress), image = "personalhotspot")
@@ -140,10 +140,10 @@ fun UrlsIpv6View(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(text = localized("IPv6"), style = MaterialTheme.typography.titleMedium)
         val ipStatuses = status.ipStatuses.collectAsState().value
-        ipStatuses.filter { it.ipType.rawValue == "ipv6" }.forEach { ipStatus ->
+        ipStatuses.filter { it.ipType.toString() == "ipv6" }.forEach { ipStatus ->
             UrlCopyView(
                 url = formatUrl(ipStatus.ipType.formatAddress(ipStatus.ip)),
-                image = urlImage(interfaceType = ipStatus.interfaceType),
+                image = urlImage(interfaceType = ipStatus.interfaceType.ordinal),
             )
         }
     }

@@ -15,14 +15,15 @@ private val bitrateDecrScale: Long = 10L
 val adaptiveBitrateBelaboxSettings = AdaptiveBitrateSettings(
     packetsInFlight = 200,
     rttDiffHighFactor = 0.9,
-    rttDiffHighAllowedSpike = 50,
+    rttDiffHighAllowedSpike = 50.0,
     rttDiffHighMinDecrease = 250_000L,
     pifDiffIncreaseFactor = 100_000L,
     minimumBitrate = 250_000L,
 )
 
-class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDelegate) :
-    AdaptiveBitrate(delegate) {
+class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDelegate) {
+    private val delegate: AdaptiveBitrateDelegate? = delegate
+    private val adaptiveBitrate = AdaptiveBitrate(delegate)
     private var targetBitrate: Long = targetBitrate.toLong()
     private var settings = adaptiveBitrateBelaboxSettings
     private var sendBufferSizeAverage: Double = 0.0
@@ -38,20 +39,20 @@ class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDel
     private var nextBitrateDecrTime: Long = System.nanoTime()
     private var currentBitrate: Long = adaptiveBitrateStart.toLong()
 
-    override fun setTargetBitrate(bitrate: Int) {
+    fun setTargetBitrate(bitrate: Int) {
         targetBitrate = bitrate.toLong()
     }
 
-    override fun setSettings(settings: AdaptiveBitrateSettings) {
+    fun setSettings(settings: AdaptiveBitrateSettings) {
         Log.i("AdaptiveBitrateSrtBelabox", "adaptive-bitrate: Using settings $settings")
         this.settings = settings
     }
 
-    override fun getCurrentBitrate(): Int {
+    fun getCurrentBitrate(): Int {
         return currentBitrate.toInt()
     }
 
-    override fun getCurrentMaximumBitrateInKbps(): Long {
+    fun getCurrentMaximumBitrateInKbps(): Long {
         return currentBitrate / 1000
     }
 
@@ -119,7 +120,7 @@ class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDel
         updateRttMin(rtt)
         updateRttJitter(deltaRtt)
         updateThroughput(stats.mbpsSendRate!!)
-        val srtLatency = stats.latency ?: defaultSrtLatency.toDouble()
+        val srtLatency = stats.latency?.toDouble() ?: defaultSrtLatency.toDouble()
         val currentTime = System.nanoTime()
         var bitrate = currentBitrate
         val sendBufferSizeTh3 = (sendBufferSizeAverage + sendBufferSizeJitter) * 4
@@ -142,7 +143,7 @@ class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDel
         ) {
             bitrate = settings.minimumBitrate
             nextBitrateDecrTime = currentTime + bitrateDecrInterval
-            logAdaptiveAcion(
+            adaptiveBitrate.logAdaptiveAcion(
                 actionTaken =
                     "Set min: ${bitrate / 1000}, rtt: $rtt >= latency / 3: " +
                         "${srtLatency / 3} or bs: $sendBufferSize > bs_th3: " +
@@ -153,7 +154,7 @@ class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDel
         ) {
             bitrate -= (bitrateDecrMin + bitrate / bitrateDecrScale)
             nextBitrateDecrTime = currentTime + bitrateDecrFastInterval
-            logAdaptiveAcion(
+            adaptiveBitrate.logAdaptiveAcion(
                 actionTaken =
                     "Fast decr: ${(bitrateDecrMin + bitrate / bitrateDecrScale) / 1000}, " +
                         "rtt: $rtt > latency / 5: ${srtLatency / 5} or bs: " +
@@ -164,7 +165,7 @@ class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDel
         ) {
             bitrate -= bitrateDecrMin
             nextBitrateDecrTime = currentTime + bitrateDecrInterval
-            logAdaptiveAcion(
+            adaptiveBitrate.logAdaptiveAcion(
                 actionTaken =
                     "Decr: ${bitrateDecrMin / 1000}, rtt: $rtt > rtt_th_max: " +
                         "${formatTwoDecimals(rttThMax)} or bs: $sendBufferSize > bs_th1: " +
@@ -182,8 +183,8 @@ class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDel
         }
     }
 
-    override fun update(stats: StreamStats) {
+    fun update(stats: StreamStats) {
         updateBitrate(stats)
-        super.update(stats)
+        adaptiveBitrate.update(stats)
     }
 }

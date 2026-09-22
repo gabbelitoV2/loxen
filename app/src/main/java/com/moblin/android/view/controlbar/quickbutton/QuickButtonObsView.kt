@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -46,6 +47,22 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.ObsSceneMediaSource
 import com.moblin.android.various.model.QuickButtonObs
 import com.moblin.android.various.model.fallbackStream
+import com.moblin.android.various.model.isObsConnected
+import com.moblin.android.various.model.isObsRemoteControlConfigured
+import com.moblin.android.various.model.listObsScenes
+import com.moblin.android.various.model.obsFixStream
+import com.moblin.android.various.model.obsMuteAudio
+import com.moblin.android.various.model.obsStartRecording
+import com.moblin.android.various.model.obsStartStream
+import com.moblin.android.various.model.obsStopRecording
+import com.moblin.android.various.model.obsStopStream
+import com.moblin.android.various.model.obsWebSocketEnabledUpdated
+import com.moblin.android.various.model.setObsAudioDelay
+import com.moblin.android.various.model.setObsMediaSourceSettings
+import com.moblin.android.various.model.setObsScene
+import com.moblin.android.various.model.startObsAudioVolume
+import com.moblin.android.various.model.stopObsAudioVolume
+import com.moblin.android.various.model.updateObsAudioDelay
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.settings.streams.stream.obsremotecontrol.StreamObsRemoteControlSettingsInnerView
 import com.moblin.android.view.utils.HCenter
@@ -66,9 +83,9 @@ private fun ObsStartStopButtonView(
     var presentingStartConfirm by remember { mutableStateOf(false) }
     var presentingStopConfirm by remember { mutableStateOf(false) }
     when (state) {
-        ObsOutputState.STOPPED -> {
+        ObsOutputState.stopped -> {
             Column(modifier = Modifier.fillMaxWidth()) {
-                TextButtonView(text = startText, action = { presentingStartConfirm = true })
+                TextButtonView(title = startText, action = { presentingStartConfirm = true })
                 if (presentingStartConfirm) {
                     AlertDialog(
                         onDismissRequest = { presentingStartConfirm = false },
@@ -84,7 +101,7 @@ private fun ObsStartStopButtonView(
                 }
             }
         }
-        ObsOutputState.STARTING -> {
+        ObsOutputState.starting -> {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -96,14 +113,14 @@ private fun ObsStartStopButtonView(
                 }
             }
         }
-        ObsOutputState.STARTED -> {
+        ObsOutputState.started -> {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.Blue)
                     .padding(8.dp),
             ) {
-                TextButtonView(text = stopText, action = { presentingStopConfirm = true })
+                TextButtonView(title = stopText, action = { presentingStopConfirm = true })
                 if (presentingStopConfirm) {
                     AlertDialog(
                         onDismissRequest = { presentingStopConfirm = false },
@@ -119,7 +136,7 @@ private fun ObsStartStopButtonView(
                 }
             }
         }
-        ObsOutputState.STOPPING -> {
+        ObsOutputState.stopping -> {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -139,7 +156,7 @@ private fun ObsStartStopStreamingView(
     model: Model = LocalModel.current,
     obsQuickButton: QuickButtonObs,
 ) {
-    val streamingState by obsQuickButton.streamingState.collectAsState()
+    val streamingState by obsQuickButton.streamingState.collectAsState<ObsOutputState>()
     ObsStartStopButtonView(
         state = streamingState,
         startAction = {
@@ -158,7 +175,7 @@ private fun ObsStartStopRecordingView(
     model: Model = LocalModel.current,
     obsQuickButton: QuickButtonObs,
 ) {
-    val recordingState by obsQuickButton.recordingState.collectAsState()
+    val recordingState by obsQuickButton.recordingState.collectAsState<ObsOutputState>()
     ObsStartStopButtonView(
         state = recordingState,
         startAction = {
@@ -178,7 +195,7 @@ private fun ObsSettingsView(
     model: Model = LocalModel.current,
     stream: SettingsStream,
 ) {
-    val obsWebSocketEnabled by stream.obsWebSocketEnabled.collectAsState()
+    val obsWebSocketEnabled = stream.obsWebSocketEnabled
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -196,8 +213,8 @@ private fun ObsSettingsView(
             Switch(
                 checked = obsWebSocketEnabled,
                 onCheckedChange = { enabled ->
-                    stream.obsWebSocketEnabled.value = enabled
-                    if (stream.enabled.value) {
+                    stream.obsWebSocketEnabled = enabled
+                    if (stream.enabled) {
                         model.obsWebSocketEnabledUpdated()
                     }
                 },
@@ -220,7 +237,7 @@ private fun ObsSnapshotView(
         Text(localized("Current scene snapshot"))
         if (screenshot != null) {
             Image(
-                bitmap = screenshot,
+                bitmap = screenshot.asImageBitmap(),
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -280,7 +297,7 @@ private fun ObsSceneMediaSourceView(
     source: ObsSceneMediaSource,
 ) {
     var showSettings by remember { mutableStateOf(false) }
-    TextButtonView(text = source.name, action = { showSettings = true })
+    TextButtonView(title = source.name, action = { showSettings = true })
     if (showSettings) {
         Dialog(onDismissRequest = { showSettings = false }) {
             Column(
@@ -372,7 +389,7 @@ private fun ObsFixSourceView(
     stream: SettingsStream,
     obsQuickButton: QuickButtonObs,
 ) {
-    val obsSourceName by stream.obsSourceName.collectAsState()
+    val obsSourceName = stream.obsSourceName
     val fixOngoing by obsQuickButton.fixOngoing.collectAsState()
     if (!fixOngoing) {
         Column(
@@ -380,7 +397,7 @@ private fun ObsFixSourceView(
                 .fillMaxWidth()
                 .padding(8.dp),
         ) {
-            TextButtonView(text = "Fix $obsSourceName source", action = {
+            TextButtonView(title = "Fix $obsSourceName source", action = {
                 model.obsFixStream()
             })
             Text(
@@ -411,7 +428,7 @@ private fun ObsAudioSyncView(
     stream: SettingsStream,
     obsQuickButton: QuickButtonObs,
 ) {
-    val obsSourceName by stream.obsSourceName.collectAsState()
+    val obsSourceName = stream.obsSourceName
     val audioDelay by obsQuickButton.audioDelay.collectAsState()
     val submitAudioDelay: (String) -> String = { value ->
         val offsetDouble = (value.toDoubleOrNull() ?: 0.0)
@@ -444,11 +461,12 @@ private fun ObsAudioSyncView(
 
 @Composable
 private fun ObsAudioLevelsView(
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     obsQuickButton: QuickButtonObs,
 ) {
-    val isLive by Model.isLive.collectAsState()
-    val obsSourceName by stream.obsSourceName.collectAsState()
+    val isLive by model.isLive.collectAsState()
+    val obsSourceName = stream.obsSourceName
     val audioVolume by obsQuickButton.audioVolume.collectAsState()
     Column(
         modifier = Modifier
@@ -473,17 +491,17 @@ private fun ObsConnectedView(
     stream: SettingsStream,
     obsQuickButton: QuickButtonObs,
 ) {
-    val obsSourceName by stream.obsSourceName.collectAsState()
-    val streamName by stream.name.collectAsState()
-    ObsStartStopStreamingView(model = Model, obsQuickButton = obsQuickButton)
-    ObsStartStopRecordingView(model = Model, obsQuickButton = obsQuickButton)
+    val obsSourceName = stream.obsSourceName
+    val streamName = stream.name
+    ObsStartStopStreamingView(obsQuickButton = obsQuickButton)
+    ObsStartStopRecordingView(obsQuickButton = obsQuickButton)
     ObsSnapshotView(obsQuickButton = obsQuickButton)
-    ObsScenesView(model = Model, obsQuickButton = obsQuickButton)
-    ObsSceneAudioInputsView(model = Model, obsQuickButton = obsQuickButton)
-    ObsSceneMediaSourcesView(model = Model, obsQuickButton = obsQuickButton)
+    ObsScenesView(obsQuickButton = obsQuickButton)
+    ObsSceneAudioInputsView(obsQuickButton = obsQuickButton)
+    ObsSceneMediaSourcesView(obsQuickButton = obsQuickButton)
     if (obsSourceName.isNotEmpty()) {
-        ObsFixSourceView(model = Model, stream = stream, obsQuickButton = obsQuickButton)
-        ObsAudioSyncView(model = Model, stream = stream, obsQuickButton = obsQuickButton)
+        ObsFixSourceView(stream = stream, obsQuickButton = obsQuickButton)
+        ObsAudioSyncView(stream = stream, obsQuickButton = obsQuickButton)
         ObsAudioLevelsView(stream = stream, obsQuickButton = obsQuickButton)
     } else {
         Text(
@@ -498,18 +516,19 @@ private fun ObsConnectedView(
 fun QuickButtonObsView(
     stream: SettingsStream,
     obsQuickButton: QuickButtonObs,
+    model: Model = LocalModel.current,
 ) {
     var showObsSettings by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        Model.listObsScenes(updateAudioInputs = true)
+        model.listObsScenes(updateAudioInputs = true)
         obsQuickButton.startObsSourceScreenshot()
-        Model.startObsAudioVolume()
-        Model.updateObsAudioDelay()
+        model.startObsAudioVolume()
+        model.updateObsAudioDelay()
     }
     DisposableEffect(Unit) {
         onDispose {
             obsQuickButton.stopObsSourceScreenshot()
-            Model.stopObsAudioVolume()
+            model.stopObsAudioVolume()
         }
     }
     Column(
@@ -518,8 +537,8 @@ fun QuickButtonObsView(
             .verticalScroll(rememberScrollState()),
     ) {
         TopAppBar(title = { Text(localized("OBS remote control")) })
-        if (!Model.isObsRemoteControlConfigured()) {
-        } else if (!Model.isObsConnected()) {
+        if (!model.isObsRemoteControlConfigured()) {
+        } else if (!model.isObsConnected()) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -533,7 +552,7 @@ fun QuickButtonObsView(
         if (stream !== fallbackStream) {
             ShortcutSectionView {
                 TextButtonView(
-                    text = localized("OBS remote control"),
+                    title = localized("OBS remote control"),
                     action = { showObsSettings = true },
                 )
             }
@@ -547,7 +566,7 @@ fun QuickButtonObsView(
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(16.dp),
             ) {
-                ObsSettingsView(model = Model, stream = stream)
+                ObsSettingsView(stream = stream)
             }
         }
     }

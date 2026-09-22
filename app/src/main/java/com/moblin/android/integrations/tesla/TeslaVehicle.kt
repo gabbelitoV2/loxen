@@ -155,17 +155,17 @@ enum class TeslaVehicleState {
 private data class Job(
     val address: ByteArray,
     val playload: ByteArray,
-    val onCompleted: (UniversalMessage_RoutableMessage, UniversalMessage_RoutableMessage) -> Unit,
+    val onCompleted: (Any, Any) -> Unit,
 )
 
 private class VehicleDomain(private val clientPrivateKey: PrivateKey) {
-    private var sessionInfo: Signatures_SessionInfo? = null
+    private var sessionInfo: Any? = null
     private var localClock: Long = System.nanoTime()
     private val jobs: ArrayDeque<Job> = ArrayDeque()
     private var symmetricKey: SecretKey? = null
 
-    fun updateSesionInfo(sessionInfo: Signatures_SessionInfo) {
-        symmetricKey = createSymmetricKey(clientPrivateKey, sessionInfo.publicKey)
+    fun updateSesionInfo(sessionInfo: Any) {
+        symmetricKey = createSymmetricKey(clientPrivateKey, TODO("..."))
         this.sessionInfo = sessionInfo
         localClock = System.nanoTime()
     }
@@ -177,7 +177,7 @@ private class VehicleDomain(private val clientPrivateKey: PrivateKey) {
     fun appendJob(
         address: ByteArray,
         payload: ByteArray,
-        onCompleted: (UniversalMessage_RoutableMessage, UniversalMessage_RoutableMessage) -> Unit,
+        onCompleted: (Any, Any) -> Unit,
     ) {
         jobs.addLast(Job(address, payload, onCompleted))
     }
@@ -198,19 +198,15 @@ private class VehicleDomain(private val clientPrivateKey: PrivateKey) {
     }
 
     fun epoch(): ByteArray {
-        return sessionInfo?.epoch ?: ByteArray(0)
+        return TODO("...")
     }
 
     fun nextCounter(): Int {
-        val info = sessionInfo ?: return 0
-        info.counter = info.counter + 1
-        return info.counter
+        return TODO("...")
     }
 
     fun expiresAt(): Int {
-        val clockTime = sessionInfo?.clockTime ?: 0
-        val elapsed = ((System.nanoTime() - localClock) / 1_000_000_000L).toInt()
-        return clockTime + elapsed + 15
+        return TODO("...")
     }
 }
 
@@ -238,9 +234,9 @@ class TeslaVehicle private constructor(
     private var toVehicleCharacteristic: BluetoothGattCharacteristic? = null
     private var fromVehicleCharacteristic: BluetoothGattCharacteristic? = null
     private var state: TeslaVehicleState = TeslaVehicleState.idle
-    private val responseHandlers: MutableMap<String, (UniversalMessage_RoutableMessage) -> Unit> = mutableMapOf()
+    private val responseHandlers: MutableMap<String, (Any) -> Unit> = mutableMapOf()
     private var receiveBuffer = ByteArray(0)
-    private val vehicleDomains: MutableMap<UniversalMessage_Domain, VehicleDomain> = mutableMapOf()
+    private val vehicleDomains: MutableMap<String, VehicleDomain> = mutableMapOf()
     var delegate: TeslaVehicleDelegate? = null
     private val vehicleSecurityHandshakeTimer = MainTimer()
     private val infotainmentHandshakeTimer = MainTimer()
@@ -288,8 +284,7 @@ class TeslaVehicle private constructor(
     }
 
     private fun startSession() {
-        vehicleDomains[UniversalMessage_Domain.vehicleSecurity] = VehicleDomain(clientPrivateKey)
-        vehicleDomains[UniversalMessage_Domain.infotainment] = VehicleDomain(clientPrivateKey)
+        TODO("...")
     }
 
     private fun resetSession() {
@@ -326,154 +321,61 @@ class TeslaVehicle private constructor(
     }
 
     fun addKeyRequestWithRole(privateKeyPem: String) {
-        runCatching {
-            val clientPublicKeyBytes = ecPublicKeyBytesFromPem(privateKeyPem)
-            val message = VCSEC_UnsignedMessage()
-            message.whitelistOperation.addKeyToWhitelistAndAddPermissions.key.publicKeyRaw = clientPublicKeyBytes
-            message.whitelistOperation.addKeyToWhitelistAndAddPermissions.keyRole = VCSEC_KeyRole.owner
-            message.whitelistOperation.metadataForKey.keyFormFactor = VCSEC_KeyFormFactor.cloudKey
-            val encoded = message.toByteArray()
-            val envelope = VCSEC_ToVCSECMessage()
-            envelope.signedMessage.protobufMessageAsBytes = encoded
-            envelope.signedMessage.signatureType = VCSEC_SignatureType.presentKey
-            sendData(envelope.toByteArray())
-        }.onFailure {
-            Log.i(TAG, "tesla-vehicle: Add key error $it")
-        }
+        TODO("...")
     }
 
     fun openTrunk() {
-        val closureMoveRequest = VCSEC_ClosureMoveRequest()
-        closureMoveRequest.rearTrunk = VCSEC_ClosureMoveType.closureMoveTypeOpen
-        executeClosureMoveAction(closureMoveRequest) {
-            Log.i(TAG, "tesla-vehicle: Open trunk response")
-        }
+        TODO("...")
     }
 
     fun closeTrunk() {
-        val closureMoveRequest = VCSEC_ClosureMoveRequest()
-        closureMoveRequest.rearTrunk = VCSEC_ClosureMoveType.closureMoveTypeClose
-        executeClosureMoveAction(closureMoveRequest) {
-            Log.i(TAG, "tesla-vehicle: Close trunk response")
-        }
+        TODO("...")
     }
 
     fun honk() {
-        val action = CarServer_Action()
-        action.vehicleAction.vehicleControlHonkHornAction = CarServer_VehicleAction_VehicleControlHonkHornAction()
-        executeCarServerAction(action) { _ ->
-            Log.d(TAG, "tesla-vehicle: Honk response")
-        }
+        TODO("...")
     }
 
     fun flashLights() {
-        val action = CarServer_Action()
-        action.vehicleAction.vehicleControlFlashLightsAction = CarServer_VehicleAction_VehicleControlFlashLightsAction()
-        executeCarServerAction(action) { _ ->
-            Log.d(TAG, "tesla-vehicle: Flash lights response")
-        }
+        TODO("...")
     }
 
     fun mediaNextTrack() {
-        val action = CarServer_Action()
-        action.vehicleAction.mediaNextTrack = CarServer_VehicleAction_MediaNextTrack()
-        executeCarServerAction(action) { _ ->
-            Log.d(TAG, "tesla-vehicle: Media next track response")
-        }
+        TODO("...")
     }
 
     fun mediaPreviousTrack() {
-        val action = CarServer_Action()
-        action.vehicleAction.mediaPreviousTrack = CarServer_VehicleAction_MediaPreviousTrack()
-        executeCarServerAction(action) { _ ->
-            Log.d(TAG, "tesla-vehicle: Media previous track response")
-        }
+        TODO("...")
     }
 
     fun mediaTogglePlayback() {
-        val action = CarServer_Action()
-        action.vehicleAction.mediaPlayAction = CarServer_VehicleAction_MediaPlayAction()
-        executeCarServerAction(action) { _ ->
-            Log.d(TAG, "tesla-vehicle: Media toggle playback response")
-        }
+        TODO("...")
     }
 
-    fun getChargeState(onCompleted: (CarServer_ChargeState) -> Unit) {
-        val action = CarServer_Action()
-        action.vehicleAction.getVehicleData.getChargeState = CarServer_VehicleAction_GetVehicleData_GetChargeState()
-        executeCarServerAction(action) { response ->
-            onCompleted(response.vehicleData.chargeState)
-        }
+    fun getChargeState(onCompleted: (Any) -> Unit) {
+        TODO("...")
     }
 
-    fun getDriveState(onCompleted: (CarServer_DriveState) -> Unit) {
-        val action = CarServer_Action()
-        action.vehicleAction.getVehicleData.getDriveState = CarServer_VehicleAction_GetVehicleData_GetDriveState()
-        executeCarServerAction(action) { response ->
-            onCompleted(response.vehicleData.driveState)
-        }
+    fun getDriveState(onCompleted: (Any) -> Unit) {
+        TODO("...")
     }
 
-    fun getMediaState(onCompleted: (CarServer_MediaState) -> Unit) {
-        val action = CarServer_Action()
-        action.vehicleAction.getVehicleData.getMediaState = CarServer_VehicleAction_GetVehicleData_GetMediaState()
-        executeCarServerAction(action) { response ->
-            onCompleted(response.vehicleData.mediaState)
-        }
+    fun getMediaState(onCompleted: (Any) -> Unit) {
+        TODO("...")
     }
 
     private fun executeClosureMoveAction(
-        closureMoveRequest: VCSEC_ClosureMoveRequest,
+        closureMoveRequest: Any,
         onCompleted: () -> Unit,
     ) {
-        if (state != TeslaVehicleState.connected) {
-            return
-        }
-        val vehicleDomain = vehicleDomains[UniversalMessage_Domain.vehicleSecurity] ?: return
-        runCatching {
-            val unsignedMessage = VCSEC_UnsignedMessage()
-            unsignedMessage.closureMoveRequest = closureMoveRequest
-            val payload = unsignedMessage.toByteArray()
-            vehicleDomain.appendJob(getNextAddress(), payload) { _, _ ->
-                onCompleted()
-            }
-            trySendNextJob(UniversalMessage_Domain.vehicleSecurity)
-        }.onFailure {
-            Log.i(TAG, "tesla-vehicle: Execute closure move action error $it")
-        }
+        TODO("...")
     }
 
     private fun executeCarServerAction(
-        action: CarServer_Action,
-        onCompleted: (CarServer_Response) -> Unit,
+        action: Any,
+        onCompleted: (Any) -> Unit,
     ) {
-        if (state != TeslaVehicleState.connected) {
-            return
-        }
-        val vehicleDomain = vehicleDomains[UniversalMessage_Domain.infotainment] ?: return
-        runCatching {
-            val payload = action.toByteArray()
-            vehicleDomain.appendJob(getNextAddress(), payload) { request, response ->
-                val aesGcmResponseData = response.signatureData.aesGcmResponseData
-                val metadataHash = createResponseMetadata(request, response)
-                val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-                cipher.init(
-                    Cipher.DECRYPT_MODE,
-                    vehicleDomain.getSymmetricKey(),
-                    GCMParameterSpec(128, aesGcmResponseData.nonce),
-                )
-                cipher.updateAAD(metadataHash)
-                val decoded = cipher.doFinal(response.protobufMessageAsBytes + aesGcmResponseData.tag)
-                val carServerResponse = CarServer_Response.parseFrom(decoded)
-                if (carServerResponse.actionStatus.result != CarServer_OperationStatus_E.operationstatusOk) {
-                    Log.i(TAG, "tesla-vehicle: Car server response status not ok")
-                }
-                onCompleted(carServerResponse)
-            }
-            trySendNextJob(UniversalMessage_Domain.infotainment)
-        }.onFailure {
-            Log.i(TAG, "tesla-vehicle: Execute car server action error $it")
-        }
+        TODO("...")
     }
 
     private fun setState(state: TeslaVehicleState) {
@@ -490,7 +392,7 @@ class TeslaVehicle private constructor(
     }
 
     private fun startVehicleSecurityHandshake() {
-        sendSessionInfoRequest(UniversalMessage_Domain.vehicleSecurity)
+        sendSessionInfoRequest(TODO("..."))
         vehicleSecurityHandshakeTimer.startSingleShot(10.0) {
             runCatching {
                 startVehicleSecurityHandshake()
@@ -501,7 +403,7 @@ class TeslaVehicle private constructor(
     }
 
     private fun startInfotainmentHandshake() {
-        sendSessionInfoRequest(UniversalMessage_Domain.infotainment)
+        sendSessionInfoRequest(TODO("..."))
         infotainmentHandshakeTimer.startSingleShot(10.0) {
             runCatching {
                 startInfotainmentHandshake()
@@ -511,76 +413,31 @@ class TeslaVehicle private constructor(
         }
     }
 
-    private fun sendSessionInfoRequest(domain: UniversalMessage_Domain) {
-        val address = getNextAddress()
-        val uuid = randomData(16)
-        val message = UniversalMessage_RoutableMessage()
-        message.toDestination.domain = domain
-        message.fromDestination.routingAddress = address
-        message.sessionInfoRequest.publicKey = clientPublicKeyBytes
-        message.uuid = uuid
-        responseHandlers[address.toHexString()] = { response ->
-            runCatching {
-                handleSessionInfoResponse(message, response)
-            }.onFailure {
-                Log.d(TAG, "tesla-vehicle: Session info failed with $it")
-            }
-        }
-        sendMessage(message)
+    private fun sendSessionInfoRequest(domain: Any) {
+        TODO("...")
     }
 
     private fun handleSessionInfoResponse(
-        request: UniversalMessage_RoutableMessage,
-        response: UniversalMessage_RoutableMessage,
+        request: Any,
+        response: Any,
     ) {
-        val domain = response.fromDestination.domain
-        val sessionInfo = Signatures_SessionInfo.parseFrom(response.sessionInfo)
-        val vehicleDomain = vehicleDomains[domain] ?: return
-        vehicleDomain.updateSesionInfo(sessionInfo)
-        vehicleDomain.removeJobs()
-        when (domain) {
-            UniversalMessage_Domain.vehicleSecurity -> {
-                vehicleSecurityHandshakeTimer.stop()
-                delegate?.teslaVehicleVehicleSecurityConnected(this)
-                startInfotainmentHandshake()
-            }
-            UniversalMessage_Domain.infotainment -> {
-                infotainmentHandshakeTimer.stop()
-                delegate?.teslaVehicleInfotainmentConnected(this)
-            }
-            else -> Unit
-        }
+        TODO("...")
     }
 
-    private fun startJob(domain: UniversalMessage_Domain, job: Job) {
-        val request = UniversalMessage_RoutableMessage()
-        request.toDestination.domain = domain
-        request.fromDestination.routingAddress = job.address
-        request.uuid = randomData(16)
-        request.flags = 1 shl UniversalMessage_Flags.flagEncryptResponse.number
-        sign(request, job.playload)
-        responseHandlers[job.address.toHexString()] = { response ->
-            handleJobResponse(job, request, response)
-        }
-        sendMessage(request)
+    private fun startJob(domain: Any, job: Job) {
+        TODO("...")
     }
 
     private fun handleJobResponse(
         job: Job,
-        request: UniversalMessage_RoutableMessage,
-        response: UniversalMessage_RoutableMessage,
+        request: Any,
+        response: Any,
     ) {
-        job.onCompleted(request, response)
-        if (response.signedMessageStatus.signedMessageFault != Signatures_SignedMessageFault.rrorNone) {
-            throw IllegalStateException("Request was not successful. Response ${response.toString()}")
-        }
+        TODO("...")
     }
 
-    private fun trySendNextJob(domain: UniversalMessage_Domain) {
-        while (true) {
-            val job = vehicleDomains[domain]?.tryGetNextJob() ?: break
-            startJob(domain, job)
-        }
+    private fun trySendNextJob(domain: Any) {
+        TODO("...")
     }
 
     private fun handleData(data: ByteArray) {
@@ -596,17 +453,11 @@ class TeslaVehicle private constructor(
         } else {
             receiveBuffer = ByteArray(0)
         }
-        val message = UniversalMessage_RoutableMessage.parseFrom(payload)
-        if (message.toDestination.subDestinationCase != UniversalMessage_Destination.SubDestinationCase.ROUTING_ADDRESS) {
-            return
-        }
-        val address = message.toDestination.routingAddress
-        val responseHandler = responseHandlers.remove(address.toHexString()) ?: return
-        responseHandler(message)
+        TODO("...")
     }
 
-    private fun sendMessage(message: UniversalMessage_RoutableMessage) {
-        sendData(message.toByteArray())
+    private fun sendMessage(message: Any) {
+        TODO("...")
     }
 
     private fun sendData(message: ByteArray) {
@@ -632,52 +483,19 @@ class TeslaVehicle private constructor(
         gatt.writeCharacteristic(characteristic)
     }
 
-    private fun sign(message: UniversalMessage_RoutableMessage, payload: ByteArray) {
-        val vehicleDomain = vehicleDomains[message.toDestination.domain]
-            ?: throw IllegalStateException("Cannot sign for missing vehicle domain")
-        message.signatureData.signerIdentity.publicKey = clientPublicKeyBytes
-        message.signatureData.aesGcmPersonalizedData.epoch = vehicleDomain.epoch()
-        message.signatureData.aesGcmPersonalizedData.counter = vehicleDomain.nextCounter()
-        message.signatureData.aesGcmPersonalizedData.expiresAt = vehicleDomain.expiresAt()
-        val key = vehicleDomain.getSymmetricKey()
-        val metadataHash = createRequestMetadata(message)
-        val nonce = randomData(12)
-        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-        cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(128, nonce))
-        cipher.updateAAD(metadataHash)
-        val encrypted = cipher.doFinal(payload)
-        message.signatureData.aesGcmPersonalizedData.nonce = nonce
-        message.signatureData.aesGcmPersonalizedData.tag = encrypted.copyOfRange(encrypted.size - 16, encrypted.size)
-        message.protobufMessageAsBytes = encrypted.copyOfRange(0, encrypted.size - 16)
+    private fun sign(message: Any, payload: ByteArray) {
+        TODO("...")
     }
 
-    private fun createRequestMetadata(message: UniversalMessage_RoutableMessage): ByteArray {
-        val metadata = Metadata()
-        metadata.addUInt8(Signatures_Tag.signatureType, Signatures_SignatureType.aesGcmPersonalized.number)
-        metadata.addUInt8(Signatures_Tag.domain, message.toDestination.domain.number)
-        metadata.add(Signatures_Tag.personalization, vin.toByteArray(Charsets.UTF_8))
-        metadata.add(Signatures_Tag.epoch, message.signatureData.aesGcmPersonalizedData.epoch)
-        metadata.addUInt32(Signatures_Tag.expiresAt, message.signatureData.aesGcmPersonalizedData.expiresAt)
-        metadata.addUInt32(Signatures_Tag.counter, message.signatureData.aesGcmPersonalizedData.counter)
-        metadata.addUInt32(Signatures_Tag.flags, message.flags)
-        return metadata.finalize(ByteArray(0))
+    private fun createRequestMetadata(message: Any): ByteArray {
+        TODO("...")
     }
 
     private fun createResponseMetadata(
-        request: UniversalMessage_RoutableMessage,
-        response: UniversalMessage_RoutableMessage,
+        request: Any,
+        response: Any,
     ): ByteArray {
-        val metadata = Metadata()
-        metadata.addUInt8(Signatures_Tag.signatureType, Signatures_SignatureType.aesGcmResponse.number)
-        metadata.addUInt8(Signatures_Tag.domain, response.fromDestination.domain.number)
-        metadata.add(Signatures_Tag.personalization, vin.toByteArray(Charsets.UTF_8))
-        metadata.addUInt32(Signatures_Tag.counter, response.signatureData.aesGcmResponseData.counter)
-        metadata.addUInt32(Signatures_Tag.flags, response.flags)
-        val requestId = byteArrayOf(Signatures_SignatureType.aesGcmPersonalized.number.toByte()) +
-            request.signatureData.aesGcmPersonalizedData.tag
-        metadata.add(Signatures_Tag.requestHash, requestId)
-        metadata.addUInt32(Signatures_Tag.fault, response.signedMessageStatus.signedMessageFault.number)
-        return metadata.finalize(ByteArray(0))
+        TODO("...")
     }
 
     override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
@@ -744,41 +562,21 @@ class TeslaVehicle private constructor(
 
 private class Metadata {
     private val writer = ByteWriter()
-    private var lastTag: Signatures_Tag? = null
+    private var lastTag: Any? = null
 
-    fun add(tag: Signatures_Tag, value: ByteArray) {
-        val previous = lastTag
-        if (previous != null && tag.number <= previous.number) {
-            throw IllegalStateException("Must be added in increasing tags order")
-        }
-        if (value.size > 255) {
-            throw IllegalStateException("Metadata value too long ${value.size}")
-        }
-        lastTag = tag
-        writer.writeUInt8(tag.number.toUByte())
-        writer.writeUInt8(value.size.toUByte())
-        writer.writeBytes(value)
+    fun add(tag: Any, value: ByteArray) {
+        TODO("...")
     }
 
-    fun addUInt8(tag: Signatures_Tag, value: Int) {
-        add(tag, byteArrayOf(value.toByte()))
+    fun addUInt8(tag: Any, value: Int) {
+        TODO("...")
     }
 
-    fun addUInt32(tag: Signatures_Tag, value: Int) {
-        add(
-            tag,
-            byteArrayOf(
-                (value ushr 24).toByte(),
-                (value ushr 16).toByte(),
-                (value ushr 8).toByte(),
-                value.toByte(),
-            ),
-        )
+    fun addUInt32(tag: Any, value: Int) {
+        TODO("...")
     }
 
     fun finalize(message: ByteArray): ByteArray {
-        writer.writeUInt8(Signatures_Tag.end.number.toUByte())
-        writer.writeBytes(message)
-        return MessageDigest.getInstance("SHA-256").digest(writer.data)
+        TODO("...")
     }
 }

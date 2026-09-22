@@ -14,16 +14,16 @@ class KeyPress(val characters: String) {
 }
 
 fun Model.isKeyboardActive(): Boolean {
-    if (showingPanel != ShowingPanel.none) {
+    if (showingPanel.value != ShowingPanel.none) {
         return false
     }
-    if (showBrowser) {
+    if (showBrowser.value) {
         return false
     }
-    if (showTwitchAuth) {
+    if (showTwitchAuth.value) {
         return false
     }
-    if (showModerationAuth) {
+    if (showModerationAuth.value) {
         return false
     }
     if (createStreamWizard.presenting) {

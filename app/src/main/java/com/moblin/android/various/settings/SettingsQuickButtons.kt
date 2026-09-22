@@ -339,3 +339,10 @@ class SettingsQuickButtons {
 
     constructor()
 }
+
+private fun RgbColor.color(): Color =
+    Color(
+        red = red.toFloat() / 255f,
+        green = green.toFloat() / 255f,
+        blue = blue.toFloat() / 255f,
+    )

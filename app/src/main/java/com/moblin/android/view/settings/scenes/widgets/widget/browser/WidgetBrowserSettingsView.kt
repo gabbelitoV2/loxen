@@ -45,13 +45,13 @@ private fun submitUrl(model: Model, browser: SettingsWidgetBrowser, value: Strin
     if (runCatching { java.net.URI(trimmed) }.isFailure) {
         return
     }
-    browser.url.value = trimmed
-    model.resetSelectedScene(changeScene = false)
+    browser.url = trimmed
+    TODO("model.resetSelectedScene")
 }
 
 private fun submitStyleSheet(model: Model, browser: SettingsWidgetBrowser, value: String) {
-    browser.styleSheet.value = value.trim()
-    model.resetSelectedScene(changeScene = false)
+    browser.styleSheet = value.trim()
+    TODO("model.resetSelectedScene")
 }
 
 private fun changeWidthHeight(value: String): String? {
@@ -67,19 +67,19 @@ private fun changeWidthHeight(value: String): String? {
 
 private fun submitWidth(model: Model, browser: SettingsWidgetBrowser, value: String) {
     val width = value.toIntOrNull() ?: return
-    browser.width.value = width
-    model.resetSelectedScene(changeScene = false)
+    browser.width = width
+    TODO("model.resetSelectedScene")
 }
 
 private fun submitHeight(model: Model, browser: SettingsWidgetBrowser, value: String) {
     val height = value.toIntOrNull() ?: return
-    browser.height.value = height
-    model.resetSelectedScene(changeScene = false)
+    browser.height = height
+    TODO("model.resetSelectedScene")
 }
 
 private fun submitFps(model: Model, browser: SettingsWidgetBrowser, value: Float) {
-    browser.baseFps.value = value
-    model.resetSelectedScene(changeScene = false)
+    browser.baseFps = value
+    TODO("model.resetSelectedScene")
 }
 
 private fun formatFps(value: Float): String {
@@ -93,15 +93,15 @@ fun WidgetBrowserSettingsView(
     browser: SettingsWidgetBrowser,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val url by browser.url.collectAsState()
-    val styleSheet by browser.styleSheet.collectAsState()
-    val width by browser.width.collectAsState()
-    val height by browser.height.collectAsState()
-    val baseFps by browser.baseFps.collectAsState()
-    val mode by browser.mode.collectAsState()
-    val localOnly by browser.localOnly.collectAsState()
-    val moblinAccess by browser.moblinAccess.collectAsState()
-    val speechToText by browser.speechToText.collectAsState()
+    val url = browser.url
+    val styleSheet = browser.styleSheet
+    val width = browser.width
+    val height = browser.height
+    val baseFps = browser.baseFps
+    val mode = browser.mode
+    val localOnly = browser.localOnly
+    val moblinAccess = browser.moblinAccess
+    val speechToText = browser.speechToText
     val interactiveBrowsers by model.interactiveBrowsers.collectAsState()
 
     Column(
@@ -121,6 +121,7 @@ fun WidgetBrowserSettingsView(
             placeholder = "body {}",
             value = styleSheet,
             onSubmit = { submitStyleSheet(model, browser, it) },
+            onValueChange = { browser.styleSheet = it },
             footers = listOf(
                 localized("For example:"),
                 "",
@@ -152,8 +153,8 @@ fun WidgetBrowserSettingsView(
             Switch(
                 checked = localOnly,
                 onCheckedChange = {
-                    browser.localOnly.value = it
-                    model.resetSelectedScene(changeScene = false)
+                    browser.localOnly = it
+                    TODO("model.resetSelectedScene")
                 },
             )
         }
@@ -189,7 +190,7 @@ fun WidgetBrowserSettingsView(
                 Spacer(Modifier.weight(1f))
                 Text(mode.toString(), color = Color.Gray)
             }
-            if (mode == SettingsWidgetBrowserMode.PERIODIC_AUDIO_AND_VIDEO) {
+            if (mode == SettingsWidgetBrowserMode.periodicAudioAndVideo) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth(),
@@ -201,8 +202,9 @@ fun WidgetBrowserSettingsView(
                         maximum = 15f,
                         step = 1f,
                         onSubmit = { submitFps(model, browser, it) },
-                        width = 60,
+                        width = 60f,
                         format = { formatFps(it) },
+                        onChange = { browser.baseFps = it },
                     )
                 }
             }
@@ -230,8 +232,8 @@ fun WidgetBrowserSettingsView(
             Switch(
                 checked = moblinAccess,
                 onCheckedChange = {
-                    browser.moblinAccess.value = it
-                    model.resetSelectedScene(changeScene = false)
+                    browser.moblinAccess = it
+                    TODO("model.resetSelectedScene")
                 },
             )
         }
@@ -244,8 +246,8 @@ fun WidgetBrowserSettingsView(
                 Switch(
                     checked = speechToText,
                     onCheckedChange = {
-                        browser.speechToText.value = it
-                        model.resetSelectedScene(changeScene = false)
+                        browser.speechToText = it
+                        TODO("model.resetSelectedScene")
                     },
                 )
             }

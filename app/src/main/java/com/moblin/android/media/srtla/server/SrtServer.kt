@@ -6,6 +6,8 @@ import com.moblin.android.media.haishinkit.srt.SrtSocketOption
 import com.moblin.android.various.utils.startBlockingThread
 
 private const val TAG = "SrtServer"
+private const val SRT_INVALID_SOCK: Int = -1
+private const val SRT_ERROR: Int = -1
 
 class SrtServer(
     private val timecodesEnabled: Boolean,
@@ -14,11 +16,11 @@ class SrtServer(
     private val srtlaPatches: Boolean,
 ) {
     var srtlaServer: SrtlaServer? = null
-    private var listenerSocket: Int = SrtNative.SRT_INVALID_SOCK
+    private var listenerSocket: Int = SRT_INVALID_SOCK
     var running: Boolean = false
 
     fun start() {
-        SrtNative.srt_startup()
+        TODO("srt_startup")
         running = true
         startBlockingThread(name = "com.eerimoq.srtla-srt-server") {
             try {
@@ -30,10 +32,10 @@ class SrtServer(
     }
 
     fun stop() {
-        SrtNative.srt_close(listenerSocket)
-        listenerSocket = SrtNative.SRT_INVALID_SOCK
+        TODO("srt_close")
+        listenerSocket = SRT_INVALID_SOCK
         running = false
-        SrtNative.srt_cleanup()
+        TODO("srt_cleanup")
     }
 
     private fun main() {
@@ -56,7 +58,7 @@ class SrtServer(
                 stream == null ||
                 srtlaServer.connectedStreamIds.value.contains(streamId)
             ) {
-                SrtNative.srt_close(clientSocket)
+                TODO("srt_close")
                 Log.i(TAG, "srt-server: $port: Client with stream id '$streamId' denied.")
                 continue
             }
@@ -64,7 +66,7 @@ class SrtServer(
             val cameraId = stream.id
             val name = stream.camera()
             startBlockingThread(name = "com.eerimoq.Moblin.SrtClient") {
-                srtlaServer.connectedStreamIds.mutate { ids -> ids.add(streamId) }
+                srtlaServer.connectedStreamIds.mutate { ids: List<String> -> ids + streamId }
                 srtlaServer.clientConnected(cameraId = cameraId, name = name)
                 SrtServerClient(
                     server = this@SrtServer,
@@ -72,7 +74,7 @@ class SrtServer(
                     timecodesEnabled = timecodesEnabled,
                     softwareDecoding = softwareDecoding,
                 ).run(clientSocket = clientSocket)
-                srtlaServer.connectedStreamIds.mutate { ids -> ids.removeAll { it == streamId } }
+                srtlaServer.connectedStreamIds.mutate { ids: List<String> -> ids.filterNot { it == streamId } }
                 srtlaServer.clientDisconnected(cameraId = cameraId, name = name)
                 Log.i(TAG, "srt-server: $port: Closed client.")
             }
@@ -82,9 +84,10 @@ class SrtServer(
     private fun getStreamId(socket: Int): String {
         val streamId = ByteArray(513)
         val size = intArrayOf(512)
+        val result: Int = TODO("srt_getsockflag")
         if (
-            SrtNative.srt_getsockflag(socket, SrtNative.SRTO_STREAMID, streamId, size) ==
-            SrtNative.SRT_ERROR
+            result ==
+            SRT_ERROR
         ) {
             return ""
         }
@@ -94,21 +97,21 @@ class SrtServer(
     }
 
     private fun open() {
-        listenerSocket = SrtNative.srt_create_socket()
-        if (listenerSocket == SrtNative.SRT_INVALID_SOCK) {
+        listenerSocket = TODO("srt_create_socket")
+        if (listenerSocket == SRT_INVALID_SOCK) {
             throw IllegalStateException("Failed to create socket: ${lastSrtSocketError()}")
         }
     }
 
     private fun setSrtlaPatchesOption() {
-        val srtlaPatches = SrtSocketOption("srtlaPatches")!!
+        val srtlaPatches = SrtSocketOption.fromRawValue("srtlaPatches")!!
         if (!srtlaPatches.setOption(listenerSocket, "1")) {
             throw IllegalStateException("Failed to set srtlaPatches option.")
         }
     }
 
     private fun setLossMaxTtlOption() {
-        val option = SrtSocketOption("lossmaxttl")!!
+        val option = SrtSocketOption.fromRawValue("lossmaxttl")!!
         if (!option.setOption(listenerSocket, "30")) {
             Log.i(TAG, "srt-server: $port: Failed to set lossmaxttl option.")
         }
@@ -120,21 +123,22 @@ class SrtServer(
         addr[1] = 0
         addr[2] = ((port shr 8) and 0xFF).toByte()
         addr[3] = (port and 0xFF).toByte()
-        val res = SrtNative.srt_bind(listenerSocket, addr, addr.size)
-        if (res == SrtNative.SRT_ERROR) {
+        val res: Int = TODO("srt_bind")
+        if (res == SRT_ERROR) {
             throw IllegalStateException("Bind failed: ${lastSrtSocketError()}")
         }
     }
 
     private fun listen() {
-        if (SrtNative.srt_listen(listenerSocket, 5) == SrtNative.SRT_ERROR) {
+        val result: Int = TODO("srt_listen")
+        if (result == SRT_ERROR) {
             throw IllegalStateException("Listen failed: ${lastSrtSocketError()}")
         }
     }
 
     private fun accept(): Int {
-        val clientSocket = SrtNative.srt_accept(listenerSocket, null, null)
-        if (clientSocket == SrtNative.SRT_ERROR) {
+        val clientSocket: Int = TODO("srt_accept")
+        if (clientSocket == SRT_ERROR) {
             throw IllegalStateException("Accept failed: ${lastSrtSocketError()}")
         }
         return clientSocket
@@ -142,5 +146,5 @@ class SrtServer(
 }
 
 private fun lastSrtSocketError(): String {
-    return SrtNative.srt_getlasterror_str()
+    return TODO("srt_getlasterror_str")
 }

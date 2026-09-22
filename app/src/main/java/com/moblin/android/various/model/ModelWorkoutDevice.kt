@@ -1,6 +1,7 @@
 package com.moblin.android.various.model
 
 import com.moblin.android.integrations.workoutdevice.WorkoutDevice
+import com.moblin.android.integrations.workoutdevice.WorkoutDeviceDelegate
 import com.moblin.android.integrations.workoutdevice.WorkoutDeviceRunningMetrics
 import com.moblin.android.integrations.workoutdevice.WorkoutDeviceState
 import com.moblin.android.various.settings.SettingsWorkoutDevice
@@ -11,6 +12,28 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
+
+private class WorkoutDeviceDelegateAdapter(private val model: Model) : WorkoutDeviceDelegate {
+    override fun workoutDeviceState(device: WorkoutDevice, state: WorkoutDeviceState) {
+        model.workoutDeviceState(device = device, state = state)
+    }
+
+    override fun workoutDeviceHeartRate(device: WorkoutDevice, heartRate: Int) {
+        model.workoutDeviceHeartRate(device = device, heartRate = heartRate)
+    }
+
+    override fun workoutDeviceCyclingPower(device: WorkoutDevice, power: Int, cadence: Int?) {
+        model.workoutDeviceCyclingPower(device = device, power = power, cadence = cadence)
+    }
+
+    override fun workoutDeviceCyclingSpeedCadence(device: WorkoutDevice, speed: Double?, cadence: Int?) {
+        model.workoutDeviceCyclingSpeedCadence(device = device, speed = speed, cadence = cadence)
+    }
+
+    override fun workoutDeviceRunningMetrics(device: WorkoutDevice, metrics: WorkoutDeviceRunningMetrics) {
+        model.workoutDeviceRunningMetrics(device = device, metrics = metrics)
+    }
+}
 
 data class CyclingSampleInfo(
     val source: CyclingSource,
@@ -42,7 +65,7 @@ fun Model.isWorkoutDeviceEnabled(device: SettingsWorkoutDevice): Boolean {
 fun Model.enableWorkoutDevice(device: SettingsWorkoutDevice) {
     if (!workoutDevices.containsKey(device.id)) {
         val workoutDevice = WorkoutDevice(wheelCircumference = device.wheelCircumference)
-        workoutDevice.delegate = this
+        workoutDevice.delegate = WorkoutDeviceDelegateAdapter(model = this)
         workoutDevices[device.id] = workoutDevice
     }
     workoutDevices[device.id]?.start(deviceId = device.bluetoothPeripheralId)
@@ -62,7 +85,7 @@ fun Model.setWorkoutDeviceWheelCircumference(device: SettingsWorkoutDevice) {
 
 fun Model.setCurrentWorkoutDevice(device: SettingsWorkoutDevice) {
     currentWorkoutDeviceSettings = device
-    statusTopRight.workoutDeviceState = getWorkoutDeviceState(device = device)
+    statusTopRight.workoutDeviceState.value = getWorkoutDeviceState(device = device)
 }
 
 fun Model.getWorkoutDeviceState(device: SettingsWorkoutDevice): WorkoutDeviceState {
@@ -119,7 +142,7 @@ fun Model.workoutDeviceState(device: WorkoutDevice, state: WorkoutDeviceState) {
         heartRates.remove(deviceName)
         runningMetrics.remove(deviceName)
         if (deviceSettings === currentWorkoutDeviceSettings) {
-            statusTopRight.workoutDeviceState = state
+            statusTopRight.workoutDeviceState.value = state
         }
     }
 }

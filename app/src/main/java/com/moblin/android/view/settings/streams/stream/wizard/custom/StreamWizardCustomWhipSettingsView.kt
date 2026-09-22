@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,7 +28,7 @@ import com.moblin.android.common.various.isValidUrl
 import com.moblin.android.localized
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
-import com.moblin.android.various.model.StreamState
+import com.moblin.android.various.model.WizardCustomProtocol
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
@@ -42,11 +41,11 @@ private fun nextDisabled(customWhipUrl: String, urlError: String): Boolean {
 }
 
 private fun updateUrlError(customWhipUrl: String): String {
-    val url = cleanUrl(url = customWhipUrl)
+    val url = cleanUrl(value = customWhipUrl)
     return if (url.isEmpty()) {
         ""
     } else {
-        isValidUrl(url = url, allowedSchemes = listOf("whip", "whips")) ?: ""
+        isValidUrl(value = url, allowedSchemes = listOf("whip", "whips")) ?: ""
     }
 }
 
@@ -57,13 +56,13 @@ fun StreamWizardCustomWhipSettingsView(
     createStreamWizard: CreateStreamWizard,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val customWhipUrl by createStreamWizard.customWhipUrl.collectAsState()
+    val customWhipUrl = createStreamWizard.customWhipUrl
     var urlError by remember { mutableStateOf("") }
     val disabled = nextDisabled(customWhipUrl, urlError)
 
     LaunchedEffect(Unit) {
-        createStreamWizard.customProtocol.value = StreamState.whip
-        createStreamWizard.name.value = makeUniqueName(
+        createStreamWizard.customProtocol = WizardCustomProtocol.whip
+        createStreamWizard.name = makeUniqueName(
             name = localized("Custom WHIP"),
             existingNames = model.database.streams,
         )
@@ -95,7 +94,7 @@ fun StreamWizardCustomWhipSettingsView(
             OutlinedTextField(
                 value = customWhipUrl,
                 onValueChange = { value ->
-                    createStreamWizard.customWhipUrl.value = value
+                    createStreamWizard.customWhipUrl = value
                 },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = {

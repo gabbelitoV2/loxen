@@ -51,7 +51,7 @@ private fun StreamingHistorySettingsSummaryView(database: StreamingHistoryDataba
         }
         Spacer(modifier = Modifier.weight(1f))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(totalBytes.formatBytes(), style = MaterialTheme.typography.titleLarge)
+            Text(formatBytes(totalBytes), style = MaterialTheme.typography.titleLarge)
             Text("Total sent", style = MaterialTheme.typography.bodyMedium)
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -62,7 +62,7 @@ private fun formatStreamTitle(stream: StreamingHistoryStream): String {
     return "${formatDate(stream.startTime)}, ${stream.duration().format()}"
 }
 
-private fun deleteStream(at offsets: List<Int>, database: StreamingHistoryDatabase, model: Model) {
+private fun deleteStream(offsets: List<Int>, database: StreamingHistoryDatabase, model: Model) {
     val removed = offsets.toSet()
     database.streams.value = database.streams.value.filterIndexed { index, _ -> index !in removed }
     model.streamingHistory.store()
@@ -96,7 +96,7 @@ private fun StreamingHistorySettingsStreamsView(
                 }
                 IconButton(
                     onClick = {
-                        deleteStream(at = listOf(index), database = database, model = model)
+                        deleteStream(offsets = listOf(index), database = database, model = model)
                     },
                 ) {
                     Icon(Icons.Default.Delete, contentDescription = null)

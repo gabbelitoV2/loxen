@@ -31,14 +31,14 @@ private fun submitWebSocketUrl(model: Model, stream: SettingsStream, value: Stri
     }
     stream.obsWebSocketUrl = url
     if (stream.enabled) {
-        model.obsWebSocketUrlUpdated()
+        TODO("obsWebSocketUrlUpdated")
     }
 }
 
 private fun submitWebSocketPassword(model: Model, stream: SettingsStream, value: String) {
     stream.obsWebSocketPassword = value
     if (stream.enabled) {
-        model.obsWebSocketPasswordUpdated()
+        TODO("obsWebSocketPasswordUpdated")
     }
 }
 
@@ -56,7 +56,7 @@ private fun submitMainScene(stream: SettingsStream, value: String) {
 
 @Composable
 fun StreamObsRemoteControlSettingsInnerView(model: Model = LocalModel.current, stream: SettingsStream) {
-    val showAllSettings by model.database.showAllSettings.collectAsState()
+    val showAllSettings = model.database.showAllSettings
     Column {
         Text("WebSocket")
         TextEditNavigationView(

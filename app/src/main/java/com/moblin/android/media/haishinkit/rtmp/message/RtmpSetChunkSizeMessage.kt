@@ -2,30 +2,18 @@ package com.moblin.android.media.haishinkit.rtmp.message
 
 class RtmpSetChunkSizeMessage : RtmpMessage {
     var size: UInt = 0u
+        set(value) {
+            field = value
+            encoded = uint32ToBigEndianBytes(value)
+        }
 
-    constructor() : super(RtmpMessageType.chunkSize)
+    constructor() : super(RtmpMessageType.chunkSize) {
+        encoded = uint32ToBigEndianBytes(size)
+    }
 
     constructor(size: UInt) : super(RtmpMessageType.chunkSize) {
         this.size = size
     }
-
-    private var _encoded: ByteArray = ByteArray(0)
-
-    override var encoded: ByteArray
-        get() {
-            if (_encoded.isNotEmpty()) {
-                return _encoded
-            }
-            _encoded = uint32ToBigEndianBytes(size)
-            return _encoded
-        }
-        set(newValue) {
-            if (_encoded == newValue) {
-                return
-            }
-            size = readUInt32BigEndian(newValue)
-            _encoded = newValue
-        }
 }
 
 private fun uint32ToBigEndianBytes(value: UInt): ByteArray {

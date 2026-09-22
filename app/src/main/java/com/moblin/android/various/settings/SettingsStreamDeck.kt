@@ -2,6 +2,7 @@ package com.moblin.android.various.settings
 
 import androidx.compose.ui.graphics.Color
 import com.moblin.android.common.various.RgbColor
+import com.moblin.android.common.various.color
 import com.moblin.android.localized
 import com.moblin.android.various.utils.Named
 import java.util.UUID
@@ -25,13 +26,13 @@ import kotlinx.serialization.encoding.encodeStructure
 class SettingsStreamDeckKey {
     val id: UUID
     var color: RgbColor
-    private val text: MutableStateFlow<String>
+    private val _text: MutableStateFlow<String>
     val text: StateFlow<String>
     private val _colorColor: MutableStateFlow<Color>
     val colorColor: StateFlow<Color>
-    private val function: MutableStateFlow<SettingsControllerFunction>
+    private val _function: MutableStateFlow<SettingsControllerFunction>
     val function: StateFlow<SettingsControllerFunction>
-    private val functionData: MutableStateFlow<SettingsControllerFunctionData>
+    private val _functionData: MutableStateFlow<SettingsControllerFunctionData>
     val functionData: StateFlow<SettingsControllerFunctionData>
 
     companion object {
@@ -41,14 +42,14 @@ class SettingsStreamDeckKey {
     constructor() {
         id = UUID.randomUUID()
         color = defaultColor
-        text = MutableStateFlow("")
-        text = text.asStateFlow()
+        _text = MutableStateFlow("")
+        text = _text.asStateFlow()
         _colorColor = MutableStateFlow(defaultColor.color())
         colorColor = _colorColor.asStateFlow()
-        function = MutableStateFlow(SettingsControllerFunction.unused)
-        function = function.asStateFlow()
-        functionData = MutableStateFlow(SettingsControllerFunctionData())
-        functionData = functionData.asStateFlow()
+        _function = MutableStateFlow(SettingsControllerFunction.UNUSED)
+        function = _function.asStateFlow()
+        _functionData = MutableStateFlow(SettingsControllerFunctionData())
+        functionData = _functionData.asStateFlow()
     }
 
     internal constructor(
@@ -60,14 +61,14 @@ class SettingsStreamDeckKey {
     ) {
         this.id = id
         this.color = color
-        this.text = MutableStateFlow(text)
-        this.text = this.text.asStateFlow()
+        this._text = MutableStateFlow(text)
+        this.text = this._text.asStateFlow()
         this._colorColor = MutableStateFlow(color.color())
         this.colorColor = this._colorColor.asStateFlow()
-        this.function = MutableStateFlow(function)
-        this.function = this.function.asStateFlow()
-        this.functionData = MutableStateFlow(functionData)
-        this.functionData = this.functionData.asStateFlow()
+        this._function = MutableStateFlow(function)
+        this.function = this._function.asStateFlow()
+        this._functionData = MutableStateFlow(functionData)
+        this.functionData = this._functionData.asStateFlow()
     }
 }
 
@@ -76,11 +77,11 @@ object SettingsStreamDeckKeySerializer : KSerializer<SettingsStreamDeckKey> {
         element<String>("id")
         element<String>("text")
         element<RgbColor>("color")
-        element<SettingsControllerFunction>("function")
+        element<String>("function")
         element<String?>("sceneId")
         element<String?>("widgetId")
         element<String?>("gimbalPresetId")
-        element<SettingsGimbalMotion>("gimbalMotion")
+        element<String>("gimbalMotion")
         element<String?>("macroId")
         element<String?>("streamDeckLayoutId")
     }
@@ -91,11 +92,11 @@ object SettingsStreamDeckKeySerializer : KSerializer<SettingsStreamDeckKey> {
             encodeStringElement(descriptor, 0, value.id.toString())
             encodeStringElement(descriptor, 1, value.text.value)
             encodeSerializableElement(descriptor, 2, RgbColor.serializer(), value.color)
-            encodeSerializableElement(descriptor, 3, SettingsControllerFunction.serializer(), value.function.value)
+            encodeStringElement(descriptor, 3, value.function.value.rawValue)
             encodeNullableSerializableElement(descriptor, 4, String.serializer(), data.sceneId?.toString())
             encodeNullableSerializableElement(descriptor, 5, String.serializer(), data.widgetId?.toString())
             encodeNullableSerializableElement(descriptor, 6, String.serializer(), data.gimbalPresetId?.toString())
-            encodeSerializableElement(descriptor, 7, SettingsGimbalMotion.serializer(), data.gimbalMotion)
+            encodeStringElement(descriptor, 7, data.gimbalMotion.rawValue)
             encodeNullableSerializableElement(descriptor, 8, String.serializer(), data.macroId?.toString())
             encodeNullableSerializableElement(descriptor, 9, String.serializer(), data.streamDeckLayoutId?.toString())
         }
@@ -105,11 +106,11 @@ object SettingsStreamDeckKeySerializer : KSerializer<SettingsStreamDeckKey> {
         var id: UUID = UUID.randomUUID()
         var text: String = ""
         var color: RgbColor = RgbColor.white
-        var function: SettingsControllerFunction = SettingsControllerFunction.unused
+        var function: SettingsControllerFunction = SettingsControllerFunction.UNUSED
         var sceneId: UUID? = null
         var widgetId: UUID? = null
         var gimbalPresetId: UUID? = null
-        var gimbalMotion: SettingsGimbalMotion = SettingsGimbalMotion.kapow
+        var gimbalMotion: SettingsGimbalMotion = SettingsGimbalMotion.KAPOW
         var macroId: UUID? = null
         var streamDeckLayoutId: UUID? = null
         decoder.decodeStructure(descriptor) {
@@ -119,11 +120,11 @@ object SettingsStreamDeckKeySerializer : KSerializer<SettingsStreamDeckKey> {
                     0 -> id = UUID.fromString(decodeStringElement(descriptor, 0))
                     1 -> text = decodeStringElement(descriptor, 1)
                     2 -> color = decodeSerializableElement(descriptor, 2, RgbColor.serializer())
-                    3 -> function = decodeSerializableElement(descriptor, 3, SettingsControllerFunction.serializer())
+                    3 -> function = SettingsControllerFunction.fromRawValue(decodeStringElement(descriptor, 3))
                     4 -> sceneId = decodeNullableSerializableElement(descriptor, 4, String.serializer())?.let { UUID.fromString(it) }
                     5 -> widgetId = decodeNullableSerializableElement(descriptor, 5, String.serializer())?.let { UUID.fromString(it) }
                     6 -> gimbalPresetId = decodeNullableSerializableElement(descriptor, 6, String.serializer())?.let { UUID.fromString(it) }
-                    7 -> gimbalMotion = decodeSerializableElement(descriptor, 7, SettingsGimbalMotion.serializer())
+                    7 -> gimbalMotion = SettingsGimbalMotion.fromRawValue(decodeStringElement(descriptor, 7))
                     8 -> macroId = decodeNullableSerializableElement(descriptor, 8, String.serializer())?.let { UUID.fromString(it) }
                     9 -> streamDeckLayoutId = decodeNullableSerializableElement(descriptor, 9, String.serializer())?.let { UUID.fromString(it) }
                     else -> {}
@@ -165,8 +166,7 @@ enum class SettingsStreamDeckModel(val rawValue: String) {
 @Serializable(with = SettingsStreamDeckLayoutSerializer::class)
 class SettingsStreamDeckLayout : Named {
     val id: UUID
-    private val name: MutableStateFlow<String>
-    override val name: StateFlow<String>
+    override var name: String
     private val _model: MutableStateFlow<SettingsStreamDeckModel>
     val model: StateFlow<SettingsStreamDeckModel>
     private val _keys: MutableStateFlow<List<SettingsStreamDeckKey>>
@@ -178,8 +178,7 @@ class SettingsStreamDeckLayout : Named {
 
     constructor() {
         id = UUID.randomUUID()
-        name = MutableStateFlow(baseName)
-        name = name.asStateFlow()
+        name = baseName
         _model = MutableStateFlow(SettingsStreamDeckModel.classic)
         model = _model.asStateFlow()
         val initialKeys = MutableList(36) { SettingsStreamDeckKey() }
@@ -194,8 +193,7 @@ class SettingsStreamDeckLayout : Named {
         keys: List<SettingsStreamDeckKey>,
     ) {
         this.id = id
-        this.name = MutableStateFlow(name)
-        this.name = this.name.asStateFlow()
+        this.name = name
         this._model = MutableStateFlow(model)
         this.model = this._model.asStateFlow()
         val initialKeys = keys.toMutableList()
@@ -218,7 +216,7 @@ object SettingsStreamDeckLayoutSerializer : KSerializer<SettingsStreamDeckLayout
     override fun serialize(encoder: Encoder, value: SettingsStreamDeckLayout) {
         encoder.encodeStructure(descriptor) {
             encodeStringElement(descriptor, 0, value.id.toString())
-            encodeStringElement(descriptor, 1, value.name.value)
+            encodeStringElement(descriptor, 1, value.name)
             encodeSerializableElement(descriptor, 2, SettingsStreamDeckModel.serializer(), value.model.value)
             encodeSerializableElement(
                 descriptor,
@@ -258,21 +256,21 @@ object SettingsStreamDeckLayoutSerializer : KSerializer<SettingsStreamDeckLayout
 class SettingsStreamDecks {
     private val _layouts: MutableStateFlow<List<SettingsStreamDeckLayout>>
     val layouts: StateFlow<List<SettingsStreamDeckLayout>>
-    private val selectedId: MutableStateFlow<UUID?>
+    private val _selectedId: MutableStateFlow<UUID?>
     val selectedId: StateFlow<UUID?>
 
     constructor() {
         _layouts = MutableStateFlow(emptyList())
         layouts = _layouts.asStateFlow()
-        selectedId = MutableStateFlow(null)
-        selectedId = selectedId.asStateFlow()
+        _selectedId = MutableStateFlow(null)
+        selectedId = _selectedId.asStateFlow()
     }
 
     internal constructor(layouts: List<SettingsStreamDeckLayout>, selectedId: UUID?) {
         this._layouts = MutableStateFlow(layouts)
         this.layouts = this._layouts.asStateFlow()
-        this.selectedId = MutableStateFlow(selectedId)
-        this.selectedId = this.selectedId.asStateFlow()
+        this._selectedId = MutableStateFlow(selectedId)
+        this.selectedId = this._selectedId.asStateFlow()
     }
 }
 

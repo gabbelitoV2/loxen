@@ -24,29 +24,26 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.bluetoothNotAllowedMessage
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.InlinePickerItem
-import com.moblin.android.workout.WorkoutDeviceScanner
-import com.moblin.android.workout.workoutDeviceScanner
 import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutDeviceScannerSettingsView(
     model: Model = LocalModel.current,
-    scanner: WorkoutDeviceScanner = workoutDeviceScanner,
     onChange: (String) -> Unit,
     selectedId: String,
     onSelectedIdChange: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val bluetoothAllowed = model.bluetoothAllowed.collectAsState().value
-    val discoveredPeripherals = scanner.discoveredPeripherals.collectAsState().value
+    val discoveredPeripherals = emptyList<InlinePickerItem>()
 
     LaunchedEffect(Unit) {
-        scanner.startScanningForDevices()
+        TODO("startScanningForDevices")
     }
     DisposableEffect(Unit) {
         onDispose {
-            scanner.stopScanningForDevices()
+            TODO("stopScanningForDevices")
         }
     }
 
@@ -84,12 +81,7 @@ fun WorkoutDeviceScannerSettingsView(
                 }
             } else {
                 items(
-                    items = discoveredPeripherals.map { peripheral ->
-                        InlinePickerItem(
-                            id = peripheral.identifier.toString(),
-                            text = peripheral.name ?: localized("Unknown")
-                        )
-                    },
+                    items = discoveredPeripherals,
                     key = { item -> item.id }
                 ) { item ->
                     TextButton(onClick = {

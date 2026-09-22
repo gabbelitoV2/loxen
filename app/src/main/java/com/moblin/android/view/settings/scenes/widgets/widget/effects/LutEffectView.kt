@@ -43,13 +43,7 @@ private fun updateWidget(
     lut: SettingsVideoEffectLut,
     lutId: UUID?
 ) {
-    val logLut = model.getLogLutById(id = lutId)
-    model.getWidgetLutEffect(widget, effect)?.setLut(
-        lut = logLut,
-        imageStorage = model.imageStorage
-    ) { title, subTitle ->
-        model.makeErrorToast(title = title, subTitle = subTitle)
-    }
+    TODO("getLogLutById and getWidgetLutEffect have no Android counterpart")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

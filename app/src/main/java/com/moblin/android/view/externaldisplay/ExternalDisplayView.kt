@@ -32,6 +32,7 @@ import com.moblin.android.various.model.chat.ChatProvider
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.view.stream.SharedUiViewContainerView
 import com.moblin.android.view.utils.ChatLineContent
+import com.moblin.android.view.utils.ChatLineItem
 import com.moblin.android.view.utils.ChatLineStyle
 import com.moblin.android.view.utils.ChatLineTextStyle
 import com.moblin.android.view.utils.ChatLineView
@@ -39,12 +40,12 @@ import com.moblin.android.LocalModel
 
 @Composable
 private fun makeChatLineStyle(chat: SettingsChat): ChatLineStyle {
-    val fontSize by chat.fontSize.collectAsState()
-    val timestampColorEnabled by chat.timestampColorEnabled.collectAsState()
-    val badges by chat.badges.collectAsState()
-    val animatedEmotes by chat.animatedEmotes.collectAsState()
-    val nicknames by chat.nicknames.collectAsState()
-    val displayStyle by chat.displayStyle.collectAsState()
+    val fontSize = chat.fontSize.toDouble()
+    val timestampColorEnabled = chat.timestampColorEnabled
+    val badges = chat.badges
+    val animatedEmotes = chat.animatedEmotes
+    val nicknames = chat.nicknames
+    val displayStyle = chat.displayStyle
     return ChatLineStyle(
         fontSize = (3.0 * fontSize).toFloat(),
         timestampColor = if (timestampColorEnabled) Color.Gray else null,
@@ -69,9 +70,9 @@ private fun content(
 ): ChatLineContent {
     val color = highlight.messageColor()
     return style.content(
-        items = listOf(
+        items = mutableListOf(
             style.symbolItem(name = highlight.image, color = color),
-            ChatLineContent.Text(" $title", ChatLineTextStyle(color = color)),
+            ChatLineItem.Text(" $title", ChatLineTextStyle(color = color)),
         ),
     )
 }
@@ -102,8 +103,8 @@ private fun PostView(
     scaleX: Double,
     size: IntSize,
 ) {
-    val compactEvents by chatSettings.compactEvents.collectAsState()
-    val showDeletedMessages by chatSettings.showDeletedMessages.collectAsState()
+    val compactEvents = chatSettings.compactEvents
+    val showDeletedMessages = chatSettings.showDeletedMessages
     val deleted by state.deleted.collectAsState()
     if (post.user != null) {
         if (!deleted || showDeletedMessages) {

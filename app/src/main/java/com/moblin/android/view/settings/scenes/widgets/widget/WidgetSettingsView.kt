@@ -88,7 +88,7 @@ fun SaveLoadLayoutView(
 ) {
     Column(horizontalAlignment = Alignment.Start) {
         Spacer(Modifier.weight(1f))
-        OutlinedButton(onClick = { model.layout = layout.value }) {
+        OutlinedButton(onClick = { model.layout.value = layout.value }) {
             HCenter {
                 Text("Save layout")
             }
@@ -96,10 +96,10 @@ fun SaveLoadLayoutView(
         Spacer(Modifier.weight(1f))
         OutlinedButton(
             onClick = {
-                layout.value = model.layout ?: layout.value
-                model.sceneUpdated()
+                layout.value = model.layout.value ?: layout.value
+                TODO("model.sceneUpdated()")
             },
-            enabled = model.layout != null
+            enabled = model.layout.value != null
         ) {
             Row {
                 Text("")
@@ -114,7 +114,7 @@ fun SaveLoadLayoutView(
 }
 
 private fun dimensions(model: Model): Size {
-    return model.stream.resolution.dimensions(portrait = model.stream.portrait)
+    return TODO("model.stream.resolution")
 }
 
 private fun horizontalIncrement(model: Model): Double {
@@ -172,7 +172,7 @@ private fun generalAndAlignmentPicker(
                 }
             }
             LaunchedEffect(layout.value.alignment) {
-                model.sceneUpdated()
+                TODO("model.sceneUpdated()")
             }
         }
     }
@@ -193,9 +193,10 @@ private fun horizontalAndVerticalPositioning(
                 onValueChange = { layout.value.xString = it },
                 onSubmit = {
                     setYBasedOnXIfLocked(layout, model)
-                    model.sceneUpdated()
+                    TODO("model.sceneUpdated()")
                 },
-                numericInput = numericInput,
+                numericInput = numericInput.value,
+                onNumericInputChange = { numericInput.value = it },
                 incrementImageName = "arrow.forward.circle",
                 decrementImageName = "arrow.backward.circle",
                 mirror = layout.value.alignment.mirrorPositionHorizontally(),
@@ -209,9 +210,10 @@ private fun horizontalAndVerticalPositioning(
                 onValueChange = { layout.value.yString = it },
                 onSubmit = {
                     setXBasedOnYIfLocked(layout, model)
-                    model.sceneUpdated()
+                    TODO("model.sceneUpdated()")
                 },
-                numericInput = numericInput,
+                numericInput = numericInput.value,
+                onNumericInputChange = { numericInput.value = it },
                 incrementImageName = "arrow.down.circle",
                 decrementImageName = "arrow.up.circle",
                 mirror = layout.value.alignment.mirrorPositionVertically(),
@@ -247,9 +249,10 @@ private fun horizontalPositioning(
         onNumberChange = { layout.value.x = it },
         onValueChange = { layout.value.xString = it },
         onSubmit = {
-            model.sceneUpdated()
+            TODO("model.sceneUpdated()")
         },
-        numericInput = numericInput,
+        numericInput = numericInput.value,
+        onNumericInputChange = { numericInput.value = it },
         incrementImageName = "arrow.forward.circle",
         decrementImageName = "arrow.backward.circle",
         mirror = layout.value.alignment.mirrorPositionHorizontally(),
@@ -269,9 +272,10 @@ private fun verticalPositioning(
         onNumberChange = { layout.value.y = it },
         onValueChange = { layout.value.yString = it },
         onSubmit = {
-            model.sceneUpdated()
+            TODO("model.sceneUpdated()")
         },
-        numericInput = numericInput,
+        numericInput = numericInput.value,
+        onNumericInputChange = { numericInput.value = it },
         incrementImageName = "arrow.down.circle",
         decrementImageName = "arrow.up.circle",
         mirror = layout.value.alignment.mirrorPositionVertically(),
@@ -309,9 +313,10 @@ fun WidgetLayoutView(
                     onNumberChange = { layout.value.size = it },
                     onValueChange = { layout.value.sizeString = it },
                     onSubmit = {
-                        model.sceneUpdated()
+                        TODO("model.sceneUpdated()")
                     },
-                    numericInput = numericInput
+                    numericInput = numericInput.value,
+                    onNumericInputChange = { numericInput.value = it }
                 )
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -333,7 +338,10 @@ fun WidgetLayoutView(
 @Composable
 fun WidgetNameView(widget: SettingsWidget) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(imageVector = widget.image(), contentDescription = null)
+        Icon(
+            imageVector = TODO("widget.image() returns a String with no Android counterpart"),
+            contentDescription = null
+        )
         Text(widget.name)
     }
 }
@@ -357,8 +365,8 @@ fun WidgetSettingsView(
             SettingsWidgetType.crop -> WidgetCropSettingsView(widget = widget)
             SettingsWidgetType.map -> WidgetMapSettingsView(
                 widget = widget,
-                delay = widget.map.delay,
-                size = widget.map.size
+                initialDelay = widget.map.delay,
+                initialSize = widget.map.size
             )
             SettingsWidgetType.scene -> WidgetSceneSettingsView(
                 widget = widget,

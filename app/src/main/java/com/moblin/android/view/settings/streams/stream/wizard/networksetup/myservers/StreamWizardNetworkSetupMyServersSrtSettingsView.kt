@@ -1,5 +1,7 @@
 package com.moblin.android.view.settings.streams.stream.wizard.networksetup.myservers
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,7 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,10 +27,8 @@ import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun nextDisabled(createStreamWizard: CreateStreamWizard, urlError: String): Boolean {
-    val customSrtUrl by createStreamWizard.customSrtUrl.collectAsState()
-    val customSrtStreamId by createStreamWizard.customSrtStreamId.collectAsState()
-    return customSrtUrl.isEmpty()
-        || customSrtStreamId.isEmpty()
+    return createStreamWizard.customSrtUrl.isEmpty()
+        || createStreamWizard.customSrtStreamId.isEmpty()
         || urlError.isNotEmpty()
 }
 
@@ -72,12 +71,13 @@ fun StreamWizardNetworkSetupMyServersSrtSettingsView(
                 )
             }
             item {
-                WizardNextButtonView(
-                    enabled = !nextDisabled,
-                    onClick = {
-                        onNavigate(StreamWizardObsRemoteControlSettingsView.NAVIGATION_NAME)
+                Box(
+                    modifier = Modifier.clickable(enabled = !nextDisabled) {
+                        onNavigate("streamWizardObsRemoteControlSettings")
                     }
-                )
+                ) {
+                    WizardNextButtonView()
+                }
             }
         }
     }

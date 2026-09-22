@@ -11,11 +11,14 @@ import java.util.UUID
 
 private const val TAG = "BufferedVideo"
 
+private val driftTrackerVideoMedia: DriftTrackerMedia
+    get() = DriftTrackerMedia.values().first { it.name.equals("video", ignoreCase = true) }
+
 private val MediaSample.presentationTimeSeconds: Double
     get() = presentationTimeUs / 1_000_000.0
 
 private fun MediaSample.replacePresentationTimeStamp(presentationTimeUs: Long): MediaSample =
-    copy(presentationTimeUs = presentationTimeUs)
+    TODO("MediaSample is immutable in the Android port")
 
 class BufferedVideo(
     private var cameraId: UUID,
@@ -32,7 +35,7 @@ class BufferedVideo(
     private val stats = BufferedStats()
 
     init {
-        driftTracker?.addMedia(DriftTrackerMedia.Video, targetFillLevel = latency)
+        driftTracker?.addMedia(driftTrackerVideoMedia, targetFillLevel = latency)
     }
 
     fun close() {
@@ -89,7 +92,7 @@ class BufferedVideo(
             val newestSampleBuffer = sampleBuffers.lastOrNull() ?: currentSampleBuffer
             if (tracker != null && newestSampleBuffer != null) {
                 tracker.update(
-                    DriftTrackerMedia.Video,
+                    driftTrackerVideoMedia,
                     outputPresentationTimeStamp,
                     newestSampleBuffer.presentationTimeSeconds,
                 )

@@ -36,7 +36,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.moblin.android.localized
 import com.moblin.android.streamingplatforms.kick.KickCategory
 import com.moblin.android.streamingplatforms.kick.KickLoginView
@@ -66,13 +65,11 @@ private fun AuthenticationView(
         if (!stream.kickLoggedIn) {
             TextButtonView("Login") {
                 presentingWebView = true
-                model.kickLogin(stream = stream) {
-                    onLoggedIn()
-                }
+                TODO("kickLogin")
             }
         } else {
             TextButtonView("Logout") {
-                model.kickLogout(stream = stream)
+                TODO("kickLogout")
             }
         }
     }
@@ -101,21 +98,13 @@ private fun CategoryButton(
 ) {
     Button(onClick = {
         val categoryId = category.id.toIntOrNull() ?: return@Button
-        model.setKickStreamCategory(stream = stream, categoryId = categoryId)
+        TODO("setKickStreamCategory")
         onDismiss()
     }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             val imageUrl = category.src
             if (imageUrl != null) {
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(width = 40.dp, height = 50.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop,
-                    placeholder = ColorPainter(Color.Gray.copy(alpha = 0.3f))
-                )
+                TODO("AsyncImage")
             }
             Text(category.name)
         }
@@ -135,12 +124,7 @@ private fun KickCategoryPickerView(
     fun fetchDefaultCategories() {
         val categoryNames = listOf("IRL", "Just Chatting", "Slots & Casino")
         for (categoryName in categoryNames) {
-            model.fetchKickCategories(stream = stream, query = categoryName) { result ->
-                val category = result?.firstOrNull()
-                if (category != null) {
-                    categories = categories + category
-                }
-            }
+            TODO("fetchKickCategories")
         }
     }
 
@@ -149,9 +133,7 @@ private fun KickCategoryPickerView(
             categories = emptyList()
             fetchDefaultCategories()
         } else {
-            model.searchKickCategories(stream = stream, query = searchText) { result ->
-                categories = result ?: emptyList()
-            }
+            TODO("searchKickCategories")
         }
     }
 
@@ -338,12 +320,7 @@ suspend fun loadKickStreamInfo(
         return
     }
     delay(1000)
-    model.getKickStreamInfo(stream = stream) { result ->
-        result.fold(
-            onSuccess = { info -> onChange(info.title, info.categoryName) },
-            onFailure = { onChange(null, null) }
-        )
-    }
+    TODO("getKickStreamInfo")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -381,7 +358,7 @@ fun StreamKickSettingsView(
 
     fun reloadConnectionsIfEnabled() {
         if (stream.enabled) {
-            model.kickAccessTokenUpdated()
+            TODO("kickAccessTokenUpdated")
         }
     }
 
@@ -408,7 +385,7 @@ fun StreamKickSettingsView(
         stream.kickChannelName = value
         fetchChannelInfo()
         if (stream.enabled && stream.kickChannelName.isEmpty()) {
-            model.kickChannelNameUpdated()
+            TODO("kickChannelNameUpdated")
         }
     }
 
@@ -423,9 +400,7 @@ fun StreamKickSettingsView(
     }
 
     fun onLoggedIn() {
-        model.createKickApi(stream = stream).getUser { data ->
-            handleUser(data)
-        }
+        TODO("createKickApi")
     }
 
     LaunchedEffect(Unit) {

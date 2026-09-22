@@ -31,8 +31,8 @@ private fun ChatFilterFilterSettingsView(
     filter: SettingsChatFilter,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val user by filter.user.collectAsState()
-    val messageStart by filter.messageStart.collectAsState()
+    val user = filter.user
+    val messageStart = filter.messageStart
 
     Text(
         text = localized("Condition"),
@@ -72,11 +72,11 @@ private fun ChatFilterFilterSettingsView(
 private fun ChatFilterActionsSettingsView(
     filter: SettingsChatFilter,
 ) {
-    val showOnScreen by filter.showOnScreen.collectAsState()
-    val textToSpeech by filter.textToSpeech.collectAsState()
-    val chatBot by filter.chatBot.collectAsState()
-    val poll by filter.poll.collectAsState()
-    val printEnabled by filter.print.collectAsState()
+    val showOnScreen = filter.showOnScreen
+    val textToSpeech = filter.textToSpeech
+    val chatBot = filter.chatBot
+    val poll = filter.poll
+    val printEnabled = filter.print
 
     Text(
         text = localized("Actions"),
@@ -89,7 +89,7 @@ private fun ChatFilterActionsSettingsView(
         Text(text = localized("Show on screen"), modifier = Modifier.weight(1f))
         Switch(
             checked = showOnScreen,
-            onCheckedChange = { filter.showOnScreen.value = it },
+            onCheckedChange = { filter.showOnScreen = it },
         )
     }
     Row(
@@ -99,7 +99,7 @@ private fun ChatFilterActionsSettingsView(
         Text(text = localized("Text to speech"), modifier = Modifier.weight(1f))
         Switch(
             checked = textToSpeech,
-            onCheckedChange = { filter.textToSpeech.value = it },
+            onCheckedChange = { filter.textToSpeech = it },
         )
     }
     Row(
@@ -109,7 +109,7 @@ private fun ChatFilterActionsSettingsView(
         Text(text = localized("Chat bot"), modifier = Modifier.weight(1f))
         Switch(
             checked = chatBot,
-            onCheckedChange = { filter.chatBot.value = it },
+            onCheckedChange = { filter.chatBot = it },
         )
     }
     Row(
@@ -119,7 +119,7 @@ private fun ChatFilterActionsSettingsView(
         Text(text = localized("Poll"), modifier = Modifier.weight(1f))
         Switch(
             checked = poll,
-            onCheckedChange = { filter.poll.value = it },
+            onCheckedChange = { filter.poll = it },
         )
     }
     Row(
@@ -129,7 +129,7 @@ private fun ChatFilterActionsSettingsView(
         Text(text = localized("Print"), modifier = Modifier.weight(1f))
         Switch(
             checked = printEnabled,
-            onCheckedChange = { filter.print.value = it },
+            onCheckedChange = { filter.print = it },
         )
     }
     Text(
@@ -159,7 +159,7 @@ fun ChatFiltersSettingsView(
     chat: SettingsChat,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val filters by chat.filters.collectAsState()
+    val filters = chat.filters
 
     Row(
         modifier = Modifier
@@ -178,7 +178,7 @@ private fun ChatFilterFormView(
     filter: SettingsChatFilter,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val enabled by filter.enabled.collectAsState()
+    val enabled = filter.enabled
 
     Column {
         Row(
@@ -188,7 +188,7 @@ private fun ChatFilterFormView(
             Text(text = localized("Enabled"), modifier = Modifier.weight(1f))
             Switch(
                 checked = enabled,
-                onCheckedChange = { filter.enabled.value = it },
+                onCheckedChange = { filter.enabled = it },
             )
         }
         ChatFilterFilterSettingsView(filter = filter, onNavigate = onNavigate)
@@ -201,7 +201,7 @@ private fun ChatFiltersFormView(
     chat: SettingsChat,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val filters by chat.filters.collectAsState()
+    val filters = chat.filters
 
     Column {
         LazyColumn(modifier = Modifier.weight(1f)) {
@@ -211,7 +211,7 @@ private fun ChatFiltersFormView(
             }
             item {
                 AddButtonView {
-                    chat.filters.value = chat.filters.value + SettingsChatFilter()
+                    chat.filters.add(SettingsChatFilter())
                 }
             }
         }
@@ -227,13 +227,13 @@ private fun ChatFiltersFormView(
 private fun ChatFilterUsernameEditView(
     filter: SettingsChatFilter,
 ) {
-    val user by filter.user.collectAsState()
+    val user = filter.user
 
     TextEditView(
         title = localized("Username"),
         value = user,
         onSubmit = {
-            filter.user.value = it
+            filter.user = it
         },
     )
 }
@@ -242,18 +242,18 @@ private fun ChatFilterUsernameEditView(
 private fun ChatFilterMessageStartEditView(
     filter: SettingsChatFilter,
 ) {
-    val messageStart by filter.messageStart.collectAsState()
+    val messageStart = filter.messageStart
 
     TextEditView(
         title = localized("Message starts with"),
         value = messageStart,
         onSubmit = { newValue ->
             if (newValue.isEmpty()) {
-                filter.messageStartWords.value = emptyList()
+                filter.messageStartWords = mutableListOf()
             } else {
-                filter.messageStartWords.value = newValue.split(" ")
+                filter.messageStartWords = newValue.split(" ").toMutableList()
             }
-            filter.messageStart.value = filter.messageStartWords.value.joinToString(" ")
+            filter.messageStart = filter.messageStartWords.joinToString(" ")
         },
     )
 }
@@ -262,9 +262,10 @@ private fun deleteFilters(
     chat: SettingsChat,
     offsets: List<Int>,
 ) {
-    val current = chat.filters.value.toMutableList()
+    val current = chat.filters.toMutableList()
     offsets.sortedDescending().forEach { current.removeAt(it) }
-    chat.filters.value = current
+    chat.filters.clear()
+    chat.filters.addAll(current)
 }
 
 private fun moveFilters(

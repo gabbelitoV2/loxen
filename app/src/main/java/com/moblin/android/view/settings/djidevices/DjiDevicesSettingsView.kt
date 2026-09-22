@@ -37,8 +37,8 @@ private fun DjiDeviceSettingsWrapperView(
     device: SettingsDjiDevice,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val name by device.name.collectAsState()
-    val state by device.state.collectAsState()
+    val name = device.name
+    val state = device.state
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -59,10 +59,10 @@ fun DjiDevicesSettingsView(
     djiDevices: SettingsDjiDevices,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val devices by djiDevices.devices.collectAsState()
+    val devices = djiDevices.devices
 
     fun deleteDevice(offsets: List<Int>) {
-        model.removeDjiDevices(offsets)
+        djiDevices.devices = djiDevices.devices.filterIndexed { index, _ -> index !in offsets }
     }
 
     Scaffold(
@@ -88,11 +88,11 @@ fun DjiDevicesSettingsView(
             item {
                 CreateButtonView {
                     val device = SettingsDjiDevice()
-                    device.name.value = makeUniqueName(
+                    device.name = makeUniqueName(
                         name = SettingsDjiDevice.baseName,
-                        existingNames = djiDevices.devices.value,
+                        existingNames = djiDevices.devices,
                     )
-                    djiDevices.devices.value = djiDevices.devices.value + device
+                    djiDevices.devices = djiDevices.devices + device
                 }
             }
             item {

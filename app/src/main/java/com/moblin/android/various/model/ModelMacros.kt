@@ -9,8 +9,11 @@ import com.moblin.android.various.settings.SettingsMacrosActionFunction
 import com.moblin.android.various.settings.SettingsMacrosMacro
 import com.moblin.android.various.settings.SettingsMacrosMacroRepeatMode
 import com.moblin.android.various.settings.SettingsQuickButtonType
+import com.moblin.android.videoeffects.text.TextFormatPart
 import com.moblin.android.videoeffects.text.loadTextFormat
 import java.util.UUID
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private const val TAG = "Model"
@@ -94,7 +97,7 @@ fun Model.macrosEventOccurred(event: MacroEvent) {
     if (!anyRunning) {
         return
     }
-    mainScope.launch {
+    CoroutineScope(Dispatchers.Main).launch {
         for (macro in database.macros.macros) {
             if (!macro.running) {
                 continue
@@ -164,15 +167,15 @@ fun Model.macrosTextFormatChanged() {
 private fun Model.macrosTextFormatActions(): List<SettingsMacrosAction> {
     return database.macros.macros.flatMap { macro ->
         macro.actions.filter {
-            it.function == SettingsMacrosActionFunction.sendChatMessage ||
-                it.function == SettingsMacrosActionFunction.ifCondition
+            it.function == SettingsMacrosActionFunction.SEND_CHAT_MESSAGE ||
+                it.function == SettingsMacrosActionFunction.IF_CONDITION
         }
     }
 }
 
 private fun Model.macrosActionTextFormat(action: SettingsMacrosAction): String {
     return when (action.function) {
-        SettingsMacrosActionFunction.ifCondition -> "${action.ifValue} ${action.ifOtherValue}"
+        SettingsMacrosActionFunction.IF_CONDITION -> "${action.ifValue} ${action.ifOtherValue}"
         else -> action.chatMessage
     }
 }
@@ -181,9 +184,9 @@ fun Model.removeDeadMacrosSettings() {
     for (macro in database.macros.macros) {
         for (action in macro.actions) {
             val sceneIds = database.scenes.map { it.id }
-            action.sceneIds = action.sceneIds.filter { id -> sceneIds.contains(id) }
+            action.sceneIds = action.sceneIds.filter { id -> sceneIds.contains(id) }.toSet()
             val djiDeviceIds = database.djiDevices.devices.map { it.id }
-            action.djiDevices = action.djiDevices.filter { id -> djiDeviceIds.contains(id) }
+            action.djiDevices = action.djiDevices.filter { id -> djiDeviceIds.contains(id) }.toSet()
         }
     }
 }
@@ -193,10 +196,10 @@ private fun Model.processMacroEnded(macro: SettingsMacrosMacro,
 {
     currentMacro.repeatCurrentCount += 1
     val shouldRepeat: Boolean = when (currentMacro.repeatMode) {
-        SettingsMacrosMacroRepeatMode.forever -> true
-        SettingsMacrosMacroRepeatMode.count ->
+        SettingsMacrosMacroRepeatMode.FOREVER -> true
+        SettingsMacrosMacroRepeatMode.COUNT ->
             currentMacro.repeatCurrentCount < currentMacro.repeatCount
-        SettingsMacrosMacroRepeatMode.off -> false
+        SettingsMacrosMacroRepeatMode.OFF -> false
     }
     if (shouldRepeat) {
         currentMacro.nextActionIndex = 0
@@ -228,39 +231,39 @@ private fun Model.executeNextAction(macro: SettingsMacrosMacro) {
     val action = currentMacro.actions[currentMacro.nextActionIndex]
     currentMacro.nextActionIndex += 1
     val executeNext: Boolean = when (action.function) {
-        SettingsMacrosActionFunction.scene ->
+        SettingsMacrosActionFunction.SCENE ->
             executeScene(action = action)
-        SettingsMacrosActionFunction.enableDisableScenes ->
+        SettingsMacrosActionFunction.ENABLE_DISABLE_SCENES ->
             executeEnableDisableScenes(action = action)
-        SettingsMacrosActionFunction.autoSceneSwitcher ->
+        SettingsMacrosActionFunction.AUTO_SCENE_SWITCHER ->
             executeAutoSceneSwitcher(action = action)
-        SettingsMacrosActionFunction.zoom ->
+        SettingsMacrosActionFunction.ZOOM ->
             executeZoom(action = action)
-        SettingsMacrosActionFunction.gimbalPreset ->
+        SettingsMacrosActionFunction.GIMBAL_PRESET ->
             executeGimbalPreset(action = action)
-        SettingsMacrosActionFunction.sendChatMessage ->
+        SettingsMacrosActionFunction.SEND_CHAT_MESSAGE ->
             executeSendChatMessage(action = action)
-        SettingsMacrosActionFunction.delay ->
+        SettingsMacrosActionFunction.DELAY ->
             executeDelay(currentMacro = currentMacro, action = action, macro = macro)
-        SettingsMacrosActionFunction.waitForEvent ->
+        SettingsMacrosActionFunction.WAIT_FOR_EVENT ->
             executeWaitForEvent(currentMacro = currentMacro, action = action, macro = macro)
-        SettingsMacrosActionFunction.ifCondition ->
+        SettingsMacrosActionFunction.IF_CONDITION ->
             executeIfCondition(currentMacro = currentMacro, action = action)
-        SettingsMacrosActionFunction.macro ->
+        SettingsMacrosActionFunction.MACRO ->
             executeMacro(action = action, macro = macro)
-        SettingsMacrosActionFunction.djiDevices ->
+        SettingsMacrosActionFunction.DJI_DEVICES ->
             executeDjiDevices(action = action)
-        SettingsMacrosActionFunction.record ->
+        SettingsMacrosActionFunction.RECORD ->
             executeRecord(action = action)
-        SettingsMacrosActionFunction.mute ->
+        SettingsMacrosActionFunction.MUTE ->
             executeMute(action = action)
-        SettingsMacrosActionFunction.torch ->
+        SettingsMacrosActionFunction.TORCH ->
             executeTorch(action = action)
-        SettingsMacrosActionFunction.snapshot ->
+        SettingsMacrosActionFunction.SNAPSHOT ->
             executeSnapshot()
-        SettingsMacrosActionFunction.filters ->
+        SettingsMacrosActionFunction.FILTERS ->
             executeFilters(action = action)
-        SettingsMacrosActionFunction.reaction ->
+        SettingsMacrosActionFunction.REACTION ->
             executeReaction(action = action)
         null -> true
     }
@@ -280,7 +283,7 @@ private fun Model.executeEnableDisableScenes(action: SettingsMacrosAction): Bool
     for (scene in database.scenes) {
         scene.enabled = action.sceneIds.contains(scene.id)
     }
-    sceneSelector.trigger += 1
+    sceneSelector.trigger.value += 1
     return true
 }
 
@@ -419,4 +422,28 @@ private fun Model.executeSnapshot(): Boolean {
 private fun Model.executeReaction(action: SettingsMacrosAction): Boolean {
     triggerReaction(reaction = action.reaction)
     return true
+}
+
+private fun List<TextFormatPart>.isWeatherVariable(): Boolean {
+    return any {
+        it is TextFormatPart.Temperature ||
+            it is TextFormatPart.FeelsLikeTemperature ||
+            it is TextFormatPart.Wind ||
+            it === TextFormatPart.Conditions
+    }
+}
+
+private fun List<TextFormatPart>.isGeographyVariable(): Boolean {
+    return any {
+        it === TextFormatPart.Country ||
+            it === TextFormatPart.CountryFlag ||
+            it === TextFormatPart.State ||
+            it === TextFormatPart.Area ||
+            it === TextFormatPart.City ||
+            it === TextFormatPart.Neighborhood
+    }
+}
+
+private fun List<TextFormatPart>.isGForceVariable(): Boolean {
+    return any { it is TextFormatPart.GForce }
 }

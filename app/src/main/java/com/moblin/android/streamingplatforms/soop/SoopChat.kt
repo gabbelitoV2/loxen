@@ -1,19 +1,19 @@
 package com.moblin.android.streamingplatforms.soop
 
 import android.util.Log
-import com.moblin.android.common.various.sleep
 import com.moblin.android.integrations.emotes.Emotes
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.model.Model
-import com.moblin.android.various.model.Platform
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 import java.time.Instant
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.coroutines.coroutineContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -173,7 +173,7 @@ class SoopChat(
                 }
                 Log.d(TAG, "soop: Disconnected")
                 connected = false
-                sleep(5.0)
+                delay(5_000)
                 Log.d(TAG, "soop: Reconnecting")
             }
         }
@@ -234,7 +234,7 @@ class SoopChat(
         keepAliveTask = mainScope.launch {
             val message = packMessage(MessageKind.Null, emptyList())
             while (isActive) {
-                sleep(60.0)
+                delay(60_000)
                 Log.d(TAG, "soop: Sending keep alive")
                 webSocket?.send(message.toByteString())
             }
@@ -284,25 +284,7 @@ class SoopChat(
         }
         val user = parts[5]
         val segments = createSegments(parts[0])
-        model.appendChatMessage(
-            platform = Platform.Soop,
-            messageId = null,
-            displayName = user,
-            user = user,
-            userId = null,
-            userColor = null,
-            userBadges = emptyList(),
-            segments = segments,
-            timestamp = model.statusOther.digitalClock,
-            timestampTime = Instant.now(),
-            isAction = false,
-            isSubscriber = false,
-            isModerator = false,
-            isOwner = false,
-            bits = null,
-            highlight = null,
-            live = true,
-        )
+        TODO("appendChatMessage is not available: $user ${segments.size} segments")
     }
 
     private suspend fun getChannelInfo(): PlayerLiveChannel {
@@ -326,7 +308,7 @@ class SoopChat(
     }
 
     private fun createSegments(message: String): List<ChatPostSegment> {
-        var id = 0
+        val id = AtomicInteger(0)
         return emotes.createSegments(message, id)
     }
 }

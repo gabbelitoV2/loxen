@@ -54,7 +54,7 @@ private fun PickerView(model: Model = LocalModel.current) {
 }
 
 private fun getRecordingPath(recordingPath: ByteArray): String {
-    return makeRecordingPath(recordingPath = recordingPath)?.path ?: localized("Disk not connected?")
+    return makeRecordingPath(recordingPath = recordingPath) ?: localized("Disk not connected?")
 }
 
 private fun onUrl(url: String, recording: SettingsStreamRecording) {
@@ -66,7 +66,7 @@ private fun RecordingPathView(
     recording: SettingsStreamRecording,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val recordingPath = recording.recordingPath.collectAsState().value
+    val recordingPath = recording.recordingPath
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -86,7 +86,7 @@ private fun RecordingPathView(
 @Composable
 fun RecordingPathFormView(recording: SettingsStreamRecording, model: Model = LocalModel.current) {
     var showPicker by remember { mutableStateOf(false) }
-    val recordingPath = recording.recordingPath.collectAsState().value
+    val recordingPath = recording.recordingPath
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
             localized("Folder"),
@@ -114,8 +114,8 @@ fun RecordingPathFormView(recording: SettingsStreamRecording, model: Model = Loc
                 }
             }
         }
-        TextButtonView(text = "Reset") {
-            recording.recordingPath.value = null
+        TextButtonView(title = "Reset") {
+            recording.recordingPath = null
         }
     }
     if (showPicker) {
@@ -134,10 +134,10 @@ private fun ResolutionSettingsView(
     enabled: Boolean = true,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val resolution = recording.resolution.collectAsState().value
+    val resolution = recording.resolution
     LaunchedEffect(resolution) {
-        if (recording.overrideStream.value) {
-            model.reloadStreamIfEnabled(stream = stream)
+        if (recording.overrideStream) {
+            TODO("no Android counterpart for Model.reloadStreamIfEnabled")
         }
     }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
@@ -157,7 +157,7 @@ private fun ResolutionSettingsView(
                 DropdownMenuItem(
                     text = { Text(value.shortString()) },
                     onClick = {
-                        recording.resolution.value = value
+                        recording.resolution = value
                         expanded = false
                     },
                 )
@@ -168,7 +168,7 @@ private fun ResolutionSettingsView(
 
 private fun submitVideoBitrateChange(recording: SettingsStreamRecording, value: String) {
     val bitrate = value.toFloatOrNull() ?: return
-    recording.videoBitrate.value = bitrateFromMbps(bitrate = bitrate.coerceIn(0f, 50f))
+    recording.videoBitrate = bitrateFromMbps(bitrate = bitrate.coerceIn(0f, 50f)).toInt()
 }
 
 private fun submitMaxKeyFrameInterval(recording: SettingsStreamRecording, value: String) {
@@ -176,7 +176,7 @@ private fun submitMaxKeyFrameInterval(recording: SettingsStreamRecording, value:
     if (interval < 0 || interval > 10) {
         return
     }
-    recording.maxKeyFrameInterval.value = interval
+    recording.maxKeyFrameInterval = interval
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -187,25 +187,25 @@ fun StreamRecordingSettingsView(
     recording: SettingsStreamRecording,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val streamEnabled = stream.enabled.collectAsState().value
+    val streamEnabled = stream.enabled
     val isLive = model.isLive.collectAsState().value
     val isRecording = model.isRecording.collectAsState().value
-    val overrideStream = recording.overrideStream.collectAsState().value
-    val videoCodec = recording.videoCodec.collectAsState().value
-    val cleanRecordings = recording.cleanRecordings.collectAsState().value
-    val autoStartRecording = recording.autoStartRecording.collectAsState().value
-    val autoStopRecording = recording.autoStopRecording.collectAsState().value
+    val overrideStream = recording.overrideStream
+    val videoCodec = recording.videoCodec
+    val cleanRecordings = recording.cleanRecordings
+    val autoStartRecording = recording.autoStartRecording
+    val autoStopRecording = recording.autoStopRecording
     var videoCodecExpanded by remember { mutableStateOf(false) }
     val overrideEnabled = !(streamEnabled && (isLive || isRecording))
     val recordingEnabled = !(streamEnabled && isRecording)
 
     LaunchedEffect(overrideStream) {
         if (overrideStream) {
-            model.reloadStreamIfEnabled(stream = stream)
+            TODO("no Android counterpart for Model.reloadStreamIfEnabled")
         }
     }
     LaunchedEffect(cleanRecordings) {
-        model.setCleanRecordings()
+        TODO("no Android counterpart for Model.setCleanRecordings")
     }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -220,7 +220,7 @@ fun StreamRecordingSettingsView(
                     Spacer(Modifier.weight(1f))
                     Switch(
                         checked = overrideStream,
-                        onCheckedChange = { recording.overrideStream.value = it },
+                        onCheckedChange = { recording.overrideStream = it },
                         enabled = overrideEnabled,
                     )
                 }
@@ -280,7 +280,7 @@ fun StreamRecordingSettingsView(
                         DropdownMenuItem(
                             text = { Text(codec.rawValue) },
                             onClick = {
-                                recording.videoCodec.value = codec
+                                recording.videoCodec = codec
                                 videoCodecExpanded = false
                             },
                         )
@@ -344,7 +344,7 @@ fun StreamRecordingSettingsView(
                     Spacer(Modifier.weight(1f))
                     Switch(
                         checked = cleanRecordings,
-                        onCheckedChange = { recording.cleanRecordings.value = it },
+                        onCheckedChange = { recording.cleanRecordings = it },
                     )
                 }
                 Text(
@@ -364,7 +364,7 @@ fun StreamRecordingSettingsView(
                     Spacer(Modifier.weight(1f))
                     Switch(
                         checked = autoStartRecording,
-                        onCheckedChange = { recording.autoStartRecording.value = it },
+                        onCheckedChange = { recording.autoStartRecording = it },
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -372,7 +372,7 @@ fun StreamRecordingSettingsView(
                     Spacer(Modifier.weight(1f))
                     Switch(
                         checked = autoStopRecording,
-                        onCheckedChange = { recording.autoStopRecording.value = it },
+                        onCheckedChange = { recording.autoStopRecording = it },
                     )
                 }
             }
@@ -382,20 +382,21 @@ fun StreamRecordingSettingsView(
 
 @Composable
 fun StreamRecordingVideoBitrateView(recording: SettingsStreamRecording) {
-    val videoBitrate = recording.videoBitrate.collectAsState().value
+    val videoBitrate = recording.videoBitrate
     TextEditView(
         title = localized("Video bitrate"),
-        value = bitrateToMbps(bitrate = videoBitrate).toString(),
+        value = bitrateToMbps(bitrate = videoBitrate.toUInt()).toString(),
         footers = listOf(localized("Up to 50 Mbps. Set to 0 for automatic.")),
         keyboardType = KeyboardType.Number,
-    ) { value ->
-        submitVideoBitrateChange(recording = recording, value = value)
-    }
+        onSubmit = { value ->
+            submitVideoBitrateChange(recording = recording, value = value)
+        },
+    )
 }
 
 @Composable
 fun StreamRecordingKeyFrameIntervalView(recording: SettingsStreamRecording) {
-    val maxKeyFrameInterval = recording.maxKeyFrameInterval.collectAsState().value
+    val maxKeyFrameInterval = recording.maxKeyFrameInterval
     TextEditView(
         title = localized("Key frame interval"),
         value = maxKeyFrameInterval.toString(),
@@ -403,16 +404,17 @@ fun StreamRecordingKeyFrameIntervalView(recording: SettingsStreamRecording) {
             localized("Maximum key frame interval in seconds. Set to 0 for automatic."),
         ),
         keyboardType = KeyboardType.Number,
-    ) { value ->
-        submitMaxKeyFrameInterval(recording = recording, value = value)
-    }
+        onSubmit = { value ->
+            submitMaxKeyFrameInterval(recording = recording, value = value)
+        },
+    )
 }
 
 @Composable
 fun StreamRecordingAudioBitrateView(stream: SettingsStream, recording: SettingsStreamRecording) {
-    val audioBitrate = recording.audioBitrate.collectAsState().value
+    val audioBitrate = recording.audioBitrate
     StreamRecordingAudioSettingsView(
         stream = stream,
-        bitrate = (audioBitrate / 1000).toFloat(),
+        initialBitrate = (audioBitrate / 1000).toFloat(),
     )
 }

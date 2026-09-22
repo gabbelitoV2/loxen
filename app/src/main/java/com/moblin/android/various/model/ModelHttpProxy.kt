@@ -16,7 +16,7 @@ fun Model.httpProxyServerChanged() {
 fun Model.reloadHttpProxyServer() {
     stopHttpProxyServer()
     val httpProxy = database.httpProxy
-    if (httpProxy.enabled || httpProxy.localNetwork) {
+    if (httpProxy.enabled.value || httpProxy.localNetwork.value) {
         startHttpProxyServer()
     } else {
         proxyServerPortUpdated()
@@ -25,7 +25,7 @@ fun Model.reloadHttpProxyServer() {
 
 fun Model.getHttpProxyServerEndpoint(): InetSocketAddress? {
     val port = httpProxyPort
-    return if (database.httpProxy.enabled && port != null) {
+    return if (database.httpProxy.enabled.value && port != null) {
         InetSocketAddress("127.0.0.1", port)
     } else {
         null
@@ -45,7 +45,7 @@ private fun Model.startHttpProxyServer() {
             this@startHttpProxyServer.httpProxyServerPortReady(port)
         }
     }
-    httpProxyServer?.start(httpProxy.port, httpProxy.localNetwork)
+    httpProxyServer?.start(httpProxy.port.value.toInt(), httpProxy.localNetwork.value)
 }
 
 fun Model.stopHttpProxyServer() {

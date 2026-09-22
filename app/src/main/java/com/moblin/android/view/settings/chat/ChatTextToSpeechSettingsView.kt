@@ -93,16 +93,16 @@ fun ChatTextToSpeechSettingsView(
     var appleVoices by remember { mutableStateOf(emptyList<Voice>()) }
     var languageMenuExpanded by remember { mutableStateOf(false) }
 
-    val sayVolume by chat.textToSpeechSayVolume.collectAsState()
-    val rate by chat.textToSpeechRate.collectAsState()
-    val pauseBetweenMessages by chat.textToSpeechPauseBetweenMessages.collectAsState()
-    val defaultLanguage by chat.textToSpeechDefaultLanguage.collectAsState()
-    val detectLanguagePerMessage by chat.textToSpeechDetectLanguagePerMessage.collectAsState()
-    val sayUsername by chat.textToSpeechSayUsername.collectAsState()
-    val subscribersOnly by chat.textToSpeechSubscribersOnly.collectAsState()
-    val filter by chat.textToSpeechFilter.collectAsState()
-    val filterMentions by chat.textToSpeechFilterMentions.collectAsState()
-    val ttsMonsterApiToken by ttsMonster.apiToken.collectAsState()
+    val sayVolume = chat.textToSpeechSayVolume
+    val rate = chat.textToSpeechRate
+    val pauseBetweenMessages = chat.textToSpeechPauseBetweenMessages
+    val defaultLanguage = chat.textToSpeechDefaultLanguage
+    val detectLanguagePerMessage = chat.textToSpeechDetectLanguagePerMessage
+    val sayUsername = chat.textToSpeechSayUsername
+    val subscribersOnly = chat.textToSpeechSubscribersOnly
+    val filter = chat.textToSpeechFilter
+    val filterMentions = chat.textToSpeechFilterMentions
+    val ttsMonsterApiToken = ttsMonster.apiToken
 
     val languages = textToSpeechLanguages(appleVoices)
     val defaultLanguageName = defaultLanguage?.let { code ->
@@ -110,14 +110,14 @@ fun ChatTextToSpeechSettingsView(
     } ?: "App language"
 
     val onVoiceChange: (String, SettingsVoice) -> Unit = { languageCode, voice ->
-        chat.textToSpeechLanguageVoices.value =
-            chat.textToSpeechLanguageVoices.value + (languageCode to voice)
-        model.chatTextToSpeech.setVoices(chat.textToSpeechLanguageVoices.value)
+        chat.textToSpeechLanguageVoices =
+            (chat.textToSpeechLanguageVoices + (languageCode to voice)).toMutableMap()
+        model.chatTextToSpeech.setVoices(chat.textToSpeechLanguageVoices)
     }
     val onLanguageReset: (String) -> Unit = { languageCode ->
-        chat.textToSpeechLanguageVoices.value =
-            chat.textToSpeechLanguageVoices.value - languageCode
-        model.chatTextToSpeech.setVoices(chat.textToSpeechLanguageVoices.value)
+        chat.textToSpeechLanguageVoices =
+            (chat.textToSpeechLanguageVoices - languageCode).toMutableMap()
+        model.chatTextToSpeech.setVoices(chat.textToSpeechLanguageVoices)
     }
 
     LaunchedEffect(Unit) {
@@ -164,12 +164,12 @@ fun ChatTextToSpeechSettingsView(
                 Icon(Icons.Default.VolumeDown, contentDescription = null)
                 Slider(
                     value = sayVolume,
-                    onValueChange = { chat.textToSpeechSayVolume.value = it },
+                    onValueChange = { chat.textToSpeechSayVolume = it },
                     modifier = Modifier.weight(1f),
                     valueRange = 0.3f..1.0f,
                     steps = 69,
                     onValueChangeFinished = {
-                        model.chatTextToSpeech.setVolume(chat.textToSpeechSayVolume.value)
+                        model.chatTextToSpeech.setVolume(chat.textToSpeechSayVolume)
                     },
                 )
                 Icon(Icons.Default.VolumeUp, contentDescription = null)
@@ -180,12 +180,12 @@ fun ChatTextToSpeechSettingsView(
                 Icon(Icons.Default.DirectionsWalk, contentDescription = null)
                 Slider(
                     value = rate,
-                    onValueChange = { chat.textToSpeechRate.value = it },
+                    onValueChange = { chat.textToSpeechRate = it },
                     modifier = Modifier.weight(1f),
                     valueRange = 0.3f..0.6f,
                     steps = 29,
                     onValueChangeFinished = {
-                        model.chatTextToSpeech.setRate(chat.textToSpeechRate.value)
+                        model.chatTextToSpeech.setRate(chat.textToSpeechRate)
                     },
                 )
                 Icon(Icons.Default.DirectionsRun, contentDescription = null)
@@ -201,13 +201,13 @@ fun ChatTextToSpeechSettingsView(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Slider(
                     value = pauseBetweenMessages.toFloat(),
-                    onValueChange = { chat.textToSpeechPauseBetweenMessages.value = it.toDouble() },
+                    onValueChange = { chat.textToSpeechPauseBetweenMessages = it.toDouble() },
                     modifier = Modifier.weight(1f),
                     valueRange = 0.5f..15.0f,
                     steps = 28,
                     onValueChangeFinished = {
                         model.chatTextToSpeech.setPauseBetweenMessages(
-                            chat.textToSpeechPauseBetweenMessages.value,
+                            chat.textToSpeechPauseBetweenMessages,
                         )
                     },
                 )
@@ -243,7 +243,7 @@ fun ChatTextToSpeechSettingsView(
                         DropdownMenuItem(
                             text = { Text("App language") },
                             onClick = {
-                                chat.textToSpeechDefaultLanguage.value = null
+                                chat.textToSpeechDefaultLanguage = null
                                 languageMenuExpanded = false
                             },
                         )
@@ -251,7 +251,7 @@ fun ChatTextToSpeechSettingsView(
                             DropdownMenuItem(
                                 text = { Text(language.name) },
                                 onClick = {
-                                    chat.textToSpeechDefaultLanguage.value = language.code
+                                    chat.textToSpeechDefaultLanguage = language.code
                                     languageMenuExpanded = false
                                 },
                             )
@@ -265,7 +265,7 @@ fun ChatTextToSpeechSettingsView(
                 Text("Detect language per message", modifier = Modifier.weight(1f))
                 Switch(
                     checked = detectLanguagePerMessage,
-                    onCheckedChange = { chat.textToSpeechDetectLanguagePerMessage.value = it },
+                    onCheckedChange = { chat.textToSpeechDetectLanguagePerMessage = it },
                 )
             }
         }
@@ -274,7 +274,7 @@ fun ChatTextToSpeechSettingsView(
                 Text("Say username", modifier = Modifier.weight(1f))
                 Switch(
                     checked = sayUsername,
-                    onCheckedChange = { chat.textToSpeechSayUsername.value = it },
+                    onCheckedChange = { chat.textToSpeechSayUsername = it },
                 )
             }
         }
@@ -283,7 +283,7 @@ fun ChatTextToSpeechSettingsView(
                 Text("Subscribers only", modifier = Modifier.weight(1f))
                 Switch(
                     checked = subscribersOnly,
-                    onCheckedChange = { chat.textToSpeechSubscribersOnly.value = it },
+                    onCheckedChange = { chat.textToSpeechSubscribersOnly = it },
                 )
             }
         }
@@ -298,7 +298,7 @@ fun ChatTextToSpeechSettingsView(
                 Text("Filter", modifier = Modifier.weight(1f))
                 Switch(
                     checked = filter,
-                    onCheckedChange = { chat.textToSpeechFilter.value = it },
+                    onCheckedChange = { chat.textToSpeechFilter = it },
                 )
             }
         }
@@ -313,7 +313,7 @@ fun ChatTextToSpeechSettingsView(
                 Text("Filter mentions", modifier = Modifier.weight(1f))
                 Switch(
                     checked = filterMentions,
-                    onCheckedChange = { chat.textToSpeechFilterMentions.value = it },
+                    onCheckedChange = { chat.textToSpeechFilterMentions = it },
                 )
             }
         }

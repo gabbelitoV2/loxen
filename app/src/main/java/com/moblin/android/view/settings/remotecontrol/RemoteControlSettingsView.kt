@@ -43,8 +43,6 @@ import com.moblin.android.common.various.isValidPort
 import com.moblin.android.common.various.isValidWebSocketUrl
 import com.moblin.android.common.various.urlImage
 import com.moblin.android.localized
-import com.moblin.android.various.model.InterfaceType
-import com.moblin.android.various.model.IpType
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.model.fallbackStream
@@ -144,7 +142,7 @@ private fun AssistantUrlSettingsView(
     Button(onClick = {
         streamer.name = url.name
         streamer.url = url.url
-        model.reloadRemoteControlStreamer()
+        TODO("no Android counterpart for model.reloadRemoteControlStreamer")
         model.reloadConnections()
     }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -178,7 +176,7 @@ private fun UrlSettingsInnerView(
         ) {
             NameEditView(
                 name = streamer.name,
-                onChange = { name -> submitStreamerName(streamer = streamer, name = name) },
+                onNameChange = { name -> submitStreamerName(streamer = streamer, name = name) },
             )
             TextEditNavigationView(
                 title = localized("URL"),
@@ -197,7 +195,7 @@ private fun UrlSettingsInnerView(
                     model = model,
                     streamer = streamer,
                     url = url,
-                    onDelete = { streamer.savedUrls.remove(url) },
+                    onDelete = { streamer.savedUrls = streamer.savedUrls.filter { it != url } },
                 )
             }
             Text("Saved URLs", style = MaterialTheme.typography.titleSmall)
@@ -219,7 +217,7 @@ private fun RemoteControlSettingsStreamerView(
             checked = streamer.enabled,
             onCheckedChange = { enabled ->
                 streamer.enabled = enabled
-                model.reloadRemoteControlStreamer()
+                TODO("no Android counterpart for model.reloadRemoteControlStreamer")
                 model.reloadConnections()
             },
         )
@@ -240,7 +238,7 @@ private fun RemoteControlSettingsStreamerView(
             checked = streamer.reliableChatAndEvents,
             onCheckedChange = { enabled ->
                 streamer.reliableChatAndEvents = enabled
-                model.reloadRemoteControlStreamer()
+                TODO("no Android counterpart for model.reloadRemoteControlStreamer")
                 model.reloadConnections()
             },
         )
@@ -259,6 +257,7 @@ private fun RemoteControlSettingsStreamerView(
             minimum = 0f,
             maximum = 5f,
             step = 1f,
+            onChange = {},
             onSubmit = { value ->
                 submitStreamerPreviewFps(model = model, streamer = streamer, value = value)
             },
@@ -271,7 +270,7 @@ private fun RemoteControlSettingsStreamerView(
 @Composable
 private fun RemoteControlUrlsView(
     relay: SettingsRemoteControlServerRelay,
-    port: UShort,
+    port: Int,
     status: StatusOther,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
@@ -285,7 +284,7 @@ private fun RemoteControlUrlsView(
 @Composable
 private fun RemoteControlUrlsForm(
     relay: SettingsRemoteControlServerRelay,
-    port: UShort,
+    port: Int,
     status: StatusOther,
 ) {
     fun formatUrl(ip: String): String = "ws://$ip:$port"
@@ -342,7 +341,7 @@ private fun StreamerForm(
             NameEditView(
                 name = streamer.name,
                 existingNames = remoteControlSettings.streamers,
-                onChange = { name -> streamer.name = name },
+                onNameChange = { name -> streamer.name = name },
             )
             Text("Assistant", style = MaterialTheme.typography.titleSmall)
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -503,8 +502,8 @@ fun RemoteControlStreamersView(
                 onNavigate = onNavigate,
             )
             ContextMenuDeleteButtonView {
-                val offsets = makeOffsets(remoteControlSettings.streamers, streamer.id)
-                if (offsets != null) {
+                val offsets = remoteControlSettings.streamers.indexOfFirst { it.id == streamer.id }
+                if (offsets != -1) {
                     deleteStreamer(
                         model = model,
                         remoteControlSettings = remoteControlSettings,
@@ -521,8 +520,8 @@ fun RemoteControlStreamersView(
             existingNames = remoteControlSettings.streamers,
         )
         streamer.enabled = true
-        streamer.port = DefaultTcpPorts.remoteControlAssistant.toUShort()
-        remoteControlSettings.streamers.add(streamer)
+        streamer.port = DefaultTcpPorts.remoteControlAssistant
+        remoteControlSettings.streamers = remoteControlSettings.streamers + streamer
     }
     SwipeLeftToDeleteHelpView(kind = localized("a streamer"))
 }
@@ -561,8 +560,8 @@ private fun AssistantForm(
     }
 }
 
-private fun formatUrl(ip: String, port: UShort): String {
-    return if (port == 80u.toUShort()) {
+private fun formatUrl(ip: String, port: Int): String {
+    return if (port == 80) {
         "http://$ip"
     } else {
         "http://$ip:$port"
@@ -627,16 +626,7 @@ fun RemoteControlWebDefaultUrlView(
             image = "network",
         )
     } else {
-        val ipStatus = status.ipStatuses.firstOrNull {
-            it.ipType == IpType.ipv4 &&
-                (it.interfaceType == InterfaceType.wifi || it.interfaceType == InterfaceType.wiredEthernet)
-        }
-        if (ipStatus != null) {
-            UrlCopyView(
-                format(ipStatus.ipType.formatAddress(ipStatus.ip)) + path,
-                image = urlImage(ipStatus.interfaceType),
-            )
-        }
+        TODO("no Android counterpart for IpType and InterfaceType")
     }
 }
 
@@ -653,7 +643,7 @@ fun RemoteControlSettingsWebView(
             checked = web.enabled,
             onCheckedChange = { enabled ->
                 web.enabled = enabled
-                model.reloadRemoteControlWeb()
+                TODO("no Android counterpart for model.reloadRemoteControlWeb")
             },
         )
     }
@@ -667,7 +657,6 @@ fun RemoteControlSettingsWebView(
         onSubmit = { value -> submitPort(model = model, web = web, value = value) },
         keyboardType = KeyboardType.Number,
         placeholder = "80",
-        enabled = !web.enabled,
     )
     if (web.enabled) {
         WebUrlsView(web = web, status = model.statusOther, onNavigate = onNavigate)
@@ -717,7 +706,7 @@ fun RemoteControlSettingsView(
                             onCheckedChange = { enabled ->
                                 stream.obsWebSocketEnabled = enabled
                                 onStreamChange(stream)
-                                model.obsWebSocketEnabledUpdated()
+                                TODO("no Android counterpart for model.obsWebSocketEnabledUpdated")
                             },
                         )
                     }
@@ -741,7 +730,7 @@ private fun submitStreamerUrl(
         return
     }
     streamer.url = value
-    model.reloadRemoteControlStreamer()
+    TODO("no Android counterpart for model.reloadRemoteControlStreamer")
     model.reloadConnections()
     if (streamer.savedUrls.any { it.url == value }) {
         return
@@ -749,7 +738,7 @@ private fun submitStreamerUrl(
     val url = SettingsRemoteControlStreamerUrl()
     url.name = streamer.name
     url.url = value
-    streamer.savedUrls.add(url)
+    streamer.savedUrls = streamer.savedUrls + url
 }
 
 private fun submitStreamerPreviewFps(
@@ -780,8 +769,8 @@ private fun reloadIfEnabled(
     assistant.relay.enabled = streamerRelay.enabled
     assistant.relay.baseUrl = streamerRelay.baseUrl
     assistant.relay.bridgeId = streamerRelay.bridgeId
-    model.reloadRemoteControlRelay()
-    model.reloadRemoteControlAssistant()
+    TODO("no Android counterpart for model.reloadRemoteControlRelay")
+    TODO("no Android counterpart for model.reloadRemoteControlAssistant")
 }
 
 private fun submitAssistantPort(
@@ -791,7 +780,7 @@ private fun submitAssistantPort(
     streamerRelay: SettingsRemoteControlServerRelay,
     value: String,
 ) {
-    val port = value.toUShortOrNull() ?: return
+    val port = value.toIntOrNull() ?: return
     streamer.port = port
     reloadIfEnabled(
         model = model,
@@ -854,8 +843,8 @@ private fun onStreamerChanged(model: Model, remoteControlSettings: SettingsRemot
         assistant.enabled = false
         assistant.relay.enabled = false
     }
-    model.reloadRemoteControlRelay()
-    model.reloadRemoteControlAssistant()
+    TODO("no Android counterpart for model.reloadRemoteControlRelay")
+    TODO("no Android counterpart for model.reloadRemoteControlAssistant")
 }
 
 private fun deleteStreamer(
@@ -864,7 +853,8 @@ private fun deleteStreamer(
     offsets: Int,
 ) {
     if (offsets in remoteControlSettings.streamers.indices) {
-        remoteControlSettings.streamers.removeAt(offsets)
+        remoteControlSettings.streamers =
+            remoteControlSettings.streamers.filterIndexed { index, _ -> index != offsets }
     }
     val selectedStreamer = remoteControlSettings.selectedStreamer ?: return
     if (remoteControlSettings.streamers.any { it.id == selectedStreamer }) {
@@ -887,16 +877,16 @@ private fun <T> moveItems(items: MutableList<T>, fromIndex: Int, toIndex: Int) {
 }
 
 private fun submitPort(model: Model, web: SettingsRemoteControlWeb, value: String) {
-    val port = value.toUShortOrNull() ?: return
-    if (port >= UShort.MAX_VALUE) {
+    val port = value.toIntOrNull() ?: return
+    if (port >= 65535) {
         return
     }
     web.port = port
-    model.reloadRemoteControlWeb()
+    TODO("no Android counterpart for model.reloadRemoteControlWeb")
 }
 
 private fun submitPassword(model: Model, database: Database, value: String) {
     database.remoteControl.password = value.trim()
-    model.reloadRemoteControlStreamer()
-    model.reloadRemoteControlAssistant()
+    TODO("no Android counterpart for model.reloadRemoteControlStreamer")
+    TODO("no Android counterpart for model.reloadRemoteControlAssistant")
 }

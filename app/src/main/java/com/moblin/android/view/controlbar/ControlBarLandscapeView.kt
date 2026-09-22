@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -73,9 +74,9 @@ private fun edgesToIgnore(): List<String> {
 
 fun controlBarWidth(quickButtons: SettingsQuickButtons): Double {
     return if (quickButtons.bigButtons.value && quickButtons.twoColumns.value) {
-        controlBarWidthBigQuickButtons
+        controlBarWidthBigQuickButtons.toDouble()
     } else {
-        controlBarWidthDefault
+        controlBarWidthDefault.toDouble()
     }
 }
 
@@ -89,9 +90,9 @@ private fun QuickButtonsView(
 ) {
     val bigButtons = quickButtonsSettings.bigButtons.collectAsState().value
     val twoColumns = quickButtonsSettings.twoColumns.collectAsState().value
-    val orientation = model.orientation.collectAsState().value
+    val orientation = model.orientation
 
-    fun buttonSize(): Double {
+    fun buttonSize(): Float {
         return if (bigButtons) {
             controlBarQuickButtonSingleQuickButtonSize
         } else {
@@ -99,7 +100,7 @@ private fun QuickButtonsView(
         }
     }
 
-    fun nameSize(): Double {
+    fun nameSize(): Float {
         return if (bigButtons) {
             controlBarQuickButtonNameSingleColumnSize
         } else {
@@ -146,7 +147,7 @@ private fun QuickButtonsView(
                             button = second,
                             size = buttonSize(),
                             nameSize = nameSize(),
-                            nameWidth = width - 10,
+                            nameWidth = (width - 10).toFloat(),
                         )
                     }
                 }
@@ -158,7 +159,7 @@ private fun QuickButtonsView(
                         button = pair.first,
                         size = buttonSize(),
                         nameSize = nameSize(),
-                        nameWidth = width - 10,
+                        nameWidth = (width - 10).toFloat(),
                     )
                 }
             }
@@ -166,11 +167,12 @@ private fun QuickButtonsView(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StatusView(model: Model = LocalModel.current, status: StatusOther) {
     var presentingThermalState by remember { mutableStateOf(false) }
-    val battery = model.battery.collectAsState().value
-    val thermalState = status.thermalState.collectAsState().value
+    val battery = model.battery
+    val thermalState = status.thermalState
     val digitalClock = status.digitalClock.collectAsState().value
 
     Row(
@@ -294,7 +296,7 @@ private fun MainPageView(
 ) {
     val bigButtons = quickButtonsSettings.bigButtons.collectAsState().value
     val twoColumns = quickButtonsSettings.twoColumns.collectAsState().value
-    val show = model.show.collectAsState().value
+    val show = model.show
 
     fun buttonsWidth(): Double {
         return if (bigButtons && twoColumns) {
@@ -331,7 +333,7 @@ private fun MainPageView(
     }
 }
 
-private class ControlBarPageScrollTargetBehavior(private val model: Model) {
+private class ControlBarLandscapePageScrollTargetBehavior(private val model: Model) {
     fun updateTarget(containerWidth: Double, targetPosition: Double): Double {
         return controlBarScrollTargetBehavior(
             model = model,
@@ -368,7 +370,7 @@ private fun PageIndicatorView(model: Model = LocalModel.current, size: Float, qu
                 modifier = Modifier
                     .size(size.dp)
                     .clickable {
-                        quickButtons.page.value = page
+                        quickButtons.page = page
                         quickButtons.activePage.value = page
                         model.updateQuickButtonPairs()
                     },
@@ -388,7 +390,7 @@ private fun PagesView(
     val twoColumns = quickButtonsSettings.twoColumns.collectAsState().value
     val pairs = quickButtons.pairs.collectAsState().value
     val activePage = quickButtons.activePage.collectAsState().value
-    val store = model.store.collectAsState().value
+    val store = model.store
 
     fun offsetX(): Double {
         return if (bigButtons && twoColumns) {
@@ -409,12 +411,12 @@ private fun PagesView(
         }
     }
     val pagerState = rememberPagerState(
-        initialPage = (activePage - 1).coerceIn(0, pages.size - 1),
+        initialPage = ((activePage ?: 1) - 1).coerceIn(0, pages.size - 1),
         pageCount = { pages.size },
     )
     LaunchedEffect(pagerState.currentPage) {
         val page = pages.getOrNull(pagerState.currentPage) ?: return@LaunchedEffect
-        quickButtons.page.value = page
+        quickButtons.page = page
         quickButtons.activePage.value = page
         model.updateQuickButtonPairs()
     }
@@ -465,9 +467,9 @@ private fun PagesView(
 
 @Composable
 fun ControlBarLandscapeView(model: Model = LocalModel.current, quickButtons: SettingsQuickButtons) {
-    val statusOther = model.statusOther.collectAsState().value
-    val quickButtonsState = model.quickButtons.collectAsState().value
-    val controlBar = model.controlBar.collectAsState().value
+    val statusOther = model.statusOther
+    val quickButtonsState = model.quickButtons
+    val controlBar = model.controlBar
     val width = controlBarWidth(quickButtons = quickButtons)
 
     Box(

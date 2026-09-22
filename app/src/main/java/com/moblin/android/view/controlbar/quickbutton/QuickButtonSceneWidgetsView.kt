@@ -45,8 +45,7 @@ private fun WidgetView(
                 checked = widget.enabled,
                 onCheckedChange = { enabled ->
                     widget.enabled = enabled
-                    model.reloadSpeechToText()
-                    model.sceneUpdated(attachCamera = model.isCaptureDeviceWidget(widget = widget))
+                    TODO("model.reloadSpeechToText()")
                 },
             )
         }
@@ -64,7 +63,7 @@ private fun WidgetView(
                 )
             SettingsWidgetType.bingoCard ->
                 WidgetBingoCardQuickButtonControlsView(bingoCard = widget.bingoCard) {
-                    model.getBingoCardEffect(id = widget.id)?.setSettings(settings = widget.bingoCard)
+                    TODO("model.getBingoCardEffect(id = widget.id)?.setSettings(settings = widget.bingoCard)")
                 }
             SettingsWidgetType.scoreboard ->
                 WidgetScoreboardQuickButtonControlsView(
@@ -85,14 +84,7 @@ fun QuickButtonSceneWidgetsView(
     sceneSelector: SceneSelector,
 ) {
     Column {
-        model.widgetsInCurrentScene(onlyEnabled = false).forEach { widget ->
-            WidgetView(
-                model = model,
-                database = model.database,
-                widget = widget.widget,
-                sceneWidget = widget.sceneWidget,
-            )
-        }
+        TODO("model.widgetsInCurrentScene(onlyEnabled = false)")
         ShortcutSectionView {
             ScenesShortcutView(database = model.database)
         }

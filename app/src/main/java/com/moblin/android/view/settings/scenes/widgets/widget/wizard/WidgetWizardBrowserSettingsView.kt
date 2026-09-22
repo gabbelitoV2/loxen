@@ -40,7 +40,7 @@ fun WidgetWizardBrowserSettingsView(
     onPresentingCreateWizardChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val url by browser.url.collectAsState()
+    val url = browser.url
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -71,7 +71,7 @@ fun WidgetWizardBrowserSettingsView(
             item {
                 OutlinedTextField(
                     value = url,
-                    onValueChange = { browser.url.value = it },
+                    onValueChange = { browser.url = it },
                     placeholder = { Text("https://example.com") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
@@ -97,8 +97,7 @@ fun WidgetWizardBrowserSettingsView(
                     database = database,
                     createWidgetWizard = createWidgetWizard,
                     presentingCreateWizard = presentingCreateWizard,
-                    onPresentingCreateWizardChange = onPresentingCreateWizardChange,
-                    enabled = isValidHttpUrl(url) == null && url.isNotEmpty()
+                    onPresentingCreateWizardChange = onPresentingCreateWizardChange
                 )
             }
         }

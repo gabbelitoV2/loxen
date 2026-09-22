@@ -59,7 +59,7 @@ import com.moblin.android.various.model.TwitchPredictionState
 import com.moblin.android.view.controlbar.quickbutton.chat.ChannelImageView
 import com.moblin.android.LocalModel
 
-private val bannerBackgroundColor = RgbColor(red = 0x64, green = 0x41, blue = 0xA5).color()
+private val bannerBackgroundColor = Color(0xFF6441A5)
 
 private fun bannerIcon(name: String): ImageVector = when (name) {
     "train.side.rear.car", "train.side.middle.car", "train.side.front.car" -> Icons.Default.Train
@@ -71,8 +71,8 @@ private fun bannerIcon(name: String): ImageVector = when (name) {
 
 @Composable
 private fun ProgressBarView(progress: ProgressBar) {
-    val fraction = if (progress.goal > 0) {
-        ((progress.goal - progress.progress).toDouble() / progress.goal.toDouble()).toFloat()
+    val fraction = if (progress.goal.value > 0) {
+        ((progress.goal.value - progress.progress.value).toDouble() / progress.goal.value.toDouble()).toFloat()
     } else {
         0.0f
     }
@@ -89,18 +89,18 @@ private fun ProgressBarView(progress: ProgressBar) {
 @Composable
 private fun HypeTrainProgressView(progress: ProgressBar, message: String) {
     fun percentage(): Int {
-        if (progress.goal <= 0) {
+        if (progress.goal.value <= 0) {
             return 0
         }
-        return (100.0 * minOf(progress.progress.toDouble() / progress.goal.toDouble(), 1.0)).toInt()
+        return (100.0 * minOf(progress.progress.value.toDouble() / progress.goal.value.toDouble(), 1.0)).toInt()
     }
 
     Column(
         modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        val fraction = if (progress.goal > 0) {
-            (minOf(progress.progress.toDouble(), progress.goal.toDouble()) / progress.goal.toDouble()).toFloat()
+        val fraction = if (progress.goal.value > 0) {
+            (minOf(progress.progress.value.toDouble(), progress.goal.value.toDouble()) / progress.goal.value.toDouble()).toFloat()
         } else {
             0.0f
         }
@@ -149,7 +149,7 @@ private fun HypeTrainView(model: Model = LocalModel.current, hypeTrain: HypeTrai
                     text = "LEVEL $currentLevel",
                     color = Color.White,
                 )
-                TextButton(onClick = { model.removeHypeTrain() }) {
+                TextButton(onClick = { TODO("removeHypeTrain") }) {
                     Text("Close", color = Color.White)
                 }
             }
@@ -175,12 +175,7 @@ private fun RaidView(model: Model = LocalModel.current, raid: Raid) {
             }
             RaidState.ongoing -> {
                 raid.message.value = localized("Cancelling raid")
-                model.cancelRaidTwitchChannel { result ->
-                    if (result.isFailure) {
-                        raid.message.value = localized("Failed to cancel the raid")
-                        raid.state.value = RaidState.completed
-                    }
-                }
+                TODO("cancelRaidTwitchChannel")
                 raid.state.value = RaidState.cancelling
             }
             RaidState.cancelling -> {
@@ -323,7 +318,7 @@ private fun TwitchPollView(model: Model = LocalModel.current, poll: TwitchPoll) 
             image = "chart.bar",
             title = title,
             message = message,
-            onClose = { model.removeTwitchPoll() },
+            onClose = { TODO("removeTwitchPoll") },
         ) {
             choices.forEach { choice ->
                 val choiceFraction = fraction(choice.votes)
@@ -357,9 +352,9 @@ private fun TwitchPredictionView(model: Model = LocalModel.current, prediction: 
 
     fun color(outcome: TwitchPredictionOutcome): Color {
         return if (outcome.color == "pink") {
-            RgbColor(red = 0xF5, green = 0x00, blue = 0x9B).color()
+            Color(0xFFF5009B)
         } else {
-            RgbColor(red = 0x38, green = 0x7A, blue = 0xFF).color()
+            Color(0xFF387AFF)
         }
     }
 
@@ -368,7 +363,7 @@ private fun TwitchPredictionView(model: Model = LocalModel.current, prediction: 
             image = "sparkles",
             title = title,
             message = message,
-            onClose = { model.removeTwitchPrediction() },
+            onClose = { TODO("removeTwitchPrediction") },
         ) {
             outcomes.forEach { outcome ->
                 val outcomeFraction = fraction(outcome.channelPoints)
@@ -436,14 +431,15 @@ private fun MinimizedView(
 @Composable
 fun BannersView(model: Model = LocalModel.current, banners: Banners) {
     val minimized by banners.minimized.collectAsState()
-    val hypeTrain by model.hypeTrain.collectAsState()
-    val raid by model.raid.collectAsState()
-    val twitchPoll by model.twitchPoll.collectAsState()
-    val twitchPrediction by model.twitchPrediction.collectAsState()
+    val hypeTrain = model.hypeTrain
+    val raid = model.raid
+    val twitchPoll = model.twitchPoll
+    val twitchPrediction = model.twitchPrediction
     var contentHeight by remember { mutableStateOf(0) }
     val density = LocalDensity.current
 
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val maxHeight = constraints.maxHeight
         Column {
             Box(
                 modifier = Modifier
@@ -464,7 +460,7 @@ fun BannersView(model: Model = LocalModel.current, banners: Banners) {
                     )
                 } else {
                     val height = with(density) {
-                        minOf(contentHeight, constraints.maxHeight - 1).coerceAtLeast(0).toDp()
+                        minOf(contentHeight, maxHeight - 1).coerceAtLeast(0).toDp()
                     }
                     Column(
                         modifier = Modifier

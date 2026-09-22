@@ -21,7 +21,7 @@ import com.moblin.android.LocalModel
 
 @Composable
 fun MirrorFrontCameraOnStreamView(model: Model = LocalModel.current, database: Database) {
-    val mirrorFrontCameraOnStream by database.mirrorFrontCameraOnStream.collectAsState()
+    val mirrorFrontCameraOnStream = database.mirrorFrontCameraOnStream
     var previousMirrorFrontCameraOnStream by remember {
         mutableStateOf(mirrorFrontCameraOnStream)
     }
@@ -43,7 +43,7 @@ fun MirrorFrontCameraOnStreamView(model: Model = LocalModel.current, database: D
         )
         Switch(
             checked = mirrorFrontCameraOnStream,
-            onCheckedChange = { database.mirrorFrontCameraOnStream.value = it },
+            onCheckedChange = { database.mirrorFrontCameraOnStream = it },
         )
     }
 }

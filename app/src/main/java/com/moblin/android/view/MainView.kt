@@ -1,5 +1,6 @@
 package com.moblin.android.view
 
+import android.graphics.PointF
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -74,6 +75,17 @@ import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.ReplayProvider
 import com.moblin.android.various.model.ShowingPanel
 import com.moblin.android.various.model.Toast
+import com.moblin.android.various.model.buttonsBackgroundColor
+import com.moblin.android.various.model.changeZoomX
+import com.moblin.android.various.model.commitZoomX
+import com.moblin.android.various.model.handleKeyPress
+import com.moblin.android.various.model.isKeyboardActive
+import com.moblin.android.various.model.navigation
+import com.moblin.android.various.model.setAutoFocus
+import com.moblin.android.various.model.setFocusPointOfInterest
+import com.moblin.android.various.model.streamViewLayout
+import com.moblin.android.various.model.updateAutoSceneSwitcherButtonState
+import com.moblin.android.various.model.updateLutsButtonState
 import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.various.settings.SettingsWidgetLayout
 import com.moblin.android.various.utils.isMac
@@ -84,7 +96,6 @@ import com.moblin.android.view.controlbar.ControlBarLandscapeView
 import com.moblin.android.view.controlbar.ControlBarPortraitView
 import com.moblin.android.view.controlbar.quickbutton.QuickButtonAutoSceneSwitcherView
 import com.moblin.android.view.controlbar.quickbutton.QuickButtonBitrateView
-import com.moblin.android.view.controlbar.quickbutton.QuickButtonChatView
 import com.moblin.android.view.controlbar.quickbutton.QuickButtonDjiDevicesView
 import com.moblin.android.view.controlbar.quickbutton.QuickButtonGoProView
 import com.moblin.android.view.controlbar.quickbutton.QuickButtonLiveView
@@ -96,6 +107,7 @@ import com.moblin.android.view.controlbar.quickbutton.QuickButtonSceneWidgetsVie
 import com.moblin.android.view.controlbar.quickbutton.QuickButtonStreamSwitcherView
 import com.moblin.android.view.controlbar.quickbutton.chat.PredefinedMessagesView
 import com.moblin.android.view.controlbar.quickbutton.chat.QuickButtonChatModerationView
+import com.moblin.android.view.controlbar.quickbutton.chat.QuickButtonChatView
 import com.moblin.android.view.controlbar.remotecontrolassistant.ControlBarRemoteControlAssistantView
 import com.moblin.android.view.main.LockScreenView
 import com.moblin.android.view.main.SnapshotCountdownView
@@ -114,6 +126,7 @@ import com.moblin.android.view.stream.StreamOverlayView
 import com.moblin.android.view.stream.overlay.StreamOverlayNavigationView
 import com.moblin.android.view.webbrowser.WebBrowserView
 import com.moblin.android.LocalModel
+import java.util.UUID
 
 @Composable
 fun CloseButtonView(onClose: () -> Unit) {
@@ -149,9 +162,9 @@ fun CloseButtonTopRightView(onClose: () -> Unit) {
 
 @Composable
 private fun HideShowButtonPanelView(model: Model = LocalModel.current) {
-    IconButton(onClick = { model.panelHidden = !model.panelHidden }) {
+    IconButton(onClick = { model.panelHidden.value = !model.panelHidden.value }) {
         Icon(
-            imageVector = if (model.panelHidden) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+            imageVector = if (model.panelHidden.value) Icons.Default.Visibility else Icons.Default.VisibilityOff,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(7.dp)
@@ -182,58 +195,58 @@ private fun PanelButtonsView(model: Model = LocalModel.current, backgroundColor:
 }
 
 private fun onClose(model: Model) {
-    model.toggleShowingPanel(type = null, panel = ShowingPanel.NONE)
+    model.toggleShowingPanel(type = null, panel = ShowingPanel.none)
     model.updateLutsButtonState()
     model.updateAutoSceneSwitcherButtonState()
 }
 
 @Composable
 private fun MenuView(model: Model = LocalModel.current) {
-    when (model.showingPanel) {
-        ShowingPanel.SETTINGS -> SettingsView(database = model.database)
-        ShowingPanel.BITRATE -> QuickButtonBitrateView(
+    when (model.showingPanel.value) {
+        ShowingPanel.settings -> SettingsView(database = model.database)
+        ShowingPanel.bitrate -> QuickButtonBitrateView(
             model = model,
             database = model.database,
-            stream = model.stream
+            stream = model.stream.value
         )
-        ShowingPanel.MIC -> QuickButtonMicView(
+        ShowingPanel.mic -> QuickButtonMicView(
             model = model,
             mics = model.database.mics,
             modelMic = model.mic
         )
-        ShowingPanel.STREAM_SWITCHER -> QuickButtonStreamSwitcherView(database = model.database)
-        ShowingPanel.LUTS -> QuickButtonLutsView(model = model, color = model.database.color)
-        ShowingPanel.OBS -> QuickButtonObsView(
-            stream = model.stream,
+        ShowingPanel.streamSwitcher -> QuickButtonStreamSwitcherView(database = model.database)
+        ShowingPanel.luts -> QuickButtonLutsView(model = model, color = model.database.color)
+        ShowingPanel.obs -> QuickButtonObsView(
+            stream = model.stream.value,
             obsQuickButton = model.obsQuickButton
         )
-        ShowingPanel.SCENE_WIDGETS -> QuickButtonSceneWidgetsView(sceneSelector = model.sceneSelector)
-        ShowingPanel.STORE -> StoreSettingsView(model = model, store = model.store)
-        ShowingPanel.CHAT -> QuickButtonChatView(
+        ShowingPanel.sceneWidgets -> QuickButtonSceneWidgetsView(sceneSelector = model.sceneSelector)
+        ShowingPanel.store -> StoreSettingsView(model = model, store = model.store)
+        ShowingPanel.chat -> QuickButtonChatView(
             model = model,
             orientation = model.orientation,
             quickButtonChat = model.quickButtonChatState
         )
-        ShowingPanel.DJI_DEVICES -> QuickButtonDjiDevicesView(
+        ShowingPanel.djiDevices -> QuickButtonDjiDevicesView(
             model = model,
             djiDevices = model.database.djiDevices
         )
-        ShowingPanel.SCENE_SETTINGS -> key(model.sceneSettingsPanelSceneId) {
+        ShowingPanel.sceneSettings -> key(model.sceneSettingsPanelSceneId) {
             SceneSettingsView(
                 database = model.database,
                 scene = model.sceneSettingsPanelScene
             )
         }
-        ShowingPanel.GO_PRO -> QuickButtonGoProView(
+        ShowingPanel.goPro -> QuickButtonGoProView(
             goProState = model.goPro,
             goPro = model.database.goPro
         )
-        ShowingPanel.CONNECTION_PRIORITIES -> StreamSrtConnectionPriorityView(stream = model.stream)
-        ShowingPanel.AUTO_SCENE_SWITCHER -> QuickButtonAutoSceneSwitcherView(
+        ShowingPanel.connectionPriorities -> StreamSrtConnectionPriorityView(stream = model.stream.value)
+        ShowingPanel.autoSceneSwitcher -> QuickButtonAutoSceneSwitcherView(
             autoSceneSwitcher = model.autoSceneSwitcher,
             autoSceneSwitchers = model.database.autoSceneSwitchers
         )
-        ShowingPanel.QUICK_BUTTON_SETTINGS -> model.quickButtonSettingsButton?.let { button ->
+        ShowingPanel.quickButtonSettings -> model.quickButtonSettingsButton.value?.let { button ->
             QuickButtonsButtonSettingsView(
                 model = model,
                 orientation = model.orientation,
@@ -242,29 +255,25 @@ private fun MenuView(model: Model = LocalModel.current) {
                 showAll = true
             )
         }
-        ShowingPanel.STREAMING_BUTTON_SETTINGS -> StreamButtonsSettingsView(database = model.database)
-        ShowingPanel.LIVE -> QuickButtonLiveView(
+        ShowingPanel.streamingButtonSettings -> StreamButtonsSettingsView(database = model.database)
+        ShowingPanel.live -> QuickButtonLiveView(
             model = model,
             database = model.database,
-            stream = model.stream
+            stream = model.stream.value
         )
-        ShowingPanel.MACROS -> QuickButtonMacrosView(model = model, macros = model.database.macros)
-        ShowingPanel.NONE -> {}
+        ShowingPanel.macros -> QuickButtonMacrosView(model = model, macros = model.database.macros)
+        ShowingPanel.none -> {}
     }
 }
 
 @Composable
 fun BrowserWidgetView(browser: Browser, modifier: Modifier = Modifier) {
-    AndroidView(
-        factory = { browser.browserEffect.webView },
-        modifier = modifier,
-        update = { browser.browserEffect.reload() }
-    )
+    TODO("BrowserEffect does not expose its WebView on Android")
 }
 
 @Composable
 private fun InstantReplayCountdownView(replay: ReplayProvider) {
-    if (replay.instantReplayCountdown != 0) {
+    if (replay.instantReplayCountdown.value != 0) {
         Column(
             modifier = Modifier
                 .widthIn(max = 200.dp)
@@ -277,7 +286,7 @@ private fun InstantReplayCountdownView(replay: ReplayProvider) {
                 color = Color.White
             )
             Text(
-                text = replay.instantReplayCountdown.toString(),
+                text = replay.instantReplayCountdown.value.toString(),
                 color = Color.White,
                 style = MaterialTheme.typography.headlineSmall
             )
@@ -287,7 +296,7 @@ private fun InstantReplayCountdownView(replay: ReplayProvider) {
 
 @Composable
 private fun MutedView(audio: AudioProvider) {
-    if (audio.muted) {
+    if (audio.muted.value) {
         Icon(
             imageVector = Icons.Default.MicOff,
             contentDescription = null,
@@ -355,14 +364,14 @@ private fun tapToFocusIndicator(size: Size, focusPoint: Offset) {
 
 @Composable
 private fun StreamOverlayTapGridView(model: Model = LocalModel.current, camera: CameraState, size: Size) {
-    val focusPoint = camera.manualFocusPoint
+    val focusPoint = camera.manualFocusPoint.value
     if (model.database.tapToFocus && focusPoint != null) {
-        tapToFocusIndicator(size = size, focusPoint = focusPoint)
+        tapToFocusIndicator(size = size, focusPoint = Offset(focusPoint.x, focusPoint.y))
     }
-    if (model.showingGrid) {
+    if (model.showingGrid.value) {
         StreamGridView()
     }
-    if (model.showingCameraLevel) {
+    if (model.showingCameraLevel.value) {
         CameraLevelView(cameraLevel = model.cameraLevel)
     }
 }
@@ -405,7 +414,7 @@ private fun InteractiveBrowserView(
     browserEffect: BrowserEffect,
     streamSize: Size,
 ) {
-    val layout = browserEffect.layout ?: return
+    val layout = browserEffect.layout.value ?: return
     val browserSize = Size(browserEffect.width.toFloat(), browserEffect.height.toFloat())
     val scale = browserWidgetScale(
         layout = layout,
@@ -484,7 +493,7 @@ fun MainView(
                     focused = true
                     focusRequester.requestFocus()
                 }
-                if (orientation.isPortrait) {
+                if (orientation.isPortrait.value) {
                     portrait(
                         model = model,
                         streamView = streamView,
@@ -499,10 +508,10 @@ fun MainView(
                         quickButtons = quickButtons
                     )
                 }
-                if (webBrowserController.showAlert) {
+                if (webBrowserController.showAlert.value) {
                     WebBrowserAlertsView(model = model)
                 }
-                if (model.showStealthMode) {
+                if (model.showStealthMode.value) {
                     StealthModeView(
                         model = model,
                         quickButtons = quickButtons,
@@ -512,32 +521,41 @@ fun MainView(
                         orientation = orientation
                     )
                 }
-                if (model.lockScreen) {
+                if (model.lockScreen.value) {
                     LockScreenView(model = model)
                 }
                 SnapshotCountdownView(snapshot = model.snapshot)
                 InstantReplayCountdownView(replay = model.replay)
 
-                if (model.showTwitchAuth) {
-                    TwitchLoginView(model = model, presenting = model.showTwitchAuth)
-                }
-                if (model.presentingModeration) {
-                    QuickButtonChatModerationView(
+                if (model.showTwitchAuth.value) {
+                    TwitchLoginView(
                         model = model,
-                        presentingModeration = model.presentingModeration
+                        presenting = model.showTwitchAuth.value,
+                        onPresentingChange = { model.showTwitchAuth.value = it }
                     )
                 }
-                if (model.presentingPredefinedMessages) {
+                if (model.presentingModeration.value) {
+                    QuickButtonChatModerationView(
+                        model = model,
+                        presentingModeration = model.presentingModeration.value,
+                        onPresentingModerationChange = { model.presentingModeration.value = it }
+                    )
+                }
+                if (model.presentingPredefinedMessages.value) {
+                    var messageToSend by remember { mutableStateOf<UUID?>(null) }
                     PredefinedMessagesView(
                         model = model,
                         chat = model.database.chat,
                         filter = model.database.chat.predefinedMessagesFilter,
-                        presentingPredefinedMessages = model.presentingPredefinedMessages
+                        presentingPredefinedMessages = model.presentingPredefinedMessages.value,
+                        onPresentingPredefinedMessagesChange = { model.presentingPredefinedMessages.value = it },
+                        messageToSend = messageToSend,
+                        onMessageToSendChange = { messageToSend = it }
                     )
                 }
-                if (model.presentingSettingsImportConfirmation) {
+                if (model.presentingSettingsImportConfirmation.value) {
                     AlertDialog(
-                        onDismissRequest = { model.presentingSettingsImportConfirmation = false },
+                        onDismissRequest = { model.presentingSettingsImportConfirmation.value = false },
                         title = {
                             Text("Are you sure you want to import settings? This will replace your current settings.")
                         },
@@ -551,9 +569,9 @@ fun MainView(
                         }
                     )
                 }
-                if (model.presentingStreamImportCollisionConfirmation) {
+                if (model.presentingStreamImportCollisionConfirmation.value) {
                     AlertDialog(
-                        onDismissRequest = { model.presentingStreamImportCollisionConfirmation = false },
+                        onDismissRequest = { model.presentingStreamImportCollisionConfirmation.value = false },
                         title = { Text(model.pendingStreamImportCollisionTitle) },
                         confirmButton = {
                             TextButton(onClick = {
@@ -573,7 +591,7 @@ fun MainView(
                         }
                     )
                 }
-                if (toast.showingToast) {
+                if (toast.showingToast.value) {
                     TODO("toast.toast SwiftUI view has no Compose equivalent")
                 }
             }
@@ -595,7 +613,7 @@ private fun handleTapToFocus(model: Model, size: Size, location: Offset) {
     }
     val x = (location.x / size.width).coerceIn(0f, 1f)
     val y = (location.y / size.height).coerceIn(0f, 1f)
-    model.setFocusPointOfInterest(Offset(x, y))
+    model.setFocusPointOfInterest(PointF(x, y))
 }
 
 private fun handleLeaveTapToFocus(model: Model) {
@@ -610,10 +628,10 @@ private fun browserWidgets(model: Model = LocalModel.current, streamSize: Size) 
     Box(
         modifier = Modifier
             .size(streamSize.width.dp, streamSize.height.dp)
-            .alpha(if (model.interactiveBrowsers) 1f else 0f)
+            .alpha(if (model.interactiveBrowsers.value) 1f else 0f)
     ) {
-        model.browsers.forEach { browser ->
-            key(browser.id) {
+        model.browsers.value.forEach { browser ->
+            key(browser.name) {
                 InteractiveBrowserView(
                     browser = browser,
                     browserEffect = browser.browserEffect,
@@ -689,25 +707,26 @@ private fun portrait(
         ) {
             streamViewWithWidgets(model = model, streamView = streamView)
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val maxWidthValue = maxWidth.value
                 Box(
                     modifier = Modifier
-                        .padding(bottom = if (orientation.isPortrait) 5.dp else 0.dp)
-                        .alpha(if (model.showLocalOverlays) 1f else 0f)
+                        .padding(bottom = if (orientation.isPortrait.value) 5.dp else 0.dp)
+                        .alpha(if (model.showLocalOverlays.value) 1f else 0f)
                 ) {
                     StreamOverlayView(
                         streamOverlay = model.streamOverlay,
                         chatSettings = model.database.chat,
                         orientation = orientation,
-                        width = maxWidth.value
+                        width = maxWidthValue
                     )
                 }
             }
-            if (model.showDrawOnStream && model.stream.portrait) {
+            if (model.showDrawOnStream.value && model.stream.value.portrait) {
                 DrawOnStreamView(model = model)
             }
             MutedView(audio = model.audio)
-            PhotoShootView(enabled = model.photoShootEnabled)
-            if (model.showBrowser) {
+            PhotoShootView(enabled = model.photoShootEnabled.value)
+            if (model.showBrowser.value) {
                 WebBrowserView(
                     model = model,
                     database = model.database,
@@ -715,25 +734,25 @@ private fun portrait(
                     webBrowserState = model.webBrowserState
                 )
             }
-            if (model.showNavigation) {
+            if (model.showNavigation.value) {
                 StreamOverlayNavigationView(
                     model = model,
                     database = model.database,
                     navigation = model.navigation()
                 )
             }
-            if (model.showingRemoteControl) {
+            if (model.showingRemoteControl.value) {
                 ControlBarRemoteControlAssistantView(
                     model = model,
                     remoteControlSettings = model.database.remoteControl
                 )
             }
-            if (model.showingPanel != ShowingPanel.NONE) {
-                Box(modifier = Modifier.alpha(if (model.panelHidden) 0f else 1f)) {
+            if (model.showingPanel.value != ShowingPanel.none) {
+                Box(modifier = Modifier.alpha(if (model.panelHidden.value) 0f else 1f)) {
                     MenuView(model = model)
                 }
-                val backgroundColor = if (model.panelHidden) {
-                    model.showingPanel.buttonsBackgroundColor()
+                val backgroundColor = if (model.panelHidden.value) {
+                    model.showingPanel.value.buttonsBackgroundColor()
                 } else {
                     Color.Transparent
                 }
@@ -770,21 +789,22 @@ private fun landscape(
         ) {
             streamViewWithWidgets(model = model, streamView = streamView)
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                Box(modifier = Modifier.alpha(if (model.showLocalOverlays) 1f else 0f)) {
+                val maxWidthValue = maxWidth.value
+                Box(modifier = Modifier.alpha(if (model.showLocalOverlays.value) 1f else 0f)) {
                     StreamOverlayView(
                         streamOverlay = model.streamOverlay,
                         chatSettings = model.database.chat,
                         orientation = orientation,
-                        width = maxWidth.value
+                        width = maxWidthValue
                     )
                 }
             }
-            if (model.showDrawOnStream) {
+            if (model.showDrawOnStream.value) {
                 DrawOnStreamView(model = model)
             }
             MutedView(audio = model.audio)
-            PhotoShootView(enabled = model.photoShootEnabled)
-            if (model.showBrowser) {
+            PhotoShootView(enabled = model.photoShootEnabled.value)
+            if (model.showBrowser.value) {
                 WebBrowserView(
                     model = model,
                     database = model.database,
@@ -792,42 +812,42 @@ private fun landscape(
                     webBrowserState = model.webBrowserState
                 )
             }
-            if (model.showNavigation) {
+            if (model.showNavigation.value) {
                 StreamOverlayNavigationView(
                     model = model,
                     database = model.database,
                     navigation = model.navigation()
                 )
             }
-            if (model.showingRemoteControl) {
+            if (model.showingRemoteControl.value) {
                 ControlBarRemoteControlAssistantView(
                     model = model,
                     remoteControlSettings = model.database.remoteControl
                 )
             }
-            if (model.showingPanel != ShowingPanel.NONE && model.panelHidden) {
+            if (model.showingPanel.value != ShowingPanel.none && model.panelHidden.value) {
                 PanelButtonsView(
                     model = model,
-                    backgroundColor = model.showingPanel.buttonsBackgroundColor()
+                    backgroundColor = model.showingPanel.value.buttonsBackgroundColor()
                 )
             }
         }
-        if (model.showingPanel != ShowingPanel.NONE) {
+        if (model.showingPanel.value != ShowingPanel.none) {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(if (model.panelHidden) 1.dp else settingsHalfWidth.dp)
+                    .width(if (model.panelHidden.value) 1.dp else settingsHalfWidth.dp)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black)
                 ) {
-                    Box(modifier = Modifier.alpha(if (model.panelHidden) 0f else 1f)) {
+                    Box(modifier = Modifier.alpha(if (model.panelHidden.value) 0f else 1f)) {
                         MenuView(model = model)
                     }
                 }
-                if (!model.panelHidden) {
+                if (!model.panelHidden.value) {
                     PanelButtonsView(model = model, backgroundColor = Color.Transparent)
                 }
             }
@@ -841,18 +861,18 @@ private fun edgesToIgnore(
     quickButtons: SettingsQuickButtons,
 ): WindowInsetsSides {
     return if (isPhone()) {
-        if (orientation.isPortrait) {
-            if (quickButtons.bigButtons && quickButtons.twoColumns) {
+        if (orientation.isPortrait.value) {
+            if (quickButtons.bigButtons.value && quickButtons.twoColumns.value) {
                 WindowInsetsSides.Horizontal + WindowInsetsSides.Top
             } else {
-                WindowInsetsSides.All
+                WindowInsetsSides.Horizontal + WindowInsetsSides.Top + WindowInsetsSides.Bottom
             }
-        } else if (quickButtons.bigButtons && quickButtons.twoColumns) {
+        } else if (quickButtons.bigButtons.value && quickButtons.twoColumns.value) {
             WindowInsetsSides.Bottom + WindowInsetsSides.Start
         } else {
             WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
         }
     } else {
-        WindowInsetsSides.All
+        WindowInsetsSides.Horizontal + WindowInsetsSides.Top + WindowInsetsSides.Bottom
     }
 }

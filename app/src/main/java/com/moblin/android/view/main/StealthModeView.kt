@@ -71,7 +71,7 @@ private fun StealthButtonView(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .size(stealthModeButtonSize)
+            .size(stealthModeButtonSize.dp)
             .clip(CircleShape)
             .background(Color.Black)
             .clickable(onClick = action),
@@ -181,7 +181,7 @@ fun StealthModeView(
                     RightOverlayTopView(model = model, database = model.database)
                 }
                 if (!isPortrait) {
-                    Spacer(modifier = Modifier.width(controlBarWidth(quickButtons)))
+                    Spacer(modifier = Modifier.width(controlBarWidth(quickButtons).dp))
                 }
             }
         }
@@ -192,7 +192,7 @@ fun StealthModeView(
                     Row(
                         modifier = Modifier
                             .padding(horizontal = 30.dp)
-                            .height(controlBarWidthDefault),
+                            .height(controlBarWidthDefault.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         chatButton(show = showChat) {
@@ -205,7 +205,7 @@ fun StealthModeView(
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         returnButton {
-                            model.toggleStealthMode()
+                            TODO("toggleStealthMode")
                         }
                     }
                 }
@@ -215,7 +215,7 @@ fun StealthModeView(
                     Column(
                         modifier = Modifier
                             .padding(top = 30.dp, bottom = 5.dp)
-                            .width(controlBarWidth(quickButtons)),
+                            .width(controlBarWidth(quickButtons).dp),
                     ) {
                         chatButton(show = showChat) {
                             quickButtons.stealthModeShowChat.value = !showChat
@@ -227,7 +227,7 @@ fun StealthModeView(
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         returnButton {
-                            model.toggleStealthMode()
+                            TODO("toggleStealthMode")
                         }
                     }
                 }
@@ -268,7 +268,7 @@ private fun tryUnpause(model: Model, chat: ChatProvider) {
         return
     }
     if (chat.paused.value) {
-        model.endOfChatReachedWhenPaused(chat)
+        chat.endReachedWhenPaused()
         chat.triggerScrollToBottom.value = !chat.triggerScrollToBottom.value
     }
 }

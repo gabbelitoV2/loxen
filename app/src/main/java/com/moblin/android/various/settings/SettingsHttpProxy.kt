@@ -15,7 +15,7 @@ import kotlinx.serialization.encoding.Encoder
 class SettingsHttpProxy(
     initialEnabled: Boolean = false,
     initialLocalNetwork: Boolean = false,
-    initialPort: UShort = DefaultTcpPorts.httpProxy,
+    initialPort: Int = DefaultTcpPorts.httpProxy,
 ) {
     val enabled = MutableStateFlow(initialEnabled)
 
@@ -28,7 +28,7 @@ class SettingsHttpProxy(
 private class SettingsHttpProxyWire(
     @SerialName("enabled") val enabled: Boolean = false,
     @SerialName("localNetwork") val localNetwork: Boolean = false,
-    @SerialName("port") val port: UShort = DefaultTcpPorts.httpProxy,
+    @SerialName("port") val port: Int = DefaultTcpPorts.httpProxy,
 )
 
 object SettingsHttpProxySerializer : KSerializer<SettingsHttpProxy> {

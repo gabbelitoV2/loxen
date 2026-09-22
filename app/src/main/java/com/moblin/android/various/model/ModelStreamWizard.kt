@@ -62,8 +62,8 @@ enum class WizardCustomProtocol {
 }
 
 private fun Model.cleanWizardUrl(url: String): String {
-    var cleanedUrl = cleanUrl(url = url)
-    if (isValidUrl(url = cleanedUrl) != null) {
+    var cleanedUrl = cleanUrl(value = url)
+    if (isValidUrl(value = cleanedUrl) != null) {
         cleanedUrl = defaultStreamUrl
         makeErrorToast(
             title = localized("Malformed stream URL"),
@@ -169,8 +169,8 @@ fun Model.createStreamFromWizard() {
     if (createStreamWizard.platform != WizardPlatform.custom) {
         if (createStreamWizard.networkSetup != WizardNetworkSetup.direct) {
             if (createStreamWizard.obsRemoteControlEnabled) {
-                val url = cleanUrl(url = createStreamWizard.obsRemoteControlUrl.trim())
-                if (isValidWebSocketUrl(url = url) == null) {
+                val url = cleanUrl(value = createStreamWizard.obsRemoteControlUrl.trim())
+                if (isValidWebSocketUrl(value = url) == null) {
                     stream.obsWebSocketEnabled = true
                     stream.obsWebSocketUrl = url
                     stream.obsWebSocketPassword = createStreamWizard.obsRemoteControlPassword.trim()

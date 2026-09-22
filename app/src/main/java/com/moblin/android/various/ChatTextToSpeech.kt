@@ -161,8 +161,7 @@ class ChatTextToSpeech {
         }
     }
 
-    @JvmName("deleteByUserId")
-    fun delete(userId: String) {
+    fun deleteByUserId(userId: String) {
         scope.launch {
             messageQueue = ArrayDeque(messageQueue.filter { it.userId != userId })
             if (currentlyPlayingMessage?.userId == userId) {
@@ -437,8 +436,8 @@ class ChatTextToSpeech {
             }
             val params = Bundle()
             params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
-            params.putFloat(TextToSpeech.Engine.KEY_PARAM_RATE, rate)
-            params.putFloat(TextToSpeech.Engine.KEY_PARAM_PITCH, 0.8f)
+            synthesizer.setSpeechRate(rate)
+            synthesizer.setPitch(0.8f)
             synthesizer.speak(text, TextToSpeech.QUEUE_FLUSH, params, UUID.randomUUID().toString())
             KeepSpeakerAlivePlayer.shared.audioPlayed()
         }

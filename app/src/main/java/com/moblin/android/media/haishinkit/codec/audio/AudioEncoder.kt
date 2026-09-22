@@ -53,7 +53,7 @@ class AudioEncoder(private val lockQueue: CoroutineDispatcher) {
         ringBuffer.setWorkingSampleBuffer(sampleBuffer.data, presentationTimeStamp)
         while (true) {
             val (outputBuffer, outputPresentationTimeStamp) = ringBuffer.createOutputBuffer() ?: break
-            convertBuffer(audioConverter, outputBuffer, outputPresentationTimeStamp)
+            convertBuffer(audioConverter, outputBuffer.data, outputPresentationTimeStamp)
         }
     }
 
@@ -61,7 +61,7 @@ class AudioEncoder(private val lockQueue: CoroutineDispatcher) {
         lockQueueScope.launch {
             this@AudioEncoder.settings = settings
             audioConverter?.setBitrate(settings.bitrate)
-            bitrate.value = settings.bitrate
+            bitrate.mutate { it.value = settings.bitrate }
         }
     }
 
@@ -72,7 +72,7 @@ class AudioEncoder(private val lockQueue: CoroutineDispatcher) {
         ringBuffer = AudioEncoderRingBuffer(newInSourceFormat, numSamplesPerBuffer = samplesPerBuffer())
         audioConverter = makeAudioConverter(newInSourceFormat)
         val newSampleRate = newInSourceFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE).toDouble()
-        sampleRate.value = newSampleRate
+        sampleRate.mutate { it.value = newSampleRate }
     }
 
     fun getBitrate(): Int {
@@ -105,8 +105,8 @@ class AudioEncoder(private val lockQueue: CoroutineDispatcher) {
 
     private fun samplesPerBuffer(): Int {
         return when (settings.format) {
-            AudioEncoderSettingsFormat.aac -> 1024
-            AudioEncoderSettingsFormat.opus -> 960
+            AudioEncoderSettings.Format.aac -> 1024
+            AudioEncoderSettings.Format.opus -> 960
         }
     }
 

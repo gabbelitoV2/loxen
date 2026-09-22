@@ -63,7 +63,7 @@ class SrtlaServer(
     val settings: SettingsSrtlaServer = settings.clone()
     private val srtServer: SrtServer
     private val srtServerNoSrtlaPatches: SrtServer
-    private val periodicTimer = SimpleTimer(srtlaServerQueue)
+    private val periodicTimer = SimpleTimer(Dispatchers.IO)
     val bitrateStats: Atomic<BitrateStats> = Atomic(BitrateStats())
     private var numberOfClients: Atomic<Int> = Atomic(0)
     var connectedStreamIds: Atomic<List<String>> = Atomic<List<String>>(listOf())
@@ -109,7 +109,7 @@ class SrtlaServer(
     }
 
     fun updateStats(): BitrateStatsInstant {
-        return bitrateStats.mutate { it.update() }
+        return bitrateStats.mutate { it.value.update() }
     }
 
     fun getNumberOfClients(): Int {
@@ -117,13 +117,13 @@ class SrtlaServer(
     }
 
     fun clientConnected(cameraId: UUID, name: String) {
-        numberOfClients.mutate { it + 1 }
+        numberOfClients.mutate { it.value += 1 }
         delegate.srtlaServerOnClientStart(cameraId, name)
     }
 
     fun clientDisconnected(cameraId: UUID, name: String) {
         delegate.srtlaServerOnClientStop(cameraId, name)
-        numberOfClients.mutate { it - 1 }
+        numberOfClients.mutate { it.value -= 1 }
     }
 
     private fun startPeriodicTimer() {
@@ -165,7 +165,7 @@ class SrtlaServer(
             return
         }
         listener = socket
-        handleListenerStateChange(to = "ready")
+        handleListenerStateChange("ready")
         srtlaServerQueue.launch {
             receiveLoop(socket)
         }
@@ -176,7 +176,7 @@ class SrtlaServer(
         listener = null
     }
 
-    private fun handleListenerStateChange(to state: String) {
+    private fun handleListenerStateChange(state: String) {
         Log.d(TAG, "srtla-server: State change to $state")
         when (state) {
             "ready" -> Log.d(TAG, "srtla-server: Listening on port ${listener?.localPort ?: 0}")
@@ -241,8 +241,8 @@ class SrtlaServer(
                                          packet: ByteArray): Boolean
     {
         when (type) {
-            SrtlaPacketType.REG1 -> handleSrtlaReg1(connection = connection, packet = packet)
-            SrtlaPacketType.REG2 -> return handleSrtlaReg2(connection = connection, packet = packet)
+            SrtlaPacketType.reg1 -> handleSrtlaReg1(connection = connection, packet = packet)
+            SrtlaPacketType.reg2 -> return handleSrtlaReg2(connection = connection, packet = packet)
             else -> Log.i(TAG, "srtla-server: Discarding srtla control packet $type")
         }
         return false
@@ -277,14 +277,14 @@ class SrtlaServer(
             sendSrtlaNgp(connection = connection)
             return false
         }
-        client.addConnection(connection)
+        client.addConnection(Socket(connection.socket, connection.address))
         sendSrtlaReg3(connection = connection)
         return true
     }
 
     private fun sendSrtlaReg2(connection: SrtlaServerConnection, groupId: ByteArray) {
         Log.d(TAG, "srtla-server: Sending reg 2 (group created)")
-        val packet = createSrtlaPacket(SrtlaPacketType.REG2, 258)
+        val packet = createSrtlaPacket(SrtlaPacketType.reg2, 258)
         groupId.copyInto(
             packet,
             srtControlTypeSize,
@@ -296,13 +296,13 @@ class SrtlaServer(
 
     private fun sendSrtlaReg3(connection: SrtlaServerConnection) {
         Log.d(TAG, "srtla-server: Sending reg 3 (connection registered)")
-        val packet = createSrtlaPacket(SrtlaPacketType.REG3, srtControlTypeSize)
+        val packet = createSrtlaPacket(SrtlaPacketType.reg3, srtControlTypeSize)
         sendPacket(connection = connection, packet = packet)
     }
 
     private fun sendSrtlaNgp(connection: SrtlaServerConnection) {
         Log.d(TAG, "srtla-server: Sending ngp (no group)")
-        val packet = createSrtlaPacket(SrtlaPacketType.REG_NGP, srtControlTypeSize)
+        val packet = createSrtlaPacket(SrtlaPacketType.regNgp, srtControlTypeSize)
         sendPacket(connection = connection, packet = packet)
     }
 

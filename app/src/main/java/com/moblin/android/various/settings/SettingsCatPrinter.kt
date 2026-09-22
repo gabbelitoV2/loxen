@@ -16,8 +16,7 @@ import kotlinx.serialization.encoding.Encoder
 class SettingsCatPrinter : Named {
     var id: UUID = UUID.randomUUID()
 
-    private val name = MutableStateFlow("")
-    override val name: StateFlow<String> = name.asStateFlow()
+    override var name: String = ""
 
     val enabled = MutableStateFlow(false)
 
@@ -57,7 +56,7 @@ class SettingsCatPrinter : Named {
         override fun serialize(encoder: Encoder, value: SettingsCatPrinter) {
             val surrogate = Surrogate(
                 id = value.id.toString(),
-                name = value.name.value,
+                name = value.name,
                 enabled = value.enabled.value,
                 bluetoothPeripheralName = value.bluetoothPeripheralName.value,
                 bluetoothPeripheralId = value.bluetoothPeripheralId.value?.toString(),
@@ -76,7 +75,7 @@ class SettingsCatPrinter : Named {
             settings.id = surrogate.id
                 ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
                 ?: UUID.randomUUID()
-            settings.name.value = surrogate.name
+            settings.name = surrogate.name
             settings.enabled.value = surrogate.enabled
             settings.bluetoothPeripheralName.value = surrogate.bluetoothPeripheralName
             settings.bluetoothPeripheralId.value = surrogate.bluetoothPeripheralId

@@ -1,6 +1,7 @@
 package com.moblin.android.various.model
 
 import com.moblin.android.integrations.dji.djidevice.DjiDevice
+import com.moblin.android.integrations.dji.djidevice.DjiDeviceDelegate
 import com.moblin.android.integrations.dji.djidevice.DjiDeviceState
 import com.moblin.android.localized
 import com.moblin.android.various.settings.SettingsDjiDevice
@@ -10,8 +11,8 @@ import java.util.UUID
 
 fun Model.startDjiDeviceLiveStream(device: SettingsDjiDevice) {
     if (!djiDevices.containsKey(device.id)) {
-        val djiDevice = DjiDevice()
-        djiDevice.delegate = this
+        val djiDevice = DjiDevice(context = context)
+        djiDevice.delegate = ModelDjiDeviceDelegate(this)
         djiDevices[device.id] = djiDevice
     }
     val djiDevice = djiDevices[device.id] ?: return
@@ -42,7 +43,7 @@ fun Model.markDjiIsStreamingIfNeeded(rtmpServerStreamId: UUID) {
 
 fun Model.setCurrentDjiDevice(device: SettingsDjiDevice) {
     currentDjiDeviceSettings = device
-    statusTopRight.djiDeviceStreamingState = djiDevices[device.id]?.getState()
+    statusTopRight.djiDeviceStreamingState.value = djiDevices[device.id]?.getState()
 }
 
 fun Model.reloadDjiDevices() {
@@ -97,7 +98,8 @@ fun Model.removeDjiDevices(offsets: Set<Int>) {
         djiDevices.remove(device.id)
     }
     for (index in indices) {
-        database.djiDevices.devices.removeAt(index)
+        database.djiDevices.devices =
+            database.djiDevices.devices.toMutableList().also { it.removeAt(index) }
     }
 }
 
@@ -119,8 +121,8 @@ fun Model.updateDjiDevicesStatus() {
         }
     }
     val status = statuses.joinToString(", ")
-    if (status != statusTopRight.djiDevicesStatus) {
-        statusTopRight.djiDevicesStatus = status
+    if (status != statusTopRight.djiDevicesStatus.value) {
+        statusTopRight.djiDevicesStatus.value = status
     }
 }
 
@@ -130,7 +132,7 @@ private fun Model.startDjiDeviceLiveStreamInternal(
 ) {
     val rtmpUrl: String? = when (device.rtmpUrlType) {
         SettingsDjiDeviceUrlType.server ->
-            device.serverRtmpUrl ?: automaticServerRtmpUrl(device = device)
+            device.serverRtmpUrl ?: automaticDjiServerRtmpUrl(device = device)
         SettingsDjiDeviceUrlType.custom -> device.customRtmpUrl
     }
     val deviceId = device.bluetoothPeripheralId ?: return
@@ -153,9 +155,9 @@ private fun Model.startDjiDeviceLiveStreamInternal(
     }
 }
 
-fun Model.automaticServerRtmpUrl(device: SettingsDjiDevice): String? {
+fun Model.automaticDjiServerRtmpUrl(device: SettingsDjiDevice): String? {
     val stream = getRtmpStream(id = device.serverRtmpStreamId) ?: return null
-    val status = statusOther.ipStatuses.firstOrNull {
+    val status = statusOther.ipStatuses.value.firstOrNull {
         it.interfaceType.name == "wifi" && it.ipType.name == "ipv4"
     } ?: return null
     return rtmpServerStreamUrl(
@@ -205,7 +207,7 @@ fun Model.djiDeviceStreamingState(device: DjiDevice, state: DjiDeviceState) {
     val settingsDevice = getDjiDeviceSettings(djiDevice = device) ?: return
     settingsDevice.state = state
     if (settingsDevice === currentDjiDeviceSettings) {
-        statusTopRight.djiDeviceStreamingState = state
+        statusTopRight.djiDeviceStreamingState.value = state
     }
     when (state) {
         DjiDeviceState.connecting -> {
@@ -227,5 +229,11 @@ fun Model.djiDeviceStreamingState(device: DjiDevice, state: DjiDeviceState) {
             )
         }
         else -> {}
+    }
+}
+
+private class ModelDjiDeviceDelegate(private val model: Model) : DjiDeviceDelegate {
+    override fun djiDeviceStreamingState(device: DjiDevice, state: DjiDeviceState) {
+        model.djiDeviceStreamingState(device = device, state = state)
     }
 }

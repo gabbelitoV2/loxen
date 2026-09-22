@@ -37,8 +37,8 @@ import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.QuickButtons
 import com.moblin.android.various.model.ReplayProvider
 import com.moblin.android.various.model.ShowingPanel
-import com.moblin.android.various.model.WorkoutType
-import com.moblin.android.various.settings.SettingsPanel
+import com.moblin.android.various.model.instantReplay
+import com.moblin.android.various.model.makeReplayIsNotEnabledToast
 import com.moblin.android.various.settings.SettingsQuickButton
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsQuickButtons
@@ -56,7 +56,7 @@ private fun QuickButtonImage(
     hideImage: Boolean = false,
     onTapGesture: () -> Unit,
 ) {
-    val image = if (button.isOn) {
+    val image = if (button.isOn.value) {
         button.imageOn
     } else {
         button.imageOff
@@ -67,7 +67,7 @@ private fun QuickButtonImage(
         Color.White
     }
     val backgroundColor = button.backgroundColor.color()
-    val iconSize = if (quickButtonsSettings.bigButtons) {
+    val iconSize = if (quickButtonsSettings.bigButtons.value) {
         20.sp
     } else {
         MaterialTheme.typography.bodyLarge.fontSize
@@ -88,7 +88,7 @@ private fun QuickButtonImage(
             modifier = Modifier.align(Alignment.Center),
             tint = foregroundColor,
         )
-        if (button.isOn) {
+        if (button.isOn.value) {
             Box(
                 modifier = Modifier
                     .size((buttonSize - 1).dp)
@@ -107,7 +107,7 @@ private fun InstantReplayView(
     button: SettingsQuickButton,
     size: Float,
 ) {
-    if (replay.isPlaying) {
+    if (replay.isPlaying.value) {
         Text(
             text = replay.timeLeft.toString(),
             fontSize = 25.sp,
@@ -119,7 +119,7 @@ private fun InstantReplayView(
                 .background(button.backgroundColor.color())
                 .combinedClickable(
                     onClick = {
-                        if (model.stream.replay.enabled) {
+                        if (TODO("stream.replay.enabled")) {
                             model.instantReplay()
                         } else {
                             model.makeReplayIsNotEnabledToast()
@@ -137,7 +137,7 @@ private fun InstantReplayView(
             button = button,
             buttonSize = size,
         ) {
-            if (model.stream.replay.enabled) {
+            if (TODO("stream.replay.enabled")) {
                 model.instantReplay()
             } else {
                 model.makeReplayIsNotEnabledToast()
@@ -193,17 +193,17 @@ fun QuickButtonsInnerView(
     val presentingStopWorkoutConfirm = remember { mutableStateOf(false) }
 
     fun torchAction() {
-        button.isOn = !button.isOn
+        button.isOn.value = !button.isOn.value
         model.toggleTorch()
     }
 
     fun muteAction() {
-        button.isOn = !button.isOn
+        button.isOn.value = !button.isOn.value
         model.toggleMute()
     }
 
     fun stealthModeAction() {
-        model.toggleStealthMode()
+        TODO("model.toggleStealthMode()")
     }
 
     fun lockScreenAction() {
@@ -211,15 +211,15 @@ fun QuickButtonsInnerView(
     }
 
     fun imageAction() {
-        model.streamOverlay.showingCamera = !model.streamOverlay.showingCamera
+        model.streamOverlay.showingCamera.value = !model.streamOverlay.showingCamera.value
         model.updateImageButtonState()
     }
 
     fun recordAction() {
-        if (!model.isRecording) {
-            model.startRecording()
+        if (!model.isRecording.value) {
+            TODO("model.startRecording()")
         } else {
-            model.stopRecording()
+            TODO("model.stopRecording()")
         }
     }
 
@@ -272,36 +272,36 @@ fun QuickButtonsInnerView(
     }
 
     fun streamAction() {
-        model.toggleShowingPanel(type = ShowingPanel.stream, panel = SettingsPanel.streamSwitcher)
+        model.toggleShowingPanel(type = SettingsQuickButtonType.stream, panel = TODO("SettingsPanel.streamSwitcher"))
     }
 
     fun gridAction() {
-        button.isOn = !button.isOn
-        model.showingGrid = !model.showingGrid
-        model.sceneUpdated(updateRemoteScene = false)
+        button.isOn.value = !button.isOn.value
+        model.showingGrid.value = !model.showingGrid.value
+        TODO("model.sceneUpdated(updateRemoteScene = false)")
     }
 
     fun levelAction() {
-        button.isOn = !button.isOn
-        model.showingCameraLevel = !model.showingCameraLevel
+        button.isOn.value = !button.isOn.value
+        model.showingCameraLevel.value = !model.showingCameraLevel.value
         model.reloadCameraLevel()
-        model.sceneUpdated(updateRemoteScene = false)
+        TODO("model.sceneUpdated(updateRemoteScene = false)")
     }
 
     fun obsAction() {
-        model.toggleShowingPanel(type = ShowingPanel.obs, panel = SettingsPanel.obs)
+        model.toggleShowingPanel(type = SettingsQuickButtonType.obs, panel = TODO("SettingsPanel.obs"))
     }
 
     fun remoteAction() {
-        model.showingRemoteControl = !model.showingRemoteControl
+        model.showingRemoteControl.value = !model.showingRemoteControl.value
         model.setQuickButton(
             type = SettingsQuickButtonType.remote,
-            isOn = model.showingRemoteControl,
+            isOn = model.showingRemoteControl.value,
         )
     }
 
     fun drawAction() {
-        model.toggleDrawOnStream()
+        TODO("model.toggleDrawOnStream()")
     }
 
     fun localOverlaysAction() {
@@ -320,48 +320,48 @@ fun QuickButtonsInnerView(
     }
 
     fun cameraPreviewAction() {
-        button.isOn = !button.isOn
-        if (button.isOn) {
+        button.isOn.value = !button.isOn.value
+        if (button.isOn.value) {
             model.makeToast(
                 title = localized("Widgets will not be visible on screen when Camera preview is on"),
                 subTitle = localized("They will be visible on stream and in recordings"),
             )
         }
-        model.toggleCameraPreview()
+        TODO("model.toggleCameraPreview()")
     }
 
     fun snapshotAction() {
-        model.takeSnapshot()
+        TODO("model.takeSnapshot()")
     }
 
     fun widgetsAction() {
-        model.toggleShowingPanel(type = ShowingPanel.widgets, panel = SettingsPanel.sceneWidgets)
+        model.toggleShowingPanel(type = SettingsQuickButtonType.widgets, panel = TODO("SettingsPanel.sceneWidgets"))
     }
 
     fun lutsAction() {
-        model.toggleShowingPanel(type = ShowingPanel.luts, panel = SettingsPanel.luts)
-        model.updateLutsButtonState()
+        model.toggleShowingPanel(type = SettingsQuickButtonType.luts, panel = TODO("SettingsPanel.luts"))
+        TODO("model.updateLutsButtonState()")
     }
 
     fun chatAction() {
-        model.toggleShowingPanel(type = ShowingPanel.chat, panel = SettingsPanel.chat)
+        model.toggleShowingPanel(type = SettingsQuickButtonType.chat, panel = TODO("SettingsPanel.chat"))
     }
 
     fun interactiveChatAction() {
         model.toggleQuickButton(type = SettingsQuickButtonType.interactiveChat)
-        model.chat.interactiveChat = button.isOn
-        model.chatActivityFeed.interactiveChat = button.isOn
-        if (!button.isOn) {
-            model.disableInteractiveChat()
+        model.chat.interactiveChat.value = button.isOn.value
+        model.chatActivityFeed.interactiveChat.value = button.isOn.value
+        if (!button.isOn.value) {
+            TODO("model.disableInteractiveChat()")
         }
     }
 
     fun micAction() {
-        model.toggleShowingPanel(type = ShowingPanel.mic, panel = SettingsPanel.mic)
+        model.toggleShowingPanel(type = SettingsQuickButtonType.mic, panel = TODO("SettingsPanel.mic"))
     }
 
     fun bitrateAction() {
-        model.toggleShowingPanel(type = ShowingPanel.bitrate, panel = SettingsPanel.bitrate)
+        model.toggleShowingPanel(type = SettingsQuickButtonType.bitrate, panel = TODO("SettingsPanel.bitrate"))
     }
 
     fun skipCurrentTtsAction() {
@@ -369,11 +369,11 @@ fun QuickButtonsInnerView(
     }
 
     fun pauseTtsAction() {
-        model.toggleTextToSpeechPaused()
+        TODO("model.toggleTextToSpeechPaused()")
     }
 
     fun streamMarkerAction() {
-        model.createStreamMarker()
+        TODO("model.createStreamMarker()")
     }
 
     fun reloadBrowserWidgetsAction() {
@@ -381,7 +381,7 @@ fun QuickButtonsInnerView(
     }
 
     fun djiDevicesAction() {
-        model.toggleShowingPanel(type = ShowingPanel.djiDevices, panel = SettingsPanel.djiDevices)
+        model.toggleShowingPanel(type = SettingsQuickButtonType.djiDevices, panel = TODO("SettingsPanel.djiDevices"))
     }
 
     fun portraitAction() {
@@ -390,31 +390,31 @@ fun QuickButtonsInnerView(
     }
 
     fun goProAction() {
-        model.toggleShowingPanel(type = ShowingPanel.goPro, panel = SettingsPanel.goPro)
+        model.toggleShowingPanel(type = SettingsQuickButtonType.goPro, panel = TODO("SettingsPanel.goPro"))
     }
 
     fun replayAction() {
-        model.streamOverlay.showingReplay = !model.streamOverlay.showingReplay
+        model.streamOverlay.showingReplay.value = !model.streamOverlay.showingReplay.value
         model.toggleQuickButton(type = SettingsQuickButtonType.replay)
     }
 
     fun liveAction() {
-        model.toggleShowingPanel(type = ShowingPanel.live, panel = SettingsPanel.live)
+        model.toggleShowingPanel(type = SettingsQuickButtonType.live, panel = TODO("SettingsPanel.live"))
     }
 
     fun connectionPrioritiesAction() {
         model.toggleShowingPanel(
-            type = ShowingPanel.connectionPriorities,
-            panel = SettingsPanel.connectionPriorities,
+            type = SettingsQuickButtonType.connectionPriorities,
+            panel = TODO("SettingsPanel.connectionPriorities"),
         )
     }
 
     fun autoSceneSwitcherAction() {
         model.toggleShowingPanel(
-            type = ShowingPanel.autoSceneSwitcher,
-            panel = SettingsPanel.autoSceneSwitcher,
+            type = SettingsQuickButtonType.autoSceneSwitcher,
+            panel = TODO("SettingsPanel.autoSceneSwitcher"),
         )
-        model.updateAutoSceneSwitcherButtonState()
+        TODO("model.updateAutoSceneSwitcherButtonState()")
     }
 
     fun blurFacesAction() {
@@ -451,30 +451,30 @@ fun QuickButtonsInnerView(
     }
 
     fun interactiveBrowserWidgetsAction() {
-        model.setInteractiveBrowserWidgets(on = !button.isOn)
+        model.setInteractiveBrowserWidgets(on = !button.isOn.value)
     }
 
     fun macrosAction() {
-        model.toggleShowingPanel(type = ShowingPanel.macros, panel = SettingsPanel.macros)
+        model.toggleShowingPanel(type = SettingsQuickButtonType.macros, panel = TODO("SettingsPanel.macros"))
     }
 
     fun gimbalTrackingAction() {
-        model.toggleGimbalTracking()
+        TODO("model.toggleGimbalTracking()")
     }
 
     fun previewStreamAction() {
-        model.togglePreviewStream()
+        TODO("model.togglePreviewStream()")
     }
 
     fun photoShootAction() {
         model.toggleQuickButton(type = SettingsQuickButtonType.photoShoot)
-        model.photoShootEnabled = button.isOn
-        if (model.photoShootEnabled) {
-            model.startPhotoShoot()
+        model.photoShootEnabled.value = button.isOn.value
+        if (model.photoShootEnabled.value) {
+            TODO("model.startPhotoShoot()")
         } else {
-            model.stopPhotoShoot()
+            TODO("model.stopPhotoShoot()")
         }
-        model.togglePhotoShoot()
+        TODO("model.togglePhotoShoot()")
     }
 
     Column(
@@ -543,7 +543,7 @@ fun QuickButtonsInnerView(
                                         recordAction()
                                     }) {
                                         Text(
-                                            if (button.isOn) {
+                                            if (button.isOn.value) {
                                                 localized("Stop recording")
                                             } else {
                                                 localized("Start recording")
@@ -680,7 +680,7 @@ fun QuickButtonsInnerView(
                         }
                     }
                     SettingsQuickButtonType.workout -> {
-                        if (button.isOn) {
+                        if (button.isOn.value) {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 presentingStopWorkoutConfirm.value = true
                             }
@@ -690,7 +690,7 @@ fun QuickButtonsInnerView(
                                     confirmButton = {
                                         TextButton(onClick = {
                                             presentingStopWorkoutConfirm.value = false
-                                            model.stopWorkout()
+                                            TODO("model.stopWorkout()")
                                         }) {
                                             Text(localized("End workout"))
                                         }
@@ -708,19 +708,19 @@ fun QuickButtonsInnerView(
                                         Column {
                                             TextButton(onClick = {
                                                 presentingStartWorkoutTypePicker.value = false
-                                                model.startWorkout(type = WorkoutType.walking)
+                                                TODO("model.startWorkout(type = WorkoutType.walking)")
                                             }) {
                                                 Text(localized("Start walking workout"))
                                             }
                                             TextButton(onClick = {
                                                 presentingStartWorkoutTypePicker.value = false
-                                                model.startWorkout(type = WorkoutType.running)
+                                                TODO("model.startWorkout(type = WorkoutType.running)")
                                             }) {
                                                 Text(localized("Start running workout"))
                                             }
                                             TextButton(onClick = {
                                                 presentingStartWorkoutTypePicker.value = false
-                                                model.startWorkout(type = WorkoutType.cycling)
+                                                TODO("model.startWorkout(type = WorkoutType.cycling)")
                                             }) {
                                                 Text(localized("Start cycling workout"))
                                             }
@@ -732,12 +732,12 @@ fun QuickButtonsInnerView(
                     }
                     SettingsQuickButtonType.moderation -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
-                            model.presentingModeration = true
+                            model.presentingModeration.value = true
                         }
                     }
                     SettingsQuickButtonType.predefinedMessages -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
-                            model.presentingPredefinedMessages = true
+                            model.presentingPredefinedMessages.value = true
                         }
                     }
                     SettingsQuickButtonType.skipCurrentTts -> {
@@ -912,7 +912,7 @@ fun QuickButtonsInnerView(
                                         previewStreamAction()
                                     }) {
                                         Text(
-                                            if (button.isOn) {
+                                            if (button.isOn.value) {
                                                 localized("Stop preview stream")
                                             } else {
                                                 localized("Start preview stream")
@@ -930,7 +930,7 @@ fun QuickButtonsInnerView(
                     }
                 }
             }
-            if (button.type == quickButtons.selectedButtonType) {
+            if (button.type == quickButtons.selectedButtonType.value) {
                 Box {
                     buttonView()
                     Box(
@@ -944,7 +944,7 @@ fun QuickButtonsInnerView(
                 buttonView()
             }
         }
-        if (quickButtonsSettings.showName && !orientation.isPortrait) {
+        if (quickButtonsSettings.showName.value && !orientation.isPortrait.value) {
             Text(
                 text = button.name,
                 fontSize = nameSize.sp,

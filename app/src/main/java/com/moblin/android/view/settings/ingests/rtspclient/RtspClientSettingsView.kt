@@ -47,10 +47,10 @@ private fun status(numberOfEnabledStreams: Int): String {
 }
 
 private fun deleteStream(model: Model, rtspClient: SettingsRtspClient, indexes: Set<Int>) {
-    rtspClient.streams.value = rtspClient.streams.value.filterIndexed { index, _ ->
+    rtspClient.streams = rtspClient.streams.filterIndexed { index, _ ->
         !indexes.contains(index)
-    }
-    model.reloadRtspClient()
+    }.toMutableList()
+    TODO("model.reloadRtspClient()")
 }
 
 @Composable
@@ -59,7 +59,7 @@ fun RtspClientSettingsView(
     rtspClient: SettingsRtspClient,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val streams by rtspClient.streams.collectAsState()
+    val streams = rtspClient.streams
     val numberOfEnabledStreams = streams.count { it.enabled }
     Row(
         modifier = Modifier
@@ -81,7 +81,7 @@ fun RtspClientSettingsViewDestination(
     rtspClient: SettingsRtspClient,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val streams by rtspClient.streams.collectAsState()
+    val streams = rtspClient.streams
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
             title = { Text("RTSP client") },
@@ -120,7 +120,7 @@ fun RtspClientSettingsViewDestination(
                             onClick = {
                                 menuExpanded = false
                                 makeOffsets(streams, stream.id)?.let { offsets ->
-                                    deleteStream(model, rtspClient, offsets)
+                                    deleteStream(model, rtspClient, setOf(offsets))
                                 }
                             },
                         )
@@ -131,7 +131,7 @@ fun RtspClientSettingsViewDestination(
                 CreateButtonView {
                     val stream = SettingsRtspClientStream()
                     stream.name = makeUniqueName(SettingsRtspClientStream.baseName, streams)
-                    rtspClient.streams.value = streams + stream
+                    rtspClient.streams = (streams + stream).toMutableList()
                 }
             }
             item {

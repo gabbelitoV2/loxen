@@ -179,7 +179,7 @@ data class ChatHighlight(
         fun makePaidMessage(): ChatHighlight {
             return ChatHighlight(
                 kind = ChatHighlightKind.Other,
-                barColor = Color.Orange,
+                barColor = Color(red = 1.0f, green = 0.5f, blue = 0.0f),
                 image = "message",
                 titleSegments = makeChatPostTextSegments(localized("Super Chat")),
             )
@@ -224,7 +224,7 @@ data class ChatHighlight(
         fun makeGigantifiedEmote(): ChatHighlight {
             return ChatHighlight(
                 kind = ChatHighlightKind.GigantifiedEmote,
-                barColor = Color.Purple,
+                barColor = Color(red = 0.5f, green = 0.0f, blue = 0.5f),
                 image = "arrow.up.backward.and.arrow.down.forward.square",
                 titleSegments = makeChatPostTextSegments(localized("Gigantified emote")),
             )
@@ -320,15 +320,15 @@ class ChatPost(
             return "$nickname @$userName"
         }
         return when (displayStyle) {
-            SettingsChatDisplayStyle.InternationalNameAndUsername -> {
+            SettingsChatDisplayStyle.internationalNameAndUsername -> {
                 if (name.equals(userName, ignoreCase = true)) {
                     name
                 } else {
                     "$name ($userName)"
                 }
             }
-            SettingsChatDisplayStyle.InternationalName -> name
-            SettingsChatDisplayStyle.Username -> userName
+            SettingsChatDisplayStyle.internationalName -> name
+            SettingsChatDisplayStyle.username -> userName
         }
     }
 

@@ -33,7 +33,7 @@ import java.util.UUID
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BitratePresetsSettingsView(database: Database) {
-    val bitratePresets by database.bitratePresets.collectAsState()
+    val bitratePresets = database.bitratePresets
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Bitrate presets") })
@@ -49,8 +49,8 @@ fun BitratePresetsSettingsView(database: Database) {
                 val dismissState = rememberSwipeToDismissBoxState(
                     confirmValueChange = { value ->
                         if (value == SwipeToDismissBoxValue.EndToStart && !deleteDisabled) {
-                            database.bitratePresets.value =
-                                database.bitratePresets.value.filterNot { it.id == preset.id }
+                            database.bitratePresets =
+                                database.bitratePresets.filterNot { it.id == preset.id }
                             true
                         } else {
                             false
@@ -83,7 +83,7 @@ fun BitratePresetsSettingsView(database: Database) {
             }
             item {
                 CreateButtonView {
-                    database.bitratePresets.value = database.bitratePresets.value + SettingsBitratePreset(
+                    database.bitratePresets = database.bitratePresets + SettingsBitratePreset(
                         id = UUID.randomUUID(),
                         bitrate = 1_000_000,
                     )

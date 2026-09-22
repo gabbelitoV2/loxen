@@ -45,7 +45,10 @@ enum class BlackSharkCoolerDeviceState {
 
 private val blackSharkCoolerServiceId: UUID by lazy { BlackSharkLib.getServiceUUID() }
 
-val blackSharkCoolerScanner = BluetoothScanner(serviceIds = emptyList())
+val blackSharkCoolerScanner = BluetoothScanner(
+    context = TODO("no Android application context available"),
+    serviceIds = emptyList(),
+)
 
 class BlackSharkCoolerDevice(private val context: Context) {
     private var state: BlackSharkCoolerDeviceState = BlackSharkCoolerDeviceState.DISCONNECTED
@@ -56,7 +59,7 @@ class BlackSharkCoolerDevice(private val context: Context) {
     private var writeCharacteristic: BluetoothGattCharacteristic? = null
     private var latestTransmissionTime: Long = System.currentTimeMillis()
     private var model: BlackSharkLib.Model? = null
-    private var coolingStatsTimer = SimpleTimer(blackSharkCoolerDeviceDispatchQueue)
+    private var coolingStatsTimer = SimpleTimer(Dispatchers.IO)
     private var coolingPower: Int? = null
     private var fanSpeed: Int? = null
     var delegate: BlackSharkCoolerDeviceDelegate? = null

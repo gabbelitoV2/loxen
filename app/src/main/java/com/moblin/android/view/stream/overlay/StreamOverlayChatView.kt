@@ -52,9 +52,9 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.common.various.backgroundColor
 import com.moblin.android.localized
 import com.moblin.android.various.ChatHighlight
+import com.moblin.android.various.ChatPost
+import com.moblin.android.various.ChatPostState
 import com.moblin.android.various.MainTimer
-import com.moblin.android.various.model.ChatPost
-import com.moblin.android.various.model.ChatPostState
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.chat.ChatProvider
 import com.moblin.android.various.settings.Database
@@ -71,15 +71,15 @@ import com.moblin.android.LocalModel
 private fun makeChatLineStyle(chat: SettingsChat, interactive: Boolean): ChatLineStyle {
     return ChatLineStyle(
         fontSize = chat.fontSize.toFloat(),
-        borderColor = if (chat.shadowColorEnabled) chat.shadowColor.uiColor() else null,
+        borderColor = if (chat.shadowColorEnabled) chat.shadowColor.color() else null,
         borderWidth = 1.5f,
         backgroundColor = if (chat.backgroundColorEnabled) {
-            chat.backgroundColor.uiColor().copy(alpha = 0.6f)
+            chat.backgroundColor.color().copy(alpha = 0.6f)
         } else {
             null
         },
-        timestampColor = if (chat.timestampColorEnabled) chat.timestampColor.uiColor() else null,
-        messageColor = chat.messageColor.uiColor(),
+        timestampColor = if (chat.timestampColorEnabled) chat.timestampColor.color() else null,
+        messageColor = chat.messageColor.color(),
         meInUsernameColor = chat.meInUsernameColor,
         boldUsername = chat.boldUsername,
         boldMessage = chat.boldMessage,
@@ -292,7 +292,7 @@ private fun MessagesView(
         }
         if (!paused) {
             if (posts.isNotEmpty()) {
-                model.pauseChat(chat = chat)
+                chat.pause(redLine = posts.first())
             }
         }
     }
@@ -302,7 +302,7 @@ private fun MessagesView(
             return
         }
         if (paused) {
-            model.endOfChatReachedWhenPaused(chat = chat)
+            chat.endReachedWhenPaused()
         }
     }
 
@@ -324,7 +324,7 @@ private fun MessagesView(
             .width(width.dp)
             .graphicsLayer(
                 rotationZ = rotation.toFloat(),
-                scaleX = scaleX * chatSettings.isMirrored().toFloat(),
+                scaleX = (scaleX * chatSettings.isMirrored()).toFloat(),
                 scaleY = 1f,
                 transformOrigin = TransformOrigin.Center,
             )
@@ -571,13 +571,13 @@ fun StreamOverlayChatView(
     var linkUrl by remember { mutableStateOf<String?>(null) }
 
     fun isInteractive(): Boolean {
-        return database.appMode == SettingsAppMode.ChatPhone
+        return database.appMode == SettingsAppMode.chatPhone
     }
 
     fun heightFactor(): Float {
         return if (fullSize) {
             1f
-        } else if (database.appMode == SettingsAppMode.ChatPhone) {
+        } else if (database.appMode == SettingsAppMode.chatPhone) {
             0.96f
         } else {
             chatSettings.height.toFloat()
@@ -585,7 +585,7 @@ fun StreamOverlayChatView(
     }
 
     fun widthFactor(): Float {
-        return if (fullSize || database.appMode == SettingsAppMode.ChatPhone) {
+        return if (fullSize || database.appMode == SettingsAppMode.chatPhone) {
             1f
         } else {
             chatSettings.width.toFloat()

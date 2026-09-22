@@ -32,8 +32,8 @@ fun WidgetWizardWheelOfLuckSettingsView(
     presentingCreateWizard: Boolean,
     onPresentingCreateWizardChange: (Boolean) -> Unit,
 ) {
-    val text by wheelOfLuck.text.collectAsState()
-    val options by wheelOfLuck.options.collectAsState()
+    val text = wheelOfLuck.text
+    val options = wheelOfLuck.options
 
     LaunchedEffect(text) {
         wheelOfLuck.optionsFromText(text)
@@ -60,8 +60,8 @@ fun WidgetWizardWheelOfLuckSettingsView(
             item {
                 WheelOfLuckWidgetOptionsView(
                     value = text,
-                    onValueChange = { newText ->
-                        wheelOfLuck.text.value = newText
+                    onChange = { newText ->
+                        wheelOfLuck.text = newText
                     },
                 )
             }
@@ -72,7 +72,6 @@ fun WidgetWizardWheelOfLuckSettingsView(
                     createWidgetWizard = createWidgetWizard,
                     presentingCreateWizard = presentingCreateWizard,
                     onPresentingCreateWizardChange = onPresentingCreateWizardChange,
-                    enabled = options.isNotEmpty(),
                 )
             }
         }

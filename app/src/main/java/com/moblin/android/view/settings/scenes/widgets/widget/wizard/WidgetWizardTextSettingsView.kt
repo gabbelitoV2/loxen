@@ -76,7 +76,6 @@ fun WidgetWizardTextSettingsView(
                     createWidgetWizard = createWidgetWizard,
                     presentingCreateWizard = presentingCreateWizard,
                     onPresentingCreateWizardChange = { onPresentingCreateWizardChange(it) },
-                    enabled = text.formatString.isNotEmpty(),
                 )
             }
         }

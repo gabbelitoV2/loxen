@@ -8,7 +8,7 @@ import android.graphics.Path
 import android.graphics.PointF
 import android.graphics.RectF
 import com.moblin.android.common.various.RgbColor
-import com.moblin.android.media.haishinkit.media.VideoEffectInfo
+import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.various.settings.SettingsMaskBackgroundType
@@ -117,7 +117,7 @@ class MaskEffect : VideoEffect() {
     private var cachedMetalPetalBackgroundImage: Bitmap? = null
 
     fun setSettings(settings: MaskEffectSettings) {
-        CoroutineScope(processorPipelineQueue).launch {
+        processorPipelineQueue.launch {
             this@MaskEffect.settings = settings
             cachedSettings = null
             cachedMaskImage = null

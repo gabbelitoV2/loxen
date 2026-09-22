@@ -3,9 +3,9 @@ package com.moblin.android.various.model
 import com.moblin.android.localized
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.srtclient.SrtClient
+import com.moblin.android.media.srtclient.SrtClientDelegate
 import com.moblin.android.media.srtclient.srtClientLatency
 import com.moblin.android.various.settings.SettingsSrtClientStream
-import com.moblin.android.various.settings.camera
 import java.net.URI
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
@@ -38,6 +38,23 @@ fun Model.isSrtClientStreamConnected(id: UUID): Boolean {
 
 fun Model.reloadSrtClient() {
     stopSrtClient()
+    val delegate = object : SrtClientDelegate {
+        override fun srtClientConnected(cameraId: UUID) {
+            this@reloadSrtClient.srtClientConnected(cameraId)
+        }
+
+        override fun srtClientDisconnected(cameraId: UUID) {
+            this@reloadSrtClient.srtClientDisconnected(cameraId)
+        }
+
+        override fun srtClientOnVideoBuffer(cameraId: UUID, sampleBuffer: MediaSample) {
+            this@reloadSrtClient.srtClientOnVideoBuffer(cameraId, sampleBuffer)
+        }
+
+        override fun srtClientOnAudioBuffer(cameraId: UUID, sampleBuffer: MediaSample) {
+            this@reloadSrtClient.srtClientOnAudioBuffer(cameraId, sampleBuffer)
+        }
+    }
     for (stream in database.srtClient.streams) {
         if (!stream.enabled) {
             continue
@@ -47,7 +64,7 @@ fun Model.reloadSrtClient() {
             cameraId = stream.id,
             url = url,
             softwareDecoding = database.ingestsSoftwareVideoDecoding,
-            delegate = this,
+            delegate = delegate,
         )
         client.start()
         ingests.srt.add(client)

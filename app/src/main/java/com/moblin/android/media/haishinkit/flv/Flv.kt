@@ -68,19 +68,19 @@ enum class FlvSoundType(val rawValue: UByte) {
 enum class FlvTagType(val rawValue: UByte) {
     audio(8u),
     video(9u),
-    data(18u);
+    `data`(18u);
 
     val streamId: UShort
         get() = when (this) {
             audio, video -> rawValue.toUShort()
-            data -> 0u
+            `data` -> 0u
         }
 
     val headerSize: Int
         get() = when (this) {
             audio -> 2
             video -> 5
-            data -> 0
+            `data` -> 0
         }
 
     companion object {

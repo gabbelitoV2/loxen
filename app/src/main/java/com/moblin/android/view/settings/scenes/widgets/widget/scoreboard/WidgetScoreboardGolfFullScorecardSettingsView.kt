@@ -7,7 +7,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,7 +23,7 @@ fun WidgetScoreboardGolfFullScorecardGeneralSettingsView(
     golf: SettingsWidgetGolfScoreboard,
     updated: () -> Unit,
 ) {
-    val showPars by golf.showPars.collectAsState()
+    val showPars = golf.showPars
     var firstRun by remember { mutableStateOf(true) }
     ScoreboardColorsView(scoreboard = scoreboard, updated = updated)
     Row(
@@ -38,7 +37,7 @@ fun WidgetScoreboardGolfFullScorecardGeneralSettingsView(
         )
         Switch(
             checked = showPars,
-            onCheckedChange = { newValue -> golf.showPars.value = newValue },
+            onCheckedChange = { newValue -> golf.showPars = newValue },
         )
     }
     LaunchedEffect(showPars) {

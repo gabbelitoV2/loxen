@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MenuAnchorType
@@ -47,22 +46,23 @@ private fun setBearerToken(
     token: String,
 ) {
     val value = "Bearer $token"
-    val index = whip.headers.value.indexOfFirst { it.name == "Authorization" }
+    val index = whip.headers.indexOfFirst { it.name == "Authorization" }
     if (index != -1) {
-        whip.headers.value[index].value = value
+        whip.headers[index].value = value
     } else {
-        whip.headers.value = whip.headers.value + SettingsHttpHeader(name = "Authorization", value = value)
+        whip.headers.add(SettingsHttpHeader(name = "Authorization", value = value))
     }
-    model.reloadStreamIfEnabled(stream = stream)
+    TODO("model.reloadStreamIfEnabled(stream = stream)")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWhipSettingsView(model: Model = LocalModel.current, stream: SettingsStream, whip: SettingsStreamWhip) {
-    val headers by whip.headers.collectAsState()
-    val httpTransport by whip.httpTransport.collectAsState()
+    val headers = whip.headers
+    val httpTransport = whip.httpTransport
+    val isLive by model.isLive.collectAsState()
     var expanded by remember { mutableStateOf(false) }
-    val disabled = stream.enabled && model.isLive
+    val disabled = stream.enabled && isLive
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("WHIP") })
@@ -79,7 +79,6 @@ fun StreamWhipSettingsView(model: Model = LocalModel.current, stream: SettingsSt
                     value = getBearerToken(headers),
                     onSubmit = { token -> setBearerToken(model, stream, whip, token) },
                     sensitive = true,
-                    enabled = !disabled,
                 )
             }
             item {
@@ -110,9 +109,9 @@ fun StreamWhipSettingsView(model: Model = LocalModel.current, stream: SettingsSt
                                 DropdownMenuItem(
                                     text = { Text(transport.toString()) },
                                     onClick = {
-                                        whip.httpTransport.value = transport
+                                        whip.httpTransport = transport
                                         expanded = false
-                                        model.reloadStreamIfEnabled(stream = stream)
+                                        TODO("model.reloadStreamIfEnabled(stream = stream)")
                                     },
                                 )
                             }

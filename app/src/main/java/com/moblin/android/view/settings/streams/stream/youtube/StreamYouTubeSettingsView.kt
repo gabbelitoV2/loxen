@@ -54,6 +54,10 @@ import com.moblin.android.streamingplatforms.youtube.YouTubeApiLiveStreamsListRe
 import com.moblin.android.streamingplatforms.youtube.fetchYouTubeVideoId
 import com.moblin.android.various.CacheAsyncImage
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.getYouTubeApi
+import com.moblin.android.various.model.youTubeSignIn
+import com.moblin.android.various.model.youTubeSignOut
+import com.moblin.android.various.model.youTubeVideoIdUpdated
 import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.OperationResult
 import com.moblin.android.various.settings.SettingsDebug
@@ -62,6 +66,7 @@ import com.moblin.android.view.utils.CloseToolbar
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
+import java.net.URI
 import java.time.Duration
 import java.time.Instant
 import java.time.OffsetDateTime
@@ -130,16 +135,17 @@ private fun StreamDescriptionView(
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             CacheAsyncImage(
-                url = thumbnailUrl,
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(RoundedCornerShape(5.dp)),
-                placeholder = {
+                url = URI(thumbnailUrl),
+                content = { image ->
                     Image(
-                        painter = painterResource(id = R.drawable.app_icon_no_background),
+                        bitmap = image,
                         contentDescription = null,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(RoundedCornerShape(5.dp))
                     )
+                },
+                placeholder = {
                 }
             )
             Column {
@@ -175,7 +181,7 @@ private fun StreamDescriptionView(
                     if (isValidRtmpUrl(url = ingestsUrl, rtmpStreamKeyRequired = true) == null) {
                         stream.url = ingestsUrl
                         stream.youTubeVideoIds = youTubeStream.id
-                        model.reloadStreamIfEnabled(stream)
+                        TODO("model.reloadStreamIfEnabled(stream)")
                     }
                     presentingConfigureConfirm = false
                 }) {
@@ -241,7 +247,7 @@ private fun YouTubeStreamView(
                     startTime = date
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                HCenter(modifier = Modifier.width(50.dp)) {
+                HCenter {
                     if (destroying) {
                         CircularProgressIndicator()
                     } else {
@@ -475,9 +481,8 @@ private fun ScheduleStreamView(
         when (val state = schedulingStreamState) {
             ScheduleStreamState.Idle -> {
                 TextButtonView(
-                    text = localized("Create"),
-                    enabled = stream.youTubeScheduleStreamTitle.isNotEmpty(),
-                    onClick = { scheduleStream() }
+                    title = localized("Create"),
+                    action = { scheduleStream() }
                 )
             }
 
@@ -575,7 +580,7 @@ fun StreamYouTubeScheduleStreamView(
     fun deleteUpcomingStream(id: String, youTubeApi: YouTubeApi, onCompleted: () -> Unit) {
         youTubeApi.deleteLiveBroadcast(id = id) { result ->
             when (result) {
-                is OperationResult.Success -> upcomingStreams = upcomingStreams.filterNot { it.id == id }
+                is NetworkResponse.Success -> upcomingStreams = upcomingStreams.filterNot { it.id == id }
                 else -> Unit
             }
             onCompleted()
@@ -583,9 +588,8 @@ fun StreamYouTubeScheduleStreamView(
     }
 
     TextButtonView(
-        text = localized("Manage streams"),
-        enabled = stream.isYouTubeAuthorized(),
-        onClick = { presenting = true }
+        title = localized("Manage streams"),
+        action = { presenting = true }
     )
     if (presenting) {
         ModalBottomSheet(onDismissRequest = { presenting = false }) {
@@ -654,7 +658,7 @@ fun StreamYouTubeSettingsView(
     stream: SettingsStream,
 ) {
     val scope = rememberCoroutineScope()
-    val authState by stream.youTubeAuthState.collectAsState()
+    val authState = stream.youTubeAuthState
 
     fun submitVideoIds(value: String) {
         stream.youTubeVideoIds = value.filterNot { it.isWhitespace() }
@@ -685,7 +689,7 @@ fun StreamYouTubeSettingsView(
     }
 
     fun tokenExpiresIn(): Duration? {
-        val expirationDate = stream.youTubeAuthState.value
+        val expirationDate = stream.youTubeAuthState
             ?.lastTokenResponse
             ?.accessTokenExpirationDate
             ?: return null
@@ -706,13 +710,13 @@ fun StreamYouTubeSettingsView(
             Column {
                 if (!stream.isYouTubeAuthorized()) {
                     TextButtonView(
-                        text = localized("Login"),
-                        onClick = { model.youTubeSignIn(stream) }
+                        title = localized("Login"),
+                        action = { model.youTubeSignIn(stream) }
                     )
                 } else {
                     TextButtonView(
-                        text = localized("Logout"),
-                        onClick = { model.youTubeSignOut(stream) }
+                        title = localized("Logout"),
+                        action = { model.youTubeSignOut(stream) }
                     )
                 }
             }
@@ -741,9 +745,8 @@ fun StreamYouTubeSettingsView(
                     placeholder = "FekKCUN5W8U"
                 )
                 TextButtonView(
-                    text = localized("Fetch Video IDs"),
-                    enabled = stream.isYouTubeAuthorized() || stream.youTubeHandle.isNotEmpty(),
-                    onClick = {
+                    title = localized("Fetch Video IDs"),
+                    action = {
                         if (stream.isYouTubeAuthorized()) {
                             model.getYouTubeApi(stream) { youTubeApi ->
                                 if (youTubeApi == null) {

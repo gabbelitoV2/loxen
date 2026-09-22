@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +29,7 @@ import com.moblin.android.various.settings.SettingsWidgetAlertsAlert
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.LocalModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertFontView(
     model: Model = LocalModel.current,
@@ -137,6 +138,7 @@ fun AlertFontView(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertColorsView(
     model: Model = LocalModel.current,
@@ -156,19 +158,23 @@ fun AlertColorsView(
             RgbColorPickerView(
                 title = "Text",
                 color = textColorState,
-            ) { color ->
-                textColorState = color
-                alert.textColor = color
-                model.updateAlertsSettings()
-            }
+                onColorChanged = { color ->
+                    textColorState = color
+                    alert.textColor = color
+                    model.updateAlertsSettings()
+                },
+                onChange = {},
+            )
             RgbColorPickerView(
                 title = "Accent",
                 color = accentColorState,
-            ) { color ->
-                accentColorState = color
-                alert.accentColor = color
-                model.updateAlertsSettings()
-            }
+                onColorChanged = { color ->
+                    accentColorState = color
+                    alert.accentColor = color
+                    model.updateAlertsSettings()
+                },
+                onChange = {},
+            )
         }
     }
 }

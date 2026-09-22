@@ -1,5 +1,6 @@
 package com.moblin.android.view.settings.scenes.scene
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -40,6 +42,16 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
 import com.moblin.android.various.model.Mic
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.appendWidgetToScene
+import com.moblin.android.various.model.findWidget
+import com.moblin.android.various.model.getCameraPositionName
+import com.moblin.android.various.model.getMicById
+import com.moblin.android.various.model.getSelectedScene
+import com.moblin.android.various.model.isCaptureDeviceWidget
+import com.moblin.android.various.model.isSceneVideoSourceActive
+import com.moblin.android.various.model.resetSelectedScene
+import com.moblin.android.various.model.sceneUpdated
+import com.moblin.android.various.model.switchMicIfNeededAfterSceneSwitch
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsSceneCameraPosition
@@ -59,10 +71,11 @@ import com.moblin.android.view.utils.VideoSourceRotationView
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun VideoStabilizationView(model: Model = LocalModel.current, scene: SettingsScene) {
     var expanded by remember { mutableStateOf(false) }
-    val videoStabilizationMode by scene.videoStabilizationMode.collectAsState()
+    val videoStabilizationMode = scene.videoStabilizationMode
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -86,7 +99,7 @@ private fun VideoStabilizationView(model: Model = LocalModel.current, scene: Set
                         text = { Text(mode.toString()) },
                         onClick = {
                             expanded = false
-                            scene.videoStabilizationMode.value = mode
+                            scene.videoStabilizationMode = mode
                         },
                     )
                 }
@@ -105,10 +118,10 @@ private fun MicView(
     mic: Mic,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val micId by scene.micId.collectAsState()
+    val micId = scene.micId
     LaunchedEffect(Unit) {
         if (micId.isEmpty()) {
-            scene.micId.value = mic.current.id
+            scene.micId = mic.current.value.id
         }
     }
     Row(
@@ -124,6 +137,7 @@ private fun MicView(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SceneWidgetView(
     model: Model = LocalModel.current,
@@ -132,9 +146,9 @@ private fun SceneWidgetView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
     onLongClick: () -> Unit,
 ) {
-    val widgets by database.widgets.collectAsState()
+    val widgets = database.widgets
     val widget = widgets.firstOrNull { it.id == sceneWidget.widgetId } ?: return
-    val enabled by widget.enabled.collectAsState()
+    val enabled = widget.enabled
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -151,7 +165,7 @@ private fun SceneWidgetView(
         Switch(
             checked = enabled,
             onCheckedChange = { value ->
-                widget.enabled.value = value
+                widget.enabled = value
                 model.sceneUpdated(attachCamera = model.isCaptureDeviceWidget(widget = widget))
             },
         )
@@ -168,12 +182,12 @@ private fun VideoSourceView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var presentingScreenCaptureAlert by remember { mutableStateOf(false) }
-    val showAllSettings by database.showAllSettings.collectAsState()
-    val videoSource by scene.videoSource.collectAsState()
-    val videoSourceRotation by scene.videoSourceRotation.collectAsState()
-    val mirror by scene.mirror.collectAsState()
-    val overrideVideoStabilizationMode by scene.overrideVideoStabilizationMode.collectAsState()
-    val fillFrame by scene.fillFrame.collectAsState()
+    val showAllSettings = database.showAllSettings
+    val videoSource = scene.videoSource
+    val videoSourceRotation = scene.videoSourceRotation
+    val mirror = scene.mirror
+    val overrideVideoStabilizationMode = scene.overrideVideoStabilizationMode
+    val fillFrame = scene.fillFrame
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             localized("Video source"),
@@ -196,10 +210,10 @@ private fun VideoSourceView(
             GrayTextView(model.getCameraPositionName(scene = scene))
         }
         if (showAllSettings) {
-            if (videoSource.cameraPosition != SettingsSceneCameraPosition.none) {
+            if (videoSource.cameraPosition != null) {
                 VideoSourceRotationView(
                     selectedRotation = videoSourceRotation,
-                    onRotationChange = { scene.videoSourceRotation.value = it },
+                    onSelectedRotationChange = { scene.videoSourceRotation = it },
                 )
                 LaunchedEffect(videoSourceRotation) {
                     model.sceneUpdated(updateRemoteScene = false)
@@ -213,7 +227,7 @@ private fun VideoSourceView(
             ) {
                 Text(localized("Mirror"))
                 Spacer(Modifier.weight(1f))
-                Switch(checked = mirror, onCheckedChange = { scene.mirror.value = it })
+                Switch(checked = mirror, onCheckedChange = { scene.mirror = it })
             }
             LaunchedEffect(mirror) {
                 model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
@@ -228,7 +242,7 @@ private fun VideoSourceView(
                 Spacer(Modifier.weight(1f))
                 Switch(
                     checked = overrideVideoStabilizationMode,
-                    onCheckedChange = { scene.overrideVideoStabilizationMode.value = it },
+                    onCheckedChange = { scene.overrideVideoStabilizationMode = it },
                 )
             }
             LaunchedEffect(overrideVideoStabilizationMode) {
@@ -237,7 +251,7 @@ private fun VideoSourceView(
             if (overrideVideoStabilizationMode) {
                 VideoStabilizationView(model = model, scene = scene)
             }
-            if (videoSource.cameraPosition != SettingsSceneCameraPosition.none) {
+            if (videoSource.cameraPosition != null) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -246,7 +260,7 @@ private fun VideoSourceView(
                 ) {
                     Text(localized("Fill frame"))
                     Spacer(Modifier.weight(1f))
-                    Switch(checked = fillFrame, onCheckedChange = { scene.fillFrame.value = it })
+                    Switch(checked = fillFrame, onCheckedChange = { scene.fillFrame = it })
                 }
                 LaunchedEffect(fillFrame) {
                     model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
@@ -274,11 +288,12 @@ private fun VideoSourceView(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun QuickSwitchGroupView(model: Model = LocalModel.current, database: Database, scene: SettingsScene) {
     var expanded by remember { mutableStateOf(false) }
-    val quickSwitchGroup by scene.quickSwitchGroup.collectAsState()
-    val forceSceneSwitchTransition by database.forceSceneSwitchTransition.collectAsState()
+    val quickSwitchGroup = scene.quickSwitchGroup
+    val forceSceneSwitchTransition = database.forceSceneSwitchTransition
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -302,7 +317,7 @@ private fun QuickSwitchGroupView(model: Model = LocalModel.current, database: Da
                         text = { Text(localized("-- None --")) },
                         onClick = {
                             expanded = false
-                            scene.quickSwitchGroup.value = null
+                            scene.quickSwitchGroup = null
                         },
                     )
                     for (group in 1 until 5) {
@@ -310,7 +325,7 @@ private fun QuickSwitchGroupView(model: Model = LocalModel.current, database: Da
                             text = { Text(group.toString()) },
                             onClick = {
                                 expanded = false
-                                scene.quickSwitchGroup.value = group
+                                scene.quickSwitchGroup = group
                             },
                         )
                     }
@@ -339,7 +354,7 @@ private fun QuickSwitchGroupView(model: Model = LocalModel.current, database: Da
 
 @Composable
 private fun SceneColorView(model: Model = LocalModel.current, scene: SettingsScene) {
-    val backgroundColorColor by scene.backgroundColorColor.collectAsState()
+    val backgroundColorColor = scene.backgroundColorColor
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             localized("Color"),
@@ -350,15 +365,13 @@ private fun SceneColorView(model: Model = LocalModel.current, scene: SettingsSce
             title = "Background",
             color = backgroundColorColor,
             opacity = true,
-            onColorChange = { color ->
-                scene.backgroundColor.value = color
-                model.sceneSelector.notifyChanged()
+            onColorChanged = { },
+            onChange = { rgbColor ->
+                scene.backgroundColor = rgbColor
             },
         )
         TextButtonView("Reset") {
-            scene.backgroundColor.value = defaultSegmentedPickerSelectedColor
-            scene.backgroundColorColor.value = scene.backgroundColor.value.color()
-            model.sceneSelector.notifyChanged()
+            scene.backgroundColor = defaultSegmentedPickerSelectedColor
         }
         Text(
             localized("Background color of the scene button when selected."),
@@ -375,8 +388,8 @@ private fun SceneMicView(
     scene: SettingsScene,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val showAllSettings by database.showAllSettings.collectAsState()
-    val overrideMic by scene.overrideMic.collectAsState()
+    val showAllSettings = database.showAllSettings
+    val overrideMic = scene.overrideMic
     if (showAllSettings) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
@@ -392,7 +405,7 @@ private fun SceneMicView(
             ) {
                 Text(localized("Override"))
                 Spacer(Modifier.weight(1f))
-                Switch(checked = overrideMic, onCheckedChange = { scene.overrideMic.value = it })
+                Switch(checked = overrideMic, onCheckedChange = { scene.overrideMic = it })
             }
             LaunchedEffect(overrideMic) {
                 model.switchMicIfNeededAfterSceneSwitch()
@@ -409,6 +422,7 @@ private fun SceneMicView(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WidgetsView(
     model: Model = LocalModel.current,
@@ -418,8 +432,8 @@ private fun WidgetsView(
 ) {
     var presentingAddWidget by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<SettingsSceneWidget?>(null) }
-    val widgets by database.widgets.collectAsState()
-    val sceneWidgets by scene.widgets.collectAsState()
+    val widgets = database.widgets
+    val sceneWidgets = scene.widgets
 
     fun deleteSceneWidget(offsets: List<Int>) {
         var attachCamera = false
@@ -431,11 +445,11 @@ private fun WidgetsView(
                 }
             }
         }
-        scene.widgets.value = sceneWidgets.toMutableList().also { list ->
+        scene.widgets = sceneWidgets.toMutableList().also { list ->
             offsets.sortedDescending().forEach { list.removeAt(it) }
         }
         model.sceneUpdated(attachCamera = attachCamera)
-        model.sceneSettingsPanelSceneId += 1
+        model.sceneSettingsPanelSceneId.value += 1
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -456,7 +470,7 @@ private fun WidgetsView(
             }
         }
         TODO("onMove: drag and drop reordering of scene widgets is not available in Compose")
-        AddButtonView(enabled = widgets.isNotEmpty()) {
+        AddButtonView {
             presentingAddWidget = true
         }
         Column(
@@ -503,7 +517,7 @@ private fun WidgetsView(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        makeOffsets(sceneWidgets, sceneWidget.id)?.let { deleteSceneWidget(it) }
+                        makeOffsets(sceneWidgets, sceneWidget.id)?.let { deleteSceneWidget(listOf(it)) }
                         pendingDelete = null
                     },
                 ) {
@@ -542,8 +556,8 @@ fun SceneSettingsView(
     scene: SettingsScene,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val name by scene.name.collectAsState()
-    val scenes by database.scenes.collectAsState()
+    val name = scene.name
+    val scenes = database.scenes
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -551,7 +565,7 @@ fun SceneSettingsView(
     ) {
         NameEditView(
             name = name,
-            onNameChange = { scene.name.value = it },
+            onNameChange = { scene.name = it },
             existingNames = scenes,
         )
         VideoSourceView(model = model, database = database, scene = scene, onNavigate = onNavigate)

@@ -39,13 +39,13 @@ fun SrtClientStreamSettingsView(
     onEnabledChange: (Boolean) -> Unit,
     onUrlChange: (String) -> Unit,
 ) {
-    val name by stream.name.collectAsState()
-    val enabled by stream.enabled.collectAsState()
+    val name = stream.name
+    val enabled = stream.enabled
     var previousEnabled by remember { mutableStateOf(enabled) }
     LaunchedEffect(enabled) {
         if (previousEnabled != enabled) {
             previousEnabled = enabled
-            model.reloadSrtClient()
+            TODO("reloadSrtClient")
         }
     }
     Row(
@@ -76,8 +76,8 @@ fun SrtClientStreamSettingsForm(
     onNameChange: (String) -> Unit,
     onUrlChange: (String) -> Unit,
 ) {
-    val name by stream.name.collectAsState()
-    val url by stream.url.collectAsState()
+    val name = stream.name
+    val url = stream.url
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -110,17 +110,18 @@ fun SrtClientStreamUrlSettingsView(
     stream: SettingsSrtClientStream,
     onUrlChange: (String) -> Unit,
 ) {
-    val url by stream.url.collectAsState()
+    val url = stream.url
     UrlSettingsView(
         disabled = false,
         url = url,
+        onChangeUrl = onUrlChange,
         value = url,
         placeholder = "srt://192.168.1.100:4000",
         allowedSchemes = listOf("srt"),
         examples = listOf(
             "BELABOX cloud" to "srt://eu.srt.belabox.net:4001?streamid=P3Kd229fslEWF3SGRQAsd",
         ),
-        onUrlChange = onUrlChange,
-        onSubmitted = { model.reloadSrtClient() },
+        onSubmitted = { TODO("reloadSrtClient") },
+        onDismiss = {},
     )
 }

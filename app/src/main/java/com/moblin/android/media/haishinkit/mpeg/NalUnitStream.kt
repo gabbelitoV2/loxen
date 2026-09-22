@@ -101,7 +101,7 @@ fun readH265NalUnits(
                 HevcNalUnitType.fromRawValue((((byte.toInt() and 0x7E) shr 1)).toUByte()) ?: HevcNalUnitType.unspec,
             )
         },
-        { nalUnitData, offset -> HevcNalUnit.create(nalUnitData, offset) },
+        { nalUnitData, offset -> HevcNalUnit(nalUnitData, offset) },
     )
 }
 

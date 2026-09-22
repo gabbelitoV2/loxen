@@ -44,17 +44,17 @@ class ChatProvider(maximumNumberOfMessages: Int) {
     fun deleteMessage(messageId: String) {
         for (post in newPosts) {
             if (post.messageId == messageId) {
-                post.state.deleted = true
+                post.state.deleted.value = true
             }
         }
         for (post in pausedPosts) {
             if (post.messageId == messageId) {
-                post.state.deleted = true
+                post.state.deleted.value = true
             }
         }
         for (post in posts.value) {
             if (post.messageId == messageId) {
-                post.state.deleted = true
+                post.state.deleted.value = true
             }
         }
     }
@@ -62,17 +62,17 @@ class ChatProvider(maximumNumberOfMessages: Int) {
     fun deleteUser(userId: String) {
         for (post in newPosts) {
             if (post.userId == userId) {
-                post.state.deleted = true
+                post.state.deleted.value = true
             }
         }
         for (post in pausedPosts) {
             if (post.userId == userId) {
-                post.state.deleted = true
+                post.state.deleted.value = true
             }
         }
         for (post in posts.value) {
             if (post.userId == userId) {
-                post.state.deleted = true
+                post.state.deleted.value = true
             }
         }
     }

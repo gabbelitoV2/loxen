@@ -143,7 +143,7 @@ fun ChatBotCommandDetailView(
                 )
             }
             item {
-                AlertTextToSpeechView(alert = alert, ttsDelay = alert.textToSpeechDelay)
+                AlertTextToSpeechView(alert = alert)
             }
             item {
                 TextButtonView("Test") {
@@ -163,11 +163,9 @@ fun WidgetAlertsChatBotSettingsView(
     chatBot: SettingsWidgetAlertsChatBot,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    fun deleteCommand(indexes: IntRange) {
-        indexes.sortedDescending().forEach { index ->
-            if (index in chatBot.commands.indices) {
-                chatBot.commands.removeAt(index)
-            }
+    fun deleteCommand(index: Int) {
+        if (index in chatBot.commands.indices) {
+            chatBot.commands = chatBot.commands.filterIndexed { i, _ -> i != index }
         }
         model.updateAlertsSettings()
     }
@@ -189,14 +187,17 @@ fun WidgetAlertsChatBotSettingsView(
                     command = command,
                     onNavigate = onNavigate,
                     onDelete = {
-                        makeOffsets(chatBot.commands, command.id)?.let { deleteCommand(it) }
+                        val index = chatBot.commands.indexOfFirst { it.id == command.id }
+                        if (index >= 0) {
+                            deleteCommand(index)
+                        }
                     },
                 )
             }
             item {
                 CreateButtonView {
                     val command = SettingsWidgetAlertsChatBotCommand()
-                    chatBot.commands.add(command)
+                    chatBot.commands = chatBot.commands + command
                     model.fixAlertMedias()
                     model.updateAlertsSettings()
                 }

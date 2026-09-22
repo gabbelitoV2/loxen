@@ -26,7 +26,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusTopRight
 import com.moblin.android.various.settings.SettingsWorkoutDevice
 import com.moblin.android.various.settings.SettingsWorkoutDevices
-import com.moblin.android.view.utils.GrayTextView
+import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
@@ -53,7 +53,7 @@ fun WorkoutDeviceSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
     modifier: Modifier = Modifier,
 ) {
-    val name = device.name.collectAsState().value
+    val name = device.name
     Text(
         text = name,
         modifier = modifier
@@ -72,13 +72,13 @@ fun WorkoutDeviceSettingsViewContent(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
     modifier: Modifier = Modifier,
 ) {
-    val deviceName = device.name.collectAsState().value
-    val deviceEnabled = device.enabled.collectAsState().value
-    val bluetoothPeripheralId = device.bluetoothPeripheralId.collectAsState().value
-    val bluetoothPeripheralName = device.bluetoothPeripheralName.collectAsState().value
-    val wheelCircumference = device.wheelCircumference.collectAsState().value
+    val deviceName = device.name
+    val deviceEnabled = device.enabled
+    val bluetoothPeripheralId = device.bluetoothPeripheralId
+    val bluetoothPeripheralName = device.bluetoothPeripheralName
+    val wheelCircumference = device.wheelCircumference
     val workoutDeviceState = status.workoutDeviceState.collectAsState().value
-    val existingNames = workoutDevices.devices.collectAsState().value
+    val existingNames = workoutDevices.devices
 
     fun state(): String {
         return formatWorkoutDeviceState(workoutDeviceState)
@@ -86,6 +86,10 @@ fun WorkoutDeviceSettingsViewContent(
 
     fun canEnable(): Boolean {
         return bluetoothPeripheralId != null
+    }
+
+    fun isWorkoutDeviceEnabled(): Boolean {
+        return TODO("model.isWorkoutDeviceEnabled(device)")
     }
 
     fun isValidWheelCircumference(value: String): String? {
@@ -101,20 +105,20 @@ fun WorkoutDeviceSettingsViewContent(
 
     fun submitWheelCircumference(value: String) {
         val millimeters = value.toIntOrNull() ?: return
-        device.wheelCircumference.value = millimeters
-        model.setWorkoutDeviceWheelCircumference(device)
+        device.wheelCircumference = millimeters
+        TODO("model.setWorkoutDeviceWheelCircumference(device)")
     }
 
     fun onDeviceChange(value: String) {
         val deviceId = runCatching { UUID.fromString(value) }.getOrNull() ?: return
-        val peripheral = workoutDeviceScanner.discoveredPeripherals
+        val peripheral = workoutDeviceScanner.discoveredPeripherals.value
             .firstOrNull { it.identifier == deviceId } ?: return
-        device.bluetoothPeripheralName.value = peripheral.name
-        device.bluetoothPeripheralId.value = deviceId
+        device.bluetoothPeripheralName = peripheral.name
+        device.bluetoothPeripheralId = deviceId
     }
 
     LaunchedEffect(Unit) {
-        model.setCurrentWorkoutDevice(device)
+        TODO("model.setCurrentWorkoutDevice(device)")
     }
 
     Scaffold(
@@ -132,7 +136,7 @@ fun WorkoutDeviceSettingsViewContent(
             NameEditView(
                 name = deviceName,
                 existingNames = existingNames,
-                onChange = { device.name.value = it },
+                onNameChange = { device.name = it },
             )
             Text(text = "Add {heartRate:$deviceName} to a text widget to show heart rate on stream.")
 
@@ -143,7 +147,7 @@ fun WorkoutDeviceSettingsViewContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(enabled = !model.isWorkoutDeviceEnabled(device)) {
+                    .clickable(enabled = !isWorkoutDeviceEnabled()) {
                         onNavigate("WorkoutDeviceScannerSettingsView")
                     },
             ) {
@@ -158,11 +162,11 @@ fun WorkoutDeviceSettingsViewContent(
                 Switch(
                     checked = deviceEnabled,
                     onCheckedChange = { enabled ->
-                        device.enabled.value = enabled
+                        device.enabled = enabled
                         if (enabled) {
-                            model.enableWorkoutDevice(device)
+                            TODO("model.enableWorkoutDevice(device)")
                         } else {
-                            model.disableWorkoutDevice(device)
+                            TODO("model.disableWorkoutDevice(device)")
                         }
                     },
                     enabled = canEnable(),

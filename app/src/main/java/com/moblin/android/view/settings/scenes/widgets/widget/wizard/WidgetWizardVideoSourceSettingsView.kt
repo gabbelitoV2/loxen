@@ -119,10 +119,8 @@ fun WidgetWizardVideoSourceSettingsView(
                         cameraId = cameraId,
                     )
                 },
-                items = model.listCameras(excludeBuiltin = false).map {
-                    InlinePickerItem(id = it.id, text = it.name)
-                },
-                selectedId = model.getCameraId(videoSourceWidget = videoSource),
+                items = TODO("listCameras is not available in the Android Model"),
+                selectedId = TODO("getCameraId is not available in the Android Model"),
             )
             WidgetWizardSelectScenesNavigationView(
                 model = model,
@@ -141,6 +139,6 @@ private fun onCameraChange(
     cameraId: String,
 ) {
     videoSource.updateCameraId(
-        settingsCameraId = model.cameraIdToSettingsCameraId(cameraId = cameraId),
+        settingsCameraId = TODO("cameraIdToSettingsCameraId is not available in the Android Model"),
     )
 }

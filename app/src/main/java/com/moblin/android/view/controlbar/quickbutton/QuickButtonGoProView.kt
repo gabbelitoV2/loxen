@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -42,13 +43,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import com.moblin.android.integrations.gopro.GoPro
 import com.moblin.android.various.model.GoProState
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.settings.SettingsDjiDeviceUrlType
 import com.moblin.android.various.settings.SettingsGoPro
 import com.moblin.android.various.settings.SettingsGoProDevice
-import com.moblin.android.view.settings.gopro.GoProRtmpUrlType
 import com.moblin.android.view.settings.gopro.formatGoProDeviceState
 import com.moblin.android.view.settings.gopro.qrCodeHeight
 import com.moblin.android.view.settings.streams.stream.GrayTextView
@@ -66,9 +68,9 @@ private fun QuickButtonGoProBleDeviceView(
     model: Model = LocalModel.current,
     device: SettingsGoProDevice,
 ) {
-    val name by device.name.collectAsState()
-    val isStarted by device.isStarted.collectAsState()
-    val state by device.state.collectAsState()
+    val name = device.name
+    val isStarted = device.isStarted
+    val state = device.state
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -81,9 +83,9 @@ private fun QuickButtonGoProBleDeviceView(
             checked = isStarted,
             onCheckedChange = { value ->
                 if (value) {
-                    model.startGoProDeviceLiveStream(device)
+                    TODO("startGoProDeviceLiveStream")
                 } else {
-                    model.stopGoProDeviceLiveStream(device)
+                    TODO("stopGoProDeviceLiveStream")
                 }
             },
             enabled = device.canStartLive(model.statusOther.isConnectedToIpv4WiFi()),
@@ -91,6 +93,7 @@ private fun QuickButtonGoProBleDeviceView(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun QuickButtonGoProLaunchLiveStreamView(
     goProState: GoProState,
@@ -100,7 +103,7 @@ private fun QuickButtonGoProLaunchLiveStreamView(
     onSelectedLaunchLiveStreamChange: (UUID?) -> Unit,
 ) {
     val launchLiveStreamSelection by goProState.launchLiveStreamSelection.collectAsState()
-    val launchLiveStream by goPro.launchLiveStream.collectAsState()
+    val launchLiveStream = goPro.launchLiveStream
     var qrCode by remember { mutableStateOf<ImageBitmap?>(null) }
     var entries by remember { mutableStateOf<List<PickerEntry>>(emptyList()) }
     var expanded by remember { mutableStateOf(false) }
@@ -112,7 +115,7 @@ private fun QuickButtonGoProLaunchLiveStreamView(
             GoPro.generateLaunchLiveStream(
                 isHero12Or13 = selected.isHero12Or13,
                 resolution = selected.resolution,
-            )
+            )?.asImageBitmap()
         } else {
             null
         }
@@ -178,6 +181,7 @@ private fun QuickButtonGoProLaunchLiveStreamView(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun QuickButtonGoProWifiCredentialsView(
     goProState: GoProState,
@@ -187,7 +191,7 @@ private fun QuickButtonGoProWifiCredentialsView(
     onSelectedWifiCredentialsChange: (UUID?) -> Unit,
 ) {
     val wifiCredentialsSelection by goProState.wifiCredentialsSelection.collectAsState()
-    val wifiCredentials by goPro.wifiCredentials.collectAsState()
+    val wifiCredentials = goPro.wifiCredentials
     var qrCode by remember { mutableStateOf<ImageBitmap?>(null) }
     var entries by remember { mutableStateOf<List<PickerEntry>>(emptyList()) }
     var expanded by remember { mutableStateOf(false) }
@@ -199,7 +203,7 @@ private fun QuickButtonGoProWifiCredentialsView(
             GoPro.generateWifiCredentialsQrCode(
                 ssid = selected.ssid,
                 password = selected.password,
-            )
+            )?.asImageBitmap()
         } else {
             null
         }
@@ -265,6 +269,7 @@ private fun QuickButtonGoProWifiCredentialsView(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun QuickButtonGoProRtmpUrlView(
     goProState: GoProState,
@@ -274,7 +279,7 @@ private fun QuickButtonGoProRtmpUrlView(
     onSelectedRtmpUrlChange: (UUID?) -> Unit,
 ) {
     val rtmpUrlSelection by goProState.rtmpUrlSelection.collectAsState()
-    val rtmpUrls by goPro.rtmpUrls.collectAsState()
+    val rtmpUrls = goPro.rtmpUrls
     var qrCode by remember { mutableStateOf<ImageBitmap?>(null) }
     var entries by remember { mutableStateOf<List<PickerEntry>>(emptyList()) }
     var expanded by remember { mutableStateOf(false) }
@@ -284,8 +289,8 @@ private fun QuickButtonGoProRtmpUrlView(
         val selected = rtmpUrls.firstOrNull { it.id == rtmpUrlSelection }
         if (selected != null) {
             when (selected.type) {
-                GoProRtmpUrlType.SERVER -> qrCode = GoPro.generateRtmpUrlQrCode(url = selected.serverUrl)
-                GoProRtmpUrlType.CUSTOM -> qrCode = GoPro.generateRtmpUrlQrCode(url = selected.customUrl)
+                SettingsDjiDeviceUrlType.SERVER -> qrCode = GoPro.generateRtmpUrlQrCode(url = selected.serverUrl)?.asImageBitmap()
+                SettingsDjiDeviceUrlType.CUSTOM -> qrCode = GoPro.generateRtmpUrlQrCode(url = selected.customUrl)?.asImageBitmap()
                 else -> qrCode = null
             }
         } else {
@@ -361,12 +366,12 @@ fun QuickButtonGoProView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var activeIndex by remember { mutableStateOf<Int?>(0) }
-    val devices by goPro.devices.collectAsState()
+    val devices = goPro.devices
     val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
 
     BoxWithConstraints {
-        val height = qrCodeHeight(maxHeight.value.toDouble())
+        val height = qrCodeHeight(maxHeight)
         LazyColumn {
             if (devices.isNotEmpty()) {
                 item {
@@ -392,22 +397,22 @@ fun QuickButtonGoProView(
                                 goProState = goProState,
                                 goPro = goPro,
                                 height = height,
-                                onLaunchLiveStreamSelectionChange = { goProState.selectLaunchLiveStream(it) },
-                                onSelectedLaunchLiveStreamChange = { goPro.selectLaunchLiveStream(it) },
+                                onLaunchLiveStreamSelectionChange = { goProState.launchLiveStreamSelection.value = it },
+                                onSelectedLaunchLiveStreamChange = { goPro.selectedLaunchLiveStream = it },
                             )
                             1 -> QuickButtonGoProWifiCredentialsView(
                                 goProState = goProState,
                                 goPro = goPro,
                                 height = height,
-                                onWifiCredentialsSelectionChange = { goProState.selectWifiCredentials(it) },
-                                onSelectedWifiCredentialsChange = { goPro.selectWifiCredentials(it) },
+                                onWifiCredentialsSelectionChange = { goProState.wifiCredentialsSelection.value = it },
+                                onSelectedWifiCredentialsChange = { goPro.selectedWifiCredentials = it },
                             )
                             else -> QuickButtonGoProRtmpUrlView(
                                 goProState = goProState,
                                 goPro = goPro,
                                 height = height,
-                                onRtmpUrlSelectionChange = { goProState.selectRtmpUrl(it) },
-                                onSelectedRtmpUrlChange = { goPro.selectRtmpUrl(it) },
+                                onRtmpUrlSelectionChange = { goProState.rtmpUrlSelection.value = it },
+                                onSelectedRtmpUrlChange = { goPro.selectedRtmpUrl = it },
                             )
                         }
                     }

@@ -1,6 +1,5 @@
 package com.moblin.android.integrations.gopro
 
-import com.google.protobuf.MessageLite
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_EnumLens
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_EnumPairingFinishState
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_EnumRegisterLiveStreamStatus
@@ -129,7 +128,7 @@ fun goProConnectToWifiMessage(ssid: String, password: String): ByteArray {
 
 fun goProRegisterLiveStreamStatusMessage(): ByteArray {
     val request = OpenGopro_RequestGetLiveStreamStatus()
-    request.registerLiveStreamStatus = listOf(
+    request.registerLiveStreamStatus = mutableListOf(
         OpenGopro_EnumRegisterLiveStreamStatus.registerLiveStreamStatusStatus,
         OpenGopro_EnumRegisterLiveStreamStatus.registerLiveStreamStatusError,
         OpenGopro_EnumRegisterLiveStreamStatus.registerLiveStreamStatusBitrate,
@@ -231,8 +230,7 @@ fun OpenGopro_ResponseGetApEntries.ScanEntry.isConfigured(): Boolean =
 fun OpenGopro_ResponseGetApEntries.ScanEntry.isUnsupportedType(): Boolean =
     (scanEntryFlags and OpenGopro_EnumScanEntryFlags.scanFlagUnsupportedType.rawValue) != 0
 
-private fun MessageLite.encoded(): ByteArray =
-    runCatching { toByteArray() }.getOrNull() ?: ByteArray(0)
+private fun Any.encoded(): ByteArray = TODO("protobuf serialization is not available")
 
 private fun SettingsGoProLaunchLiveStreamResolution.toProtobuf(): OpenGopro_EnumWindowSize = when (this) {
     SettingsGoProLaunchLiveStreamResolution.r480p -> OpenGopro_EnumWindowSize.windowSize480

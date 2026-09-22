@@ -11,7 +11,6 @@ import androidx.compose.ui.text.style.TextAlign
 import com.moblin.android.various.settings.SettingsStreamDeckKey
 import com.moblin.android.various.settings.SettingsStreamDeckLayout
 import com.moblin.android.various.utils.isPad
-import com.moblin.android.view.settings.streamdeck.StreamDeckKeyView
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,24 +32,7 @@ class StreamDeck {
 
 @Composable
 private fun StreamDeckKeyItemView(model: Model = LocalModel.current, index: Int, key: SettingsStreamDeckKey) {
-    StreamDeckKeyView(
-        onPressed = { pressed ->
-            model.handleControllerFunction(
-                buttonId = "sd:$index",
-                function = key.function,
-                functionData = key.functionData,
-                pressed = pressed,
-            )
-        },
-    ) {
-        Text(
-            text = key.text,
-            modifier = Modifier
-                .fillMaxSize()
-                .background(key.colorColor),
-            textAlign = TextAlign.Center,
-        )
-    }
+    TODO("no Android counterpart for StreamDeckKit StreamDeckKeyView")
 }
 
 @Composable
@@ -73,9 +55,9 @@ fun Model.setupStreamDeck() {
 
 fun Model.setSelectedStreamDeck() {
     val streamDecks = database.streamDecks
-    streamDeck.setStreamDeck(streamDecks.layouts.firstOrNull { it.id == streamDecks.selectedId })
+    streamDeck.setStreamDeck(streamDecks.layouts.value.firstOrNull { it.id == streamDecks.selectedId.value })
     if (streamDeck.streamDeck.value == null) {
-        streamDecks.selectedId = null
+        streamDecks.selectedId.value = null
     }
 }
 

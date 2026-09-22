@@ -27,13 +27,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import com.moblin.android.common.various.personalHotspotLocalAddress
 import com.moblin.android.integrations.gopro.GoPro
 import com.moblin.android.localized
 import com.moblin.android.various.model.GoProState
-import com.moblin.android.various.model.IpType
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.settings.SettingsDjiDeviceUrlType
@@ -58,7 +58,7 @@ import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 
-fun qrCodeHeight(metrics: Dp): Dp = metrics * 0.5f
+fun qrCodeHeight(metrics: Dp): Double = metrics.value * 0.5
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,7 +84,7 @@ private fun GoProLaunchLiveStreamSettingsView(
             NameEditView(
                 name = launchLiveStream.name,
                 existingNames = goPro.launchLiveStream,
-                onChange = { launchLiveStream.name = it },
+                onNameChange = { launchLiveStream.name = it },
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("HERO 12/13")
@@ -128,7 +128,7 @@ private fun GoProLaunchLiveStreamSettingsView(
                 }
             }
             qrCode?.let { code ->
-                QrCodeImageView(image = code, height = qrCodeHeight(metrics))
+                QrCodeImageView(image = code.asImageBitmap(), height = qrCodeHeight(metrics))
             }
         }
     }
@@ -169,7 +169,7 @@ private fun GoProWifiCredentialsSettingsView(
             NameEditView(
                 name = wifiCredentials.name,
                 existingNames = goPro.wifiCredentials,
-                onChange = { wifiCredentials.name = it },
+                onNameChange = { wifiCredentials.name = it },
             )
             Box(modifier = Modifier.clickable { onNavigate("wifiSsid") }) {
                 TextItemLocalizedView(name = "SSID", value = wifiCredentials.ssid)
@@ -182,7 +182,7 @@ private fun GoProWifiCredentialsSettingsView(
                 )
             }
             qrCode?.let { code ->
-                QrCodeImageView(image = code, height = qrCodeHeight(metrics))
+                QrCodeImageView(image = code.asImageBitmap(), height = qrCodeHeight(metrics))
             }
         }
     }
@@ -225,38 +225,7 @@ private fun GoProRtmpUrlSettingsView(
     }
 
     val serverUrls: () -> List<String> = {
-        val stream = model.getRtmpStream(rtmpUrl.serverStreamId)
-        if (stream == null) {
-            emptyList()
-        } else {
-            val urls = mutableListOf<String>()
-            for (ipStatus in status.ipStatuses.filter { it.ipType == IpType.ipv4 }) {
-                urls.add(
-                    rtmpServerStreamUrl(
-                        address = ipStatus.ipType.formatAddress(ipStatus.ip),
-                        port = model.database.rtmpServer.port,
-                        streamKey = stream.streamKey,
-                    )
-                )
-            }
-            urls.add(
-                rtmpServerStreamUrl(
-                    address = personalHotspotLocalAddress,
-                    port = model.database.rtmpServer.port,
-                    streamKey = stream.streamKey,
-                )
-            )
-            for (ipStatus in status.ipStatuses.filter { it.ipType == IpType.ipv6 }) {
-                urls.add(
-                    rtmpServerStreamUrl(
-                        address = ipStatus.ipType.formatAddress(ipStatus.ip),
-                        port = model.database.rtmpServer.port,
-                        streamKey = stream.streamKey,
-                    )
-                )
-            }
-            urls
-        }
+        TODO("getRtmpStream")
     }
 
     LaunchedEffect(Unit) {
@@ -286,7 +255,7 @@ private fun GoProRtmpUrlSettingsView(
             NameEditView(
                 name = rtmpUrl.name,
                 existingNames = goPro.rtmpUrls,
-                onChange = { rtmpUrl.name = it },
+                onNameChange = { rtmpUrl.name = it },
             )
             Text("RTMP", style = MaterialTheme.typography.titleSmall)
             ExposedDropdownMenuBox(
@@ -404,7 +373,7 @@ private fun GoProRtmpUrlSettingsView(
                 RtmpServerSettingsView(rtmpServer = model.database.rtmpServer)
             }
             qrCode?.let { code ->
-                QrCodeImageView(image = code, height = qrCodeHeight(metrics))
+                QrCodeImageView(image = code.asImageBitmap(), height = qrCodeHeight(metrics))
             }
         }
     }
@@ -432,7 +401,7 @@ private fun GoProLaunchLiveStream(
         offsets.sortedDescending().forEach { goPro.launchLiveStream.removeAt(it) }
         if (goPro.launchLiveStream.none { it.id == goPro.selectedLaunchLiveStream }) {
             goPro.selectedLaunchLiveStream = goPro.launchLiveStream.firstOrNull()?.id
-            goProState.launchLiveStreamSelection = goPro.selectedLaunchLiveStream
+            goProState.launchLiveStreamSelection.value = goPro.selectedLaunchLiveStream
         }
     }
 
@@ -443,8 +412,11 @@ private fun GoProLaunchLiveStream(
                 modifier = Modifier.pointerInput(launchLiveStream.id) {
                     detectTapGestures(
                         onLongPress = {
-                            makeOffsets(goPro.launchLiveStream, launchLiveStream.id)?.let {
-                                deleteLaunchLiveStream(it)
+                            val index = goPro.launchLiveStream.indexOfFirst {
+                                it.id == launchLiveStream.id
+                            }
+                            if (index >= 0) {
+                                deleteLaunchLiveStream(listOf(index))
                             }
                         },
                     )
@@ -465,7 +437,7 @@ private fun GoProLaunchLiveStream(
             )
             if (goPro.launchLiveStream.isEmpty()) {
                 goPro.selectedLaunchLiveStream = launchLiveStream.id
-                goProState.launchLiveStreamSelection = goPro.selectedLaunchLiveStream
+                goProState.launchLiveStreamSelection.value = goPro.selectedLaunchLiveStream
             }
             goPro.launchLiveStream.add(launchLiveStream)
         }
@@ -483,7 +455,7 @@ private fun GoProWifiCredentials(
         offsets.sortedDescending().forEach { goPro.wifiCredentials.removeAt(it) }
         if (goPro.wifiCredentials.none { it.id == goPro.selectedWifiCredentials }) {
             goPro.selectedWifiCredentials = goPro.wifiCredentials.firstOrNull()?.id
-            goProState.wifiCredentialsSelection = goPro.selectedWifiCredentials
+            goProState.wifiCredentialsSelection.value = goPro.selectedWifiCredentials
         }
     }
 
@@ -494,8 +466,11 @@ private fun GoProWifiCredentials(
                 modifier = Modifier.pointerInput(wifiCredentials.id) {
                     detectTapGestures(
                         onLongPress = {
-                            makeOffsets(goPro.wifiCredentials, wifiCredentials.id)?.let {
-                                deleteWifiCredentials(it)
+                            val index = goPro.wifiCredentials.indexOfFirst {
+                                it.id == wifiCredentials.id
+                            }
+                            if (index >= 0) {
+                                deleteWifiCredentials(listOf(index))
                             }
                         },
                     )
@@ -516,7 +491,7 @@ private fun GoProWifiCredentials(
             )
             if (goPro.wifiCredentials.isEmpty()) {
                 goPro.selectedWifiCredentials = wifiCredentials.id
-                goProState.wifiCredentialsSelection = goPro.selectedWifiCredentials
+                goProState.wifiCredentialsSelection.value = goPro.selectedWifiCredentials
             }
             goPro.wifiCredentials.add(wifiCredentials)
         }
@@ -535,7 +510,7 @@ private fun GoProRtmpUrls(
         offsets.sortedDescending().forEach { goPro.rtmpUrls.removeAt(it) }
         if (goPro.rtmpUrls.none { it.id == goPro.selectedRtmpUrl }) {
             goPro.selectedRtmpUrl = goPro.rtmpUrls.firstOrNull()?.id
-            goProState.rtmpUrlSelection = goPro.selectedRtmpUrl
+            goProState.rtmpUrlSelection.value = goPro.selectedRtmpUrl
         }
     }
 
@@ -546,8 +521,11 @@ private fun GoProRtmpUrls(
                 modifier = Modifier.pointerInput(rtmpUrl.id) {
                     detectTapGestures(
                         onLongPress = {
-                            makeOffsets(goPro.rtmpUrls, rtmpUrl.id)?.let {
-                                deleteRtmpUrl(it)
+                            val index = goPro.rtmpUrls.indexOfFirst {
+                                it.id == rtmpUrl.id
+                            }
+                            if (index >= 0) {
+                                deleteRtmpUrl(listOf(index))
                             }
                         },
                     )
@@ -569,7 +547,7 @@ private fun GoProRtmpUrls(
             )
             if (goPro.rtmpUrls.isEmpty()) {
                 goPro.selectedRtmpUrl = rtmpUrl.id
-                goProState.rtmpUrlSelection = goPro.selectedRtmpUrl
+                goProState.rtmpUrlSelection.value = goPro.selectedRtmpUrl
             }
             goPro.rtmpUrls.add(rtmpUrl)
         }

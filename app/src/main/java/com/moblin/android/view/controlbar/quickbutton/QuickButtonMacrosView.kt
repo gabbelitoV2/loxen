@@ -33,10 +33,10 @@ import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun MacroView(model: Model = LocalModel.current, macro: SettingsMacrosMacro) {
-    val name by macro.name.collectAsState()
-    val running by macro.running.collectAsState()
-    val finished by macro.finished.collectAsState()
-    val closePanelOnRun by macro.closePanelOnRun.collectAsState()
+    val name = macro.name
+    val running = macro.running
+    val finished = macro.finished
+    val closePanelOnRun = macro.closePanelOnRun
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -46,7 +46,7 @@ private fun MacroView(model: Model = LocalModel.current, macro: SettingsMacrosMa
         if (running) {
             TextButton(
                 onClick = {
-                    model.stopMacro(macro)
+                    TODO("stopMacro")
                 },
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.Red),
             ) {
@@ -57,7 +57,7 @@ private fun MacroView(model: Model = LocalModel.current, macro: SettingsMacrosMa
         } else {
             TextButton(
                 onClick = {
-                    model.startMacro(macro)
+                    TODO("startMacro")
                     if (closePanelOnRun) {
                         model.toggleShowingPanel(type = null, panel = ShowingPanel.none)
                     }
@@ -79,7 +79,7 @@ fun QuickButtonMacrosView(
     macros: SettingsMacros,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val macrosList by macros.macros.collectAsState()
+    val macrosList = macros.macros
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(macrosList) { macro ->
             MacroView(model = model, macro = macro)

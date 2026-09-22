@@ -5,7 +5,6 @@ import com.moblin.android.media.haishinkit.util.ByteWriter
 import com.moblin.android.media.srtla.common.SrtPacketType
 import com.moblin.android.media.srtla.common.getSrtControlPacketType
 import com.moblin.android.media.srtla.common.getSrtSequenceNumber
-import com.moblin.android.media.srtla.common.getUInt32Be
 import com.moblin.android.media.srtla.common.isSrtDataPacket
 import com.moblin.android.media.srtla.common.isSrtSnAcked
 import com.moblin.android.media.srtla.common.processSrtNak
@@ -17,6 +16,7 @@ import java.net.Socket
 import java.time.Duration
 import java.time.Instant
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
@@ -24,6 +24,13 @@ import kotlinx.coroutines.yield
 private const val tag = "SrtlaServerClient"
 private const val clientRemoveTimeout = 10.0
 private const val localSrtServerConnectionReceiveBatchSize = 25
+
+private fun ByteArray.getUInt32Be(offset: Int): UInt {
+    return ((this[offset].toInt() and 0xff).toUInt() shl 24) or
+        ((this[offset + 1].toInt() and 0xff).toUInt() shl 16) or
+        ((this[offset + 2].toInt() and 0xff).toUInt() shl 8) or
+        (this[offset + 3].toInt() and 0xff).toUInt()
+}
 
 private class NakPacket {
     private var sns: MutableList<UInt> = mutableListOf()
@@ -68,8 +75,8 @@ private class NakPacket {
         val socketId = latestNakDestinationSrtSocketId ?: return null
         val writer = ByteWriter()
         writer.writeUInt16(SrtPacketType.nak.rawValue or srtControlPacketTypeBit)
-        writer.writeUInt16(0)
-        writer.writeUInt32(0)
+        writer.writeUInt16(0u.toUShort())
+        writer.writeUInt32(0u)
         writer.writeUInt32(timestamp)
         writer.writeUInt32(socketId)
         for (sn in sns.take(1300 / 4)) {
@@ -85,10 +92,10 @@ class SrtlaServerClient(srtPort: Int) : SrtlaServerClientConnectionDelegate {
     private var latestConnection: SrtlaServerClientConnection? = null
     val createdAt: Instant = Instant.now()
     private var nakPacket = NakPacket()
-    private var periodicNakTimer = SimpleTimer(queue = srtlaServerQueue)
+    private var periodicNakTimer = SimpleTimer(queue = Dispatchers.IO)
     private var dataPacketsToSend: MutableList<ByteArray> = mutableListOf()
     private var latestFlushDataPacketsTime: Instant = Instant.now()
-    private val scope = CoroutineScope(srtlaServerQueue)
+    private val scope = CoroutineScope(Dispatchers.IO)
 
     init {
         Log.i(tag, "srtla-server-client: Creating local SRT server connection.")
@@ -221,7 +228,7 @@ class SrtlaServerClient(srtPort: Int) : SrtlaServerClientConnectionDelegate {
         var index = 0
         while (index < connections.size) {
             val connection = connections[index]
-            if (connection.isActive(now)) {
+            if (connection.isActive(System.nanoTime())) {
                 index += 1
             } else {
                 connection.stop()

@@ -28,7 +28,7 @@ class GrayScaleEffect : VideoEffect() {
         TODO("OpenGL ES port")
     }
 
-    fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         TODO("no Android counterpart for MetalPetal")
     }
 }

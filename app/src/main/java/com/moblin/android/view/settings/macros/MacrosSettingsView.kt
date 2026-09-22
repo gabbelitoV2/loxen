@@ -67,17 +67,25 @@ import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
+import java.util.UUID
 
 private fun <T> isSelected(values: Set<T>, type: T): Boolean {
     return values.contains(type)
 }
 
-private fun <T> setSelected(values: MutableSet<T>, type: T, selected: Boolean) {
-    if (selected) {
-        values.add(type)
+private fun <T> setSelected(values: Set<T>, type: T, selected: Boolean): Set<T> {
+    return if (selected) {
+        values + type
     } else {
-        values.remove(type)
+        values - type
     }
+}
+
+private fun getSceneName(database: Database, id: UUID?): String? {
+    if (id == null) {
+        return null
+    }
+    return database.scenes.firstOrNull { it.id == id }?.name
 }
 
 data class MacroActionIfBar(
@@ -240,7 +248,7 @@ private fun TextFormatView(
     var currentValue by remember { mutableStateOf(value) }
     LaunchedEffect(currentValue) {
         onTextChange(currentValue)
-        model.macrosTextFormatChanged()
+        TODO("macrosTextFormatChanged has no Android counterpart")
     }
     Column(
         modifier = Modifier
@@ -249,25 +257,25 @@ private fun TextFormatView(
     ) {
         TextWidgetTextView(
             value = currentValue,
-            onValueChange = { currentValue = it },
+            onChange = { currentValue = it },
         )
         TextFormatWarningsView(
             model = model,
             location = model.database.location,
             value = currentValue,
-            onValueChange = { currentValue = it },
+            onChange = { currentValue = it },
         )
         if (suggestions) {
             TextWidgetSuggestionsView(
                 widget = false,
                 text = currentValue,
-                onTextChange = { currentValue = it },
+                onChange = { currentValue = it },
             )
         }
         TextFormatVariablesView(
             widget = false,
             value = currentValue,
-            onValueChange = { currentValue = it },
+            onChange = { currentValue = it },
         )
     }
 }
@@ -309,7 +317,7 @@ private fun ActionView(
             Text(action.function?.toString() ?: localized("-- None --"))
             when (action.function) {
                 SettingsMacrosActionFunction.SCENE -> {
-                    val sceneName = model.getSceneName(action.sceneId)
+                    val sceneName = getSceneName(database = database, id = action.sceneId)
                     if (sceneName != null) {
                         Spacer(modifier = Modifier.weight(1f))
                         GrayTextView(text = sceneName)
@@ -383,7 +391,7 @@ private fun ActionView(
                 SettingsMacrosActionFunction.WAIT_FOR_EVENT -> {
                     Spacer(modifier = Modifier.weight(1f))
                     val sceneName = if (action.event == SettingsMacrosEvent.SWITCH_SCENE) {
-                        model.getSceneName(action.eventSceneId)
+                        getSceneName(database = database, id = action.eventSceneId)
                     } else {
                         null
                     }
@@ -449,7 +457,7 @@ fun ActionDestinationView(
             SettingsMacrosActionFunction.SCENE -> {
                 MacroPicker(
                     title = localized("Scene"),
-                    selectedText = model.getSceneName(action.sceneId) ?: localized("-- None --"),
+                    selectedText = getSceneName(database = database, id = action.sceneId) ?: localized("-- None --"),
                     values = listOf(null) + database.scenes,
                     optionContent = { scene ->
                         if (scene == null) {
@@ -466,7 +474,7 @@ fun ActionDestinationView(
                     Toggle(
                         label = scene.name,
                         checked = isSelected(action.sceneIds, scene.id),
-                        onCheckedChange = { setSelected(action.sceneIds, scene.id, it) },
+                        onCheckedChange = { action.sceneIds = setSelected(action.sceneIds, scene.id, it) },
                     )
                 }
             }
@@ -531,7 +539,7 @@ fun ActionDestinationView(
                     Toggle(
                         label = device.name,
                         checked = isSelected(action.djiDevices, device.id),
-                        onCheckedChange = { setSelected(action.djiDevices, device.id, it) },
+                        onCheckedChange = { action.djiDevices = setSelected(action.djiDevices, device.id, it) },
                     )
                 }
             }
@@ -568,7 +576,7 @@ fun ActionDestinationView(
                     Toggle(
                         label = filter.toString(),
                         checked = isSelected(action.filters, filter),
-                        onCheckedChange = { setSelected(action.filters, filter, it) },
+                        onCheckedChange = { action.filters = setSelected(action.filters, filter, it) },
                     )
                 }
             }
@@ -608,7 +616,7 @@ fun ActionDestinationView(
                 if (action.event == SettingsMacrosEvent.SWITCH_SCENE) {
                     MacroPicker(
                         title = localized("Scene"),
-                        selectedText = model.getSceneName(action.eventSceneId)
+                        selectedText = getSceneName(database = database, id = action.eventSceneId)
                             ?: localized("-- Any --"),
                         values = listOf(null) + database.scenes,
                         optionContent = { scene ->
@@ -732,7 +740,7 @@ fun MacroDestinationView(
         TODO("List onMove has no Compose counterpart")
     }
     val onDelete: (List<Int>) -> Unit = { offsets ->
-        offsets.sortedDescending().forEach { macro.actions.removeAt(it) }
+        macro.actions = macro.actions.filterIndexed { index, _ -> index !in offsets }
     }
     Column(
         modifier = Modifier
@@ -743,7 +751,7 @@ fun MacroDestinationView(
             name = macro.name,
             onNameChange = {
                 macro.name = it
-                model.remoteControlMacrosStateChanged()
+                TODO("remoteControlMacrosStateChanged has no Android counterpart")
             },
             existingNames = macros.macros,
         )
@@ -764,7 +772,7 @@ fun MacroDestinationView(
             )
         }
         CreateButtonView {
-            macro.actions.add(SettingsMacrosAction())
+            macro.actions = macro.actions + SettingsMacrosAction()
         }
         SwipeLeftToDeleteHelpView(kind = localized("an action"))
         MacroPicker(
@@ -802,7 +810,7 @@ fun MacroDestinationView(
         )
         if (macro.running) {
             TextButtonView(localized("Cancel")) {
-                model.stopMacro(macro = macro)
+                TODO("stopMacro has no Android counterpart")
             }
         } else if (macro.finished) {
             Text(
@@ -813,7 +821,7 @@ fun MacroDestinationView(
             )
         } else {
             TextButtonView(localized("Run")) {
-                model.startMacro(macro = macro)
+                TODO("startMacro has no Android counterpart")
             }
         }
     }
@@ -831,10 +839,10 @@ fun MacrosSettingsView(
     }
     val onDelete: (List<Int>) -> Unit = { offsets ->
         for (offset in offsets) {
-            model.stopMacro(macro = macros.macros[offset])
+            TODO("stopMacro has no Android counterpart")
         }
-        offsets.sortedDescending().forEach { macros.macros.removeAt(it) }
-        model.remoteControlMacrosStateChanged()
+        macros.macros = macros.macros.filterIndexed { index, _ -> index !in offsets }
+        TODO("remoteControlMacrosStateChanged has no Android counterpart")
     }
     Column(
         modifier = Modifier
@@ -861,8 +869,8 @@ fun MacrosSettingsView(
                 name = SettingsMacrosMacro.baseName,
                 existingNames = macros.macros,
             )
-            macros.macros.add(macro)
-            model.remoteControlMacrosStateChanged()
+            macros.macros = macros.macros + macro
+            TODO("remoteControlMacrosStateChanged has no Android counterpart")
         }
         SwipeLeftToDeleteHelpView(kind = localized("a macro"))
     }

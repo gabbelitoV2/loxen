@@ -74,14 +74,14 @@ class WatchSettingsChat {
 
 @Serializable(with = WatchSettingsShow.Serializer::class)
 class WatchSettingsShow {
-    private val thermalState = MutableStateFlow(true)
-    val thermalState: StateFlow<Boolean> = thermalState
+    private val _thermalState = MutableStateFlow(true)
+    val thermalState: StateFlow<Boolean> = _thermalState
 
     private val _audioLevel = MutableStateFlow(true)
     val audioLevel: StateFlow<Boolean> = _audioLevel
 
-    private val speed = MutableStateFlow(true)
-    val speed: StateFlow<Boolean> = speed
+    private val _speed = MutableStateFlow(true)
+    val speed: StateFlow<Boolean> = _speed
 
     enum class CodingKeys {
         thermalState,
@@ -113,9 +113,9 @@ class WatchSettingsShow {
         override fun deserialize(decoder: Decoder): WatchSettingsShow {
             val snapshot = decoder.decodeSerializableValue(Snapshot.serializer())
             val value = WatchSettingsShow()
-            value.thermalState.value = snapshot.thermalState
+            value._thermalState.value = snapshot.thermalState
             value._audioLevel.value = snapshot.audioLevel
-            value.speed.value = snapshot.speed
+            value._speed.value = snapshot.speed
             return value
         }
     }

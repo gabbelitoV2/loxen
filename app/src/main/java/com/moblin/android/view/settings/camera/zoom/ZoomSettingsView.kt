@@ -24,9 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
+import com.moblin.android.common.various.color
 import com.moblin.android.common.various.formatOneDecimal
-import com.moblin.android.various.model.CameraPosition
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.backZoomPresetSettingsUpdated
+import com.moblin.android.various.model.frontZoomPresetSettingUpdated
+import com.moblin.android.various.model.getMinMaxZoomX
 import com.moblin.android.various.settings.SettingsZoom
 import com.moblin.android.various.settings.SettingsZoomPreset
 import com.moblin.android.various.settings.defaultSegmentedPickerSelectedColor
@@ -38,6 +41,9 @@ import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import java.util.UUID
 import com.moblin.android.LocalModel
+
+private const val cameraPositionBack = 0
+private const val cameraPositionFront = 1
 
 private fun deleteBackZoomPreset(model: Model, zoom: SettingsZoom, offsets: List<Int>) {
     offsets.sortedDescending().forEach { zoom.back.removeAt(it) }
@@ -75,7 +81,7 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
                     Text("Speed")
                     Slider(
                         value = zoom.speed.toFloat(),
-                        onValueChange = { zoom.speed = it.toDouble() },
+                        onValueChange = { zoom.speed = it },
                         valueRange = 1.0f..10.0f,
                         steps = 89,
                         modifier = Modifier.weight(1f)
@@ -96,8 +102,9 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
                 val dismissState = rememberSwipeToDismissBoxState(
                     confirmValueChange = { value ->
                         if (value == SwipeToDismissBoxValue.EndToStart && zoom.back.size > 1) {
-                            makeOffsets(zoom.back, preset.id)?.let { offsets ->
-                                deleteBackZoomPreset(model, zoom, offsets)
+                            val index = zoom.back.indexOfFirst { it.id == preset.id }
+                            if (index != -1) {
+                                deleteBackZoomPreset(model, zoom, listOf(index))
                             }
                             true
                         } else {
@@ -118,9 +125,10 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
                     }
                 ) {
                     ZoomPresetSettingsView(
+                        model = model,
                         preset = preset,
                         minX = minZoomX,
-                        maxX = model.getMinMaxZoomX(position = CameraPosition.BACK).second
+                        maxX = model.getMinMaxZoomX(position = cameraPositionBack).second
                     )
                 }
             }
@@ -149,8 +157,9 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
                 val dismissState = rememberSwipeToDismissBoxState(
                     confirmValueChange = { value ->
                         if (value == SwipeToDismissBoxValue.EndToStart && zoom.front.size > 1) {
-                            makeOffsets(zoom.front, preset.id)?.let { offsets ->
-                                deleteFrontZoomPreset(model, zoom, offsets)
+                            val index = zoom.front.indexOfFirst { it.id == preset.id }
+                            if (index != -1) {
+                                deleteFrontZoomPreset(model, zoom, listOf(index))
                             }
                             true
                         } else {
@@ -171,9 +180,10 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
                     }
                 ) {
                     ZoomPresetSettingsView(
+                        model = model,
                         preset = preset,
                         minX = minZoomX,
-                        maxX = model.getMinMaxZoomX(position = CameraPosition.FRONT).second
+                        maxX = model.getMinMaxZoomX(position = cameraPositionFront).second
                     )
                 }
             }
@@ -199,12 +209,12 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
                 )
                 ZoomSwitchToSettingsView(
                     name = localized("back"),
-                    position = CameraPosition.BACK,
+                    position = cameraPositionBack,
                     defaultZoom = zoom.switchToBack
                 )
                 ZoomSwitchToSettingsView(
                     name = localized("front"),
-                    position = CameraPosition.FRONT,
+                    position = cameraPositionFront,
                     defaultZoom = zoom.switchToFront
                 )
                 Text(
@@ -220,6 +230,7 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
                 RgbColorPickerView(
                     title = "Background",
                     color = zoom.backgroundColorColor,
+                    onColorChanged = { zoom.backgroundColorColor = it },
                     opacity = true
                 ) {
                     zoom.backgroundColor = it

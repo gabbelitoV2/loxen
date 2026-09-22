@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -87,14 +86,14 @@ private fun PrivacyRegionView(
         TODO("no Android counterpart for MapKit")
     }
     LaunchedEffect(currentRegion.value) {
-        region.latitude.value = currentRegion.value.center.latitude
-        region.longitude.value = currentRegion.value.center.longitude
-        region.latitudeDelta.value = currentRegion.value.span.latitudeDelta
-        region.longitudeDelta.value = currentRegion.value.span.longitudeDelta
+        region.latitude = currentRegion.value.center.latitude
+        region.longitude = currentRegion.value.center.longitude
+        region.latitudeDelta = currentRegion.value.span.latitudeDelta
+        region.longitudeDelta = currentRegion.value.span.longitudeDelta
     }
     DisposableEffect(Unit) {
         onDispose {
-            model.reloadLocation()
+            TODO("reloadLocation")
         }
     }
 }
@@ -109,40 +108,40 @@ fun LocationSettingsView(
     stream: SettingsStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val showAllSettings by database.showAllSettings.collectAsState()
+    val showAllSettings = database.showAllSettings
     val isDenied by locationManager.isDenied.collectAsState()
-    val enabled by location.enabled.collectAsState()
-    val desiredAccuracy by location.desiredAccuracy.collectAsState()
-    val distanceFilter by location.distanceFilter.collectAsState()
-    val resetWhenGoingLive by location.resetWhenGoingLive.collectAsState()
-    val privacyRegions by location.privacyRegions.collectAsState()
-    val realtimeIrlEnabled by stream.realtimeIrlEnabled.collectAsState()
+    val enabled by location.enabledFlow.collectAsState()
+    val desiredAccuracy by location.desiredAccuracyFlow.collectAsState()
+    val distanceFilter by location.distanceFilterFlow.collectAsState()
+    val resetWhenGoingLive by location.resetWhenGoingLiveFlow.collectAsState()
+    val privacyRegions by location.privacyRegionsFlow.collectAsState()
+    val realtimeIrlEnabled = stream.realtimeIrlEnabled
 
     var desiredAccuracyExpanded by remember { mutableStateOf(false) }
     var distanceFilterExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(enabled) {
-        model.reloadLocation()
+        TODO("reloadLocation")
     }
     LaunchedEffect(desiredAccuracy) {
-        model.reloadLocation()
+        TODO("reloadLocation")
     }
     LaunchedEffect(distanceFilter) {
-        model.reloadLocation()
+        TODO("reloadLocation")
     }
     LaunchedEffect(realtimeIrlEnabled) {
-        model.reloadLocation()
+        TODO("reloadLocation")
     }
 
     fun deletePrivacyRegion(offsets: List<Int>) {
-        val regions = location.privacyRegions.value.toMutableList()
+        val regions = location.privacyRegions.toMutableList()
         offsets.sortedDescending().forEach { index ->
             if (index in regions.indices) {
                 regions.removeAt(index)
             }
         }
-        location.privacyRegions.value = regions
-        model.reloadLocation()
+        location.privacyRegions = regions
+        TODO("reloadLocation")
     }
 
     Scaffold(
@@ -161,7 +160,7 @@ fun LocationSettingsView(
                     Switch(
                         checked = enabled,
                         onCheckedChange = {
-                            location.enabled.value = it
+                            location.enabled = it
                         },
                     )
                 }
@@ -199,7 +198,7 @@ fun LocationSettingsView(
                                 DropdownMenuItem(
                                     text = { Text(accuracy.toString()) },
                                     onClick = {
-                                        location.desiredAccuracy.value = accuracy
+                                        location.desiredAccuracy = accuracy
                                         desiredAccuracyExpanded = false
                                     },
                                 )
@@ -234,7 +233,7 @@ fun LocationSettingsView(
                                 DropdownMenuItem(
                                     text = { Text(filter.toString()) },
                                     onClick = {
-                                        location.distanceFilter.value = filter
+                                        location.distanceFilter = filter
                                         distanceFilterExpanded = false
                                     },
                                 )
@@ -252,19 +251,19 @@ fun LocationSettingsView(
                     Switch(
                         checked = resetWhenGoingLive,
                         onCheckedChange = {
-                            location.resetWhenGoingLive.value = it
+                            location.resetWhenGoingLive = it
                         },
                     )
                 }
             }
             item {
                 TextButtonView("Split") {
-                    model.resetSplitLocationData()
+                    TODO("resetSplitLocationData")
                 }
             }
             item {
-                TextButtonView("Reset", color = Color.Red) {
-                    model.resetLocationData()
+                TextButtonView("Reset") {
+                    TODO("resetLocationData")
                 }
             }
             item {
@@ -294,7 +293,7 @@ fun LocationSettingsView(
                             Switch(
                                 checked = realtimeIrlEnabled,
                                 onCheckedChange = {
-                                    stream.realtimeIrlEnabled.value = it
+                                    stream.realtimeIrlEnabled = it
                                 },
                             )
                         }
@@ -306,10 +305,10 @@ fun LocationSettingsView(
             }
             items(items = privacyRegions, key = { it.id }) { region ->
                 var regionMenuExpanded by remember { mutableStateOf(false) }
-                val latitude by region.latitude.collectAsState()
-                val longitude by region.longitude.collectAsState()
-                val latitudeDelta by region.latitudeDelta.collectAsState()
-                val longitudeDelta by region.longitudeDelta.collectAsState()
+                val latitude = region.latitude
+                val longitude = region.longitude
+                val latitudeDelta = region.latitudeDelta
+                val longitudeDelta = region.longitudeDelta
                 Box {
                     Column(
                         modifier = Modifier
@@ -342,8 +341,9 @@ fun LocationSettingsView(
                             text = { Text("Delete") },
                             onClick = {
                                 regionMenuExpanded = false
-                                makeOffsets(location.privacyRegions.value, region.id)?.let { offsets ->
-                                    deletePrivacyRegion(offsets)
+                                val index = location.privacyRegions.indexOfFirst { it.id == region.id }
+                                if (index != -1) {
+                                    deletePrivacyRegion(listOf(index))
                                 }
                             },
                         )
@@ -353,14 +353,14 @@ fun LocationSettingsView(
             item {
                 CreateButtonView {
                     val privacyRegion = SettingsPrivacyRegion()
-                    model.getLatestKnownLocation()?.let { (latitude, longitude) ->
-                        privacyRegion.latitude.value = latitude
-                        privacyRegion.longitude.value = longitude
-                        privacyRegion.latitudeDelta.value = 0.02
-                        privacyRegion.longitudeDelta.value = 0.02
+                    locationManager.getLatestKnownLocation()?.let { latest ->
+                        privacyRegion.latitude = latest.latitude
+                        privacyRegion.longitude = latest.longitude
+                        privacyRegion.latitudeDelta = 0.02
+                        privacyRegion.longitudeDelta = 0.02
                     }
-                    location.privacyRegions.value = location.privacyRegions.value + privacyRegion
-                    model.reloadLocation()
+                    location.privacyRegions = location.privacyRegions + privacyRegion
+                    TODO("reloadLocation")
                 }
             }
             item {

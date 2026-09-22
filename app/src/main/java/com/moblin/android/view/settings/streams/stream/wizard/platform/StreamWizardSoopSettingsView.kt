@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import com.moblin.android.localized
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.WizardPlatform
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
@@ -33,11 +34,11 @@ fun StreamWizardSoopSettingsView(
     createStreamWizard: CreateStreamWizard,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val soopChannelName by createStreamWizard.soopChannelName.collectAsState()
-    val soopStreamId by createStreamWizard.soopStreamId.collectAsState()
+    val soopChannelName = createStreamWizard.soopChannelName
+    val soopStreamId = createStreamWizard.soopStreamId
 
     LaunchedEffect(Unit) {
-        createStreamWizard.platform = CreateStreamWizard.Platform.soop
+        createStreamWizard.platform = WizardPlatform.soop
         createStreamWizard.name = makeUniqueName(
             name = localized("SOOP"),
             existingNames = model.database.streams,
@@ -67,7 +68,7 @@ fun StreamWizardSoopSettingsView(
                     Text("Channel name")
                     OutlinedTextField(
                         value = soopChannelName,
-                        onValueChange = { createStreamWizard.soopChannelName.value = it },
+                        onValueChange = { createStreamWizard.soopChannelName = it },
                         placeholder = { Text("MyChannel") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
@@ -80,7 +81,7 @@ fun StreamWizardSoopSettingsView(
                     Text("Video id")
                     OutlinedTextField(
                         value = soopStreamId,
-                        onValueChange = { createStreamWizard.soopStreamId.value = it },
+                        onValueChange = { createStreamWizard.soopStreamId = it },
                         placeholder = { Text("908123903") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(
@@ -92,9 +93,7 @@ fun StreamWizardSoopSettingsView(
                 }
             }
             item {
-                WizardNextButtonView(
-                    onClick = { onNavigate("StreamWizardNetworkSetupSettingsView") },
-                )
+                WizardNextButtonView()
             }
         }
     }

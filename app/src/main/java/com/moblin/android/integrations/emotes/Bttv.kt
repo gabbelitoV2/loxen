@@ -82,15 +82,15 @@ private suspend fun fetchChannelEmotes(
         return emptyMap()
     }
     val emotes = mutableMapOf<String, Emote>()
-    val url = "https://api.betterttv.net/3/cached/users/${platform.rawValue}/$channelId"
+    val url = "https://api.betterttv.net/3/cached/users/${platform.name.lowercase()}/$channelId"
     if (runCatching { URI(url) }.isFailure) {
         return emptyMap()
     }
     val (data, response) = httpGet(url)
-    if (response.isNotFound) {
+    if (response.code == 404) {
         Log.i(
             TAG,
-            "emotes: ${platform.rawValue}: $channelId: BTTV channel emotes not found (HTTP 404)",
+            "emotes: ${platform.name.lowercase()}: $channelId: BTTV channel emotes not found (HTTP 404)",
         )
         return emptyMap()
     }

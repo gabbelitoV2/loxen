@@ -18,7 +18,7 @@ import com.moblin.android.LocalModel
 
 @Composable
 fun FixedHorizonView(model: Model = LocalModel.current, database: Database) {
-    val fixedHorizon by database.fixedHorizon.collectAsState()
+    val fixedHorizon = database.fixedHorizon
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -30,8 +30,8 @@ fun FixedHorizonView(model: Model = LocalModel.current, database: Database) {
         Switch(
             checked = fixedHorizon,
             onCheckedChange = { value ->
-                database.fixedHorizon.value = value
-                model.sceneUpdated()
+                database.fixedHorizon = value
+                TODO("model.sceneUpdated()")
             },
         )
     }

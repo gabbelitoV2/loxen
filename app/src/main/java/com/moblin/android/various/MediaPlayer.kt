@@ -215,7 +215,8 @@ class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerStorag
     }
 
     private fun startReading() {
-        if (reader == null || !TODO("no Android counterpart for AVFoundation AVAssetReader")) {
+        val started: Boolean = TODO("no Android counterpart for AVFoundation AVAssetReader")
+        if (reader == null || !started) {
             Log.i(TAG, "media-player: Start reading failed")
             return
         }

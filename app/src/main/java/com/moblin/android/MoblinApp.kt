@@ -33,10 +33,10 @@ fun MoblinApp() {
     val model = remember {
         Model().also { MoblinApp.globalModel = it }
     }
-    val show by model.show.collectAsState()
-    val toast by model.toast.collectAsState()
-    val orientation by model.orientation.collectAsState()
-    val database by model.database.collectAsState()
+    val show = model.show
+    val toast = model.toast
+    val orientation = model.orientation
+    val database = model.database
     CompositionLocalProvider(LocalModel provides model) {
     Box(modifier = Modifier.background(Color.Black)) {
         MainView(
@@ -44,14 +44,14 @@ fun MoblinApp() {
             streamView = {
                 StreamView(
                     show = show,
-                    cameraPreviewView = { CameraPreviewView(model = model) },
-                    streamPreviewView = { StreamPreviewView(model = model) }
+                    cameraPreviewView = CameraPreviewView(model = model),
+                    streamPreviewView = StreamPreviewView(model = model)
                 )
             },
             createStreamWizard = model.createStreamWizard,
             toast = toast,
             orientation = orientation,
-            quickButtons = database.quickButtonsGeneral,
+            quickButtons = database.quickButtons.general,
             model = model
         )
     }
@@ -75,7 +75,7 @@ class SceneDelegate {
         urlContexts: List<URI>
     ) {
         val model = MoblinApp.globalModel ?: return
-        model.handleSettingsUrls(urls = urlContexts)
+        TODO("no Android counterpart for UIOpenURLContext")
         if (sessionRole == SESSION_ROLE_WINDOW_EXTERNAL_DISPLAY_NON_INTERACTIVE) {
             TODO("no Android counterpart for UIWindowScene")
         }
@@ -87,7 +87,7 @@ class SceneDelegate {
     }
 
     fun scene(urlContexts: List<URI>) {
-        MoblinApp.globalModel?.handleSettingsUrls(urls = urlContexts)
+        TODO("no Android counterpart for UIOpenURLContext")
     }
 
     companion object {

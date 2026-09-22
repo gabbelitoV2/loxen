@@ -15,6 +15,7 @@ import com.moblin.android.media.haishinkit.util.calculateMd5Base64
 import com.moblin.android.various.SimpleTimer
 import java.net.URI
 import java.net.URLDecoder
+import javax.net.ssl.SSLContext
 import kotlin.random.Random
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -135,7 +136,7 @@ class RtmpConnection(private val name: String, private val queue: CoroutineDispa
         socket = RtmpSocket(name, queue)
         socket.delegate = this
         if (scheme == "rtmps") {
-            socket.connect(host, if (uri.port >= 0) uri.port else 443, TlsOptions())
+            socket.connect(host, if (uri.port >= 0) uri.port else 443, SSLContext.getInstance("TLS").apply { init(null, null, null) })
         } else {
             socket.connect(host, if (uri.port >= 0) uri.port else 1935, null)
         }
@@ -246,7 +247,7 @@ class RtmpConnection(private val name: String, private val queue: CoroutineDispa
                 "flashVer" to AsValue.String("FMLE/3.0 (compatible; FMSc/1.0)"),
                 "swfUrl" to AsValue.Null,
                 "tcUrl" to AsValue.String(absoluteWithoutAuthentication(uri)),
-                "fpad" to AsValue.Boolean(false),
+                "fpad" to AsValue.Bool(false),
                 "capabilities" to AsValue.Number(239.0),
                 "audioCodecs" to AsValue.Number(SupportSound.aac.rawValue.toDouble()),
                 "videoCodecs" to AsValue.Number(SupportVideo.h264.rawValue.toDouble()),
@@ -282,7 +283,7 @@ class RtmpConnection(private val name: String, private val queue: CoroutineDispa
     }
 
     private fun processMessageAcknowledgementMessage(message: RtmpAcknowledgementMessage) {
-        stream?.info.onAck(message.sequence)
+        stream?.info?.onAck(message.sequence)
     }
 
     private fun processMessageWindowAcknowledgementSize() {
@@ -334,7 +335,7 @@ class RtmpConnection(private val name: String, private val queue: CoroutineDispa
     }
 
     private fun processMessageData(message: RtmpDataMessage) {
-        stream?.info.bitrateStats.mutate { it.add(bytesTransferred = message.encoded.size) }
+        stream?.info?.bitrateStats.mutate { it.add(bytesTransferred = message.encoded.size) }
     }
 
     override fun socketReadyStateChanged(readyState: RtmpSocketReadyState) {
@@ -346,7 +347,7 @@ class RtmpConnection(private val name: String, private val queue: CoroutineDispa
     }
 
     override fun socketUpdateStats(totalBytesSent: Long) {
-        stream?.info.onWritten(totalBytesSent)
+        stream?.info?.onWritten(totalBytesSent)
     }
 
     override fun socketDataReceived(data: ByteArray): ByteArray {

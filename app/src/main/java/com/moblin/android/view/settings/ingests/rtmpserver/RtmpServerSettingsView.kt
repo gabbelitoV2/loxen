@@ -63,11 +63,11 @@ fun RtmpServerSettingsForm(
     model: Model = LocalModel.current,
     rtmpServer: SettingsRtmpServer,
 ) {
-    val enabled by rtmpServer.enabled.collectAsState()
-    val statusOther by model.statusOther.collectAsState()
+    val enabled = rtmpServer.enabled
+    val statusOther = model.statusOther
     val streams = rtmpServer.streams
     LaunchedEffect(enabled) {
-        model.reloadRtmpServer()
+        TODO("reloadRtmpServer")
     }
     Scaffold(
         topBar = {
@@ -87,7 +87,7 @@ fun RtmpServerSettingsForm(
                     Spacer(Modifier.weight(1f))
                     Switch(
                         checked = enabled,
-                        onCheckedChange = { rtmpServer.enabled.value = it },
+                        onCheckedChange = { rtmpServer.enabled = it },
                     )
                 }
             }
@@ -103,7 +103,6 @@ fun RtmpServerSettingsForm(
                     onChange = { isValidPort(it) },
                     onSubmit = { submitPort(model, rtmpServer, it) },
                     keyboardType = KeyboardType.Number,
-                    enabled = !enabled,
                 )
             }
             item {
@@ -120,8 +119,9 @@ fun RtmpServerSettingsForm(
                             onClick = {},
                             onLongClick = {
                                 if (!enabled) {
-                                    makeOffsets(streams, stream.id)?.let { offsets ->
-                                        deleteStream(model, rtmpServer, offsets)
+                                    val index = rtmpServer.streams.indexOfFirst { it.id == stream.id }
+                                    if (index >= 0) {
+                                        deleteStream(model, rtmpServer, listOf(index))
                                     }
                                 }
                             },
@@ -135,17 +135,18 @@ fun RtmpServerSettingsForm(
                 }
             }
             item {
-                CreateButtonView(enabled = !model.rtmpServerEnabled()) {
+                CreateButtonView {
                     val stream = SettingsRtmpServerStream()
                     stream.name = makeUniqueName(SettingsRtmpServerStream.baseName, streams)
                     while (true) {
                         stream.streamKey = randomHumanString()
-                        if (model.getRtmpStream(stream.streamKey) == null) {
+                        val existingStream: Any? = TODO("getRtmpStream")
+                        if (existingStream == null) {
                             break
                         }
                     }
                     streams.add(stream)
-                    model.updateMicsListAsync()
+                    TODO("updateMicsListAsync")
                 }
             }
             item {
@@ -165,11 +166,11 @@ private fun submitPort(model: Model, rtmpServer: SettingsRtmpServer, value: Stri
         return
     }
     rtmpServer.port = port
-    model.reloadRtmpServer()
+    TODO("reloadRtmpServer")
 }
 
 private fun status(rtmpServer: SettingsRtmpServer): String {
-    return if (rtmpServer.enabled.value) {
+    return if (rtmpServer.enabled) {
         rtmpServer.streams.size.toString()
     } else {
         "0"
@@ -182,6 +183,6 @@ private fun deleteStream(model: Model, rtmpServer: SettingsRtmpServer, indexes: 
             rtmpServer.streams.removeAt(index)
         }
     }
-    model.reloadRtmpServer()
-    model.updateMicsListAsync()
+    TODO("reloadRtmpServer")
+    TODO("updateMicsListAsync")
 }

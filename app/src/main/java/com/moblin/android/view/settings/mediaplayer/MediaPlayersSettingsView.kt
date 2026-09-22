@@ -17,7 +17,6 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsMediaPlayer
 import com.moblin.android.various.settings.SettingsMediaPlayers
-import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.LocalModel
@@ -51,8 +50,9 @@ fun MediaPlayersSettingsView(
                 MediaPlayerSettingsView(mediaPlayers = mediaPlayers, player = player)
                 IconButton(
                     onClick = {
-                        makeOffsets(mediaPlayers.players, player.id)?.let { offsets ->
-                            deletePlayer(model, mediaPlayers, offsets)
+                        val offset = mediaPlayers.players.indexOfFirst { it.id == player.id }
+                        if (offset != -1) {
+                            deletePlayer(model, mediaPlayers, offset)
                         }
                     },
                 ) {
@@ -67,8 +67,8 @@ fun MediaPlayersSettingsView(
                     SettingsMediaPlayer.baseName,
                     mediaPlayers.players,
                 )
-                mediaPlayers.players.add(mediaPlayer)
-                model.addMediaPlayer(settings = mediaPlayer)
+                mediaPlayers.players = mediaPlayers.players + mediaPlayer
+                TODO("Model.addMediaPlayer")
             }
         }
     }
@@ -77,13 +77,9 @@ fun MediaPlayersSettingsView(
 private fun deletePlayer(
     model: Model,
     mediaPlayers: SettingsMediaPlayers,
-    offsets: List<Int>,
+    offset: Int,
 ) {
     val players = mediaPlayers.players
-    for (index in offsets) {
-        model.deleteMediaPlayer(playerId = players[index].id)
-    }
-    for (index in offsets.sortedDescending()) {
-        players.removeAt(index)
-    }
+    TODO("Model.deleteMediaPlayer")
+    mediaPlayers.players = players.filterIndexed { index, _ -> index != offset }
 }

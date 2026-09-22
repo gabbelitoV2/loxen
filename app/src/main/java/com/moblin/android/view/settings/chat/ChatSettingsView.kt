@@ -39,7 +39,7 @@ private fun submitMaximumAge(chat: SettingsChat, value: String) {
     if (maximumAge <= 0) {
         return
     }
-    chat.maximumAge.value = maximumAge
+    chat.maximumAge = maximumAge
 }
 
 @Composable
@@ -49,12 +49,12 @@ private fun ChatSettingsGeneralView(
     chat: SettingsChat,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val botEnabled by chat.botEnabled.collectAsState()
-    val textToSpeechEnabled by chat.textToSpeechEnabled.collectAsState()
-    val showAllSettings by database.showAllSettings.collectAsState()
-    val maximumAge by chat.maximumAge.collectAsState()
-    val maximumAgeEnabled by chat.maximumAgeEnabled.collectAsState()
-    val showDeletedMessages by chat.showDeletedMessages.collectAsState()
+    val botEnabled = chat.botEnabled
+    val textToSpeechEnabled = chat.textToSpeechEnabled
+    val showAllSettings = database.showAllSettings
+    val maximumAge = chat.maximumAge
+    val maximumAgeEnabled = chat.maximumAgeEnabled
+    val showDeletedMessages = chat.showDeletedMessages
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -68,8 +68,8 @@ private fun ChatSettingsGeneralView(
             Switch(
                 checked = botEnabled,
                 onCheckedChange = { value ->
-                    chat.botEnabled.value = value
-                    model.chatBotCustomCommandsTextChanged()
+                    chat.botEnabled = value
+                    TODO("model.chatBotCustomCommandsTextChanged()")
                 },
             )
         }
@@ -84,7 +84,7 @@ private fun ChatSettingsGeneralView(
             Switch(
                 checked = textToSpeechEnabled,
                 onCheckedChange = { value ->
-                    chat.textToSpeechEnabled.value = value
+                    chat.textToSpeechEnabled = value
                     if (!value) {
                         model.chatTextToSpeech.reset(running = true)
                     }
@@ -107,7 +107,7 @@ private fun ChatSettingsGeneralView(
                 Spacer(Modifier.weight(1f))
                 Switch(
                     checked = maximumAgeEnabled,
-                    onCheckedChange = { value -> chat.maximumAgeEnabled.value = value },
+                    onCheckedChange = { value -> chat.maximumAgeEnabled = value },
                 )
             }
             Row(
@@ -118,11 +118,11 @@ private fun ChatSettingsGeneralView(
                 Spacer(Modifier.weight(1f))
                 Switch(
                     checked = showDeletedMessages,
-                    onCheckedChange = { value -> chat.showDeletedMessages.value = value },
+                    onCheckedChange = { value -> chat.showDeletedMessages = value },
                 )
             }
             LaunchedEffect(showDeletedMessages) {
-                model.reloadChatMessages()
+                TODO("model.reloadChatMessages()")
             }
         }
     }
@@ -137,10 +137,10 @@ fun ChatSettingsView(
     stream: SettingsStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val enabled by chat.enabled.collectAsState()
-    val activityFeed by chat.activityFeed.collectAsState()
-    val showAllSettings by database.showAllSettings.collectAsState()
-    val background by chat.background.collectAsState()
+    val enabled = chat.enabled
+    val activityFeed = chat.activityFeed
+    val showAllSettings = database.showAllSettings
+    val background = chat.background
 
     Scaffold(
         topBar = {
@@ -161,11 +161,11 @@ fun ChatSettingsView(
                 Spacer(Modifier.weight(1f))
                 Switch(
                     checked = enabled,
-                    onCheckedChange = { value -> chat.enabled.value = value },
+                    onCheckedChange = { value -> chat.enabled = value },
                 )
             }
             LaunchedEffect(enabled) {
-                model.reloadChats()
+                TODO("model.reloadChats()")
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -175,7 +175,7 @@ fun ChatSettingsView(
                 Spacer(Modifier.weight(1f))
                 Switch(
                     checked = activityFeed,
-                    onCheckedChange = { value -> chat.activityFeed.value = value },
+                    onCheckedChange = { value -> chat.activityFeed = value },
                 )
             }
             ChatSettingsAppearanceView(model = model, database = database, chat = chat)
@@ -195,7 +195,7 @@ fun ChatSettingsView(
                     Spacer(Modifier.weight(1f))
                     Switch(
                         checked = background,
-                        onCheckedChange = { value -> chat.background.value = value },
+                        onCheckedChange = { value -> chat.background = value },
                     )
                 }
                 Text(

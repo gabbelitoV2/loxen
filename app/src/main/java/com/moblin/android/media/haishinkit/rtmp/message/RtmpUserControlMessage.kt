@@ -1,6 +1,6 @@
 package com.moblin.android.media.haishinkit.rtmp.message
 
-class RtmpUserControlMessage : RtmpMessage(RtmpMessageType.user) {
+class RtmpUserControlMessage() : RtmpMessage(RtmpMessageType.user) {
     enum class Event(val rawValue: UByte) {
         streamBegin(0x00.toUByte()),
         streamEof(0x01.toUByte()),
@@ -29,42 +29,50 @@ class RtmpUserControlMessage : RtmpMessage(RtmpMessageType.user) {
     }
 
     var event: Event = Event.unknown
+        set(newValue) {
+            field = newValue
+            buildEncoded()
+        }
+
     var value: Int = 0
+        set(newValue) {
+            field = newValue
+            buildEncoded()
+        }
+
+    init {
+        buildEncoded()
+    }
 
     constructor(event: Event, value: Int) : this() {
         this.event = event
         this.value = value
     }
 
-    override var encoded: ByteArray
-        get() {
-            if (super.encoded.isNotEmpty()) {
-                return super.encoded
-            }
-            val data = event.bytes + byteArrayOf(
-                (value ushr 24).toByte(),
-                (value ushr 16).toByte(),
-                (value ushr 8).toByte(),
-                value.toByte()
-            )
-            super.encoded = data
-            return data
+    private fun buildEncoded() {
+        super.encoded = event.bytes + byteArrayOf(
+            (value ushr 24).toByte(),
+            (value ushr 16).toByte(),
+            (value ushr 8).toByte(),
+            value.toByte()
+        )
+    }
+
+    fun decode(newValue: ByteArray) {
+        if (super.encoded.contentEquals(newValue)) {
+            return
         }
-        set(newValue) {
-            if (super.encoded.contentEquals(newValue)) {
-                return
+        if (super.encoded.size == newValue.size && newValue.size >= 2) {
+            Event.fromRawValue(newValue[1].toUByte())?.let { event = it }
+            var parsed = 0
+            var index = 2
+            val end = minOf(newValue.size, 6)
+            while (index < end) {
+                parsed = (parsed shl 8) or (newValue[index].toInt() and 0xFF)
+                index++
             }
-            if (super.encoded.size == newValue.size && newValue.size >= 2) {
-                Event.fromRawValue(newValue[1].toUByte())?.let { event = it }
-                var parsed = 0
-                var index = 2
-                val end = minOf(newValue.size, 6)
-                while (index < end) {
-                    parsed = (parsed shl 8) or (newValue[index].toInt() and 0xFF)
-                    index++
-                }
-                value = parsed
-            }
-            super.encoded = newValue
+            value = parsed
         }
+        super.encoded = newValue
+    }
 }

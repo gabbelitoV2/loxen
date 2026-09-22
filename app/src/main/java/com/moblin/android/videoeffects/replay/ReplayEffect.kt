@@ -1,5 +1,6 @@
 package com.moblin.android.videoeffects.replay
 
+import android.media.Image
 import android.util.Size
 import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
@@ -51,7 +52,7 @@ private sealed class ReplayEffectOutput {
     data class Stinger(val stinger: EffectImageCiImage, val replay: EffectImageCiImage?) : ReplayEffectOutput()
 }
 
-class ReplayEffect(
+class ReplayEffect internal constructor(
     video: ReplayBufferFile,
     start: Double,
     stop: Double,
@@ -103,7 +104,7 @@ class ReplayEffect(
         }
     }
 
-    override fun execute(image: EffectImageCiImage, info: VideoEffectInfo): EffectImageCiImage {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         val output = update(info.presentationTimeStamp / 1_000_000.0)
         return when (output) {
             is ReplayEffectOutput.Background -> image
@@ -119,7 +120,7 @@ class ReplayEffect(
         }
     }
 
-    override fun executeMetalPetal(image: EffectImageCiImage, info: VideoEffectInfo): EffectImageCiImage {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         val output = update(info.presentationTimeStamp / 1_000_000.0)
         return when (output) {
             is ReplayEffectOutput.Background -> image
@@ -147,30 +148,30 @@ class ReplayEffect(
         }
     }
 
-    private fun applyLayoutToReplay(replayImage: EffectImageCiImage, image: EffectImageCiImage): EffectImageCiImage {
+    private fun applyLayoutToReplay(replayImage: EffectImageCiImage, image: Image): Image {
         TODO("OpenGL ES port")
     }
 
     private fun applyLayoutToReplayMetalPetal(replayImage: EffectImageCiImage,
-                                              image: EffectImageCiImage): EffectImageCiImage {
+                                              image: Image): Image {
         TODO("OpenGL ES port")
     }
 
-    private fun fade(input: EffectImageCiImage,
-                     target: EffectImageCiImage,
-                     ratio: Double): EffectImageCiImage? {
+    private fun fade(input: Image,
+                     target: Image,
+                     ratio: Double): Image? {
         TODO("OpenGL ES port")
     }
 
-    private fun fadeMetalPetal(input: EffectImageCiImage,
-                               target: EffectImageCiImage,
-                               ratio: Double): EffectImageCiImage {
+    private fun fadeMetalPetal(input: Image,
+                               target: Image,
+                               ratio: Double): Image {
         return blendMetalPetal(target, input, ratio.toFloat())
     }
 
-    private fun blendMetalPetal(image: EffectImageCiImage,
-                                backgroundImage: EffectImageCiImage,
-                                intensity: Float): EffectImageCiImage {
+    private fun blendMetalPetal(image: Any,
+                                backgroundImage: Image,
+                                intensity: Float): Image {
         TODO("OpenGL ES port")
     }
 

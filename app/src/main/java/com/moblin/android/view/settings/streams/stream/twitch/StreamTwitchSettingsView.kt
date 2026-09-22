@@ -1,5 +1,6 @@
 package com.moblin.android.view.settings.streams.stream.twitch
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,6 +49,7 @@ import com.moblin.android.view.utils.TextEditNavigationView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
+import java.net.URI
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 
@@ -105,9 +107,7 @@ private fun TwitchCategoryPickerView(
 
     fun fetchDefaultCategories() {
         val categoryNames = listOf("IRL", "Just Chatting", "Food & Drink")
-        model.fetchTwitchGames(stream, categoryNames) { games ->
-            categories = games ?: emptyList()
-        }
+        TODO("fetchTwitchGames(stream, categoryNames) { games -> categories = games ?: emptyList() }")
     }
 
     LaunchedEffect(Unit) {
@@ -118,9 +118,7 @@ private fun TwitchCategoryPickerView(
             categories = emptyList()
             fetchDefaultCategories()
         } else {
-            model.searchTwitchCategories(stream, searchText) { newCategories ->
-                categories = newCategories ?: emptyList()
-            }
+            TODO("searchTwitchCategories(stream, searchText) { newCategories -> categories = newCategories ?: emptyList() }")
         }
     }
 
@@ -152,18 +150,24 @@ private fun categoryButton(
 ) {
     Button(
         onClick = {
-            model.setTwitchStreamCategory(stream = stream, categoryId = category.id)
+            TODO("setTwitchStreamCategory(stream = stream, categoryId = category.id)")
             onDismiss()
         },
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             category.boxArtUrl(width = 80, height = 100)?.let { boxArtUrl ->
                 CacheAsyncImage(
-                    url = boxArtUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(width = 40.dp, height = 50.dp)
-                        .clip(RoundedCornerShape(6.dp)),
+                    url = URI(boxArtUrl),
+                    content = { image ->
+                        Image(
+                            bitmap = image,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(width = 40.dp, height = 50.dp)
+                                .clip(RoundedCornerShape(6.dp)),
+                        )
+                    },
+                    placeholder = {},
                 )
             }
             Text(category.name)
@@ -177,98 +181,89 @@ fun TwitchAlertsSettingsView(title: String, alerts: SettingsTwitchAlerts) {
     Scaffold(topBar = { TopAppBar(title = { Text(title) }) }) { innerPadding ->
         LazyColumn(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             item {
-                val follows by alerts.follows.collectAsState()
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("Follows", modifier = Modifier.weight(1f))
-                    Switch(checked = follows, onCheckedChange = { alerts.follows.value = it })
+                    Switch(checked = alerts.follows, onCheckedChange = { alerts.follows = it })
                 }
             }
             item {
-                val subscriptions by alerts.subscriptions.collectAsState()
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("Subscriptions", modifier = Modifier.weight(1f))
-                    Switch(checked = subscriptions, onCheckedChange = { alerts.subscriptions.value = it })
+                    Switch(checked = alerts.subscriptions, onCheckedChange = { alerts.subscriptions = it })
                 }
             }
             item {
-                val giftSubscriptions by alerts.giftSubscriptions.collectAsState()
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("Gift subscriptions", modifier = Modifier.weight(1f))
-                    Switch(checked = giftSubscriptions, onCheckedChange = { alerts.giftSubscriptions.value = it })
+                    Switch(checked = alerts.giftSubscriptions, onCheckedChange = { alerts.giftSubscriptions = it })
                 }
             }
             item {
-                val resubscriptions by alerts.resubscriptions.collectAsState()
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("Resubscriptions", modifier = Modifier.weight(1f))
-                    Switch(checked = resubscriptions, onCheckedChange = { alerts.resubscriptions.value = it })
+                    Switch(checked = alerts.resubscriptions, onCheckedChange = { alerts.resubscriptions = it })
                 }
             }
             item {
-                val rewards by alerts.rewards.collectAsState()
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("Rewards", modifier = Modifier.weight(1f))
-                    Switch(checked = rewards, onCheckedChange = { alerts.rewards.value = it })
+                    Switch(checked = alerts.rewards, onCheckedChange = { alerts.rewards = it })
                 }
             }
             item {
-                val raids by alerts.raids.collectAsState()
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("Raids", modifier = Modifier.weight(1f))
-                    Switch(checked = raids, onCheckedChange = { alerts.raids.value = it })
+                    Switch(checked = alerts.raids, onCheckedChange = { alerts.raids = it })
                 }
             }
             item {
-                val cheers by alerts.cheers.collectAsState()
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("Bits", modifier = Modifier.weight(1f))
-                    Switch(checked = cheers, onCheckedChange = { alerts.cheers.value = it })
+                    Switch(checked = alerts.cheers, onCheckedChange = { alerts.cheers = it })
                 }
             }
             item {
                 TextEditNavigationView(
                     title = localized("Minimum bits"),
-                    value = alerts.minimumCheerBits.value.toString(),
-                    onSubmit = { alerts.minimumCheerBits.value = it.toIntOrNull() ?: 0 },
+                    value = alerts.minimumCheerBits.toString(),
+                    onSubmit = { alerts.minimumCheerBits = it.toIntOrNull() ?: 0 },
                 )
             }
             item {
-                val watchStreaks by alerts.watchStreaks.collectAsState()
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("Watch streaks", modifier = Modifier.weight(1f))
-                    Switch(checked = watchStreaks, onCheckedChange = { alerts.watchStreaks.value = it })
+                    Switch(checked = alerts.watchStreaks, onCheckedChange = { alerts.watchStreaks = it })
                 }
             }
             item {
                 var expanded by remember { mutableStateOf(false) }
-                val minimumWatchStreak by alerts.minimumWatchStreak.collectAsState()
                 ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
                     OutlinedTextField(
-                        value = minimumWatchStreak.toString(),
+                        value = alerts.minimumWatchStreak.toString(),
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Minimum watch streak") },
@@ -280,7 +275,7 @@ fun TwitchAlertsSettingsView(title: String, alerts: SettingsTwitchAlerts) {
                             DropdownMenuItem(
                                 text = { Text(value.toString()) },
                                 onClick = {
-                                    alerts.minimumWatchStreak.value = value
+                                    alerts.minimumWatchStreak = value
                                     expanded = false
                                 },
                             )
@@ -289,13 +284,12 @@ fun TwitchAlertsSettingsView(title: String, alerts: SettingsTwitchAlerts) {
                 }
             }
             item {
-                val sharedChat by alerts.sharedChat.collectAsState()
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("Shared chat", modifier = Modifier.weight(1f))
-                    Switch(checked = sharedChat, onCheckedChange = { alerts.sharedChat.value = it })
+                    Switch(checked = alerts.sharedChat, onCheckedChange = { alerts.sharedChat = it })
                 }
                 Text("Also show events from other channels in a shared chat session.")
             }
@@ -314,9 +308,7 @@ suspend fun loadTwitchStreamInfo(
         return
     }
     delay(1000)
-    model.getTwitchChannelInformation(stream) { info ->
-        onChange(info.title, info.gameName)
-    }
+    TODO("getTwitchChannelInformation(stream) { info -> onChange(info.title, info.gameName) }")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -334,16 +326,16 @@ fun StreamTwitchSettingsView(
     var tokenExpiresIn by remember { mutableStateOf<Duration?>(null) }
 
     fun submitChannelName(value: String) {
-        stream.twitchChannelName.value = value
-        if (stream.enabled.value) {
-            model.twitchChannelNameUpdated()
+        stream.twitchChannelName = value
+        if (stream.enabled) {
+            TODO("twitchChannelNameUpdated()")
         }
     }
 
     fun submitChannelId(value: String) {
-        stream.twitchChannelId.value = value
-        if (stream.enabled.value) {
-            model.twitchChannelIdUpdated()
+        stream.twitchChannelId = value
+        if (stream.enabled) {
+            TODO("twitchChannelIdUpdated()")
         }
     }
 
@@ -361,9 +353,7 @@ fun StreamTwitchSettingsView(
         if (!loggedIn) {
             return
         }
-        model.getTwitchTokenExpiresIn(stream) { newTokenExpiresIn ->
-            tokenExpiresIn = newTokenExpiresIn
-        }
+        TODO("getTwitchTokenExpiresIn(stream) { newTokenExpiresIn -> tokenExpiresIn = newTokenExpiresIn }")
     }
 
     fun onLoggedIn() {
@@ -383,13 +373,12 @@ fun StreamTwitchSettingsView(
                 Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
                     if (!loggedIn) {
                         TextButtonView("Login") {
-                            model.twitchLogin(stream = stream, onComplete = { onLoggedIn() }) {
-                                model.showTwitchAuth.value = true
-                            }
+                            model.showTwitchAuth.value = true
+                            TODO("twitchLogin(stream = stream, onComplete = { onLoggedIn() })")
                         }
                     } else {
                         TextButtonView("Logout") {
-                            model.twitchLogout(stream)
+                            TODO("twitchLogout(stream)")
                             loggedIn = false
                             tokenExpiresIn = null
                         }
@@ -400,7 +389,7 @@ fun StreamTwitchSettingsView(
             item {
                 TextEditNavigationView(
                     title = localized("Channel name"),
-                    value = stream.twitchChannelName.value,
+                    value = stream.twitchChannelName,
                     onSubmit = { submitChannelName(it) },
                     capitalize = true,
                 )
@@ -409,7 +398,7 @@ fun StreamTwitchSettingsView(
             item {
                 TextEditNavigationView(
                     title = localized("Channel id"),
-                    value = stream.twitchChannelId.value,
+                    value = stream.twitchChannelId,
                     onSubmit = { submitChannelId(it) },
                 )
             }

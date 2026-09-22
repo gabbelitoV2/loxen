@@ -111,12 +111,12 @@ class StreamView(
 ) {
     @Composable
     fun body() {
-        if (show.chatPhone) {
+        if (show.chatPhone.value) {
             Box(modifier = Modifier.fillMaxSize().background(Color.Black))
         } else {
             Box(modifier = Modifier.fillMaxSize()) {
                 streamPreviewView.body()
-                if (show.cameraPreview) {
+                if (show.cameraPreview.value) {
                     cameraPreviewView.body()
                 }
             }

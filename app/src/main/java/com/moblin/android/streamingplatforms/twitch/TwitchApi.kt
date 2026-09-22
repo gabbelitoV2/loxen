@@ -319,9 +319,9 @@ class TwitchApi(accessToken: String) {
     fun validateToken(onComplete: (TwitchApiValidateTokenData?) -> Unit) {
         doRequest(createRequest(url = "https://id.twitch.tv/oauth2/validate", method = "GET")) { result ->
             when (result) {
-                is OperationResult.Success -> onComplete(
+                is NetworkResponse.Success -> onComplete(
                     runCatching {
-                        json.decodeFromString<TwitchApiValidateTokenData>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiValidateTokenData>(result.value.decodeToString())
                     }.getOrNull(),
                 )
                 else -> onComplete(null)
@@ -332,9 +332,9 @@ class TwitchApi(accessToken: String) {
     fun getUsers(onComplete: (TwitchApiUsers?) -> Unit) {
         doGet(subPath = "users") { result ->
             when (result) {
-                is OperationResult.Success -> onComplete(
+                is NetworkResponse.Success -> onComplete(
                     runCatching {
-                        json.decodeFromString<TwitchApiUsers>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiUsers>(result.value.decodeToString())
                     }.getOrNull(),
                 )
                 else -> onComplete(null)
@@ -351,9 +351,9 @@ class TwitchApi(accessToken: String) {
     fun getUserByLogin(login: String, onComplete: (TwitchApiUser?) -> Unit) {
         doGet(subPath = makeUrl("users", listOf("login" to login))) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val users = runCatching {
-                        json.decodeFromString<TwitchApiUsers>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiUsers>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(users?.data?.firstOrNull())
                 }
@@ -365,9 +365,9 @@ class TwitchApi(accessToken: String) {
     fun getUserById(id: String, onComplete: (TwitchApiUser?) -> Unit) {
         doGet(subPath = makeUrl("users", listOf("id" to id))) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val users = runCatching {
-                        json.decodeFromString<TwitchApiUsers>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiUsers>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(users?.data?.firstOrNull())
                 }
@@ -389,9 +389,9 @@ class TwitchApi(accessToken: String) {
     fun getStreamKey(broadcasterId: String, onComplete: (String?) -> Unit) {
         doGet(subPath = makeUrl("streams/key", listOf("broadcaster_id" to broadcasterId))) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val response = runCatching {
-                        json.decodeFromString<TwitchApiStreamKey>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiStreamKey>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(response?.data?.firstOrNull()?.stream_key)
                 }
@@ -408,9 +408,9 @@ class TwitchApi(accessToken: String) {
             subPath = makeUrl("channel_points/custom_rewards", listOf("broadcaster_id" to broadcasterId)),
         ) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiChannelPointsCustomRewards>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiChannelPointsCustomRewards>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(message)
                 }
@@ -425,9 +425,9 @@ class TwitchApi(accessToken: String) {
     ) {
         doGet(subPath = makeUrl("channels", listOf("broadcaster_id" to broadcasterId))) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiChannelInformation>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiChannelInformation>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(message?.data?.firstOrNull())
                 }
@@ -447,9 +447,9 @@ class TwitchApi(accessToken: String) {
         )
         doPost(subPath = "channels/commercial", body = serialize(body)) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiStartCommercial>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiStartCommercial>(result.value.decodeToString())
                     }.getOrNull()?.data?.firstOrNull()
                     if (message != null) {
                         onComplete(NetworkResponse.Success(message))
@@ -457,7 +457,7 @@ class TwitchApi(accessToken: String) {
                         onComplete(NetworkResponse.Error)
                     }
                 }
-                is OperationResult.AuthError -> onComplete(NetworkResponse.AuthError)
+                is NetworkResponse.AuthError -> onComplete(NetworkResponse.AuthError)
                 else -> onComplete(NetworkResponse.Error)
             }
         }
@@ -597,9 +597,9 @@ class TwitchApi(accessToken: String) {
         )
         doPost(subPath = "streams/markers", body = serialize(body)) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiCreateStreamMarker>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiCreateStreamMarker>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(message?.data?.firstOrNull())
                 }
@@ -611,13 +611,13 @@ class TwitchApi(accessToken: String) {
     fun getStream(userId: String, onComplete: (NetworkResponse<TwitchApiStreamData?>) -> Unit) {
         doGet(subPath = makeUrl("streams", listOf("user_id" to userId, "type" to "live"))) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiStreams>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiStreams>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(NetworkResponse.Success(message?.data?.firstOrNull()))
                 }
-                is OperationResult.AuthError -> onComplete(NetworkResponse.AuthError)
+                is NetworkResponse.AuthError -> onComplete(NetworkResponse.AuthError)
                 else -> onComplete(NetworkResponse.Error)
             }
         }
@@ -629,9 +629,9 @@ class TwitchApi(accessToken: String) {
     ) {
         doGet(subPath = makeUrl("streams/followed", listOf("user_id" to userId, "first" to "100"))) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiStreams>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiStreams>(result.value.decodeToString())
                     }.getOrNull()
                     if (message != null) {
                         onComplete(NetworkResponse.Success(message.data))
@@ -639,7 +639,7 @@ class TwitchApi(accessToken: String) {
                         onComplete(NetworkResponse.Error)
                     }
                 }
-                is OperationResult.AuthError -> onComplete(NetworkResponse.AuthError)
+                is NetworkResponse.AuthError -> onComplete(NetworkResponse.AuthError)
                 else -> onComplete(NetworkResponse.Error)
             }
         }
@@ -656,9 +656,9 @@ class TwitchApi(accessToken: String) {
         }
         doGet(subPath = makeUrl("streams", parameters)) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiStreams>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiStreams>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(message?.data)
                 }
@@ -674,9 +674,9 @@ class TwitchApi(accessToken: String) {
         }
         doGet(subPath = makeUrl("users", ids.take(100).map { "id" to it })) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiUsers>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiUsers>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(message?.data)
                 }
@@ -688,9 +688,9 @@ class TwitchApi(accessToken: String) {
     fun getGames(names: List<String>, onComplete: (List<TwitchApiGameData>?) -> Unit) {
         doGet(subPath = makeUrl("games", names.map { "name" to it })) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiGames>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiGames>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(message?.data)
                 }
@@ -723,9 +723,9 @@ class TwitchApi(accessToken: String) {
     fun searchCategories(query: String, onComplete: (List<TwitchApiGameData>?) -> Unit) {
         doGet(subPath = makeUrl("search/categories", listOf("query" to query, "first" to "10"))) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiGames>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiGames>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(message?.data)
                 }
@@ -758,9 +758,9 @@ class TwitchApi(accessToken: String) {
         }
         doGet(subPath = makeUrl("search/channels", parameters)) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiSearchChannels>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiSearchChannels>(result.value.decodeToString())
                     }.getOrNull()
                     if (message != null) {
                         onComplete(NetworkResponse.Success(message.data))
@@ -768,7 +768,7 @@ class TwitchApi(accessToken: String) {
                         onComplete(NetworkResponse.Error)
                     }
                 }
-                is OperationResult.AuthError -> onComplete(NetworkResponse.AuthError)
+                is NetworkResponse.AuthError -> onComplete(NetworkResponse.AuthError)
                 else -> onComplete(NetworkResponse.Error)
             }
         }
@@ -798,9 +798,9 @@ class TwitchApi(accessToken: String) {
     fun getGlobalChatBadges(onComplete: (List<TwitchApiChatBadgesData>?) -> Unit) {
         doGet(subPath = "chat/badges/global") { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiChatBadges>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiChatBadges>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(message?.data)
                 }
@@ -815,9 +815,9 @@ class TwitchApi(accessToken: String) {
     ) {
         doGet(subPath = makeUrl("chat/badges", listOf("broadcaster_id" to broadcasterId))) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiChatBadges>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiChatBadges>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(message?.data)
                 }
@@ -833,9 +833,9 @@ class TwitchApi(accessToken: String) {
     ) {
         doGet(subPath = makeUrl("subscriptions", listOf("broadcaster_id" to broadcasterId, "user_id" to userId))) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiGetBroadcasterSubscriptions>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiGetBroadcasterSubscriptions>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(message?.data?.firstOrNull())
                 }
@@ -850,9 +850,9 @@ class TwitchApi(accessToken: String) {
     ) {
         doGet(subPath = makeUrl("bits/cheermotes", listOf("broadcaster_id" to broadcasterId))) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiGetCheermotes>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiGetCheermotes>(result.value.decodeToString())
                     }.getOrNull()
                     onComplete(message?.data)
                 }
@@ -867,9 +867,9 @@ class TwitchApi(accessToken: String) {
     ) {
         doGet(subPath = makeUrl("polls", listOf("broadcaster_id" to broadcasterId))) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiPolls>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiPolls>(result.value.decodeToString())
                     }.getOrNull()
                     if (message != null) {
                         onComplete(NetworkResponse.Success(message.data))
@@ -877,7 +877,7 @@ class TwitchApi(accessToken: String) {
                         onComplete(NetworkResponse.Error)
                     }
                 }
-                is OperationResult.AuthError -> onComplete(NetworkResponse.AuthError)
+                is NetworkResponse.AuthError -> onComplete(NetworkResponse.AuthError)
                 else -> onComplete(NetworkResponse.Error)
             }
         }
@@ -919,9 +919,9 @@ class TwitchApi(accessToken: String) {
     ) {
         doGet(subPath = makeUrl("predictions", listOf("broadcaster_id" to broadcasterId))) { result ->
             when (result) {
-                is OperationResult.Success -> {
+                is NetworkResponse.Success -> {
                     val message = runCatching {
-                        json.decodeFromString<TwitchApiPredictions>(result.data.decodeToString())
+                        json.decodeFromString<TwitchApiPredictions>(result.value.decodeToString())
                     }.getOrNull()
                     if (message != null) {
                         onComplete(NetworkResponse.Success(message.data))
@@ -929,7 +929,7 @@ class TwitchApi(accessToken: String) {
                         onComplete(NetworkResponse.Error)
                     }
                 }
-                is OperationResult.AuthError -> onComplete(NetworkResponse.AuthError)
+                is NetworkResponse.AuthError -> onComplete(NetworkResponse.AuthError)
                 else -> onComplete(NetworkResponse.Error)
             }
         }
@@ -1008,13 +1008,13 @@ class TwitchApi(accessToken: String) {
                     val isForbidden = forbiddenIsAuthError && response?.code == 403
                     if (response?.code == 401 || isForbidden) {
                         onUnauthorized?.invoke()
-                        onComplete(OperationResult.AuthError)
+                        onComplete(NetworkResponse.AuthError)
                     } else {
-                        onComplete(OperationResult.Error)
+                        onComplete(NetworkResponse.Error)
                     }
                     return@launch
                 }
-                onComplete(OperationResult.Success(data))
+                onComplete(NetworkResponse.Success(data))
             }
         }
     }

@@ -133,7 +133,7 @@ class MobcamStream(private val delegate: MobcamStreamDelegate?) :
     }
 
     private fun setupPeriodicTimer() {
-        periodicTimer.startPeriodic(interval = 1) {
+        periodicTimer.startPeriodic(interval = 1.0) {
             if (listener == null || listener?.isClosed == true) {
                 setupListener()
             }
@@ -248,7 +248,7 @@ class MobcamStream(private val delegate: MobcamStreamDelegate?) :
 
     private fun handleMessage(type: MobcamStreamMessageType, payload: ByteArray) {
         when (type) {
-            MobcamStreamMessageType.HOST_HELLO -> handleHostHello(payload)
+            MobcamStreamMessageType.hostHello -> handleHostHello(payload)
             else -> Log.i(TAG, "mobcam-stream: Ignoring message type $type")
         }
     }
@@ -336,7 +336,7 @@ class MobcamStream(private val delegate: MobcamStreamDelegate?) :
                 val record = MpegTsVideoConfigAvc.getAvcC(formatDescription) ?: return
                 send(
                     packMobcamStreamVideoConfig(
-                        codec = MobcamStreamVideoCodec.H264,
+                        codec = MobcamStreamVideoCodec.h264,
                         width = width.toUShort(),
                         height = height.toUShort(),
                         configurationRecord = record,
@@ -347,7 +347,7 @@ class MobcamStream(private val delegate: MobcamStreamDelegate?) :
                 val record = MpegTsVideoConfigHevc.getHvcC(formatDescription) ?: return
                 send(
                     packMobcamStreamVideoConfig(
-                        codec = MobcamStreamVideoCodec.HEVC,
+                        codec = MobcamStreamVideoCodec.hevc,
                         width = width.toUShort(),
                         height = height.toUShort(),
                         configurationRecord = record,
@@ -399,7 +399,7 @@ class MobcamStream(private val delegate: MobcamStreamDelegate?) :
                 val config = MpegTsAudioConfig(formatDescription = format)
                 send(
                     packMobcamStreamAudioConfig(
-                        codec = MobcamStreamAudioCodec.AAC,
+                        codec = MobcamStreamAudioCodec.aac,
                         sampleRate = sampleRate.toUInt(),
                         channels = channels.toUByte(),
                         configurationRecord = config.encode(),
@@ -409,7 +409,7 @@ class MobcamStream(private val delegate: MobcamStreamDelegate?) :
             "audio/opus" -> {
                 send(
                     packMobcamStreamAudioConfig(
-                        codec = MobcamStreamAudioCodec.OPUS,
+                        codec = MobcamStreamAudioCodec.opus,
                         sampleRate = sampleRate.toUInt(),
                         channels = channels.toUByte(),
                         configurationRecord = packMobcamStreamOpusHead(
@@ -445,9 +445,9 @@ class MobcamStream(private val delegate: MobcamStreamDelegate?) :
         }
     }
 
-    override fun audioEncoderOutputBuffer(buffer: ByteArray, presentationTimeUs: Long) {
+    override fun audioEncoderOutputBuffer(buffer: MediaSample, presentationTimeStamp: Long) {
         mobcamStreamScope.launch {
-            handleAudioEncoderOutputBuffer(buffer, presentationTimeUs)
+            handleAudioEncoderOutputBuffer(buffer.data, presentationTimeStamp)
         }
     }
 

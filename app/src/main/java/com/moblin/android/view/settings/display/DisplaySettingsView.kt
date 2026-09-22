@@ -71,7 +71,7 @@ private fun BackgroundImageCropView(
     image: Bitmap
 ) {
     var position by remember { mutableStateOf(Offset(100f, 100f)) }
-    var positionOffset by remember { mutableStateOf(Offset(0f, 0f)) }
+    var positionOffset by remember { mutableStateOf(Size(0f, 0f)) }
     var positionAnchorPoint by remember { mutableStateOf<AnchorPoint?>(null) }
     var latestImageUpdateTime by remember { mutableStateOf(SystemClock.elapsedRealtime()) }
 
@@ -80,10 +80,10 @@ private fun BackgroundImageCropView(
             val (anchorPoint, offset) = calculatePositioningAnchorPoint(
                 location,
                 size,
-                quickButtons.backgroundImageCropX.value,
-                quickButtons.backgroundImageCropY.value,
-                quickButtons.backgroundImageCropWidth.value,
-                quickButtons.backgroundImageCropHeight.value
+                quickButtons.backgroundImageCropX,
+                quickButtons.backgroundImageCropY,
+                quickButtons.backgroundImageCropWidth,
+                quickButtons.backgroundImageCropHeight
             )
             positionAnchorPoint = anchorPoint
             positionOffset = offset
@@ -93,24 +93,24 @@ private fun BackgroundImageCropView(
     fun createPositionRectangle(size: Size): Rect {
         val (xTopLeft, yTopLeft, xBottomRight, yBottomRight) = calculatePositioningRectangle(
             positionAnchorPoint,
-            quickButtons.backgroundImageCropX.value,
-            quickButtons.backgroundImageCropY.value,
-            quickButtons.backgroundImageCropWidth.value,
-            quickButtons.backgroundImageCropHeight.value,
+            quickButtons.backgroundImageCropX,
+            quickButtons.backgroundImageCropY,
+            quickButtons.backgroundImageCropWidth,
+            quickButtons.backgroundImageCropHeight,
             position,
             size,
             positionOffset
         )
-        quickButtons.backgroundImageCropX.value = xTopLeft
-        quickButtons.backgroundImageCropY.value = yTopLeft
-        quickButtons.backgroundImageCropWidth.value = xBottomRight - xTopLeft
-        quickButtons.backgroundImageCropHeight.value = yBottomRight - yTopLeft
+        quickButtons.backgroundImageCropX = xTopLeft
+        quickButtons.backgroundImageCropY = yTopLeft
+        quickButtons.backgroundImageCropWidth = xBottomRight - xTopLeft
+        quickButtons.backgroundImageCropHeight = yBottomRight - yTopLeft
         return Rect(
-            left = quickButtons.backgroundImageCropX.value.toFloat() * size.width,
-            top = quickButtons.backgroundImageCropY.value.toFloat() * size.height,
-            right = (quickButtons.backgroundImageCropX.value + quickButtons.backgroundImageCropWidth.value)
+            left = quickButtons.backgroundImageCropX.toFloat() * size.width,
+            top = quickButtons.backgroundImageCropY.toFloat() * size.height,
+            right = (quickButtons.backgroundImageCropX + quickButtons.backgroundImageCropWidth)
                 .toFloat() * size.width,
-            bottom = (quickButtons.backgroundImageCropY.value + quickButtons.backgroundImageCropHeight.value)
+            bottom = (quickButtons.backgroundImageCropY + quickButtons.backgroundImageCropHeight)
                 .toFloat() * size.height
         )
     }
@@ -135,17 +135,17 @@ private fun BackgroundImageCropView(
                             val now = SystemClock.elapsedRealtime()
                             if (now - latestImageUpdateTime > 100) {
                                 latestImageUpdateTime = now
-                                model.updateControlBarBackgroundImage(image)
+                                TODO("Model.updateControlBarBackgroundImage is not implemented")
                             }
                         },
                         onDragEnd = {
                             positionAnchorPoint = null
-                            model.updateControlBarBackgroundImage(image)
+                            TODO("Model.updateControlBarBackgroundImage is not implemented")
                         }
                     )
                 }
         ) {
-            drawPositioningRectangle(this, createPositionRectangle(size))
+            drawPositioningRectangle(createPositionRectangle(size))
         }
     }
 }
@@ -163,7 +163,7 @@ private fun BackgroundImageSettingsView(
 
     LaunchedEffect(Unit) {
         model.checkPhotoLibraryAuthorization()
-        image = model.readControlBarBackgroundImage()
+        image = TODO("Model.readControlBarBackgroundImage is not implemented")
     }
     LaunchedEffect(presentingPicker) {
         if (presentingPicker) {
@@ -200,7 +200,7 @@ private fun BackgroundImageSettingsView(
                         CompositionLocalProvider(LocalContentColor provides Color.Red) {
                             TextButtonView("Delete image") {
                                 image = null
-                                model.deleteControlBarBackgroundImage()
+                                TODO("Model.deleteControlBarBackgroundImage is not implemented")
                             }
                         }
                     }
@@ -221,7 +221,7 @@ private fun BackgroundImageSettingsView(
                             )
                         }
                         LaunchedEffect(backgroundImageOpacity) {
-                            model.updateControlBarBackgroundImageOpacity()
+                            TODO("Model.updateControlBarBackgroundImageOpacity is not implemented")
                         }
                     }
                 }
@@ -237,7 +237,7 @@ private fun ExternalDisplayContentView(
     database: Database
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val externalDisplayContent by database.externalDisplayContent.collectAsState()
+    val externalDisplayContent = database.externalDisplayContent
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text("External monitor content")
@@ -255,7 +255,7 @@ private fun ExternalDisplayContentView(
                     DropdownMenuItem(
                         text = { Text(content.toString()) },
                         onClick = {
-                            database.externalDisplayContent.value = content
+                            database.externalDisplayContent = content
                             expanded = false
                         }
                     )
@@ -275,14 +275,14 @@ fun DisplaySettingsView(
     database: Database,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    val bigButtons by database.bigButtons.collectAsState()
-    val bigAudioLevelMeter by database.bigAudioLevelMeter.collectAsState()
-    val verticalButtons by database.verticalButtons.collectAsState()
-    val showAllSettings by database.showAllSettings.collectAsState()
-    val lowBitrateWarning by database.lowBitrateWarning.collectAsState()
-    val startStopRecordingConfirmations by database.startStopRecordingConfirmations.collectAsState()
-    val vibrate by database.vibrate.collectAsState()
-    val portrait by database.portrait.collectAsState()
+    val bigButtons = database.bigButtons
+    val bigAudioLevelMeter = database.bigAudioLevelMeter
+    val verticalButtons = database.verticalButtons
+    val showAllSettings = database.showAllSettings
+    val lowBitrateWarning = database.lowBitrateWarning
+    val startStopRecordingConfirmations = database.startStopRecordingConfirmations
+    val vibrate = database.vibrate
+    val portrait = database.portrait
     val portraitVideoOffsetFromTop by model.portraitVideoOffsetFromTop.collectAsState()
     val stream by model.stream.collectAsState()
 
@@ -318,7 +318,7 @@ fun DisplaySettingsView(
                         Spacer(Modifier.weight(1f))
                         Switch(
                             checked = bigButtons,
-                            onCheckedChange = { database.bigButtons.value = it }
+                            onCheckedChange = { database.bigButtons = it }
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -326,7 +326,7 @@ fun DisplaySettingsView(
                         Spacer(Modifier.weight(1f))
                         Switch(
                             checked = bigAudioLevelMeter,
-                            onCheckedChange = { database.bigAudioLevelMeter.value = it }
+                            onCheckedChange = { database.bigAudioLevelMeter = it }
                         )
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -334,7 +334,7 @@ fun DisplaySettingsView(
                         Spacer(Modifier.weight(1f))
                         Switch(
                             checked = verticalButtons,
-                            onCheckedChange = { database.verticalButtons.value = it }
+                            onCheckedChange = { database.verticalButtons = it }
                         )
                     }
                     if (showAllSettings) {
@@ -350,7 +350,7 @@ fun DisplaySettingsView(
                             Spacer(Modifier.weight(1f))
                             Switch(
                                 checked = lowBitrateWarning,
-                                onCheckedChange = { database.lowBitrateWarning.value = it }
+                                onCheckedChange = { database.lowBitrateWarning = it }
                             )
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -358,7 +358,7 @@ fun DisplaySettingsView(
                             Spacer(Modifier.weight(1f))
                             Switch(
                                 checked = startStopRecordingConfirmations,
-                                onCheckedChange = { database.startStopRecordingConfirmations.value = it }
+                                onCheckedChange = { database.startStopRecordingConfirmations = it }
                             )
                         }
                     }
@@ -371,7 +371,7 @@ fun DisplaySettingsView(
                         Spacer(Modifier.weight(1f))
                         Switch(
                             checked = vibrate,
-                            onCheckedChange = { database.vibrate.value = it }
+                            onCheckedChange = { database.vibrate = it }
                         )
                     }
                     LaunchedEffect(vibrate) {
@@ -407,14 +407,14 @@ fun DisplaySettingsView(
                                 Slider(
                                     value = portraitVideoOffsetFromTop.toFloat(),
                                     onValueChange = {
-                                        database.portraitVideoOffsetFromTop.value = it.toDouble()
+                                        database.portraitVideoOffsetFromTop = it.toDouble()
                                     },
                                     valueRange = 0f..1f,
                                     modifier = Modifier.weight(1f)
                                 )
                             }
                             LaunchedEffect(portraitVideoOffsetFromTop) {
-                                database.portraitVideoOffsetFromTop.value = portraitVideoOffsetFromTop
+                                database.portraitVideoOffsetFromTop = portraitVideoOffsetFromTop
                             }
                             Column(horizontalAlignment = Alignment.Start) {
                                 Text("Useful when using an external camera and a portrait phone holder.")

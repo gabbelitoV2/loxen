@@ -26,9 +26,9 @@ import com.moblin.android.localized
 import com.moblin.android.streamingplatforms.kick.KickLoginView
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
-import com.moblin.android.various.model.Platform
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
+import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.LocalModel
 
@@ -39,19 +39,19 @@ fun StreamWizardKickSettingsView(
     createStreamWizard: CreateStreamWizard,
     onNavigate: (String) -> Unit = {},
 ) {
-    val showKickAuth by createStreamWizard.showKickAuth.collectAsState()
-    val kickChannelName by createStreamWizard.kickChannelName.collectAsState()
-    val kickAccessToken by createStreamWizard.kickStream.kickAccessToken.collectAsState()
+    val showKickAuth = createStreamWizard.showKickAuth
+    val kickChannelName = createStreamWizard.kickChannelName
+    val kickAccessToken = createStreamWizard.kickStream.kickAccessToken
 
     fun nextDisabled(): Boolean = kickChannelName.trim().isEmpty()
 
     fun onLoginComplete() {
-        createStreamWizard.kickChannelName.value = createStreamWizard.kickStream.kickChannelName.value
-        createStreamWizard.kickAccessToken.value = createStreamWizard.kickStream.kickAccessToken.value
-        createStreamWizard.kickLoggedIn.value = createStreamWizard.kickStream.kickLoggedIn.value
-        createStreamWizard.kickChannelId.value = createStreamWizard.kickStream.kickChannelId.value
-        createStreamWizard.kickSlug.value = createStreamWizard.kickStream.kickSlug.value
-        createStreamWizard.kickChatroomChannelId.value = createStreamWizard.kickStream.kickChatroomChannelId.value
+        createStreamWizard.kickChannelName = createStreamWizard.kickStream.kickChannelName
+        createStreamWizard.kickAccessToken = createStreamWizard.kickStream.kickAccessToken
+        createStreamWizard.kickLoggedIn = createStreamWizard.kickStream.kickLoggedIn
+        createStreamWizard.kickChannelId = createStreamWizard.kickStream.kickChannelId
+        createStreamWizard.kickSlug = createStreamWizard.kickStream.kickSlug
+        createStreamWizard.kickChatroomChannelId = createStreamWizard.kickStream.kickChatroomChannelId
     }
 
     Scaffold(
@@ -72,19 +72,17 @@ fun StreamWizardKickSettingsView(
         ) {
             if (kickAccessToken.isEmpty()) {
                 TextButtonView(
-                    text = "Login",
+                    title = "Login",
                     action = {
-                        createStreamWizard.showKickAuth.value = true
-                        model.kickLogin(stream = createStreamWizard.kickStream) {
-                            onLoginComplete()
-                        }
+                        createStreamWizard.showKickAuth = true
+                        TODO("no Android counterpart for Model.kickLogin(stream:onComplete:)")
                     },
                 )
             } else {
                 TextButtonView(
-                    text = "Logout",
+                    title = "Logout",
                     action = {
-                        model.kickLogout(stream = createStreamWizard.kickStream)
+                        TODO("no Android counterpart for Model.kickLogout(stream:)")
                     },
                 )
             }
@@ -99,7 +97,7 @@ fun StreamWizardKickSettingsView(
             )
             OutlinedTextField(
                 value = kickChannelName,
-                onValueChange = { createStreamWizard.kickChannelName.value = it },
+                onValueChange = { createStreamWizard.kickChannelName = it },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
@@ -120,21 +118,23 @@ fun StreamWizardKickSettingsView(
 
     if (showKickAuth) {
         ModalBottomSheet(
-            onDismissRequest = { createStreamWizard.showKickAuth.value = false },
+            onDismissRequest = { createStreamWizard.showKickAuth = false },
         ) {
             KickLoginView(
-                onComplete = { accessToken -> model.kickAuthOnComplete?.invoke(accessToken) },
+                presenting = showKickAuth,
+                onPresentingChange = { createStreamWizard.showKickAuth = it },
+                onAccessToken = { accessToken -> model.kickAuthOnComplete?.invoke(accessToken) },
             )
         }
     }
 
     LaunchedEffect(Unit) {
-        createStreamWizard.platform.value = Platform.kick
-        createStreamWizard.name.value = makeUniqueName(
+        createStreamWizard.platform = WizardPlatform.kick
+        createStreamWizard.name = makeUniqueName(
             name = localized("Kick"),
             existingNames = model.database.streams,
         )
-        createStreamWizard.directIngest.value = ""
-        createStreamWizard.kickStream.kickAccessToken.value = ""
+        createStreamWizard.directIngest = ""
+        createStreamWizard.kickStream.kickAccessToken = ""
     }
 }

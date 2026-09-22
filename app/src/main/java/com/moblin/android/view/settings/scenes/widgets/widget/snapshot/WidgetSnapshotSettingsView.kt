@@ -32,7 +32,7 @@ fun WidgetSnapshotSettingsView(
     widget: SettingsWidget,
     snapshot: SettingsWidgetSnapshot,
 ) {
-    val showtime by snapshot.showtime.collectAsState()
+    val showtime = snapshot.showtime
     var expanded by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -74,5 +74,5 @@ fun WidgetSnapshotSettingsView(
 }
 
 private fun setEffectSettings(model: Model, widget: SettingsWidget, showtime: Int) {
-    model.getSnapshotEffect(id = widget.id)?.setSettings(showtime = showtime)
+    TODO("model.getSnapshotEffect(id = widget.id)?.setSettings(showtime = showtime)")
 }

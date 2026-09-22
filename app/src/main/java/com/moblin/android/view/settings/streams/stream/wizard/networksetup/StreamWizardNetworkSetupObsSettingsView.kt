@@ -1,6 +1,8 @@
 package com.moblin.android.view.settings.streams.stream.wizard.networksetup
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.WizardNetworkSetup
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.FormFieldError
@@ -44,8 +47,8 @@ fun StreamWizardNetworkSetupObsSettingsView(
     createStreamWizard: CreateStreamWizard,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val obsAddress by createStreamWizard.obsAddress.collectAsState()
-    val obsPort by createStreamWizard.obsPort.collectAsState()
+    var obsAddress by remember { mutableStateOf(createStreamWizard.obsAddress) }
+    var obsPort by remember { mutableStateOf(createStreamWizard.obsPort) }
     var portError by remember { mutableStateOf("") }
 
     fun updatePortError() {
@@ -70,7 +73,7 @@ fun StreamWizardNetworkSetupObsSettingsView(
     }
 
     LaunchedEffect(Unit) {
-        createStreamWizard.networkSetup = CreateStreamWizard.NetworkSetup.obs
+        createStreamWizard.networkSetup = WizardNetworkSetup.obs
         updatePortError()
     }
 
@@ -101,7 +104,10 @@ fun StreamWizardNetworkSetupObsSettingsView(
                 )
                 OutlinedTextField(
                     value = obsAddress,
-                    onValueChange = { createStreamWizard.obsAddress.value = it },
+                    onValueChange = {
+                        obsAddress = it
+                        createStreamWizard.obsAddress = it
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     placeholder = { Text("213.33.45.132") },
@@ -125,7 +131,10 @@ fun StreamWizardNetworkSetupObsSettingsView(
                 )
                 OutlinedTextField(
                     value = obsPort,
-                    onValueChange = { createStreamWizard.obsPort.value = it },
+                    onValueChange = {
+                        obsPort = it
+                        createStreamWizard.obsPort = it
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     placeholder = { Text("7654") },
@@ -172,7 +181,7 @@ fun StreamWizardNetworkSetupObsSettingsView(
                     )
                     HCenter {
                         Image(
-                            painter = painterResource(id = com.moblin.android.R.drawable.obs_media_source_srt),
+                            painter = TODO("ObsMediaSourceSrt drawable"),
                             contentDescription = null,
                             modifier = Modifier.fillMaxWidth(),
                             contentScale = ContentScale.Fit,
@@ -181,12 +190,13 @@ fun StreamWizardNetworkSetupObsSettingsView(
                 }
             }
             item {
-                WizardNextButtonView(
-                    enabled = !nextDisabled(),
-                    onClick = {
+                Box(
+                    modifier = Modifier.clickable(enabled = !nextDisabled()) {
                         onNavigate("StreamWizardObsRemoteControlSettingsView")
                     },
-                )
+                ) {
+                    WizardNextButtonView()
+                }
             }
         }
     }

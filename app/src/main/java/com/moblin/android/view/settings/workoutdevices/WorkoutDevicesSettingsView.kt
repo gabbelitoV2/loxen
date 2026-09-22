@@ -36,26 +36,27 @@ fun WorkoutDevicesSettingsView(
     model: Model = LocalModel.current,
     workoutDevices: SettingsWorkoutDevices,
 ) {
-    val devices = workoutDevices.devices.collectAsState().value
-    val statusTopRight = model.statusTopRight.collectAsState().value
+    val devices = workoutDevices.devices
+    val statusTopRight = model.statusTopRight
     Column(modifier = Modifier.fillMaxSize()) {
         TopAppBar(title = { Text(localized("Workout devices")) })
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 Column {
                     HCenter {
-                        IntegrationImageView(imageName = "HeartRateDevice", height = 80)
-                        IntegrationImageView(imageName = "HeartRateDeviceCoros", height = 80)
+                        IntegrationImageView(imageName = "HeartRateDevice", height = 80.0)
+                        IntegrationImageView(imageName = "HeartRateDeviceCoros", height = 80.0)
                     }
-                    IntegrationImageView(imageName = "CyclingPowerDevice", height = 80)
+                    IntegrationImageView(imageName = "CyclingPowerDevice", height = 80.0)
                 }
             }
             items(items = devices, key = { it.id }) { device ->
                 val dismissState = rememberSwipeToDismissBoxState(
                     confirmValueChange = { value ->
                         if (value == SwipeToDismissBoxValue.EndToStart) {
-                            workoutDevices.devices.value = workoutDevices.devices.value
+                            workoutDevices.devices = workoutDevices.devices
                                 .filterNot { it.id == device.id }
+                                .toMutableList()
                             true
                         } else {
                             false
@@ -77,8 +78,9 @@ fun WorkoutDevicesSettingsView(
                         modifier = Modifier
                             .fillMaxWidth()
                             .contextMenuDeleteButton {
-                                workoutDevices.devices.value = workoutDevices.devices.value
+                                workoutDevices.devices = workoutDevices.devices
                                     .filterNot { it.id == device.id }
+                                    .toMutableList()
                             },
                     ) {
                         WorkoutDeviceSettingsView(
@@ -94,7 +96,7 @@ fun WorkoutDevicesSettingsView(
                 CreateButtonView {
                     val device = SettingsWorkoutDevice()
                     device.name = makeUniqueName(SettingsWorkoutDevice.baseName, devices)
-                    workoutDevices.devices.value = workoutDevices.devices.value + device
+                    workoutDevices.devices = (workoutDevices.devices + device).toMutableList()
                 }
             }
             item {

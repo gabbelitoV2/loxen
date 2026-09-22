@@ -9,6 +9,8 @@ import kotlinx.coroutines.launch
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
+private const val screenRecordingLatency = 0.1
+
 enum class SampleBufferType {
     video,
     audioApp,

@@ -49,30 +49,30 @@ import com.moblin.android.various.settings.SettingsShow
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalOverlaysSettingsView(show: SettingsShow) {
-    val stream by show.stream.collectAsState()
-    val cameras by show.cameras.collectAsState()
-    val microphone by show.microphone.collectAsState()
-    val zoom by show.zoom.collectAsState()
-    val obsStatus by show.obsStatus.collectAsState()
-    val events by show.events.collectAsState()
-    val chat by show.chat.collectAsState()
-    val viewers by show.viewers.collectAsState()
-    val audioLevel by show.audioLevel.collectAsState()
-    val systemMonitor by show.systemMonitor.collectAsState()
-    val location by show.location.collectAsState()
-    val ingests by show.ingests.collectAsState()
-    val moblink by show.moblink.collectAsState()
-    val remoteControl by show.remoteControl.collectAsState()
-    val djiDevices by show.djiDevices.collectAsState()
-    val gameController by show.gameController.collectAsState()
-    val speed by show.speed.collectAsState()
-    val uptime by show.uptime.collectAsState()
-    val browserWidgets by show.browserWidgets.collectAsState()
-    val bonding by show.bonding.collectAsState()
-    val bondingRtts by show.bondingRtts.collectAsState()
-    val catPrinter by show.catPrinter.collectAsState()
-    val workoutDevice by show.workoutDevice.collectAsState()
-    val zoomPresets by show.zoomPresets.collectAsState()
+    val stream = show.stream
+    val cameras = show.cameras
+    val microphone = show.microphone
+    val zoom = show.zoom
+    val obsStatus = show.obsStatus
+    val events = show.events
+    val chat = show.chat
+    val viewers = show.viewers
+    val audioLevel = show.audioLevel
+    val systemMonitor = show.systemMonitor
+    val location = show.location
+    val ingests = show.ingests
+    val moblink = show.moblink
+    val remoteControl = show.remoteControl
+    val djiDevices = show.djiDevices
+    val gameController = show.gameController
+    val speed = show.speed
+    val uptime = show.uptime
+    val browserWidgets = show.browserWidgets
+    val bonding = show.bonding
+    val bondingRtts = show.bondingRtts
+    val catPrinter = show.catPrinter
+    val workoutDevice = show.workoutDevice
+    val zoomPresets = show.zoomPresets
 
     Scaffold(
         topBar = {
@@ -94,42 +94,42 @@ fun LocalOverlaysSettingsView(show: SettingsShow) {
             }
             item {
                 LocalOverlayToggle("Stream", Icons.Default.PlayArrow, stream) {
-                    show.stream.value = it
+                    show.stream = it
                 }
             }
             item {
                 LocalOverlayToggle("Camera", Icons.Default.CameraAlt, cameras) {
-                    show.cameras.value = it
+                    show.cameras = it
                 }
             }
             item {
                 LocalOverlayToggle("Mic", Icons.Default.Mic, microphone) {
-                    show.microphone.value = it
+                    show.microphone = it
                 }
             }
             item {
                 LocalOverlayToggle("Zoom", Icons.Default.Search, zoom) {
-                    show.zoom.value = it
+                    show.zoom = it
                 }
             }
             item {
                 LocalOverlayToggle("OBS remote control", Icons.Default.Dns, obsStatus) {
-                    show.obsStatus.value = it
+                    show.obsStatus = it
                 }
             }
             item {
                 LocalOverlayToggle("Events (alerts)", Icons.Default.Notifications, events) {
-                    show.events.value = it
+                    show.events = it
                 }
             }
             item {
                 LocalOverlayToggle("Chat", Icons.Default.Chat, chat) {
-                    show.chat.value = it
+                    show.chat = it
                 }
             }
             item {
                 LocalOverlayToggle("Viewers", Icons.Default.Visibility, viewers) {
-                    show.viewers.value = it
+                    show.viewers = it
                 }
             }
             item {
@@ -142,77 +142,77 @@ fun LocalOverlaysSettingsView(show: SettingsShow) {
             }
             item {
                 LocalOverlayToggle("Audio level", Icons.Default.GraphicEq, audioLevel) {
-                    show.audioLevel.value = it
+                    show.audioLevel = it
                 }
             }
             item {
                 LocalOverlayToggle("System monitor", Icons.Default.Memory, systemMonitor) {
-                    show.systemMonitor.value = it
+                    show.systemMonitor = it
                 }
             }
             item {
                 LocalOverlayToggle("Location", Icons.Default.LocationOn, location) {
-                    show.location.value = it
+                    show.location = it
                 }
             }
             item {
                 LocalOverlayToggle("Ingests", Icons.Default.Storage, ingests) {
-                    show.ingests.value = it
+                    show.ingests = it
                 }
             }
             item {
                 LocalOverlayToggle("Moblink", Icons.Default.Link, moblink) {
-                    show.moblink.value = it
+                    show.moblink = it
                 }
             }
             item {
                 LocalOverlayToggle("Remote control", Icons.Default.SettingsRemote, remoteControl) {
-                    show.remoteControl.value = it
+                    show.remoteControl = it
                 }
             }
             item {
                 LocalOverlayToggle("DJI devices", Icons.Default.SettingsRemote, djiDevices) {
-                    show.djiDevices.value = it
+                    show.djiDevices = it
                 }
             }
             item {
                 LocalOverlayToggle("Game controllers", Icons.Default.VideogameAsset, gameController) {
-                    show.gameController.value = it
+                    show.gameController = it
                 }
             }
             item {
                 LocalOverlayToggle("Bitrate", Icons.Default.Speed, speed) {
-                    show.speed.value = it
+                    show.speed = it
                 }
             }
             item {
                 LocalOverlayToggle("Uptime", Icons.Default.AccessTime, uptime) {
-                    show.uptime.value = it
+                    show.uptime = it
                 }
             }
             item {
                 LocalOverlayToggle("Browser widgets", Icons.Default.Public, browserWidgets) {
-                    show.browserWidgets.value = it
+                    show.browserWidgets = it
                 }
             }
             item {
                 LocalOverlayToggle("Bonding", Icons.Default.Phone, bonding) {
-                    show.bonding.value = it
+                    show.bonding = it
                 }
             }
             item {
                 LocalOverlayToggle("Bonding RTTs", Icons.Default.Phone, bondingRtts) {
-                    show.bondingRtts.value = it
+                    show.bondingRtts = it
                 }
             }
             item {
                 LocalOverlayToggle("Cat printers", Icons.Default.Pets, catPrinter) {
-                    show.catPrinter.value = it
+                    show.catPrinter = it
                 }
             }
             item {
                 LocalOverlayToggle("Workout devices", Icons.Default.DirectionsWalk, workoutDevice) {
-                    show.workoutDevice.value = it
+                    show.workoutDevice = it
                 }
             }
             item {
@@ -225,7 +225,7 @@ fun LocalOverlaysSettingsView(show: SettingsShow) {
             }
             item {
                 LocalOverlayToggle("Zoom presets", Icons.Default.Search, zoomPresets) {
-                    show.zoomPresets.value = it
+                    show.zoomPresets = it
                 }
             }
             item {

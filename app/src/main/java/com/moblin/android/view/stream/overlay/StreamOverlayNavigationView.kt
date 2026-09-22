@@ -23,7 +23,7 @@ import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -47,9 +47,11 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Navigation
 import com.moblin.android.various.model.NavigationTransportType
+import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsNavigation
 import com.moblin.android.view.stream.overlay.right.segmentHeight
 import com.moblin.android.view.stream.overlay.right.segmentHeightBig
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.math.min
 import com.moblin.android.LocalModel
 
@@ -83,6 +85,7 @@ private fun ImageConeView(slash: Boolean) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ControlSearchView(navigation: Navigation, modifier: Modifier = Modifier) {
     fun search(text: String) {
@@ -187,13 +190,15 @@ private fun ControlsView(
             }
             Button(
                 onClick = {
+                    val followUserState = navigationSettings.followUser as MutableStateFlow<Boolean>
+                    val followHeadingState = navigationSettings.followHeading as MutableStateFlow<Boolean>
                     if (followUser && followHeading) {
-                        navigationSettings.followUser.value = false
-                        navigationSettings.followHeading.value = false
+                        followUserState.value = false
+                        followHeadingState.value = false
                     } else if (!followUser && !followHeading) {
-                        navigationSettings.followUser.value = true
+                        followUserState.value = true
                     } else if (followUser && !followHeading) {
-                        navigationSettings.followHeading.value = true
+                        followHeadingState.value = true
                     }
                 },
                 modifier = Modifier.then(TODO("no Android counterpart for glassEffect")),
@@ -273,6 +278,8 @@ fun StreamOverlayNavigationView(
     }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val maxWidth = this.maxWidth
+        val maxHeight = this.maxHeight
         Box(modifier = Modifier.offset(y = offset(maxHeight))) {
             Row(modifier = Modifier.fillMaxSize()) {
                 Spacer(Modifier.weight(1f))

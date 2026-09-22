@@ -25,13 +25,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.text.input.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardOptions
 import com.moblin.android.common.various.cleanUrl
 import com.moblin.android.common.various.isValidUrl
 import com.moblin.android.localized
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StreamingPlatformStatus
+import com.moblin.android.various.model.WizardNetworkSetup
+import com.moblin.android.various.model.WizardPlatform
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.FormFieldError
@@ -46,9 +48,9 @@ fun StreamWizardNetworkSetupDirectSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var ingestError by remember { mutableStateOf("") }
-    val directIngest by createStreamWizard.directIngest.collectAsState()
-    val directStreamKey by createStreamWizard.directStreamKey.collectAsState()
-    val platform by createStreamWizard.platform.collectAsState()
+    val directIngest = createStreamWizard.directIngest
+    val directStreamKey = createStreamWizard.directStreamKey
+    val platform = createStreamWizard.platform
     val uriHandler = LocalUriHandler.current
 
     fun nextDisabled(): Boolean {
@@ -56,20 +58,20 @@ fun StreamWizardNetworkSetupDirectSettingsView(
     }
 
     fun twitchStreamKeyUrl(): String {
-        return "https://dashboard.twitch.tv/u/${createStreamWizard.twitchChannelName.value.trim()}/settings/stream"
+        return "https://dashboard.twitch.tv/u/${createStreamWizard.twitchChannelName.trim()}/settings/stream"
     }
 
     fun updateIngestError() {
-        val url = cleanUrl(url = createStreamWizard.directIngest.value)
+        val url = cleanUrl(value = createStreamWizard.directIngest)
         ingestError = if (url.isEmpty()) {
             ""
         } else {
-            isValidUrl(url = url, rtmpStreamKeyRequired = false) ?: ""
+            isValidUrl(value = url, rtmpStreamKeyRequired = false) ?: ""
         }
     }
 
     LaunchedEffect(Unit) {
-        createStreamWizard.networkSetup.value = CreateStreamWizard.NetworkSetup.Direct
+        createStreamWizard.networkSetup = WizardNetworkSetup.direct
         updateIngestError()
     }
 
@@ -89,7 +91,7 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                 .padding(paddingValues),
         ) {
             when (platform) {
-                StreamingPlatformStatus.Twitch -> {
+                WizardPlatform.twitch -> {
                     item {
                         Text(
                             text = localized("Nearby ingest endpoint"),
@@ -100,7 +102,7 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                         OutlinedTextField(
                             value = directIngest,
                             onValueChange = {
-                                createStreamWizard.directIngest.value = it
+                                createStreamWizard.directIngest = it
                                 updateIngestError()
                             },
                             placeholder = {
@@ -134,7 +136,7 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                         OutlinedTextField(
                             value = directStreamKey,
                             onValueChange = {
-                                createStreamWizard.directStreamKey.value = it
+                                createStreamWizard.directStreamKey = it
                             },
                             placeholder = {
                                 Text(localized("live_48950233_okF4f455GRWEF443fFr23GRbt5rEv"))
@@ -163,7 +165,7 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                     }
                 }
 
-                StreamingPlatformStatus.Kick -> {
+                WizardPlatform.kick -> {
                     item {
                         Text(
                             text = localized("Stream URL"),
@@ -174,7 +176,7 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                         OutlinedTextField(
                             value = directIngest,
                             onValueChange = {
-                                createStreamWizard.directIngest.value = it
+                                createStreamWizard.directIngest = it
                                 updateIngestError()
                             },
                             placeholder = {
@@ -208,7 +210,7 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                         OutlinedTextField(
                             value = directStreamKey,
                             onValueChange = {
-                                createStreamWizard.directStreamKey.value = it
+                                createStreamWizard.directStreamKey = it
                             },
                             placeholder = {
                                 Text(localized("sk_us-west-2_okfef49k34k_34g59gGDDHGHSREj754gYJYTJERH"))
@@ -230,7 +232,7 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                     }
                 }
 
-                StreamingPlatformStatus.YouTube -> {
+                WizardPlatform.youTube -> {
                     item {
                         Text(
                             text = localized("Stream URL"),
@@ -241,7 +243,7 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                         OutlinedTextField(
                             value = directIngest,
                             onValueChange = {
-                                createStreamWizard.directIngest.value = it
+                                createStreamWizard.directIngest = it
                                 updateIngestError()
                             },
                             placeholder = {
@@ -273,7 +275,7 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                         OutlinedTextField(
                             value = directStreamKey,
                             onValueChange = {
-                                createStreamWizard.directStreamKey.value = it
+                                createStreamWizard.directStreamKey = it
                             },
                             placeholder = {
                                 Text(localized("4bkf-8d03-g6w3-ekjh-emdc"))
@@ -293,7 +295,7 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                     }
                 }
 
-                StreamingPlatformStatus.Soop -> {
+                WizardPlatform.soop -> {
                     item {
                         Text(
                             text = localized("Stream URL"),
@@ -304,7 +306,7 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                         OutlinedTextField(
                             value = directIngest,
                             onValueChange = {
-                                createStreamWizard.directIngest.value = it
+                                createStreamWizard.directIngest = it
                                 updateIngestError()
                             },
                             placeholder = {
@@ -336,7 +338,7 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                         OutlinedTextField(
                             value = directStreamKey,
                             onValueChange = {
-                                createStreamWizard.directStreamKey.value = it
+                                createStreamWizard.directStreamKey = it
                             },
                             placeholder = {
                                 Text(localized("???"))
@@ -356,13 +358,13 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                     }
                 }
 
-                StreamingPlatformStatus.Custom -> {
+                WizardPlatform.custom -> {
                 }
 
-                StreamingPlatformStatus.Obs -> {
+                WizardPlatform.obs -> {
                 }
 
-                StreamingPlatformStatus.Mobcam -> {
+                WizardPlatform.mobcam -> {
                 }
             }
 
