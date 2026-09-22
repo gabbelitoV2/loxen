@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -170,7 +171,45 @@ def glossary_for(entry, by_path):
     return rows
 
 
-def build_user_prompt(entry, glossary, source):
+DECLARATION_RE = re.compile(
+    r"^\s*(?:@\w+(?:\([^)]*\))?\s+)*(?:(?:public|internal|open|abstract|override|suspend|inline|operator|infix|const|lateinit)\s+)*"
+    r"(?:fun|class|data class|sealed class|enum class|object|interface|val|var|typealias)\s"
+)
+
+
+def signatures(path, limit=80):
+    if not path.exists():
+        return []
+    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    result = []
+    index = 0
+    while index < len(lines) and len(result) < limit:
+        line = lines[index]
+        index += 1
+        if not DECLARATION_RE.match(line) or line.lstrip().startswith("private "):
+            continue
+        signature = line.strip()
+        while signature.count("(") > signature.count(")") and index < len(lines):
+            signature += " " + lines[index].strip()
+            index += 1
+        signature = re.sub(r"\s*\{.*$", "", signature)
+        result.append(signature)
+    return result
+
+
+def dependency_signatures(entry, by_path, out_dir):
+    sections = []
+    for dep in entry.get("deps", []):
+        other = by_path.get(dep)
+        if other is None or other["tier"] == "skip":
+            continue
+        lines = signatures(out_dir / other["kotlin_path"])
+        if lines:
+            sections.append(f"// {other['kotlin_package']} ({Path(other['kotlin_path']).name})\n" + "\n".join(lines))
+    return "\n\n".join(sections)[:60000]
+
+
+def build_user_prompt(entry, glossary, source, dependencies=""):
     parts = [
         f"Swift file: {entry['path']}",
         f"Tier: {entry['tier']}",
@@ -181,6 +220,11 @@ def build_user_prompt(entry, glossary, source):
         parts.append(
             "Types, top-level functions and globals from other files, with the Kotlin package they live in. "
             "Import them from there when used:\n" + "\n".join(glossary)
+        )
+    if dependencies:
+        parts.append(
+            "Current Kotlin declarations in the files this file depends on. Call them exactly as declared:\n"
+            + dependencies
         )
     parts.append("```swift\n" + source + "\n```")
     return "\n\n".join(parts)
@@ -226,7 +270,9 @@ def parse_response(text):
 def port_one(backend, entry, root, out_dir, by_path, system, tiers):
     source = (root / entry["path"]).read_text(encoding="utf-8", errors="replace")
     prompt_system = system + "\n\n" + tiers[entry["tier"]]
-    prompt_user = build_user_prompt(entry, glossary_for(entry, by_path), source)
+    prompt_user = build_user_prompt(
+        entry, glossary_for(entry, by_path), source, dependency_signatures(entry, by_path, out_dir)
+    )
     started = time.time()
     text, tokens_in, tokens_out = backend.complete(prompt_system, prompt_user)
     meta, kotlin = parse_response(text)

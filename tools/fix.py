@@ -82,46 +82,6 @@ def load_inventory():
     return inventory, by_kotlin, by_path
 
 
-DECLARATION_RE = re.compile(
-    r"^\s*(?:@\w+(?:\([^)]*\))?\s+)*(?:(?:public|internal|open|abstract|override|suspend|inline|operator|infix|const|lateinit)\s+)*"
-    r"(?:fun|class|data class|sealed class|enum class|object|interface|val|var|typealias)\s"
-)
-
-
-def signatures(path, limit=80):
-    if not path.exists():
-        return []
-    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
-    result = []
-    index = 0
-    while index < len(lines) and len(result) < limit:
-        line = lines[index]
-        index += 1
-        if not DECLARATION_RE.match(line) or line.lstrip().startswith("private "):
-            continue
-        signature = line.strip()
-        while signature.count("(") > signature.count(")") and index < len(lines):
-            signature += " " + lines[index].strip()
-            index += 1
-        signature = re.sub(r"\s*\{.*$", "", signature)
-        signature = re.sub(r"\s*=\s*(?!.*[,)]).*$", "", signature) if signature.startswith(("val", "var")) else signature
-        result.append(signature)
-    return result
-
-
-def dependency_signatures(entry, by_path):
-    sections = []
-    for dep in entry.get("deps", []):
-        other = by_path.get(dep)
-        if other is None or other["tier"] == "skip":
-            continue
-        lines = signatures(ROOT / other["kotlin_path"])
-        if lines:
-            sections.append(f"// {other['kotlin_package']} ({Path(other['kotlin_path']).name})\n" + "\n".join(lines))
-    text = "\n\n".join(sections)
-    return text[:60000]
-
-
 def build_prompt(kotlin_path, kotlin_source, errors, entry, swift_source, glossary, dependencies):
     parts = [f"Kotlin file: {kotlin_path.relative_to(ROOT).as_posix()}"]
     if entry:
@@ -148,7 +108,7 @@ def fix_one(backend, kotlin_path, errors, by_kotlin, by_path, moblin_root):
         if swift_file.exists():
             swift_source = swift_file.read_text(encoding="utf-8", errors="replace")
         glossary = port.glossary_for(entry, by_path)
-        dependencies = dependency_signatures(entry, by_path)
+        dependencies = port.dependency_signatures(entry, by_path, ROOT)
     prompt = build_prompt(kotlin_path, kotlin_source, errors, entry, swift_source, glossary, dependencies)
     started = time.time()
     text, tokens_in, tokens_out = backend.complete(FIX_SYSTEM, prompt)
