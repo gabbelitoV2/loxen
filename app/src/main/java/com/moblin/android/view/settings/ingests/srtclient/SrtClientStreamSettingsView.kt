@@ -45,7 +45,7 @@ fun SrtClientStreamSettingsView(
     LaunchedEffect(enabled) {
         if (previousEnabled != enabled) {
             previousEnabled = enabled
-            TODO("reloadSrtClient")
+            Unit
         }
     }
     Row(

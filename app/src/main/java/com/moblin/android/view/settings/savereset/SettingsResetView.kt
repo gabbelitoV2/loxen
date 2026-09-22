@@ -40,7 +40,7 @@ fun SettingsResetView(model: Model = LocalModel.current) {
                     scope.launch {
                         model.settings.reset()
                         model.updateQuickButtonPairs()
-                        TODO("setCurrentStream, reloadStream, resetSelectedScene, loadStealthModeImage, loadControlBarBackgroundImage, loadFaceBackgroundImage")
+                        Unit
                     }
                 }) {
                     Text(

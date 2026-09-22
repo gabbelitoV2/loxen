@@ -208,14 +208,14 @@ fun WidgetVideoSourceSettingsView(
         videoSource.updateCameraId(
             settingsCameraId = TODO("cameraIdToSettingsCameraId"),
         )
-        TODO("sceneUpdated")
+        Unit
         if (TODO("isScreenCaptureCamera")) {
             presentingScreenCaptureAlert = true
         }
     }
 
     fun setEffectSettings() {
-        TODO("getVideoSourceEffect")
+        Unit
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {

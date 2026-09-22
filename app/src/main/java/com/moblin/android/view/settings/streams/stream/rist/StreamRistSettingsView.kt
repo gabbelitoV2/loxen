@@ -49,7 +49,7 @@ fun StreamRistSettingsView(model: Model = LocalModel.current, stream: SettingsSt
                         checked = stream.rist.adaptiveBitrateEnabled,
                         onCheckedChange = { value ->
                             stream.rist.adaptiveBitrateEnabled = value
-                            TODO("reloadStreamIfEnabled")
+                            Unit
                         },
                         enabled = !(stream.enabled && isLive),
                     )
@@ -70,7 +70,7 @@ fun StreamRistSettingsView(model: Model = LocalModel.current, stream: SettingsSt
                         checked = stream.rist.bonding,
                         onCheckedChange = { value ->
                             stream.rist.bonding = value
-                            TODO("reloadStreamIfEnabled")
+                            Unit
                         },
                         enabled = !(stream.enabled && isLive),
                     )

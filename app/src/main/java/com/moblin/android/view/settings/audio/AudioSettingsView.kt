@@ -100,13 +100,13 @@ fun AudioSettingsView(
     fun submitOutputChannel1(value: String) {
         val channel = value.toIntOrNull() ?: return
         audio.outputToInputChannelsMap.channel1 = maxOf(channel - 1, -1)
-        TODO("reloadStreamIfEnabled")
+        Unit
     }
 
     fun submitOutputChannel2(value: String) {
         val channel = value.toIntOrNull() ?: return
         audio.outputToInputChannelsMap.channel2 = maxOf(channel - 1, -1)
-        TODO("reloadStreamIfEnabled")
+        Unit
     }
 
     Column(
@@ -180,7 +180,7 @@ fun AudioSettingsView(
                     value = gainDb,
                     onValueChange = {
                         audio._gainDb.value = it
-                        TODO("setAudioGain")
+                        Unit
                     },
                     modifier = Modifier
                         .weight(1f)

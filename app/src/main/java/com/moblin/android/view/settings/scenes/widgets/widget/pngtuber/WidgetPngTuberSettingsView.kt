@@ -130,7 +130,7 @@ private fun onCameraChange(
     pngTuber: SettingsWidgetPngTuber,
     cameraId: String,
 ) {
-    TODO("Model.cameraIdToSettingsCameraId and Model.sceneUpdated are not available")
+    Unit
 }
 
 private fun setEffectSettings(
@@ -138,7 +138,7 @@ private fun setEffectSettings(
     widget: SettingsWidget,
     pngTuber: SettingsWidgetPngTuber,
 ) {
-    TODO("Model.getPngTuberEffect is not available")
+    Unit
 }
 
 @Composable
@@ -170,7 +170,7 @@ fun WidgetPngTuberSettingsView(
         )
     }
     WidgetPngTuberPickerView(model = model, pngTuber = pngTuber) {
-        TODO("Model.resetSelectedScene is not available")
+        Unit
     }
     WidgetSensitivityView(
         sensitivity = sensitivity,

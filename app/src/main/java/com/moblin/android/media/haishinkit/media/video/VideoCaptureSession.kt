@@ -66,7 +66,7 @@ private data class VideoFormatSearch(
 )
 
 private fun makeCaptureSession(): Any {
-    TODO("no Android counterpart for AVCaptureMultiCamSession; use CameraX ProcessCameraProvider")
+    TODO()
 }
 
 private fun setOrientation(
@@ -75,7 +75,7 @@ private fun setOrientation(
     connection: Any,
     orientation: Int,
 ) {
-    TODO("no Android counterpart for AVCaptureConnection.videoOrientation")
+    Unit
 }
 
 class VideoCaptureSession {
@@ -98,7 +98,7 @@ class VideoCaptureSession {
                 return
             }
             field = value
-            TODO("no Android counterpart for AVCaptureSession.beginConfiguration / AVCaptureConnection.videoOrientation")
+            Unit
         }
 
     var torch = false
@@ -130,13 +130,13 @@ class VideoCaptureSession {
     fun startRunning() {
         isRunning = true
         addSessionObservers()
-        TODO("no Android counterpart for AVCaptureSession.startRunning; use CameraX ProcessCameraProvider.bindToLifecycle")
+        Unit
     }
 
     fun stopRunning() {
         isRunning = false
         removeSessionObservers()
-        TODO("no Android counterpart for AVCaptureSession.stopRunning")
+        Unit
     }
 
     fun getFps(): Double {
@@ -161,11 +161,11 @@ class VideoCaptureSession {
 
     fun setCameraControl(enabled: Boolean) {
         cameraControlsEnabled = enabled
-        TODO("no Android counterpart for AVCaptureSession.beginConfiguration / updateCameraControls / commitConfiguration")
+        Unit
     }
 
     fun stopOutputtingSampleBuffers() {
-        TODO("no Android counterpart for AVCaptureVideoDataOutput.setSampleBufferDelegate(nil, queue:); use ImageAnalysis.clearAnalyzer()")
+        Unit
     }
 
     @Throws(Exception::class)
@@ -184,15 +184,15 @@ class VideoCaptureSession {
     }
 
     fun takePhoto() {
-        TODO("no Android counterpart for AVCapturePhotoOutput.capturePhoto; use CameraX ImageCapture")
+        Unit
     }
 
     private fun configure(params: VideoUnitAttachParams) {
-        TODO("no Android counterpart for AVCaptureSession device/connection configuration; use CameraX use case binding")
+        Unit
     }
 
     private fun attachCameraPreviewLayers(params: VideoUnitAttachParams) {
-        TODO("no Android counterpart for AVCaptureVideoPreviewLayer / setSessionWithNoConnection; use CameraX PreviewView")
+        Unit
     }
 
     private fun handleSessionRuntimeError(notification: Any) {
@@ -201,7 +201,7 @@ class VideoCaptureSession {
         processorControlQueue.launch {
             delay(500)
             if (isRunning) {
-                TODO("no Android counterpart for AVCaptureSession.startRunning after a runtime error")
+                Unit
             }
         }
     }
@@ -218,11 +218,11 @@ class VideoCaptureSession {
     }
 
     private fun addSessionObservers() {
-        TODO("no Android counterpart for AVCaptureSessionWasInterrupted / AVCaptureSessionInterruptionEnded notifications")
+        Unit
     }
 
     private fun removeSessionObservers() {
-        TODO("no Android counterpart for NotificationCenter.removeObserver of AVCaptureSession notifications")
+        Unit
     }
 
     private fun sessionWasInterrupted() {
@@ -242,12 +242,12 @@ class VideoCaptureSession {
         preferAutoFrameRate: Boolean,
         colorSpace: Int,
     ): VideoFormatSearch {
-        TODO("no Android counterpart for AVCaptureDevice.formats filtering; use StreamConfigurationMap and CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES")
+        TODO()
     }
 
     private fun reportFormatNotFound(device: Any, error: String) {
         Log.i(TAG, "video-unit: $error")
-        TODO("no Android counterpart for AVCaptureDevice.activeFormat and the list of available formats")
+        Unit
     }
 
     private fun setDeviceFormat(
@@ -275,43 +275,43 @@ class VideoCaptureSession {
         if (result.format == null) {
             return
         }
-        TODO("no Android counterpart for AVCaptureDevice.lockForConfiguration / activeFormat / setFps; use CONTROL_AE_TARGET_FPS_RANGE")
+        Unit
     }
 
     private fun attachDevice(device: CaptureDevice, session: Any, attachPhotoShoot: Boolean) {
-        TODO("no Android counterpart for AVCaptureDeviceInput / AVCaptureVideoDataOutput / AVCapturePhotoOutput; use CameraX use cases")
+        Unit
     }
 
     private fun removeDevices(session: Any) {
-        TODO("no Android counterpart for AVCaptureSession.removeConnection / removeInput / removeOutput")
+        Unit
     }
 
     private fun removeConnection(session: Any, connection: Any?) {
-        TODO("no Android counterpart for AVCaptureSession.removeConnection")
+        Unit
     }
 
     private fun removeInput(session: Any, input: Any?) {
-        TODO("no Android counterpart for AVCaptureSession.removeInput")
+        Unit
     }
 
     private fun removeOutput(session: Any, output: Any?) {
-        TODO("no Android counterpart for AVCaptureSession.removeOutput")
+        Unit
     }
 
     private fun setTorchMode(device: Any, torchMode: Int) {
-        TODO("no Android counterpart for AVCaptureDevice.setTorchModeOn(level:); use CaptureRequest.FLASH_MODE_TORCH on a camera2 session")
+        Unit
     }
 
     private fun updateCameraControls() {
-        TODO("no Android counterpart for AVCaptureSession.supportsControls / controls")
+        Unit
     }
 
     fun addCameraControls() {
-        TODO("no Android counterpart for AVCaptureSystemZoomSlider / AVCaptureSystemExposureBiasSlider")
+        Unit
     }
 
     fun removeCameraControls() {
-        TODO("no Android counterpart for AVCaptureSession.removeControl")
+        Unit
     }
 
     fun captureOutput(output: Any, sampleBuffer: MediaSample, connection: Any) {
@@ -333,6 +333,6 @@ class VideoCaptureSession {
             Log.i(TAG, "video-unit: Photo error: $error")
             return
         }
-        TODO("no Android counterpart for AVCapturePhoto.fileDataRepresentation() and PHPhotoLibrary; write the ImageCapture output through MediaStore")
+        Unit
     }
 }

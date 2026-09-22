@@ -74,7 +74,7 @@ fun DestinationView(
             onCheckedChange = {
                 destination.enabled = it
                 scope.launch {
-                    TODO("model.reloadStreamIfEnabled")
+                    Unit
                 }
             },
             enabled = !locked,

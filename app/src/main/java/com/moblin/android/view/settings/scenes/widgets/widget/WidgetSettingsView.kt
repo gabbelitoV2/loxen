@@ -97,7 +97,7 @@ fun SaveLoadLayoutView(
         OutlinedButton(
             onClick = {
                 layout.value = model.layout.value ?: layout.value
-                TODO("model.sceneUpdated()")
+                Unit
             },
             enabled = model.layout.value != null
         ) {
@@ -172,7 +172,7 @@ private fun generalAndAlignmentPicker(
                 }
             }
             LaunchedEffect(layout.value.alignment) {
-                TODO("model.sceneUpdated()")
+                Unit
             }
         }
     }
@@ -193,7 +193,7 @@ private fun horizontalAndVerticalPositioning(
                 onValueChange = { layout.value.xString = it },
                 onSubmit = {
                     setYBasedOnXIfLocked(layout, model)
-                    TODO("model.sceneUpdated()")
+                    Unit
                 },
                 numericInput = numericInput.value,
                 onNumericInputChange = { numericInput.value = it },
@@ -210,7 +210,7 @@ private fun horizontalAndVerticalPositioning(
                 onValueChange = { layout.value.yString = it },
                 onSubmit = {
                     setXBasedOnYIfLocked(layout, model)
-                    TODO("model.sceneUpdated()")
+                    Unit
                 },
                 numericInput = numericInput.value,
                 onNumericInputChange = { numericInput.value = it },
@@ -249,7 +249,7 @@ private fun horizontalPositioning(
         onNumberChange = { layout.value.x = it },
         onValueChange = { layout.value.xString = it },
         onSubmit = {
-            TODO("model.sceneUpdated()")
+            Unit
         },
         numericInput = numericInput.value,
         onNumericInputChange = { numericInput.value = it },
@@ -272,7 +272,7 @@ private fun verticalPositioning(
         onNumberChange = { layout.value.y = it },
         onValueChange = { layout.value.yString = it },
         onSubmit = {
-            TODO("model.sceneUpdated()")
+            Unit
         },
         numericInput = numericInput.value,
         onNumericInputChange = { numericInput.value = it },
@@ -313,7 +313,7 @@ fun WidgetLayoutView(
                     onNumberChange = { layout.value.size = it },
                     onValueChange = { layout.value.sizeString = it },
                     onSubmit = {
-                        TODO("model.sceneUpdated()")
+                        Unit
                     },
                     numericInput = numericInput.value,
                     onNumericInputChange = { numericInput.value = it }

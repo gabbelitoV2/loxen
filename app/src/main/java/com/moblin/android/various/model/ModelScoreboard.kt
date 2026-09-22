@@ -373,11 +373,11 @@ private val configs: Map<String, RemoteControlScoreboardMatchConfig> = mapOf(
 )
 
 fun Model.handleUpdatePadelScoreboard(action: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.handleUpdateGenericScoreboard(action: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.getEnabledScoreboardWidgetsInSelectedScene(): List<SettingsWidget> {
@@ -742,7 +742,7 @@ private fun Model.handleUpdatePadelScoreboardIncrementAway(scoreboard: SettingsW
 private fun Model.handleUpdatePadelScoreboardChangePlayers(scoreboard: SettingsWidgetPadelScoreboard,
                                                            players: Any)
 {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleUpdateGenericScoreboardReset(scoreboard: SettingsWidgetGenericScoreboard) {

@@ -26,7 +26,7 @@ class ImageEffect(imageStorage: ImageStorage, widgetId: UUID) : VideoEffect() {
         scope.launch {
             val data = imageStorage.read(widgetId) ?: return@launch
             val originalImage: EffectImageCiImage =
-                TODO("OpenGL ES port: decode ${data.size} bytes into an EffectImageCiImage")
+                TODO()
             processorPipelineQueue.launch {
                 this@ImageEffect.originalImage = originalImage
             }
@@ -40,10 +40,10 @@ class ImageEffect(imageStorage: ImageStorage, widgetId: UUID) : VideoEffect() {
     }
 
     override fun execute(image: Image, info: VideoEffectInfo): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 }

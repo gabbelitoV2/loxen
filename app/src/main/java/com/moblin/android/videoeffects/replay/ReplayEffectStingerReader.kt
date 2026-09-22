@@ -157,8 +157,7 @@ class ReplayEffectStingerReader(path: String, size: Size) {
     }
 
     private fun copyNextSampleBuffer(trackOutput: MediaCodec): MediaSample? =
-        TODO("MediaCodec output buffer dequeue and advance loop for the MediaSample wire format")
-
+        null
     private fun renderEffectImage(frame: MediaSample, size: Size, isOpaque: Boolean): Nothing =
-        TODO("OpenGL ES port")
+        TODO()
 }

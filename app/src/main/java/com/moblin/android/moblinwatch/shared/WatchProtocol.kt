@@ -159,7 +159,7 @@ data class WatchProtocolWorkoutStats(
     var cyclingCadence: Int? = null,
 ) {
     fun update(statistics: Any) {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 }
 

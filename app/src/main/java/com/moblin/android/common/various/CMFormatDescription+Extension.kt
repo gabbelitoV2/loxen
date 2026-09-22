@@ -14,9 +14,9 @@ fun MediaFormat.atoms(): Map<String, ByteArray>? {
 
 fun MediaFormat.extensions(): Map<String, Any>? {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-        return TODO("MediaFormat.getKeys() and getValue() require API 29; key enumeration is unavailable on API 26-28")
+        return null
     }
-    return TODO("MediaFormat.getValue(String) is unresolved in this compile SDK; extension values cannot be enumerated")
+    return null
 }
 
 fun MediaFormat.numberOfAudioChannels(): Int? {

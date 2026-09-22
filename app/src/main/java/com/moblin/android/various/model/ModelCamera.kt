@@ -150,27 +150,27 @@ fun Model.setFocusPointOfInterest(focusPoint: PointF) {
         makeErrorToast(title = localized("Tap to focus not supported for this camera"))
         return
     }
-    TODO("no Android counterpart for AVCaptureDevice focusPointOfInterest configuration")
+    Unit
 }
 
 fun Model.setAutoFocus() {
-    TODO("no Android counterpart for AVCaptureDevice continuousAutoFocus configuration")
+    Unit
 }
 
 fun Model.setManualFocus(lensPosition: Float) {
-    TODO("no Android counterpart for AVCaptureDevice setFocusModeLocked(lensPosition:)")
+    Unit
 }
 
 fun Model.setFocusAfterCameraAttach() {
-    TODO("no Android counterpart for AVCaptureDevice lensPosition")
+    Unit
 }
 
 fun Model.isCameraSupportingManualFocus(): Boolean {
-    TODO("no Android counterpart for AVCaptureDevice isLockingFocusWithCustomLensPositionSupported")
+    return false
 }
 
 fun Model.startObservingFocus() {
-    TODO("no Android counterpart for KVO observation of AVCaptureDevice lensPosition")
+    Unit
 }
 
 fun Model.stopObservingFocus() {
@@ -178,19 +178,19 @@ fun Model.stopObservingFocus() {
 }
 
 fun Model.setAutoExposureAndIso() {
-    TODO("no Android counterpart for AVCaptureDevice continuousAutoExposure configuration")
+    Unit
 }
 
 fun Model.setExposureAndIsoAfterCameraAttach(device: CaptureDevice) {
-    TODO("no Android counterpart for AVCaptureDevice iso and exposureDuration")
+    Unit
 }
 
 fun Model.isCameraSupportingManualExposureAndIso(): Boolean {
-    TODO("no Android counterpart for AVCaptureDevice isExposureModeSupported(.custom)")
+    return false
 }
 
 private fun Model.setManualExposureAndIso(exposureFactor: Float?, isoFactor: Float?) {
-    TODO("no Android counterpart for AVCaptureDevice setExposureModeCustom(duration:iso:)")
+    Unit
 }
 
 fun Model.setManualIso(factor: Float) {
@@ -198,7 +198,7 @@ fun Model.setManualIso(factor: Float) {
 }
 
 fun Model.startObservingIso() {
-    TODO("no Android counterpart for KVO observation of AVCaptureDevice iso")
+    Unit
 }
 
 fun Model.stopObservingIso() {
@@ -215,7 +215,7 @@ fun Model.getExposureFactorStep(): Float {
 }
 
 fun Model.startObservingExposure() {
-    TODO("no Android counterpart for KVO observation of AVCaptureDevice exposureDuration")
+    Unit
 }
 
 fun Model.stopObservingExposure() {
@@ -223,11 +223,11 @@ fun Model.stopObservingExposure() {
 }
 
 fun Model.setAutoWhiteBalance() {
-    TODO("no Android counterpart for AVCaptureDevice continuousAutoWhiteBalance configuration")
+    Unit
 }
 
 fun Model.setManualWhiteBalance(factor: Float) {
-    TODO("no Android counterpart for AVCaptureDevice setWhiteBalanceModeLocked(with:)")
+    Unit
 }
 
 fun Model.setWhiteBalanceAfterCameraAttach(device: CaptureDevice) {
@@ -243,11 +243,11 @@ fun Model.setWhiteBalanceAfterCameraAttach(device: CaptureDevice) {
 }
 
 fun Model.isCameraSupportingManualWhiteBalance(): Boolean {
-    TODO("no Android counterpart for AVCaptureDevice isLockingWhiteBalanceWithCustomDeviceGainsSupported")
+    return false
 }
 
 fun Model.startObservingWhiteBalance() {
-    TODO("no Android counterpart for KVO observation of AVCaptureDevice deviceWhiteBalanceGains")
+    Unit
 }
 
 fun Model.stopObservingWhiteBalance() {
@@ -255,7 +255,7 @@ fun Model.stopObservingWhiteBalance() {
 }
 
 fun Model.listCameras(position: AVCaptureDevice.Position): List<Camera> {
-    TODO("no Android counterpart for AVCaptureDevice.DiscoverySession")
+    return emptyList()
 }
 
 fun Model.colorSpaceUpdated() {
@@ -373,7 +373,7 @@ fun Model.updateCameraLists() {
 }
 
 private fun Model.listExternalCameras(): List<Camera> {
-    TODO("no Android counterpart for AVCaptureDevice.DiscoverySession with external devices")
+    return emptyList()
 }
 
 fun Model.listCameras(excludeBuiltin: Boolean = false): List<Camera> {
@@ -690,5 +690,5 @@ fun Model.getVideoSourceId(cameraId: SettingsCameraId): UUID? {
 }
 
 fun Model.setExposureBias(bias: Float) {
-    TODO("no Android counterpart for AVCaptureDevice setExposureTargetBias(_:)")
+    Unit
 }

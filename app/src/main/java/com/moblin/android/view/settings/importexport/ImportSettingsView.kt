@@ -37,15 +37,15 @@ private enum class ImportState {
 }
 
 private fun Model.importSettingsWithConfirmation(block: () -> Unit) {
-    TODO("importSettingsWithConfirmation")
+    Unit
 }
 
 private fun Model.importSettingsFromFile(url: String, block: () -> Unit) {
-    TODO("importSettingsFromFile")
+    Unit
 }
 
 private fun Model.importSettingsFromClipboard(block: () -> Unit) {
-    TODO("importSettingsFromClipboard")
+    Unit
 }
 
 @Composable

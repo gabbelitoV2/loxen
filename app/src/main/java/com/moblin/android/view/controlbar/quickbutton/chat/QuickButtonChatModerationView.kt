@@ -121,7 +121,7 @@ fun ExecutorView(
 
     val handleState: () -> Unit = {
         if (executor.state.value == ExecutorState.authError) {
-            TODO("model.twitchLogin(stream) { showModerationAuth = true }")
+            Unit
         }
     }
 

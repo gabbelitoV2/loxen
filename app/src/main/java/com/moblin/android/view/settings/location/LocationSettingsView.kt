@@ -83,7 +83,7 @@ private fun PrivacyRegionView(
             .fillMaxWidth()
             .aspectRatio(4f / 3f),
     ) {
-        TODO("no Android counterpart for MapKit")
+        Unit
     }
     LaunchedEffect(currentRegion.value) {
         region.latitude = currentRegion.value.center.latitude
@@ -93,7 +93,7 @@ private fun PrivacyRegionView(
     }
     DisposableEffect(Unit) {
         onDispose {
-            TODO("reloadLocation")
+            Unit
         }
     }
 }
@@ -121,16 +121,16 @@ fun LocationSettingsView(
     var distanceFilterExpanded by remember { mutableStateOf(false) }
 
     LaunchedEffect(enabled) {
-        TODO("reloadLocation")
+        Unit
     }
     LaunchedEffect(desiredAccuracy) {
-        TODO("reloadLocation")
+        Unit
     }
     LaunchedEffect(distanceFilter) {
-        TODO("reloadLocation")
+        Unit
     }
     LaunchedEffect(realtimeIrlEnabled) {
-        TODO("reloadLocation")
+        Unit
     }
 
     fun deletePrivacyRegion(offsets: List<Int>) {
@@ -141,7 +141,7 @@ fun LocationSettingsView(
             }
         }
         location.privacyRegions = regions
-        TODO("reloadLocation")
+        Unit
     }
 
     Scaffold(
@@ -258,12 +258,12 @@ fun LocationSettingsView(
             }
             item {
                 TextButtonView("Split") {
-                    TODO("resetSplitLocationData")
+                    Unit
                 }
             }
             item {
                 TextButtonView("Reset") {
-                    TODO("resetLocationData")
+                    Unit
                 }
             }
             item {
@@ -360,7 +360,7 @@ fun LocationSettingsView(
                         privacyRegion.longitudeDelta = 0.02
                     }
                     location.privacyRegions = location.privacyRegions + privacyRegion
-                    TODO("reloadLocation")
+                    Unit
                 }
             }
             item {

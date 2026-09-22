@@ -46,12 +46,12 @@ private fun submitUrl(model: Model, browser: SettingsWidgetBrowser, value: Strin
         return
     }
     browser.url = trimmed
-    TODO("model.resetSelectedScene")
+    Unit
 }
 
 private fun submitStyleSheet(model: Model, browser: SettingsWidgetBrowser, value: String) {
     browser.styleSheet = value.trim()
-    TODO("model.resetSelectedScene")
+    Unit
 }
 
 private fun changeWidthHeight(value: String): String? {
@@ -68,18 +68,18 @@ private fun changeWidthHeight(value: String): String? {
 private fun submitWidth(model: Model, browser: SettingsWidgetBrowser, value: String) {
     val width = value.toIntOrNull() ?: return
     browser.width = width
-    TODO("model.resetSelectedScene")
+    Unit
 }
 
 private fun submitHeight(model: Model, browser: SettingsWidgetBrowser, value: String) {
     val height = value.toIntOrNull() ?: return
     browser.height = height
-    TODO("model.resetSelectedScene")
+    Unit
 }
 
 private fun submitFps(model: Model, browser: SettingsWidgetBrowser, value: Float) {
     browser.baseFps = value
-    TODO("model.resetSelectedScene")
+    Unit
 }
 
 private fun formatFps(value: Float): String {
@@ -154,7 +154,7 @@ fun WidgetBrowserSettingsView(
                 checked = localOnly,
                 onCheckedChange = {
                     browser.localOnly = it
-                    TODO("model.resetSelectedScene")
+                    Unit
                 },
             )
         }
@@ -233,7 +233,7 @@ fun WidgetBrowserSettingsView(
                 checked = moblinAccess,
                 onCheckedChange = {
                     browser.moblinAccess = it
-                    TODO("model.resetSelectedScene")
+                    Unit
                 },
             )
         }
@@ -247,7 +247,7 @@ fun WidgetBrowserSettingsView(
                     checked = speechToText,
                     onCheckedChange = {
                         browser.speechToText = it
-                        TODO("model.resetSelectedScene")
+                        Unit
                     },
                 )
             }

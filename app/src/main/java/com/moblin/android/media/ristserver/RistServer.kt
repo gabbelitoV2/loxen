@@ -34,9 +34,9 @@ interface RistReceiverContextDelegate {
 class RistReceiverContext(val inputUrl: String) {
     var delegate: RistReceiverContextDelegate? = null
 
-    fun start(): Boolean = TODO("no Android binding for librist receiver context start")
+    fun start(): Boolean = false
 
-    fun stop(): Unit = TODO("no Android binding for librist receiver context stop")
+    fun stop(): Unit = Unit
 }
 
 val ristServerQueue = CoroutineScope(

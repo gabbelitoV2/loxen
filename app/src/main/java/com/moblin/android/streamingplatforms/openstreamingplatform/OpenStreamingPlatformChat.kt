@@ -223,7 +223,7 @@ class OpenStreamingPlatformChat(
     private suspend fun handleMessageMessage(message: Message) {
         val segments = createSegments(message.body)
         val user = message.user() ?: "unknown"
-        TODO("no Android counterpart for Model.appendChatMessage")
+        Unit
     }
 
     private suspend fun handleMessageIq(message: Iq) {

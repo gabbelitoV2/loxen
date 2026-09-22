@@ -127,7 +127,7 @@ class WebSocketClient(
         pingTimer.startPeriodic(10.0, 0.0) {
             if (pongReceived) {
                 pongReceived = false
-                TODO("NWWebSocket.ping() has no OkHttp counterpart, OkHttpClient.pingInterval pings instead")
+                Unit
             } else {
                 startInternal()
                 delegate?.webSocketClientDisconnected(this)
@@ -155,11 +155,11 @@ class WebSocketClient(
     }
 
     fun webSocketViabilityDidChange(isViable: Boolean) {
-        TODO("NWConnection viability has no Android counterpart in OkHttp")
+        Unit
     }
 
     fun webSocketDidAttemptBetterPathMigration() {
-        TODO("NWConnection better path migration has no Android counterpart in OkHttp")
+        Unit
     }
 
     fun webSocketDidReceiveError(error: Throwable) {

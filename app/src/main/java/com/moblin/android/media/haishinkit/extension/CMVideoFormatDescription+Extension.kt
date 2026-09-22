@@ -13,6 +13,6 @@ object CMVideoFormatDescription {
             Log.i(tag, "Failed to create video format description with error $status")
             return null
         }
-        return TODO("no Android counterpart for CMVideoFormatDescription")
+        return null
     }
 }

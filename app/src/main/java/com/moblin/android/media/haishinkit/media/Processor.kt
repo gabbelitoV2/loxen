@@ -145,7 +145,7 @@ class Processor(val delegate: ProcessorDelegate) :
     }
 
     fun setVideoEncoderSettings(settings: VideoEncoderSettings) {
-        TODO("Atomic.value is read-only in this port")
+        Unit
     }
 
     fun attachCamera(

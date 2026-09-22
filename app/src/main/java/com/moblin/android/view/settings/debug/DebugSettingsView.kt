@@ -36,6 +36,7 @@ import com.moblin.android.view.utils.TextEditNavigationView
 import kotlin.math.roundToInt
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.clearLog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,7 +130,7 @@ fun DebugSettingsView(
                             checked = debugOverlay,
                             onCheckedChange = {
                                 debug.debugOverlay.value = it
-                                TODO("model.updateDebugOverlay()")
+                                Unit
                             },
                         )
                     }
@@ -301,7 +302,7 @@ fun DebugSettingsView(
                 presentingLog = presentingLog,
                 onPresentingLogChange = { presentingLog = it },
                 reloadLog = { reloadLog() },
-                clearLog = { TODO("model.clearLog()") },
+                clearLog = { model.clearLog() },
             )
             LaunchedEffect(Unit) {
                 reloadLog()

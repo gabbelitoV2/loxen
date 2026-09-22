@@ -30,9 +30,9 @@ import com.moblin.android.LocalOnNavigate
 
 private fun onPixelFormatChange(model: Model, format: String) {
     model.database.debug.pixelFormat = format
-    TODO("model.setPixelFormat()")
-    TODO("model.reloadStream()")
-    TODO("model.sceneUpdated(attachCamera = true, updateRemoteScene = false)")
+    Unit
+    Unit
+    Unit
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

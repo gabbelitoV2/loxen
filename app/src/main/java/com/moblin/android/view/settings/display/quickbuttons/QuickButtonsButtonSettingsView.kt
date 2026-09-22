@@ -86,7 +86,7 @@ private fun QuickButtonStealthModeView(
         }
         LaunchedEffect(presentingPicker) {
             if (presentingPicker) {
-                TODO("no Android counterpart for PhotosPicker")
+                Unit
             }
         }
         LaunchedEffect(selectedImageItem) {
@@ -94,15 +94,15 @@ private fun QuickButtonStealthModeView(
             selectedImageItem = null
             if (imageItem != null) {
                 val data: ByteArray =
-                    TODO("no Android counterpart for PhotosPicker loadTransferable")
-                TODO("no Android counterpart for saveStealthModeImage")
+                    TODO()
+                Unit
                 stealthMode.image.value = BitmapFactory.decodeByteArray(data, 0, data.size)
             }
         }
         if (image != null) {
             TextButtonView(localized("Delete image")) {
                 stealthMode.image.value = null
-                TODO("no Android counterpart for deleteStealthModeImage")
+                Unit
             }
         }
         Text(localized("Show selected image instead of a black screen."))

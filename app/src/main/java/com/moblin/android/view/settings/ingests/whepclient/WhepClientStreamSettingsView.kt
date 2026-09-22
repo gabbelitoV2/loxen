@@ -51,7 +51,7 @@ fun WhepClientStreamSettingsView(
             checked = stream.enabled,
             onCheckedChange = {
                 stream.enabled = it
-                TODO("reloadWhepClient")
+                Unit
             },
         )
     }
@@ -108,7 +108,7 @@ fun WhepClientStreamSettingsViewInner(
                         val latency = value.toIntOrNull()
                         if (latency != null) {
                             stream.latency = latency
-                            TODO("reloadWhepClient")
+                            Unit
                         }
                     },
                     footers = listOf(
@@ -139,7 +139,7 @@ fun WhepClientStreamSettingsViewInner(
                         checked = stream.syncTimestamps,
                         onCheckedChange = {
                             stream.syncTimestamps = it
-                            TODO("reloadWhepClient")
+                            Unit
                         },
                         enabled = !stream.enabled,
                     )

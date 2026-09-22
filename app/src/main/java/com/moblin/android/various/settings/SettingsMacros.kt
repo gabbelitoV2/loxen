@@ -96,7 +96,7 @@ enum class SettingsReaction(val rawValue: String) {
     GLASSES("glasses"),
     SPARKLE("sparkle");
 
-    fun toSystem(): Any? = TODO("no Android counterpart for AVCaptureReactionType")
+    fun toSystem(): Any? = null
 
     override fun toString(): String {
         return when (this) {

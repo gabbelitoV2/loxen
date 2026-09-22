@@ -50,8 +50,7 @@ inline fun VTDecompressionSession.decodeFrame(
     sampleBuffer: MediaSample,
     outputHandler: VTDecompressionOutputHandler
 ): Int =
-    TODO("MediaCodec decoder port: MediaCodec has no synchronous decode-with-output-handler call; queue sampleBuffer.data into the codec input buffer with the presentation time and key-frame flag, then deliver android.media.Image from the asynchronous MediaCodec callback instead of returning an OSStatus")
-
+    TODO()
 fun VTDecompressionSession.invalidate() {
     val codec = codec ?: return
     runCatching { codec.stop() }

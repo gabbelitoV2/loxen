@@ -66,15 +66,15 @@ fun FilesLocationView(model: Model = LocalModel.current, text: String, path: URI
 }
 
 private fun makeSharedUrl(path: URI): URI? {
-    TODO("no Android counterpart for the iOS shareddocuments:// URL scheme")
+    return null
 }
 
 private fun openInFilesApp(sharedUrl: URI) {
-    TODO("no Android counterpart for UIApplication.shared.open")
+    Unit
 }
 
 private fun openInFinder(path: URI) {
-    TODO("no Android counterpart for UIApplication.shared.open")
+    Unit
 }
 
 private fun copyPathToClipboard(model: Model, path: URI, clipboard: ClipboardManager) {

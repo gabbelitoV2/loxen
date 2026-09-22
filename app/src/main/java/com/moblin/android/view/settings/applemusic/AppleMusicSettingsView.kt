@@ -60,11 +60,11 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
     val playerQueue = rememberMusicPlayerQueue()
 
     LaunchedEffect(Unit) {
-        TODO("no Android counterpart for MusicKit")
+        Unit
     }
 
     if (isShowingSubscriptionOffer) {
-        TODO("no Android counterpart for MusicKit")
+        Unit
     }
 
     Scaffold(
@@ -149,7 +149,7 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
                     label = { Text("Add song") },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = {
-                        TODO("no Android counterpart for MusicKit")
+                        Unit
                     }),
                     modifier = Modifier
                         .fillMaxWidth()
@@ -183,8 +183,7 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
 
 @Composable
 private fun rememberMusicPlayerState(): MusicPlayerState =
-    TODO("no Android counterpart for MusicKit")
-
+    TODO()
 @Composable
 private fun rememberMusicPlayerQueue(): MusicPlayerQueue =
-    TODO("no Android counterpart for MusicKit")
+    TODO()

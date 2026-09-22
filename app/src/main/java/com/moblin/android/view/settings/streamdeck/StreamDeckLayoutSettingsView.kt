@@ -94,9 +94,9 @@ private fun StreamDeckSettingsKeyView(model: Model = LocalModel.current, key: Se
             value = text,
             onSubmit = { key.text.setFlowValue(it) },
         )
-        TODO("ColorPicker has no Compose counterpart")
+        Unit
         LaunchedEffect(colorColor) {
-            TODO("No Color to RgbColor conversion available")
+            Unit
         }
     }
 }

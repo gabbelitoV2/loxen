@@ -51,7 +51,7 @@ fun StreamUrlSettingsView(
         allowedSchemes = null,
         examples = rtmpExamples + srtExamples + whipExamples + mobcamExamples,
         onSubmitted = {
-            TODO("reloadStreamIfEnabled")
+            Unit
         },
         onDismiss = {
         },
@@ -76,7 +76,7 @@ fun StreamMultiStreamingUrlView(
         allowedSchemes = listOf("rtmp", "rtmps"),
         examples = rtmpExamples,
         onSubmitted = {
-            TODO("reloadStreamIfEnabled")
+            Unit
         },
         onDismiss = {
         },

@@ -58,7 +58,7 @@ fun WidgetSnapshotSettingsView(
                         DropdownMenuItem(
                             text = { Text("${item}s") },
                             onClick = {
-                                TODO("set SettingsWidgetSnapshot.showtime")
+                                Unit
                                 expanded = false
                             },
                         )
@@ -74,5 +74,5 @@ fun WidgetSnapshotSettingsView(
 }
 
 private fun setEffectSettings(model: Model, widget: SettingsWidget, showtime: Int) {
-    TODO("model.getSnapshotEffect(id = widget.id)?.setSettings(showtime = showtime)")
+    Unit
 }

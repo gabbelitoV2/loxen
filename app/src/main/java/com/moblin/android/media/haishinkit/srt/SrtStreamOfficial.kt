@@ -24,55 +24,55 @@ private const val SRTO_SNDDATA = 17
 private const val SRT_ECONNREJ = 1003
 
 private fun srt_startup() {
-    TODO("srt_startup")
+    Unit
 }
 
 private fun srt_cleanup() {
-    TODO("srt_cleanup")
+    Unit
 }
 
 private fun srt_close(socket: Int) {
-    TODO("srt_close")
+    Unit
 }
 
 private fun srt_bstats(socket: Int, perf: CBytePerfMon, instant: Int) {
-    TODO("srt_bstats")
+    Unit
 }
 
 private fun srt_getsockflag(socket: Int, option: Int, value: IntArray, size: IntArray): Int {
-    TODO("srt_getsockflag")
+    return 0
 }
 
 private fun srt_create_socket(): Int {
-    TODO("srt_create_socket")
+    return 0
 }
 
 private fun srt_send_callback(socket: Int, callback: (ByteArray?, Int, ByteArray?, Int) -> Int) {
-    TODO("srt_send_callback")
+    Unit
 }
 
 private fun srt_connect(socket: Int, addr: InetSocketAddress): Int {
-    TODO("srt_connect")
+    return 0
 }
 
 private fun srt_getlasterror_str(): String? {
-    TODO("srt_getlasterror_str")
+    return null
 }
 
 private fun srt_getlasterror(errno: Int?): Int {
-    TODO("srt_getlasterror")
+    return 0
 }
 
 private fun srt_getrejectreason(socket: Int): Int {
-    TODO("srt_getrejectreason")
+    return 0
 }
 
 private fun srt_rejectreason_str(reason: Int): String? {
-    TODO("srt_rejectreason_str")
+    return null
 }
 
 private fun srt_sendmsg2(socket: Int, buffer: ByteArray, length: Int): Int {
-    TODO("srt_sendmsg2")
+    return 0
 }
 
 interface SrtStreamOfficialDelegate {

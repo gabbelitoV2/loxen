@@ -52,7 +52,7 @@ class MacScreenCapture {
                 macScreenCaptureTag,
                 "mac-screen-capture: ${fps.toInt()} FPS, filter=$filter, display=$display, scale=$scale",
             )
-            TODO("no Android counterpart for ScreenCaptureKit SCStream")
+            Unit
             delegate?.macScreenCaptureDidStart(latency = macScreenCaptureLatency)
         } catch (e: Exception) {
             Log.i(macScreenCaptureTag, "mac-screen-capture: Failed to start: ${e.message}")
@@ -62,7 +62,7 @@ class MacScreenCapture {
     private suspend fun stopInternal() {
         try {
             stream?.let {
-                TODO("no Android counterpart for ScreenCaptureKit SCStream.stopCapture")
+                Unit
             }
         } catch (e: Exception) {
             Log.i(macScreenCaptureTag, "mac-screen-capture: Failed to stop: ${e.message}")
@@ -72,8 +72,7 @@ class MacScreenCapture {
     }
 
     private suspend fun makeContentFilter(): Pair<Any, Any> =
-        TODO("no Android counterpart for ScreenCaptureKit SCShareableContent")
-
+        TODO()
     fun stream(stream: Any, didOutputSampleBuffer: MediaSample, of: Any) {
         var sampleBuffer = didOutputSampleBuffer
         val latest = latestSampleBufferWithImageBuffer

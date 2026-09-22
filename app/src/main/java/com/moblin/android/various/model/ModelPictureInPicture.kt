@@ -33,12 +33,12 @@ interface PictureInPictureSampleBufferPlaybackDelegate {
 }
 
 fun Model.setupPictureInPicture() {
-    TODO("no Android counterpart for AVPictureInPictureController")
+    Unit
 }
 
 fun Model.updatePictureInPicture() {
     if (stream.value.backgroundStreaming && stream.value.backgroundStreamingPiP && (isLive.value || isRecording.value)) {
-        TODO("no Android counterpart for AVPictureInPictureController.ContentSource")
+        Unit
     }
 }
 

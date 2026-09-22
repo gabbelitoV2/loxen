@@ -705,5 +705,5 @@ private fun quickButtonChatLinkConfirmation(
     linkUrl: String?,
     onLinkUrlChange: (String?) -> Unit,
 ) {
-    TODO("no Compose counterpart for the quickButtonChatLinkConfirmation SwiftUI view modifier")
+    Unit
 }

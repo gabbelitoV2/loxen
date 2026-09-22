@@ -69,7 +69,7 @@ private fun ChatSettingsGeneralView(
                 checked = botEnabled,
                 onCheckedChange = { value ->
                     chat.botEnabled = value
-                    TODO("model.chatBotCustomCommandsTextChanged()")
+                    Unit
                 },
             )
         }
@@ -122,7 +122,7 @@ private fun ChatSettingsGeneralView(
                 )
             }
             LaunchedEffect(showDeletedMessages) {
-                TODO("model.reloadChatMessages()")
+                Unit
             }
         }
     }
@@ -165,7 +165,7 @@ fun ChatSettingsView(
                 )
             }
             LaunchedEffect(enabled) {
-                TODO("model.reloadChats()")
+                Unit
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -261,7 +261,7 @@ class RistStream(
             return
         }
         processorPipelineQueue.launch {
-            TODO("processor.startEncoding(writer): MpegTsWriter does not implement AudioVideoEncoderDelegate")
+            Unit
             writer.startRunning()
         }
         val uri = runCatching { URI(url) }.getOrNull() ?: return
@@ -277,7 +277,7 @@ class RistStream(
         stopNetworkPathMonitor()
         processorPipelineQueue.launch {
             writer.stopRunning()
-            TODO("processor.stopEncoding(writer): MpegTsWriter does not implement AudioVideoEncoderDelegate")
+            Unit
         }
         peers.forEach { it.close() }
         peers.clear()

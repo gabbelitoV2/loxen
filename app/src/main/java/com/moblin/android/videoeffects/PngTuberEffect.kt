@@ -147,11 +147,11 @@ class PngTuberEffect(modelPath: String, costume: Int) : VideoEffect() {
     override fun execute(image: Image, info: VideoEffectInfo): Image {
         val sceneWidget = sceneWidget ?: return image
         updateModelPose(SizeF(image.width.toFloat(), image.height.toFloat()), info)
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     private fun visibleCostumeImages(): List<PngTuberImage> =
@@ -173,7 +173,7 @@ class PngTuberEffect(modelPath: String, costume: Int) : VideoEffect() {
 
     private fun updateModelPose(size: SizeF, info: VideoEffectInfo) {
         val detection = info.faceDetections(videoSourceId)?.firstOrNull() ?: return
-        TODO("Vision face landmark helpers are not available on Android")
+        Unit
     }
 
     private fun setCostume(number: Int) {

@@ -39,11 +39,11 @@ fun WorkoutDeviceScannerSettingsView(
     val discoveredPeripherals = emptyList<InlinePickerItem>()
 
     LaunchedEffect(Unit) {
-        TODO("startScanningForDevices")
+        Unit
     }
     DisposableEffect(Unit) {
         onDispose {
-            TODO("stopScanningForDevices")
+            Unit
         }
     }
 

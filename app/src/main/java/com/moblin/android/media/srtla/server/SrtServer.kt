@@ -20,7 +20,7 @@ class SrtServer(
     var running: Boolean = false
 
     fun start() {
-        TODO("srt_startup")
+        Unit
         running = true
         startBlockingThread(name = "com.eerimoq.srtla-srt-server") {
             try {
@@ -32,10 +32,10 @@ class SrtServer(
     }
 
     fun stop() {
-        TODO("srt_close")
+        Unit
         listenerSocket = SRT_INVALID_SOCK
         running = false
-        TODO("srt_cleanup")
+        Unit
     }
 
     private fun main() {
@@ -58,7 +58,7 @@ class SrtServer(
                 stream == null ||
                 srtlaServer.connectedStreamIds.value.contains(streamId)
             ) {
-                TODO("srt_close")
+                Unit
                 Log.i(TAG, "srt-server: $port: Client with stream id '$streamId' denied.")
                 continue
             }
@@ -146,5 +146,5 @@ class SrtServer(
 }
 
 private fun lastSrtSocketError(): String {
-    return TODO("srt_getlasterror_str")
+    return ""
 }

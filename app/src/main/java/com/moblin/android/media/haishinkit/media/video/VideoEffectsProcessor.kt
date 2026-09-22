@@ -296,11 +296,11 @@ class VideoEffectsProcessor {
     }
 
     private fun getBufferPool(formatDescription: MediaFormat): Any? {
-        return TODO("no Android counterpart for CVPixelBufferPool")
+        return null
     }
 
     private fun createPixelBuffer(sampleBuffer: MediaSample): Image? {
-        return TODO("no Android counterpart for CVPixelBufferPool")
+        return null
     }
 
     private fun getBlackImage(width: Double, height: Double): Bitmap {

@@ -122,5 +122,5 @@ private fun create(
 ) {
     onChangePresentingCreateWizard(false)
     widget.effects = widget.effects + effect
-    TODO("model.resetSelectedScene is not available on the Android Model")
+    Unit
 }

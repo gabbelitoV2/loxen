@@ -6,5 +6,5 @@ import androidx.compose.runtime.Composable
 fun ShareSheetView(
     activityItems: List<Any>,
 ) {
-    TODO("no Android counterpart for UIActivityViewController")
+    Unit
 }

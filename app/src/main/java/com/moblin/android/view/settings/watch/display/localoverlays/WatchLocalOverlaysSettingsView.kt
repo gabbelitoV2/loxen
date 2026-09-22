@@ -30,15 +30,15 @@ fun WatchLocalOverlaysSettingsView(model: Model = LocalModel.current, show: Watc
     val speed by show.speed.collectAsState()
 
     LaunchedEffect(thermalState) {
-        TODO("sendSettingsToWatch")
+        Unit
     }
 
     LaunchedEffect(audioLevel) {
-        TODO("sendSettingsToWatch")
+        Unit
     }
 
     LaunchedEffect(speed) {
-        TODO("sendSettingsToWatch")
+        Unit
     }
 
     Scaffold(

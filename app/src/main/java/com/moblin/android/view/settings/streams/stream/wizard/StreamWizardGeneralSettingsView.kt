@@ -128,7 +128,7 @@ fun StreamWizardGeneralSettingsView(model: Model = LocalModel.current, createStr
                 TextButtonView("Create") {
                     if (name.isNotEmpty()) {
                         scope.launch {
-                            TODO("model.createStreamFromWizard()")
+                            Unit
                             createStreamWizard.presenting = false
                             createStreamWizard.presentingSetup = false
                         }

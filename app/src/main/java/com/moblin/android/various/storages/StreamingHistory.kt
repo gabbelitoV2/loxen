@@ -17,6 +17,7 @@ import java.time.Instant
 import java.util.UUID
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import com.moblin.android.moblink.MoblinkThermalState
 
 private const val TAG = "StreamingHistory"
 
@@ -256,4 +257,10 @@ class StreamingHistory {
         database.totalStreams.value += 1
         database.streams.value = listOf(stream) + database.streams.value
     }
+}
+
+fun MoblinkThermalState.toThermalState(): ThermalState = when (this) {
+    MoblinkThermalState.white -> ThermalState.NOMINAL
+    MoblinkThermalState.yellow -> ThermalState.FAIR
+    MoblinkThermalState.red -> ThermalState.SERIOUS
 }

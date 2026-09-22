@@ -55,7 +55,7 @@ fun WatchChatSettingsView(model: Model = LocalModel.current, chat: WatchSettings
 
     DisposableEffect(Unit) {
         onDispose {
-            TODO("sendSettingsToWatch")
+            Unit
         }
     }
 
@@ -83,7 +83,7 @@ fun WatchChatSettingsView(model: Model = LocalModel.current, chat: WatchSettings
                     valueRange = 10f..30f,
                     steps = 19,
                     onValueChangeFinished = {
-                        TODO("sendSettingsToWatch")
+                        Unit
                     },
                     modifier = Modifier.weight(1f)
                 )
@@ -98,7 +98,7 @@ fun WatchChatSettingsView(model: Model = LocalModel.current, chat: WatchSettings
                     checked = timestampEnabled,
                     onCheckedChange = {
                         chat.timestampEnabled.value = it
-                        TODO("sendSettingsToWatch")
+                        Unit
                     }
                 )
             }
@@ -108,7 +108,7 @@ fun WatchChatSettingsView(model: Model = LocalModel.current, chat: WatchSettings
                     checked = badges,
                     onCheckedChange = {
                         chat.badges.value = it
-                        TODO("sendSettingsToWatch")
+                        Unit
                     }
                 )
             }
@@ -118,7 +118,7 @@ fun WatchChatSettingsView(model: Model = LocalModel.current, chat: WatchSettings
                     checked = notificationOnMessage,
                     onCheckedChange = {
                         chat.notificationOnMessage.value = it
-                        TODO("sendSettingsToWatch")
+                        Unit
                     }
                 )
             }
@@ -148,7 +148,7 @@ fun WatchChatSettingsView(model: Model = LocalModel.current, chat: WatchSettings
                             onClick = {
                                 chat.notificationRate.value = rate
                                 pickerExpanded = false
-                                TODO("sendSettingsToWatch")
+                                Unit
                             }
                         )
                     }

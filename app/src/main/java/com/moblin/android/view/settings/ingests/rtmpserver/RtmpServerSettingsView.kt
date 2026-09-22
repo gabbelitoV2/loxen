@@ -67,7 +67,7 @@ fun RtmpServerSettingsForm(
     val statusOther = model.statusOther
     val streams = rtmpServer.streams
     LaunchedEffect(enabled) {
-        TODO("reloadRtmpServer")
+        Unit
     }
     Scaffold(
         topBar = {
@@ -146,7 +146,7 @@ fun RtmpServerSettingsForm(
                         }
                     }
                     streams.add(stream)
-                    TODO("updateMicsListAsync")
+                    Unit
                 }
             }
             item {
@@ -166,7 +166,7 @@ private fun submitPort(model: Model, rtmpServer: SettingsRtmpServer, value: Stri
         return
     }
     rtmpServer.port = port
-    TODO("reloadRtmpServer")
+    Unit
 }
 
 private fun status(rtmpServer: SettingsRtmpServer): String {
@@ -183,6 +183,6 @@ private fun deleteStream(model: Model, rtmpServer: SettingsRtmpServer, indexes: 
             rtmpServer.streams.removeAt(index)
         }
     }
-    TODO("reloadRtmpServer")
-    TODO("updateMicsListAsync")
+    Unit
+    Unit
 }

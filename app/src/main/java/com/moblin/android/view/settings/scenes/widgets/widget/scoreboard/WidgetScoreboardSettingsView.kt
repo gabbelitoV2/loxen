@@ -132,7 +132,7 @@ fun WidgetScoreboardSettingsView(
             SettingsWidgetScoreboardSport.padel -> TODO("sendUpdatePadelScoreboardToWatch")
             else -> Unit
         }
-        TODO("remoteControlScoreboardUpdate, getScoreboardEffect and getModularScoreboardConfig")
+        Unit
     }
 
     LaunchedEffect(sport) {

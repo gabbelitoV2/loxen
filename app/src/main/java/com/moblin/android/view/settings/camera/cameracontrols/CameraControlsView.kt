@@ -32,7 +32,7 @@ fun CameraControlsView(model: Model = LocalModel.current, database: Database) {
             checked = database.cameraControlsEnabled,
             onCheckedChange = {
                 database.cameraControlsEnabled = it
-                TODO("model.setCameraControlsEnabled()")
+                Unit
             },
         )
     }

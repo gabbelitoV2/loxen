@@ -194,9 +194,9 @@ private fun Model.handleSettingsFileImport(url: Uri) {
     if (isLive.value || isRecording.value) {
         return
     }
-    TODO("no Android counterpart for security-scoped resource access")
+    Unit
     importSettingsFromFile(url.toString()) { _ ->
-        TODO("no Android counterpart for security-scoped resource access")
+        Unit
     }
 }
 

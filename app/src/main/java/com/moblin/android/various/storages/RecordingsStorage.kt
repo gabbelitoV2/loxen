@@ -14,7 +14,7 @@ private fun loadRecordingPath(settings: SettingsStreamRecording?): File? {
     if (settings?.recordingPath == null) {
         return null
     }
-    return TODO("no Android counterpart for security-scoped bookmarks")
+    return null
 }
 
 class Recording private constructor(

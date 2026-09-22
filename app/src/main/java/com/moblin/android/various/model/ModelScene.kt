@@ -1959,15 +1959,15 @@ private fun Model.updateNeedsGForce(text: SettingsWidgetText, parts: List<TextFo
 }
 
 private fun List<TextFormatPart>.isWeatherVariable(): Boolean {
-    return TODO("no Android counterpart for private List<TextFormatPart>.isWeatherVariable")
+    return false
 }
 
 private fun List<TextFormatPart>.isGeographyVariable(): Boolean {
-    return TODO("no Android counterpart for private List<TextFormatPart>.isGeographyVariable")
+    return false
 }
 
 private fun List<TextFormatPart>.isGForceVariable(): Boolean {
-    return TODO("no Android counterpart for private List<TextFormatPart>.isGForceVariable")
+    return false
 }
 
 private fun canvasSize(size: android.util.Size): androidx.compose.ui.geometry.Size {

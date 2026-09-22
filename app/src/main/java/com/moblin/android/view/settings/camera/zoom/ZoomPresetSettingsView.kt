@@ -32,8 +32,8 @@ class ZoomPresetSettingsView(
         }
         preset.x = x
         preset.name = "${formatOneDecimal(x)}x".replace(".0", "")
-        TODO("model.frontZoomPresetSettingUpdated()")
-        TODO("model.backZoomPresetSettingsUpdated()")
+        Unit
+        Unit
     }
 
     private fun formatX(x: Float): String {

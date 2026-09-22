@@ -56,9 +56,9 @@ private fun DeviceView(
             checked = isStarted,
             onCheckedChange = { value ->
                 if (value) {
-                    TODO("startDjiDeviceLiveStream")
+                    Unit
                 } else {
-                    TODO("stopDjiDeviceLiveStream")
+                    Unit
                 }
             },
             enabled = TODO("canStartLive"),

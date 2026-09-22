@@ -579,13 +579,13 @@ private fun GoProDeviceStartStopSection(
                 .padding(8.dp),
         ) {
             TextButtonView("Stop live stream") {
-                TODO("stopGoProDeviceLiveStream")
+                Unit
             }
         }
     } else {
         TextButtonView("Start live stream") {
             if (device.canStartLive(status.isConnectedToIpv4WiFi())) {
-                TODO("startGoProDeviceLiveStream")
+                Unit
             }
         }
     }
@@ -653,7 +653,7 @@ fun GoProBleDevicesSettingsSection(
                 .combinedClickable(
                     onClick = { onNavigate("GoProBleDeviceSettingsView") },
                     onLongClick = {
-                        TODO("removeGoProDevices")
+                        Unit
                     },
                 )
                 .padding(vertical = 8.dp),
@@ -665,7 +665,7 @@ fun GoProBleDevicesSettingsSection(
             GrayTextView(text = formatGoProDeviceState(state))
         }
     }
-    TODO("no Compose counterpart for drag reordering of a list (onMove)")
+    Unit
     CreateButtonView {
         val device = SettingsGoProDevice()
         device.name = makeUniqueName(

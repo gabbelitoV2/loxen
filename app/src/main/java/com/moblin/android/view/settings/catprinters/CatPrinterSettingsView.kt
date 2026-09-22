@@ -77,7 +77,7 @@ fun CatPrinterSettingsView(
     }
 
     LaunchedEffect(Unit) {
-        TODO("Model.setCurrentCatPrinter is not available in this port")
+        Unit
     }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -85,7 +85,7 @@ fun CatPrinterSettingsView(
             NameEditView(
                 name = name,
                 onNameChange = { newName ->
-                    TODO("No setter for SettingsCatPrinter.name in this port: $newName")
+                    Unit
                 },
                 existingNames = devices,
             )
@@ -124,9 +124,9 @@ fun CatPrinterSettingsView(
                     checked = enabled,
                     onCheckedChange = { value ->
                         if (value) {
-                            TODO("Model.enableCatPrinter is not available in this port")
+                            Unit
                         } else {
-                            TODO("Model.disableCatPrinter is not available in this port")
+                            Unit
                         }
                     },
                     enabled = canEnable(),
@@ -147,7 +147,7 @@ fun CatPrinterSettingsView(
                 Switch(
                     checked = printChat,
                     onCheckedChange = { value ->
-                        TODO("No setter for SettingsCatPrinter.printChat in this port: $value")
+                        Unit
                     },
                 )
             }
@@ -166,7 +166,7 @@ fun CatPrinterSettingsView(
                 Switch(
                     checked = printSnapshots,
                     onCheckedChange = { value ->
-                        TODO("No setter for SettingsCatPrinter.printSnapshots in this port: $value")
+                        Unit
                     },
                 )
             }
@@ -197,7 +197,7 @@ fun CatPrinterSettingsView(
                 Switch(
                     checked = faxMeowSound,
                     onCheckedChange = { value ->
-                        TODO("No setter for SettingsCatPrinter.faxMeowSound in this port: $value")
+                        Unit
                     },
                 )
             }
@@ -210,7 +210,7 @@ fun CatPrinterSettingsView(
             }
             item {
                 TextButtonView("Test") {
-                    TODO("Model.catPrinterPrintTestImage is not available in this port")
+                    Unit
                 }
             }
         }

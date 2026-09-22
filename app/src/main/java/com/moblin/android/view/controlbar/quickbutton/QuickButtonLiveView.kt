@@ -139,7 +139,7 @@ private fun GoLiveNotificationView(
         Button(
             onClick = {
                 sending = true
-                TODO("sendGoLiveNotification")
+                Unit
             },
             enabled = !sending && isGoLiveNotificationConfigured(
                 goLiveNotificationDiscordWebhookUrl,

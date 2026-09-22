@@ -641,7 +641,7 @@ fun Model.triggerReaction(reaction: SettingsReaction) {
 }
 
 private fun Model.triggerAppleReaction(reaction: Any) {
-    TODO("no Android counterpart for AVCaptureReactionType")
+    Unit
 }
 
 private fun Model.handleChatBotMessageScene(command: ChatBotCommand) {

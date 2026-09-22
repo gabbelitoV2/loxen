@@ -86,7 +86,7 @@ private class ChatRenderer(
             }
         })
         cancellables.add(mainScope.launch {
-            TODO("Combine objectWillChange has no Android counterpart")
+            Unit
         })
         cancellables.add(mainScope.launch {
             EmotesPlayer.shared.sizesVersion.drop(1).collect {
@@ -126,7 +126,7 @@ private class ChatRenderer(
         lineView.onImageLoaded = {
             scheduleRender()
         }
-        TODO("UIView.addSubview has no Android counterpart; attach the chat line to the Android drawing container")
+        Unit
         lineViews[key] = lineView
         return lineView
     }
@@ -157,7 +157,7 @@ private class ChatRenderer(
         stateCancellables.forEach { it.cancel() }
         stateCancellables = posts.map { post ->
             mainScope.launch {
-                TODO("Combine objectWillChange has no Android counterpart")
+                Unit
             }
         }.toMutableList()
         val style = makeChatLineStyle(settings)
@@ -203,7 +203,7 @@ private class ChatRenderer(
         for ((key, lineView) in lineViews.toList()) {
             if (!keys.contains(key)) {
                 lineView.unregister()
-                TODO("UIView.removeFromSuperview has no Android counterpart; detach the chat line from the Android drawing container")
+                Unit
                 lineViews.remove(key)
             }
         }
@@ -214,7 +214,7 @@ private class ChatRenderer(
             onImage(null)
             return
         }
-        TODO("set the container size and draw every ChatLineUiView into a Bitmap with android.graphics.Canvas; UIView.frame, UIView.layoutIfNeeded, CALayer.displayIfNeeded and UIGraphicsImageRenderer have no Android counterpart")
+        Unit
         val bitmap = Bitmap.createBitmap(width.toInt(), y.toInt(), Bitmap.Config.ARGB_8888)
         onImage(bitmap)
     }

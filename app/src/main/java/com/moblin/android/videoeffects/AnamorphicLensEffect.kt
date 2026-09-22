@@ -17,6 +17,6 @@ class AnamorphicLensEffect(settings: SettingsVideoEffectAnamorphicLens) : VideoE
     }
 
     override fun executeEarly(image: Image, videoEffectInfo: VideoEffectInfo): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 }

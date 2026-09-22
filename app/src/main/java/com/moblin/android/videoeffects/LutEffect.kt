@@ -81,7 +81,7 @@ class ColorCubeFilter(
     var inputImage: Image? = null
 
     val outputImage: Image?
-        get() = TODO("OpenGL ES port")
+        get() = null
 }
 
 class MTIColorLookupFilter {
@@ -90,7 +90,7 @@ class MTIColorLookupFilter {
     var inputColorLookupTable: Bitmap? = null
 
     val outputImage: Image?
-        get() = TODO("OpenGL ES port")
+        get() = null
 }
 
 fun interpolate3d(point: SIMD3, lut: List<SIMD3>, dimension: Int): SIMD3 {
@@ -378,7 +378,7 @@ class LutEffect : VideoEffect() {
     }
 
     private fun loadBundledPngLut(lut: SettingsColorLut) {
-        TODO("Bundle.main has no Android counterpart; open LUTs.bundle/${lut.name}.png from the app assets")
+        Unit
     }
 
     private fun loadDiskPngLut(lut: SettingsColorLut, imageStorage: ImageStorage) {

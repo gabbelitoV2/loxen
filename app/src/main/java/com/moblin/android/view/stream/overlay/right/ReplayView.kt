@@ -219,7 +219,7 @@ private fun ReplayControlsSaveButton(
     } else {
         Button(
             onClick = {
-                val replayEnabled: Boolean = TODO("stream.replay.enabled")
+                val replayEnabled: Boolean = model.stream.value.replay.enabled
                 if (replayEnabled) {
                     model.saveReplay()
                 } else {

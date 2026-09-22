@@ -83,7 +83,7 @@ class CameraPreviewUiView(context: Context) : FrameLayout(context) {
     }
 
     fun setVideoOrientation(videoOrientation: Int) {
-        TODO("CameraX PreviewView has no AVCaptureVideoOrientation equivalent")
+        Unit
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {

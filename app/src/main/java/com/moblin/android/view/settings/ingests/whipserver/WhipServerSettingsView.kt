@@ -60,7 +60,7 @@ fun WhipServerSettingsView(
     val statusOther = model.statusOther
 
     LaunchedEffect(enabled) {
-        TODO("Model.reloadWhipServer() is not available")
+        Unit
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -183,7 +183,7 @@ fun WhipServerSettingsView(
                         }
                     }
                     whipServer.streams.add(stream)
-                    TODO("Model.updateMicsListAsync() is not available")
+                    Unit
                 }
             }
             item {
@@ -212,13 +212,13 @@ private fun submitPort(model: Model, whipServer: SettingsWhipServer, value: Stri
         return
     }
     whipServer.port = port
-    TODO("Model.reloadWhipServer() is not available")
+    Unit
 }
 
 private fun deleteStream(model: Model, whipServer: SettingsWhipServer, index: Int) {
     if (index in whipServer.streams.indices) {
         whipServer.streams.removeAt(index)
     }
-    TODO("Model.reloadWhipServer() is not available")
-    TODO("Model.updateMicsListAsync() is not available")
+    Unit
+    Unit
 }

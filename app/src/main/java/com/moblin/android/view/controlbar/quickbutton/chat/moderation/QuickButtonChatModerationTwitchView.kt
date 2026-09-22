@@ -98,7 +98,7 @@ private fun CreatePollView(model: Model = LocalModel.current, onCreated: () -> U
             ExecutorView(executor = executor) {
                 CreateButtonView {
                     executor.startProgress()
-                    TODO("createTwitchPoll")
+                    Unit
                 }
             }
         }
@@ -108,7 +108,7 @@ private fun CreatePollView(model: Model = LocalModel.current, onCreated: () -> U
 @Composable
 private fun ActivePollView(model: Model = LocalModel.current, poll: TwitchApiPollData, onEnded: () -> Unit) {
     fun end(status: TwitchApiPollStatus, onComplete: (OperationResult) -> Unit) {
-        TODO("endTwitchPoll")
+        Unit
     }
 
     Column {
@@ -139,7 +139,7 @@ private fun PollFormView(model: Model = LocalModel.current) {
 
     fun load() {
         executor.startProgress()
-        TODO("getTwitchPolls")
+        Unit
     }
 
     fun loadOnce() {
@@ -204,7 +204,7 @@ private fun CreatePredictionView(model: Model = LocalModel.current, onCreated: (
             ExecutorView(executor = executor) {
                 CreateButtonView {
                     executor.startProgress()
-                    TODO("createTwitchPrediction")
+                    Unit
                 }
             }
         }
@@ -241,7 +241,7 @@ private fun ActivePredictionView(
         winningOutcomeId: String? = null,
         onComplete: (OperationResult) -> Unit,
     ) {
-        TODO("endTwitchPrediction")
+        Unit
     }
 
     Column {
@@ -278,7 +278,7 @@ private fun PredictionFormView(model: Model = LocalModel.current) {
 
     fun load() {
         executor.startProgress()
-        TODO("getTwitchPredictions")
+        Unit
     }
 
     fun loadOnce() {
@@ -325,7 +325,7 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
             return@LaunchedEffect
         }
         executor.startProgress()
-        TODO("searchTwitchChannels")
+        Unit
     }
 
     Column {
@@ -351,7 +351,7 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
                         isLive = true,
                         viewerCount = null,
                     ) { onComplete ->
-                        TODO("startRaidTwitchChannel")
+                        Unit
                     }
                 }
             }
@@ -404,7 +404,7 @@ private fun RaidSuggestionsView(model: Model = LocalModel.current, suggestions: 
                 isLive = true,
                 viewerCount = suggestion.viewerCount,
             ) { onComplete ->
-                TODO("startRaidTwitchChannel")
+                Unit
             }
         }
     }
@@ -423,7 +423,7 @@ private fun fetchRaidSuggestionImages(
     userIds: List<String>,
     onComplete: (Map<String, String>) -> Unit,
 ) {
-    TODO("getTwitchUsers")
+    Unit
 }
 
 private fun setRaidSuggestionImages(
@@ -468,7 +468,7 @@ private fun RunCommercialView(model: Model = LocalModel.current) {
                 ExecutorView(executor = executor) {
                     TextButtonView("Run commercial") {
                         executor.startProgress()
-                        TODO("startAds")
+                        Unit
                     }
                 }
             }
@@ -524,7 +524,7 @@ private fun SendAnnouncementView(model: Model = LocalModel.current) {
                 ExecutorView(executor = executor) {
                     TextButtonView("Send") {
                         executor.startProgress()
-                        TODO("sendTwitchAnnouncement")
+                        Unit
                     }
                 }
             }
@@ -540,12 +540,12 @@ private fun StartRaidView(model: Model = LocalModel.current) {
     val followedChannelsExecutor = remember { Executor() }
 
     fun loadRaidHistory() {
-        TODO("twitchRaidsSent")
+        Unit
     }
 
     fun loadFollowedChannels() {
         followedChannelsExecutor.startProgress()
-        TODO("getTwitchFollowedStreams")
+        Unit
     }
 
     NavigationLinkView(text = "Raid channel", image = "play.tv") {
@@ -593,11 +593,11 @@ fun QuickButtonChatModerationTwitchForm(
     onPlatformChange: (Platform?) -> Unit,
 ) {
     fun slowModeAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
-        TODO("setTwitchSlowMode")
+        Unit
     }
 
     fun followersOnlyAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
-        TODO("setTwitchFollowersMode")
+        Unit
     }
 
     LaunchedEffect(Unit) {

@@ -25,7 +25,7 @@ class Gimbal(private val model: Model) {
 
     init {
         task = gimbalScope.launch {
-            TODO("no Android counterpart for DockKit")
+            Unit
         }
     }
 
@@ -35,7 +35,7 @@ class Gimbal(private val model: Model) {
 
     fun setTracking(on: Boolean) {
         gimbalScope.launch {
-            TODO("no Android counterpart for DockKit")
+            Unit
         }
     }
 
@@ -43,18 +43,18 @@ class Gimbal(private val model: Model) {
         if (tracking) {
             return
         }
-        TODO("no Android counterpart for DockKit")
+        Unit
     }
 
     fun animate(motion: SettingsGimbalMotion) {
         gimbalScope.launch {
-            TODO("no Android counterpart for DockKit")
+            Unit
         }
     }
 
     fun setMovement(velocity: Vector3D) {
         gimbalScope.launch {
-            TODO("no Android counterpart for DockKit")
+            Unit
         }
     }
 
@@ -62,11 +62,11 @@ class Gimbal(private val model: Model) {
         if (tracking) {
             return null
         }
-        TODO("no Android counterpart for DockKit")
+        return null
     }
 
     private fun handleStateChange(stateChange: Any) {
-        TODO("no Android counterpart for DockKit")
+        Unit
     }
 
     private fun startAccessoryEventsHandler(accessory: Any) {
@@ -74,7 +74,7 @@ class Gimbal(private val model: Model) {
         this.accessory = accessory
         shutterCount = 0
         accessoryTask = gimbalScope.launch {
-            TODO("no Android counterpart for DockKit")
+            Unit
         }
     }
 
@@ -85,7 +85,7 @@ class Gimbal(private val model: Model) {
     }
 
     private fun handleAccessoryEvent(event: Any) {
-        TODO("no Android counterpart for DockKit")
+        Unit
     }
 
     private fun handleAccessoryEventCameraShutter() {
@@ -93,14 +93,14 @@ class Gimbal(private val model: Model) {
         if (shutterCount % 2 != 0) {
             return
         }
-        TODO("no Android counterpart for DockKit")
+        Unit
     }
 
     private fun handleAccessoryEventCameraFlip() {
-        TODO("no Android counterpart for DockKit")
+        Unit
     }
 
     private fun handleAccessoryEventCameraZoom(factor: Double) {
-        TODO("no Android counterpart for DockKit")
+        Unit
     }
 }

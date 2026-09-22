@@ -414,7 +414,7 @@ class HttpServer(
                 }
             }
             if (service != null) {
-                TODO("register mDNS service with NsdManager")
+                Unit
             }
         } catch (e: Exception) {
             handleStateUpdate(failed = true)

@@ -33,11 +33,9 @@ import com.moblin.android.LocalModel
 private const val serviceName = "_moblin._tcp"
 
 fun wiFiAwarePublishableService(): WAPublishableService =
-    TODO("no Android counterpart for WiFiAware WAPublishableService.allServices[serviceName]")
-
+    TODO()
 fun wiFiAwareSubscribableService(): WASubscribableService =
-    TODO("no Android counterpart for WiFiAware WASubscribableService.allServices[serviceName]")
-
+    TODO()
 @Composable
 private fun PairedDevicesView() {
     var pairedDevices by remember { mutableStateOf<List<WAPairedDevice>>(emptyList()) }
@@ -58,12 +56,12 @@ private fun PairedDevicesView() {
 
 @Composable
 private fun AdvertiseView() {
-    TODO("no Android counterpart for DeviceDiscoveryUI DevicePairingView")
+    Unit
 }
 
 @Composable
 private fun SearchView() {
-    TODO("no Android counterpart for DeviceDiscoveryUI DevicePicker")
+    Unit
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,7 +87,7 @@ fun WiFiAwareSettingsView(model: Model = LocalModel.current, wiFiAware: Settings
                         checked = enabled,
                         onCheckedChange = { newValue ->
                             wiFiAware.enabled = newValue
-                            TODO("model.wiFiAwareUpdated()")
+                            Unit
                         },
                     )
                 }
@@ -165,7 +163,7 @@ enum class WAFeature {
 
 object WACapabilities {
     val supportedFeatures: Set<WAFeature> =
-        TODO("no Android counterpart for WiFiAware WACapabilities.supportedFeatures")
+        TODO()
 }
 
 class WAPairingInfo(
@@ -179,6 +177,6 @@ class WAPairedDevice(
 ) {
     companion object {
         val allDevices: Flow<Map<UUID, WAPairedDevice>> =
-            TODO("no Android counterpart for WiFiAware WAPairedDevice.allDevices")
+            TODO()
     }
 }

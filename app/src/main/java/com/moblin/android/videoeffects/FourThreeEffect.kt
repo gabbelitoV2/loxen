@@ -7,11 +7,9 @@ import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 
 class FourThreeEffect : VideoEffect() {
     override fun execute(image: Image, info: VideoEffectInfo): Image =
-        TODO("OpenGL ES port")
-
+        TODO()
     override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image =
-        TODO("OpenGL ES port")
-
+        TODO()
     fun cropRect(width: Float, height: Float): RectF =
         RectF(
             width / 8f,

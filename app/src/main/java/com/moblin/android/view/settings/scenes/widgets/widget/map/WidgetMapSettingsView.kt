@@ -43,7 +43,7 @@ fun WidgetMapSettingsView(
                 checked = widget.map.northUp,
                 onCheckedChange = { value ->
                     widget.map.northUp = value
-                    TODO("resetSelectedScene")
+                    Unit
                 },
             )
             Text("North up", modifier = Modifier.padding(start = 8.dp))
@@ -66,7 +66,7 @@ fun WidgetMapSettingsView(
                 steps = 94,
                 onValueChangeFinished = {
                     widget.map.size = size
-                    TODO("resetSelectedScene")
+                    Unit
                 },
                 modifier = Modifier.weight(1f),
             )
@@ -81,7 +81,7 @@ fun WidgetMapSettingsView(
                 steps = 19,
                 onValueChangeFinished = {
                     widget.map.delay = delay
-                    TODO("resetSelectedScene")
+                    Unit
                 },
                 modifier = Modifier.weight(1f),
             )

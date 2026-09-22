@@ -49,7 +49,7 @@ private fun MicDelayView(model: Model = LocalModel.current, mic: SettingsMicsMic
     }
     LaunchedEffect(delay) {
         if (initialized) {
-            TODO("no Android counterpart for updateMicDelay")
+            Unit
         } else {
             initialized = true
         }

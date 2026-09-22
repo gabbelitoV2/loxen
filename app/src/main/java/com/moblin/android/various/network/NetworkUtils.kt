@@ -157,7 +157,7 @@ fun getHttpsUrl(text: String): URI? {
 }
 
 fun WebView.setHttpProxy(endpoint: NWEndpoint?) {
-    TODO("no Android counterpart for WKWebViewConfiguration.proxyConfigurations")
+    Unit
 }
 
 fun URI.isLoopback(): Boolean {

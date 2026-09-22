@@ -142,7 +142,7 @@ private fun CreatePollView(model: Model = LocalModel.current) {
             ExecutorView(executor = executor) {
                 CreateButtonView(action = {
                     executor.startProgress()
-                    TODO("createKickPoll")
+                    Unit
                 })
             }
         }
@@ -219,7 +219,7 @@ private fun CreatePredictionView(model: Model = LocalModel.current) {
             ExecutorView(executor = executor) {
                 CreateButtonView(action = {
                     executor.startProgress()
-                    TODO("createKickPrediction")
+                    Unit
                 })
             }
         }
@@ -238,7 +238,7 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
             return@LaunchedEffect
         }
         executor.startProgress()
-        TODO("searchKickChannels")
+        Unit
     }
 
     Column {
@@ -259,7 +259,7 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
                     isLive = channel.is_live,
                     viewerCount = channel.viewers_count,
                 ) { onComplete ->
-                    TODO("hostKickChannel")
+                    Unit
                 }
             }
         }
@@ -277,7 +277,7 @@ private fun HostChannelView(model: Model = LocalModel.current) {
             return
         }
         isLoading = true
-        TODO("createKickApi(stream = model.stream).getFollowedChannels")
+        Unit
     }
 
     NavigationLinkView(text = "Raid channel", image = "play.tv") {
@@ -293,7 +293,7 @@ private fun HostChannelView(model: Model = LocalModel.current) {
                 isLive = true,
                 viewerCount = channel.viewer_count,
             ) { onComplete ->
-                TODO("hostKickChannel")
+                Unit
             }
         }
         if (isLoading) {
@@ -331,17 +331,17 @@ fun QuickButtonChatModerationKickView(
 ) {
     fun slowModeAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
         if (duration != null) {
-            TODO("enableKickSlowMode")
+            Unit
         } else {
-            TODO("disableKickSlowMode")
+            Unit
         }
     }
 
     fun followersOnlyAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
         if (duration != null) {
-            TODO("enableKickFollowersMode")
+            Unit
         } else {
-            TODO("disableKickFollowersMode")
+            Unit
         }
     }
 
@@ -357,7 +357,7 @@ fun QuickButtonChatModerationKickView(
         HostChannelView(model = model)
         CreatePollView(model = model)
         ActionRowView(text = "Delete poll", image = "chart.bar") { onComplete ->
-            TODO("deleteKickPoll")
+            Unit
         }
         CreatePredictionView(model = model)
         HorizontalDivider()
@@ -371,17 +371,17 @@ fun QuickButtonChatModerationKickView(
         )
         SubscribersOnlyView(
             action = { enabled, onComplete ->
-                TODO("setKickSubscribersOnlyMode")
+                Unit
             },
         )
         EmotesOnlyView(
             action = { enabled, onComplete ->
-                TODO("setKickEmoteOnlyMode")
+                Unit
             },
         )
         ShowViewCountView(
             action = { enabled, onComplete ->
-                TODO("setKickShowViewCount")
+                Unit
             },
         )
         HorizontalDivider()

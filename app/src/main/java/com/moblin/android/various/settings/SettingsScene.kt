@@ -289,7 +289,7 @@ class SettingsVideoEffect(
             AnamorphicLensEffect(settings = anamorphicLens.clone())
         SettingsVideoEffectType.lut -> {
             val effect = LutEffect()
-            TODO("Model.getLogLutById is not available")
+            TODO()
         }
         SettingsVideoEffectType.opacity -> {
             val effect = OpacityEffect()
@@ -1017,8 +1017,7 @@ enum class SettingsSceneSwitchTransition(val rawValue: String) {
     }
 
     fun toVideoUnit(): SceneSwitchTransition =
-        TODO("SceneSwitchTransition members are not available")
-
+        TODO()
     companion object {
         fun fromRawValue(rawValue: String): SettingsSceneSwitchTransition? =
             entries.firstOrNull { it.rawValue == rawValue }

@@ -39,12 +39,12 @@ data class WheelOfLuckEffectOption(
 private fun WheelView(size: Double, options: List<WheelOfLuckEffectOption>) {
     val offset = size / 3.4
     val font = size / 10
-    TODO("no Android counterpart for the Swift Charts SectorMark based wheel rendering")
+    Unit
 }
 
 @Composable
 private fun ArrowView(size: Double) {
-    TODO("no Android counterpart for the SF Symbol location.north.fill arrow rendering")
+    Unit
 }
 
 class WheelOfLuckEffect(private val canvasSize: Size) : VideoEffect() {
@@ -132,8 +132,7 @@ class WheelOfLuckEffect(private val canvasSize: Size) : VideoEffect() {
     }
 
     private fun renderWheel(size: Double, options: List<WheelOfLuckEffectOption>): EffectImageCgImage? =
-        TODO("no Android counterpart for SwiftUI ImageRenderer wheel rendering")
-
+        null
     private fun renderArrow(size: Double): EffectImageCgImage? =
-        TODO("no Android counterpart for SwiftUI ImageRenderer arrow rendering")
+        null
 }

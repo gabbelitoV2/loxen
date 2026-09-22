@@ -79,7 +79,7 @@ private fun TimePickerView(
         }
         Row(modifier = Modifier.padding(16.dp)) {
             TimeButtonView(text = "Set") {
-                TODO("handleUpdateGenericScoreboard")
+                Unit
                 onPresentingChange(false)
             }
             TimeButtonView(text = "Cancel") {
@@ -204,18 +204,18 @@ fun WidgetScoreboardGenericQuickButtonControlsView(model: Model = LocalModel.cur
         VerticalDivider()
         Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
             ScoreboardUndoButtonView {
-                TODO("handleUpdateGenericScoreboard")
+                Unit
             }
             ScoreboardResetScoreButtonView {
-                TODO("handleUpdateGenericScoreboard")
+                Unit
             }
         }
         Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
             ScoreboardIncrementButtonView {
-                TODO("handleUpdateGenericScoreboard")
+                Unit
             }
             ScoreboardIncrementButtonView {
-                TODO("handleUpdateGenericScoreboard")
+                Unit
             }
         }
     }

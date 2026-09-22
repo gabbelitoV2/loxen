@@ -35,7 +35,7 @@ fun QuickButtonStreamSwitcherView(model: Model = LocalModel.current, database: D
     var isFirstComposition by remember { mutableStateOf(true) }
     LaunchedEffect(currentStreamId) {
         if (!isFirstComposition) {
-            TODO("Switching stream is not implemented")
+            Unit
         }
         isFirstComposition = false
     }

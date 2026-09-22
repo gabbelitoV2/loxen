@@ -103,7 +103,7 @@ fun StreamOverlayRightFaceView(model: Model = LocalModel.current, face: Settings
                             value = blurStrength,
                             onValueChange = { value ->
                                 model.updateFaceFilterSettings()
-                                TODO("set face.blurStrength = $value")
+                                Unit
                             },
                         )
                         LaunchedEffect(blurStrength) {
@@ -117,7 +117,7 @@ fun StreamOverlayRightFaceView(model: Model = LocalModel.current, face: Settings
                             value = pixellateStrength,
                             onValueChange = { value ->
                                 model.updateFaceFilterSettings()
-                                TODO("set face.pixellateStrength = $value")
+                                Unit
                             },
                         )
                         LaunchedEffect(pixellateStrength) {
@@ -125,7 +125,7 @@ fun StreamOverlayRightFaceView(model: Model = LocalModel.current, face: Settings
                         }
                     }
                     SettingsFacePrivacyMode.backgroundImage -> {
-                        TODO("no Android counterpart for PhotosPicker")
+                        Unit
                     }
                     SettingsFacePrivacyMode.icon -> {
                     }
@@ -162,7 +162,7 @@ fun StreamOverlayRightFaceView(model: Model = LocalModel.current, face: Settings
                                 text = { Text(mode.toString()) },
                                 onClick = {
                                     expanded = false
-                                    TODO("set face.privacyMode = $mode")
+                                    Unit
                                 },
                             )
                         }

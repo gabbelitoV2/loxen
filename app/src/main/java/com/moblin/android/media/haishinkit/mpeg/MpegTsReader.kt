@@ -116,8 +116,7 @@ class MpegTsReader(
     }
 
     private fun createAudioDecoder(formatDescription: MediaFormat): MediaCodec =
-        TODO("MediaCodec audio/mp4a-latm decoder configuration port")
-
+        TODO()
     private fun decodeAudio(
         audioDecoder: MediaCodec,
         input: ByteArray,
@@ -450,11 +449,9 @@ class MpegTsReader(
     }
 
     private fun readHevcTimecode(unit: NalUnit): Pair<String, Int>? =
-        TODO("H.265 SEI timecode extraction port")
-
+        null
     private fun List<NalUnit>.makeFormatDescription(): MediaFormat? =
-        TODO("MediaFormat (csd-0) from H.264/H.265 nal units port")
-
+        null
     private fun makeSampleBuffer(
         packetId: UShort,
         presentationTimeStamp: Long,

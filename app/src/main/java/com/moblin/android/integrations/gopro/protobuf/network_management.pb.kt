@@ -122,11 +122,11 @@ class OpenGopro_NotifProvisioningState {
         get() = _provisioningState != null
 
     fun <D> decodeMessage(decoder: D) {
-        TODO("SwiftProtobuf decoder has no Android counterpart")
+        Unit
     }
 
     fun <V> traverse(visitor: V) {
-        TODO("SwiftProtobuf visitor has no Android counterpart")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -232,11 +232,11 @@ class OpenGopro_NotifStartScanning {
         }
 
     fun <D> decodeMessage(decoder: D) {
-        TODO("SwiftProtobuf decoder has no Android counterpart")
+        Unit
     }
 
     fun <V> traverse(visitor: V) {
-        TODO("SwiftProtobuf visitor has no Android counterpart")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -307,11 +307,11 @@ class OpenGopro_RequestConnect {
         get() = _ssid != null
 
     fun <D> decodeMessage(decoder: D) {
-        TODO("SwiftProtobuf decoder has no Android counterpart")
+        Unit
     }
 
     fun <V> traverse(visitor: V) {
-        TODO("SwiftProtobuf visitor has no Android counterpart")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -473,11 +473,11 @@ class OpenGopro_RequestConnectNew {
         }
 
     fun <D> decodeMessage(decoder: D) {
-        TODO("SwiftProtobuf decoder has no Android counterpart")
+        Unit
     }
 
     fun <V> traverse(visitor: V) {
-        TODO("SwiftProtobuf visitor has no Android counterpart")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -607,11 +607,11 @@ class OpenGopro_RequestGetApEntries {
         }
 
     fun <D> decodeMessage(decoder: D) {
-        TODO("SwiftProtobuf decoder has no Android counterpart")
+        Unit
     }
 
     fun <V> traverse(visitor: V) {
-        TODO("SwiftProtobuf visitor has no Android counterpart")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -662,11 +662,11 @@ class OpenGopro_RequestReleaseNetwork {
         get() = true
 
     fun <D> decodeMessage(decoder: D) {
-        TODO("SwiftProtobuf decoder has no Android counterpart")
+        Unit
     }
 
     fun <V> traverse(visitor: V) {
-        TODO("SwiftProtobuf visitor has no Android counterpart")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -700,11 +700,11 @@ class OpenGopro_RequestStartScan {
         get() = true
 
     fun <D> decodeMessage(decoder: D) {
-        TODO("SwiftProtobuf decoder has no Android counterpart")
+        Unit
     }
 
     fun <V> traverse(visitor: V) {
-        TODO("SwiftProtobuf visitor has no Android counterpart")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -792,11 +792,11 @@ class OpenGopro_ResponseConnect {
         }
 
     fun <D> decodeMessage(decoder: D) {
-        TODO("SwiftProtobuf decoder has no Android counterpart")
+        Unit
     }
 
     fun <V> traverse(visitor: V) {
-        TODO("SwiftProtobuf visitor has no Android counterpart")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -901,11 +901,11 @@ class OpenGopro_ResponseConnectNew {
         }
 
     fun <D> decodeMessage(decoder: D) {
-        TODO("SwiftProtobuf decoder has no Android counterpart")
+        Unit
     }
 
     fun <V> traverse(visitor: V) {
-        TODO("SwiftProtobuf visitor has no Android counterpart")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -1058,11 +1058,11 @@ class OpenGopro_ResponseGetApEntries {
             }
 
         fun <D> decodeMessage(decoder: D) {
-            TODO("SwiftProtobuf decoder has no Android counterpart")
+            Unit
         }
 
         fun <V> traverse(visitor: V) {
-            TODO("SwiftProtobuf visitor has no Android counterpart")
+            Unit
         }
 
         override fun equals(other: Any?): Boolean {
@@ -1130,11 +1130,11 @@ class OpenGopro_ResponseGetApEntries {
         }
 
     fun <D> decodeMessage(decoder: D) {
-        TODO("SwiftProtobuf decoder has no Android counterpart")
+        Unit
     }
 
     fun <V> traverse(visitor: V) {
-        TODO("SwiftProtobuf visitor has no Android counterpart")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -1222,11 +1222,11 @@ class OpenGopro_ResponseStartScanning {
         }
 
     fun <D> decodeMessage(decoder: D) {
-        TODO("SwiftProtobuf decoder has no Android counterpart")
+        Unit
     }
 
     fun <V> traverse(visitor: V) {
-        TODO("SwiftProtobuf visitor has no Android counterpart")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -1309,11 +1309,11 @@ class OpenGopro_RequestPairingFinish {
         }
 
     fun <D> decodeMessage(decoder: D) {
-        TODO("SwiftProtobuf decoder has no Android counterpart")
+        Unit
     }
 
     fun <V> traverse(visitor: V) {
-        TODO("SwiftProtobuf visitor has no Android counterpart")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {

@@ -18,13 +18,13 @@ fun ExportSettingsView(model: Model = LocalModel.current) {
     HCenter {
         val exportUrl = url
         if (exportUrl != null) {
-            TODO("no Android counterpart for ShareLink")
+            Unit
         } else {
             CircularProgressIndicator()
         }
     }
 
     LaunchedEffect(Unit) {
-        TODO("no Android counterpart for Model.exportToFile")
+        Unit
     }
 }

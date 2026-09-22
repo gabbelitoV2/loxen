@@ -175,11 +175,11 @@ class ChatEmoteComboEffect(private val canvasSize: Size) : VideoEffect() {
 
     override fun execute(image: android.media.Image, info: VideoEffectInfo): android.media.Image {
         val comboImage = comboImage ?: return image
-        TODO("OpenGL ES port: CIImage compositing is not available on Android")
+        TODO()
     }
 
     override fun executeMetalPetal(image: android.media.Image, info: VideoEffectInfo): android.media.Image {
         val comboImage = comboImage ?: return image
-        TODO("OpenGL ES port: MTIImage compositing is not available on Android")
+        TODO()
     }
 }

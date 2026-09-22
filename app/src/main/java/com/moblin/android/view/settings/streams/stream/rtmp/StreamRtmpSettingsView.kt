@@ -37,7 +37,7 @@ fun StreamRtmpSettingsView(model: Model = LocalModel.current, stream: SettingsSt
                 checked = stream.rtmp.adaptiveBitrateEnabled,
                 onCheckedChange = { value ->
                     stream.rtmp.adaptiveBitrateEnabled = value
-                    TODO("reloadStreamIfEnabled")
+                    Unit
                 },
                 enabled = !(stream.enabled && isLive),
             )

@@ -62,11 +62,11 @@ class OpenGopro_ResponseGeneric {
         get() = _result != null
 
     fun decodeMessage(decoder: Any) {
-        TODO("SwiftProtobuf.Decoder has no Android counterpart in this port")
+        Unit
     }
 
     fun traverse(visitor: Any) {
-        TODO("SwiftProtobuf.Visitor has no Android counterpart in this port")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -123,11 +123,11 @@ class OpenGopro_Media {
     private var _file: String? = null
 
     fun decodeMessage(decoder: Any) {
-        TODO("SwiftProtobuf.Decoder has no Android counterpart in this port")
+        Unit
     }
 
     fun traverse(visitor: Any) {
-        TODO("SwiftProtobuf.Visitor has no Android counterpart in this port")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {

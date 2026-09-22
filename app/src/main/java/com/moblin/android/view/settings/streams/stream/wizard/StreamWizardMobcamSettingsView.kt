@@ -34,7 +34,7 @@ fun StreamWizardMobcamSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     LaunchedEffect(Unit) {
-        TODO("createStreamWizard.platform = the Mobcam platform enum value")
+        Unit
         createStreamWizard.name = makeUniqueName(
             localized("Custom Mobcam"),
             model.database.streams,

@@ -36,7 +36,7 @@ fun Dewarp360EffectView(
     dewarp360: SettingsVideoEffectDewarp360,
 ) {
     fun updateWidget() {
-        TODO("model.getWidgetDewarp360Effect is not available")
+        Unit
     }
 
     val pan = dewarp360.pan

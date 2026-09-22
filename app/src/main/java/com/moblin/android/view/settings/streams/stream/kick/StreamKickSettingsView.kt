@@ -65,11 +65,11 @@ private fun AuthenticationView(
         if (!stream.kickLoggedIn) {
             TextButtonView("Login") {
                 presentingWebView = true
-                TODO("kickLogin")
+                Unit
             }
         } else {
             TextButtonView("Logout") {
-                TODO("kickLogout")
+                Unit
             }
         }
     }
@@ -98,13 +98,13 @@ private fun CategoryButton(
 ) {
     Button(onClick = {
         val categoryId = category.id.toIntOrNull() ?: return@Button
-        TODO("setKickStreamCategory")
+        Unit
         onDismiss()
     }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             val imageUrl = category.src
             if (imageUrl != null) {
-                TODO("AsyncImage")
+                Unit
             }
             Text(category.name)
         }
@@ -124,7 +124,7 @@ private fun KickCategoryPickerView(
     fun fetchDefaultCategories() {
         val categoryNames = listOf("IRL", "Just Chatting", "Slots & Casino")
         for (categoryName in categoryNames) {
-            TODO("fetchKickCategories")
+            Unit
         }
     }
 
@@ -133,7 +133,7 @@ private fun KickCategoryPickerView(
             categories = emptyList()
             fetchDefaultCategories()
         } else {
-            TODO("searchKickCategories")
+            Unit
         }
     }
 
@@ -320,7 +320,7 @@ suspend fun loadKickStreamInfo(
         return
     }
     delay(1000)
-    TODO("getKickStreamInfo")
+    Unit
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -358,7 +358,7 @@ fun StreamKickSettingsView(
 
     fun reloadConnectionsIfEnabled() {
         if (stream.enabled) {
-            TODO("kickAccessTokenUpdated")
+            Unit
         }
     }
 
@@ -385,7 +385,7 @@ fun StreamKickSettingsView(
         stream.kickChannelName = value
         fetchChannelInfo()
         if (stream.enabled && stream.kickChannelName.isEmpty()) {
-            TODO("kickChannelNameUpdated")
+            Unit
         }
     }
 
@@ -400,7 +400,7 @@ fun StreamKickSettingsView(
     }
 
     fun onLoggedIn() {
-        TODO("createKickApi")
+        Unit
     }
 
     LaunchedEffect(Unit) {

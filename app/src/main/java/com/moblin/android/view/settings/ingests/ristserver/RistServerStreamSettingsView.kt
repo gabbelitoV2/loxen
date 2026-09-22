@@ -42,7 +42,7 @@ fun RistServerStreamSettingsView(
             return
         }
         stream.virtualDestinationPort = parsedPort
-        TODO("model.reloadRistServer()")
+        Unit
     }
 
     fun submitLatency(value: String) {

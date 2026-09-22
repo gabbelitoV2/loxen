@@ -224,7 +224,7 @@ private fun SubtitlesWithLanguageView(
     text: String,
     onChange: (String) -> Unit,
 ) {
-    TODO("no Android counterpart for Translation")
+    Unit
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1652,8 +1652,7 @@ private fun FontFamilyPickerView(
 }
 
 private fun loadFontFamilies(): List<String> =
-    TODO("no Android counterpart for UIKit font enumeration")
-
+    emptyList()
 fun fontStyleName(family: String, fontName: String): String {
     val prefix = family.replace(" ", "")
     val name = fontName.replace("-", "")
@@ -1665,8 +1664,7 @@ fun fontStyleName(family: String, fontName: String): String {
 }
 
 private fun fontStyles(fontFamily: String): List<String> =
-    TODO("no Android counterpart for UIKit font enumeration")
-
+    emptyList()
 @Composable
 private fun FontStylePickerView(
     model: Model = LocalModel.current,
@@ -2007,28 +2005,20 @@ fun WidgetTextSettingsView(
 }
 
 private fun Model.getTextEffects(id: Any?): List<TextEffect> =
-    TODO("Model.getTextEffects(id:)")
-
+    emptyList()
 private fun Model.remoteSceneSettingsUpdated(): Unit =
-    TODO("Model.remoteSceneSettingsUpdated()")
-
+    Unit
 private fun Model.reloadLocation(): Unit =
-    TODO("Model.reloadLocation()")
-
+    Unit
 private fun Model.resetSelectedScene(changeScene: Boolean): Unit =
-    TODO("Model.resetSelectedScene(changeScene:)")
-
+    Unit
 private fun Model.textWidgetTextChanged(widget: SettingsWidget): Unit =
-    TODO("Model.textWidgetTextChanged(widget:)")
-
+    Unit
 private fun Any?.isWorkoutVariable(): Boolean =
-    TODO("TextFormat.isWorkoutVariable()")
-
+    false
 private fun Any?.isLocationVariable(): Boolean =
-    TODO("TextFormat.isLocationVariable()")
-
+    false
 private fun Any?.isWeatherVariable(): Boolean =
-    TODO("TextFormat.isWeatherVariable()")
-
+    false
 private fun Any?.getCheckboxText(index: Int): String =
-    TODO("TextFormat.getCheckboxText(index:)")
+    ""

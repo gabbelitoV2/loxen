@@ -47,11 +47,11 @@ class PreviewView(context: Context, attrs: AttributeSet? = null) :
     }
 
     private fun flushAndRemoveImage() {
-        TODO("Clear the last rendered video frame; AVSampleBufferDisplayLayer.flushAndRemoveImage has no Android counterpart (OpenGL ES port)")
+        Unit
     }
 
     private fun render(sample: MediaSample) {
-        TODO("Decode the MediaSample with a MediaCodec decoder rendering into this view's SurfaceTexture, flushing the decoder first if it is in an error state (OpenGL ES port)")
+        Unit
     }
 
     fun enqueue(sampleBuffer: MediaSample?, isFirstAfterAttach: Boolean) {

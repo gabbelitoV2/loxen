@@ -41,7 +41,7 @@ private fun fetchLiveStreams(
     youTubeStream: SettingsStream
 ) {
     model.getYouTubeApi(stream = youTubeStream) {
-        TODO("YouTubeApi.listLiveStreams result handling is not available in this port")
+        Unit
     }
 }
 
@@ -51,7 +51,7 @@ private fun fetchChannelHandle(
     youTubeStream: SettingsStream
 ) {
     model.getYouTubeApi(stream = youTubeStream) {
-        TODO("YouTubeApi.listChannels result handling is not available in this port")
+        Unit
     }
 }
 

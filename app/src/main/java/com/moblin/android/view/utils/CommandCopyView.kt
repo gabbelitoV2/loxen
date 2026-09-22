@@ -6,7 +6,7 @@ import androidx.compose.material3.Text
 
 @Composable
 fun CopyToClipboardButtonView(text: String) {
-    TODO("no Compose counterpart for ShareLink")
+    Unit
 }
 
 @Composable

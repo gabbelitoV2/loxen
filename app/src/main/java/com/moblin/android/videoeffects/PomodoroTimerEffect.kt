@@ -227,7 +227,7 @@ class PomodoroTimerEffect(private val canvasSize: Size) : VideoEffect() {
         val timerImage = if (image == null) {
             null
         } else {
-            TODO("no Android counterpart for CGImage.toEffectImage()")
+            TODO()
         }
         processorPipelineQueue.launch {
             this@PomodoroTimerEffect.timerImage = timerImage

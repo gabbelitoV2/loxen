@@ -465,7 +465,7 @@ private fun KickGiftsView(model: Model = LocalModel.current, kick: SettingsWidge
                     kickGift = kickGift,
                     onNavigate = onNavigate
                 )
-                TODO("contextMenuDeleteButton has no Compose counterpart")
+                Unit
             }
             item {
                 CreateButtonView {

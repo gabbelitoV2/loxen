@@ -56,11 +56,11 @@ private fun deleteFrontZoomPreset(model: Model, zoom: SettingsZoom, offsets: Lis
 }
 
 private fun moveBackZoomPreset(fromOffsets: List<Int>, toOffset: Int) {
-    TODO("no Android counterpart for SwiftUI List onMove")
+    Unit
 }
 
 private fun moveFrontZoomPreset(fromOffsets: List<Int>, toOffset: Int) {
-    TODO("no Android counterpart for SwiftUI List onMove")
+    Unit
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -238,12 +238,12 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
                     opacity = true
                 ) {
                     zoom.backgroundColor = it
-                    TODO("no Android counterpart for Combine objectWillChange")
+                    Unit
                 }
                 TextButtonView("Reset") {
                     zoom.backgroundColor = defaultSegmentedPickerSelectedColor
                     zoom.backgroundColorColor = zoom.backgroundColor.color()
-                    TODO("no Android counterpart for Combine objectWillChange")
+                    Unit
                 }
                 Text(
                     text = "Background color of the zoom preset button when selected.",

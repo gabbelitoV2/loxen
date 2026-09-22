@@ -141,7 +141,7 @@ class BingoCardEffect(canvasSize: Size) : VideoEffect() {
         cancellable?.cancel()
         renderer = TODO("no Android counterpart for SwiftUI ImageRenderer")
         cancellable = mainScope.launch {
-            TODO("no Android counterpart for SwiftUI ImageRenderer.objectWillChange")
+            Unit
         }
         setBingoImage(image = TODO("no Android counterpart for SwiftUI ImageRenderer.cgImage"))
     }

@@ -40,8 +40,7 @@ class SnapshotEffect(showtime: Int) : VideoEffect() {
     }
 
     override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image =
-        TODO("OpenGL ES port")
-
+        TODO()
     override fun isEnabled(): Boolean {
         return currentSnapshot != null
     }

@@ -37,11 +37,11 @@ fun Model.youTubeSignIn(stream: SettingsStream) {
     if (getRootViewController() == null) {
         return
     }
-    TODO("no Android counterpart for AppAuth")
+    Unit
 }
 
 private fun Model.youTubeSignIn(stream: SettingsStream, configuration: Any, rootViewController: Any) {
-    TODO("no Android counterpart for AppAuth")
+    Unit
 }
 
 private fun Model.makeYouTubeSignInCallback(stream: SettingsStream): (Any?, Any?) -> Unit {
@@ -211,7 +211,7 @@ private fun Model.getYouTubeAccesssToken(stream: SettingsStream, onCompleted: (S
         onCompleted(null)
         return
     }
-    TODO("no Android counterpart for AppAuth")
+    Unit
 }
 
 private fun Model.getVideo() {

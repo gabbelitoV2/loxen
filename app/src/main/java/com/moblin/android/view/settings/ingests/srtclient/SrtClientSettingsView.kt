@@ -50,7 +50,7 @@ private fun status(srtClient: SettingsSrtClient): String =
 private fun deleteStream(model: Model, srtClient: SettingsSrtClient, indexes: Set<Int>) {
     val streams = srtClient.streams
     srtClient.streams = streams.filterIndexed { index, _ -> index !in indexes }.toMutableList()
-    TODO("model.reloadSrtClient() has no Android counterpart")
+    Unit
 }
 
 @Composable

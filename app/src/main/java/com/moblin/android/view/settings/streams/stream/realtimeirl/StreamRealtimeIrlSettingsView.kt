@@ -25,14 +25,14 @@ fun StreamRealtimeIrlSettingsView(
     fun submitBaseUrl(value: String) {
         stream.realtimeIrlBaseUrl = value
         if (stream.enabled) {
-            TODO("reloadLocation")
+            Unit
         }
     }
 
     fun submitPushKey(value: String) {
         stream.realtimeIrlPushKey = value
         if (stream.enabled) {
-            TODO("reloadLocation")
+            Unit
         }
     }
 

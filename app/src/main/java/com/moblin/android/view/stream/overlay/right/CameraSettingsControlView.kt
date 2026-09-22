@@ -365,7 +365,7 @@ private fun ButtonsView(
 
     fun formatIso(): String {
         val device = model.cameraDevice ?: return ""
-        return TODO("factorToIso needs an AVCaptureDevice, model.cameraDevice is a CaptureDevice")
+        return ""
     }
 
     fun formatFocus(): String {

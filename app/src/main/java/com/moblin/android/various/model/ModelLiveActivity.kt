@@ -1,17 +1,17 @@
 package com.moblin.android.various.model
 
 fun Model.startLiveActivity() {
-    TODO("no Android counterpart for ActivityKit")
+    Unit
 }
 
 fun Model.stopLiveActivity() {
-    TODO("no Android counterpart for ActivityKit")
+    Unit
 }
 
 fun Model.updateLiveActivity() {
-    TODO("no Android counterpart for ActivityKit")
+    Unit
 }
 
 private fun Model.makeState(): Nothing {
-    TODO("no Android counterpart for ActivityKit")
+    TODO()
 }

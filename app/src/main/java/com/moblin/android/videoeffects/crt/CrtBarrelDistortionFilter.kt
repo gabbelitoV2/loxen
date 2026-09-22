@@ -1,7 +1,7 @@
 package com.moblin.android.videoeffects.crt
 
 private val barrelKernel: Any? by lazy<Any?> {
-    TODO("OpenGL ES port: Metal library kernel crtBarrelDistortion")
+    Unit
 }
 
 class CrtBarrelDistortionFilter {
@@ -10,5 +10,5 @@ class CrtBarrelDistortionFilter {
     var strength: Float = 0.1f
 
     val outputImage: Any?
-        get() = TODO("OpenGL ES port: crtBarrelDistortion warp kernel")
+        get() = null
 }

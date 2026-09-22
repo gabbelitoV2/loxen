@@ -157,7 +157,7 @@ fun StreamsSettingsView(
             }
             item {
                 CreateButtonView {
-                    TODO("resetWizard")
+                    Unit
                     createStreamWizard.presenting = true
                 }
             }

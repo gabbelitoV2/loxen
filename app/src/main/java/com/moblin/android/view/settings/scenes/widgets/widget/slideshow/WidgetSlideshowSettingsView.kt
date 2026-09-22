@@ -139,7 +139,7 @@ private fun deleteSlide(
     at: Int,
 ) {
     slideshow.slides = slideshow.slides.filterIndexed { index, _ -> index != at }
-    TODO("Model.resetSelectedScene has no Android counterpart")
+    Unit
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -175,7 +175,7 @@ private fun SlidesView(
         }
         AddButtonView {
             slideshow.slides = slideshow.slides + SettingsWidgetSlideshowSlide()
-            TODO("Model.resetSelectedScene has no Android counterpart")
+            Unit
         }
         SwipeLeftToDeleteHelpView(kind = localized("a slide"))
     }

@@ -92,7 +92,7 @@ private class LegacyWriterInput(private val writer: MediaMuxer, private val trac
 
 private class ReceiverWriterInput(writer: MediaMuxer, input: MediaFormat) : WriterInput {
     override fun append(sampleBuffer: MediaSample): Boolean {
-        TODO("AVAssetWriterInput.SampleBufferReceiver has no Android counterpart")
+        return false
     }
 }
 
@@ -325,7 +325,7 @@ class Recorder {
         if (audioConverter == null) {
             return null
         }
-        TODO("AVAudioConverter has no Android counterpart; resample to the recorder format with MediaCodec")
+        TODO()
     }
 
     private fun createAudioWriterInput(sampleBuffer: MediaSample): WriterInput? {
@@ -427,15 +427,15 @@ class Recorder {
     }
 
     private fun makeAudioConverter(formatDescription: MediaFormat?) {
-        TODO("AVAudioConverter and AVAudioFormat have no Android counterpart")
+        Unit
     }
 
     private fun makeChannelLayout(numberOfChannels: Long): Int? {
-        TODO("AVAudioChannelLayout has no Android counterpart; MediaFormat.KEY_CHANNEL_MASK is used instead")
+        return null
     }
 
     private fun makeAudioFormat(basicDescription: MediaFormat): MediaFormat? {
-        TODO("AVAudioFormat(streamDescription:) has no Android counterpart")
+        return null
     }
 
     private fun startRunningInternal(

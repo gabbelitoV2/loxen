@@ -31,7 +31,7 @@ fun FixedHorizonView(model: Model = LocalModel.current, database: Database) {
             checked = fixedHorizon,
             onCheckedChange = { value ->
                 database.fixedHorizon = value
-                TODO("model.sceneUpdated()")
+                Unit
             },
         )
     }

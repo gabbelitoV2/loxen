@@ -49,8 +49,8 @@ private fun WidgetsSettingsItemView(
 ) {
     val deleteWidget: () -> Unit = {
         database.widgets.removeAll { it === widget }
-        TODO("removeDeadWidgetsFromScenes is not available on Model")
-        TODO("resetSelectedScene is not available on Model")
+        Unit
+        Unit
     }
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
@@ -63,7 +63,7 @@ private fun WidgetsSettingsItemView(
         },
     )
     LaunchedEffect(widget.enabled) {
-        TODO("sceneUpdated is not available on Model")
+        Unit
     }
     SwipeToDismissBox(
         state = dismissState,

@@ -218,8 +218,7 @@ class RemoveBackgroundEffect : VideoEffect() {
     }
 
     override fun execute(image: Image, videoEffectInfo: VideoEffectInfo): Image =
-        TODO("no Android counterpart for CoreImage CIColorCubeWithColorSpace")
-
+        TODO()
     override fun executeMetalPetal(image: Image, videoEffectInfo: VideoEffectInfo): Image =
-        TODO("no Android counterpart for MetalPetal MTIChromaKeyBlendFilter")
+        TODO()
 }

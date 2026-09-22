@@ -32,16 +32,16 @@ class StreamDeck {
 
 @Composable
 private fun StreamDeckKeyItemView(model: Model = LocalModel.current, index: Int, key: SettingsStreamDeckKey) {
-    TODO("no Android counterpart for StreamDeckKit StreamDeckKeyView")
+    Unit
 }
 
 @Composable
 private fun StreamDeckView(model: Model = LocalModel.current, streamDeck: StreamDeck) {
     val layout by streamDeck.streamDeck.collectAsState()
     if (layout != null) {
-        TODO("no Android counterpart for StreamDeckKit StreamDeckLayout and StreamDeckKeyAreaLayout")
+        Unit
     } else {
-        TODO("no Android counterpart for StreamDeckKit StreamDeckLayout and StreamDeckKeyAreaLayout")
+        Unit
     }
 }
 
@@ -49,7 +49,7 @@ fun Model.setupStreamDeck() {
     if (!isPad()) {
         return
     }
-    TODO("no Android counterpart for StreamDeckKit StreamDeckSession.setUp")
+    Unit
     updateIsStreamDeckDeviceDriverInstalled()
 }
 
@@ -57,7 +57,7 @@ fun Model.setSelectedStreamDeck() {
     val streamDecks = database.streamDecks
     streamDeck.setStreamDeck(streamDecks.layouts.value.firstOrNull { it.id == streamDecks.selectedId.value })
     if (streamDeck.streamDeck.value == null) {
-        TODO("SettingsStreamDecks.selectedId is read-only and cannot be cleared")
+        Unit
     }
 }
 

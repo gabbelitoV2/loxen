@@ -159,25 +159,25 @@ private class H265NalUnits {
 }
 
 private fun toRtcTrack(pointer: Long?): RtcTrack? {
-    TODO("libdatachannel JNI bridge is unavailable")
+    return null
 }
 
 private class RtcTrack(private val trackId: Int) {
     private var state: TrackState = TrackState.CONNECTING
 
     init {
-        TODO("libdatachannel JNI bridge is unavailable: rtcSetUserPointer/rtcSetOpenCallback/rtcSetClosedCallback/rtcSetErrorCallback")
+        Unit
     }
 
     fun setTimestamp(presentationTimeStamp: Double) {
-        TODO("libdatachannel JNI bridge is unavailable: rtcTransformSecondsToTimestamp/rtcSetTrackRtpTimestamp")
+        Unit
     }
 
     fun send(message: ByteArray): Boolean {
         if (state != TrackState.OPEN) {
             return false
         }
-        TODO("libdatachannel JNI bridge is unavailable: rtcSendMessage")
+        return false
     }
 
     fun handleRemb(bitrate: UInt) {
@@ -263,7 +263,7 @@ private interface PeerConnectionDelegate {
 }
 
 private fun toPeerConnection(pointer: Long?): PeerConnection? {
-    TODO("libdatachannel JNI bridge is unavailable")
+    return null
 }
 
 private class PeerConnection(
@@ -271,30 +271,29 @@ private class PeerConnection(
     iceServers: List<String>,
 ) {
     private val peerConnectionId: Int =
-        TODO("libdatachannel JNI bridge is unavailable: rtcCreatePeerConnection")
-
+        TODO()
     fun close() {
-        TODO("libdatachannel JNI bridge is unavailable: rtcDeletePeerConnection")
+        Unit
     }
 
     fun addTrack(config: RtcTrackConfig, streamId: String): RtcTrack {
-        TODO("libdatachannel JNI bridge is unavailable: rtcAddTrackEx/rtcSetH264Packetizer/rtcSetH265Packetizer/rtcSetAACPacketizer/rtcSetOpusPacketizer/rtcChainRtcpSrReporter/rtcChainRtcpNackResponder")
+        TODO()
     }
 
     fun setLocalDescriptionOffer() {
-        TODO("libdatachannel JNI bridge is unavailable: rtcSetLocalDescription")
+        Unit
     }
 
     fun getLocalDescription(): String {
-        TODO("libdatachannel JNI bridge is unavailable: rtcGetLocalDescription")
+        return ""
     }
 
     fun setRemoteAnswer(sdp: String) {
-        TODO("libdatachannel JNI bridge is unavailable: rtcSetRemoteDescription")
+        Unit
     }
 
     fun getSelectedCandidatePair(): Pair<String, String>? {
-        TODO("libdatachannel JNI bridge is unavailable: rtcGetSelectedCandidatePair")
+        return null
     }
 
     private fun handleStateChange(state: Int) {

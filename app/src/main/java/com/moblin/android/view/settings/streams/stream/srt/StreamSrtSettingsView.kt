@@ -71,7 +71,7 @@ fun StreamSrtSettingsView(
     fun submitLatency(value: String) {
         val parsed = value.toIntOrNull() ?: return
         srt.latency = parsed
-        TODO("model.reloadStreamIfEnabled(stream)")
+        Unit
     }
 
     fun changeOverheadBandwidth(value: String): String? {
@@ -88,7 +88,7 @@ fun StreamSrtSettingsView(
     fun submitOverheadBandwidth(value: String) {
         val parsed = value.toIntOrNull() ?: return
         srt.overheadBandwidth = parsed
-        TODO("model.reloadStreamIfEnabled(stream)")
+        Unit
     }
 
     var dnsExpanded by remember { mutableStateOf(false) }
@@ -135,7 +135,7 @@ fun StreamSrtSettingsView(
                             checked = adaptiveBitrateEnabled,
                             onCheckedChange = {
                                 srt.adaptiveBitrateEnabled = it
-                                TODO("model.reloadStreamIfEnabled(stream)")
+                                Unit
                             },
                             enabled = !disabled,
                         )
@@ -166,7 +166,7 @@ fun StreamSrtSettingsView(
                                     checked = maximumBandwidthFollowInput,
                                     onCheckedChange = {
                                         srt.maximumBandwidthFollowInput = it
-                                        TODO("model.reloadStreamIfEnabled(stream)")
+                                        Unit
                                     },
                                     enabled = !disabled,
                                 )
@@ -192,7 +192,7 @@ fun StreamSrtSettingsView(
                             checked = bigPackets,
                             onCheckedChange = {
                                 srt.bigPackets = it
-                                TODO("model.reloadStreamIfEnabled(stream)")
+                                Unit
                             },
                             enabled = !disabled,
                         )
@@ -280,7 +280,7 @@ fun StreamSrtSettingsView(
                                     onClick = {
                                         srt.implementation = item
                                         implementationExpanded = false
-                                        TODO("model.reloadStreamIfEnabled(stream)")
+                                        Unit
                                     },
                                 )
                             }

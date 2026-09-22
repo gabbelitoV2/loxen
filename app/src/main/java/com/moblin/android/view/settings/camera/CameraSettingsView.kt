@@ -232,11 +232,11 @@ private fun CameraSettingsPngLutsView(
             }
         }
         if (presentingPicker) {
-            TODO("PhotosPicker has no Android counterpart")
+            Unit
         }
         LaunchedEffect(selectedImageItem) {
             if (selectedImageItem != null) {
-                TODO("PhotosPickerItem has no Android counterpart")
+                Unit
             }
         }
     }

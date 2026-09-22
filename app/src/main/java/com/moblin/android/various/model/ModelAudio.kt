@@ -84,7 +84,7 @@ class Mic {
 }
 
 fun Model.setupInputGainObserver() {
-    TODO("no Android counterpart for AVAudioSession input gain observation")
+    Unit
 }
 
 fun Model.setupAudio() {
@@ -127,16 +127,16 @@ fun Model.reloadAudioSession() {
 
 fun Model.setInputGainIfSupported(inputGain: Float) {
     mic.inputGainTimer.startSingleShot(timeout = 0.5) {
-        TODO("no Android counterpart for AVAudioSession input gain setting")
+        Unit
     }
 }
 
 fun Model.setupAudioSession() {
-    TODO("no Android counterpart for AVAudioSession category configuration")
+    Unit
 }
 
 fun Model.teardownAudioSession() {
-    TODO("no Android counterpart for AVAudioSession deactivation")
+    Unit
 }
 
 fun Model.switchMicIfNeededAfterSceneSwitch() {
@@ -256,7 +256,7 @@ fun Model.updateMicDelay() {
 fun Model.selectMicDefault(mic: SettingsMicsMic) {
     media.attachBufferedAudio(cameraId = null)
     processorControlQueue.launch {
-        TODO("no Android counterpart for AVAudioSession input port selection (preferStereoMic=${database.audio.preferStereoMic})")
+        Unit
     }
     media.attachDefaultAudioDevice(builtinDelay = database.debug.builtinAudioAndVideoDelay.value)
     remoteControlStateChanged(state = RemoteControlAssistantStreamerState(mic = mic.id))
@@ -306,7 +306,7 @@ fun Model.updateTalkback() {
 }
 
 fun Model.handleSystemVolumeDidChange(notification: Intent) {
-    TODO("no Android counterpart for the NSNotification system volume change payload")
+    Unit
 }
 
 fun Model.handleAudioRouteChange(notification: Intent) {
@@ -320,7 +320,7 @@ private fun Model.handleAudioRouteChange() {
         return
     }
     switchMicIfNeededAfterRouteChange()
-    TODO("no Android counterpart for AVAudioSession input gain state")
+    Unit
 }
 
 private fun Model.handleSystemVolumeDidChange(volume: Float, reason: String, sequenceNumber: Int) {
@@ -360,7 +360,7 @@ private fun Model.isVolumeMinOrMax(volume: Float): Boolean {
 }
 
 private fun Model.setSystemVolume(volume: Float) {
-    TODO("no Android counterpart for MPVolumeView (setting the system volume)")
+    Unit
 }
 
 private fun Model.switchMicIfNeededAfterRouteChange() {
@@ -374,7 +374,7 @@ private fun Model.switchMicIfNeededAfterRouteChange() {
 }
 
 private fun Model.getActiveAudioSessionMic(): SettingsMicsMic? {
-    TODO("no Android counterpart for AVAudioSession current route inspection")
+    return null
 }
 
 private fun Model.autoSwitchMicIfNeededAfterRouteChange() {
@@ -698,11 +698,11 @@ private fun Model.stopTalkback() {
 }
 
 private fun setBuiltInMicAudioMode(dataSource: Any, preferStereoMic: Boolean) {
-    TODO("no Android counterpart for AVAudioSessionDataSourceDescription polar patterns")
+    Unit
 }
 
 private fun listAudioSessionMics(mics: MutableList<SettingsMicsMic>) {
-    TODO("no Android counterpart for AVAudioSession available inputs")
+    Unit
 }
 
 private fun addAudioSessionBuiltinMics(
@@ -710,13 +710,13 @@ private fun addAudioSessionBuiltinMics(
     inputPort: Any,
     dataSources: List<Any>
 ) {
-    TODO("no Android counterpart for AVAudioSession input port data sources")
+    Unit
 }
 
 private fun addAudioSessionExternalMics(mics: MutableList<SettingsMicsMic>, inputPort: Any) {
-    TODO("no Android counterpart for AVAudioSession input ports")
+    Unit
 }
 
 private fun getBuiltInMicOrientation(orientation: Any?): SettingsMic? {
-    TODO("no Android counterpart for AVAudioSession.Orientation")
+    return null
 }

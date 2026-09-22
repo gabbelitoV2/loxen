@@ -41,78 +41,78 @@ private class Workout {
     }
 
     fun start(model: Model, type: WatchProtocolWorkoutType): Boolean {
-        TODO("no Android counterpart for HealthKit")
+        return false
     }
 
     fun stop() {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 
     private fun handleStateChange(session: Any, toState: Any, fromState: Any, date: Instant) {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 
     private fun handleError(session: Any, error: Throwable) {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 
     private fun finished(session: Any) {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 
     fun addHeartRate(heartRate: Int) {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 
     fun addCyclingPower(cyclingPower: Int) {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 
     fun addCyclingCadence(cyclingCadence: Int) {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 
     private fun add(type: Any, unit: Any, value: Double) {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 
     fun workoutSession(session: Any, toState: Any, fromState: Any, date: Instant) {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 
     fun workoutSession(session: Any, error: Throwable) {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 
     fun workoutBuilder(workoutBuilder: Any, collectedTypes: Set<Any>) {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 
     fun workoutBuilderDidCollectEvent(workoutBuilder: Any) {
-        TODO("no Android counterpart for HealthKit")
+        Unit
     }
 }
 
 fun Model.startWorkout(type: WatchProtocolWorkoutType) {
-    TODO("no Android counterpart for HealthKit")
+    Unit
 }
 
 fun Model.stopWorkout() {
-    TODO("no Android counterpart for HealthKit")
+    Unit
 }
 
 fun Model.addWorkoutHeartRate(heartRate: Int) {
-    TODO("no Android counterpart for HealthKit")
+    Unit
 }
 
 fun Model.addWorkoutCyclingPower(power: Int) {
-    TODO("no Android counterpart for HealthKit")
+    Unit
 }
 
 fun Model.addWorkoutCyclingCadence(cadence: Int) {
-    TODO("no Android counterpart for HealthKit")
+    Unit
 }
 
 private fun Model.authorizeHealthKit(completion: () -> Unit) {
-    TODO("no Android counterpart for HealthKit")
+    Unit
 }

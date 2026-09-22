@@ -173,7 +173,7 @@ private fun CropView(
                     contentScale = ContentScale.Fit
                 )
             } else {
-                TODO("GamlaLinkoping image asset is not available")
+                Unit
             }
             Canvas(
                 modifier = Modifier
@@ -224,11 +224,11 @@ fun ShapeEffectView(
     val isPortrait = TODO("model.stream.portrait is not available")
 
     fun updateWidget() {
-        TODO("model.getWidgetShapeEffect is not available")
+        Unit
     }
 
     LaunchedEffect(Unit) {
-        TODO("model.takeVideoSourcePreviewImage is not available")
+        Unit
     }
 
     Column {

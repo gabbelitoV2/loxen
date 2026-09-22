@@ -124,7 +124,7 @@ fun ChatTextToSpeechSettingsView(
         val textToSpeech = TextToSpeech(context) { }
         appleVoices = textToSpeech.voices?.toList() ?: emptyList()
         textToSpeech.shutdown()
-        TODO("no Android counterpart for AVSpeechSynthesizer.requestPersonalVoiceAuthorization")
+        Unit
     }
 
     LaunchedEffect(ttsMonsterApiToken) {

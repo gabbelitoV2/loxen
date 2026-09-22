@@ -21,14 +21,14 @@ import com.moblin.android.LocalModel
 private fun submitChannelName(model: Model, stream: SettingsStream, value: String) {
     stream.soopChannelName = value
     if (stream.enabled) {
-        TODO("model.soopChannelNameUpdated()")
+        Unit
     }
 }
 
 private fun submitStreamId(model: Model, stream: SettingsStream, value: String) {
     stream.soopStreamId = value
     if (stream.enabled) {
-        TODO("model.soopStreamIdUpdated()")
+        Unit
     }
 }
 

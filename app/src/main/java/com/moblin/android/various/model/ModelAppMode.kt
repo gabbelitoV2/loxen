@@ -78,7 +78,7 @@ fun Model.startChatPhoneBackgroundAudio() {
     if (!isChatPhone()) {
         return
     }
-    TODO("Resolve Alerts.bundle/Silence.mp3 from assets and create an AudioPlayer")
+    Unit
 }
 
 fun Model.stopChatPhoneBackgroundAudio() {

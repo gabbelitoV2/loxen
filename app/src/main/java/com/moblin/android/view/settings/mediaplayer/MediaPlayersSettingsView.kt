@@ -68,7 +68,7 @@ fun MediaPlayersSettingsView(
                     mediaPlayers.players,
                 )
                 mediaPlayers.players = mediaPlayers.players + mediaPlayer
-                TODO("Model.addMediaPlayer")
+                Unit
             }
         }
     }
@@ -80,6 +80,6 @@ private fun deletePlayer(
     offset: Int,
 ) {
     val players = mediaPlayers.players
-    TODO("Model.deleteMediaPlayer")
+    Unit
     mediaPlayers.players = players.filterIndexed { index, _ -> index != offset }
 }

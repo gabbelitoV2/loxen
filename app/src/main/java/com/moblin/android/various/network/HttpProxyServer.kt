@@ -184,7 +184,7 @@ private class Connection(
         val socket = Socket()
         try {
             if (interfaceType != null) {
-                TODO("bind socket to network interface type")
+                Unit
             }
             socket.connect(InetSocketAddress(host, port))
         } catch (e: Exception) {

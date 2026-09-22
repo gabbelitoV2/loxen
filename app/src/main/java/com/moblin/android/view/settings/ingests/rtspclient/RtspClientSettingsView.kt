@@ -50,7 +50,7 @@ private fun deleteStream(model: Model, rtspClient: SettingsRtspClient, indexes: 
     rtspClient.streams = rtspClient.streams.filterIndexed { index, _ ->
         !indexes.contains(index)
     }.toMutableList()
-    TODO("model.reloadRtspClient()")
+    Unit
 }
 
 @Composable

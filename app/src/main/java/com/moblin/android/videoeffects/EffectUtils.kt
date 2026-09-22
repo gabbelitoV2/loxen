@@ -124,7 +124,7 @@ fun MTIImage.moveComposited(layout: SettingsWidgetLayout,
 fun MTIImage.positionComposited(position: Offset,
                                 backgroundImage: MTIImage,
                                 size: Size? = null): MTIImage {
-    TODO("OpenGL ES port: MTIMultilayerCompositingFilter background layer")
+    TODO()
 }
 
 fun MTIImage.resizeMirrorMoveComposited(layout: SettingsWidgetLayout,
@@ -153,7 +153,7 @@ private fun MTIImage.composited(layout: SettingsWidgetLayout,
                                            shape.rotated(borderSize),
                                            backgroundImage.extent.size)
     val rotation = shape.rotationRadians()
-    TODO("OpenGL ES port: border layer at $position rotation $rotation and content layer, mirror $mirror")
+    TODO()
 }
 
 fun CIImage.resizeMirror(layout: SettingsWidgetLayout,
@@ -209,11 +209,11 @@ fun CIImage.move(layout: SettingsWidgetLayout, streamSize: Size): CIImage {
 }
 
 fun CIImage.translated(x: Double, y: Double): CIImage {
-    TODO("OpenGL ES port: CGAffineTransform translation by ($x, $y)")
+    TODO()
 }
 
 fun CIImage.scaled(x: Double, y: Double): CIImage {
-    TODO("OpenGL ES port: CGAffineTransform scale by ($x, $y), highQualityDownsample=$highQualityDownsampling")
+    TODO()
 }
 
 fun CIImage.scaledTo(size: Size): CIImage {

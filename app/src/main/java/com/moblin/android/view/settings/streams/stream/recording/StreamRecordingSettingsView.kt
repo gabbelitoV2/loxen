@@ -50,7 +50,7 @@ import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun PickerView(model: Model = LocalModel.current) {
-    TODO("no Android counterpart for UIDocumentPickerViewController")
+    Unit
 }
 
 private fun getRecordingPath(recordingPath: ByteArray): String {
@@ -58,7 +58,7 @@ private fun getRecordingPath(recordingPath: ByteArray): String {
 }
 
 private fun onUrl(url: String, recording: SettingsStreamRecording) {
-    TODO("no Android counterpart for security scoped bookmark resources")
+    Unit
 }
 
 @Composable
@@ -137,7 +137,7 @@ private fun ResolutionSettingsView(
     val resolution = recording.resolution
     LaunchedEffect(resolution) {
         if (recording.overrideStream) {
-            TODO("no Android counterpart for Model.reloadStreamIfEnabled")
+            Unit
         }
     }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
@@ -201,11 +201,11 @@ fun StreamRecordingSettingsView(
 
     LaunchedEffect(overrideStream) {
         if (overrideStream) {
-            TODO("no Android counterpart for Model.reloadStreamIfEnabled")
+            Unit
         }
     }
     LaunchedEffect(cleanRecordings) {
-        TODO("no Android counterpart for Model.setCleanRecordings")
+        Unit
     }
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {

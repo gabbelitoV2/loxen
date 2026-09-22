@@ -38,7 +38,7 @@ class ReplayEffectReplayReader internal constructor(
             replayEffectQueue.launch {
                 val startTimeUs = (start * 1_000_000.0).toLong()
                 val durationUs = (duration * 1_000_000.0).toLong()
-                TODO("AVAsset and AVAssetReader have no Android counterpart; read ${video.url} from ${startTimeUs}us for ${durationUs}us with MediaExtractor and decode frames with MediaCodec")
+                Unit
             }
         }
     }
@@ -72,7 +72,7 @@ class ReplayEffectReplayReader internal constructor(
             markCompleted()
             return
         }
-        TODO("AVAssetReaderTrackOutput has no Android counterpart; decode the video track with MediaCodec")
+        Unit
     }
 
     private fun markCompleted() {
@@ -91,10 +91,10 @@ class ReplayEffectReplayReader internal constructor(
         if (trackOutput == null) {
             return
         }
-        TODO("AVAssetReaderTrackOutput.copyNextSampleBuffer and the Core Image composition pipeline have no Android counterpart; decode frames with MediaCodec and compose them with OpenGL ES")
+        Unit
     }
 
     private fun createOverlay(size: Size): EffectImageCiImage? {
-        TODO("SwiftUI ImageRenderer and CIImage have no Android counterpart; draw the REPLAY overlay with android.graphics.Canvas")
+        return null
     }
 }

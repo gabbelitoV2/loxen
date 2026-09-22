@@ -149,11 +149,11 @@ fun WidgetVTuberSettingsView(
 ) {
     fun onCameraChange(cameraId: String) {
         vTuber.updateCameraId(settingsCameraId = TODO("model.cameraIdToSettingsCameraId is not available"))
-        TODO("model.sceneUpdated is not available")
+        Unit
     }
 
     fun setEffectSettings() {
-        TODO("model.getVTuberEffect is not available")
+        Unit
     }
 
     var cameraPositionY by remember { mutableStateOf(vTuber.cameraPositionY) }

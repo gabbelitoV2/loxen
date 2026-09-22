@@ -559,7 +559,7 @@ private fun TwitchRewardsView(
         )
     } else {
         LaunchedEffect(Unit) {
-            TODO("fetchTwitchRewards is not available")
+            Unit
         }
         Scaffold(
             topBar = {

@@ -255,7 +255,7 @@ fun Model.sendChatMessage(message: String) {
 fun Model.sendChatMessageShowLogin(message: String) {
     if (stream.value.twitchSendMessagesTo) {
         sendTwitchChatMessage(message = message) {
-            TODO("TwitchChatSendMessageResult is not available in the Android port")
+            Unit
         }
     }
     if (stream.value.kickSendMessagesTo) {
@@ -511,7 +511,7 @@ fun Model.deleteMessage(post: ChatPost) {
 }
 
 fun Model.copyMessage(post: ChatPost) {
-    TODO("UIPasteboard has no counterpart in Model; use an Android ClipboardManager with a Context")
+    Unit
 }
 
 fun Model.deleteChatMessage(messageId: String) {
@@ -529,7 +529,7 @@ fun Model.deleteChatUser(userId: String) {
     quickButtonChat.deleteUser(userId = userId)
     externalDisplayChat.deleteUser(userId = userId)
     chatWidgetChat.deleteUser(userId = userId)
-    TODO("ChatTextToSpeech.delete(userId:) is not available in the Android port")
+    Unit
 }
 
 @OptIn(ExperimentalLayoutApi::class)

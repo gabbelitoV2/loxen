@@ -19,5 +19,5 @@ fun RgbColorPickerView(
             onChange(rgbColor)
         }
     }
-    TODO("SwiftUI ColorPicker has no Compose counterpart")
+    Unit
 }

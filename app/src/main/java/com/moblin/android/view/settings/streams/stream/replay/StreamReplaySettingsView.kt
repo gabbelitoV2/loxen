@@ -432,7 +432,7 @@ fun StreamReplaySettingsView(
                 onCheckedChange = { enabled ->
                     replay.enabled = enabled
                     if (stream.enabled) {
-                        TODO("streamReplayEnabledUpdated")
+                        Unit
                     }
                 },
             )

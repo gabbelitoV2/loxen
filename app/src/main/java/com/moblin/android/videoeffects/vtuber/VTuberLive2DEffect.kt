@@ -38,7 +38,7 @@ class VTuberLive2DEffect(directory: File) : VTuberEffect() {
                 Log.i(TAG, "v-tuber: No model3.json found")
                 return null
             }
-            TODO("no Android counterpart for Ayagami")
+            TODO()
         }
 
         fun findModel3(directory: File): File? = directory.walkTopDown().firstOrNull {
@@ -62,11 +62,11 @@ class VTuberLive2DEffect(directory: File) : VTuberEffect() {
             "ParamEyeROpen" to face.rightEyeOpen.toFloat(),
             "ParamBreath" to (0.5 - cos(time / 2 * PI) / 2).toFloat(),
         )
-        TODO("no Android counterpart for Ayagami")
+        Unit
     }
 
     override fun renderModel(time: Double, size: Size): EffectImage? {
         val loaded = loaded ?: return null
-        TODO("no Android counterpart for Ayagami")
+        return null
     }
 }

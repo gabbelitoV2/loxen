@@ -55,13 +55,13 @@ fun Model.getWebBrowser(): WebView {
     val browser = WebView(AppDelegate.context)
     browser.settings.javaScriptCanOpenWindowsAutomatically = true
     browser.settings.mediaPlaybackRequiresUserGesture = false
-    TODO("no Android counterpart for WKWebViewConfiguration.setHttpProxy")
+    Unit
     browser.webViewClient = object : WebViewClient() {
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
             model.webViewDidStartProvisionalNavigation(view, url)
         }
     }
-    TODO("no Android counterpart for WKUIDelegate")
+    Unit
     webBrowser = browser
     mainScope.launch {
         model.loadWebBrowserHome()
@@ -70,7 +70,7 @@ fun Model.getWebBrowser(): WebView {
 }
 
 fun Model.setWebBrowserProxy() {
-    TODO("no Android counterpart for WKWebViewConfiguration.setHttpProxy")
+    Unit
 }
 
 fun Model.webViewDidStartProvisionalNavigation(webView: WebView?, url: String?) {

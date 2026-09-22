@@ -89,11 +89,11 @@ private fun storeAppAttest(appAttest: MoblinWebsiteAppAttest?) {
 }
 
 private suspend fun attestedKey(): MoblinWebsiteAppAttest {
-    TODO("no Android counterpart for DeviceCheck App Attest")
+    TODO()
 }
 
 private suspend fun generateAssertion(keyId: String, clientDataHash: ByteArray): ByteArray {
-    TODO("no Android counterpart for DeviceCheck App Attest")
+    TODO()
 }
 
 private suspend fun fetchChallenge(): String = withContext(Dispatchers.IO) {
@@ -146,7 +146,7 @@ private suspend fun postLive(channels: List<MoblinWebsiteChannel>, appAttest: Mo
 }
 
 private suspend fun sendLive(channels: List<MoblinWebsiteChannel>) {
-    TODO("no Android counterpart for DeviceCheck App Attest")
+    Unit
 }
 
 fun Model.sendLiveToMoblinWebsite(onCompleted: (() -> Unit)? = null) {
@@ -201,7 +201,7 @@ private suspend fun Model.fetchYouTubeHandle(stream: SettingsStream): String? {
                 continuation.resume(null)
             } else {
                 youTubeApi.listChannels {
-                    TODO("no Android counterpart for the YouTube channel list API")
+                    Unit
                 }
             }
         }

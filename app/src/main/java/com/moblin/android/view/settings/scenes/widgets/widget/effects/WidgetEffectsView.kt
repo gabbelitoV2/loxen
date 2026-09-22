@@ -45,7 +45,7 @@ private fun EffectLabelView(model: Model = LocalModel.current, effect: SettingsV
                 checked = effect.enabled,
                 onCheckedChange = { enabled ->
                     effect.enabled = enabled
-                    TODO("model.resetSelectedScene is not available")
+                    Unit
                 },
             )
         }
@@ -97,7 +97,7 @@ fun WidgetEffectsView(
             }
         }
         widget.effects = effects
-        TODO("model.resetSelectedScene is not available")
+        Unit
     }
 
     fun moveEffects(fromOffsets: List<Int>, toOffset: Int) {
@@ -116,7 +116,7 @@ fun WidgetEffectsView(
         }
         effects.addAll(destination.coerceIn(0, effects.size), moved)
         widget.effects = effects
-        TODO("model.resetSelectedScene is not available")
+        Unit
     }
 
     Text(
@@ -128,7 +128,7 @@ fun WidgetEffectsView(
             modifier = Modifier.combinedClickable(
                 onClick = {},
                 onLongClick = {
-                    TODO("no Android counterpart for contextMenuDeleteButton")
+                    Unit
                 },
             ),
         ) {

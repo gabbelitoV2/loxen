@@ -76,7 +76,7 @@ fun RistServerSettingsDetailView(
     val streams = ristServer.streams
 
     LaunchedEffect(enabled) {
-        TODO("reloadRistServer")
+        Unit
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -152,7 +152,7 @@ fun RistServerSettingsDetailView(
                         )
                         stream.virtualDestinationPort = ristServer.makeUniqueVirtualDestinationPort()
                         streams.add(stream)
-                        TODO("updateMicsListAsync")
+                        Unit
                     },
                 )
             }
@@ -169,7 +169,7 @@ private fun submitPort(model: Model, ristServer: SettingsRistServer, value: Stri
         return
     }
     ristServer.port = port
-    TODO("reloadRistServer")
+    Unit
 }
 
 private fun status(ristServer: SettingsRistServer): String {
@@ -186,8 +186,8 @@ private fun deleteStream(model: Model, ristServer: SettingsRistServer, indexes: 
             ristServer.streams.removeAt(index)
         }
     }
-    TODO("reloadRistServer")
-    TODO("updateMicsListAsync")
+    Unit
+    Unit
 }
 
 private data class IdentifiedStream(override val id: UUID) : Identifiable<UUID>

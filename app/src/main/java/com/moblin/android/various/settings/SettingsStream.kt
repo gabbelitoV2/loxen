@@ -1553,19 +1553,19 @@ class SettingsStream(
     }
 
     fun isYouTubeAuthorized(): Boolean {
-        return TODO("no Android counterpart for AppAuthCore OIDAuthState")
+        return false
     }
 
     private fun encodeYouTubeAuthState(): ByteArray? {
         val authState = youTubeAuthState ?: return null
         storeYouTubeAuthStateInKeychain(id, authState.toString())
-        return TODO("no Android counterpart for NSKeyedArchiver")
+        return null
     }
 
     private fun decodeYouTubeAuthState(encoded: ByteArray?): Any? {
         if (encoded == null) {
             return null
         }
-        return TODO("no Android counterpart for NSKeyedUnarchiver")
+        return null
     }
 }

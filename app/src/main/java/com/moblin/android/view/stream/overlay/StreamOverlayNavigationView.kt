@@ -89,7 +89,7 @@ private fun ImageConeView(slash: Boolean) {
 @Composable
 private fun ControlSearchView(navigation: Navigation, modifier: Modifier = Modifier) {
     fun search(text: String) {
-        TODO("no Android counterpart for MapKit")
+        Unit
     }
 
     val isSmall by navigation.isSmall.collectAsState()
@@ -110,7 +110,7 @@ private fun ControlSearchView(navigation: Navigation, modifier: Modifier = Modif
                     .width(300.dp)
                     .height(20.dp)
                     .padding(12.dp)
-                    .then(TODO("no Android counterpart for glassEffect"))
+                    .then(Modifier)
             )
             LaunchedEffect(searchText) {
                 if (searchText.isEmpty()) {
@@ -124,7 +124,7 @@ private fun ControlSearchView(navigation: Navigation, modifier: Modifier = Modif
                     .width(35.dp)
                     .height(12.dp)
                     .padding(8.dp)
-                    .then(TODO("no Android counterpart for glassEffect"))
+                    .then(Modifier)
             ) {
                 OutlinedTextField(
                     value = transportType.name,
@@ -139,7 +139,7 @@ private fun ControlSearchView(navigation: Navigation, modifier: Modifier = Modif
                             text = { Text(type.name) },
                             leadingIcon = {
                                 Icon(
-                                    imageVector = TODO("map NavigationTransportType to a Material icon"),
+                                    imageVector = Icons.Default.Close,
                                     contentDescription = null
                                 )
                             },
@@ -201,7 +201,7 @@ private fun ControlsView(
                         followHeadingState.value = true
                     }
                 },
-                modifier = Modifier.then(TODO("no Android counterpart for glassEffect")),
+                modifier = Modifier.then(Modifier),
                 contentPadding = PaddingValues(8.dp)
             ) {
                 Box(modifier = Modifier.size(12.dp)) {
@@ -221,7 +221,7 @@ private fun ControlsView(
                 onClick = { navigation.isSmall.value = !navigation.isSmall.value },
                 modifier = Modifier
                     .padding(end = 10.dp)
-                    .then(TODO("no Android counterpart for glassEffect")),
+                    .then(Modifier),
                 contentPadding = PaddingValues(8.dp)
             ) {
                 Icon(
@@ -237,7 +237,7 @@ private fun ControlsView(
 
 @Composable
 private fun MarkerLabel(navigation: Navigation, item: Any) {
-    TODO("no Android counterpart for MapKit")
+    Unit
 }
 
 @Composable
@@ -249,13 +249,13 @@ private fun MapView(
     maxHeight: Dp
 ) {
     fun serLongPressLocation(latitude: Double, longitude: Double) {
-        TODO("no Android counterpart for MapKit")
+        Unit
     }
 
     fun mapSide(maximum: Double): Double =
         min(maximum - 10, if (navigation.isSmall.value) smallMapSide else maximumBigMapSide)
 
-    TODO("no Android counterpart for MapKit")
+    Unit
 }
 
 @Composable

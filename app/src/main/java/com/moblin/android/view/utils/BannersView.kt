@@ -175,7 +175,7 @@ private fun RaidView(model: Model = LocalModel.current, raid: Raid) {
             }
             RaidState.ongoing -> {
                 raid.message.value = localized("Cancelling raid")
-                TODO("cancelRaidTwitchChannel")
+                Unit
                 raid.state.value = RaidState.cancelling
             }
             RaidState.cancelling -> {

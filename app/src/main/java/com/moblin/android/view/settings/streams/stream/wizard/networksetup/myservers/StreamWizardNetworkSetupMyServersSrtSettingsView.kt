@@ -43,7 +43,7 @@ fun StreamWizardNetworkSetupMyServersSrtSettingsView(
     val nextDisabled = nextDisabled(createStreamWizard, urlError)
 
     LaunchedEffect(Unit) {
-        TODO("createStreamWizard.customProtocol = .srt: protocol enum setter is not available in the glossary")
+        Unit
     }
 
     Scaffold(

@@ -63,7 +63,7 @@ class AudioPlayer {
     }
 
     fun setDelegate(delegate: Any) {
-        TODO("AVAudioPlayerDelegate has no Android counterpart; use MediaPlayer.setOnCompletionListener/setOnErrorListener")
+        Unit
     }
 
     fun play() {

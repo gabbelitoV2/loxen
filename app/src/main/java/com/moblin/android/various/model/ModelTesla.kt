@@ -71,15 +71,15 @@ fun Model.teslaHonk() {
 }
 
 fun Model.teslaGetChargeState() {
-    TODO("no Android counterpart for CarServer_ChargeState")
+    Unit
 }
 
 fun Model.teslaGetDriveState() {
-    TODO("no Android counterpart for CarServer_DriveState")
+    Unit
 }
 
 fun Model.teslaGetMediaState() {
-    TODO("no Android counterpart for CarServer_MediaState")
+    Unit
 }
 
 fun Model.teslaOpenTrunk() {
@@ -103,15 +103,15 @@ fun Model.mediaTogglePlayback() {
 }
 
 fun Model.textEffectTeslaBatteryLevel(): String {
-    TODO("no Android counterpart for CarServer_ChargeState")
+    return ""
 }
 
 fun Model.textEffectTeslaDrive(): String {
-    TODO("no Android counterpart for CarServer_DriveState")
+    return ""
 }
 
 fun Model.textEffectTeslaMedia(): String {
-    TODO("no Android counterpart for CarServer_MediaState")
+    return ""
 }
 
 fun Model.teslaVehicleState(vehicle: TeslaVehicle, state: TeslaVehicleState) {

@@ -79,7 +79,7 @@ fun BitratePresetsSettingsView(database: Database) {
                 ) {
                     BitratePresetsPresetSettingsView(preset = preset)
                 }
-                TODO("contextMenuDeleteButton has no Compose counterpart: long-press context menu delete for preset ${preset.id}")
+                Unit
             }
             item {
                 CreateButtonView {
@@ -92,7 +92,7 @@ fun BitratePresetsSettingsView(database: Database) {
             item {
                 SwipeLeftToDeleteHelpView(kind = localized("a preset"))
             }
-            TODO("onMove: List drag-to-reorder has no Compose counterpart")
+            Unit
         }
     }
 }

@@ -10,7 +10,7 @@ private class MTIOpacityFilter {
     var inputImage: Image? = null
     var opacity: Float = 1.0f
     val outputImage: Image?
-        get() = TODO("OpenGL ES port")
+        get() = null
 }
 
 class OpacityEffect : VideoEffect() {
@@ -25,8 +25,7 @@ class OpacityEffect : VideoEffect() {
     }
 
     override fun execute(image: Image, info: VideoEffectInfo): Image =
-        TODO("OpenGL ES port")
-
+        TODO()
     override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         filterMetalPetal.inputImage = image
         filterMetalPetal.opacity = opacity.toFloat()

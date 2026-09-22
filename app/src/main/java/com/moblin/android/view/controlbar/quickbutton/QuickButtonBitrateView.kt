@@ -94,7 +94,7 @@ fun QuickButtonBitrateView(
     val bitrate = stream.bitrate
     val bitratePresets = database.bitratePresets
     LaunchedEffect(bitrate) {
-        TODO("setBitrate is not available on Model")
+        Unit
     }
     Scaffold(
         topBar = {

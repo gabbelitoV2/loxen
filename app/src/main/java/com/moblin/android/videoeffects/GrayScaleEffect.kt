@@ -25,10 +25,10 @@ class GrayScaleEffect : VideoEffect() {
     private val colorMatrix: ColorMatrix = makeGrayScaleColorMatrix()
 
     override fun execute(image: Image, info: VideoEffectInfo): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
-        TODO("no Android counterpart for MetalPetal")
+        TODO()
     }
 }

@@ -133,22 +133,22 @@ class ShapeEffect : VideoEffect() {
         cache.get(extent, settings)?.let { image ->
             return image
         }
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     private fun makeSharpCornersImage(image: Image, settings: ShapeEffectSettings): Image {
         if (settings.borderWidth == 0.0) {
             return image
         }
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     private fun makeRoundedCornersImage(image: Image, settings: ShapeEffectSettings): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     private fun crop(image: Image): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     override fun executeEarly(image: Image, info: VideoEffectInfo): Image {

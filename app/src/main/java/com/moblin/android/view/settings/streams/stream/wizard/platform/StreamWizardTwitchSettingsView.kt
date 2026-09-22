@@ -96,11 +96,11 @@ fun StreamWizardTwitchSettingsView(
                 Column {
                     if (createStreamWizard.twitchStream.twitchAccessToken.isEmpty()) {
                         TextButtonView("Login") {
-                            TODO("model.twitchLogin")
+                            Unit
                         }
                     } else {
                         TextButtonView("Logout") {
-                            TODO("model.twitchLogout")
+                            Unit
                         }
                     }
                     Text(

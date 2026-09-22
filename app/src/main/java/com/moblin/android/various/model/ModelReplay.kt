@@ -168,7 +168,7 @@ fun Model.makeReplayIsNotEnabledToast() {
         title = localized("Replay is not enabled"),
         subTitle = localized("Tap here to enable it."),
     ) {
-        TODO("stream.replay.enabled = true")
+        Unit
         streamReplayEnabledUpdated()
         makeToast(title = localized("Replay enabled"))
     }
@@ -180,7 +180,7 @@ fun Model.makeReplayShouldBeDisabledToastIfNeeded() {
         return
     }
     val enterForegroundCountAtLatestUsage: Int =
-        TODO("stream.replay.enterForegroundCountAtLatestUsage")
+        TODO()
     val unusedCount = enterForegroundCount - enterForegroundCountAtLatestUsage
     if (unusedCount < 20 || unusedCount % 3 != 0) {
         return
@@ -189,7 +189,7 @@ fun Model.makeReplayShouldBeDisabledToastIfNeeded() {
         title = localized("Replay is enabled but seems unused"),
         subTitle = localized("Tap here to disable it."),
     ) {
-        TODO("stream.replay.enabled = false")
+        Unit
         streamReplayEnabledUpdated()
         makeToast(title = localized("Replay disabled"))
     }
@@ -207,7 +207,7 @@ fun Model.replayPlay(): Boolean {
     replayCancel()
     val replayVideo = replayVideo ?: return false
     val replaySettings = replaySettings ?: return false
-    TODO("stream.replay.enterForegroundCountAtLatestUsage = enterForegroundCount")
+    Unit
     val transitionMode: ReplayEffectTransitionMode = TODO("stream.replay.transitionType")
     replayEffect = ReplayEffect(
         video = replayVideo,
@@ -237,7 +237,7 @@ fun Model.streamReplayEnabledUpdated() {
     } else {
         stopRecorderIfNeeded()
     }
-    TODO("stream.replay.enterForegroundCountAtLatestUsage = enterForegroundCount")
+    Unit
 }
 
 internal fun Model.replayOutputFrame(

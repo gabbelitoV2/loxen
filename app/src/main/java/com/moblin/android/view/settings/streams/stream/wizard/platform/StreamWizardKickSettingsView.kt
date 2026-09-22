@@ -76,14 +76,14 @@ fun StreamWizardKickSettingsView(
                     title = "Login",
                     action = {
                         createStreamWizard.showKickAuth = true
-                        TODO("no Android counterpart for Model.kickLogin(stream:onComplete:)")
+                        Unit
                     },
                 )
             } else {
                 TextButtonView(
                     title = "Logout",
                     action = {
-                        TODO("no Android counterpart for Model.kickLogout(stream:)")
+                        Unit
                     },
                 )
             }

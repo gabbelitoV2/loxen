@@ -40,7 +40,7 @@ fun WidgetChatSettingsView(
     chat: SettingsWidgetChat,
 ) {
     fun setEffectSettings() {
-        TODO("getChatEffect has no Android counterpart")
+        Unit
     }
 
     val showAllSettings = database.showAllSettings

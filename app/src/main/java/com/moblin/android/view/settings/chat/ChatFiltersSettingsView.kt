@@ -207,7 +207,7 @@ private fun ChatFiltersFormView(
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(filters, key = { it.id }) { filter ->
                 ChatFilterSettingsView(filter = filter, onNavigate = onNavigate)
-                TODO("contextMenuDeleteButton has no Compose counterpart")
+                Unit
             }
             item {
                 AddButtonView {
@@ -273,5 +273,5 @@ private fun moveFilters(
     froms: List<Int>,
     to: Int,
 ) {
-    TODO("SwiftUI List.onMove has no Compose counterpart")
+    Unit
 }

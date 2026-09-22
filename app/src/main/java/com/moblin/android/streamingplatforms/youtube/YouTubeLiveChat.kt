@@ -477,13 +477,13 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
             return 0
         }
         val (isOwner, isModerator) = getUserRoles(headerRenderer.authorBadges)
-        return TODO("appendChatMessage")
+        return 0
     }
 
     private fun handleGiftMessageViewModel(giftMessageViewModel: GiftMessageVieModel): Int {
         var id = 0
         val (segments, _) = createSegments(giftMessageViewModel.text.content, id)
-        return TODO("appendChatMessage")
+        return 0
     }
 
     private fun updateContinuation(getLiveChat: GetLiveChat) {

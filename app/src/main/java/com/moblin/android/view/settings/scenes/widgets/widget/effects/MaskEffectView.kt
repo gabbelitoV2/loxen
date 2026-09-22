@@ -569,11 +569,11 @@ fun MaskEffectView(
     val backgroundColorColor2 = mask.backgroundColorColor2
 
     fun updateWidget() {
-        TODO("no Android counterpart for Model.getWidgetMaskEffect")
+        Unit
     }
 
     fun refreshPreviewImage() {
-        TODO("no Android counterpart for Model.takeVideoSourcePreviewImage")
+        Unit
     }
 
     Column {

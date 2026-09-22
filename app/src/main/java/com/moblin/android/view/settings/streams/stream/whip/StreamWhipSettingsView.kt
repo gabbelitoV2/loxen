@@ -52,7 +52,7 @@ private fun setBearerToken(
     } else {
         whip.headers.add(SettingsHttpHeader(name = "Authorization", value = value))
     }
-    TODO("model.reloadStreamIfEnabled(stream = stream)")
+    Unit
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -111,7 +111,7 @@ fun StreamWhipSettingsView(model: Model = LocalModel.current, stream: SettingsSt
                                     onClick = {
                                         whip.httpTransport = transport
                                         expanded = false
-                                        TODO("model.reloadStreamIfEnabled(stream = stream)")
+                                        Unit
                                     },
                                 )
                             }

@@ -30,23 +30,23 @@ var Model.macStatusItem: MacStatusItem?
 
 fun Model.setupMacStatusItem() {
     Log.i(TAG, "mac-status-item: Failed to load helper bundle")
-    TODO("no Android counterpart for macCatalyst status item")
+    Unit
 }
 
 fun Model.updateMacStatusItem() {
-    TODO("no Android counterpart for macCatalyst status item")
+    Unit
 }
 
 fun Model.stopMacStatusItem() {
-    TODO("no Android counterpart for macCatalyst status item")
+    Unit
 }
 
 fun Model.macStatusItemToggleStream() {
-    TODO("no Android counterpart for macCatalyst status item")
+    Unit
 }
 
 fun Model.macStatusItemToggleRecording() {
-    TODO("no Android counterpart for macCatalyst status item")
+    Unit
 }
 
 private fun Model.makeMacStatusItemStatusTitle(): String {

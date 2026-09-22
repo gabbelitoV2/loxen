@@ -89,7 +89,7 @@ fun WorkoutDeviceSettingsViewContent(
     }
 
     fun isWorkoutDeviceEnabled(): Boolean {
-        return TODO("model.isWorkoutDeviceEnabled(device)")
+        return false
     }
 
     fun isValidWheelCircumference(value: String): String? {
@@ -106,7 +106,7 @@ fun WorkoutDeviceSettingsViewContent(
     fun submitWheelCircumference(value: String) {
         val millimeters = value.toIntOrNull() ?: return
         device.wheelCircumference = millimeters
-        TODO("model.setWorkoutDeviceWheelCircumference(device)")
+        Unit
     }
 
     fun onDeviceChange(value: String) {
@@ -118,7 +118,7 @@ fun WorkoutDeviceSettingsViewContent(
     }
 
     LaunchedEffect(Unit) {
-        TODO("model.setCurrentWorkoutDevice(device)")
+        Unit
     }
 
     Scaffold(
@@ -164,9 +164,9 @@ fun WorkoutDeviceSettingsViewContent(
                     onCheckedChange = { enabled ->
                         device.enabled = enabled
                         if (enabled) {
-                            TODO("model.enableWorkoutDevice(device)")
+                            Unit
                         } else {
-                            TODO("model.disableWorkoutDevice(device)")
+                            Unit
                         }
                     },
                     enabled = canEnable(),

@@ -168,7 +168,7 @@ fun StreamOverlayRightBeautyView(model: Model = LocalModel.current, beauty: Sett
     }
     LaunchedEffect(enabled) {
         model.updateBeautyButtonState()
-        TODO("sceneUpdated")
+        Unit
         if (enabled) {
             model.makeToast(
                 title = localized("Other widgets will not work with Beauty filters enabled"),

@@ -112,8 +112,7 @@ class Live2DRenderer private constructor(
 
     companion object {
         fun create(model: Any): Live2DRenderer? =
-            TODO("OpenGL ES port: Ayagami model access, Metal device, command queue, textures and render pipelines")
-
+            null
         private fun makePipeline(
             device: Any,
             library: Any,
@@ -128,13 +127,11 @@ class Live2DRenderer private constructor(
     }
 
     private fun makeClipTexture(width: Int, height: Int): Any? =
-        TODO("OpenGL ES port: Metal clip texture")
-
+        Unit
     private fun makeOutputTexture(pixelBuffer: Image): Any? =
-        TODO("OpenGL ES port: CVMetalTextureCache output texture")
-
+        Unit
     fun render(model: Any, pixelBuffer: Image) {
-        TODO("OpenGL ES port")
+        Unit
     }
 
     private fun renderClipSet(
@@ -144,10 +141,10 @@ class Live2DRenderer private constructor(
         width: Int,
         height: Int,
     ) {
-        TODO("OpenGL ES port")
+        Unit
     }
 
     private fun draw(encoder: Any, artMesh: Any) {
-        TODO("OpenGL ES port")
+        Unit
     }
 }

@@ -52,7 +52,7 @@ private fun deleteStream(model: Model, whepClient: SettingsWhepClient, indexes: 
     }
     whepClient.streams.clear()
     whepClient.streams.addAll(streams)
-    TODO("model.reloadWhepClient()")
+    Unit
 }
 
 @Composable

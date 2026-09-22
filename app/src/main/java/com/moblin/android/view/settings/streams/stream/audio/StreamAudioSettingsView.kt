@@ -51,7 +51,7 @@ fun StreamAudioSettingsView(
     val locked = streamEnabled && isLive
 
     LaunchedEffect(audioCodec) {
-        TODO("model.reloadStreamIfEnabled")
+        Unit
     }
 
     Scaffold(
@@ -123,7 +123,7 @@ fun StreamAudioSettingsView(
                         onValueChangeFinished = {
                             stream.audioBitrate = calcBitrate(bitrate)
                             if (streamEnabled) {
-                                TODO("model.setAudioStreamBitrate")
+                                Unit
                             }
                         },
                         modifier = Modifier.weight(1f),

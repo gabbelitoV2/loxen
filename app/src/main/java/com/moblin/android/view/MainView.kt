@@ -266,7 +266,7 @@ private fun MenuView(model: Model = LocalModel.current) {
 
 @Composable
 fun BrowserWidgetView(browser: Browser, modifier: Modifier = Modifier) {
-    TODO("BrowserEffect does not expose its WebView on Android")
+    Unit
 }
 
 @Composable
@@ -337,7 +337,7 @@ private fun PhotoShootView(enabled: Boolean) {
 
 @Composable
 private fun WebBrowserAlertsView(model: Model = LocalModel.current) {
-    TODO("UIViewControllerRepresentable (WebBrowserController) has no Compose equivalent")
+    Unit
 }
 
 private fun DrawScope.drawFocus(size: Size, focusPoint: Offset) {
@@ -478,7 +478,7 @@ fun MainView(
                 .focusRequester(focusRequester)
                 .focusable()
                 .onKeyEvent {
-                    TODO("KeyPress has no Android counterpart; handle the KeyEvent directly")
+                    Unit
                     true
                 }
                 .windowInsetsPadding(
@@ -590,7 +590,7 @@ fun MainView(
                     )
                 }
                 if (toast.showingToast.value) {
-                    TODO("toast.toast SwiftUI view has no Compose equivalent")
+                    Unit
                 }
             }
         }

@@ -49,13 +49,13 @@ import com.moblin.android.LocalOnNavigate
 private fun loadSound(model: Model, soundId: UUID): AudioPlayer? {
     val bundledSound = model.database.alertsMediaGallery.bundledSounds.firstOrNull { it.id == soundId }
     val url = if (bundledSound != null) {
-        TODO("no Android counterpart for Bundle.main.url(forResource:withExtension:)")
+        Unit
     } else {
         model.alertMediaStorage.makePath(soundId)
     }
     val path = url ?: return null
     return runCatching {
-        TODO("AudioPlayer cannot be constructed from the sound path '$path': no matching constructor")
+        TODO()
     }.getOrNull()
 }
 

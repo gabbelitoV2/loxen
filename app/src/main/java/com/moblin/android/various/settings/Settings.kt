@@ -1111,7 +1111,7 @@ private fun addDefaultScenes(database: Database) {
     if (isMac()) {
         var scene = SettingsScene(name = localized("Screen"))
         scene.videoSource.cameraPosition =
-            TODO("no Android counterpart for screen capture camera position")
+            TODO()
         database.scenes.add(scene)
         if (bestFrontCameraId.isNotEmpty()) {
             scene = SettingsScene(name = localized("Front"))

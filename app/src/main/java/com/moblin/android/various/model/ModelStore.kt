@@ -44,16 +44,15 @@ data class Icon(
 }
 
 suspend fun Model.getProductsFromAppStore() {
-    TODO("no Android counterpart for StoreKit")
+    Unit
 }
 
 fun Model.listenForAppStoreTransactions(scope: CoroutineScope): Job = scope.launch {
-    TODO("no Android counterpart for StoreKit")
+    Unit
 }
 
 private fun Model.checkVerified(result: Any?): Any? =
-    TODO("no Android counterpart for StoreKit")
-
+    Unit
 suspend fun Model.updateProductFromAppStore() {
     Log.d(TAG, "store: Update my products from App Store")
     val myProductIds = getMyProductIds()
@@ -61,7 +60,7 @@ suspend fun Model.updateProductFromAppStore() {
 }
 
 private suspend fun Model.getMyProductIds(): List<String> {
-    TODO("no Android counterpart for StoreKit")
+    return emptyList()
 }
 
 private fun Model.updateIcons(myProductIds: List<String>) {
@@ -88,11 +87,11 @@ private fun Model.updateIcons(myProductIds: List<String>) {
 private fun Model.findProduct(id: String): Any? = products[id]
 
 suspend fun Model.restorePurchases() {
-    TODO("no Android counterpart for StoreKit")
+    Unit
 }
 
 suspend fun Model.purchaseProduct(id: String) {
-    TODO("no Android counterpart for StoreKit")
+    Unit
 }
 
 private fun Model.isInMyIcons(id: String): Boolean = store.myIcons.value.any { it.id == id }

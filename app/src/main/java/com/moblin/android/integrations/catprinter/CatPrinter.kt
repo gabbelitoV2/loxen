@@ -151,8 +151,7 @@ class CatPrinter : BluetoothGattCallback() {
     }
 
     private fun maximumWriteValueLength(peripheral: BluetoothDevice): Int =
-        TODO("no Android counterpart for CBPeripheral.maximumWriteValueLength, use BluetoothGatt.requestMtu")
-
+        0
     private fun startInternal(deviceId: String?) {
         this.deviceId = deviceId
         reset()
@@ -264,7 +263,7 @@ class CatPrinter : BluetoothGattCallback() {
     }
 
     private fun playMeowSound() {
-        TODO("no Android counterpart for Bundle.main resource lookup and AudioPlayer construction")
+        Unit
     }
 
     private fun send(

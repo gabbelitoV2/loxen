@@ -43,19 +43,18 @@ private fun appendMedia(model: Model, player: SettingsMediaPlayer, url: String) 
     val file = SettingsMediaPlayerFile()
     model.mediaStorage.add(id = file.id, url = File(url))
     player.playlist.add(file)
-    TODO("updateMediaPlayerSettings")
+    Unit
 }
 
 private fun deletePlaylistFile(model: Model, player: SettingsMediaPlayer, offsets: List<Int>) {
     offsets.sortedDescending().forEach { index ->
         player.playlist.removeAt(index)
     }
-    TODO("updateMediaPlayerSettings")
+    Unit
 }
 
 private suspend fun loadTransferableVideo(item: Uri): Result<Video?> =
-    TODO("PhotosPickerItem.loadTransferable has no Android counterpart")
-
+    TODO()
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaPlayerSettingsView(
@@ -85,7 +84,7 @@ fun MediaPlayerSettingsView(
                     existingNames = mediaPlayers.players,
                     onNameChange = { name ->
                         player.name = name
-                        TODO("updateMediaPlayerSettings")
+                        Unit
                     },
                 )
             }
@@ -108,11 +107,11 @@ fun MediaPlayerSettingsView(
             }
             items(player.playlist, key = { file -> file.id.toString() }) { file ->
                 MediaPlayerFileSettingsView(player = player, file = file)
-                TODO("contextMenuDeleteButton has no Compose counterpart")
+                Unit
             }
             item {
-                TODO("List.onMove has no Compose counterpart")
-                TODO("List.onDelete has no Compose counterpart")
+                Unit
+                Unit
             }
             item {
                 Button(
@@ -127,7 +126,7 @@ fun MediaPlayerSettingsView(
                         }
                     }
                 }
-                TODO("photosPicker has no Compose counterpart")
+                Unit
             }
         }
     }

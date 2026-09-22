@@ -24,7 +24,7 @@ fun RemoveBackgroundEffectView(
     val toColor = removeBackground.toColor
 
     fun updateWidget() {
-        TODO("model.getWidgetRemoveBackgroundEffect(widget, effect)?.setColorRange(from = removeBackground.from, to = removeBackground.to)")
+        Unit
     }
 
     Column {

@@ -31,14 +31,14 @@ private fun submitWebSocketUrl(model: Model, stream: SettingsStream, value: Stri
     }
     stream.obsWebSocketUrl = url
     if (stream.enabled) {
-        TODO("obsWebSocketUrlUpdated")
+        Unit
     }
 }
 
 private fun submitWebSocketPassword(model: Model, stream: SettingsStream, value: String) {
     stream.obsWebSocketPassword = value
     if (stream.enabled) {
-        TODO("obsWebSocketPasswordUpdated")
+        Unit
     }
 }
 

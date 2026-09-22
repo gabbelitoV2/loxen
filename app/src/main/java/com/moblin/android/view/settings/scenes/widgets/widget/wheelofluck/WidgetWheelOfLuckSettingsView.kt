@@ -54,8 +54,7 @@ import com.moblin.android.LocalOnNavigate
 val wheelOfLuckOptionWeights = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 40, 60, 80, 100)
 
 private fun getWheelOfLuckEffect(model: Model, widget: SettingsWidget): WheelOfLuckEffect? =
-    TODO("Model.getWheelOfLuckEffect is not available")
-
+    null
 @Composable
 private fun WheelOfLuckWidgetView(
     model: Model = LocalModel.current,

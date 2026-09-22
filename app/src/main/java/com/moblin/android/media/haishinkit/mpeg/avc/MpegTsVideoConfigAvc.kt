@@ -10,7 +10,7 @@ class MpegTsVideoConfigAvc {
         private const val TAG = "MpegTsVideoConfigAvc"
 
         fun getAvcC(formatDescription: MediaFormat): ByteArray? {
-            TODO("no Android counterpart for CMFormatDescription atoms (avcC)")
+            return null
         }
 
         fun fromFormatDescription(formatDescription: MediaFormat): MpegTsVideoConfigAvc? {

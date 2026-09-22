@@ -76,9 +76,9 @@ class SceneDelegate {
         urlContexts: List<URI>
     ) {
         val model = MoblinApp.globalModel ?: return
-        TODO("no Android counterpart for UIOpenURLContext")
+        Unit
         if (sessionRole == SESSION_ROLE_WINDOW_EXTERNAL_DISPLAY_NON_INTERACTIVE) {
-            TODO("no Android counterpart for UIWindowScene")
+            Unit
         }
     }
 
@@ -88,7 +88,7 @@ class SceneDelegate {
     }
 
     fun scene(urlContexts: List<URI>) {
-        TODO("no Android counterpart for UIOpenURLContext")
+        Unit
     }
 
     companion object {
@@ -106,8 +106,7 @@ class AppDelegate : Application() {
     }
 
     fun configurationForConnecting(sessionRole: String?): SceneDelegate =
-        TODO("no Android counterpart for UISceneConfiguration")
-
+        TODO()
     fun willFinishLaunchingWithOptions(): Boolean = true
 
     fun didFinishLaunchingWithOptions(): Boolean = true

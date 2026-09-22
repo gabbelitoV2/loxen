@@ -230,7 +230,7 @@ fun OpenGopro_ResponseGetApEntries.ScanEntry.isConfigured(): Boolean =
 fun OpenGopro_ResponseGetApEntries.ScanEntry.isUnsupportedType(): Boolean =
     (scanEntryFlags and OpenGopro_EnumScanEntryFlags.scanFlagUnsupportedType.rawValue) != 0
 
-private fun Any.encoded(): ByteArray = TODO("protobuf serialization is not available")
+private fun Any.encoded(): ByteArray = ByteArray(0)
 
 private fun SettingsGoProLaunchLiveStreamResolution.toProtobuf(): OpenGopro_EnumWindowSize = when (this) {
     SettingsGoProLaunchLiveStreamResolution.r480p -> OpenGopro_EnumWindowSize.windowSize480

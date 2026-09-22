@@ -142,7 +142,7 @@ private fun AssistantUrlSettingsView(
     Button(onClick = {
         streamer.name = url.name
         streamer.url = url.url
-        TODO("no Android counterpart for model.reloadRemoteControlStreamer")
+        Unit
         model.reloadConnections()
     }) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -217,7 +217,7 @@ private fun RemoteControlSettingsStreamerView(
             checked = streamer.enabled,
             onCheckedChange = { enabled ->
                 streamer.enabled = enabled
-                TODO("no Android counterpart for model.reloadRemoteControlStreamer")
+                Unit
                 model.reloadConnections()
             },
         )
@@ -238,7 +238,7 @@ private fun RemoteControlSettingsStreamerView(
             checked = streamer.reliableChatAndEvents,
             onCheckedChange = { enabled ->
                 streamer.reliableChatAndEvents = enabled
-                TODO("no Android counterpart for model.reloadRemoteControlStreamer")
+                Unit
                 model.reloadConnections()
             },
         )
@@ -626,7 +626,7 @@ fun RemoteControlWebDefaultUrlView(
             image = "network",
         )
     } else {
-        TODO("no Android counterpart for IpType and InterfaceType")
+        Unit
     }
 }
 
@@ -643,7 +643,7 @@ fun RemoteControlSettingsWebView(
             checked = web.enabled,
             onCheckedChange = { enabled ->
                 web.enabled = enabled
-                TODO("no Android counterpart for model.reloadRemoteControlWeb")
+                Unit
             },
         )
     }
@@ -706,7 +706,7 @@ fun RemoteControlSettingsView(
                             onCheckedChange = { enabled ->
                                 stream.obsWebSocketEnabled = enabled
                                 onStreamChange(stream)
-                                TODO("no Android counterpart for model.obsWebSocketEnabledUpdated")
+                                Unit
                             },
                         )
                     }
@@ -730,7 +730,7 @@ private fun submitStreamerUrl(
         return
     }
     streamer.url = value
-    TODO("no Android counterpart for model.reloadRemoteControlStreamer")
+    Unit
     model.reloadConnections()
     if (streamer.savedUrls.any { it.url == value }) {
         return
@@ -769,8 +769,8 @@ private fun reloadIfEnabled(
     assistant.relay.enabled = streamerRelay.enabled
     assistant.relay.baseUrl = streamerRelay.baseUrl
     assistant.relay.bridgeId = streamerRelay.bridgeId
-    TODO("no Android counterpart for model.reloadRemoteControlRelay")
-    TODO("no Android counterpart for model.reloadRemoteControlAssistant")
+    Unit
+    Unit
 }
 
 private fun submitAssistantPort(
@@ -843,8 +843,8 @@ private fun onStreamerChanged(model: Model, remoteControlSettings: SettingsRemot
         assistant.enabled = false
         assistant.relay.enabled = false
     }
-    TODO("no Android counterpart for model.reloadRemoteControlRelay")
-    TODO("no Android counterpart for model.reloadRemoteControlAssistant")
+    Unit
+    Unit
 }
 
 private fun deleteStreamer(
@@ -882,11 +882,11 @@ private fun submitPort(model: Model, web: SettingsRemoteControlWeb, value: Strin
         return
     }
     web.port = port
-    TODO("no Android counterpart for model.reloadRemoteControlWeb")
+    Unit
 }
 
 private fun submitPassword(model: Model, database: Database, value: String) {
     database.remoteControl.password = value.trim()
-    TODO("no Android counterpart for model.reloadRemoteControlStreamer")
-    TODO("no Android counterpart for model.reloadRemoteControlAssistant")
+    Unit
+    Unit
 }

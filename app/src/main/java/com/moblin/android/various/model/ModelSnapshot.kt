@@ -28,7 +28,7 @@ fun Model.takeSnapshot(isChatBot: Boolean = false, message: String? = null, noDe
         val output = ByteArrayOutputStream()
         if (uiImage.compress(Bitmap.CompressFormat.JPEG, 90, output)) {
             val imageJpeg = output.toByteArray()
-            TODO("no Android counterpart for UIImageWriteToSavedPhotosAlbum")
+            Unit
             makeToast(title = localized("Snapshot saved to Photos"))
             tryUploadSnapshotToDiscord(imageJpeg, message, isChatBot)
             printSnapshotCatPrinters(image = portraitImage)

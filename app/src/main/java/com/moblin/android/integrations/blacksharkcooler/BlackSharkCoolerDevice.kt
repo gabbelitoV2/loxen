@@ -441,23 +441,18 @@ object BlackSharkLib {
 
     fun getWriteCharacteristicsUUID(): UUID = TODO("no Android counterpart for BlackSharkLib")
 
-    fun detectModel(advertisedName: String?): Model? = TODO("no Android counterpart for BlackSharkLib")
+    fun detectModel(advertisedName: String?): Model? = null
 
     fun getCoolingMetadataCommand(model: Model): ByteArray =
-        TODO("no Android counterpart for BlackSharkLib")
-
+        ByteArray(0)
     fun getSetCoolingPowerCommand(power: Int, model: Model): ByteArray? =
-        TODO("no Android counterpart for BlackSharkLib")
-
+        null
     fun getSetFanSpeedCommand(fanSpeed: Int, model: Model): ByteArray? =
-        TODO("no Android counterpart for BlackSharkLib")
-
+        null
     fun getSetCoolingEnabledCommand(enabled: Boolean, model: Model): ByteArray? =
-        TODO("no Android counterpart for BlackSharkLib")
-
+        null
     fun getSetCustomModeCommand(intensity: Int, model: Model): ByteArray? =
-        TODO("no Android counterpart for BlackSharkLib")
-
+        null
     fun getSetLEDColorCommand(
         red: Int,
         green: Int,
@@ -467,7 +462,6 @@ object BlackSharkLib {
     ): ByteArray? = TODO("no Android counterpart for BlackSharkLib")
 
     fun getTurnOffLEDCommand(model: Model): ByteArray =
-        TODO("no Android counterpart for BlackSharkLib")
-
-    fun parseMessages(value: ByteArray): Any? = TODO("no Android counterpart for BlackSharkLib")
+        ByteArray(0)
+    fun parseMessages(value: ByteArray): Any? = null
 }

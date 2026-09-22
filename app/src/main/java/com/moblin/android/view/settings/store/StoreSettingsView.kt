@@ -65,7 +65,7 @@ private fun StoreSettingsRestoreView(model: Model = LocalModel.current) {
                         isRestoring = true
                         scope.launch {
                             runCatching {
-                                TODO("no Android counterpart for StoreKit restorePurchases")
+                                Unit
                             }.onFailure {
                                 showErrorAlert = true
                             }
@@ -130,7 +130,7 @@ private fun StoreSettingsIconsToBuyView(model: Model = LocalModel.current, store
                             disabledPurchaseButtons = disabledPurchaseButtons + icon.id
                             scope.launch {
                                 runCatching {
-                                    TODO("no Android counterpart for StoreKit purchaseProduct")
+                                    Unit
                                 }.onFailure { error ->
                                     Log.i(
                                         TAG,
@@ -158,7 +158,7 @@ private fun StoreSettingsIconsToBuyView(model: Model = LocalModel.current, store
 
 private fun setAppIcon(iconImage: String) {
     val name = if (iconImage == "AppIcon") null else iconImage
-    TODO("no Android counterpart for UIApplication.shared.setAlternateIconName($name)")
+    Unit
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

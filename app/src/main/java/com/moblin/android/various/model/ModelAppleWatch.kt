@@ -8,7 +8,7 @@ import com.moblin.android.various.storages.ThermalState
 import java.util.UUID
 
 fun Model.isWatchReachable(): Boolean {
-    TODO("no Android counterpart for WatchConnectivity")
+    return false
 }
 
 private fun Model.sendMessageToWatch(
@@ -17,123 +17,123 @@ private fun Model.sendMessageToWatch(
     replyHandler: ((Map<String, Any>) -> Unit)? = null,
     errorHandler: ((Throwable) -> Unit)? = null,
 ) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendInitToWatch() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendSpeedAndTotalToWatch(speedAndTotal: String) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendRecordingLengthToWatch(recordingLength: String) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendAudioLevelToWatch(audioLevel: Float) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendThermalStateToWatch(thermalState: ThermalState) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendViewerCountWatch() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendUpdatePadelScoreboardToWatch(id: UUID, padel: SettingsWidgetPadelScoreboard) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendUpdateGenericScoreboardToWatch(id: UUID, generic: SettingsWidgetGenericScoreboard) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendRemoveScoreboardToWatch(id: UUID) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendScoreboardPlayersToWatch() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.resetWorkoutStats() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.enqueueWatchChatPost(post: ChatPost) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.trySendNextChatPostToWatch() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendChatMessageToWatch(post: ChatPost) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendPreviewToWatch(image: ByteArray) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendZoomToWatch(x: Float) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendZoomPresetsToWatch(presets: List<SettingsZoomPreset>) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendZoomPresetToWatch() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.sendScenesToWatch(scenes: List<Any>) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.sendScenesToWatchLocal() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.sendScenesToWatchRemoteControl() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendSceneToWatch(id: UUID) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendSettingsToWatch() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendIsLiveToWatch(isLive: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendIsRecordingToWatch(isRecording: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendIsMutedToWatch(isMuteOn: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sendRemoteControlAssistantStatusToWatch() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.isWatchRemoteControl(): Boolean {
-    TODO("no Android counterpart for WatchConnectivity")
+    return false
 }
 
 fun Model.isWatchLocal(): Boolean {
-    TODO("no Android counterpart for WatchConnectivity")
+    return false
 }
 
 fun Model.session(
@@ -141,79 +141,79 @@ fun Model.session(
     activationState: Any,
     error: Throwable?,
 ) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sessionDidBecomeInactive(session: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sessionDidDeactivate(session: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.sessionReachabilityDidChange(session: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.makePng(uiImage: Any): ByteArray {
-    TODO("no Android counterpart for WatchConnectivity")
+    TODO()
 }
 
 private fun Model.handleGetImage(data: Any, replyHandler: (Map<String, Any>) -> Unit) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleSetIsLive(data: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleSetIsRecording(data: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleSetIsMuted(data: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleSkipCurrentChatTextToSpeechMessage() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleSetZoomMessage(data: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleSetZoomPresetMessage(data: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleSetSceneMessage(data: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleUpdateWorkoutStats(data: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleUpdatePadelScoreboardFromWatch(data: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleUpdateGenericScoreboardFromWatch(data: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleCreateStreamMarker() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleInstantReplay(data: Any) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 private fun Model.handleSaveReplay() {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.session(
@@ -221,9 +221,9 @@ fun Model.session(
     didReceiveMessage: Map<String, Any>,
     replyHandler: (Map<String, Any>) -> Unit,
 ) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }
 
 fun Model.session(session: Any, didReceiveMessage: Map<String, Any>) {
-    TODO("no Android counterpart for WatchConnectivity")
+    Unit
 }

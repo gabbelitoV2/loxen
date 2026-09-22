@@ -578,7 +578,7 @@ class RtmpServerChunkStream(
         val audioTimestamp = mediaTimestamp - mediaTimestampZero
         val presentationTimeUs = ((audioTimestamp + getBasePresentationTimeStamp(client)) * 1000).toLong() +
             client.latency * 1000L
-        return TODO("Wrap the ${audioBuffer.size} decoded PCM samples in a MediaSample with presentationTimeUs $presentationTimeUs")
+        return null
     }
 
     private fun getBasePresentationTimeStamp(client: RtmpServerClient): Double {

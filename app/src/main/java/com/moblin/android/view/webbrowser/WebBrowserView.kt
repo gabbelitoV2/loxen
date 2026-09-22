@@ -208,7 +208,7 @@ private fun BookmarksView(
                         Text(bookmark.url)
                     }
                 }
-                TODO("contextMenuDeleteButton")
+                Unit
             }
         }
         SwipeLeftToDeleteHelpView(kind = localized("a bookmark"))

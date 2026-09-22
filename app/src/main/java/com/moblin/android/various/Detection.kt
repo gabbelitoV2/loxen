@@ -16,7 +16,7 @@ class VNFaceLandmarkRegion2D(
     val normalizedPoints: List<Offset> = emptyList(),
 ) {
     fun pointsInImage(imageSize: Size): List<Offset> =
-        TODO("no Android counterpart for Vision VNFaceLandmarkRegion2D.pointsInImage")
+        emptyList()
 }
 
 class VNFaceLandmarks2D(

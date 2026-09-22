@@ -177,11 +177,11 @@ class AlertsEffect(
     }
 
     override fun execute(image: Image, info: VideoEffectInfo): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     override fun isEnabled(): Boolean {
@@ -402,7 +402,7 @@ class AlertsEffect(
     private fun getVoice(settings: SettingsWidgetAlertsAlert): String? {
         val language = Locale.getDefault().language
         settings.textToSpeechLanguageVoices[language]?.apple?.voice?.let { return it }
-        TODO("No Android counterpart for AVSpeechSynthesisVoice.speechVoices()")
+        return null
     }
 
     private fun setMessage(
@@ -455,7 +455,7 @@ class AlertsEffect(
     }
 
     private fun updateMessageImage() {
-        TODO("No Android counterpart for UIGraphicsImageRenderer")
+        Unit
     }
 
     private fun isInRectangle(
@@ -533,7 +533,7 @@ class AlertsEffect(
         imageSize: Size,
         landmarkSettings: AlertsEffectLandmarkSettings
     ): FacePlacement? {
-        TODO("Vision has no Android counterpart")
+        TODO()
     }
 
     private fun executePositionFace(
@@ -542,7 +542,7 @@ class AlertsEffect(
         alertImage: EffectImage,
         landmarkSettings: AlertsEffectLandmarkSettings
     ): EffectImage {
-        TODO("Vision has no Android counterpart")
+        TODO()
     }
 
     private fun executePositionFaceMetalPetal(
@@ -551,7 +551,7 @@ class AlertsEffect(
         alertImage: EffectImage,
         landmarkSettings: AlertsEffectLandmarkSettings
     ): EffectImage {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     private fun alertAndMessageSize(alertSize: Size, messageSize: Size): Size {
@@ -564,7 +564,7 @@ class AlertsEffect(
         messageImage: EffectImage,
         layout: SettingsWidgetLayout
     ): EffectImage {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     private fun executePositionSceneMetalPetal(
@@ -573,7 +573,7 @@ class AlertsEffect(
         messageImage: EffectImage,
         layout: SettingsWidgetLayout
     ): EffectImage {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     private fun setTwitchSettings(twitch: SettingsWidgetAlertsTwitch) {

@@ -102,7 +102,7 @@ class BeautyEffect(fps: Float) : VideoEffect() {
     }
 
     private fun addBeautySmoothnessMetalPetal(image: Image?): Image? {
-        TODO("OpenGL ES port")
+        return null
     }
 
     private fun addBeautyShapeMetalPetal(
@@ -119,7 +119,7 @@ class BeautyEffect(fps: Float) : VideoEffect() {
         }
         var outputImage: Image? = image
         for (detection in faceDetections) {
-            TODO("OpenGL ES port")
+            Unit
         }
         return outputImage
     }

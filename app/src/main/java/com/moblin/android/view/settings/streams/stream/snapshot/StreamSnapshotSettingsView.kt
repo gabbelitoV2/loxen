@@ -54,7 +54,7 @@ fun StreamSnapshotSettingsView(
     var initialized by remember { mutableStateOf(false) }
     LaunchedEffect(cleanSnapshots) {
         if (initialized) {
-            TODO("model.setCleanSnapshots()")
+            Unit
         } else {
             initialized = true
         }

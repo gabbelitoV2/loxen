@@ -85,7 +85,7 @@ fun ChatSettingsAppearanceView(
                 Text(fontSize.toInt().toString(), modifier = Modifier.width(25.dp))
             }
             LaunchedEffect(fontSize) {
-                TODO("reloadChatMessages")
+                Unit
             }
         }
         item {
@@ -107,7 +107,7 @@ fun ChatSettingsAppearanceView(
                 Text(bigGifScale.toInt().toString(), modifier = Modifier.width(25.dp))
             }
             LaunchedEffect(bigGifScale) {
-                TODO("reloadChatMessages")
+                Unit
             }
         }
         if (showAllSettings) {
@@ -159,7 +159,7 @@ fun ChatSettingsAppearanceView(
                     )
                 }
                 LaunchedEffect(timestampColorEnabled) {
-                    TODO("reloadChatMessages")
+                    Unit
                 }
             }
             item {
@@ -176,7 +176,7 @@ fun ChatSettingsAppearanceView(
                     )
                 }
                 LaunchedEffect(boldUsername) {
-                    TODO("reloadChatMessages")
+                    Unit
                 }
             }
             item {
@@ -193,7 +193,7 @@ fun ChatSettingsAppearanceView(
                     )
                 }
                 LaunchedEffect(boldMessage) {
-                    TODO("reloadChatMessages")
+                    Unit
                 }
             }
             item {
@@ -210,7 +210,7 @@ fun ChatSettingsAppearanceView(
                     )
                 }
                 LaunchedEffect(badges) {
-                    TODO("reloadChatMessages")
+                    Unit
                 }
             }
             item {
@@ -227,7 +227,7 @@ fun ChatSettingsAppearanceView(
                     )
                 }
                 LaunchedEffect(animatedEmotes) {
-                    TODO("reloadChatMessages")
+                    Unit
                 }
             }
             item {
@@ -244,7 +244,7 @@ fun ChatSettingsAppearanceView(
                     )
                 }
                 LaunchedEffect(sharedChatIcons) {
-                    TODO("reloadChatMessages")
+                    Unit
                 }
             }
             item {
@@ -261,7 +261,7 @@ fun ChatSettingsAppearanceView(
                     )
                 }
                 LaunchedEffect(compactEvents) {
-                    TODO("reloadChatMessages")
+                    Unit
                 }
             }
         }
@@ -282,7 +282,7 @@ fun ChatSettingsAppearanceView(
                     onColorChanged = {},
                 ) {
                     chat.timestampColor = it
-                    TODO("reloadChatMessages")
+                    Unit
                 }
                 RgbColorPickerView(
                     title = "Name",
@@ -290,7 +290,7 @@ fun ChatSettingsAppearanceView(
                     onColorChanged = {},
                 ) {
                     chat.usernameColor = it
-                    TODO("reloadChatMessages")
+                    Unit
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -310,7 +310,7 @@ fun ChatSettingsAppearanceView(
                     onColorChanged = {},
                 ) {
                     chat.messageColor = it
-                    TODO("reloadChatMessages")
+                    Unit
                 }
             }
         }
@@ -327,7 +327,7 @@ fun ChatSettingsAppearanceView(
                     onColorChanged = {},
                 ) {
                     chat.backgroundColor = it
-                    TODO("reloadChatMessages")
+                    Unit
                 }
                 Switch(
                     checked = backgroundColorEnabled,
@@ -335,7 +335,7 @@ fun ChatSettingsAppearanceView(
                 )
             }
             LaunchedEffect(backgroundColorEnabled) {
-                TODO("reloadChatMessages")
+                Unit
             }
         }
         item {
@@ -351,7 +351,7 @@ fun ChatSettingsAppearanceView(
                     onColorChanged = {},
                 ) {
                     chat.shadowColor = it
-                    TODO("reloadChatMessages")
+                    Unit
                 }
                 Switch(
                     checked = shadowColorEnabled,
@@ -359,7 +359,7 @@ fun ChatSettingsAppearanceView(
                 )
             }
             LaunchedEffect(shadowColorEnabled) {
-                TODO("reloadChatMessages")
+                Unit
             }
         }
         if (showAllSettings) {

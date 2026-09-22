@@ -46,7 +46,7 @@ private fun MacroView(model: Model = LocalModel.current, macro: SettingsMacrosMa
         if (running) {
             TextButton(
                 onClick = {
-                    TODO("stopMacro")
+                    Unit
                 },
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.Red),
             ) {
@@ -57,7 +57,7 @@ private fun MacroView(model: Model = LocalModel.current, macro: SettingsMacrosMa
         } else {
             TextButton(
                 onClick = {
-                    TODO("startMacro")
+                    Unit
                     if (closePanelOnRun) {
                         model.toggleShowingPanel(type = null, panel = ShowingPanel.none)
                     }

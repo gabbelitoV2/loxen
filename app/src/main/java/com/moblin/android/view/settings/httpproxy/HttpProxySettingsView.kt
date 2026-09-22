@@ -43,7 +43,7 @@ fun HttpProxySettingsView(
             return
         }
         httpProxy.port.value = newPort
-        TODO("reloadHttpProxyServer")
+        Unit
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -83,7 +83,7 @@ fun HttpProxySettingsView(
                         checked = enabled,
                         onCheckedChange = {
                             httpProxy.enabled.value = it
-                            TODO("httpProxyServerChanged")
+                            Unit
                         },
                     )
                 }
@@ -113,7 +113,7 @@ fun HttpProxySettingsView(
                         checked = localNetwork,
                         onCheckedChange = {
                             httpProxy.localNetwork.value = it
-                            TODO("httpProxyServerChanged")
+                            Unit
                         },
                     )
                 }

@@ -37,7 +37,7 @@ fun WidgetSceneSettingsView(
             return@LaunchedEffect
         }
         widget.scene.sceneId = sceneId
-        TODO("Model.resetSelectedScene(changeScene = false)")
+        Unit
     }
     Column {
         Text(

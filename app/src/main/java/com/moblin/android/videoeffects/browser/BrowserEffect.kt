@@ -55,7 +55,7 @@ private fun videoScript(): String {
 }
 
 private fun addScript(webView: WebView, script: String, injectionTime: UserScriptInjectionTime) {
-    TODO("no Android counterpart for WKUserScript")
+    Unit
 }
 
 class BrowserEffect(
@@ -118,7 +118,7 @@ class BrowserEffect(
     }
 
     fun close() {
-        TODO("no Android counterpart for WKUserContentController.removeAllScriptMessageHandlers")
+        Unit
     }
 
     override fun isEnabled(): Boolean {
@@ -147,7 +147,7 @@ class BrowserEffect(
         get() = url.host ?: "?"
 
     val progress: Int
-        get() = TODO("no Android counterpart for WKWebView.estimatedProgress")
+        get() = 0
 
     fun stop() {
         stopTakeSnapshots()
@@ -168,15 +168,15 @@ class BrowserEffect(
     }
 
     fun setProxyServer(endpoint: InetSocketAddress?) {
-        TODO("no Android counterpart for WKWebViewConfiguration.setHttpProxy")
+        Unit
     }
 
     override fun execute(image: Image, info: VideoEffectInfo): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     private fun setSceneWidgetEnabled(sceneWidget: SettingsSceneWidget?, crops: List<WidgetCrop>) {

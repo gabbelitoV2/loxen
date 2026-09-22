@@ -43,19 +43,19 @@ private fun changeWidthHeight(value: String): String? {
 private fun submitX(model: Model, widget: SettingsWidget, value: String) {
     val x = value.toIntOrNull() ?: return
     widget.crop.x = x
-    TODO("model.resetSelectedScene(changeScene = false)")
+    Unit
 }
 
 private fun submitY(model: Model, widget: SettingsWidget, value: String) {
     val y = value.toIntOrNull() ?: return
     widget.crop.y = y
-    TODO("model.resetSelectedScene(changeScene = false)")
+    Unit
 }
 
 private fun submitWidth(model: Model, widget: SettingsWidget, value: String) {
     val width = value.toIntOrNull() ?: return
     widget.crop.width = width
-    TODO("model.resetSelectedScene(changeScene = false)")
+    Unit
 }
 
 private fun submitHeight(model: Model, widget: SettingsWidget, value: String) {
@@ -64,7 +64,7 @@ private fun submitHeight(model: Model, widget: SettingsWidget, value: String) {
         return
     }
     widget.crop.height = height
-    TODO("model.resetSelectedScene(changeScene = false)")
+    Unit
 }
 
 private fun sourceWidgetExists(model: Model, widget: SettingsWidget): Boolean {
@@ -105,7 +105,7 @@ fun WidgetCropSettingsView(model: Model = LocalModel.current, widget: SettingsWi
                     DropdownMenuItem(
                         text = { Text("") },
                         onClick = {
-                            TODO("widget.crop.sourceWidgetId = null")
+                            Unit
                         }
                     )
                 }
@@ -116,7 +116,7 @@ fun WidgetCropSettingsView(model: Model = LocalModel.current, widget: SettingsWi
                             text = { Text(browserWidget.name) },
                             onClick = {
                                 widget.crop.sourceWidgetId = browserWidget.id
-                                TODO("model.resetSelectedScene(changeScene = false)")
+                                Unit
                                 expanded = false
                             }
                         )

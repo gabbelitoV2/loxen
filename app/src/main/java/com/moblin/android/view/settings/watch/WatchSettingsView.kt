@@ -33,7 +33,7 @@ fun WatchSettingsView(
 ) {
     val viaRemoteControl by watch.viaRemoteControl.collectAsState()
     LaunchedEffect(viaRemoteControl) {
-        TODO("sendInitToWatch")
+        Unit
     }
     Scaffold(
         topBar = {

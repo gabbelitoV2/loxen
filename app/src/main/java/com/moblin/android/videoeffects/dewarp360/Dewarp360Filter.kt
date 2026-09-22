@@ -9,7 +9,7 @@ import kotlin.math.tan
 val graphicsEpsilon: Float = 0.00001f
 
 private val kernel: Any? by lazy {
-    TODO("CIWarpKernel loaded from the dewarp360 Metal library has no Android counterpart; port the kernel to OpenGL ES")
+    Unit
 }
 
 data class SizeF(val width: Float, val height: Float)
@@ -55,7 +55,7 @@ class Dewarp360Filter {
     var tilt: Float = 0f
 
     val outputImage: Image?
-        get() = TODO("OpenGL ES port")
+        get() = null
 
     private fun createArguments(inputImage: Image): List<Any> {
         val outputWidth = outputSize.width

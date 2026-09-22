@@ -92,7 +92,7 @@ class WiFiAwareSender private constructor() {
     private suspend fun browseWiFiAware(
         onEndpoint: (deviceId: String, connection: DatagramSocket) -> Unit,
     ) {
-        TODO("no Android counterpart for WiFiAware")
+        Unit
     }
 }
 

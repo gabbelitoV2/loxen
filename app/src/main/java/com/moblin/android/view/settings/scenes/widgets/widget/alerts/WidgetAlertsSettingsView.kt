@@ -67,7 +67,7 @@ val alertTestNames = listOf("Mark", "Natasha", "Pedro", "Anna")
 
 @Composable
 fun AlertPickerView(model: Model = LocalModel.current, type: String) {
-    TODO("no Android counterpart for UIDocumentPickerViewController")
+    Unit
 }
 
 @Composable
@@ -128,7 +128,7 @@ private fun getSoundName(model: Model, id: UUID?): String {
 
 @Composable
 private fun VideoPickerView(model: Model = LocalModel.current) {
-    TODO("no Android counterpart for UIDocumentPickerViewController")
+    Unit
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -292,7 +292,7 @@ private fun AlertPositionFaceView(model: Model = LocalModel.current, alert: Sett
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        TODO("no Android counterpart for bundled AlertFace image asset")
+        Unit
         val image = loadAlertImage(model = model, imageId = alert.imageId)
         if (image != null) {
             val bitmap = remember(image) { BitmapFactory.decodeByteArray(image, 0, image.size) }

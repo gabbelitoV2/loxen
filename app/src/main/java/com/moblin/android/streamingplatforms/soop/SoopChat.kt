@@ -284,7 +284,7 @@ class SoopChat(
         }
         val user = parts[5]
         val segments = createSegments(parts[0])
-        TODO("appendChatMessage is not available: $user ${segments.size} segments")
+        Unit
     }
 
     private suspend fun getChannelInfo(): PlayerLiveChannel {

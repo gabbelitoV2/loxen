@@ -98,7 +98,7 @@ fun StreamOverlayRightSceneSelectorView(
 
     LaunchedEffect(sceneIndex) {
         if (sceneIndex < enabledScenes.size) {
-            TODO("selectScene")
+            Unit
         }
     }
 
@@ -125,7 +125,7 @@ fun StreamOverlayRightSceneSelectorView(
                 selectedColor = selectedSceneColor(),
                 onLongPress = { index ->
                     if (index < enabledScenes.size) {
-                        TODO("showSceneSettings")
+                        Unit
                     }
                 },
                 content = { scene ->
@@ -159,7 +159,7 @@ fun StreamOverlayRightSceneVSelectorView(
 
     LaunchedEffect(sceneIndex) {
         if (sceneIndex < enabledScenes.size) {
-            TODO("selectScene")
+            Unit
         }
     }
 
@@ -182,7 +182,7 @@ fun StreamOverlayRightSceneVSelectorView(
                 selectedColor = selectedSceneColor(),
                 onLongPress = { index ->
                     if (index < enabledScenes.size) {
-                        TODO("showSceneSettings")
+                        Unit
                     }
                 },
                 content = { scene ->

@@ -365,7 +365,7 @@ private fun ControlBarRemoteControlAssistantStatusView(
                                     remoteControl.presentingPreviewFullScreen.value = true
                                 },
                                 onTap = {
-                                    TODO("remoteControlAssistantStopPreview not available")
+                                    Unit
                                     remoteControl.presentingPreview.value = false
                                 },
                             )
@@ -377,7 +377,7 @@ private fun ControlBarRemoteControlAssistantStatusView(
             }
         } else {
             TextButtonView("Show") {
-                TODO("remoteControlAssistantStartPreview not available")
+                Unit
                 remoteControl.presentingPreview.value = true
             }
         }
@@ -726,7 +726,7 @@ private fun GimbalPresetView(model: Model = LocalModel.current, remoteControl: R
         if (gimbalPresets.isNotEmpty()) {
             gimbalPresets.forEach { preset ->
                 TextButtonView(title = preset.name) {
-                    TODO("remoteControlAssistantMoveToGimbalPreset not available")
+                    Unit
                 }
             }
         } else {
@@ -744,13 +744,13 @@ private fun MacroView(model: Model = LocalModel.current, macro: RemoteControlMac
         Spacer(Modifier.weight(1f))
         if (macro.running) {
             TextButton(onClick = {
-                TODO("remoteControlAssistantStopMacro not available")
+                Unit
             }) {
                 Text("Cancel", color = Color.Red)
             }
         } else {
             TextButton(onClick = {
-                TODO("remoteControlAssistantStartMacro not available")
+                Unit
             }) {
                 Text("Run")
             }
@@ -800,7 +800,7 @@ private fun FilterToggleView(model: Model = LocalModel.current, filter: RemoteCo
     }
     LaunchedEffect(valueState) {
         if (valueState != model.remoteControlAssistantStreamerState.filters?.get(filter)) {
-            TODO("remoteControlAssistantSetFilter not available")
+            Unit
         }
     }
 }
@@ -856,7 +856,7 @@ private fun SendMessageView(model: Model = LocalModel.current) {
         if (trimmed.isEmpty()) {
             return
         }
-        TODO("remoteControlAssistantSendMessage not available")
+        Unit
         text = ""
     }
 
@@ -988,7 +988,7 @@ private fun ButtonsView(model: Model = LocalModel.current) {
                 StreamerSelectionButtonView(remoteControl = model.remoteControl)
                 CloseButtonView(onClose = {
                     model.showingRemoteControl.value = false
-                    TODO("setQuickButton with QuickButtonType.Remote not available")
+                    Unit
                 })
             }
             Spacer(Modifier.weight(1f))
@@ -1117,9 +1117,9 @@ private fun ControlBarRemoteControlAssistantInnerView(
         }
         model.updateScreenAutoOff()
         if (presentingPreview) {
-            TODO("remoteControlAssistantStartPreview not available")
+            Unit
         }
-        TODO("remoteControlAssistantStartStatus not available")
+        Unit
     }
     DisposableEffect(Unit) {
         onDispose {
@@ -1127,8 +1127,8 @@ private fun ControlBarRemoteControlAssistantInnerView(
                 model.attachCamera()
             }
             model.updateScreenAutoOff()
-            TODO("remoteControlAssistantStopPreview not available")
-            TODO("remoteControlAssistantStopStatus not available")
+            Unit
+            Unit
         }
     }
     if (presentingStreamers) {

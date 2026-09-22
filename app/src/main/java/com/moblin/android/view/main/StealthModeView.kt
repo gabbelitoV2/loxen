@@ -205,7 +205,7 @@ fun StealthModeView(
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         returnButton {
-                            TODO("toggleStealthMode")
+                            Unit
                         }
                     }
                 }
@@ -227,7 +227,7 @@ fun StealthModeView(
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         returnButton {
-                            TODO("toggleStealthMode")
+                            Unit
                         }
                     }
                 }

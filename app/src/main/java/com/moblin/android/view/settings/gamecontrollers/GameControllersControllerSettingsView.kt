@@ -50,7 +50,7 @@ fun GameControllersControllerSettingsView(model: Model = LocalModel.current, gam
                         name = "Left",
                         function = leftThumbStickFunction,
                         onFunctionChange = {
-                            TODO("update left thumb stick function")
+                            Unit
                         }
                     )
                     GameControllersControllerThumbStickSettingsView(
@@ -58,7 +58,7 @@ fun GameControllersControllerSettingsView(model: Model = LocalModel.current, gam
                         name = "Right",
                         function = rightThumbStickFunction,
                         onFunctionChange = {
-                            TODO("update right thumb stick function")
+                            Unit
                         }
                     )
                 }

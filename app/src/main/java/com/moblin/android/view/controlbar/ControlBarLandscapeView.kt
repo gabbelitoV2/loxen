@@ -63,6 +63,7 @@ import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.isPhone
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.LocalModel
+import com.moblin.android.various.storages.toThermalState
 
 private fun edgesToIgnore(): List<String> {
     return if (isPhone()) {
@@ -191,7 +192,7 @@ private fun StatusView(model: Model = LocalModel.current, status: StatusOther) {
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
         ) {
-            ThermalStateView(thermalState = TODO("Convert MoblinkThermalState to ThermalState"))
+            ThermalStateView(thermalState = status.thermalState.collectAsState().value.toThermalState())
         }
         Spacer(Modifier.weight(1f))
         if (isPhone()) {

@@ -208,10 +208,10 @@ class VideoSourceEffect : VideoEffect() {
     }
 
     fun execute(backgroundImage: Bitmap, info: VideoEffectInfo): Bitmap {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     fun executeMetalPetal(backgroundImage: Bitmap, info: VideoEffectInfo): Bitmap {
-        TODO("OpenGL ES port")
+        TODO()
     }
 }

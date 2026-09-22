@@ -53,6 +53,7 @@ import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.model.Store
 import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.LocalModel
+import com.moblin.android.various.storages.toThermalState
 
 private fun buttonSize(bigButtons: Boolean) =
     if (bigButtons) controlBarQuickButtonSingleQuickButtonSize else controlBarButtonSize
@@ -242,7 +243,7 @@ private fun MainPageView(
                     onClick = { presentingThermalState.value = !presentingThermalState.value },
                     contentPadding = PaddingValues(0.dp),
                 ) {
-                    ThermalStateView(thermalState = TODO("MoblinkThermalState to ThermalState conversion"))
+                    ThermalStateView(thermalState = status.thermalState.collectAsState().value.toThermalState())
                 }
                 Spacer(modifier = Modifier.weight(1f))
             }

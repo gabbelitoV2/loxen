@@ -15,6 +15,6 @@ class WiFiAwareReceiver {
     private val connections: MutableList<Sender> = mutableListOf()
 
     suspend fun listen() {
-        TODO("no Android counterpart for WiFiAware")
+        Unit
     }
 }

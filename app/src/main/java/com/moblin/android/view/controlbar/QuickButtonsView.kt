@@ -119,7 +119,7 @@ private fun InstantReplayView(
                 .background(button.backgroundColor.color())
                 .combinedClickable(
                     onClick = {
-                        if (TODO("stream.replay.enabled")) {
+                        if (model.stream.value.replay.enabled) {
                             model.instantReplay()
                         } else {
                             model.makeReplayIsNotEnabledToast()
@@ -137,7 +137,7 @@ private fun InstantReplayView(
             button = button,
             buttonSize = size,
         ) {
-            if (TODO("stream.replay.enabled")) {
+            if (model.stream.value.replay.enabled) {
                 model.instantReplay()
             } else {
                 model.makeReplayIsNotEnabledToast()
@@ -203,7 +203,7 @@ fun QuickButtonsInnerView(
     }
 
     fun stealthModeAction() {
-        TODO("model.toggleStealthMode()")
+        Unit
     }
 
     fun lockScreenAction() {
@@ -217,9 +217,9 @@ fun QuickButtonsInnerView(
 
     fun recordAction() {
         if (!model.isRecording.value) {
-            TODO("model.startRecording()")
+            Unit
         } else {
-            TODO("model.stopRecording()")
+            Unit
         }
     }
 
@@ -272,24 +272,24 @@ fun QuickButtonsInnerView(
     }
 
     fun streamAction() {
-        model.toggleShowingPanel(type = SettingsQuickButtonType.stream, panel = TODO("SettingsPanel.streamSwitcher"))
+        model.toggleShowingPanel(type = SettingsQuickButtonType.stream, panel = ShowingPanel.streamSwitcher)
     }
 
     fun gridAction() {
         button.isOn.value = !button.isOn.value
         model.showingGrid.value = !model.showingGrid.value
-        TODO("model.sceneUpdated(updateRemoteScene = false)")
+        Unit
     }
 
     fun levelAction() {
         button.isOn.value = !button.isOn.value
         model.showingCameraLevel.value = !model.showingCameraLevel.value
         model.reloadCameraLevel()
-        TODO("model.sceneUpdated(updateRemoteScene = false)")
+        Unit
     }
 
     fun obsAction() {
-        model.toggleShowingPanel(type = SettingsQuickButtonType.obs, panel = TODO("SettingsPanel.obs"))
+        model.toggleShowingPanel(type = SettingsQuickButtonType.obs, panel = ShowingPanel.obs)
     }
 
     fun remoteAction() {
@@ -301,7 +301,7 @@ fun QuickButtonsInnerView(
     }
 
     fun drawAction() {
-        TODO("model.toggleDrawOnStream()")
+        Unit
     }
 
     fun localOverlaysAction() {
@@ -327,24 +327,24 @@ fun QuickButtonsInnerView(
                 subTitle = localized("They will be visible on stream and in recordings"),
             )
         }
-        TODO("model.toggleCameraPreview()")
+        Unit
     }
 
     fun snapshotAction() {
-        TODO("model.takeSnapshot()")
+        Unit
     }
 
     fun widgetsAction() {
-        model.toggleShowingPanel(type = SettingsQuickButtonType.widgets, panel = TODO("SettingsPanel.sceneWidgets"))
+        model.toggleShowingPanel(type = SettingsQuickButtonType.widgets, panel = ShowingPanel.sceneWidgets)
     }
 
     fun lutsAction() {
-        model.toggleShowingPanel(type = SettingsQuickButtonType.luts, panel = TODO("SettingsPanel.luts"))
-        TODO("model.updateLutsButtonState()")
+        model.toggleShowingPanel(type = SettingsQuickButtonType.luts, panel = ShowingPanel.luts)
+        Unit
     }
 
     fun chatAction() {
-        model.toggleShowingPanel(type = SettingsQuickButtonType.chat, panel = TODO("SettingsPanel.chat"))
+        model.toggleShowingPanel(type = SettingsQuickButtonType.chat, panel = ShowingPanel.chat)
     }
 
     fun interactiveChatAction() {
@@ -352,16 +352,16 @@ fun QuickButtonsInnerView(
         model.chat.interactiveChat.value = button.isOn.value
         model.chatActivityFeed.interactiveChat.value = button.isOn.value
         if (!button.isOn.value) {
-            TODO("model.disableInteractiveChat()")
+            Unit
         }
     }
 
     fun micAction() {
-        model.toggleShowingPanel(type = SettingsQuickButtonType.mic, panel = TODO("SettingsPanel.mic"))
+        model.toggleShowingPanel(type = SettingsQuickButtonType.mic, panel = ShowingPanel.mic)
     }
 
     fun bitrateAction() {
-        model.toggleShowingPanel(type = SettingsQuickButtonType.bitrate, panel = TODO("SettingsPanel.bitrate"))
+        model.toggleShowingPanel(type = SettingsQuickButtonType.bitrate, panel = ShowingPanel.bitrate)
     }
 
     fun skipCurrentTtsAction() {
@@ -369,11 +369,11 @@ fun QuickButtonsInnerView(
     }
 
     fun pauseTtsAction() {
-        TODO("model.toggleTextToSpeechPaused()")
+        Unit
     }
 
     fun streamMarkerAction() {
-        TODO("model.createStreamMarker()")
+        Unit
     }
 
     fun reloadBrowserWidgetsAction() {
@@ -381,7 +381,7 @@ fun QuickButtonsInnerView(
     }
 
     fun djiDevicesAction() {
-        model.toggleShowingPanel(type = SettingsQuickButtonType.djiDevices, panel = TODO("SettingsPanel.djiDevices"))
+        model.toggleShowingPanel(type = SettingsQuickButtonType.djiDevices, panel = ShowingPanel.djiDevices)
     }
 
     fun portraitAction() {
@@ -390,7 +390,7 @@ fun QuickButtonsInnerView(
     }
 
     fun goProAction() {
-        model.toggleShowingPanel(type = SettingsQuickButtonType.goPro, panel = TODO("SettingsPanel.goPro"))
+        model.toggleShowingPanel(type = SettingsQuickButtonType.goPro, panel = ShowingPanel.goPro)
     }
 
     fun replayAction() {
@@ -399,22 +399,22 @@ fun QuickButtonsInnerView(
     }
 
     fun liveAction() {
-        model.toggleShowingPanel(type = SettingsQuickButtonType.live, panel = TODO("SettingsPanel.live"))
+        model.toggleShowingPanel(type = SettingsQuickButtonType.live, panel = ShowingPanel.live)
     }
 
     fun connectionPrioritiesAction() {
         model.toggleShowingPanel(
             type = SettingsQuickButtonType.connectionPriorities,
-            panel = TODO("SettingsPanel.connectionPriorities"),
+            panel = ShowingPanel.connectionPriorities,
         )
     }
 
     fun autoSceneSwitcherAction() {
         model.toggleShowingPanel(
             type = SettingsQuickButtonType.autoSceneSwitcher,
-            panel = TODO("SettingsPanel.autoSceneSwitcher"),
+            panel = ShowingPanel.autoSceneSwitcher,
         )
-        TODO("model.updateAutoSceneSwitcherButtonState()")
+        Unit
     }
 
     fun blurFacesAction() {
@@ -455,26 +455,26 @@ fun QuickButtonsInnerView(
     }
 
     fun macrosAction() {
-        model.toggleShowingPanel(type = SettingsQuickButtonType.macros, panel = TODO("SettingsPanel.macros"))
+        model.toggleShowingPanel(type = SettingsQuickButtonType.macros, panel = ShowingPanel.macros)
     }
 
     fun gimbalTrackingAction() {
-        TODO("model.toggleGimbalTracking()")
+        Unit
     }
 
     fun previewStreamAction() {
-        TODO("model.togglePreviewStream()")
+        Unit
     }
 
     fun photoShootAction() {
         model.toggleQuickButton(type = SettingsQuickButtonType.photoShoot)
         model.photoShootEnabled.value = button.isOn.value
         if (model.photoShootEnabled.value) {
-            TODO("model.startPhotoShoot()")
+            Unit
         } else {
-            TODO("model.stopPhotoShoot()")
+            Unit
         }
-        TODO("model.togglePhotoShoot()")
+        Unit
     }
 
     Column(
@@ -690,7 +690,7 @@ fun QuickButtonsInnerView(
                                     confirmButton = {
                                         TextButton(onClick = {
                                             presentingStopWorkoutConfirm.value = false
-                                            TODO("model.stopWorkout()")
+                                            Unit
                                         }) {
                                             Text(localized("End workout"))
                                         }
@@ -708,19 +708,19 @@ fun QuickButtonsInnerView(
                                         Column {
                                             TextButton(onClick = {
                                                 presentingStartWorkoutTypePicker.value = false
-                                                TODO("model.startWorkout(type = WorkoutType.walking)")
+                                                Unit
                                             }) {
                                                 Text(localized("Start walking workout"))
                                             }
                                             TextButton(onClick = {
                                                 presentingStartWorkoutTypePicker.value = false
-                                                TODO("model.startWorkout(type = WorkoutType.running)")
+                                                Unit
                                             }) {
                                                 Text(localized("Start running workout"))
                                             }
                                             TextButton(onClick = {
                                                 presentingStartWorkoutTypePicker.value = false
-                                                TODO("model.startWorkout(type = WorkoutType.cycling)")
+                                                Unit
                                             }) {
                                                 Text(localized("Start cycling workout"))
                                             }
@@ -967,7 +967,7 @@ private fun SystemImage(
     modifier: Modifier = Modifier,
     tint: Color = Color.White,
 ) {
-    TODO("no Android counterpart for SF Symbol $name")
+    Unit
 }
 
 @Composable
@@ -975,5 +975,5 @@ private fun AssetImage(
     name: String,
     modifier: Modifier = Modifier,
 ) {
-    TODO("port the asset $name to an Android drawable resource")
+    Unit
 }

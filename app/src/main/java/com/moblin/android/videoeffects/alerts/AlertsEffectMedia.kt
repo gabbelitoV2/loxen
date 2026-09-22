@@ -153,7 +153,7 @@ class AlertsEffectMedia {
         val frames: List<Pair<EffectImageCiImage, Double>> = runCatching {
             File(url).readBytes()
         }.getOrNull()?.let {
-            TODO("no Android counterpart for SDWebImage animated GIF frame decoding")
+            TODO()
         } ?: emptyList()
         var timeOffset = 0.0
         for (i in 0 until loopCount) {

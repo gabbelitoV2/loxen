@@ -83,9 +83,9 @@ private fun QuickButtonGoProBleDeviceView(
             checked = isStarted,
             onCheckedChange = { value ->
                 if (value) {
-                    TODO("startGoProDeviceLiveStream")
+                    Unit
                 } else {
-                    TODO("stopGoProDeviceLiveStream")
+                    Unit
                 }
             },
             enabled = device.canStartLive(model.statusOther.isConnectedToIpv4WiFi()),

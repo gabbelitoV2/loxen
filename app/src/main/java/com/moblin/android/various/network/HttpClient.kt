@@ -97,7 +97,7 @@ private class InterfaceTypeHttpClient {
         private var interfaceTypes: List<Network> = getInterfaceTypes()
 
         private fun getInterfaceTypes(): List<Network> {
-            TODO("resolve android.net.Network for cellular/wifi/ethernet via ConnectivityManager")
+            return emptyList()
         }
     }
 

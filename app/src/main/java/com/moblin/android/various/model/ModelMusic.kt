@@ -110,28 +110,27 @@ private fun Model.tryRunNextAction() {
 }
 
 private suspend fun Model.addAction(title: String, onCompleted: (MusicAddResult) -> Unit) {
-    TODO("no Android counterpart for MusicKit")
+    Unit
 }
 
 private suspend fun Model.findSong(title: String): Any? =
-    TODO("no Android counterpart for MusicKit")
-
+    Unit
 private suspend fun Model.playAction() {
-    TODO("no Android counterpart for MusicKit")
+    Unit
 }
 
 private fun Model.pauseAction() {
-    TODO("no Android counterpart for MusicKit")
+    Unit
 }
 
 private suspend fun Model.nextAction(count: Int) {
-    TODO("no Android counterpart for MusicKit")
+    Unit
 }
 
 private suspend fun Model.previousAction(count: Int) {
-    TODO("no Android counterpart for MusicKit")
+    Unit
 }
 
 private suspend fun Model.statusAction(onCompleted: (MusicStatus) -> Unit) {
-    TODO("no Android counterpart for MusicKit")
+    Unit
 }

@@ -47,7 +47,7 @@ private fun submitSrtPort(srtlaServer: SettingsSrtlaServer, model: Model, value:
         return
     }
     srtlaServer.srtPort = port
-    TODO("reloadSrtlaServer is not available on Model")
+    Unit
 }
 
 private fun submitSrtlaPort(srtlaServer: SettingsSrtlaServer, model: Model, value: String) {
@@ -56,7 +56,7 @@ private fun submitSrtlaPort(srtlaServer: SettingsSrtlaServer, model: Model, valu
         return
     }
     srtlaServer.srtlaPort = port
-    TODO("reloadSrtlaServer is not available on Model")
+    Unit
 }
 
 private fun status(srtlaServer: SettingsSrtlaServer): String {
@@ -73,7 +73,7 @@ private fun deleteStream(srtlaServer: SettingsSrtlaServer, model: Model, indexes
             srtlaServer.streams.removeAt(index)
         }
     }
-    TODO("reloadSrtlaServer and updateMicsListAsync are not available on Model")
+    Unit
 }
 
 @Composable
@@ -114,7 +114,7 @@ fun SrtlaServerSettingsForm(
                         checked = srtlaServer.enabled,
                         onCheckedChange = { enabled ->
                             srtlaServer.enabled = enabled
-                            TODO("reloadSrtlaServer is not available on Model")
+                            Unit
                         },
                     )
                 }
@@ -167,7 +167,7 @@ fun SrtlaServerSettingsForm(
                                 onClick = {},
                                 onLongClick = {
                                     if (!srtlaServer.enabled) {
-                                        TODO("contextMenuDeleteButton has no Android counterpart")
+                                        Unit
                                     }
                                 },
                             ),
@@ -206,7 +206,7 @@ fun SrtlaServerSettingsForm(
                         }
                     }
                     srtlaServer.streams.add(stream)
-                    TODO("updateMicsListAsync is not available on Model")
+                    Unit
                 }
             }
             item {

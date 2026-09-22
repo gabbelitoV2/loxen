@@ -62,7 +62,7 @@ fun String.substring(begin: Int, end: Int): String {
 }
 
 fun String.replace(of: String, with: String): String {
-    return this.replace(of, with)
+    return (this as java.lang.String).replace(of, with)
 }
 
 fun makeRtmpUri(url: String): String {
@@ -537,7 +537,7 @@ fun ByteArray.setInt64Be(value: Long, offset: Int = 0) {
 }
 
 fun ByteArray.makeBlockBuffer(advancedBy: Int = 0, length: Int? = null): Any? {
-    return TODO("no Android counterpart for CoreMedia CMBlockBuffer")
+    return null
 }
 
 private const val cameraPositionRtmp = "(RTMP)"

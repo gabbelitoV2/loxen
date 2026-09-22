@@ -131,7 +131,7 @@ fun WidgetBingoCardSettingsView(
     bingoCard: SettingsWidgetBingoCard,
 ) {
     val updateEffect: () -> Unit = {
-        TODO("model.getBingoCardEffect has no Android counterpart")
+        Unit
     }
 
     BingCardWidgetSquaresView(

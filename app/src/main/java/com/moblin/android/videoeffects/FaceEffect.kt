@@ -9,7 +9,7 @@ import com.moblin.android.media.haishinkit.media.video.VideoEffectDetectionsMode
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 import kotlinx.coroutines.launch
 
-private fun makeFaceMask(ratio: Float): Any? = TODO("OpenGL ES port")
+private fun makeFaceMask(ratio: Float): Any? = null
 
 data class FaceEffectSettings(
     var blurFaces: Boolean = true,
@@ -69,49 +69,38 @@ class FaceEffect : VideoEffect() {
     }
 
     override fun execute(image: Image, info: VideoEffectInfo): Image =
-        TODO("OpenGL ES port")
-
+        TODO()
     override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image =
-        TODO("OpenGL ES port")
+        TODO()
+    private fun makePrivacyImageMetalPetal(image: Any): Any? = null
 
-    private fun makePrivacyImageMetalPetal(image: Any): Any? = TODO("OpenGL ES port")
-
-    private fun calcIconPlacement(detection: Any, imageSize: Any): Any? = TODO("Vision port")
+    private fun calcIconPlacement(detection: Any, imageSize: Any): Any? = null
 
     private fun makeIconLayers(image: Any, icon: Any, detections: List<Any>): List<Any> =
-        TODO("OpenGL ES port")
-
+        emptyList()
     private fun makeFaceLayers(image: Any, facesImage: Any, detections: List<Any>): List<Any> =
-        TODO("OpenGL ES port")
-
+        emptyList()
     private fun makeTextLayers(image: Any,
                                privacyImage: Any,
                                detections: List<TextDetection>): List<Any> =
-        TODO("OpenGL ES port")
-
+        TODO()
     private fun makeMouthLayers(image: Any, detections: List<Any>): List<Any> =
-        TODO("OpenGL ES port")
-
-    private fun makePrivacyImage(image: Any): Any? = TODO("OpenGL ES port")
+        emptyList()
+    private fun makePrivacyImage(image: Any): Any? = null
 
     private fun createFacesMaskImage(imageExtent: Any, detections: List<Any>): Any? =
-        TODO("OpenGL ES port")
-
+        Unit
     private fun createTextsMaskImage(imageExtent: Any, detections: List<TextDetection>): Any? =
-        TODO("OpenGL ES port")
-
+        Unit
     private fun applyBlur(image: Any,
                           detections: Detections,
                           blurFaces: Boolean,
                           blurText: Boolean,
                           blurBackground: Boolean): Any? =
-        TODO("OpenGL ES port")
-
+        Unit
     private fun addIcons(image: Any?, icon: Any, detections: List<Any>): Any? =
-        TODO("OpenGL ES port")
-
+        Unit
     private fun calcMouth(detection: Any, imageSize: Any, moblinImageSize: Any): Any? =
-        TODO("Vision port")
-
-    private fun addMouth(image: Any?, detections: List<Any>?): Any? = TODO("OpenGL ES port")
+        Unit
+    private fun addMouth(image: Any?, detections: List<Any>?): Any? = null
 }

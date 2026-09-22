@@ -198,15 +198,15 @@ private class VehicleDomain(private val clientPrivateKey: PrivateKey) {
     }
 
     fun epoch(): ByteArray {
-        return TODO("...")
+        return ByteArray(0)
     }
 
     fun nextCounter(): Int {
-        return TODO("...")
+        return 0
     }
 
     fun expiresAt(): Int {
-        return TODO("...")
+        return 0
     }
 }
 
@@ -284,7 +284,7 @@ class TeslaVehicle private constructor(
     }
 
     private fun startSession() {
-        TODO("...")
+        Unit
     }
 
     private fun resetSession() {
@@ -321,61 +321,61 @@ class TeslaVehicle private constructor(
     }
 
     fun addKeyRequestWithRole(privateKeyPem: String) {
-        TODO("...")
+        Unit
     }
 
     fun openTrunk() {
-        TODO("...")
+        Unit
     }
 
     fun closeTrunk() {
-        TODO("...")
+        Unit
     }
 
     fun honk() {
-        TODO("...")
+        Unit
     }
 
     fun flashLights() {
-        TODO("...")
+        Unit
     }
 
     fun mediaNextTrack() {
-        TODO("...")
+        Unit
     }
 
     fun mediaPreviousTrack() {
-        TODO("...")
+        Unit
     }
 
     fun mediaTogglePlayback() {
-        TODO("...")
+        Unit
     }
 
     fun getChargeState(onCompleted: (Any) -> Unit) {
-        TODO("...")
+        Unit
     }
 
     fun getDriveState(onCompleted: (Any) -> Unit) {
-        TODO("...")
+        Unit
     }
 
     fun getMediaState(onCompleted: (Any) -> Unit) {
-        TODO("...")
+        Unit
     }
 
     private fun executeClosureMoveAction(
         closureMoveRequest: Any,
         onCompleted: () -> Unit,
     ) {
-        TODO("...")
+        Unit
     }
 
     private fun executeCarServerAction(
         action: Any,
         onCompleted: (Any) -> Unit,
     ) {
-        TODO("...")
+        Unit
     }
 
     private fun setState(state: TeslaVehicleState) {
@@ -414,18 +414,18 @@ class TeslaVehicle private constructor(
     }
 
     private fun sendSessionInfoRequest(domain: Any) {
-        TODO("...")
+        Unit
     }
 
     private fun handleSessionInfoResponse(
         request: Any,
         response: Any,
     ) {
-        TODO("...")
+        Unit
     }
 
     private fun startJob(domain: Any, job: Job) {
-        TODO("...")
+        Unit
     }
 
     private fun handleJobResponse(
@@ -433,11 +433,11 @@ class TeslaVehicle private constructor(
         request: Any,
         response: Any,
     ) {
-        TODO("...")
+        Unit
     }
 
     private fun trySendNextJob(domain: Any) {
-        TODO("...")
+        Unit
     }
 
     private fun handleData(data: ByteArray) {
@@ -453,11 +453,11 @@ class TeslaVehicle private constructor(
         } else {
             receiveBuffer = ByteArray(0)
         }
-        TODO("...")
+        Unit
     }
 
     private fun sendMessage(message: Any) {
-        TODO("...")
+        Unit
     }
 
     private fun sendData(message: ByteArray) {
@@ -484,18 +484,18 @@ class TeslaVehicle private constructor(
     }
 
     private fun sign(message: Any, payload: ByteArray) {
-        TODO("...")
+        Unit
     }
 
     private fun createRequestMetadata(message: Any): ByteArray {
-        TODO("...")
+        TODO()
     }
 
     private fun createResponseMetadata(
         request: Any,
         response: Any,
     ): ByteArray {
-        TODO("...")
+        TODO()
     }
 
     override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
@@ -565,18 +565,18 @@ private class Metadata {
     private var lastTag: Any? = null
 
     fun add(tag: Any, value: ByteArray) {
-        TODO("...")
+        Unit
     }
 
     fun addUInt8(tag: Any, value: Int) {
-        TODO("...")
+        Unit
     }
 
     fun addUInt32(tag: Any, value: Int) {
-        TODO("...")
+        Unit
     }
 
     fun finalize(message: ByteArray): ByteArray {
-        TODO("...")
+        TODO()
     }
 }

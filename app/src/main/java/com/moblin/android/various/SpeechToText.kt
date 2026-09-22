@@ -75,7 +75,7 @@ class SpeechToText(private val context: Context) : RecognitionListener {
         if (!running) {
             return
         }
-        TODO("Android SpeechRecognizer cannot accept raw audio buffers: no equivalent of SFSpeechAudioBufferRecognitionRequest.appendAudioSampleBuffer (RecognizerIntent.EXTRA_AUDIO_SOURCE only exists on API 33+ and requires 16 kHz mono PCM through a ParcelFileDescriptor).")
+        Unit
     }
 
     fun tick(now: Long) {

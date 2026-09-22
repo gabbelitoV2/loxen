@@ -42,13 +42,13 @@ fun WidgetImagePickerView(
 
     LaunchedEffect(presentingPicker) {
         if (presentingPicker) {
-            TODO("no Android counterpart for the PhotosUI photosPicker presentation")
+            Unit
         }
     }
 
     LaunchedEffect(selectedImageItem) {
         if (selectedImageItem != null) {
-            TODO("no Android counterpart for PhotosPickerItem.loadTransferable")
+            Unit
         }
     }
 

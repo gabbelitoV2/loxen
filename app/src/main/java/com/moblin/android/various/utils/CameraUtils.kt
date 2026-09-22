@@ -70,8 +70,7 @@ class AVCaptureDevice {
     ): WhiteBalanceGains = TODO("Camera2 COLOR_CORRECTION_GAINS conversion from temperature and tint")
 
     fun temperatureAndTintValues(gains: WhiteBalanceGains): WhiteBalanceTemperatureAndTintValues =
-        TODO("Camera2 temperature and tint conversion from white balance gains")
-
+        TODO()
     companion object {
         private val cameraManager: CameraManager
             get() = AppDelegate.context.getSystemService(Context.CAMERA_SERVICE) as CameraManager

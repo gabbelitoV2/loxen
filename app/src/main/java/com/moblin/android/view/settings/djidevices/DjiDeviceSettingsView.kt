@@ -772,7 +772,7 @@ private fun ColumnScope.DjiDeviceStartStopButtonSettingsView(
         ) {
             if (device.canStartLive(status.isConnectedToIpv4WiFi())) {
                 TextButtonView(title = "Start live stream") {
-                    TODO("startDjiDeviceLiveStream")
+                    Unit
                 }
             }
         }
@@ -784,7 +784,7 @@ private fun ColumnScope.DjiDeviceStartStopButtonSettingsView(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             TextButtonView(title = "Stop live stream") {
-                TODO("stopDjiDeviceLiveStream")
+                Unit
             }
         }
     }
@@ -808,7 +808,7 @@ fun DjiDeviceSettingsView(
     }
 
     LaunchedEffect(Unit) {
-        TODO("setCurrentDjiDevice")
+        Unit
     }
 
     Scaffold(

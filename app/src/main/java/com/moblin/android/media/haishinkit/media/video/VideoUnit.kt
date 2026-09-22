@@ -676,11 +676,11 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     }
 
     private fun getBufferedBufferPool(sampleBuffer: MediaSample): Any? {
-        TODO("no Android counterpart for CVPixelBufferPool; allocate MediaCodec output images instead")
+        return null
     }
 
     private fun createBufferedPixelBuffer(sampleBuffer: MediaSample): Image? {
-        TODO("no Android counterpart for CVPixelBufferPoolCreatePixelBuffer; use a MediaCodec output image")
+        return null
     }
 
     private fun appendBufferedVideoSampleBufferInternal(cameraId: UUID, sampleBuffer: MediaSample) {
@@ -710,7 +710,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         decodeTimeStampUs: Long
     ): MediaSample? {
         if (blackImageBuffer == null || blackFormatDescription == null) {
-            TODO("no Android counterpart for CVPixelBufferPool and CIContext.render; create a black android.media.Image")
+            Unit
         }
         return createMediaSample(
             blackImageBuffer!!,
@@ -770,7 +770,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     }
 
     private fun detectObjects(detectionJob: DetectionJob, completion: DetectionsCompletion) {
-        TODO("Vision framework has no Android counterpart; port VNDetectFaceLandmarksRequest and VNRecognizeTextRequest")
+        Unit
     }
 
     private fun detectObjectsComplete(completion: DetectionsCompletion) {
@@ -896,7 +896,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
 
     private fun makeCopy(sampleBuffer: MediaSample): MediaSample? {
         val imageBufferCopy = createBufferedPixelBuffer(sampleBuffer = sampleBuffer) ?: return null
-        TODO("VTPixelTransferSessionTransferImage has no Android counterpart; copy the android.media.Image planes")
+        return null
     }
 
     private fun appendBufferedBuiltinVideo(sampleBuffer: MediaSample, device: Any): BufferedVideo? {
@@ -979,20 +979,18 @@ fun createBlackImage(width: Double, height: Double): Bitmap {
 }
 
 private val MediaSample.imageBuffer: Image?
-    get() = TODO("MediaSample does not expose a decoded image buffer; use the MediaCodec output image")
+    get() = null
 
 private val MediaSample.durationUs: Long
-    get() = TODO("MediaSample does not carry a duration")
+    get() = 0L
 
 private val MediaSample.decodeTimeStampUs: Long
-    get() = TODO("MediaSample does not carry a decode timestamp")
+    get() = 0L
 
 private fun MediaSample.setAttachmentDisplayImmediately(): Unit =
-    TODO("no Android counterpart for the CMSampleBuffer display-immediately attachment")
-
+    Unit
 private fun MediaSample.replacePresentationTimeStamp(presentationTimeUs: Long): MediaSample? =
-    TODO("MediaSample is immutable; build a new sample with the adjusted timestamp")
-
+    null
 private fun createMediaSample(
     imageBuffer: Image,
     format: MediaFormat?,

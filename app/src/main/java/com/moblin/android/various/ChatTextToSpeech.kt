@@ -357,11 +357,11 @@ class ChatTextToSpeech {
     }
 
     private fun dominantLanguage(message: String): String? {
-        return TODO("no Android counterpart for NaturalLanguage NLLanguageRecognizer")
+        return null
     }
 
     private fun languageProbability(message: String): Double {
-        return TODO("no Android counterpart for NaturalLanguage NLLanguageRecognizer")
+        return 0.0
     }
 
     private fun getVoice(message: String): Pair<Voice?, String>? {

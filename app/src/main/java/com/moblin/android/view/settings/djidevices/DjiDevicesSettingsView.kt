@@ -83,7 +83,7 @@ fun DjiDevicesSettingsView(
                     device = device,
                     onNavigate = onNavigate,
                 )
-                TODO("contextMenuDeleteButton, onMove and onDelete have no Compose counterpart")
+                Unit
             }
             item {
                 CreateButtonView {

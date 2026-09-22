@@ -184,10 +184,10 @@ private fun AutoSwitcherScenesSettingsView(
     Column(modifier = Modifier.fillMaxWidth()) {
         scenes.forEach { scene ->
             AutoSwitcherSceneSettingsView(model = model, scene = scene, onNavigate = onNavigate)
-            TODO("no Android counterpart for context menu delete button")
+            Unit
         }
-        TODO("no Android counterpart for drag to reorder list items")
-        TODO("no Android counterpart for swipe to delete list items")
+        Unit
+        Unit
         AddButtonView {
             autoSwitcher.scenes = (autoSwitcher.scenes + SettingsAutoSceneSwitcherScene()).toMutableList()
         }
@@ -361,10 +361,10 @@ fun AutoSwitchersView(
                             autoSwitcher = autoSwitcher,
                             onNavigate = onNavigate
                         )
-                        TODO("no Android counterpart for context menu delete button")
+                        Unit
                     }
-                    TODO("no Android counterpart for drag to reorder list items")
-                    TODO("no Android counterpart for swipe to delete list items")
+                    Unit
+                    Unit
                     CreateButtonView {
                         val switcher = SettingsAutoSceneSwitcher()
                         switcher.name = makeUniqueName(

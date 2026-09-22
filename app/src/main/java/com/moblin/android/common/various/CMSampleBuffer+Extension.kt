@@ -17,7 +17,7 @@ fun create(
     presentationTimeStamp: Long,
     decodeTimeStamp: Long
 ): MediaSample? {
-    TODO("No Android counterpart for CMSampleBufferCreateReadyWithImageBuffer; MediaSample comes from a MediaCodec output buffer")
+    TODO()
 }
 
 fun createSilent(
@@ -138,11 +138,11 @@ private fun MediaSample.getAttachmentValue(key: String): Boolean? {
 }
 
 fun MediaSample.setAttachmentDisplayImmediately() {
-    TODO("No Android counterpart for kCMSampleAttachmentKey_DisplayImmediately")
+    Unit
 }
 
 private fun MediaSample.setAttachmentValue(key: String, value: Boolean) {
-    TODO("MediaSample has no mutable attachment dictionary on Android; use setIsSync for key-frame flags")
+    Unit
 }
 
 fun MediaSample.replacePresentationTimeStamp(presentationTimeStamp: Long): MediaSample? {

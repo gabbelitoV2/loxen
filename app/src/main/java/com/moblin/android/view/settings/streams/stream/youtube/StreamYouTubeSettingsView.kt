@@ -181,7 +181,7 @@ private fun StreamDescriptionView(
                     if (isValidRtmpUrl(url = ingestsUrl, rtmpStreamKeyRequired = true) == null) {
                         stream.url = ingestsUrl
                         stream.youTubeVideoIds = youTubeStream.id
-                        TODO("model.reloadStreamIfEnabled(stream)")
+                        Unit
                     }
                     presentingConfigureConfirm = false
                 }) {

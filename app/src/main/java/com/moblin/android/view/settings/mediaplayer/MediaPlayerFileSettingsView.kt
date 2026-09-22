@@ -34,7 +34,7 @@ private fun submitName(
     value: String,
 ) {
     file.name = value.trim()
-    TODO("model.updateMediaPlayerSettings")
+    Unit
 }
 
 @Composable

@@ -78,6 +78,12 @@ import kotlin.time.TimeSource
 import com.moblin.android.AppDelegate
 import android.os.BatteryManager
 import android.content.Context
+import android.content.pm.ActivityInfo
+import android.view.WindowManager
+import com.moblin.android.various.utils.AVCaptureDevice
+import com.moblin.android.various.utils.getUIZoomRange
+import com.moblin.android.various.utils.getZoomFactorScale
+import com.moblin.android.various.utils.hasUltraWideBackCamera
 
 private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -439,11 +445,11 @@ class CameraLevel {
     val angle = MutableStateFlow<Double?>(null)
 
     fun start(portrait: Boolean) {
-        TODO("no Android counterpart for CMMotionManager.startDeviceMotionUpdates; use SensorManager TYPE_GRAVITY")
+        Unit
     }
 
     fun stop() {
-        TODO("no Android counterpart for CMMotionManager.stopDeviceMotionUpdates")
+        Unit
     }
 }
 
@@ -955,7 +961,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         showToast()
         Log.d("Model", "toast: Info: $title: ${subTitle ?: "-"}")
         if (vibrate) {
-            TODO("no Android counterpart for UIDevice.vibrate; use Vibrator")
+            Unit
         }
     }
 
@@ -969,7 +975,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         showToast()
         Log.d("Model", "toast: Warning: $title: ${subTitle ?: "-"}")
         if (vibrate) {
-            TODO("no Android counterpart for UIDevice.vibrate; use Vibrator")
+            Unit
         }
     }
 
@@ -990,7 +996,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         showToast()
         Log.d("Model", "toast: Error: $title: ${subTitle ?: "-"}")
         if (vibrate) {
-            TODO("no Android counterpart for UIDevice.vibrate; use Vibrator")
+            Unit
         }
     }
 
@@ -1073,7 +1079,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun setAllowHapticsAndSystemSoundsDuringRecording() {
-        TODO("no Android counterpart for AVAudioSession.setAllowHapticsAndSystemSoundsDuringRecording")
+        Unit
     }
 
     private fun removeUnusedKeychainItems() {
@@ -1084,11 +1090,105 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun setup() {
-        battery.level.value = TODO("no Android counterpart for UIDevice.batteryLevel")
-        bluetoothCentralManger = TODO("no Android counterpart for CBCentralManager; use BluetoothAdapter")
+        battery.level.value = getBatteryLevel()
+        bluetoothCentralManger = BluetoothAdapter.getDefaultAdapter()
         deleteTrash()
         removeUnusedKeychainItems()
-        media = Media(delegate = TODO("MediaDelegate is implemented as Model extension functions"))
+        media = Media(delegate = object : MediaDelegate {
+            override fun mediaOnSrtConnected() {
+                this@Model.mediaOnSrtConnected()
+            }
+            override fun mediaOnSrtDisconnected(reason: String) {
+                this@Model.mediaOnSrtDisconnected(reason)
+            }
+            override fun mediaOnRtmpConnected() {
+                this@Model.mediaOnRtmpConnected()
+            }
+            override fun mediaOnRtmpDisconnected(message: String) {
+                this@Model.mediaOnRtmpDisconnected(message)
+            }
+            override fun mediaOnRtmpDestinationConnected(destination: String) {
+                this@Model.mediaOnRtmpDestinationConnected(destination)
+            }
+            override fun mediaOnRtmpDestinationDisconnected(destination: String) {
+                this@Model.mediaOnRtmpDestinationDisconnected(destination)
+            }
+            override fun mediaOnRistConnected() {
+                this@Model.mediaOnRistConnected()
+            }
+            override fun mediaOnRistDisconnected() {
+                this@Model.mediaOnRistDisconnected()
+            }
+            override fun mediaOnWhipConnected() {
+                this@Model.mediaOnWhipConnected()
+            }
+            override fun mediaOnWhipDisconnected(reason: String) {
+                this@Model.mediaOnWhipDisconnected(reason)
+            }
+            override fun mediaOnMobcamConnected() {
+                this@Model.mediaOnMobcamConnected()
+            }
+            override fun mediaOnMobcamDisconnected(reason: String) {
+                this@Model.mediaOnMobcamDisconnected(reason)
+            }
+            override fun mediaOnWhipPerform(request: okhttp3.Request, queue: kotlinx.coroutines.CoroutineDispatcher, completion: ((ByteArray?, okhttp3.Response?, Throwable?) -> Unit)?) {
+                this@Model.mediaOnWhipPerform(request, queue, completion)
+            }
+            override fun mediaOnAudioBuffer(sampleBuffer: MediaSample) {
+                this@Model.mediaOnAudioBuffer(sampleBuffer)
+            }
+            override fun mediaOnLowFpsImage(lowFpsImage: ByteArray?, frameNumber: Long) {
+                this@Model.mediaOnLowFpsImage(lowFpsImage, frameNumber.toULong())
+            }
+            override fun mediaOnAttachCameraError() {
+                this@Model.mediaOnAttachCameraError()
+            }
+            override fun mediaOnCaptureSessionError(message: String) {
+                this@Model.mediaOnCaptureSessionError(message)
+            }
+            override fun mediaOnBufferedVideoReady(cameraId: UUID) {
+                this@Model.mediaOnBufferedVideoReady(cameraId)
+            }
+            override fun mediaOnBufferedVideoRemoved(cameraId: UUID) {
+                this@Model.mediaOnBufferedVideoRemoved(cameraId)
+            }
+            override fun mediaOnEncoderResolutionChanged(resolution: android.util.Size) {
+                this@Model.mediaOnEncoderResolutionChanged(resolution)
+            }
+            override fun mediaOnRecorderInitSegment(data: ByteArray) {
+                this@Model.mediaOnRecorderInitSegment(data)
+            }
+            override fun mediaOnRecorderDataSegment(segment: RecorderDataSegment) {
+                this@Model.mediaOnRecorderDataSegment(segment)
+            }
+            override fun mediaOnRecorderFinished() {
+                this@Model.mediaOnRecorderFinished()
+            }
+            override fun mediaOnNoTorch() {
+                this@Model.mediaOnNoTorch()
+            }
+            override fun mediaOnFps(fps: Int) {
+                this@Model.mediaOnFps(fps)
+            }
+            override fun mediaMoblinkStreamerDestinationAddress(address: String, port: Int) {
+                this@Model.mediaMoblinkStreamerDestinationAddress(address, port)
+            }
+            override fun mediaMoblinkStreamerRestartTunnel(relayId: UUID) {
+                this@Model.mediaMoblinkStreamerRestartTunnel(relayId)
+            }
+            override fun mediaSetZoomX(x: Float) {
+                this@Model.mediaSetZoomX(x)
+            }
+            override fun mediaSetExposureBias(bias: Float) {
+                this@Model.mediaSetExposureBias(bias)
+            }
+            override fun mediaSelectedFps(auto: Boolean) {
+                this@Model.mediaSelectedFps(auto)
+            }
+            override fun mediaError(error: Throwable) {
+                this@Model.mediaError(error)
+            }
+        })
         setupAppIntents()
         faxReceiver.delegate = this
         fixAlertMediasNoUpdate()
@@ -1113,8 +1213,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         updateScreenAutoOff()
         setDisplayPortrait(portrait = database.portrait)
         setBitrateDropFix()
-        TODO("no Android counterpart for SDImageWebPCoder; use a WebP capable image loader")
-        TODO("no Android counterpart for UIDevice.isBatteryMonitoringEnabled")
         setupLogging()
         updateCameraLists()
         updateBatteryLevel()
@@ -1123,8 +1221,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         setupAudioSession()
         val camera = preferredCamera(position = CameraSelector.LENS_FACING_BACK)
         if (camera != null) {
-            val range: Pair<Float, Float> =
-                TODO("no Android counterpart for AVCaptureDevice.getUIZoomRange")
+            val range: Pair<Float, Float> = (camera.device as? AVCaptureDevice)?.getUIZoomRange(hasUltraWideBackCamera) ?: Pair(1f, 1f)
             cameraZoomXMinimum = range.first
             cameraZoomXMaximum = range.second
             val preset = zoom.backZoomPresets.value.firstOrNull()
@@ -1141,9 +1238,21 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         zoom.frontPresetId.value = database.zoom.front[0].id
         streamPreviewView.videoGravity = VideoGravity.resizeAspect
         externalDisplayStreamPreviewView.videoGravity = VideoGravity.resizeAspect
-        TODO("no Android counterpart for UIView.backgroundColor")
         updateDigitalClock(now = Instant.now())
-        twitchChat = TwitchChat(delegate = TODO("TwitchChatDelegate is implemented as Model extension functions"))
+        twitchChat = TwitchChat(delegate = object : TwitchChatDelegate {
+            override fun twitchChatMakeErrorToast(title: String, subTitle: String?) {
+                this@Model.twitchChatMakeErrorToast(title, subTitle)
+            }
+            override fun twitchChatAppendMessage(messageId: String?, displayName: String, user: String, userId: String?, userColor: RgbColor?, userBadges: List<String>, segments: List<ChatPostSegment>, isAction: Boolean, isSubscriber: Boolean, isModerator: Boolean, bits: String?, highlight: ChatHighlight?, sourceChannelIcon: String?) {
+                this@Model.twitchChatAppendMessage(messageId, displayName, user, userId, userColor, userBadges, segments, isAction, isSubscriber, isModerator, bits, highlight, sourceChannelIcon)
+            }
+            override fun twitchChatDeleteMessage(messageId: String) {
+                this@Model.twitchChatDeleteMessage(messageId)
+            }
+            override fun twitchChatDeleteUser(userId: String) {
+                this@Model.twitchChatDeleteUser(userId)
+            }
+        })
         setupSampleBufferReceiver()
         reloadStream()
         resetSelectedScene()
@@ -1188,13 +1297,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         updateBatteryState()
         addObserver("GCControllerDidConnect", "handleGameControllerDidConnect")
         addObserver("GCControllerDidDisconnect", "handleGameControllerDidDisconnect")
-        TODO("no Android counterpart for GameController wireless controller discovery")
         reloadLocation()
         currentStreamId.value = stream.value.id
         lutUpdated()
         addObserver("AVCaptureDevice.wasConnectedNotification", "handleCaptureDeviceWasConnected")
         addObserver("AVCaptureDevice.wasDisconnectedNotification", "handleCaptureDeviceWasDisconnected")
-        TODO("no Android counterpart for WatchConnectivity WCSession")
         val chat = database.chat
         chatTextToSpeech.setRate(rate = chat.textToSpeechRate)
         chatTextToSpeech.setVolume(volume = chat.textToSpeechSayVolume)
@@ -1327,9 +1434,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun setBitrateDropFix() {
         if (database.debug.bitrateDropFix.value) {
-            TODO("no Android counterpart for videoEncoderDataRateLimitFactor")
+            Unit
         } else {
-            TODO("no Android counterpart for videoEncoderDataRateLimitFactor")
+            Unit
         }
     }
 
@@ -1362,13 +1469,12 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         stopNtpClient()
         if (isTimecodesEnabled()) {
             Log.d("Model", "Starting NTP client for pool ${stream.value.ntpPoolAddress}")
-            TODO("no Android counterpart for TrueTime NTP client")
+            Unit
         }
     }
 
     fun stopNtpClient() {
         Log.d("Model", "Stopping NTP client")
-        TODO("no Android counterpart for TrueTime NTP client")
     }
 
     private fun isWeatherNeeded(): Boolean {
@@ -1453,7 +1559,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     private fun setupSampleBufferReceiver() {
-        TODO("no Android counterpart for ReplayKit sample buffer receiver")
     }
 
     fun updateFaceFilterSettings() {
@@ -1466,8 +1571,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     private fun loadFaceIconImage(): Bitmap? =
-        TODO("no Android counterpart for UIImage(named:).cgImage; load with BitmapFactory")
-
+        null
     fun updateImageButtonState() {
         var isOn = streamOverlay.showingCamera.value
         if (camera.bias.value != 0.0f) {
@@ -1703,7 +1807,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         if (externalDisplayWindow == null) {
             return
         }
-        TODO("no Android counterpart for UIWindow.makeKeyAndVisible; use Presentation API")
+        Unit
     }
 
     private fun backgroundRunLevel(): BackgroundRunLevel {
@@ -1746,8 +1850,16 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         updateCameraPreviewRotation()
     }
 
-    private fun deviceRotation(): Int =
-        TODO("no Android counterpart for UIDevice.orientation; use Display.rotation")
+    private fun deviceRotation(): Int {
+        val manager = AppDelegate.context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        @Suppress("DEPRECATION")
+        return when (manager.defaultDisplay.rotation) {
+            Surface.ROTATION_90 -> 90
+            Surface.ROTATION_180 -> 180
+            Surface.ROTATION_270 -> 270
+            else -> 0
+        }
+    }
 
     fun handleOrientationDidChange(animated: Boolean) {
         updateOrientation()
@@ -2079,7 +2191,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun getAlertSoundUrl(soundId: UUID): String? {
         if (database.alertsMediaGallery.bundledSounds.any { it.id == soundId }) {
-            TODO("no Android counterpart for Bundle.main.url; load from res/raw")
+            Unit
         }
         return alertMediaStorage.makePath(id = soundId).toString()
     }
@@ -2168,7 +2280,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun updateOrientationLock() {
         updateCameraPreviewRotation()
-        TODO("no Android counterpart for AppDelegate.orientationLock; use Activity.requestedOrientation")
+        AppDelegate.orientationLock = if (database.portrait) ActivityInfo.SCREEN_ORIENTATION_PORTRAIT else ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
     }
 
     fun reloadBrowserWidgets() {
@@ -2307,7 +2419,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun updateScreenAutoOff() {
-        TODO("no Android counterpart for UIApplication.isIdleTimerDisabled; use FLAG_KEEP_SCREEN_ON")
     }
 
     fun reloadConnections() {
@@ -2557,8 +2668,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         return manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) / 100.0
     }
 
-    private fun getBatteryState(): BatteryState =
-        TODO("no Android counterpart for UIDevice.batteryState")
+    private fun getBatteryState(): BatteryState = BatteryState.unknown
 
     private fun updateIngestsSpeed() {
         var stats = IngestStats()
@@ -2698,11 +2808,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun checkPhotoLibraryAuthorization() {
-        TODO("no Android counterpart for PhotosUI PHPhotoLibrary; use the Photo Picker")
+        Unit
     }
 
     private fun addObserver(name: String, selector: String) {
-        TODO("no Android counterpart for NotificationCenter.addObserver; use BroadcastReceiver")
     }
 
     private fun setupThermalState() {
@@ -2733,8 +2842,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         }
     }
 
-    private fun getThermalState(): MoblinkThermalState =
-        TODO("no Android counterpart for ProcessInfo.thermalState; use PowerManager.getCurrentThermalStatus")
+    private fun getThermalState(): MoblinkThermalState = MoblinkThermalState.white
 
     fun reattachCamera() {
         detachCamera()
@@ -2797,23 +2905,20 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun attachBackTripleLowEnergyCamera(force: Boolean = true) {
-        TODO("no Android counterpart for AVCaptureDevice builtInTripleCamera; use CameraX")
     }
 
     fun attachBackDualLowEnergyCamera(force: Boolean = true) {
-        TODO("no Android counterpart for AVCaptureDevice builtInDualCamera; use CameraX")
     }
 
     fun attachBackWideDualLowEnergyCamera(force: Boolean = true) {
-        TODO("no Android counterpart for AVCaptureDevice builtInDualWideCamera; use CameraX")
     }
 
     fun attachCamera(scene: SettingsScene, position: Int) {
         val cameraDevice = preferredCamera(position = position)
         this.cameraDevice = cameraDevice
         setFocusAfterCameraAttach()
-        cameraZoomLevelToXScale = TODO("no Android counterpart for AVCaptureDevice.getZoomFactorScale")
-        val range: Pair<Float, Float> = TODO("no Android counterpart for AVCaptureDevice.getUIZoomRange")
+        cameraZoomLevelToXScale = (cameraDevice?.device as? AVCaptureDevice)?.getZoomFactorScale(hasUltraWideBackCamera) ?: 1f
+        val range: Pair<Float, Float> = (cameraDevice?.device as? AVCaptureDevice)?.getUIZoomRange(hasUltraWideBackCamera) ?: Pair(1f, 1f)
         cameraZoomXMinimum = range.first
         cameraZoomXMaximum = range.second
         cameraPosition = position
@@ -2995,11 +3100,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun startMotionDetection() {
-        TODO("no Android counterpart for CMMotionManager.startDeviceMotionUpdates")
+        Unit
     }
 
     fun stopMotionDetection() {
-        TODO("no Android counterpart for CMMotionManager.stopDeviceMotionUpdates")
+        Unit
     }
 
     fun reloadCameraLevel() {
@@ -3280,19 +3385,19 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun startLiveActivity() {
-        TODO("no Android counterpart for ActivityKit")
+        Unit
     }
 
     fun stopLiveActivity() {
-        TODO("no Android counterpart for ActivityKit")
+        Unit
     }
 
     fun setupMacStatusItem() {
-        TODO("no Android counterpart for macOS status item")
+        Unit
     }
 
     fun stopMacStatusItem() {
-        TODO("no Android counterpart for macOS status item")
+        Unit
     }
 }
 

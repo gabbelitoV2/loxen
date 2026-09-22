@@ -50,10 +50,10 @@ fun Model.stopSpeechToText() {
     speechToText?.stop()
     speechToText = null
     for (textEffect in textEffects.values) {
-        TODO("clearSubtitles")
+        Unit
     }
     for (browserEffect in browserEffects.values) {
-        TODO("sendSpeechToTextClear")
+        Unit
     }
     speechToTextTextAligners.clear()
 }
@@ -94,10 +94,10 @@ fun Model.isSpeechToTextNeeded(): Boolean {
 
 fun Model.speechToTextClear() {
     for (textEffect in textEffects.values) {
-        TODO("clearSubtitles")
+        Unit
     }
     for (browserEffect in browserEffects.values) {
-        TODO("sendSpeechToTextClear")
+        Unit
     }
     speechToTextTextAligners.clear()
     speechToTextAlertMatchOffset = 0
@@ -126,13 +126,13 @@ private fun Model.speechToTextPartialResultTextWidgets(
     languageIdentifier: String?,
 ) {
     for (textEffect in textEffects.values) {
-        TODO("updateSubtitles")
+        Unit
     }
 }
 
 private fun Model.speechToTextPartialResultBrowserWidgets(position: Int, text: String) {
     for (browserEffect in browserEffects.values) {
-        TODO("sendSpeechToText")
+        Unit
     }
 }
 

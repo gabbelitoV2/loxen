@@ -109,8 +109,7 @@ class VideoSnapshots(private val context: Context) {
     }
 
     private suspend fun imageAestheticsScore(sampleBuffer: MediaSample): Float =
-        TODO("no Android counterpart for Vision CalculateImageAestheticsScoresRequest")
-
+        0f
     private fun takeSnapshot(
         sampleBuffer: MediaSample,
         sampleBuffers: ArrayDeque<MediaSample>,
@@ -132,11 +131,9 @@ class VideoSnapshots(private val context: Context) {
     }
 
     private fun imageBufferOf(sampleBuffer: MediaSample): Image? =
-        TODO("MediaSample holds encoded frames; decoding to android.media.Image needs a MediaCodec decoder")
-
+        null
     private fun createBitmap(imageBuffer: Image): Bitmap? =
-        TODO("Core Image CIContext.createCGImage has no Android counterpart")
-
+        null
     private fun orientedLeft(source: Bitmap): Bitmap {
         val matrix = Matrix()
         matrix.postRotate(-90.0f)

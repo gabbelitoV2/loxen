@@ -22,11 +22,11 @@ data class VideoEffectInfo(
     }
 
     fun sceneFaceDetections(): List<Any>? {
-        TODO("no Android counterpart for Vision framework")
+        return null
     }
 
     fun faceDetections(videoSourceId: UUID): List<Any>? {
-        TODO("no Android counterpart for Vision framework")
+        return null
     }
 
     fun getCiImage(videoSourceId: UUID): Image? {

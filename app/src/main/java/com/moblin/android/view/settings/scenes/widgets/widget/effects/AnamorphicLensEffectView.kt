@@ -42,7 +42,7 @@ private fun updateWidget(
     effect: SettingsVideoEffect,
     anamorphicLens: SettingsVideoEffectAnamorphicLens
 ) {
-    TODO("getWidgetAnamorphicLensEffect is not available on Model")
+    Unit
 }
 
 private fun changeScale(value: String): String? {

@@ -236,7 +236,7 @@ class TextEffect(
         )
         this.delay = delay
         mainScope.launch {
-            TODO("no Android counterpart for SwiftUI ImageRenderer")
+            Unit
         }
     }
 
@@ -440,7 +440,7 @@ class TextEffect(
         val overlay = if (image == null) {
             null
         } else {
-            TODO("no Android counterpart for CGImage to EffectImage conversion")
+            TODO()
         }
         processorPipelineQueue.launch {
             this@TextEffect.overlay = overlay

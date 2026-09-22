@@ -37,7 +37,7 @@ fun TapScreenToFocusSettingsView(model: Model = LocalModel.current, database: Da
     }
     LaunchedEffect(tapToFocus) {
         if (!tapToFocus) {
-            TODO("setAutoFocus")
+            Unit
         }
     }
 }

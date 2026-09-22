@@ -115,7 +115,7 @@ class ReplayEffect internal constructor(
                 fade(applyLayoutToReplay(output.image, image), image, output.ratio) ?: image
             is ReplayEffectOutput.Stinger -> {
                 val backgroundImage = output.replay?.let { applyLayoutToReplay(it, image) } ?: image
-                TODO("OpenGL ES port")
+                TODO()
             }
         }
     }
@@ -149,18 +149,18 @@ class ReplayEffect internal constructor(
     }
 
     private fun applyLayoutToReplay(replayImage: EffectImageCiImage, image: Image): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     private fun applyLayoutToReplayMetalPetal(replayImage: EffectImageCiImage,
                                               image: Image): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     private fun fade(input: Image,
                      target: Image,
                      ratio: Double): Image? {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     private fun fadeMetalPetal(input: Image,
@@ -172,7 +172,7 @@ class ReplayEffect internal constructor(
     private fun blendMetalPetal(image: Any,
                                 backgroundImage: Image,
                                 intensity: Float): Image {
-        TODO("OpenGL ES port")
+        TODO()
     }
 
     private fun updateStatus(offset: Double) {

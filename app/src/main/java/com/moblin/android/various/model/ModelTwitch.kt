@@ -96,7 +96,77 @@ fun Model.reloadTwitchEventSub() {
             userId = stream.value.twitchChannelId,
             accessToken = stream.value.twitchAccessToken,
             context = AppDelegate.context,
-            delegate = TODO("no Android counterpart for TwitchEventSubDelegate conformance")
+            delegate = object : TwitchEventSubDelegate {
+                override fun twitchEventSubChannelFollow(event: TwitchEventSubNotificationChannelFollowEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelFollow(event)
+                }
+                override fun twitchEventSubChannelSubscribe(event: TwitchEventSubNotificationChannelSubscribeEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelSubscribe(event)
+                }
+                override fun twitchEventSubChannelSubscriptionGift(event: TwitchEventSubNotificationChannelSubscriptionGiftEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelSubscriptionGift(event)
+                }
+                override fun twitchEventSubChannelSubscriptionMessage(event: TwitchEventSubNotificationChannelSubscriptionMessageEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelSubscriptionMessage(event)
+                }
+                override fun twitchEventSubChannelSubscriptionUpgrade(event: TwitchEventSubNotificationChannelSubscriptionUpgradeEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelSubscriptionUpgrade(event)
+                }
+                override fun twitchEventSubChannelWatchStreak(event: TwitchEventSubNotificationChannelWatchStreakEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelWatchStreak(event)
+                }
+                override fun twitchEventSubChannelPointsCustomRewardRedemptionAdd(event: TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelPointsCustomRewardRedemptionAdd(event)
+                }
+                override fun twitchEventSubChannelRaid(event: TwitchEventSubChannelRaidEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelRaid(event)
+                }
+                override fun twitchEventSubChannelCheer(event: TwitchEventSubChannelCheerEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelCheer(event)
+                }
+                override fun twitchEventSubChannelHypeTrainBegin(event: TwitchEventSubChannelHypeTrainBeginEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelHypeTrainBegin(event)
+                }
+                override fun twitchEventSubChannelHypeTrainProgress(event: TwitchEventSubChannelHypeTrainProgressEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelHypeTrainProgress(event)
+                }
+                override fun twitchEventSubChannelHypeTrainEnd(event: TwitchEventSubChannelHypeTrainEndEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelHypeTrainEnd(event)
+                }
+                override fun twitchEventSubChannelAdBreakBegin(event: TwitchEventSubChannelAdBreakBeginEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelAdBreakBegin(event)
+                }
+                override fun twitchEventSubChannelPollBegin(event: TwitchEventSubChannelPollEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelPollBegin(event)
+                }
+                override fun twitchEventSubChannelPollProgress(event: TwitchEventSubChannelPollEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelPollProgress(event)
+                }
+                override fun twitchEventSubChannelPollEnd(event: TwitchEventSubChannelPollEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelPollEnd(event)
+                }
+                override fun twitchEventSubChannelPredictionBegin(event: TwitchEventSubChannelPredictionEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelPredictionBegin(event)
+                }
+                override fun twitchEventSubChannelPredictionProgress(event: TwitchEventSubChannelPredictionEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelPredictionProgress(event)
+                }
+                override fun twitchEventSubChannelPredictionLock(event: TwitchEventSubChannelPredictionEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelPredictionLock(event)
+                }
+                override fun twitchEventSubChannelPredictionEnd(event: TwitchEventSubChannelPredictionEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelPredictionEnd(event)
+                }
+                override fun twitchEventSubChannelModerate(event: TwitchEventSubChannelModerateEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelModerate(event)
+                }
+                override fun twitchEventSubUnauthorized() {
+                    this@reloadTwitchEventSub.twitchEventSubUnauthorized()
+                }
+                override fun twitchEventSubNotification(message: String) {
+                    this@reloadTwitchEventSub.twitchEventSubNotification(message)
+                }
+            }
         )
         twitchEventSub!!.start()
     }

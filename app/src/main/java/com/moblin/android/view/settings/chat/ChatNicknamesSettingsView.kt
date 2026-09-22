@@ -69,7 +69,7 @@ fun NicknameViewDestination(
             value = nickname.user,
             onSubmit = { value ->
                 nickname.user = value
-                TODO("Model.reloadChatMessages is not available")
+                Unit
             },
         )
         TextEditNavigationView(
@@ -77,11 +77,11 @@ fun NicknameViewDestination(
             value = nickname.nickname,
             onSubmit = { value ->
                 nickname.nickname = value
-                TODO("Model.reloadChatMessages is not available")
+                Unit
             },
         )
         TextButtonView("Test") {
-            TODO("Model.previewTextToSpeech is not available")
+            Unit
         }
     }
 }
@@ -116,7 +116,7 @@ private fun deleteNickname(
     }
     nicknames.nicknames.clear()
     nicknames.nicknames.addAll(kept)
-    TODO("Model.reloadChatMessages is not available")
+    Unit
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -128,7 +128,7 @@ fun ChatNicknamesSettingsViewDestination(
 ) {
     val nicknameList = nicknames.nicknames
     val onMove: (List<Int>, Int) -> Unit = { _, _ ->
-        TODO("SwiftUI List.onMove drag to reorder has no Compose counterpart")
+        Unit
     }
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         itemsIndexed(nicknameList, key = { _, item -> item.id.toString() }) { index, nickname ->

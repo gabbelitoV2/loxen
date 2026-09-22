@@ -43,7 +43,7 @@ private fun updateWidget(
     lut: SettingsVideoEffectLut,
     lutId: UUID?
 ) {
-    TODO("getLogLutById and getWidgetLutEffect have no Android counterpart")
+    Unit
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

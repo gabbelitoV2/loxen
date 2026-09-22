@@ -73,13 +73,17 @@ import com.moblin.android.view.stream.overlay.right.StreamOverlayRightWhirlpoolV
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightZoomPresetSelctorView
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightZoomPresetVSelctorView
 import com.moblin.android.LocalModel
+import com.moblin.android.various.model.isStreaming
+import com.moblin.android.various.model.isShowingStatusRemoteControl
+import com.moblin.android.various.model.isShowingStatusGameController
+import com.moblin.android.various.model.isShowingStatusLocation
+import com.moblin.android.various.model.isAnyCatPrinterConfigured
+import com.moblin.android.various.model.areAllCatPrintersConnected
+import com.moblin.android.various.model.isAnyWorkoutDeviceConfigured
+import com.moblin.android.various.model.areAllWorkoutDevicesConnected
 
-private val hidePlacement: StreamOverlayIconAndTextPlacement =
-    TODO("StreamOverlayIconAndTextPlacement.hide")
-
-private val beforeIconPlacement: StreamOverlayIconAndTextPlacement =
-    TODO("StreamOverlayIconAndTextPlacement.beforeIcon")
-
+private val hidePlacement: StreamOverlayIconAndTextPlacement = StreamOverlayIconAndTextPlacement.Hide
+private val beforeIconPlacement: StreamOverlayIconAndTextPlacement = StreamOverlayIconAndTextPlacement.BeforeIcon
 @Composable
 private fun CollapsedBondingView(bonding: Bonding, color: Color) {
     val pieChartPercentages by bonding.pieChartPercentages.collectAsState()
@@ -99,7 +103,7 @@ private fun CollapsedBondingView(bonding: Bonding, color: Color) {
                 .padding(horizontal = 2.dp),
         )
         if (pieChartPercentages.isNotEmpty()) {
-            TODO("no Android counterpart for Swift Charts SectorMark")
+            Unit
         }
     }
 }
@@ -259,7 +263,7 @@ private fun BitrateStatusView(
 @Composable
 private fun netStreamColor(model: Model = LocalModel.current): Color {
     val streamState = model.streamState
-    return if (TODO("model.isStreaming()")) {
+    return if (model.isStreaming()) {
         when (streamState) {
             StreamState.connecting -> Color.White
             StreamState.connected -> Color.White
@@ -382,7 +386,7 @@ private fun RemoteControlStatusView(
         }
     }
 
-    if (TODO("model.isShowingStatusRemoteControl()")) {
+    if (model.isShowingStatusRemoteControl()) {
         StreamOverlayIconAndTextView(
             icon = "appletvremote.gen1",
             text = remoteControlStatus,
@@ -418,7 +422,7 @@ private fun GameControllersStatusView(
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
     val gameControllersTotal by status.gameControllersTotal.collectAsState()
-    if (TODO("model.isShowingStatusGameController()")) {
+    if (model.isShowingStatusGameController()) {
         StreamOverlayIconAndTextView(
             icon = "gamecontroller",
             text = gameControllersTotal,
@@ -455,7 +459,7 @@ private fun LocationStatusView(
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
     val statusLocation by status.location.collectAsState()
-    if (TODO("model.isShowingStatusLocation()")) {
+    if (model.isShowingStatusLocation()) {
         StreamOverlayIconAndTextView(
             icon = "location",
             text = statusLocation,
@@ -508,7 +512,7 @@ private fun CatPrinterStatusView(
     val catPrinterStatus by status.catPrinterStatus.collectAsState()
 
     fun catPrinterColor(): Color {
-        if (TODO("model.isAnyCatPrinterConfigured() && !model.areAllCatPrintersConnected()")) {
+        if (model.isAnyCatPrinterConfigured() && !model.areAllCatPrintersConnected()) {
             return Color.Red
         }
         return Color.White
@@ -534,7 +538,7 @@ private fun WorkoutDeviceStatusView(
     val workoutDeviceStatus by status.workoutDeviceStatus.collectAsState()
 
     fun workoutDeviceColor(): Color {
-        if (TODO("model.isAnyWorkoutDeviceConfigured() && !model.areAllWorkoutDevicesConnected()")) {
+        if (model.isAnyWorkoutDeviceConfigured() && !model.areAllWorkoutDevicesConnected()) {
             return Color.Red
         }
         return Color.White

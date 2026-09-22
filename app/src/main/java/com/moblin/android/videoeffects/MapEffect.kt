@@ -32,8 +32,7 @@ class MapCamera {
 }
 
 private fun MapCoordinate.translateMeters(x: Double, y: Double): MapCoordinate =
-    TODO("port of CLLocationCoordinate2D.translateMeters from the CoreLocation extension")
-
+    TODO()
 class MapEffect(private var widget: SettingsWidgetMap) : VideoEffect() {
     private var mapSnapshot: EffectImageCiImage? = null
     private var sceneWidget: SettingsSceneWidget? = null
@@ -174,6 +173,6 @@ class MapEffect(private var widget: SettingsWidgetMap) : VideoEffect() {
     }
 
     private fun startMapSnapshotter(mapSnapshotter: MapCamera, dotOffsetRatio: Double) {
-        TODO("no Android counterpart for MapKit")
+        Unit
     }
 }

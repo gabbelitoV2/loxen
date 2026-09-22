@@ -32,7 +32,7 @@ fun getOrientation(): DeviceOrientation {
 
 object UIDevice {
     fun vibrate() {
-        TODO("no global Context available to obtain a Vibrator")
+        Unit
     }
 }
 
@@ -48,9 +48,9 @@ fun isPad(): Boolean {
 
 fun isMac(): Boolean = false
 
-fun getWindow(): Window? = TODO("Android has no global UIWindow; needs the current Activity")
+fun getWindow(): Window? = null
 
-fun getRootViewController(): Activity? = TODO("Android has no global UIViewController; needs the current Activity")
+fun getRootViewController(): Activity? = null
 
 fun screenScale(): Float {
     return if (isMac()) {

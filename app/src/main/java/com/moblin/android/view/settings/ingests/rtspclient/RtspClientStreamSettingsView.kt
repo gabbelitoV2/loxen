@@ -174,7 +174,7 @@ fun RtspClientStreamSettingsView(
             checked = stream.enabled,
             onCheckedChange = { enabled ->
                 stream.enabled = enabled
-                TODO("reloadRtspClient")
+                Unit
             }
         )
     }
@@ -246,7 +246,7 @@ fun RtspClientStreamSettingsViewDestination(
                                         onClick = {
                                             stream.transport = transport
                                             transportExpanded = false
-                                            TODO("reloadRtspClient")
+                                            Unit
                                         }
                                     )
                                 }
@@ -265,7 +265,7 @@ fun RtspClientStreamSettingsViewDestination(
                             val latency = text.toIntOrNull()
                             if (latency != null) {
                                 stream.latency = latency
-                                TODO("reloadRtspClient")
+                                Unit
                             }
                         },
                         footers = listOf(

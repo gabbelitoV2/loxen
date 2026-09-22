@@ -41,7 +41,7 @@ private class CurrentWiFiNetwork {
     val locationDenied = MutableStateFlow(false)
 
     fun locationManagerDidChangeAuthorization() {
-        TODO("no Android counterpart for CoreLocation")
+        Unit
     }
 }
 

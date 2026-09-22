@@ -11,10 +11,10 @@ class SnapshotIntent(private val model: Model) {
 
         val openAppWhenRun: Boolean = false
 
-        fun result(): Unit = TODO("no Android counterpart for AppIntents IntentResult")
+        fun result(): Unit = Unit
     }
 
     suspend fun perform() {
-        TODO("no Android counterpart for Model.takeSnapshot()")
+        Unit
     }
 }

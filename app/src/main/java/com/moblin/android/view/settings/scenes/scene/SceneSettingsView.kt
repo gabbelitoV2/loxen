@@ -469,7 +469,7 @@ private fun WidgetsView(
                 )
             }
         }
-        TODO("onMove: drag and drop reordering of scene widgets is not available in Compose")
+        Unit
         AddButtonView {
             presentingAddWidget = true
         }

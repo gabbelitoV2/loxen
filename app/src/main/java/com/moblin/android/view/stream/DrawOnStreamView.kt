@@ -169,7 +169,7 @@ private fun DrawOnStreamControlsView(
                         tint = buttonColor(drawOnStream),
                     )
                 }
-                TODO("no Compose counterpart for ColorPicker")
+                Unit
                 Slider(
                     value = selectedWidth,
                     onValueChange = {

@@ -817,7 +817,7 @@ private fun ChatBotCustomCommandTextSettingsView(
     }
     LaunchedEffect(text) {
         customCommand.formatString = text
-        TODO("chatBotCustomCommandsTextChanged")
+        Unit
     }
 }
 
@@ -858,7 +858,7 @@ private fun ChatBotCustomCommandsSettingsView(
                 customCommand = customCommand,
                 onNavigate = onNavigate
             )
-            TODO("contextMenuDeleteButton, List onMove and onDelete have no Compose counterpart")
+            Unit
         }
         item {
             CreateButtonView {
@@ -886,7 +886,7 @@ private fun ChatBotAliasesSettingsView(
                 alias = alias,
                 onNavigate = onNavigate
             )
-            TODO("contextMenuDeleteButton, List onMove and onDelete have no Compose counterpart")
+            Unit
         }
         item {
             CreateButtonView {

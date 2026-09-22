@@ -121,7 +121,7 @@ fun List<HevcNalUnit>.makeFormatDescription(): MediaFormat? {
     val vpsData = vps.encode()
     val spsData = sps.encode()
     val ppsData = pps.encode()
-    TODO("no Android counterpart for CMVideoFormatDescriptionCreateFromHEVCParameterSets: build a MediaFormat for MIMETYPE_VIDEO_HEVC with csd-0/csd-1 from vpsData, spsData and ppsData")
+    TODO()
 }
 
 val calendar: Calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))

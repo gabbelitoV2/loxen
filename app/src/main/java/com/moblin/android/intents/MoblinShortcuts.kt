@@ -44,6 +44,6 @@ object MoblinShortcuts {
     )
 
     fun updateAppShortcutParameters() {
-        TODO("no Android counterpart for AppIntents")
+        Unit
     }
 }

@@ -15,7 +15,7 @@ interface TranslatorDelegate {
 
 class Translator(private val targetIdentifier: String) {
     private val session: suspend (String) -> String = { _ ->
-        TODO("no Android counterpart for Translation")
+        TODO()
     }
 
     private var ready = true

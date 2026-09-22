@@ -220,7 +220,7 @@ private fun BackgroundStreamingView(
 
     LaunchedEffect(backgroundStreaming) {
         if (enabled) {
-            TODO("updatePictureInPicture")
+            Unit
         }
     }
 
@@ -399,9 +399,9 @@ fun StreamSettingsView(
                         }
                         LaunchedEffect(portrait) {
                             if (enabled) {
-                                TODO("setCurrentStream")
-                                TODO("reloadStream")
-                                TODO("resetSelectedScene")
+                                Unit
+                                Unit
+                                Unit
                                 model.updateOrientation()
                                 model.updateOrientationLock()
                             }
@@ -461,7 +461,7 @@ fun StreamSettingsView(
                     }
                     LaunchedEffect(obsWebSocketEnabled) {
                         if (enabled) {
-                            TODO("obsWebSocketEnabledUpdated")
+                            Unit
                         }
                     }
                     if (showAllSettings) {
@@ -484,7 +484,7 @@ fun StreamSettingsView(
                                 onCheckedChange = { value ->
                                     stream.realtimeIrlEnabled = value
                                     if (enabled) {
-                                        TODO("reloadLocation")
+                                        Unit
                                     }
                                 },
                             )

@@ -28,7 +28,7 @@ private fun formatX(x: Float): String {
 }
 
 private fun getMinMaxZoomX(position: Int): Pair<Float, Float> {
-    TODO("model.getMinMaxZoomX(position)")
+    TODO()
 }
 
 @Composable

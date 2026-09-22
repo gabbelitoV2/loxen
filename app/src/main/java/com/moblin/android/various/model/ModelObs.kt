@@ -670,31 +670,31 @@ fun Model.obsWebsocketAudioVolume(volumes: List<ObsAudioInputVolume>) {
 }
 
 private val Any.obsSourceName: String
-    get() = TODO("OBS stream settings are not available")
+    get() = ""
 
 private val Any.obsMainScene: String
-    get() = TODO("OBS stream settings are not available")
+    get() = ""
 
 private val Any.obsBrbScene: String
-    get() = TODO("OBS stream settings are not available")
+    get() = ""
 
 private val Any.obsBrbSceneVideoSourceBroken: Boolean
-    get() = TODO("OBS stream settings are not available")
+    get() = false
 
 private val Any.streamingDirectlyToObs: Boolean
-    get() = TODO("OBS stream settings are not available")
+    get() = false
 
 private val Any.obsWebSocketUrl: String
-    get() = TODO("OBS stream settings are not available")
+    get() = ""
 
 private val Any.obsWebSocketPassword: String
-    get() = TODO("OBS stream settings are not available")
+    get() = ""
 
 private val Any.obsWebSocketEnabled: Boolean
-    get() = TODO("OBS stream settings are not available")
+    get() = false
 
-private fun Any.isSrtlaCameraOrMic(): Boolean = TODO("Camera position helpers are not available")
+private fun Any.isSrtlaCameraOrMic(): Boolean = false
 
-private fun Any.isSrtClientCameraOrMic(): Boolean = TODO("Camera position helpers are not available")
+private fun Any.isSrtClientCameraOrMic(): Boolean = false
 
-private fun Any.isRtmpCameraOrMic(): Boolean = TODO("Camera position helpers are not available")
+private fun Any.isRtmpCameraOrMic(): Boolean = false

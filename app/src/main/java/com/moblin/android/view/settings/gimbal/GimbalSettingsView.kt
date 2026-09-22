@@ -127,7 +127,7 @@ fun GimbalPresetDetailView(
         }
         if (moveAllowed) {
             localToSettings()
-            TODO("Model.moveToGimbalPreset is not available")
+            Unit
         } else {
             presentingConfirm = true
         }
@@ -349,7 +349,7 @@ fun GimbalSettingsView(
             }
             item {
                 TextButtonView(title = "Save current position") {
-                    TODO("Model.saveGimbalPreset is not available")
+                    Unit
                 }
             }
             item {

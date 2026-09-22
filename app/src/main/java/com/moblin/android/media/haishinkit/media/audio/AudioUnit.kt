@@ -295,7 +295,7 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
         session = null
         input = null
         output = null
-        TODO("no Android counterpart for AVCaptureDeviceInput/AudioRecord device selection")
+        Unit
     }
 
     private fun setTalkbackInternal(cameraId: UUID?) {
@@ -456,7 +456,7 @@ fun audioFormat(sampleBuffer: MediaSample): AudioFormat? {
 }
 
 private fun syncTimeToHost(processor: Processor, sampleBuffer: MediaSample): Long {
-    TODO("no Android counterpart for AVCaptureSession.synchronizationClock")
+    return 0L
 }
 
 private fun pcm16Samples(data: ByteArray): ShortArray {

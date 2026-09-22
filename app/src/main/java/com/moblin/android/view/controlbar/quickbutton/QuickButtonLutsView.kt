@@ -38,7 +38,7 @@ private fun LutView(model: Model = LocalModel.current, lut: SettingsColorLut) {
         if (enabled != previousEnabled) {
             previousEnabled = enabled
             lut.enabled = enabled
-            TODO("sceneUpdated")
+            Unit
         }
     }
     Row(verticalAlignment = Alignment.CenterVertically) {

@@ -274,7 +274,7 @@ private fun MessagesView(
         }
     }
     LaunchedEffect(Unit) {
-        TODO("endOfQuickButtonChatReachedWhenPaused is not available on Model")
+        Unit
     }
 }
 
@@ -443,7 +443,7 @@ private fun AlertsMessagesView(
         }
     }
     LaunchedEffect(Unit) {
-        TODO("endOfQuickButtonChatAlertsReachedWhenPaused is not available on Model")
+        Unit
     }
 }
 
@@ -511,7 +511,7 @@ private fun PredefinedMessageView(
         Text(predefinedMessage.text)
         Spacer(modifier = Modifier.weight(1f))
         BorderlessButtonView(text = "Send") {
-            TODO("sendChatMessageShowLogin is not available on Model")
+            Unit
             onShowingPredefinedMessagesChange(false)
         }
     }
@@ -635,7 +635,7 @@ private fun PlatformIconView(image: String) {
     )
 }
 
-private fun platformIconResource(image: String): Int = TODO("Android drawable resource id for $image")
+private fun platformIconResource(image: String): Int = 0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -759,7 +759,7 @@ private fun ControlView(
         )
         TextButton(onClick = {
             if (message.isNotEmpty()) {
-                TODO("sendChatMessageShowLogin is not available on Model")
+                Unit
             }
             onMessageChange("")
         }) {

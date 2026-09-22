@@ -85,7 +85,7 @@ private fun AppModeView(
     val appMode = database.appMode
     var expanded by remember { mutableStateOf(false) }
     LaunchedEffect(appMode) {
-        TODO("model.appModeChanged()")
+        Unit
     }
     Row(
         modifier = Modifier

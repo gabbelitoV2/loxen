@@ -106,7 +106,7 @@ fun QuickButtonMicView(
     val autoSwitch by mics.autoSwitch.collectAsState()
     val currentMic by modelMic.current.collectAsState()
     val onMove: (Int, Int) -> Unit = { _, _ ->
-        TODO("no Compose counterpart for SwiftUI List onMove reordering")
+        Unit
     }
 
     LaunchedEffect(Unit) {
@@ -143,7 +143,7 @@ fun QuickButtonMicView(
                         modelMic = modelMic,
                         deleteEnabled = mic != currentMic,
                         onDelete = {
-                            TODO("no Compose counterpart for contextMenuDeleteButton")
+                            Unit
                         },
                     )
                 }

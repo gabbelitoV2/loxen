@@ -107,7 +107,7 @@ private fun TwitchCategoryPickerView(
 
     fun fetchDefaultCategories() {
         val categoryNames = listOf("IRL", "Just Chatting", "Food & Drink")
-        TODO("fetchTwitchGames(stream, categoryNames) { games -> categories = games ?: emptyList() }")
+        Unit
     }
 
     LaunchedEffect(Unit) {
@@ -118,7 +118,7 @@ private fun TwitchCategoryPickerView(
             categories = emptyList()
             fetchDefaultCategories()
         } else {
-            TODO("searchTwitchCategories(stream, searchText) { newCategories -> categories = newCategories ?: emptyList() }")
+            Unit
         }
     }
 
@@ -150,7 +150,7 @@ private fun categoryButton(
 ) {
     Button(
         onClick = {
-            TODO("setTwitchStreamCategory(stream = stream, categoryId = category.id)")
+            Unit
             onDismiss()
         },
     ) {
@@ -308,7 +308,7 @@ suspend fun loadTwitchStreamInfo(
         return
     }
     delay(1000)
-    TODO("getTwitchChannelInformation(stream) { info -> onChange(info.title, info.gameName) }")
+    Unit
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -328,14 +328,14 @@ fun StreamTwitchSettingsView(
     fun submitChannelName(value: String) {
         stream.twitchChannelName = value
         if (stream.enabled) {
-            TODO("twitchChannelNameUpdated()")
+            Unit
         }
     }
 
     fun submitChannelId(value: String) {
         stream.twitchChannelId = value
         if (stream.enabled) {
-            TODO("twitchChannelIdUpdated()")
+            Unit
         }
     }
 
@@ -353,7 +353,7 @@ fun StreamTwitchSettingsView(
         if (!loggedIn) {
             return
         }
-        TODO("getTwitchTokenExpiresIn(stream) { newTokenExpiresIn -> tokenExpiresIn = newTokenExpiresIn }")
+        Unit
     }
 
     fun onLoggedIn() {
@@ -374,11 +374,11 @@ fun StreamTwitchSettingsView(
                     if (!loggedIn) {
                         TextButtonView("Login") {
                             model.showTwitchAuth.value = true
-                            TODO("twitchLogin(stream = stream, onComplete = { onLoggedIn() })")
+                            Unit
                         }
                     } else {
                         TextButtonView("Logout") {
-                            TODO("twitchLogout(stream)")
+                            Unit
                             loggedIn = false
                             tokenExpiresIn = null
                         }

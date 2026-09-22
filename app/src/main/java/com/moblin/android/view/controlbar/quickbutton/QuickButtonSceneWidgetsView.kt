@@ -33,7 +33,7 @@ private fun WidgetView(
     Column {
         Row(
             modifier = Modifier.clickable(onClick = {
-                TODO("NavigationLink to SceneWidgetSettingsView")
+                Unit
             }),
         ) {
             IconAndTextView(
@@ -45,7 +45,7 @@ private fun WidgetView(
                 checked = widget.enabled,
                 onCheckedChange = { enabled ->
                     widget.enabled = enabled
-                    TODO("model.reloadSpeechToText()")
+                    Unit
                 },
             )
         }
@@ -63,7 +63,7 @@ private fun WidgetView(
                 )
             SettingsWidgetType.bingoCard ->
                 WidgetBingoCardQuickButtonControlsView(bingoCard = widget.bingoCard) {
-                    TODO("model.getBingoCardEffect(id = widget.id)?.setSettings(settings = widget.bingoCard)")
+                    Unit
                 }
             SettingsWidgetType.scoreboard ->
                 WidgetScoreboardQuickButtonControlsView(
@@ -84,7 +84,7 @@ fun QuickButtonSceneWidgetsView(
     sceneSelector: SceneSelector,
 ) {
     Column {
-        TODO("model.widgetsInCurrentScene(onlyEnabled = false)")
+        Unit
         ShortcutSectionView {
             ScenesShortcutView(database = model.database)
         }

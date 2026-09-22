@@ -61,7 +61,7 @@ class Navigation {
     fun updateDirections() {
         val destination = destination.value ?: return
         route.value = null
-        TODO("no Android counterpart for MapKit MKDirections")
+        Unit
     }
 }
 

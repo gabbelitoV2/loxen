@@ -12,17 +12,13 @@ class CrtEffect : VideoEffect() {
     private val crtFilter: Any? = null
 
     override fun execute(image: Image, info: VideoEffectInfo): Image =
-        TODO("OpenGL ES port")
-
+        TODO()
     override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image =
-        TODO("OpenGL ES port")
-
+        TODO()
     private fun applyBarrelDistortion(image: Image, width: Float): Image =
-        TODO("OpenGL ES port")
-
+        TODO()
     private fun applyColors(image: Image): Image =
-        TODO("OpenGL ES port")
-
+        TODO()
     private fun applyScanlines(image: Image, cropRect: RectF): Image =
-        TODO("OpenGL ES port")
+        TODO()
 }

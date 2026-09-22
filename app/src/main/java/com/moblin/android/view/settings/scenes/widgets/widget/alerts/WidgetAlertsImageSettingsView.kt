@@ -60,7 +60,7 @@ fun loadAlertImage(model: Model, imageId: UUID): ByteArray? {
     val bundledImage = model.database.alertsMediaGallery.bundledImages
         .firstOrNull { it.id == imageId }
     if (bundledImage != null) {
-        TODO("no Android counterpart for Bundle.main.path lookup of the Alerts.bundle GIF resources")
+        Unit
     } else {
         image = model.alertMediaStorage.tryRead(imageId)
     }

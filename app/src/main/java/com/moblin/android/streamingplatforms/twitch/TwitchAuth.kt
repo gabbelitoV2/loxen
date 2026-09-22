@@ -97,7 +97,7 @@ class TwitchAuth {
     }
 
     private fun startSession(): Boolean {
-        return TODO("no Android counterpart for AuthenticationServices")
+        return false
     }
 
     private fun handleSessionCompleted(url: URI?, error: Throwable?) {
@@ -149,7 +149,7 @@ class TwitchAuth {
     }
 
     fun presentationAnchor(): Any? {
-        return TODO("no Android counterpart for AuthenticationServices")
+        return null
     }
 
     fun webView(webView: WebView, didStartProvisionalNavigation: Any?) {
@@ -163,7 +163,7 @@ class TwitchAuth {
 }
 
 private fun isCanceledByUser(error: Throwable): Boolean {
-    return TODO("no Android counterpart for AuthenticationServices")
+    return false
 }
 
 private fun extractAccessToken(url: URI): String? {

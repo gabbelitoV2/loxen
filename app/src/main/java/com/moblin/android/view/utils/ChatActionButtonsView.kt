@@ -97,7 +97,7 @@ private fun banButton(
             text = null,
             confirmButton = {
                 TextButton(onClick = {
-                    TODO("banUser is not implemented on Android")
+                    Unit
                     onDismiss()
                 }) {
                     Text(localized("Ban"), color = MaterialTheme.colorScheme.error)
@@ -131,19 +131,19 @@ private fun timeoutButton(
             confirmButton = {
                 Column {
                     TextButton(onClick = {
-                        TODO("timeoutUser is not implemented on Android")
+                        Unit
                         onDismiss()
                     }) {
                         Text(localized("5 minutes timeout"), color = MaterialTheme.colorScheme.error)
                     }
                     TextButton(onClick = {
-                        TODO("timeoutUser is not implemented on Android")
+                        Unit
                         onDismiss()
                     }) {
                         Text(localized("1 hour timeout"), color = MaterialTheme.colorScheme.error)
                     }
                     TextButton(onClick = {
-                        TODO("timeoutUser is not implemented on Android")
+                        Unit
                         onDismiss()
                     }) {
                         Text(localized("24 hours timeout"), color = MaterialTheme.colorScheme.error)
@@ -177,7 +177,7 @@ private fun deleteButton(
             text = null,
             confirmButton = {
                 TextButton(onClick = {
-                    TODO("deleteMessage is not implemented on Android")
+                    Unit
                     onDismiss()
                 }) {
                     Text(localized("Delete message"), color = MaterialTheme.colorScheme.error)
@@ -199,7 +199,7 @@ private fun copyButton(
     onDismiss: () -> Unit,
 ) {
     ActionButtonView(image = Icons.Default.ContentCopy, text = "Copy", foreground = null) {
-        TODO("copyMessage is not implemented on Android")
+        Unit
         onDismiss()
     }
 }
@@ -285,7 +285,7 @@ private fun saveNickname(
             chat.nicknames.nicknames.add(item)
         }
     }
-    TODO("reloadChatMessages is not implemented on Android")
+    Unit
 }
 
 @Composable

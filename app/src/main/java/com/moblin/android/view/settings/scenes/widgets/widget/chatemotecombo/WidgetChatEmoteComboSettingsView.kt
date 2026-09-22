@@ -59,7 +59,7 @@ private fun setEffectSettings(
     widget: SettingsWidget,
     chatEmoteCombo: SettingsWidgetChatEmoteCombo,
 ) {
-    TODO("Model.getChatEmoteComboEffect is not available")
+    Unit
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

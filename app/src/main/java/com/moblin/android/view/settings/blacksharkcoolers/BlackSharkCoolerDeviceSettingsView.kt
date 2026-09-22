@@ -171,9 +171,9 @@ fun BlackSharkCoolerDeviceSettingsViewContent(
             }
             LaunchedEffect(enabled) {
                 if (enabled) {
-                    TODO("enableBlackSharkDevice not available")
+                    Unit
                 } else {
-                    TODO("disableBlackSharkCoolerDevice not available")
+                    Unit
                 }
             }
         }
@@ -201,7 +201,7 @@ fun BlackSharkCoolerDeviceSettingsViewContent(
                 toggleLight(model, device)
             }
             if (rgbLightEnabled) {
-                TODO("ColorPicker has no Compose counterpart")
+                Unit
             }
             if (rgbLightEnabled) {
                 Row(

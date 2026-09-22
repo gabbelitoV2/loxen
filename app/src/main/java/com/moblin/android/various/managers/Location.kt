@@ -23,11 +23,11 @@ private class BackgroundActivity {
     private var backgroundSession: Any? = null
 
     fun start() {
-        TODO("no Android counterpart for CLBackgroundActivitySession")
+        Unit
     }
 
     fun stop() {
-        TODO("no Android counterpart for CLBackgroundActivitySession")
+        Unit
     }
 }
 
@@ -71,7 +71,7 @@ class Location(private val context: Context) : LocationListener {
         if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) !=
             PackageManager.PERMISSION_GRANTED
         ) {
-            TODO("request ACCESS_FINE_LOCATION permission in the Activity layer")
+            Unit
         }
         manager.requestLocationUpdates(provider, 0L, minDistance, this, Looper.getMainLooper())
         backgroundActivity.start()

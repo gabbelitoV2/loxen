@@ -97,7 +97,7 @@ class AlertsEffectVideoReader(path: String) {
     }
 
     private fun nextVideoImage(): VideoImage? {
-        TODO("decode the next frame with MediaCodec and convert it to EffectImageCiImage")
+        return null
     }
 
     private fun loadVideoTrackCompletion(track: Int?, error: Exception?) {

@@ -135,12 +135,12 @@ private fun BackgroundImageCropView(
                             val now = SystemClock.elapsedRealtime()
                             if (now - latestImageUpdateTime > 100) {
                                 latestImageUpdateTime = now
-                                TODO("Model.updateControlBarBackgroundImage is not implemented")
+                                Unit
                             }
                         },
                         onDragEnd = {
                             positionAnchorPoint = null
-                            TODO("Model.updateControlBarBackgroundImage is not implemented")
+                            Unit
                         }
                     )
                 }
@@ -167,7 +167,7 @@ private fun BackgroundImageSettingsView(
     }
     LaunchedEffect(presentingPicker) {
         if (presentingPicker) {
-            TODO("no Android counterpart for PhotosUI PhotosPicker")
+            Unit
         }
     }
     LaunchedEffect(selectedImageItem) {
@@ -175,7 +175,7 @@ private fun BackgroundImageSettingsView(
             return@LaunchedEffect
         }
         selectedImageItem = null
-        TODO("no Android counterpart for PhotosUI loadTransferable")
+        Unit
     }
 
     Scaffold(
@@ -200,7 +200,7 @@ private fun BackgroundImageSettingsView(
                         CompositionLocalProvider(LocalContentColor provides Color.Red) {
                             TextButtonView("Delete image") {
                                 image = null
-                                TODO("Model.deleteControlBarBackgroundImage is not implemented")
+                                Unit
                             }
                         }
                     }
@@ -221,7 +221,7 @@ private fun BackgroundImageSettingsView(
                             )
                         }
                         LaunchedEffect(backgroundImageOpacity) {
-                            TODO("Model.updateControlBarBackgroundImageOpacity is not implemented")
+                            Unit
                         }
                     }
                 }

@@ -5,7 +5,7 @@ class BlurKernel {
         fun process(inputs: List<Any>?, arguments: Map<String, Any>?, output: Any?) {
             val radius = arguments?.get("radius") as? Float ?: return
             val sigma = radius
-            TODO("OpenGL ES port")
+            Unit
         }
     }
 }

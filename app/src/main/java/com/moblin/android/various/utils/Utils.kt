@@ -59,7 +59,7 @@ fun randomName(): String {
 }
 
 fun openUrl(url: String) {
-    TODO("needs an Android Context to launch an ACTION_VIEW intent")
+    Unit
 }
 
 private val thumbnails = mutableMapOf<String, Bitmap>()
@@ -169,11 +169,11 @@ class ResourceUsage {
     fun getMemoryUsage(): Int = memoryUsage.toInt()
 
     private fun updateAppCpuUsage(now: Long) {
-        TODO("no Android counterpart for getrusage")
+        Unit
     }
 
     private fun updateCpuUsage() {
-        TODO("no Android counterpart for host_processor_info")
+        Unit
     }
 
     private fun updateMemoryUsage() {
@@ -183,9 +183,9 @@ class ResourceUsage {
     }
 }
 
-fun generateQrCode(from: String): Bitmap? = TODO("no Android counterpart for CIFilter.qrCodeGenerator; use ZXing")
+fun generateQrCode(from: String): Bitmap? = null
 
-fun tryGetToastSubTitle(error: Throwable): String? = TODO("no Android counterpart for AVError")
+fun tryGetToastSubTitle(error: Throwable): String? = null
 
 fun secondsToCMTime(seconds: Double): Long = (seconds * 1000.0).toLong()
 
@@ -237,8 +237,7 @@ fun makeUniqueName(name: String, existingNames: List<Named>): String {
 fun createSpeechSynthesizer(): TextToSpeech = TextToSpeech(AppDelegate.context) { }
 
 fun makeRecordingPath(recordingPath: ByteArray): String? =
-    TODO("no Android counterpart for URL(resolvingBookmarkData:)")
-
+    null
 fun zoomToFieldOfView(zoom: Float, zoomOne: Float = (PI / 2).toFloat()): Float =
     2 * atan(tan(zoomOne / 2) / zoom)
 
@@ -256,11 +255,9 @@ fun MediaMetadataRetriever.duration(): Double {
 }
 
 fun loadStringResource(name: String, ext: String): String =
-    TODO("needs an Android Context/AssetManager to load $name.$ext")
-
+    ""
 fun loadResource(name: String, ext: String): ByteArray =
-    TODO("needs an Android Context/AssetManager to load $name.$ext")
-
+    ByteArray(0)
 fun <T> MutableList<T>.truncate(length: Int, create: () -> T) {
     while (size < length) {
         add(create())

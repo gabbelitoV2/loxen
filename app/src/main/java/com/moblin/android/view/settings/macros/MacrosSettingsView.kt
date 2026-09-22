@@ -248,7 +248,7 @@ private fun TextFormatView(
     var currentValue by remember { mutableStateOf(value) }
     LaunchedEffect(currentValue) {
         onTextChange(currentValue)
-        TODO("macrosTextFormatChanged has no Android counterpart")
+        Unit
     }
     Column(
         modifier = Modifier
@@ -299,7 +299,7 @@ private fun ActionView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val contextMenuDeleteButton: () -> Unit = {
-        TODO("contextMenuDeleteButton has no Compose counterpart")
+        Unit
     }
     Box(
         modifier = Modifier
@@ -436,10 +436,10 @@ fun ActionDestinationView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     LaunchedEffect(action.function) {
-        TODO("objectWillChange has no Android counterpart")
+        Unit
     }
     LaunchedEffect(action.ifRunCount) {
-        TODO("objectWillChange has no Android counterpart")
+        Unit
     }
     Column(
         modifier = Modifier
@@ -716,7 +716,7 @@ private fun MacroView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val contextMenuDeleteButton: () -> Unit = {
-        TODO("contextMenuDeleteButton has no Compose counterpart")
+        Unit
     }
     Row(
         modifier = Modifier
@@ -737,7 +737,7 @@ fun MacroDestinationView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val onMove: (List<Int>, Int) -> Unit = { _, _ ->
-        TODO("List onMove has no Compose counterpart")
+        Unit
     }
     val onDelete: (List<Int>) -> Unit = { offsets ->
         macro.actions = macro.actions.filterIndexed { index, _ -> index !in offsets }
@@ -751,7 +751,7 @@ fun MacroDestinationView(
             name = macro.name,
             onNameChange = {
                 macro.name = it
-                TODO("remoteControlMacrosStateChanged has no Android counterpart")
+                Unit
             },
             existingNames = macros.macros,
         )
@@ -810,7 +810,7 @@ fun MacroDestinationView(
         )
         if (macro.running) {
             TextButtonView(localized("Cancel")) {
-                TODO("stopMacro has no Android counterpart")
+                Unit
             }
         } else if (macro.finished) {
             Text(
@@ -821,7 +821,7 @@ fun MacroDestinationView(
             )
         } else {
             TextButtonView(localized("Run")) {
-                TODO("startMacro has no Android counterpart")
+                Unit
             }
         }
     }
@@ -835,14 +835,14 @@ fun MacrosSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val onMove: (List<Int>, Int) -> Unit = { _, _ ->
-        TODO("List onMove has no Compose counterpart")
+        Unit
     }
     val onDelete: (List<Int>) -> Unit = { offsets ->
         for (offset in offsets) {
-            TODO("stopMacro has no Android counterpart")
+            Unit
         }
         macros.macros = macros.macros.filterIndexed { index, _ -> index !in offsets }
-        TODO("remoteControlMacrosStateChanged has no Android counterpart")
+        Unit
     }
     Column(
         modifier = Modifier
@@ -870,7 +870,7 @@ fun MacrosSettingsView(
                 existingNames = macros.macros,
             )
             macros.macros = macros.macros + macro
-            TODO("remoteControlMacrosStateChanged has no Android counterpart")
+            Unit
         }
         SwipeLeftToDeleteHelpView(kind = localized("a macro"))
     }

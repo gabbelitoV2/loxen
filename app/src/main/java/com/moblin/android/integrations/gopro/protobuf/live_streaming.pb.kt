@@ -232,11 +232,11 @@ class OpenGopro_NotifyLiveStreamStatus {
     var unknownFields: ByteArray = ByteArray(0)
 
     fun decodeMessage(decoder: Any) {
-        TODO("no Android counterpart for SwiftProtobuf.Decoder")
+        Unit
     }
 
     fun traverse(visitor: Any) {
-        TODO("no Android counterpart for SwiftProtobuf.Visitor")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -333,11 +333,11 @@ class OpenGopro_RequestGetLiveStreamStatus {
     var unknownFields: ByteArray = ByteArray(0)
 
     fun decodeMessage(decoder: Any) {
-        TODO("no Android counterpart for SwiftProtobuf.Decoder")
+        Unit
     }
 
     fun traverse(visitor: Any) {
-        TODO("no Android counterpart for SwiftProtobuf.Visitor")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {
@@ -444,11 +444,11 @@ class OpenGopro_RequestSetLiveStreamMode {
     var unknownFields: ByteArray = ByteArray(0)
 
     fun decodeMessage(decoder: Any) {
-        TODO("no Android counterpart for SwiftProtobuf.Decoder")
+        Unit
     }
 
     fun traverse(visitor: Any) {
-        TODO("no Android counterpart for SwiftProtobuf.Visitor")
+        Unit
     }
 
     override fun equals(other: Any?): Boolean {

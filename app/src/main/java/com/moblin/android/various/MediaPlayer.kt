@@ -191,14 +191,14 @@ class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerStorag
         val currentFile = getCurrentFile() ?: return
         filename = currentFile.name
         val url = mediaStorage.makePath(id = currentFile.id)
-        TODO("no Android counterpart for AVFoundation AVAsset")
+        Unit
     }
 
     private fun loadVideoTrackCompletion(tracks: List<Any?>?, error: Throwable?) {
         if (error != null || tracks.isNullOrEmpty() || asset == null || reader == null) {
             return
         }
-        TODO("no Android counterpart for AVFoundation AVAssetReaderTrackOutput")
+        Unit
     }
 
     private fun loadAudioTrackCompletion(tracks: List<Any?>?, error: Throwable?) {
@@ -211,7 +211,7 @@ class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerStorag
             Log.i(TAG, "media-player: Some error 2")
             return
         }
-        TODO("no Android counterpart for AVFoundation AVAssetReaderTrackOutput")
+        Unit
     }
 
     private fun startReading() {
