@@ -1,0 +1,101 @@
+package com.moblin.android.view.settings.djidevices
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import com.moblin.android.localized
+import com.moblin.android.various.model.Model
+import com.moblin.android.various.settings.SettingsDjiDevice
+import com.moblin.android.various.settings.SettingsDjiDevices
+import com.moblin.android.various.utils.makeUniqueName
+import com.moblin.android.view.settings.catprinters.IntegrationImageView
+import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.CreateButtonView
+import com.moblin.android.view.utils.DraggableItemPrefixView
+import com.moblin.android.view.utils.HCenter
+import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+
+@Composable
+private fun DjiDeviceSettingsWrapperView(
+    model: Model,
+    djiDevices: SettingsDjiDevices,
+    device: SettingsDjiDevice,
+    onNavigate: (String) -> Unit,
+) {
+    val name by device.name.collectAsState()
+    val state by device.state.collectAsState()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onNavigate("DjiDeviceSettingsView") },
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        DraggableItemPrefixView()
+        Text(name)
+        Spacer(modifier = Modifier.weight(1f))
+        GrayTextView(text = formatDjiDeviceState(state = state))
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DjiDevicesSettingsView(
+    model: Model,
+    djiDevices: SettingsDjiDevices,
+    onNavigate: (String) -> Unit,
+) {
+    val devices by djiDevices.devices.collectAsState()
+
+    fun deleteDevice(offsets: List<Int>) {
+        model.removeDjiDevices(offsets)
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("DJI devices") })
+        },
+    ) { padding ->
+        LazyColumn(modifier = Modifier.padding(padding)) {
+            item {
+                HCenter {
+                    IntegrationImageView(imageName = "DjiOa4")
+                }
+            }
+            items(items = devices, key = { it.id.toString() }) { device ->
+                DjiDeviceSettingsWrapperView(
+                    model = model,
+                    djiDevices = djiDevices,
+                    device = device,
+                    onNavigate = onNavigate,
+                )
+                TODO("contextMenuDeleteButton, onMove and onDelete have no Compose counterpart")
+            }
+            item {
+                CreateButtonView {
+                    val device = SettingsDjiDevice()
+                    device.name.value = makeUniqueName(
+                        name = SettingsDjiDevice.baseName,
+                        existingNames = djiDevices.devices.value,
+                    )
+                    djiDevices.devices.value = djiDevices.devices.value + device
+                }
+            }
+            item {
+                SwipeLeftToDeleteHelpView(kind = localized("a device"))
+            }
+        }
+    }
+}
