@@ -52,6 +52,7 @@ import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import com.moblin.android.AppDelegate
 
 private const val assistantLogTag = "RemoteControlAssistant"
 
@@ -683,7 +684,7 @@ class RemoteControlAssistant(
         twitchAccessToken = plainAccessToken
         twitchEventSub?.stop()
         twitchEventSub = TwitchEventSub(
-            context = TODO("no Android context available"),
+            context = AppDelegate.context,
             remoteControl = false,
             userId = channelId,
             accessToken = plainAccessToken,

@@ -13,13 +13,14 @@ import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.moblin.android.AppDelegate
 
 private const val tag = "WorkoutDevice"
 
 private val dispatchQueue = CoroutineScope(Dispatchers.IO)
 
 val workoutDeviceScanner = BluetoothScanner(
-    context = TODO("Android Context must be supplied by the application layer"),
+    context = AppDelegate.context,
     serviceIds = listOf(
         workoutDeviceHeartRateServiceId,
         workoutDeviceCyclingPowerServiceId,

@@ -24,7 +24,7 @@ class RistSuite {
     fun makeMoblinkBondingUrl() {
         assertEquals(
             "rist://1.2.3.4:143?secret=1234&weight=1",
-            makeRistMoblinkBondingUrl("rist://foobar?secret=1234", RistRemotePeer("1.2.3.4", 143))
+            makeRistMoblinkBondingUrl("rist://foobar?secret=1234", RistEndpoint("1.2.3.4", 143))
         )
     }
 }

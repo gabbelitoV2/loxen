@@ -3,7 +3,8 @@ package com.moblin.android.media.haishinkit.rtmp
 import android.util.Log
 import android.util.Size
 import com.moblin.android.MessageQueue
-import com.moblin.android.media.haishinkit.media.MediaSample
+import com.moblin.android.media.MediaSample
+import com.moblin.android.media.haishinkit.rtmp.message.AsValue
 import com.moblin.android.media.haishinkit.media.Processor
 import com.moblin.android.media.haishinkit.media.ProcessorDelegate
 import com.moblin.android.media.haishinkit.media.RecorderDataSegment
@@ -58,7 +59,7 @@ private class ModelMock : RtmpStreamDelegate, ProcessorDelegate {
     override fun streamAudioLevel(audioLevel: Float, numberOfAudioChannels: Int, sampleRate: Double) {
     }
 
-    override fun streamLowFpsImage(lowFpsImage: ByteArray?, frameNumber: ULong) {
+    override fun streamLowFpsImage(lowFpsImage: ByteArray?, frameNumber: Long) {
     }
 
     override fun streamVideoAttachCameraError() {
@@ -223,25 +224,25 @@ class RtmpStreamSuite {
             receiveC2(server)
             sendS2(server)
             expectConnectCommandMessage(server)
-            sendWindowAcknowledgementSize(server, 3, 256)
-            sendSetPeerBandwidth(server, 3, 1000)
+            sendWindowAcknowledgementSize(server, 3.toUShort(), 256u)
+            sendSetPeerBandwidth(server, 3.toUShort(), 1000u)
             expectWindowAcknowledgementSize(server)
             server.send(
                 chunk = RtmpChunk(
                     type = RtmpChunkType.zero,
-                    chunkStreamId = 3,
+                    chunkStreamId = 3.toUShort(),
                     message = RtmpCommandMessage(
-                        streamId = 0,
+                        streamId = 0u,
                         transactionId = 2,
-                        commandType = RtmpCommandMessage.CommandType.amf0Command,
+                        commandType = RtmpMessageType.amf0Command,
                         commandName = RtmpCommandName.result,
                         commandObject = null,
                         arguments = listOf(
-                            Amf0Value.Object(
+                            AsValue.Object(
                                 mapOf(
-                                    "level" to Amf0Value.String("status"),
-                                    "code" to Amf0Value.String("NetConnection.Connect.Success"),
-                                    "description" to Amf0Value.String("Connection succeeded.")
+                                    "level" to AsValue.String("status"),
+                                    "code" to AsValue.String("NetConnection.Connect.Success"),
+                                    "description" to AsValue.String("Connection succeeded.")
                                 )
                             )
                         )
@@ -254,49 +255,49 @@ class RtmpStreamSuite {
             var message = receiveCommandMessage(server, 42)
             assertEquals(RtmpCommandName.releaseStream, message.commandName)
             assertEquals(1, message.arguments.size)
-            assertEquals(Amf0Value.String(streamKey), message.arguments[0])
+            assertEquals(AsValue.String(streamKey), message.arguments[0])
             message = receiveCommandMessage(server, 38)
             assertEquals(RtmpCommandName.fcPublish, message.commandName)
             assertEquals(1, message.arguments.size)
-            assertEquals(Amf0Value.String(streamKey), message.arguments[0])
+            assertEquals(AsValue.String(streamKey), message.arguments[0])
             message = receiveCommandMessage(server, 37)
             assertEquals(RtmpCommandName.createStream, message.commandName)
             assertEquals(0, message.arguments.size)
             server.send(
                 chunk = RtmpChunk(
                     type = RtmpChunkType.zero,
-                    chunkStreamId = 3,
+                    chunkStreamId = 3.toUShort(),
                     message = RtmpCommandMessage(
-                        streamId = 0,
+                        streamId = 0u,
                         transactionId = message.transactionId,
-                        commandType = RtmpCommandMessage.CommandType.amf0Command,
+                        commandType = RtmpMessageType.amf0Command,
                         commandName = RtmpCommandName.result,
                         commandObject = null,
-                        arguments = listOf(Amf0Value.Number(1.0))
+                        arguments = listOf(AsValue.Number(1.0))
                     )
                 )
             )
             message = receiveCommandMessage(server, 43)
             assertEquals(RtmpCommandName.publish, message.commandName)
             assertEquals(2, message.arguments.size)
-            assertEquals(Amf0Value.String(streamKey), message.arguments[0])
-            assertEquals(Amf0Value.String("live"), message.arguments[1])
+            assertEquals(AsValue.String(streamKey), message.arguments[0])
+            assertEquals(AsValue.String("live"), message.arguments[1])
             server.send(
                 chunk = RtmpChunk(
                     type = RtmpChunkType.zero,
-                    chunkStreamId = 3,
+                    chunkStreamId = 3.toUShort(),
                     message = RtmpCommandMessage(
-                        streamId = 0,
+                        streamId = 0u,
                         transactionId = message.transactionId,
-                        commandType = RtmpCommandMessage.CommandType.amf0Command,
+                        commandType = RtmpMessageType.amf0Command,
                         commandName = RtmpCommandName.onStatus,
                         commandObject = null,
                         arguments = listOf(
-                            Amf0Value.Object(
+                            AsValue.Object(
                                 mapOf(
-                                    "level" to Amf0Value.String("status"),
-                                    "code" to Amf0Value.String("NetStream.Publish.Start"),
-                                    "description" to Amf0Value.String("Start publishing.")
+                                    "level" to AsValue.String("status"),
+                                    "code" to AsValue.String("NetStream.Publish.Start"),
+                                    "description" to AsValue.String("Start publishing.")
                                 )
                             )
                         )
@@ -310,15 +311,15 @@ class RtmpStreamSuite {
             message = receiveCommandMessage(server, 40)
             assertEquals(RtmpCommandName.fcUnpublish, message.commandName)
             assertEquals(1, message.arguments.size)
-            assertEquals(Amf0Value.String(streamKey), message.arguments[0])
+            assertEquals(AsValue.String(streamKey), message.arguments[0])
             message = receiveCommandMessage(server, 46)
             assertEquals(RtmpCommandName.deleteStream, message.commandName)
             assertEquals(1, message.arguments.size)
-            assertEquals(Amf0Value.Number(1.0), message.arguments[0])
+            assertEquals(AsValue.Number(1.0), message.arguments[0])
             message = receiveCommandMessage(server, 45)
             assertEquals(RtmpCommandName.closeStream, message.commandName)
             assertEquals(1, message.arguments.size)
-            assertEquals(Amf0Value.Number(1.0), message.arguments[0])
+            assertEquals(AsValue.Number(1.0), message.arguments[0])
         }
     }
 
@@ -343,30 +344,30 @@ class RtmpStreamSuite {
             receiveC2(server)
             sendS2(server)
             expectConnectCommandMessage(server)
-            sendWindowAcknowledgementSize(server, 2, 2_500_000)
-            sendSetPeerBandwidth(server, 2, 59_768_832)
+            sendWindowAcknowledgementSize(server, 2.toUShort(), 2_500_000u)
+            sendSetPeerBandwidth(server, 2.toUShort(), 59_768_832u)
             expectWindowAcknowledgementSize(server)
             server.send(
                 chunk = RtmpChunk(
                     type = RtmpChunkType.zero,
-                    chunkStreamId = 3,
+                    chunkStreamId = 3.toUShort(),
                     message = RtmpCommandMessage(
-                        streamId = 0,
+                        streamId = 0u,
                         transactionId = 2,
-                        commandType = RtmpCommandMessage.CommandType.amf0Command,
+                        commandType = RtmpMessageType.amf0Command,
                         commandName = RtmpCommandName.result,
-                        commandObject = mapOf(
-                            "fmsVer" to Amf0Value.String("FMS/3,5,3,824"),
-                            "capabilities" to Amf0Value.Number(127.0),
-                            "mode" to Amf0Value.Number(1.0)
+                        commandObject = mutableMapOf(
+                            "fmsVer" to AsValue.String("FMS/3,5,3,824"),
+                            "capabilities" to AsValue.Number(127.0),
+                            "mode" to AsValue.Number(1.0)
                         ),
                         arguments = listOf(
-                            Amf0Value.Object(
+                            AsValue.Object(
                                 mapOf(
-                                    "level" to Amf0Value.String("status"),
-                                    "code" to Amf0Value.String("NetConnection.Connect.Success"),
-                                    "description" to Amf0Value.String("Connection succeeded."),
-                                    "objectEncoding" to Amf0Value.Number(0.0)
+                                    "level" to AsValue.String("status"),
+                                    "code" to AsValue.String("NetConnection.Connect.Success"),
+                                    "description" to AsValue.String("Connection succeeded."),
+                                    "objectEncoding" to AsValue.Number(0.0)
                                 )
                             )
                         )
@@ -379,49 +380,49 @@ class RtmpStreamSuite {
             var message = receiveCommandMessage(server, 42)
             assertEquals(RtmpCommandName.releaseStream, message.commandName)
             assertEquals(1, message.arguments.size)
-            assertEquals(Amf0Value.String(streamKey), message.arguments[0])
+            assertEquals(AsValue.String(streamKey), message.arguments[0])
             message = receiveCommandMessage(server, 38)
             assertEquals(RtmpCommandName.fcPublish, message.commandName)
             assertEquals(1, message.arguments.size)
-            assertEquals(Amf0Value.String(streamKey), message.arguments[0])
+            assertEquals(AsValue.String(streamKey), message.arguments[0])
             message = receiveCommandMessage(server, 37)
             assertEquals(RtmpCommandName.createStream, message.commandName)
             assertEquals(0, message.arguments.size)
             server.send(
                 chunk = RtmpChunk(
                     type = RtmpChunkType.zero,
-                    chunkStreamId = 3,
+                    chunkStreamId = 3.toUShort(),
                     message = RtmpCommandMessage(
-                        streamId = 0,
+                        streamId = 0u,
                         transactionId = message.transactionId,
-                        commandType = RtmpCommandMessage.CommandType.amf0Command,
+                        commandType = RtmpMessageType.amf0Command,
                         commandName = RtmpCommandName.result,
                         commandObject = null,
-                        arguments = listOf(Amf0Value.Number(1.0))
+                        arguments = listOf(AsValue.Number(1.0))
                     )
                 )
             )
             message = receiveCommandMessage(server, 43)
             assertEquals(RtmpCommandName.publish, message.commandName)
             assertEquals(2, message.arguments.size)
-            assertEquals(Amf0Value.String(streamKey), message.arguments[0])
-            assertEquals(Amf0Value.String("live"), message.arguments[1])
+            assertEquals(AsValue.String(streamKey), message.arguments[0])
+            assertEquals(AsValue.String("live"), message.arguments[1])
             server.send(
                 chunk = RtmpChunk(
                     type = RtmpChunkType.zero,
-                    chunkStreamId = 3,
+                    chunkStreamId = 3.toUShort(),
                     message = RtmpCommandMessage(
-                        streamId = 0,
+                        streamId = 0u,
                         transactionId = message.transactionId,
-                        commandType = RtmpCommandMessage.CommandType.amf0Command,
+                        commandType = RtmpMessageType.amf0Command,
                         commandName = RtmpCommandName.onStatus,
                         commandObject = null,
                         arguments = listOf(
-                            Amf0Value.Object(
+                            AsValue.Object(
                                 mapOf(
-                                    "level" to Amf0Value.String("status"),
-                                    "code" to Amf0Value.String("NetStream.Publish.Start"),
-                                    "description" to Amf0Value.String("Start publishing.")
+                                    "level" to AsValue.String("status"),
+                                    "code" to AsValue.String("NetStream.Publish.Start"),
+                                    "description" to AsValue.String("Start publishing.")
                                 )
                             )
                         )
@@ -435,15 +436,15 @@ class RtmpStreamSuite {
             message = receiveCommandMessage(server, 40)
             assertEquals(RtmpCommandName.fcUnpublish, message.commandName)
             assertEquals(1, message.arguments.size)
-            assertEquals(Amf0Value.String(streamKey), message.arguments[0])
+            assertEquals(AsValue.String(streamKey), message.arguments[0])
             message = receiveCommandMessage(server, 46)
             assertEquals(RtmpCommandName.deleteStream, message.commandName)
             assertEquals(1, message.arguments.size)
-            assertEquals(Amf0Value.Number(1.0), message.arguments[0])
+            assertEquals(AsValue.Number(1.0), message.arguments[0])
             message = receiveCommandMessage(server, 45)
             assertEquals(RtmpCommandName.closeStream, message.commandName)
             assertEquals(1, message.arguments.size)
-            assertEquals(Amf0Value.Number(1.0), message.arguments[0])
+            assertEquals(AsValue.Number(1.0), message.arguments[0])
         }
     }
 
@@ -460,10 +461,10 @@ class RtmpStreamSuite {
         val connection = RtmpConnection(name = "test", queue = rtmpQueue)
         connection.stream = rtmpStream
         rtmpStream.info.onWritten(sequence = 14000)
-        assertEquals(10, rtmpStream.info.stats.value.packetsInFlight)
+        assertEquals(10, rtmpStream.info.stats.value.packetsInFlight.toInt())
         val typeZeroChunk = byteArrayOf(0x02, 0, 0, 0, 0, 0, 4, 0x03, 0, 0, 0, 0) + 1u.toBigEndianBytes()
         assertTrue(connection.socketDataReceived(data = typeZeroChunk).isEmpty())
-        assertEquals(10, rtmpStream.info.stats.value.packetsInFlight)
+        assertEquals(10, rtmpStream.info.stats.value.packetsInFlight.toInt())
         val typeThreeChunk = byteArrayOf(0xC2.toByte()) + 14001u.toBigEndianBytes()
         val buffered = connection.socketDataReceived(data = typeThreeChunk.copyOfRange(0, 3))
         assertContentEquals(typeThreeChunk.copyOfRange(0, 3), buffered)
@@ -472,7 +473,7 @@ class RtmpStreamSuite {
                 data = buffered + typeThreeChunk.copyOfRange(typeThreeChunk.size - 2, typeThreeChunk.size)
             ).isEmpty()
         )
-        assertEquals(0, rtmpStream.info.stats.value.packetsInFlight)
+        assertEquals(0, rtmpStream.info.stats.value.packetsInFlight.toInt())
     }
 
     @Test
@@ -534,7 +535,7 @@ class RtmpStreamSuite {
 
     @Test
     fun twoByteBasicHeader() {
-        assertContentEquals(byteArrayOf(0x00, 0x88.toByte()), RtmpChunkType.zero.toBasicHeader(200))
+        assertContentEquals(byteArrayOf(0x00, 0x88.toByte()), RtmpChunkType.zero.toBasicHeader(200.toUShort()))
         var data = byteArrayOf(0x02, 0, 0, 10, 0, 0, 4, 0x03, 0, 0, 0, 0) + 1u.toBigEndianBytes()
         data += byteArrayOf(0x00, 0x02, 0, 0, 20, 0, 0, 8, 0x08, 0, 0, 0, 0) + byteArrayOf(1, 2, 3, 4, 5, 6, 7, 8)
         data += byteArrayOf(0xC2.toByte()) + 2u.toBigEndianBytes()
@@ -550,7 +551,7 @@ class RtmpStreamSuite {
 
     @Test
     fun threeByteBasicHeader() {
-        assertContentEquals(byteArrayOf(0x01, 0x50, 0x01), RtmpChunkType.zero.toBasicHeader(400))
+        assertContentEquals(byteArrayOf(0x01, 0x50, 0x01), RtmpChunkType.zero.toBasicHeader(400.toUShort()))
         var data = byteArrayOf(0x01, 0x02, 0x00, 0, 0, 10, 0, 0, 4, 0x03, 0, 0, 0, 0)
         data += 1u.toBigEndianBytes()
         data += byteArrayOf(0xC0.toByte(), 0x02) + 2u.toBigEndianBytes()
@@ -601,10 +602,10 @@ class RtmpStreamSuite {
         val payload = ByteArray(300) { (it % 251).toByte() }
         val chunk = RtmpChunk(
             type = RtmpChunkType.zero,
-            chunkStreamId = 8,
+            chunkStreamId = 8.toUShort(),
             message = RtmpAudioMessage(
-                streamId = 1,
-                timestamp = 0xFFFFFF,
+                streamId = 1u,
+                timestamp = 0xFFFFFFu,
                 payload = payload
             )
         )
@@ -666,7 +667,7 @@ private suspend fun sendSetPeerBandwidth(server: RtmpServerMock, chunkStreamId: 
         chunk = RtmpChunk(
             type = RtmpChunkType.zero,
             chunkStreamId = chunkStreamId,
-            message = RtmpSetPeerBandwidthMessage(size = size, limit = RtmpSetPeerBandwidthMessage.Limit.dynamic)
+            message = RtmpSetPeerBandwidthMessage(size = size, limit = RtmpSetPeerBandwidthMessage.Limit.DYNAMIC)
         )
     )
 }
@@ -678,18 +679,18 @@ private suspend fun expectConnectCommandMessage(server: RtmpServerMock) {
     assertEquals(RtmpCommandName.connect, message.commandName)
     assertEquals(1L, message.transactionId.toLong())
     val connectMessage = message.commandObject ?: error("error")
-    assertEquals(Amf0Value.String("live"), connectMessage["app"])
-    assertEquals(Amf0Value.String("FMLE/3.0 (compatible; FMSc/1.0)"), connectMessage["flashVer"])
-    assertEquals(Amf0Value.Null, connectMessage["swfUrl"])
-    val tcUrl = (connectMessage["tcUrl"] as? Amf0Value.String)?.value ?: error("error")
+    assertEquals(AsValue.String("live"), connectMessage["app"])
+    assertEquals(AsValue.String("FMLE/3.0 (compatible; FMSc/1.0)"), connectMessage["flashVer"])
+    assertEquals(AsValue.Null, connectMessage["swfUrl"])
+    val tcUrl = (connectMessage["tcUrl"] as? AsValue.String)?.value ?: error("error")
     assertNotNull(Regex("rtmp://127\\.0\\.0\\.1:\\d+/live").matchEntire(tcUrl))
-    assertEquals(Amf0Value.Bool(false), connectMessage["fpad"])
-    assertEquals(Amf0Value.Number(239.0), connectMessage["capabilities"])
-    assertEquals(Amf0Value.Number(0x0400.toDouble()), connectMessage["audioCodecs"])
-    assertEquals(Amf0Value.Number(0x0080.toDouble()), connectMessage["videoCodecs"])
-    assertEquals(Amf0Value.Number(1.0), connectMessage["videoFunction"])
-    assertEquals(Amf0Value.Null, connectMessage["pageUrl"])
-    assertEquals(Amf0Value.Number(0.0), connectMessage["objectEncoding"])
+    assertEquals(AsValue.Bool(false), connectMessage["fpad"])
+    assertEquals(AsValue.Number(239.0), connectMessage["capabilities"])
+    assertEquals(AsValue.Number(0x0400.toDouble()), connectMessage["audioCodecs"])
+    assertEquals(AsValue.Number(0x0080.toDouble()), connectMessage["videoCodecs"])
+    assertEquals(AsValue.Number(1.0), connectMessage["videoFunction"])
+    assertEquals(AsValue.Null, connectMessage["pageUrl"])
+    assertEquals(AsValue.Number(0.0), connectMessage["objectEncoding"])
 }
 
 private suspend fun expectWindowAcknowledgementSize(server: RtmpServerMock) {

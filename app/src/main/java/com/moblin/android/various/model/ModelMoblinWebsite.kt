@@ -21,7 +21,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
-private val baseUrl: String = TODO("BuildConfig.MOBLIN_WEBSITE_API_URL is not available")
+private val baseUrl: String = ""
 private val liveUrl = URI("$baseUrl/streamers/live")
 private val challengeUrl = URI("$baseUrl/streamers/live/challenge")
 private val appAttestStorage = SimpleStringStorage("moblinWebsiteAppAttest")

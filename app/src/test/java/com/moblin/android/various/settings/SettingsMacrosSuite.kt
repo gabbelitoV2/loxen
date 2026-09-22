@@ -13,27 +13,27 @@ import kotlin.test.assertTrue
 class SettingsMacrosSuite {
     @Test
     fun numbersAreComparedNumerically() {
-        assertFalse(SettingsMacrosActionIfComparison.greaterThan.evaluate(value = "9", otherValue = "10"))
-        assertTrue(SettingsMacrosActionIfComparison.lessThan.evaluate(value = "9", otherValue = "10"))
-        assertTrue(SettingsMacrosActionIfComparison.equal.evaluate(value = "10.0", otherValue = "10"))
-        assertTrue(SettingsMacrosActionIfComparison.greaterEqual.evaluate(value = "10", otherValue = "10"))
-        assertTrue(SettingsMacrosActionIfComparison.notEqual.evaluate(value = "-1", otherValue = "1"))
+        assertFalse(SettingsMacrosActionIfComparison.fromRawValue("greaterThan")!!.evaluate(value = "9", otherValue = "10"))
+        assertTrue(SettingsMacrosActionIfComparison.fromRawValue("lessThan")!!.evaluate(value = "9", otherValue = "10"))
+        assertTrue(SettingsMacrosActionIfComparison.fromRawValue("equal")!!.evaluate(value = "10.0", otherValue = "10"))
+        assertTrue(SettingsMacrosActionIfComparison.fromRawValue("greaterEqual")!!.evaluate(value = "10", otherValue = "10"))
+        assertTrue(SettingsMacrosActionIfComparison.fromRawValue("notEqual")!!.evaluate(value = "-1", otherValue = "1"))
     }
 
     @Test
     fun unitsAfterTheNumberAreIgnored() {
-        assertTrue(SettingsMacrosActionIfComparison.greaterThan.evaluate(value = "35 km/h", otherValue = "30"))
-        assertTrue(SettingsMacrosActionIfComparison.lessEqual.evaluate(value = "-5 m", otherValue = "0"))
-        assertTrue(SettingsMacrosActionIfComparison.greaterThan.evaluate(value = " 45%", otherValue = "10"))
+        assertTrue(SettingsMacrosActionIfComparison.fromRawValue("greaterThan")!!.evaluate(value = "35 km/h", otherValue = "30"))
+        assertTrue(SettingsMacrosActionIfComparison.fromRawValue("lessEqual")!!.evaluate(value = "-5 m", otherValue = "0"))
+        assertTrue(SettingsMacrosActionIfComparison.fromRawValue("greaterThan")!!.evaluate(value = " 45%", otherValue = "10"))
     }
 
     @Test
     fun textIsComparedCaseInsensitively() {
-        assertTrue(SettingsMacrosActionIfComparison.equal.evaluate(value = "Yes", otherValue = "yes"))
-        assertTrue(SettingsMacrosActionIfComparison.lessThan.evaluate(value = "apple", otherValue = "Banana"))
-        assertTrue(SettingsMacrosActionIfComparison.contains.evaluate(value = "Heavy rain", otherValue = "RAIN"))
+        assertTrue(SettingsMacrosActionIfComparison.fromRawValue("equal")!!.evaluate(value = "Yes", otherValue = "yes"))
+        assertTrue(SettingsMacrosActionIfComparison.fromRawValue("lessThan")!!.evaluate(value = "apple", otherValue = "Banana"))
+        assertTrue(SettingsMacrosActionIfComparison.fromRawValue("contains")!!.evaluate(value = "Heavy rain", otherValue = "RAIN"))
         assertFalse(
-            SettingsMacrosActionIfComparison.contains
+            SettingsMacrosActionIfComparison.fromRawValue("contains")!!
                 .evaluate(value = "Sunny", otherValue = "rain")
         )
     }
@@ -41,15 +41,15 @@ class SettingsMacrosSuite {
     @Test
     fun ifActionSurvivesEncodeAndDecode() {
         val action = SettingsMacrosAction()
-        action.function = SettingsMacrosActionFunction.ifCondition
+        action.function = SettingsMacrosActionFunction.fromRawValue("ifCondition")!!
         action.ifValue = "{speed}"
-        action.ifComparison = SettingsMacrosActionIfComparison.greaterEqual
+        action.ifComparison = SettingsMacrosActionIfComparison.fromRawValue("greaterEqual")!!
         action.ifOtherValue = "30"
         action.ifRunCount = 3
         val decoded = Json.decodeFromString<SettingsMacrosAction>(Json.encodeToString(action))
-        assertEquals(SettingsMacrosActionFunction.ifCondition, decoded.function)
+        assertEquals(SettingsMacrosActionFunction.fromRawValue("ifCondition")!!, decoded.function)
         assertEquals("{speed}", decoded.ifValue)
-        assertEquals(SettingsMacrosActionIfComparison.greaterEqual, decoded.ifComparison)
+        assertEquals(SettingsMacrosActionIfComparison.fromRawValue("greaterEqual")!!, decoded.ifComparison)
         assertEquals("30", decoded.ifOtherValue)
         assertEquals(3, decoded.ifRunCount)
     }
@@ -58,62 +58,62 @@ class SettingsMacrosSuite {
     fun ifActionDefaultsWhenMissingFromSettings() {
         val action = Json.decodeFromString<SettingsMacrosAction>("{}")
         assertEquals("", action.ifValue)
-        assertEquals(SettingsMacrosActionIfComparison.equal, action.ifComparison)
+        assertEquals(SettingsMacrosActionIfComparison.fromRawValue("equal")!!, action.ifComparison)
         assertEquals("", action.ifOtherValue)
         assertEquals(1, action.ifRunCount)
     }
 
     @Test
     fun waitForEventMatchesOnlyItsEvent() {
-        val action = makeWaitForEventAction(SettingsMacrosEvent.twitchFollow)
-        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.twitchFollow)))
-        assertFalse(action.matches(event = MacroEvent(event = SettingsMacrosEvent.twitchSubscription)))
+        val action = makeWaitForEventAction(SettingsMacrosEvent.fromRawValue("twitchFollow")!!)
+        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchFollow")!!)))
+        assertFalse(action.matches(event = MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchSubscription")!!)))
     }
 
     @Test
     fun waitForEventWithMinimumAmountMatchesAtOrAboveIt() {
-        val action = makeWaitForEventAction(SettingsMacrosEvent.twitchCheer)
+        val action = makeWaitForEventAction(SettingsMacrosEvent.fromRawValue("twitchCheer")!!)
         action.eventMinimumAmount = 100
-        assertFalse(action.matches(event = MacroEvent(event = SettingsMacrosEvent.twitchCheer, amount = 99)))
-        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.twitchCheer, amount = 100)))
-        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.twitchCheer, amount = 500)))
+        assertFalse(action.matches(event = MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchCheer")!!, amount = 99)))
+        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchCheer")!!, amount = 100)))
+        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchCheer")!!, amount = 500)))
     }
 
     @Test
     fun waitForEventTextIgnoresCaseAndSurroundingWhitespace() {
-        val action = makeWaitForEventAction(SettingsMacrosEvent.twitchReward)
+        val action = makeWaitForEventAction(SettingsMacrosEvent.fromRawValue("twitchReward")!!)
         action.eventText = " Hydrate "
-        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.twitchReward, text = "hydrate")))
-        assertFalse(action.matches(event = MacroEvent(event = SettingsMacrosEvent.twitchReward, text = "Stretch")))
+        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchReward")!!, text = "hydrate")))
+        assertFalse(action.matches(event = MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchReward")!!, text = "Stretch")))
     }
 
     @Test
     fun waitForEventWithEmptyTextMatchesAnyText() {
-        val action = makeWaitForEventAction(SettingsMacrosEvent.twitchReward)
-        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.twitchReward, text = "Hydrate")))
-        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.twitchReward)))
+        val action = makeWaitForEventAction(SettingsMacrosEvent.fromRawValue("twitchReward")!!)
+        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchReward")!!, text = "Hydrate")))
+        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchReward")!!)))
     }
 
     @Test
     fun waitForSceneSwitchedMatchesSelectedOrAnyScene() {
         val sceneId = UUID.randomUUID()
-        val action = makeWaitForEventAction(SettingsMacrosEvent.switchScene)
-        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.switchScene, sceneId = sceneId)))
+        val action = makeWaitForEventAction(SettingsMacrosEvent.fromRawValue("switchScene")!!)
+        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.fromRawValue("switchScene")!!, sceneId = sceneId)))
         action.eventSceneId = sceneId
-        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.switchScene, sceneId = sceneId)))
-        assertFalse(action.matches(event = MacroEvent(event = SettingsMacrosEvent.switchScene, sceneId = UUID.randomUUID())))
+        assertTrue(action.matches(event = MacroEvent(event = SettingsMacrosEvent.fromRawValue("switchScene")!!, sceneId = sceneId)))
+        assertFalse(action.matches(event = MacroEvent(event = SettingsMacrosEvent.fromRawValue("switchScene")!!, sceneId = UUID.randomUUID())))
     }
 
     @Test
     fun waitForEventActionSurvivesEncodeAndDecode() {
         val sceneId = UUID.randomUUID()
-        val action = makeWaitForEventAction(SettingsMacrosEvent.kickKicks)
+        val action = makeWaitForEventAction(SettingsMacrosEvent.fromRawValue("kickKicks")!!)
         action.eventMinimumAmount = 42
         action.eventText = "boom"
         action.eventSceneId = sceneId
         val decoded = Json.decodeFromString<SettingsMacrosAction>(Json.encodeToString(action))
-        assertEquals(SettingsMacrosActionFunction.waitForEvent, decoded.function)
-        assertEquals(SettingsMacrosEvent.kickKicks, decoded.event)
+        assertEquals(SettingsMacrosActionFunction.fromRawValue("waitForEvent")!!, decoded.function)
+        assertEquals(SettingsMacrosEvent.fromRawValue("kickKicks")!!, decoded.event)
         assertEquals(42, decoded.eventMinimumAmount)
         assertEquals("boom", decoded.eventText)
         assertEquals(sceneId, decoded.eventSceneId)
@@ -122,7 +122,7 @@ class SettingsMacrosSuite {
     @Test
     fun waitForEventActionDefaultsWhenMissingFromSettings() {
         val action = Json.decodeFromString<SettingsMacrosAction>("{}")
-        assertEquals(SettingsMacrosEvent.twitchFollow, action.event)
+        assertEquals(SettingsMacrosEvent.fromRawValue("twitchFollow")!!, action.event)
         assertEquals(0, action.eventMinimumAmount)
         assertEquals("", action.eventText)
         assertNull(action.eventSceneId)
@@ -136,7 +136,7 @@ class SettingsMacrosSuite {
 
     private fun makeWaitForEventAction(event: SettingsMacrosEvent): SettingsMacrosAction {
         val action = SettingsMacrosAction()
-        action.function = SettingsMacrosActionFunction.waitForEvent
+        action.function = SettingsMacrosActionFunction.fromRawValue("waitForEvent")!!
         action.event = event
         return action
     }

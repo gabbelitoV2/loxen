@@ -14,12 +14,12 @@ class AmfSuite {
     fun number() {
         val value = 1.0
         val serializer = Amf0Encoder()
-        serializer.encode(Amf0Type.Number(value))
+        serializer.encode(AsValue.Number(value))
         val encoded = serializer.data
         assertContentEquals(bytes(0x00, 0x3F, 0xF0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00), encoded)
         val decoder = Amf0Decoder(encoded)
         val decoded = decoder.decode()
-        assertEquals(Amf0Type.Number(value), decoded)
+        assertEquals(AsValue.Number(value), decoded)
     }
 
     data class BoolParameters(val value: Boolean, val encoded: ByteArray)
@@ -32,12 +32,12 @@ class AmfSuite {
         )
         for (parameters in parametersList) {
             val serializer = Amf0Encoder()
-            serializer.encode(Amf0Type.Bool(parameters.value))
+            serializer.encode(AsValue.Bool(parameters.value))
             val encoded = serializer.data
             assertContentEquals(parameters.encoded, encoded)
             val decoder = Amf0Decoder(encoded)
             val decoded = decoder.decode()
-            assertEquals(Amf0Type.Bool(parameters.value), decoded)
+            assertEquals(AsValue.Bool(parameters.value), decoded)
         }
     }
 
@@ -45,19 +45,19 @@ class AmfSuite {
     fun string() {
         val value = "1234"
         val serializer = Amf0Encoder()
-        serializer.encode(Amf0Type.String(value))
+        serializer.encode(AsValue.String(value))
         val encoded = serializer.data
         assertContentEquals(bytes(0x02, 0x00, 0x04, 0x31, 0x32, 0x33, 0x34), encoded)
         val decoder = Amf0Decoder(encoded)
         val decoded = decoder.decode()
-        assertEquals(Amf0Type.String(value), decoded)
+        assertEquals(AsValue.String(value), decoded)
     }
 
     @Test
     fun `object`() {
         val value: AsObject = mapOf("1" to AsValue.String("2"))
         val serializer = Amf0Encoder()
-        serializer.encode(Amf0Type.Object(value))
+        serializer.encode(AsValue.Object(value))
         val encoded = serializer.data
         assertContentEquals(
             bytes(0x03, 0x00, 0x01, 0x31, 0x02, 0x00, 0x01, 0x32, 0x00, 0x00, 0x09),
@@ -65,7 +65,7 @@ class AmfSuite {
         )
         val decoder = Amf0Decoder(encoded)
         val decoded = decoder.decode()
-        assertEquals(Amf0Type.Object(value), decoded)
+        assertEquals(AsValue.Object(value), decoded)
     }
 
     @Test
@@ -80,7 +80,7 @@ class AmfSuite {
         val decoder = Amf0Decoder(encoded)
         val decoded = decoder.decode()
         assertEquals(
-            Amf0Type.TypedObject(AsTypedObject("21", mapOf("1" to AsValue.String("2")))),
+            AsValue.TypedObject(AsTypedObject("21", mapOf("1" to AsValue.String("2")))),
             decoded,
         )
     }
@@ -88,12 +88,12 @@ class AmfSuite {
     @Test
     fun `null`() {
         val serializer = Amf0Encoder()
-        serializer.encode(Amf0Type.Null)
+        serializer.encode(Amf0Decoder(bytes(0x05)).decode())
         val encoded = serializer.data
         assertContentEquals(bytes(0x05), encoded)
         val decoder = Amf0Decoder(encoded)
         val decoded = decoder.decode()
-        assertEquals(Amf0Type.Null, decoded)
+        assertEquals(Amf0Decoder(bytes(0x05)).decode(), decoded)
     }
 
     @Test
@@ -101,7 +101,7 @@ class AmfSuite {
         val encoded = bytes(0x06)
         val decoder = Amf0Decoder(encoded)
         val decoded = decoder.decode()
-        assertEquals(Amf0Type.Undefined, decoded)
+        assertEquals(Amf0Decoder(bytes(0x06)).decode(), decoded)
     }
 
     @Test
@@ -118,7 +118,7 @@ class AmfSuite {
         )
         val decoder = Amf0Decoder(encoded)
         val decoded = decoder.decode()
-        val ecmaArray = (decoded as? Amf0Type.EcmaArray)?.value ?: throw AssertionError("error")
+        val ecmaArray = (decoded as? AsValue.EcmaArray)?.value ?: throw AssertionError("error")
         assertEquals(AsValue.Bool(true), ecmaArray.get("foo"))
         assertEquals(AsValue.String("fie"), ecmaArray.get("bar"))
     }
@@ -133,7 +133,7 @@ class AmfSuite {
         )
         val decoder = Amf0Decoder(encoded)
         val decoded = decoder.decode()
-        val strictArray = (decoded as? Amf0Type.StrictArray)?.value ?: throw AssertionError("error")
+        val strictArray = (decoded as? AsValue.StrictArray)?.value ?: throw AssertionError("error")
         assertEquals(2, strictArray.size)
         assertEquals(AsValue.Bool(true), strictArray[0])
         assertEquals(AsValue.String("fie"), strictArray[1])
@@ -143,7 +143,7 @@ class AmfSuite {
     fun date() {
         val value = Instant.ofEpochSecond(15)
         val serializer = Amf0Encoder()
-        serializer.encode(Amf0Type.Date(value))
+        serializer.encode(AsValue.Date(value))
         val encoded = serializer.data
         assertContentEquals(
             bytes(0x0B, 0x40, 0xCD, 0x4C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
@@ -151,7 +151,7 @@ class AmfSuite {
         )
         val decoder = Amf0Decoder(encoded)
         val decoded = decoder.decode()
-        assertEquals(Amf0Type.Date(value), decoded)
+        assertEquals(AsValue.Date(value), decoded)
     }
 
     @Test
@@ -172,7 +172,7 @@ class AmfSuite {
     @Test
     fun decodeIntTruncates() {
         val serializer = Amf0Encoder()
-        serializer.encode(Amf0Type.Number(-1.75))
+        serializer.encode(AsValue.Number(-1.75))
         val decoder = Amf0Decoder(serializer.data)
         assertEquals(-1, decoder.decodeInt())
     }
@@ -271,7 +271,7 @@ class AmfSuite {
             0x00, 0x00, 0x09, 0x00, 0x00, 0x09,
         )
         val decoder = Amf0Decoder(data)
-        assertEquals(RtmpCommandName.Result, RtmpCommandName.fromRawValue(decoder.decodeString()))
+        assertEquals(RtmpCommandName.result, RtmpCommandName.fromRawValue(decoder.decodeString()))
         assertEquals(1, decoder.decodeInt())
         assertEquals(
             mapOf(
@@ -282,7 +282,7 @@ class AmfSuite {
             decoder.decodeObject(),
         )
         assertEquals(
-            Amf0Type.Object(
+            AsValue.Object(
                 mapOf(
                     "level" to AsValue.String("status"),
                     "code" to AsValue.String("NetConnection.Connect.Success"),

@@ -23,6 +23,7 @@ import com.moblin.android.view.stream.StreamPreviewView
 import com.moblin.android.view.stream.StreamView
 import java.lang.ref.WeakReference
 import java.net.URI
+import android.content.Context
 
 object MoblinApp {
     var globalModel: Model? = null
@@ -100,6 +101,7 @@ class AppDelegate : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        context = applicationContext
         registerActivityLifecycleCallbacks(lifecycleCallbacks)
     }
 
@@ -113,6 +115,7 @@ class AppDelegate : Application() {
     fun supportedInterfaceOrientationsFor(): Int = orientationLock
 
     companion object {
+        lateinit var context: Context
         private var currentActivity: WeakReference<Activity>? = null
 
         private val lifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {

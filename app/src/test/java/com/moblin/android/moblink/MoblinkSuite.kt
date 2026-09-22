@@ -15,11 +15,11 @@ class MoblinkSuite {
         when (message) {
             is MoblinkMessageToStreamer.Response -> {
                 assertEquals(5, message.id)
-                assertEquals(MoblinkResult.OK, message.result)
+                assertEquals("ok", message.result.rawValue)
                 when (val data = message.data) {
                     is MoblinkResponse.Status -> {
                         assertEquals(30, data.batteryPercentage)
-                        assertEquals(MoblinkThermalState.WHITE, data.thermalState)
+                        assertEquals("white", data.thermalState?.rawValue)
                     }
                     else -> fail("Expected status")
                 }

@@ -14,6 +14,7 @@ import com.moblin.android.various.network.WebSocketClientDelegate
 import com.moblin.android.various.settings.SettingsStreamChat
 import java.net.URI
 import java.util.concurrent.atomic.AtomicInteger
+import com.moblin.android.AppDelegate
 
 private sealed class MessageError(message: String) : Exception(message) {
     class InvalidCommand(val command: String) : MessageError("Invalid command: $command")
@@ -461,7 +462,7 @@ interface TwitchChatDelegate {
 
 class TwitchChat(private val delegate: TwitchChatDelegate?) : WebSocketClientDelegate {
     private var webSocket: WebSocketClient = WebSocketClient(
-        context = TODO("no Android Context available here"),
+        context = AppDelegate.context,
         url = "wss://irc-ws.chat.twitch.tv",
     )
     private val emotes: Emotes = Emotes()
@@ -491,7 +492,7 @@ class TwitchChat(private val delegate: TwitchChatDelegate?) : WebSocketClientDel
         badges.start(channelId, accessToken)
         cheermotes.start(channelId, accessToken)
         webSocket = WebSocketClient(
-            context = TODO("no Android Context available here"),
+            context = AppDelegate.context,
             url = "wss://irc-ws.chat.twitch.tv",
         )
         webSocket.delegate = this

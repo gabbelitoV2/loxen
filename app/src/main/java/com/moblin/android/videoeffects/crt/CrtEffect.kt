@@ -6,10 +6,10 @@ import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 
 class CrtEffect : VideoEffect() {
-    private val barrelFilter: CrtBarrelDistortionFilter = TODO("OpenGL ES port")
-    private val colorControls: Any = TODO("no Android counterpart for CIFilter.colorControls")
-    private val vignette: Any = TODO("no Android counterpart for CIFilter.vignette")
-    private val crtFilter: Any = TODO("no Android counterpart for MTICrtFilter")
+    private val barrelFilter: CrtBarrelDistortionFilter? = null
+    private val colorControls: Any? = null
+    private val vignette: Any? = null
+    private val crtFilter: Any? = null
 
     override fun execute(image: Image, info: VideoEffectInfo): Image =
         TODO("OpenGL ES port")

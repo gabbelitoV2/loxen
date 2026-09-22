@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import com.moblin.android.AppDelegate
 
 private const val TAG = "BlackSharkCoolerDevice"
 
@@ -46,7 +47,7 @@ enum class BlackSharkCoolerDeviceState {
 private val blackSharkCoolerServiceId: UUID by lazy { BlackSharkLib.getServiceUUID() }
 
 val blackSharkCoolerScanner = BluetoothScanner(
-    context = TODO("no Android application context available"),
+    context = AppDelegate.context,
     serviceIds = emptyList(),
 )
 

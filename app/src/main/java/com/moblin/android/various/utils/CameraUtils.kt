@@ -9,6 +9,11 @@ import kotlin.math.atan2
 import kotlin.math.ln
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
+import android.content.Context
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
+import android.os.Build
+import com.moblin.android.AppDelegate
 
 private const val CM_TIME_INVALID = Long.MIN_VALUE
 private const val CM_TIME_ONE_60TH = 1_000_000L / 60
@@ -68,8 +73,94 @@ class AVCaptureDevice {
         TODO("Camera2 temperature and tint conversion from white balance gains")
 
     companion object {
-        fun default(deviceType: DeviceType, position: Position): AVCaptureDevice? =
-            TODO("enumerate cameras through CameraX CameraSelector / CameraManager")
+        private val cameraManager: CameraManager
+            get() = AppDelegate.context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+
+        private fun physicalCameraCount(characteristics: CameraCharacteristics): Int {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+                return 1
+            }
+            return maxOf(1, characteristics.physicalCameraIds.size)
+        }
+
+        fun default(deviceType: DeviceType, position: Position): AVCaptureDevice? {
+            val facing = when (position) {
+                Position.BACK -> CameraCharacteristics.LENS_FACING_BACK
+                Position.FRONT -> CameraCharacteristics.LENS_FACING_FRONT
+                Position.UNSPECIFIED -> null
+            }
+            val wantedPhysicalCameras = when (deviceType) {
+                DeviceType.BUILT_IN_TRIPLE_CAMERA -> 3
+                DeviceType.BUILT_IN_DUAL_CAMERA, DeviceType.BUILT_IN_DUAL_WIDE_CAMERA -> 2
+                DeviceType.BUILT_IN_WIDE_ANGLE_CAMERA -> 1
+                DeviceType.BUILT_IN_ULTRA_WIDE_CAMERA, DeviceType.BUILT_IN_TELEPHOTO_CAMERA -> return null
+            }
+            val manager = cameraManager
+            val ids = runCatching { manager.cameraIdList.toList() }.getOrDefault(emptyList())
+            for (id in ids) {
+                val characteristics = runCatching { manager.getCameraCharacteristics(id) }.getOrNull() ?: continue
+                if (facing != null && characteristics.get(CameraCharacteristics.LENS_FACING) != facing) {
+                    continue
+                }
+                val physicalCameras = physicalCameraCount(characteristics)
+                if (wantedPhysicalCameras > 1 && physicalCameras < wantedPhysicalCameras) {
+                    continue
+                }
+                if (wantedPhysicalCameras == 1 && physicalCameras > 1) {
+                    continue
+                }
+                return fromCharacteristics(id, deviceType, position, characteristics)
+            }
+            if (wantedPhysicalCameras == 1) {
+                for (id in ids) {
+                    val characteristics = runCatching { manager.getCameraCharacteristics(id) }.getOrNull() ?: continue
+                    if (facing == null || characteristics.get(CameraCharacteristics.LENS_FACING) == facing) {
+                        return fromCharacteristics(id, deviceType, position, characteristics)
+                    }
+                }
+            }
+            return null
+        }
+
+        private fun fromCharacteristics(
+            id: String,
+            deviceType: DeviceType,
+            position: Position,
+            characteristics: CameraCharacteristics,
+        ): AVCaptureDevice {
+            val device = AVCaptureDevice()
+            device.deviceType = deviceType
+            device.position = position
+            device.uniqueID = id
+            device.localizedName = when (position) {
+                Position.BACK -> localized("Back camera")
+                Position.FRONT -> localized("Front camera")
+                Position.UNSPECIFIED -> localized("Camera")
+            } + " " + id
+            val format = Format()
+            characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE)?.let {
+                format.minISO = it.lower.toFloat()
+                format.maxISO = it.upper.toFloat()
+            }
+            characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE)?.let {
+                format.minExposureDuration = it.lower / 1000
+                format.maxExposureDuration = it.upper / 1000
+            }
+            device.activeFormat = format
+            device.formats = listOf(format)
+            device.activeVideoMinFrameDuration = CM_TIME_ONE_60TH * 2
+            device.activeVideoMaxFrameDuration = CM_TIME_ONE_60TH * 2
+            device.minAvailableVideoZoomFactor = 1f
+            device.maxAvailableVideoZoomFactor =
+                characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM) ?: 1f
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                characteristics.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE)?.let {
+                    device.minAvailableVideoZoomFactor = it.lower
+                    device.maxAvailableVideoZoomFactor = it.upper
+                }
+            }
+            return device
+        }
     }
 }
 
@@ -108,11 +199,13 @@ val AVCaptureDevice.fps: Pair<Double, Double>
     )
 
 fun AVCaptureDevice.setFps(frameRate: Double) {
-    TODO("Camera2 frame duration configuration")
+    activeVideoMinFrameDuration = (1_000_000.0 / frameRate).toLong()
+    activeVideoMaxFrameDuration = activeVideoMinFrameDuration
 }
 
 fun AVCaptureDevice.setAutoFps() {
-    TODO("Camera2 automatic frame rate configuration")
+    activeVideoMinFrameDuration = CM_TIME_ONE_60TH * 2
+    activeVideoMaxFrameDuration = CM_TIME_ONE_60TH * 2
 }
 
 fun AVCaptureDevice.name(): String {
@@ -234,7 +327,7 @@ private fun findBestFrontCameraId(): String {
 val bestFrontCameraId: String by lazy { findBestFrontCameraId() }
 
 fun hasAppleLog(): Boolean {
-    return TODO("no Android counterpart for Apple Log color space")
+    return false
 }
 
 fun factorToIso(device: AVCaptureDevice, factor: Float): Float {
@@ -377,6 +470,4 @@ fun calcCameraAngle(gravity: CMAcceleration, portrait: Boolean): Double {
 fun useLandscapeStreamAndPortraitUi(
     device: AVCaptureDevice?,
     isLandscapeStreamAndPortraitUi: Boolean,
-): Boolean {
-    return TODO("no Android counterpart for AVCaptureDevice.dynamicAspectRatio (iOS 26 landscape stream and portrait UI)")
-}
+): Boolean = false

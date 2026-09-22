@@ -2,8 +2,8 @@ package com.moblin.android.various.utils
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.util.Size
+import androidx.compose.ui.graphics.Color
 import com.moblin.android.view.utils.ChatLineContent
 import com.moblin.android.view.utils.ChatLineItem
 import com.moblin.android.view.utils.ChatLineTextStyle
@@ -14,16 +14,16 @@ import kotlin.test.assertNotEquals
 import org.junit.Test
 
 private fun makeView(): ChatLineUiView {
-    val view = ChatLineUiView()
+    val view = ChatLineUiView(context = TODO("Needs an Android context"))
     view.setContent(
         ChatLineContent(
             items = listOf(
                 ChatLineItem.Text(
                     "user: this is a fairly long chat message that wraps over several lines",
-                    ChatLineTextStyle(color = Color.WHITE),
+                    ChatLineTextStyle(color = Color.White),
                 ),
             ),
-            fontSize = 17,
+            fontSize = 17f,
         ),
     )
     return view

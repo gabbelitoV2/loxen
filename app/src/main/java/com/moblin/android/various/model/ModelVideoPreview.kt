@@ -6,9 +6,10 @@ import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.moblin.android.AppDelegate
 
 class VideoPreviewFeed(val cameraId: UUID, val name: String) {
-    val previewView: PreviewView = TODO("PreviewView needs an Android Context, which is not available here")
+    val previewView: PreviewView = PreviewView(AppDelegate.context)
 
     init {
         previewView.videoGravity = VideoGravity.values().first { it.rawValue == "resizeAspect" }

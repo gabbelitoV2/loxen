@@ -1,10 +1,7 @@
 package com.moblin.android.remotecontrol
 
-import com.moblin.android.various.Measurement
-import com.moblin.android.various.RunningMetrics
-import com.moblin.android.various.UnitSpeed
-import com.moblin.android.various.UnitTemperature
 import com.moblin.android.various.Variables
+import com.moblin.android.various.Variables.WorkoutDeviceRunningMetrics
 import com.moblin.android.various.managers.GForce
 import java.time.Instant
 import kotlinx.serialization.decodeFromString
@@ -32,7 +29,7 @@ class RemoteControlSuite {
         assertEquals("""{"setGimbalTracking":{"on":true}}""",
                      encode(RemoteControlRequest.SetGimbalTracking(on = true)))
         assertEquals("""{"setGimbalMovement":{"x":1,"y":-1}}""",
-                     encode(RemoteControlRequest.SetGimbalMovement(x = 1, y = -1)))
+                     encode(RemoteControlRequest.SetGimbalMovement(x = 1f, y = -1f)))
         assertEquals("""{"animateGimbal":{"motion":{"kapow":{}}}}""",
                      encode(RemoteControlRequest.AnimateGimbal(
                          motion = RemoteControlRequest.GimbalMotion.Kapow)))
@@ -229,9 +226,9 @@ class RemoteControlSuite {
         assertEquals(80.5, decoded.altitudeDescent)
         assertEquals(40.75, decoded.splitAltitudeAscent)
         assertEquals(30.25, decoded.splitAltitudeDescent)
-        assertEquals(22, decoded.temperature)
-        assertEquals(17, decoded.feelsLikeTemperature)
-        assertEquals(3, decoded.windSpeed)
+        assertEquals(22.0, decoded.temperature)
+        assertEquals(17.0, decoded.feelsLikeTemperature)
+        assertEquals(3.0, decoded.windSpeed)
         assertEquals(8.5, decoded.windGust)
         assertEquals("Sweden", decoded.country)
         assertEquals("🇸🇪", decoded.countryFlag)
@@ -246,7 +243,7 @@ class RemoteControlSuite {
         assertEquals(8000, decoded.stepCount)
         assertEquals(250, decoded.cyclingPower)
         assertEquals(90, decoded.cyclingCadence)
-        assertEquals(10, decoded.cyclingSpeed)
+        assertEquals(10.0, decoded.cyclingSpeed)
         assertEquals(1.5, decoded.gForce?.now)
         assertEquals(2.5, decoded.gForce?.recentMax)
         assertEquals(3.5, decoded.gForce?.max)
@@ -268,9 +265,9 @@ class RemoteControlSuite {
             altitudeDescent = 80.5,
             splitAltitudeAscent = 40.75,
             splitAltitudeDescent = 30.25,
-            temperature = 22,
-            feelsLikeTemperature = 17,
-            windSpeed = 3,
+            temperature = 22.0,
+            feelsLikeTemperature = 17.0,
+            windSpeed = 3.0,
             windGust = 8.5,
             country = "Sweden",
             countryFlag = "🇸🇪",
@@ -285,13 +282,13 @@ class RemoteControlSuite {
             stepCount = 8000,
             cyclingPower = 250,
             cyclingCadence = 90,
-            cyclingSpeed = 10,
+            cyclingSpeed = 10.0,
             gForce = GForce(now = 1.5, recentMax = 2.5, max = 3.5)
         )
 
     private fun createVariables(): Variables =
         Variables(
-            timestamp = Instant.now(),
+            timestamp = System.currentTimeMillis(),
             bitrate = "5000 kbps",
             bitrateAndTotal = "5000 kbps, 1.2 GB",
             bonding = "60% Cellular, 40% WiFi",
@@ -311,10 +308,10 @@ class RemoteControlSuite {
             slope = "5%",
             conditions = "sun.max",
             condition = "clear",
-            temperature = Measurement(value = 22.0, unit = UnitTemperature.celsius),
-            feelsLikeTemperature = Measurement(value = 17.0, unit = UnitTemperature.celsius),
-            windSpeed = Measurement(value = 3.0, unit = UnitSpeed.metersPerSecond),
-            windGust = Measurement(value = 8.5, unit = UnitSpeed.metersPerSecond),
+            temperature = 22.0,
+            feelsLikeTemperature = 17.0,
+            windSpeed = 3.0,
+            windGust = 8.5,
             country = "Sweden",
             countryFlag = "🇸🇪",
             state = "Skåne",
@@ -332,8 +329,8 @@ class RemoteControlSuite {
             teslaMedia = "Song",
             cyclingPower = "250 W",
             cyclingCadence = "90",
-            cyclingSpeed = 10,
-            runningMetrics = mapOf("Foot pod" to RunningMetrics(speed = 3.5, cadence = 180, distance = 4200)),
+            cyclingSpeed = 10.0,
+            runningMetrics = mapOf("Foot pod" to WorkoutDeviceRunningMetrics(speed = 3.5, cadence = 180.0, distance = 4200.0)),
             browserTitle = "Title",
             gForce = GForce(now = 1.5, recentMax = 2.5, max = 3.5),
             latestSubscriber = "Subscriber",

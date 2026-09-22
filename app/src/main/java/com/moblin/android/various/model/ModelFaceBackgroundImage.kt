@@ -3,9 +3,10 @@ package com.moblin.android.various.model
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import java.io.File
+import com.moblin.android.AppDelegate
 
 val faceBackgroundImagePath: File
-    get() = TODO("URL.documentsDirectory has no Android equivalent; resolve against context.filesDir")
+    get() = File(AppDelegate.context.filesDir, "faceBackgroundImage.img")
 
 fun Model.saveFaceBackgroundImage(data: ByteArray) {
     runCatching {

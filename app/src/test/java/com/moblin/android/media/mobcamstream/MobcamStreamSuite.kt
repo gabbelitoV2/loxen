@@ -68,8 +68,8 @@ class MobcamStreamSuite {
         val reader = MobcamStreamMessageReader()
         reader.append(
             packMobcamStreamVideoConfig(MobcamStreamVideoCodec.hevc,
-                                        1920,
-                                        1080,
+                                        1920.toUShort(),
+                                        1080.toUShort(),
                                         byteArrayOf(1, 2, 3))
         )
         reader.append(packVideoFrame(0x0102_0304_0506_0708uL, true, byteArrayOf(9, 8, 7)))
@@ -94,8 +94,8 @@ class MobcamStreamSuite {
         val reader = MobcamStreamMessageReader()
         reader.append(
             packMobcamStreamAudioConfig(MobcamStreamAudioCodec.aac,
-                                        48000,
-                                        2,
+                                        48000u,
+                                        2u,
                                         byteArrayOf(0x11, 0x90.toByte()))
         )
         reader.append(packAudioFrame(42uL, byteArrayOf(1, 2)))
@@ -118,9 +118,9 @@ class MobcamStreamSuite {
         reader.append(
             packMobcamStreamAudioConfig(
                 MobcamStreamAudioCodec.opus,
-                48000,
-                2,
-                packMobcamStreamOpusHead(48000, 2)
+                48000u,
+                2u,
+                packMobcamStreamOpusHead(48000u, 2u)
             )
         )
         val messages = readAll(reader)

@@ -1,5 +1,6 @@
 package com.moblin.android.integrations.dji.djidevice
 
+import com.moblin.android.SettingsDjiDeviceResolution
 import kotlinx.serialization.json.Json
 import kotlin.test.assertEquals
 import org.junit.Test
@@ -11,9 +12,9 @@ class DjiDeviceSuite {
     fun startStreamingOmsoPocket4() {
         val payload = DjiStartStreamingMessagePayload2(
             rtmpUrl = "rtmp://192.168.1.59/live/1",
-            resolution = DjiDeviceResolution.r1080p,
+            resolution = SettingsDjiDeviceResolution.r1080p,
             fps = 30,
-            bitrateKbps = 5000,
+            bitrateKbps = 5000u.toUShort(),
             codec = "HEVC",
             enhancedRtmp = true,
             header = DjiStartStreamingMessagePayload2.osmoPocket4Header,
@@ -47,9 +48,9 @@ class DjiDeviceSuite {
     fun startStreamingOmsoAction6() {
         val payload = DjiStartStreamingMessagePayload2(
             rtmpUrl = "rtmp://192.168.1.59/live/2",
-            resolution = DjiDeviceResolution.r720p,
+            resolution = SettingsDjiDeviceResolution.r720p,
             fps = 30,
-            bitrateKbps = 7000,
+            bitrateKbps = 7000u.toUShort(),
             codec = "AVC",
             enhancedRtmp = false,
             header = DjiStartStreamingMessagePayload2.osmoAction6Header,

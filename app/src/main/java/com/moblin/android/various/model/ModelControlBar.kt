@@ -9,7 +9,7 @@ import android.graphics.Paint
 import java.io.File
 import java.io.FileOutputStream
 
-lateinit var appContext: Context
+val appContext: Context get() = com.moblin.android.AppDelegate.context
 
 val controlBarBackgroundImagePath: File
     get() = File(appContext.filesDir, "controlBarBackgroundImage.img")

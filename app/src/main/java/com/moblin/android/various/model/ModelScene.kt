@@ -94,6 +94,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.moblin.android.AppDelegate
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
@@ -895,7 +896,7 @@ private fun Model.resetBrowserVideoEffects(widgets: List<SettingsWidget>) {
             widget = widget.browser,
             moblinAccess = widget.browser.moblinAccess,
             proxyServer = getHttpProxyServerEndpoint(),
-            context = TODO("no Android Context available")
+            context = AppDelegate.context
         )
         effect.effects = widget.getEffects(model = this).toMutableList()
         browserEffects[widget.id] = effect

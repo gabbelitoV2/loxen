@@ -256,75 +256,75 @@ class TextEffectSuite {
     @Test
     fun loadFormatSpeed() {
         val loader = TextFormatLoader()
-        var parts = loader.load(format = "{speed}")
-        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.System)), parts)
-        parts = loader.load(format = "{speed:m/s}")
-        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.MetersPerSecond)), parts)
-        parts = loader.load(format = "{speed:km/h}")
-        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.KilometersPerHour)), parts)
-        parts = loader.load(format = "{speed:mph}")
-        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.MilesPerHour)), parts)
-        parts = loader.load(format = "{speed:foo}")
+        var parts = loader.load(inputFormat = "{speed}")
+        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.fromString("")!!)), parts)
+        parts = loader.load(inputFormat = "{speed:m/s}")
+        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.fromString("m/s")!!)), parts)
+        parts = loader.load(inputFormat = "{speed:km/h}")
+        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.fromString("km/h")!!)), parts)
+        parts = loader.load(inputFormat = "{speed:mph}")
+        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.fromString("mph")!!)), parts)
+        parts = loader.load(inputFormat = "{speed:foo}")
         assertEquals(listOf(TextFormatPart.Text("{speed:foo}")), parts)
     }
 
     @Test
     fun loadFormatAverageSpeed() {
         val loader = TextFormatLoader()
-        var parts = loader.load(format = "{averagespeed}")
-        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.System)), parts)
-        parts = loader.load(format = "{averagespeed:m/s}")
-        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.MetersPerSecond)), parts)
-        parts = loader.load(format = "{averagespeed:km/h}")
-        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.KilometersPerHour)), parts)
-        parts = loader.load(format = "{averagespeed:mph}")
-        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.MilesPerHour)), parts)
-        parts = loader.load(format = "{averagespeed:foo}")
+        var parts = loader.load(inputFormat = "{averagespeed}")
+        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.fromString("")!!)), parts)
+        parts = loader.load(inputFormat = "{averagespeed:m/s}")
+        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.fromString("m/s")!!)), parts)
+        parts = loader.load(inputFormat = "{averagespeed:km/h}")
+        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.fromString("km/h")!!)), parts)
+        parts = loader.load(inputFormat = "{averagespeed:mph}")
+        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.fromString("mph")!!)), parts)
+        parts = loader.load(inputFormat = "{averagespeed:foo}")
         assertEquals(listOf(TextFormatPart.Text("{averagespeed:foo}")), parts)
     }
 
     @Test
     fun loadFormatHeartrate() {
         val loader = TextFormatLoader()
-        var parts = loader.load(format = "{heartrate}")
+        var parts = loader.load(inputFormat = "{heartrate}")
         assertEquals(listOf(TextFormatPart.HeartRate("")), parts)
-        parts = loader.load(format = "{heartrate:My device}")
+        parts = loader.load(inputFormat = "{heartrate:My device}")
         assertEquals(listOf(TextFormatPart.HeartRate("my device")), parts)
     }
 
     @Test
     fun loadFormatRunningPace() {
         val loader = TextFormatLoader()
-        var parts = loader.load(format = "{runningpace}")
+        var parts = loader.load(inputFormat = "{runningpace}")
         assertEquals(listOf(TextFormatPart.RunningPace("")), parts)
-        parts = loader.load(format = "{runningpace:My device}")
+        parts = loader.load(inputFormat = "{runningpace:My device}")
         assertEquals(listOf(TextFormatPart.RunningPace("my device")), parts)
     }
 
     @Test
     fun loadFormatRunningCadence() {
         val loader = TextFormatLoader()
-        var parts = loader.load(format = "{runningcadence}")
+        var parts = loader.load(inputFormat = "{runningcadence}")
         assertEquals(listOf(TextFormatPart.RunningCadence("")), parts)
-        parts = loader.load(format = "{runningcadence:My device}")
+        parts = loader.load(inputFormat = "{runningcadence:My device}")
         assertEquals(listOf(TextFormatPart.RunningCadence("my device")), parts)
     }
 
     @Test
     fun loadFormatRunningDistance() {
         val loader = TextFormatLoader()
-        var parts = loader.load(format = "{runningdistance}")
+        var parts = loader.load(inputFormat = "{runningdistance}")
         assertEquals(listOf(TextFormatPart.RunningDistance("")), parts)
-        parts = loader.load(format = "{runningdistance:My device}")
+        parts = loader.load(inputFormat = "{runningdistance:My device}")
         assertEquals(listOf(TextFormatPart.RunningDistance("my device")), parts)
     }
 
     @Test
     fun loadFormatSubtitles() {
         val loader = TextFormatLoader()
-        var parts = loader.load(format = "{subtitles}")
+        var parts = loader.load(inputFormat = "{subtitles}")
         assertEquals(listOf(TextFormatPart.Subtitles(null)), parts)
-        parts = loader.load(format = "{subtitles:dk}")
+        parts = loader.load(inputFormat = "{subtitles:dk}")
         assertEquals(listOf(TextFormatPart.Subtitles("dk")), parts)
     }
 
@@ -376,18 +376,18 @@ class TextEffectSuite {
             ratings = emptyList(),
             lapTimes = emptyList()
         )
-        return formatter.format(variables = variables, now = Instant.now())
+        return formatter.format(variables = variables, now = Instant.now().toEpochMilli() * 1_000_000L)
     }
 
     private fun createVariables(
         conditions: String? = null,
-        condition: Any? = null,
+        condition: String? = null,
         heartRates: Map<String, Int?> = emptyMap(),
         gForce: GForce? = null,
         systemMonitor: String = ""
     ): Variables {
         return Variables(
-            timestamp = Instant.now(),
+            timestamp = Instant.now().toEpochMilli(),
             bitrate = "",
             bitrateAndTotal = "",
             bonding = "",

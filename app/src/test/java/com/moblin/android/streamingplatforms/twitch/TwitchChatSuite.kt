@@ -29,7 +29,7 @@ private data class DelegateMessage(
     val isAction: Boolean,
 )
 
-private class Delegate : TwitchChatDelegate {
+private class TwitchChatTestDelegate : TwitchChatDelegate {
     val messages: MutableList<DelegateMessage> = mutableListOf()
 
     override fun twitchChatMakeErrorToast(title: String, subTitle: String?) {}
@@ -89,7 +89,7 @@ class TwitchChatSuite {
                 "#eerimoq " +
                 ":hi all",
         )
-        assertEquals(TwitchChatCommand.PrivateMessage, message.command)
+        assertEquals(TwitchChatCommand.privateMessage, message.command)
         assertEquals(listOf("#eerimoq", "hi all"), message.parameters)
         assertEquals("eerimoq", message.displayName)
         assertEquals("eerimoq", message.user)
@@ -133,7 +133,7 @@ class TwitchChatSuite {
                 "#eerimoq " +
                 ":the test message",
         )
-        assertEquals(TwitchChatCommand.PrivateMessage, message.command)
+        assertEquals(TwitchChatCommand.privateMessage, message.command)
         assertEquals(listOf("#eerimoq", "the test message"), message.parameters)
         assertEquals("BotRixOficial", message.displayName)
         assertEquals("botrixoficial", message.user)
@@ -221,7 +221,7 @@ class TwitchChatSuite {
                 "#eerimoq " +
                 ":[George Costanza Hello GIF by HULU]",
         )
-        assertEquals(TwitchChatCommand.PrivateMessage, message.command)
+        assertEquals(TwitchChatCommand.privateMessage, message.command)
         assertEquals(listOf("#eerimoq", "[George Costanza Hello GIF by HULU]"), message.parameters)
         assertEquals(1, message.emotes.size)
         val gif = message.emotes.first()
@@ -265,7 +265,7 @@ class TwitchChatSuite {
                 "#eerimoq " +
                 ":Kappa Keepo Kappa",
         )
-        assertEquals(TwitchChatCommand.PrivateMessage, message.command)
+        assertEquals(TwitchChatCommand.privateMessage, message.command)
         assertTrue(message.isGigantifiedEmote)
         assertEquals(3, message.emotes.size)
         assertEquals(listOf(0..4, 12..16, 6..10), message.emotes.map { it.range })
@@ -349,7 +349,7 @@ class TwitchChatSuite {
                 "#eerimoq " +
                 ":foobar",
         )
-        assertEquals(TwitchChatCommand.UserNotice, message.command)
+        assertEquals(TwitchChatCommand.userNotice, message.command)
         assertEquals(listOf("#eerimoq", "foobar"), message.parameters)
         assertEquals("eerimoq", message.displayName)
         assertEquals("eerimoq", message.user)
@@ -361,10 +361,13 @@ class TwitchChatSuite {
 
     @Test
     fun meMessageIsAction() {
-        val delegate = Delegate()
+        val delegate = TwitchChatTestDelegate()
         val chat = TwitchChat(delegate = delegate)
         chat.webSocketClientReceiveMessage(
-            WebSocketClient(url = "wss://irc-ws.chat.twitch.tv"),
+            WebSocketClient(
+                context = TODO("no Android context in a JVM unit test"),
+                url = "wss://irc-ws.chat.twitch.tv",
+            ),
             string = "@badge-info=subscriber/24;" +
                 "badges=broadcaster/1,subscriber/0,sub-gifter/1;" +
                 "client-nonce=cf55e555054a4114a1f3b40af7cc1183;" +
@@ -415,7 +418,7 @@ class TwitchChatSuite {
                 "#eerimoq " +
                 ":bye",
         )
-        assertEquals(TwitchChatCommand.ClearMsg, message.command)
+        assertEquals(TwitchChatCommand.clearMsg, message.command)
         assertEquals("8b4f-4dda-a4e6", message.targetMessageId)
     }
 
@@ -428,14 +431,14 @@ class TwitchChatSuite {
                 "#eerimoq " +
                 ":baduser",
         )
-        assertEquals(TwitchChatCommand.ClearChat, message.command)
+        assertEquals(TwitchChatCommand.clearChat, message.command)
         assertEquals("63482386", message.targetUserId)
     }
 
     @Test
     fun ping() {
         val message = TwitchChatMessage("PING :tmi.twitch.tv")
-        assertEquals(TwitchChatCommand.Ping, message.command)
+        assertEquals(TwitchChatCommand.ping, message.command)
         assertEquals(listOf("tmi.twitch.tv"), message.parameters)
     }
 

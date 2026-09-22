@@ -36,7 +36,7 @@ private fun makeTimecodes(
 
 private fun makeGenerator(base: Double = noon): MpegTsTimecodeGenerator {
     val generator = MpegTsTimecodeGenerator()
-    generator.setReference(now = base, presentationTimeStamp = 0)
+    generator.setReference(now = base, presentationTimeStamp = 0.0)
     return generator
 }
 
@@ -54,7 +54,7 @@ class MpegTsTimecodeGeneratorSuite {
         val generator = MpegTsTimecodeGenerator()
         assertEquals(false, generator.hasReference())
         assertNull(generator.makeTimecode(presentationTimeStamp(0, 30), presentationTimeStamp(0, 30)))
-        generator.setReference(now = noon, presentationTimeStamp = 0)
+        generator.setReference(now = noon, presentationTimeStamp = 0.0)
         assertEquals(true, generator.hasReference())
         assertNotNull(generator.makeTimecode(presentationTimeStamp(0, 30), presentationTimeStamp(0, 30)))
     }
@@ -83,7 +83,7 @@ class MpegTsTimecodeGeneratorSuite {
     @Test
     fun referenceIsPresentationTimeStampBaseNotTheFirstFrame() {
         val generator = MpegTsTimecodeGenerator()
-        generator.setReference(now = noon, presentationTimeStamp = 100)
+        generator.setReference(now = noon, presentationTimeStamp = 100.0)
         val timecodes = makeTimecodes(generator, 30, 1, firstFrameNumber = 30 * 110)
         assertEquals(noon + 10, timecodes[0].clock.timeIntervalSince1970)
     }

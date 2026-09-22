@@ -5,7 +5,7 @@ import java.io.File
 import kotlin.system.exitProcess
 
 internal object SimpleStorageContext {
-    lateinit var applicationContext: Context
+    val applicationContext: Context get() = com.moblin.android.AppDelegate.context
 }
 
 private fun setup(): File {

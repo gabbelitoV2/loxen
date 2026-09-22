@@ -4,16 +4,17 @@ import com.moblin.android.emoteNames
 import com.moblin.android.makeEmotes
 import com.moblin.android.texts
 import com.moblin.android.various.ChatPostSegment
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 import org.junit.Test
 
 class KickChatSegmentsSuite {
     private fun createSegments(message: String, emotes: List<String> = emptyList()): List<ChatPostSegment> {
-        var id = 0
+        val id = AtomicInteger(0)
         return createKickSegments(
             message = message,
             emotesManager = makeEmotes(emotes),
-            id = { id++ },
+            id = id,
         )
     }
 

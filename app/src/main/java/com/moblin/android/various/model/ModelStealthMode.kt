@@ -2,9 +2,10 @@ package com.moblin.android.various.model
 
 import android.graphics.BitmapFactory
 import java.io.File
+import com.moblin.android.AppDelegate
 
 val stealthModeImagePath: File
-    get() = TODO("no Android counterpart for URL.documentsDirectory: needs File(context.filesDir, \"stealthModeImage.img\")")
+    get() = File(AppDelegate.context.filesDir, "stealthModeImage.img")
 
 fun Model.setStealthMode(on: Boolean) {
     showStealthMode.value = on

@@ -31,7 +31,7 @@ sealed class FaceEffectPrivacyMode {
 
 class FaceEffect : VideoEffect() {
     private var settings = FaceEffectSettings()
-    private val moblinImage: EffectImageCgImage? = TODO("OpenGL ES port")
+    private val moblinImage: EffectImageCgImage? = null
     private var backgroundImage: EffectImageCiImage? = null
     private var iconImage: EffectImageCgImage? = null
     private var faceMasks: MutableMap<Float, Any?> = mutableMapOf()

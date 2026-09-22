@@ -6,6 +6,7 @@ import com.moblin.android.texts
 import com.moblin.android.various.ChatMessageEmote
 import com.moblin.android.various.ChatPostSegment
 import java.net.URI
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test
@@ -52,14 +53,14 @@ class TwitchChatSegmentsSuite {
     private fun createSegments(text: String,
                               emotes: List<ChatMessageEmote>,
                               thirdParty: List<String> = listOf()): List<ChatPostSegment> {
-        var id = 0
-        return createTwitchSegments(text, emotes, makeEmotes(thirdParty)) { id++ }
+        val id = AtomicInteger(0)
+        return createTwitchSegments(text, emotes, makeEmotes(thirdParty), id)
     }
 
     private fun createSegments(fragments: List<TwitchEventSubMessageFragment>,
                               thirdParty: List<String> = listOf()): List<ChatPostSegment> {
-        var id = 0
-        return createTwitchSegments(fragments, makeEmotes(thirdParty)) { id++ }
+        val id = AtomicInteger(0)
+        return createTwitchSegments(fragments, makeEmotes(thirdParty), id)
     }
 
     @Test
@@ -71,22 +72,22 @@ class TwitchChatSegmentsSuite {
 
     @Test
     fun fragmentsWithEmoteInTheMiddle() {
-        val segments = createSegments([
+        val segments = createSegments(listOf(
             textFragment("hi "),
             emoteFragment("Kappa", id = "25"),
             textFragment(" lol"),
-        ])
+        ))
         assertEquals(listOf<String?>("hi ", null, "", "lol "), texts(segments))
         assertEquals(listOf<String?>(null, "25", null, null), twitchEmoteIds(segments))
     }
 
     @Test
     fun fragmentsWithAdjacentEmotes() {
-        val segments = createSegments([
+        val segments = createSegments(listOf(
             emoteFragment("Kappa", id = "25"),
             textFragment(" "),
             emoteFragment("PogChamp", id = "305954156"),
-        ])
+        ))
         assertEquals(listOf<String?>(null, "", null, ""), texts(segments))
         assertEquals(listOf<String?>("25", null, "305954156", null), twitchEmoteIds(segments))
     }
@@ -102,22 +103,22 @@ class TwitchChatSegmentsSuite {
 
     @Test
     fun fragmentsWithMentionAndCheermoteAreText() {
-        val segments = createSegments([
+        val segments = createSegments(listOf(
             TwitchEventSubMessageFragment(type = "mention", text = "@Viewer", emote = null),
             textFragment(" "),
             TwitchEventSubMessageFragment(type = "cheermote", text = "Cheer100", emote = null),
-        ])
+        ))
         assertEquals(listOf<String?>("@Viewer ", "Cheer100 "), texts(segments))
         assertEquals(listOf<String?>(null, null), twitchEmoteIds(segments))
     }
 
     @Test
     fun fragmentIdsAreUnique() {
-        val segments = createSegments([
+        val segments = createSegments(listOf(
             textFragment("a "),
             emoteFragment("Kappa", id = "25"),
             textFragment(" LUL b"),
-        ], thirdParty = listOf("LUL"))
+        ), thirdParty = listOf("LUL"))
         assertEquals(segments.size, segments.map { it.id }.toSet().size)
     }
 
@@ -158,20 +159,20 @@ class TwitchChatSegmentsSuite {
 
     @Test
     fun adjacentEmotes() {
-        val segments = createSegments("KappaLUL", [
+        val segments = createSegments("KappaLUL", listOf(
             makeTwitchEmote("Kappa", 0..4),
             makeTwitchEmote("LUL", 5..7),
-        ])
+        ))
         assertEquals(listOf<String?>(null, "", null, ""), texts(segments))
         assertEquals(listOf<String?>("Kappa", null, "LUL", null), emoteNames(segments))
     }
 
     @Test
     fun unsortedEmotes() {
-        val segments = createSegments("Kappa a LUL", [
+        val segments = createSegments("Kappa a LUL", listOf(
             makeTwitchEmote("LUL", 8..10),
             makeTwitchEmote("Kappa", 0..4),
-        ])
+        ))
         assertEquals(listOf<String?>(null, "", "a ", null, ""), texts(segments))
         assertEquals(listOf<String?>("Kappa", null, null, "LUL", null), emoteNames(segments))
     }
@@ -201,10 +202,10 @@ class TwitchChatSegmentsSuite {
 
     @Test
     fun gifAfterEmote() {
-        val segments = createSegments("Kappa [gif]", [
+        val segments = createSegments("Kappa [gif]", listOf(
             makeTwitchGif("hello", 6..10),
             makeTwitchEmote("Kappa", 0..4),
-        ])
+        ))
         assertEquals(listOf<String?>(null, "", null, ""), texts(segments))
         assertEquals(listOf<String?>("Kappa", null, null, null), emoteNames(segments))
         assertEquals(listOf<String?>(null, null, "hello", null), gifNames(segments))
@@ -236,10 +237,10 @@ class TwitchChatSegmentsSuite {
 
     @Test
     fun overlappingRangesKeepTheFirstEmote() {
-        val segments = createSegments("aa Kappa bb", [
+        val segments = createSegments("aa Kappa bb", listOf(
             makeTwitchEmote("Kappa", 3..7),
             makeTwitchEmote("Overlapping", 5..9),
-        ])
+        ))
         assertEquals(listOf<String?>("aa ", null, "", "bb "), texts(segments))
         assertEquals(listOf<String?>(null, "Kappa", null, null), emoteNames(segments))
     }

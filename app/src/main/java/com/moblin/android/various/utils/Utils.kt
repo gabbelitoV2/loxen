@@ -28,6 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import okhttp3.Request
+import com.moblin.android.AppDelegate
 
 fun randomBytes(length: Int): ByteArray = ByteArray(length) { Random.nextInt(0, 256).toByte() }
 
@@ -233,8 +234,7 @@ fun makeUniqueName(name: String, existingNames: List<Named>): String {
     }
 }
 
-fun createSpeechSynthesizer(): TextToSpeech =
-    TODO("no Android counterpart for AVSpeechSynthesizer; use android.speech.tts.TextToSpeech with a Context")
+fun createSpeechSynthesizer(): TextToSpeech = TextToSpeech(AppDelegate.context) { }
 
 fun makeRecordingPath(recordingPath: ByteArray): String? =
     TODO("no Android counterpart for URL(resolvingBookmarkData:)")

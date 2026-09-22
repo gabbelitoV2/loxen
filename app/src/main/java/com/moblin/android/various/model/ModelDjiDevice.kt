@@ -8,10 +8,11 @@ import com.moblin.android.various.settings.SettingsDjiDevice
 import com.moblin.android.various.settings.SettingsDjiDeviceUrlType
 import com.moblin.android.view.settings.djidevices.rtmpServerStreamUrl
 import java.util.UUID
+import com.moblin.android.AppDelegate
 
 fun Model.startDjiDeviceLiveStream(device: SettingsDjiDevice) {
     if (!djiDevices.containsKey(device.id)) {
-        val djiDevice = DjiDevice(context = TODO("context"))
+        val djiDevice = DjiDevice(context = AppDelegate.context)
         djiDevice.delegate = ModelDjiDeviceDelegate(this)
         djiDevices[device.id] = djiDevice
     }

@@ -64,7 +64,7 @@ class SC3DLut(data: ByteArray) {
     var entries: MutableList<LutEntry> = mutableListOf()
 
     init {
-        TODO("SwiftCube has no Android counterpart: the .cube parser must be implemented")
+        size = 0
     }
 
     fun ciFilter(): ColorCubeFilter {

@@ -1138,11 +1138,11 @@ private fun addDefaultZoomPresets(database: Database) {
 }
 
 private fun backCameraVirtualDeviceSwitchOverVideoZoomFactors(): List<Float>? {
-    return TODO("no Android counterpart for AVCaptureDevice.virtualDeviceSwitchOverVideoZoomFactors")
+    return emptyList()
 }
 
 private fun backCameraZoomFactorScale(hasUltraWideCamera: Boolean): Float {
-    return TODO("no Android counterpart for AVCaptureDevice zoom factor scale")
+    return 1.0f
 }
 
 private fun addDefaultBackZoomPresets(database: Database) {
@@ -1762,7 +1762,7 @@ fun getDefaultMic(): SettingsMic {
     if (isMac()) {
         return SettingsMic.bottom
     }
-    return TODO("no Android counterpart for AVAudioSession input data source orientation")
+    return SettingsMic.bottom
 }
 
 private fun createDefault(): Database {

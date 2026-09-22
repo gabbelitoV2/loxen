@@ -91,13 +91,13 @@ class MacrosSettingsViewSuite {
 
     private fun makeAction(): SettingsMacrosAction {
         val action = SettingsMacrosAction()
-        action.function = SettingsMacrosActionFunction.snapshot
+        action.function = SettingsMacrosActionFunction.SNAPSHOT
         return action
     }
 
     private fun makeIfAction(runCount: Int): SettingsMacrosAction {
         val action = SettingsMacrosAction()
-        action.function = SettingsMacrosActionFunction.ifCondition
+        action.function = SettingsMacrosActionFunction.IF_CONDITION
         action.ifRunCount = runCount
         return action
     }

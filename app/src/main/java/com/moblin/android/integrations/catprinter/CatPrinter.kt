@@ -22,6 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import com.moblin.android.AppDelegate
 
 private const val catPrinterLogTag = "CatPrinter"
 
@@ -86,7 +87,7 @@ private class CurrentJob(
 private val catPrinterServices = listOf(UUID.fromString("0000af30-0000-1000-8000-00805f9b34fb"))
 
 val catPrinterScanner = BluetoothScanner(
-    context = TODO("BluetoothScanner needs a Context, which is not available here"),
+    context = AppDelegate.context,
     serviceIds = catPrinterServices,
 )
 

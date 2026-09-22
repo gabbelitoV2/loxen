@@ -19,7 +19,7 @@ import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-private lateinit var applicationContext: Context
+private val applicationContext: Context get() = com.moblin.android.AppDelegate.context
 
 class Moblink {
     var streamer: MoblinkStreamer? = null

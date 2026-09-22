@@ -71,6 +71,7 @@ import java.net.URI
 import java.time.Instant
 import java.time.ZoneId
 import java.util.UUID
+import com.moblin.android.AppDelegate
 
 class RemoteControl {
     val general = MutableStateFlow<RemoteControlStatusGeneral?>(null)
@@ -425,7 +426,7 @@ fun Model.reloadRemoteControlRelay() {
         URI("ws://localhost:${database.remoteControl.assistant.port}")
     }.getOrNull() ?: return
     remoteControlRelay = RemoteControlRelay(
-        context = TODO("Android context"),
+        context = AppDelegate.context,
         baseUrl = database.remoteControl.assistant.relay.baseUrl,
         bridgeId = database.remoteControl.assistant.relay.bridgeId,
         assistantUrl = assistantUrl.toString()
@@ -1156,7 +1157,7 @@ fun Model.remoteControlStreamerImportSettings(settings: ByteArray, onCompleted: 
         onCompleted(false)
         return
     }
-    importSettingsFromData(context = TODO("Android context"), settings = settings) { onCompleted(it) }
+    importSettingsFromData(context = AppDelegate.context, settings = settings) { onCompleted(it) }
 }
 
 fun Model.remoteControlAssistantConnected() {

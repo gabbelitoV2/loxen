@@ -48,7 +48,7 @@ class MapEffect(private var widget: SettingsWidgetMap) : VideoEffect() {
 
     init {
         this.widget = widget.clone()
-        dot = TODO("load the MapDot drawable and convert it to EffectImageCgImage")
+        dot = null
     }
 
     fun zoomOutTemporarily() {

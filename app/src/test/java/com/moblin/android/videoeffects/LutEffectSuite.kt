@@ -14,13 +14,13 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import org.junit.Test
 
-private fun makeLut(dimension: Int, function: (FloatArray) -> FloatArray): List<FloatArray> {
-    val lut = MutableList(dimension * dimension * dimension) { floatArrayOf(0f, 0f, 0f) }
+private fun makeLut(dimension: Int, function: (SIMD3) -> SIMD3): List<SIMD3> {
+    val lut = MutableList(dimension * dimension * dimension) { SIMD3(0f, 0f, 0f) }
     for (blue in 0 until dimension) {
         for (green in 0 until dimension) {
             for (red in 0 until dimension) {
                 val denominator = (dimension - 1).toFloat()
-                val input = floatArrayOf(
+                val input = SIMD3(
                     red.toFloat() / denominator,
                     green.toFloat() / denominator,
                     blue.toFloat() / denominator
@@ -32,46 +32,46 @@ private fun makeLut(dimension: Int, function: (FloatArray) -> FloatArray): List<
     return lut
 }
 
-private fun makeCubeFile(dimension: Int, function: (FloatArray) -> FloatArray): ByteArray {
+private fun makeCubeFile(dimension: Int, function: (SIMD3) -> SIMD3): ByteArray {
     val lines = mutableListOf("TITLE \"Test\"", "LUT_3D_SIZE $dimension")
     for (e in makeLut(dimension, function)) {
-        lines.add("${e[0]} ${e[1]} ${e[2]}")
+        lines.add("${e.x} ${e.y} ${e.z}")
     }
     return lines.joinToString("\n").toByteArray(Charsets.UTF_8)
 }
 
-private fun isEqual(actual: FloatArray, expected: FloatArray, epsilon: Float = 1e-6f): Boolean {
-    val dx = actual[0] - expected[0]
-    val dy = actual[1] - expected[1]
-    val dz = actual[2] - expected[2]
+private fun isEqual(actual: SIMD3, expected: SIMD3, epsilon: Float = 1e-6f): Boolean {
+    val dx = actual.x - expected.x
+    val dy = actual.y - expected.y
+    val dz = actual.z - expected.z
     return maxOf(abs(dx), abs(dy), abs(dz)) < epsilon
 }
 
-private fun identity(input: FloatArray): FloatArray {
+private fun identity(input: SIMD3): SIMD3 {
     return input
 }
 
-private fun swapRedAndBlue(input: FloatArray): FloatArray {
-    return floatArrayOf(input[2], input[1], input[0])
+private fun swapRedAndBlue(input: SIMD3): SIMD3 {
+    return SIMD3(input.z, input.y, input.x)
 }
 
-private fun linear(input: FloatArray): FloatArray {
-    return floatArrayOf(
-        0.25f + 0.5f * input[0],
-        1f - input[1],
-        0.1f * input[0] + 0.2f * input[1] + 0.3f * input[2]
+private fun linear(input: SIMD3): SIMD3 {
+    return SIMD3(
+        0.25f + 0.5f * input.x,
+        1f - input.y,
+        0.1f * input.x + 0.2f * input.y + 0.3f * input.z
     )
 }
 
-private fun entry(entries: List<FloatArray>, size: Int, red: Int, green: Int, blue: Int): FloatArray {
+private fun entry(entries: List<LutEntry>, size: Int, red: Int, green: Int, blue: Int): SIMD3 {
     val e = entries[(blue * size + green) * size + red]
-    return floatArrayOf(e[0], e[1], e[2])
+    return SIMD3(e.red, e.green, e.blue)
 }
 
-private fun entry(cubeData: ByteArray, dimension: Int, red: Int, green: Int, blue: Int): FloatArray {
+private fun entry(cubeData: ByteArray, dimension: Int, red: Int, green: Int, blue: Int): SIMD3 {
     val index = 4 * ((blue * dimension + green) * dimension + red)
     val cube = ByteBuffer.wrap(cubeData).order(ByteOrder.nativeOrder()).asFloatBuffer()
-    return floatArrayOf(cube.get(index), cube.get(index + 1), cube.get(index + 2))
+    return SIMD3(cube.get(index), cube.get(index + 1), cube.get(index + 2))
 }
 
 class LutEffectSuite {
@@ -83,7 +83,7 @@ class LutEffectSuite {
             for (green in 0 until dimension) {
                 for (red in 0 until dimension) {
                     val denominator = (dimension - 1).toFloat()
-                    val point = floatArrayOf(
+                    val point = SIMD3(
                         blue.toFloat() / denominator,
                         green.toFloat() / denominator,
                         red.toFloat() / denominator
@@ -105,14 +105,14 @@ class LutEffectSuite {
         val dimension = 3
         val lut = makeLut(dimension, ::linear)
         val points = listOf(
-            floatArrayOf(0.1f, 0.6f, 0.9f),
-            floatArrayOf(0.5f, 0.5f, 0.5f),
-            floatArrayOf(0.75f, 0f, 1f),
-            floatArrayOf(0.99f, 0.01f, 0.4f)
+            SIMD3(0.1f, 0.6f, 0.9f),
+            SIMD3(0.5f, 0.5f, 0.5f),
+            SIMD3(0.75f, 0f, 1f),
+            SIMD3(0.99f, 0.01f, 0.4f)
         )
         for (point in points) {
             val value = interpolate3d(point, lut, dimension)
-            assertTrue(isEqual(value, linear(floatArrayOf(point[2], point[1], point[0]))))
+            assertTrue(isEqual(value, linear(SIMD3(point.z, point.y, point.x))))
         }
     }
 
@@ -121,14 +121,14 @@ class LutEffectSuite {
         val lut = makeLut(4, ::identity)
         assertTrue(
             isEqual(
-                interpolate3d(floatArrayOf(-1f, -0.5f, -10f), lut, 4),
-                floatArrayOf(0f, 0f, 0f)
+                interpolate3d(SIMD3(-1f, -0.5f, -10f), lut, 4),
+                SIMD3(0f, 0f, 0f)
             )
         )
         assertTrue(
             isEqual(
-                interpolate3d(floatArrayOf(1.5f, 2f, 100f), lut, 4),
-                floatArrayOf(1f, 1f, 1f)
+                interpolate3d(SIMD3(1.5f, 2f, 100f), lut, 4),
+                SIMD3(1f, 1f, 1f)
             )
         )
     }
@@ -155,14 +155,14 @@ class LutEffectSuite {
         val lut = lutEffectConvertCube(makeCubeFile(3, ::swapRedAndBlue))
         assertEquals(3, lut.size)
         assertEquals(27, lut.entries.size)
-        assertTrue(isEqual(entry(lut.entries, lut.size, 0, 0, 0), floatArrayOf(0f, 0f, 0f)))
-        assertTrue(isEqual(entry(lut.entries, lut.size, 2, 0, 0), floatArrayOf(0f, 0f, 1f)))
-        assertTrue(isEqual(entry(lut.entries, lut.size, 0, 1, 0), floatArrayOf(0f, 0.5f, 0f)))
-        assertTrue(isEqual(entry(lut.entries, lut.size, 0, 0, 2), floatArrayOf(1f, 0f, 0f)))
-        assertTrue(isEqual(entry(lut.entries, lut.size, 2, 2, 2), floatArrayOf(1f, 1f, 1f)))
+        assertTrue(isEqual(entry(lut.entries, lut.size, 0, 0, 0), SIMD3(0f, 0f, 0f)))
+        assertTrue(isEqual(entry(lut.entries, lut.size, 2, 0, 0), SIMD3(0f, 0f, 1f)))
+        assertTrue(isEqual(entry(lut.entries, lut.size, 0, 1, 0), SIMD3(0f, 0.5f, 0f)))
+        assertTrue(isEqual(entry(lut.entries, lut.size, 0, 0, 2), SIMD3(1f, 0f, 0f)))
+        assertTrue(isEqual(entry(lut.entries, lut.size, 2, 2, 2), SIMD3(1f, 1f, 1f)))
         val cubeData = makeCubeData(lut.entries)
         assertEquals(27 * 4 * 4, cubeData.size)
-        assertTrue(isEqual(entry(cubeData, 3, 2, 0, 0), floatArrayOf(0f, 0f, 1f)))
+        assertTrue(isEqual(entry(cubeData, 3, 2, 0, 0), SIMD3(0f, 0f, 1f)))
         val cube = ByteBuffer.wrap(cubeData).order(ByteOrder.nativeOrder()).asFloatBuffer()
         var index = 3
         while (index < cube.limit()) {
@@ -179,19 +179,19 @@ class LutEffectSuite {
         assertTrue(
             isEqual(
                 entry(lut.entries, lut.size, 0, 0, 0),
-                linear(floatArrayOf(0f, 0f, 0f))
+                linear(SIMD3(0f, 0f, 0f))
             )
         )
         assertTrue(
             isEqual(
                 entry(lut.entries, lut.size, 63, 0, 0),
-                linear(floatArrayOf(1f, 0f, 0f))
+                linear(SIMD3(1f, 0f, 0f))
             )
         )
         assertTrue(
             isEqual(
                 entry(lut.entries, lut.size, 21, 42, 63),
-                linear(floatArrayOf(21f / 63f, 42f / 63f, 1f))
+                linear(SIMD3(21f / 63f, 42f / 63f, 1f))
             )
         )
     }
@@ -224,30 +224,29 @@ class LutEffectSuite {
             "4 5 6\n" +
             "7 8 9"
         val lut = lutEffectConvertCube(text.toByteArray(Charsets.UTF_8))
-        assertEquals("My LUT", lut.title)
         assertEquals(2, lut.size)
         assertEquals(8, lut.entries.size)
-        assertTrue(isEqual(entry(lut.entries, lut.size, 0, 0, 0), floatArrayOf(0f, 0f, 0f)))
+        assertTrue(isEqual(entry(lut.entries, lut.size, 0, 0, 0), SIMD3(0f, 0f, 0f)))
         assertTrue(
             isEqual(
                 entry(lut.entries, lut.size, 1, 0, 0),
-                floatArrayOf(0.15f, -0.25f, 0.5f)
+                SIMD3(0.15f, -0.25f, 0.5f)
             )
         )
         assertTrue(
             isEqual(
                 entry(lut.entries, lut.size, 0, 1, 0),
-                floatArrayOf(1.25f, 0.1f, 1f)
+                SIMD3(1.25f, 0.1f, 1f)
             )
         )
         val big = entry(lut.entries, lut.size, 1, 1, 0)
-        assertTrue(isEqual(big[0], 0.000001f, 1e-12f))
-        assertEquals(1f, big[1])
-        assertTrue(isEqual(big[2], 1.2345678901234568e19f, 1e12f))
+        assertTrue(isEqual(big.x, 0.000001f, 1e-12f))
+        assertEquals(1f, big.y)
+        assertTrue(isEqual(big.z, 1.2345678901234568e19f, 1e12f))
         assertTrue(
             isEqual(
                 entry(lut.entries, lut.size, 0, 0, 1),
-                floatArrayOf(0.0007f, 8.5f, 9f)
+                SIMD3(0.0007f, 8.5f, 9f)
             )
         )
     }

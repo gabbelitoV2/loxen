@@ -1,8 +1,8 @@
 package com.moblin.android.media.adaptivebitrate
 
-import com.moblin.android.common.various.sleep
-import kotlinx.coroutines.test.runTest
-import org.junit.Test
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -16,8 +16,8 @@ private class Handler : AdaptiveBitrateDelegate {
 
 private fun makeStats(bitrate: Long): StreamStats {
     return StreamStats(
-        rttMs = 30,
-        packetsInFlight = 15,
+        rttMs = 30.0,
+        packetsInFlight = 15.0,
         transportBitrate = bitrate,
         latency = 3000,
         mbpsSendRate = bitrate.toDouble(),
@@ -26,13 +26,13 @@ private fun makeStats(bitrate: Long): StreamStats {
 }
 
 private suspend fun update(belabox: AdaptiveBitrateSrtBelabox, bitrate: Long) {
-    sleep(milliSeconds = 20)
+    delay(20)
     belabox.update(stats = makeStats(bitrate = bitrate))
 }
 
 class AdaptiveBitrateSuite {
     @Test
-    fun belaboxStartAtLowerThanTarget() = runTest {
+    fun belaboxStartAtLowerThanTarget() = runBlocking {
         val handler = Handler()
         val belabox = AdaptiveBitrateSrtBelabox(targetBitrate = 5_000_000, delegate = handler)
         belabox.setSettings(settings = adaptiveBitrateBelaboxSettings)
@@ -44,7 +44,7 @@ class AdaptiveBitrateSuite {
     }
 
     @Test
-    fun belaboxTransportBitrateLimit() = runTest {
+    fun belaboxTransportBitrateLimit() = runBlocking {
         val handler = Handler()
         val belabox = AdaptiveBitrateSrtBelabox(targetBitrate = 5_000_000, delegate = handler)
         belabox.setSettings(settings = adaptiveBitrateBelaboxSettings)

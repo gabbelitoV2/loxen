@@ -4,13 +4,14 @@ import com.moblin.android.emoteNames
 import com.moblin.android.makeEmotes
 import com.moblin.android.texts
 import com.moblin.android.various.ChatPostSegment
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test
 
 class EmotesSuite {
     private fun createSegments(text: String, emotes: List<String> = emptyList()): List<ChatPostSegment> {
-        return makeEmotes(emotes).createSegments(text, 0).first
+        return makeEmotes(emotes).createSegments(text, AtomicInteger(0))
     }
 
     @Test
@@ -84,11 +85,9 @@ class EmotesSuite {
 
     @Test
     fun idsContinueFromCaller() {
-        var id = 7
-        val result = makeEmotes(emptyList()).createSegments("a b", id)
-        val segments = result.first
-        id = result.second
+        val id = AtomicInteger(7)
+        val segments = makeEmotes(emptyList()).createSegments("a b", id)
         assertEquals(listOf(7, 8), segments.map { it.id })
-        assertEquals(9, id)
+        assertEquals(9, id.get())
     }
 }

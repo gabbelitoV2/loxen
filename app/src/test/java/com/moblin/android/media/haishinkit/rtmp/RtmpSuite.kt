@@ -6,6 +6,8 @@ import com.moblin.android.media.haishinkit.rtmp.amf.AsObject
 import com.moblin.android.media.haishinkit.rtmp.amf.AsValue
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpCommandMessage
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpCommandName
+import com.moblin.android.media.haishinkit.rtmp.message.RtmpMessageType
+import kotlinx.coroutines.Dispatchers
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test
@@ -41,13 +43,13 @@ class RtmpSuite {
     private fun makeConnectResultChunkData(): ByteArray {
         return RtmpChunk(
             message = RtmpCommandMessage(
-                streamId = 0,
+                streamId = 0u,
                 transactionId = 1,
-                commandType = RtmpChunkType.amf0Command,
+                commandType = RtmpMessageType.amf0Command,
                 commandName = RtmpCommandName.result,
                 commandObject = null,
                 arguments = mutableListOf(
-                    AsObject(
+                    AsValue.Object(
                         mutableMapOf(
                             "code" to AsValue.String("NetConnection.Connect.Success"),
                         ),
@@ -59,7 +61,7 @@ class RtmpSuite {
 
     @Test
     fun connectResultInOneRead() {
-        val connection = RtmpConnection(name = "test")
+        val connection = RtmpConnection(name = "test", queue = Dispatchers.Unconfined)
         var arguments: List<AsValue>? = null
         connection.callCompletions[1] = { arguments = it }
         assertTrue(connection.socketDataReceived(makeConnectResultChunkData()).isEmpty())
@@ -68,7 +70,7 @@ class RtmpSuite {
 
     @Test
     fun connectResultSplitAfterChunkHeader() {
-        val connection = RtmpConnection(name = "test")
+        val connection = RtmpConnection(name = "test", queue = Dispatchers.Unconfined)
         var arguments: List<AsValue>? = null
         connection.callCompletions[1] = { arguments = it }
         val data = makeConnectResultChunkData()

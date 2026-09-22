@@ -46,10 +46,18 @@ private class RecorderTester(private val toneTime: Double) : RecorderDelegate, A
         recorder.startRunning(
             url = url,
             replay = false,
-            audioOutputSettings = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, 48000, 0),
-            videoOutputSettings = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, 0, 0),
+            audioOutputSettings = mapOf(
+                MediaFormat.KEY_MIME to MediaFormat.MIMETYPE_AUDIO_AAC,
+                MediaFormat.KEY_SAMPLE_RATE to 48000,
+                MediaFormat.KEY_CHANNEL_COUNT to 0,
+            ),
+            videoOutputSettings = mapOf(
+                MediaFormat.KEY_MIME to MediaFormat.MIMETYPE_VIDEO_AVC,
+                MediaFormat.KEY_WIDTH to 0,
+                MediaFormat.KEY_HEIGHT to 0,
+            ),
         )
-        processorPipelineQueue.submit(Runnable {}).get()
+        runBlocking { withContext(processorPipelineQueue.coroutineContext) {} }
         appendSampleBuffers(recorder, audioDelay)
         recorder.stopRunning()
         if (!finished.await(10, TimeUnit.SECONDS)) {

@@ -36,6 +36,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.moblin.android.AppDelegate
 
 fun Model.updateViewersKick(): StreamingPlatformStatus {
     val platformStatus = kickPlatformStatus?.platformStatus
@@ -126,7 +127,7 @@ fun Model.reloadKickPusher() {
         chatroomChannelId != null
     ) {
         val pusher = KickPusher(
-            context = TODO("no Android counterpart for context"),
+            context = AppDelegate.context,
             delegate = KickPusherDelegateAdapter(this),
             channelName = stream.value.kickChannelName,
             channelId = channelId,

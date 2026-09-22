@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import com.moblin.android.AppDelegate
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
@@ -51,7 +52,7 @@ fun Model.loadWebBrowserPage(url: String) {
 fun Model.getWebBrowser(): WebView {
     (webBrowser as? WebView)?.let { return it }
     val model = this
-    val browser = WebView(TODO("android.webkit.WebView requires a Context to be constructed"))
+    val browser = WebView(AppDelegate.context)
     browser.settings.javaScriptCanOpenWindowsAutomatically = true
     browser.settings.mediaPlaybackRequiresUserGesture = false
     TODO("no Android counterpart for WKWebViewConfiguration.setHttpProxy")

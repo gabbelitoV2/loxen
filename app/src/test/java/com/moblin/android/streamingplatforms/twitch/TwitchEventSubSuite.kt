@@ -4,7 +4,7 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
-private class Delegate : TwitchEventSubDelegate {
+private class EventSubTestDelegate : TwitchEventSubDelegate {
     val follows = mutableListOf<TwitchEventSubNotificationChannelFollowEvent>()
     val subscribes = mutableListOf<TwitchEventSubNotificationChannelSubscribeEvent>()
     val resubscribes = mutableListOf<TwitchEventSubNotificationChannelSubscriptionMessageEvent>()
@@ -214,14 +214,20 @@ private fun chatNotification(
     """
 }
 
-private fun makeEventSub(delegate: Delegate): TwitchEventSub {
-    return TwitchEventSub(remoteControl = true, userId = "111", accessToken = "", delegate = delegate)
+private fun makeEventSub(delegate: EventSubTestDelegate): TwitchEventSub {
+    return TwitchEventSub(
+        context = TODO("no Android Context available in unit tests"),
+        remoteControl = true,
+        userId = "111",
+        accessToken = "",
+        delegate = delegate,
+    )
 }
 
 class TwitchEventSubSuite {
     @Test
     fun sub() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "sub",
             shared = false,
@@ -236,7 +242,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun sharedChatSub() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "shared_chat_sub",
             shared = true,
@@ -252,7 +258,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun sharedChatResub() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "shared_chat_resub",
             shared = true,
@@ -276,7 +282,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun resubMessageFragments() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "resub",
             shared = false,
@@ -311,7 +317,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun sharedChatCommunitySubGift() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "shared_chat_community_sub_gift",
             shared = true,
@@ -326,7 +332,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun sharedChatSubGiftPartOfCommunityGiftIsIgnored() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "shared_chat_sub_gift",
             shared = true,
@@ -347,7 +353,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun sharedChatGiftPaidUpgrade() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "shared_chat_gift_paid_upgrade",
             shared = true,
@@ -361,7 +367,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun sharedChatRaid() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "shared_chat_raid",
             shared = true,
@@ -385,7 +391,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun invalidJsonIsIgnored() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         val eventSub = makeEventSub(delegate)
         eventSub.handleMessage(messageText = "not json")
         eventSub.handleMessage(messageText = "{}")
@@ -396,7 +402,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun keepaliveAndUnknownMessageTypesAreIgnored() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         val eventSub = makeEventSub(delegate)
         eventSub.handleMessage(messageText = """
         {
@@ -416,7 +422,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun unknownNotificationTypeStillForwardsRawMessage() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         val message = notification(subscriptionType = "channel.unknown", event = """{"foo": 1}""")
         makeEventSub(delegate).handleMessage(messageText = message)
         assertEquals(listOf(message), delegate.notifications)
@@ -424,7 +430,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun notificationWithoutSubscriptionTypeStillForwardsRawMessage() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         val message = """
         {
           "metadata": {"message_id": "1", "message_type": "notification"},
@@ -437,7 +443,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun undecodableNotificationIsDroppedWithoutForwarding() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = notification(
             subscriptionType = "channel.follow",
             event = """{"user_login": "viewer"}"""
@@ -448,7 +454,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun follow() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         val message = notification(
             subscriptionType = "channel.follow",
             event = """
@@ -471,7 +477,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun channelPointsCustomRewardRedemptionAdd() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = notification(
             subscriptionType = "channel.channel_points_custom_reward_redemption.add",
             event = """
@@ -499,7 +505,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun channelRaid() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = notification(
             subscriptionType = "channel.raid",
             event = """
@@ -524,7 +530,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun channelCheer() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = notification(
             subscriptionType = "channel.cheer",
             event = """
@@ -549,7 +555,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun anonymousChannelCheer() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = notification(
             subscriptionType = "channel.cheer",
             event = """
@@ -573,7 +579,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun hypeTrain() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         val eventSub = makeEventSub(delegate)
         eventSub.handleMessage(messageText = notification(
             subscriptionType = "channel.hype_train.begin",
@@ -638,7 +644,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun adBreakBegin() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = notification(
             subscriptionType = "channel.ad_break.begin",
             event = """
@@ -662,7 +668,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun pollBeginProgressEnd() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         val eventSub = makeEventSub(delegate)
         eventSub.handleMessage(messageText = notification(
             subscriptionType = "channel.poll.begin",
@@ -723,7 +729,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun predictionBeginProgressLockEnd() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         val eventSub = makeEventSub(delegate)
         eventSub.handleMessage(messageText = notification(
             subscriptionType = "channel.prediction.begin",
@@ -802,7 +808,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun moderateRaid() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = notification(
             subscriptionType = "channel.moderate",
             event = """
@@ -825,7 +831,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun moderateOtherAction() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = notification(
             subscriptionType = "channel.moderate",
             event = """
@@ -845,7 +851,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun subWithChatterColorAndBadges() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "sub",
             shared = false,
@@ -862,7 +868,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun subWithMissingPayloadIsIgnored() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "sub",
             shared = false,
@@ -874,7 +880,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun resub() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "resub",
             shared = false,
@@ -899,7 +905,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun subGift() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "sub_gift",
             shared = false,
@@ -924,7 +930,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun subGiftPartOfCommunityGiftIsIgnored() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "sub_gift",
             shared = false,
@@ -945,7 +951,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun communitySubGift() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "community_sub_gift",
             shared = false,
@@ -959,7 +965,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun anonymousCommunitySubGift() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "community_sub_gift",
             shared = false,
@@ -976,7 +982,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun anonymousSubHasEmptyUserName() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "sub",
             shared = false,
@@ -991,7 +997,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun primePaidUpgrade() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "prime_paid_upgrade",
             shared = false,
@@ -1006,7 +1012,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun sharedChatPrimePaidUpgrade() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "shared_chat_prime_paid_upgrade",
             shared = true,
@@ -1019,7 +1025,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun giftPaidUpgrade() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "gift_paid_upgrade",
             shared = false,
@@ -1040,7 +1046,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun watchStreak() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "watch_streak",
             shared = false,
@@ -1056,7 +1062,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun unknownNoticeTypeIsIgnored() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         val message = chatNotification(
             noticeType = "announcement",
             shared = false,
@@ -1074,7 +1080,7 @@ class TwitchEventSubSuite {
 
     @Test
     fun sharedChatSourceRequiresBothIdAndName() {
-        val delegate = Delegate()
+        val delegate = EventSubTestDelegate()
         makeEventSub(delegate).handleMessage(messageText = chatNotification(
             noticeType = "sub",
             shared = false,

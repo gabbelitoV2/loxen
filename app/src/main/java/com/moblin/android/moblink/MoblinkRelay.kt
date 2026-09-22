@@ -569,6 +569,6 @@ class MoblinkRelayServer(
         get() = applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     companion object {
-        lateinit var applicationContext: Context
+        val applicationContext: Context get() = com.moblin.android.AppDelegate.context
     }
 }

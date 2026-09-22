@@ -37,6 +37,7 @@ import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
+import com.moblin.android.AppDelegate
 
 private const val deltaLimit = 0.03
 
@@ -221,8 +222,8 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     init {
         val effectsProcessor = VideoEffectsProcessor()
         this.effectsProcessor = effectsProcessor
-        snapshots = VideoSnapshots(context = effectsProcessor.context as Context)
-        lowFpsImage = VideoLowFpsImage(context = effectsProcessor.context ?: TODO("no Android counterpart for CIContext"))
+        snapshots = VideoSnapshots(context = AppDelegate.context)
+        lowFpsImage = VideoLowFpsImage(context = AppDelegate.context)
         pixelTransferSession = null
         captureSession.delegate = this
         startFrameTimer()

@@ -1,7 +1,6 @@
 package com.moblin.android.media.haishinkit.srt
 
 import com.moblin.android.MessageQueue
-import java.time.Instant
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -50,7 +49,7 @@ class SrtSenderSuite {
     @Test
     fun connectDisconnect() {
         runBlocking {
-            val sender = SrtSender(streamId = "1234", latency = 2000, experimental = false)
+            val sender = SrtSender(streamId = "1234", latency = 2000u, experimental = false)
             val model = ModelMock()
             sender.delegate = model
             sender.start()
@@ -59,7 +58,7 @@ class SrtSenderSuite {
             checkConclusionHandshake(model.waitForPacket())
             sender.input(createConclusionHandshake())
             model.waitForConnected()
-            sender.send(now = Instant.now().plusSeconds(6))
+            sender.send(now = System.nanoTime() + 6_000_000_000L)
             model.waitForDisconnected()
         }
     }

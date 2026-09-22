@@ -75,6 +75,9 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
+import com.moblin.android.AppDelegate
+import android.os.BatteryManager
+import android.content.Context
 
 private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -284,9 +287,7 @@ class Battery {
 
 class StatusOther {
     val ipStatuses = MutableStateFlow<List<IPMonitor.Status>>(emptyList())
-    val thermalState = MutableStateFlow<MoblinkThermalState>(
-        TODO("no Android counterpart for ProcessInfo.thermalState; use PowerManager.getCurrentThermalStatus"),
-    )
+    val thermalState = MutableStateFlow(MoblinkThermalState.white)
     val digitalClock = MutableStateFlow(noValue)
 
     fun isConnectedToIpv4WiFi(): Boolean = ipStatuses.value.any {
@@ -597,9 +598,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var nextWatchChatPostId = 1
     var previousBitrateStatusColorSrtDroppedPacketsTotal: Int = 0
     var previousBitrateStatusNumberOfFailedEncodings = 0
-    val streamPreviewView = PreviewView(context = TODO("no Android application context available"))
-    val externalDisplayStreamPreviewView = PreviewView(context = TODO("no Android application context available"))
-    val cameraPreviewView = CameraPreviewUiView(context = TODO("no Android application context available"))
+    val streamPreviewView = PreviewView(context = AppDelegate.context)
+    val externalDisplayStreamPreviewView = PreviewView(context = AppDelegate.context)
+    val cameraPreviewView = CameraPreviewUiView(context = AppDelegate.context)
     val videoPreview = VideoPreviewProvider()
     var pipController: Any? = null
     var textEffects: MutableMap<UUID, TextEffect> = mutableMapOf()
@@ -767,7 +768,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var products: MutableMap<String, Any> = mutableMapOf()
     var streamTotalBytes: Long = 0
     var fileLog = createFileLog()
-    private var ipMonitor = IPMonitor(context = TODO("no Android application context available"))
+    private var ipMonitor = IPMonitor(context = AppDelegate.context)
     var faceEffect = FaceEffect()
     var movieEffect = MovieEffect()
     var whirlpoolEffect = WhirlpoolEffect(angle = (Math.PI / 2).toFloat())
@@ -786,11 +787,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var sparkleEffect: AlertsEffect? = null
     var beautyEffect = BeautyEffect(fps = 30f)
     var replayEffect: ReplayEffect? = null
-    var locationManager = Location(context = TODO("no Android application context available"))
+    var locationManager = Location(context = AppDelegate.context)
     var realtimeIrl: RealtimeIrl? = null
     var supportsAppleLog: Boolean = false
     val weatherManager = WeatherManager()
-    val geographyManager = GeographyManager(context = TODO("no Android application context available"))
+    val geographyManager = GeographyManager(context = AppDelegate.context)
     var onDocumentPickerUrl: ((String) -> Unit)? = null
     var healthStore: Any? = null
     private val resourceUsage = ResourceUsage()
@@ -2551,7 +2552,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun isBatteryCharging(): Boolean =
         battery.state.value == BatteryState.charging || battery.state.value == BatteryState.full
 
-    private fun getBatteryLevel(): Double = TODO("no Android counterpart for UIDevice.batteryLevel")
+    private fun getBatteryLevel(): Double {
+        val manager = AppDelegate.context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        return manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY) / 100.0
+    }
 
     private fun getBatteryState(): BatteryState =
         TODO("no Android counterpart for UIDevice.batteryState")

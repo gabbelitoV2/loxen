@@ -1,64 +1,99 @@
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt:19:78 Unresolved reference 'blur'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt:281:67 Unresolved reference 'blurAndZoom'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt:372:71 Unresolved reference 'blurAndZoom'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/media/haishinkit/srt/SrtStreamOfficial.kt:93:34 Type mismatch: inferred type is 'MpegTsWriter', but 'AudioVideoEncoderDelegate' was expected.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/Model.kt:2415:76 Unresolved reference 'plusSeconds'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelGameController.kt:120:38 Unresolved reference 'setSelectedId'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelLocation.kt:47:20 None of the following candidates is applicable:
-fun <T : Any, R : ClosedRange<T>, Iterable<T>> R.contains(element: T?): Boolean
-fun <T : Any, R : OpenEndRange<T>, Iterable<T>> R.contains(element: T?): Boolean
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelStream.kt:1091:20 Unresolved reference 'numberOfFailedEncodings'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelStream.kt:1101:56 Unresolved reference 'numberOfFailedEncodings'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelVariables.kt:35:31 Unresolved reference 'currentWeather'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelVariables.kt:36:30 Unresolved reference 'currentWeather'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelVariables.kt:37:32 Unresolved reference 'currentWeather'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelVariables.kt:38:41 Unresolved reference 'currentWeather'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelVariables.kt:39:30 Unresolved reference 'currentWeather'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelVariables.kt:40:29 Unresolved reference 'currentWeather'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelVideoPreview.kt:35:76 Argument type mismatch: actual type is 'Any?', but 'CaptureDevice?' was expected.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt:31:36 Unresolved reference 'StreamingPlatform'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt:70:39 Unresolved reference 'StreamingPlatform'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt:118:45 Unresolved reference 'getOrNull'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt:120:49 Unresolved reference 'items'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt:120:61 Unresolved reference 'it'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt:182:83 Unresolved reference 'StreamingPlatform'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt:218:43 Unresolved reference 'getOrNull'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt:222:45 Method 'iterator()' is ambiguous for this expression. Applicable candidates:
-fun <T> Enumeration<T>.iterator(): Iterator<T>
-fun <T> Iterator<T>.iterator(): Iterator<T>
-fun <K, V> Map<out K, V>.iterator(): Iterator<Map.Entry<K, V>>
-fun <K, V> MutableMap<K, V>.iterator(): MutableIterator<MutableMap.MutableEntry<K, V>>
-fun CharSequence.iterator(): CharIterator
-fun BufferedInputStream.iterator(): ByteIterator
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt:222:45 Unresolved reference 'items'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt:231:43 Unresolved reference 'items'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt:249:39 Unresolved reference 'StreamingPlatform'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt:84:49 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt:85:53 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt:142:49 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt:143:53 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt:201:49 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt:202:53 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt:259:49 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt:260:53 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt:398:49 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt:399:53 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsTwitchSettingsView.kt:100:49 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsTwitchSettingsView.kt:101:53 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsTwitchSettingsView.kt:165:49 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsTwitchSettingsView.kt:166:53 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsTwitchSettingsView.kt:233:49 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsTwitchSettingsView.kt:234:53 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsTwitchSettingsView.kt:382:49 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/alerts/WidgetAlertsTwitchSettingsView.kt:383:53 Unresolved reference 'color'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/workoutdevices/WorkoutDeviceSettingsView.kt:115:31 Unresolved reference 'id'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/stream/overlay/right/SceneSelectorView.kt:127:21 Argument type mismatch: actual type is 'Unit', but 'Void' was expected.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/stream/overlay/right/SceneSelectorView.kt:184:21 Argument type mismatch: actual type is 'Unit', but 'Void' was expected.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceSuite.kt:3:27 Unresolved reference 'SettingsDjiDeviceResolution'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceSuite.kt:15:26 Unresolved reference 'SettingsDjiDeviceResolution'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceSuite.kt:51:26 Unresolved reference 'SettingsDjiDeviceResolution'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/integrations/gopro/GoProBleProtocolSuite.kt:4:27 Unresolved reference 'settings'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/integrations/gopro/GoProBleProtocolSuite.kt:5:27 Unresolved reference 'settings'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/integrations/gopro/GoProBleProtocolSuite.kt:67:30 Unresolved reference 'SettingsGoProLaunchLiveStreamResolution'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/integrations/gopro/GoProBleProtocolSuite.kt:69:24 Unresolved reference 'SettingsGoProLens'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/integrations/gopro/GoProBleProtocolSuite.kt:77:30 Unresolved reference 'SettingsGoProLaunchLiveStreamResolution'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/integrations/gopro/GoProBleProtocolSuite.kt:79:24 Unresolved reference 'SettingsGoProLens'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:7:57 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:241:29 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:242:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:243:45 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:243:48 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:244:44 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:244:47 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:245:51 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:245:54 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:258:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:262:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:276:44 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:283:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:284:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:296:29 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:297:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:298:45 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:298:48 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:299:44 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:299:47 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:300:51 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:300:54 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:314:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:318:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:322:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:360:41 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:361:47 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:362:39 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:365:29 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:366:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:367:45 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:367:48 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:368:44 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:368:47 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:369:51 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:369:54 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:370:54 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:370:57 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:383:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:387:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:401:44 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:408:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:409:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:421:29 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:422:33 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:423:45 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:423:48 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:424:44 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:424:47 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:425:51 Cannot infer type for this parameter. Specify it explicitly.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:425:54 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:439:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:443:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:447:26 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:682:18 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:683:18 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:684:18 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:685:46 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:685:63 Unresolved reference 'value'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:687:18 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:688:18 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:689:18 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:690:18 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:691:18 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:692:18 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt:693:18 Unresolved reference 'AsValue'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/remotecontrol/RemoteControlSuite.kt:4:45 Unresolved reference 'WorkoutDeviceRunningMetrics'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/remotecontrol/RemoteControlSuite.kt:35:56 Unresolved reference 'GimbalMotion'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/remotecontrol/RemoteControlSuite.kt:333:50 Unresolved reference 'WorkoutDeviceRunningMetrics'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/ChatBotCommandSuite.kt:3:27 Unresolved reference 'settings'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/ChatBotCommandSuite.kt:144:24 Unresolved reference 'Platform'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt:3:27 Unresolved reference 'chat'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt:33:42 Unresolved reference 'ChatPostSegment'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt:39:42 Unresolved reference 'ChatPostSegment'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt:45:42 Unresolved reference 'ChatPostSegment'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt:51:42 Unresolved reference 'ChatPostSegment'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt:59:21 Unresolved reference 'ChatPostSegment'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt:60:21 Unresolved reference 'ChatPostSegment'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt:61:21 Unresolved reference 'ChatPostSegment'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt:69:21 Unresolved reference 'ChatPostSegment'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt:70:21 Unresolved reference 'ChatPostSegment'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/test/java/com/moblin/android/various/settings/SettingsSuite.kt:71:21 Unresolved reference 'ChatPostSegment'.
 
 FAILURE: Build failed with an exception.
 
 * What went wrong:
-Execution failed for task ':app:compileDebugKotlin'.
+Execution failed for task ':app:compileDebugUnitTestKotlin'.
 > A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
    > Compilation error. See log for more details
 
@@ -68,4 +103,4 @@ Execution failed for task ':app:compileDebugKotlin'.
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 27s
+BUILD FAILED in 21s

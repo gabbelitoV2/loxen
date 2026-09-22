@@ -41,7 +41,7 @@ class NalUnitSeiSuite {
     @Test
     fun hevcTimeCodePayloadDecode() {
         val reader = NalUnitReader(data = byteArrayOf(0x70, 0x40, 0x3F, 0x11, 0x30, 0x10))
-        val timeCode = HevcSeiPayloadTimeCode(reader = reader)
+        val timeCode = HevcSeiPayloadTimeCode.from(reader)!!
         assertEquals(12.toUByte(), timeCode.hours)
         assertEquals(34.toUByte(), timeCode.minutes)
         assertEquals(56.toUByte(), timeCode.seconds)
@@ -62,7 +62,7 @@ class NalUnitSeiSuite {
                 clock = clock(hours, minutes, seconds),
                 frame = frame.toUInt()
             ).encode()
-            val decoded = HevcSeiPayloadTimeCode(reader = NalUnitReader(data = encoded))
+            val decoded = HevcSeiPayloadTimeCode.from(NalUnitReader(data = encoded))!!
             assertEquals(hours.toUByte(), decoded.hours)
             assertEquals(minutes.toUByte(), decoded.minutes)
             assertEquals(seconds.toUByte(), decoded.seconds)
@@ -84,21 +84,21 @@ class NalUnitSeiSuite {
     @Test
     fun hevcNalUnitRoundTrip() {
         val timeCode = HevcSeiPayloadTimeCode(clock = clock(12, 34, 56), frame = 7u)
-        val sei = HevcNalUnitSei(payload = HevcNalUnitSeiPayload.timeCode(timeCode))
+        val sei = HevcNalUnitSei(payload = HevcNalUnitSeiPayload.TimeCode(timeCode))
         val encoded = HevcNalUnit(
             type = HevcNalUnitType.prefixSeiNut,
-            temporalIdPlusOne = 1,
+            temporalIdPlusOne = 1.toUByte(),
             payload = HevcNalUnitPayload.prefixSeiNut(sei)
         ).encode()
         assertContentEquals(byteArrayOf(0x4E, 0x01), encoded.copyOfRange(0, 2))
         assertEquals(136.toByte(), encoded[2])
         assertEquals(6.toByte(), encoded[3])
-        val decoded = HevcNalUnit(data = encoded, offset = 0)
+        val decoded = HevcNalUnit(data = encoded, offset = 0)!!
         assertEquals(HevcNalUnitType.prefixSeiNut, decoded.header.type)
-        assertEquals(1, decoded.header.temporalIdPlusOne)
-        val decodedSei = (decoded.payload as? HevcNalUnitPayload.prefixSeiNut)?.sei
+        assertEquals(1.toUByte(), decoded.header.temporalIdPlusOne)
+        val decodedSei = (decoded.payload as? HevcNalUnitPayload.prefixSeiNut)?.payload
             ?: fail("Not a time code SEI")
-        val decodedTimeCode = (decodedSei.payload as? HevcNalUnitSeiPayload.timeCode)?.timeCode
+        val decodedTimeCode = (decodedSei.payload as? HevcNalUnitSeiPayload.TimeCode)?.payload
             ?: fail("Not a time code SEI")
         assertEquals(12.toUByte(), decodedTimeCode.hours)
         assertEquals(34.toUByte(), decodedTimeCode.minutes)
@@ -109,10 +109,10 @@ class NalUnitSeiSuite {
     @Test
     fun hevcNalUnitEmulationPreventionByteInserted() {
         val timeCode = HevcSeiPayloadTimeCode(clock = clock(0, 0, 0), frame = 0u)
-        val sei = HevcNalUnitSei(payload = HevcNalUnitSeiPayload.timeCode(timeCode))
+        val sei = HevcNalUnitSei(payload = HevcNalUnitSeiPayload.TimeCode(timeCode))
         val encoded = HevcNalUnit(
             type = HevcNalUnitType.prefixSeiNut,
-            temporalIdPlusOne = 1,
+            temporalIdPlusOne = 1.toUByte(),
             payload = HevcNalUnitPayload.prefixSeiNut(sei)
         ).encode()
         assertContentEquals(
@@ -127,10 +127,10 @@ class NalUnitSeiSuite {
     @Test
     fun hevcNalUnitNoEmulationPreventionByteOnTheHour() {
         val timeCode = HevcSeiPayloadTimeCode(clock = clock(12, 0, 0), frame = 0u)
-        val sei = HevcNalUnitSei(payload = HevcNalUnitSeiPayload.timeCode(timeCode))
+        val sei = HevcNalUnitSei(payload = HevcNalUnitSeiPayload.TimeCode(timeCode))
         val encoded = HevcNalUnit(
             type = HevcNalUnitType.prefixSeiNut,
-            temporalIdPlusOne = 1,
+            temporalIdPlusOne = 1.toUByte(),
             payload = HevcNalUnitPayload.prefixSeiNut(sei)
         ).encode()
         assertContentEquals(
@@ -155,16 +155,16 @@ class NalUnitSeiSuite {
                 clock = clock(hours, minutes, seconds),
                 frame = frame.toUInt()
             )
-            val sei = HevcNalUnitSei(payload = HevcNalUnitSeiPayload.timeCode(timeCode))
+            val sei = HevcNalUnitSei(payload = HevcNalUnitSeiPayload.TimeCode(timeCode))
             val encoded = HevcNalUnit(
                 type = HevcNalUnitType.prefixSeiNut,
-                temporalIdPlusOne = 1,
+                temporalIdPlusOne = 1.toUByte(),
                 payload = HevcNalUnitPayload.prefixSeiNut(sei)
             ).encode()
-            val decoded = HevcNalUnit(data = encoded, offset = 0)
-            val decodedSei = (decoded.payload as? HevcNalUnitPayload.prefixSeiNut)?.sei
+            val decoded = HevcNalUnit(data = encoded, offset = 0)!!
+            val decodedSei = (decoded.payload as? HevcNalUnitPayload.prefixSeiNut)?.payload
                 ?: fail("Not a time code SEI")
-            val decodedTimeCode = (decodedSei.payload as? HevcNalUnitSeiPayload.timeCode)?.timeCode
+            val decodedTimeCode = (decodedSei.payload as? HevcNalUnitSeiPayload.TimeCode)?.payload
                 ?: fail("Not a time code SEI")
             assertEquals(hours.toUByte(), decodedTimeCode.hours)
             assertEquals(minutes.toUByte(), decodedTimeCode.minutes)
@@ -185,15 +185,15 @@ class NalUnitSeiSuite {
                 clock = clock(hours, minutes, seconds),
                 frame = frame.toUInt()
             )
-            val sei = AvcNalUnitSei(payload = AvcNalUnitSeiPayload.pictureTiming(pictureTiming))
-            val encoded = AvcNalUnit(type = AvcNalUnitType.sei, payload = AvcNalUnitPayload.sei(sei)).encode()
+            val sei = AvcNalUnitSei(payload = AvcNalUnitSeiPayload.PictureTiming(pictureTiming))
+            val encoded = AvcNalUnit(type = AvcNalUnitType.sei, payload = AvcNalUnitPayload.Sei(sei)).encode()
             assertEquals(6.toByte(), encoded[0])
             assertEquals(1.toByte(), encoded[1])
-            val decoded = AvcNalUnit(data = encoded, offset = 0)
+            val decoded = AvcNalUnit.create(data = encoded, offset = 0)!!
             assertEquals(AvcNalUnitType.sei, decoded.header.type)
-            val decodedSei = (decoded.payload as? AvcNalUnitPayload.sei)?.sei
+            val decodedSei = (decoded.payload as? AvcNalUnitPayload.Sei)?.sei
                 ?: fail("Not a picture timing SEI")
-            val decodedPictureTiming = (decodedSei.payload as? AvcNalUnitSeiPayload.pictureTiming)?.pictureTiming
+            val decodedPictureTiming = (decodedSei.payload as? AvcNalUnitSeiPayload.PictureTiming)?.value
                 ?: fail("Not a picture timing SEI")
             assertEquals(hours.toUByte(), decodedPictureTiming.hours)
             assertEquals(minutes.toUByte(), decodedPictureTiming.minutes)

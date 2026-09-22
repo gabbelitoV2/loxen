@@ -12,16 +12,16 @@ class SettingsMoblinkSuite {
     fun relayUrlWithoutSchemeIsReplacedWithDefault() {
         val payload = """{"enabled": true, "name": "Relay", "url": "//1.2.3.4:5678", "manual": true}"""
         val relay = json.decodeFromString<SettingsMoblinkRelay>(payload)
-        assertTrue(relay.enabled)
-        assertEquals("Relay", relay.name)
-        assertEquals("", relay.url)
-        assertTrue(relay.manual)
+        assertTrue(relay.enabled.value)
+        assertEquals("Relay", relay.name.value)
+        assertEquals("", relay.url.value)
+        assertTrue(relay.manual.value)
     }
 
     @Test
     fun validRelayUrlIsKept() {
         val payload = """{"url": "ws://1.2.3.4:5678"}"""
         val relay = json.decodeFromString<SettingsMoblinkRelay>(payload)
-        assertEquals("ws://1.2.3.4:5678", relay.url)
+        assertEquals("ws://1.2.3.4:5678", relay.url.value)
     }
 }

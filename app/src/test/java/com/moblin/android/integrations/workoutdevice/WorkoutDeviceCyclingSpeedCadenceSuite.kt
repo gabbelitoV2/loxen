@@ -45,8 +45,8 @@ class WorkoutDeviceCyclingSpeedCadenceSuite {
         val measurement = device.handleMeasurement(
             value = crankMeasurement(revolutions = 10u, eventTime = 1024u)
         )
-        assertNull(measurement.cadence)
-        assertNull(measurement.speed)
+        assertNull(measurement.second)
+        assertNull(measurement.first)
     }
 
     @Test
@@ -56,7 +56,7 @@ class WorkoutDeviceCyclingSpeedCadenceSuite {
         val measurement = device.handleMeasurement(
             value = crankMeasurement(revolutions = 13u, eventTime = 3072u)
         )
-        assertEquals(90.0, measurement.cadence)
+        assertEquals(90, measurement.second)
     }
 
     @Test
@@ -66,7 +66,7 @@ class WorkoutDeviceCyclingSpeedCadenceSuite {
         val measurement = device.handleMeasurement(
             value = crankMeasurement(revolutions = 0u, eventTime = (65000u + 1024u).toUShort())
         )
-        assertEquals(60.0, measurement.cadence)
+        assertEquals(60, measurement.second)
     }
 
     @Test
@@ -77,7 +77,7 @@ class WorkoutDeviceCyclingSpeedCadenceSuite {
         val measurement = device.handleMeasurement(
             value = crankMeasurement(revolutions = 11u, eventTime = 2048u)
         )
-        assertEquals(60.0, measurement.cadence)
+        assertEquals(60, measurement.second)
     }
 
     @Test
@@ -87,8 +87,8 @@ class WorkoutDeviceCyclingSpeedCadenceSuite {
         val measurement = device.handleMeasurement(
             value = crankMeasurement(revolutions = 11u, eventTime = 2048u)
         )
-        assertEquals(60.0, measurement.cadence)
-        assertNull(measurement.speed)
+        assertEquals(60, measurement.second)
+        assertNull(measurement.first)
     }
 
     @Test
@@ -99,8 +99,8 @@ class WorkoutDeviceCyclingSpeedCadenceSuite {
         val measurement = device.handleMeasurement(
             value = wheelMeasurement(revolutions = 105u, eventTime = 2048u)
         )
-        assertNull(measurement.cadence)
-        assertTrue(isEqual(requireNotNull(measurement.speed), 10.0, 0.001))
+        assertNull(measurement.second)
+        assertTrue(isEqual(requireNotNull(measurement.first), 10.0, 0.001))
     }
 
     @Test
@@ -119,8 +119,8 @@ class WorkoutDeviceCyclingSpeedCadenceSuite {
             crankRevolutions = 11u,
             crankEventTime = 2048u
         ))
-        assertEquals(60.0, measurement.cadence)
-        assertTrue(isEqual(requireNotNull(measurement.speed), 10.0, 0.001))
+        assertEquals(60, measurement.second)
+        assertTrue(isEqual(requireNotNull(measurement.first), 10.0, 0.001))
     }
 
     @Test
@@ -133,7 +133,7 @@ class WorkoutDeviceCyclingSpeedCadenceSuite {
         val measurement = device.handleMeasurement(
             value = wheelMeasurement(revolutions = 4u, eventTime = 2048u)
         )
-        assertTrue(isEqual(requireNotNull(measurement.speed), 10.0, 0.001))
+        assertTrue(isEqual(requireNotNull(measurement.first), 10.0, 0.001))
     }
 
     @Test

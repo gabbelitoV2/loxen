@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 class ImageEffect(imageStorage: ImageStorage, widgetId: UUID) : VideoEffect() {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
-    private val filter: Any? = TODO("OpenGL ES port: CIFilter.sourceOverCompositing")
+    private val filter: Any? = null
     private var originalImage: EffectImageCiImage? = null
     private var sceneWidget: SettingsSceneWidget? = null
 

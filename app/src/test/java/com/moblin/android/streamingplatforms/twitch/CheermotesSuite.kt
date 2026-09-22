@@ -50,19 +50,19 @@ class CheermotesSuite {
         val cheermotes = makeCheermotes(linkedMapOf("cheer" to listOf(1, 100, 1000, 5000)))
         assertEquals(
             "1",
-            assertNotNull(cheermotes.getUrlAndBits("cheer1")).first.path.substringAfterLast("/")
+            assertNotNull(cheermotes.getUrlAndBits("cheer1")).first.toString().substringAfterLast("/")
         )
         assertEquals(
             "100",
-            assertNotNull(cheermotes.getUrlAndBits("cheer500")).first.path.substringAfterLast("/")
+            assertNotNull(cheermotes.getUrlAndBits("cheer500")).first.toString().substringAfterLast("/")
         )
         assertEquals(
             "1000",
-            assertNotNull(cheermotes.getUrlAndBits("cheer1000")).first.path.substringAfterLast("/")
+            assertNotNull(cheermotes.getUrlAndBits("cheer1000")).first.toString().substringAfterLast("/")
         )
         assertEquals(
             "5000",
-            assertNotNull(cheermotes.getUrlAndBits("cheer99999")).first.path.substringAfterLast("/")
+            assertNotNull(cheermotes.getUrlAndBits("cheer99999")).first.toString().substringAfterLast("/")
         )
     }
 

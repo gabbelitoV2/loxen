@@ -66,7 +66,7 @@ fragment float4 live2DMaskFragment(Live2DVaryings in [[stage_in]],
 }
 """
 
-private val library: Any? = TODO("OpenGL ES port: Metal shader library")
+private val library: Any? = null
 
 private data class Live2DVertexUniforms(
     val scale: FloatArray,

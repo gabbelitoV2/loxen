@@ -30,6 +30,7 @@ import kotlinx.serialization.json.JsonObject
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import com.moblin.android.AppDelegate
 
 val iconWidth: Float = 32.0f
 val controlBarButtonSize: Float = 40.0f
@@ -40,14 +41,14 @@ val controlBarQuickButtonNameSingleColumnSize: Float = 12.0f
 val controlBarQuickButtonSingleQuickButtonSize: Float = 60.0f
 val stealthModeButtonSize: Float = 80.0f
 val maximumNumberOfWatchChatMessages: Int = 50
-val heartRateType: Any = TODO("no Android counterpart for HealthKit")
-val distanceCyclingType: Any = TODO("no Android counterpart for HealthKit")
-val distanceWalkingRunningType: Any = TODO("no Android counterpart for HealthKit")
-val stepCountType: Any = TODO("no Android counterpart for HealthKit")
-val activeEnergyBurnedType: Any = TODO("no Android counterpart for HealthKit")
-val runningPowerType: Any = TODO("no Android counterpart for HealthKit")
-val cyclingPowerType: Any = TODO("no Android counterpart for HealthKit")
-val cyclingCadenceType: Any = TODO("no Android counterpart for HealthKit")
+val heartRateType: Any = "heartRate"
+val distanceCyclingType: Any = "distanceCycling"
+val distanceWalkingRunningType: Any = "distanceWalkingRunning"
+val stepCountType: Any = "stepCount"
+val activeEnergyBurnedType: Any = "activeEnergyBurned"
+val runningPowerType: Any = "runningPower"
+val cyclingPowerType: Any = "cyclingPower"
+val cyclingCadenceType: Any = "cyclingCadence"
 val personalHotspotLocalAddress: String = "172.20.10.1"
 val backgroundColor: Color = Color(0.0f, 0.0f, 0.0f, 0.4f)
 val scoreboardBlueColor: Color = RgbColor(red = 0x0B, green = 0x10, blue = 0xAC).color()
@@ -287,7 +288,8 @@ fun ThermalState.string(): String {
 }
 
 fun appVersion(): String {
-    return TODO("BuildConfig.VERSION_NAME")
+    val context = AppDelegate.context
+    return runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }.getOrNull() ?: "0.0"
 }
 
 fun <T : Number> formatOneDecimal(value: T): String {

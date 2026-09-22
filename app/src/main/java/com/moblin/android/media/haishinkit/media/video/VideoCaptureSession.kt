@@ -127,10 +127,6 @@ class VideoCaptureSession {
             setTorchMode(device, CaptureRequest.FLASH_MODE_TORCH)
         }
 
-    init {
-        TODO("no Android counterpart for the AVCaptureSessionRuntimeError notification; register a CameraDevice.StateCallback instead")
-    }
-
     fun startRunning() {
         isRunning = true
         addSessionObservers()

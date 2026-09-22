@@ -12,21 +12,21 @@ class CameraUtilsSuite {
 
     @Test
     fun factorEndsAreFastestAndSlowestExposures() {
-        assertEquals(cmTime(value = 1, timescale = 1000), factorToExposure(exposures = exposures, factor = 0.0))
-        assertEquals(cmTime(value = 1, timescale = 60), factorToExposure(exposures = exposures, factor = 1.0))
-        assertEquals(cmTime(value = 1, timescale = 250), factorToExposure(exposures = exposures, factor = 0.5))
+        assertEquals(cmTime(value = 1, timescale = 1000), factorToExposure(exposures = exposures, factor = 0f))
+        assertEquals(cmTime(value = 1, timescale = 60), factorToExposure(exposures = exposures, factor = 1f))
+        assertEquals(cmTime(value = 1, timescale = 250), factorToExposure(exposures = exposures, factor = 0.5f))
     }
 
     @Test
     fun factorOutsideRangeIsClamped() {
-        assertEquals(cmTime(value = 1, timescale = 1000), factorToExposure(exposures = exposures, factor = -1.0))
-        assertEquals(cmTime(value = 1, timescale = 60), factorToExposure(exposures = exposures, factor = 2.0))
+        assertEquals(cmTime(value = 1, timescale = 1000), factorToExposure(exposures = exposures, factor = -1f))
+        assertEquals(cmTime(value = 1, timescale = 60), factorToExposure(exposures = exposures, factor = 2f))
     }
 
     @Test
     fun factorSnapsToNearestExposure() {
-        assertEquals(cmTime(value = 1, timescale = 500), factorToExposure(exposures = exposures, factor = 0.3))
-        assertEquals(cmTime(value = 1, timescale = 250), factorToExposure(exposures = exposures, factor = 0.6))
+        assertEquals(cmTime(value = 1, timescale = 500), factorToExposure(exposures = exposures, factor = 0.3f))
+        assertEquals(cmTime(value = 1, timescale = 250), factorToExposure(exposures = exposures, factor = 0.6f))
     }
 
     @Test
@@ -49,23 +49,23 @@ class CameraUtilsSuite {
 
     @Test
     fun invalidExposureIsFastest() {
-        assertEquals(0.0, factorFromExposure(exposures = exposures, exposure = 0L))
-        assertEquals(0.0, factorFromExposure(exposures = exposures, exposure = invalidExposure))
+        assertEquals(0f, factorFromExposure(exposures = exposures, exposure = 0L))
+        assertEquals(0f, factorFromExposure(exposures = exposures, exposure = invalidExposure))
     }
 
     @Test
     fun stepIsOnePerExposure() {
-        assertEquals(0.25, exposureFactorStep(exposures = exposures))
-        assertEquals(1.0, exposureFactorStep(exposures = listOf(cmTime(value = 1, timescale = 60))))
-        assertEquals(1.0, exposureFactorStep(exposures = emptyList<Long>()))
+        assertEquals(0.25f, exposureFactorStep(exposures = exposures))
+        assertEquals(1f, exposureFactorStep(exposures = listOf(cmTime(value = 1, timescale = 60))))
+        assertEquals(1f, exposureFactorStep(exposures = emptyList<Long>()))
     }
 
     @Test
     fun singleExposureIsAlwaysUsed() {
         val exposures = listOf(cmTime(value = 1, timescale = 30))
-        assertEquals(cmTime(value = 1, timescale = 30), factorToExposure(exposures = exposures, factor = 0.0))
-        assertEquals(cmTime(value = 1, timescale = 30), factorToExposure(exposures = exposures, factor = 1.0))
-        assertEquals(0.0, factorFromExposure(exposures = exposures, exposure = cmTime(value = 1, timescale = 30)))
+        assertEquals(cmTime(value = 1, timescale = 30), factorToExposure(exposures = exposures, factor = 0f))
+        assertEquals(cmTime(value = 1, timescale = 30), factorToExposure(exposures = exposures, factor = 1f))
+        assertEquals(0f, factorFromExposure(exposures = exposures, exposure = cmTime(value = 1, timescale = 30)))
     }
 
     @Test

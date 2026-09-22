@@ -27,6 +27,7 @@ import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
+import com.moblin.android.AppDelegate
 
 private const val TAG = "Model"
 
@@ -94,7 +95,7 @@ fun Model.reloadTwitchEventSub() {
             remoteControl = useRemoteControlForChatAndEvents,
             userId = stream.value.twitchChannelId,
             accessToken = stream.value.twitchAccessToken,
-            context = TODO("no Android context available"),
+            context = AppDelegate.context,
             delegate = TODO("no Android counterpart for TwitchEventSubDelegate conformance")
         )
         twitchEventSub!!.start()

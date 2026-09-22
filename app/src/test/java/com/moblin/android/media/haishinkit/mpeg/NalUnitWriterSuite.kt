@@ -17,9 +17,9 @@ class NalUnitWriterSuite {
     @Test
     fun writeBitsAcrossByteBoundary() {
         val writer = NalUnitWriter()
-        writer.writeBits(0x0B, 4)
-        writer.writeBits(0x04, 4)
-        writer.writeBitsU32(0x1234, 16)
+        writer.writeBits(0x0B.toUByte(), 4)
+        writer.writeBits(0x04.toUByte(), 4)
+        writer.writeBitsU32(0x1234u, 16)
         assertContentEquals(
             byteArrayOf(0xB4.toByte(), 0x12.toByte(), 0x34.toByte()),
             writer.data,
@@ -118,8 +118,8 @@ class NalUnitWriterSuite {
             writer.data,
         )
         val reader = NalUnitReader(writer.data)
-        assertEquals(0xAB, reader.readBits(8))
-        assertEquals(0x000001, reader.readBitsU32(24))
-        assertEquals(0x000030, reader.readBitsU32(24))
+        assertEquals(0xAB, reader.readBits(8).toInt())
+        assertEquals(0x000001, reader.readBitsU32(24).toInt())
+        assertEquals(0x000030, reader.readBitsU32(24).toInt())
     }
 }

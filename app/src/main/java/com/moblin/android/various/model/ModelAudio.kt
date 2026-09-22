@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.coroutines.ContinuationInterceptor
 
 private const val TAG = "Model"
 
@@ -61,7 +62,7 @@ class Mic {
     val current = MutableStateFlow(noMic)
     val inputGain = MutableStateFlow(1.0f)
     val inputGainSettable = MutableStateFlow(false)
-    val inputGainTimer = SimpleTimer(queue = processorControlQueue.coroutineContext as CoroutineDispatcher)
+    val inputGainTimer = SimpleTimer(queue = processorControlQueue.coroutineContext[ContinuationInterceptor] as CoroutineDispatcher)
     var requested: SettingsMicsMic? = null
     val isSwitchTimerRunning = MutableStateFlow(false)
 

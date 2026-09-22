@@ -1,13 +1,13 @@
 package com.moblin.android.various.utils
 
-import com.moblin.android.common.various.add
+import com.moblin.android.common.various.Measurement
+import com.moblin.android.common.various.UnitSpeed
 import com.moblin.android.common.various.formatPace
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.common.various.formatWindAndGustSpeed
 import com.moblin.android.common.various.formatWindSpeed
 import com.moblin.android.common.various.getInt64Be
-import com.moblin.android.common.various.removeAllWhitespaces
-import com.moblin.android.common.various.truncate
+import java.nio.ByteBuffer
 import java.util.Locale
 import java.util.UUID
 import org.junit.Assume.assumeTrue
@@ -46,21 +46,21 @@ class UtilsSuite {
     fun windSpeed() {
         assumeTrue(Locale.getDefault().toString() == "en_SE")
         assertEquals("2 m/s",
-            formatWindSpeed(speed = milesPerHourToMetersPerSecond(5.0), unit = null))
+            formatWindSpeed(speed = Measurement(value = milesPerHourToMetersPerSecond(5.0), unit = UnitSpeed.metersPerSecond), unit = null))
         assertEquals("4 m/s",
-            formatWindSpeed(speed = milesPerHourToMetersPerSecond(10.0), unit = null))
+            formatWindSpeed(speed = Measurement(value = milesPerHourToMetersPerSecond(10.0), unit = UnitSpeed.metersPerSecond), unit = null))
     }
 
     @Test
     fun windSpeedAndGust() {
         assumeTrue(Locale.getDefault().toString() == "en_SE")
         assertEquals("2 (4) m/s",
-            formatWindAndGustSpeed(speed = milesPerHourToMetersPerSecond(5.0),
-                gust = milesPerHourToMetersPerSecond(10.0),
+            formatWindAndGustSpeed(speed = Measurement(value = milesPerHourToMetersPerSecond(5.0), unit = UnitSpeed.metersPerSecond),
+                gust = Measurement(value = milesPerHourToMetersPerSecond(10.0), unit = UnitSpeed.metersPerSecond),
                 unit = null))
         assertEquals("6 (8) m/s",
-            formatWindAndGustSpeed(speed = milesPerHourToMetersPerSecond(15.0),
-                gust = milesPerHourToMetersPerSecond(20.0),
+            formatWindAndGustSpeed(speed = Measurement(value = milesPerHourToMetersPerSecond(15.0), unit = UnitSpeed.metersPerSecond),
+                gust = Measurement(value = milesPerHourToMetersPerSecond(20.0), unit = UnitSpeed.metersPerSecond),
                 unit = null))
     }
 
@@ -142,3 +142,29 @@ class UtilsSuite {
 }
 
 private fun milesPerHourToMetersPerSecond(milesPerHour: Double): Double = milesPerHour * 0.44704
+
+private fun UUID.add(data: ByteArray): UUID {
+    if (data.isEmpty()) {
+        return this
+    }
+    val bytes = ByteBuffer.allocate(16)
+        .putLong(mostSignificantBits)
+        .putLong(leastSignificantBits)
+        .array()
+    for ((i, byte) in data.withIndex()) {
+        val index = Math.floorMod(16 - data.size + i, 16)
+        bytes[index] = (bytes[index] + byte).toByte()
+    }
+    val buffer = ByteBuffer.wrap(bytes)
+    return UUID(buffer.long, buffer.long)
+}
+
+private fun String.removeAllWhitespaces(): String = filterNot { it.isWhitespace() }
+
+private fun String.truncate(length: Int): String {
+    return when {
+        this.length <= length -> this
+        length <= 3 -> ".".repeat(length)
+        else -> take(length - 3) + "..."
+    }
+}

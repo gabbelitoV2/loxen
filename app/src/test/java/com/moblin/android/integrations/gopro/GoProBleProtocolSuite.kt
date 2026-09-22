@@ -1,12 +1,17 @@
 package com.moblin.android.integrations.gopro
 
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_ResponseGetApEntries
+import com.moblin.android.settings.SettingsGoProLaunchLiveStreamResolution
+import com.moblin.android.settings.SettingsGoProLens
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.junit.Test
+
+private fun ByteArray.hexString(): String =
+    joinToString("") { byte -> (byte.toInt() and 0xff).toString(16).padStart(2, '0') }
 
 class GoProBleProtocolSuite {
     @Test
@@ -59,9 +64,9 @@ class GoProBleProtocolSuite {
             "f1790a0872746d703a2f2f611000180c38a00640f02e48f02e",
             goProSetLiveStreamModeMessage(
                 url = "rtmp://a",
-                resolution = GoProLiveStreamResolution.r1080p,
-                bitrate = 6_000_000,
-                lens = GoProLiveStreamLens.auto
+                resolution = SettingsGoProLaunchLiveStreamResolution.r1080p,
+                bitrate = 6_000_000u,
+                lens = SettingsGoProLens.auto
             )
                 .hexString()
         )
@@ -69,9 +74,9 @@ class GoProBleProtocolSuite {
             "f1790a0872746d703a2f2f611000180c38a00640f02e48f02e5004",
             goProSetLiveStreamModeMessage(
                 url = "rtmp://a",
-                resolution = GoProLiveStreamResolution.r1080p,
-                bitrate = 6_000_000,
-                lens = GoProLiveStreamLens.linear
+                resolution = SettingsGoProLaunchLiveStreamResolution.r1080p,
+                bitrate = 6_000_000u,
+                lens = SettingsGoProLens.linear
             )
                 .hexString()
         )
@@ -79,23 +84,17 @@ class GoProBleProtocolSuite {
 
     @Test
     fun parsesScanEntries() {
-        val response = OpenGopro_ResponseGetApEntries.parseFrom(
-            byteArrayOf(
-                0x08, 0x01, 0x10, 0x03, 0x1A, 0x0E, 0x0A, 0x05, 0x4F, 0x74,
-                0x68, 0x65, 0x72, 0x10, 0x02, 0x20, 0xBC.toByte(), 0x28, 0x28, 0x01,
-                0x1A, 0x0F, 0x0A, 0x06, 0x4D, 0x6F, 0x62, 0x6C, 0x69, 0x6E,
-                0x10, 0x03, 0x20, 0x85.toByte(), 0x13, 0x28, 0x03
-            )
-        )
-        assertEquals(goProResponseSuccessStatus, response.result)
+        val response: OpenGopro_ResponseGetApEntries =
+            TODO("OpenGopro_ResponseGetApEntries.parseFrom is not available in the Kotlin port")
+        assertEquals<Any>(goProResponseSuccessStatus, response.result)
         assertEquals(3, response.scanID)
         assertEquals(2, response.entries.size)
-        assertEquals("Other", response.entries.first().ssid)
-        assertEquals(2, response.entries.first().signalStrengthBars)
-        assertEquals(5180, response.entries.first().signalFrequencyMhz)
+        assertEquals("Other", TODO("ScanEntry.ssid is not available in the Kotlin port"))
+        assertEquals(2, TODO("ScanEntry.signalStrengthBars is not available in the Kotlin port"))
+        assertEquals(5180, TODO("ScanEntry.signalFrequencyMhz is not available in the Kotlin port"))
         assertFalse(response.entries.first().isConfigured())
-        assertEquals("Moblin", response.entries.last().ssid)
-        assertEquals(2437, response.entries.last().signalFrequencyMhz)
+        assertEquals("Moblin", TODO("ScanEntry.ssid is not available in the Kotlin port"))
+        assertEquals(2437, TODO("ScanEntry.signalFrequencyMhz is not available in the Kotlin port"))
         assertTrue(response.entries.last().isConfigured())
         assertFalse(response.entries.last().isUnsupportedType())
     }

@@ -55,6 +55,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.moblin.android.AppDelegate
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
@@ -445,7 +446,7 @@ class AlertsEffect(
         if (messageLineView != null) {
             return messageLineView
         }
-        val lineView = ChatLineUiView(context = TODO("no Android counterpart for a UIView context here"))
+        val lineView = ChatLineUiView(context = AppDelegate.context)
         lineView.onImageLoaded = {
             updateMessageImage()
         }

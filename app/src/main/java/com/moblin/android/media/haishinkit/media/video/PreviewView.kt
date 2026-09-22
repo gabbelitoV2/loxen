@@ -35,7 +35,6 @@ class PreviewView(context: Context, attrs: AttributeSet? = null) :
     }
 
     private fun setup() {
-        setBackgroundColor(Color.BLACK)
     }
 
     private fun applyIsMirrored() {

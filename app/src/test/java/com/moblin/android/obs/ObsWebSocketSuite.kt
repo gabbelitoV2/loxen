@@ -153,7 +153,7 @@ class ObsWebSocketSuite {
         val identify = connection.server.receiveIdentify()
         assertNotNull(identify.authentication)
         assertNotEquals(connection.server.expectedAuthentication(), identify.authentication)
-        connection.server.close(code = 4009)
+        connection.server.close(code = 4009.toUShort())
         connection.server.acceptConnection()
         assertFalse(connection.obs.isConnected())
         assertEquals("Disconnected", connection.obs.connectionErrorMessage)
@@ -706,9 +706,9 @@ class ObsWebSocketSuite {
     fun audioVolumeSubscription() = runBlocking<Unit> {
         val connection = Connection.makeConnected()
         connection.obs.startAudioVolume()
-        assertEquals(0x107FF, connection.server.receiveReidentify())
+        assertEquals(0x107FF, connection.server.receiveReidentify().toInt())
         connection.obs.stopAudioVolume()
-        assertEquals(0x7FF, connection.server.receiveReidentify())
+        assertEquals(0x7FF, connection.server.receiveReidentify().toInt())
         connection.obs.stop()
     }
 
@@ -795,11 +795,11 @@ class ObsWebSocketSuite {
         val volumes = connection.delegate.audioVolumes.get()
         assertEquals(3, volumes.size)
         assertEquals("Mic", volumes[0].first)
-        assertTrue(areEqual(volumes[0].second, listOf(0f, -20f), epsilon = 0.001f))
+        assertTrue(areEqual(volumes[0].second.toFloatArray(), floatArrayOf(0f, -20f), epsilon = 0.001f))
         assertEquals("Silent", volumes[1].first)
         assertEquals(emptyList<Float>(), volumes[1].second)
         assertEquals("Odd", volumes[2].first)
-        assertTrue(areEqual(volumes[2].second, listOf(-6.0206f), epsilon = 0.001f))
+        assertTrue(areEqual(volumes[2].second.toFloatArray(), floatArrayOf(-6.0206f), epsilon = 0.001f))
         connection.obs.stop()
     }
 

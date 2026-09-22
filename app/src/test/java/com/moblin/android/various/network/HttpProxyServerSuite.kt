@@ -31,7 +31,8 @@ class HttpProxyServerSuite {
         parser.append(data = "CONNECT example.com:443 HTTP/1.1\r\nHost: example.com:443\r\n\r\n".encodeToByteArray())
         val (done, result) = parser.parse()
         assertTrue(done)
-        assertEquals(Connection.Endpoint.HostPort(host = "example.com", port = 443), result?.destination)
+        assertEquals("example.com", result?.destinationHost)
+        assertEquals(443, result?.destinationPort)
         assertEquals("HTTP/1.1", result?.version)
     }
 
@@ -72,7 +73,8 @@ class HttpProxyServerSuite {
         assertTrue(done)
         assertNotNull(result)
         assertEquals(header.encodeToByteArray().size, result?.bodyOffset)
-        assertEquals(Connection.Endpoint.HostPort(host = "example.com", port = 80), result?.destination)
+        assertEquals("example.com", result?.destinationHost)
+        assertEquals(80, result?.destinationPort)
         assertEquals("HTTP/1.0", result?.version)
     }
 
@@ -80,20 +82,13 @@ class HttpProxyServerSuite {
     fun connectParserSplitAcrossChunks() {
         val parser = HttpConnectRequestParser()
         parser.append(data = "CONNECT example.com:8080 HTTP/1.1\r\n".encodeToByteArray())
-        var done = false
-        var result: HttpConnectRequest? = null
-        parser.parse().let { parsed ->
-            done = parsed.first
-            result = parsed.second
-        }
-        assertFalse(done)
-        assertNull(result)
+        var parsed = parser.parse()
+        assertFalse(parsed.first)
+        assertNull(parsed.second)
         parser.append(data = "\r\n".encodeToByteArray())
-        parser.parse().let { parsed ->
-            done = parsed.first
-            result = parsed.second
-        }
-        assertTrue(done)
-        assertEquals(Connection.Endpoint.HostPort(host = "example.com", port = 8080), result?.destination)
+        parsed = parser.parse()
+        assertTrue(parsed.first)
+        assertEquals("example.com", parsed.second?.destinationHost)
+        assertEquals(8080, parsed.second?.destinationPort)
     }
 }

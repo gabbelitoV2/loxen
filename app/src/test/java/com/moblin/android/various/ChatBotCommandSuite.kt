@@ -1,5 +1,6 @@
 package com.moblin.android.various
 
+import com.moblin.android.settings.Platform
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import org.junit.Test
@@ -55,9 +56,9 @@ class ChatBotCommandSuite {
     @Test
     fun fuzzyPopFirst() {
         val command = createCommand("!moblin Snapshto hello")
-        assertEquals(ChatBotMainArgument.snapshot, command.popFirstArgument(ChatBotMainArgument::class))
-        assertEquals<ChatBotMainArgument?>(null, command.popFirstArgument(ChatBotMainArgument::class))
-        assertEquals<ChatBotMainArgument?>(null, command.popFirstArgument(ChatBotMainArgument::class))
+        assertEquals(ChatBotMainArgument.snapshot, command.popFirstArgument<ChatBotMainArgument>())
+        assertEquals<ChatBotMainArgument?>(null, command.popFirstArgument<ChatBotMainArgument>())
+        assertEquals<ChatBotMainArgument?>(null, command.popFirstArgument<ChatBotMainArgument>())
     }
 
     @Test
@@ -88,7 +89,7 @@ class ChatBotCommandSuite {
         )
         for ((word, expected) in cases) {
             val command = createCommand("!moblin $word")
-            assertEquals(expected, command.popFirstArgument(ChatBotMainArgument::class))
+            assertEquals(expected, command.popFirstArgument<ChatBotMainArgument>())
         }
     }
 
@@ -103,7 +104,7 @@ class ChatBotCommandSuite {
         )
         for ((word, expected) in cases) {
             val command = createCommand("!moblin $word")
-            assertEquals(expected, command.popFirstArgument(ChatBotOnOffArgument::class))
+            assertEquals(expected, command.popFirstArgument<ChatBotOnOffArgument>())
         }
     }
 
@@ -120,7 +121,7 @@ class ChatBotCommandSuite {
         )
         for ((word, expected) in cases) {
             val command = createCommand("!moblin $word")
-            assertEquals(expected, command.popFirstArgument(ChatBotFilterArgument::class))
+            assertEquals(expected, command.popFirstArgument<ChatBotFilterArgument>())
         }
     }
 
@@ -134,13 +135,13 @@ class ChatBotCommandSuite {
         )
         for ((word, expected) in cases) {
             val command = createCommand("!moblin $word")
-            assertEquals(expected, command.popFirstArgument(ChatBotReactionArgument::class))
+            assertEquals(expected, command.popFirstArgument<ChatBotReactionArgument>())
         }
     }
 
     private fun createMessage(text: String): ChatBotMessage {
         return ChatBotMessage(
-            platform = ChatPlatform.twitch,
+            platform = Platform.twitch,
             user = "erik",
             isOwner = true,
             isModerator = true,
