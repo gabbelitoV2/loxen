@@ -48,14 +48,14 @@ def find_java_home():
     return None
 
 
-def compile_kotlin():
+def compile_kotlin(task="compileDebugKotlin"):
     env = dict(os.environ)
     java_home = find_java_home()
     if java_home:
         env["JAVA_HOME"] = java_home
     gradlew = ROOT / ("gradlew.bat" if os.name == "nt" else "gradlew")
     result = subprocess.run(
-        [str(gradlew), ":app:compileDebugKotlin", "-q"], cwd=ROOT, env=env,
+        [str(gradlew), f":app:{task}", "-q"], cwd=ROOT, env=env,
         capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=1800,
     )
     return result.stdout + result.stderr
@@ -132,6 +132,7 @@ def main():
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--rounds", type=int, default=3)
     parser.add_argument("--max-files", type=int, default=0)
+    parser.add_argument("--task", default="compileDebugKotlin")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     if args.model is None:
@@ -147,7 +148,7 @@ def main():
     for round_number in range(1, args.rounds + 1):
         postprocess.run(False)
         print(f"round {round_number}: compiling...")
-        output = compile_kotlin()
+        output = compile_kotlin(args.task)
         errors = parse_errors(output)
         count = sum(len(v) for v in errors.values())
         print(f"round {round_number}: {count} errors in {len(errors)} files")
@@ -199,7 +200,7 @@ def main():
                         else:
                             print(f"  [{finished}/{len(files)}] ok   {rel} ({result[0]}s)")
     print("compiling after the last round...")
-    output = compile_kotlin()
+    output = compile_kotlin(args.task)
     errors = parse_errors(output)
     count = sum(len(v) for v in errors.values())
     (ROOT / "build-errors.log").write_text(output, encoding="utf-8", newline="\n")

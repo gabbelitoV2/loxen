@@ -108,19 +108,12 @@ private fun makeFilter(settings: FilterSettings): FloatArray {
 private const val chromaKeySmoothing: Float = 0.1f
 private const val chromaKeyNeutralAxisMargin: Float = 0.8f
 
-private data class MtiColor(
-    val red: Float,
-    val green: Float,
-    val blue: Float,
-    val alpha: Float,
-)
-
 private data class ChromaKeySettings(
-    val color: MtiColor,
+    val color: MTIColor,
     val thresholdSensitivity: Float,
 )
 
-private fun toChroma(color: MtiColor): FloatArray {
+private fun toChroma(color: MTIColor): FloatArray {
     val luma = 0.2989f * color.red + 0.5866f * color.green + 0.1145f * color.blue
     return floatArrayOf(
         0.7132f * (color.red - luma),
@@ -128,7 +121,7 @@ private fun toChroma(color: MtiColor): FloatArray {
     )
 }
 
-private fun makeSaturatedColor(hue: Double): MtiColor {
+private fun makeSaturatedColor(hue: Double): MTIColor {
     val sector = hue.toFloat() * hueSectorCount
     val secondary = 1f - abs(sector % 2f - 1f)
     val rgb: Triple<Float, Float, Float> = when (sector.toInt()) {
@@ -140,7 +133,7 @@ private fun makeSaturatedColor(hue: Double): MtiColor {
         else -> Triple(1f, 0f, secondary)
     }
     val (red, green, blue) = rgb
-    return MtiColor(red = red, green = green, blue = blue, alpha = 1f)
+    return MTIColor(red = red, green = green, blue = blue, alpha = 1f)
 }
 
 private fun RgbColor.hue(): Double = rgbToHsv(
