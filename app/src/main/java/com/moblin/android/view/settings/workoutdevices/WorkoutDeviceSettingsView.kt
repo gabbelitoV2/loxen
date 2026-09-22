@@ -112,7 +112,7 @@ fun WorkoutDeviceSettingsViewContent(
     fun onDeviceChange(value: String) {
         val deviceId = runCatching { UUID.fromString(value) }.getOrNull() ?: return
         val peripheral = workoutDeviceScanner.discoveredPeripherals.value
-            .firstOrNull { it.id.toString() == value } ?: return
+            .firstOrNull { it.address == value } ?: return
         device.bluetoothPeripheralName = peripheral.name
         device.bluetoothPeripheralId = deviceId
     }

@@ -56,6 +56,7 @@ import kotlinx.coroutines.launch
 import okhttp3.Request
 import okhttp3.Response
 import okio.Buffer
+import com.moblin.android.media.haishinkit.codec.video.numberOfFailedEncodings
 
 private const val TAG = "ModelStream"
 
@@ -647,7 +648,7 @@ private fun Model.setNetStream() {
 }
 
 private fun Model.attachStream() {
-    val processor = media.getProcessor()
+    val processor = media.processor
     if (processor == null) {
         this.processor = null
         return
@@ -762,7 +763,7 @@ fun Model.makeStreamEndedToast(subTitle: String? = null, onTapped: (() -> Unit)?
 
 fun Model.makeNotLoggedInToToast(platform: Platform) {
     makeErrorToast(
-        title = localized("Not logged in to ${platform.name()}"),
+        title = localized("Not logged in to ${platform.displayName()}"),
         subTitle = localized("Please login again"),
     )
 }

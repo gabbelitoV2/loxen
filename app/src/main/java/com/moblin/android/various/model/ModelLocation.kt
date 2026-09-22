@@ -5,6 +5,8 @@ import com.moblin.android.integrations.realtimeirl.RealtimeIrl
 import java.time.Instant
 import kotlin.math.abs
 import kotlin.math.max
+import com.moblin.android.various.utils.CLLocationCoordinate2D
+import com.moblin.android.various.utils.contains
 
 fun Model.updateLocation() {
     var location = locationManager.status()
@@ -44,7 +46,7 @@ fun Model.isLocationEnabled(): Boolean {
 
 fun Model.isLocationInPrivacyRegion(location: Location): Boolean {
     for (region in database.location.privacyRegions) {
-        if (region.contains(location.latitude, location.longitude)) {
+        if (region.contains(coordinate = CLLocationCoordinate2D(latitude = location.latitude, longitude = location.longitude))) {
             return true
         }
     }

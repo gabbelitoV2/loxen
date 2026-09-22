@@ -13,6 +13,8 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.URI
 import kotlinx.coroutines.launch
+import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderDelegate
+import com.moblin.android.media.haishinkit.codec.video.VideoEncoderDelegate
 
 private const val TAG = "SrtStreamOfficial"
 
@@ -90,7 +92,7 @@ private class SendHook(var closure: ((ByteArray) -> Boolean)? = null)
 
 private class MpegTsWriterEncoderDelegate(
     private val writer: MpegTsWriter,
-) : AudioVideoEncoderDelegate by writer
+) : AudioVideoEncoderDelegate, AudioEncoderDelegate by writer, VideoEncoderDelegate by writer
 
 open class SrtStreamOfficial(
     private val processor: Processor,

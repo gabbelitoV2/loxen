@@ -249,7 +249,7 @@ fun Model.isRemoteControlAssistantConfigured(): Boolean {
 }
 
 fun Model.remoteControlAssistantSetRemoteSceneSettings() {
-    val data = RemoteControlRemoteSceneSettings(
+    val data = RemoteControlRemoteSceneSettings.fromSettings(
         scenes = database.scenes,
         widgets = database.widgets,
         selectedSceneId = database.remoteSceneId

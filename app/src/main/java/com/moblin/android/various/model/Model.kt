@@ -2412,7 +2412,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             if (browser.browserEffect.isLoaded) {
                 messages.add("${browser.browserEffect.host}: $progress%")
                 if (progress != 100 ||
-                    Instant.now() < browser.browserEffect.startLoadingTime.plusSeconds(5)
+                    System.nanoTime() < browser.browserEffect.startLoadingTime + 5_000_000_000L
                 ) {
                     if (!statusTopRight.browserWidgetsStatusChanged.value) {
                         statusTopRight.browserWidgetsStatusChanged.value = true

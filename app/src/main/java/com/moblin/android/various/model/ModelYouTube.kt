@@ -14,6 +14,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.moblin.android.streamingplatforms.Platform
+import com.moblin.android.various.network.NetworkResponse
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
@@ -28,7 +30,7 @@ fun Model.youTubeVideoIdUpdated() {
 }
 
 fun Model.updateViewersYouTube(): StreamingPlatformStatus {
-    return StreamingPlatformStatus(StreamingPlatform.youTube, youTubePlatformStatus)
+    return StreamingPlatformStatus(Platform.youTube, youTubePlatformStatus)
 }
 
 fun Model.youTubeSignIn(stream: SettingsStream) {
@@ -67,7 +69,7 @@ fun Model.makeNotLoggedInToYouTubeToastIfNeeded() {
     if (stream.value.youTubeNotLoggedInCount >= maxNotLoggedInToastCount) {
         stream.value.youTubeWantsToBeLoggedIn = false
     }
-    makeNotLoggedInToToast(platform = StreamingPlatform.youTube)
+    makeNotLoggedInToToast(platform = Platform.youTube)
 }
 
 fun Model.getYouTubeApi(stream: SettingsStream, onCompleted: (YouTubeApi?) -> Unit) {
@@ -115,7 +117,7 @@ fun Model.tryToFetchYouTubeVideoId() {
                 return@getYouTubeApi
             }
             youTubeApi.listLiveBroadcasts(status = "active") { response ->
-                val listResponse = response.getOrNull()
+                val listResponse = (response as? NetworkResponse.Success)?.value
                 if (listResponse != null) {
                     val videoIds = listResponse.items.map { it.id }
                     if (videoIds.isNotEmpty()) {
@@ -179,7 +181,7 @@ fun Model.reloadYouTubeLiveChat() {
         chat.stop()
     }
     youTubeLiveChats.clear()
-    if (isYouTubeLiveChatConfigured() && !isRemoteControlChatAndEvents(platform = StreamingPlatform.youTube)) {
+    if (isYouTubeLiveChatConfigured() && !isRemoteControlChatAndEvents(platform = Platform.youTube)) {
         for (videoId in stream.value.getYouTubeVideoIds()) {
             val chat = YouTubeLiveChat(this, videoId, stream.value.chat)
             youTubeLiveChats[videoId] = chat
@@ -215,7 +217,7 @@ private fun Model.getYouTubeAccesssToken(stream: SettingsStream, onCompleted: (S
 private fun Model.getVideo() {
     getYouTubeApi(stream.value) { youTubeApi ->
         youTubeApi?.listVideos(videoIds = stream.value.youTubeVideoIds) { response ->
-            val videosResponse = response.getOrNull()
+            val videosResponse = (response as? NetworkResponse.Success)?.value
             if (videosResponse != null) {
                 var totalViewers = 0
                 var isLive = false
@@ -246,5 +248,5 @@ fun Model.youTubeApiUnauthorized() {
     }
     stream.value.youTubeAuthState = null
     removeYouTubeAuthStateInKeychain(stream.value.id)
-    makeNotLoggedInToToast(platform = StreamingPlatform.youTube)
+    makeNotLoggedInToToast(platform = Platform.youTube)
 }

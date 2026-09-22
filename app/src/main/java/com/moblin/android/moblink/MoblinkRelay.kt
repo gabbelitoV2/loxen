@@ -139,7 +139,7 @@ private class MoblinkRelayConnection(
             return
         }
         stopInternal()
-        setState(RelayState.Connecting)
+        updateState(RelayState.Connecting)
         webSocket = WebSocketClient(MoblinkRelayServer.applicationContext, streamerUrl, false)
         webSocket.delegate = this
         webSocket.start()
@@ -147,7 +147,7 @@ private class MoblinkRelayConnection(
 
     private fun stopInternal() {
         reconnectTimer.stop()
-        setState(RelayState.None)
+        updateState(RelayState.None)
         webSocket.delegate = null
         webSocket.stop()
         stopTunnel()
@@ -161,7 +161,7 @@ private class MoblinkRelayConnection(
         }
     }
 
-    private fun setState(state: RelayState) {
+    private fun updateState(state: RelayState) {
         if (state == this.state) {
             return
         }
@@ -190,7 +190,7 @@ private class MoblinkRelayConnection(
                         Log.i(TAG, "moblink-relay: $name: Failed to identify")
                         return
                     }
-                    setState(RelayState.Connected)
+                    updateState(RelayState.Connected)
                 }
                 is MoblinkMessageToRelay.Request -> {
                     handleRequest(decoded.id, decoded.data)
@@ -213,11 +213,11 @@ private class MoblinkRelayConnection(
             MoblinkResult.ok -> return true
             MoblinkResult.wrongPassword -> {
                 reconnect(reason = "Wrong password")
-                setState(RelayState.WrongPassword)
+                updateState(RelayState.WrongPassword)
             }
             else -> {
                 reconnect(reason = "Unknown error")
-                setState(RelayState.UnknownError)
+                updateState(RelayState.UnknownError)
             }
         }
         return false
@@ -247,7 +247,7 @@ private class MoblinkRelayConnection(
             return
         }
         streamerListener = listener
-        setState(RelayState.WaitingForCellular)
+        updateState(RelayState.WaitingForCellular)
         send(
             MoblinkMessageToStreamer.Response(
                 id,
@@ -271,7 +271,7 @@ private class MoblinkRelayConnection(
         }
         Log.d(TAG, "moblink-relay: $name: Destination state change to Ready")
         receiveDestinationPacket()
-        setState(RelayState.Connected)
+        updateState(RelayState.Connected)
         startTunnelId = id
     }
 
@@ -394,7 +394,7 @@ private class MoblinkRelayConnection(
 
     override fun webSocketClientDisconnected(client: WebSocketClient) {
         mainScope.launch {
-            setState(RelayState.Connecting)
+            updateState(RelayState.Connecting)
             stopTunnel()
         }
     }

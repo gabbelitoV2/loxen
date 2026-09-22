@@ -169,7 +169,7 @@ fun hasUltraWideCamera(position: AVCaptureDevice.Position): Boolean {
     }
 }
 
-private fun getBestBackCameraDevice(): AVCaptureDevice? {
+private fun findBestBackCameraDevice(): AVCaptureDevice? {
     var device = AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_TRIPLE_CAMERA,
         AVCaptureDevice.Position.BACK)
     if (device == null) {
@@ -187,9 +187,9 @@ private fun getBestBackCameraDevice(): AVCaptureDevice? {
     return device
 }
 
-val bestBackCameraDevice: AVCaptureDevice? by lazy { getBestBackCameraDevice() }
+val bestBackCameraDevice: AVCaptureDevice? by lazy { findBestBackCameraDevice() }
 
-private fun getBestFrontCameraDevice(): AVCaptureDevice? {
+private fun findBestFrontCameraDevice(): AVCaptureDevice? {
     var device = AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_ULTRA_WIDE_CAMERA,
         AVCaptureDevice.Position.FRONT)
     if (device == null) {
@@ -199,13 +199,13 @@ private fun getBestFrontCameraDevice(): AVCaptureDevice? {
     return device
 }
 
-val bestFrontCameraDevice: AVCaptureDevice? by lazy { getBestFrontCameraDevice() }
+val bestFrontCameraDevice: AVCaptureDevice? by lazy { findBestFrontCameraDevice() }
 
-private fun getBestBackCameraId(): CameraId {
+private fun findBestBackCameraId(): CameraId {
     return bestBackCameraDevice?.uniqueID ?: ""
 }
 
-val bestBackCameraId: CameraId by lazy { getBestBackCameraId() }
+val bestBackCameraId: CameraId by lazy { findBestBackCameraId() }
 
 private fun cameraPosition(rawValue: String): SettingsSceneCameraPosition {
     return SettingsSceneCameraPosition.fromRawValue(rawValue)
@@ -213,7 +213,7 @@ private fun cameraPosition(rawValue: String): SettingsSceneCameraPosition {
         ?: TODO("SettingsSceneCameraPosition has no back case")
 }
 
-private fun getDefaultBackCameraPosition(): SettingsSceneCameraPosition {
+private fun findDefaultBackCameraPosition(): SettingsSceneCameraPosition {
     return if (hasTripleBackCamera) {
         cameraPosition("backTripleLowEnergy")
     } else if (hasWideDualBackCamera) {
@@ -225,13 +225,13 @@ private fun getDefaultBackCameraPosition(): SettingsSceneCameraPosition {
     }
 }
 
-val defaultBackCameraPosition: SettingsSceneCameraPosition by lazy { getDefaultBackCameraPosition() }
+val defaultBackCameraPosition: SettingsSceneCameraPosition by lazy { findDefaultBackCameraPosition() }
 
-private fun getBestFrontCameraId(): String {
+private fun findBestFrontCameraId(): String {
     return bestFrontCameraDevice?.uniqueID ?: ""
 }
 
-val bestFrontCameraId: String by lazy { getBestFrontCameraId() }
+val bestFrontCameraId: String by lazy { findBestFrontCameraId() }
 
 fun hasAppleLog(): Boolean {
     return TODO("no Android counterpart for Apple Log color space")

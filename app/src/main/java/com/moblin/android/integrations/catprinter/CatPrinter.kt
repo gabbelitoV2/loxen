@@ -62,7 +62,7 @@ private class CurrentJob(
     var offset: Int = 0
     var state: JobState = JobState.idle
 
-    fun setState(state: JobState) {
+    fun updateState(state: JobState) {
         if (state == this.state) {
             return
         }
@@ -228,7 +228,7 @@ class CatPrinter : BluetoothGattCallback() {
             reconnect()
             return
         }
-        currentJob.setState(state = JobState.waitingForReady)
+        currentJob.updateState(state = JobState.waitingForReady)
         send(command = CatPrinterCommandMxw01.statusRequest, peripheral, printCharacteristic)
         startJobCompleteTimer()
     }
@@ -259,7 +259,7 @@ class CatPrinter : BluetoothGattCallback() {
             return
         }
         send(command = CatPrinterCommand.GetDeviceState(), peripheral, printCharacteristic)
-        currentJob.setState(state = JobState.waitingForReady)
+        currentJob.updateState(state = JobState.waitingForReady)
     }
 
     private fun playMeowSound() {
@@ -412,7 +412,7 @@ class CatPrinter : BluetoothGattCallback() {
         stopTryWriteNextChunkTimer()
         stopJobCompleteTimer()
         stopFeedPaperTimer()
-        setState(state = CatPrinterState.disconnected)
+        updateState(state = CatPrinterState.disconnected)
     }
 
     private fun reconnect() {
@@ -421,14 +421,14 @@ class CatPrinter : BluetoothGattCallback() {
         notifyCharacteristic = null
         dataCharacteristic = null
         currentJob = null
-        setState(state = CatPrinterState.discovering)
+        updateState(state = CatPrinterState.discovering)
         stopTryWriteNextChunkTimer()
         stopJobCompleteTimer()
         stopFeedPaperTimer()
         centralManager = TODO("CBCentralManager has no counterpart, BluetoothGatt needs a Context")
     }
 
-    private fun setState(state: CatPrinterState) {
+    private fun updateState(state: CatPrinterState) {
         if (state == this.state) {
             return
         }
@@ -488,7 +488,7 @@ class CatPrinter : BluetoothGattCallback() {
             return
         }
         peripheral = TODO("BluetoothAdapter.getRemoteDevice(address) requires a BluetoothAdapter and Context")
-        setState(state = CatPrinterState.connecting)
+        updateState(state = CatPrinterState.connecting)
     }
 
     override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
@@ -520,7 +520,7 @@ class CatPrinter : BluetoothGattCallback() {
             }
         }
         if (printCharacteristic != null && notifyCharacteristic != null && dataCharacteristic != null) {
-            setState(state = CatPrinterState.connected)
+            updateState(state = CatPrinterState.connected)
             tryPrintNext()
         }
     }
@@ -567,7 +567,7 @@ class CatPrinter : BluetoothGattCallback() {
         }
         when (command) {
             is CatPrinterCommandMxw01.statusResponse -> {
-                currentJob.setState(state = JobState.waitingForPrintResponse)
+                currentJob.updateState(state = JobState.waitingForPrintResponse)
                 val bytesPerLine: Int = when (currentJob.printMode) {
                     CatPrinterPrintMode.blackAndWhite -> catPrinterWidthPixels / 8
                     CatPrinterPrintMode.grayscale -> catPrinterWidthPixels / 2
@@ -593,10 +593,10 @@ class CatPrinter : BluetoothGattCallback() {
         when (command) {
             is CatPrinterCommandMxw01.printResponse -> {
                 if (command.status.toInt() == 0) {
-                    currentJob.setState(state = JobState.writingChunks)
+                    currentJob.updateState(state = JobState.writingChunks)
                     tryWriteNextChunk()
                 } else {
-                    currentJob.setState(state = JobState.failed)
+                    currentJob.updateState(state = JobState.failed)
                 }
             }
             else -> Unit
@@ -623,7 +623,7 @@ class CatPrinter : BluetoothGattCallback() {
             JobState.waitingForReady -> {
                 when (command) {
                     is CatPrinterCommand.GetDeviceState -> {
-                        currentJob.setState(state = JobState.writingChunks)
+                        currentJob.updateState(state = JobState.writingChunks)
                         tryWriteNextChunk()
                     }
                     else -> Unit

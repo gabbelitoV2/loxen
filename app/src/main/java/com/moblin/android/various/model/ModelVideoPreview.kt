@@ -32,7 +32,7 @@ fun Model.updateVideoPreviews() {
     videoPreview.removeAllFeeds()
     if (streamOverlay.showingVideoPreview.value) {
         val scene = getSelectedScene() ?: return
-        val devices = getBuiltinCameraDevices(scene = scene, sceneDevice = cameraDevice?.device)
+        val devices = getBuiltinCameraDevices(scene = scene, sceneDevice = cameraDevice)
         for (camera in listCameras()) {
             val device = devices.devices.firstOrNull { it.id.toString() == camera.id }
             if (device != null) {

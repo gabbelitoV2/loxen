@@ -9,7 +9,7 @@ enum class Platform(val rawValue: String) {
     twitch("twitch"),
     youTube("youTube");
 
-    fun name(): String {
+    fun displayName(): String {
         return when (this) {
             soop -> localized("SOOP")
             kick -> localized("Kick")

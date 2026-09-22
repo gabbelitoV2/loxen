@@ -1937,7 +1937,7 @@ class SettingsWidgetGolfScoreboard(
         )
     }
 
-    fun setPars(pars: List<Int>) {
+    fun updatePars(pars: List<Int>) {
         val newPars = pars.toMutableList()
         while (newPars.size < 18) {
             newPars.add(defaultPars[newPars.size])

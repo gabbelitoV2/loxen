@@ -1070,10 +1070,6 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         }
     }
 
-    fun getProcessor(): Processor? {
-        return processor
-    }
-
     fun startRecording(
         url: String?,
         replay: Boolean,

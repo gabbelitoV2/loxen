@@ -1060,11 +1060,14 @@ data class RemoteControlRemoteSceneSettings(
     @Serializable(with = UuidSerializer::class)
     var selectedSceneId: UUID? = null,
 ) {
-    constructor(scenes: List<SettingsScene>, widgets: List<SettingsWidget>, selectedSceneId: UUID?) : this(
-        scenes = scenes.map { RemoteControlRemoteSceneSettingsScene(it) },
-        widgets = widgets.mapNotNull { RemoteControlRemoteSceneSettingsWidget.fromWidget(it) },
-        selectedSceneId = selectedSceneId,
-    )
+    companion object {
+        fun fromSettings(scenes: List<SettingsScene>, widgets: List<SettingsWidget>, selectedSceneId: UUID?) =
+            RemoteControlRemoteSceneSettings(
+                scenes = scenes.map { RemoteControlRemoteSceneSettingsScene(it) },
+                widgets = widgets.mapNotNull { RemoteControlRemoteSceneSettingsWidget.fromWidget(it) },
+                selectedSceneId = selectedSceneId,
+            )
+    }
 
     fun toSettings(): Triple<List<SettingsScene>, List<SettingsWidget>, UUID?> = Triple(
         scenes.map { it.toSettings() },

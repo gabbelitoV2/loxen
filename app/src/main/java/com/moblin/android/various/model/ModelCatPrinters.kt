@@ -280,7 +280,7 @@ private suspend fun Model.createEventImage(
 
     var y = padding
 
-    canvas.drawText(platform.name(), width / 2f, y - platformPaint.fontMetrics.ascent, platformPaint)
+    canvas.drawText(platform.displayName(), width / 2f, y - platformPaint.fontMetrics.ascent, platformPaint)
     y += platformPaint.lineHeight() + spacing
 
     val avatarLeft = (width - avatarSize) / 2f

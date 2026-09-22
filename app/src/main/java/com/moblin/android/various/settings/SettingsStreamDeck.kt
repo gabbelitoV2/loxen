@@ -272,6 +272,10 @@ class SettingsStreamDecks {
         this._selectedId = MutableStateFlow(selectedId)
         this.selectedId = this._selectedId.asStateFlow()
     }
+
+    fun setSelectedId(id: UUID?) {
+        _selectedId.value = id
+    }
 }
 
 object SettingsStreamDecksSerializer : KSerializer<SettingsStreamDecks> {

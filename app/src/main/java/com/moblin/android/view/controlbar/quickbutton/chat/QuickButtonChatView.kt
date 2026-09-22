@@ -618,7 +618,7 @@ private fun SendMessagesToView(
             modifier = Modifier.size(24.dp),
         )
         Text(
-            text = platform.name(),
+            text = platform.displayName(),
             modifier = Modifier.padding(start = 6.dp),
             color = MaterialTheme.colorScheme.onSurface,
         )

@@ -38,7 +38,7 @@ fun <T : Any, Content> SegmentedPicker(
     onSelectedItemChange: (T?) -> Unit,
     selectedColor: Color,
     content: @Composable (T) -> Content,
-    onLongPress: ((Int) -> Void)? = null,
+    onLongPress: ((Int) -> Unit)? = null,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         for (index in items.indices) {
@@ -75,7 +75,7 @@ fun <T : Any, Content> SegmentedHPicker(
     selectedItem: T?,
     onSelectedItemChange: (T?) -> Unit,
     selectedColor: Color = TODO("defaultSegmentedPickerSelectedColor.color()"),
-    onLongPress: ((Int) -> Void)? = null,
+    onLongPress: ((Int) -> Unit)? = null,
     content: @Composable (T) -> Content,
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
@@ -96,7 +96,7 @@ fun <T : Any, Content> SegmentedVPicker(
     selectedItem: T?,
     onSelectedItemChange: (T?) -> Unit,
     selectedColor: Color = TODO("defaultSegmentedPickerSelectedColor.color()"),
-    onLongPress: ((Int) -> Void)? = null,
+    onLongPress: ((Int) -> Unit)? = null,
     content: @Composable (T) -> Content,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {

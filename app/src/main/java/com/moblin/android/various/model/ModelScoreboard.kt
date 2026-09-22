@@ -582,7 +582,7 @@ fun Model.handleExternalGolfScoreboardUpdate(remoteScorecard: RemoteControlGolfS
     golf.title = remoteScorecard.title
     golf.numberOfHoles = remoteScorecard.numberOfHoles
     golf.currentHole = remoteScorecard.currentHole
-    golf.setPars(remoteScorecard.pars)
+    golf.updatePars(remoteScorecard.pars)
     golf.playerColors = remoteScorecard.playerColors
     for ((index, remotePlayer) in remoteScorecard.players.withIndex()) {
         if (index < golf.players.size) {
