@@ -1,0 +1,49 @@
+{
+  "Common/Various/Validate.swift": {
+    "status": "ok",
+    "sha256": "d02d11f3fc25a3a50a0d78c2625bef8b96f9f6ad6ff9268a0104129e1661b722",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/common/various/Validate.kt",
+    "notes": [
+      "Swift URL(string:) is replaced by java.net.URI wrapped in runCatching, so a parse failure yields null just like the Swift optional initialiser.",
+      "Swift's url.port == nil maps to URI.port == -1, since java.net.URI uses -1 for a missing port.",
+      "url.host() maps to URI.host, which is null for strings without an authority component.",
+      "The URLComponents(url:resolvingAgainstBaseURL:) sanity check is kept as a second URI parse so the control flow and returned message stay the same.",
+      "Int32(value) maps to toIntOrNull(): Kotlin Int has the same 32-bit range, so overflow behaviour is identical.",
+      "UInt(value) maps to toUIntOrNull() and UInt16.max to UShort.MAX_VALUE.toUInt().",
+      "makeRtmpUri and makeRtmpStreamKey are assumed to live in com.moblin.android.common.various and are called unqualified; adjust the import if they are in another package.",
+      "localized comes from com.moblin.android; the interpolated 'Unsupported scheme' and 'Only ... allowed' strings keep the Swift wording."
+    ],
+    "unsupported": [],
+    "declared_types": [],
+    "model": "claude-opus-5",
+    "backend": "cli",
+    "tokens_in": 3938,
+    "tokens_out": 2432,
+    "seconds": 48.1,
+    "ported_at": "2026-09-22T12:00:10+00:00"
+  },
+  "Moblin/Moblink/MoblinkProtocol.swift": {
+    "status": "ok",
+    "sha256": "037146ac4ca096c43aa1ea1d45cc362843b09603213d6d688c061344dd50698c",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/moblink/MoblinkProtocol.kt",
+    "notes": [
+      "Swift's synthesised Codable for enums with associated values uses the externally tagged form {\"case\":{...}}, so each sealed class gets a hand-written KSerializer that reproduces that exact JSON, including {} for payload-less cases.",
+      "MoblinkResult has no raw values in Swift but is Codable, so it encodes as {\"ok\":{}}; it is an enum class with rawValue/fromRawValue plus MoblinkResultSerializer producing that single-key object.",
+      "moblinkJson uses explicitNulls = false to match Swift's encodeIfPresent, so nil batteryPercentage/thermalState/data keys are omitted instead of written as null.",
+      "Optional payload fields get Kotlin default null so a missing key decodes like Swift's decodeIfPresent.",
+      "Swift JSONEncoder writes UUID as an uppercase string; MoblinkUuidSerializer reproduces that and accepts any case when decoding.",
+      "UInt16 port is translated to UShort per the wire-format rule; kotlinx.serialization serialises it as a plain unsigned JSON number.",
+      "The Swift 'Not a UTF-8 string' / 'Encode failed' guards disappear: Kotlin Strings are already decodable, so fromJson just throws SerializationException on bad input and toJson() on MoblinkMessageToRelay still returns null via runCatching.",
+      "Sealed subclass names are capitalised (StartTunnel, Status, Hello, ...) but the JSON keys stay byte-identical to the Swift case names."
+    ],
+    "unsupported": [],
+    "model": "claude-opus-5",
+    "backend": "cli",
+    "tokens_in": 2659,
+    "tokens_out": 4529,
+    "seconds": 151.2,
+    "ported_at": "2026-09-22T12:25:02+00:00"
+  }
+}
