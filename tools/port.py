@@ -326,6 +326,17 @@ def write_report(out_dir, inventory, state):
     (out_dir / "PORT-REPORT.md").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
+def load_dotenv(path):
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"'))
+
+
 def pick_backend(args):
     provider = PROVIDERS[args.provider]
     backend = args.backend
@@ -342,6 +353,7 @@ def pick_backend(args):
 
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    load_dotenv(HERE.parent / ".env")
     parser = argparse.ArgumentParser(description="Translate Moblin's Swift files to Kotlin with an LLM.")
     parser.add_argument("--inventory", type=Path, default=HERE / "inventory.json")
     parser.add_argument("--moblin", type=Path, default=None)

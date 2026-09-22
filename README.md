@@ -15,9 +15,12 @@ effects and the libsrt binding have to be written by hand.
 - One of:
   - Claude Code logged in (`claude` in a terminal, then `/login`). Used when no API key is set.
   - `pip install anthropic` and `ANTHROPIC_API_KEY`.
-  - `pip install anthropic` and `DEEPSEEK_API_KEY`, then `--provider deepseek`. About forty times
-    cheaper than Claude Opus. Prices double during peak hours, 01:00-04:00 and 06:00-10:00 UTC on
-    weekdays.
+  - `pip install anthropic` and `DEEPSEEK_API_KEY`, then `--provider deepseek`. Uses `deepseek-flash`,
+    the current DeepSeek V4.1 Flash. About forty times cheaper than Claude Opus. Prices double during
+    peak hours, 01:00-04:00 and 06:00-10:00 UTC on weekdays.
+
+  API keys can also be put in a `.env` file in this directory, one `NAME=value` per line. The file is
+  ignored by git.
 - Android Studio to open the project. Pick a local Gradle installation the first time, or run
   `gradle wrapper` in this directory.
 
