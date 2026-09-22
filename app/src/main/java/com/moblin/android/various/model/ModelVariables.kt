@@ -1,0 +1,95 @@
+package com.moblin.android.various.model
+
+import com.moblin.android.common.various.format
+import com.moblin.android.various.Variables
+import com.moblin.android.various.utils.emojiFlag
+import com.moblin.android.videoeffects.text.TextEffectFormatter
+import com.moblin.android.videoeffects.text.loadTextFormat
+import java.time.Instant
+import kotlin.time.TimeSource
+
+fun Model.createVariables(now: Instant, timestamp: TimeSource.Monotonic.ValueTimeMark): Variables {
+    val location = locationManager.getLatestKnownLocation()
+    val weather = weatherManager.getLatestWeather()?.currentWeather
+    val placemark = geographyManager.getLatestPlacemark()
+    return Variables(
+        timestamp = timestamp,
+        bitrate = bitrate.speedMbpsOneDecimal,
+        bitrateAndTotal = bitrate.speedAndTotal,
+        bonding = bonding.statistics,
+        resolution = currentResolution,
+        fps = currentFps,
+        date = now,
+        debugOverlayLines = debugOverlay.debugLines,
+        speed = location?.speed ?: 0.0,
+        averageSpeed = averageSpeed,
+        altitude = location?.altitude ?: 0.0,
+        distance = database.location.distance,
+        splitDistance = database.location.splitDistance,
+        altitudeAscent = database.location.altitudeAscent,
+        altitudeDescent = database.location.altitudeDescent,
+        splitAltitudeAscent = database.location.splitAltitudeAscent,
+        splitAltitudeDescent = database.location.splitAltitudeDescent,
+        slope = "${slopePercent.toInt()}%",
+        conditions = weather?.symbolName,
+        condition = weather?.condition,
+        temperature = weather?.temperature,
+        feelsLikeTemperature = weather?.apparentTemperature,
+        windSpeed = weather?.wind.speed,
+        windGust = weather?.wind.gust,
+        country = placemark?.country ?: "",
+        countryFlag = emojiFlag(placemark?.isoCountryCode),
+        state = placemark?.administrativeArea,
+        area = placemark?.subAdministrativeArea,
+        city = placemark?.locality,
+        neighborhood = placemark?.subLocality,
+        muted = audio.muted,
+        heartRates = heartRates,
+        activeEnergyBurned = workoutActiveEnergyBurned,
+        workoutDistance = workoutDistance,
+        power = workoutPower,
+        stepCount = workoutStepCount,
+        teslaBatteryLevel = textEffectTeslaBatteryLevel(),
+        teslaDrive = textEffectTeslaDrive(),
+        teslaMedia = textEffectTeslaMedia(),
+        cyclingPower = "${cyclingPower} W",
+        cyclingCadence = "$cyclingCadence",
+        cyclingSpeed = cyclingSpeed,
+        runningMetrics = runningMetrics,
+        browserTitle = getBrowserTitle(),
+        gForce = gForceManager?.getLatest(),
+        latestSubscriber = latestSubscriber,
+        latestFollower = latestFollower,
+        systemMonitor = getSystemMonitor()
+    )
+}
+
+fun Model.formatPlainText(formatString: String): String {
+    val now = TimeSource.Monotonic.markNow()
+    val variables = createVariables(Instant.now(), now)
+    val formatter = TextEffectFormatter(
+        formatParts = loadTextFormat(formatString),
+        timersEndTime = emptyList(),
+        stopwatches = emptyList(),
+        checkboxes = emptyList(),
+        ratings = emptyList(),
+        lapTimes = emptyList()
+    )
+    return formatter.format(variables, now).toPlainText()
+}
+
+private fun Model.getSystemMonitor(): String {
+    return if (database.show.systemMonitor) {
+        systemMonitor.format()
+    } else {
+        "-% - MB"
+    }
+}
+
+private fun Model.getBrowserTitle(): String {
+    return if (showBrowser) {
+        getWebBrowser().title ?: ""
+    } else {
+        ""
+    }
+}

@@ -1,0 +1,80 @@
+package com.moblin.android.various.utils
+
+import org.junit.Test
+import kotlin.test.assertEquals
+
+private fun cmTime(value: Int, timescale: Int): Long = value * 1_000_000L / timescale
+
+private val invalidExposure = Long.MIN_VALUE
+
+class CameraUtilsSuite {
+    private val exposures = listOf(1000, 500, 250, 125, 60).map { cmTime(value = 1, timescale = it) }
+
+    @Test
+    fun factorEndsAreFastestAndSlowestExposures() {
+        assertEquals(cmTime(value = 1, timescale = 1000), factorToExposure(exposures = exposures, factor = 0.0))
+        assertEquals(cmTime(value = 1, timescale = 60), factorToExposure(exposures = exposures, factor = 1.0))
+        assertEquals(cmTime(value = 1, timescale = 250), factorToExposure(exposures = exposures, factor = 0.5))
+    }
+
+    @Test
+    fun factorOutsideRangeIsClamped() {
+        assertEquals(cmTime(value = 1, timescale = 1000), factorToExposure(exposures = exposures, factor = -1.0))
+        assertEquals(cmTime(value = 1, timescale = 60), factorToExposure(exposures = exposures, factor = 2.0))
+    }
+
+    @Test
+    fun factorSnapsToNearestExposure() {
+        assertEquals(cmTime(value = 1, timescale = 500), factorToExposure(exposures = exposures, factor = 0.3))
+        assertEquals(cmTime(value = 1, timescale = 250), factorToExposure(exposures = exposures, factor = 0.6))
+    }
+
+    @Test
+    fun everyExposureRoundTripsThroughItsFactor() {
+        for (exposure in exposures) {
+            val factor = factorFromExposure(exposures = exposures, exposure = exposure)
+            assertEquals(exposure, factorToExposure(exposures = exposures, factor = factor))
+        }
+    }
+
+    @Test
+    fun exposureFromDeviceIsNearestInLogSpace() {
+        val exposure = factorFromExposure(exposures = exposures, exposure = cmTime(value = 1, timescale = 130))
+        assertEquals(cmTime(value = 1, timescale = 125), factorToExposure(exposures = exposures, factor = exposure))
+        val slow = factorFromExposure(exposures = exposures, exposure = cmTime(value = 1, timescale = 4))
+        assertEquals(cmTime(value = 1, timescale = 60), factorToExposure(exposures = exposures, factor = slow))
+        val fast = factorFromExposure(exposures = exposures, exposure = cmTime(value = 1, timescale = 8000))
+        assertEquals(cmTime(value = 1, timescale = 1000), factorToExposure(exposures = exposures, factor = fast))
+    }
+
+    @Test
+    fun invalidExposureIsFastest() {
+        assertEquals(0.0, factorFromExposure(exposures = exposures, exposure = 0L))
+        assertEquals(0.0, factorFromExposure(exposures = exposures, exposure = invalidExposure))
+    }
+
+    @Test
+    fun stepIsOnePerExposure() {
+        assertEquals(0.25, exposureFactorStep(exposures = exposures))
+        assertEquals(1.0, exposureFactorStep(exposures = listOf(cmTime(value = 1, timescale = 60))))
+        assertEquals(1.0, exposureFactorStep(exposures = emptyList<Long>()))
+    }
+
+    @Test
+    fun singleExposureIsAlwaysUsed() {
+        val exposures = listOf(cmTime(value = 1, timescale = 30))
+        assertEquals(cmTime(value = 1, timescale = 30), factorToExposure(exposures = exposures, factor = 0.0))
+        assertEquals(cmTime(value = 1, timescale = 30), factorToExposure(exposures = exposures, factor = 1.0))
+        assertEquals(0.0, factorFromExposure(exposures = exposures, exposure = cmTime(value = 1, timescale = 30)))
+    }
+
+    @Test
+    fun exposureIsFormattedAsFractionOfSecond() {
+        assertEquals("1/125", formatExposure(exposure = cmTime(value = 1, timescale = 125)))
+        assertEquals("1/8000", formatExposure(exposure = cmTime(value = 1, timescale = 8000)))
+        assertEquals("1/50", formatExposure(exposure = 20_000L))
+        assertEquals("1/71", formatExposure(exposure = 1_000_000L / 71))
+        assertEquals("", formatExposure(exposure = 0L))
+        assertEquals("", formatExposure(exposure = invalidExposure))
+    }
+}
