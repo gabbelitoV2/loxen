@@ -128,7 +128,7 @@ def load_json(path, default):
 
 def save_json(path, data):
     tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8", newline="\n")
     tmp.replace(path)
 
 
@@ -231,7 +231,7 @@ def port_one(backend, entry, root, out_dir, by_path, system, tiers):
     meta, kotlin = parse_response(text)
     target = out_dir / entry["kotlin_path"]
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(kotlin.rstrip() + "\n", encoding="utf-8")
+    target.write_text(kotlin.rstrip() + "\n", encoding="utf-8", newline="\n")
     return {
         "status": "ok",
         "sha256": entry["sha256"],
@@ -323,7 +323,7 @@ def write_report(out_dir, inventory, state):
         lines += ["", "## Ported files", "", "| Swift | Kotlin | model | seconds |", "|---|---|---|---|"]
         for path, saved in done:
             lines.append(f"| {path} | {saved['kotlin_path']} | {saved.get('model', '')} | {saved.get('seconds', '')} |")
-    (out_dir / "PORT-REPORT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    (out_dir / "PORT-REPORT.md").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
 def pick_backend(args):

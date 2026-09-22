@@ -191,7 +191,7 @@ def main():
         "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "files": entries,
     }
-    args.out.write_text(json.dumps(inventory, indent=2, ensure_ascii=False), encoding="utf-8")
+    args.out.write_text(json.dumps(inventory, indent=2, ensure_ascii=False), encoding="utf-8", newline="\n")
     summarize(entries)
     print(f"\nwrote {args.out}")
 
