@@ -1,7 +1,6 @@
 package com.moblin.android.media.srtla.server
 
 import android.util.Log
-import com.moblin.android.media.BitrateStats
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReader
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReaderDelegate
@@ -39,8 +38,8 @@ class SrtServerClient(
                 break
             }
             val payload = if (count == packetSize) packet else packet.copyOf(count)
-            server.get()?.srtlaServer?.bitrateStats?.mutate { it: BitrateStats ->
-                it.add(bytesTransferred = payload.size)
+            server.get()?.srtlaServer?.bitrateStats?.mutate { stats: Any ->
+                stats.javaClass.getMethod("add", Int::class.java).invoke(stats, payload.size)
             }
             try {
                 reader.handlePacketFromClient(payload)

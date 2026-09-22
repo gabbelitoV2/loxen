@@ -213,7 +213,7 @@ class CatPrinter : BluetoothGattCallback() {
         peripheral: BluetoothDevice,
     ) {
         val data = catPrinterPackPrintImageCommandsMxw01(
-            image = image.map { row -> row.toList() },
+            image = image,
             printMode = printJob.printMode,
         )
         currentJob = CurrentJob(

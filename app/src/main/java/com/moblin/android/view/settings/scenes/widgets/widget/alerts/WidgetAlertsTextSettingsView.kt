@@ -160,20 +160,22 @@ fun AlertColorsView(
                 color = textColorState,
                 onColorChanged = { color ->
                     textColorState = color
-                    alert.textColor = color
+                },
+                onChange = { rgbColor ->
+                    alert.textColor = rgbColor
                     model.updateAlertsSettings()
                 },
-                onChange = {},
             )
             RgbColorPickerView(
                 title = "Accent",
                 color = accentColorState,
                 onColorChanged = { color ->
                     accentColorState = color
-                    alert.accentColor = color
+                },
+                onChange = { rgbColor ->
+                    alert.accentColor = rgbColor
                     model.updateAlertsSettings()
                 },
-                onChange = {},
             )
         }
     }

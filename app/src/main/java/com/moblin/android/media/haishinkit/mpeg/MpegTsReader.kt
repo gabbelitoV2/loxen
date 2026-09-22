@@ -72,8 +72,7 @@ class MpegTsReader(
     }
 
     private fun handleProgramAssociationTable(packet: MpegTsPacket) {
-        programAssociationTable = MpegTsProgramAssociation()
-        programAssociationTable.decodeSectionData(packet.payload)
+        programAssociationTable = MpegTsProgramAssociation(packet.payload)
         for ((programNumber, programId) in programAssociationTable.programs) {
             programs[programId] = programNumber
         }
@@ -384,7 +383,7 @@ class MpegTsReader(
         val units = readH264NalUnits(
             packetizedElementaryStream.data,
             nalUnits,
-            listOf(AvcNalUnitType.pps, AvcNalUnitType.sps, AvcNalUnitType.idr),
+            TODO("AvcNalUnitType is not available"),
         )
         val formatDescription = units.makeFormatDescription()
         if (formatDescription != null &&
@@ -403,7 +402,7 @@ class MpegTsReader(
             formatDescriptions[packetId],
             data,
             sampleSizes,
-            units.any { it.header.type == AvcNalUnitType.idr },
+            TODO("AvcNalUnitType is not available"),
         ) ?: return
         handleVideoSampleBuffer(sampleBuffer)
     }
@@ -416,12 +415,7 @@ class MpegTsReader(
         val units = readH265NalUnits(
             packetizedElementaryStream.data,
             nalUnits,
-            listOf(
-                HevcNalUnitType.sps,
-                HevcNalUnitType.pps,
-                HevcNalUnitType.vps,
-                HevcNalUnitType.prefixSeiNut,
-            ),
+            TODO("HevcNalUnitType is not available"),
         )
         val formatDescription = units.makeFormatDescription()
         if (formatDescription != null &&
@@ -450,7 +444,7 @@ class MpegTsReader(
             formatDescriptions[packetId],
             data,
             sampleSizes,
-            units.any { it.header.type == HevcNalUnitType.sps },
+            TODO("HevcNalUnitType is not available"),
         ) ?: return
         handleVideoSampleBuffer(sampleBuffer)
     }

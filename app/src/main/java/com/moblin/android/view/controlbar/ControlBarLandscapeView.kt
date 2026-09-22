@@ -172,7 +172,7 @@ private fun QuickButtonsView(
 private fun StatusView(model: Model = LocalModel.current, status: StatusOther) {
     var presentingThermalState by remember { mutableStateOf(false) }
     val battery = model.battery
-    val thermalState = status.thermalState
+    val thermalState = status.thermalState.collectAsState().value
     val digitalClock = status.digitalClock.collectAsState().value
 
     Row(
@@ -191,7 +191,7 @@ private fun StatusView(model: Model = LocalModel.current, status: StatusOther) {
             },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
         ) {
-            ThermalStateView(thermalState = thermalState)
+            ThermalStateView(thermalState = TODO("Convert MoblinkThermalState to ThermalState"))
         }
         Spacer(Modifier.weight(1f))
         if (isPhone()) {

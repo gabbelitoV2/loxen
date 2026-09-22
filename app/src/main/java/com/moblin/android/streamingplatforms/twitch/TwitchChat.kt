@@ -460,7 +460,10 @@ interface TwitchChatDelegate {
 }
 
 class TwitchChat(private val delegate: TwitchChatDelegate?) : WebSocketClientDelegate {
-    private var webSocket: WebSocketClient = WebSocketClient("wss://irc-ws.chat.twitch.tv")
+    private var webSocket: WebSocketClient = WebSocketClient(
+        context = TODO("no Android Context available here"),
+        url = "wss://irc-ws.chat.twitch.tv",
+    )
     private val emotes: Emotes = Emotes()
     private val badges: Badges = Badges()
     private val cheermotes: Cheermotes = Cheermotes()
@@ -487,7 +490,10 @@ class TwitchChat(private val delegate: TwitchChatDelegate?) : WebSocketClientDel
         )
         badges.start(channelId, accessToken)
         cheermotes.start(channelId, accessToken)
-        webSocket = WebSocketClient("wss://irc-ws.chat.twitch.tv")
+        webSocket = WebSocketClient(
+            context = TODO("no Android Context available here"),
+            url = "wss://irc-ws.chat.twitch.tv",
+        )
         webSocket.delegate = this
         webSocket.start()
     }

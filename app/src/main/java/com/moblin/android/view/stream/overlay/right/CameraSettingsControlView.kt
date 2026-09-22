@@ -346,7 +346,7 @@ private fun ButtonsView(
     val isWhiteBalanceLocked by camera.isWhiteBalanceLocked.collectAsState()
     val isExposureAndIsoLocked by camera.isExposureAndIsoLocked.collectAsState()
     val isFocusLocked by camera.isFocusLocked.collectAsState()
-    val bigButtons by database.bigButtons.collectAsState()
+    val bigButtons = database.bigButtons
 
     fun formatExposureBias(): String {
         var value = formatOneDecimal(bias)

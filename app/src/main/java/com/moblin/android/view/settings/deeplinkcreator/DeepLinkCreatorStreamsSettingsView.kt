@@ -42,7 +42,10 @@ fun DeepLinkCreatorStreamsSettingsView(deepLinkCreator: DeepLinkCreator) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .combinedClickable(onLongClick = { streamToDelete = stream })
+                        .combinedClickable(
+                            onClick = {},
+                            onLongClick = { streamToDelete = stream }
+                        )
                 ) {
                     DeepLinkCreatorStreamSettingsView(deepLinkCreator = deepLinkCreator, stream = stream)
                 }

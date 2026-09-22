@@ -683,6 +683,7 @@ class RemoteControlAssistant(
         twitchAccessToken = plainAccessToken
         twitchEventSub?.stop()
         twitchEventSub = TwitchEventSub(
+            context = TODO("no Android context available"),
             remoteControl = false,
             userId = channelId,
             accessToken = plainAccessToken,
@@ -843,7 +844,7 @@ class RemoteControlAssistant(
         val timestamp = formatDate(Instant.now())
         val message = RemoteControlChatMessage(
             id = getNextChatMessageId(),
-            platform = "twitch",
+            platform = TODO("Platform is not available in the Android port"),
             messageId = messageId,
             displayName = displayName,
             user = user,

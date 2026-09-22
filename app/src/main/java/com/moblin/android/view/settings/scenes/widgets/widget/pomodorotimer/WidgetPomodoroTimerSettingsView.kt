@@ -383,8 +383,8 @@ fun WidgetPomodoroTimerSettingsView(
         ) {
             Text("Width")
             Slider(
-                value = width,
-                onValueChange = { pomodoroTimer.width = it },
+                value = width.toFloat(),
+                onValueChange = { pomodoroTimer.width = it.toDouble() },
                 valueRange = 1f..5f,
                 steps = 79,
                 modifier = Modifier.weight(1f),

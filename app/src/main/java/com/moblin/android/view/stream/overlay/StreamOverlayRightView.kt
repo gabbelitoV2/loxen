@@ -31,7 +31,6 @@ import com.moblin.android.common.view.StreamOverlayIconAndTextView
 import com.moblin.android.localized
 import com.moblin.android.various.model.Bitrate
 import com.moblin.android.various.model.Bonding
-import com.moblin.android.various.model.Database
 import com.moblin.android.various.model.Ingests
 import com.moblin.android.various.model.Moblink
 import com.moblin.android.various.model.Model
@@ -42,7 +41,10 @@ import com.moblin.android.various.model.StreamState
 import com.moblin.android.various.model.StreamUptimeProvider
 import com.moblin.android.various.model.SystemMonitor
 import com.moblin.android.various.model.Zoom
-import com.moblin.android.various.settings.BlackSharkCoolerDeviceState
+import com.moblin.android.various.model.areMoblinkRelaysOk
+import com.moblin.android.various.model.isMoblinkRelayConfigured
+import com.moblin.android.various.model.isShowingStatusRecording
+import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsAppMode
 import com.moblin.android.various.settings.SettingsAutoSceneSwitcher
 import com.moblin.android.various.settings.SettingsAutoSceneSwitchers
@@ -71,6 +73,12 @@ import com.moblin.android.view.stream.overlay.right.StreamOverlayRightWhirlpoolV
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightZoomPresetSelctorView
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightZoomPresetVSelctorView
 import com.moblin.android.LocalModel
+
+private val hidePlacement: StreamOverlayIconAndTextPlacement =
+    TODO("StreamOverlayIconAndTextPlacement.hide")
+
+private val beforeIconPlacement: StreamOverlayIconAndTextPlacement =
+    TODO("StreamOverlayIconAndTextPlacement.beforeIcon")
 
 @Composable
 private fun CollapsedBondingView(bonding: Bonding, color: Color) {
@@ -107,7 +115,7 @@ private fun BondingStatusView(
     val rtts by bonding.rtts.collectAsState()
     if (model.isShowingStatusBonding()) {
         val color = netStreamColor(model)
-        if (textPlacement == StreamOverlayIconAndTextPlacement.hide) {
+        if (textPlacement == hidePlacement) {
             CollapsedBondingView(bonding = bonding, color = color)
         } else {
             StreamOverlayIconAndTextView(
@@ -179,7 +187,7 @@ private fun AdsRemainingTimerView(
 ) {
     val adsRemainingTimerStatus by status.adsRemainingTimerStatus.collectAsState()
     if (model.isShowingStatusAdsRemainingTimer()) {
-        if (textPlacement == StreamOverlayIconAndTextPlacement.hide) {
+        if (textPlacement == hidePlacement) {
             CollapsedAdsRemainingTimerView(status = status)
         } else {
             StreamOverlayIconAndTextView(
@@ -234,7 +242,7 @@ private fun BitrateStatusView(
     val statusColor by bitrate.statusColor.collectAsState()
     val statusIconColor by bitrate.statusIconColor.collectAsState()
     if (model.isShowingStatusBitrate()) {
-        if (textPlacement == StreamOverlayIconAndTextPlacement.hide) {
+        if (textPlacement == hidePlacement) {
             CollapsedBitrateView(bitrate = model.bitrate)
         } else {
             StreamOverlayIconAndTextView(
@@ -250,12 +258,13 @@ private fun BitrateStatusView(
 
 @Composable
 private fun netStreamColor(model: Model = LocalModel.current): Color {
-    val streamState by model.streamState.collectAsState()
-    return if (model.isStreaming()) {
+    val streamState = model.streamState
+    return if (TODO("model.isStreaming()")) {
         when (streamState) {
             StreamState.connecting -> Color.White
             StreamState.connected -> Color.White
             StreamState.disconnected -> Color.Red
+            else -> Color.White
         }
     } else {
         Color.White
@@ -288,7 +297,7 @@ private fun CpuStatusView(
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
     if (model.isShowingStatusCpu()) {
-        if (textPlacement == StreamOverlayIconAndTextPlacement.hide) {
+        if (textPlacement == hidePlacement) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(1.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -373,7 +382,7 @@ private fun RemoteControlStatusView(
         }
     }
 
-    if (model.isShowingStatusRemoteControl()) {
+    if (TODO("model.isShowingStatusRemoteControl()")) {
         StreamOverlayIconAndTextView(
             icon = "appletvremote.gen1",
             text = remoteControlStatus,
@@ -409,7 +418,7 @@ private fun GameControllersStatusView(
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
     val gameControllersTotal by status.gameControllersTotal.collectAsState()
-    if (model.isShowingStatusGameController()) {
+    if (TODO("model.isShowingStatusGameController()")) {
         StreamOverlayIconAndTextView(
             icon = "gamecontroller",
             text = gameControllersTotal,
@@ -446,7 +455,7 @@ private fun LocationStatusView(
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
     val statusLocation by status.location.collectAsState()
-    if (model.isShowingStatusLocation()) {
+    if (TODO("model.isShowingStatusLocation()")) {
         StreamOverlayIconAndTextView(
             icon = "location",
             text = statusLocation,
@@ -462,7 +471,7 @@ private fun RecordingStatusView(
     recording: RecordingProvider,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val length by recording.length.collectAsState()
+    val length = recording.length
     if (model.isShowingStatusRecording()) {
         StreamOverlayIconAndTextView(
             icon = "record.circle",
@@ -499,7 +508,7 @@ private fun CatPrinterStatusView(
     val catPrinterStatus by status.catPrinterStatus.collectAsState()
 
     fun catPrinterColor(): Color {
-        if (model.isAnyCatPrinterConfigured() && !model.areAllCatPrintersConnected()) {
+        if (TODO("model.isAnyCatPrinterConfigured() && !model.areAllCatPrintersConnected()")) {
             return Color.Red
         }
         return Color.White
@@ -525,7 +534,7 @@ private fun WorkoutDeviceStatusView(
     val workoutDeviceStatus by status.workoutDeviceStatus.collectAsState()
 
     fun workoutDeviceColor(): Color {
-        if (model.isAnyWorkoutDeviceConfigured() && !model.areAllWorkoutDevicesConnected()) {
+        if (TODO("model.isAnyWorkoutDeviceConfigured() && !model.areAllWorkoutDevicesConnected()")) {
             return Color.Red
         }
         return Color.White
@@ -567,7 +576,7 @@ private fun BlackSharkCoolerDeviceStatusView(
     val blackSharkCoolerDeviceState by status.blackSharkCoolerDeviceState.collectAsState()
     val blackSharkCoolerPhoneTemp by status.blackSharkCoolerPhoneTemp.collectAsState()
     val blackSharkCoolerExhaustTemp by status.blackSharkCoolerExhaustTemp.collectAsState()
-    if (blackSharkCoolerDeviceState == BlackSharkCoolerDeviceState.connected) {
+    if (TODO("blackSharkCoolerDeviceState == BlackSharkCoolerDeviceState.connected")) {
         StreamOverlayIconAndTextView(
             icon = "fan",
             text = "${blackSharkCoolerPhoneTemp ?: 0} °C / ${blackSharkCoolerExhaustTemp ?: 0} °C",
@@ -581,7 +590,7 @@ private fun AutoSceneSwitcherStatusInnerView(
     autoSceneSwitcher: SettingsAutoSceneSwitcher,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val name by autoSceneSwitcher.name.collectAsState()
+    val name = autoSceneSwitcher.name
     StreamOverlayIconAndTextView(
         icon = "autostartstop",
         text = name,
@@ -594,8 +603,8 @@ private fun AutoSceneSwitcherStatusView(
     autoSceneSwitchers: SettingsAutoSceneSwitchers,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val switchers by autoSceneSwitchers.switchers.collectAsState()
-    val switcherId by autoSceneSwitchers.switcherId.collectAsState()
+    val switchers = autoSceneSwitchers.switchers
+    val switcherId = autoSceneSwitchers.switcherId
     val autoSceneSwitcher = switchers.firstOrNull { it.id == switcherId }
     if (autoSceneSwitcher != null) {
         AutoSceneSwitcherStatusInnerView(
@@ -666,7 +675,7 @@ private fun StatusesView(
     )
     ReplayStatusView(
         show = model.database.show,
-        replay = model.stream.replay,
+        replay = model.stream.value.replay,
         textPlacement = textPlacement,
     )
     StreamUptimeStatusView(
@@ -721,7 +730,7 @@ private fun StatusesView(
         systemMonitor = model.systemMonitor,
         textPlacement = textPlacement,
     )
-    if (model.isShowingStatusAudioLevel() && textPlacement == StreamOverlayIconAndTextPlacement.hide) {
+    if (model.isShowingStatusAudioLevel() && textPlacement == hidePlacement) {
         CompactAudioBarView(audio = model.audio, level = model.audio.level)
     }
 }
@@ -732,7 +741,7 @@ private fun AudioView(
     database: Database,
     show: SettingsShow,
 ) {
-    val bigAudioLevelMeter by database.bigAudioLevelMeter.collectAsState()
+    val bigAudioLevelMeter = database.bigAudioLevelMeter
     if (model.isShowingStatusAudioLevel()) {
         AudioLevelView(model = model, big = bigAudioLevelMeter)
     }
@@ -740,7 +749,7 @@ private fun AudioView(
 
 @Composable
 fun RightOverlayTopView(model: Model = LocalModel.current, database: Database) {
-    val verboseStatuses by database.verboseStatuses.collectAsState()
+    val verboseStatuses = database.verboseStatuses
     Column(
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(1.dp),
@@ -757,7 +766,7 @@ fun RightOverlayTopView(model: Model = LocalModel.current, database: Database) {
                 StatusesView(
                     show = database.show,
                     status = model.statusTopRight,
-                    textPlacement = StreamOverlayIconAndTextPlacement.beforeIcon,
+                    textPlacement = beforeIconPlacement,
                 )
             } else {
                 Row(
@@ -767,7 +776,7 @@ fun RightOverlayTopView(model: Model = LocalModel.current, database: Database) {
                     StatusesView(
                         show = database.show,
                         status = model.statusTopRight,
-                        textPlacement = StreamOverlayIconAndTextPlacement.hide,
+                        textPlacement = hidePlacement,
                     )
                 }
             }
@@ -792,7 +801,7 @@ private fun RightOverlayBottomVerticalView(
     val showingCamera by streamOverlay.showingCamera.collectAsState()
     val isTorchOn by streamOverlay.isTorchOn.collectAsState()
     val isFrontCameraSelected by streamOverlay.isFrontCameraSelected.collectAsState()
-    val zoomPresets by show.zoomPresets.collectAsState()
+    val zoomPresets = show.zoomPresets
     val hasZoom by zoom.hasZoom.collectAsState()
     Row(verticalAlignment = Alignment.Bottom) {
         Spacer(modifier = Modifier.weight(1f))
@@ -853,7 +862,7 @@ private fun RightOverlayBottomHorizontalView(
     val showingCamera by streamOverlay.showingCamera.collectAsState()
     val isTorchOn by streamOverlay.isTorchOn.collectAsState()
     val isFrontCameraSelected by streamOverlay.isFrontCameraSelected.collectAsState()
-    val zoomPresets by show.zoomPresets.collectAsState()
+    val zoomPresets = show.zoomPresets
     val hasZoom by zoom.hasZoom.collectAsState()
     if (showMediaPlayerControls) {
         StreamOverlayRightMediaPlayerControlsView(mediaPlayer = model.mediaPlayerPlayer)
@@ -903,13 +912,13 @@ fun RightOverlayBottomView(
     width: Float,
 ) {
     val showDrawOnStream by model.showDrawOnStream.collectAsState()
-    val appMode by database.appMode.collectAsState()
+    val appMode = database.appMode
     val showingReplay by streamOverlay.showingReplay.collectAsState()
     val showingBeauty by streamOverlay.showingBeauty.collectAsState()
     val showingVideoPreview by streamOverlay.showingVideoPreview.collectAsState()
-    val zoomPresets by show.zoomPresets.collectAsState()
+    val zoomPresets = show.zoomPresets
     val hasZoom by zoom.hasZoom.collectAsState()
-    val verticalButtons by database.verticalButtons.collectAsState()
+    val verticalButtons = database.verticalButtons
     Column(
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(1.dp),

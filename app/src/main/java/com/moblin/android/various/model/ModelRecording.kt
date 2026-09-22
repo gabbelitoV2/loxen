@@ -2,6 +2,7 @@ package com.moblin.android.various.model
 
 import com.moblin.android.common.various.formatBytes
 import com.moblin.android.common.various.noValue
+import com.moblin.android.common.various.sizeFormatter
 import com.moblin.android.localized
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.various.settings.MacroEvent
@@ -106,7 +107,7 @@ fun Model.updateRecordingLength(now: Instant) {
     if (current != null) {
         val elapsed = TODO("uptimeFormatter.string(from:) has no direct Android equivalent")
         val url = current.url()
-        val size = if (url != null) url.length().formatBytes() else "-"
+        val size = if (url != null) sizeFormatter.string(fromByteCount = File(url.toString()).length()) else "-"
         recording.length = "$elapsed ($size)"
         if (isWatchLocal()) {
             sendRecordingLengthToWatch(recordingLength = recording.length)
@@ -131,12 +132,12 @@ fun Model.setIsRecording(value: Boolean) {
     isRecording.value = value
     updateLiveActivity()
     updateMacStatusItem()
-    setQuickButton(type = SettingsQuickButtonType.RECORD, isOn = value)
+    setQuickButton(type = SettingsQuickButtonType.values().first { it.name.equals("record", ignoreCase = true) }, isOn = value)
     updatePictureInPicture()
     if (isWatchLocal()) {
         sendIsRecordingToWatch(isRecording = isRecording)
     }
-    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(recording = isRecording))
+    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(recording = isRecording.value))
 }
 
 fun Model.setCleanRecordings() {

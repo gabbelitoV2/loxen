@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.PorterDuff
+import android.media.Image
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
@@ -110,7 +111,7 @@ class DrawOnStreamEffect : VideoEffect() {
         }
     }
 
-    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage = TODO("OpenGL ES port")
+    override fun execute(image: Image, info: VideoEffectInfo): Image = TODO("OpenGL ES port")
 
-    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage = TODO("OpenGL ES port")
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image = TODO("OpenGL ES port")
 }

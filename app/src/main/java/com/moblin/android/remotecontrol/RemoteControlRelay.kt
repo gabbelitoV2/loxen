@@ -1,5 +1,6 @@
 package com.moblin.android.remotecontrol
 
+import android.content.Context
 import android.util.Log
 import com.moblin.android.various.network.WebSocketClient
 import com.moblin.android.various.network.WebSocketClientDelegate
@@ -18,17 +19,18 @@ private data class MessageConnectData(val connectionId: String)
 private data class MessageConnect(val data: MessageConnectData)
 
 private class Connection(
+    private val context: Context,
     private val baseUrl: String,
     private val bridgeId: String,
     private val connectionId: String,
     private val assistantUrl: String
 ) : WebSocketClientDelegate {
-    private var relayDataWebsocket: WebSocketClient = WebSocketClient("wss://foo.bar")
-    private var assistantWebsocket: WebSocketClient = WebSocketClient(assistantUrl)
+    private var relayDataWebsocket: WebSocketClient = WebSocketClient(context, "wss://foo.bar")
+    private var assistantWebsocket: WebSocketClient = WebSocketClient(context, assistantUrl)
 
     fun setupRelayDataWebsocket() {
         val url = "$baseUrl/bridge/data/$bridgeId/$connectionId"
-        relayDataWebsocket = WebSocketClient(url)
+        relayDataWebsocket = WebSocketClient(context, url)
         relayDataWebsocket.delegate = this
         relayDataWebsocket.start()
     }
@@ -39,7 +41,7 @@ private class Connection(
     }
 
     private fun setupAssistantWebsocket() {
-        assistantWebsocket = WebSocketClient(assistantUrl, loopback = true)
+        assistantWebsocket = WebSocketClient(context, assistantUrl, loopback = true)
         assistantWebsocket.delegate = this
         assistantWebsocket.start()
     }
@@ -64,17 +66,18 @@ private class Connection(
 }
 
 class RemoteControlRelay private constructor(
+    private val context: Context,
     private val baseUrl: String,
     private val bridgeId: String,
     private val assistantUrl: String,
     private val controlUrl: String
 ) : WebSocketClientDelegate {
-    private var controlWebsocket: WebSocketClient = WebSocketClient(controlUrl)
+    private var controlWebsocket: WebSocketClient = WebSocketClient(context, controlUrl)
     private val connections: ArrayDeque<Connection> = ArrayDeque()
 
     fun start() {
         stop()
-        controlWebsocket = WebSocketClient(controlUrl)
+        controlWebsocket = WebSocketClient(context, controlUrl)
         controlWebsocket.delegate = this
         controlWebsocket.start()
     }
@@ -97,6 +100,7 @@ class RemoteControlRelay private constructor(
     private fun handleControlMessageConnect(message: String) {
         val decoded = Json.decodeFromString<MessageConnect>(message)
         val connection = Connection(
+            context = context,
             baseUrl = baseUrl,
             bridgeId = bridgeId,
             connectionId = decoded.data.connectionId,
@@ -129,10 +133,10 @@ class RemoteControlRelay private constructor(
     }
 
     companion object {
-        operator fun invoke(baseUrl: String, bridgeId: String, assistantUrl: String): RemoteControlRelay? {
+        operator fun invoke(context: Context, baseUrl: String, bridgeId: String, assistantUrl: String): RemoteControlRelay? {
             val controlUrl = "$baseUrl/bridge/control/$bridgeId"
             return runCatching { URI(controlUrl) }.getOrNull()?.let {
-                RemoteControlRelay(baseUrl, bridgeId, assistantUrl, controlUrl)
+                RemoteControlRelay(context, baseUrl, bridgeId, assistantUrl, controlUrl)
             }
         }
     }

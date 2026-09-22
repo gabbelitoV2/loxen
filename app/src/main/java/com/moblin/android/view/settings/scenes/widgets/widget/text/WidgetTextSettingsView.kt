@@ -1717,7 +1717,7 @@ fun WidgetTextSettingsView(
     fun setLayout() {
         for (effect in model.getTextEffects(id = widget.id)) {
             effect.setLayout(
-                alignment = text.horizontalAlignment.toSystem(),
+                alignment = text.horizontalAlignment,
                 width = if (text.widthEnabled) text.width else null,
                 cornerRadius = text.cornerRadius.toDouble(),
             )
@@ -1923,7 +1923,7 @@ fun WidgetTextSettingsView(
                 onSelectionChange = { design ->
                     text.fontDesign = design
                     for (effect in model.getTextEffects(id = widget.id)) {
-                        effect.setFontDesign(design = design.toSystem())
+                        effect.setFontDesign(design = design)
                     }
                     model.remoteSceneSettingsUpdated()
                 },
@@ -1935,7 +1935,7 @@ fun WidgetTextSettingsView(
                 onSelectionChange = { weight ->
                     text.fontWeight = weight
                     for (effect in model.getTextEffects(id = widget.id)) {
-                        effect.setFontWeight(weight = weight.toSystem())
+                        effect.setFontWeight(weight = weight)
                     }
                     model.remoteSceneSettingsUpdated()
                 },

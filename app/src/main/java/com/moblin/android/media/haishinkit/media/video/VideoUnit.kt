@@ -433,7 +433,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
 
     fun startPreviewEncoding(delegate: VideoEncoderDelegate, settings: VideoEncoderSettings) {
         val encoder = VideoEncoder(lockQueue = processorPipelineQueue)
-        encoder.settings.value = settings
+        encoder.settings.mutate { settings }
         encoder.delegate = delegate
         encoder.startRunning()
         processorPipelineQueue.launch {

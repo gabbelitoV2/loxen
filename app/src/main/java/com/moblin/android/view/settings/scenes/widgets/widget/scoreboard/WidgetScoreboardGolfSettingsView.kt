@@ -134,8 +134,8 @@ fun WidgetScoreboardGolfSettingsView(
                 }
                 IconButton(
                     onClick = {
-                        val offsets = makeOffsets(players, player.id)
-                        if (offsets != null) {
+                        val offsets = players.indexOfFirst { it.id == player.id }
+                        if (offsets != -1) {
                             golf.players = players.filterIndexed { index, _ ->
                                 index != offsets
                             }

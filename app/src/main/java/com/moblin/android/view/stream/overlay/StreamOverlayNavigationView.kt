@@ -265,7 +265,7 @@ fun StreamOverlayNavigationView(
     navigation: Navigation
 ) {
     fun offset(height: Dp): Dp {
-        val offset: Dp = if (database.bigButtons.value) {
+        val offset: Dp = if (database.bigButtons) {
             -(2 * segmentHeightBig + 10).dp
         } else {
             -(2 * segmentHeight + 10).dp

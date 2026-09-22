@@ -143,8 +143,8 @@ fun SrtClientSettingsDestination(
                                 text = { Text(localized("Delete")) },
                                 onClick = {
                                     deleteMenuStreamId = null
-                                    val offsets = makeOffsets(streams, stream.id)
-                                    if (offsets != null) {
+                                    val offsets = streams.indexOfFirst { it.id == stream.id }
+                                    if (offsets >= 0) {
                                         deleteStream(model, srtClient, setOf(offsets))
                                     }
                                 },

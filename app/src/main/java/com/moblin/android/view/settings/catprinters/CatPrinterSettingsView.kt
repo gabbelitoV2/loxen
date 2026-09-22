@@ -44,11 +44,9 @@ private fun formatCatPrinterState(state: CatPrinterState?): String {
 
 fun onDeviceChange(device: SettingsCatPrinter, value: String) {
     val deviceId = runCatching { UUID.fromString(value) }.getOrNull() ?: return
-    val peripheral = catPrinterScanner.discoveredPeripherals.value
-        .firstOrNull { it.identifier == deviceId.toString() } ?: return
     TODO(
         "No setter for SettingsCatPrinter.bluetoothPeripheralName and bluetoothPeripheralId: " +
-            "${peripheral.name} / $deviceId"
+            "$deviceId"
     )
 }
 
@@ -103,7 +101,7 @@ fun CatPrinterSettingsView(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(enabled = !TODO("Model.isCatPrinterEnabled is not available in this port")) {
+                    .clickable(enabled = !enabled) {
                         onNavigate("CatPrinterScannerSettingsView")
                     }
                     .padding(horizontal = 16.dp, vertical = 8.dp),

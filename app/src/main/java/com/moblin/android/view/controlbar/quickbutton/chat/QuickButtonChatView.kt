@@ -42,6 +42,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -163,8 +164,9 @@ private fun PostView(
     scaleX: Double,
     size: androidx.compose.ui.unit.IntSize,
 ) {
+    val deleted by state.deleted.collectAsState()
     if (post.user != null) {
-        if (!state.deleted || chatSettings.showDeletedMessages) {
+        if (!deleted || chatSettings.showDeletedMessages) {
             val highlight = post.highlight
             if (highlight != null) {
                 Row(modifier = Modifier.graphicsLayer {
@@ -186,14 +188,14 @@ private fun PostView(
                     ) {
                         if (!chatSettings.compactEvents) {
                             HighlightMessageView(
-                                deleted = state.deleted,
+                                deleted = deleted,
                                 style = style,
                                 highlight = highlight,
                                 onLinkUrl = onLinkUrl,
                             )
                         }
                         LineView(
-                            deleted = state.deleted,
+                            deleted = deleted,
                             post = post,
                             style = style,
                             platform = moreThanOneStreamingPlatform,
@@ -204,7 +206,7 @@ private fun PostView(
                 }
             } else {
                 LineView(
-                    deleted = state.deleted,
+                    deleted = deleted,
                     post = post,
                     style = style,
                     platform = moreThanOneStreamingPlatform,
@@ -315,13 +317,15 @@ private fun AlertsPostView(
     scaleX: Double,
     size: androidx.compose.ui.unit.IntSize,
 ) {
+    val deleted by state.deleted.collectAsState()
+
     fun shouldShowMessage(highlight: com.moblin.android.various.ChatHighlight): Boolean {
-        if (highlight.kind == com.moblin.android.various.ChatHighlightKind.firstMessage &&
+        if (highlight.kind.name.replace("_", "").equals("firstMessage", ignoreCase = true) &&
             !showFirstTimeChatterMessage
         ) {
             return false
         }
-        if (highlight.kind == com.moblin.android.various.ChatHighlightKind.newFollower &&
+        if (highlight.kind.name.replace("_", "").equals("newFollower", ignoreCase = true) &&
             !showNewFollowerMessage
         ) {
             return false
@@ -330,7 +334,7 @@ private fun AlertsPostView(
     }
 
     if (post.user != null) {
-        if (!state.deleted || chatSettings.showDeletedMessages) {
+        if (!deleted || chatSettings.showDeletedMessages) {
             val highlight = post.highlight
             if (highlight != null) {
                 if (shouldShowMessage(highlight)) {
@@ -350,14 +354,14 @@ private fun AlertsPostView(
                         Column {
                             if (!chatSettings.compactEvents) {
                                 HighlightMessageView(
-                                    deleted = state.deleted,
+                                    deleted = deleted,
                                     style = style,
                                     highlight = highlight,
                                     onLinkUrl = onLinkUrl,
                                 )
                             }
                             LineView(
-                                deleted = state.deleted,
+                                deleted = deleted,
                                 post = post,
                                 style = style,
                                 platform = moreThanOneStreamingPlatform,
@@ -369,7 +373,7 @@ private fun AlertsPostView(
                 }
             } else {
                 LineView(
-                    deleted = state.deleted,
+                    deleted = deleted,
                     post = post,
                     style = style,
                     platform = moreThanOneStreamingPlatform,

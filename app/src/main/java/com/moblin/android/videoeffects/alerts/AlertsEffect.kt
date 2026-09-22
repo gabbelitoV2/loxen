@@ -1,6 +1,7 @@
 package com.moblin.android.videoeffects.alerts
 
 import android.media.Image
+import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -385,11 +386,12 @@ class AlertsEffect(
             delay((settings.textToSpeechDelay * 1000.0).toLong())
             synthesizer.setSpeechRate(rate)
             synthesizer.setPitch(0.8f)
-            synthesizer.setVolume(volume)
+            val params = Bundle()
+            params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
             synthesizer.speak(
                 "$username $message",
                 TextToSpeech.QUEUE_FLUSH,
-                null,
+                params,
                 null
             )
             KeepSpeakerAlivePlayer.shared.audioPlayed()
@@ -412,8 +414,7 @@ class AlertsEffect(
             borderColor = Color.Black,
             borderWidth = 2f,
             leadingPadding = 0f,
-            fontWeight = settings.fontWeight.toSystem(),
-            fontDesign = settings.fontDesign.toSystem()
+            fontWeight = settings.fontWeight.toSystem()
         )
         val textColor = settings.textColor.color()
         val items = mutableListOf<ChatLineItem>()

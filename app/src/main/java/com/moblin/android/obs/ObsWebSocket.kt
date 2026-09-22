@@ -1,5 +1,6 @@
 package com.moblin.android.obs
 
+import android.content.Context
 import android.util.Log
 import com.moblin.android.localized
 import com.moblin.android.various.network.WebSocketClient
@@ -32,6 +33,12 @@ private val json = Json { ignoreUnknownKeys = true }
 private fun isLoopback(url: String): Boolean {
     val host = runCatching { URI(url).host }.getOrNull() ?: return false
     return host == "localhost" || host == "127.0.0.1" || host == "::1"
+}
+
+private fun defaultApplicationContext(): Context {
+    val activityThread = Class.forName("android.app.ActivityThread")
+    val method = activityThread.getMethod("currentApplication")
+    return method.invoke(null) as Context
 }
 
 private enum class EventSubscription(val rawValue: ULong) {
@@ -516,11 +523,18 @@ interface ObsWebsocketDelegate {
 }
 
 class ObsWebSocket(
+    private val context: Context,
     private val url: String,
     private val password: String,
     val delegate: ObsWebsocketDelegate?,
 ) : WebSocketClientDelegate {
-    private var webSocket: WebSocketClient = WebSocketClient(url, isLoopback(url))
+    constructor(
+        url: String,
+        password: String,
+        delegate: ObsWebsocketDelegate?,
+    ) : this(defaultApplicationContext(), url, password, delegate)
+
+    private var webSocket: WebSocketClient = WebSocketClient(context, url, isLoopback(url))
     private var nextId: Int = 0
     private val requests = mutableMapOf<String, Request>()
     private val batchRequests = mutableMapOf<String, BatchRequest>()
@@ -540,7 +554,7 @@ class ObsWebSocket(
 
     private fun startInternal() {
         stopInternal()
-        webSocket = WebSocketClient(url, isLoopback(url))
+        webSocket = WebSocketClient(context, url, isLoopback(url))
         webSocket.delegate = this
         webSocket.start()
     }

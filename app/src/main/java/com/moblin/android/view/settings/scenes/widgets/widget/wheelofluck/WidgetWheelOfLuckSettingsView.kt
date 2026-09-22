@@ -270,7 +270,8 @@ fun WidgetWheelOfLuckSettingsView(
                         options = option,
                         deleteDisabled = options.size < 2,
                         onDelete = {
-                            makeOffsets(options, option.id)?.let { offset ->
+                            val offset = options.indexOfFirst { it.id == option.id }
+                            if (offset >= 0) {
                                 deleteOption(offset)
                             }
                         },

@@ -83,8 +83,7 @@ class RtmpCommandMessage : RtmpMessage {
 
     fun decode(value: ByteArray) {
         if (length == value.size) {
-            val decoder = Amf0Decoder()
-            decoder.data = value
+            val decoder = Amf0Decoder(value)
             try {
                 if (type == RtmpMessageType.amf3Command) {
                     decoder.position = 1

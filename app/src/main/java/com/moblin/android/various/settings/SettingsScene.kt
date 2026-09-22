@@ -6,7 +6,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import com.moblin.android.common.various.RgbColor
-import com.moblin.android.common.various.localized
 import com.moblin.android.media.haishinkit.media.video.SceneSwitchTransition
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.remotecontrol.RemoteControlScoreboardMatchConfig
@@ -24,8 +23,8 @@ import com.moblin.android.various.utils.hasWideDualBackCamera
 import com.moblin.android.various.utils.utcTimeDeltaFromNow
 import com.moblin.android.various.utils.zoomToFieldOfView
 import com.moblin.android.videoeffects.AnamorphicLensEffect
-import com.moblin.android.videoeffects.Dewarp360Effect
-import com.moblin.android.videoeffects.Dewarp360EffectSettings
+import com.moblin.android.videoeffects.dewarp360.Dewarp360Effect
+import com.moblin.android.videoeffects.dewarp360.Dewarp360EffectSettings
 import com.moblin.android.videoeffects.GrayScaleEffect
 import com.moblin.android.videoeffects.LutEffect
 import com.moblin.android.videoeffects.MaskEffect
@@ -51,6 +50,13 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import com.moblin.android.localized
+
+private fun RgbColor.color(): Color = Color(
+    red = red.toFloat() / 255.0f,
+    green = green.toFloat() / 255.0f,
+    blue = blue.toFloat() / 255.0f,
+    alpha = (opacity ?: 1.0).toFloat()
+)
 
 private fun decodeCameraId(container: JsonObject, key: String, defaultValue: CameraId): CameraId {
     val cameraId = container[key]?.jsonPrimitive?.contentOrNull ?: return defaultValue
@@ -152,16 +158,16 @@ class SettingsVideoEffectDewarp360(
     var zoom: Float = 1f
 ) {
     @Transient var inverseFieldOfView: Float =
-        (180.0 - Math.toDegrees(zoomToFieldOfView(zoom.toDouble()))).toFloat()
+        (180.0 - Math.toDegrees(zoomToFieldOfView(zoom).toDouble())).toFloat()
 
     fun updateZoomFromInverseFieldOfView() {
-        zoom = fieldOfViewToZoom(Math.toRadians((180f - inverseFieldOfView).toDouble())).toFloat()
+        zoom = fieldOfViewToZoom(Math.toRadians((180f - inverseFieldOfView).toDouble()).toFloat())
     }
 
-    fun toSettings(): Dewarp360EffectSettings = Dewarp360EffectSettings.direct(
-        pan = -Math.toRadians(pan.toDouble()),
-        tilt = Math.toRadians(tilt.toDouble()),
-        fieldOfView = zoomToFieldOfView(zoom.toDouble())
+    fun toSettings(): Dewarp360EffectSettings = Dewarp360EffectSettings.Direct(
+        pan = -Math.toRadians(pan.toDouble()).toFloat(),
+        tilt = Math.toRadians(tilt.toDouble()).toFloat(),
+        fieldOfView = zoomToFieldOfView(zoom)
     )
 }
 
@@ -262,8 +268,8 @@ class SettingsVideoEffect(
     fun getEffect(model: Model): VideoEffect = when (type) {
         SettingsVideoEffectType.grayScale -> GrayScaleEffect()
         SettingsVideoEffectType.sepia -> SepiaEffect()
-        SettingsVideoEffectType.whirlpool -> WhirlpoolEffect(angle = Math.PI / 2)
-        SettingsVideoEffectType.pinch -> PinchEffect(scale = 0.5)
+        SettingsVideoEffectType.whirlpool -> WhirlpoolEffect(angle = (Math.PI / 2).toFloat())
+        SettingsVideoEffectType.pinch -> PinchEffect(scale = 0.5f)
         SettingsVideoEffectType.removeBackground -> {
             val effect = RemoveBackgroundEffect()
             effect.setColorRange(from = removeBackground.from, to = removeBackground.to)
@@ -283,12 +289,7 @@ class SettingsVideoEffect(
             AnamorphicLensEffect(settings = anamorphicLens.clone())
         SettingsVideoEffectType.lut -> {
             val effect = LutEffect()
-            model.getLogLutById(lut.lut)?.let { logLut ->
-                effect.setLut(lut = logLut.clone(), imageStorage = model.imageStorage) { title, subTitle ->
-                    model.makeErrorToast(title = title, subTitle = subTitle)
-                }
-            }
-            effect
+            TODO("Model.getLogLutById is not available")
         }
         SettingsVideoEffectType.opacity -> {
             val effect = OpacityEffect()
@@ -1015,11 +1016,8 @@ enum class SettingsSceneSwitchTransition(val rawValue: String) {
         blurAndZoom -> localized("Blur & zoom")
     }
 
-    fun toVideoUnit(): SceneSwitchTransition = when (this) {
-        blur -> SceneSwitchTransition.blur
-        freeze -> SceneSwitchTransition.freeze
-        blurAndZoom -> SceneSwitchTransition.blurAndZoom
-    }
+    fun toVideoUnit(): SceneSwitchTransition =
+        TODO("SceneSwitchTransition members are not available")
 
     companion object {
         fun fromRawValue(rawValue: String): SettingsSceneSwitchTransition? =
@@ -1590,7 +1588,7 @@ enum class SettingsSceneCameraPosition(val rawValue: String) {
     @SerialName("Back") back("Back"),
     @SerialName("Front") front("Front"),
     @SerialName("RTMP") rtmp("RTMP"),
-    @SerialName("External") external("External"),
+    @SerialName("External") `external`("External"),
     @SerialName("SRT(LA)") srtla("SRT(LA)"),
     @SerialName("SRT client") srtClient("SRT client"),
     @SerialName("RIST") rist("RIST"),
@@ -1640,7 +1638,7 @@ data class SettingsVideoSource(
         SettingsSceneCameraPosition.back -> SettingsCameraId.Back(backCameraId)
         SettingsSceneCameraPosition.front -> SettingsCameraId.Front(frontCameraId)
         SettingsSceneCameraPosition.rtmp -> SettingsCameraId.Rtmp(rtmpCameraId)
-        SettingsSceneCameraPosition.external ->
+        SettingsSceneCameraPosition.`external` ->
             SettingsCameraId.External(externalCameraId, externalCameraName)
         SettingsSceneCameraPosition.srtla -> SettingsCameraId.Srtla(srtlaCameraId)
         SettingsSceneCameraPosition.srtClient -> SettingsCameraId.Srt(srtClientCameraId)
@@ -1699,7 +1697,7 @@ data class SettingsVideoSource(
                 mediaPlayerCameraId = settingsCameraId.id
             }
             is SettingsCameraId.External -> {
-                cameraPosition = SettingsSceneCameraPosition.external
+                cameraPosition = SettingsSceneCameraPosition.`external`
                 externalCameraId = settingsCameraId.id
                 externalCameraName = settingsCameraId.name
             }
@@ -1720,14 +1718,14 @@ data class SettingsVideoSource(
         SettingsSceneCameraPosition.backDualLowEnergy -> true
         SettingsSceneCameraPosition.backTripleLowEnergy -> true
         SettingsSceneCameraPosition.front -> true
-        SettingsSceneCameraPosition.external -> true
+        SettingsSceneCameraPosition.`external` -> true
         else -> false
     }
 
     fun getCaptureDeviceCameraId(): CameraId? = when (cameraPosition) {
         SettingsSceneCameraPosition.back -> backCameraId
         SettingsSceneCameraPosition.front -> frontCameraId
-        SettingsSceneCameraPosition.external -> externalCameraId
+        SettingsSceneCameraPosition.`external` -> externalCameraId
         else -> null
     }
 

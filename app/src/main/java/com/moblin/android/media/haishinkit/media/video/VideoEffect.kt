@@ -1,9 +1,9 @@
 package com.moblin.android.media.haishinkit.media.video
 
-import android.graphics.Rect
 import android.graphics.RectF
 import android.media.Image
 import android.util.Size
+import androidx.compose.ui.geometry.Rect
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.videoeffects.MetalPetalWidgetShape
 import com.moblin.android.videoeffects.dewarp360.graphicsEpsilon
@@ -117,7 +117,7 @@ open class VideoEffect {
         widgetShape: MetalPetalWidgetShape? = null,
     ): Image {
         val shape = widgetShape
-            ?: MetalPetalWidgetShape(Rect(0, 0, image.width, image.height))
+            ?: MetalPetalWidgetShape(Rect(0.0f, 0.0f, image.width.toFloat(), image.height.toFloat()))
         val processed = applyEffectsMetalPetal(image, info)
         for (effect in effects) {
             effect.modifyMetalPetalWidgetShape(shape)

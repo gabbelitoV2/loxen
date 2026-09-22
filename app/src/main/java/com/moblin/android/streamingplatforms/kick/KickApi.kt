@@ -82,10 +82,10 @@ data class KickChatterInfo(
         followers: Int?,
     ): ChatterInfo {
         val role: ChatterRole = when {
-            is_channel_owner -> ChatterRole.OWNER
-            is_staff -> ChatterRole.STAFF
-            is_moderator -> ChatterRole.MODERATOR
-            else -> ChatterRole.VIEWER
+            is_channel_owner -> ChatterRole.owner
+            is_staff -> ChatterRole.staff
+            is_moderator -> ChatterRole.moderator
+            else -> ChatterRole.viewer
         }
         val giftedSubs = badges.firstOrNull { it.type == "sub_gifter" }?.count
         return ChatterInfo(

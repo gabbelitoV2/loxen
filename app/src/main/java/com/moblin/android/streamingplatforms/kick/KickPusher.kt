@@ -1,5 +1,6 @@
 package com.moblin.android.streamingplatforms.kick
 
+import android.content.Context
 import android.util.Log
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.integrations.emotes.Emotes
@@ -302,6 +303,7 @@ interface KickPusherDelegate {
 }
 
 class KickPusher(
+    private val context: Context,
     delegate: KickPusherDelegate?,
     channelName: String,
     channelId: String,
@@ -311,7 +313,7 @@ class KickPusher(
     private var channelName: String = channelName
     private var channelId: String = channelId
     private var chatroomChannelId: String = chatroomChannelId
-    private var webSocket: WebSocketClient = WebSocketClient(url)
+    private var webSocket: WebSocketClient = WebSocketClient(context, url)
     private var emotes: Emotes = Emotes()
     private var badges: KickBadges = KickBadges()
     private val settings: SettingsStreamChat = settings.clone()
@@ -334,7 +336,7 @@ class KickPusher(
             ::handleOk,
             settings,
         )
-        webSocket = WebSocketClient(url)
+        webSocket = WebSocketClient(context, url)
         webSocket.delegate = this
         webSocket.start()
     }

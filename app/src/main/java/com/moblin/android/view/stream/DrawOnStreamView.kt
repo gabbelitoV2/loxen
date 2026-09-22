@@ -75,7 +75,7 @@ private fun DrawOnStreamCanvasView(
                             drawing = true
                         },
                         onDrag = { change, _ ->
-                            val currentLines = drawOnStream.lines.value
+                            val currentLines = drawOnStream.lines.value.filterIsInstance<DrawOnStreamLine>()
                             val lastIndex = currentLines.indices.lastOrNull()
                             if (lastIndex != null) {
                                 val last = currentLines[lastIndex]
@@ -92,7 +92,7 @@ private fun DrawOnStreamCanvasView(
                     )
                 },
         ) {
-            for (line in lines) {
+            for (line in lines.filterIsInstance<DrawOnStreamLine>()) {
                 val width = line.width
                 if (line.points.size > 1) {
                     drawPath(
@@ -130,7 +130,7 @@ private fun DrawOnStreamControlsView(
 ) {
     val lines by drawOnStream.lines.collectAsState()
     val selectedWidth by drawOnStream.selectedWidth.collectAsState()
-    val selectedColor by drawOnStream.selectedColor.collectAsState()
+    val selectedColor = drawOnStream.selectedColor.value
     Column {
         Spacer(modifier = Modifier.weight(1f))
         Row(
@@ -145,9 +145,9 @@ private fun DrawOnStreamControlsView(
             ) {
                 IconButton(
                     onClick = {
-                        drawOnStream.lines.value = mutableListOf()
+                        drawOnStream.lines.value = mutableListOf<DrawOnStreamLine>()
                     },
-                    enabled = lines.isNotEmpty(),
+                    enabled = lines.size > 0,
                 ) {
                     Icon(
                         imageVector = Icons.Default.Delete,
@@ -158,9 +158,9 @@ private fun DrawOnStreamControlsView(
                 }
                 IconButton(
                     onClick = {
-                        drawOnStream.lines.value = drawOnStream.lines.value.dropLast(1).toMutableList()
+                        drawOnStream.lines.value = drawOnStream.lines.value.filterIsInstance<DrawOnStreamLine>().dropLast(1).toMutableList()
                     },
-                    enabled = lines.isNotEmpty(),
+                    enabled = lines.size > 0,
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.Undo,

@@ -20,6 +20,8 @@ import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderDelegate
 import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderSettings
 import com.moblin.android.media.haishinkit.codec.video.VideoEncoderDelegate
 import com.moblin.android.media.haishinkit.codec.video.VideoEncoderSettings
+import com.moblin.android.media.haishinkit.codec.video.numberOfFailedEncodings
+import com.moblin.android.media.haishinkit.media.AudioVideoEncoderDelegate
 import com.moblin.android.media.haishinkit.media.Processor
 import com.moblin.android.media.haishinkit.media.ProcessorDelegate
 import com.moblin.android.media.haishinkit.media.RecorderDataSegment
@@ -32,6 +34,7 @@ import com.moblin.android.media.haishinkit.media.video.PreviewView
 import com.moblin.android.media.haishinkit.media.video.SceneSwitchTransition
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoUnitAttachParams
+import com.moblin.android.media.haishinkit.rist.RistEndpoint
 import com.moblin.android.media.haishinkit.rist.RistStream
 import com.moblin.android.media.haishinkit.rist.RistStreamDelegate
 import com.moblin.android.media.haishinkit.rtmp.RtmpConnectionCode
@@ -65,6 +68,7 @@ import com.moblin.android.various.settings.SettingsStreamSrtConnectionPriorities
 import com.moblin.android.various.settings.SettingsStreamSrtImplementation
 import com.moblin.android.various.settings.SettingsVideoStabilizationMode
 import com.moblin.android.various.utils.extractSrtStreamId
+import java.net.URI
 import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -208,7 +212,8 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
                 rtmpStreams.add(RtmpStream(name = "Main",
                     processor = processor,
                     delegate = this,
-                    queue = processorControlQueue))
+                    queue = processorControlQueue.coroutineContext[CoroutineDispatcher]
+                        ?: Dispatchers.Default))
                 for (destination in destinations) {
                     if (!destination.enabled) {
                         continue
@@ -216,7 +221,8 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
                     val rtmpStream = RtmpStream(name = destination.name,
                         processor = processor,
                         delegate = this,
-                        queue = processorControlQueue)
+                        queue = processorControlQueue.coroutineContext[CoroutineDispatcher]
+                            ?: Dispatchers.Default)
                     rtmpStream.setUrl(destination.url)
                     rtmpStreams.add(rtmpStream)
                 }
@@ -349,12 +355,12 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
 
     fun addMoblink(host: String, port: Int, id: UUID, name: String) {
         srtlaClient?.addMoblink(host = host, port = port, id = id, name = name)
-        ristStream?.addMoblink(host = host, port = port, id = id, name = name)
+        ristStream?.addMoblink(endpoint = RistEndpoint(host = host, port = port), id = id, name = name)
     }
 
     fun removeMoblink(host: String, port: Int) {
         srtlaClient?.removeMoblink(host = host, port = port)
-        ristStream?.removeMoblink(host = host, port = port)
+        ristStream?.removeMoblink(endpoint = RistEndpoint(host = host, port = port))
     }
 
     fun srtSetAdaptiveBitrateAlgorithm(
@@ -365,10 +371,12 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
             SettingsStreamSrtAdaptiveBitrateAlgorithm.fastIrl,
             SettingsStreamSrtAdaptiveBitrateAlgorithm.slowIrl,
             SettingsStreamSrtAdaptiveBitrateAlgorithm.customIrl -> {
-                adaptiveBitrate = AdaptiveBitrateSrtFight(targetBitrate = targetBitrate, delegate = this)
+                adaptiveBitrate = AdaptiveBitrate(delegate = this)
+                adaptiveBitrate?.setTargetBitrate(bitrate = targetBitrate)
             }
             SettingsStreamSrtAdaptiveBitrateAlgorithm.belabox -> {
-                adaptiveBitrate = AdaptiveBitrateSrtBelabox(targetBitrate = targetBitrate, delegate = this)
+                adaptiveBitrate = AdaptiveBitrate(delegate = this)
+                adaptiveBitrate?.setTargetBitrate(bitrate = targetBitrate)
             }
             null -> {
                 adaptiveBitrate = null
@@ -581,7 +589,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         val whipStream = this.whipStream
         val mobcamStream = this.mobcamStream
         if (rtmpStream != null) {
-            return (8 * rtmpStream.info.bitrateStats.value.latestSpeed).toLong()
+            return rtmpStream.info.bitrateStats.value.latestSpeed.toLong() * 8
         } else if (isSrtStreamActive()) {
             return srtTransportBitrate
         } else if (ristStream != null) {
@@ -655,10 +663,8 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         adaptiveBitrateEnabled: Boolean
     ) {
         if (adaptiveBitrateEnabled) {
-            adaptiveBitrate = AdaptiveBitrateSrtFight(targetBitrate = targetBitrate,
-                delegate = this,
-                rttMax = 500.0,
-                pifMax = 100.0)
+            adaptiveBitrate = AdaptiveBitrate(delegate = this)
+            adaptiveBitrate?.setTargetBitrate(bitrate = targetBitrate)
         } else {
             adaptiveBitrate = null
         }
@@ -682,10 +688,8 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         adaptiveBitrateEnabled: Boolean
     ) {
         if (adaptiveBitrateEnabled) {
-            adaptiveBitrate = AdaptiveBitrateRistExperiment(
-                targetBitrate = targetBitrate,
-                delegate = this
-            )
+            adaptiveBitrate = AdaptiveBitrate(delegate = this)
+            adaptiveBitrate?.setTargetBitrate(bitrate = targetBitrate)
         } else {
             adaptiveBitrate = null
         }
@@ -857,7 +861,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         processor?.setFps(value = fps.toDouble(), preferAutoFps = preferAutoFps)
     }
 
-    fun setColorSpace(colorSpace: ColorSpace, onComplete: () -> Unit) {
+    fun setColorSpace(colorSpace: Int, onComplete: () -> Unit) {
         processor?.setColorSpace(colorSpace = colorSpace, onComplete = onComplete)
     }
 
@@ -927,7 +931,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
 
     fun setStreamAdaptiveResolution(value: Boolean, thresholdsFactor: Double) {
         videoEncoderSettings.adaptiveResolution = value
-        videoEncoderSettings.updateAdtaptiveResolutionThresholds(thresholdsFactor = thresholdsFactor)
+        videoEncoderSettings.updateAdtaptiveResolutionThresholds(factor = thresholdsFactor)
         commitVideoEncoderSettings()
     }
 
@@ -942,7 +946,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
     }
 
     fun setAudioChannelsMap(channelsMap: Map<Int, Int>) {
-        audioEncoderSettings.channelsMap = channelsMap
+        audioEncoderSettings.channelsMap = channelsMap.toMutableMap()
         commitAudioEncoderSettings()
         processor?.setAudioChannelsMap(map = channelsMap)
     }
@@ -994,12 +998,12 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
     fun attachBufferedCamera(
         devices: CaptureDevices,
         builtinDelay: Double,
-        cameraPreviewLayers: Map<UUID, PreviewView>,
+        cameraPreviewLayers: Map<UUID, androidx.camera.view.PreviewView>,
         attachCameraPreview: Boolean,
         showCameraPreview: Boolean,
         externalDisplayPreview: Boolean,
         cameraId: UUID,
-        preferredVideoStabilizationMode: SettingsVideoStabilizationMode,
+        preferredVideoStabilizationMode: Int,
         ignoreFramesAfterAttachSeconds: Double,
         fillFrame: Boolean,
         isLandscapeStreamAndPortraitUi: Boolean,
@@ -1078,7 +1082,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         keyFrameInterval: Int?,
         audioBitrate: Int?
     ) {
-        processor?.startRecording(url = url,
+        processor?.startRecording(url = url?.let { URI.create(it) },
             replay = replay,
             audioSettings = makeAudioCompressionSettings(audioBitrate = audioBitrate),
             videoSettings = makeVideoCompressionSettings(
@@ -1089,7 +1093,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
     }
 
     fun setRecordUrl(url: String?) {
-        processor?.setUrl(url = url)
+        processor?.setUrl(url = url?.let { URI.create(it) })
     }
 
     fun setReplayBuffering(enabled: Boolean) {
@@ -1207,19 +1211,19 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
     }
 
     override fun srtlaReady(port: Int) {
-        CoroutineScope(processorControlQueue).launch {
+        processorControlQueue.launch {
             val srtStreamOld = this@Media.srtStreamOld
             if (srtStreamOld != null) {
                 try {
                     srtStreamOld.open(
-                        url = makeLocalhostSrtUrl(
+                        uri = makeLocalhostSrtUrl(
                             url = srtUrl,
                             port = port,
                             latency = latency,
                             overheadBandwidth = overheadBandwidth,
                             maximumBandwidthFollowInput = maximumBandwidthFollowInput
-                        ),
-                        onPacket = { data ->
+                        )?.let { URI.create(it) },
+                        sendHook = { data ->
                             val srtla = this@Media.srtlaClient
                             if (srtla != null) {
                                 CoroutineScope(srtlaClientQueue).launch {
@@ -1242,7 +1246,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
             } else {
                 srtStreamNew?.open(
                     streamId = extractSrtStreamId(url = srtUrl),
-                    latency = latency.coerceIn(0, 65535),
+                    latency = latency.coerceIn(0, 65535).toUShort(),
                     experimental = experimental
                 )
             }
@@ -1351,18 +1355,24 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         delegate.mediaOnWhipPerform(request = request, queue = queue, completion = completion)
     }
 
-    override fun <T> whipStreamStartEncoding(delegate: T)
-        where T : AudioEncoderDelegate, T : VideoEncoderDelegate
-    {
-        CoroutineScope(processorPipelineQueue).launch {
+    override fun whipStreamStartEncoding(
+        audioDelegate: AudioEncoderDelegate,
+        videoDelegate: VideoEncoderDelegate
+    ) {
+        val delegate = (audioDelegate as? AudioVideoEncoderDelegate)
+            ?: (videoDelegate as AudioVideoEncoderDelegate)
+        processorPipelineQueue.launch {
             this@Media.processor?.startEncoding(delegate)
         }
     }
 
-    override fun <T> whipStreamStopEncoding(delegate: T)
-        where T : AudioEncoderDelegate, T : VideoEncoderDelegate
-    {
-        CoroutineScope(processorPipelineQueue).launch {
+    override fun whipStreamStopEncoding(
+        audioDelegate: AudioEncoderDelegate,
+        videoDelegate: VideoEncoderDelegate
+    ) {
+        val delegate = (audioDelegate as? AudioVideoEncoderDelegate)
+            ?: (videoDelegate as AudioVideoEncoderDelegate)
+        processorPipelineQueue.launch {
             this@Media.processor?.stopEncoding(delegate)
         }
     }
@@ -1378,16 +1388,16 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
     override fun <T> mobcamStreamStartEncoding(delegate: T)
         where T : AudioEncoderDelegate, T : VideoEncoderDelegate
     {
-        CoroutineScope(processorPipelineQueue).launch {
-            this@Media.processor?.startEncoding(delegate)
+        processorPipelineQueue.launch {
+            this@Media.processor?.startEncoding(delegate as AudioVideoEncoderDelegate)
         }
     }
 
     override fun <T> mobcamStreamStopEncoding(delegate: T)
         where T : AudioEncoderDelegate, T : VideoEncoderDelegate
     {
-        CoroutineScope(processorPipelineQueue).launch {
-            this@Media.processor?.stopEncoding(delegate)
+        processorPipelineQueue.launch {
+            this@Media.processor?.stopEncoding(delegate as AudioVideoEncoderDelegate)
         }
     }
 }
@@ -1421,7 +1431,7 @@ private class PreviewStreamHandler(
     }
 
     private fun reconnectSoon(reason: String) {
-        reconnectTimer.startSingleShot(5) {
+        reconnectTimer.startSingleShot(5.0) {
             Log.i("Media", "preview-stream: Reconnecting due to: $reason")
             start()
         }
@@ -1444,9 +1454,10 @@ private class PreviewStreamHandler(
         media.delegate.mediaOnWhipPerform(request = request, queue = queue, completion = completion)
     }
 
-    override fun <T> whipStreamStartEncoding(delegate: T)
-        where T : AudioEncoderDelegate, T : VideoEncoderDelegate
-    {
+    override fun whipStreamStartEncoding(
+        audioDelegate: AudioEncoderDelegate,
+        videoDelegate: VideoEncoderDelegate
+    ) {
         val videoSettings = VideoEncoderSettings()
         videoSettings.videoSize = resolution.dimensions(portrait = false)
         videoSettings.bitrate = bitrate
@@ -1454,12 +1465,15 @@ private class PreviewStreamHandler(
         val audioSettings = AudioEncoderSettings()
         audioSettings.bitrate = 64000
         audioSettings.format = AudioEncoderSettings.Format.opus
+        val delegate = (audioDelegate as? AudioVideoEncoderDelegate)
+            ?: (videoDelegate as AudioVideoEncoderDelegate)
         media.processor?.startPreviewEncoding(delegate, videoSettings, audioSettings)
     }
 
-    override fun <T> whipStreamStopEncoding(delegate: T)
-        where T : AudioEncoderDelegate, T : VideoEncoderDelegate
-    {
+    override fun whipStreamStopEncoding(
+        audioDelegate: AudioEncoderDelegate,
+        videoDelegate: VideoEncoderDelegate
+    ) {
         media.processor?.stopPreviewEncoding()
     }
 }

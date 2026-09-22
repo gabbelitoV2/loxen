@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PointF
 import android.graphics.RectF
+import android.media.Image
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
@@ -195,11 +196,11 @@ class MaskEffect : VideoEffect() {
         }
     }
 
-    override fun executeMetalPetal(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
         TODO("OpenGL ES port")
     }
 
-    override fun execute(image: Bitmap, info: VideoEffectInfo): Bitmap {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         TODO("OpenGL ES port")
     }
 }

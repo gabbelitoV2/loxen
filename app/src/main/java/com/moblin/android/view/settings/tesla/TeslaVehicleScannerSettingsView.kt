@@ -18,9 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.moblin.android.integrations.tesla.TeslaVehicleScanner
-import com.moblin.android.integrations.tesla.discoveredPeripherals
-import com.moblin.android.integrations.tesla.startScanningForDevices
-import com.moblin.android.integrations.tesla.stopScanningForDevices
 import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.bluetoothNotAllowedMessage
@@ -36,15 +33,16 @@ fun TeslaVehicleScannerSettingsView(
     onDismiss: () -> Unit,
 ) {
     val bluetoothAllowed by model.bluetoothAllowed.collectAsState()
-    val peripherals by discoveredPeripherals.collectAsState()
+    val scanner = TeslaVehicleScanner.shared
+    val peripherals by scanner.discoveredPeripherals.collectAsState()
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        startScanningForDevices(context)
+        scanner.startScanningForDevices(context)
     }
     DisposableEffect(Unit) {
         onDispose {
-            stopScanningForDevices()
+            scanner.stopScanningForDevices()
         }
     }
 

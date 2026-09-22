@@ -1,10 +1,10 @@
 package com.moblin.android.various.model
 
+import android.content.Context
 import android.os.Build
 import android.util.Log
-import com.moblin.android.common.various.ThermalState
 import com.moblin.android.common.various.noValue
-import com.moblin.android.moblink.MoblinkRelay
+import com.moblin.android.moblink.MoblinkRelayServer
 import com.moblin.android.moblink.MoblinkRelayDelegate
 import com.moblin.android.moblink.MoblinkRelayState
 import com.moblin.android.moblink.MoblinkScanner
@@ -13,16 +13,17 @@ import com.moblin.android.moblink.MoblinkScannerStreamer
 import com.moblin.android.moblink.MoblinkStreamer
 import com.moblin.android.moblink.MoblinkStreamerDelegate
 import com.moblin.android.moblink.MoblinkThermalState
-import com.moblin.android.moblink.applicationContext
 import com.moblin.android.various.settings.SettingsStreamSrtConnectionPriority
 import java.net.URI
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+private lateinit var applicationContext: Context
+
 class Moblink {
     var streamer: MoblinkStreamer? = null
-    var relays: MutableList<MoblinkRelay> = mutableListOf()
+    var relays: MutableList<MoblinkRelayServer> = mutableListOf()
     var scanner: MoblinkScanner? = null
     var relayState: MoblinkRelayState =
         MoblinkRelayState.values().firstOrNull { it.rawValue == "waiting-for-streamers" }
@@ -104,7 +105,7 @@ private fun Model.addMoblinkRelay(streamerUrl: String) {
         return
     }
     val model = this
-    val relay = MoblinkRelay(
+    val relay = MoblinkRelayServer(
         name = database.moblink.relay.name.value,
         streamerUrl = streamerUrl,
         password = database.moblink.password,
@@ -250,10 +251,10 @@ fun Model.moblinkRelayNewState(state: MoblinkRelayState) {
 }
 
 fun Model.moblinkRelayGetStatus(): Pair<Int?, MoblinkThermalState?> {
-    val thermalState: MoblinkThermalState? = when (statusOther.thermalState.value) {
-        ThermalState.nominal, ThermalState.fair -> MoblinkThermalState.white
-        ThermalState.serious -> MoblinkThermalState.yellow
-        ThermalState.critical -> MoblinkThermalState.red
+    val thermalState: MoblinkThermalState? = when ("${statusOther.thermalState.value}") {
+        "nominal", "fair" -> MoblinkThermalState.white
+        "serious" -> MoblinkThermalState.yellow
+        "critical" -> MoblinkThermalState.red
         else -> null
     }
     return Pair((100 * battery.level.value).toInt(), thermalState)

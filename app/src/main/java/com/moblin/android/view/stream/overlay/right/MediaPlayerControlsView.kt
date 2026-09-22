@@ -74,7 +74,7 @@ fun StreamOverlayRightMediaPlayerControlsView(model: Model = LocalModel.current,
             if (false) {
                 LaunchedEffect(position) {
                     if (seeking) {
-                        model.mediaPlayerSeek(position = model.mediaPlayerPlayer.position.value)
+                        model.mediaPlayerSeek(position = model.mediaPlayerPlayer.position.value.toDouble())
                     }
                 }
                 Slider(
@@ -85,7 +85,7 @@ fun StreamOverlayRightMediaPlayerControlsView(model: Model = LocalModel.current,
                     },
                     onValueChangeFinished = {
                         model.mediaPlayerSetSeeking(on = false)
-                        model.mediaPlayerSeek(position = position)
+                        model.mediaPlayerSeek(position = position.toDouble())
                     },
                     valueRange = 0f..100f,
                     colors = SliderDefaults.colors(thumbColor = Color.White),

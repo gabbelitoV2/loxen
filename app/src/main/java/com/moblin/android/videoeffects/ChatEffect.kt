@@ -1,12 +1,16 @@
 package com.moblin.android.videoeffects
 
 import android.graphics.Bitmap
+import android.media.Image
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
+import com.moblin.android.common.various.*
+import com.moblin.android.media.haishinkit.media.*
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
+import com.moblin.android.media.haishinkit.media.video.*
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 import com.moblin.android.various.model.chat.ChatProvider
@@ -277,30 +281,34 @@ class ChatEffect(private val chat: ChatProvider) : VideoEffect() {
         }
     }
 
-    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         var chatImage = chatImage?.getCiImage() ?: return image
-        val height = image.extent.height * this.height
+        val height = image.height * this.height
         if (chatImage.extent.height > height) {
             chatImage = TODO("CIImage.cropped has no Android counterpart")
         }
         return chatImage
-            .move(sceneWidget.layout, image.extent.size)
+            .move(sceneWidget.layout, Size(image.width.toFloat(), image.height.toFloat()))
             .let { TODO("CIImage.cropped and CIImage.composited have no Android counterpart") }
     }
 
     override fun executeMetalPetal(
-        image: MTIImage,
+        image: Image,
         info: VideoEffectInfo,
-    ): MTIImage {
+    ): Image {
         val chatImage = chatImage?.getMetalPetalImage() ?: return image
         var contentRegion = chatImage.extent
-        val height = image.extent.height * this.height
+        val height = image.height * this.height
         if (contentRegion.height > height) {
             contentRegion = Rect(
                 Offset(contentRegion.left, contentRegion.bottom - height.toFloat()),
                 Size(contentRegion.width, height.toFloat()),
             )
         }
-        return chatImage.moveComposited(sceneWidget.layout, image, contentRegion)
+        return chatImage.moveComposited(
+            sceneWidget.layout,
+            TODO("the video unit image cannot be used as an MTIImage"),
+            contentRegion,
+        ).let { TODO("MTIImage has no android.media.Image counterpart") }
     }
 }

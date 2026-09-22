@@ -32,12 +32,12 @@ fun Model.createVariables(now: Instant, timestamp: TimeSource.Monotonic.ValueTim
         splitAltitudeAscent = database.location.splitAltitudeAscent,
         splitAltitudeDescent = database.location.splitAltitudeDescent,
         slope = "${slopePercent.toInt()}%",
-        conditions = weather?.symbolName,
-        condition = weather?.condition,
-        temperature = weather?.temperature,
-        feelsLikeTemperature = weather?.apparentTemperature,
-        windSpeed = weather?.wind.speed,
-        windGust = weather?.wind.gust,
+        conditions = weather?.currentWeather?.symbolName,
+        condition = weather?.currentWeather?.condition,
+        temperature = weather?.currentWeather?.temperature,
+        feelsLikeTemperature = weather?.currentWeather?.apparentTemperature,
+        windSpeed = weather?.currentWeather?.wind?.speed,
+        windGust = weather?.currentWeather?.wind?.gust,
         country = placemark?.countryName ?: "",
         countryFlag = emojiFlag(placemark?.countryCode),
         state = placemark?.adminArea,
@@ -80,7 +80,7 @@ fun Model.formatPlainText(formatString: String): String {
 }
 
 private fun Model.getSystemMonitor(): String {
-    return if (database.show.systemMonitor.value) {
+    return if (database.show.systemMonitor) {
         systemMonitor.format()
     } else {
         "-% - MB"
@@ -88,7 +88,7 @@ private fun Model.getSystemMonitor(): String {
 }
 
 private fun Model.getBrowserTitle(): String {
-    return if (showBrowser) {
+    return if (showBrowser.value) {
         getWebBrowser().title ?: ""
     } else {
         ""

@@ -60,6 +60,13 @@ import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
+@Suppress("UNCHECKED_CAST")
+private fun <T> StateFlow<T>.setFlowValue(value: T) {
+    (this as? MutableStateFlow<T>)?.value = value
+}
 
 private fun functions(): List<SettingsControllerFunction> {
     return SettingsControllerFunction.entries.filter {
@@ -78,18 +85,18 @@ private fun StreamDeckSettingsKeyView(model: Model = LocalModel.current, key: Se
             model = model,
             functions = functions(),
             function = function,
-            onFunctionChange = { key.setFunction(it) },
+            onFunctionChange = { key.function.setFlowValue(it) },
             functionData = functionData,
-            onFunctionDataChange = { key.setFunctionData(it) },
+            onFunctionDataChange = { key.functionData.setFlowValue(it) },
         )
         TextEditNavigationView(
             title = "Text",
             value = text,
-            onSubmit = { key.setText(it) },
+            onSubmit = { key.text.setFlowValue(it) },
         )
         TODO("ColorPicker has no Compose counterpart")
         LaunchedEffect(colorColor) {
-            key.color = colorColor.toArgb() and 0x00FFFFFF
+            TODO("No Color to RgbColor conversion available")
         }
     }
 }
@@ -259,7 +266,7 @@ private fun StreamDeckLayoutSettingsView(
     layout: SettingsStreamDeckLayout,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val name by layout.name.collectAsState()
+    val name = layout.name
     Text(
         text = name,
         modifier = Modifier
@@ -271,7 +278,7 @@ private fun StreamDeckLayoutSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamDeckLayoutSettingsDetailView(model: Model = LocalModel.current, layout: SettingsStreamDeckLayout) {
-    val name by layout.name.collectAsState()
+    val name = layout.name
     val deckModel by layout.model.collectAsState()
     val keys by layout.keys.collectAsState()
     var selectedIndex by remember { mutableStateOf(0) }
@@ -292,7 +299,7 @@ fun StreamDeckLayoutSettingsDetailView(model: Model = LocalModel.current, layout
             item {
                 NameEditView(
                     name = name,
-                    onNameChange = { layout.setName(it) },
+                    onNameChange = { layout.name = it },
                 )
             }
             item {
@@ -320,7 +327,7 @@ fun StreamDeckLayoutSettingsDetailView(model: Model = LocalModel.current, layout
                             DropdownMenuItem(
                                 text = { Text(entry.toString()) },
                                 onClick = {
-                                    layout.setModel(entry)
+                                    layout.model.setFlowValue(entry)
                                     expanded = false
                                 },
                             )
@@ -332,19 +339,19 @@ fun StreamDeckLayoutSettingsDetailView(model: Model = LocalModel.current, layout
                 when (deckModel) {
                     SettingsStreamDeckModel.mini -> StreamDeckMiniView(
                         keys = keys,
-                        onKeysChange = { layout.setKeys(it) },
+                        onKeysChange = { layout.keys.setFlowValue(it) },
                         selectedIndex = selectedIndex,
                         onSelectedIndexChange = { selectedIndex = it },
                     )
                     SettingsStreamDeckModel.classic -> StreamDeckClassicView(
                         keys = keys,
-                        onKeysChange = { layout.setKeys(it) },
+                        onKeysChange = { layout.keys.setFlowValue(it) },
                         selectedIndex = selectedIndex,
                         onSelectedIndexChange = { selectedIndex = it },
                     )
                     SettingsStreamDeckModel.xl -> StreamDeckXlView(
                         keys = keys,
-                        onKeysChange = { layout.setKeys(it) },
+                        onKeysChange = { layout.keys.setFlowValue(it) },
                         selectedIndex = selectedIndex,
                         onSelectedIndexChange = { selectedIndex = it },
                     )
@@ -397,7 +404,7 @@ fun StreamDecksSettingsView(
                 val currentName = if (selectedLayout == null) {
                     "-- None --"
                 } else {
-                    selectedLayout.name.collectAsState().value
+                    selectedLayout.name
                 }
                 ExposedDropdownMenuBox(
                     expanded = expanded,
@@ -422,16 +429,16 @@ fun StreamDecksSettingsView(
                         DropdownMenuItem(
                             text = { Text("-- None --") },
                             onClick = {
-                                streamDecks.setSelectedId(null)
+                                streamDecks.selectedId.setFlowValue(null)
                                 model.setSelectedStreamDeck()
                                 expanded = false
                             },
                         )
                         layouts.forEach { layout ->
                             DropdownMenuItem(
-                                text = { Text(layout.name.collectAsState().value) },
+                                text = { Text(layout.name) },
                                 onClick = {
-                                    streamDecks.setSelectedId(layout.id)
+                                    streamDecks.selectedId.setFlowValue(layout.id)
                                     model.setSelectedStreamDeck()
                                     expanded = false
                                 },
@@ -462,7 +469,7 @@ fun StreamDecksSettingsView(
                                 val reordered = layouts.toMutableList()
                                 val moved = reordered.removeAt(index)
                                 reordered.add(index - 1, moved)
-                                streamDecks.setLayouts(reordered)
+                                streamDecks.layouts.setFlowValue(reordered)
                             }
                         },
                     ) {
@@ -474,7 +481,7 @@ fun StreamDecksSettingsView(
                                 val reordered = layouts.toMutableList()
                                 val moved = reordered.removeAt(index)
                                 reordered.add(index + 1, moved)
-                                streamDecks.setLayouts(reordered)
+                                streamDecks.layouts.setFlowValue(reordered)
                             }
                         },
                     ) {
@@ -482,7 +489,7 @@ fun StreamDecksSettingsView(
                     }
                     IconButton(
                         onClick = {
-                            streamDecks.setLayouts(
+                            streamDecks.layouts.setFlowValue(
                                 layouts.filterIndexed { i, _ -> i != index },
                             )
                             model.setSelectedStreamDeck()
@@ -495,13 +502,12 @@ fun StreamDecksSettingsView(
             item {
                 CreateButtonView {
                     val streamDeck = SettingsStreamDeckLayout()
-                    streamDeck.setName(
+                    streamDeck.name =
                         makeUniqueName(
                             name = SettingsStreamDeckLayout.baseName,
                             existingNames = layouts,
-                        ),
-                    )
-                    streamDecks.setLayouts(layouts + streamDeck)
+                        )
+                    streamDecks.layouts.setFlowValue(layouts + streamDeck)
                 }
             }
             item {

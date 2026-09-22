@@ -51,7 +51,7 @@ fun MoblinApp() {
             createStreamWizard = model.createStreamWizard,
             toast = toast,
             orientation = orientation,
-            quickButtons = database.quickButtons.general,
+            quickButtons = database.quickButtonsGeneral,
             model = model
         )
     }

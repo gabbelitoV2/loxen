@@ -60,7 +60,7 @@ class FixedHorizonEffect : VideoEffect() {
         if (started || isMac()) {
             return
         }
-        val sensorManager = getWindow()?.context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+        val sensorManager = getWindow()?.context?.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
             ?: return
         val gravitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY) ?: return
         started = true

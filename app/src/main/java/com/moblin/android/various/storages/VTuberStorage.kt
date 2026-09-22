@@ -14,7 +14,7 @@ class VTuberStorage {
 
     fun add(id: UUID, url: File) = storage.add(id, url)
 
-    fun path(id: UUID): File = storage.path(id)
+    fun path(id: UUID): File = storage.makePath(id)
 
     fun remove(id: UUID) = storage.remove(id)
 

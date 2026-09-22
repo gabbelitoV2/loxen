@@ -8,7 +8,6 @@ import com.moblin.android.media.haishinkit.media.processorControlQueue
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.various.KeepSpeakerAlivePlayer
 import com.moblin.android.various.SimpleTimer
-import com.moblin.android.various.shared
 import com.moblin.android.various.settings.SettingsMic
 import com.moblin.android.various.settings.SettingsMicsMic
 import com.moblin.android.various.utils.isMac
@@ -28,6 +27,8 @@ import kotlinx.coroutines.launch
 private const val TAG = "Model"
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
+
+private val shared = KeepSpeakerAlivePlayer()
 
 class AudioLevel {
     val level = MutableStateFlow(defaultAudioLevel)
@@ -183,11 +184,11 @@ fun Model.switchMicIfNeededAfterNetworkCameraChange() {
 }
 
 fun Model.markMicAsConnected(id: String) {
-    database.mics.mics.value.firstOrNull { it.id == id }?._connected.value = true
+    database.mics.mics.value.firstOrNull { it.id == id }?.let { it._connected.value = true }
 }
 
 fun Model.markMicAsDisconnected(id: String) {
-    database.mics.mics.value.firstOrNull { it.id == id }?._connected.value = false
+    database.mics.mics.value.firstOrNull { it.id == id }?.let { it._connected.value = false }
 }
 
 fun Model.updateMicsList() {
@@ -495,7 +496,7 @@ private fun Model.listRistMics(mics: MutableList<SettingsMicsMic>) {
         val mic = SettingsMicsMic()
         mic.name = stream.camera()
         mic.inputUid = stream.id.toString()
-        mic._connected.value = isRistStreamConnected(port = stream.virtualDestinationPort.toUShort())
+        mic._connected.value = isRistStreamConnected(port = stream.virtualDestinationPort.toInt())
         mics.add(mic)
     }
 }
@@ -634,7 +635,8 @@ private fun Model.isMediaPlayerMic(mic: SettingsMicsMic): Boolean {
 }
 
 private fun Model.getRtmpMicCameraId(mic: SettingsMicsMic): UUID? {
-    return getRtmpStream(idString = mic.inputUid)?.id
+    val id = runCatching { UUID.fromString(mic.inputUid) }.getOrNull() ?: return null
+    return getRtmpStream(id = id)?.id
 }
 
 private fun Model.getSrtlaMicCameraId(mic: SettingsMicsMic): UUID? {

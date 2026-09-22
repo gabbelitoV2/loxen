@@ -331,7 +331,7 @@ fun AutoSwitchersView(
 ) {
     val switchers = autoSceneSwitchers.switchers
     val onDeleteAutoSwitcher: (SettingsAutoSceneSwitcher) -> Unit = { target ->
-        val offsets = makeOffsets(autoSceneSwitchers.switchers, target.id)
+        val offsets = switchers.indexOfFirst { it.id == target.id }.takeIf { it >= 0 }
         if (offsets != null) {
             deleteAutoSceneSwitcher(model, setOf(offsets))
         }

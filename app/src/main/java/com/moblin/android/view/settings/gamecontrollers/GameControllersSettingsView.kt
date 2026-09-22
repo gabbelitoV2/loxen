@@ -73,7 +73,7 @@ fun GameControllersSettingsView(
                             },
                             onLongClick = {
                                 database.gameControllers =
-                                    database.gameControllers.filterNot { it.id == gameController.id }
+                                    database.gameControllers.filterNot { it.id == gameController.id }.toMutableList()
                             },
                         )
                         .padding(16.dp),
@@ -85,7 +85,7 @@ fun GameControllersSettingsView(
             item {
                 CreateButtonView {
                     database.gameControllers =
-                        database.gameControllers + SettingsGameController()
+                        (database.gameControllers + SettingsGameController()).toMutableList()
                 }
             }
             item {

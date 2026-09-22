@@ -44,7 +44,7 @@ fun Model.isLocationEnabled(): Boolean {
 
 fun Model.isLocationInPrivacyRegion(location: Location): Boolean {
     for (region in database.location.privacyRegions) {
-        if (region.contains(TODO("privacy region coordinate"))) {
+        if (region.contains(location.latitude, location.longitude)) {
             return true
         }
     }

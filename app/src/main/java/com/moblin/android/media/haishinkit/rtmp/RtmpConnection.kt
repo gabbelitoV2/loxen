@@ -155,7 +155,7 @@ class RtmpConnection(private val name: String, private val queue: CoroutineDispa
         onCompleted: ((List<AsValue>) -> Unit)? = null,
     ) {
         val message = RtmpCommandMessage(
-            streamId = 0,
+            streamId = 0u,
             transactionId = getNextTransactionId(),
             commandType = RtmpMessageType.amf0Command,
             commandName = commandName,
@@ -238,7 +238,7 @@ class RtmpConnection(private val name: String, private val queue: CoroutineDispa
             app += "?" + query
         }
         val message = RtmpCommandMessage(
-            streamId = 0,
+            streamId = 0u,
             transactionId = getNextTransactionId(),
             commandType = RtmpMessageType.amf0Command,
             commandName = RtmpCommandName.connect,
@@ -335,7 +335,7 @@ class RtmpConnection(private val name: String, private val queue: CoroutineDispa
     }
 
     private fun processMessageData(message: RtmpDataMessage) {
-        stream?.info?.bitrateStats.mutate { it.add(bytesTransferred = message.encoded.size) }
+        stream?.info?.bitrateStats?.value?.add(bytesTransferred = message.encoded.size)
     }
 
     override fun socketReadyStateChanged(readyState: RtmpSocketReadyState) {

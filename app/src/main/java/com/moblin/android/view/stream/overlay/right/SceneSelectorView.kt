@@ -127,7 +127,6 @@ fun StreamOverlayRightSceneSelectorView(
                     if (index < enabledScenes.size) {
                         TODO("showSceneSettings")
                     }
-                    null
                 },
                 content = { scene ->
                     SceneItemView(
@@ -185,7 +184,6 @@ fun StreamOverlayRightSceneVSelectorView(
                     if (index < enabledScenes.size) {
                         TODO("showSceneSettings")
                     }
-                    null
                 },
                 content = { scene ->
                     SceneItemView(

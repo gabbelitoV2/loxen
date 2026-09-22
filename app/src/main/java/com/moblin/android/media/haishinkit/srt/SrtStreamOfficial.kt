@@ -1,10 +1,8 @@
 package com.moblin.android.media.haishinkit.srt
 
 import android.util.Log
-import com.moblin.android.media.haishinkit.media.AudioEncoderDelegate
 import com.moblin.android.media.haishinkit.media.AudioVideoEncoderDelegate
 import com.moblin.android.media.haishinkit.media.Processor
-import com.moblin.android.media.haishinkit.media.VideoEncoderDelegate
 import com.moblin.android.media.haishinkit.media.processorControlQueue
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.mpeg.MpegTsWriter
@@ -92,9 +90,7 @@ private class SendHook(var closure: ((ByteArray) -> Boolean)? = null)
 
 private class MpegTsWriterEncoderDelegate(
     private val writer: MpegTsWriter,
-) : AudioVideoEncoderDelegate,
-    AudioEncoderDelegate by writer,
-    VideoEncoderDelegate by writer
+) : AudioVideoEncoderDelegate by writer
 
 open class SrtStreamOfficial(
     private val processor: Processor,

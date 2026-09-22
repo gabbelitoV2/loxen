@@ -152,7 +152,8 @@ fun ChatNicknamesSettingsViewDestination(
                     nickname = nickname,
                     onNavigate = onNavigate,
                     onDelete = {
-                        makeOffsets(nicknameList, nickname.id)?.let { offset ->
+                        val offset = nicknameList.indexOfFirst { it.id == nickname.id }
+                        if (offset >= 0) {
                             deleteNickname(model, nicknames, listOf(offset))
                         }
                     },

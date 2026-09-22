@@ -506,7 +506,7 @@ class RemoteConnection(
             val now = System.nanoTime()
             sendSrtlaKeepalive()
             if (latestReceivedTime < now - 5_000_000_000L) {
-                reconnect(reason: "No packet received in 5 seconds")
+                reconnect(reason = "No packet received in 5 seconds")
             }
         }
     }

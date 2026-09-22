@@ -29,11 +29,11 @@ fun createFileLog(): List<String> {
 
 fun Model.setupLogging() {
     logger.handler = { message -> debugLog(message) }
-    logger.debugEnabled = database.debug.debugLogging
+    logger.debugEnabled = database.debug.debugLogging.value
 }
 
 fun Model.clearLog() {
-    log = emptyList()
+    log.clear()
 }
 
 fun Model.formatLog(log: List<LogEntry>): String {
@@ -49,7 +49,7 @@ fun Model.formatLog(log: List<LogEntry>): String {
 
 fun Model.writeFileLogToFile() {
     logsStorage.write(fileLog)
-    fileLog.clear()
+    fileLog = emptyList()
 }
 
 fun Model.flushFileLogToFile() {
@@ -61,12 +61,12 @@ private fun Model.debugLog(message: String) {
         if (log.size > database.debug.maximumLogLines) {
             log.removeFirst()
         }
-        log = log + LogEntry(id = logId, message = message)
+        log.add(LogEntry(id = logId, message = message))
         logId += 1
         remoteControlLog(message)
         if (fileLog.size >= maximumFileLogLines) {
             writeFileLogToFile()
         }
-        fileLog.add(message)
+        fileLog = fileLog + message
     }
 }

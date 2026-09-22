@@ -1,10 +1,6 @@
 package com.moblin.android.videoeffects.vtuber
 
 import android.media.Image
-import com.moblin.android.videoeffects.ayagami.AyagamiArtMeshInfo
-import com.moblin.android.videoeffects.ayagami.AyagamiArtMeshState
-import com.moblin.android.videoeffects.ayagami.AyagamiBlendMode
-import com.moblin.android.videoeffects.ayagami.AyagamiModel
 
 private val shaderSource = """
 #include <metal_stdlib>
@@ -85,12 +81,12 @@ private data class Live2DFragmentUniforms(
 )
 
 private data class Live2DPipelineKey(
-    val blendMode: AyagamiBlendMode,
+    val blendMode: Any,
     val masked: Boolean,
 )
 
 private data class Live2DArtMesh(
-    val info: AyagamiArtMeshInfo,
+    val info: Any,
     val clipSet: Int?,
 )
 
@@ -115,47 +111,13 @@ class Live2DRenderer private constructor(
     private var textureCache: Any? = null
 
     companion object {
-        fun create(model: AyagamiModel): Live2DRenderer? {
-            val artMeshes: MutableList<Live2DArtMesh> = mutableListOf()
-            val clipSets: MutableList<Live2DClipSet> = mutableListOf()
-            val clipSetIndexes: MutableMap<List<Int>, Int> = mutableMapOf()
-            for (uid in 0 until model.artMeshCount) {
-                val info = model.artMeshInfo(uid) ?: return null
-                var clipSet: Int? = null
-                if (info.clips.isNotEmpty()) {
-                    val index = clipSetIndexes[info.clips]
-                    if (index != null) {
-                        clipSet = index
-                    } else {
-                        clipSet = clipSets.size
-                        clipSetIndexes[info.clips] = clipSets.size
-                        clipSets.add(Live2DClipSet(targets = info.clips, texture = null))
-                    }
-                }
-                artMeshes.add(Live2DArtMesh(info = info, clipSet = clipSet))
-            }
-            val flip = floatArrayOf(1f, -1f)
-            val scale = floatArrayOf(
-                2f * model.canvas.scale[0] / model.canvas.dimensions[0] * flip[0],
-                2f * model.canvas.scale[1] / model.canvas.dimensions[1] * flip[1],
-            )
-            val offset = floatArrayOf(
-                (2f * model.canvas.center[0] / model.canvas.dimensions[0] - 1f) * flip[0],
-                (2f * model.canvas.center[1] / model.canvas.dimensions[1] - 1f) * flip[1],
-            )
-            val vertexUniforms = Live2DVertexUniforms(scale = scale, offset = offset)
-            return TODO(
-                "OpenGL ES port: Metal device, command queue, shader library, textures, " +
-                    "vertex/index buffers and render pipelines (prepared state: " +
-                    "${artMeshes.size} art meshes, ${clipSets.size} clip sets, " +
-                    "uniforms scale=${vertexUniforms.scale.toList()}, offset=${vertexUniforms.offset.toList()})",
-            )
-        }
+        fun create(model: Any): Live2DRenderer? =
+            TODO("OpenGL ES port: Ayagami model access, Metal device, command queue, textures and render pipelines")
 
         private fun makePipeline(
             device: Any,
             library: Any,
-            blendMode: AyagamiBlendMode,
+            blendMode: Any,
             masked: Boolean,
         ): Any = TODO("OpenGL ES port: Metal render pipeline state")
 
@@ -171,13 +133,13 @@ class Live2DRenderer private constructor(
     private fun makeOutputTexture(pixelBuffer: Image): Any? =
         TODO("OpenGL ES port: CVMetalTextureCache output texture")
 
-    fun render(model: AyagamiModel, into pixelBuffer: Image) {
+    fun render(model: Any, pixelBuffer: Image) {
         TODO("OpenGL ES port")
     }
 
     private fun renderClipSet(
         index: Int,
-        states: List<AyagamiArtMeshState?>,
+        states: List<Any?>,
         commandBuffer: Any,
         width: Int,
         height: Int,
@@ -185,7 +147,7 @@ class Live2DRenderer private constructor(
         TODO("OpenGL ES port")
     }
 
-    private fun draw(encoder: Any, artMesh: AyagamiArtMeshInfo) {
+    private fun draw(encoder: Any, artMesh: Any) {
         TODO("OpenGL ES port")
     }
 }

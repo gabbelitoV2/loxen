@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.sp
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.localized
 import com.moblin.android.streamingplatforms.Platform
-import com.moblin.android.streamingplatforms.twitch.TwitchChatSendMessageResult
 import com.moblin.android.various.CacheAsyncImage
 import com.moblin.android.various.ChatBotMessage
 import com.moblin.android.various.ChatHighlight
@@ -133,11 +132,7 @@ fun Model.updateChat() {
 }
 
 fun Model.isAlertMessage(post: ChatPost): Boolean {
-    return when (post.highlight?.kind) {
-        ChatHighlightKind.redemption -> true
-        ChatHighlightKind.newFollower -> true
-        else -> false
-    }
+    return post.highlight?.isAlert() == true
 }
 
 fun Model.reloadChats() {
@@ -259,15 +254,8 @@ fun Model.sendChatMessage(message: String) {
 
 fun Model.sendChatMessageShowLogin(message: String) {
     if (stream.value.twitchSendMessagesTo) {
-        sendTwitchChatMessage(message = message) { result ->
-            when (result) {
-                TwitchChatSendMessageResult.authError -> {
-                    twitchLogin(stream = stream.value) {
-                        showTwitchAuth.value = true
-                    }
-                }
-                else -> Unit
-            }
+        sendTwitchChatMessage(message = message) {
+            TODO("TwitchChatSendMessageResult is not available in the Android port")
         }
     }
     if (stream.value.kickSendMessagesTo) {
@@ -369,7 +357,7 @@ fun Model.appendChatMessage(
         chat.appendMessage(post = post)
         quickButtonChat.appendMessage(post = post)
         for (browserEffect in browserEffects.values) {
-            browserEffect.sendChatMessage(message = post.text())
+            browserEffect.sendChatMessage(post = post)
         }
         if (isWatchLocal()) {
             sendChatMessageToWatch(post = post)
@@ -541,7 +529,7 @@ fun Model.deleteChatUser(userId: String) {
     quickButtonChat.deleteUser(userId = userId)
     externalDisplayChat.deleteUser(userId = userId)
     chatWidgetChat.deleteUser(userId = userId)
-    chatTextToSpeech.delete(userId = userId)
+    TODO("ChatTextToSpeech.delete(userId:) is not available in the Android port")
 }
 
 @OptIn(ExperimentalLayoutApi::class)

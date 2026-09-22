@@ -57,7 +57,7 @@ fun Model.setSelectedStreamDeck() {
     val streamDecks = database.streamDecks
     streamDeck.setStreamDeck(streamDecks.layouts.value.firstOrNull { it.id == streamDecks.selectedId.value })
     if (streamDeck.streamDeck.value == null) {
-        streamDecks.selectedId.value = null
+        TODO("SettingsStreamDecks.selectedId is read-only and cannot be cleared")
     }
 }
 

@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.moblin.android.localized
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.defaultStreamButtonColor
@@ -53,7 +54,11 @@ fun StreamButtonsSettingsView(database: Database) {
                 title = localized("Reset"),
                 action = {
                     database.streamButtonColor = defaultStreamButtonColor
-                    database.streamButtonColorColor = database.streamButtonColor.color()
+                    database.streamButtonColorColor = Color(
+                        red = defaultStreamButtonColor.red.toFloat() / 255f,
+                        green = defaultStreamButtonColor.green.toFloat() / 255f,
+                        blue = defaultStreamButtonColor.blue.toFloat() / 255f,
+                    )
                 },
             )
         }

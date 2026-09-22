@@ -144,7 +144,7 @@ private class WebSocketConnection(private val socket: Socket) {
     }
 }
 
-private class MoblinkRelay(
+private class MoblinkServerRelay(
     val webSocket: WebSocketConnection,
     private val password: String,
     private val streamer: MoblinkStreamer?,
@@ -367,7 +367,7 @@ class MoblinkStreamer(
     var connectionErrorMessage = ""
     private var retryStartTimer = MainTimer()
     internal var delegate: MoblinkStreamerDelegate? = null
-    private val relays = mutableListOf<MoblinkRelay>()
+    private val relays = mutableListOf<MoblinkServerRelay>()
     private var destinationAddress: String? = null
     private var destinationPort: Int? = null
     private val mainScope = CoroutineScope(Dispatchers.Main)
@@ -486,7 +486,7 @@ class MoblinkStreamer(
     private fun handleNewConnection(connection: WebSocketConnection) {
         Log.d(TAG, "moblink-streamer: Relay connected")
         receivePacket(connection)
-        val relay = MoblinkRelay(webSocket = connection, password = password, streamer = this)
+        val relay = MoblinkServerRelay(webSocket = connection, password = password, streamer = this)
         relay.start()
         relays.add(relay)
         val address = destinationAddress

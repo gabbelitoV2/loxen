@@ -116,7 +116,7 @@ fun Model.enableCatPrinter(device: SettingsCatPrinter) {
         catPrinters[device.id] = catPrinter
     }
     catPrinters[device.id]?.start(
-        deviceId = device.bluetoothPeripheralId.value,
+        deviceId = device.bluetoothPeripheralId.value?.toString(),
         meowSoundEnabled = device.faxMeowSound.value
     )
 }

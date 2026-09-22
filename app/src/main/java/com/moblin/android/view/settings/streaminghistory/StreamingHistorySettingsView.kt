@@ -25,8 +25,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.common.various.format
-import com.moblin.android.common.various.formatBytes
 import com.moblin.android.common.various.formatDate
+import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.storages.StreamingHistoryDatabase
 import com.moblin.android.various.storages.StreamingHistoryStream
@@ -51,11 +51,22 @@ private fun StreamingHistorySettingsSummaryView(database: StreamingHistoryDataba
         }
         Spacer(modifier = Modifier.weight(1f))
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(formatBytes(totalBytes), style = MaterialTheme.typography.titleLarge)
+            Text(totalBytes.formatBytes(), style = MaterialTheme.typography.titleLarge)
             Text("Total sent", style = MaterialTheme.typography.bodyMedium)
         }
         Spacer(modifier = Modifier.weight(1f))
     }
+}
+
+private fun Long.formatBytes(): String {
+    val units = listOf("kB", "MB", "GB", "TB")
+    var value = this.toDouble()
+    var unitIndex = -1
+    while (value >= 1000.0 && unitIndex < units.size - 1) {
+        value /= 1000.0
+        unitIndex += 1
+    }
+    return if (unitIndex == -1) "$this B" else "${formatOneDecimal(value)} ${units[unitIndex]}"
 }
 
 private fun formatStreamTitle(stream: StreamingHistoryStream): String {

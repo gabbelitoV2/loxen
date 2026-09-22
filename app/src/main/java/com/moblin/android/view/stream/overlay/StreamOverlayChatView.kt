@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.moblin.android.common.various.backgroundColor
+import com.moblin.android.common.various.color
 import com.moblin.android.localized
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.ChatPost

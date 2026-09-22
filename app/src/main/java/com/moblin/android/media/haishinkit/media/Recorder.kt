@@ -109,6 +109,15 @@ private fun numSamples(sampleBuffer: MediaSample): Int {
     return sampleBuffer.data.size / (channels * 2)
 }
 
+private fun MediaSample.replacePresentationTimeStamp(presentationTimeUs: Long): MediaSample? {
+    return MediaSample(
+        data = data,
+        presentationTimeUs = presentationTimeUs,
+        isKeyFrame = isKeyFrame,
+        format = format,
+    )
+}
+
 class Recorder {
     private var replay = false
     private var audioOutputSettings: Map<String, Any> = emptyMap()

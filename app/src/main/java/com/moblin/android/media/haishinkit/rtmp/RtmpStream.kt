@@ -21,6 +21,7 @@ import com.moblin.android.media.haishinkit.flv.FlvTagType
 import com.moblin.android.media.haishinkit.flv.FlvVideoCodec
 import com.moblin.android.media.haishinkit.flv.FlvVideoFourCC
 import com.moblin.android.media.haishinkit.flv.FlvVideoPacketType
+import com.moblin.android.media.haishinkit.media.AudioVideoEncoderDelegate
 import com.moblin.android.media.haishinkit.media.Processor
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.mpeg.MpegTsAudioConfig
@@ -32,6 +33,7 @@ import com.moblin.android.media.haishinkit.rtmp.message.RtmpAudioMessage
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpCommandMessage
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpCommandName
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpDataMessage
+import com.moblin.android.media.haishinkit.rtmp.message.RtmpMessageType
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpVideoMessage
 import com.moblin.android.media.haishinkit.util.ByteWriter
 import com.moblin.android.various.SimpleTimer
@@ -123,7 +125,7 @@ class RtmpStream(
     private val processor: Processor,
     val delegate: RtmpStreamDelegate?,
     private val queue: CoroutineDispatcher,
-) : AudioEncoderDelegate, VideoEncoderDelegate {
+) : AudioVideoEncoderDelegate {
     val info = RtmpStreamInfo()
     var streamId: UInt = 0u
     private var state: State = State.initialized
@@ -269,10 +271,10 @@ class RtmpStream(
         val timestamp = elapsed.coerceAtLeast(0L).toUInt()
         val chunk = RtmpChunk(
             type = if (dataWasSent) RtmpChunkType.one else RtmpChunkType.zero,
-            chunkStreamId = RtmpChunk.ChunkStreamId.data.rawValue,
+            chunkStreamId = RtmpChunk.ChunkStreamId.command.rawValue,
             message = RtmpDataMessage(
                 streamId = streamId,
-                dataType = RtmpDataMessage.DataType.amf0Data,
+                dataType = RtmpMessageType.amf0Data,
                 timestamp = timestamp,
                 handlerName = handlerName,
                 arguments = arguments.toList(),
@@ -280,13 +282,13 @@ class RtmpStream(
         )
         val length = connection.socket.write(chunk)
         dataTimeStamps[handlerName] = Instant.now()
-        info.bitrateStats.mutate { it.add(bytesTransferred = length) }
+        info.bitrateStats.value.add(bytesTransferred = length)
     }
 
     private fun createOnMetaData(): AsObject {
         val audioEncoder = processor.getAudioEncoder()
         val videoEncoder = processor.getVideoEncoder()
-        val metadata: AsObject = mutableMapOf()
+        val metadata: MutableMap<String, AsValue> = mutableMapOf()
         val settings = videoEncoder.settings.value
         metadata["width"] = AsValue.Number(settings.videoSize.width.toDouble())
         metadata["height"] = AsValue.Number(settings.videoSize.height.toDouble())
@@ -314,7 +316,7 @@ class RtmpStream(
                 message = RtmpCommandMessage(
                     streamId = streamId,
                     transactionId = connection.getNextTransactionId(),
-                    commandType = RtmpCommandMessage.CommandType.amf0Command,
+                    commandType = RtmpMessageType.amf0Command,
                     commandName = RtmpCommandName.publish,
                     commandObject = null,
                     arguments = listOf(AsValue.String(streamKey), AsValue.String("live")),
@@ -372,8 +374,8 @@ class RtmpStream(
             RtmpChunk(
                 message = RtmpCommandMessage(
                     streamId = streamId,
-                    transactionId = 0u,
-                    commandType = RtmpCommandMessage.CommandType.amf0Command,
+                    transactionId = 0,
+                    commandType = RtmpMessageType.amf0Command,
                     commandName = RtmpCommandName.deleteStream,
                     commandObject = null,
                     arguments = listOf(AsValue.Number(streamId.toDouble())),
@@ -389,8 +391,8 @@ class RtmpStream(
                 chunkStreamId = RtmpChunk.ChunkStreamId.command.rawValue,
                 message = RtmpCommandMessage(
                     streamId = 0u,
-                    transactionId = 0u,
-                    commandType = RtmpCommandMessage.CommandType.amf0Command,
+                    transactionId = 0,
+                    commandType = RtmpMessageType.amf0Command,
                     commandName = RtmpCommandName.closeStream,
                     commandObject = null,
                     arguments = listOf(AsValue.Number(streamId.toDouble())),
@@ -411,7 +413,7 @@ class RtmpStream(
             ),
         )
         audioChunkType = RtmpChunkType.one
-        info.bitrateStats.mutate { it.add(bytesTransferred = length) }
+        info.bitrateStats.value.add(bytesTransferred = length)
     }
 
     private fun handleEncodedVideoBuffer(buffer: ByteArray, timestamp: UInt) {
@@ -426,7 +428,7 @@ class RtmpStream(
             ),
         )
         videoChunkType = RtmpChunkType.one
-        info.bitrateStats.mutate { it.add(bytesTransferred = length) }
+        info.bitrateStats.value.add(bytesTransferred = length)
     }
 
     private fun audioEncoderOutputFormatInternal(format: MediaFormat) {
@@ -555,9 +557,9 @@ class RtmpStream(
         }
     }
 
-    override fun audioEncoderOutputBuffer(buffer: ByteArray, presentationTimeUs: Long) {
+    override fun audioEncoderOutputBuffer(buffer: MediaSample, presentationTimeStamp: Long) {
         queueScope.launch {
-            audioEncoderOutputBufferInternal(buffer, presentationTimeUs)
+            audioEncoderOutputBufferInternal(buffer.data, presentationTimeStamp)
         }
     }
 

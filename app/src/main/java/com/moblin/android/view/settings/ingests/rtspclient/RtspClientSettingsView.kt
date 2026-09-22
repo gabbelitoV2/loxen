@@ -119,7 +119,8 @@ fun RtspClientSettingsViewDestination(
                             text = { Text("Delete") },
                             onClick = {
                                 menuExpanded = false
-                                makeOffsets(streams, stream.id)?.let { offsets ->
+                                val offsets = streams.indexOfFirst { it.id == stream.id }
+                                if (offsets >= 0) {
                                     deleteStream(model, rtspClient, setOf(offsets))
                                 }
                             },

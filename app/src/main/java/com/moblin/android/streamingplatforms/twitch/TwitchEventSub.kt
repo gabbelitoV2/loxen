@@ -1,5 +1,6 @@
 package com.moblin.android.streamingplatforms.twitch
 
+import android.content.Context
 import android.util.Log
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.network.WebSocketClient
@@ -519,12 +520,14 @@ private val subTypeChannelPredictionLock = "channel.prediction.lock"
 private val subTypeChannelPredictionEnd = "channel.prediction.end"
 
 class TwitchEventSub(
+    context: Context,
     remoteControl: Boolean,
     userId: String,
     accessToken: String,
     delegate: TwitchEventSubDelegate,
 ) : WebSocketClientDelegate {
     private var webSocket: WebSocketClient
+    private val context: Context
     private var remoteControl: Boolean
     private val userId: String
     private var sessionId: String = ""
@@ -535,11 +538,12 @@ class TwitchEventSub(
     private val connectDelayTimer = MainTimer()
 
     init {
+        this.context = context
         this.remoteControl = remoteControl
         this.userId = userId
         this.delegate = delegate
         twitchApi = TwitchApi(accessToken)
-        webSocket = WebSocketClient(url)
+        webSocket = WebSocketClient(context, url)
         twitchApi.onUnauthorized = {
             if (started) {
                 this.delegate.twitchEventSubUnauthorized()
@@ -593,7 +597,7 @@ class TwitchEventSub(
 
     private fun connect() {
         connected = false
-        webSocket = WebSocketClient(url)
+        webSocket = WebSocketClient(context, url)
         webSocket.delegate = this
         if (!remoteControl) {
             webSocket.start()

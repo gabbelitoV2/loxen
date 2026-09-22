@@ -81,8 +81,8 @@ private fun KickSubscriptionsView(model: Model = LocalModel.current, alert: Sett
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor,
-                    accentColor = alert.accentColor
+                    textColor = alert.textColor.color(),
+                    accentColor = alert.accentColor.color()
                 )
             }
             item {
@@ -139,8 +139,8 @@ private fun KickGiftedSubscriptionsView(model: Model = LocalModel.current, alert
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor,
-                    accentColor = alert.accentColor
+                    textColor = alert.textColor.color(),
+                    accentColor = alert.accentColor.color()
                 )
             }
             item {
@@ -198,8 +198,8 @@ private fun KickHostsView(model: Model = LocalModel.current, alert: SettingsWidg
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor,
-                    accentColor = alert.accentColor
+                    textColor = alert.textColor.color(),
+                    accentColor = alert.accentColor.color()
                 )
             }
             item {
@@ -256,8 +256,8 @@ private fun KickRewardsView(model: Model = LocalModel.current, alert: SettingsWi
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor,
-                    accentColor = alert.accentColor
+                    textColor = alert.textColor.color(),
+                    accentColor = alert.accentColor.color()
                 )
             }
             item {
@@ -395,8 +395,8 @@ private fun KickGiftView(
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor,
-                    accentColor = alert.accentColor
+                    textColor = alert.textColor.color(),
+                    accentColor = alert.accentColor.color()
                 )
             }
             item {

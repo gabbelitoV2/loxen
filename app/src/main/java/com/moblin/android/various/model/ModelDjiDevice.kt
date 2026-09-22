@@ -11,7 +11,7 @@ import java.util.UUID
 
 fun Model.startDjiDeviceLiveStream(device: SettingsDjiDevice) {
     if (!djiDevices.containsKey(device.id)) {
-        val djiDevice = DjiDevice(context = context)
+        val djiDevice = DjiDevice(context = TODO("context"))
         djiDevice.delegate = ModelDjiDeviceDelegate(this)
         djiDevices[device.id] = djiDevice
     }

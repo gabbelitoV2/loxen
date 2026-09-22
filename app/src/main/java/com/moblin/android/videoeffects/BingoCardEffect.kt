@@ -1,6 +1,7 @@
 package com.moblin.android.videoeffects
 
 import android.graphics.Bitmap
+import android.media.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -114,17 +115,22 @@ class BingoCardEffect(canvasSize: Size) : VideoEffect() {
         setup()
     }
 
-    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
-        return bingoImage
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
+        val background = EffectImagePixelBuffer(image).getCiImage()
+        bingoImage
             ?.getCiImage()
-            ?.move(sceneWidgetPipeline.layout, image.extent.size)
-            ?.cropped(image.extent)
-            ?.composited(image)
-            ?: image
+            ?.move(sceneWidgetPipeline.layout, background.extent.size)
+            ?.cropped(background.extent)
+            ?.composited(background)
+        return TODO("no Android counterpart for CIImage to android.media.Image")
     }
 
-    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
-        return bingoImage?.getMetalPetalImage()?.moveComposited(sceneWidgetPipeline.layout, image) ?: image
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
+        val background = EffectImagePixelBuffer(image).getMetalPetalImage()
+        bingoImage
+            ?.getMetalPetalImage()
+            ?.moveComposited(sceneWidgetPipeline.layout, background)
+        return TODO("no Android counterpart for MTIImage to android.media.Image")
     }
 
     private fun CIImage.cropped(extent: Any): CIImage = TODO("no Android counterpart for CIImage.cropped(to:)")

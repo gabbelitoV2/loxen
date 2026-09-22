@@ -18,6 +18,7 @@ import com.moblin.android.various.settings.SettingsWidgetScoreboardLayout
 import com.moblin.android.various.settings.SettingsWidgetScoreboardScore
 import com.moblin.android.various.settings.SettingsWidgetScoreboardScoreIncrement
 import com.moblin.android.various.settings.SettingsWidgetScoreboardSport
+import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.various.utils.clockAsMinutesAndSeconds
 
 private val homeBackgroundColor = "#1e40af"
@@ -438,7 +439,7 @@ fun Model.getModularScoreboardConfig(scoreboard: SettingsWidgetScoreboard?): Rem
         else -> "generic"
     }
     var config: RemoteControlScoreboardMatchConfig
-    val current = scoreboard?.modular.config
+    val current = scoreboard?.modular?.config
     if (current != null && current.sportId == sportId) {
         config = current
     } else {
@@ -557,7 +558,8 @@ private fun Model.updateAllGolfScoreboardEffects(golf: SettingsWidgetGolfScorebo
 fun Model.getGolfScoreboardForRemoteControl(): RemoteControlGolfScoreboard {
     val golf = getEnabledScoreboardWidgetsInSelectedScene()
         .firstOrNull { it.scoreboard.sport == SettingsWidgetScoreboardSport.golf }
-        ?.scoreboard.golf
+        ?.scoreboard
+        ?.golf
         ?: SettingsWidgetGolfScoreboard()
     val players = golf.players.map {
         RemoteControlGolfPlayer(name = it.name, scores = it.scores, color = it.color)
@@ -591,11 +593,11 @@ fun Model.handleExternalGolfScoreboardUpdate(remoteScorecard: RemoteControlGolfS
             val player = SettingsWidgetGolfScoreboardPlayer(name = remotePlayer.name)
             player.scores = remotePlayer.scores
             player.color = remotePlayer.color
-            golf.players.add(player)
+            golf.players = golf.players + player
         }
     }
     while (golf.players.size > remoteScorecard.players.size) {
-        golf.players.removeLast()
+        golf.players = golf.players.dropLast(1)
     }
     updateAllGolfScoreboardEffects(golf = golf)
     remoteControlWeb?.sendGolfScoreboardUpdate(data = remoteScorecard)
@@ -692,14 +694,15 @@ fun Model.handleSportSwitch(sportId: String) {
 
 private fun Model.handleUpdatePadelScoreboardReset(scoreboard: SettingsWidgetPadelScoreboard) {
     scoreboard.score = mutableListOf(SettingsWidgetScoreboardScore())
-    scoreboard.scoreChanges.clear()
+    scoreboard.scoreChanges = mutableListOf()
 }
 
 private fun Model.handleUpdatePadelScoreboardUndo(scoreboard: SettingsWidgetPadelScoreboard) {
-    val team = scoreboard.scoreChanges.removeLastOrNull() ?: return
+    val team = scoreboard.scoreChanges.lastOrNull() ?: return
+    scoreboard.scoreChanges = scoreboard.scoreChanges.dropLast(1)
     val score = scoreboard.score.lastOrNull() ?: return
     if (score.home == 0 && score.away == 0 && scoreboard.score.size > 1) {
-        scoreboard.score.removeLast()
+        scoreboard.score = scoreboard.score.dropLast(1)
     }
     val index = scoreboard.score.size - 1
     when (team) {
@@ -718,7 +721,7 @@ private fun Model.handleUpdatePadelScoreboardIncrementHome(scoreboard: SettingsW
             return
         }
         scoreboard.score[scoreboard.score.size - 1].home += 1
-        scoreboard.scoreChanges.add(SettingsWidgetScoreboardScoreIncrement.home)
+        scoreboard.scoreChanges = scoreboard.scoreChanges + SettingsWidgetScoreboardScoreIncrement.home
     } else {
         padelScoreboardUpdateSetCompleted(scoreboard = scoreboard)
     }
@@ -730,7 +733,7 @@ private fun Model.handleUpdatePadelScoreboardIncrementAway(scoreboard: SettingsW
             return
         }
         scoreboard.score[scoreboard.score.size - 1].away += 1
-        scoreboard.scoreChanges.add(SettingsWidgetScoreboardScoreIncrement.away)
+        scoreboard.scoreChanges = scoreboard.scoreChanges + SettingsWidgetScoreboardScoreIncrement.away
     } else {
         padelScoreboardUpdateSetCompleted(scoreboard = scoreboard)
     }
@@ -745,11 +748,12 @@ private fun Model.handleUpdatePadelScoreboardChangePlayers(scoreboard: SettingsW
 private fun Model.handleUpdateGenericScoreboardReset(scoreboard: SettingsWidgetGenericScoreboard) {
     scoreboard.score.home = 0
     scoreboard.score.away = 0
-    scoreboard.scoreChanges.clear()
+    scoreboard.scoreChanges = mutableListOf()
 }
 
 private fun Model.handleUpdateGenericScoreboardUndo(scoreboard: SettingsWidgetGenericScoreboard) {
-    val team = scoreboard.scoreChanges.removeLastOrNull() ?: return
+    val team = scoreboard.scoreChanges.lastOrNull() ?: return
+    scoreboard.scoreChanges = scoreboard.scoreChanges.dropLast(1)
     when (team) {
         SettingsWidgetScoreboardScoreIncrement.home -> if (scoreboard.score.home > 0) {
             scoreboard.score.home -= 1
@@ -762,12 +766,12 @@ private fun Model.handleUpdateGenericScoreboardUndo(scoreboard: SettingsWidgetGe
 
 private fun Model.handleUpdateGenericScoreboardIncrementHome(scoreboard: SettingsWidgetGenericScoreboard) {
     scoreboard.score.home += 1
-    scoreboard.scoreChanges.add(SettingsWidgetScoreboardScoreIncrement.home)
+    scoreboard.scoreChanges = scoreboard.scoreChanges + SettingsWidgetScoreboardScoreIncrement.home
 }
 
 private fun Model.handleUpdateGenericScoreboardIncrementAway(scoreboard: SettingsWidgetGenericScoreboard) {
     scoreboard.score.away += 1
-    scoreboard.scoreChanges.add(SettingsWidgetScoreboardScoreIncrement.away)
+    scoreboard.scoreChanges = scoreboard.scoreChanges + SettingsWidgetScoreboardScoreIncrement.away
 }
 
 private fun Model.handleUpdateGenericScoreboardSetTitle(scoreboard: SettingsWidgetGenericScoreboard,
@@ -802,7 +806,7 @@ private fun Model.padelScoreboardUpdateSetCompleted(scoreboard: SettingsWidgetPa
     if (isMatchCompleted(scoreboard = scoreboard)) {
         return
     }
-    scoreboard.score.add(SettingsWidgetScoreboardScore())
+    scoreboard.score = scoreboard.score + SettingsWidgetScoreboardScore()
 }
 
 private fun Model.isCurrentSetCompleted(scoreboard: SettingsWidgetPadelScoreboard): Boolean {

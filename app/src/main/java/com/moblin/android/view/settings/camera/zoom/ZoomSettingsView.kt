@@ -128,7 +128,9 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
                         model = model,
                         preset = preset,
                         minX = minZoomX,
-                        maxX = model.getMinMaxZoomX(position = cameraPositionBack).second
+                        maxX = model.getMinMaxZoomX(
+                            position = TODO("no Android counterpart for AVCaptureDevice.Position")
+                        ).second
                     )
                 }
             }
@@ -183,7 +185,9 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
                         model = model,
                         preset = preset,
                         minX = minZoomX,
-                        maxX = model.getMinMaxZoomX(position = cameraPositionFront).second
+                        maxX = model.getMinMaxZoomX(
+                            position = TODO("no Android counterpart for AVCaptureDevice.Position")
+                        ).second
                     )
                 }
             }

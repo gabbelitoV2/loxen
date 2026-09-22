@@ -517,7 +517,10 @@ private fun WidgetsView(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        makeOffsets(sceneWidgets, sceneWidget.id)?.let { deleteSceneWidget(listOf(it)) }
+                        val offset = sceneWidgets.indexOfFirst { it.id == sceneWidget.id }
+                        if (offset != -1) {
+                            deleteSceneWidget(listOf(offset))
+                        }
                         pendingDelete = null
                     },
                 ) {

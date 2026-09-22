@@ -208,7 +208,7 @@ private fun MainPageView(
     status: StatusOther,
     height: Double,
 ) {
-    val thermalState = status.thermalState
+    val thermalState by status.thermalState.collectAsState()
     val presentingThermalState = remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
@@ -242,7 +242,7 @@ private fun MainPageView(
                     onClick = { presentingThermalState.value = !presentingThermalState.value },
                     contentPadding = PaddingValues(0.dp),
                 ) {
-                    ThermalStateView(thermalState = thermalState)
+                    ThermalStateView(thermalState = TODO("MoblinkThermalState to ThermalState conversion"))
                 }
                 Spacer(modifier = Modifier.weight(1f))
             }

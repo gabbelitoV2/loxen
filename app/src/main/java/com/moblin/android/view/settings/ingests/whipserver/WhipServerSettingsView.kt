@@ -139,7 +139,7 @@ fun WhipServerSettingsView(
                                 enabled = !enabled,
                                 onClick = {
                                     menuExpanded = false
-                                    val offsets = makeOffsets(streams, stream.id)
+                                    val offsets = streamIndex(streams, stream.id)
                                     if (offsets != null) {
                                         deleteStream(model, whipServer, offsets)
                                     }
@@ -191,6 +191,11 @@ fun WhipServerSettingsView(
             }
         }
     }
+}
+
+private fun streamIndex(streams: List<SettingsWhipServerStream>, id: java.util.UUID): Int? {
+    val index = streams.indexOfFirst { it.id == id }
+    return if (index == -1) null else index
 }
 
 private fun status(whipServer: SettingsWhipServer): String {

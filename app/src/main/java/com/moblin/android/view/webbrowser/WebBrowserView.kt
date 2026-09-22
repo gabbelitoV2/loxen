@@ -172,11 +172,15 @@ private fun BookmarksView(
 ) {
     val bookmarks = webBrowser.bookmarks
     val onDelete: (List<Int>) -> Unit = { offsets ->
-        offsets.sortedDescending().forEach { index -> webBrowser.bookmarks.removeAt(index) }
+        val newBookmarks = webBrowser.bookmarks.toMutableList()
+        offsets.sortedDescending().forEach { index -> newBookmarks.removeAt(index) }
+        webBrowser.bookmarks = newBookmarks
     }
     val onMove: (Int, Int) -> Unit = { froms, to ->
-        val item = webBrowser.bookmarks.removeAt(froms)
-        webBrowser.bookmarks.add(to, item)
+        val newBookmarks = webBrowser.bookmarks.toMutableList()
+        val item = newBookmarks.removeAt(froms)
+        newBookmarks.add(to, item)
+        webBrowser.bookmarks = newBookmarks
     }
     Column(modifier = Modifier.fillMaxWidth()) {
         TopAppBar(
@@ -212,7 +216,7 @@ private fun BookmarksView(
         TextButtonView("Create bookmark") {
             val bookmark = WebBrowserBookmarkSettings()
             bookmark.url = model.webBrowserUrl.value
-            webBrowser.bookmarks.add(bookmark)
+            webBrowser.bookmarks = webBrowser.bookmarks.toMutableList().apply { add(bookmark) }
         }
     }
 }

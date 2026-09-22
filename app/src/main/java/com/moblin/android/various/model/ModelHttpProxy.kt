@@ -39,7 +39,7 @@ private fun Model.proxyServerPortUpdated() {
 
 private fun Model.startHttpProxyServer() {
     val httpProxy = database.httpProxy
-    httpProxyServer = HttpProxyServer()
+    httpProxyServer = HttpProxyServer(TODO("Context"))
     httpProxyServer?.delegate = object : HttpProxyServerDelegate {
         override fun httpProxyServerPortReady(port: Int) {
             this@startHttpProxyServer.httpProxyServerPortReady(port)

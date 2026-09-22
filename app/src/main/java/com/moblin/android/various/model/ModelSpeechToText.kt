@@ -1,5 +1,6 @@
 package com.moblin.android.various.model
 
+import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.various.SpeechToText
 import com.moblin.android.various.SpeechToTextDelegate
 import com.moblin.android.various.subtitles.TextAligner
@@ -14,7 +15,7 @@ fun Model.reloadSpeechToText() {
 }
 
 fun Model.startSpeechToText() {
-    val newSpeechToText = SpeechToText(this.context)
+    val newSpeechToText = SpeechToText(TODO("context"))
     speechToText = newSpeechToText
     newSpeechToText.delegate = object : SpeechToTextDelegate {
         override fun speechToTextPartialResult(position: Int, text: String) {

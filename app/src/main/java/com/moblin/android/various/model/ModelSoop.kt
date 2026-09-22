@@ -26,9 +26,9 @@ fun Model.reloadSoopPlatformStatus() {
 fun Model.updateViewersSoop(): StreamingPlatformStatus {
     val platformStatus = soopPlatformStatus?.platformStatus
     return if (platformStatus != null) {
-        StreamingPlatformStatus(platform = "soop", status = platformStatus)
+        StreamingPlatformStatus(platform = TODO("Platform.soop"), status = platformStatus)
     } else {
-        StreamingPlatformStatus(platform = "soop", status = PlatformStatus.unknown)
+        StreamingPlatformStatus(platform = TODO("Platform.soop"), status = PlatformStatus.unknown)
     }
 }
 
@@ -52,7 +52,7 @@ fun Model.reloadSoopChat() {
     soopChat?.stop()
     soopChat = null
     setTextToSpeechStreamerMentions()
-    if (isSoopChatConfigured() && !isRemoteControlChatAndEvents(platform = "soop")) {
+    if (isSoopChatConfigured() && !isRemoteControlChatAndEvents(platform = TODO("Platform.soop"))) {
         val chat = SoopChat(
             model = this,
             channelName = stream.value.soopChannelName,

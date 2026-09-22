@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.WizardPlatform
 import com.moblin.android.various.utils.isMac
 import com.moblin.android.view.settings.streams.stream.AutoGoLiveFooterView
 import com.moblin.android.view.settings.streams.stream.BackgroundStreamingFooterView
@@ -71,7 +72,7 @@ fun StreamWizardGeneralSettingsView(model: Model = LocalModel.current, createStr
                     )
                 }
             }
-            if (platform == CreateStreamWizard.WizardPlatform.mobcam) {
+            if (platform == WizardPlatform.mobcam) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Row(

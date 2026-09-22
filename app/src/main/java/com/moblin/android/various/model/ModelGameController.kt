@@ -117,7 +117,7 @@ fun Model.handleControllerFunction(
         }
         SettingsControllerFunction.STREAM_DECK_LAYOUT -> {
             if (!pressed) {
-                database.streamDecks.selectedId.value = functionData.streamDeckLayoutId
+                database.streamDecks.setSelectedId(functionData.streamDeckLayoutId)
                 setSelectedStreamDeck()
             }
         }

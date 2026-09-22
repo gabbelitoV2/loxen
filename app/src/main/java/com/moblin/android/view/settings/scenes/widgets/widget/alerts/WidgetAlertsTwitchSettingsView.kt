@@ -97,8 +97,8 @@ private fun TwitchFollowsView(
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor,
-                    accentColor = alert.accentColor,
+                    textColor = alert.textColor.color(),
+                    accentColor = alert.accentColor.color(),
                 )
             }
             item {
@@ -162,8 +162,8 @@ private fun TwitchSubscriptionsView(
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor,
-                    accentColor = alert.accentColor,
+                    textColor = alert.textColor.color(),
+                    accentColor = alert.accentColor.color(),
                 )
             }
             item {
@@ -230,8 +230,8 @@ private fun TwitchRaidsView(
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor,
-                    accentColor = alert.accentColor,
+                    textColor = alert.textColor.color(),
+                    accentColor = alert.accentColor.color(),
                 )
             }
             item {
@@ -379,8 +379,8 @@ private fun TwitchCheerView(
             item {
                 AlertColorsView(
                     alert = alert,
-                    textColor = alert.textColor,
-                    accentColor = alert.accentColor,
+                    textColor = alert.textColor.color(),
+                    accentColor = alert.accentColor.color(),
                 )
             }
             item {
@@ -669,7 +669,7 @@ fun WidgetAlertsTwitchSettingsView(
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                         )
                     }
-                    if (database.debug.twitchRewards) {
+                    if (database.debug.twitchRewards.value) {
                         item {
                             Text(
                                 text = localized("Rewards"),

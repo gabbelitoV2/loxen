@@ -15,6 +15,7 @@ import com.moblin.android.media.haishinkit.mpeg.avc.AvcNalUnitType
 import com.moblin.android.media.haishinkit.mpeg.avc.AvcSeiPayloadPictureTiming
 import com.moblin.android.media.haishinkit.mpeg.avc.MpegTsVideoConfigAvc
 import com.moblin.android.media.haishinkit.mpeg.hevc.HevcNalUnit
+import com.moblin.android.media.haishinkit.mpeg.hevc.HevcNalUnitPayload
 import com.moblin.android.media.haishinkit.mpeg.hevc.HevcNalUnitSei
 import com.moblin.android.media.haishinkit.mpeg.hevc.HevcNalUnitSeiPayload
 import com.moblin.android.media.haishinkit.mpeg.hevc.HevcNalUnitType
@@ -493,7 +494,7 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
         }
         if (timecode != null && false) {
             data += nalUnitStartCode
-            val pictureTiming = AvcSeiPayloadPictureTiming(timecode.clock, timecode.frame)
+            val pictureTiming = AvcSeiPayloadPictureTiming(timecode.clock, timecode.frame.toUInt())
             val sei = AvcNalUnitSei(AvcNalUnitSeiPayload.PictureTiming(pictureTiming))
             data += AvcNalUnit(
                 AvcNalUnitHeader(0u, AvcNalUnitType.sei),
@@ -532,12 +533,12 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
         }
         if (timecode != null) {
             data += nalUnitStartCode
-            val timeCode = HevcSeiPayloadTimeCode(timecode.clock, timecode.frame)
+            val timeCode: HevcSeiPayloadTimeCode = TODO("private constructor")
             val sei = HevcNalUnitSei(HevcNalUnitSeiPayload.TimeCode(timeCode))
             data += HevcNalUnit(
                 HevcNalUnitType.prefixSeiNut,
                 temporalIdPlusOne = 1u,
-                payload = HevcNalUnitSeiPayload.prefixSeiNut(sei)
+                payload = HevcNalUnitPayload.prefixSeiNut(sei)
             ).encode()
         }
         val payload = addNalUnitStartCodes(bytes.copyOf(length))

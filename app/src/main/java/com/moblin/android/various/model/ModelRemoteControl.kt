@@ -12,6 +12,7 @@ import com.moblin.android.common.various.formatAudioLevelChannels
 import com.moblin.android.common.various.formatBytes
 import com.moblin.android.common.various.noValue
 import com.moblin.android.remotecontrol.RemoteControlAssistant
+import com.moblin.android.remotecontrol.RemoteControlAssistantDelegate
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.remotecontrol.RemoteControlChatMessage
 import com.moblin.android.remotecontrol.RemoteControlFilter
@@ -45,7 +46,9 @@ import com.moblin.android.remotecontrol.RemoteControlStatusTopRight
 import com.moblin.android.remotecontrol.RemoteControlStatusTopRightAudioInfo
 import com.moblin.android.remotecontrol.RemoteControlStatusTopRightAudioLevel
 import com.moblin.android.remotecontrol.RemoteControlStreamer
+import com.moblin.android.remotecontrol.RemoteControlStreamerDelegate
 import com.moblin.android.remotecontrol.RemoteControlWeb
+import com.moblin.android.remotecontrol.RemoteControlWebDelegate
 import com.moblin.android.remotecontrol.RemoteControlZoomPreset
 import com.moblin.android.remotecontrol.remoteControlStartStatsFilterAllEnabled
 import com.moblin.android.various.ChatHighlight
@@ -53,6 +56,7 @@ import com.moblin.android.various.Variables
 import com.moblin.android.various.makeChatPostTextSegments
 import com.moblin.android.various.settings.SettingsGimbalMotion
 import com.moblin.android.various.settings.SettingsHttpHeader
+import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetScoreboard
 import com.moblin.android.various.settings.SettingsWidgetType
@@ -124,7 +128,7 @@ private fun Model.isAnyRemoteControlConfigured(): Boolean {
 }
 
 fun Model.clearRemoteControlAssistantLog() {
-    remoteControlAssistantLog = mutableListOf()
+    remoteControlAssistantLog.clear()
 }
 
 fun Model.reloadRemoteControlStreamer() {
@@ -142,18 +146,18 @@ fun Model.reloadRemoteControlStreamer() {
         return
     }
     remoteControlStreamer = RemoteControlStreamer(
-        clientUrl = url,
+        clientUrl = url.toString(),
         password = database.remoteControl.password,
-        delegate = this
+        delegate = RemoteControlStreamerDelegateAdapter(this)
     )
     remoteControlStreamer?.start()
 }
 
 private fun Model.remoteControlStreamerSendTwitchStart() {
     remoteControlStreamer?.twitchStart(
-        channelName = stream.twitchChannelName,
-        channelId = stream.twitchChannelId,
-        accessToken = stream.twitchAccessToken
+        channelName = stream.value.twitchChannelName,
+        channelId = stream.value.twitchChannelId,
+        accessToken = stream.value.twitchAccessToken
     )
 }
 
@@ -183,11 +187,11 @@ fun Model.updateRemoteControlStatus() {
         }
         ok = false
     }
-    if (status != statusTopRight.remoteControlStatus) {
-        statusTopRight.remoteControlStatus = status
+    if (status != statusTopRight.remoteControlStatus.value) {
+        statusTopRight.remoteControlStatus.value = status
     }
-    if (ok != statusTopRight.remoteControlOk) {
-        statusTopRight.remoteControlOk = ok
+    if (ok != statusTopRight.remoteControlOk.value) {
+        statusTopRight.remoteControlOk.value = ok
     }
 }
 
@@ -213,7 +217,7 @@ fun Model.reloadRemoteControlAssistant() {
     remoteControlAssistant = RemoteControlAssistant(
         port = database.remoteControl.assistant.port,
         password = database.remoteControl.password,
-        delegate = this
+        delegate = RemoteControlAssistantDelegateAdapter(this)
     )
     remoteControlAssistant?.start()
 }
@@ -223,7 +227,7 @@ fun Model.isRemoteControlAssistantConnected(): Boolean {
 }
 
 fun Model.updateRemoteControlAssistantStatus() {
-    if (!(showingRemoteControl || isWatchRemoteControl()) || !isRemoteControlAssistantConnected()) {
+    if (!(showingRemoteControl.value || isWatchRemoteControl()) || !isRemoteControlAssistantConnected()) {
         return
     }
     remoteControlAssistant?.getStatus { general, topLeft, topRight ->
@@ -421,9 +425,10 @@ fun Model.reloadRemoteControlRelay() {
         URI("ws://localhost:${database.remoteControl.assistant.port}")
     }.getOrNull() ?: return
     remoteControlRelay = RemoteControlRelay(
+        context = TODO("Android context"),
         baseUrl = database.remoteControl.assistant.relay.baseUrl,
         bridgeId = database.remoteControl.assistant.relay.bridgeId,
-        assistantUrl = assistantUrl
+        assistantUrl = assistantUrl.toString()
     )
     remoteControlRelay?.start()
 }
@@ -469,40 +474,40 @@ fun Model.isRemoteControlStreamerGForceStatsFilterEnabled(): Boolean {
 private fun Model.remoteControlStreamerCreateStatusGeneral(): RemoteControlStatusGeneral {
     val general = RemoteControlStatusGeneral()
     general.batteryCharging = isBatteryCharging()
-    general.batteryLevel = (100 * battery.level).toInt()
-    when (statusOther.thermalState) {
-        PowerManager.THERMAL_STATUS_NONE,
-        PowerManager.THERMAL_STATUS_LIGHT -> general.flame = RemoteControlStatusGeneralFlame.white
-        PowerManager.THERMAL_STATUS_MODERATE -> general.flame = RemoteControlStatusGeneralFlame.yellow
-        else -> general.flame = RemoteControlStatusGeneralFlame.red
+    general.batteryLevel = (100 * battery.level.value).toInt()
+    when (statusOther.thermalState.value.ordinal) {
+        0,
+        1 -> general.flame = RemoteControlStatusGeneralFlame.White
+        2 -> general.flame = RemoteControlStatusGeneralFlame.Yellow
+        else -> general.flame = RemoteControlStatusGeneralFlame.Red
     }
     general.wiFiSsid = currentWiFiSsid
-    general.isLive = isLive
-    general.isRecording = isRecording
-    general.isMuted = audio.muted
+    general.isLive = isLive.value
+    general.isRecording = isRecording.value
+    general.isMuted = audio.muted.value
     return general
 }
 
 private fun Model.remoteControlStreamerCreateStatusTopLeft(): RemoteControlStatusTopLeft {
     val topLeft = RemoteControlStatusTopLeft()
     if (isStreamConfigured()) {
-        topLeft.stream = RemoteControlStatusItem(message = statusTopLeft.streamText)
+        topLeft.stream = RemoteControlStatusItem(message = statusTopLeft.streamText.value)
     }
-    topLeft.camera = RemoteControlStatusItem(message = statusTopLeft.statusCameraText)
-    topLeft.mic = RemoteControlStatusItem(message = mic.current.name)
-    if (zoom.hasZoom) {
+    topLeft.camera = RemoteControlStatusItem(message = statusTopLeft.statusCameraText.value)
+    topLeft.mic = RemoteControlStatusItem(message = mic.current.value.name)
+    if (zoom.hasZoom.value) {
         topLeft.zoom = RemoteControlStatusItem(message = zoom.statusText())
     }
     if (isObsRemoteControlConfigured()) {
-        topLeft.obs = RemoteControlStatusItem(message = statusTopLeft.statusObsText)
+        topLeft.obs = RemoteControlStatusItem(message = statusTopLeft.statusObsText.value)
     }
     if (isEventsConfigured()) {
-        topLeft.events = RemoteControlStatusItem(message = statusTopLeft.statusEventsText)
+        topLeft.events = RemoteControlStatusItem(message = statusTopLeft.statusEventsText.value)
     }
     if (isChatConfigured()) {
-        topLeft.chat = RemoteControlStatusItem(message = statusTopLeft.statusChatText)
+        topLeft.chat = RemoteControlStatusItem(message = statusTopLeft.statusChatText.value)
     }
-    if (isViewersConfigured() && isLive) {
+    if (isViewersConfigured() && isLive.value) {
         topLeft.viewers = RemoteControlStatusItem(message = statusViewersText())
     }
     return topLeft
@@ -510,56 +515,57 @@ private fun Model.remoteControlStreamerCreateStatusTopLeft(): RemoteControlStatu
 
 private fun Model.remoteControlStreamerCreateStatusTopRight(): RemoteControlStatusTopRight {
     val topRight = RemoteControlStatusTopRight()
-    val level = formatAudioLevel(level = audio.level.level, muted = audio.muted) +
-        formatAudioLevelChannels(channels = audio.numberOfChannels)
+    val level = formatAudioLevel(level = audio.level.level.value, muted = audio.muted.value) +
+        formatAudioLevelChannels(channels = audio.numberOfChannels.value)
     topRight.audioLevel = RemoteControlStatusItem(message = level)
     topRight.audioInfo = RemoteControlStatusTopRightAudioInfo(
-        audioLevel = RemoteControlStatusTopRightAudioLevel.unknown,
-        numberOfAudioChannels = audio.numberOfChannels
+        audioLevel = RemoteControlStatusTopRightAudioLevel.Unknown,
+        numberOfAudioChannels = audio.numberOfChannels.value
     )
-    if (audio.muted) {
-        topRight.audioInfo!!.audioLevel = RemoteControlStatusTopRightAudioLevel.muted
+    if (audio.muted.value) {
+        topRight.audioInfo!!.audioLevel = RemoteControlStatusTopRightAudioLevel.Muted
     } else {
-        topRight.audioInfo!!.audioLevel = RemoteControlStatusTopRightAudioLevel.value(audio.level.level)
+        topRight.audioInfo!!.audioLevel =
+            RemoteControlStatusTopRightAudioLevel.Value(audio.level.level.value)
     }
     if (isIngestsConfigured()) {
-        topRight.rtmpServer = RemoteControlStatusItem(message = ingests.speedAndTotal)
+        topRight.rtmpServer = RemoteControlStatusItem(message = ingests.speedAndTotal.value)
     }
     if (isAnyRemoteControlConfigured()) {
-        topRight.remoteControl = RemoteControlStatusItem(message = statusTopRight.remoteControlStatus)
+        topRight.remoteControl = RemoteControlStatusItem(message = statusTopRight.remoteControlStatus.value)
     }
     if (isGameControllerConnected()) {
-        topRight.gameController = RemoteControlStatusItem(message = statusTopRight.gameControllersTotal)
+        topRight.gameController = RemoteControlStatusItem(message = statusTopRight.gameControllersTotal.value)
     }
-    if (isLive) {
-        topRight.bitrate = RemoteControlStatusItem(message = bitrate.speedAndTotal)
+    if (isLive.value) {
+        topRight.bitrate = RemoteControlStatusItem(message = bitrate.speedAndTotal.value)
     }
-    if (isLive) {
-        topRight.uptime = RemoteControlStatusItem(message = streamUptime.uptime)
+    if (isLive.value) {
+        topRight.uptime = RemoteControlStatusItem(message = streamUptime.uptime.value)
     }
     if (isLocationEnabled()) {
-        topRight.location = RemoteControlStatusItem(message = statusTopRight.location)
+        topRight.location = RemoteControlStatusItem(message = statusTopRight.location.value)
     }
     if (isStatusBondingActive()) {
-        topRight.srtla = RemoteControlStatusItem(message = bonding.statistics)
+        topRight.srtla = RemoteControlStatusItem(message = bonding.statistics.value)
     }
     if (isStatusBondingRttsActive()) {
-        topRight.srtlaRtts = RemoteControlStatusItem(message = bonding.rtts)
+        topRight.srtlaRtts = RemoteControlStatusItem(message = bonding.rtts.value)
     }
-    if (isRecording) {
+    if (isRecording.value) {
         topRight.recording = RemoteControlStatusItem(message = recording.length)
     }
-    if (stream.replay.enabled) {
+    if (stream.value.replay.enabled) {
         topRight.replay = RemoteControlStatusItem(message = localized("Enabled"))
     }
     if (isStatusBrowserWidgetsActive()) {
-        topRight.browserWidgets = RemoteControlStatusItem(message = statusTopRight.browserWidgetsStatus)
+        topRight.browserWidgets = RemoteControlStatusItem(message = statusTopRight.browserWidgetsStatus.value)
     }
     if (isAnyMoblinkConfigured()) {
-        topRight.moblink = RemoteControlStatusItem(message = moblink.status)
+        topRight.moblink = RemoteControlStatusItem(message = moblink.status.value)
     }
-    if (statusTopRight.djiDevicesStatus.isNotEmpty()) {
-        topRight.djiDevices = RemoteControlStatusItem(message = statusTopRight.djiDevicesStatus)
+    if (statusTopRight.djiDevicesStatus.value.isNotEmpty()) {
+        topRight.djiDevices = RemoteControlStatusItem(message = statusTopRight.djiDevicesStatus.value)
     }
     if (database.show.systemMonitor) {
         topRight.systemMonitor = RemoteControlStatusItem(message = systemMonitor.format())
@@ -581,7 +587,7 @@ fun Model.sendPeriodicRemoteControlStreamerStats(now: Instant) {
         return
     }
     val location = locationManager.getLatestKnownLocation()
-    val weather = weatherManager.getLatestWeather()?.currentWeather
+    val weather = weatherManager.getLatestWeather()
     val placemark = geographyManager.getLatestPlacemark()
     remoteControlStreamer?.sendStats(
         data = RemoteControlStats(
@@ -599,14 +605,14 @@ fun Model.sendPeriodicRemoteControlStreamerStats(now: Instant) {
             altitudeDescent = database.location.altitudeDescent,
             splitAltitudeAscent = database.location.splitAltitudeAscent,
             splitAltitudeDescent = database.location.splitAltitudeDescent,
-            temperature = weather?.temperature,
-            feelsLikeTemperature = weather?.apparentTemperature,
-            windSpeed = weather?.wind.speed,
-            windGust = weather?.wind.gust,
-            country = placemark?.country,
-            countryFlag = emojiFlag(countryCode = placemark?.isoCountryCode),
-            state = placemark?.administrativeArea,
-            area = placemark?.subAdministrativeArea,
+            temperature = TODO("weather temperature"),
+            feelsLikeTemperature = TODO("weather apparent temperature"),
+            windSpeed = TODO("weather wind speed"),
+            windGust = TODO("weather wind gust"),
+            country = placemark?.countryName,
+            countryFlag = emojiFlag(countryCode = placemark?.countryCode),
+            state = placemark?.adminArea,
+            area = placemark?.subAdminArea,
             city = placemark?.locality,
             neighborhood = placemark?.subLocality,
             heartRates = heartRates,
@@ -634,44 +640,33 @@ fun Model.isRemoteControlWebPreviewActive(): Boolean {
 
 private fun Model.createRemoteControlStateChanged(): RemoteControlAssistantStreamerState {
     val state = RemoteControlAssistantStreamerState()
-    if (sceneSelector.sceneIndex < enabledScenes.size) {
-        state.scene = enabledScenes[sceneSelector.sceneIndex].id
+    if (sceneSelector.sceneIndex.value < enabledScenes.size) {
+        state.scene = enabledScenes[sceneSelector.sceneIndex.value].id
     }
-    state.autoSceneSwitcher = RemoteControlStateAutoSceneSwitcher(id = autoSceneSwitcher.currentSwitcherId)
-    state.mic = mic.current.id
-    val preset = getBitratePresetByBitrate(bitrate = stream.bitrate)
+    state.autoSceneSwitcher = RemoteControlStateAutoSceneSwitcher(id = autoSceneSwitcher.currentSwitcherId.value)
+    state.mic = mic.current.value.id
+    val preset = getBitratePresetByBitrate(bitrate = stream.value.bitrate)
     if (preset != null) {
         state.bitrate = preset.id
     }
     when (cameraPosition) {
-        CameraPosition.front -> {
-            state.zoomPresets = zoom.frontZoomPresets.map {
-                RemoteControlZoomPreset(id = it.id, name = it.name)
-            }
-            state.zoomPreset = zoom.frontPresetId
-        }
-        CameraPosition.back -> {
-            state.zoomPresets = zoom.backZoomPresets.map {
-                RemoteControlZoomPreset(id = it.id, name = it.name)
-            }
-            state.zoomPreset = zoom.backPresetId
-        }
         else -> {
             state.zoomPresets = mutableListOf()
         }
     }
-    state.zoom = zoom.x
-    state.debugLogging = database.debug.debugLogging
-    state.streaming = isLive
-    state.recording = isRecording
-    state.muted = audio.muted
-    state.stealthMode = showStealthMode
-    state.previewStream = isPreviewStreaming
-    state.torchOn = streamOverlay.isTorchOn
+    state.zoom = zoom.x.value
+    state.debugLogging = database.debug.debugLogging.value
+    state.streaming = isLive.value
+    state.recording = isRecording.value
+    state.muted = audio.muted.value
+    state.stealthMode = showStealthMode.value
+    state.previewStream = isPreviewStreaming.value
+    state.torchOn = streamOverlay.isTorchOn.value
     state.batteryCharging = isBatteryCharging()
     state.filters = mutableMapOf()
     for (filter in RemoteControlFilter.entries) {
-        state.filters?.put(filter, getQuickButton(type = filter.toSettings())?.isOn ?: false)
+        state.filters = (state.filters ?: emptyMap()) +
+            (filter to (getQuickButton(type = filter.toSettings())?.isOn?.value ?: false))
     }
     state.gimbalTracking = database.gimbal.tracking
     state.gimbalPresets = getRemoteControlGimbalPresets()
@@ -701,28 +696,28 @@ fun Model.reloadRemoteControlWeb() {
     if (!database.remoteControl.web.enabled) {
         return
     }
-    remoteControlWeb = RemoteControlWeb(delegate = this)
+    remoteControlWeb = RemoteControlWeb(delegate = RemoteControlWebDelegateAdapter(this))
     remoteControlWeb?.start(port = database.remoteControl.web.port)
 }
 
 private fun Model.handleRemoteControlSetFilter(filter: RemoteControlFilter, on: Boolean) {
     when (filter) {
-        RemoteControlFilter.pixellate -> setPixellateQuickButton(on = on)
-        RemoteControlFilter.movie -> setFilterQuickButton(type = SettingsQuickButtonType.movie, on = on)
-        RemoteControlFilter.grayScale -> setFilterQuickButton(type = SettingsQuickButtonType.grayScale, on = on)
-        RemoteControlFilter.sepia -> setFilterQuickButton(type = SettingsQuickButtonType.sepia, on = on)
-        RemoteControlFilter.triple -> setFilterQuickButton(type = SettingsQuickButtonType.triple, on = on)
-        RemoteControlFilter.twin -> setFilterQuickButton(type = SettingsQuickButtonType.twin, on = on)
-        RemoteControlFilter.fourThree -> setFilterQuickButton(type = SettingsQuickButtonType.fourThree, on = on)
-        RemoteControlFilter.crt -> setFilterQuickButton(type = SettingsQuickButtonType.crt, on = on)
-        RemoteControlFilter.pinch -> setPinchQuickButton(on = on)
-        RemoteControlFilter.whirlpool -> setWhirlpoolQuickButton(on = on)
-        RemoteControlFilter.poll -> setPollQuickButton(on = on)
-        RemoteControlFilter.blurFaces -> setBlurFaces(on = on)
-        RemoteControlFilter.privacy -> setPrivacy(on = on)
-        RemoteControlFilter.beauty -> setBeautyQuickButton(on = on)
-        RemoteControlFilter.moblinInMouth -> setMoblinInMouth(on = on)
-        RemoteControlFilter.cameraMan -> setCameraManQuickButton(on = on)
+        RemoteControlFilter.Pixellate -> setPixellateQuickButton(on = on)
+        RemoteControlFilter.Movie -> setFilterQuickButton(type = SettingsQuickButtonType.movie, on = on)
+        RemoteControlFilter.GrayScale -> setFilterQuickButton(type = SettingsQuickButtonType.grayScale, on = on)
+        RemoteControlFilter.Sepia -> setFilterQuickButton(type = SettingsQuickButtonType.sepia, on = on)
+        RemoteControlFilter.Triple -> setFilterQuickButton(type = SettingsQuickButtonType.triple, on = on)
+        RemoteControlFilter.Twin -> setFilterQuickButton(type = SettingsQuickButtonType.twin, on = on)
+        RemoteControlFilter.FourThree -> setFilterQuickButton(type = SettingsQuickButtonType.fourThree, on = on)
+        RemoteControlFilter.Crt -> setFilterQuickButton(type = SettingsQuickButtonType.crt, on = on)
+        RemoteControlFilter.Pinch -> setPinchQuickButton(on = on)
+        RemoteControlFilter.Whirlpool -> setWhirlpoolQuickButton(on = on)
+        RemoteControlFilter.Poll -> setPollQuickButton(on = on)
+        RemoteControlFilter.BlurFaces -> setBlurFaces(on = on)
+        RemoteControlFilter.Privacy -> setPrivacy(on = on)
+        RemoteControlFilter.Beauty -> setBeautyQuickButton(on = on)
+        RemoteControlFilter.MoblinInMouth -> setMoblinInMouth(on = on)
+        RemoteControlFilter.CameraMan -> setCameraManQuickButton(on = on)
     }
 }
 
@@ -740,13 +735,13 @@ private fun Model.handleGetSettings(): RemoteControlSettings {
     val autoSceneSwitchers = database.autoSceneSwitchers.switchers.map {
         RemoteControlSettingsAutoSceneSwitcher(id = it.id, name = it.name)
     }
-    val mics = database.mics.mics.map {
+    val mics = database.mics.mics.value.map {
         RemoteControlSettingsMic(id = it.id, name = it.name)
     }
     val bitratePresets = database.bitratePresets.map {
-        RemoteControlSettingsBitratePreset(id = it.id, bitrate = it.bitrate)
+        RemoteControlSettingsBitratePreset(id = it.id, bitrate = it.bitrate.toUInt())
     }
-    val connectionPriorities = stream.srt.connectionPriorities.priorities.map {
+    val connectionPriorities = stream.value.srt.connectionPriorities.priorities.map {
         RemoteControlSettingsSrtConnectionPriority(
             id = it.id,
             name = it.name,
@@ -754,7 +749,7 @@ private fun Model.handleGetSettings(): RemoteControlSettings {
             enabled = it.enabled
         )
     }
-    val connectionPrioritiesEnabled = stream.srt.connectionPriorities.enabled
+    val connectionPrioritiesEnabled = stream.value.srt.connectionPriorities.enabled
     return RemoteControlSettings(
         streams = streams,
         scenes = scenes,
@@ -814,7 +809,7 @@ fun Model.remoteControlStreamerGetSettings(): RemoteControlSettings {
 
 fun Model.remoteControlStreamerSetStream(id: UUID) {
     val stream = findStream(id = id) ?: return
-    if (stream.enabled || isLive || isRecording) {
+    if (stream.enabled || isLive.value || isRecording.value) {
         return
     }
     setCurrentStream(stream = stream)
@@ -839,7 +834,7 @@ fun Model.remoteControlStreamerSetTalkbackMic(id: String) {
 
 fun Model.remoteControlStreamerSetBitratePreset(id: UUID) {
     val preset = database.bitratePresets.firstOrNull { preset -> preset.id == id } ?: return
-    setBitrate(bitrate = preset.bitrate)
+    setBitrate(bitrate = preset.bitrate.toInt())
 }
 
 fun Model.remoteControlStreamerSetRecord(on: Boolean) {
@@ -867,7 +862,7 @@ fun Model.remoteControlStreamerSetPreviewStream(on: Boolean) {
 }
 
 fun Model.remoteControlStreamerSetDebugLogging(on: Boolean) {
-    database.debug.debugLogging = on
+    database.debug.debugLogging.value = on
     setDebugLogging(on = on)
 }
 
@@ -888,7 +883,7 @@ fun Model.remoteControlStreamerSetStealthMode(on: Boolean) {
 }
 
 fun Model.remoteControlStreamerSetTorch(on: Boolean) {
-    streamOverlay.isTorchOn = on
+    streamOverlay.isTorchOn.value = on
     updateTorch()
     setQuickButton(type = SettingsQuickButtonType.torch, isOn = on)
 }
@@ -898,12 +893,12 @@ fun Model.remoteControlStreamerReloadBrowserWidgets() {
 }
 
 fun Model.remoteControlStreamerSetSrtConnectionPrioritiesEnabled(enabled: Boolean) {
-    stream.srt.connectionPriorities.enabled = enabled
+    stream.value.srt.connectionPriorities.enabled = enabled
     updateSrtlaPriorities()
 }
 
 fun Model.remoteControlStreamerSetSrtConnectionPriority(id: UUID, priority: Int, enabled: Boolean) {
-    val entry = stream.srt.connectionPriorities.priorities.firstOrNull { it.id == id }
+    val entry = stream.value.srt.connectionPriorities.priorities.firstOrNull { it.id == id }
     if (entry != null) {
         entry.priority = clampConnectionPriority(value = priority)
         entry.enabled = enabled
@@ -969,7 +964,7 @@ fun Model.remoteControlStreamerSendMessage(text: String) {
         userColor = RgbColor(red = 0x2F, green = 0xF5, blue = 0x2C),
         userBadges = emptyList(),
         segments = makeChatPostTextSegments(text = text),
-        timestamp = statusOther.digitalClock,
+        timestamp = statusOther.digitalClock.value,
         timestampTime = Instant.now(),
         isAction = false,
         isSubscriber = false,
@@ -1157,11 +1152,11 @@ fun Model.remoteControlStreamerSaveGimbalPreset() {
 }
 
 fun Model.remoteControlStreamerImportSettings(settings: ByteArray, onCompleted: (Boolean) -> Unit) {
-    if (isLive || isRecording) {
+    if (isLive.value || isRecording.value) {
         onCompleted(false)
         return
     }
-    importSettingsFromData(settings = settings) { onCompleted(it) }
+    importSettingsFromData(context = TODO("Android context"), settings = settings) { onCompleted(it) }
 }
 
 fun Model.remoteControlAssistantConnected() {
@@ -1248,24 +1243,25 @@ fun Model.remoteControlAssistantStateChanged(state: RemoteControlAssistantStream
     }
     state.filters?.let { filters ->
         for ((filter, on) in filters) {
-            remoteControlAssistantStreamerState.filters?.put(filter, on)
+            remoteControlAssistantStreamerState.filters =
+                (remoteControlAssistantStreamerState.filters ?: emptyMap()) + (filter to on)
             when (filter) {
-                RemoteControlFilter.pixellate -> remoteControl.pixellate.value = on
-                RemoteControlFilter.movie -> remoteControl.movie.value = on
-                RemoteControlFilter.grayScale -> remoteControl.grayScale.value = on
-                RemoteControlFilter.sepia -> remoteControl.sepia.value = on
-                RemoteControlFilter.triple -> remoteControl.triple.value = on
-                RemoteControlFilter.twin -> remoteControl.twin.value = on
-                RemoteControlFilter.fourThree -> remoteControl.fourThree.value = on
-                RemoteControlFilter.crt -> remoteControl.crt.value = on
-                RemoteControlFilter.pinch -> remoteControl.pinch.value = on
-                RemoteControlFilter.whirlpool -> remoteControl.whirlpool.value = on
-                RemoteControlFilter.poll -> remoteControl.poll.value = on
-                RemoteControlFilter.blurFaces -> remoteControl.blurFaces.value = on
-                RemoteControlFilter.privacy -> remoteControl.privacy.value = on
-                RemoteControlFilter.beauty -> remoteControl.beauty.value = on
-                RemoteControlFilter.moblinInMouth -> remoteControl.moblinInMouth.value = on
-                RemoteControlFilter.cameraMan -> remoteControl.cameraMan.value = on
+                RemoteControlFilter.Pixellate -> remoteControl.pixellate.value = on
+                RemoteControlFilter.Movie -> remoteControl.movie.value = on
+                RemoteControlFilter.GrayScale -> remoteControl.grayScale.value = on
+                RemoteControlFilter.Sepia -> remoteControl.sepia.value = on
+                RemoteControlFilter.Triple -> remoteControl.triple.value = on
+                RemoteControlFilter.Twin -> remoteControl.twin.value = on
+                RemoteControlFilter.FourThree -> remoteControl.fourThree.value = on
+                RemoteControlFilter.Crt -> remoteControl.crt.value = on
+                RemoteControlFilter.Pinch -> remoteControl.pinch.value = on
+                RemoteControlFilter.Whirlpool -> remoteControl.whirlpool.value = on
+                RemoteControlFilter.Poll -> remoteControl.poll.value = on
+                RemoteControlFilter.BlurFaces -> remoteControl.blurFaces.value = on
+                RemoteControlFilter.Privacy -> remoteControl.privacy.value = on
+                RemoteControlFilter.Beauty -> remoteControl.beauty.value = on
+                RemoteControlFilter.MoblinInMouth -> remoteControl.moblinInMouth.value = on
+                RemoteControlFilter.CameraMan -> remoteControl.cameraMan.value = on
             }
         }
     }
@@ -1454,7 +1450,7 @@ fun Model.remoteControlWebGetRecordings(): List<Map<String, String>> {
         .map { filename ->
             val url = File(directory, filename)
             val size = url.length()
-            mapOf("name" to filename, "size" to size.formatBytes())
+            mapOf("name" to filename, "size" to size.toULong().formatBytes())
         }
 }
 
@@ -1512,4 +1508,436 @@ fun Model.remoteControlWebStartPreview() {
 fun Model.remoteControlWebStopPreview() {
     isRemoteControlWebRequestingPreview = false
     setLowFpsImage()
+}
+
+private class RemoteControlStreamerDelegateAdapter(
+    private val model: Model
+) : RemoteControlStreamerDelegate {
+    override fun remoteControlStreamerConnected() {
+        model.remoteControlStreamerConnected()
+    }
+
+    override fun remoteControlStreamerDisconnected() {
+        model.remoteControlStreamerDisconnected()
+    }
+
+    override fun remoteControlStreamerWrongPassword() {
+        model.remoteControlStreamerWrongPassword()
+    }
+
+    override fun remoteControlStreamerGetStatus(): Triple<RemoteControlStatusGeneral, RemoteControlStatusTopLeft, RemoteControlStatusTopRight> {
+        return model.remoteControlStreamerGetStatus()
+    }
+
+    override fun remoteControlStreamerGetSettings(): RemoteControlSettings {
+        return model.remoteControlStreamerGetSettings()
+    }
+
+    override fun remoteControlStreamerSetStream(id: UUID) {
+        model.remoteControlStreamerSetStream(id = id)
+    }
+
+    override fun remoteControlStreamerSetScene(id: UUID) {
+        model.remoteControlStreamerSetScene(id = id)
+    }
+
+    override fun remoteControlStreamerSetAutoSceneSwitcher(id: UUID?) {
+        model.remoteControlStreamerSetAutoSceneSwitcher(id = id)
+    }
+
+    override fun remoteControlStreamerSetMic(id: String) {
+        model.remoteControlStreamerSetMic(id = id)
+    }
+
+    override fun remoteControlStreamerSetTalkbackMic(id: String) {
+        model.remoteControlStreamerSetTalkbackMic(id = id)
+    }
+
+    override fun remoteControlStreamerSetBitratePreset(id: UUID) {
+        model.remoteControlStreamerSetBitratePreset(id = id)
+    }
+
+    override fun remoteControlStreamerSetRecord(on: Boolean) {
+        model.remoteControlStreamerSetRecord(on = on)
+    }
+
+    override fun remoteControlStreamerSetLive(on: Boolean) {
+        model.remoteControlStreamerSetLive(on = on)
+    }
+
+    override fun remoteControlStreamerSetPreviewStream(on: Boolean) {
+        model.remoteControlStreamerSetPreviewStream(on = on)
+    }
+
+    override fun remoteControlStreamerSetDebugLogging(on: Boolean) {
+        model.remoteControlStreamerSetDebugLogging(on = on)
+    }
+
+    override fun remoteControlStreamerSetZoom(x: Float) {
+        model.remoteControlStreamerSetZoom(x = x)
+    }
+
+    override fun remoteControlStreamerSetZoomPreset(id: UUID) {
+        model.remoteControlStreamerSetZoomPreset(id = id)
+    }
+
+    override fun remoteControlStreamerSetMute(on: Boolean) {
+        model.remoteControlStreamerSetMute(on = on)
+    }
+
+    override fun remoteControlStreamerSetStealthMode(on: Boolean) {
+        model.remoteControlStreamerSetStealthMode(on = on)
+    }
+
+    override fun remoteControlStreamerSetTorch(on: Boolean) {
+        model.remoteControlStreamerSetTorch(on = on)
+    }
+
+    override fun remoteControlStreamerReloadBrowserWidgets() {
+        model.remoteControlStreamerReloadBrowserWidgets()
+    }
+
+    override fun remoteControlStreamerSetSrtConnectionPriority(id: UUID, priority: Int, enabled: Boolean) {
+        model.remoteControlStreamerSetSrtConnectionPriority(id = id, priority = priority, enabled = enabled)
+    }
+
+    override fun remoteControlStreamerSetSrtConnectionPrioritiesEnabled(enabled: Boolean) {
+        model.remoteControlStreamerSetSrtConnectionPrioritiesEnabled(enabled = enabled)
+    }
+
+    override fun remoteControlStreamerTwitchEventSubNotification(message: String) {
+        model.remoteControlStreamerTwitchEventSubNotification(message = message)
+    }
+
+    override fun remoteControlStreamerChatMessages(history: Boolean, messages: List<RemoteControlChatMessage>) {
+        model.remoteControlStreamerChatMessages(history = history, messages = messages)
+    }
+
+    override fun remoteControlStreamerStartPreview() {
+        model.remoteControlStreamerStartPreview()
+    }
+
+    override fun remoteControlStreamerStopPreview() {
+        model.remoteControlStreamerStopPreview()
+    }
+
+    override fun remoteControlStreamerSetRemoteSceneSettings(data: RemoteControlRemoteSceneSettings) {
+        model.remoteControlStreamerSetRemoteSceneSettings(data = data)
+    }
+
+    override fun remoteControlStreamerSetRemoteSceneData(data: RemoteControlRemoteSceneData) {
+        model.remoteControlStreamerSetRemoteSceneData(data = data)
+    }
+
+    override fun remoteControlStreamerInstantReplay() {
+        model.remoteControlStreamerInstantReplay()
+    }
+
+    override fun remoteControlStreamerSaveReplay() {
+        model.remoteControlStreamerSaveReplay()
+    }
+
+    override fun remoteControlStreamerStartStatus(interval: Int, filter: RemoteControlStartStatusFilter) {
+        model.remoteControlStreamerStartStatus(interval = interval, filter = filter)
+    }
+
+    override fun remoteControlStreamerStopStatus() {
+        model.remoteControlStreamerStopStatus()
+    }
+
+    override fun remoteControlStreamerGetScoreboardSports(): List<String> {
+        return model.remoteControlStreamerGetScoreboardSports()
+    }
+
+    override fun remoteControlStreamerSetScoreboardSport(sportId: String) {
+        model.remoteControlStreamerSetScoreboardSport(sportId = sportId)
+    }
+
+    override fun remoteControlStreamerUpdateScoreboard(config: RemoteControlScoreboardMatchConfig) {
+        model.remoteControlStreamerUpdateScoreboard(config = config)
+    }
+
+    override fun remoteControlStreamerToggleScoreboardClock() {
+        model.remoteControlStreamerToggleScoreboardClock()
+    }
+
+    override fun remoteControlStreamerSetScoreboardDuration(minutes: Int) {
+        model.remoteControlStreamerSetScoreboardDuration(minutes = minutes)
+    }
+
+    override fun remoteControlStreamerSetScoreboardClock(time: String) {
+        model.remoteControlStreamerSetScoreboardClock(time = time)
+    }
+
+    override fun remoteControlStreamerWhip(
+        url: String,
+        method: String,
+        headers: List<SettingsHttpHeader>,
+        body: ByteArray,
+        onCompleted: (Int, List<SettingsHttpHeader>, ByteArray) -> Unit
+    ) {
+        model.remoteControlStreamerWhip(
+            url = url,
+            method = method,
+            headers = headers,
+            body = body,
+            onCompleted = onCompleted
+        )
+    }
+
+    override fun remoteControlStreamerSetFilter(filter: RemoteControlFilter, on: Boolean) {
+        model.remoteControlStreamerSetFilter(filter = filter, on = on)
+    }
+
+    override fun remoteControlStreamerTriggerReaction(reaction: RemoteControlReaction) {
+        model.remoteControlStreamerTriggerReaction(reaction = reaction)
+    }
+
+    override fun remoteControlStreamerMoveToGimbalPreset(id: UUID) {
+        model.remoteControlStreamerMoveToGimbalPreset(id = id)
+    }
+
+    override fun remoteControlStreamerSetGimbalTracking(on: Boolean) {
+        model.remoteControlStreamerSetGimbalTracking(on = on)
+    }
+
+    override fun remoteControlStreamerSetGimbalMovement(x: Float, y: Float) {
+        model.remoteControlStreamerSetGimbalMovement(x = x, y = y)
+    }
+
+    override fun remoteControlStreamerAnimateGimbal(motion: SettingsGimbalMotion) {
+        model.remoteControlStreamerAnimateGimbal(motion = motion)
+    }
+
+    override fun remoteControlStreamerSaveGimbalPreset() {
+        model.remoteControlStreamerSaveGimbalPreset()
+    }
+
+    override fun remoteControlStreamerImportSettings(settings: ByteArray, onCompleted: (Boolean) -> Unit) {
+        model.remoteControlStreamerImportSettings(settings = settings, onCompleted = onCompleted)
+    }
+
+    override fun remoteControlStreamerStartStats(filter: RemoteControlStartStatsFilter?) {
+        model.remoteControlStreamerStartStats(filter = filter)
+    }
+
+    override fun remoteControlStreamerStopStats() {
+        model.remoteControlStreamerStopStats()
+    }
+
+    override fun remoteControlStreamerStartMacro(id: UUID) {
+        model.remoteControlStreamerStartMacro(id = id)
+    }
+
+    override fun remoteControlStreamerStopMacro(id: UUID) {
+        model.remoteControlStreamerStopMacro(id = id)
+    }
+
+    override fun remoteControlStreamerSendMessage(text: String) {
+        model.remoteControlStreamerSendMessage(text = text)
+    }
+}
+
+private class RemoteControlAssistantDelegateAdapter(
+    private val model: Model
+) : RemoteControlAssistantDelegate {
+    override fun remoteControlAssistantConnected() {
+        model.remoteControlAssistantConnected()
+    }
+
+    override fun remoteControlAssistantDisconnected() {
+        model.remoteControlAssistantDisconnected()
+    }
+
+    override fun remoteControlAssistantPreview(preview: ByteArray) {
+        model.remoteControlAssistantPreview(preview = preview)
+    }
+
+    override fun remoteControlAssistantStateChanged(state: RemoteControlAssistantStreamerState) {
+        model.remoteControlAssistantStateChanged(state = state)
+    }
+
+    override fun remoteControlAssistantLog(entry: String) {
+        model.remoteControlAssistantLog(entry = entry)
+    }
+
+    override fun remoteControlAssistantStatus(
+        general: RemoteControlStatusGeneral?,
+        topLeft: RemoteControlStatusTopLeft?,
+        topRight: RemoteControlStatusTopRight?
+    ) {
+        model.remoteControlAssistantStatus(general = general, topLeft = topLeft, topRight = topRight)
+    }
+
+    override fun remoteControlAssistantStats(data: RemoteControlStats) {
+        model.remoteControlAssistantStats(data = data)
+    }
+}
+
+private class RemoteControlWebDelegateAdapter(
+    private val model: Model
+) : RemoteControlWebDelegate {
+    override fun remoteControlWebConnected() {
+        model.remoteControlWebConnected()
+    }
+
+    override fun remoteControlWebDisconnected() {
+        model.remoteControlWebDisconnected()
+    }
+
+    override fun remoteControlWebGetStatus(): Triple<RemoteControlStatusGeneral, RemoteControlStatusTopLeft, RemoteControlStatusTopRight> {
+        return model.remoteControlWebGetStatus()
+    }
+
+    override fun remoteControlWebGetSettings(): RemoteControlSettings {
+        return model.remoteControlWebGetSettings()
+    }
+
+    override fun remoteControlWebSetScene(id: UUID) {
+        model.remoteControlWebSetScene(id = id)
+    }
+
+    override fun remoteControlWebSetAutoSceneSwitcher(id: UUID?) {
+        model.remoteControlWebSetAutoSceneSwitcher(id = id)
+    }
+
+    override fun remoteControlWebSetMic(id: String) {
+        model.remoteControlWebSetMic(id = id)
+    }
+
+    override fun remoteControlWebSetBitratePreset(id: UUID) {
+        model.remoteControlWebSetBitratePreset(id = id)
+    }
+
+    override fun remoteControlWebSetRecord(on: Boolean) {
+        model.remoteControlWebSetRecord(on = on)
+    }
+
+    override fun remoteControlWebSetLive(on: Boolean) {
+        model.remoteControlWebSetLive(on = on)
+    }
+
+    override fun remoteControlWebSetPreviewStream(on: Boolean) {
+        model.remoteControlWebSetPreviewStream(on = on)
+    }
+
+    override fun remoteControlWebSetZoom(x: Float) {
+        model.remoteControlWebSetZoom(x = x)
+    }
+
+    override fun remoteControlWebSetZoomPreset(id: UUID) {
+        model.remoteControlWebSetZoomPreset(id = id)
+    }
+
+    override fun remoteControlWebSetDebugLogging(on: Boolean) {
+        model.remoteControlWebSetDebugLogging(on = on)
+    }
+
+    override fun remoteControlWebSetMute(on: Boolean) {
+        model.remoteControlWebSetMute(on = on)
+    }
+
+    override fun remoteControlWebSetStealthMode(on: Boolean) {
+        model.remoteControlWebSetStealthMode(on = on)
+    }
+
+    override fun remoteControlWebSetTorch(on: Boolean) {
+        model.remoteControlWebSetTorch(on = on)
+    }
+
+    override fun remoteControlWebReloadBrowserWidgets() {
+        model.remoteControlWebReloadBrowserWidgets()
+    }
+
+    override fun remoteControlWebSetSrtConnectionPrioritiesEnabled(enabled: Boolean) {
+        model.remoteControlWebSetSrtConnectionPrioritiesEnabled(enabled = enabled)
+    }
+
+    override fun remoteControlWebSetSrtConnectionPriority(id: UUID, priority: Int, enabled: Boolean) {
+        model.remoteControlWebSetSrtConnectionPriority(id = id, priority = priority, enabled = enabled)
+    }
+
+    override fun remoteControlWebMoveToGimbalPreset(id: UUID) {
+        model.remoteControlWebMoveToGimbalPreset(id = id)
+    }
+
+    override fun remoteControlWebSetGimbalTracking(on: Boolean) {
+        model.remoteControlWebSetGimbalTracking(on = on)
+    }
+
+    override fun remoteControlWebSetGimbalMovement(x: Float, y: Float) {
+        model.remoteControlWebSetGimbalMovement(x = x, y = y)
+    }
+
+    override fun remoteControlWebAnimateGimbal(motion: SettingsGimbalMotion) {
+        model.remoteControlWebAnimateGimbal(motion = motion)
+    }
+
+    override fun remoteControlWebSaveGimbalPreset() {
+        model.remoteControlWebSaveGimbalPreset()
+    }
+
+    override fun remoteControlWebGetScoreboardSports(): List<String> {
+        return model.remoteControlWebGetScoreboardSports()
+    }
+
+    override fun remoteControlWebSetScoreboardSport(sportId: String) {
+        model.remoteControlWebSetScoreboardSport(sportId = sportId)
+    }
+
+    override fun remoteControlWebUpdateScoreboard(config: RemoteControlScoreboardMatchConfig) {
+        model.remoteControlWebUpdateScoreboard(config = config)
+    }
+
+    override fun remoteControlWebToggleScoreboardClock() {
+        model.remoteControlWebToggleScoreboardClock()
+    }
+
+    override fun remoteControlWebSetScoreboardDuration(minutes: Int) {
+        model.remoteControlWebSetScoreboardDuration(minutes = minutes)
+    }
+
+    override fun remoteControlWebSetScoreboardClock(time: String) {
+        model.remoteControlWebSetScoreboardClock(time = time)
+    }
+
+    override fun remoteControlWebGetGolfScoreboard(): RemoteControlGolfScoreboard {
+        return model.remoteControlWebGetGolfScoreboard()
+    }
+
+    override fun remoteControlWebUpdateGolfScoreboard(data: RemoteControlGolfScoreboard) {
+        model.remoteControlWebUpdateGolfScoreboard(data = data)
+    }
+
+    override fun remoteControlWebSetFilter(filter: RemoteControlFilter, on: Boolean) {
+        model.remoteControlWebSetFilter(filter = filter, on = on)
+    }
+
+    override fun remoteControlWebTriggerReaction(reaction: RemoteControlReaction) {
+        model.remoteControlWebTriggerReaction(reaction = reaction)
+    }
+
+    override fun remoteControlWebGetRecordings(): List<Map<String, String>> {
+        return model.remoteControlWebGetRecordings()
+    }
+
+    override fun remoteControlWebGetRecordingUrl(filename: String): URI? {
+        return model.remoteControlWebGetRecordingUrl(filename = filename)?.toURI()
+    }
+
+    override fun remoteControlWebGetRecordingThumbnail(filename: String): ByteArray? {
+        return model.remoteControlWebGetRecordingThumbnail(filename = filename)
+    }
+
+    override fun remoteControlWebDeleteRecording(filename: String) {
+        model.remoteControlWebDeleteRecording(filename = filename)
+    }
+
+    override fun remoteControlWebStartPreview() {
+        model.remoteControlWebStartPreview()
+    }
+
+    override fun remoteControlWebStopPreview() {
+        model.remoteControlWebStopPreview()
+    }
 }

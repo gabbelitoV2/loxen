@@ -34,18 +34,12 @@ fun Model.setZoomPreset(id: UUID) {
     val preset = findZoomPreset(id)
     if (preset != null) {
         when (cameraPosition) {
-            AVCaptureDevice.Position.BACK -> setBackZoomPreset(id)
-            AVCaptureDevice.Position.FRONT -> setFrontZoomPreset(id)
+            AVCaptureDevice.Position.BACK.ordinal -> setBackZoomPreset(id)
+            AVCaptureDevice.Position.FRONT.ordinal -> setFrontZoomPreset(id)
             else -> {}
         }
         if (setCameraZoomX(preset.x, database.zoom.speed) != null) {
             setZoomXWhenInRange(preset.x)
-            when (getSelectedScene()?.videoSource?.cameraPosition) {
-                SettingsSceneCameraPosition.backTripleLowEnergy -> attachBackTripleLowEnergyCamera(false)
-                SettingsSceneCameraPosition.backDualLowEnergy -> attachBackDualLowEnergyCamera(false)
-                SettingsSceneCameraPosition.backWideDualLowEnergy -> attachBackWideDualLowEnergyCamera(false)
-                else -> {}
-            }
         }
     } else {
         clearZoomPresetId()
@@ -62,11 +56,11 @@ fun Model.setZoomX(x: Float, rate: Float? = null, setPinch: Boolean = true) {
 
 fun Model.setZoomXWhenInRange(x: Float, setPinch: Boolean = true) {
     when (cameraPosition) {
-        AVCaptureDevice.Position.BACK -> {
+        AVCaptureDevice.Position.BACK.ordinal -> {
             zoom.backX = x
             updateBackZoomPresetId()
         }
-        AVCaptureDevice.Position.FRONT -> {
+        AVCaptureDevice.Position.FRONT.ordinal -> {
             zoom.frontX = x
             updateFrontZoomPresetId()
         }
@@ -98,15 +92,15 @@ fun Model.commitZoomX(amount: Float, rate: Float? = null) {
 
 private fun Model.clearZoomPresetId() {
     when (cameraPosition) {
-        AVCaptureDevice.Position.BACK -> setBackZoomPreset(noBackZoomPresetId)
-        AVCaptureDevice.Position.FRONT -> setFrontZoomPreset(noFrontZoomPresetId)
+        AVCaptureDevice.Position.BACK.ordinal -> setBackZoomPreset(noBackZoomPresetId)
+        AVCaptureDevice.Position.FRONT.ordinal -> setFrontZoomPreset(noFrontZoomPresetId)
         else -> {}
     }
 }
 
 private fun Model.setBackZoomPreset(presetId: UUID) {
     zoom.backPresetId.value = presetId
-    if (cameraPosition == AVCaptureDevice.Position.BACK) {
+    if (cameraPosition == AVCaptureDevice.Position.BACK.ordinal) {
         remoteControlStateChanged(RemoteControlAssistantStreamerState(zoomPreset = presetId))
         if (isWatchLocal()) {
             sendZoomPresetToWatch()
@@ -116,7 +110,7 @@ private fun Model.setBackZoomPreset(presetId: UUID) {
 
 private fun Model.setFrontZoomPreset(presetId: UUID) {
     zoom.frontPresetId.value = presetId
-    if (cameraPosition == AVCaptureDevice.Position.FRONT) {
+    if (cameraPosition == AVCaptureDevice.Position.FRONT.ordinal) {
         remoteControlStateChanged(RemoteControlAssistantStreamerState(zoomPreset = presetId))
         if (isWatchLocal()) {
             sendZoomPresetToWatch()
@@ -126,8 +120,8 @@ private fun Model.setFrontZoomPreset(presetId: UUID) {
 
 private fun Model.findZoomPreset(id: UUID): SettingsZoomPreset? {
     return when (cameraPosition) {
-        AVCaptureDevice.Position.BACK -> database.zoom.back.firstOrNull { it.id == id }
-        AVCaptureDevice.Position.FRONT -> database.zoom.front.firstOrNull { it.id == id }
+        AVCaptureDevice.Position.BACK.ordinal -> database.zoom.back.firstOrNull { it.id == id }
+        AVCaptureDevice.Position.FRONT.ordinal -> database.zoom.front.firstOrNull { it.id == id }
         else -> null
     }
 }
@@ -148,22 +142,22 @@ fun Model.frontZoomPresetSettingUpdated() {
 
 fun Model.updateFrontZoomPresets() {
     zoom.frontZoomPresets.value = database.zoom.front.filter { showPreset(it) }
-    if (cameraPosition == AVCaptureDevice.Position.FRONT) {
+    if (cameraPosition == AVCaptureDevice.Position.FRONT.ordinal) {
         zoomPresetsMayHaveChanged()
     }
 }
 
 fun Model.updateBackZoomPresets() {
     zoom.backZoomPresets.value = database.zoom.back.filter { showPreset(it) }
-    if (cameraPosition == AVCaptureDevice.Position.BACK) {
+    if (cameraPosition == AVCaptureDevice.Position.BACK.ordinal) {
         zoomPresetsMayHaveChanged()
     }
 }
 
 fun Model.zoomPresetsMayHaveChanged() {
     val presets: List<SettingsZoomPreset> = when (cameraPosition) {
-        AVCaptureDevice.Position.BACK -> zoom.backZoomPresets.value
-        AVCaptureDevice.Position.FRONT -> zoom.frontZoomPresets.value
+        AVCaptureDevice.Position.BACK.ordinal -> zoom.backZoomPresets.value
+        AVCaptureDevice.Position.FRONT.ordinal -> zoom.frontZoomPresets.value
         else -> emptyList()
     }
     val zoomPresets = presets.map { RemoteControlZoomPreset(it.id, it.name) }
@@ -221,7 +215,7 @@ private fun Model.factorToX(position: AVCaptureDevice.Position, factor: Float): 
 fun Model.getMinMaxZoomX(position: AVCaptureDevice.Position): Pair<Float, Float> {
     var minX: Float
     var maxX: Float
-    val camera = preferredCamera(position)
+    val camera = AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_WIDE_ANGLE_CAMERA, position)
     if (camera != null) {
         minX = factorToX(position, camera.minAvailableVideoZoomFactor)
         maxX = factorToX(position, camera.maxAvailableVideoZoomFactor)

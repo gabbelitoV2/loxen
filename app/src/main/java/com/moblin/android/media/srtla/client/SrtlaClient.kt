@@ -545,7 +545,7 @@ class SrtlaClient(
 
     override fun remoteConnectionOnSrtAck(sn: UInt) {
         for (connection in remoteConnections) {
-            connection.handleSrtAckSn(sn, sn)
+            connection.handleSrtAckSn(sn)
         }
     }
 

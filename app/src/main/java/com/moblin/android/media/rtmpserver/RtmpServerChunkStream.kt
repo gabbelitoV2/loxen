@@ -120,8 +120,7 @@ class RtmpServerChunkStream(
 
     private fun processMessageAmf0Command() {
         val client = this.client ?: return
-        val decoder = Amf0Decoder()
-        decoder.data = messageBody
+        val decoder = Amf0Decoder(messageBody)
         var commandName: RtmpCommandName = RtmpCommandName.unknown
         var transactionId = 0
         var commandObject: AsObject? = null

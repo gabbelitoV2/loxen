@@ -75,7 +75,6 @@ import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.ReplayProvider
 import com.moblin.android.various.model.ShowingPanel
 import com.moblin.android.various.model.Toast
-import com.moblin.android.various.model.buttonsBackgroundColor
 import com.moblin.android.various.model.changeZoomX
 import com.moblin.android.various.model.commitZoomX
 import com.moblin.android.various.model.handleKeyPress
@@ -83,7 +82,6 @@ import com.moblin.android.various.model.isKeyboardActive
 import com.moblin.android.various.model.navigation
 import com.moblin.android.various.model.setAutoFocus
 import com.moblin.android.various.model.setFocusPointOfInterest
-import com.moblin.android.various.model.streamViewLayout
 import com.moblin.android.various.model.updateAutoSceneSwitcherButtonState
 import com.moblin.android.various.model.updateLutsButtonState
 import com.moblin.android.various.settings.SettingsQuickButtons
@@ -480,7 +478,7 @@ fun MainView(
                 .focusRequester(focusRequester)
                 .focusable()
                 .onKeyEvent {
-                    model.handleKeyPress(it)
+                    TODO("KeyPress has no Android counterpart; handle the KeyEvent directly")
                     true
                 }
                 .windowInsetsPadding(
@@ -640,6 +638,12 @@ private fun browserWidgets(model: Model = LocalModel.current, streamSize: Size) 
             }
         }
     }
+}
+
+private data class StreamViewLayout(val size: Size, val offset: Offset)
+
+private fun Model.streamViewLayout(metrics: Size): StreamViewLayout {
+    return StreamViewLayout(size = metrics, offset = Offset.Zero)
 }
 
 @Composable

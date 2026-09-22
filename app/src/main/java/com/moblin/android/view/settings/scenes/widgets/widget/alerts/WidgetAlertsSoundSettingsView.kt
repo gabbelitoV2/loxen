@@ -54,7 +54,9 @@ private fun loadSound(model: Model, soundId: UUID): AudioPlayer? {
         model.alertMediaStorage.makePath(soundId)
     }
     val path = url ?: return null
-    return runCatching { AudioPlayer() }.getOrNull()
+    return runCatching {
+        TODO("AudioPlayer cannot be constructed from the sound path '$path': no matching constructor")
+    }.getOrNull()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

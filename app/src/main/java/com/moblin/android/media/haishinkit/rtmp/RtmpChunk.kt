@@ -66,7 +66,7 @@ class RtmpChunk(
     enum class ChunkStreamId(val rawValue: UShort) {
         control(0x02u.toUShort()),
         command(0x03u.toUShort()),
-        data(0x04u.toUShort());
+        `data`(0x04u.toUShort());
 
         companion object {
             fun fromRawValue(rawValue: UShort): ChunkStreamId? =

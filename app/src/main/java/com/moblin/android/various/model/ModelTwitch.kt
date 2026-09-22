@@ -7,6 +7,7 @@ import com.moblin.android.common.various.countFormatter
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.common.various.uptimeFormatter
 import com.moblin.android.localized
+import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.streamingplatforms.twitch.*
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.ChatHighlightKind
@@ -20,7 +21,6 @@ import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamTwitchReward
 import com.moblin.android.various.settings.SettingsTwitchAlerts
 import com.moblin.android.various.settings.appendTwitchRaidChannel
-import com.moblin.android.various.settings.maxNotLoggedInToastCount
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.ceil
@@ -31,11 +31,11 @@ import kotlin.time.TimeMark
 private const val TAG = "Model"
 
 fun Model.updateViewersTwitch(): StreamingPlatformStatus {
-    return StreamingPlatformStatus(platform = StreamingPlatform.twitch, status = twitchPlatformStatus)
+    return StreamingPlatformStatus(platform = Platform.twitch, status = twitchPlatformStatus)
 }
 
 fun Model.isTwitchEventSubConfigured(): Boolean {
-    return stream.twitchLoggedIn
+    return stream.value.twitchLoggedIn
 }
 
 fun Model.isTwitchEventsConnected(): Boolean {
@@ -43,11 +43,11 @@ fun Model.isTwitchEventsConnected(): Boolean {
 }
 
 fun Model.isTwitchViewersConfigured(): Boolean {
-    return stream.twitchChannelId != "" && stream.twitchLoggedIn
+    return stream.value.twitchChannelId != "" && stream.value.twitchLoggedIn
 }
 
 fun Model.isTwitchChatConfigured(): Boolean {
-    return database.chat.enabled && stream.twitchChannelName != ""
+    return database.chat.enabled && stream.value.twitchChannelName != ""
 }
 
 fun Model.isTwitchChatConnected(): Boolean {
@@ -61,12 +61,12 @@ fun Model.hasTwitchChatEmotes(): Boolean {
 fun Model.reloadTwitchChat() {
     twitchChat?.stop()
     setTextToSpeechStreamerMentions()
-    if (isTwitchChatConfigured() && !isRemoteControlChatAndEvents(ChatPlatform.twitch)) {
+    if (isTwitchChatConfigured() && !isRemoteControlChatAndEvents(Platform.twitch)) {
         twitchChat?.start(
-            channelName = stream.twitchChannelName,
-            channelId = stream.twitchChannelId,
-            settings = stream.chat,
-            accessToken = stream.twitchAccessToken
+            channelName = stream.value.twitchChannelName,
+            channelId = stream.value.twitchChannelId,
+            settings = stream.value.chat,
+            accessToken = stream.value.twitchAccessToken
         )
     }
     updateChatMoreThanOneChatConfigured()
@@ -92,28 +92,29 @@ fun Model.reloadTwitchEventSub() {
     if (isTwitchEventSubConfigured()) {
         twitchEventSub = TwitchEventSub(
             remoteControl = useRemoteControlForChatAndEvents,
-            userId = stream.twitchChannelId,
-            accessToken = stream.twitchAccessToken,
-            delegate = this
+            userId = stream.value.twitchChannelId,
+            accessToken = stream.value.twitchAccessToken,
+            context = TODO("no Android context available"),
+            delegate = TODO("no Android counterpart for TwitchEventSubDelegate conformance")
         )
         twitchEventSub!!.start()
     }
 }
 
 fun Model.fetchTwitchRewards() {
-    createTwitchApi(stream)
-        .getChannelPointsCustomRewards(stream.twitchChannelId) { rewards ->
+    createTwitchApi(stream.value)
+        .getChannelPointsCustomRewards(stream.value.twitchChannelId) { rewards ->
             if (rewards == null) {
                 Log.i(TAG, "Failed to get Twitch rewards")
                 return@getChannelPointsCustomRewards
             }
             Log.i(TAG, "Twitch rewards: $rewards")
-            stream.twitchRewards = rewards.data.map {
+            stream.value.twitchRewards = rewards.data.map {
                 val reward = SettingsStreamTwitchReward()
                 reward.rewardId = it.id
                 reward.title = it.title
                 reward
-            }
+            }.toMutableList()
         }
 }
 
@@ -242,8 +243,8 @@ fun Model.twitchLogin(
         stream.twitchWantsToBeLoggedIn = true
         stream.twitchNotLoggedInCount = 0
         stream.twitchAccessToken = accessToken
-        showTwitchAuth = false
-        showModerationAuth = false
+        showTwitchAuth.value = false
+        showModerationAuth.value = false
         createStreamWizard.showTwitchAuth = false
         TwitchApi(accessToken).getUserInfo { info ->
             if (info == null) {
@@ -277,18 +278,18 @@ fun Model.handleTwitchAccessToken(accessToken: String) {
 }
 
 fun Model.makeNotLoggedInToTwitchToastIfNeeded() {
-    if (!stream.twitchWantsToBeLoggedIn || stream.twitchLoggedIn) {
+    if (!stream.value.twitchWantsToBeLoggedIn || stream.value.twitchLoggedIn) {
         return
     }
-    stream.twitchNotLoggedInCount += 1
-    if (stream.twitchNotLoggedInCount >= maxNotLoggedInToastCount) {
-        stream.twitchWantsToBeLoggedIn = false
+    stream.value.twitchNotLoggedInCount += 1
+    if (stream.value.twitchNotLoggedInCount >= maxNotLoggedInToastCount) {
+        stream.value.twitchWantsToBeLoggedIn = false
     }
-    makeNotLoggedInToToast(ChatPlatform.twitch)
+    makeNotLoggedInToToast(Platform.twitch)
 }
 
 fun Model.createStreamMarker() {
-    createTwitchApi(stream).createStreamMarker(stream.twitchChannelId) { data ->
+    createTwitchApi(stream.value).createStreamMarker(stream.value.twitchChannelId) { data ->
         if (data != null) {
             makeToast(title = localized("Stream marker created"))
         } else {
@@ -297,12 +298,12 @@ fun Model.createStreamMarker() {
     }
 }
 
-fun Model.updateTwitchStream(monotonicNow: TimeMark) {
-    if (!isLive || !isTwitchViewersConfigured()) {
-        twitchPlatformStatus = StreamingPlatformStatus.Status.Unknown
+fun Model.updateTwitchStream(monotonicNow: Instant) {
+    if (!isLive.value || !isTwitchViewersConfigured()) {
+        twitchPlatformStatus = PlatformStatus.unknown
         return
     }
-    if (monotonicNow - twitchStreamUpdateTime <= 25.seconds) {
+    if (monotonicNow.isBefore(twitchStreamUpdateTime.plusSeconds(25))) {
         return
     }
     twitchStreamUpdateTime = monotonicNow
@@ -310,20 +311,20 @@ fun Model.updateTwitchStream(monotonicNow: TimeMark) {
 }
 
 fun Model.sendTwitchChatMessage(message: String, onComplete: (OperationResult) -> Unit) {
-    createTwitchApi(stream).sendChatMessage(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).sendChatMessage(
+        broadcasterId = stream.value.twitchChannelId,
         message = message,
         onComplete = onComplete
     )
 }
 
 fun Model.startAds(seconds: Int, onComplete: (OperationResult) -> Unit) {
-    createTwitchApi(stream)
-        .startCommercial(broadcasterId = stream.twitchChannelId, length = seconds) { result ->
+    createTwitchApi(stream.value)
+        .startCommercial(broadcasterId = stream.value.twitchChannelId, length = seconds) { result ->
             when (result) {
-                is OperationResult.Success -> onComplete(OperationResult.Success(ByteArray(0)))
-                is OperationResult.AuthError -> onComplete(OperationResult.AuthError)
-                is OperationResult.Error -> onComplete(OperationResult.Error)
+                is NetworkResponse.Success -> onComplete(NetworkResponse.Success(ByteArray(0)))
+                is NetworkResponse.AuthError -> onComplete(NetworkResponse.AuthError)
+                is NetworkResponse.Error -> onComplete(NetworkResponse.Error)
             }
         }
 }
@@ -335,8 +336,8 @@ fun Model.banTwitchUser(
     reason: String? = null,
     onComplete: (OperationResult) -> Unit
 ) {
-    createTwitchApi(stream).banUser(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).banUser(
+        broadcasterId = stream.value.twitchChannelId,
         userId = userId,
         duration = duration,
         reason = reason,
@@ -350,9 +351,9 @@ fun Model.banTwitchUser(
     reason: String?,
     onComplete: (OperationResult) -> Unit
 ) {
-    createTwitchApi(stream).getUserByLogin(user) { twitchUser ->
+    createTwitchApi(stream.value).getUserByLogin(user) { twitchUser ->
         if (twitchUser == null) {
-            onComplete(OperationResult.Error)
+            onComplete(NetworkResponse.Error)
             return@getUserByLogin
         }
         banTwitchUser(
@@ -366,14 +367,14 @@ fun Model.banTwitchUser(
 }
 
 fun Model.unbanTwitchUser(user: String, onComplete: (OperationResult) -> Unit) {
-    val twitchApi = createTwitchApi(stream)
+    val twitchApi = createTwitchApi(stream.value)
     twitchApi.getUserByLogin(user) { twitchUser ->
         if (twitchUser == null) {
-            onComplete(OperationResult.Error)
+            onComplete(NetworkResponse.Error)
             return@getUserByLogin
         }
         twitchApi.unbanUser(
-            broadcasterId = stream.twitchChannelId,
+            broadcasterId = stream.value.twitchChannelId,
             userId = twitchUser.id,
             onComplete = onComplete
         )
@@ -381,14 +382,14 @@ fun Model.unbanTwitchUser(user: String, onComplete: (OperationResult) -> Unit) {
 }
 
 fun Model.modTwitchUser(user: String, onComplete: (OperationResult) -> Unit) {
-    val twitchApi = createTwitchApi(stream)
+    val twitchApi = createTwitchApi(stream.value)
     twitchApi.getUserByLogin(user) { twitchUser ->
         if (twitchUser == null) {
-            onComplete(OperationResult.Error)
+            onComplete(NetworkResponse.Error)
             return@getUserByLogin
         }
         twitchApi.addModerator(
-            broadcasterId = stream.twitchChannelId,
+            broadcasterId = stream.value.twitchChannelId,
             userId = twitchUser.id,
             onComplete = onComplete
         )
@@ -396,14 +397,14 @@ fun Model.modTwitchUser(user: String, onComplete: (OperationResult) -> Unit) {
 }
 
 fun Model.unmodTwitchUser(user: String, onComplete: (OperationResult) -> Unit) {
-    val twitchApi = createTwitchApi(stream)
+    val twitchApi = createTwitchApi(stream.value)
     twitchApi.getUserByLogin(user) { twitchUser ->
         if (twitchUser == null) {
-            onComplete(OperationResult.Error)
+            onComplete(NetworkResponse.Error)
             return@getUserByLogin
         }
         twitchApi.removeModerator(
-            broadcasterId = stream.twitchChannelId,
+            broadcasterId = stream.value.twitchChannelId,
             userId = twitchUser.id,
             onComplete = onComplete
         )
@@ -411,14 +412,14 @@ fun Model.unmodTwitchUser(user: String, onComplete: (OperationResult) -> Unit) {
 }
 
 fun Model.vipTwitchUser(user: String, onComplete: (OperationResult) -> Unit) {
-    val twitchApi = createTwitchApi(stream)
+    val twitchApi = createTwitchApi(stream.value)
     twitchApi.getUserByLogin(user) { twitchUser ->
         if (twitchUser == null) {
-            onComplete(OperationResult.Error)
+            onComplete(NetworkResponse.Error)
             return@getUserByLogin
         }
         twitchApi.addVip(
-            broadcasterId = stream.twitchChannelId,
+            broadcasterId = stream.value.twitchChannelId,
             userId = twitchUser.id,
             onComplete = onComplete
         )
@@ -426,14 +427,14 @@ fun Model.vipTwitchUser(user: String, onComplete: (OperationResult) -> Unit) {
 }
 
 fun Model.unvipTwitchUser(user: String, onComplete: (OperationResult) -> Unit) {
-    val twitchApi = createTwitchApi(stream)
+    val twitchApi = createTwitchApi(stream.value)
     twitchApi.getUserByLogin(user) { twitchUser ->
         if (twitchUser == null) {
-            onComplete(OperationResult.Error)
+            onComplete(NetworkResponse.Error)
             return@getUserByLogin
         }
         twitchApi.removeVip(
-            broadcasterId = stream.twitchChannelId,
+            broadcasterId = stream.value.twitchChannelId,
             userId = twitchUser.id,
             onComplete = onComplete
         )
@@ -445,8 +446,8 @@ fun Model.sendTwitchAnnouncement(
     color: String,
     onComplete: (OperationResult) -> Unit
 ) {
-    createTwitchApi(stream).sendAnnouncement(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).sendAnnouncement(
+        broadcasterId = stream.value.twitchChannelId,
         message = message,
         color = color,
         onComplete = onComplete
@@ -462,8 +463,8 @@ fun Model.setTwitchSlowMode(
     if (enabled && duration != null) {
         settings["slow_mode_wait_time"] = duration
     }
-    createTwitchApi(stream).updateChatSettings(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).updateChatSettings(
+        broadcasterId = stream.value.twitchChannelId,
         settings = settings,
         onComplete = onComplete
     )
@@ -478,37 +479,37 @@ fun Model.setTwitchFollowersMode(
     if (enabled && duration != null) {
         settings["follower_mode_duration"] = duration
     }
-    createTwitchApi(stream).updateChatSettings(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).updateChatSettings(
+        broadcasterId = stream.value.twitchChannelId,
         settings = settings,
         onComplete = onComplete
     )
 }
 
 fun Model.setTwitchEmoteOnlyMode(enabled: Boolean, onComplete: (OperationResult) -> Unit) {
-    createTwitchApi(stream).updateChatSettings(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).updateChatSettings(
+        broadcasterId = stream.value.twitchChannelId,
         settings = mapOf<String, Any>("emote_mode" to enabled),
         onComplete = onComplete
     )
 }
 
 fun Model.setTwitchSubscribersOnlyMode(enabled: Boolean, onComplete: (OperationResult) -> Unit) {
-    createTwitchApi(stream).updateChatSettings(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).updateChatSettings(
+        broadcasterId = stream.value.twitchChannelId,
         settings = mapOf<String, Any>("subscriber_mode" to enabled),
         onComplete = onComplete
     )
 }
 
 fun Model.deleteTwitchChatMessage(messageId: String) {
-    createTwitchApi(stream)
-        .deleteChatMessage(broadcasterId = stream.twitchChannelId, messageId = messageId) { }
+    createTwitchApi(stream.value)
+        .deleteChatMessage(broadcasterId = stream.value.twitchChannelId, messageId = messageId) { }
 }
 
 fun Model.getTwitchPolls(onComplete: (NetworkResponse<List<TwitchApiPollData>>) -> Unit) {
-    createTwitchApi(stream).getPolls(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).getPolls(
+        broadcasterId = stream.value.twitchChannelId,
         onComplete = onComplete
     )
 }
@@ -519,8 +520,8 @@ fun Model.createTwitchPoll(
     duration: Int,
     onComplete: (OperationResult) -> Unit
 ) {
-    createTwitchApi(stream).createPoll(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).createPoll(
+        broadcasterId = stream.value.twitchChannelId,
         title = title,
         choices = choices,
         duration = duration,
@@ -533,8 +534,8 @@ fun Model.endTwitchPoll(
     status: TwitchApiPollStatus,
     onComplete: (OperationResult) -> Unit
 ) {
-    createTwitchApi(stream).endPoll(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).endPoll(
+        broadcasterId = stream.value.twitchChannelId,
         id = id,
         status = status,
         onComplete = onComplete
@@ -544,8 +545,8 @@ fun Model.endTwitchPoll(
 fun Model.getTwitchPredictions(
     onComplete: (NetworkResponse<List<TwitchApiPredictionData>>) -> Unit
 ) {
-    createTwitchApi(stream).getPredictions(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).getPredictions(
+        broadcasterId = stream.value.twitchChannelId,
         onComplete = onComplete
     )
 }
@@ -556,8 +557,8 @@ fun Model.createTwitchPrediction(
     predictionWindow: Int,
     onComplete: (OperationResult) -> Unit
 ) {
-    createTwitchApi(stream).createPrediction(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).createPrediction(
+        broadcasterId = stream.value.twitchChannelId,
         title = title,
         outcomes = outcomes,
         predictionWindow = predictionWindow,
@@ -571,8 +572,8 @@ fun Model.endTwitchPrediction(
     winningOutcomeId: String? = null,
     onComplete: (OperationResult) -> Unit
 ) {
-    createTwitchApi(stream).endPrediction(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).endPrediction(
+        broadcasterId = stream.value.twitchChannelId,
         id = id,
         status = status,
         winningOutcomeId = winningOutcomeId,
@@ -584,28 +585,28 @@ fun Model.startRaidTwitchChannel(
     channelId: String,
     onComplete: (OperationResult) -> Unit
 ) {
-    createTwitchApi(stream).startRaid(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).startRaid(
+        broadcasterId = stream.value.twitchChannelId,
         toBroadcasterId = channelId,
         onComplete = onComplete
     )
 }
 
 fun Model.cancelRaidTwitchChannel(onComplete: (OperationResult) -> Unit) {
-    createTwitchApi(stream).cancelRaid(
-        broadcasterId = stream.twitchChannelId,
+    createTwitchApi(stream.value).cancelRaid(
+        broadcasterId = stream.value.twitchChannelId,
         onComplete = onComplete
     )
 }
 
 fun Model.twitchRaidStarted(channelLogin: String, channelName: String) {
-    raid.state = RaidState.ongoing
-    raid.channelLogin = channelLogin
-    raid.message = localized("Raiding $channelName")
-    raid.progress.progress = 0f
-    raid.progress.goal = 90f
-    searchTwitchChannel(stream, channelLogin) { channel ->
-        raid.channelImage = channel?.thumbnail_url ?: ""
+    raid.state.value = RaidState.ongoing
+    raid.channelLogin.value = channelLogin
+    raid.message.value = localized("Raiding $channelName")
+    raid.progress.value.progress.value = 0f
+    raid.progress.value.goal.value = 90f
+    searchTwitchChannel(stream.value, channelLogin) { channel ->
+        raid.channelImage.value = channel?.thumbnail_url ?: ""
         val channelId = channel?.id
         if (channelId != null) {
             appendTwitchRaidSent(channelId = channelId, channelName = channelName)
@@ -614,44 +615,44 @@ fun Model.twitchRaidStarted(channelLogin: String, channelName: String) {
 }
 
 fun Model.twitchRaidCancelled() {
-    raid.message = localized("Raid cancelled")
-    raid.state = RaidState.completed
+    raid.message.value = localized("Raid cancelled")
+    raid.state.value = RaidState.completed
 }
 
 fun Model.twitchRaidCompleted() {
-    raid.state = RaidState.completed
-    raid.message = localized("Raid completed!")
+    raid.state.value = RaidState.completed
+    raid.message.value = localized("Raid completed!")
 }
 
 fun Model.updateTwitchRaid() {
-    if (raid.state != RaidState.ongoing) {
+    if (raid.state.value != RaidState.ongoing) {
         return
     }
-    if (raid.progress.progress < raid.progress.goal) {
-        raid.progress.progress += 1f
+    if (raid.progress.value.progress.value < raid.progress.value.goal.value) {
+        raid.progress.value.progress.value += 1f
     }
 }
 
 fun Model.removeRaid() {
-    raid.state = RaidState.idle
-    raid.channelImage = ""
-    raid.channelLogin = ""
+    raid.state.value = RaidState.idle
+    raid.channelImage.value = ""
+    raid.channelLogin.value = ""
 }
 
 private fun Model.appendTwitchRaidSent(channelId: String, channelName: String) {
-    stream.twitchRaidsSent = appendTwitchRaidChannel(
-        stream.twitchRaidsSent,
+    stream.value.twitchRaidsSent = appendTwitchRaidChannel(
+        stream.value.twitchRaidsSent,
         channelId = channelId,
         channelName = channelName
-    )
+    ).toMutableList()
 }
 
 private fun Model.appendTwitchRaidReceived(channelId: String, channelName: String) {
-    stream.twitchRaidsReceived = appendTwitchRaidChannel(
-        stream.twitchRaidsReceived,
+    stream.value.twitchRaidsReceived = appendTwitchRaidChannel(
+        stream.value.twitchRaidsReceived,
         channelId = channelId,
         channelName = channelName
-    )
+    ).toMutableList()
 }
 
 fun Model.createTwitchApi(stream: SettingsStream): TwitchApi {
@@ -667,22 +668,22 @@ private fun Model.twitchApiUnauthorized(stream: SettingsStream) {
         return
     }
     stream.twitchLoggedIn = false
-    makeNotLoggedInToToast(ChatPlatform.twitch)
+    makeNotLoggedInToToast(Platform.twitch)
 }
 
 private fun Model.getStream() {
-    createTwitchApi(stream).getStream(stream.twitchChannelId) { response ->
+    createTwitchApi(stream.value).getStream(stream.value.twitchChannelId) { response ->
         when (response) {
             is NetworkResponse.Success -> {
-                val data = response.data
+                val data = response.value
                 twitchPlatformStatus = if (data != null) {
-                    StreamingPlatformStatus.Status.Live(data.viewer_count)
+                    PlatformStatus.live(data.viewer_count)
                 } else {
-                    StreamingPlatformStatus.Status.Offline
+                    PlatformStatus.offline
                 }
             }
             else -> {
-                twitchPlatformStatus = StreamingPlatformStatus.Status.Unknown
+                twitchPlatformStatus = PlatformStatus.unknown
             }
         }
     }
@@ -702,39 +703,39 @@ private fun Model.parseTwitchTimestamp(value: String?): Instant? {
 
 private fun Model.formatTwitchCountdown(date: Instant): String {
     val timeIntervalSinceNow = Duration.between(Instant.now(), date).toMillis().toDouble() / 1000.0
-    return uptimeFormatter.format(ceil(max(0.0, timeIntervalSinceNow)))
+    return formatShortDuration(ceil(max(0.0, timeIntervalSinceNow)).toInt())
 }
 
 private fun Model.updateTwitchPoll(event: TwitchEventSubChannelPollEvent, state: TwitchPollState) {
-    twitchPoll.state = state
-    twitchPoll.title = event.title
-    twitchPoll.choices = event.choices.map {
+    twitchPoll.state.value = state
+    twitchPoll.title.value = event.title
+    twitchPoll.choices.value = event.choices.map {
         TwitchPollChoice(id = it.id, title = it.title, votes = it.votes ?: 0)
     }
-    twitchPoll.totalVotes = twitchPoll.choices.sumOf { it.votes }
+    twitchPoll.totalVotes.value = twitchPoll.choices.value.sumOf { it.votes }
     twitchPoll.endsAt = parseTwitchTimestamp(event.ends_at)
 }
 
 fun Model.updateTwitchPollCountdown() {
-    if (twitchPoll.state != TwitchPollState.ongoing) {
+    if (twitchPoll.state.value != TwitchPollState.ongoing) {
         return
     }
     val endsAt = twitchPoll.endsAt ?: return
     val countdown = formatTwitchCountdown(endsAt)
-    twitchPoll.message = localized("Ends in $countdown")
+    twitchPoll.message.value = localized("Ends in $countdown")
 }
 
 fun Model.removeTwitchPoll() {
-    twitchPoll.state = TwitchPollState.idle
+    twitchPoll.state.value = TwitchPollState.idle
 }
 
 private fun Model.updateTwitchPrediction(
     event: TwitchEventSubChannelPredictionEvent,
     state: TwitchPredictionState
 ) {
-    twitchPrediction.state = state
-    twitchPrediction.title = event.title
-    twitchPrediction.outcomes = event.outcomes.map {
+    twitchPrediction.state.value = state
+    twitchPrediction.title.value = event.title
+    twitchPrediction.outcomes.value = event.outcomes.map {
         TwitchPredictionOutcome(
             id = it.id,
             title = it.title,
@@ -744,37 +745,37 @@ private fun Model.updateTwitchPrediction(
             winner = it.id == event.winning_outcome_id
         )
     }
-    twitchPrediction.totalChannelPoints = twitchPrediction.outcomes.sumOf { it.channelPoints }
+    twitchPrediction.totalChannelPoints.value = twitchPrediction.outcomes.value.sumOf { it.channelPoints }
     twitchPrediction.locksAt = parseTwitchTimestamp(event.locks_at)
 }
 
 fun Model.updateTwitchPredictionCountdown() {
-    if (twitchPrediction.state != TwitchPredictionState.ongoing) {
+    if (twitchPrediction.state.value != TwitchPredictionState.ongoing) {
         return
     }
     val locksAt = twitchPrediction.locksAt ?: return
     val countdown = formatTwitchCountdown(locksAt)
-    twitchPrediction.message = localized("Locks in $countdown")
+    twitchPrediction.message.value = localized("Locks in $countdown")
 }
 
 fun Model.removeTwitchPrediction() {
-    twitchPrediction.state = TwitchPredictionState.idle
+    twitchPrediction.state.value = TwitchPredictionState.idle
 }
 
 fun Model.updateHypeTrainCountdown() {
-    if (hypeTrain.progress == null) {
+    if (hypeTrain.progress.value == null) {
         return
     }
     val expiresAt = hypeTrain.expiresAt ?: return
     val countdown = formatTwitchCountdown(expiresAt)
-    hypeTrain.message = localized("Ends in $countdown")
+    hypeTrain.message.value = localized("Ends in $countdown")
 }
 
 fun Model.removeHypeTrain() {
-    hypeTrain.level = null
-    hypeTrain.progress = null
+    hypeTrain.level.value = null
+    hypeTrain.progress.value = null
     hypeTrain.expiresAt = null
-    hypeTrain.message = ""
+    hypeTrain.message.value = ""
 }
 
 fun Model.makeTwitchAlertSegments(
@@ -839,7 +840,7 @@ private fun Model.appendTwitchChatAlertMessage(
     sourceChannelIcon: String?
 ) {
     appendChatMessage(
-        platform = ChatPlatform.twitch,
+        platform = Platform.twitch,
         messageId = null,
         displayName = user,
         user = user,
@@ -847,7 +848,7 @@ private fun Model.appendTwitchChatAlertMessage(
         userColor = userColor,
         userBadges = userBadges,
         segments = segments,
-        timestamp = statusOther.digitalClock,
+        timestamp = statusOther.digitalClock.value,
         timestampTime = Instant.now(),
         isAction = false,
         isSubscriber = false,
@@ -877,27 +878,27 @@ private fun Model.isTwitchSharedChatAlertEnabled(
 fun Model.twitchEventSubChannelFollow(event: TwitchEventSubNotificationChannelFollowEvent) {
     latestFollower = event.user_name
     val text = localized("just followed!")
-    if (stream.twitchToastAlerts.follows) {
+    if (stream.value.twitchToastAlerts.follows) {
         makeToast(title = "${event.user_name} $text")
     }
-    playAlert(Alert.TwitchFollow(event))
-    if (stream.twitchChatAlerts.follows) {
+    playAlert(TODO("no Android counterpart for Alert"))
+    if (stream.value.twitchChatAlerts.follows) {
         appendTwitchChatAlertMessage(
             user = event.user_name,
             segments = makeTwitchAlertSegments(text = text),
             title = localized("New follower"),
             color = Color(0xFFFF2D55),
             image = "medal",
-            kind = ChatHighlightKind.newFollower,
+            kind = TODO("no ChatHighlightKind case for newFollower"),
             sharedChat = null
         )
     }
     printEventCatPrinters(
-        event = EventCatPrinterEvent.TwitchFollow,
+        event = TODO("no Android counterpart for EventCatPrinterEvent"),
         username = event.user_name,
         message = text
     )
-    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.twitchFollow))
+    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchFollow")!!))
 }
 
 fun Model.twitchEventSubChannelSubscribe(event: TwitchEventSubNotificationChannelSubscribeEvent) {
@@ -910,16 +911,16 @@ fun Model.twitchEventSubChannelSubscribe(event: TwitchEventSubNotificationChanne
         localized("just subscribed tier ${event.tierAsNumber()}!")
     }
     val textWithMessage = joinTwitchAlertText(text, event.message)
-    if (stream.twitchToastAlerts.subscriptions &&
-        isTwitchSharedChatAlertEnabled(event.sharedChat, stream.twitchToastAlerts)
+    if (stream.value.twitchToastAlerts.subscriptions &&
+        isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchToastAlerts)
     ) {
         makeToast(title = "${event.user_name} $textWithMessage")
     }
-    if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.twitchChatAlerts)) {
+    if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchChatAlerts)) {
         return
     }
-    playAlert(Alert.TwitchSubscribe(event))
-    if (stream.twitchChatAlerts.subscriptions) {
+    playAlert(TODO("no Android counterpart for Alert"))
+    if (stream.value.twitchChatAlerts.subscriptions) {
         appendTwitchChatAlertMessage(
             user = event.user_name,
             segments = makeTwitchAlertSegments(
@@ -929,17 +930,17 @@ fun Model.twitchEventSubChannelSubscribe(event: TwitchEventSubNotificationChanne
             title = localized("New subscriber"),
             color = Color(0xFF32ADE6),
             image = "party.popper",
-            kind = ChatHighlightKind.other,
+            kind = TODO("no ChatHighlightKind case for other"),
             sharedChat = event.sharedChat,
             chatter = event.chatter
         )
     }
     printEventCatPrinters(
-        event = EventCatPrinterEvent.TwitchSubscribe,
+        event = TODO("no Android counterpart for EventCatPrinterEvent"),
         username = event.user_name,
         message = textWithMessage
     )
-    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.twitchSubscription))
+    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchSubscription")!!))
     latestSubscriber = event.user_name
 }
 
@@ -951,16 +952,16 @@ fun Model.twitchEventSubChannelSubscriptionGift(
         "just gifted ${event.total} tier ${event.tierAsNumber()} subscriptions!"
     )
     val textWithMessage = joinTwitchAlertText(text, event.message)
-    if (stream.twitchToastAlerts.giftSubscriptions &&
-        isTwitchSharedChatAlertEnabled(event.sharedChat, stream.twitchToastAlerts)
+    if (stream.value.twitchToastAlerts.giftSubscriptions &&
+        isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchToastAlerts)
     ) {
         makeToast(title = "$user $textWithMessage")
     }
-    if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.twitchChatAlerts)) {
+    if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchChatAlerts)) {
         return
     }
-    playAlert(Alert.TwitchSubscrptionGift(event))
-    if (stream.twitchChatAlerts.giftSubscriptions) {
+    playAlert(TODO("no Android counterpart for Alert"))
+    if (stream.value.twitchChatAlerts.giftSubscriptions) {
         appendTwitchChatAlertMessage(
             user = user,
             segments = makeTwitchAlertSegments(
@@ -970,18 +971,18 @@ fun Model.twitchEventSubChannelSubscriptionGift(
             title = localized("Gift subscriptions"),
             color = Color(0xFF32ADE6),
             image = "gift",
-            kind = ChatHighlightKind.other,
+            kind = TODO("no ChatHighlightKind case for other"),
             sharedChat = event.sharedChat,
             chatter = event.chatter
         )
     }
     printEventCatPrinters(
-        event = EventCatPrinterEvent.TwitchSubscrptionGift,
+        event = TODO("no Android counterpart for EventCatPrinterEvent"),
         username = user,
         message = textWithMessage
     )
     macrosEventOccurred(
-        MacroEvent(event = SettingsMacrosEvent.twitchGiftSubscription, amount = event.total)
+        MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchGiftSubscription")!!, amount = event.total)
     )
     latestSubscriber = user
 }
@@ -1002,34 +1003,34 @@ fun Model.twitchEventSubChannelSubscriptionMessage(
         )
     }
     val textWithMessage = joinTwitchAlertText(text, event.message)
-    if (stream.twitchToastAlerts.resubscriptions &&
-        isTwitchSharedChatAlertEnabled(event.sharedChat, stream.twitchToastAlerts)
+    if (stream.value.twitchToastAlerts.resubscriptions &&
+        isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchToastAlerts)
     ) {
         makeToast(title = "${event.user_name} $textWithMessage")
     }
-    if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.twitchChatAlerts)) {
+    if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchChatAlerts)) {
         return
     }
-    playAlert(Alert.TwitchResubscribe(event))
-    if (stream.twitchChatAlerts.resubscriptions) {
+    playAlert(TODO("no Android counterpart for Alert"))
+    if (stream.value.twitchChatAlerts.resubscriptions) {
         appendTwitchChatAlertMessage(
             user = event.user_name,
             segments = makeTwitchAlertSegments(text = text, fragments = event.message.fragments),
             title = localized("New resubscribe"),
             color = Color(0xFF32ADE6),
             image = "party.popper",
-            kind = ChatHighlightKind.other,
+            kind = TODO("no ChatHighlightKind case for other"),
             sharedChat = event.sharedChat,
             chatter = event.chatter
         )
     }
     printEventCatPrinters(
-        event = EventCatPrinterEvent.TwitchResubscribe,
+        event = TODO("no Android counterpart for EventCatPrinterEvent"),
         username = event.user_name,
         message = textWithMessage
     )
     macrosEventOccurred(
-        MacroEvent(event = SettingsMacrosEvent.twitchResubscription, amount = event.cumulative_months)
+        MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchResubscription")!!, amount = event.cumulative_months)
     )
     latestSubscriber = event.user_name
 }
@@ -1044,16 +1045,16 @@ fun Model.twitchEventSubChannelSubscriptionUpgrade(
         localized("just continued their gift subscription!")
     }
     val textWithMessage = joinTwitchAlertText(text, event.message)
-    if (stream.twitchToastAlerts.subscriptions &&
-        isTwitchSharedChatAlertEnabled(event.sharedChat, stream.twitchToastAlerts)
+    if (stream.value.twitchToastAlerts.subscriptions &&
+        isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchToastAlerts)
     ) {
         makeToast(title = "${event.user_name} $textWithMessage")
     }
-    if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.twitchChatAlerts)) {
+    if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchChatAlerts)) {
         return
     }
-    playAlert(Alert.TwitchSubscriptionUpgrade(event))
-    if (stream.twitchChatAlerts.subscriptions) {
+    playAlert(TODO("no Android counterpart for Alert"))
+    if (stream.value.twitchChatAlerts.subscriptions) {
         appendTwitchChatAlertMessage(
             user = event.user_name,
             segments = makeTwitchAlertSegments(
@@ -1063,17 +1064,17 @@ fun Model.twitchEventSubChannelSubscriptionUpgrade(
             title = localized("New subscriber"),
             color = Color(0xFF32ADE6),
             image = "party.popper",
-            kind = ChatHighlightKind.other,
+            kind = TODO("no ChatHighlightKind case for other"),
             sharedChat = event.sharedChat,
             chatter = event.chatter
         )
     }
     printEventCatPrinters(
-        event = EventCatPrinterEvent.TwitchSubscribe,
+        event = TODO("no Android counterpart for EventCatPrinterEvent"),
         username = event.user_name,
         message = textWithMessage
     )
-    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.twitchSubscription))
+    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchSubscription")!!))
     latestSubscriber = event.user_name
 }
 
@@ -1081,30 +1082,30 @@ fun Model.twitchEventSubChannelWatchStreak(
     event: TwitchEventSubNotificationChannelWatchStreakEvent
 ) {
     val text = localized("just watched ${event.streak_count} streams in a row!")
-    if (stream.twitchToastAlerts.isWatchStreakEnabled(event.streak_count) &&
-        isTwitchSharedChatAlertEnabled(event.sharedChat, stream.twitchToastAlerts)
+    if (stream.value.twitchToastAlerts.isWatchStreakEnabled(event.streak_count) &&
+        isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchToastAlerts)
     ) {
         makeToast(
             title = "${event.user_name} ${joinTwitchAlertText(text, event.message)}"
         )
     }
-    if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.twitchChatAlerts)) {
+    if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchChatAlerts)) {
         return
     }
-    if (stream.twitchChatAlerts.isWatchStreakEnabled(event.streak_count)) {
+    if (stream.value.twitchChatAlerts.isWatchStreakEnabled(event.streak_count)) {
         appendTwitchChatAlertMessage(
             user = event.user_name,
             segments = makeTwitchAlertSegments(text = text, fragments = event.message.fragments),
             title = localized("Watch streak"),
             color = Color(0xFFFF9500),
             image = "flame",
-            kind = ChatHighlightKind.other,
+            kind = TODO("no ChatHighlightKind case for other"),
             sharedChat = event.sharedChat,
             chatter = event.chatter
         )
     }
     macrosEventOccurred(
-        MacroEvent(event = SettingsMacrosEvent.twitchWatchStreak, amount = event.streak_count)
+        MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchWatchStreak")!!, amount = event.streak_count)
     )
 }
 
@@ -1112,35 +1113,35 @@ fun Model.twitchEventSubChannelPointsCustomRewardRedemptionAdd(
     event: TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEvent
 ) {
     val text = localized("redeemed ${event.reward.title}!")
-    if (stream.twitchToastAlerts.rewards) {
+    if (stream.value.twitchToastAlerts.rewards) {
         makeToast(title = "${event.user_name} $text")
     }
     if (false) {
-        playAlert(Alert.TwitchRedemption(event))
+        playAlert(TODO("no Android counterpart for Alert"))
     }
-    if (stream.twitchChatAlerts.rewards) {
+    if (stream.value.twitchChatAlerts.rewards) {
         appendTwitchChatAlertMessage(
             user = event.user_name,
             segments = makeTwitchAlertSegments(text = text),
             title = localized("Reward redemption"),
             color = Color(0xFF007AFF),
             image = "medal.star",
-            kind = ChatHighlightKind.redemption,
+            kind = TODO("no ChatHighlightKind case for redemption"),
             sharedChat = null
         )
     }
     printEventCatPrinters(
-        event = EventCatPrinterEvent.TwitchReward,
+        event = TODO("no Android counterpart for EventCatPrinterEvent"),
         username = event.user_name,
         message = text
     )
     macrosEventOccurred(
-        MacroEvent(event = SettingsMacrosEvent.twitchReward, text = event.reward.title)
+        MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchReward")!!, text = event.reward.title)
     )
 }
 
 fun Model.twitchEventSubChannelRaid(event: TwitchEventSubChannelRaidEvent) {
-    if (event.sharedChat == null && event.from_broadcaster_user_id == stream.twitchChannelId) {
+    if (event.sharedChat == null && event.from_broadcaster_user_id == stream.value.twitchChannelId) {
         twitchRaidCompleted()
     } else {
         appendTwitchRaidReceived(
@@ -1149,16 +1150,16 @@ fun Model.twitchEventSubChannelRaid(event: TwitchEventSubChannelRaidEvent) {
         )
         val text = localized("raided with a party of ${event.viewers}!")
         val textWithMessage = joinTwitchAlertText(text, event.message)
-        if (stream.twitchToastAlerts.raids &&
-            isTwitchSharedChatAlertEnabled(event.sharedChat, stream.twitchToastAlerts)
+        if (stream.value.twitchToastAlerts.raids &&
+            isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchToastAlerts)
         ) {
             makeToast(title = "${event.from_broadcaster_user_name} $textWithMessage")
         }
-        if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.twitchChatAlerts)) {
+        if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchChatAlerts)) {
             return
         }
-        playAlert(Alert.TwitchRaid(event))
-        if (stream.twitchChatAlerts.raids) {
+        playAlert(TODO("no Android counterpart for Alert"))
+        if (stream.value.twitchChatAlerts.raids) {
             appendTwitchChatAlertMessage(
                 user = event.from_broadcaster_user_name,
                 segments = makeTwitchAlertSegments(
@@ -1168,17 +1169,17 @@ fun Model.twitchEventSubChannelRaid(event: TwitchEventSubChannelRaidEvent) {
                 title = localized("Raid"),
                 color = Color(0xFFFF2D55),
                 image = "person.3",
-                kind = ChatHighlightKind.other,
+                kind = TODO("no ChatHighlightKind case for other"),
                 sharedChat = event.sharedChat,
                 chatter = event.chatter
             )
         }
         printEventCatPrinters(
-            event = EventCatPrinterEvent.TwitchRaid,
+            event = TODO("no Android counterpart for EventCatPrinterEvent"),
             username = event.from_broadcaster_user_name,
             message = textWithMessage
         )
-        macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.twitchRaid, amount = event.viewers))
+        macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchRaid")!!, amount = event.viewers))
     }
 }
 
@@ -1186,44 +1187,44 @@ fun Model.twitchEventSubChannelCheer(event: TwitchEventSubChannelCheerEvent) {
     val user = event.user_name ?: localized("Anonymous")
     val bits = countFormatter.format(event.bits)
     val text = localized("cheered $bits bits!")
-    if (stream.twitchToastAlerts.isBitsEnabled(event.bits)) {
+    if (stream.value.twitchToastAlerts.isBitsEnabled(event.bits)) {
         makeToast(title = "$user $text", subTitle = event.message)
     }
-    playAlert(Alert.TwitchCheer(event))
-    if (stream.twitchChatAlerts.isBitsEnabled(event.bits)) {
+    playAlert(TODO("no Android counterpart for Alert"))
+    if (stream.value.twitchChatAlerts.isBitsEnabled(event.bits)) {
         appendTwitchChatAlertMessage(
             user = user,
             segments = makeTwitchAlertSegments(text = "$text ${event.message}", bits = ""),
             title = localized("Cheer"),
             color = Color(0xFF34C759),
             image = "suit.diamond",
-            kind = ChatHighlightKind.other,
+            kind = TODO("no ChatHighlightKind case for other"),
             sharedChat = null
         )
     }
     val message = if (event.message.isEmpty()) text else "$text ${event.message}"
     printEventCatPrinters(
-        event = EventCatPrinterEvent.TwitchCheer(event.bits),
+        event = TODO("no Android counterpart for EventCatPrinterEvent"),
         username = user,
         message = message
     )
-    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.twitchCheer, amount = event.bits))
+    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchCheer")!!, amount = event.bits))
 }
 
 fun Model.twitchEventSubChannelHypeTrainBegin(event: TwitchEventSubChannelHypeTrainBeginEvent) {
-    hypeTrain.level = event.level
-    hypeTrain.progress = ProgressBar()
-    hypeTrain.progress?.progress = event.progress.toFloat()
-    hypeTrain.progress?.goal = event.goal.toFloat()
+    hypeTrain.level.value = event.level
+    hypeTrain.progress.value = ProgressBar()
+    hypeTrain.progress.value?.progress?.value = event.progress.toFloat()
+    hypeTrain.progress.value?.goal?.value = event.goal.toFloat()
     hypeTrain.expiresAt = parseTwitchTimestamp(event.expires_at)
     updateHypeTrainCountdown()
     appendTwitchChatAlertMessage(
-        user = stream.twitchChannelName,
+        user = stream.value.twitchChannelName,
         segments = makeTwitchAlertSegments(text = localized("started a hype train!")),
         title = localized("Hype train started"),
         color = Color(0xFFAF52DE),
         image = "train.side.front.car",
-        kind = ChatHighlightKind.other,
+        kind = TODO("no ChatHighlightKind case for other"),
         sharedChat = null
     )
 }
@@ -1231,34 +1232,34 @@ fun Model.twitchEventSubChannelHypeTrainBegin(event: TwitchEventSubChannelHypeTr
 fun Model.twitchEventSubChannelHypeTrainProgress(
     event: TwitchEventSubChannelHypeTrainProgressEvent
 ) {
-    hypeTrain.level = event.level
-    if (hypeTrain.progress == null) {
-        hypeTrain.progress = ProgressBar()
+    hypeTrain.level.value = event.level
+    if (hypeTrain.progress.value == null) {
+        hypeTrain.progress.value = ProgressBar()
     }
-    hypeTrain.progress?.progress = event.progress.toFloat()
-    hypeTrain.progress?.goal = event.goal.toFloat()
+    hypeTrain.progress.value?.progress?.value = event.progress.toFloat()
+    hypeTrain.progress.value?.goal?.value = event.goal.toFloat()
     hypeTrain.expiresAt = parseTwitchTimestamp(event.expires_at)
     updateHypeTrainCountdown()
 }
 
 fun Model.twitchEventSubChannelHypeTrainEnd(event: TwitchEventSubChannelHypeTrainEndEvent) {
-    hypeTrain.level = event.level
-    if (hypeTrain.progress == null) {
-        hypeTrain.progress = ProgressBar()
+    hypeTrain.level.value = event.level
+    if (hypeTrain.progress.value == null) {
+        hypeTrain.progress.value = ProgressBar()
     }
-    hypeTrain.progress?.progress = 1f
-    hypeTrain.progress?.goal = 1f
+    hypeTrain.progress.value?.progress?.value = 1f
+    hypeTrain.progress.value?.goal?.value = 1f
     hypeTrain.expiresAt = null
-    hypeTrain.message = localized("Ended")
+    hypeTrain.message.value = localized("Ended")
     appendTwitchChatAlertMessage(
-        user = stream.twitchChannelName,
+        user = stream.value.twitchChannelName,
         segments = makeTwitchAlertSegments(
             text = localized("ended the hype train at level ${event.level}!")
         ),
         title = localized("Hype train ended"),
         color = Color(0xFFAF52DE),
         image = "train.side.rear.car",
-        kind = ChatHighlightKind.other,
+        kind = TODO("no ChatHighlightKind case for other"),
         sharedChat = null
     )
 }
@@ -1278,14 +1279,14 @@ private fun Model.updateOngoingTwitchPoll(event: TwitchEventSubChannelPollEvent)
 fun Model.twitchEventSubChannelPollBegin(event: TwitchEventSubChannelPollEvent) {
     updateOngoingTwitchPoll(event)
     appendTwitchChatAlertMessage(
-        user = stream.twitchChannelName,
+        user = stream.value.twitchChannelName,
         segments = makeTwitchAlertSegments(
             text = localized("started a poll: ${event.title}")
         ),
         title = localized("Poll started"),
         color = Color(0xFF5856D6),
         image = "chart.bar",
-        kind = ChatHighlightKind.other,
+        kind = TODO("no ChatHighlightKind case for other"),
         sharedChat = null
     )
 }
@@ -1298,8 +1299,8 @@ fun Model.twitchEventSubChannelPollEnd(event: TwitchEventSubChannelPollEvent) {
     updateTwitchPoll(event = event, state = TwitchPollState.completed)
     val text: String
     if (event.status != "archived") {
-        twitchPoll.message = localized("Poll ended")
-        val winner = twitchPoll.choices.maxByOrNull { it.votes }
+        twitchPoll.message.value = localized("Poll ended")
+        val winner = twitchPoll.choices.value.maxByOrNull { it.votes }
         if (winner != null) {
             text = localized("ended the poll: ${event.title} Winner: ${winner.title}")
         } else {
@@ -1309,12 +1310,12 @@ fun Model.twitchEventSubChannelPollEnd(event: TwitchEventSubChannelPollEvent) {
         return
     }
     appendTwitchChatAlertMessage(
-        user = stream.twitchChannelName,
+        user = stream.value.twitchChannelName,
         segments = makeTwitchAlertSegments(text = text),
         title = localized("Poll ended"),
         color = Color(0xFF5856D6),
         image = "chart.bar",
-        kind = ChatHighlightKind.other,
+        kind = TODO("no ChatHighlightKind case for other"),
         sharedChat = null
     )
 }
@@ -1327,14 +1328,14 @@ private fun Model.updateOngoingTwitchPrediction(event: TwitchEventSubChannelPred
 fun Model.twitchEventSubChannelPredictionBegin(event: TwitchEventSubChannelPredictionEvent) {
     updateOngoingTwitchPrediction(event)
     appendTwitchChatAlertMessage(
-        user = stream.twitchChannelName,
+        user = stream.value.twitchChannelName,
         segments = makeTwitchAlertSegments(
             text = localized("started a prediction: ${event.title}")
         ),
         title = localized("Prediction started"),
         color = Color(0xFF00C7BE),
         image = "questionmark.diamond",
-        kind = ChatHighlightKind.other,
+        kind = TODO("no ChatHighlightKind case for other"),
         sharedChat = null
     )
 }
@@ -1345,27 +1346,27 @@ fun Model.twitchEventSubChannelPredictionProgress(event: TwitchEventSubChannelPr
 
 fun Model.twitchEventSubChannelPredictionLock(event: TwitchEventSubChannelPredictionEvent) {
     updateTwitchPrediction(event = event, state = TwitchPredictionState.locked)
-    twitchPrediction.message = localized("Locked, waiting for outcome")
+    twitchPrediction.message.value = localized("Locked, waiting for outcome")
 }
 
 fun Model.twitchEventSubChannelPredictionEnd(event: TwitchEventSubChannelPredictionEvent) {
     updateTwitchPrediction(event = event, state = TwitchPredictionState.completed)
     val text: String
-    val winner = twitchPrediction.outcomes.firstOrNull { it.winner }
+    val winner = twitchPrediction.outcomes.value.firstOrNull { it.winner }
     if (winner != null) {
-        twitchPrediction.message = localized("Outcome: ${winner.title}")
+        twitchPrediction.message.value = localized("Outcome: ${winner.title}")
         text = localized("ended the prediction: ${event.title} Outcome: ${winner.title}")
     } else {
-        twitchPrediction.message = localized("Prediction cancelled")
+        twitchPrediction.message.value = localized("Prediction cancelled")
         text = localized("cancelled the prediction: ${event.title}")
     }
     appendTwitchChatAlertMessage(
-        user = stream.twitchChannelName,
+        user = stream.value.twitchChannelName,
         segments = makeTwitchAlertSegments(text = text),
         title = localized("Prediction ended"),
         color = Color(0xFF00C7BE),
         image = "trophy",
-        kind = ChatHighlightKind.other,
+        kind = TODO("no ChatHighlightKind case for other"),
         sharedChat = null
     )
 }
@@ -1381,7 +1382,7 @@ fun Model.twitchEventSubChannelModerate(event: TwitchEventSubChannelModerateEven
 }
 
 fun Model.twitchEventSubUnauthorized() {
-    twitchApiUnauthorized(stream)
+    twitchApiUnauthorized(stream.value)
 }
 
 fun Model.twitchEventSubNotification(message: String) {
@@ -1407,7 +1408,7 @@ fun Model.twitchChatAppendMessage(
     sourceChannelIcon: String?
 ) {
     appendChatMessage(
-        platform = ChatPlatform.twitch,
+        platform = Platform.twitch,
         messageId = messageId,
         displayName = displayName,
         user = user,
@@ -1415,7 +1416,7 @@ fun Model.twitchChatAppendMessage(
         userColor = userColor,
         userBadges = userBadges,
         segments = segments,
-        timestamp = statusOther.digitalClock,
+        timestamp = statusOther.digitalClock.value,
         timestampTime = Instant.now(),
         isAction = isAction,
         isSubscriber = isSubscriber,

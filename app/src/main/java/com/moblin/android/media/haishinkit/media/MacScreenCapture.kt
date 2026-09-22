@@ -75,8 +75,6 @@ class MacScreenCapture {
         TODO("no Android counterpart for ScreenCaptureKit SCShareableContent")
 
     fun stream(stream: Any, didOutputSampleBuffer: MediaSample, of: Any) {
-        val presentationTimeUs = didOutputSampleBuffer.presentationTimeUs +
-            (macScreenCaptureLatency * 1_000_000).toLong()
         var sampleBuffer = didOutputSampleBuffer
         val latest = latestSampleBufferWithImageBuffer
         if (sampleBuffer.data.isNotEmpty()) {
@@ -86,7 +84,6 @@ class MacScreenCapture {
         } else {
             return
         }
-        sampleBuffer.presentationTimeUs = presentationTimeUs
         delegate?.macScreenCaptureDidOutputSampleBuffer(sampleBuffer)
     }
 

@@ -50,7 +50,7 @@ fun BitratePresetsSettingsView(database: Database) {
                     confirmValueChange = { value ->
                         if (value == SwipeToDismissBoxValue.EndToStart && !deleteDisabled) {
                             database.bitratePresets =
-                                database.bitratePresets.filterNot { it.id == preset.id }
+                                database.bitratePresets.filterNot { it.id == preset.id }.toMutableList()
                             true
                         } else {
                             false
@@ -83,10 +83,10 @@ fun BitratePresetsSettingsView(database: Database) {
             }
             item {
                 CreateButtonView {
-                    database.bitratePresets = database.bitratePresets + SettingsBitratePreset(
+                    database.bitratePresets = (database.bitratePresets + SettingsBitratePreset(
                         id = UUID.randomUUID(),
                         bitrate = 1_000_000,
-                    )
+                    )).toMutableList()
                 }
             }
             item {

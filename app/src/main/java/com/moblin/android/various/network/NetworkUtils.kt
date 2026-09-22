@@ -17,6 +17,7 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okio.ByteString
+import okio.ByteString.Companion.toByteString
 
 class NWPath(val availableInterfaces: List<Network>)
 
@@ -76,7 +77,7 @@ fun WebSocket.sendWebSocket(
 ) {
     when (opcode) {
         NWProtocolWebSocketOpcode.Text -> send(data?.decodeToString() ?: "")
-        NWProtocolWebSocketOpcode.Binary -> send(ByteString.of(data ?: ByteArray(0)))
+        NWProtocolWebSocketOpcode.Binary -> send((data ?: ByteArray(0)).toByteString())
         NWProtocolWebSocketOpcode.Close -> close(1000, data?.decodeToString())
         NWProtocolWebSocketOpcode.Ping -> TODO("no OkHttp public API to send a ping frame")
         NWProtocolWebSocketOpcode.Pong -> TODO("no OkHttp public API to send a pong frame")

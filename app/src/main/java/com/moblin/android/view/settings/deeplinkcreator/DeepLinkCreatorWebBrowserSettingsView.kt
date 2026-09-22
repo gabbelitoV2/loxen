@@ -41,6 +41,9 @@ fun DeepLinkCreatorWebBrowserSettingsView(webBrowser: DeepLinkCreatorWebBrowser)
                     TextEditNavigationView(
                         title = localized("Home"),
                         value = home,
+                        onSubmit = { value ->
+                            submitHome(webBrowser, value)
+                        },
                         onChange = { newValue ->
                             submitHome(webBrowser, newValue)
                             null

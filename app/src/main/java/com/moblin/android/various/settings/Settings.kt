@@ -24,8 +24,12 @@ import com.moblin.android.various.storages.pngTuberStorageDirectory
 import com.moblin.android.various.storages.replayTransitionsStorageDirectory
 import com.moblin.android.various.storages.vTuberStorageDirectory
 import com.moblin.android.various.utils.Named
+import com.moblin.android.various.utils.bestBackCameraId
+import com.moblin.android.various.utils.bestFrontCameraId
 import com.moblin.android.various.utils.createAndGetDirectory
+import com.moblin.android.various.utils.defaultBackCameraPosition
 import com.moblin.android.various.utils.formatFilenameDateAndTime
+import com.moblin.android.various.utils.hasUltraWideBackCamera
 import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.isPhone
 import com.moblin.android.videoeffects.FaceEffectPrivacyMode
@@ -43,6 +47,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -56,7 +61,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.parseToJsonElement
 
 val defaultStreamUrl = "srt://my_public_ip:4000"
 val defaultRtmpStreamUrl = "rtmp://my_public_ip:1935/live/foobar"
@@ -839,6 +843,7 @@ class Database(
     @SerialName("mics")
     var mics: SettingsMics = SettingsMics(),
     @SerialName("debug")
+    @Contextual
     var debug: SettingsDebug = SettingsDebug(),
     @SerialName("quickButtons")
     var quickButtonsGeneral: SettingsQuickButtons = SettingsQuickButtons(),
@@ -1016,7 +1021,7 @@ class Database(
 
     private fun applyDecodeMigrations(root: JsonObject) {
         if (debug.preferStereoMicToBeRemoved) {
-            audio.preferStereoMic = true
+            audio._preferStereoMic.value = true
             debug.preferStereoMicToBeRemoved = false
         }
         if (!root.containsKey("moblink")) {
@@ -1046,7 +1051,7 @@ class Database(
             graphicsHighQualityDownsampling = debug.highQualityDownsamplingToBeRemoved
         }
         if (!root.containsKey("httpProxy") && debug.httpProxyToBeRemoved) {
-            httpProxy.enabled = true
+            httpProxy.enabled.value = true
         }
         if (!scoreboardSizeMigrated) {
             for (widget in widgets) {
@@ -1091,7 +1096,7 @@ class Database(
                     button.type != SettingsQuickButtonType.cameraPreview &&
                     button.type != SettingsQuickButtonType.interactiveBrowserWidgets
                 ) {
-                    button.isOn = false
+                    button.isOn.value = false
                 }
             }
             addMissingDeepLinkQuickButtons(database)
@@ -1105,7 +1110,8 @@ class Database(
 private fun addDefaultScenes(database: Database) {
     if (isMac()) {
         var scene = SettingsScene(name = localized("Screen"))
-        scene.videoSource.cameraPosition = SettingsSceneCameraPosition.screenCapture
+        scene.videoSource.cameraPosition =
+            TODO("no Android counterpart for screen capture camera position")
         database.scenes.add(scene)
         if (bestFrontCameraId.isNotEmpty()) {
             scene = SettingsScene(name = localized("Front"))
@@ -1686,7 +1692,7 @@ private fun addMissingDeepLinkQuickButtons(database: Database) {
         val buttonExists = quickButtons.buttons.any { quickButton.type == it.type }
         if (!buttonExists) {
             button.type = quickButton.type
-            button.page = quickButton.page
+            button.page = quickButton.page.value
             quickButtons.buttons.add(button)
         }
     }
@@ -1742,13 +1748,13 @@ private fun updateBundledAlertsMediaGallery(database: Database) {
 }
 
 private fun addScenesToGameController(database: Database) {
-    var button = database.gameControllers[0].buttons[0]
-    button.function = SettingsControllerFunction.scene
-    button.functionData.sceneId = database.scenes[0].id
+    var button = database.gameControllers[0].buttons.value[0]
+    button.function.value = SettingsControllerFunction.SWITCH_SCENE
+    button.functionData.value.sceneId = database.scenes[0].id
     if (database.scenes.size > 1) {
-        button = database.gameControllers[0].buttons[1]
-        button.function = SettingsControllerFunction.scene
-        button.functionData.sceneId = database.scenes[1].id
+        button = database.gameControllers[0].buttons.value[1]
+        button.function.value = SettingsControllerFunction.SWITCH_SCENE
+        button.functionData.value.sceneId = database.scenes[1].id
     }
 }
 
@@ -1906,8 +1912,7 @@ class Settings {
                     zip.write(settingsJson)
                     zip.closeEntry()
                     val prefixCount = createAndGetDirectory().canonicalPath.length + 1
-                    for (file in exportFiles) {
-                        val fileUrl = File(file)
+                    for (fileUrl in exportFiles) {
                         if (fileUrl.exists()) {
                             val relativeFilePath = fileUrl.canonicalPath.drop(prefixCount)
                             writeZipFile(zip, relativeFilePath, fileUrl)
@@ -1934,7 +1939,7 @@ class Settings {
 
     private fun removeFilesAndFolders() {
         for (file in exportFiles) {
-            File(file).delete()
+            file.delete()
         }
     }
 
@@ -2065,3 +2070,10 @@ class Settings {
         }
     }
 }
+
+private fun RgbColor.color(): Color = Color(
+    red = red.toFloat() / 255.0f,
+    green = green.toFloat() / 255.0f,
+    blue = blue.toFloat() / 255.0f,
+    alpha = (opacity ?: 1.0).toFloat(),
+)

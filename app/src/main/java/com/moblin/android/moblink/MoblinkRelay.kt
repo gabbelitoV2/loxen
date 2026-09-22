@@ -102,9 +102,9 @@ private class MoblinkRelayConnection(
     private var password: String,
     private var delegate: MoblinkRelayDelegate?,
     var destinationInterface: MoblinkRelayInterface,
-    private var relay: MoblinkRelay?,
+    private var relay: MoblinkRelayServer?,
 ) : WebSocketClientDelegate {
-    private var webSocket: WebSocketClient = WebSocketClient(streamerUrl)
+    private var webSocket: WebSocketClient = WebSocketClient(MoblinkRelayServer.applicationContext, streamerUrl)
     private var startTunnelId: Int? = null
     private var destination: Endpoint? = null
     private var streamerListener: DatagramSocket? = null
@@ -140,7 +140,7 @@ private class MoblinkRelayConnection(
         }
         stopInternal()
         setState(RelayState.Connecting)
-        webSocket = WebSocketClient(streamerUrl, false)
+        webSocket = WebSocketClient(MoblinkRelayServer.applicationContext, streamerUrl, false)
         webSocket.delegate = this
         webSocket.start()
     }
@@ -406,7 +406,7 @@ private class MoblinkRelayConnection(
     }
 }
 
-class MoblinkRelay(
+class MoblinkRelayServer(
     private val name: String,
     val streamerUrl: String,
     private val password: String,

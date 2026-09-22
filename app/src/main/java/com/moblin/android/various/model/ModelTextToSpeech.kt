@@ -1,15 +1,15 @@
 package com.moblin.android.various.model
 
-import com.moblin.android.settings.QuickButtonType
 import com.moblin.android.various.ChatPost
+import com.moblin.android.various.settings.SettingsQuickButtonType
 
 fun Model.toggleTextToSpeechPaused() {
-    if (getQuickButton(type = QuickButtonType.pauseTts)?.isOn?.value == false) {
+    if (getQuickButton(type = SettingsQuickButtonType.pauseTts)?.isOn?.value == false) {
         chatTextToSpeech.pause()
     } else {
         chatTextToSpeech.play()
     }
-    toggleQuickButton(type = QuickButtonType.pauseTts)
+    toggleQuickButton(type = SettingsQuickButtonType.pauseTts)
 }
 
 fun Model.isTextToSpeechEnabledForMessage(post: ChatPost): Boolean {
@@ -58,13 +58,13 @@ private fun Model.isTextToSpeechEnabledForAnyAlertWidget(): Boolean {
 fun Model.setTextToSpeechStreamerMentions() {
     val streamerMentions = mutableListOf<String>()
     if (isTwitchChatConfigured()) {
-        streamerMentions.add("@${stream.twitchChannelName()}")
+        streamerMentions.add("@${stream.value.twitchChannelName}")
     }
     if (isKickPusherConfigured()) {
-        streamerMentions.add("@${stream.kickChannelName()}")
+        streamerMentions.add("@${stream.value.kickChannelName}")
     }
     if (isSoopChatConfigured()) {
-        streamerMentions.add("@${stream.soopChannelName()}")
+        streamerMentions.add("@${stream.value.soopChannelName}")
     }
     chatTextToSpeech.setStreamerMentions(streamerMentions)
 }

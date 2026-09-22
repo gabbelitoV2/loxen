@@ -689,10 +689,7 @@ fun StreamYouTubeSettingsView(
     }
 
     fun tokenExpiresIn(): Duration? {
-        val expirationDate = stream.youTubeAuthState
-            ?.lastTokenResponse
-            ?.accessTokenExpirationDate
-            ?: return null
+        val expirationDate: Instant = TODO("stream.youTubeAuthState?.lastTokenResponse?.accessTokenExpirationDate")
         return Duration.ofSeconds(
             maxOf(Duration.between(Instant.now(), expirationDate).seconds, 0)
         )

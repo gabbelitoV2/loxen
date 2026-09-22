@@ -277,7 +277,7 @@ class SrtlaServer(
             sendSrtlaNgp(connection = connection)
             return false
         }
-        client.addConnection(Socket(connection.socket, connection.address))
+        client.addConnection(TODO("SrtlaServerClient.addConnection expects a java.net.Socket"))
         sendSrtlaReg3(connection = connection)
         return true
     }

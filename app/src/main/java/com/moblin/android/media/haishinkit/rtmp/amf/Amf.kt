@@ -105,7 +105,7 @@ class Amf0Encoder {
     var data: ByteArray
         get() = writer.data
         set(value) {
-            writer.data = value
+            writer.writeBytes(value)
         }
 
     var length: Int
@@ -239,14 +239,14 @@ class Amf0Encoder {
 }
 
 class Amf0Decoder(data: ByteArray) {
-    private val reader = ByteReader(data)
+    private var reader = ByteReader(data)
 
     private var depth = 0
 
     var data: ByteArray
         get() = reader.data
         set(value) {
-            reader.data = value
+            reader = ByteReader(value)
         }
 
     var position: Int

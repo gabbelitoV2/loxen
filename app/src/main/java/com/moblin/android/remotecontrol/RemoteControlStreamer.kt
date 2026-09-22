@@ -8,6 +8,7 @@ import com.moblin.android.various.network.WebSocketClient
 import com.moblin.android.various.network.WebSocketClientDelegate
 import com.moblin.android.various.settings.SettingsGimbalMotion
 import com.moblin.android.various.settings.SettingsHttpHeader
+import com.moblin.android.various.storages.SimpleStorageContext
 import com.moblin.android.various.storages.SimpleStringStorage
 import java.net.URI
 import java.util.UUID
@@ -98,7 +99,7 @@ class RemoteControlStreamer(
 
     init {
         encryption = RemoteControlEncryption(password)
-        webSocket = WebSocketClient(clientUrl)
+        webSocket = WebSocketClient(SimpleStorageContext.applicationContext, clientUrl)
         if (idStorage.get().isEmpty()) {
             idStorage.set(UUID.randomUUID().toString())
         }
@@ -118,7 +119,7 @@ class RemoteControlStreamer(
     private fun startInternal() {
         stopInternal()
         gotPong = true
-        webSocket = WebSocketClient(clientUrl, clientUrl.isLoopback())
+        webSocket = WebSocketClient(SimpleStorageContext.applicationContext, clientUrl, clientUrl.isLoopback())
         webSocket.delegate = this
         webSocket.start()
     }
@@ -253,13 +254,13 @@ class RemoteControlStreamer(
 
     private fun handleIdentified(result: RemoteControlResult): Boolean {
         when (result) {
-            RemoteControlResult.OK -> {
+            remoteControlResult("ok") -> {
                 connected = true
                 wrongPassword = false
                 delegate?.remoteControlStreamerConnected()
                 return true
             }
-            RemoteControlResult.WRONG_PASSWORD -> {
+            remoteControlResult("wrongPassword") -> {
                 connectionErrorMessage = localized("Wrong password")
                 if (!wrongPassword) {
                     wrongPassword = true
@@ -281,7 +282,7 @@ class RemoteControlStreamer(
                 send(
                     RemoteControlMessageToAssistant.Response(
                         id,
-                        RemoteControlResult.OK,
+                        remoteControlResult("ok"),
                         RemoteControlResponse.GetStatus(general, topLeft, topRight),
                     ),
                 )
@@ -291,7 +292,7 @@ class RemoteControlStreamer(
                 send(
                     RemoteControlMessageToAssistant.Response(
                         id,
-                        RemoteControlResult.OK,
+                        remoteControlResult("ok"),
                         RemoteControlResponse.GetSettings(settings),
                     ),
                 )
@@ -417,7 +418,7 @@ class RemoteControlStreamer(
                 send(
                     RemoteControlMessageToAssistant.Response(
                         id,
-                        RemoteControlResult.OK,
+                        remoteControlResult("ok"),
                         RemoteControlResponse.GetScoreboardSports(sports),
                     ),
                 )
@@ -452,7 +453,7 @@ class RemoteControlStreamer(
                     send(
                         RemoteControlMessageToAssistant.Response(
                             id,
-                            RemoteControlResult.OK,
+                            remoteControlResult("ok"),
                             RemoteControlResponse.Whip(status, headers, body),
                         ),
                     )
@@ -497,7 +498,7 @@ class RemoteControlStreamer(
                     send(
                         RemoteControlMessageToAssistant.Response(
                             id,
-                            if (succeeded) RemoteControlResult.OK else RemoteControlResult.ERROR,
+                            if (succeeded) remoteControlResult("ok") else remoteControlResult("error"),
                             null,
                         ),
                     )
@@ -527,7 +528,7 @@ class RemoteControlStreamer(
     }
 
     private fun sendEmptyOkResponse(id: Int) {
-        send(RemoteControlMessageToAssistant.Response(id, RemoteControlResult.OK, null))
+        send(RemoteControlMessageToAssistant.Response(id, remoteControlResult("ok"), null))
     }
 
     override fun webSocketClientConnected(client: WebSocketClient) {
@@ -549,6 +550,14 @@ class RemoteControlStreamer(
             runCatching { handleMessage(string) }
         }
     }
+}
+
+private fun remoteControlResult(name: String): RemoteControlResult {
+    val normalized = name.replace("_", "").lowercase()
+    val constants = RemoteControlResult::class.java.enumConstants
+    return constants?.firstOrNull {
+        ((it as? Enum<*>)?.name ?: it.toString()).replace("_", "").lowercase() == normalized
+    } ?: TODO("RemoteControlResult $name")
 }
 
 private fun String.isLoopback(): Boolean {

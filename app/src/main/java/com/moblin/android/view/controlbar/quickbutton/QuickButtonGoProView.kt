@@ -289,8 +289,8 @@ private fun QuickButtonGoProRtmpUrlView(
         val selected = rtmpUrls.firstOrNull { it.id == rtmpUrlSelection }
         if (selected != null) {
             when (selected.type) {
-                SettingsDjiDeviceUrlType.SERVER -> qrCode = GoPro.generateRtmpUrlQrCode(url = selected.serverUrl)?.asImageBitmap()
-                SettingsDjiDeviceUrlType.CUSTOM -> qrCode = GoPro.generateRtmpUrlQrCode(url = selected.customUrl)?.asImageBitmap()
+                SettingsDjiDeviceUrlType.server -> qrCode = GoPro.generateRtmpUrlQrCode(url = selected.serverUrl)?.asImageBitmap()
+                SettingsDjiDeviceUrlType.custom -> qrCode = GoPro.generateRtmpUrlQrCode(url = selected.customUrl)?.asImageBitmap()
                 else -> qrCode = null
             }
         } else {

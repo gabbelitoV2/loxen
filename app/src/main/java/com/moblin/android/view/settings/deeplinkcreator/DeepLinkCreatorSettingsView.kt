@@ -249,7 +249,7 @@ fun DeepLinkCreatorSettingsView(
                 item {
                     val image = generateQrCode(deepLink)
                     if (image != null) {
-                        QrCodeImageView(image = image.asImageBitmap(), height = qrCodeHeight(metrics).value.toDouble())
+                        QrCodeImageView(image = image.asImageBitmap(), height = qrCodeHeight(metrics))
                     } else {
                         Text("Failed to create QR-code.")
                     }

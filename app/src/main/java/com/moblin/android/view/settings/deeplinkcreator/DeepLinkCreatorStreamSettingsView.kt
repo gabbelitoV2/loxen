@@ -266,7 +266,7 @@ private fun calcBitrate(audio: DeepLinkCreatorStreamAudio): Int =
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeepLinkCreatorStreamAudioView(audio: DeepLinkCreatorStreamAudio) {
-    val bitrateFloat = audio.bitrateFloat
+    var bitrateFloat by remember { mutableStateOf(audio.bitrateFloat) }
 
     Scaffold(
         topBar = {
@@ -285,16 +285,16 @@ private fun DeepLinkCreatorStreamAudioView(audio: DeepLinkCreatorStreamAudio) {
                 ) {
                     Slider(
                         value = bitrateFloat,
-                        onValueChange = { audio.bitrateFloat = it },
+                        onValueChange = { bitrateFloat = it },
                         valueRange = 32f..320f,
                         steps = 8,
                         onValueChangeFinished = {
-                            audio.bitrate = calcBitrate(audio)
+                            audio.bitrate = ceil(bitrateFloat * 1000.0).toInt()
                         },
                         modifier = Modifier.weight(1f),
                     )
                     Text(
-                        text = formatBytesPerSecond(speed = calcBitrate(audio).toLong()),
+                        text = formatBytesPerSecond(speed = ceil(bitrateFloat * 1000.0).toInt().toLong()),
                         modifier = Modifier.width(90.dp),
                     )
                 }

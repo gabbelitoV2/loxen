@@ -3,6 +3,7 @@ package com.moblin.android.view.utils
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import com.moblin.android.common.various.color
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.ChatPost
 import com.moblin.android.various.ChatPostSegment

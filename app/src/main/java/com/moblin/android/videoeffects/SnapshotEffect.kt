@@ -1,5 +1,6 @@
 package com.moblin.android.videoeffects
 
+import android.media.Image
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
@@ -31,20 +32,14 @@ class SnapshotEffect(showtime: Int) : VideoEffect() {
         }
     }
 
-    override fun execute(image: MTIImage, info: VideoEffectInfo): MTIImage {
+    override fun execute(image: Image, info: VideoEffectInfo): Image {
         val sceneWidget = this.sceneWidget ?: return image
         updateCurrentSnapshot(info)
         val currentSnapshot = this.currentSnapshot ?: return image
-        return applyEffectsResizeMirrorMove(
-            currentSnapshot.getMetalPetalImage(),
-            sceneWidget,
-            false,
-            image.extent,
-            info
-        ).moveComposited(sceneWidget.layout, image)
+        return TODO("OpenGL ES port: composite snapshot over image")
     }
 
-    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage =
+    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image =
         TODO("OpenGL ES port")
 
     override fun isEnabled(): Boolean {

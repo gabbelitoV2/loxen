@@ -95,6 +95,10 @@ open class MpegTsProgramSpecificInformation {
 class MpegTsProgramAssociation : MpegTsProgramSpecificInformation {
     var programs: MutableMap<UShort, UShort> = mutableMapOf()
 
+    constructor() : super()
+
+    constructor(data: ByteArray) : super(data)
+
     override fun encodeSectionData(): ByteArray {
         val writer = ByteWriter()
         for ((programNumber, programId) in programs) {

@@ -51,6 +51,7 @@ private fun canEnable(bluetoothPeripheralId: UUID?): Boolean {
 private fun onDeviceChange(value: String, device: SettingsBlackSharkCoolerDevice) {
     val deviceId = runCatching { UUID.fromString(value) }.getOrNull() ?: return
     val peripheral = blackSharkCoolerScanner.discoveredPeripherals.value
+        .filterIsInstance<BlackSharkCoolerPeripheral>()
         .firstOrNull { it.identifier == value } ?: return
     device.bluetoothPeripheralName = peripheral.name
     device.bluetoothPeripheralId = deviceId

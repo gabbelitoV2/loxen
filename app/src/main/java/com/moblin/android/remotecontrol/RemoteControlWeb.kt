@@ -459,7 +459,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
                     connection = connection,
                     message = RemoteControlMessageToAssistant.Response(
                         id = id,
-                        result = RemoteControlResult.OK,
+                        result = RemoteControlResult.Ok,
                         data = RemoteControlResponse.GetStatus(
                             general = general,
                             topLeft = topLeft,
@@ -474,7 +474,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
                     connection = connection,
                     message = RemoteControlMessageToAssistant.Response(
                         id = id,
-                        result = RemoteControlResult.OK,
+                        result = RemoteControlResult.Ok,
                         data = RemoteControlResponse.GetSettings(data = settings),
                     ),
                 )
@@ -573,7 +573,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
                     connection = connection,
                     message = RemoteControlMessageToAssistant.Response(
                         id = id,
-                        result = RemoteControlResult.OK,
+                        result = RemoteControlResult.Ok,
                         data = RemoteControlResponse.GetScoreboardSports(names = sports),
                     ),
                 )
@@ -604,7 +604,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
                     connection = connection,
                     message = RemoteControlMessageToAssistant.Response(
                         id = id,
-                        result = RemoteControlResult.OK,
+                        result = RemoteControlResult.Ok,
                         data = RemoteControlResponse.GetGolfScoreboard(data = golfScoreboard),
                     ),
                 )
@@ -656,7 +656,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
             connection = connection,
             message = RemoteControlMessageToAssistant.Response(
                 id = id,
-                result = RemoteControlResult.OK,
+                result = RemoteControlResult.Ok,
                 data = null,
             ),
         )

@@ -16,7 +16,7 @@ class VideoEffectsProcessor {
     private var metalPetalContext: Any? = null
     var canvasSize = SizeF(1920f, 1080f)
     var fillFrame = true
-    var sceneSwitchTransition: SceneSwitchTransition = SceneSwitchTransition.Blur
+    var sceneSwitchTransition: SceneSwitchTransition = SceneSwitchTransition.blur
     var latestSampleBufferTime: Long? = null
     private var rotation: Double = 0.0
     private var mirror: Boolean = false
@@ -278,7 +278,7 @@ class VideoEffectsProcessor {
     fun isAtEndOfSceneSwitchTransition(): Boolean {
         val latest = latestSampleBufferTime ?: return false
         val offset = (SystemClock.elapsedRealtimeNanos() - latest) / 1_000_000_000.0
-        return if (sceneSwitchTransition == SceneSwitchTransition.BlurAndZoom) {
+        return if (sceneSwitchTransition == SceneSwitchTransition.blurAndZoom) {
             offset >= 5
         } else {
             offset >= 2
@@ -369,7 +369,7 @@ class VideoEffectsProcessor {
         val latest = latestSampleBufferTime
         if (latest != null) {
             val offset = (SystemClock.elapsedRealtimeNanos() - latest) / 1_000_000_000.0
-            return if (sceneSwitchTransition == SceneSwitchTransition.BlurAndZoom) {
+            return if (sceneSwitchTransition == SceneSwitchTransition.blurAndZoom) {
                 (0f + minOf(offset, 5.0).toFloat() * 5f)
             } else {
                 (15f + minOf(offset, 2.0).toFloat() * 15f)

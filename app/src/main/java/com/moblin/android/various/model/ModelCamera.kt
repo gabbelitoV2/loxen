@@ -450,7 +450,9 @@ fun Model.cameraIdToSettingsCameraId(cameraId: CameraId): SettingsCameraId {
     if (srtId != null) {
         return SettingsCameraId.Srt(id = srtId)
     }
-    val rtmpId = getRtmpStream(idString = cameraId)?.id
+    val rtmpId = runCatching { UUID.fromString(cameraId) }.getOrNull()?.let { id ->
+        getRtmpStream(id = id)?.id
+    }
     if (rtmpId != null) {
         return SettingsCameraId.Rtmp(id = rtmpId)
     }

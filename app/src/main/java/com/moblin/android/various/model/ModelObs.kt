@@ -4,6 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import com.moblin.android.common.various.formatOneDecimal
+import com.moblin.android.common.various.isRtmpCameraOrMic
+import com.moblin.android.common.various.isSrtClientCameraOrMic
+import com.moblin.android.common.various.isSrtlaCameraOrMic
 import com.moblin.android.common.various.noValue
 import com.moblin.android.localized
 import com.moblin.android.obs.ObsAudioInputVolume
@@ -97,11 +100,11 @@ fun Model.updateObsSourceScreenshot() {
 }
 
 fun Model.setObsAudioDelay(offset: Int) {
-    if (obsSourceName.isEmpty()) {
+    if (stream.obsSourceName.isEmpty()) {
         return
     }
     obsWebSocket?.setInputAudioSyncOffset(
-        name = obsSourceName,
+        name = stream.obsSourceName,
         offsetInMs = offset,
         onSuccess = {
             updateObsAudioDelay()
@@ -112,11 +115,11 @@ fun Model.setObsAudioDelay(offset: Int) {
 }
 
 fun Model.updateObsAudioDelay() {
-    if (obsSourceName.isEmpty()) {
+    if (stream.obsSourceName.isEmpty()) {
         return
     }
     obsWebSocket?.getInputAudioSyncOffset(
-        name = obsSourceName,
+        name = stream.obsSourceName,
         onSuccess = { offset ->
             obsQuickButton.audioDelay.value = offset
         },
@@ -298,11 +301,11 @@ private fun Model.isStreamLikelyBroken(now: Instant): Boolean {
         if (becameBrokenTime != null) {
             if (Duration.between(becameBrokenTime, now) < Duration.ofSeconds(15)) {
                 return true
-            } else if (obsQuickButton.currentScene.value != obsBrbScene) {
+            } else if (obsQuickButton.currentScene.value != stream.obsBrbScene) {
                 return true
             }
         }
-        if (obsBrbSceneVideoSourceBroken) {
+        if (stream.obsBrbSceneVideoSourceBroken) {
             val scene = getSelectedScene()
             if (scene != null) {
                 val videoSource = scene.videoSource
@@ -349,10 +352,10 @@ fun Model.updateObsSceneSwitcher(now: Instant) {
     if (!isLive.value) {
         return
     }
-    if (obsMainScene.isEmpty()) {
+    if (stream.obsMainScene.isEmpty()) {
         return
     }
-    if (obsBrbScene.isEmpty()) {
+    if (stream.obsBrbScene.isEmpty()) {
         return
     }
     if (obsQuickButton.currentScene.value.isEmpty()) {
@@ -361,7 +364,7 @@ fun Model.updateObsSceneSwitcher(now: Instant) {
     if (!isObsConnected()) {
         return
     }
-    if (streamingDirectlyToObs) {
+    if (stream.streamingDirectlyToObs) {
         updateObsSceneSwitcherStreamingDirectlyToObs(now = now)
     } else {
         updateObsSceneSwitcherStreamingViaRelay(now = now)
@@ -384,7 +387,7 @@ private fun Model.updateObsSceneSwitcherStreamingDirectlyToObs(now: Instant) {
         if (isStreamLikelyBroken(now = now)) {
             switchToBrbSceneIfNeeded()
         } else {
-            if (obsQuickButton.currentScene.value == obsBrbScene) {
+            if (obsQuickButton.currentScene.value == stream.obsBrbScene) {
                 makeStreamReconnectFixAudioToast()
                 stopNetStream()
                 streamState = StreamState.disconnected
@@ -406,19 +409,19 @@ private fun Model.updateObsSceneSwitcherStreamingViaRelay(now: Instant) {
 }
 
 private fun Model.switchToMainSceneIfNeeded() {
-    if (obsQuickButton.currentScene.value != obsBrbScene) {
+    if (obsQuickButton.currentScene.value != stream.obsBrbScene) {
         return
     }
-    makeStreamLikelyWorkingToast(scene = obsMainScene)
-    setObsScene(name = obsMainScene)
+    makeStreamLikelyWorkingToast(scene = stream.obsMainScene)
+    setObsScene(name = stream.obsMainScene)
 }
 
 private fun Model.switchToBrbSceneIfNeeded() {
-    if (obsQuickButton.currentScene.value != obsMainScene) {
+    if (obsQuickButton.currentScene.value != stream.obsMainScene) {
         return
     }
-    makeStreamLikelyBrokenToast(scene = obsBrbScene)
-    setObsScene(name = obsBrbScene)
+    makeStreamLikelyBrokenToast(scene = stream.obsBrbScene)
+    setObsScene(name = stream.obsBrbScene)
 }
 
 private fun Model.makeStreamLikelyBrokenToast(scene: String) {
@@ -449,13 +452,13 @@ fun Model.reloadObsWebSocket() {
         updateStatusObsText()
         return
     }
-    if (obsWebSocketUrl.isEmpty()) {
+    if (stream.obsWebSocketUrl.isEmpty()) {
         updateStatusObsText()
         return
     }
     obsWebSocket = ObsWebSocket(
-        url = obsWebSocketUrl,
-        password = obsWebSocketPassword,
+        url = stream.obsWebSocketUrl,
+        password = stream.obsWebSocketPassword,
         delegate = ModelObsWebsocketDelegate(this),
     )
     obsWebSocket!!.start()
@@ -530,7 +533,7 @@ fun Model.obsFixStream() {
     val webSocket = obsWebSocket ?: return
     obsQuickButton.fixOngoing.value = true
     webSocket.setInputSettings(
-        inputName = obsSourceName,
+        inputName = stream.obsSourceName,
         onSuccess = {
             obsQuickButton.fixOngoing.value = false
         },
@@ -598,7 +601,7 @@ fun Model.updateStatusObsText() {
 }
 
 fun Model.isObsRemoteControlConfigured(): Boolean {
-    return obsWebSocketEnabled && obsWebSocketUrl != ""
+    return stream.obsWebSocketEnabled && stream.obsWebSocketUrl != ""
 }
 
 fun Model.obsWebsocketConnected() {
@@ -649,10 +652,10 @@ fun Model.obsWebsocketRecordStatusChanged(active: Boolean, state: ObsOutputState
 }
 
 fun Model.obsWebsocketAudioVolume(volumes: List<ObsAudioInputVolume>) {
-    val volume = volumes.firstOrNull { it.name == obsSourceName }
+    val volume = volumes.firstOrNull { it.name == stream.obsSourceName }
     if (volume == null) {
         obsQuickButton.audioVolumeLatest =
-            localized("Source $obsSourceName not found")
+            localized("Source ${stream.obsSourceName} not found")
         return
     }
     val values = mutableListOf<String>()
@@ -665,3 +668,33 @@ fun Model.obsWebsocketAudioVolume(volumes: List<ObsAudioInputVolume>) {
     }
     obsQuickButton.audioVolumeLatest = values.joinToString(", ")
 }
+
+private val Any.obsSourceName: String
+    get() = TODO("OBS stream settings are not available")
+
+private val Any.obsMainScene: String
+    get() = TODO("OBS stream settings are not available")
+
+private val Any.obsBrbScene: String
+    get() = TODO("OBS stream settings are not available")
+
+private val Any.obsBrbSceneVideoSourceBroken: Boolean
+    get() = TODO("OBS stream settings are not available")
+
+private val Any.streamingDirectlyToObs: Boolean
+    get() = TODO("OBS stream settings are not available")
+
+private val Any.obsWebSocketUrl: String
+    get() = TODO("OBS stream settings are not available")
+
+private val Any.obsWebSocketPassword: String
+    get() = TODO("OBS stream settings are not available")
+
+private val Any.obsWebSocketEnabled: Boolean
+    get() = TODO("OBS stream settings are not available")
+
+private fun Any.isSrtlaCameraOrMic(): Boolean = TODO("Camera position helpers are not available")
+
+private fun Any.isSrtClientCameraOrMic(): Boolean = TODO("Camera position helpers are not available")
+
+private fun Any.isRtmpCameraOrMic(): Boolean = TODO("Camera position helpers are not available")

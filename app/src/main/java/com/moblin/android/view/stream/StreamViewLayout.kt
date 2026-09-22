@@ -55,9 +55,10 @@ data class StreamViewLayout(val size: Size, val offset: Size) {
 }
 
 fun Model.streamViewLayout(metrics: StreamViewMetrics): StreamViewLayout {
+    val dimensions = stream.value.dimensions()
     return StreamViewLayout(
         metrics = metrics,
-        aspectRatio = stream.value.dimensions().aspectRatio(),
+        aspectRatio = dimensions.width.toFloat() / dimensions.height.toFloat(),
         portraitOrientation = orientation.isPortrait.value,
         portraitStream = stream.value.portrait,
         portraitVideoOffset = if (stream.value.portrait) 0.0 else portraitVideoOffsetFromTop.value,

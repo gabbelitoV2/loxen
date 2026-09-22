@@ -33,12 +33,24 @@ import com.moblin.android.common.various.smallFont
 import com.moblin.android.common.view.StreamOverlayIconAndTextPlacement
 import com.moblin.android.common.view.StreamOverlayIconAndTextView
 import com.moblin.android.streamingplatforms.Platform
-import com.moblin.android.various.model.Database
 import com.moblin.android.various.model.Mic
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.PlatformStatus
 import com.moblin.android.various.model.StatusTopLeft
 import com.moblin.android.various.model.StreamingPlatformStatus
 import com.moblin.android.various.model.Zoom
+import com.moblin.android.various.model.hasChatEmotes
+import com.moblin.android.various.model.isChatConfigured
+import com.moblin.android.various.model.isChatConnected
+import com.moblin.android.various.model.isObsConnected
+import com.moblin.android.various.model.isObsRemoteControlConfigured
+import com.moblin.android.various.model.isRemoteControlChatAndEvents
+import com.moblin.android.various.model.isRemoteControlStreamerConnected
+import com.moblin.android.various.model.isShowingStatusChat
+import com.moblin.android.various.model.isShowingStatusObs
+import com.moblin.android.various.model.isShowingStatusStream
+import com.moblin.android.various.model.isShowingStatusZoom
+import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsShow
 import com.moblin.android.LocalModel
 
@@ -114,17 +126,17 @@ private fun ViewersView(status: StatusTopLeft) {
             for (platformStatus in streamingPlatformStatuses) {
                 ViewersLogoView(platform = platformStatus.platform)
                 when (val streamingStatus = platformStatus.status) {
-                    is StreamingPlatformStatus.Status.Live -> Text(
+                    is PlatformStatus.live -> Text(
                         text = countFormatter.format(streamingStatus.viewerCount),
                         color = Color.White,
                         style = smallFont,
                     )
-                    StreamingPlatformStatus.Status.Unknown -> Text(
+                    PlatformStatus.unknown -> Text(
                         text = "Unknown",
-                        color = Color.Orange,
+                        color = Color(0xFFFFA500),
                         style = smallFont,
                     )
-                    StreamingPlatformStatus.Status.Offline -> Text(
+                    PlatformStatus.offline -> Text(
                         text = "Offline",
                         color = Color.Red,
                         style = smallFont,
@@ -248,6 +260,18 @@ private fun obsStatusColor(model: Model): Color {
     }
 }
 
+private val hidePlacement: StreamOverlayIconAndTextPlacement
+    get() = StreamOverlayIconAndTextPlacement.entries.firstOrNull { it.name.lowercase().contains("hide") }
+        ?: StreamOverlayIconAndTextPlacement.entries.last()
+
+private val StreamOverlayIconAndTextPlacement.isHide: Boolean
+    get() = this == hidePlacement
+
+private val afterIconPlacement: StreamOverlayIconAndTextPlacement
+    get() = StreamOverlayIconAndTextPlacement.entries.firstOrNull { it.name.lowercase().contains("after") }
+        ?: StreamOverlayIconAndTextPlacement.entries.firstOrNull { !it.isHide }
+        ?: StreamOverlayIconAndTextPlacement.entries.first()
+
 @Composable
 private fun StatusesView(
     model: Model = LocalModel.current,
@@ -279,7 +303,7 @@ private fun StatusesView(
             textPlacement = textPlacement,
         )
     }
-    if (textPlacement != StreamOverlayIconAndTextPlacement.hide && model.isShowingStatusZoom()) {
+    if (!textPlacement.isHide && model.isShowingStatusZoom()) {
         ZoomView(zoom = model.zoom, textPlacement = textPlacement)
     }
     if (model.isShowingStatusObs()) {
@@ -299,7 +323,7 @@ private fun StatusesView(
         )
     }
     if (model.isShowingStatusChat()) {
-        if (textPlacement == StreamOverlayIconAndTextPlacement.hide) {
+        if (textPlacement.isHide) {
             StreamOverlayIconAndTextView(
                 icon = "message",
                 text = statusChatText,
@@ -311,7 +335,7 @@ private fun StatusesView(
         }
     }
     if (model.isShowingStatusViewers()) {
-        if (textPlacement == StreamOverlayIconAndTextPlacement.hide) {
+        if (textPlacement.isHide) {
             CollapsedViewersView(status = status)
         } else {
             ViewersView(status = status)
@@ -321,7 +345,7 @@ private fun StatusesView(
 
 @Composable
 fun LeftOverlayView(model: Model = LocalModel.current, database: Database) {
-    val verboseStatuses by database.verboseStatuses.collectAsState()
+    val verboseStatuses = database.verboseStatuses
     Column(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(1.dp),
@@ -339,7 +363,7 @@ fun LeftOverlayView(model: Model = LocalModel.current, database: Database) {
                     show = database.show,
                     status = model.statusTopLeft,
                     mic = model.mic,
-                    textPlacement = StreamOverlayIconAndTextPlacement.afterIcon,
+                    textPlacement = afterIconPlacement,
                 )
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(1.dp)) {
@@ -348,7 +372,7 @@ fun LeftOverlayView(model: Model = LocalModel.current, database: Database) {
                         show = database.show,
                         status = model.statusTopLeft,
                         mic = model.mic,
-                        textPlacement = StreamOverlayIconAndTextPlacement.hide,
+                        textPlacement = hidePlacement,
                     )
                 }
             }

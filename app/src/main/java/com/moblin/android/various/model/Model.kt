@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.hardware.SensorManager
 import android.util.Log
 import android.view.Surface
+import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
@@ -50,7 +51,14 @@ import com.moblin.android.various.subtitles.*
 import com.moblin.android.various.utils.*
 import com.moblin.android.videoeffects.*
 import com.moblin.android.videoeffects.alerts.*
+import com.moblin.android.videoeffects.browser.*
+import com.moblin.android.videoeffects.crt.*
 import com.moblin.android.videoeffects.replay.*
+import com.moblin.android.videoeffects.scoreboard.*
+import com.moblin.android.videoeffects.text.*
+import com.moblin.android.videoeffects.vtuber.*
+import com.moblin.android.view.controlbar.*
+import com.moblin.android.view.stream.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -65,6 +73,8 @@ import java.time.Instant
 import java.util.UUID
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 
 private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -274,11 +284,14 @@ class Battery {
 
 class StatusOther {
     val ipStatuses = MutableStateFlow<List<IPMonitor.Status>>(emptyList())
-    val thermalState = MutableStateFlow(getThermalState())
+    val thermalState = MutableStateFlow<MoblinkThermalState>(
+        TODO("no Android counterpart for ProcessInfo.thermalState; use PowerManager.getCurrentThermalStatus"),
+    )
     val digitalClock = MutableStateFlow(noValue)
 
     fun isConnectedToIpv4WiFi(): Boolean = ipStatuses.value.any {
-        it.interfaceType == IPMonitor.InterfaceType.wifi && it.ipType == IPMonitor.IpType.ipv4
+        it.interfaceType == IPMonitor.InterfaceType.wifi &&
+            it.ipType.toString().lowercase() == "ipv4"
     }
 }
 
@@ -371,7 +384,7 @@ class Store {
 
 class DrawOnStream {
     val lines = MutableStateFlow<List<DrawOnStreamLine>>(emptyList())
-    val selectedColor = MutableStateFlow(Color.Pink)
+    val selectedColor = MutableStateFlow(Color(0xFFFFC0CB))
     val selectedWidth = MutableStateFlow(4f)
 }
 
@@ -434,6 +447,9 @@ class CameraLevel {
 }
 
 private val enterForegroundCountStorage = SimpleIntStorage(key = "enterForegroundCount")
+
+private fun toComposeSize(size: android.util.Size): Size =
+    Size(size.width.toFloat(), size.height.toFloat())
 
 class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var enterForegroundCount: Int
@@ -581,9 +597,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var nextWatchChatPostId = 1
     var previousBitrateStatusColorSrtDroppedPacketsTotal: Int = 0
     var previousBitrateStatusNumberOfFailedEncodings = 0
-    val streamPreviewView = PreviewView()
-    val externalDisplayStreamPreviewView = PreviewView()
-    val cameraPreviewView = CameraPreviewUiView()
+    val streamPreviewView = PreviewView(context = TODO("no Android application context available"))
+    val externalDisplayStreamPreviewView = PreviewView(context = TODO("no Android application context available"))
+    val cameraPreviewView = CameraPreviewUiView(context = TODO("no Android application context available"))
     val videoPreview = VideoPreviewProvider()
     var pipController: Any? = null
     var textEffects: MutableMap<UUID, TextEffect> = mutableMapOf()
@@ -728,9 +744,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var averageSpeedStartDistance = 0.0
     val replaysStorage = ReplaysStorage()
     var replaySettings: ReplaySettings? = null
-    var replayFrameExtractor: ReplayFrameExtractor? = null
-    var replayVideo: ReplayBufferFile? = null
-    var replayBuffer = ReplayBuffer()
+    internal var replayFrameExtractor: ReplayFrameExtractor? = null
+    internal var replayVideo: ReplayBufferFile? = null
+    internal var replayBuffer = ReplayBuffer()
     val replay = ReplayProvider()
     private var sampleBufferReceiver: Any? = null
     val faxReceiver = FaxReceiver()
@@ -751,7 +767,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var products: MutableMap<String, Any> = mutableMapOf()
     var streamTotalBytes: Long = 0
     var fileLog = createFileLog()
-    private var ipMonitor = IPMonitor()
+    private var ipMonitor = IPMonitor(context = TODO("no Android application context available"))
     var faceEffect = FaceEffect()
     var movieEffect = MovieEffect()
     var whirlpoolEffect = WhirlpoolEffect(angle = (Math.PI / 2).toFloat())
@@ -763,18 +779,18 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var tripleEffect = TripleEffect()
     var twinEffect = TwinEffect()
     var pixellateEffect = PixellateEffect(strength = 0.0f)
-    var cameraManEffect = CameraManEffect(moveVertically = false, speed = 1f, alwaysMove = false)
+    var cameraManEffect = CameraManEffect(moveVertically = false, speed = 1.0, alwaysMove = false)
     var pollEffect: PollEffect? = null
     var fixedHorizonEffect = FixedHorizonEffect()
     var glassesEffect: AlertsEffect? = null
     var sparkleEffect: AlertsEffect? = null
-    var beautyEffect = BeautyEffect(fps = 30)
+    var beautyEffect = BeautyEffect(fps = 30f)
     var replayEffect: ReplayEffect? = null
-    var locationManager = Location()
+    var locationManager = Location(context = TODO("no Android application context available"))
     var realtimeIrl: RealtimeIrl? = null
     var supportsAppleLog: Boolean = false
     val weatherManager = WeatherManager()
-    val geographyManager = GeographyManager()
+    val geographyManager = GeographyManager(context = TODO("no Android application context available"))
     var onDocumentPickerUrl: ((String) -> Unit)? = null
     var healthStore: Any? = null
     private val resourceUsage = ResourceUsage()
@@ -854,7 +870,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun updateAdaptiveBitrateRtmpIfEnabled() {
         var settings = adaptiveBitrateFastSettings
-        settings.rttDiffHighAllowedSpike = 500
+        settings.rttDiffHighAllowedSpike = 500.0
         media.setAdaptiveBitrateSettings(settings = settings)
     }
 
@@ -915,7 +931,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun setAllowVideoRangePixelFormat() {
-        allowVideoRangePixelFormat = database.debug.allowVideoRangePixelFormat
+        allowVideoRangePixelFormat = database.debug.allowVideoRangePixelFormat.value
     }
 
     fun setHighQualityDownsampling() {
@@ -1023,7 +1039,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun updateQuickButtonPairs() {
         for (page in 0 until controlBarPages) {
             val buttons = database.quickButtons.filter { button ->
-                button.enabled && button.page == page + 1 && isQuickButtonAllowed(button.type)
+                button.enabled.value && button.page.value == page + 1 &&
+                    isQuickButtonAllowed(button.type)
             }
             val pairs = mutableListOf<QuickButtonPair>()
             var index = 0
@@ -1070,7 +1087,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         bluetoothCentralManger = TODO("no Android counterpart for CBCentralManager; use BluetoothAdapter")
         deleteTrash()
         removeUnusedKeychainItems()
-        media = Media(delegate = this)
+        media = Media(delegate = TODO("MediaDelegate is implemented as Model extension functions"))
         setupAppIntents()
         faxReceiver.delegate = this
         fixAlertMediasNoUpdate()
@@ -1082,13 +1099,13 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         quickButtonChatState.showFirstTimeChatterMessage.value =
             database.chat.showFirstTimeChatterMessage
         quickButtonChatState.showNewFollowerMessage.value = database.chat.showNewFollowerMessage
-        autoSceneSwitcher.currentSwitcherId = database.autoSceneSwitchers.switcherId
+        autoSceneSwitcher.currentSwitcherId.value = database.autoSceneSwitchers.switcherId
         supportsAppleLog = hasAppleLog()
-        chat.interactiveChat =
-            getQuickButton(type = SettingsQuickButtonType.interactiveChat)?.isOn ?: false
-        chatActivityFeed.interactiveChat = chat.interactiveChat
+        chat.interactiveChat.value =
+            getQuickButton(type = SettingsQuickButtonType.interactiveChat)?.isOn?.value ?: false
+        chatActivityFeed.interactiveChat.value = chat.interactiveChat.value
         interactiveBrowsers.value =
-            getQuickButton(type = SettingsQuickButtonType.interactiveBrowserWidgets)?.isOn ?: false
+            getQuickButton(type = SettingsQuickButtonType.interactiveBrowserWidgets)?.isOn?.value ?: false
         updateShowCameraPreview()
         show.chatPhone.value = isChatPhone()
         showChatLabelsForAWhile()
@@ -1105,26 +1122,27 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         setupAudioSession()
         val camera = preferredCamera(position = CameraSelector.LENS_FACING_BACK)
         if (camera != null) {
-            val range = camera.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera)
+            val range: Pair<Float, Float> =
+                TODO("no Android counterpart for AVCaptureDevice.getUIZoomRange")
             cameraZoomXMinimum = range.first
             cameraZoomXMaximum = range.second
-            val preset = zoom.backZoomPresets.firstOrNull()
+            val preset = zoom.backZoomPresets.value.firstOrNull()
             if (preset != null) {
-                zoom.backPresetId = preset.id
+                zoom.backPresetId.value = preset.id
                 zoom.backX = preset.x
             } else {
                 zoom.backX = cameraZoomXMinimum
             }
-            zoom.x = zoom.backX
+            zoom.x.value = zoom.backX
         }
         updateFrontZoomPresets()
         updateBackZoomPresets()
-        zoom.frontPresetId = database.zoom.front[0].id
+        zoom.frontPresetId.value = database.zoom.front[0].id
         streamPreviewView.videoGravity = VideoGravity.resizeAspect
         externalDisplayStreamPreviewView.videoGravity = VideoGravity.resizeAspect
-        cameraPreviewView.backgroundColor = Color.Black
+        TODO("no Android counterpart for UIView.backgroundColor")
         updateDigitalClock(now = Instant.now())
-        twitchChat = TwitchChat(delegate = this)
+        twitchChat = TwitchChat(delegate = TODO("TwitchChatDelegate is implemented as Model extension functions"))
         setupSampleBufferReceiver()
         reloadStream()
         resetSelectedScene()
@@ -1141,7 +1159,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         addObserver("UIDevice.orientationDidChangeNotification", "handleOrientationDidChange")
         store.iconImage.value = database.iconImage
         mainScope.launch {
-            appStoreUpdateListenerTask = listenForAppStoreTransactions()
+            appStoreUpdateListenerTask = listenForAppStoreTransactions(scope = mainScope)
             getProductsFromAppStore()
             updateProductFromAppStore()
             updateIconImageFromDatabase()
@@ -1219,8 +1237,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         goPro.launchLiveStreamSelection.value = database.goPro.selectedLaunchLiveStream
         goPro.wifiCredentialsSelection.value = database.goPro.selectedWifiCredentials
         goPro.rtmpUrlSelection.value = database.goPro.selectedRtmpUrl
-        replay.speed = database.replay.speed
-        gForceManager = GForceManager(motionManager = motionManager)
+        replay.speed.value = database.replay.speed
+        gForceManager = motionManager?.let { GForceManager(sensorManager = it) }
         startGForceManager()
         chatBotCustomCommandsTextChanged()
         macrosTextFormatChanged()
@@ -1307,10 +1325,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun setBitrateDropFix() {
-        if (database.debug.bitrateDropFix) {
-            videoEncoderDataRateLimitFactor = database.debug.dataRateLimitFactor.toDouble()
+        if (database.debug.bitrateDropFix.value) {
+            TODO("no Android counterpart for videoEncoderDataRateLimitFactor")
         } else {
-            videoEncoderDataRateLimitFactor = 1.2
+            TODO("no Android counterpart for videoEncoderDataRateLimitFactor")
         }
     }
 
@@ -1440,8 +1458,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun updateFaceFilterSettings() {
         faceEffect.setSettings(
             settings = database.face.toEffectSettings(
-                backgroundImage = faceBackgroundImage,
-                iconImage = loadFaceIconImage(),
+                backgroundImage = TODO("no Android counterpart for CIImage"),
+                iconImage = TODO("no Android counterpart for CGImage"),
             ),
         )
     }
@@ -1451,19 +1469,19 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun updateImageButtonState() {
         var isOn = streamOverlay.showingCamera.value
-        if (camera.bias != 0.0) {
+        if (camera.bias.value != 0.0f) {
             isOn = true
         }
-        if (camera.isWhiteBalanceLocked) {
+        if (camera.isWhiteBalanceLocked.value) {
             isOn = true
         }
-        if (camera.isExposureAndIsoLocked) {
+        if (camera.isExposureAndIsoLocked.value) {
             isOn = true
         }
-        if (camera.isFocusLocked) {
+        if (camera.isFocusLocked.value) {
             isOn = true
         }
-        if (isOn != getQuickButton(type = SettingsQuickButtonType.image)?.isOn) {
+        if (isOn != getQuickButton(type = SettingsQuickButtonType.image)?.isOn?.value) {
             setQuickButton(type = SettingsQuickButtonType.image, isOn = isOn)
         }
     }
@@ -1473,7 +1491,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         if (database.beauty.enabled) {
             isOn = true
         }
-        if (isOn != getQuickButton(type = SettingsQuickButtonType.beauty)?.isOn) {
+        if (isOn != getQuickButton(type = SettingsQuickButtonType.beauty)?.isOn?.value) {
             setQuickButton(type = SettingsQuickButtonType.beauty, isOn = isOn)
         }
     }
@@ -1492,10 +1510,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 }
             }
             if (!database.networkInterfaceNames.any { it.interfaceName == status.name }) {
-                val interface = SettingsNetworkInterfaceName()
-                interface.interfaceName = status.name
-                interface.name = status.name
-                database.networkInterfaceNames.add(interface)
+                val networkInterface = SettingsNetworkInterfaceName()
+                networkInterface.interfaceName = status.name
+                networkInterface.name = status.name
+                database.networkInterfaceNames.add(networkInterface)
             }
         }
         moblinkIpStatusesUpdated()
@@ -1694,11 +1712,12 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         if (isLive.value || isRecording.value) {
             return BackgroundRunLevel.Off
         }
-        val keepChatRunning = database.chat.background || database.catPrinters.backgroundPrinting
-        if (keepChatRunning || database.moblink.relay.enabled) {
+        val keepChatRunning = database.chat.background ||
+            database.catPrinters.backgroundPrinting.value
+        if (keepChatRunning || database.moblink.relay.enabled.value) {
             return BackgroundRunLevel.Service(
                 keepChatRunning = keepChatRunning,
-                keepBatteryLevelRunning = database.moblink.relay.enabled,
+                keepBatteryLevelRunning = database.moblink.relay.enabled.value,
             )
         }
         return BackgroundRunLevel.Off
@@ -1715,11 +1734,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun updateOrientation() {
         updateIsPortrait()
         if (stream.value.portrait) {
-            media.setVideoOrientation(value = VideoOrientation.portrait)
+            media.setVideoOrientation(value = Surface.ROTATION_0)
         } else {
             when (deviceRotation()) {
-                Surface.ROTATION_90 -> media.setVideoOrientation(value = VideoOrientation.landscapeRight)
-                Surface.ROTATION_270 -> media.setVideoOrientation(value = VideoOrientation.landscapeLeft)
+                Surface.ROTATION_90 -> media.setVideoOrientation(value = Surface.ROTATION_90)
+                Surface.ROTATION_270 -> media.setVideoOrientation(value = Surface.ROTATION_270)
                 else -> {}
             }
         }
@@ -1769,7 +1788,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             relaxedBitrate = false
             this.relaxedBitrateStartTime = null
         }
-        speechToText?.tick(now = monotonicNow)
+        speechToText?.tick(now = monotonicNow.toEpochMilli())
     }
 
     private fun handle1sTimer() {
@@ -1780,10 +1799,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         if (inServiceBackground) {
             return
         }
-        updateStreamUptime(now = monotonicNow)
+        updateStreamUptime(now = monotonicNow.toEpochMilli())
         updateRecordingLength(now = now)
         media.updateSrtTransportBitrate()
-        updateSpeed(now = monotonicNow)
+        updateSpeed(now = monotonicNow.toEpochMilli())
         updateIngestsSpeed()
         updateBondingStatistics()
         updateLocation()
@@ -1795,18 +1814,18 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         updateDistance()
         updateAltitude()
         updateSlope()
-        updateAverageSpeed(now = monotonicNow)
-        updateTextEffects(now = now, timestamp = monotonicNow)
+        updateAverageSpeed(now = monotonicNow.toEpochMilli())
+        updateTextEffects(now = now, timestamp = TimeSource.Monotonic.markNow())
         updateMapEffects()
         updateScoreboardEffects()
         updatePoll()
         updateObsSceneSwitcher(now = monotonicNow)
-        weatherManager.setLocation(location = latestKnownLocation)
-        geographyManager.setLocation(location = latestKnownLocation)
+        weatherManager.setLocation(location = null)
+        geographyManager.setLocation(location = null)
         updateBitrateStatus()
         updateAdsRemainingTimer(now = now)
         if (database.show.systemMonitor) {
-            resourceUsage.update(now = monotonicNow)
+            resourceUsage.update(now = monotonicNow.toEpochMilli())
             systemMonitor.appCpu.value = resourceUsage.getAppCpuUsage()
             systemMonitor.cpu.value = resourceUsage.getCpuUsage()
             systemMonitor.ram.value = resourceUsage.getMemoryUsage()
@@ -1831,7 +1850,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     private fun handle5sTimer() {
         updateRemoteControlAssistantStatus()
         if (isWatchLocal()) {
-            sendThermalStateToWatch(thermalState = statusOther.thermalState.value)
+            sendThermalStateToWatch(
+                thermalState = ThermalState.from(statusOther.thermalState.value.ordinal),
+            )
         }
         teslaGetMediaState()
     }
@@ -1841,7 +1862,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         media.logStatistics()
         updateObsStatus()
         updateRemoteControlStatus()
-        if (stream.value.enabled && database.debug.videoBitrateChange) {
+        if (stream.value.enabled && database.debug.videoBitrateChange.value) {
             media.updateVideoStreamBitrate(bitrate = stream.value.bitrate)
         }
         updateViewers()
@@ -2059,7 +2080,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         if (database.alertsMediaGallery.bundledSounds.any { it.id == soundId }) {
             TODO("no Android counterpart for Bundle.main.url; load from res/raw")
         }
-        return alertMediaStorage.makePath(id = soundId)
+        return alertMediaStorage.makePath(id = soundId).toString()
     }
 
     fun getAlertsEffect(id: UUID): AlertsEffect? {
@@ -2075,7 +2096,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         pollEnabled = on
         pollVotes = mutableListOf(0, 0, 0)
         if (pollEnabled) {
-            pollEffect = PollEffect(canvasSize = media.getCanvasSize())
+            pollEffect = PollEffect(canvasSize = toComposeSize(media.getCanvasSize()))
         } else {
             pollEffect = null
         }
@@ -2168,18 +2189,18 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun setQuickButton(type: SettingsQuickButtonType, isOn: Boolean) {
         val button = getQuickButton(type = type) ?: return
-        button.isOn = isOn
-        val filter = RemoteControlFilter(type)
+        button.isOn.value = isOn
+        val filter = runCatching { RemoteControlFilter.valueOf(type.toString()) }.getOrNull()
         if (filter != null) {
             remoteControlStateChanged(
-                state = RemoteControlAssistantStreamerState(filters = mapOf(filter to button.isOn)),
+                state = RemoteControlAssistantStreamerState(filters = mapOf(filter to button.isOn.value)),
             )
         }
     }
 
     fun toggleQuickButton(type: SettingsQuickButtonType) {
         val button = getQuickButton(type = type) ?: return
-        setQuickButton(type = type, isOn = !button.isOn)
+        setQuickButton(type = type, isOn = !button.isOn.value)
     }
 
     fun setFilterQuickButton(type: SettingsQuickButtonType, on: Boolean) {
@@ -2236,18 +2257,18 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun setCameraManQuickButton(on: Boolean) {
         cameraManEffect = CameraManEffect(
-            moveVertically = database.debug.cameraManMoveVertically,
-            speed = database.debug.cameraManSpeed,
-            alwaysMove = database.debug.cameraManAlwaysMove,
+            moveVertically = database.debug.cameraManMoveVertically.value,
+            speed = database.debug.cameraManSpeed.value,
+            alwaysMove = database.debug.cameraManAlwaysMove.value,
         )
         setFilterQuickButton(type = SettingsQuickButtonType.cameraMan, on = on)
     }
 
     fun toggleCameraManQuickButton() {
         cameraManEffect = CameraManEffect(
-            moveVertically = database.debug.cameraManMoveVertically,
-            speed = database.debug.cameraManSpeed,
-            alwaysMove = database.debug.cameraManAlwaysMove,
+            moveVertically = database.debug.cameraManMoveVertically.value,
+            speed = database.debug.cameraManSpeed.value,
+            alwaysMove = database.debug.cameraManAlwaysMove.value,
         )
         toggleFilterQuickButton(type = SettingsQuickButtonType.cameraMan)
     }
@@ -2275,7 +2296,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun setMuteOn(value: Boolean) {
-        audio.muted = value
+        audio.muted.value = value
         updateMute()
         setQuickButton(type = SettingsQuickButtonType.mute, isOn = value)
     }
@@ -2317,6 +2338,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun setPinchScale(scale: Float) {
         pinchEffect.setSettings(scale = scale)
     }
+
+    private var loggerDebugEnabled = false
 
     fun setDebugLogging(on: Boolean) {
         loggerDebugEnabled = on
@@ -2389,7 +2412,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             if (browser.browserEffect.isLoaded) {
                 messages.add("${browser.browserEffect.host}: $progress%")
                 if (progress != 100 ||
-                    browser.browserEffect.startLoadingTime.plusSeconds(5).isAfter(Instant.now())
+                    Instant.now() < browser.browserEffect.startLoadingTime.plusSeconds(5)
                 ) {
                     if (!statusTopRight.browserWidgetsStatusChanged.value) {
                         statusTopRight.browserWidgetsStatusChanged.value = true
@@ -2493,7 +2516,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         database.scoreboardPlayers.firstOrNull { it.id == id }?.name ?: "🇸🇪 Moblin"
 
     private fun updateDigitalClock(now: Instant) {
-        val digitalClock = digitalClockFormatter.format(now)
+        val digitalClock = formatDate(date = now)
         if (statusOther.digitalClock.value != digitalClock) {
             statusOther.digitalClock.value = digitalClock
         }
@@ -2545,7 +2568,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         val message: String
         if (stats.anyServerEnabled) {
             if (stats.numberOfClients > 0) {
-                val total = stats.total.formatBytes()
+                val total = sizeFormatter.string(fromByteCount = stats.total)
                 serversSpeed = (serversSpeed * 0.7 + stats.speed * 0.3).toLong()
                 val speed = formatBytesPerSecond(speed = 8 * serversSpeed)
                 message = localized("$speed ($total) ${stats.numberOfClients}")
@@ -2570,8 +2593,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         )
         if (numberOfRtmpClients > 0) {
             result = result.copy(
-                total = result.total + serverStats.total,
-                speed = result.speed + serverStats.speed,
+                total = result.total + serverStats.total.toLong(),
+                speed = result.speed + serverStats.speed.toLong(),
             )
         }
         return result
@@ -2587,8 +2610,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         )
         if (numberOfSrtlaClients > 0) {
             result = result.copy(
-                total = result.total + serverStats.total,
-                speed = result.speed + serverStats.speed,
+                total = result.total + serverStats.total.toLong(),
+                speed = result.speed + serverStats.speed.toLong(),
             )
         }
         return result
@@ -2599,8 +2622,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         for (client in ingests.srt) {
             val clientStats = client.updateStats()
             result = result.copy(
-                total = result.total + clientStats.total,
-                speed = result.speed + clientStats.speed,
+                total = result.total + clientStats.total.toLong(),
+                speed = result.speed + clientStats.speed.toLong(),
                 numberOfClients = result.numberOfClients + 1,
                 anyServerEnabled = true,
             )
@@ -2618,8 +2641,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         )
         if (numberOfRistClients > 0) {
             result = result.copy(
-                total = result.total + serverStats.total,
-                speed = result.speed + serverStats.speed,
+                total = result.total + serverStats.total.toLong(),
+                speed = result.speed + serverStats.speed.toLong(),
             )
         }
         return result
@@ -2630,8 +2653,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         for (client in ingests.rtsp) {
             val clientStats = client.updateStats()
             result = result.copy(
-                total = result.total + clientStats.total,
-                speed = result.speed + clientStats.speed,
+                total = result.total + clientStats.total.toLong(),
+                speed = result.speed + clientStats.speed.toLong(),
                 numberOfClients = result.numberOfClients + 1,
                 anyServerEnabled = true,
             )
@@ -2649,8 +2672,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         )
         if (numberOfWhipClients > 0) {
             result = result.copy(
-                total = result.total + serverStats.total,
-                speed = result.speed + serverStats.speed,
+                total = result.total + serverStats.total.toLong(),
+                speed = result.speed + serverStats.speed.toLong(),
             )
         }
         return result
@@ -2661,8 +2684,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         for (client in ingests.whep) {
             val clientStats = client.updateStats()
             result = result.copy(
-                total = result.total + clientStats.total,
-                speed = result.speed + clientStats.speed,
+                total = result.total + clientStats.total.toLong(),
+                speed = result.speed + clientStats.speed.toLong(),
                 numberOfClients = result.numberOfClients + 1,
                 anyServerEnabled = true,
             )
@@ -2694,9 +2717,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         if (state != statusOther.thermalState.value) {
             statusOther.thermalState.value = state
         }
-        streamingHistoryStream?.updateHighestThermalState(thermalState = ThermalState.from(state))
+        streamingHistoryStream?.updateHighestThermalState(
+            thermalState = ThermalState.from(state.ordinal),
+        )
         if (isWatchLocal()) {
-            sendThermalStateToWatch(thermalState = state)
+            sendThermalStateToWatch(thermalState = ThermalState.from(state.ordinal))
         }
         Log.i("Model", "Thermal state: $state")
         if (statusOther.thermalState.value == MoblinkThermalState.red) {
@@ -2714,14 +2739,14 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun detachCamera() {
         val params = VideoUnitAttachParams(
-            devices = CaptureDevices(hasSceneDevice = false, devices = emptyList()),
-            builtinDelay = 0,
+            devices = CaptureDevices(hasSceneDevice = false, devices = mutableListOf()),
+            builtinDelay = 0.0,
             cameraPreviewLayers = cameraPreviewView.previewLayers,
             attachCameraPreview = false,
             showCameraPreview = false,
             externalDisplayPreview = false,
             bufferedVideo = null,
-            preferredVideoStabilizationMode = SettingsVideoStabilizationMode.off,
+            preferredVideoStabilizationMode = SettingsVideoStabilizationMode.off.ordinal,
             ignoreFramesAfterAttachSeconds = 0.0,
             fillFrame = false,
             isLandscapeStreamAndPortraitUi = isLandscapeStreamAndPortraitUi(),
@@ -2738,23 +2763,23 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     private fun updateCameraPreviewRotation() {
-        if (useLandscapeStreamAndPortraitUi(cameraDevice, isLandscapeStreamAndPortraitUi())) {
-            cameraPreviewView.setVideoOrientation(VideoOrientation.portrait)
+        if (useLandscapeStreamAndPortraitUi(null, isLandscapeStreamAndPortraitUi())) {
+            cameraPreviewView.setVideoOrientation(Surface.ROTATION_0)
         } else if (stream.value.portrait) {
-            cameraPreviewView.setVideoOrientation(VideoOrientation.portrait)
+            cameraPreviewView.setVideoOrientation(Surface.ROTATION_0)
         } else {
             when (deviceRotation()) {
                 Surface.ROTATION_90 ->
-                    cameraPreviewView.setVideoOrientation(VideoOrientation.landscapeRight)
+                    cameraPreviewView.setVideoOrientation(Surface.ROTATION_90)
                 Surface.ROTATION_270 ->
-                    cameraPreviewView.setVideoOrientation(VideoOrientation.landscapeLeft)
-                else -> cameraPreviewView.setVideoOrientation(VideoOrientation.landscapeRight)
+                    cameraPreviewView.setVideoOrientation(Surface.ROTATION_270)
+                else -> cameraPreviewView.setVideoOrientation(Surface.ROTATION_90)
             }
         }
     }
 
     fun getVideoMirroredOnStream(device: CaptureDevice): Boolean {
-        if (device.position == CameraSelector.LENS_FACING_FRONT) {
+        if (cameraPosition == CameraSelector.LENS_FACING_FRONT) {
             return database.mirrorFrontCameraOnStream
         }
         return false
@@ -2783,21 +2808,19 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         val cameraDevice = preferredCamera(position = position)
         this.cameraDevice = cameraDevice
         setFocusAfterCameraAttach()
-        cameraZoomLevelToXScale = cameraDevice
-            ?.getZoomFactorScale(hasUltraWideCamera = hasUltraWideCamera(position = position)) ?: 1.0f
-        val range = cameraDevice
-            ?.getUIZoomRange(hasUltraWideCamera = hasUltraWideCamera(position = position))
-        cameraZoomXMinimum = range?.first ?: 1.0f
-        cameraZoomXMaximum = range?.second ?: 1.0f
+        cameraZoomLevelToXScale = TODO("no Android counterpart for AVCaptureDevice.getZoomFactorScale")
+        val range: Pair<Float, Float> = TODO("no Android counterpart for AVCaptureDevice.getUIZoomRange")
+        cameraZoomXMinimum = range.first
+        cameraZoomXMaximum = range.second
         cameraPosition = position
         when (position) {
             CameraSelector.LENS_FACING_BACK -> {
                 updateBackZoomSwitchTo()
-                zoom.x = zoom.backX
+                zoom.x.value = zoom.backX
             }
             CameraSelector.LENS_FACING_FRONT -> {
                 updateFrontZoomSwitchTo()
-                zoom.x = zoom.frontX
+                zoom.x.value = zoom.frontX
             }
             else -> {}
         }
@@ -2819,13 +2842,13 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         )
         val params = VideoUnitAttachParams(
             devices = devices,
-            builtinDelay = database.debug.builtinAudioAndVideoDelay,
+            builtinDelay = database.debug.builtinAudioAndVideoDelay.value,
             cameraPreviewLayers = cameraPreviewView.previewLayers,
             attachCameraPreview = attachCameraPreview,
             showCameraPreview = showCameraPreview,
             externalDisplayPreview = externalDisplayPreview,
             bufferedVideo = null,
-            preferredVideoStabilizationMode = getVideoStabilizationMode(scene = scene),
+            preferredVideoStabilizationMode = getVideoStabilizationMode(scene = scene).ordinal,
             ignoreFramesAfterAttachSeconds = getIgnoreFramesAfterAttachSeconds(),
             fillFrame = getFillFrame(scene = scene),
             isLandscapeStreamAndPortraitUi = isLandscapeStreamAndPortraitUi(),
@@ -2838,7 +2861,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             onSuccess = {
                 streamPreviewView.isMirrored = isMirrored
                 externalDisplayStreamPreviewView.isMirrored = isMirrored
-                val x = setCameraZoomX(x = zoom.x)
+                val x = setCameraZoomX(x = zoom.x.value)
                 if (x != null) {
                     setZoomXWhenInRange(x = x)
                 }
@@ -2850,24 +2873,24 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 }
                 lastAttachCompletedTime = Instant.now()
                 relaxedBitrateStartTime = lastAttachCompletedTime
-                relaxedBitrate = database.debug.relaxedBitrate
+                relaxedBitrate = database.debug.relaxedBitrate.value
                 cameraPreviewView.select(id = devices.getSceneDevice()?.id)
                 updateCameraPreviewRotation()
                 updateVideoPreviews()
             },
         )
-        zoom.xPinch = zoom.x
-        zoom.hasZoom = true
+        zoom.xPinch = zoom.x.value
+        zoom.hasZoom.value = true
         updateFrontZoomPresets()
         updateBackZoomPresets()
     }
 
     private fun getIgnoreFramesAfterAttachSeconds(): Double =
-        database.debug.cameraSwitchRemoveBlackish.toDouble() + database.debug.builtinAudioAndVideoDelay
+        database.debug.cameraSwitchRemoveBlackish.value + database.debug.builtinAudioAndVideoDelay.value
 
     private fun getIgnoreFramesAfterAttachSecondsReplaceCamera(): Double =
         if (database.forceSceneSwitchTransition) {
-            database.debug.cameraSwitchRemoveBlackish.toDouble()
+            database.debug.cameraSwitchRemoveBlackish.value.toDouble()
         } else {
             0.0
         }
@@ -2877,17 +2900,17 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         cameraPosition = null
         streamPreviewView.isMirrored = false
         externalDisplayStreamPreviewView.isMirrored = false
-        zoom.hasZoom = false
-        cameraPreviewView.setDevices(ids = emptyList())
+        zoom.hasZoom.value = false
+        cameraPreviewView.setDevices(ids = emptyList<UUID>())
         media.attachBufferedCamera(
             devices = getBuiltinCameraDevices(scene = scene, sceneDevice = null),
-            builtinDelay = database.debug.builtinAudioAndVideoDelay,
+            builtinDelay = database.debug.builtinAudioAndVideoDelay.value,
             cameraPreviewLayers = cameraPreviewView.previewLayers,
             attachCameraPreview = false,
             showCameraPreview = updateShowCameraPreview(),
             externalDisplayPreview = externalDisplayPreview,
             cameraId = cameraId,
-            preferredVideoStabilizationMode = getVideoStabilizationMode(scene = scene),
+            preferredVideoStabilizationMode = getVideoStabilizationMode(scene = scene).ordinal,
             ignoreFramesAfterAttachSeconds = getIgnoreFramesAfterAttachSecondsReplaceCamera(),
             fillFrame = getFillFrame(scene = scene),
             isLandscapeStreamAndPortraitUi = isLandscapeStreamAndPortraitUi(),
@@ -2944,23 +2967,23 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun toggleMute() {
-        audio.muted = !audio.muted
+        audio.muted.value = !audio.muted.value
         updateMute()
     }
 
     fun setMuted(value: Boolean) {
-        audio.muted = value
+        audio.muted.value = value
         updateMute()
     }
 
     fun updateMute() {
-        media.setMute(on = audio.muted)
+        media.setMute(on = audio.muted.value)
         if (isWatchLocal()) {
-            sendIsMutedToWatch(isMuteOn = audio.muted)
+            sendIsMutedToWatch(isMuteOn = audio.muted.value)
         }
-        updateTextEffects(now = Instant.now(), timestamp = Instant.now())
+        updateTextEffects(now = Instant.now(), timestamp = TimeSource.Monotonic.markNow())
         forceUpdateTextEffects()
-        remoteControlStateChanged(state = RemoteControlAssistantStreamerState(muted = audio.muted))
+        remoteControlStateChanged(state = RemoteControlAssistantStreamerState(muted = audio.muted.value))
     }
 
     private fun makeFlameRedToast() {
@@ -2986,12 +3009,16 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun preferredCamera(position: Int): CaptureDevice? {
         val scene = findEnabledScene(id = sceneSelector.selectedSceneId)
         if (scene != null) {
-            val id = when (position) {
+            val deviceId = when (position) {
                 CameraSelector.LENS_FACING_BACK -> scene.videoSource.backCameraId
                 CameraSelector.LENS_FACING_FRONT -> scene.videoSource.frontCameraId
                 else -> scene.videoSource.externalCameraId
             }
-            return CaptureDevice(id)
+            return CaptureDevice(
+                device = deviceId,
+                id = builtinCameraIds[deviceId] ?: UUID.randomUUID(),
+                isVideoMirrored = false,
+            )
         }
         return null
     }
@@ -3182,11 +3209,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         effect: AlertsEffect?,
         duration: Double,
     ) {
-        if (getQuickButton(type = type)?.isOn != false) {
+        if (getQuickButton(type = type)?.isOn?.value != false) {
             return
         }
         setQuickButton(type = type, isOn = true)
-        effect?.play(alert = AlertsEffectAlert.quickButton)
+        effect?.play(alert = TODO("no Android counterpart for AlertsEffectAlert.quickButton"))
         mainScope.launch {
             delay((duration * 1000).toLong())
             setQuickButton(type = type, isOn = false)
@@ -3272,7 +3299,7 @@ fun Model.toggleDrawOnStream() {
 
 fun Model.drawOnStreamLineComplete() {
     drawOnStreamEffect.updateOverlay(
-        videoSize = media.getCanvasSize(),
+        videoSize = toComposeSize(media.getCanvasSize()),
         size = drawOnStreamSize,
         lines = drawOnStream.lines.value,
         mirror = streamOverlay.isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream,
@@ -3284,7 +3311,7 @@ fun Model.drawOnStreamLineComplete() {
 fun Model.drawOnStreamWipe() {
     drawOnStream.lines.value = emptyList()
     drawOnStreamEffect.updateOverlay(
-        videoSize = media.getCanvasSize(),
+        videoSize = toComposeSize(media.getCanvasSize()),
         size = drawOnStreamSize,
         lines = drawOnStream.lines.value,
         mirror = streamOverlay.isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream,
@@ -3299,7 +3326,7 @@ fun Model.drawOnStreamUndo() {
     }
     drawOnStream.lines.value = drawOnStream.lines.value.dropLast(1)
     drawOnStreamEffect.updateOverlay(
-        videoSize = media.getCanvasSize(),
+        videoSize = toComposeSize(media.getCanvasSize()),
         size = drawOnStreamSize,
         lines = drawOnStream.lines.value,
         mirror = streamOverlay.isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream,

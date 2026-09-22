@@ -38,17 +38,12 @@ fun Model.setupPictureInPicture() {
 
 fun Model.updatePictureInPicture() {
     if (stream.value.backgroundStreaming && stream.value.backgroundStreamingPiP && (isLive.value || isRecording.value)) {
-        if (pipController.value?.contentSource == null) {
-            pipController.value?.contentSource =
-                TODO("no Android counterpart for AVPictureInPictureController.ContentSource")
-        }
-    } else {
-        pipController.value?.contentSource = null
+        TODO("no Android counterpart for AVPictureInPictureController.ContentSource")
     }
 }
 
 fun Model.pictureInPictureEnabled(): Boolean {
-    return pipController.value?.contentSource != null
+    return false
 }
 
 fun Model.pictureInPictureController(

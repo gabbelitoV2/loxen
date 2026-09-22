@@ -76,7 +76,7 @@ fun ChatSettingsAppearanceView(
                 Text(localized("Font size"))
                 Slider(
                     value = fontSize.toFloat(),
-                    onValueChange = { chat.fontSize = it.toDouble() },
+                    onValueChange = { chat.fontSize = it },
                     valueRange = 10f..30f,
                     steps = 19,
                     onValueChangeFinished = { TODO("reloadChatMessages") },
@@ -98,7 +98,7 @@ fun ChatSettingsAppearanceView(
                 Text(localized("Big GIF scale"))
                 Slider(
                     value = bigGifScale.toFloat(),
-                    onValueChange = { chat.bigGifScale = it.toDouble() },
+                    onValueChange = { chat.bigGifScale = it },
                     valueRange = 1f..10f,
                     steps = 8,
                     onValueChangeFinished = { TODO("reloadChatMessages") },

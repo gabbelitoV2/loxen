@@ -2,6 +2,7 @@ package com.moblin.android.various.model
 
 import com.moblin.android.localized
 import com.moblin.android.streamingplatforms.youtube.YouTubeApi
+import com.moblin.android.streamingplatforms.youtube.YouTubeApiDelegate
 import com.moblin.android.streamingplatforms.youtube.YouTubeLiveChat
 import com.moblin.android.streamingplatforms.youtube.fetchYouTubeVideoId
 import com.moblin.android.streamingplatforms.youtube.removeYouTubeAuthStateInKeychain
@@ -27,7 +28,7 @@ fun Model.youTubeVideoIdUpdated() {
 }
 
 fun Model.updateViewersYouTube(): StreamingPlatformStatus {
-    return StreamingPlatformStatus(Platform.youTube, youTubePlatformStatus)
+    return StreamingPlatformStatus(StreamingPlatform.youTube, youTubePlatformStatus)
 }
 
 fun Model.youTubeSignIn(stream: SettingsStream) {
@@ -59,14 +60,14 @@ fun Model.youTubeSignOut(stream: SettingsStream) {
 }
 
 fun Model.makeNotLoggedInToYouTubeToastIfNeeded() {
-    if (!stream.youTubeWantsToBeLoggedIn || stream.isYouTubeAuthorized()) {
+    if (!stream.value.youTubeWantsToBeLoggedIn || stream.value.isYouTubeAuthorized()) {
         return
     }
-    stream.youTubeNotLoggedInCount += 1
-    if (stream.youTubeNotLoggedInCount >= maxNotLoggedInToastCount) {
-        stream.youTubeWantsToBeLoggedIn = false
+    stream.value.youTubeNotLoggedInCount += 1
+    if (stream.value.youTubeNotLoggedInCount >= maxNotLoggedInToastCount) {
+        stream.value.youTubeWantsToBeLoggedIn = false
     }
-    makeNotLoggedInToToast(platform = Platform.youTube)
+    makeNotLoggedInToToast(platform = StreamingPlatform.youTube)
 }
 
 fun Model.getYouTubeApi(stream: SettingsStream, onCompleted: (YouTubeApi?) -> Unit) {
@@ -76,7 +77,12 @@ fun Model.getYouTubeApi(stream: SettingsStream, onCompleted: (YouTubeApi?) -> Un
             return@getYouTubeAccesssToken
         }
         val youTubeApi = YouTubeApi(accessToken)
-        youTubeApi.delegate = this
+        val model = this
+        youTubeApi.delegate = object : YouTubeApiDelegate {
+            override fun youTubeApiUnauthorized() {
+                model.youTubeApiUnauthorized()
+            }
+        }
         onCompleted(youTubeApi)
     }
 }
@@ -93,7 +99,7 @@ fun Model.tryToFetchYouTubeVideoId() {
     if (!database.chat.enabled) {
         return
     }
-    if (!(stream.isYouTubeAuthorized() || stream.youTubeHandle.isNotEmpty())) {
+    if (!(stream.value.isYouTubeAuthorized() || stream.value.youTubeHandle.isNotEmpty())) {
         return
     }
     val youTubeFetchVideoIdStartTime = this.youTubeFetchVideoIdStartTime ?: return
@@ -103,39 +109,38 @@ fun Model.tryToFetchYouTubeVideoId() {
                        subTitle = localized("You must be live on YouTube for this to work."))
         return
     }
-    if (stream.isYouTubeAuthorized()) {
-        getYouTubeApi(stream) { youTubeApi ->
+    if (stream.value.isYouTubeAuthorized()) {
+        getYouTubeApi(stream.value) { youTubeApi ->
             if (youTubeApi == null) {
                 return@getYouTubeApi
             }
             youTubeApi.listLiveBroadcasts(status = "active") { response ->
-                response.onSuccess { listResponse ->
+                val listResponse = response.getOrNull()
+                if (listResponse != null) {
                     val videoIds = listResponse.items.map { it.id }
-                    if (videoIds.isEmpty()) {
-                        return@onSuccess
-                    }
-                    stopFetchingYouTubeChatVideoId()
-                    val newVideoIds = videoIds.joinToString(",")
-                    if (newVideoIds == stream.youTubeVideoIds) {
-                        return@onSuccess
-                    }
-                    stream.youTubeVideoIds = newVideoIds
-                    if (stream.enabled) {
-                        youTubeVideoIdUpdated()
+                    if (videoIds.isNotEmpty()) {
+                        stopFetchingYouTubeChatVideoId()
+                        val newVideoIds = videoIds.joinToString(",")
+                        if (newVideoIds != stream.value.youTubeVideoIds) {
+                            stream.value.youTubeVideoIds = newVideoIds
+                            if (stream.value.enabled) {
+                                youTubeVideoIdUpdated()
+                            }
+                        }
                     }
                 }
             }
         }
-    } else if (stream.youTubeHandle.isNotEmpty()) {
+    } else if (stream.value.youTubeHandle.isNotEmpty()) {
         mainScope.launch {
-            val videoId = runCatching { fetchYouTubeVideoId(stream.youTubeHandle) }.getOrNull()
+            val videoId = runCatching { fetchYouTubeVideoId(stream.value.youTubeHandle) }.getOrNull()
             if (videoId != null) {
                 stopFetchingYouTubeChatVideoId()
-                if (videoId == stream.youTubeVideoIds) {
+                if (videoId == stream.value.youTubeVideoIds) {
                     return@launch
                 }
-                stream.youTubeVideoIds = videoId
-                if (stream.enabled) {
+                stream.value.youTubeVideoIds = videoId
+                if (stream.value.enabled) {
                     youTubeVideoIdUpdated()
                 }
             }
@@ -144,11 +149,11 @@ fun Model.tryToFetchYouTubeVideoId() {
 }
 
 fun Model.isYouTubeViewersConfigured(): Boolean {
-    return stream.isYouTubeAuthorized() && stream.youTubeVideoIds.isNotEmpty()
+    return stream.value.isYouTubeAuthorized() && stream.value.youTubeVideoIds.isNotEmpty()
 }
 
 fun Model.isYouTubeLiveChatConfigured(): Boolean {
-    return database.chat.enabled && stream.youTubeVideoIds.isNotEmpty()
+    return database.chat.enabled && stream.value.youTubeVideoIds.isNotEmpty()
 }
 
 fun Model.isYouTubeLiveChatConnected(): Boolean {
@@ -174,9 +179,9 @@ fun Model.reloadYouTubeLiveChat() {
         chat.stop()
     }
     youTubeLiveChats.clear()
-    if (isYouTubeLiveChatConfigured() && !isRemoteControlChatAndEvents(platform = Platform.youTube)) {
-        for (videoId in stream.getYouTubeVideoIds()) {
-            val chat = YouTubeLiveChat(this, videoId, stream.chat)
+    if (isYouTubeLiveChatConfigured() && !isRemoteControlChatAndEvents(platform = StreamingPlatform.youTube)) {
+        for (videoId in stream.value.getYouTubeVideoIds()) {
+            val chat = YouTubeLiveChat(this, videoId, stream.value.chat)
             youTubeLiveChats[videoId] = chat
             chat.start()
         }
@@ -184,17 +189,17 @@ fun Model.reloadYouTubeLiveChat() {
     updateChatMoreThanOneChatConfigured()
 }
 
-fun Model.updateYouTubeStream(monotonicNow: Long) {
-    if (!isLive || !isYouTubeViewersConfigured()) {
-        youTubePlatformStatus = StreamingPlatformStatusState.Unknown
+fun Model.updateYouTubeStream(monotonicNow: Instant) {
+    if (!isLive.value || !isYouTubeViewersConfigured()) {
+        youTubePlatformStatus = PlatformStatus.unknown
         return
     }
-    if (monotonicNow - youTubeStreamUpdateTime <= youTubeStreamUpdateTimePollDelta) {
+    if (Duration.between(youTubeStreamUpdateTime, monotonicNow) <= youTubeStreamUpdateTimePollDelta) {
         return
     }
     youTubeStreamUpdateTime = monotonicNow
-    youTubeStreamUpdateTimePollDelta = minOf(youTubeStreamUpdateTimePollDelta * 2,
-                                              900.seconds.inWholeNanoseconds)
+    youTubeStreamUpdateTimePollDelta = minOf(youTubeStreamUpdateTimePollDelta.multipliedBy(2),
+                                              Duration.ofSeconds(900))
     getVideo()
 }
 
@@ -208,12 +213,13 @@ private fun Model.getYouTubeAccesssToken(stream: SettingsStream, onCompleted: (S
 }
 
 private fun Model.getVideo() {
-    getYouTubeApi(stream) { youTubeApi ->
-        youTubeApi?.listVideos(videoIds = stream.youTubeVideoIds) { response ->
-            response.onSuccess { response ->
+    getYouTubeApi(stream.value) { youTubeApi ->
+        youTubeApi?.listVideos(videoIds = stream.value.youTubeVideoIds) { response ->
+            val videosResponse = response.getOrNull()
+            if (videosResponse != null) {
                 var totalViewers = 0
                 var isLive = false
-                for (item in response.items) {
+                for (item in videosResponse.items) {
                     val liveStreamingDetails = item.liveStreamingDetails
                     if (liveStreamingDetails.isLive()) {
                         isLive = true
@@ -221,24 +227,24 @@ private fun Model.getVideo() {
                     }
                 }
                 if (isLive) {
-                    youTubePlatformStatus = StreamingPlatformStatusState.Live(viewerCount = totalViewers)
-                } else if (response.items.isNotEmpty()) {
-                    youTubePlatformStatus = StreamingPlatformStatusState.Offline
+                    youTubePlatformStatus = PlatformStatus.live(viewerCount = totalViewers)
+                } else if (videosResponse.items.isNotEmpty()) {
+                    youTubePlatformStatus = PlatformStatus.offline
                 } else {
-                    youTubePlatformStatus = StreamingPlatformStatusState.Unknown
+                    youTubePlatformStatus = PlatformStatus.unknown
                 }
-            }.onFailure {
-                youTubePlatformStatus = StreamingPlatformStatusState.Unknown
+            } else {
+                youTubePlatformStatus = PlatformStatus.unknown
             }
         }
     }
 }
 
 fun Model.youTubeApiUnauthorized() {
-    if (!stream.isYouTubeAuthorized()) {
+    if (!stream.value.isYouTubeAuthorized()) {
         return
     }
-    stream.youTubeAuthState = null
-    removeYouTubeAuthStateInKeychain(stream.id)
-    makeNotLoggedInToToast(platform = Platform.youTube)
+    stream.value.youTubeAuthState = null
+    removeYouTubeAuthStateInKeychain(stream.value.id)
+    makeNotLoggedInToToast(platform = StreamingPlatform.youTube)
 }

@@ -61,7 +61,7 @@ private const val TAG = "ModelStream"
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
-private val lowPowerBitrate: UInt = 2_000_000u
+private val lowPowerBitrate: Int = 2_000_000
 
 val fffffMessage = localized("😢 FFFFF 😢")
 
@@ -302,7 +302,7 @@ fun Model.startStream(delayed: Boolean = false) {
     if (database.location.resetWhenGoingLive) {
         resetLocationData()
     }
-    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.goLive))
+    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.entries.first { it.rawValue == "goLive" }))
     setIsLive(value = true)
     streaming = true
     streamTotalBytes = 0L
@@ -321,7 +321,11 @@ fun Model.startStream(delayed: Boolean = false) {
     }
     val historyStream = StreamingHistoryStream(settings = stream.value.clone())
     streamingHistoryStream = historyStream
-    historyStream.updateHighestThermalState(thermalState = ThermalState.from(statusOther.thermalState.value))
+    historyStream.updateHighestThermalState(
+        thermalState = ThermalState.entries.firstOrNull {
+            it.name.equals(statusOther.thermalState.value.rawValue, ignoreCase = true)
+        } ?: ThermalState.NOMINAL,
+    )
     historyStream.updateLowestBatteryLevel(level = battery.level.value)
 }
 
@@ -337,7 +341,7 @@ fun Model.stopStream(
         return false
     }
     Log.i(TAG, "stream: Stop")
-    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.end))
+    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.entries.first { it.rawValue == "end" }))
     streamTotalBytes += media.streamTotal()
     streaming = false
     if (stream.value.recording.autoStopRecording) {
@@ -684,7 +688,7 @@ fun Model.setStreamResolution() {
     }
     media.setVideoSize(
         capture = captureSize,
-        canvas = resolution.dimensions(portrait = stream.value.portrait).toSize(),
+        canvas = resolution.dimensions(portrait = stream.value.portrait),
         stream = stream.value.resolution.dimensions(portrait = stream.value.portrait),
     )
 }
@@ -1033,11 +1037,11 @@ fun Model.setGraphicsImplementation() {
     media.setGraphicsImplementation(database.graphicsImplementation)
 }
 
-fun Model.getBitratePresetByBitrate(bitrate: UInt): SettingsBitratePreset? {
+fun Model.getBitratePresetByBitrate(bitrate: Int): SettingsBitratePreset? {
     return database.bitratePresets.firstOrNull { it.bitrate == bitrate.toInt() }
 }
 
-fun Model.setBitrate(bitrate: UInt) {
+fun Model.setBitrate(bitrate: Int) {
     if (bitrate != stream.value.bitrate) {
         stream.value.bitrate = bitrate
     }
@@ -1048,7 +1052,7 @@ fun Model.setBitrate(bitrate: UInt) {
     remoteControlStateChanged(state = RemoteControlAssistantStreamerState(bitrate = preset.id))
 }
 
-private fun Model.getBitrate(): UInt {
+private fun Model.getBitrate(): Int {
     return if (statusTopRight.isLowPowerMode.value) {
         lowPowerBitrate
     } else {
@@ -1084,7 +1088,7 @@ fun Model.updateBitrateStatus() {
             previousBitrateStatusColorSrtDroppedPacketsTotal
         ) {
             Color.Red
-        } else if (media.numberOfFailedEncodings > previousBitrateStatusNumberOfFailedEncodings) {
+        } else if (numberOfFailedEncodings > previousBitrateStatusNumberOfFailedEncodings) {
             Color.Red
         } else {
             Color.White
@@ -1094,7 +1098,7 @@ fun Model.updateBitrateStatus() {
         }
     } finally {
         previousBitrateStatusColorSrtDroppedPacketsTotal = media.srtDroppedPacketsTotal
-        previousBitrateStatusNumberOfFailedEncodings = media.numberOfFailedEncodings
+        previousBitrateStatusNumberOfFailedEncodings = numberOfFailedEncodings
     }
 }
 

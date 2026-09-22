@@ -66,7 +66,7 @@ class SrtServer(
             val cameraId = stream.id
             val name = stream.camera()
             startBlockingThread(name = "com.eerimoq.Moblin.SrtClient") {
-                srtlaServer.connectedStreamIds.mutate { ids: List<String> -> ids + streamId }
+                srtlaServer.connectedStreamIds.mutate { ref -> ref.value + streamId }
                 srtlaServer.clientConnected(cameraId = cameraId, name = name)
                 SrtServerClient(
                     server = this@SrtServer,
@@ -74,7 +74,7 @@ class SrtServer(
                     timecodesEnabled = timecodesEnabled,
                     softwareDecoding = softwareDecoding,
                 ).run(clientSocket = clientSocket)
-                srtlaServer.connectedStreamIds.mutate { ids: List<String> -> ids.filterNot { it == streamId } }
+                srtlaServer.connectedStreamIds.mutate { ref -> ref.value.filterNot { it == streamId } }
                 srtlaServer.clientDisconnected(cameraId = cameraId, name = name)
                 Log.i(TAG, "srt-server: $port: Closed client.")
             }

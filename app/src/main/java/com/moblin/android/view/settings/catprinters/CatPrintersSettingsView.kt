@@ -73,7 +73,7 @@ private fun CatPrinterSettingsWrapperView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
     modifier: Modifier = Modifier,
 ) {
-    val name by device.name.collectAsState()
+    val name = device.name
     Text(
         text = name,
         modifier = modifier
@@ -170,7 +170,7 @@ fun CatPrintersSettingsView(
             item {
                 CreateButtonView {
                     val device = SettingsCatPrinter()
-                    device.name.value = makeUniqueName(
+                    device.name = makeUniqueName(
                         name = SettingsCatPrinter.baseName,
                         existingNames = catPrinters.devices.value,
                     )

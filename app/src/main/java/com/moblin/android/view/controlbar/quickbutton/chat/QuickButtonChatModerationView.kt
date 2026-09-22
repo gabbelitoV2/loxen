@@ -49,10 +49,8 @@ import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.streamingplatforms.twitch.TwitchLoginView
 import com.moblin.android.various.CacheAsyncImage
 import com.moblin.android.various.model.Model
-import com.moblin.android.various.network.AuthError
-import com.moblin.android.various.network.Error
+import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.OperationResult
-import com.moblin.android.various.network.Success
 import com.moblin.android.view.controlbar.quickbutton.chat.moderation.QuickButtonChatModerationKickView
 import com.moblin.android.view.controlbar.quickbutton.chat.moderation.QuickButtonChatModerationTwitchView
 import com.moblin.android.view.utils.AddButtonView
@@ -93,9 +91,9 @@ class Executor {
 
     fun completed(result: OperationResult) {
         state.value = when (result) {
-            is Success<*> -> ExecutorState.success
-            AuthError -> ExecutorState.authError
-            Error -> ExecutorState.error
+            is NetworkResponse.Success<*> -> ExecutorState.success
+            NetworkResponse.AuthError -> ExecutorState.authError
+            NetworkResponse.Error -> ExecutorState.error
         }
         scope.launch {
             delay(3000)
@@ -105,9 +103,9 @@ class Executor {
 
     fun completedNoTimer(result: OperationResult) {
         state.value = when (result) {
-            is Success<*> -> ExecutorState.idle
-            AuthError -> ExecutorState.authError
-            Error -> ExecutorState.error
+            is NetworkResponse.Success<*> -> ExecutorState.idle
+            NetworkResponse.AuthError -> ExecutorState.authError
+            NetworkResponse.Error -> ExecutorState.error
         }
     }
 }
