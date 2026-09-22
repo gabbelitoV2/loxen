@@ -329,12 +329,12 @@ def write_report(out_dir, inventory, state):
 def load_dotenv(path):
     if not path.exists():
         return
-    for line in path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
+    for line in path.read_text(encoding="utf-8-sig").splitlines():
+        line = line.strip().removeprefix("export ")
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
-        os.environ.setdefault(key.strip(), value.strip().strip('"'))
+        os.environ.setdefault(key.strip(), value.strip().strip("\"'"))
 
 
 def pick_backend(args):
@@ -390,9 +390,10 @@ def main():
     system, tiers = load_prompts()
     entries = select_entries(inventory, args)
     todo = [e for e in entries if needs_port(e, state, args.force)]
+    print(f"{len(entries)} files selected, {len(entries) - len(todo)} already done, {len(todo)} to port")
     if args.limit:
         todo = todo[: args.limit]
-    print(f"{len(entries)} files selected, {len(entries) - len(todo)} already done, {len(todo)} to port")
+        print(f"limited to {len(todo)}")
     if not todo:
         write_report(out_dir, inventory, state)
         return
