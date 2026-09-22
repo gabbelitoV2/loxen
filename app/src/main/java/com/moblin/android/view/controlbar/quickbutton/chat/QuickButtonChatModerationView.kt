@@ -327,13 +327,13 @@ fun UserModerationItemView(
         onComplete: (OperationResult) -> Unit,
     ) {
         when (action) {
-            ModActionType.ban -> TODO("model.banKickUser(user, duration = null, reason, onComplete)")
-            ModActionType.timeout -> TODO("model.banKickUser(user, duration = timeoutDuration, onComplete)")
-            ModActionType.unban -> TODO("model.unbanKickUser(user, onComplete)")
-            ModActionType.mod -> TODO("model.modKickUser(user, onComplete)")
-            ModActionType.unmod -> TODO("model.unmodKickUser(user, onComplete)")
-            ModActionType.vip -> TODO("model.vipKickUser(user, onComplete)")
-            ModActionType.unvip -> TODO("model.unvipKickUser(user, onComplete)")
+            ModActionType.ban -> TODO("Model.banKickUser is not implemented")
+            ModActionType.timeout -> TODO("Model.banKickUser is not implemented")
+            ModActionType.unban -> TODO("Model.unbanKickUser is not implemented")
+            ModActionType.mod -> TODO("Model.modKickUser is not implemented")
+            ModActionType.unmod -> TODO("Model.unmodKickUser is not implemented")
+            ModActionType.vip -> TODO("Model.vipKickUser is not implemented")
+            ModActionType.unvip -> TODO("Model.unvipKickUser is not implemented")
         }
     }
 
@@ -343,13 +343,13 @@ fun UserModerationItemView(
         onComplete: (OperationResult) -> Unit,
     ) {
         when (action) {
-            ModActionType.ban -> TODO("model.banTwitchUser(user, duration = null, reason, onComplete)")
-            ModActionType.timeout -> TODO("model.banTwitchUser(user, duration = timeoutDuration, reason = null, onComplete)")
-            ModActionType.unban -> TODO("model.unbanTwitchUser(user, onComplete)")
-            ModActionType.mod -> TODO("model.modTwitchUser(user, onComplete)")
-            ModActionType.unmod -> TODO("model.unmodTwitchUser(user, onComplete)")
-            ModActionType.vip -> TODO("model.vipTwitchUser(user, onComplete)")
-            ModActionType.unvip -> TODO("model.unvipTwitchUser(user, onComplete)")
+            ModActionType.ban -> TODO("Model.banTwitchUser is not implemented")
+            ModActionType.timeout -> TODO("Model.banTwitchUser is not implemented")
+            ModActionType.unban -> TODO("Model.unbanTwitchUser is not implemented")
+            ModActionType.mod -> TODO("Model.modTwitchUser is not implemented")
+            ModActionType.unmod -> TODO("Model.unmodTwitchUser is not implemented")
+            ModActionType.vip -> TODO("Model.vipTwitchUser is not implemented")
+            ModActionType.unvip -> TODO("Model.unvipTwitchUser is not implemented")
         }
     }
 

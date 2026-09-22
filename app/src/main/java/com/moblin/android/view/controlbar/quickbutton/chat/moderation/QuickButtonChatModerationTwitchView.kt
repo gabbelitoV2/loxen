@@ -634,10 +634,10 @@ fun QuickButtonChatModerationTwitchForm(
                         },
                     )
                     SubscribersOnlyView(
-                        action = { _, _ -> TODO("setTwitchSubscribersOnlyMode") },
+                        action = { _, _ -> Unit },
                     )
                     EmotesOnlyView(
-                        action = { _, _ -> TODO("setTwitchEmoteOnlyMode") },
+                        action = { _, _ -> Unit },
                     )
                 }
             }

@@ -8,6 +8,7 @@ import com.moblin.android.localized
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.ChatPostUrl
+import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStreamChat
 import java.time.Instant
@@ -26,6 +27,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import com.moblin.android.various.model.appendChatMessage
 
 private const val userAgent =
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:124.0) Gecko/20100101 Firefox/124.0"
@@ -456,7 +458,26 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
             return 0
         }
         val (isOwner, isModerator) = getUserRoles(chatDescription.authorBadges)
-        return TODO("appendChatMessage")
+        model.appendChatMessage(
+            platform = Platform.youTube,
+            messageId = null,
+            displayName = chatDescription.authorName.simpleText,
+            user = chatDescription.authorName.simpleText,
+            userId = null,
+            userColor = null,
+            userBadges = listOf(),
+            segments = segments,
+            timestamp = model.statusOther.digitalClock.value,
+            timestampTime = Instant.now(),
+            isAction = false,
+            isSubscriber = false,
+            isModerator = isModerator,
+            isOwner = isOwner,
+            bits = null,
+            highlight = highlight,
+            live = true,
+        )
+        return 1
     }
 
     private fun handleGiftPurchaseDescription(headerRenderer: SponsorshipsHeaderRenderer): Int {

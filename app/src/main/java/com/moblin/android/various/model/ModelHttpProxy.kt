@@ -1,5 +1,6 @@
 package com.moblin.android.various.model
 
+import android.content.Context
 import com.moblin.android.various.network.HttpProxyServer
 import com.moblin.android.various.network.HttpProxyServerDelegate
 import java.net.InetSocketAddress
@@ -8,6 +9,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
+
+private val Model.context: Context
+    get() = TODO("Context not available")
 
 fun Model.httpProxyServerChanged() {
     reloadHttpProxyServer()
@@ -39,7 +43,7 @@ private fun Model.proxyServerPortUpdated() {
 
 private fun Model.startHttpProxyServer() {
     val httpProxy = database.httpProxy
-    httpProxyServer = HttpProxyServer(TODO("Context"))
+    httpProxyServer = HttpProxyServer(context)
     httpProxyServer?.delegate = object : HttpProxyServerDelegate {
         override fun httpProxyServerPortReady(port: Int) {
             this@startHttpProxyServer.httpProxyServerPortReady(port)

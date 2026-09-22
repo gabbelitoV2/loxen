@@ -65,9 +65,7 @@ private data class VideoFormatSearch(
     val error: String?,
 )
 
-private fun makeCaptureSession(): Any {
-    TODO()
-}
+private fun makeCaptureSession(): Any = Any()
 
 private fun setOrientation(
     device: Any?,

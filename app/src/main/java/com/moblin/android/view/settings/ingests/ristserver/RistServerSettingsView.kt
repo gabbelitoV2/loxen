@@ -142,7 +142,7 @@ fun RistServerSettingsDetailView(
                     )
                 }
             }
-            Box(modifier = Modifier.alpha(if (TODO("ristServerEnabled")) 0.5f else 1f)) {
+            Box(modifier = Modifier.alpha(if (enabled) 0.5f else 1f)) {
                 CreateButtonView(
                     action = {
                         val stream = SettingsRistServerStream()

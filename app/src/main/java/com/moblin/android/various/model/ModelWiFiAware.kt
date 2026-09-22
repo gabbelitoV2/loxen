@@ -12,7 +12,7 @@ private val wiFiAwareScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
 fun Model.wiFiAwareUpdated() {
     stopWiFiAware()
-    if (database.wiFiAware.enabled && TODO("WACapabilities.supportedFeatures.contains(WAFeature.wifiAware)")) {
+    if (database.wiFiAware.enabled && TODO("WACapabilities/WAFeature")) {
         startWiFiAware()
     }
 }

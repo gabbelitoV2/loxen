@@ -11,7 +11,7 @@ import java.util.UUID
 
 fun Model.startGoProDeviceLiveStream(device: SettingsGoProDevice) {
     if (!goProDevices.containsKey(device.id)) {
-        val goProDevice = GoProDevice(TODO("context"))
+        val goProDevice = GoProDevice(TODO("Missing Android context for GoProDevice"))
         goProDevice.delegate = object : GoProDeviceDelegate {
             override fun goProDeviceStreamingState(device: GoProDevice, state: GoProDeviceState) {
                 this@startGoProDeviceLiveStream.goProDeviceStreamingState(device, state)
@@ -79,11 +79,11 @@ fun Model.markGoProIsStreamingIfNeeded(rtmpServerStreamId: UUID) {
 }
 
 fun Model.automaticServerRtmpUrl(device: SettingsGoProDevice): String? {
-    val streamKey: String = TODO("getRtmpStream")
+    val stream = getRtmpStream(device.serverRtmpStreamId) ?: return null
     return rtmpServerStreamUrl(
         address = TODO("getServerAddress"),
         port = database.rtmpServer.port,
-        streamKey = streamKey
+        streamKey = stream.streamKey
     )
 }
 

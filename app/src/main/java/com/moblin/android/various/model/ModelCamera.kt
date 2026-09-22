@@ -23,6 +23,8 @@ import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.moblin.android.various.settings.SettingsQuickButtonType
+import android.media.MediaFormat
 
 private const val LOG_TAG = "Model"
 
@@ -333,7 +335,7 @@ fun Model.updateLutsButtonState() {
     if (database.color.allLuts().any { it.enabled }) {
         isOn = true
     }
-    setQuickButton(type = TODO("no Android counterpart for QuickButtonType.luts"), isOn = isOn)
+    setQuickButton(type = SettingsQuickButtonType.luts, isOn = isOn)
 }
 
 fun Model.updateShowCameraPreview(): Boolean {
@@ -353,7 +355,7 @@ fun Model.toggleCameraPreview() {
 }
 
 private fun Model.shouldShowCameraPreview(): Boolean {
-    val isOn: Boolean = TODO("no Android counterpart for QuickButtonType.cameraPreview")
+    val isOn: Boolean = getQuickButton(SettingsQuickButtonType.cameraPreview)?.isOn?.value ?: false
     if (!isOn) {
         return false
     }
@@ -630,7 +632,7 @@ fun Model.isExternalCameraConnected(cameraId: String): Boolean {
 }
 
 fun Model.setColorSpace() {
-    media.setColorSpace(colorSpace = TODO("no Android counterpart for AVCaptureColorSpace")) {
+    media.setColorSpace(colorSpace = MediaFormat.COLOR_STANDARD_BT709) {
         setCameraZoomX(x = zoom.x.value)?.let { x ->
             setZoomXWhenInRange(x = x)
         }

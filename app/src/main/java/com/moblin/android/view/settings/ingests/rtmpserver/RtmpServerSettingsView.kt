@@ -140,7 +140,7 @@ fun RtmpServerSettingsForm(
                     stream.name = makeUniqueName(SettingsRtmpServerStream.baseName, streams)
                     while (true) {
                         stream.streamKey = randomHumanString()
-                        val existingStream: Any? = TODO("getRtmpStream")
+                        val existingStream = streams.firstOrNull { it.streamKey == stream.streamKey }
                         if (existingStream == null) {
                             break
                         }

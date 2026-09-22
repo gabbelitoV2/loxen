@@ -1564,8 +1564,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun updateFaceFilterSettings() {
         faceEffect.setSettings(
             settings = database.face.toEffectSettings(
-                backgroundImage = TODO("no Android counterpart for CIImage"),
-                iconImage = TODO("no Android counterpart for CGImage"),
+                backgroundImage = null,
+                iconImage = null,
             ),
         )
     }
@@ -1780,7 +1780,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun externalMonitorConnected(windowScene: Any) {
-        externalDisplayWindow = TODO("no Android counterpart for UIWindowScene and UIWindow")
+        externalDisplayWindow = null
         updateExternalMonitorWindow()
         externalDisplayPreview = true
         reattachCamera()

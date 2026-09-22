@@ -24,6 +24,7 @@ import com.moblin.android.view.stream.StreamView
 import java.lang.ref.WeakReference
 import java.net.URI
 import android.content.Context
+import android.util.Log
 
 object MoblinApp {
     var globalModel: Model? = null
@@ -102,6 +103,14 @@ class AppDelegate : Application() {
     override fun onCreate() {
         super.onCreate()
         context = applicationContext
+        val previous = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, error ->
+            if (thread !== mainLooper.thread) {
+                Log.e("Moblin", "Background failure on ${thread.name}: $error", error)
+            } else {
+                previous?.uncaughtException(thread, error)
+            }
+        }
         registerActivityLifecycleCallbacks(lifecycleCallbacks)
     }
 

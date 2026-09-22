@@ -79,7 +79,7 @@ fun ChatSettingsAppearanceView(
                     onValueChange = { chat.fontSize = it },
                     valueRange = 10f..30f,
                     steps = 19,
-                    onValueChangeFinished = { TODO("reloadChatMessages") },
+                    onValueChangeFinished = { TODO("model.reloadChatMessages()") },
                     modifier = Modifier.weight(1f),
                 )
                 Text(fontSize.toInt().toString(), modifier = Modifier.width(25.dp))
@@ -101,7 +101,7 @@ fun ChatSettingsAppearanceView(
                     onValueChange = { chat.bigGifScale = it },
                     valueRange = 1f..10f,
                     steps = 8,
-                    onValueChangeFinished = { TODO("reloadChatMessages") },
+                    onValueChangeFinished = { TODO("model.reloadChatMessages()") },
                     modifier = Modifier.weight(1f),
                 )
                 Text(bigGifScale.toInt().toString(), modifier = Modifier.width(25.dp))

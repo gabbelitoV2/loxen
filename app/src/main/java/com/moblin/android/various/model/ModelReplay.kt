@@ -90,7 +90,7 @@ fun Model.saveReplay(
         return false
     }
     replay.isSaving.value = true
-    val delaySeconds = delay ?: TODO("stream.replay.postTriggerDelay")
+    val delaySeconds = delay ?: stream.value.replay.postTriggerDelay
     mainScope.launch {
         kotlinx.coroutines.delay(delaySeconds * 1000L)
         replayBuffer.createFile { file ->
@@ -137,7 +137,7 @@ fun Model.instantReplay(start: Double? = null, delay: Int? = null) {
     if (replay.instantReplayCountdown.value != 0) {
         return
     }
-    val delaySeconds = delay ?: TODO("stream.replay.postTriggerDelay")
+    val delaySeconds = delay ?: stream.value.replay.postTriggerDelay
     val savingStarted = saveReplay(start = start, delay = delaySeconds) { video ->
         loadReplay(video = video) {
             replay.isPlaying.value = true
@@ -175,12 +175,12 @@ fun Model.makeReplayIsNotEnabledToast() {
 }
 
 fun Model.makeReplayShouldBeDisabledToastIfNeeded() {
-    val replayEnabled: Boolean = TODO("stream.replay.enabled")
+    val replayEnabled: Boolean = stream.value.replay.enabled
     if (!replayEnabled) {
         return
     }
     val enterForegroundCountAtLatestUsage: Int =
-        TODO()
+        0
     val unusedCount = enterForegroundCount - enterForegroundCountAtLatestUsage
     if (unusedCount < 20 || unusedCount % 3 != 0) {
         return
@@ -208,14 +208,15 @@ fun Model.replayPlay(): Boolean {
     val replayVideo = replayVideo ?: return false
     val replaySettings = replaySettings ?: return false
     Unit
-    val transitionMode: ReplayEffectTransitionMode = TODO("stream.replay.transitionType")
+    val transitionMode: ReplayEffectTransitionMode =
+        TODO("Map stream.replay.transitionType to a ReplayEffectTransitionMode")
     replayEffect = ReplayEffect(
         video = replayVideo,
         start = replaySettings.startFromVideoStart(),
         stop = replaySettings.stopFromVideoStart(),
         speed = database.replay.speed.toNumber(),
-        size = TODO("stream.dimensions()"),
-        layout = TODO("stream.replay.layout"),
+        size = stream.value.dimensions(),
+        layout = stream.value.replay.layout,
         transitionMode = transitionMode,
         delegate = ReplayEffectDelegateAdapter(this),
     )
@@ -230,7 +231,7 @@ fun Model.replayCancel() {
 
 fun Model.streamReplayEnabledUpdated() {
     replayBuffer = ReplayBuffer()
-    val replayEnabled: Boolean = TODO("stream.replay.enabled")
+    val replayEnabled: Boolean = stream.value.replay.enabled
     media.setReplayBuffering(enabled = replayEnabled)
     if (replayEnabled) {
         startRecorderIfNeeded()

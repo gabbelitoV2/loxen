@@ -1016,8 +1016,11 @@ enum class SettingsSceneSwitchTransition(val rawValue: String) {
         blurAndZoom -> localized("Blur & zoom")
     }
 
-    fun toVideoUnit(): SceneSwitchTransition =
-        TODO()
+    fun toVideoUnit(): SceneSwitchTransition = when (this) {
+        blur -> SceneSwitchTransition.BLUR
+        freeze -> SceneSwitchTransition.FREEZE
+        blurAndZoom -> SceneSwitchTransition.BLUR_AND_ZOOM
+    }
     companion object {
         fun fromRawValue(rawValue: String): SettingsSceneSwitchTransition? =
             entries.firstOrNull { it.rawValue == rawValue }

@@ -709,12 +709,14 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         presentationTimeUs: Long,
         decodeTimeStampUs: Long
     ): MediaSample? {
-        if (blackImageBuffer == null || blackFormatDescription == null) {
-            Unit
+        val buffer = blackImageBuffer
+        val format = blackFormatDescription
+        if (buffer == null || format == null) {
+            return null
         }
         return createMediaSample(
-            blackImageBuffer!!,
-            blackFormatDescription,
+            buffer,
+            format,
             durationUs,
             presentationTimeUs,
             decodeTimeStampUs

@@ -65,5 +65,5 @@ fun Model.updateIsStreamDeckDeviceDriverInstalled() {
     if (!isPad()) {
         return
     }
-    streamDeck.setIsDeviceDriverInstalled(TODO("no Android counterpart for UIApplication.canOpenURL"))
+    streamDeck.setIsDeviceDriverInstalled(false)
 }

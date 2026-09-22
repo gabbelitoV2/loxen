@@ -149,7 +149,10 @@ private fun HypeTrainView(model: Model = LocalModel.current, hypeTrain: HypeTrai
                     text = "LEVEL $currentLevel",
                     color = Color.White,
                 )
-                TextButton(onClick = { TODO("removeHypeTrain") }) {
+                TextButton(onClick = {
+                    hypeTrain.level.value = null
+                    hypeTrain.progress.value = null
+                }) {
                     Text("Close", color = Color.White)
                 }
             }
@@ -318,7 +321,13 @@ private fun TwitchPollView(model: Model = LocalModel.current, poll: TwitchPoll) 
             image = "chart.bar",
             title = title,
             message = message,
-            onClose = { TODO("removeTwitchPoll") },
+            onClose = {
+                poll.state.value = TwitchPollState.idle
+                poll.title.value = ""
+                poll.choices.value = emptyList()
+                poll.totalVotes.value = 0
+                poll.message.value = ""
+            },
         ) {
             choices.forEach { choice ->
                 val choiceFraction = fraction(choice.votes)
@@ -363,7 +372,13 @@ private fun TwitchPredictionView(model: Model = LocalModel.current, prediction: 
             image = "sparkles",
             title = title,
             message = message,
-            onClose = { TODO("removeTwitchPrediction") },
+            onClose = {
+                prediction.state.value = TwitchPredictionState.idle
+                prediction.title.value = ""
+                prediction.outcomes.value = emptyList()
+                prediction.totalChannelPoints.value = 0
+                prediction.message.value = ""
+            },
         ) {
             outcomes.forEach { outcome ->
                 val outcomeFraction = fraction(outcome.channelPoints)

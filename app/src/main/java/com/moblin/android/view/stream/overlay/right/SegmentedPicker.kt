@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import com.moblin.android.various.settings.defaultSegmentedPickerSelectedColor
 
 val zoomSegmentWidth = 50.0
 val zoomSegmentWidthBig = 60.0
@@ -30,6 +31,11 @@ val cameraButtonWidth = 70.0
 val pickerBorderColor = Color.Gray
 val pickerBackgroundColor = Color.Black.copy(alpha = 0.4f)
 val pickerLabelMinimumScaleFactor = 0.7
+
+private fun defaultSegmentedPickerSelectedColorColor(): Color {
+    val color = defaultSegmentedPickerSelectedColor
+    return Color(red = color.red, green = color.green, blue = color.blue)
+}
 
 @Composable
 fun <T : Any, Content> SegmentedPicker(
@@ -74,7 +80,7 @@ fun <T : Any, Content> SegmentedHPicker(
     items: List<T>,
     selectedItem: T?,
     onSelectedItemChange: (T?) -> Unit,
-    selectedColor: Color = TODO("defaultSegmentedPickerSelectedColor.color()"),
+    selectedColor: Color = defaultSegmentedPickerSelectedColorColor(),
     onLongPress: ((Int) -> Unit)? = null,
     content: @Composable (T) -> Content,
 ) {
@@ -95,7 +101,7 @@ fun <T : Any, Content> SegmentedVPicker(
     items: List<T>,
     selectedItem: T?,
     onSelectedItemChange: (T?) -> Unit,
-    selectedColor: Color = TODO("defaultSegmentedPickerSelectedColor.color()"),
+    selectedColor: Color = defaultSegmentedPickerSelectedColorColor(),
     onLongPress: ((Int) -> Unit)? = null,
     content: @Composable (T) -> Content,
 ) {

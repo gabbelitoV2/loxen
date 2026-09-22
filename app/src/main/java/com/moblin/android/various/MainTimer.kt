@@ -1,5 +1,6 @@
 package com.moblin.android.various
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -15,7 +16,7 @@ class MainTimer {
         stop()
         timer = mainScope.launch {
             delay((timeout * 1000.0).toLong())
-            handler()
+            runCatching { handler() }.onFailure { Log.e("MainTimer", "Timer handler failed", it) }
         }
     }
 
@@ -27,10 +28,10 @@ class MainTimer {
         stop()
         timer = mainScope.launch {
             delay(((initial ?: interval) * 1000.0).toLong())
-            handler()
+            runCatching { handler() }.onFailure { Log.e("MainTimer", "Timer handler failed", it) }
             while (true) {
                 delay((interval * 1000.0).toLong())
-                handler()
+                runCatching { handler() }.onFailure { Log.e("MainTimer", "Timer handler failed", it) }
             }
         }
     }

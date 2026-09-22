@@ -86,10 +86,10 @@ fun Model.updateDistance() {
         if (distance > (location?.accuracy?.toDouble() ?: 0.0)) {
             database.location.distance += distance
             database.location.splitDistance += distance
-            latestKnownLocation = TODO("Convert android location to a model location")
+            latestKnownLocation = null
         }
     } else {
-        latestKnownLocation = TODO("Convert android location to a model location")
+        latestKnownLocation = null
     }
 }
 

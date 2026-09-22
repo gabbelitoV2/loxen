@@ -316,7 +316,8 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
     var urlMenuExpanded by remember { mutableStateOf(false) }
 
     fun serverUrls(): List<RtmpUrlAndImage> {
-        val streamKey: String = TODO("getRtmpStream")
+        val streamKey = rtmpServer.streams
+            .firstOrNull { it.id == device.serverRtmpStreamId }?.streamKey ?: return emptyList()
         val serverUrls = mutableListOf<RtmpUrlAndImage>()
         for (ipStatus in ipStatuses.filter { it.ipType.toString() == "ipv4" }) {
             serverUrls.add(
@@ -356,6 +357,17 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
             serverUrls.add(0, RtmpUrlAndImage(serverRtmpUrl, "questionmark"))
         }
         return serverUrls
+    }
+
+    fun automaticServerRtmpUrl(): String? {
+        val streamKey = rtmpServer.streams
+            .firstOrNull { it.id == device.serverRtmpStreamId }?.streamKey ?: return null
+        val ipStatus = ipStatuses.firstOrNull { it.ipType.toString() == "ipv4" } ?: return null
+        return rtmpServerStreamUrl(
+            ipStatus.ipType.formatAddress(ipStatus.ip),
+            rtmpServer.port,
+            streamKey,
+        )
     }
 
     LaunchedEffect(Unit) {
@@ -452,7 +464,7 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
                 onExpandedChange = { if (!isStarted) urlMenuExpanded = it },
             ) {
                 OutlinedTextField(
-                    value = serverRtmpUrl ?: TODO("automaticServerRtmpUrl") ?: "",
+                    value = serverRtmpUrl ?: automaticServerRtmpUrl() ?: "",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("URL") },
@@ -473,7 +485,7 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Wifi, contentDescription = null)
                                 Spacer(Modifier.width(8.dp))
-                                Text(TODO("automaticServerRtmpUrl") ?: "")
+                                Text(automaticServerRtmpUrl() ?: "")
                             }
                         },
                         onClick = {

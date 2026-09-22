@@ -8,6 +8,7 @@ import com.moblin.android.various.utils.startBlockingThread
 private const val TAG = "SrtServer"
 private const val SRT_INVALID_SOCK: Int = -1
 private const val SRT_ERROR: Int = -1
+private const val SRTO_STREAMID: Int = 15
 
 class SrtServer(
     private val timecodesEnabled: Boolean,

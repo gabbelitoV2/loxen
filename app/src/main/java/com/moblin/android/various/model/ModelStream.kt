@@ -29,6 +29,7 @@ import com.moblin.android.various.settings.SettingsBitratePreset
 import com.moblin.android.various.settings.SettingsColorSpace
 import com.moblin.android.various.settings.SettingsHttpHeader
 import com.moblin.android.various.settings.SettingsMacrosEvent
+import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamCodec
 import com.moblin.android.various.settings.SettingsStreamH264Profile
@@ -532,7 +533,7 @@ fun Model.togglePreviewStream() {
 
 fun Model.setIsPreviewStreaming(value: Boolean) {
     isPreviewStreaming.value = value
-    setQuickButton(type = TODO("QuickButtonType"), isOn = value)
+    setQuickButton(type = SettingsQuickButtonType.previewStream, isOn = value)
     remoteControlStateChanged(state = RemoteControlAssistantStreamerState(previewStream = value))
 }
 

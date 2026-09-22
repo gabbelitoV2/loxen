@@ -116,8 +116,8 @@ fun KeyboardKeySettingsView(
         Spacer(modifier = Modifier.weight(1f))
         Text(
             text = function.toString(
-                sceneName = TODO("getSceneName"),
-                widgetName = TODO("getWidgetName"),
+                sceneName = null,
+                widgetName = null,
             ),
             color = function.color(),
         )

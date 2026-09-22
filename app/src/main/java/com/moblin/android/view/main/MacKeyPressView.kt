@@ -41,7 +41,9 @@ class MacKeyPressUIView {
             }
             val characters = characters(press)
             if (characters.isNotEmpty()) {
-                handled = TODO("handleKeyPressCharacters")
+                if (TODO("model.handleKeyPressCharacters") == true) {
+                    handled = true
+                }
             }
         }
         return handled

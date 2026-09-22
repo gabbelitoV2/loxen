@@ -667,7 +667,7 @@ private fun Model.createGlobalVideoEffects() {
     fixedHorizonEffect = FixedHorizonEffect()
     glassesEffect = createGlassesEffect()
     sparkleEffect = createSparkleEffect()
-    beautyEffect = BeautyEffect(fps = TODO("no Android counterpart for stream.fps"))
+    beautyEffect = BeautyEffect(fps = (stream.value.fps).toFloat())
     beautyEffect.setSmoothnessSettings(
         radius = database.beauty.smoothnessRadius,
         strength = database.beauty.smoothnessStrength
@@ -725,7 +725,7 @@ private fun Model.registerGlobalVideoEffects(scene: SettingsScene): List<VideoEf
     glassesEffect?.let { effects.add(it) }
     val fixedHorizonStatus: String
     if (isFixedHorizonEnabled(scene = scene)) {
-        fixedHorizonEffect.start(portrait = TODO("no Android counterpart for stream.isPortrait"))
+        fixedHorizonEffect.start(portrait = database.portrait)
         fixedHorizonStatus = "Enabled"
         effects.add(fixedHorizonEffect)
     } else {

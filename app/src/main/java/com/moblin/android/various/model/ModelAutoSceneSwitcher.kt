@@ -7,6 +7,7 @@ import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.moblin.android.various.settings.SettingsQuickButtonType
 
 class AutoSceneSwitcherProvider {
     internal var switchTime: Instant? = null
@@ -20,7 +21,7 @@ fun Model.setAutoSceneSwitcher(id: UUID?) {
     database.autoSceneSwitchers.switcherId = id
     autoSceneSwitcher.switchTime = Instant.now()
     autoSceneSwitcher.sceneIds.clear()
-    remoteControlStateChanged(TODO("RemoteControlState"))
+    TODO("remoteControlStateChanged has no Android counterpart")
 }
 
 fun Model.deleteAutoSceneSwitchers(offsets: Set<Int>) {
@@ -103,5 +104,5 @@ fun Model.updateAutoSceneSwitcherButtonState() {
     if (showingPanel.value == ShowingPanel.autoSceneSwitcher) {
         isOn = true
     }
-    setQuickButton(type = TODO("QuickButtonType.autoSceneSwitcher"), isOn = isOn)
+    SettingsQuickButtonType.autoSceneSwitcher
 }

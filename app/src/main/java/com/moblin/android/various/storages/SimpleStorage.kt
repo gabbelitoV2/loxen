@@ -2,7 +2,7 @@ package com.moblin.android.various.storages
 
 import android.content.Context
 import java.io.File
-import kotlin.system.exitProcess
+import android.util.Log
 
 internal object SimpleStorageContext {
     val applicationContext: Context get() = com.moblin.android.AppDelegate.context
@@ -12,14 +12,15 @@ private fun setup(): File {
     val url = File(SimpleStorageContext.applicationContext.filesDir, "SimpleStorage")
     return try {
         if (!url.isDirectory && !url.mkdirs()) {
-            exitProcess(0)
+            Log.e("SimpleStorage", "Failed to create storage directory")
         }
         val testFile = File(url, ".init")
         testFile.writeBytes(ByteArray(0))
         testFile.delete()
         url
     } catch (e: Exception) {
-        exitProcess(0)
+        Log.e("SimpleStorage", "Failed to set up storage: $e")
+        url
     }
 }
 
@@ -67,7 +68,7 @@ class SimpleIntStorage(key: String) {
         return if (value != null) {
             value
         } else {
-            exitProcess(0)
+            0
         }
     }
 
@@ -80,7 +81,7 @@ private fun File.writeString(value: String) {
     try {
         writeText(value)
     } catch (e: Exception) {
-        exitProcess(0)
+        Log.e("SimpleStorage", "Failed to write $name: $e")
     }
 }
 
@@ -88,6 +89,7 @@ private fun File.readString(): String {
     return try {
         readText()
     } catch (e: Exception) {
-        exitProcess(0)
+        Log.e("SimpleStorage", "Failed to read $name: $e")
+        ""
     }
 }

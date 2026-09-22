@@ -2,6 +2,7 @@ package com.moblin.android.various.model
 
 import com.moblin.android.streamingplatforms.soop.SoopChat
 import com.moblin.android.streamingplatforms.soop.SoopPlatformStatus
+import com.moblin.android.streamingplatforms.Platform
 
 fun Model.soopChannelNameUpdated() {
     reloadSoopChat()
@@ -26,9 +27,9 @@ fun Model.reloadSoopPlatformStatus() {
 fun Model.updateViewersSoop(): StreamingPlatformStatus {
     val platformStatus = soopPlatformStatus?.platformStatus
     return if (platformStatus != null) {
-        StreamingPlatformStatus(platform = TODO("Platform.soop"), status = platformStatus)
+        StreamingPlatformStatus(platform = Platform.soop, status = platformStatus)
     } else {
-        StreamingPlatformStatus(platform = TODO("Platform.soop"), status = PlatformStatus.unknown)
+        StreamingPlatformStatus(platform = Platform.soop, status = PlatformStatus.unknown)
     }
 }
 
@@ -52,7 +53,7 @@ fun Model.reloadSoopChat() {
     soopChat?.stop()
     soopChat = null
     setTextToSpeechStreamerMentions()
-    if (isSoopChatConfigured() && !isRemoteControlChatAndEvents(platform = TODO("Platform.soop"))) {
+    if (isSoopChatConfigured() && !isRemoteControlChatAndEvents(platform = Platform.soop)) {
         val chat = SoopChat(
             model = this,
             channelName = stream.value.soopChannelName,

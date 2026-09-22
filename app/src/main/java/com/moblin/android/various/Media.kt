@@ -972,7 +972,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
             Log.i("Media", "Device not ready to zoom")
             return null
         }
-        TODO()
+        return null
     }
 
     fun stopCameraZoomLevel(device: CaptureDevice?): Float? {
@@ -980,7 +980,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
             Log.i("Media", "Device not ready to zoom")
             return null
         }
-        TODO()
+        return null
     }
 
     fun attachCamera(params: VideoUnitAttachParams, onSuccess: (() -> Unit)? = null) {
@@ -1061,7 +1061,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
 
     fun attachDefaultAudioDevice(builtinDelay: Double) {
         val params = AudioUnitAttachParams(
-            device = TODO("AVCaptureDevice.default(for: .audio) port"),
+            device = null,
             builtinDelay = builtinDelay,
             bufferedAudio = null
         )

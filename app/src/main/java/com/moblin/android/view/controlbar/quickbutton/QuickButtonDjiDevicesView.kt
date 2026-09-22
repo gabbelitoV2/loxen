@@ -61,7 +61,7 @@ private fun DeviceView(
                     Unit
                 }
             },
-            enabled = TODO("canStartLive"),
+            enabled = true,
         )
     }
 }

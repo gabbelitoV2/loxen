@@ -43,6 +43,7 @@ import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
+import java.security.PrivateKey
 import java.util.UUID
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
@@ -54,6 +55,12 @@ private fun formatTeslaVehicleState(state: TeslaVehicleState?): String {
         state == TeslaVehicleState.connected -> localized("Connected")
         else -> localized("Unknown")
     }
+}
+
+private fun PrivateKey.pemRepresentation(): String {
+    val base64 = android.util.Base64.encodeToString(encoded, android.util.Base64.NO_WRAP)
+    val lines = base64.chunked(64).joinToString("\n")
+    return "-----BEGIN PRIVATE KEY-----\n$lines\n-----END PRIVATE KEY-----\n"
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -116,7 +123,7 @@ fun TeslaSettingsConfigurationView(
             }
             item {
                 TextButtonView(title = "Generate new key") {
-                    database.tesla.privateKey = TODO("privateKey.pemRepresentation")
+                    database.tesla.privateKey = teslaGeneratePrivateKey().pemRepresentation()
                     model.reloadTeslaVehicle()
                 }
             }
