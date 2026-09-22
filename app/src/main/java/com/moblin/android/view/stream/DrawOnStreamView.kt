@@ -35,6 +35,7 @@ import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.videoeffects.drawOnStreamCreatePath
 import java.util.UUID
+import com.moblin.android.LocalModel
 
 private var drawing = false
 
@@ -47,7 +48,7 @@ data class DrawOnStreamLine(
 
 @Composable
 private fun DrawOnStreamCanvasView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     orientation: Orientation,
     drawOnStream: DrawOnStream,
@@ -118,7 +119,7 @@ private fun buttonColor(drawOnStream: DrawOnStream): Color {
 
 @Composable
 private fun DrawOnStreamControlsView(
-    model: Model,
+    model: Model = LocalModel.current,
     drawOnStream: DrawOnStream,
 ) {
     Column {
@@ -178,7 +179,7 @@ private fun DrawOnStreamControlsView(
 }
 
 @Composable
-fun DrawOnStreamView(model: Model) {
+fun DrawOnStreamView(model: Model = LocalModel.current) {
     Box {
         DrawOnStreamCanvasView(
             model = model,

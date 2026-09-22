@@ -16,32 +16,24 @@ import kotlinx.serialization.encoding.Encoder
 class SettingsCatPrinter : Named {
     var id: UUID = UUID.randomUUID()
 
-    private val _name = MutableStateFlow("")
-    override val name: StateFlow<String> = _name.asStateFlow()
+    private val name = MutableStateFlow("")
+    override val name: StateFlow<String> = name.asStateFlow()
 
-    private val _enabled = MutableStateFlow(false)
-    val enabled: StateFlow<Boolean> = _enabled.asStateFlow()
+    val enabled = MutableStateFlow(false)
 
-    private val _bluetoothPeripheralName = MutableStateFlow<String?>(null)
-    val bluetoothPeripheralName: StateFlow<String?> = _bluetoothPeripheralName.asStateFlow()
+    val bluetoothPeripheralName = MutableStateFlow<String?>(null)
 
-    private val _bluetoothPeripheralId = MutableStateFlow<UUID?>(null)
-    val bluetoothPeripheralId: StateFlow<UUID?> = _bluetoothPeripheralId.asStateFlow()
+    val bluetoothPeripheralId = MutableStateFlow<UUID?>(null)
 
-    private val _printChat = MutableStateFlow(false)
-    val printChat: StateFlow<Boolean> = _printChat.asStateFlow()
+    val printChat = MutableStateFlow(false)
 
-    private val _faxMeowSound = MutableStateFlow(true)
-    val faxMeowSound: StateFlow<Boolean> = _faxMeowSound.asStateFlow()
+    val faxMeowSound = MutableStateFlow(true)
 
-    private val _printSnapshots = MutableStateFlow(true)
-    val printSnapshots: StateFlow<Boolean> = _printSnapshots.asStateFlow()
+    val printSnapshots = MutableStateFlow(true)
 
-    private val _printTwitch = MutableStateFlow(SettingsTwitchAlerts())
-    val printTwitch: StateFlow<SettingsTwitchAlerts> = _printTwitch.asStateFlow()
+    val printTwitch = MutableStateFlow(SettingsTwitchAlerts())
 
-    private val _printKick = MutableStateFlow(SettingsKickAlerts())
-    val printKick: StateFlow<SettingsKickAlerts> = _printKick.asStateFlow()
+    val printKick = MutableStateFlow(SettingsKickAlerts())
 
     companion object : KSerializer<SettingsCatPrinter> {
         val baseName: String = localized("My printer")
@@ -84,16 +76,16 @@ class SettingsCatPrinter : Named {
             settings.id = surrogate.id
                 ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
                 ?: UUID.randomUUID()
-            settings._name.value = surrogate.name
-            settings._enabled.value = surrogate.enabled
-            settings._bluetoothPeripheralName.value = surrogate.bluetoothPeripheralName
-            settings._bluetoothPeripheralId.value = surrogate.bluetoothPeripheralId
+            settings.name.value = surrogate.name
+            settings.enabled.value = surrogate.enabled
+            settings.bluetoothPeripheralName.value = surrogate.bluetoothPeripheralName
+            settings.bluetoothPeripheralId.value = surrogate.bluetoothPeripheralId
                 ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-            settings._printChat.value = surrogate.printChat
-            settings._faxMeowSound.value = surrogate.faxMeowSound
-            settings._printSnapshots.value = surrogate.printSnapshots
-            settings._printTwitch.value = surrogate.printTwitch
-            settings._printKick.value = surrogate.printKick
+            settings.printChat.value = surrogate.printChat
+            settings.faxMeowSound.value = surrogate.faxMeowSound
+            settings.printSnapshots.value = surrogate.printSnapshots
+            settings.printTwitch.value = surrogate.printTwitch
+            settings.printKick.value = surrogate.printKick
             return settings
         }
     }
@@ -101,11 +93,9 @@ class SettingsCatPrinter : Named {
 
 @Serializable(with = SettingsCatPrinters.Companion::class)
 class SettingsCatPrinters {
-    private val _devices = MutableStateFlow<List<SettingsCatPrinter>>(emptyList())
-    val devices: StateFlow<List<SettingsCatPrinter>> = _devices.asStateFlow()
+    val devices = MutableStateFlow<List<SettingsCatPrinter>>(emptyList())
 
-    private val _backgroundPrinting = MutableStateFlow(false)
-    val backgroundPrinting: StateFlow<Boolean> = _backgroundPrinting.asStateFlow()
+    val backgroundPrinting = MutableStateFlow(false)
 
     companion object : KSerializer<SettingsCatPrinters> {
         @Serializable
@@ -127,8 +117,8 @@ class SettingsCatPrinters {
         override fun deserialize(decoder: Decoder): SettingsCatPrinters {
             val surrogate = decoder.decodeSerializableValue(Surrogate.serializer())
             val settings = SettingsCatPrinters()
-            settings._devices.value = surrogate.devices
-            settings._backgroundPrinting.value = surrogate.backgroundPrinting
+            settings.devices.value = surrogate.devices
+            settings.backgroundPrinting.value = surrogate.backgroundPrinting
             return settings
         }
     }

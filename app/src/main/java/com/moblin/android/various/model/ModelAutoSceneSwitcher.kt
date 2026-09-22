@@ -12,12 +12,11 @@ class AutoSceneSwitcherProvider {
     internal var switchTime: Instant? = null
     internal var sceneIds: MutableList<UUID> = mutableListOf()
     internal var currentSwitcherSceneId: UUID? = null
-    internal val _currentSwitcherId = MutableStateFlow<UUID?>(null)
-    val currentSwitcherId: StateFlow<UUID?> = _currentSwitcherId.asStateFlow()
+    val currentSwitcherId = MutableStateFlow<UUID?>(null)
 }
 
 fun Model.setAutoSceneSwitcher(id: UUID?) {
-    autoSceneSwitcher._currentSwitcherId.value = id
+    autoSceneSwitcher.currentSwitcherId.value = id
     database.autoSceneSwitchers.switcherId = id
     autoSceneSwitcher.switchTime = Instant.now()
     autoSceneSwitcher.sceneIds.clear()
@@ -26,14 +25,14 @@ fun Model.setAutoSceneSwitcher(id: UUID?) {
 
 fun Model.deleteAutoSceneSwitchers(offsets: Set<Int>) {
     offsets.sortedDescending().forEach { database.autoSceneSwitchers.switchers.removeAt(it) }
-    if (database.autoSceneSwitchers.switchers.none { it.id == autoSceneSwitcher._currentSwitcherId.value }) {
-        autoSceneSwitcher._currentSwitcherId.value = null
+    if (database.autoSceneSwitchers.switchers.none { it.id == autoSceneSwitcher.currentSwitcherId.value }) {
+        autoSceneSwitcher.currentSwitcherId.value = null
         setAutoSceneSwitcher(id = null)
     }
 }
 
 fun Model.updateAutoSceneSwitcher(now: Instant, forceSwitch: Boolean = false) {
-    val switcherId = autoSceneSwitcher._currentSwitcherId.value ?: return
+    val switcherId = autoSceneSwitcher.currentSwitcherId.value ?: return
     if (!forceSwitch) {
         val switchTime = autoSceneSwitcher.switchTime
         if (switchTime != null && now <= switchTime) {
@@ -84,7 +83,7 @@ private fun Model.trySwitchToNextScene(autoSwitcher: SettingsAutoSceneSwitcher, 
 }
 
 fun Model.updateAutoSceneSwitcherVideoSourceDisconnected() {
-    if (autoSceneSwitcher._currentSwitcherId.value == null) {
+    if (autoSceneSwitcher.currentSwitcherId.value == null) {
         return
     }
     val currentSceneId = autoSceneSwitcher.currentSwitcherSceneId ?: return

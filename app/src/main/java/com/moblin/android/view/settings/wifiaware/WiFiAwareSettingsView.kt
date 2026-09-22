@@ -28,6 +28,7 @@ import com.moblin.android.various.settings.SettingsWiFiAwareRole
 import java.util.UUID
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import com.moblin.android.LocalModel
 
 private const val serviceName = "_moblin._tcp"
 
@@ -67,7 +68,7 @@ private fun SearchView() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WiFiAwareSettingsView(model: Model, wiFiAware: SettingsWiFiAware) {
+fun WiFiAwareSettingsView(model: Model = LocalModel.current, wiFiAware: SettingsWiFiAware) {
     val enabled by wiFiAware.enabled.collectAsState()
     val role by wiFiAware.role.collectAsState()
     var roleExpanded by remember { mutableStateOf(false) }

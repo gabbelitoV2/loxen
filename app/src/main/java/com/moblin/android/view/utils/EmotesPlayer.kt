@@ -338,8 +338,7 @@ class EmotesPlayer private constructor(private val context: Context) {
         }
     }
 
-    private val _sizesVersion = MutableStateFlow(0)
-    val sizesVersion: StateFlow<Int> = _sizesVersion.asStateFlow()
+    val sizesVersion = MutableStateFlow(0)
 
     private val emotes: MutableMap<EmoteKey, AnimatedEmote> = mutableMapOf()
     private val animatingEmotes: MutableMap<EmoteKey, AnimatedEmote> = mutableMapOf()
@@ -369,7 +368,7 @@ class EmotesPlayer private constructor(private val context: Context) {
             }
             sizes[source] = image.size
             if (!loading) {
-                _sizesVersion.value += 1
+                sizesVersion.value += 1
             }
         }
         loading = false

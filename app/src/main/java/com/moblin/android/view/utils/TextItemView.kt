@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import com.moblin.android.common.various.localized
 import com.moblin.android.common.various.replaceSensitive
+import com.moblin.android.localized
 
 @Composable
 fun TextItemView(

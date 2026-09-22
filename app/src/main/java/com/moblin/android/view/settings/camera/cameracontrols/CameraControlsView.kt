@@ -14,9 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
+import com.moblin.android.LocalModel
 
 @Composable
-fun CameraControlsView(model: Model, database: Database) {
+fun CameraControlsView(model: Model = LocalModel.current, database: Database) {
     val cameraControlsEnabled by database.cameraControlsEnabled.collectAsState()
     LaunchedEffect(cameraControlsEnabled) {
         model.setCameraControlsEnabled()

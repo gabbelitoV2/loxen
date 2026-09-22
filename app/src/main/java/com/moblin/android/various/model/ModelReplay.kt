@@ -23,22 +23,14 @@ import kotlinx.coroutines.launch
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
 class ReplayProvider {
-    val _selectedId = MutableStateFlow<UUID?>(null)
-    val selectedId: StateFlow<UUID?> = _selectedId.asStateFlow()
-    val _isSaving = MutableStateFlow(false)
-    val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
-    val _previewImage = MutableStateFlow<Bitmap?>(null)
-    val previewImage: StateFlow<Bitmap?> = _previewImage.asStateFlow()
-    val _isPlaying = MutableStateFlow(false)
-    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
-    val _startFromEnd = MutableStateFlow(10.0)
-    val startFromEnd: StateFlow<Double> = _startFromEnd.asStateFlow()
-    val _speed = MutableStateFlow<SettingsReplaySpeed?>(SettingsReplaySpeed.one)
-    val speed: StateFlow<SettingsReplaySpeed?> = _speed.asStateFlow()
-    val _instantReplayCountdown = MutableStateFlow(0)
-    val instantReplayCountdown: StateFlow<Int> = _instantReplayCountdown.asStateFlow()
-    val _timeLeft = MutableStateFlow(0)
-    val timeLeft: StateFlow<Int> = _timeLeft.asStateFlow()
+    val selectedId = MutableStateFlow<UUID?>(null)
+    val isSaving = MutableStateFlow(false)
+    val previewImage = MutableStateFlow<Bitmap?>(null)
+    val isPlaying = MutableStateFlow(false)
+    val startFromEnd = MutableStateFlow(10.0)
+    val speed = MutableStateFlow<SettingsReplaySpeed?>(SettingsReplaySpeed.one)
+    val instantReplayCountdown = MutableStateFlow(0)
+    val timeLeft = MutableStateFlow(0)
 }
 
 fun Model.saveReplay(
@@ -49,13 +41,13 @@ fun Model.saveReplay(
     if (replay.isSaving.value) {
         return false
     }
-    replay._isSaving.value = true
+    replay.isSaving.value = true
     val delaySeconds = delay ?: stream.replay.postTriggerDelay
     mainScope.launch {
         kotlinx.coroutines.delay(delaySeconds * 1000L)
         replayBuffer.createFile { file ->
             mainScope.launch {
-                replay._isSaving.value = false
+                replay.isSaving.value = false
                 val createdFile = file ?: return@launch
                 val replaySettings = replaysStorage.createReplay()
                 replaySettings.start = start ?: database.replay.start
@@ -74,8 +66,8 @@ fun Model.saveReplay(
 
 fun Model.loadReplay(video: ReplaySettings, completion: (() -> Unit)? = null) {
     replaySettings = video
-    replay._startFromEnd.value = video.startFromEnd()
-    replay._selectedId.value = video.id
+    replay.startFromEnd.value = video.startFromEnd()
+    replay.selectedId.value = video.id
     replayFrameExtractor = ReplayFrameExtractor(
         video = ReplayBufferFile(url = video.url(), duration = video.duration, remove = false),
         offset = video.thumbnailOffset(),
@@ -100,14 +92,14 @@ fun Model.instantReplay(start: Double? = null, delay: Int? = null) {
     val delaySeconds = delay ?: stream.replay.postTriggerDelay
     val savingStarted = saveReplay(start = start, delay = delaySeconds) { video ->
         loadReplay(video = video) {
-            replay._isPlaying.value = true
+            replay.isPlaying.value = true
             if (!replayPlay()) {
-                replay._isPlaying.value = false
+                replay.isPlaying.value = false
             }
         }
     }
     if (savingStarted) {
-        replay._instantReplayCountdown.value = delaySeconds + 1
+        replay.instantReplayCountdown.value = delaySeconds + 1
         instantReplayCountdownTick()
     }
 }
@@ -116,7 +108,7 @@ private fun Model.instantReplayCountdownTick() {
     if (replay.instantReplayCountdown.value == 0) {
         return
     }
-    replay._instantReplayCountdown.value = replay.instantReplayCountdown.value - 1
+    replay.instantReplayCountdown.value = replay.instantReplayCountdown.value - 1
     mainScope.launch {
         delay(1000L)
         instantReplayCountdownTick()
@@ -218,7 +210,7 @@ fun Model.replayOutputFrame(
     completion: (() -> Unit)?,
 ) {
     mainScope.launch {
-        replay._previewImage.value = image
+        replay.previewImage.value = image
         replayVideo = video
         completion?.invoke()
     }
@@ -226,13 +218,13 @@ fun Model.replayOutputFrame(
 
 fun Model.replayEffectStatus(timeLeft: Int) {
     mainScope.launch {
-        replay._timeLeft.value = timeLeft
+        replay.timeLeft.value = timeLeft
     }
 }
 
 fun Model.replayEffectCompleted() {
     mainScope.launch {
-        replay._isPlaying.value = false
+        replay.isPlaying.value = false
     }
 }
 

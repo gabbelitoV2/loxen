@@ -39,14 +39,16 @@ import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteButtonView
 import com.moblin.android.view.utils.SwipeLeftToDuplicateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDuplicateOrDeleteHelpView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun StreamItemView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
@@ -128,10 +130,10 @@ private fun moveStreams(streams: MutableList<SettingsStream>, froms: List<Int>, 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamsSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
     database: Database,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val presenting by createStreamWizard.presenting.collectAsState()
     val isLive by model.isLive.collectAsState()

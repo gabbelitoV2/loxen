@@ -1,6 +1,6 @@
 {
   "root": "<home>\\Desktop\\code\\moblin",
-  "generated": "2026-09-22T12:22:28+00:00",
+  "generated": "2026-09-22T15:17:55+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -195,69 +195,6 @@
       "wave": -1
     },
     {
-      "path": "Moblin Watch/Shared/WatchProtocol.swift",
-      "lines": 273,
-      "sha256": "1c5c9201c1b6592f1b0b11988eaf3c83e04660700f22534fe65f1ebd119caf65",
-      "imports": [
-        "Foundation",
-        "HealthKit",
-        "SwiftUI"
-      ],
-      "tier": "skip",
-      "declared_types": [
-        "WatchMessageToWatch",
-        "WatchMessageFromWatch",
-        "WatchProtocolChatSegment",
-        "WatchProtocolChatHighlightKind",
-        "WatchProtocolChatHighlight",
-        "WatchProtocolChatMessage",
-        "WatchProtocolColor",
-        "WatchProtocolScene",
-        "WatchProtocolZoomPreset",
-        "WatchProtocolWorkoutType",
-        "WatchProtocolWorkoutStats",
-        "WatchProtocolPadelScoreboardScore",
-        "WatchProtocolPadelScoreboard",
-        "WatchProtocolGenericScoreboard",
-        "WatchProtocolPadelScoreboardAction",
-        "WatchProtocolPadelScoreboardActionPlayers",
-        "WatchProtocolPadelScoreboardActionType",
-        "WatchProtocolGenericScoreboardAction",
-        "WatchProtocolGenericScoreboardActionType",
-        "WatchProtocolScoreboardPlayer",
-        "WatchProtocolInstantReplay"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.moblinwatch.shared",
-      "kotlin_path": "app/src/main/java/com/moblin/android/moblinwatch/shared/WatchProtocol.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift"
-      ],
-      "wave": -1
-    },
-    {
-      "path": "Moblin Watch/Shared/WatchSettings.swift",
-      "lines": 95,
-      "sha256": "ca974ba02cf376007eb2813066011c7afb001f9f52763e16b8c89a6e7c2304c9",
-      "imports": [
-        "Combine",
-        "Foundation"
-      ],
-      "tier": "skip",
-      "declared_types": [
-        "WatchSettingsChat",
-        "WatchSettingsShow",
-        "WatchSettings"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.moblinwatch.shared",
-      "kotlin_path": "app/src/main/java/com/moblin/android/moblinwatch/shared/WatchSettings.kt",
-      "deps": [],
-      "wave": -1
-    },
-    {
       "path": "Moblin Watch/Various/CacheImage.swift",
       "lines": 86,
       "sha256": "e5ee5c629ab39eb544b472f9ce0e7a808f3991f0ed8d7ec999e5fc64db05836e",
@@ -275,6 +212,7 @@
       "kotlin_package": "com.moblin.android.moblinwatch.various",
       "kotlin_path": "app/src/main/java/com/moblin/android/moblinwatch/various/CacheImage.kt",
       "deps": [
+        "Moblin Watch/Shared/WatchProtocol.swift",
         "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift"
       ],
@@ -297,7 +235,9 @@
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.moblinwatch.various",
       "kotlin_path": "app/src/main/java/com/moblin/android/moblinwatch/various/ModelScoreboard.kt",
-      "deps": [],
+      "deps": [
+        "Moblin Watch/Shared/WatchProtocol.swift"
+      ],
       "wave": -1
     },
     {
@@ -329,6 +269,8 @@
       "deps": [
         "Common/Various/AudioLevel.swift",
         "Common/Various/CommonUtils.swift",
+        "Moblin Watch/Shared/WatchProtocol.swift",
+        "Moblin Watch/Shared/WatchSettings.swift",
         "Moblin/Various/Network/NetworkUtils.swift",
         "Moblin/Various/Storages/StreamingHistory.swift",
         "Moblin/VideoEffects/Browser/BrowserEffectServer.swift"
@@ -361,6 +303,7 @@
       "kotlin_package": "com.moblin.android.moblinwatch.view.chat",
       "kotlin_path": "app/src/main/java/com/moblin/android/moblinwatch/view/chat/ChatView.kt",
       "deps": [
+        "Moblin Watch/Shared/WatchSettings.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift"
       ],
       "wave": -1
@@ -419,6 +362,7 @@
         "Common/Various/AudioLevel.swift",
         "Common/Various/CommonUtils.swift",
         "Common/View/StreamOverlayIconAndTextView.swift",
+        "Moblin Watch/Shared/WatchProtocol.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
         "Moblin/Various/Model/ModelZoom.swift",
         "Moblin/Various/Storages/StreamingHistory.swift"
@@ -592,6 +536,27 @@
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.common.various",
       "kotlin_path": "app/src/main/java/com/moblin/android/common/various/CMFormatDescription+Extension.kt",
+      "deps": [],
+      "wave": 0
+    },
+    {
+      "path": "Moblin Watch/Shared/WatchSettings.swift",
+      "lines": 95,
+      "sha256": "ca974ba02cf376007eb2813066011c7afb001f9f52763e16b8c89a6e7c2304c9",
+      "imports": [
+        "Combine",
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "WatchSettingsChat",
+        "WatchSettingsShow",
+        "WatchSettings"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.moblinwatch.shared",
+      "kotlin_path": "app/src/main/java/com/moblin/android/moblinwatch/shared/WatchSettings.kt",
       "deps": [],
       "wave": 0
     },
@@ -3464,6 +3429,48 @@
       "wave": 5
     },
     {
+      "path": "Moblin Watch/Shared/WatchProtocol.swift",
+      "lines": 273,
+      "sha256": "1c5c9201c1b6592f1b0b11988eaf3c83e04660700f22534fe65f1ebd119caf65",
+      "imports": [
+        "Foundation",
+        "HealthKit",
+        "SwiftUI"
+      ],
+      "tier": "ui",
+      "declared_types": [
+        "WatchMessageToWatch",
+        "WatchMessageFromWatch",
+        "WatchProtocolChatSegment",
+        "WatchProtocolChatHighlightKind",
+        "WatchProtocolChatHighlight",
+        "WatchProtocolChatMessage",
+        "WatchProtocolColor",
+        "WatchProtocolScene",
+        "WatchProtocolZoomPreset",
+        "WatchProtocolWorkoutType",
+        "WatchProtocolWorkoutStats",
+        "WatchProtocolPadelScoreboardScore",
+        "WatchProtocolPadelScoreboard",
+        "WatchProtocolGenericScoreboard",
+        "WatchProtocolPadelScoreboardAction",
+        "WatchProtocolPadelScoreboardActionPlayers",
+        "WatchProtocolPadelScoreboardActionType",
+        "WatchProtocolGenericScoreboardAction",
+        "WatchProtocolGenericScoreboardActionType",
+        "WatchProtocolScoreboardPlayer",
+        "WatchProtocolInstantReplay"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.moblinwatch.shared",
+      "kotlin_path": "app/src/main/java/com/moblin/android/moblinwatch/shared/WatchProtocol.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift"
+      ],
+      "wave": 5
+    },
+    {
       "path": "Moblin/Integrations/CatPrinter/CatPrinterCommandsMxw01.swift",
       "lines": 131,
       "sha256": "36d09575ceca887633e3b06f87fa992123380cfe1b3fe6d6e967dd187106c5fc",
@@ -5203,6 +5210,7 @@
       "kotlin_package": "com.moblin.android.view.settings.watch.display.localoverlays",
       "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/watch/display/localoverlays/WatchLocalOverlaysSettingsView.kt",
       "deps": [
+        "Moblin Watch/Shared/WatchSettings.swift",
         "Moblin/Various/Model/Model.swift"
       ],
       "wave": 5
@@ -5223,6 +5231,7 @@
       "kotlin_package": "com.moblin.android.view.settings.watch.display",
       "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/watch/display/WatchDisplaySettingsView.kt",
       "deps": [
+        "Moblin Watch/Shared/WatchSettings.swift",
         "Moblin/View/Settings/Watch/Display/LocalOverlays/WatchLocalOverlaysSettingsView.swift"
       ],
       "wave": 5
@@ -9763,6 +9772,7 @@
       "kotlin_package": "com.moblin.android.view.settings.watch",
       "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/watch/WatchSettingsView.kt",
       "deps": [
+        "Moblin Watch/Shared/WatchSettings.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/VideoEffects/Browser/BrowserEffectServer.swift",
         "Moblin/View/Settings/Watch/Chat/WatchChatSettingsView.swift",
@@ -11715,6 +11725,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatPost.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin Watch/Shared/WatchProtocol.swift",
         "Moblin/RemoteControl/RemoteControl.swift",
         "Moblin/StreamingPlatforms/Platform.swift",
         "Moblin/Various/Settings/SettingsChat.swift",
@@ -11861,6 +11872,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelWorkout.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin Watch/Shared/WatchProtocol.swift",
         "Moblin/Media/HaishinKit/Rtmp/RtmpStream.swift",
         "Moblin/Various/Model/Model.swift"
       ],
@@ -12340,6 +12352,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/watch/chat/WatchChatSettingsView.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin Watch/Shared/WatchSettings.swift",
         "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/VideoEffects/Browser/BrowserEffectServer.swift"
@@ -16197,6 +16210,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelAppleWatch.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin Watch/Shared/WatchProtocol.swift",
         "Moblin/Various/ChatPost.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Network/NetworkUtils.swift",
@@ -16414,6 +16428,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelScoreboard.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin Watch/Shared/WatchProtocol.swift",
         "Moblin/RemoteControl/RemoteControl.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Settings/SettingsScene.swift",
@@ -18812,6 +18827,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin Watch/Shared/WatchSettings.swift",
         "Moblin/Media/HaishinKit/Media/Processor.swift",
         "Moblin/Media/WiFiAware/WiFiAwareReceiver.swift",
         "Moblin/Media/WiFiAware/WiFiAwareSender.swift",
@@ -19068,6 +19084,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin Watch/Shared/WatchProtocol.swift",
         "Moblin/Integrations/BlackSharkCooler/BlackSharkCoolerDevice.swift",
         "Moblin/Integrations/CatPrinter/CatPrinter.swift",
         "Moblin/Integrations/Dji/DjiDevice/DjiDevice.swift",

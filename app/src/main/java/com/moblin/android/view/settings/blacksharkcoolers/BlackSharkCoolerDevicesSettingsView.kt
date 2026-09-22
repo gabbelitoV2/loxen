@@ -23,10 +23,11 @@ import com.moblin.android.view.settings.catprinters.IntegrationImageView
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
 
 @Composable
 fun BlackSharkCoolerDevicesSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     blackSharkCoolerDevices: SettingsBlackSharkCoolerDevices,
 ) {
     val statusTopRight by model.statusTopRight.collectAsState()

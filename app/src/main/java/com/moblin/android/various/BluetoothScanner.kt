@@ -30,8 +30,7 @@ class BluetoothScanner(
 ) {
     private val mainScope = CoroutineScope(Dispatchers.Main)
 
-    private val _discoveredPeripherals = MutableStateFlow<List<BluetoothDevice>>(emptyList())
-    val discoveredPeripherals: StateFlow<List<BluetoothDevice>> = _discoveredPeripherals.asStateFlow()
+    val discoveredPeripherals = MutableStateFlow<List<BluetoothDevice>>(emptyList())
 
     private var centralManager: BluetoothLeScanner? = null
     private var bluetoothAdapter: BluetoothAdapter? = null
@@ -63,7 +62,7 @@ class BluetoothScanner(
     }
 
     fun startScanningForDevices() {
-        _discoveredPeripherals.value = emptyList()
+        discoveredPeripherals.value = emptyList()
         val adapter = bluetoothAdapter ?: bluetoothManager()?.adapter
         bluetoothAdapter = adapter
         if (adapter == null) {
@@ -107,11 +106,11 @@ class BluetoothScanner(
     }
 
     private fun didDiscover(device: BluetoothDevice, rssi: Int) {
-        val current = _discoveredPeripherals.value
+        val current = discoveredPeripherals.value
         if (current.any { it.address == device.address }) {
             return
         }
-        _discoveredPeripherals.value = current + device
+        discoveredPeripherals.value = current + device
     }
 
     private fun hasScanPermission(): Boolean {

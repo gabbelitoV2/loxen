@@ -57,10 +57,11 @@ import com.moblin.android.various.settings.SettingsReplaySpeed
 import com.moblin.android.various.storages.ReplaySettings
 import com.moblin.android.various.storages.ReplaysDatabase
 import com.moblin.android.various.utils.createThumbnail
+import com.moblin.android.LocalModel
 
 @Composable
 private fun ReplayPreview(
-    model: Model,
+    model: Model = LocalModel.current,
     orientation: Orientation,
     replay: ReplayProvider,
 ) {
@@ -108,7 +109,7 @@ private fun ReplayPreview(
 
 @Composable
 private fun ReplayControlsInterval(
-    model: Model,
+    model: Model = LocalModel.current,
     replay: ReplayProvider,
 ) {
     val startFromEnd by replay.startFromEnd.collectAsState()
@@ -136,7 +137,7 @@ private fun ReplayControlsInterval(
 
 @Composable
 private fun ReplayControlsSpeedPicker(
-    model: Model,
+    model: Model = LocalModel.current,
     replay: ReplayProvider,
 ) {
     val speed by replay.speed.collectAsState()
@@ -163,7 +164,7 @@ private fun ReplayControlsSpeedPicker(
 
 @Composable
 private fun ReplayControlsPlayPauseButton(
-    model: Model,
+    model: Model = LocalModel.current,
     replay: ReplayProvider,
 ) {
     val isPlaying by replay.isPlaying.collectAsState()
@@ -195,7 +196,7 @@ private fun ReplayControlsPlayPauseButton(
 
 @Composable
 private fun ReplayControlsSaveButton(
-    model: Model,
+    model: Model = LocalModel.current,
     replay: ReplayProvider,
 ) {
     val isSaving by replay.isSaving.collectAsState()
@@ -243,7 +244,7 @@ private fun ControlRowView(content: @Composable () -> Unit) {
 
 @Composable
 private fun ReplayControls(
-    model: Model,
+    model: Model = LocalModel.current,
     replay: ReplayProvider,
     orientation: Orientation,
 ) {
@@ -273,7 +274,7 @@ private fun ReplayControls(
 
 @Composable
 private fun ReplayHistoryItem(
-    model: Model,
+    model: Model = LocalModel.current,
     orientation: Orientation,
     replay: ReplayProvider,
     video: ReplaySettings,
@@ -320,7 +321,7 @@ private fun ReplayHistoryItem(
 
 @Composable
 private fun ReplayHistory(
-    model: Model,
+    model: Model = LocalModel.current,
     orientation: Orientation,
     replayDatabase: ReplaysDatabase,
     replay: ReplayProvider,
@@ -357,7 +358,7 @@ private fun ReplayHistory(
 
 @Composable
 fun StreamOverlayRightReplayView(
-    model: Model,
+    model: Model = LocalModel.current,
     replay: ReplayProvider,
     orientation: Orientation,
 ) {

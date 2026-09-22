@@ -70,6 +70,8 @@ import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.view.utils.WiFiSsidEditView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 fun formatGoProDeviceState(state: GoProDeviceState?): String {
     return when (state) {
@@ -90,7 +92,7 @@ fun formatGoProDeviceState(state: GoProDeviceState?): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GoProDeviceScannerSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     onSelect: (GoProDiscoveredDevice) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -143,7 +145,7 @@ private fun GoProDeviceScannerSettingsView(
 }
 
 @Composable
-private fun GoProDeviceSelectionSection(model: Model, device: SettingsGoProDevice) {
+private fun GoProDeviceSelectionSection(model: Model = LocalModel.current, device: SettingsGoProDevice) {
     val bluetoothPeripheralId by device.bluetoothPeripheralId.collectAsState()
     val bluetoothPeripheralName by device.bluetoothPeripheralName.collectAsState()
     var showScanner by remember { mutableStateOf(false) }
@@ -176,7 +178,7 @@ private fun GoProDeviceSelectionSection(model: Model, device: SettingsGoProDevic
 }
 
 @Composable
-private fun GoProDeviceWifiSection(model: Model, device: SettingsGoProDevice) {
+private fun GoProDeviceWifiSection(model: Model = LocalModel.current, device: SettingsGoProDevice) {
     val wifiSsid by device.wifiSsid.collectAsState()
     val wifiPassword by device.wifiPassword.collectAsState()
     var showSsidEdit by remember { mutableStateOf(false) }
@@ -263,7 +265,7 @@ private fun serverUrls(
 
 @Composable
 private fun GoProDeviceRtmpSection(
-    model: Model,
+    model: Model = LocalModel.current,
     device: SettingsGoProDevice,
     status: StatusOther,
     rtmpServer: SettingsRtmpServer,
@@ -541,7 +543,7 @@ private fun GoProDeviceStreamSettingsSection(device: SettingsGoProDevice) {
 
 @Composable
 private fun GoProDeviceStartStopSection(
-    model: Model,
+    model: Model = LocalModel.current,
     device: SettingsGoProDevice,
     status: StatusOther,
 ) {
@@ -567,7 +569,7 @@ private fun GoProDeviceStartStopSection(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GoProBleDeviceSettingsView(model: Model, device: SettingsGoProDevice) {
+fun GoProBleDeviceSettingsView(model: Model = LocalModel.current, device: SettingsGoProDevice) {
     val state by device.state.collectAsState()
     Scaffold(
         topBar = {
@@ -611,9 +613,9 @@ fun GoProBleDeviceSettingsView(model: Model, device: SettingsGoProDevice) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GoProBleDevicesSettingsSection(
-    model: Model,
+    model: Model = LocalModel.current,
     goPro: SettingsGoPro,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val devices by goPro.devices.collectAsState()
     Text(localized("Devices"), style = MaterialTheme.typography.titleSmall)

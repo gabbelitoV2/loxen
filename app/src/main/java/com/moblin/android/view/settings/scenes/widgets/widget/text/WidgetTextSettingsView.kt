@@ -87,6 +87,8 @@ import com.moblin.android.view.utils.TextItemLocalizedView
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.min
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private data class Suggestion(val id: Int, val name: String, val text: String)
 
@@ -193,7 +195,7 @@ private fun SuggestionView(
 
 @Composable
 private fun VariableView(
-    model: Model,
+    model: Model = LocalModel.current,
     title: String,
     description: String,
     text: String,
@@ -218,7 +220,7 @@ private data class Language(
 
 @Composable
 private fun SubtitlesWithLanguageView(
-    model: Model,
+    model: Model = LocalModel.current,
     text: String,
     onChange: (String) -> Unit,
 ) {
@@ -228,7 +230,7 @@ private fun SubtitlesWithLanguageView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun VariableWithUnitView(
-    model: Model,
+    model: Model = LocalModel.current,
     description: String,
     variable: String,
     units: List<Pair<String, String>>,
@@ -270,7 +272,7 @@ private fun VariableWithUnitView(
 
 @Composable
 private fun VariableWithLengthUnitView(
-    model: Model,
+    model: Model = LocalModel.current,
     description: String,
     variable: String,
     text: String,
@@ -293,7 +295,7 @@ private fun VariableWithLengthUnitView(
 
 @Composable
 private fun VariableWithSpeedUnitView(
-    model: Model,
+    model: Model = LocalModel.current,
     description: String,
     variable: String,
     text: String,
@@ -316,7 +318,7 @@ private fun VariableWithSpeedUnitView(
 
 @Composable
 private fun VariableWithTemperatureUnitView(
-    model: Model,
+    model: Model = LocalModel.current,
     description: String,
     variable: String,
     text: String,
@@ -757,7 +759,7 @@ private fun TextWidgetSuggestionsInnerView(
 
 @Composable
 private fun GeneralVariablesView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: Boolean,
     value: String,
     onChange: (String) -> Unit,
@@ -820,7 +822,7 @@ private fun GeneralVariablesView(
 
 @Composable
 private fun TimeVariablesView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: Boolean,
     value: String,
     onChange: (String) -> Unit,
@@ -888,7 +890,7 @@ private fun TimeVariablesView(
 
 @Composable
 private fun LocationVariablesView(
-    model: Model,
+    model: Model = LocalModel.current,
     value: String,
     onChange: (String) -> Unit,
 ) {
@@ -1074,7 +1076,7 @@ private fun LocationVariablesView(
 
 @Composable
 private fun WeatherVariablesView(
-    model: Model,
+    model: Model = LocalModel.current,
     value: String,
     onChange: (String) -> Unit,
 ) {
@@ -1140,7 +1142,7 @@ private fun WeatherVariablesView(
 
 @Composable
 private fun LanguageVariablesView(
-    model: Model,
+    model: Model = LocalModel.current,
     value: String,
     onChange: (String) -> Unit,
 ) {
@@ -1159,7 +1161,7 @@ private fun LanguageVariablesView(
 
 @Composable
 private fun WorkoutVariablesView(
-    model: Model,
+    model: Model = LocalModel.current,
     value: String,
     onChange: (String) -> Unit,
 ) {
@@ -1249,7 +1251,7 @@ private fun WorkoutVariablesView(
 
 @Composable
 private fun TeslaVariablesView(
-    model: Model,
+    model: Model = LocalModel.current,
     value: String,
     onChange: (String) -> Unit,
 ) {
@@ -1281,7 +1283,7 @@ private fun TeslaVariablesView(
 
 @Composable
 private fun StreamingVariablesView(
-    model: Model,
+    model: Model = LocalModel.current,
     value: String,
     onChange: (String) -> Unit,
 ) {
@@ -1306,7 +1308,7 @@ private fun StreamingVariablesView(
 
 @Composable
 private fun DebugVariablesView(
-    model: Model,
+    model: Model = LocalModel.current,
     value: String,
     onChange: (String) -> Unit,
 ) {
@@ -1366,11 +1368,11 @@ private fun DebugVariablesView(
 
 @Composable
 fun TextFormatVariablesView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: Boolean,
     value: String,
     onChange: (String) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Column {
         Text(localized("Variables"), style = MaterialTheme.typography.titleSmall)
@@ -1408,10 +1410,10 @@ fun TextFormatVariablesView(
 
 @Composable
 fun TextSelectionView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     text: SettingsWidgetText,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val value by text.formatString.collectAsState()
     val database by model.database.collectAsState()
@@ -1465,7 +1467,7 @@ fun TextWidgetTextView(
 
 @Composable
 fun TextFormatWarningsView(
-    model: Model,
+    model: Model = LocalModel.current,
     location: SettingsLocation,
     value: String,
     onChange: (String) -> Unit,
@@ -1515,7 +1517,7 @@ fun TextFormatWarningsView(
 
 @Composable
 fun WidgetTextQuickButtonControlsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     text: SettingsWidgetText,
 ) {
@@ -1588,7 +1590,7 @@ fun TextWidgetSuggestionsView(
     widget: Boolean,
     text: String,
     onChange: (String) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(modifier = Modifier.clickable { onNavigate("Suggestions") }) {
         Text(localized("Suggestions"))
@@ -1597,7 +1599,7 @@ fun TextWidgetSuggestionsView(
 
 @Composable
 private fun FontFamilyPickerView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     text: SettingsWidgetText,
 ) {
@@ -1663,7 +1665,7 @@ private fun fontStyles(fontFamily: String): List<String> =
 
 @Composable
 private fun FontStylePickerView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     text: SettingsWidgetText,
     fontFamily: String,
@@ -1692,10 +1694,10 @@ private fun FontStylePickerView(
 
 @Composable
 fun WidgetTextSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     text: SettingsWidgetText,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     fun changeWidth(value: String): String? {
         val width = value.toIntOrNull() ?: return localized("Not a number")

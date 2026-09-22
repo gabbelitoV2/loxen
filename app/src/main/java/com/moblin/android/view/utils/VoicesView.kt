@@ -47,6 +47,7 @@ import com.moblin.android.various.utils.emojiFlag
 import com.moblin.android.view.settings.chat.textToSpeechLanguages
 import com.moblin.android.view.settings.chat.textToSpeechLocalize
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalOnNavigate
 
 private fun getVoice(
     appleVoices: List<Voice>,
@@ -376,7 +377,7 @@ fun VoicesView(
     textToSpeechLanguageVoices: Map<String, SettingsVoice>,
     onVoiceChange: (String, SettingsVoice) -> Unit,
     onLanguageReset: (String) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     rate: Float,
     volume: Float,
     ttsMonsterApiToken: String,

@@ -7,10 +7,11 @@ import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.wizard.networksetup.StreamWizardNetworkSetupObsSettingsView
+import com.moblin.android.LocalModel
 
 @Composable
 fun StreamWizardObsSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
 ) {
     LaunchedEffect(Unit) {

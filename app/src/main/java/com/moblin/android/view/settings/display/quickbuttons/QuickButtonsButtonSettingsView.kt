@@ -55,10 +55,12 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun QuickButtonStealthModeView(
-    model: Model,
+    model: Model = LocalModel.current,
     stealthMode: StealthMode,
 ) {
     val image = stealthMode.image.collectAsState().value
@@ -132,12 +134,12 @@ private fun positionButtonIcon(image: String): ImageVector = when (image) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonsButtonSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     orientation: Orientation,
     quickButtonsSettings: SettingsQuickButtons,
     button: SettingsQuickButton,
     showAll: Boolean,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isPortrait = orientation.isPortrait.collectAsState().value
     Column {
@@ -268,7 +270,7 @@ fun QuickButtonsButtonSettingsView(
 
 @Composable
 private fun positionPortrait(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtonsSettings: SettingsQuickButtons,
     button: SettingsQuickButton,
 ) {
@@ -296,7 +298,7 @@ private fun positionPortrait(
 
 @Composable
 private fun positionLandscape(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtonsSettings: SettingsQuickButtons,
     button: SettingsQuickButton,
 ) {

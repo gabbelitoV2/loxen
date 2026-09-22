@@ -34,6 +34,8 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun formatTeslaVehicleState(state: TeslaVehicleState?): String {
     return when {
@@ -47,10 +49,10 @@ private fun formatTeslaVehicleState(state: TeslaVehicleState?): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeslaSettingsConfigurationView(
-    model: Model,
+    model: Model = LocalModel.current,
     tesla: Tesla,
     settings: SettingsTesla,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val database = model.database
     val bluetoothPeripheralName by settings.bluetoothPeripheralName.collectAsState()
@@ -128,7 +130,7 @@ fun TeslaSettingsConfigurationView(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TeslaSettingsView(model: Model, tesla: Tesla, onNavigate: (String) -> Unit) {
+fun TeslaSettingsView(model: Model = LocalModel.current, tesla: Tesla, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
     val database = model.database
     val enabled by database.tesla.enabled.collectAsState()
     val vehicleState by tesla.vehicleState.collectAsState()

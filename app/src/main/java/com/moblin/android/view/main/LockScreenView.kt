@@ -10,9 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import com.moblin.android.various.model.Model
+import com.moblin.android.LocalModel
 
 @Composable
-fun LockScreenView(model: Model) {
+fun LockScreenView(model: Model = LocalModel.current) {
     Box(
         modifier = Modifier
             .fillMaxSize()

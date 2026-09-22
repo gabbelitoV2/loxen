@@ -21,6 +21,8 @@ import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.settings.streams.stream.wizard.StreamWizardObsRemoteControlSettingsView
 import com.moblin.android.view.settings.streams.stream.wizard.custom.StreamWizardSrtUrlSettingsView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun nextDisabled(createStreamWizard: CreateStreamWizard, urlError: String): Boolean {
@@ -34,9 +36,9 @@ private fun nextDisabled(createStreamWizard: CreateStreamWizard, urlError: Strin
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardNetworkSetupMyServersSrtSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     var urlError by remember { mutableStateOf("") }
     val nextDisabled = nextDisabled(createStreamWizard, urlError)

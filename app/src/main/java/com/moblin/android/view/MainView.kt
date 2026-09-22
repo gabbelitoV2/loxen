@@ -113,6 +113,7 @@ import com.moblin.android.view.stream.StreamGridView
 import com.moblin.android.view.stream.StreamOverlayView
 import com.moblin.android.view.stream.overlay.StreamOverlayNavigationView
 import com.moblin.android.view.webbrowser.WebBrowserView
+import com.moblin.android.LocalModel
 
 @Composable
 fun CloseButtonView(onClose: () -> Unit) {
@@ -147,7 +148,7 @@ fun CloseButtonTopRightView(onClose: () -> Unit) {
 }
 
 @Composable
-private fun HideShowButtonPanelView(model: Model) {
+private fun HideShowButtonPanelView(model: Model = LocalModel.current) {
     IconButton(onClick = { model.panelHidden = !model.panelHidden }) {
         Icon(
             imageVector = if (model.panelHidden) Icons.Default.Visibility else Icons.Default.VisibilityOff,
@@ -159,7 +160,7 @@ private fun HideShowButtonPanelView(model: Model) {
 }
 
 @Composable
-private fun PanelButtonsView(model: Model, backgroundColor: Color) {
+private fun PanelButtonsView(model: Model = LocalModel.current, backgroundColor: Color) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Spacer(modifier = Modifier.weight(1f))
         Column(
@@ -187,7 +188,7 @@ private fun onClose(model: Model) {
 }
 
 @Composable
-private fun MenuView(model: Model) {
+private fun MenuView(model: Model = LocalModel.current) {
     when (model.showingPanel) {
         ShowingPanel.SETTINGS -> SettingsView(database = model.database)
         ShowingPanel.BITRATE -> QuickButtonBitrateView(
@@ -328,7 +329,7 @@ private fun PhotoShootView(enabled: Boolean) {
 }
 
 @Composable
-private fun WebBrowserAlertsView(model: Model) {
+private fun WebBrowserAlertsView(model: Model = LocalModel.current) {
     TODO("UIViewControllerRepresentable (WebBrowserController) has no Compose equivalent")
 }
 
@@ -353,7 +354,7 @@ private fun tapToFocusIndicator(size: Size, focusPoint: Offset) {
 }
 
 @Composable
-private fun StreamOverlayTapGridView(model: Model, camera: CameraState, size: Size) {
+private fun StreamOverlayTapGridView(model: Model = LocalModel.current, camera: CameraState, size: Size) {
     val focusPoint = camera.manualFocusPoint
     if (model.database.tapToFocus && focusPoint != null) {
         tapToFocusIndicator(size = size, focusPoint = focusPoint)
@@ -432,7 +433,7 @@ private fun InteractiveBrowserView(
 
 @Composable
 fun MainView(
-    model: Model,
+    model: Model = LocalModel.current,
     webBrowserController: WebBrowserController,
     streamView: @Composable () -> Unit,
     createStreamWizard: CreateStreamWizard,
@@ -605,7 +606,7 @@ private fun handleLeaveTapToFocus(model: Model) {
 }
 
 @Composable
-private fun browserWidgets(model: Model, streamSize: Size) {
+private fun browserWidgets(model: Model = LocalModel.current, streamSize: Size) {
     Box(
         modifier = Modifier
             .size(streamSize.width.dp, streamSize.height.dp)
@@ -624,7 +625,7 @@ private fun browserWidgets(model: Model, streamSize: Size) {
 }
 
 @Composable
-private fun streamViewWithWidgets(model: Model, streamView: @Composable () -> Unit) {
+private fun streamViewWithWidgets(model: Model = LocalModel.current, streamView: @Composable () -> Unit) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val metrics = Size(maxWidth.value, maxHeight.value)
         val layout = model.streamViewLayout(metrics)
@@ -665,7 +666,7 @@ private fun streamViewWithWidgets(model: Model, streamView: @Composable () -> Un
 
 @Composable
 private fun portrait(
-    model: Model,
+    model: Model = LocalModel.current,
     streamView: @Composable () -> Unit,
     orientation: Orientation,
     quickButtons: SettingsQuickButtons,
@@ -746,7 +747,7 @@ private fun portrait(
 
 @Composable
 private fun landscape(
-    model: Model,
+    model: Model = LocalModel.current,
     streamView: @Composable () -> Unit,
     orientation: Orientation,
     quickButtons: SettingsQuickButtons,

@@ -17,6 +17,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsZoomSwitchTo
 import com.moblin.android.view.utils.TextEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.LocalModel
 
 private fun x(defaultZoom: SettingsZoomSwitchTo): Float {
     return defaultZoom.x
@@ -28,7 +29,7 @@ private fun formatX(x: Float): String {
 
 @Composable
 fun ZoomSwitchToSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     name: String,
     position: Int,
     defaultZoom: SettingsZoomSwitchTo,

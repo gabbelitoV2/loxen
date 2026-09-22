@@ -171,50 +171,37 @@ private data class IngestStats(
 )
 
 class DebugOverlayProvider {
-    internal val _debugLines = MutableStateFlow<List<String>>(emptyList())
-    val debugLines = _debugLines.asStateFlow()
+    val debugLines = MutableStateFlow<List<String>>(emptyList())
 }
 
 class StreamUptimeProvider {
-    internal val _uptime = MutableStateFlow(noValue)
-    val uptime = _uptime.asStateFlow()
+    val uptime = MutableStateFlow(noValue)
 }
 
 class ProgressBar {
-    internal val _progress = MutableStateFlow(0f)
-    val progress = _progress.asStateFlow()
-    internal val _goal = MutableStateFlow(1f)
-    val goal = _goal.asStateFlow()
+    val progress = MutableStateFlow(0f)
+    val goal = MutableStateFlow(1f)
 }
 
 class Banners {
-    internal val _minimized = MutableStateFlow(false)
-    val minimized = _minimized.asStateFlow()
+    val minimized = MutableStateFlow(false)
 }
 
 class HypeTrain {
-    internal val _level = MutableStateFlow<Int?>(null)
-    val level = _level.asStateFlow()
-    internal val _progress = MutableStateFlow<ProgressBar?>(null)
-    val progress = _progress.asStateFlow()
-    internal val _message = MutableStateFlow("")
-    val message = _message.asStateFlow()
+    val level = MutableStateFlow<Int?>(null)
+    val progress = MutableStateFlow<ProgressBar?>(null)
+    val message = MutableStateFlow("")
     var expiresAt: Instant? = null
 }
 
 enum class RaidState { idle, ongoing, cancelling, completed }
 
 class Raid {
-    internal val _state = MutableStateFlow(RaidState.idle)
-    val state = _state.asStateFlow()
-    internal val _channelImage = MutableStateFlow("")
-    val channelImage = _channelImage.asStateFlow()
-    internal val _channelLogin = MutableStateFlow("")
-    val channelLogin = _channelLogin.asStateFlow()
-    internal val _message = MutableStateFlow("")
-    val message = _message.asStateFlow()
-    internal val _progress = MutableStateFlow(ProgressBar())
-    val progress = _progress.asStateFlow()
+    val state = MutableStateFlow(RaidState.idle)
+    val channelImage = MutableStateFlow("")
+    val channelLogin = MutableStateFlow("")
+    val message = MutableStateFlow("")
+    val progress = MutableStateFlow(ProgressBar())
 }
 
 enum class TwitchPollState { idle, ongoing, completed }
@@ -222,16 +209,11 @@ enum class TwitchPollState { idle, ongoing, completed }
 data class TwitchPollChoice(val id: String, val title: String, val votes: Int)
 
 class TwitchPoll {
-    internal val _state = MutableStateFlow(TwitchPollState.idle)
-    val state = _state.asStateFlow()
-    internal val _title = MutableStateFlow("")
-    val title = _title.asStateFlow()
-    internal val _choices = MutableStateFlow<List<TwitchPollChoice>>(emptyList())
-    val choices = _choices.asStateFlow()
-    internal val _totalVotes = MutableStateFlow(0)
-    val totalVotes = _totalVotes.asStateFlow()
-    internal val _message = MutableStateFlow("")
-    val message = _message.asStateFlow()
+    val state = MutableStateFlow(TwitchPollState.idle)
+    val title = MutableStateFlow("")
+    val choices = MutableStateFlow<List<TwitchPollChoice>>(emptyList())
+    val totalVotes = MutableStateFlow(0)
+    val message = MutableStateFlow("")
     var endsAt: Instant? = null
 }
 
@@ -247,16 +229,11 @@ data class TwitchPredictionOutcome(
 )
 
 class TwitchPrediction {
-    internal val _state = MutableStateFlow(TwitchPredictionState.idle)
-    val state = _state.asStateFlow()
-    internal val _title = MutableStateFlow("")
-    val title = _title.asStateFlow()
-    internal val _outcomes = MutableStateFlow<List<TwitchPredictionOutcome>>(emptyList())
-    val outcomes = _outcomes.asStateFlow()
-    internal val _totalChannelPoints = MutableStateFlow(0)
-    val totalChannelPoints = _totalChannelPoints.asStateFlow()
-    internal val _message = MutableStateFlow("")
-    val message = _message.asStateFlow()
+    val state = MutableStateFlow(TwitchPredictionState.idle)
+    val title = MutableStateFlow("")
+    val outcomes = MutableStateFlow<List<TwitchPredictionOutcome>>(emptyList())
+    val totalChannelPoints = MutableStateFlow(0)
+    val message = MutableStateFlow("")
     var locksAt: Instant? = null
 }
 
@@ -268,54 +245,39 @@ class Ingests {
     var rtsp: MutableList<RtspClient> = mutableListOf()
     var whip: WhipServer? = null
     var whep: MutableList<WhepClient> = mutableListOf()
-    internal val _speedAndTotal = MutableStateFlow(noValue)
-    val speedAndTotal = _speedAndTotal.asStateFlow()
+    val speedAndTotal = MutableStateFlow(noValue)
 }
 
 class Bitrate {
-    internal val _speedAndTotal = MutableStateFlow(noValue)
-    val speedAndTotal = _speedAndTotal.asStateFlow()
-    internal val _speedMbpsOneDecimal = MutableStateFlow(noValue)
-    val speedMbpsOneDecimal = _speedMbpsOneDecimal.asStateFlow()
-    internal val _statusColor = MutableStateFlow(Color.White)
-    val statusColor = _statusColor.asStateFlow()
-    internal val _statusIconColor = MutableStateFlow<Color?>(null)
-    val statusIconColor = _statusIconColor.asStateFlow()
+    val speedAndTotal = MutableStateFlow(noValue)
+    val speedMbpsOneDecimal = MutableStateFlow(noValue)
+    val statusColor = MutableStateFlow(Color.White)
+    val statusIconColor = MutableStateFlow<Color?>(null)
 }
 
 class Bonding {
-    internal val _statistics = MutableStateFlow(noValue)
-    val statistics = _statistics.asStateFlow()
-    internal val _rtts = MutableStateFlow(noValue)
-    val rtts = _rtts.asStateFlow()
-    internal val _pieChartPercentages = MutableStateFlow<List<BondingPercentage>>(emptyList())
-    val pieChartPercentages = _pieChartPercentages.asStateFlow()
+    val statistics = MutableStateFlow(noValue)
+    val rtts = MutableStateFlow(noValue)
+    val pieChartPercentages = MutableStateFlow<List<BondingPercentage>>(emptyList())
     var statisticsFormatter = BondingStatisticsFormatter()
 }
 
 class Show {
-    internal val _cameraPreview = MutableStateFlow(false)
-    val cameraPreview = _cameraPreview.asStateFlow()
-    internal val _chatPhone = MutableStateFlow(false)
-    val chatPhone = _chatPhone.asStateFlow()
+    val cameraPreview = MutableStateFlow(false)
+    val chatPhone = MutableStateFlow(false)
 }
 
 class Battery {
-    internal val _level = MutableStateFlow(0.0)
-    val level = _level.asStateFlow()
-    internal val _state = MutableStateFlow(BatteryState.full)
-    val state = _state.asStateFlow()
+    val level = MutableStateFlow(0.0)
+    val state = MutableStateFlow(BatteryState.full)
 }
 
 class StatusOther {
-    internal val _ipStatuses = MutableStateFlow<List<IPMonitor.Status>>(emptyList())
-    val ipStatuses = _ipStatuses.asStateFlow()
-    internal val _thermalState = MutableStateFlow(getThermalState())
-    val thermalState = _thermalState.asStateFlow()
-    internal val _digitalClock = MutableStateFlow(noValue)
-    val digitalClock = _digitalClock.asStateFlow()
+    val ipStatuses = MutableStateFlow<List<IPMonitor.Status>>(emptyList())
+    val thermalState = MutableStateFlow(getThermalState())
+    val digitalClock = MutableStateFlow(noValue)
 
-    fun isConnectedToIpv4WiFi(): Boolean = _ipStatuses.value.any {
+    fun isConnectedToIpv4WiFi(): Boolean = ipStatuses.value.any {
         it.interfaceType == IPMonitor.InterfaceType.wifi && it.ipType == IPMonitor.IpType.ipv4
     }
 }
@@ -333,205 +295,134 @@ data class StreamingPlatformStatus(val platform: Platform, val status: PlatformS
 data class ChatPlatformStatus(val platform: Platform, val connected: Boolean)
 
 class StatusTopLeft {
-    internal val _numberOfViewersIconColor = MutableStateFlow(Color.White)
-    val numberOfViewersIconColor = _numberOfViewersIconColor.asStateFlow()
-    internal val _numberOfViewersCompact = MutableStateFlow(noValue)
-    val numberOfViewersCompact = _numberOfViewersCompact.asStateFlow()
-    internal val _streamingPlatformStatuses = MutableStateFlow<List<StreamingPlatformStatus>>(emptyList())
-    val streamingPlatformStatuses = _streamingPlatformStatuses.asStateFlow()
-    internal val _chatPlatformStatuses = MutableStateFlow<List<ChatPlatformStatus>>(emptyList())
-    val chatPlatformStatuses = _chatPlatformStatuses.asStateFlow()
-    internal val _statusEventsText = MutableStateFlow(noValue)
-    val statusEventsText = _statusEventsText.asStateFlow()
-    internal val _statusChatText = MutableStateFlow(noValue)
-    val statusChatText = _statusChatText.asStateFlow()
-    internal val _streamText = MutableStateFlow(noValue)
-    val streamText = _streamText.asStateFlow()
-    internal val _statusCameraText = MutableStateFlow(noValue)
-    val statusCameraText = _statusCameraText.asStateFlow()
-    internal val _statusObsText = MutableStateFlow(noValue)
-    val statusObsText = _statusObsText.asStateFlow()
+    val numberOfViewersIconColor = MutableStateFlow(Color.White)
+    val numberOfViewersCompact = MutableStateFlow(noValue)
+    val streamingPlatformStatuses = MutableStateFlow<List<StreamingPlatformStatus>>(emptyList())
+    val chatPlatformStatuses = MutableStateFlow<List<ChatPlatformStatus>>(emptyList())
+    val statusEventsText = MutableStateFlow(noValue)
+    val statusChatText = MutableStateFlow(noValue)
+    val streamText = MutableStateFlow(noValue)
+    val statusCameraText = MutableStateFlow(noValue)
+    val statusObsText = MutableStateFlow(noValue)
 }
 
 class SystemMonitor {
-    internal val _appCpu = MutableStateFlow(0)
-    val appCpu = _appCpu.asStateFlow()
-    internal val _cpu = MutableStateFlow(0)
-    val cpu = _cpu.asStateFlow()
-    internal val _ram = MutableStateFlow(0)
-    val ram = _ram.asStateFlow()
+    val appCpu = MutableStateFlow(0)
+    val cpu = MutableStateFlow(0)
+    val ram = MutableStateFlow(0)
 
-    fun format(): String = "${_appCpu.value}%/${_cpu.value}% ${_ram.value} MB"
+    fun format(): String = "${appCpu.value}%/${cpu.value}% ${ram.value} MB"
 
-    fun formatShort(): String = _cpu.value.toString()
+    fun formatShort(): String = cpu.value.toString()
 }
 
 class StatusTopRight {
-    internal val _browserWidgetsStatusChanged = MutableStateFlow(false)
-    val browserWidgetsStatusChanged = _browserWidgetsStatusChanged.asStateFlow()
-    internal val _remoteControlOk = MutableStateFlow(false)
-    val remoteControlOk = _remoteControlOk.asStateFlow()
-    internal val _remoteControlStatus = MutableStateFlow(noValue)
-    val remoteControlStatus = _remoteControlStatus.asStateFlow()
-    internal val _djiDevicesStatus = MutableStateFlow(noValue)
-    val djiDevicesStatus = _djiDevicesStatus.asStateFlow()
-    internal val _browserWidgetsStatus = MutableStateFlow(noValue)
-    val browserWidgetsStatus = _browserWidgetsStatus.asStateFlow()
-    internal val _catPrinterStatus = MutableStateFlow(noValue)
-    val catPrinterStatus = _catPrinterStatus.asStateFlow()
-    internal val _workoutDeviceStatus = MutableStateFlow(noValue)
-    val workoutDeviceStatus = _workoutDeviceStatus.asStateFlow()
-    internal val _fixedHorizonStatus = MutableStateFlow(noValue)
-    val fixedHorizonStatus = _fixedHorizonStatus.asStateFlow()
-    internal val _adsRemainingTimerStatus = MutableStateFlow(noValue)
-    val adsRemainingTimerStatus = _adsRemainingTimerStatus.asStateFlow()
-    internal val _blackSharkCoolerPhoneTemp = MutableStateFlow<Int?>(null)
-    val blackSharkCoolerPhoneTemp = _blackSharkCoolerPhoneTemp.asStateFlow()
-    internal val _blackSharkCoolerExhaustTemp = MutableStateFlow<Int?>(null)
-    val blackSharkCoolerExhaustTemp = _blackSharkCoolerExhaustTemp.asStateFlow()
-    internal val _blackSharkCoolerDeviceState = MutableStateFlow<BlackSharkCoolerDeviceState?>(null)
-    val blackSharkCoolerDeviceState = _blackSharkCoolerDeviceState.asStateFlow()
-    internal val _gameControllersTotal = MutableStateFlow(noValue)
-    val gameControllersTotal = _gameControllersTotal.asStateFlow()
-    internal val _djiDeviceStreamingState = MutableStateFlow<DjiDeviceState?>(null)
-    val djiDeviceStreamingState = _djiDeviceStreamingState.asStateFlow()
-    internal val _catPrinterState = MutableStateFlow<CatPrinterState?>(null)
-    val catPrinterState = _catPrinterState.asStateFlow()
-    internal val _workoutDeviceState = MutableStateFlow<WorkoutDeviceState?>(null)
-    val workoutDeviceState = _workoutDeviceState.asStateFlow()
-    internal val _location = MutableStateFlow(noValue)
-    val location = _location.asStateFlow()
-    internal val _isLowPowerMode = MutableStateFlow(false)
-    val isLowPowerMode = _isLowPowerMode.asStateFlow()
+    val browserWidgetsStatusChanged = MutableStateFlow(false)
+    val remoteControlOk = MutableStateFlow(false)
+    val remoteControlStatus = MutableStateFlow(noValue)
+    val djiDevicesStatus = MutableStateFlow(noValue)
+    val browserWidgetsStatus = MutableStateFlow(noValue)
+    val catPrinterStatus = MutableStateFlow(noValue)
+    val workoutDeviceStatus = MutableStateFlow(noValue)
+    val fixedHorizonStatus = MutableStateFlow(noValue)
+    val adsRemainingTimerStatus = MutableStateFlow(noValue)
+    val blackSharkCoolerPhoneTemp = MutableStateFlow<Int?>(null)
+    val blackSharkCoolerExhaustTemp = MutableStateFlow<Int?>(null)
+    val blackSharkCoolerDeviceState = MutableStateFlow<BlackSharkCoolerDeviceState?>(null)
+    val gameControllersTotal = MutableStateFlow(noValue)
+    val djiDeviceStreamingState = MutableStateFlow<DjiDeviceState?>(null)
+    val catPrinterState = MutableStateFlow<CatPrinterState?>(null)
+    val workoutDeviceState = MutableStateFlow<WorkoutDeviceState?>(null)
+    val location = MutableStateFlow(noValue)
+    val isLowPowerMode = MutableStateFlow(false)
 }
 
 class Toast {
-    internal val _showingToast = MutableStateFlow(false)
-    val showingToast = _showingToast.asStateFlow()
-    internal val _toast = MutableStateFlow(AlertToast(type = AlertToastType.regular, title = ""))
-    val toast = _toast.asStateFlow()
+    val showingToast = MutableStateFlow(false)
+    val toast = MutableStateFlow(AlertToast(type = AlertToastType.regular, title = ""))
     var onTapped: (() -> Unit)? = null
 }
 
 class SceneSelector {
-    internal val _trigger = MutableStateFlow(0)
-    val trigger = _trigger.asStateFlow()
-    internal val _sceneIndex = MutableStateFlow(0)
-    val sceneIndex = _sceneIndex.asStateFlow()
+    val trigger = MutableStateFlow(0)
+    val sceneIndex = MutableStateFlow(0)
     var selectedSceneId = UUID.randomUUID()
 }
 
 class StreamOverlay {
-    internal val _showMediaPlayerControls = MutableStateFlow(false)
-    val showMediaPlayerControls = _showMediaPlayerControls.asStateFlow()
-    internal val _isFrontCameraSelected = MutableStateFlow(false)
-    val isFrontCameraSelected = _isFrontCameraSelected.asStateFlow()
-    internal val _showingCamera = MutableStateFlow(false)
-    val showingCamera = _showingCamera.asStateFlow()
-    internal val _showingPinch = MutableStateFlow(false)
-    val showingPinch = _showingPinch.asStateFlow()
-    internal val _showingReplay = MutableStateFlow(false)
-    val showingReplay = _showingReplay.asStateFlow()
-    internal val _showingPixellate = MutableStateFlow(false)
-    val showingPixellate = _showingPixellate.asStateFlow()
-    internal val _showingWhirlpool = MutableStateFlow(false)
-    val showingWhirlpool = _showingWhirlpool.asStateFlow()
-    internal val _showingBeauty = MutableStateFlow(false)
-    val showingBeauty = _showingBeauty.asStateFlow()
-    internal val _showingVideoPreview = MutableStateFlow(false)
-    val showingVideoPreview = _showingVideoPreview.asStateFlow()
-    internal val _isTorchOn = MutableStateFlow(false)
-    val isTorchOn = _isTorchOn.asStateFlow()
+    val showMediaPlayerControls = MutableStateFlow(false)
+    val isFrontCameraSelected = MutableStateFlow(false)
+    val showingCamera = MutableStateFlow(false)
+    val showingPinch = MutableStateFlow(false)
+    val showingReplay = MutableStateFlow(false)
+    val showingPixellate = MutableStateFlow(false)
+    val showingWhirlpool = MutableStateFlow(false)
+    val showingBeauty = MutableStateFlow(false)
+    val showingVideoPreview = MutableStateFlow(false)
+    val isTorchOn = MutableStateFlow(false)
 }
 
 class Store {
-    internal val _myIcons = MutableStateFlow<List<Icon>>(emptyList())
-    val myIcons = _myIcons.asStateFlow()
-    internal val _iconsInStore = MutableStateFlow<List<Icon>>(emptyList())
-    val iconsInStore = _iconsInStore.asStateFlow()
-    internal val _iconImage = MutableStateFlow(plainIcon.id)
-    val iconImage = _iconImage.asStateFlow()
+    val myIcons = MutableStateFlow<List<Icon>>(emptyList())
+    val iconsInStore = MutableStateFlow<List<Icon>>(emptyList())
+    val iconImage = MutableStateFlow(plainIcon.id)
     var hasBoughtSomething: Boolean = true
 }
 
 class DrawOnStream {
-    internal val _lines = MutableStateFlow<List<DrawOnStreamLine>>(emptyList())
-    val lines = _lines.asStateFlow()
-    internal val _selectedColor = MutableStateFlow(Color.Pink)
-    val selectedColor = _selectedColor.asStateFlow()
-    internal val _selectedWidth = MutableStateFlow(4f)
-    val selectedWidth = _selectedWidth.asStateFlow()
+    val lines = MutableStateFlow<List<DrawOnStreamLine>>(emptyList())
+    val selectedColor = MutableStateFlow(Color.Pink)
+    val selectedWidth = MutableStateFlow(4f)
 }
 
 class StealthMode {
     var hideButtonsTimer = MainTimer()
-    internal val _showButtons = MutableStateFlow(true)
-    val showButtons = _showButtons.asStateFlow()
-    internal val _image = MutableStateFlow<Bitmap?>(null)
-    val image = _image.asStateFlow()
+    val showButtons = MutableStateFlow(true)
+    val image = MutableStateFlow<Bitmap?>(null)
 }
 
 class ControlBar {
-    internal val _backgroundImage = MutableStateFlow<Bitmap?>(null)
-    val backgroundImage = _backgroundImage.asStateFlow()
-    internal val _backgroundImageOpacity = MutableStateFlow(1.0)
-    val backgroundImageOpacity = _backgroundImageOpacity.asStateFlow()
+    val backgroundImage = MutableStateFlow<Bitmap?>(null)
+    val backgroundImageOpacity = MutableStateFlow(1.0)
 }
 
 class QuickButtonChat {
-    internal val _showAllChatMessages = MutableStateFlow(true)
-    val showAllChatMessages = _showAllChatMessages.asStateFlow()
-    internal val _showFirstTimeChatterMessage = MutableStateFlow(true)
-    val showFirstTimeChatterMessage = _showFirstTimeChatterMessage.asStateFlow()
-    internal val _showNewFollowerMessage = MutableStateFlow(true)
-    val showNewFollowerMessage = _showNewFollowerMessage.asStateFlow()
-    internal val _chatAlertsPosts = MutableStateFlow<ArrayDeque<ChatPost>>(ArrayDeque())
-    val chatAlertsPosts = _chatAlertsPosts.asStateFlow()
-    internal val _pausedChatAlertsPostsCount = MutableStateFlow(0)
-    val pausedChatAlertsPostsCount = _pausedChatAlertsPostsCount.asStateFlow()
-    internal val _chatAlertsPaused = MutableStateFlow(false)
-    val chatAlertsPaused = _chatAlertsPaused.asStateFlow()
+    val showAllChatMessages = MutableStateFlow(true)
+    val showFirstTimeChatterMessage = MutableStateFlow(true)
+    val showNewFollowerMessage = MutableStateFlow(true)
+    val chatAlertsPosts = MutableStateFlow<ArrayDeque<ChatPost>>(ArrayDeque())
+    val pausedChatAlertsPostsCount = MutableStateFlow(0)
+    val chatAlertsPaused = MutableStateFlow(false)
 }
 
 class ExternalDisplay {
-    internal val _chatEnabled = MutableStateFlow(false)
-    val chatEnabled = _chatEnabled.asStateFlow()
+    val chatEnabled = MutableStateFlow(false)
 }
 
 class GoProState {
-    internal val _launchLiveStreamSelection = MutableStateFlow<UUID?>(null)
-    val launchLiveStreamSelection = _launchLiveStreamSelection.asStateFlow()
-    internal val _wifiCredentialsSelection = MutableStateFlow<UUID?>(null)
-    val wifiCredentialsSelection = _wifiCredentialsSelection.asStateFlow()
-    internal val _rtmpUrlSelection = MutableStateFlow<UUID?>(null)
-    val rtmpUrlSelection = _rtmpUrlSelection.asStateFlow()
+    val launchLiveStreamSelection = MutableStateFlow<UUID?>(null)
+    val wifiCredentialsSelection = MutableStateFlow<UUID?>(null)
+    val rtmpUrlSelection = MutableStateFlow<UUID?>(null)
 }
 
 class QuickButtons {
-    internal val _pairs = MutableStateFlow<List<List<QuickButtonPair>>>(List(controlBarPages) { emptyList() })
-    val pairs = _pairs.asStateFlow()
-    internal val _selectedButtonType = MutableStateFlow<SettingsQuickButtonType?>(null)
-    val selectedButtonType = _selectedButtonType.asStateFlow()
+    val pairs = MutableStateFlow<List<List<QuickButtonPair>>>(List(controlBarPages) { emptyList() })
+    val selectedButtonType = MutableStateFlow<SettingsQuickButtonType?>(null)
     var page = 1
-    internal val _activePage = MutableStateFlow<Int?>(1)
-    val activePage = _activePage.asStateFlow()
+    val activePage = MutableStateFlow<Int?>(1)
 }
 
 class Snapshot {
-    internal val _countdown = MutableStateFlow(0)
-    val countdown = _countdown.asStateFlow()
-    internal val _currentJob = MutableStateFlow<SnapshotJob?>(null)
-    val currentJob = _currentJob.asStateFlow()
+    val countdown = MutableStateFlow(0)
+    val currentJob = MutableStateFlow<SnapshotJob?>(null)
 }
 
 class Orientation {
-    internal val _isPortrait = MutableStateFlow(false)
-    val isPortrait = _isPortrait.asStateFlow()
+    val isPortrait = MutableStateFlow(false)
 }
 
 class CameraLevel {
-    internal val _angle = MutableStateFlow<Double?>(null)
-    val angle = _angle.asStateFlow()
+    val angle = MutableStateFlow<Double?>(null)
 
     fun start(portrait: Boolean) {
         TODO("no Android counterpart for CMMotionManager.startDeviceMotionUpdates; use SensorManager TYPE_GRAVITY")
@@ -549,76 +440,42 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         get() = enterForegroundCountStorage.get()
         set(value) = enterForegroundCountStorage.set(value)
 
-    internal val _showingPanel = MutableStateFlow(ShowingPanel.none)
-    val showingPanel = _showingPanel.asStateFlow()
-    internal val _panelHidden = MutableStateFlow(false)
-    val panelHidden = _panelHidden.asStateFlow()
-    internal val _showStealthMode = MutableStateFlow(false)
-    val showStealthMode = _showStealthMode.asStateFlow()
-    internal val _lockScreen = MutableStateFlow(false)
-    val lockScreen = _lockScreen.asStateFlow()
-    internal val _isLive = MutableStateFlow(false)
-    val isLive = _isLive.asStateFlow()
-    internal val _isRecording = MutableStateFlow(false)
-    val isRecording = _isRecording.asStateFlow()
-    internal val _isPreviewStreaming = MutableStateFlow(false)
-    val isPreviewStreaming = _isPreviewStreaming.asStateFlow()
-    internal val _browsers = MutableStateFlow<List<Browser>>(emptyList())
-    val browsers = _browsers.asStateFlow()
-    internal val _interactiveBrowsers = MutableStateFlow(false)
-    val interactiveBrowsers = _interactiveBrowsers.asStateFlow()
-    internal val _showingGrid = MutableStateFlow(false)
-    val showingGrid = _showingGrid.asStateFlow()
-    internal val _showingCameraLevel = MutableStateFlow(false)
-    val showingCameraLevel = _showingCameraLevel.asStateFlow()
-    internal val _showingRemoteControl = MutableStateFlow(false)
-    val showingRemoteControl = _showingRemoteControl.asStateFlow()
-    internal val _portraitVideoOffsetFromTop = MutableStateFlow(0.0)
-    val portraitVideoOffsetFromTop = _portraitVideoOffsetFromTop.asStateFlow()
-    internal val _currentStreamId = MutableStateFlow(UUID.randomUUID())
-    val currentStreamId = _currentStreamId.asStateFlow()
-    internal val _showTwitchAuth = MutableStateFlow(false)
-    val showTwitchAuth = _showTwitchAuth.asStateFlow()
-    internal val _showModerationAuth = MutableStateFlow(false)
-    val showModerationAuth = _showModerationAuth.asStateFlow()
-    internal val _presentingModeration = MutableStateFlow(false)
-    val presentingModeration = _presentingModeration.asStateFlow()
-    internal val _presentingPredefinedMessages = MutableStateFlow(false)
-    val presentingPredefinedMessages = _presentingPredefinedMessages.asStateFlow()
-    internal val _presentingSettingsImportConfirmation = MutableStateFlow(false)
-    val presentingSettingsImportConfirmation = _presentingSettingsImportConfirmation.asStateFlow()
+    val showingPanel = MutableStateFlow(ShowingPanel.none)
+    val panelHidden = MutableStateFlow(false)
+    val showStealthMode = MutableStateFlow(false)
+    val lockScreen = MutableStateFlow(false)
+    val isLive = MutableStateFlow(false)
+    val isRecording = MutableStateFlow(false)
+    val isPreviewStreaming = MutableStateFlow(false)
+    val browsers = MutableStateFlow<List<Browser>>(emptyList())
+    val interactiveBrowsers = MutableStateFlow(false)
+    val showingGrid = MutableStateFlow(false)
+    val showingCameraLevel = MutableStateFlow(false)
+    val showingRemoteControl = MutableStateFlow(false)
+    val portraitVideoOffsetFromTop = MutableStateFlow(0.0)
+    val currentStreamId = MutableStateFlow(UUID.randomUUID())
+    val showTwitchAuth = MutableStateFlow(false)
+    val showModerationAuth = MutableStateFlow(false)
+    val presentingModeration = MutableStateFlow(false)
+    val presentingPredefinedMessages = MutableStateFlow(false)
+    val presentingSettingsImportConfirmation = MutableStateFlow(false)
     var pendingSettingsImportAction: (() -> Unit)? = null
-    internal val _presentingStreamImportCollisionConfirmation = MutableStateFlow(false)
-    val presentingStreamImportCollisionConfirmation =
-        _presentingStreamImportCollisionConfirmation.asStateFlow()
+    val presentingStreamImportCollisionConfirmation = MutableStateFlow(false)
     var pendingStreamImportCollisionAction: ((replaceExisting: Boolean) -> Unit)? = null
     var pendingStreamImportCollisionTitle: String = ""
-    internal val _showDrawOnStream = MutableStateFlow(false)
-    val showDrawOnStream = _showDrawOnStream.asStateFlow()
-    internal val _showLocalOverlays = MutableStateFlow(true)
-    val showLocalOverlays = _showLocalOverlays.asStateFlow()
-    internal val _showBrowser = MutableStateFlow(false)
-    val showBrowser = _showBrowser.asStateFlow()
-    internal val _showNavigation = MutableStateFlow(false)
-    val showNavigation = _showNavigation.asStateFlow()
-    internal val _webBrowserUrl = MutableStateFlow("")
-    val webBrowserUrl = _webBrowserUrl.asStateFlow()
-    internal val _quickButtonSettingsButton = MutableStateFlow<SettingsQuickButton?>(null)
-    val quickButtonSettingsButton = _quickButtonSettingsButton.asStateFlow()
-    internal val _bluetoothAllowed = MutableStateFlow(false)
-    val bluetoothAllowed = _bluetoothAllowed.asStateFlow()
-    internal val _sceneSettingsPanelSceneId = MutableStateFlow(1)
-    val sceneSettingsPanelSceneId = _sceneSettingsPanelSceneId.asStateFlow()
-    internal val _cameraControlEnabled = MutableStateFlow(false)
-    val cameraControlEnabled = _cameraControlEnabled.asStateFlow()
-    internal val _stream = MutableStateFlow<SettingsStream>(fallbackStream)
-    val stream = _stream.asStateFlow()
-    internal val _layout = MutableStateFlow<SettingsWidgetLayout?>(null)
-    val layout = _layout.asStateFlow()
-    internal val _workoutType = MutableStateFlow<WatchProtocolWorkoutType?>(null)
-    val workoutType = _workoutType.asStateFlow()
-    internal val _photoShootEnabled = MutableStateFlow(false)
-    val photoShootEnabled = _photoShootEnabled.asStateFlow()
+    val showDrawOnStream = MutableStateFlow(false)
+    val showLocalOverlays = MutableStateFlow(true)
+    val showBrowser = MutableStateFlow(false)
+    val showNavigation = MutableStateFlow(false)
+    val webBrowserUrl = MutableStateFlow("")
+    val quickButtonSettingsButton = MutableStateFlow<SettingsQuickButton?>(null)
+    val bluetoothAllowed = MutableStateFlow(false)
+    val sceneSettingsPanelSceneId = MutableStateFlow(1)
+    val cameraControlEnabled = MutableStateFlow(false)
+    val stream = MutableStateFlow<SettingsStream>(fallbackStream)
+    val layout = MutableStateFlow<SettingsWidgetLayout?>(null)
+    val workoutType = MutableStateFlow<WatchProtocolWorkoutType?>(null)
+    val photoShootEnabled = MutableStateFlow(false)
 
     var streamState: StreamState = StreamState.disconnected
         set(value) {
@@ -945,10 +802,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun updateIsPortrait() {
-        orientation._isPortrait.value = _stream.value.portrait || database.portrait || isChatPhone()
+        orientation.isPortrait.value = stream.value.portrait || database.portrait || isChatPhone()
     }
 
-    fun isLandscapeStreamAndPortraitUi(): Boolean = !_stream.value.portrait && database.portrait
+    fun isLandscapeStreamAndPortraitUi(): Boolean = !stream.value.portrait && database.portrait
 
     val enabledScenes: List<SettingsScene>
         get() = database.scenes.filter { it.enabled }
@@ -1027,16 +884,16 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     ).contains(type)
 
     fun toggleShowingPanel(type: SettingsQuickButtonType?, panel: ShowingPanel) {
-        if (_showingPanel.value == ShowingPanel.quickButtonSettings) {
-            quickButtons._selectedButtonType.value = null
+        if (showingPanel.value == ShowingPanel.quickButtonSettings) {
+            quickButtons.selectedButtonType.value = null
         }
-        if (_showingPanel.value == panel) {
-            _showingPanel.value = ShowingPanel.none
+        if (showingPanel.value == panel) {
+            showingPanel.value = ShowingPanel.none
         } else {
-            _showingPanel.value = panel
+            showingPanel.value = panel
         }
-        _panelHidden.value = false
-        for (pageButtonPairs in quickButtons._pairs.value) {
+        panelHidden.value = false
+        for (pageButtonPairs in quickButtons.pairs.value) {
             for (pair in pageButtonPairs) {
                 if (isShowingPanelQuickButton(pair.first.type)) {
                     setQuickButton(type = pair.first.type, isOn = false)
@@ -1048,12 +905,12 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             }
         }
         if (type != null) {
-            setQuickButton(type = type, isOn = _showingPanel.value == panel)
+            setQuickButton(type = type, isOn = showingPanel.value == panel)
         }
     }
 
     fun setInteractiveBrowserWidgets(on: Boolean) {
-        _interactiveBrowsers.value = on
+        interactiveBrowsers.value = on
         setQuickButton(type = SettingsQuickButtonType.interactiveBrowserWidgets, isOn = on)
     }
 
@@ -1071,7 +928,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         vibrate: Boolean = false,
         onTapped: (() -> Unit)? = null,
     ) {
-        toast._toast.value = AlertToast(
+        toast.toast.value = AlertToast(
             type = AlertToastType.regular,
             title = title,
             subTitle = subTitle,
@@ -1086,7 +943,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun makeWarningToast(title: String, subTitle: String? = null, vibrate: Boolean = false) {
-        toast._toast.value = AlertToast(
+        toast.toast.value = AlertToast(
             type = AlertToastType.regular,
             title = formatWarning(title),
             subTitle = subTitle,
@@ -1105,7 +962,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         subTitle: String? = null,
         vibrate: Boolean = false,
     ) {
-        toast._toast.value = AlertToast(
+        toast.toast.value = AlertToast(
             type = AlertToastType.regular,
             title = title,
             subTitle = subTitle,
@@ -1132,9 +989,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     private fun showToast() {
-        toast._showingToast.value = false
+        toast.showingToast.value = false
         mainScope.launch {
-            toast._showingToast.value = true
+            toast.showingToast.value = true
         }
     }
 
@@ -1184,17 +1041,17 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 }
                 index += 2
             }
-            val newPairs = quickButtons._pairs.value.toMutableList()
+            val newPairs = quickButtons.pairs.value.toMutableList()
             newPairs[page] = pairs
-            quickButtons._pairs.value = newPairs
+            quickButtons.pairs.value = newPairs
         }
     }
 
     fun getQuickButtonPairs(page: Int): List<QuickButtonPair> {
-        if (page <= 0 || page > quickButtons._pairs.value.size) {
+        if (page <= 0 || page > quickButtons.pairs.value.size) {
             return emptyList()
         }
-        return quickButtons._pairs.value[page - 1]
+        return quickButtons.pairs.value[page - 1]
     }
 
     fun setAllowHapticsAndSystemSoundsDuringRecording() {
@@ -1209,7 +1066,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun setup() {
-        battery._level.value = TODO("no Android counterpart for UIDevice.batteryLevel")
+        battery.level.value = TODO("no Android counterpart for UIDevice.batteryLevel")
         bluetoothCentralManger = TODO("no Android counterpart for CBCentralManager; use BluetoothAdapter")
         deleteTrash()
         removeUnusedKeychainItems()
@@ -1220,20 +1077,20 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         setAllowVideoRangePixelFormat()
         setHighQualityDownsampling()
         setExternalDisplayContent()
-        _portraitVideoOffsetFromTop.value = database.portraitVideoOffsetFromTop
+        portraitVideoOffsetFromTop.value = database.portraitVideoOffsetFromTop
         loadTextWidgetStopwatches()
-        quickButtonChatState._showFirstTimeChatterMessage.value =
+        quickButtonChatState.showFirstTimeChatterMessage.value =
             database.chat.showFirstTimeChatterMessage
-        quickButtonChatState._showNewFollowerMessage.value = database.chat.showNewFollowerMessage
+        quickButtonChatState.showNewFollowerMessage.value = database.chat.showNewFollowerMessage
         autoSceneSwitcher.currentSwitcherId = database.autoSceneSwitchers.switcherId
         supportsAppleLog = hasAppleLog()
         chat.interactiveChat =
             getQuickButton(type = SettingsQuickButtonType.interactiveChat)?.isOn ?: false
         chatActivityFeed.interactiveChat = chat.interactiveChat
-        _interactiveBrowsers.value =
+        interactiveBrowsers.value =
             getQuickButton(type = SettingsQuickButtonType.interactiveBrowserWidgets)?.isOn ?: false
         updateShowCameraPreview()
-        show._chatPhone.value = isChatPhone()
+        show.chatPhone.value = isChatPhone()
         showChatLabelsForAWhile()
         updateScreenAutoOff()
         setDisplayPortrait(portrait = database.portrait)
@@ -1282,7 +1139,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         removeUnusedVTubers()
         removeUnusedPngTubers()
         addObserver("UIDevice.orientationDidChangeNotification", "handleOrientationDidChange")
-        store._iconImage.value = database.iconImage
+        store.iconImage.value = database.iconImage
         mainScope.launch {
             appStoreUpdateListenerTask = listenForAppStoreTransactions()
             getProductsFromAppStore()
@@ -1314,7 +1171,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         addObserver("GCControllerDidDisconnect", "handleGameControllerDidDisconnect")
         TODO("no Android counterpart for GameController wireless controller discovery")
         reloadLocation()
-        _currentStreamId.value = _stream.value.id
+        currentStreamId.value = stream.value.id
         lutUpdated()
         addObserver("AVCaptureDevice.wasConnectedNotification", "handleCaptureDeviceWasConnected")
         addObserver("AVCaptureDevice.wasDisconnectedNotification", "handleCaptureDeviceWasDisconnected")
@@ -1359,9 +1216,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         setCameraControlsEnabled()
         resetAverageSpeed()
         resetSlope()
-        goPro._launchLiveStreamSelection.value = database.goPro.selectedLaunchLiveStream
-        goPro._wifiCredentialsSelection.value = database.goPro.selectedWifiCredentials
-        goPro._rtmpUrlSelection.value = database.goPro.selectedRtmpUrl
+        goPro.launchLiveStreamSelection.value = database.goPro.selectedLaunchLiveStream
+        goPro.wifiCredentialsSelection.value = database.goPro.selectedWifiCredentials
+        goPro.rtmpUrlSelection.value = database.goPro.selectedRtmpUrl
         replay.speed = database.replay.speed
         gForceManager = GForceManager(motionManager = motionManager)
         startGForceManager()
@@ -1485,7 +1342,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun reloadNtpClient() {
         stopNtpClient()
         if (isTimecodesEnabled()) {
-            Log.d("Model", "Starting NTP client for pool ${_stream.value.ntpPoolAddress}")
+            Log.d("Model", "Starting NTP client for pool ${stream.value.ntpPoolAddress}")
             TODO("no Android counterpart for TrueTime NTP client")
         }
     }
@@ -1567,10 +1424,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun setExternalDisplayContent() {
         when (database.externalDisplayContent) {
-            SettingsExternalDisplayContent.stream -> externalDisplay._chatEnabled.value = false
-            SettingsExternalDisplayContent.cleanStream -> externalDisplay._chatEnabled.value = false
-            SettingsExternalDisplayContent.chat -> externalDisplay._chatEnabled.value = true
-            SettingsExternalDisplayContent.mirror -> externalDisplay._chatEnabled.value = false
+            SettingsExternalDisplayContent.stream -> externalDisplay.chatEnabled.value = false
+            SettingsExternalDisplayContent.cleanStream -> externalDisplay.chatEnabled.value = false
+            SettingsExternalDisplayContent.chat -> externalDisplay.chatEnabled.value = true
+            SettingsExternalDisplayContent.mirror -> externalDisplay.chatEnabled.value = false
         }
         setCleanExternalDisplay()
         updateExternalMonitorWindow()
@@ -1593,7 +1450,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         TODO("no Android counterpart for UIImage(named:).cgImage; load with BitmapFactory")
 
     fun updateImageButtonState() {
-        var isOn = streamOverlay._showingCamera.value
+        var isOn = streamOverlay.showingCamera.value
         if (camera.bias != 0.0) {
             isOn = true
         }
@@ -1612,7 +1469,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun updateBeautyButtonState() {
-        var isOn = streamOverlay._showingBeauty.value
+        var isOn = streamOverlay.showingBeauty.value
         if (database.beauty.enabled) {
             isOn = true
         }
@@ -1622,7 +1479,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     private fun handleIpStatusUpdate(statuses: List<IPMonitor.Status>) {
-        statusOther._ipStatuses.value = statuses
+        statusOther.ipStatuses.value = statuses
         for (status in statuses) {
             if (status.interfaceType != IPMonitor.InterfaceType.wiredEthernet) {
                 continue
@@ -1718,7 +1575,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 startWeatherManager()
                 startGeographyManager()
                 startGForceManager()
-                if (_isRecording.value) {
+                if (isRecording.value) {
                     resumeRecording()
                 }
                 reloadSpeechToText()
@@ -1733,7 +1590,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                     makeStreamEndedToast(
                         subTitle = localized("Tap here to enable background streaming."),
                         onTapped = {
-                            _stream.value.backgroundStreaming = true
+                            stream.value.backgroundStreaming = true
                             updatePictureInPicture()
                             makeToast(title = localized("Background streaming enabled"))
                         },
@@ -1748,7 +1605,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun handleApplicationWillTerminate() {
-        if (_isRecording.value) {
+        if (isRecording.value) {
             suspendRecording()
         }
         updateSettingsFromTextWidgets()
@@ -1764,7 +1621,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     private fun stopAll() {
-        if (_isRecording.value) {
+        if (isRecording.value) {
             suspendRecording()
         }
         showBackgroundStreamingDisabledToast = stopStream()
@@ -1811,7 +1668,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun maybeEnableScreenPreview() {
-        if (_showStealthMode.value) {
+        if (showStealthMode.value) {
             return
         }
         media.setScreenPreview(enabled = true)
@@ -1831,10 +1688,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     private fun backgroundRunLevel(): BackgroundRunLevel {
-        if ((_isLive.value || _isRecording.value) && _stream.value.backgroundStreaming) {
+        if ((isLive.value || isRecording.value) && stream.value.backgroundStreaming) {
             return BackgroundRunLevel.Full
         }
-        if (_isLive.value || _isRecording.value) {
+        if (isLive.value || isRecording.value) {
             return BackgroundRunLevel.Off
         }
         val keepChatRunning = database.chat.background || database.catPrinters.backgroundPrinting
@@ -1857,7 +1714,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun updateOrientation() {
         updateIsPortrait()
-        if (_stream.value.portrait) {
+        if (stream.value.portrait) {
             media.setVideoOrientation(value = VideoOrientation.portrait)
         } else {
             when (deviceRotation()) {
@@ -1950,9 +1807,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         updateAdsRemainingTimer(now = now)
         if (database.show.systemMonitor) {
             resourceUsage.update(now = monotonicNow)
-            systemMonitor._appCpu.value = resourceUsage.getAppCpuUsage()
-            systemMonitor._cpu.value = resourceUsage.getCpuUsage()
-            systemMonitor._ram.value = resourceUsage.getMemoryUsage()
+            systemMonitor.appCpu.value = resourceUsage.getAppCpuUsage()
+            systemMonitor.cpu.value = resourceUsage.getCpuUsage()
+            systemMonitor.ram.value = resourceUsage.getMemoryUsage()
         }
         updateMoblinkStatus()
         updateStatusEventsText()
@@ -1974,7 +1831,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     private fun handle5sTimer() {
         updateRemoteControlAssistantStatus()
         if (isWatchLocal()) {
-            sendThermalStateToWatch(thermalState = statusOther._thermalState.value)
+            sendThermalStateToWatch(thermalState = statusOther.thermalState.value)
         }
         teslaGetMediaState()
     }
@@ -1984,8 +1841,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         media.logStatistics()
         updateObsStatus()
         updateRemoteControlStatus()
-        if (_stream.value.enabled && database.debug.videoBitrateChange) {
-            media.updateVideoStreamBitrate(bitrate = _stream.value.bitrate)
+        if (stream.value.enabled && database.debug.videoBitrateChange) {
+            media.updateVideoStreamBitrate(bitrate = stream.value.bitrate)
         }
         updateViewers()
         updateCurrentSsid()
@@ -2019,7 +1876,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     private fun updateAvailableDiskSpace() {
-        if (!_isRecording.value) {
+        if (!isRecording.value) {
             return
         }
         val available = getAvailableDiskSpace() ?: return
@@ -2041,9 +1898,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         val secondsLeft = Duration.between(now, adsEndDate).seconds
         if (secondsLeft < 0) {
             this.adsEndDate = null
-            statusTopRight._adsRemainingTimerStatus.value = noValue
+            statusTopRight.adsRemainingTimerStatus.value = noValue
         } else {
-            statusTopRight._adsRemainingTimerStatus.value = secondsLeft.toInt().toString()
+            statusTopRight.adsRemainingTimerStatus.value = secondsLeft.toInt().toString()
         }
     }
 
@@ -2083,7 +1940,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         var newNumberOfViewers = 0
         var hasCount = false
         val streamingPlatformsStatus = mutableListOf<StreamingPlatformStatus>()
-        for (streamingPlatformStatus in statusTopLeft._streamingPlatformStatuses.value) {
+        for (streamingPlatformStatus in statusTopLeft.streamingPlatformStatuses.value) {
             val newStreamingPlatformStatus = when (streamingPlatformStatus.platform) {
                 Platform.twitch -> updateViewersTwitch()
                 Platform.kick -> updateViewersKick()
@@ -2107,15 +1964,15 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 }
             }
         }
-        if (newColor != statusTopLeft._numberOfViewersIconColor.value) {
-            statusTopLeft._numberOfViewersIconColor.value = newColor
+        if (newColor != statusTopLeft.numberOfViewersIconColor.value) {
+            statusTopLeft.numberOfViewersIconColor.value = newColor
         }
-        if (streamingPlatformsStatus != statusTopLeft._streamingPlatformStatuses.value) {
-            statusTopLeft._streamingPlatformStatuses.value = streamingPlatformsStatus
+        if (streamingPlatformsStatus != statusTopLeft.streamingPlatformStatuses.value) {
+            statusTopLeft.streamingPlatformStatuses.value = streamingPlatformsStatus
         }
         val newNumberOfViewersCompact = updateViewersCompact(newNumberOfViewers, hasCount)
-        if (newNumberOfViewersCompact != statusTopLeft._numberOfViewersCompact.value) {
-            statusTopLeft._numberOfViewersCompact.value = newNumberOfViewersCompact
+        if (newNumberOfViewersCompact != statusTopLeft.numberOfViewersCompact.value) {
+            statusTopLeft.numberOfViewersCompact.value = newNumberOfViewersCompact
             sendViewerCountWatch()
         }
     }
@@ -2294,7 +2151,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun reloadBrowserWidgets() {
         reloadHttpProxyServer()
-        for (browser in _browsers.value) {
+        for (browser in browsers.value) {
             browser.browserEffect.reload()
         }
     }
@@ -2303,10 +2160,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         database.quickButtons.firstOrNull { it.type == type }
 
     fun showQuickButtonSettings(type: SettingsQuickButtonType) {
-        _quickButtonSettingsButton.value = getQuickButton(type = type)
+        quickButtonSettingsButton.value = getQuickButton(type = type)
         toggleShowingPanel(type = null, panel = ShowingPanel.none)
         toggleShowingPanel(type = null, panel = ShowingPanel.quickButtonSettings)
-        quickButtons._selectedButtonType.value = type
+        quickButtons.selectedButtonType.value = type
     }
 
     fun setQuickButton(type: SettingsQuickButtonType, isOn: Boolean) {
@@ -2336,45 +2193,45 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun setWhirlpoolQuickButton(on: Boolean) {
-        streamOverlay._showingWhirlpool.value = on
+        streamOverlay.showingWhirlpool.value = on
         setFilterQuickButton(type = SettingsQuickButtonType.whirlpool, on = on)
     }
 
     fun toggleWhirlpoolQuickButton() {
-        setWhirlpoolQuickButton(on = !streamOverlay._showingWhirlpool.value)
+        setWhirlpoolQuickButton(on = !streamOverlay.showingWhirlpool.value)
     }
 
     fun setBeautyQuickButton(on: Boolean) {
-        streamOverlay._showingBeauty.value = on
+        streamOverlay.showingBeauty.value = on
         updateBeautyButtonState()
     }
 
     fun toggleBeautyQuickButton() {
-        setBeautyQuickButton(on = !streamOverlay._showingBeauty.value)
+        setBeautyQuickButton(on = !streamOverlay.showingBeauty.value)
     }
 
     fun toggleVideoPreview() {
-        streamOverlay._showingVideoPreview.value = !streamOverlay._showingVideoPreview.value
-        media.setVideoPreviewEnabled(enabled = streamOverlay._showingVideoPreview.value)
+        streamOverlay.showingVideoPreview.value = !streamOverlay.showingVideoPreview.value
+        media.setVideoPreviewEnabled(enabled = streamOverlay.showingVideoPreview.value)
         updateVideoPreviews()
     }
 
     fun setPinchQuickButton(on: Boolean) {
-        streamOverlay._showingPinch.value = on
+        streamOverlay.showingPinch.value = on
         setFilterQuickButton(type = SettingsQuickButtonType.pinch, on = on)
     }
 
     fun togglePinchQuickButton() {
-        setPinchQuickButton(on = !streamOverlay._showingPinch.value)
+        setPinchQuickButton(on = !streamOverlay.showingPinch.value)
     }
 
     fun setPixellateQuickButton(on: Boolean) {
-        streamOverlay._showingPixellate.value = on
+        streamOverlay.showingPixellate.value = on
         setFilterQuickButton(type = SettingsQuickButtonType.pixellate, on = on)
     }
 
     fun togglePixellateQuickButton() {
-        setPixellateQuickButton(on = !streamOverlay._showingPixellate.value)
+        setPixellateQuickButton(on = !streamOverlay.showingPixellate.value)
     }
 
     fun setCameraManQuickButton(on: Boolean) {
@@ -2413,7 +2270,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun setIsWorkout(type: WatchProtocolWorkoutType?) {
-        _workoutType.value = type
+        workoutType.value = type
         setQuickButton(type = SettingsQuickButtonType.workout, isOn = type != null)
     }
 
@@ -2447,7 +2304,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun isTimecodesEnabled(): Boolean =
-        _stream.value.timecodesEnabled && !_stream.value.ntpPoolAddress.isEmpty()
+        stream.value.timecodesEnabled && !stream.value.ntpPoolAddress.isEmpty()
 
     fun setPixellateStrength(strength: Float) {
         pixellateEffect.setSettings(strength = strength)
@@ -2475,8 +2332,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             isSoopViewersConfigured()
 
     fun isOpenStreamingPlatformChatConfigured(): Boolean =
-        database.chat.enabled && _stream.value.openStreamingPlatformUrl != "" &&
-            _stream.value.openStreamingPlatformChannelId != ""
+        database.chat.enabled && stream.value.openStreamingPlatformUrl != "" &&
+            stream.value.openStreamingPlatformChannelId != ""
 
     fun isOpenStreamingPlatformChatConnected(): Boolean =
         openStreamingPlatformChat?.isConnected() ?: false
@@ -2492,8 +2349,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         ) {
             openStreamingPlatformChat = OpenStreamingPlatformChat(
                 model = this,
-                url = _stream.value.openStreamingPlatformUrl,
-                channelId = _stream.value.openStreamingPlatformChannelId,
+                url = stream.value.openStreamingPlatformUrl,
+                channelId = stream.value.openStreamingPlatformChannelId,
             )
             openStreamingPlatformChat?.start()
         }
@@ -2523,47 +2380,47 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun updateBrowserWidgetStatus() {
-        if (statusTopRight._browserWidgetsStatusChanged.value) {
-            statusTopRight._browserWidgetsStatusChanged.value = false
+        if (statusTopRight.browserWidgetsStatusChanged.value) {
+            statusTopRight.browserWidgetsStatusChanged.value = false
         }
         val messages = mutableListOf<String>()
-        for (browser in _browsers.value) {
+        for (browser in browsers.value) {
             val progress = browser.browserEffect.progress
             if (browser.browserEffect.isLoaded) {
                 messages.add("${browser.browserEffect.host}: $progress%")
                 if (progress != 100 ||
                     browser.browserEffect.startLoadingTime.plusSeconds(5).isAfter(Instant.now())
                 ) {
-                    if (!statusTopRight._browserWidgetsStatusChanged.value) {
-                        statusTopRight._browserWidgetsStatusChanged.value = true
+                    if (!statusTopRight.browserWidgetsStatusChanged.value) {
+                        statusTopRight.browserWidgetsStatusChanged.value = true
                     }
                 }
             }
         }
         val message: String = if (messages.isEmpty()) noValue else messages.joinToString(", ")
-        if (statusTopRight._browserWidgetsStatus.value != message) {
-            statusTopRight._browserWidgetsStatus.value = message
+        if (statusTopRight.browserWidgetsStatus.value != message) {
+            statusTopRight.browserWidgetsStatus.value = message
         }
     }
 
     fun reloadViewers() {
-        statusTopLeft._numberOfViewersIconColor.value = Color(0xFFFF9500)
-        statusTopLeft._numberOfViewersCompact.value = noValue
-        statusTopLeft._streamingPlatformStatuses.value = emptyList()
+        statusTopLeft.numberOfViewersIconColor.value = Color(0xFFFF9500)
+        statusTopLeft.numberOfViewersCompact.value = noValue
+        statusTopLeft.streamingPlatformStatuses.value = emptyList()
         if (isTwitchViewersConfigured()) {
-            statusTopLeft._streamingPlatformStatuses.value = statusTopLeft._streamingPlatformStatuses.value +
+            statusTopLeft.streamingPlatformStatuses.value = statusTopLeft.streamingPlatformStatuses.value +
                 StreamingPlatformStatus(Platform.twitch, PlatformStatus.unknown)
         }
         if (isKickViewersConfigured()) {
-            statusTopLeft._streamingPlatformStatuses.value = statusTopLeft._streamingPlatformStatuses.value +
+            statusTopLeft.streamingPlatformStatuses.value = statusTopLeft.streamingPlatformStatuses.value +
                 StreamingPlatformStatus(Platform.kick, PlatformStatus.unknown)
         }
         if (isYouTubeViewersConfigured()) {
-            statusTopLeft._streamingPlatformStatuses.value = statusTopLeft._streamingPlatformStatuses.value +
+            statusTopLeft.streamingPlatformStatuses.value = statusTopLeft.streamingPlatformStatuses.value +
                 StreamingPlatformStatus(Platform.youTube, PlatformStatus.unknown)
         }
         if (isSoopViewersConfigured()) {
-            statusTopLeft._streamingPlatformStatuses.value = statusTopLeft._streamingPlatformStatuses.value +
+            statusTopLeft.streamingPlatformStatuses.value = statusTopLeft.streamingPlatformStatuses.value +
                 StreamingPlatformStatus(Platform.soop, PlatformStatus.unknown)
         }
         twitchPlatformStatus = PlatformStatus.unknown
@@ -2572,10 +2429,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     private fun logStatus() {
-        if (loggerDebugEnabled && _isLive.value) {
+        if (loggerDebugEnabled && isLive.value) {
             Log.d(
                 "Model",
-                "Status: Bitrate: ${bitrate._speedAndTotal.value}, Uptime: ${streamUptime._uptime.value}",
+                "Status: Bitrate: ${bitrate.speedAndTotal.value}, Uptime: ${streamUptime.uptime.value}",
             )
         }
     }
@@ -2608,21 +2465,21 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun toggleLocalOverlays() {
-        _showLocalOverlays.value = !_showLocalOverlays.value
+        showLocalOverlays.value = !showLocalOverlays.value
     }
 
     fun toggleBrowser() {
-        _showBrowser.value = !_showBrowser.value
+        showBrowser.value = !showBrowser.value
     }
 
     fun toggleNavigation() {
-        _showNavigation.value = !_showNavigation.value
+        showNavigation.value = !showNavigation.value
     }
 
     fun toggleLockScreen() {
-        _lockScreen.value = !_lockScreen.value
-        setQuickButton(type = SettingsQuickButtonType.lockScreen, isOn = _lockScreen.value)
-        if (_lockScreen.value) {
+        lockScreen.value = !lockScreen.value
+        setQuickButton(type = SettingsQuickButtonType.lockScreen, isOn = lockScreen.value)
+        if (lockScreen.value) {
             makeToast(
                 title = localized("Screen locked"),
                 subTitle = localized("Double tap to unlock"),
@@ -2637,19 +2494,19 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     private fun updateDigitalClock(now: Instant) {
         val digitalClock = digitalClockFormatter.format(now)
-        if (statusOther._digitalClock.value != digitalClock) {
-            statusOther._digitalClock.value = digitalClock
+        if (statusOther.digitalClock.value != digitalClock) {
+            statusOther.digitalClock.value = digitalClock
         }
     }
 
     private fun updateBatteryLevel() {
         val level = getBatteryLevel()
-        if (level != battery._level.value) {
-            battery._level.value = level
+        if (level != battery.level.value) {
+            battery.level.value = level
         }
-        streamingHistoryStream?.updateLowestBatteryLevel(level = battery._level.value)
-        if (battery._level.value <= 0.07 && !isBatteryCharging() && !isMac() &&
-            battery._level.value != -1.0
+        streamingHistoryStream?.updateLowestBatteryLevel(level = battery.level.value)
+        if (battery.level.value <= 0.07 && !isBatteryCharging() && !isMac() &&
+            battery.level.value != -1.0
         ) {
             makeWarningToast(title = lowBatteryMessage, vibrate = true)
             if (database.chat.botEnabled && database.chat.botSendLowBatteryWarning) {
@@ -2660,8 +2517,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     private fun updateBatteryState() {
         val state = getBatteryState()
-        if (state != battery._state.value) {
-            battery._state.value = state
+        if (state != battery.state.value) {
+            battery.state.value = state
             remoteControlStateChanged(
                 state = RemoteControlAssistantStreamerState(batteryCharging = isBatteryCharging()),
             )
@@ -2669,7 +2526,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun isBatteryCharging(): Boolean =
-        battery._state.value == BatteryState.charging || battery._state.value == BatteryState.full
+        battery.state.value == BatteryState.charging || battery.state.value == BatteryState.full
 
     private fun getBatteryLevel(): Double = TODO("no Android counterpart for UIDevice.batteryLevel")
 
@@ -2698,8 +2555,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         } else {
             message = noValue
         }
-        if (message != ingests._speedAndTotal.value) {
-            ingests._speedAndTotal.value = message
+        if (message != ingests.speedAndTotal.value) {
+            ingests.speedAndTotal.value = message
         }
     }
 
@@ -2834,15 +2691,15 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     private fun updateThermalState() {
         val state = getThermalState()
-        if (state != statusOther._thermalState.value) {
-            statusOther._thermalState.value = state
+        if (state != statusOther.thermalState.value) {
+            statusOther.thermalState.value = state
         }
         streamingHistoryStream?.updateHighestThermalState(thermalState = ThermalState.from(state))
         if (isWatchLocal()) {
             sendThermalStateToWatch(thermalState = state)
         }
         Log.i("Model", "Thermal state: $state")
-        if (statusOther._thermalState.value == MoblinkThermalState.red) {
+        if (statusOther.thermalState.value == MoblinkThermalState.red) {
             makeFlameRedToast()
         }
     }
@@ -2883,7 +2740,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     private fun updateCameraPreviewRotation() {
         if (useLandscapeStreamAndPortraitUi(cameraDevice, isLandscapeStreamAndPortraitUi())) {
             cameraPreviewView.setVideoOrientation(VideoOrientation.portrait)
-        } else if (_stream.value.portrait) {
+        } else if (stream.value.portrait) {
             cameraPreviewView.setVideoOrientation(VideoOrientation.portrait)
         } else {
             when (deviceRotation()) {
@@ -2974,7 +2831,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             isLandscapeStreamAndPortraitUi = isLandscapeStreamAndPortraitUi(),
             forceSceneTransition = database.forceSceneSwitchTransition,
             macScreenCapture = sceneNeedsMacScreenCapture(scene = scene),
-            attachPhotoShoot = _photoShootEnabled.value || database.alwaysAttachPhotoShoot,
+            attachPhotoShoot = photoShootEnabled.value || database.alwaysAttachPhotoShoot,
         )
         media.attachCamera(
             params = params,
@@ -3036,7 +2893,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             isLandscapeStreamAndPortraitUi = isLandscapeStreamAndPortraitUi(),
             forceSceneTransition = database.forceSceneSwitchTransition,
             macScreenCapture = sceneNeedsMacScreenCapture(scene = scene),
-            attachPhotoShoot = _photoShootEnabled.value || database.alwaysAttachPhotoShoot,
+            attachPhotoShoot = photoShootEnabled.value || database.alwaysAttachPhotoShoot,
         )
         media.usePendingAfterAttachEffects()
         updateVideoPreviews()
@@ -3065,20 +2922,20 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         }
 
     fun setTorch(on: Boolean) {
-        streamOverlay._isTorchOn.value = on
+        streamOverlay.isTorchOn.value = on
         updateTorch()
     }
 
     fun toggleTorch() {
-        streamOverlay._isTorchOn.value = !streamOverlay._isTorchOn.value
+        streamOverlay.isTorchOn.value = !streamOverlay.isTorchOn.value
         updateTorch()
     }
 
     fun updateTorch() {
         media.setTorchLevel(level = database.torchLevel)
-        media.setTorch(on = streamOverlay._isTorchOn.value)
+        media.setTorch(on = streamOverlay.isTorchOn.value)
         remoteControlStateChanged(
-            state = RemoteControlAssistantStreamerState(torchOn = streamOverlay._isTorchOn.value),
+            state = RemoteControlAssistantStreamerState(torchOn = streamOverlay.isTorchOn.value),
         )
     }
 
@@ -3119,8 +2976,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun reloadCameraLevel() {
-        if (_showingCameraLevel.value) {
-            cameraLevel.start(portrait = _stream.value.portrait)
+        if (showingCameraLevel.value) {
+            cameraLevel.start(portrait = stream.value.portrait)
         } else {
             cameraLevel.stop()
         }
@@ -3148,29 +3005,29 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun isShowingStatusEvents(): Boolean = database.show.events && isEventsConfigured()
 
     fun isShowingStatusViewers(): Boolean =
-        _isLive.value && database.show.viewers && statusTopLeft._streamingPlatformStatuses.value.isNotEmpty()
+        isLive.value && database.show.viewers && statusTopLeft.streamingPlatformStatuses.value.isNotEmpty()
 
     private fun statusStreamText(): String {
-        val proto = _stream.value.protocolString()
-        val resolution = currentResolution ?: _stream.value.resolutionString()
-        val codec = _stream.value.codecString()
-        val rateControl = _stream.value.rateControlString()
-        val bitrate = _stream.value.bitrateString()
-        val audioCodec = _stream.value.audioCodecString()
-        val audioBitrate = _stream.value.audioBitrateString()
+        val proto = stream.value.protocolString()
+        val resolution = currentResolution ?: stream.value.resolutionString()
+        val codec = stream.value.codecString()
+        val rateControl = stream.value.rateControlString()
+        val bitrate = stream.value.bitrateString()
+        val audioCodec = stream.value.audioCodecString()
+        val audioBitrate = stream.value.audioBitrateString()
         val fps = if (lowLightBoost) {
-            "${currentFps ?: _stream.value.fps} LLB"
+            "${currentFps ?: stream.value.fps} LLB"
         } else {
-            (currentFps ?: _stream.value.fps).toString()
+            (currentFps ?: stream.value.fps).toString()
         }
-        return "${_stream.value.name} ($resolution, $fps, $proto, $codec $rateControl $bitrate, " +
+        return "${stream.value.name} ($resolution, $fps, $proto, $codec $rateControl $bitrate, " +
             "$audioCodec $audioBitrate)"
     }
 
     fun updateStatusStreamText() {
         val status = statusStreamText()
-        if (status != statusTopLeft._streamText.value) {
-            statusTopLeft._streamText.value = status
+        if (status != statusTopLeft.streamText.value) {
+            statusTopLeft.streamText.value = status
         }
     }
 
@@ -3190,20 +3047,20 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 localized("Disconnected")
             }
         }
-        if (status != statusTopLeft._statusEventsText.value) {
-            statusTopLeft._statusEventsText.value = status
+        if (status != statusTopLeft.statusEventsText.value) {
+            statusTopLeft.statusEventsText.value = status
         }
     }
 
     fun statusViewersText(): String =
         if (isViewersConfigured()) {
-            statusTopLeft._numberOfViewersCompact.value
+            statusTopLeft.numberOfViewersCompact.value
         } else {
             localized("Not configured")
         }
 
     fun isShowingStatusAdsRemainingTimer(): Boolean =
-        statusTopRight._adsRemainingTimerStatus.value != noValue
+        statusTopRight.adsRemainingTimerStatus.value != noValue
 
     fun isShowingStatusIngests(): Boolean = database.show.ingests && isIngestsConfigured()
 
@@ -3222,22 +3079,22 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         isMoblinkRelayConfigured() || isMoblinkStreamerConfigured()
 
     fun isShowingStatusDjiDevices(): Boolean =
-        database.show.djiDevices && statusTopRight._djiDevicesStatus.value != noValue
+        database.show.djiDevices && statusTopRight.djiDevicesStatus.value != noValue
 
-    fun isShowingStatusBitrate(): Boolean = database.show.speed && _isLive.value
+    fun isShowingStatusBitrate(): Boolean = database.show.speed && isLive.value
 
-    fun isShowingStatusStreamUptime(): Boolean = database.show.uptime && _isLive.value
+    fun isShowingStatusStreamUptime(): Boolean = database.show.uptime && isLive.value
 
     fun isShowingStatusBonding(): Boolean = database.show.bonding && isStatusBondingActive()
 
-    fun isStatusBondingActive(): Boolean = _stream.value.isBonding() && _isLive.value
+    fun isStatusBondingActive(): Boolean = stream.value.isBonding() && isLive.value
 
     fun isShowingStatusBondingRtts(): Boolean =
         database.show.bondingRtts && isStatusBondingRttsActive()
 
-    fun isStatusBondingRttsActive(): Boolean = _stream.value.isBonding() && _isLive.value
+    fun isStatusBondingRttsActive(): Boolean = stream.value.isBonding() && isLive.value
 
-    fun isShowingStatusReplay(): Boolean = _stream.value.replay.enabled && !isChatPhone()
+    fun isShowingStatusReplay(): Boolean = stream.value.replay.enabled && !isChatPhone()
 
     fun isShowingStatusBrowserWidgets(): Boolean =
         database.show.browserWidgets && isStatusBrowserWidgetsActive() && !isChatPhone()
@@ -3257,8 +3114,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun isStatusBrowserWidgetsActive(): Boolean =
-        statusTopRight._browserWidgetsStatus.value.isNotEmpty() &&
-            statusTopRight._browserWidgetsStatusChanged.value
+        statusTopRight.browserWidgetsStatus.value.isNotEmpty() &&
+            statusTopRight.browserWidgetsStatusChanged.value
 
     fun isShowingStatusCpu(): Boolean = database.show.systemMonitor
 
@@ -3409,7 +3266,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 }
 
 fun Model.toggleDrawOnStream() {
-    _showDrawOnStream.value = !_showDrawOnStream.value
+    showDrawOnStream.value = !showDrawOnStream.value
     drawOnStreamUpdateButtonState()
 }
 
@@ -3417,37 +3274,37 @@ fun Model.drawOnStreamLineComplete() {
     drawOnStreamEffect.updateOverlay(
         videoSize = media.getCanvasSize(),
         size = drawOnStreamSize,
-        lines = drawOnStream._lines.value,
-        mirror = streamOverlay._isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream,
+        lines = drawOnStream.lines.value,
+        mirror = streamOverlay.isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream,
     )
     media.registerEffect(drawOnStreamEffect)
     drawOnStreamUpdateButtonState()
 }
 
 fun Model.drawOnStreamWipe() {
-    drawOnStream._lines.value = emptyList()
+    drawOnStream.lines.value = emptyList()
     drawOnStreamEffect.updateOverlay(
         videoSize = media.getCanvasSize(),
         size = drawOnStreamSize,
-        lines = drawOnStream._lines.value,
-        mirror = streamOverlay._isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream,
+        lines = drawOnStream.lines.value,
+        mirror = streamOverlay.isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream,
     )
     media.unregisterEffect(drawOnStreamEffect)
     drawOnStreamUpdateButtonState()
 }
 
 fun Model.drawOnStreamUndo() {
-    if (drawOnStream._lines.value.isEmpty()) {
+    if (drawOnStream.lines.value.isEmpty()) {
         return
     }
-    drawOnStream._lines.value = drawOnStream._lines.value.dropLast(1)
+    drawOnStream.lines.value = drawOnStream.lines.value.dropLast(1)
     drawOnStreamEffect.updateOverlay(
         videoSize = media.getCanvasSize(),
         size = drawOnStreamSize,
-        lines = drawOnStream._lines.value,
-        mirror = streamOverlay._isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream,
+        lines = drawOnStream.lines.value,
+        mirror = streamOverlay.isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream,
     )
-    if (drawOnStream._lines.value.isEmpty()) {
+    if (drawOnStream.lines.value.isEmpty()) {
         media.unregisterEffect(drawOnStreamEffect)
     }
     drawOnStreamUpdateButtonState()
@@ -3456,6 +3313,6 @@ fun Model.drawOnStreamUndo() {
 fun Model.drawOnStreamUpdateButtonState() {
     setQuickButton(
         type = SettingsQuickButtonType.draw,
-        isOn = _showDrawOnStream.value || drawOnStream._lines.value.isNotEmpty(),
+        isOn = showDrawOnStream.value || drawOnStream.lines.value.isNotEmpty(),
     )
 }

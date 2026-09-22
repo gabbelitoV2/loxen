@@ -84,11 +84,10 @@ private class ReplaysDatabaseDto(
 )
 
 class ReplaysDatabase {
-    private val _replays = MutableStateFlow<List<ReplaySettings>>(emptyList())
-    val replays: StateFlow<List<ReplaySettings>> = _replays.asStateFlow()
+    val replays = MutableStateFlow<List<ReplaySettings>>(emptyList())
 
     fun setReplays(value: List<ReplaySettings>) {
-        _replays.value = value
+        replays.value = value
     }
 
     override fun toString(): String {

@@ -34,6 +34,8 @@ import com.moblin.android.view.settings.scenes.widgets.widget.effects.WidgetEffe
 import com.moblin.android.view.utils.MultiLineTextFieldNavigationView
 import com.moblin.android.view.utils.SliderView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun submitUrl(model: Model, browser: SettingsWidgetBrowser, value: String) {
     val trimmed = value.trim()
@@ -86,10 +88,10 @@ private fun formatFps(value: Float): String {
 
 @Composable
 fun WidgetBrowserSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     browser: SettingsWidgetBrowser,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val url by browser.url.collectAsState()
     val styleSheet by browser.styleSheet.collectAsState()

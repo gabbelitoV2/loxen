@@ -27,11 +27,12 @@ import com.moblin.android.various.settings.SettingsWidgetBrowser
 import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSelectScenesNavigationView
 import com.moblin.android.view.settings.scenes.widgets.widget.basicWidgetSettingsTitle
 import com.moblin.android.view.utils.CloseToolbar
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetWizardBrowserSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     createWidgetWizard: CreateWidgetWizard,
     browser: SettingsWidgetBrowser,

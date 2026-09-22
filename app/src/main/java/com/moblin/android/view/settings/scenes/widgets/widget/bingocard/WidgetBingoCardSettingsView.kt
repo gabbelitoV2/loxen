@@ -31,6 +31,7 @@ import com.moblin.android.view.utils.MultiLineTextFieldDoneButtonView
 import com.moblin.android.view.utils.MultiLineTextFieldView
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.LocalModel
 
 @Composable
 fun BingCardWidgetSquaresView(value: String, onValueChange: (String) -> Unit) {
@@ -122,7 +123,7 @@ fun WidgetBingoCardQuickButtonControlsView(
 
 @Composable
 fun WidgetBingoCardSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     bingoCard: SettingsWidgetBingoCard,
 ) {

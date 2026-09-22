@@ -15,10 +15,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
 import com.moblin.android.various.model.Model
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ImportExportSettingsView(model: Model) {
+fun ImportExportSettingsView(model: Model = LocalModel.current) {
     Scaffold(
         topBar = {
             TopAppBar(

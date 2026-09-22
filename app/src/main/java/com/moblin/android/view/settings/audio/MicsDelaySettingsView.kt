@@ -25,9 +25,10 @@ import com.moblin.android.common.various.formatTwoDecimals
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsMics
 import com.moblin.android.various.settings.SettingsMicsMic
+import com.moblin.android.LocalModel
 
 @Composable
-private fun MicDelayView(model: Model, mic: SettingsMicsMic) {
+private fun MicDelayView(model: Model = LocalModel.current, mic: SettingsMicsMic) {
     val delay by mic.delay.collectAsState()
     var initialized by remember { mutableStateOf(false) }
     Column(horizontalAlignment = Alignment.Start) {
@@ -57,7 +58,7 @@ private fun MicDelayView(model: Model, mic: SettingsMicsMic) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MicsDelaySettingsView(model: Model, mics: SettingsMics) {
+fun MicsDelaySettingsView(model: Model = LocalModel.current, mics: SettingsMics) {
     val micsList by mics.mics.collectAsState()
     Scaffold(
         topBar = {

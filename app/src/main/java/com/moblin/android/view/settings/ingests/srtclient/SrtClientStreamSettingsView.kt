@@ -26,13 +26,15 @@ import com.moblin.android.various.settings.SettingsSrtClientStream
 import com.moblin.android.view.settings.ingests.rtspclient.UrlSettingsView
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun SrtClientStreamSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     srtClient: SettingsSrtClient,
     stream: SettingsSrtClientStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     onNameChange: (String) -> Unit,
     onEnabledChange: (Boolean) -> Unit,
     onUrlChange: (String) -> Unit,
@@ -67,10 +69,10 @@ fun SrtClientStreamSettingsView(
 
 @Composable
 fun SrtClientStreamSettingsForm(
-    model: Model,
+    model: Model = LocalModel.current,
     srtClient: SettingsSrtClient,
     stream: SettingsSrtClientStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     onNameChange: (String) -> Unit,
     onUrlChange: (String) -> Unit,
 ) {
@@ -104,7 +106,7 @@ fun SrtClientStreamSettingsForm(
 
 @Composable
 fun SrtClientStreamUrlSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsSrtClientStream,
     onUrlChange: (String) -> Unit,
 ) {

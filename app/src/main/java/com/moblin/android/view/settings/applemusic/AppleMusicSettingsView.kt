@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.Model
+import com.moblin.android.LocalModel
 
 private data class MusicPlayerState(val isPlaying: Boolean)
 
@@ -51,7 +52,7 @@ private data class MusicSubscriptionState(val canBecomeSubscriber: Boolean)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AppleMusicSettingsView(model: Model) {
+fun AppleMusicSettingsView(model: Model = LocalModel.current) {
     var searchText by remember { mutableStateOf("") }
     var isShowingSubscriptionOffer by remember { mutableStateOf(false) }
     var musicSubscription by remember { mutableStateOf<MusicSubscriptionState?>(null) }

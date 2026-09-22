@@ -180,25 +180,25 @@ class SettingsDjiDevice : Named {
 
     var id: UUID = UUID.randomUUID()
 
-    private val _name = MutableStateFlow(baseName)
+    private val name = MutableStateFlow(baseName)
     override var name: String
-        get() = _name.value
+        get() = name.value
         set(value) {
-            _name.value = value
+            name.value = value
         }
 
-    private val _bluetoothPeripheralName = MutableStateFlow<String?>(null)
+    private val bluetoothPeripheralName = MutableStateFlow<String?>(null)
     var bluetoothPeripheralName: String?
-        get() = _bluetoothPeripheralName.value
+        get() = bluetoothPeripheralName.value
         set(value) {
-            _bluetoothPeripheralName.value = value
+            bluetoothPeripheralName.value = value
         }
 
-    private val _bluetoothPeripheralId = MutableStateFlow<UUID?>(null)
+    private val bluetoothPeripheralId = MutableStateFlow<UUID?>(null)
     var bluetoothPeripheralId: UUID?
-        get() = _bluetoothPeripheralId.value
+        get() = bluetoothPeripheralId.value
         set(value) {
-            _bluetoothPeripheralId.value = value
+            bluetoothPeripheralId.value = value
         }
 
     private val _wifiSsid = MutableStateFlow("")
@@ -271,11 +271,11 @@ class SettingsDjiDevice : Named {
             _fps.value = value
         }
 
-    private val _bitrate = MutableStateFlow<UInt>(6_000_000u)
+    private val bitrate = MutableStateFlow<UInt>(6_000_000u)
     var bitrate: UInt
-        get() = _bitrate.value
+        get() = bitrate.value
         set(value) {
-            _bitrate.value = value
+            bitrate.value = value
         }
 
     private val _videoCodec = MutableStateFlow(SettingsDjiDeviceVideoCodec.h265hevc)
@@ -299,11 +299,11 @@ class SettingsDjiDevice : Named {
             _model.value = value
         }
 
-    private val _state = MutableStateFlow<DjiDeviceState?>(null)
+    private val state = MutableStateFlow<DjiDeviceState?>(null)
     var state: DjiDeviceState?
-        get() = _state.value
+        get() = state.value
         set(value) {
-            _state.value = value
+            state.value = value
         }
 
     val autoRestartStreamTimer = MainTimer()
@@ -337,11 +337,11 @@ class SettingsDjiDevice : Named {
 
 @Serializable(with = SettingsDjiDevicesSerializer::class)
 class SettingsDjiDevices {
-    private val _devices = MutableStateFlow<List<SettingsDjiDevice>>(emptyList())
+    private val devices = MutableStateFlow<List<SettingsDjiDevice>>(emptyList())
     var devices: List<SettingsDjiDevice>
-        get() = _devices.value
+        get() = devices.value
         set(value) {
-            _devices.value = value
+            devices.value = value
         }
 
     init {

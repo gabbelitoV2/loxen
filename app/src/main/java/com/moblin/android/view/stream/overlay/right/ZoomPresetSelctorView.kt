@@ -24,6 +24,7 @@ import com.moblin.android.various.model.Zoom
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsZoomPreset
 import java.util.UUID
+import com.moblin.android.LocalModel
 
 @Composable
 private fun PickerItemView(preset: SettingsZoomPreset, modifier: Modifier = Modifier) {
@@ -39,7 +40,7 @@ private fun PickerItemView(preset: SettingsZoomPreset, modifier: Modifier = Modi
 
 @Composable
 private fun ZoomPresetView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     presets: List<SettingsZoomPreset>,
     selectedPresetId: UUID,
@@ -79,7 +80,7 @@ private fun ZoomPresetView(
 
 @Composable
 private fun ZoomPresetVView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     presets: List<SettingsZoomPreset>,
     selectedPresetId: UUID,
@@ -118,7 +119,7 @@ private fun ZoomPresetVView(
 }
 
 @Composable
-fun StreamOverlayRightZoomPresetSelctorView(model: Model, zoom: Zoom, width: Float) {
+fun StreamOverlayRightZoomPresetSelctorView(model: Model = LocalModel.current, zoom: Zoom, width: Float) {
     val cameraPosition by model.cameraPosition.collectAsState()
     val frontZoomPresets by zoom.frontZoomPresets.collectAsState()
     val backZoomPresets by zoom.backZoomPresets.collectAsState()
@@ -147,7 +148,7 @@ fun StreamOverlayRightZoomPresetSelctorView(model: Model, zoom: Zoom, width: Flo
 }
 
 @Composable
-fun StreamOverlayRightZoomPresetVSelctorView(model: Model, zoom: Zoom, width: Float) {
+fun StreamOverlayRightZoomPresetVSelctorView(model: Model = LocalModel.current, zoom: Zoom, width: Float) {
     val cameraPosition by model.cameraPosition.collectAsState()
     val frontZoomPresets by zoom.frontZoomPresets.collectAsState()
     val backZoomPresets by zoom.backZoomPresets.collectAsState()

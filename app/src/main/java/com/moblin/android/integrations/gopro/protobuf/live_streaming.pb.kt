@@ -377,13 +377,13 @@ class OpenGopro_RequestGetLiveStreamStatus {
 }
 
 class OpenGopro_RequestSetLiveStreamMode {
-    private var _url: String? = null
+    private var url: String? = null
     var url: String
-        get() = _url ?: String()
-        set(value) { _url = value }
+        get() = url ?: String()
+        set(value) { url = value }
     val hasURL: Boolean
-        get() = _url != null
-    fun clearURL() { _url = null }
+        get() = url != null
+    fun clearURL() { url = null }
 
     private var _encode: Boolean? = null
     var encode: Boolean
@@ -458,7 +458,7 @@ class OpenGopro_RequestSetLiveStreamMode {
         if (other !is OpenGopro_RequestSetLiveStreamMode) {
             return false
         }
-        if (_url != other._url) {
+        if (url != other.url) {
             return false
         }
         if (_encode != other._encode) {
@@ -492,7 +492,7 @@ class OpenGopro_RequestSetLiveStreamMode {
     }
 
     override fun hashCode(): Int {
-        var result = _url?.hashCode() ?: 0
+        var result = url?.hashCode() ?: 0
         result = 31 * result + (_encode?.hashCode() ?: 0)
         result = 31 * result + (_windowSize?.hashCode() ?: 0)
         result = 31 * result + (_cert?.contentHashCode() ?: 0)

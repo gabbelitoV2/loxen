@@ -68,6 +68,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalModel
 
 enum class ExecutorState {
     idle,
@@ -79,27 +80,26 @@ enum class ExecutorState {
 
 class Executor {
     private val scope = CoroutineScope(Dispatchers.Main)
-    private val _state = MutableStateFlow(ExecutorState.idle)
-    val state: StateFlow<ExecutorState> = _state.asStateFlow()
+    val state = MutableStateFlow(ExecutorState.idle)
 
     fun startProgress() {
-        _state.value = ExecutorState.inProgress
+        state.value = ExecutorState.inProgress
     }
 
     fun completed(result: OperationResult) {
-        _state.value = when (result) {
+        state.value = when (result) {
             OperationResult.success -> ExecutorState.success
             OperationResult.authError -> ExecutorState.authError
             OperationResult.error -> ExecutorState.error
         }
         scope.launch {
             delay(3000)
-            _state.value = ExecutorState.idle
+            state.value = ExecutorState.idle
         }
     }
 
     fun completedNoTimer(result: OperationResult) {
-        _state.value = when (result) {
+        state.value = when (result) {
             OperationResult.success -> ExecutorState.idle
             OperationResult.authError -> ExecutorState.authError
             OperationResult.error -> ExecutorState.error
@@ -109,7 +109,7 @@ class Executor {
 
 @Composable
 fun ExecutorView(
-    model: Model,
+    model: Model = LocalModel.current,
     executor: Executor,
     centerNonContent: Boolean = false,
     content: @Composable () -> Unit,
@@ -187,7 +187,7 @@ private fun button(
 
 @Composable
 fun ToggleActionView(
-    model: Model,
+    model: Model = LocalModel.current,
     text: String,
     image: String,
     action: (Boolean, (OperationResult) -> Unit) -> Unit,
@@ -209,7 +209,7 @@ fun ToggleActionView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DurationActionView(
-    model: Model,
+    model: Model = LocalModel.current,
     text: String,
     image: String,
     durations: List<Int>,
@@ -305,7 +305,7 @@ enum class ModActionType {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserModerationItemView(
-    model: Model,
+    model: Model = LocalModel.current,
     action: ModActionType,
     platform: Platform,
 ) {
@@ -447,7 +447,7 @@ fun UserModerationItemView(
 
 @Composable
 fun ActionRowView(
-    model: Model,
+    model: Model = LocalModel.current,
     text: String,
     image: String,
     action: ((OperationResult) -> Unit) -> Unit,
@@ -546,7 +546,7 @@ fun ChannelImageView(image: String?) {
 
 @Composable
 fun RaidChannelView(
-    model: Model,
+    model: Model = LocalModel.current,
     buttonText: String,
     channel: String,
     category: String,
@@ -592,7 +592,7 @@ fun RaidChannelView(
 
 @Composable
 fun SlowModeView(
-    model: Model,
+    model: Model = LocalModel.current,
     durations: List<Int>,
     action: (Int?, (OperationResult) -> Unit) -> Unit,
 ) {
@@ -607,7 +607,7 @@ fun SlowModeView(
 
 @Composable
 fun FollowersOnlyView(
-    model: Model,
+    model: Model = LocalModel.current,
     durations: List<Int>,
     action: (Int?, (OperationResult) -> Unit) -> Unit,
 ) {
@@ -622,7 +622,7 @@ fun FollowersOnlyView(
 
 @Composable
 fun SubscribersOnlyView(
-    model: Model,
+    model: Model = LocalModel.current,
     action: (Boolean, (OperationResult) -> Unit) -> Unit,
 ) {
     ToggleActionView(
@@ -635,7 +635,7 @@ fun SubscribersOnlyView(
 
 @Composable
 fun EmotesOnlyView(
-    model: Model,
+    model: Model = LocalModel.current,
     action: (Boolean, (OperationResult) -> Unit) -> Unit,
 ) {
     val darkMode = androidx.compose.foundation.isSystemInDarkTheme()
@@ -678,7 +678,7 @@ fun NavigationLinkView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonChatModerationView(
-    model: Model,
+    model: Model = LocalModel.current,
     presentingModeration: Boolean,
     onPresentingModerationChange: (Boolean) -> Unit,
 ) {

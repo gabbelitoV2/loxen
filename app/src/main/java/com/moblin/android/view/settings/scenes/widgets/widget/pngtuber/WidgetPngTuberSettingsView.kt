@@ -30,9 +30,10 @@ import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.InlinePickerItem
 import com.moblin.android.view.utils.InlinePickerView
+import com.moblin.android.LocalModel
 
 @Composable
-private fun PickerView(model: Model) {
+private fun PickerView(model: Model = LocalModel.current) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
     ) { uri ->
@@ -59,7 +60,7 @@ private fun onUrl(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetPngTuberPickerView(
-    model: Model,
+    model: Model = LocalModel.current,
     pngTuber: SettingsWidgetPngTuber,
     onSelected: (() -> Unit)? = null,
 ) {
@@ -146,7 +147,7 @@ private fun setEffectSettings(
 
 @Composable
 fun WidgetPngTuberSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     pngTuber: SettingsWidgetPngTuber,
 ) {

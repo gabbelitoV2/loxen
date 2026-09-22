@@ -38,6 +38,8 @@ import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.InfoBannerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun submitSrtPort(srtlaServer: SettingsSrtlaServer, model: Model, value: String) {
     val port = value.toIntOrNull() ?: return
@@ -77,9 +79,9 @@ private fun deleteStream(srtlaServer: SettingsSrtlaServer, model: Model, indexes
 
 @Composable
 fun SrtlaServerSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     srtlaServer: SettingsSrtlaServer,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier
@@ -96,7 +98,7 @@ fun SrtlaServerSettingsView(
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SrtlaServerSettingsForm(
-    model: Model,
+    model: Model = LocalModel.current,
     srtlaServer: SettingsSrtlaServer,
 ) {
     Scaffold(

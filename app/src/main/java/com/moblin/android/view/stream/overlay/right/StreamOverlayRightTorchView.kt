@@ -5,9 +5,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
+import com.moblin.android.LocalModel
 
 @Composable
-fun StreamOverlayRightTorchView(model: Model, database: Database) {
+fun StreamOverlayRightTorchView(model: Model = LocalModel.current, database: Database) {
     val torchLevel by database.torchLevel.collectAsState()
     EffectSlider(
         title = "TORCH BRIGHTNESS",

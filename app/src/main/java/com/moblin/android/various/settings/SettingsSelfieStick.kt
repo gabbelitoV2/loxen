@@ -17,14 +17,11 @@ class SettingsSelfieStick(
     function: SettingsControllerFunction = SettingsControllerFunction.switchScene,
     functionData: SettingsControllerFunctionData = SettingsControllerFunctionData(),
 ) {
-    private val _enabled = MutableStateFlow(enabled)
-    val enabled: StateFlow<Boolean> = _enabled.asStateFlow()
+    val enabled = MutableStateFlow(enabled)
 
-    private val _function = MutableStateFlow(function)
-    val function: StateFlow<SettingsControllerFunction> = _function.asStateFlow()
+    val function = MutableStateFlow(function)
 
-    private val _functionData = MutableStateFlow(functionData)
-    val functionData: StateFlow<SettingsControllerFunctionData> = _functionData.asStateFlow()
+    val functionData = MutableStateFlow(functionData)
 
     enum class CodingKeys {
         enabled,

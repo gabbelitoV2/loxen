@@ -28,12 +28,13 @@ import com.moblin.android.various.settings.SettingsDisconnectProtection
 import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.view.settings.scenes.SceneNameView
 import java.util.UUID
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun DisconnectProtectionSettingsView(
     database: Database,
     disconnectProtection: SettingsDisconnectProtection,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     TextButton(onClick = { onNavigate("Disconnect protection") }) {
         Text(localized("Disconnect protection"))

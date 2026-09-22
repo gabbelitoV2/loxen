@@ -50,10 +50,12 @@ import com.moblin.android.view.settings.streams.stream.KickLogoAndNameView
 import com.moblin.android.view.utils.BorderlessButtonView
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.HCenter
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CreatePollView(model: Model) {
+private fun CreatePollView(model: Model = LocalModel.current) {
     var title by remember { mutableStateOf("") }
     var options by remember { mutableStateOf(listOf(PollOption(), PollOption())) }
     var duration by remember { mutableStateOf(30) }
@@ -158,7 +160,7 @@ private fun CreatePollView(model: Model) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CreatePredictionView(model: Model) {
+private fun CreatePredictionView(model: Model = LocalModel.current) {
     var title by remember { mutableStateOf("") }
     var outcome1 by remember { mutableStateOf("") }
     var outcome2 by remember { mutableStateOf("") }
@@ -242,7 +244,7 @@ private fun CreatePredictionView(model: Model) {
 }
 
 @Composable
-private fun RaidChannelSearchView(model: Model) {
+private fun RaidChannelSearchView(model: Model = LocalModel.current) {
     var searchText by remember { mutableStateOf("") }
     var channels by remember { mutableStateOf<List<KickLiveSearchChannel>>(emptyList()) }
     val executor = remember { Executor() }
@@ -300,7 +302,7 @@ private fun RaidChannelSearchView(model: Model) {
 }
 
 @Composable
-private fun HostChannelView(model: Model) {
+private fun HostChannelView(model: Model = LocalModel.current) {
     var channels by remember { mutableStateOf<List<KickFollowedChannel>>(emptyList()) }
     var cursor by remember { mutableStateOf<Int?>(null) }
     var isLoading by remember { mutableStateOf(false) }
@@ -363,10 +365,10 @@ private fun ShowViewCountView(action: (Boolean, (OperationResult) -> Unit) -> Un
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonChatModerationKickView(
-    model: Model,
+    model: Model = LocalModel.current,
     platform: Platform?,
     onPlatformChange: (Platform?) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     fun slowModeAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
         if (duration != null) {

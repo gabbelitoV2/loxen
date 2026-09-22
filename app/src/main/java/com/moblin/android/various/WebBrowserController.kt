@@ -23,17 +23,13 @@ enum class WebBrowserPanel {
 }
 
 class WebBrowserController {
-    private val _showAlert = MutableStateFlow(false)
-    val showAlert: StateFlow<Boolean> = _showAlert.asStateFlow()
+    val showAlert = MutableStateFlow(false)
 
-    private val _panel = MutableStateFlow<WebBrowserPanel?>(null)
-    val panel: StateFlow<WebBrowserPanel?> = _panel.asStateFlow()
+    val panel = MutableStateFlow<WebBrowserPanel?>(null)
 
-    private val _message = MutableStateFlow<String?>(null)
-    val message: StateFlow<String?> = _message.asStateFlow()
+    val message = MutableStateFlow<String?>(null)
 
-    private val _defaultText = MutableStateFlow<String?>(null)
-    val defaultText: StateFlow<String?> = _defaultText.asStateFlow()
+    val defaultText = MutableStateFlow<String?>(null)
 
     private var alertCompletionHandler: (() -> Unit)? = null
     private var confirmCompletionHandler: ((Boolean) -> Unit)? = null
@@ -47,10 +43,10 @@ class WebBrowserController {
         alertCompletionHandler = completionHandler
         confirmCompletionHandler = null
         textInputCompletionHandler = null
-        _message.value = message
-        _defaultText.value = null
-        _panel.value = WebBrowserPanel.Alert
-        _showAlert.value = true
+        message.value = message
+        defaultText.value = null
+        panel.value = WebBrowserPanel.Alert
+        showAlert.value = true
     }
 
     fun webViewRunJavaScriptConfirmPanelWithMessage(
@@ -61,10 +57,10 @@ class WebBrowserController {
         alertCompletionHandler = null
         confirmCompletionHandler = completionHandler
         textInputCompletionHandler = null
-        _message.value = message
-        _defaultText.value = null
-        _panel.value = WebBrowserPanel.Confirm
-        _showAlert.value = true
+        message.value = message
+        defaultText.value = null
+        panel.value = WebBrowserPanel.Confirm
+        showAlert.value = true
     }
 
     fun webViewRunJavaScriptTextInputPanelWithPrompt(
@@ -76,28 +72,28 @@ class WebBrowserController {
         alertCompletionHandler = null
         confirmCompletionHandler = null
         textInputCompletionHandler = completionHandler
-        _message.value = prompt
-        _defaultText.value = defaultText
-        _panel.value = WebBrowserPanel.TextInput
-        _showAlert.value = true
+        message.value = prompt
+        defaultText.value = defaultText
+        panel.value = WebBrowserPanel.TextInput
+        showAlert.value = true
     }
 
     fun completeAlert() {
-        _showAlert.value = false
+        showAlert.value = false
         val handler = alertCompletionHandler
         alertCompletionHandler = null
         handler?.invoke()
     }
 
     fun completeConfirm(result: Boolean) {
-        _showAlert.value = false
+        showAlert.value = false
         val handler = confirmCompletionHandler
         confirmCompletionHandler = null
         handler?.invoke(result)
     }
 
     fun completeTextInput(text: String?) {
-        _showAlert.value = false
+        showAlert.value = false
         val handler = textInputCompletionHandler
         textInputCompletionHandler = null
         handler?.invoke(text)

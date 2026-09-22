@@ -36,6 +36,8 @@ import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun status(numberOfEnabledStreams: Int): String {
     return numberOfEnabledStreams.toString()
@@ -54,9 +56,9 @@ private fun deleteStream(model: Model, whepClient: SettingsWhepClient, indexes: 
 
 @Composable
 fun WhepClientSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     whepClient: SettingsWhepClient,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var numberOfEnabledStreams by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
@@ -78,9 +80,9 @@ fun WhepClientSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WhepClientSettingsDestinationView(
-    model: Model,
+    model: Model = LocalModel.current,
     whepClient: SettingsWhepClient,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val streams by whepClient.streams.collectAsState()
     Scaffold(

@@ -31,10 +31,12 @@ import com.moblin.android.view.settings.remotecontrol.RemoteControlWebDefaultUrl
 import com.moblin.android.view.utils.RemoteControlWebShortcutView
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun WidgetScoreboardQuickButtonControlsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     scoreboard: SettingsWidgetScoreboard,
 ) {
@@ -56,7 +58,7 @@ fun WidgetScoreboardQuickButtonControlsView(
 fun ScoreboardColorsView(
     scoreboard: SettingsWidgetScoreboard,
     updated: () -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier
@@ -108,7 +110,7 @@ fun ScoreboardColorsFormView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetScoreboardSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     scoreboard: SettingsWidgetScoreboard,
     web: SettingsRemoteControlWeb,

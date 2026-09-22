@@ -41,9 +41,11 @@ import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsTtsMonster
 import com.moblin.android.various.settings.SettingsVoice
 import java.util.Locale
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
-fun TtsMonsterSettingsView(ttsMonster: SettingsTtsMonster, onNavigate: (String) -> Unit) {
+fun TtsMonsterSettingsView(ttsMonster: SettingsTtsMonster, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -82,10 +84,10 @@ fun textToSpeechLanguages(appleVoices: List<Voice>): List<TextToSpeechLanguage> 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatTextToSpeechSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     chat: SettingsChat,
     ttsMonster: SettingsTtsMonster,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val context = LocalContext.current
     var appleVoices by remember { mutableStateOf(emptyList<Voice>()) }

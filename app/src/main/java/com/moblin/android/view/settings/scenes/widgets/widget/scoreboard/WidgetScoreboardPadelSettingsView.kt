@@ -42,10 +42,11 @@ import com.moblin.android.view.utils.InlinePickerView
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import java.util.UUID
+import com.moblin.android.LocalModel
 
 @Composable
 private fun PlayersPlayerView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     player: SettingsWidgetScoreboardPlayer
 ) {
@@ -77,7 +78,7 @@ private fun deletePlayer(
 
 @Composable
 private fun PlayersView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     updated: () -> Unit
 ) {
@@ -106,7 +107,7 @@ private fun PlayersView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlayerView(
-    model: Model,
+    model: Model = LocalModel.current,
     playerId: UUID,
     onPlayerIdChange: (UUID) -> Unit
 ) {
@@ -142,7 +143,7 @@ private fun PlayerView(
 
 @Composable
 fun WidgetScoreboardPadelQuickButtonControlsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget
 ) {
     Column(
@@ -230,7 +231,7 @@ fun WidgetScoreboardPadelGeneralSettingsView(
 
 @Composable
 fun WidgetScoreboardPadelSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     padel: SettingsWidgetPadelScoreboard,
     updated: () -> Unit
 ) {

@@ -20,14 +20,13 @@ class TeslaVehicleScanner private constructor() : ScanCallback() {
         val shared = TeslaVehicleScanner()
     }
 
-    private val _discoveredPeripherals = MutableStateFlow<List<BluetoothDevice>>(emptyList())
-    val discoveredPeripherals: StateFlow<List<BluetoothDevice>> = _discoveredPeripherals.asStateFlow()
+    val discoveredPeripherals = MutableStateFlow<List<BluetoothDevice>>(emptyList())
 
     private var centralManager: BluetoothLeScanner? = null
 
     @SuppressLint("MissingPermission")
     fun startScanningForDevices(context: Context) {
-        _discoveredPeripherals.value = emptyList()
+        discoveredPeripherals.value = emptyList()
         val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
         val adapter = manager?.adapter
         centralManager = adapter?.bluetoothLeScanner
@@ -55,9 +54,9 @@ class TeslaVehicleScanner private constructor() : ScanCallback() {
         if (!teslaVehicleNameRegex.matches(localName)) {
             return
         }
-        if (_discoveredPeripherals.value.any { it.address == peripheral.address }) {
+        if (discoveredPeripherals.value.any { it.address == peripheral.address }) {
             return
         }
-        _discoveredPeripherals.value = _discoveredPeripherals.value + peripheral
+        discoveredPeripherals.value = discoveredPeripherals.value + peripheral
     }
 }

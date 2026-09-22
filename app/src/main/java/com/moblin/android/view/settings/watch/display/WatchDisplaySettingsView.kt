@@ -13,6 +13,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.moblin.android.model.WatchSettingsShow
+import com.moblin.android.LocalOnNavigate
 
 private const val WatchLocalOverlaysSettingsRoute = "WatchLocalOverlaysSettingsView"
 
@@ -20,7 +21,7 @@ private const val WatchLocalOverlaysSettingsRoute = "WatchLocalOverlaysSettingsV
 @Composable
 fun WatchDisplaySettingsView(
     show: WatchSettingsShow,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Scaffold(
         topBar = {

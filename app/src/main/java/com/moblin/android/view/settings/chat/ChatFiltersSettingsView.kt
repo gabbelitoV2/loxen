@@ -24,11 +24,12 @@ import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToRemoveHelpView
 import com.moblin.android.view.utils.TextEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun ChatFilterFilterSettingsView(
     filter: SettingsChatFilter,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val user by filter.user.collectAsState()
     val messageStart by filter.messageStart.collectAsState()
@@ -140,7 +141,7 @@ private fun ChatFilterActionsSettingsView(
 @Composable
 private fun ChatFilterSettingsView(
     filter: SettingsChatFilter,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier
@@ -156,7 +157,7 @@ private fun ChatFilterSettingsView(
 @Composable
 fun ChatFiltersSettingsView(
     chat: SettingsChat,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val filters by chat.filters.collectAsState()
 
@@ -175,7 +176,7 @@ fun ChatFiltersSettingsView(
 @Composable
 private fun ChatFilterFormView(
     filter: SettingsChatFilter,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val enabled by filter.enabled.collectAsState()
 
@@ -198,7 +199,7 @@ private fun ChatFilterFormView(
 @Composable
 private fun ChatFiltersFormView(
     chat: SettingsChat,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val filters by chat.filters.collectAsState()
 

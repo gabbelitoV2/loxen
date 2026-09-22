@@ -36,11 +36,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 private class CurrentWiFiNetwork {
-    private val _ssid = MutableStateFlow<String?>(null)
-    val ssid: StateFlow<String?> = _ssid.asStateFlow()
+    val ssid = MutableStateFlow<String?>(null)
 
-    private val _locationDenied = MutableStateFlow(false)
-    val locationDenied: StateFlow<Boolean> = _locationDenied.asStateFlow()
+    val locationDenied = MutableStateFlow(false)
 
     fun locationManagerDidChangeAuthorization() {
         TODO("no Android counterpart for CoreLocation")

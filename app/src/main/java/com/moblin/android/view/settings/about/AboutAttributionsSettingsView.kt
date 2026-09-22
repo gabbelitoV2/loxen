@@ -14,6 +14,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalOnNavigate
 
 private data class Attribution(
     val name: String,
@@ -219,7 +220,7 @@ fun AboutAttributionsImagesSettingsView() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutAttributionsSettingsView(onNavigate: (String) -> Unit) {
+fun AboutAttributionsSettingsView(onNavigate: (String) -> Unit = LocalOnNavigate.current) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Attributions") })

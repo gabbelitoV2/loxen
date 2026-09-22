@@ -27,10 +27,11 @@ import com.moblin.android.various.settings.SettingsFontWeight
 import com.moblin.android.various.settings.SettingsWidgetAlertPositionType
 import com.moblin.android.various.settings.SettingsWidgetAlertsAlert
 import com.moblin.android.view.utils.RgbColorPickerView
+import com.moblin.android.LocalModel
 
 @Composable
 fun AlertFontView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     fontSize: Float,
     fontDesign: SettingsFontDesign,
@@ -138,7 +139,7 @@ fun AlertFontView(
 
 @Composable
 fun AlertColorsView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     textColor: Color,
     accentColor: Color,

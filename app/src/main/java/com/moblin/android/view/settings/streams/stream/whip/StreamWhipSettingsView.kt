@@ -32,6 +32,7 @@ import com.moblin.android.various.settings.SettingsStreamWhipHttpTransport
 import com.moblin.android.view.utils.RemoteControlAssistantShortcutView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
 
 private fun getBearerToken(headers: List<SettingsHttpHeader>): String {
     val authorization = headers.firstOrNull { it.name == "Authorization" } ?: return ""
@@ -57,7 +58,7 @@ private fun setBearerToken(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreamWhipSettingsView(model: Model, stream: SettingsStream, whip: SettingsStreamWhip) {
+fun StreamWhipSettingsView(model: Model = LocalModel.current, stream: SettingsStream, whip: SettingsStreamWhip) {
     val headers by whip.headers.collectAsState()
     val httpTransport by whip.httpTransport.collectAsState()
     var expanded by remember { mutableStateOf(false) }

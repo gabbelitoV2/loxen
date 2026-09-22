@@ -15,6 +15,7 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
 
 private fun submitChannelName(model: Model, stream: SettingsStream, value: String) {
     stream.soopChannelName = value
@@ -32,7 +33,7 @@ private fun submitStreamId(model: Model, stream: SettingsStream, value: String) 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreamSoopSettingsView(model: Model, stream: SettingsStream) {
+fun StreamSoopSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("SOOP") })

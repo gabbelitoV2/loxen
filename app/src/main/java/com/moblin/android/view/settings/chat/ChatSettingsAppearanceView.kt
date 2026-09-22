@@ -33,14 +33,16 @@ import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatDisplayStyle
 import com.moblin.android.view.utils.RgbColorPickerView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatSettingsAppearanceView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     chat: SettingsChat,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val showAllSettings = database.showAllSettings.collectAsState().value
     val fontSize = chat.fontSize.collectAsState().value

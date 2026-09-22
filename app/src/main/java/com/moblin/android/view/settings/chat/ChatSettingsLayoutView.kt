@@ -24,13 +24,14 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsAppMode
 import com.moblin.android.various.settings.SettingsChat
+import com.moblin.android.LocalModel
 
 val sliderValuePercentageWidth = 60.0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatSettingsLayoutView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     chat: SettingsChat,
 ) {

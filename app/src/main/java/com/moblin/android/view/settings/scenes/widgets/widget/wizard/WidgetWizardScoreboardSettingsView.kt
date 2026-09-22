@@ -28,11 +28,12 @@ import com.moblin.android.various.settings.SettingsWidgetScoreboardSport
 import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSelectScenesNavigationView
 import com.moblin.android.view.settings.scenes.widgets.widget.basicWidgetSettingsTitle
 import com.moblin.android.view.utils.CloseToolbarButtonView
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetWizardScoreboardSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     scoreboard: SettingsWidgetScoreboard,
     createWidgetWizard: CreateWidgetWizard,

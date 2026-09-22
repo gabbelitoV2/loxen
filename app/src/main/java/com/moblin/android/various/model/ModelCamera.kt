@@ -43,11 +43,10 @@ enum class CameraShowType {
 }
 
 class CameraShow {
-    private val _type = MutableStateFlow<CameraShowType?>(null)
-    val type: StateFlow<CameraShowType?> = _type.asStateFlow()
+    val type = MutableStateFlow<CameraShowType?>(null)
 
     fun toggle(buttonType: CameraShowType) {
-        _type.value = if (_type.value == buttonType) {
+        type.value = if (type.value == buttonType) {
             null
         } else {
             buttonType
@@ -72,66 +71,56 @@ class CameraState {
     val lockedWhiteBalances: MutableMap<CaptureSessionDevice, Float> = mutableMapOf()
     var editingLockedWhiteBalance = false
     var whiteBalanceObservation: Any? = null
-    private val _bias = MutableStateFlow(0.0f)
-    val bias: StateFlow<Float> = _bias.asStateFlow()
-    private val _lockedFocus = MutableStateFlow(1.0f)
-    val lockedFocus: StateFlow<Float> = _lockedFocus.asStateFlow()
-    private val _isFocusLocked = MutableStateFlow(false)
-    val isFocusLocked: StateFlow<Boolean> = _isFocusLocked.asStateFlow()
-    private val _lockedIso = MutableStateFlow(1.0f)
-    val lockedIso: StateFlow<Float> = _lockedIso.asStateFlow()
-    private val _lockedExposure = MutableStateFlow(1.0f)
-    val lockedExposure: StateFlow<Float> = _lockedExposure.asStateFlow()
-    private val _exposure = MutableStateFlow(0L)
-    val exposure: StateFlow<Long> = _exposure.asStateFlow()
-    private val _isExposureAndIsoLocked = MutableStateFlow(false)
-    val isExposureAndIsoLocked: StateFlow<Boolean> = _isExposureAndIsoLocked.asStateFlow()
-    private val _lockedWhiteBalance = MutableStateFlow(0.0f)
-    val lockedWhiteBalance: StateFlow<Float> = _lockedWhiteBalance.asStateFlow()
-    private val _isWhiteBalanceLocked = MutableStateFlow(false)
-    val isWhiteBalanceLocked: StateFlow<Boolean> = _isWhiteBalanceLocked.asStateFlow()
-    private val _manualFocusPoint = MutableStateFlow<PointF?>(null)
-    val manualFocusPoint: StateFlow<PointF?> = _manualFocusPoint.asStateFlow()
+    val bias = MutableStateFlow(0.0f)
+    val lockedFocus = MutableStateFlow(1.0f)
+    val isFocusLocked = MutableStateFlow(false)
+    val lockedIso = MutableStateFlow(1.0f)
+    val lockedExposure = MutableStateFlow(1.0f)
+    val exposure = MutableStateFlow(0L)
+    val isExposureAndIsoLocked = MutableStateFlow(false)
+    val lockedWhiteBalance = MutableStateFlow(0.0f)
+    val isWhiteBalanceLocked = MutableStateFlow(false)
+    val manualFocusPoint = MutableStateFlow<PointF?>(null)
 
     fun setBias(value: Float) {
-        _bias.value = value
+        bias.value = value
     }
 
     fun setLockedFocus(value: Float) {
-        _lockedFocus.value = value
+        lockedFocus.value = value
     }
 
     fun setIsFocusLocked(value: Boolean) {
-        _isFocusLocked.value = value
+        isFocusLocked.value = value
     }
 
     fun setLockedIso(value: Float) {
-        _lockedIso.value = value
+        lockedIso.value = value
     }
 
     fun setLockedExposure(value: Float) {
-        _lockedExposure.value = value
+        lockedExposure.value = value
     }
 
     fun setExposure(value: Long) {
-        _exposure.value = value
+        exposure.value = value
     }
 
     fun setIsExposureAndIsoLocked(value: Boolean) {
-        _isExposureAndIsoLocked.value = value
+        isExposureAndIsoLocked.value = value
     }
 
     fun setLockedWhiteBalance(value: Float) {
-        _lockedWhiteBalance.value = value
+        lockedWhiteBalance.value = value
     }
 
     fun setIsWhiteBalanceLocked(value: Boolean) {
-        _isWhiteBalanceLocked.value = value
+        isWhiteBalanceLocked.value = value
     }
 
     fun setManualFocusPoint(value: PointF?) {
-        if (value != _manualFocusPoint.value) {
-            _manualFocusPoint.value = value
+        if (value != manualFocusPoint.value) {
+            manualFocusPoint.value = value
         }
     }
 }

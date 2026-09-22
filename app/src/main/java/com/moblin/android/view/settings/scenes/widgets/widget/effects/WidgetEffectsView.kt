@@ -26,9 +26,11 @@ import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
-private fun EffectLabelView(model: Model, effect: SettingsVideoEffect) {
+private fun EffectLabelView(model: Model = LocalModel.current, effect: SettingsVideoEffect) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         DraggableItemPrefixView()
         Row(
@@ -52,10 +54,10 @@ private fun EffectLabelView(model: Model, effect: SettingsVideoEffect) {
 
 @Composable
 private fun EffectView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     effect: SettingsVideoEffect,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     when (effect.type) {
         SettingsVideoEffectType.GRAY_SCALE,
@@ -80,9 +82,9 @@ private fun EffectView(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun WidgetEffectsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var presentingCreateWizard by remember { mutableStateOf(false) }
     var newEffect by remember { mutableStateOf(SettingsVideoEffect()) }

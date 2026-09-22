@@ -30,6 +30,8 @@ import com.moblin.android.common.various.formatDate
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.storages.StreamingHistoryDatabase
 import com.moblin.android.various.storages.StreamingHistoryStream
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun StreamingHistorySettingsSummaryView(database: StreamingHistoryDatabase) {
@@ -68,9 +70,9 @@ private fun deleteStream(at offsets: List<Int>, database: StreamingHistoryDataba
 
 @Composable
 private fun StreamingHistorySettingsStreamsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: StreamingHistoryDatabase,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val streams by database.streams.collectAsState()
     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -106,7 +108,7 @@ private fun StreamingHistorySettingsStreamsView(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreamingHistorySettingsView(model: Model, onNavigate: (String) -> Unit) {
+fun StreamingHistorySettingsView(model: Model = LocalModel.current, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Streaming history") })

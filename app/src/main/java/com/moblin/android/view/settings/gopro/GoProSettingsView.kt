@@ -55,6 +55,8 @@ import com.moblin.android.view.utils.QrCodeImageView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 fun qrCodeHeight(metrics: Dp): Dp = metrics * 0.5f
 
@@ -136,7 +138,7 @@ private fun GoProLaunchLiveStreamSettingsView(
 private fun GoProLaunchLiveStreamSettingsEntryView(
     goPro: SettingsGoPro,
     launchLiveStream: SettingsGoProLaunchLiveStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Box(modifier = Modifier.clickable { onNavigate("goProLaunchLiveStreamSettings") }) {
         DraggableItemTextView(name = launchLiveStream.name)
@@ -148,7 +150,7 @@ private fun GoProLaunchLiveStreamSettingsEntryView(
 private fun GoProWifiCredentialsSettingsView(
     goPro: SettingsGoPro,
     wifiCredentials: SettingsGoProWifiCredentials,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var qrCode by remember { mutableStateOf<Bitmap?>(null) }
 
@@ -190,7 +192,7 @@ private fun GoProWifiCredentialsSettingsView(
 private fun GoProWifiCredentialsSettingsEntryView(
     goPro: SettingsGoPro,
     wifiCredentials: SettingsGoProWifiCredentials,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Box(modifier = Modifier.clickable { onNavigate("goProWifiCredentialsSettings") }) {
         DraggableItemTextView(name = wifiCredentials.name)
@@ -200,11 +202,11 @@ private fun GoProWifiCredentialsSettingsEntryView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GoProRtmpUrlSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     goPro: SettingsGoPro,
     status: StatusOther,
     rtmpUrl: SettingsGoProRtmpUrl,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var qrCode by remember { mutableStateOf<Bitmap?>(null) }
     var typeExpanded by remember { mutableStateOf(false) }
@@ -413,7 +415,7 @@ private fun GoProRtmpUrlSettingsEntryView(
     goPro: SettingsGoPro,
     status: StatusOther,
     rtmpUrl: SettingsGoProRtmpUrl,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Box(modifier = Modifier.clickable { onNavigate("goProRtmpUrlSettings") }) {
         DraggableItemTextView(name = rtmpUrl.name)
@@ -424,7 +426,7 @@ private fun GoProRtmpUrlSettingsEntryView(
 private fun GoProLaunchLiveStream(
     goPro: SettingsGoPro,
     goProState: GoProState,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val deleteLaunchLiveStream: (List<Int>) -> Unit = { offsets ->
         offsets.sortedDescending().forEach { goPro.launchLiveStream.removeAt(it) }
@@ -475,7 +477,7 @@ private fun GoProLaunchLiveStream(
 private fun GoProWifiCredentials(
     goPro: SettingsGoPro,
     goProState: GoProState,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val deleteWifiCredentials: (List<Int>) -> Unit = { offsets ->
         offsets.sortedDescending().forEach { goPro.wifiCredentials.removeAt(it) }
@@ -527,7 +529,7 @@ private fun GoProRtmpUrls(
     status: StatusOther,
     goPro: SettingsGoPro,
     goProState: GoProState,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val deleteRtmpUrl: (List<Int>) -> Unit = { offsets ->
         offsets.sortedDescending().forEach { goPro.rtmpUrls.removeAt(it) }
@@ -577,8 +579,8 @@ private fun GoProRtmpUrls(
 
 @Composable
 private fun GoProQrCodesSettingsView(
-    model: Model,
-    onNavigate: (String) -> Unit,
+    model: Model = LocalModel.current,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         GoProLaunchLiveStream(
@@ -602,8 +604,8 @@ private fun GoProQrCodesSettingsView(
 
 @Composable
 fun GoProSettingsView(
-    model: Model,
-    onNavigate: (String) -> Unit,
+    model: Model = LocalModel.current,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         HCenter {

@@ -81,6 +81,9 @@ import com.moblin.android.various.settings.SettingsStream
 import kotlinx.coroutines.launch
 import java.net.URL
 import java.util.UUID
+import com.moblin.android.localized
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun makeChatLineStyle(chat: SettingsChat): ChatLineStyle =
     ChatLineStyle(
@@ -222,7 +225,7 @@ private fun PostView(
 
 @Composable
 private fun MessagesView(
-    model: Model,
+    model: Model = LocalModel.current,
     chatSettings: SettingsChat,
     chat: ChatProvider,
     onSelectedPost: (ChatPost?) -> Unit,
@@ -270,7 +273,7 @@ private fun MessagesView(
 
 @Composable
 private fun ChatView(
-    model: Model,
+    model: Model = LocalModel.current,
     chat: ChatProvider,
     onSelectedPost: (ChatPost?) -> Unit,
     onLinkUrl: (URL?) -> Unit,
@@ -387,7 +390,7 @@ private fun AlertsPostView(
 
 @Composable
 private fun AlertsMessagesView(
-    model: Model,
+    model: Model = LocalModel.current,
     chatSettings: SettingsChat,
     chat: ChatProvider,
     quickButtonChat: QuickButtonChat,
@@ -437,7 +440,7 @@ private fun AlertsMessagesView(
 
 @Composable
 private fun ChatAlertsView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtonChat: QuickButtonChat,
     onSelectedPost: (ChatPost?) -> Unit,
     onLinkUrl: (URL?) -> Unit,
@@ -484,12 +487,12 @@ private fun TagButtonView(
 
 @Composable
 private fun PredefinedMessageView(
-    model: Model,
+    model: Model = LocalModel.current,
     filter: SettingsChatPredefinedMessagesFilter,
     predefinedMessage: SettingsChatPredefinedMessage,
     showingPredefinedMessages: Boolean,
     onShowingPredefinedMessagesChange: (Boolean) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(modifier = Modifier.fillMaxWidth().clickable { onNavigate("predefinedMessage") }) {
         DraggableItemPrefixView(
@@ -512,7 +515,7 @@ private fun PredefinedMessageView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PredefinedMessagesView(
-    model: Model,
+    model: Model = LocalModel.current,
     chat: SettingsChat,
     filter: SettingsChatPredefinedMessagesFilter,
     presentingPredefinedMessages: Boolean,
@@ -693,7 +696,7 @@ private fun MenuItemView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ControlMenuButtonView(
-    model: Model,
+    model: Model = LocalModel.current,
     presentingMenu: Boolean,
     onPresentingMenuChange: (Boolean) -> Unit,
 ) {
@@ -737,7 +740,7 @@ private fun ControlAlertsButtonView(quickButtonChat: QuickButtonChat) {
 
 @Composable
 private fun ControlView(
-    model: Model,
+    model: Model = LocalModel.current,
     message: String,
     onMessageChange: (String) -> Unit,
 ) {
@@ -772,7 +775,7 @@ private fun ControlView(
 
 @Composable
 private fun AlertsControlView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtonChat: QuickButtonChat,
     message: String,
     onMessageChange: (String) -> Unit,
@@ -818,7 +821,7 @@ private fun AlertsControlView(
 
 @Composable
 fun QuickButtonChatView(
-    model: Model,
+    model: Model = LocalModel.current,
     orientation: Orientation,
     quickButtonChat: QuickButtonChat,
 ) {

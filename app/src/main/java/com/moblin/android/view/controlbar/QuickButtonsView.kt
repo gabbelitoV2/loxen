@@ -42,13 +42,14 @@ import com.moblin.android.various.settings.SettingsPanel
 import com.moblin.android.various.settings.SettingsQuickButton
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsQuickButtons
+import com.moblin.android.LocalModel
 
 val controlBarPages = 5
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun QuickButtonImage(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtonsSettings: SettingsQuickButtons,
     button: SettingsQuickButton,
     buttonSize: Float,
@@ -101,7 +102,7 @@ private fun QuickButtonImage(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun InstantReplayView(
-    model: Model,
+    model: Model = LocalModel.current,
     replay: ReplayProvider,
     button: SettingsQuickButton,
     size: Float,
@@ -177,7 +178,7 @@ private fun ButtonTextOverlayView(text: String) {
 
 @Composable
 fun QuickButtonsInnerView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
     orientation: Orientation,

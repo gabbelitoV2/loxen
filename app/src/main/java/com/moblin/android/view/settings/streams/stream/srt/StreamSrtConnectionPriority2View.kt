@@ -36,6 +36,7 @@ import com.moblin.android.various.settings.SettingsStreamDetailedProtocol
 import com.moblin.android.various.settings.SettingsStreamSrtConnectionPriority
 import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
 
 val minimumSrtConnectionPriority = 1
 val maximumSrtConnectionPriority = 10
@@ -70,7 +71,7 @@ private fun NoConnectionPrioritiesView(protocolName: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PriorityItemView(
-    model: Model,
+    model: Model = LocalModel.current,
     priority: SettingsStreamSrtConnectionPriority,
     initialPrio: Float,
 ) {
@@ -133,7 +134,7 @@ private fun deletePriority(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SrtlaConnectionPriorityView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
 ) {
     Scaffold(topBar = {
@@ -215,7 +216,7 @@ private fun SrtlaConnectionPriorityView(
 
 @Composable
 fun StreamSrtConnectionPriorityView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
 ) {
     when (stream.getDetailedProtocol()) {

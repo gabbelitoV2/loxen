@@ -1,18 +1,18 @@
 # Port report
 
-Generated 2026-09-22T14:21:31+00:00
+Generated 2026-09-22T15:20:22+00:00
 
 ## Summary
 
 | tier | done | error | stale | pending | skipped |
 |---|---|---|---|---|---|
-| logic | 150 | 0 | 0 | 0 | 0 |
+| logic | 151 | 0 | 0 | 0 | 0 |
 | platform | 52 | 0 | 0 | 0 | 0 |
 | test | 63 | 0 | 0 | 0 | 0 |
 | media | 163 | 0 | 0 | 0 | 0 |
-| ui | 360 | 0 | 0 | 0 | 0 |
+| ui | 361 | 0 | 0 | 0 | 0 |
 | apple_only | 2 | 0 | 0 | 0 | 0 |
-| skip | 0 | 0 | 0 | 0 | 22 |
+| skip | 0 | 0 | 0 | 0 | 20 |
 
 ## Needs manual work
 
@@ -28,6 +28,8 @@ Generated 2026-09-22T14:21:31+00:00
 - Common/View/StreamOverlayIconAndTextView.swift
   - Image(systemName: icon) with a runtime SF Symbol name: no Android/Material counterpart, painter replaced by TODO()
   - contentShape(Rectangle()) combined with negative padding (-20) hit-area expansion: no Compose counterpart, replaced by TODO()
+- Moblin Watch/Shared/WatchProtocol.swift
+  - HealthKit (HKStatistics, HKUnit, heart rate / energy / distance / step / power / cadence quantity types)
 - Moblin/Integrations/CatPrinter/CatPrinter.swift
   - CBCentralManager / CBPeripheral central side: BluetoothGatt connection needs an Android Context for BluetoothDevice.connectGatt
   - CBCentralManager.retrievePeripherals(withIdentifiers:): BluetoothAdapter.getRemoteDevice needs a BluetoothAdapter obtained from a Context
@@ -757,6 +759,8 @@ Generated 2026-09-22T14:21:31+00:00
 | Common/View/StreamOverlayIconAndTextView.swift | app/src/main/java/com/moblin/android/common/view/StreamOverlayIconAndTextView.kt | deepseek-flash | 23.0 |
 | Common/View/StreamOverlayTextView.swift | app/src/main/java/com/moblin/android/common/view/StreamOverlayTextView.kt | deepseek-flash | 2.3 |
 | Common/View/ThermalStateView.swift | app/src/main/java/com/moblin/android/common/view/ThermalStateView.kt | deepseek-flash | 10.8 |
+| Moblin Watch/Shared/WatchProtocol.swift | app/src/main/java/com/moblin/android/moblinwatch/shared/WatchProtocol.kt | deepseek-flash | 36.8 |
+| Moblin Watch/Shared/WatchSettings.swift | app/src/main/java/com/moblin/android/moblinwatch/shared/WatchSettings.kt | deepseek-flash | 122.2 |
 | Moblin/Integrations/BlackSharkCooler/BlackSharkCoolerDevice.swift | app/src/main/java/com/moblin/android/integrations/blacksharkcooler/BlackSharkCoolerDevice.kt | deepseek-flash | 98.4 |
 | Moblin/Integrations/CatPrinter/AtkinsonDithering.swift | app/src/main/java/com/moblin/android/integrations/catprinter/AtkinsonDithering.kt | deepseek-flash | 9.3 |
 | Moblin/Integrations/CatPrinter/CatPrinter.swift | app/src/main/java/com/moblin/android/integrations/catprinter/CatPrinter.kt | deepseek-flash | 134.4 |

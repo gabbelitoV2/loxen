@@ -25,6 +25,8 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsDebug
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun onPixelFormatChange(model: Model, format: String) {
     model.database.debug.pixelFormat = format
@@ -36,9 +38,9 @@ private fun onPixelFormatChange(model: Model, format: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DebugVideoSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     debug: SettingsDebug,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val allowVideoRangePixelFormat by debug.allowVideoRangePixelFormat.collectAsState()
     val videoBitrateChange by debug.videoBitrateChange.collectAsState()

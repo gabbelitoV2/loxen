@@ -30,11 +30,12 @@ import com.moblin.android.view.settings.ingests.srtlaserver.SrtlaServerSettingsV
 import com.moblin.android.view.settings.ingests.whepclient.WhepClientSettingsView
 import com.moblin.android.view.settings.ingests.whipserver.WhipServerSettingsView
 import com.moblin.android.view.settings.wifiaware.WiFiAwareSettingsView
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IngestsSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     onNavigate: (String) -> Unit = {},
 ) {

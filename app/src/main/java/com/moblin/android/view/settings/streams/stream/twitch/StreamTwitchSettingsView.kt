@@ -48,14 +48,16 @@ import com.moblin.android.view.utils.TextEditNavigationView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun TwitchStreamLiveSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     title: String?,
     category: String?,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Column {
         Row(
@@ -94,7 +96,7 @@ fun TwitchStreamLiveSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TwitchCategoryPickerView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     onDismiss: () -> Unit,
 ) {
@@ -144,7 +146,7 @@ private fun TwitchCategoryPickerView(
 @Composable
 private fun categoryButton(
     category: TwitchApiGameData,
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     onDismiss: () -> Unit,
 ) {
@@ -320,10 +322,10 @@ suspend fun loadTwitchStreamInfo(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamTwitchSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     loggedInInitial: Boolean,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val scope = rememberCoroutineScope()
     var loggedIn by remember { mutableStateOf(loggedInInitial) }

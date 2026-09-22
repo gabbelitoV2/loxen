@@ -27,6 +27,7 @@ import com.moblin.android.common.various.formatBytesPerSecond
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStream
 import kotlin.math.ceil
+import com.moblin.android.LocalModel
 
 private fun calcBitrate(bitrate: Float): Int {
     return ceil(bitrate * 1000.0).toInt()
@@ -35,7 +36,7 @@ private fun calcBitrate(bitrate: Float): Int {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamRecordingAudioSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     initialBitrate: Float,
 ) {

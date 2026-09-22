@@ -36,6 +36,8 @@ import java.util.zip.ZipFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun unzipLive2DModel(from: String, to: File) {
     ZipFile(from).use { zip ->
@@ -63,7 +65,7 @@ private fun unzipLive2DModel(from: String, to: File) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetVTuberPickerView(
-    model: Model,
+    model: Model = LocalModel.current,
     vTuber: SettingsWidgetVTuber,
     onSelected: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
@@ -126,10 +128,10 @@ fun WidgetVTuberPickerView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetVTuberSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     vTuber: SettingsWidgetVTuber,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     modifier: Modifier = Modifier,
 ) {
     fun onCameraChange(cameraId: String) {

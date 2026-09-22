@@ -16,10 +16,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsGameController
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GameControllersControllerSettingsView(model: Model, gameController: SettingsGameController) {
+fun GameControllersControllerSettingsView(model: Model = LocalModel.current, gameController: SettingsGameController) {
     val buttons by gameController.buttons.collectAsState()
     val leftThumbStickFunction by gameController.leftThumbStickFunction.collectAsState()
     val rightThumbStickFunction by gameController.rightThumbStickFunction.collectAsState()

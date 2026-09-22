@@ -43,13 +43,15 @@ import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun DestinationView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     destination: SettingsStreamMultiStreamingDestination,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
@@ -83,10 +85,10 @@ fun DestinationView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DestinationSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     destination: SettingsStreamMultiStreamingDestination,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
@@ -127,7 +129,7 @@ private fun numberOfEnabledDestinations(multiStreaming: SettingsStreamMultiStrea
 @Composable
 fun StreamMultiStreamingSettingsView(
     multiStreaming: SettingsStreamMultiStreaming,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier
@@ -145,10 +147,10 @@ fun StreamMultiStreamingSettingsView(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun MultiStreamingSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     multiStreaming: SettingsStreamMultiStreaming,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()

@@ -36,14 +36,16 @@ import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.IconAndTextView
 import com.moblin.android.view.utils.SwipeLeftToDeleteButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun WidgetsSettingsItemView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     widget: SettingsWidget,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val deleteWidget: () -> Unit = {
         database.widgets.removeAll { it === widget }
@@ -106,9 +108,9 @@ private fun WidgetsSettingsItemView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetsSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var presentingCreateWizard by remember { mutableStateOf(false) }
     val onMove: (Int, Int) -> Unit = { from, to ->

@@ -37,6 +37,7 @@ import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import java.util.UUID
+import com.moblin.android.LocalModel
 
 private fun deleteBackZoomPreset(model: Model, zoom: SettingsZoom, offsets: List<Int>) {
     offsets.sortedDescending().forEach { zoom.back.removeAt(it) }
@@ -58,7 +59,7 @@ private fun moveFrontZoomPreset(fromOffsets: List<Int>, toOffset: Int) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ZoomSettingsView(model: Model, zoom: SettingsZoom) {
+fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Zoom") })

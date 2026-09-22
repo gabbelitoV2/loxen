@@ -42,6 +42,7 @@ import com.moblin.android.various.utils.factorToIso
 import com.moblin.android.various.utils.formatExposure
 import com.moblin.android.various.utils.maximumWhiteBalanceTemperature
 import com.moblin.android.various.utils.minimumWhiteBalanceTemperature
+import com.moblin.android.LocalModel
 
 @Composable
 private fun CameraSettingButtonView(
@@ -113,7 +114,7 @@ private fun TitleView(title: String) {
 
 @Composable
 private fun SliderAndLockView(
-    model: Model,
+    model: Model = LocalModel.current,
     value: Float,
     onValueChange: (Float) -> Unit,
     locked: Boolean,
@@ -171,7 +172,7 @@ private fun SliderAndLockView(
 }
 
 @Composable
-private fun ExposureBiasView(model: Model, camera: CameraState) {
+private fun ExposureBiasView(model: Model = LocalModel.current, camera: CameraState) {
     val bias by camera.bias.collectAsState()
 
     TitleView(title = "EXPOSURE BIAS")
@@ -198,7 +199,7 @@ private fun ExposureBiasView(model: Model, camera: CameraState) {
 }
 
 @Composable
-private fun WhiteBalanceView(model: Model, camera: CameraState) {
+private fun WhiteBalanceView(model: Model = LocalModel.current, camera: CameraState) {
     val lockedWhiteBalance by camera.lockedWhiteBalance.collectAsState()
     val isWhiteBalanceLocked by camera.isWhiteBalanceLocked.collectAsState()
     val editingLockedWhiteBalance by camera.editingLockedWhiteBalance.collectAsState()
@@ -226,7 +227,7 @@ private fun WhiteBalanceView(model: Model, camera: CameraState) {
 }
 
 @Composable
-private fun IsoView(model: Model, camera: CameraState) {
+private fun IsoView(model: Model = LocalModel.current, camera: CameraState) {
     val lockedIso by camera.lockedIso.collectAsState()
     val isExposureAndIsoLocked by camera.isExposureAndIsoLocked.collectAsState()
     val editingLockedIso by camera.editingLockedIso.collectAsState()
@@ -254,7 +255,7 @@ private fun IsoView(model: Model, camera: CameraState) {
 }
 
 @Composable
-private fun ExposureView(model: Model, camera: CameraState) {
+private fun ExposureView(model: Model = LocalModel.current, camera: CameraState) {
     val lockedExposure by camera.lockedExposure.collectAsState()
     val isExposureAndIsoLocked by camera.isExposureAndIsoLocked.collectAsState()
     val editingLockedExposure by camera.editingLockedExposure.collectAsState()
@@ -283,7 +284,7 @@ private fun ExposureView(model: Model, camera: CameraState) {
 }
 
 @Composable
-fun FocusView(model: Model, camera: CameraState) {
+fun FocusView(model: Model = LocalModel.current, camera: CameraState) {
     val lockedFocus by camera.lockedFocus.collectAsState()
     val isFocusLocked by camera.isFocusLocked.collectAsState()
     val editingLockedFocus by camera.editingLockedFocus.collectAsState()
@@ -312,7 +313,7 @@ fun FocusView(model: Model, camera: CameraState) {
 
 @Composable
 private fun ButtonsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     camera: CameraState,
     show: CameraShow,
@@ -422,7 +423,7 @@ private fun ButtonsView(
 
 @Composable
 fun StreamOverlayRightCameraSettingsControlView(
-    model: Model,
+    model: Model = LocalModel.current,
     camera: CameraState,
     show: CameraShow,
 ) {

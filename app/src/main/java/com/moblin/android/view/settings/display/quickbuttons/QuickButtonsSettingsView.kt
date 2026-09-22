@@ -27,6 +27,8 @@ import com.moblin.android.various.settings.SettingsQuickButton
 import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.view.controlbar.controlBarPages
 import com.moblin.android.view.utils.IconAndTextView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun AppearanceSettingsView(database: Database, quickButtons: SettingsQuickButtons) {
@@ -96,9 +98,9 @@ private fun AppearanceSettingsView(database: Database, quickButtons: SettingsQui
 
 @Composable
 private fun ButtonSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     button: SettingsQuickButton,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val enabled by button.enabled.collectAsState()
     LaunchedEffect(enabled) {
@@ -132,9 +134,9 @@ private fun ButtonSettingsView(
 
 @Composable
 private fun ButtonsSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val quickButtons by database.quickButtons.collectAsState()
     for (page in 1..controlBarPages) {
@@ -158,7 +160,7 @@ private fun ButtonsSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonsSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     showAll: Boolean,
     onNavigate: (String) -> Unit = {},
 ) {

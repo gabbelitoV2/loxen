@@ -19,11 +19,9 @@ import kotlinx.serialization.encoding.Encoder
 
 @Serializable(with = SettingsMoblinkStreamer.Serializer::class)
 class SettingsMoblinkStreamer {
-    private val _enabled = MutableStateFlow(false)
-    val enabled: StateFlow<Boolean> = _enabled.asStateFlow()
+    val enabled = MutableStateFlow(false)
 
-    private val _port = MutableStateFlow(DefaultTcpPorts.moblinkStreamer)
-    val port: StateFlow<Int> = _port.asStateFlow()
+    val port = MutableStateFlow(DefaultTcpPorts.moblinkStreamer)
 
     object Serializer : KSerializer<SettingsMoblinkStreamer> {
         override val descriptor: SerialDescriptor =
@@ -34,8 +32,8 @@ class SettingsMoblinkStreamer {
 
         override fun serialize(encoder: Encoder, value: SettingsMoblinkStreamer) {
             val composite = encoder.beginStructure(descriptor)
-            composite.encodeBooleanElement(descriptor, 0, value._enabled.value)
-            composite.encodeIntElement(descriptor, 1, value._port.value)
+            composite.encodeBooleanElement(descriptor, 0, value.enabled.value)
+            composite.encodeIntElement(descriptor, 1, value.port.value)
             composite.endStructure(descriptor)
         }
 
@@ -45,8 +43,8 @@ class SettingsMoblinkStreamer {
             while (true) {
                 when (val index = composite.decodeElementIndex(descriptor)) {
                     CompositeDecoder.DECODE_DONE -> break
-                    0 -> result._enabled.value = composite.decodeBooleanElement(descriptor, 0)
-                    1 -> result._port.value = composite.decodeIntElement(descriptor, 1)
+                    0 -> result.enabled.value = composite.decodeBooleanElement(descriptor, 0)
+                    1 -> result.port.value = composite.decodeIntElement(descriptor, 1)
                     else -> throw SerializationException("Unexpected index $index")
                 }
             }
@@ -58,17 +56,13 @@ class SettingsMoblinkStreamer {
 
 @Serializable(with = SettingsMoblinkRelay.Serializer::class)
 class SettingsMoblinkRelay {
-    private val _enabled = MutableStateFlow(false)
-    val enabled: StateFlow<Boolean> = _enabled.asStateFlow()
+    val enabled = MutableStateFlow(false)
 
-    private val _name = MutableStateFlow(randomName())
-    val name: StateFlow<String> = _name.asStateFlow()
+    val name = MutableStateFlow(randomName())
 
-    private val _url = MutableStateFlow("")
-    val url: StateFlow<String> = _url.asStateFlow()
+    val url = MutableStateFlow("")
 
-    private val _manual = MutableStateFlow(false)
-    val manual: StateFlow<Boolean> = _manual.asStateFlow()
+    val manual = MutableStateFlow(false)
 
     object Serializer : KSerializer<SettingsMoblinkRelay> {
         override val descriptor: SerialDescriptor =
@@ -81,10 +75,10 @@ class SettingsMoblinkRelay {
 
         override fun serialize(encoder: Encoder, value: SettingsMoblinkRelay) {
             val composite = encoder.beginStructure(descriptor)
-            composite.encodeBooleanElement(descriptor, 0, value._enabled.value)
-            composite.encodeStringElement(descriptor, 1, value._name.value)
-            composite.encodeStringElement(descriptor, 2, value._url.value)
-            composite.encodeBooleanElement(descriptor, 3, value._manual.value)
+            composite.encodeBooleanElement(descriptor, 0, value.enabled.value)
+            composite.encodeStringElement(descriptor, 1, value.name.value)
+            composite.encodeStringElement(descriptor, 2, value.url.value)
+            composite.encodeBooleanElement(descriptor, 3, value.manual.value)
             composite.endStructure(descriptor)
         }
 
@@ -94,13 +88,13 @@ class SettingsMoblinkRelay {
             while (true) {
                 when (val index = composite.decodeElementIndex(descriptor)) {
                     CompositeDecoder.DECODE_DONE -> break
-                    0 -> result._enabled.value = composite.decodeBooleanElement(descriptor, 0)
-                    1 -> result._name.value = composite.decodeStringElement(descriptor, 1)
+                    0 -> result.enabled.value = composite.decodeBooleanElement(descriptor, 0)
+                    1 -> result.name.value = composite.decodeStringElement(descriptor, 1)
                     2 -> {
                         val url = composite.decodeStringElement(descriptor, 2)
-                        result._url.value = if (isValidWebSocketUrl(url) == null) url else ""
+                        result.url.value = if (isValidWebSocketUrl(url) == null) url else ""
                     }
-                    3 -> result._manual.value = composite.decodeBooleanElement(descriptor, 3)
+                    3 -> result.manual.value = composite.decodeBooleanElement(descriptor, 3)
                     else -> throw SerializationException("Unexpected index $index")
                 }
             }

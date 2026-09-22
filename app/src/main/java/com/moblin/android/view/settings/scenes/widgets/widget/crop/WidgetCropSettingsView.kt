@@ -22,6 +22,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
 
 private fun changeXY(value: String): String? {
     val x = value.toIntOrNull() ?: return localized("Not a number")
@@ -72,7 +73,7 @@ private fun sourceWidgetExists(model: Model, widget: SettingsWidget): Boolean {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WidgetCropSettingsView(model: Model, widget: SettingsWidget) {
+fun WidgetCropSettingsView(model: Model = LocalModel.current, widget: SettingsWidget) {
     val database = model.database.collectAsState().value
     var expanded by remember { mutableStateOf(false) }
     val sourceWidgetId = if (sourceWidgetExists(model, widget)) {

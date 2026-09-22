@@ -44,13 +44,15 @@ import com.moblin.android.various.settings.SettingsWhipServerStream
 import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.various.utils.randomHumanString
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun WhipServerSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     whipServer: SettingsWhipServer,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val enabled by whipServer.enabled.collectAsState()
     val port by whipServer.port.collectAsState()

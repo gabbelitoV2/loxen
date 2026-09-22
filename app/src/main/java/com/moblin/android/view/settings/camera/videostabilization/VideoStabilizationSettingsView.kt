@@ -25,11 +25,12 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsVideoStabilizationMode
 import com.moblin.android.various.settings.videoStabilizationModes
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoStabilizationSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     mode: SettingsVideoStabilizationMode,
     onModeChange: (SettingsVideoStabilizationMode) -> Unit = {},
 ) {

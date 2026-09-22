@@ -26,6 +26,8 @@ import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun formatBlackSharkCoolerDeviceState(state: BlackSharkCoolerDeviceState?): String {
     return when (state) {
@@ -88,11 +90,11 @@ private fun toggleLight(model: Model, device: SettingsBlackSharkCoolerDevice) {
 
 @Composable
 fun BlackSharkCoolerDeviceSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     blackSharkCoolerDevices: SettingsBlackSharkCoolerDevices,
     device: SettingsBlackSharkCoolerDevice,
     status: StatusTopRight,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Text(
         text = device.name.collectAsState().value,
@@ -106,11 +108,11 @@ fun BlackSharkCoolerDeviceSettingsView(
 
 @Composable
 fun BlackSharkCoolerDeviceSettingsViewContent(
-    model: Model,
+    model: Model = LocalModel.current,
     blackSharkCoolerDevices: SettingsBlackSharkCoolerDevices,
     device: SettingsBlackSharkCoolerDevice,
     status: StatusTopRight,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val name = device.name.collectAsState().value
     val bluetoothPeripheralName = device.bluetoothPeripheralName.collectAsState().value

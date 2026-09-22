@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
 PROMPTS = HERE / "prompts"
 ALL_TIERS = ["logic", "platform", "test", "media", "ui", "apple_only"]
 DEFAULT_TIERS = ["logic", "platform", "test"]
@@ -443,6 +444,8 @@ def main():
             write_report(out_dir, inventory, state)
             raise SystemExit(130)
 
+    import postprocess
+    postprocess.run(False)
     write_report(out_dir, inventory, state)
     ok = sum(1 for e in todo if state.get(e["path"], {}).get("status") == "ok")
     print(f"\ndone: {ok} ok, {len(todo) - ok} failed. Report: {out_dir / 'PORT-REPORT.md'}")

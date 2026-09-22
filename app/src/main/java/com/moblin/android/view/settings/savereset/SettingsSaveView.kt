@@ -13,9 +13,10 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.view.utils.HCenter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalModel
 
 @Composable
-fun SettingsSaveView(model: Model) {
+fun SettingsSaveView(model: Model = LocalModel.current) {
     var showSaved by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 

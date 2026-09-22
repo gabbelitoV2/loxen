@@ -68,13 +68,13 @@ class SettingsLocation {
     var enabled: Boolean = false
         set(value) {
             field = value
-            _enabled.value = value
+            enabled.value = value
         }
 
     @Transient
-    private val _enabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    private val enabled: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-    val enabledFlow: StateFlow<Boolean> = _enabled.asStateFlow()
+    val enabledFlow: StateFlow<Boolean> = enabled.asStateFlow()
 
     var privacyRegions: List<SettingsPrivacyRegion> = emptyList()
         set(value) {

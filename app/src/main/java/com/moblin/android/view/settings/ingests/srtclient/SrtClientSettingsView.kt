@@ -41,6 +41,8 @@ import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun status(srtClient: SettingsSrtClient): String =
     srtClient.streams.value.count { it.enabled }.toString()
@@ -53,9 +55,9 @@ private fun deleteStream(model: Model, srtClient: SettingsSrtClient, indexes: Se
 
 @Composable
 fun SrtClientSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     srtClient: SettingsSrtClient,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier
@@ -73,7 +75,7 @@ fun SrtClientSettingsView(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SrtClientSettingsDestination(
-    model: Model,
+    model: Model = LocalModel.current,
     srtClient: SettingsSrtClient,
 ) {
     val streams by srtClient.streams.collectAsState()

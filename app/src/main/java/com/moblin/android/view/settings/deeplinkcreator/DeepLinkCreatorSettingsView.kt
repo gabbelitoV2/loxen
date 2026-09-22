@@ -45,6 +45,7 @@ import com.moblin.android.view.settings.gopro.qrCodeHeight
 import com.moblin.android.view.utils.QrCodeImageView
 import com.moblin.android.view.utils.TextButtonView
 import kotlinx.serialization.json.Json
+import com.moblin.android.LocalOnNavigate
 
 private const val TAG = "DeepLinkCreatorSettingsView"
 
@@ -165,7 +166,7 @@ private fun updateDeepLink(deepLinkCreator: DeepLinkCreator): String? {
 @Composable
 fun DeepLinkCreatorSettingsView(
     deepLinkCreator: DeepLinkCreator,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var deepLink by remember { mutableStateOf(defaultDeepLink) }
     val quickButtonsEnabled by deepLinkCreator.quickButtonsEnabled.collectAsState()

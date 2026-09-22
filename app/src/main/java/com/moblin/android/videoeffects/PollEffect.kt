@@ -33,11 +33,10 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 private class PollState(val size: Size) {
-    private val _text = MutableStateFlow(localized("No votes yet"))
-    val text: StateFlow<String> = _text.asStateFlow()
+    val text = MutableStateFlow(localized("No votes yet"))
 
     fun setText(text: String) {
-        _text.value = text
+        text.value = text
     }
 }
 

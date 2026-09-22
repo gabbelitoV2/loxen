@@ -69,84 +69,45 @@ import java.time.ZoneId
 import java.util.UUID
 
 class RemoteControl {
-    internal val _general = MutableStateFlow<RemoteControlStatusGeneral?>(null)
-    val general: StateFlow<RemoteControlStatusGeneral?> = _general.asStateFlow()
-    internal val _topLeft = MutableStateFlow<RemoteControlStatusTopLeft?>(null)
-    val topLeft: StateFlow<RemoteControlStatusTopLeft?> = _topLeft.asStateFlow()
-    internal val _topRight = MutableStateFlow<RemoteControlStatusTopRight?>(null)
-    val topRight: StateFlow<RemoteControlStatusTopRight?> = _topRight.asStateFlow()
-    internal val _settings = MutableStateFlow<RemoteControlSettings?>(null)
-    val settings: StateFlow<RemoteControlSettings?> = _settings.asStateFlow()
-    internal val _scene = MutableStateFlow(UUID.randomUUID())
-    val scene: StateFlow<UUID> = _scene.asStateFlow()
-    internal val _autoSceneSwitcher = MutableStateFlow<UUID?>(null)
-    val autoSceneSwitcher: StateFlow<UUID?> = _autoSceneSwitcher.asStateFlow()
-    internal val _mic = MutableStateFlow("")
-    val mic: StateFlow<String> = _mic.asStateFlow()
-    internal val _bitrate = MutableStateFlow(UUID.randomUUID())
-    val bitrate: StateFlow<UUID> = _bitrate.asStateFlow()
-    internal val _zoom = MutableStateFlow("")
-    val zoom: StateFlow<String> = _zoom.asStateFlow()
-    internal val _zoomPresets = MutableStateFlow<List<RemoteControlZoomPreset>>(emptyList())
-    val zoomPresets: StateFlow<List<RemoteControlZoomPreset>> = _zoomPresets.asStateFlow()
-    internal val _gimbalPresets = MutableStateFlow<List<RemoteControlSettingsGimbalPreset>>(emptyList())
-    val gimbalPresets: StateFlow<List<RemoteControlSettingsGimbalPreset>> = _gimbalPresets.asStateFlow()
-    internal val _macros = MutableStateFlow<List<RemoteControlMacro>>(emptyList())
-    val macros: StateFlow<List<RemoteControlMacro>> = _macros.asStateFlow()
-    internal val _zoomPreset = MutableStateFlow(UUID.randomUUID())
-    val zoomPreset: StateFlow<UUID> = _zoomPreset.asStateFlow()
-    internal val _debugLogging = MutableStateFlow(false)
-    val debugLogging: StateFlow<Boolean> = _debugLogging.asStateFlow()
-    internal val _preview = MutableStateFlow<Bitmap?>(null)
-    val preview: StateFlow<Bitmap?> = _preview.asStateFlow()
-    internal val _recording = MutableStateFlow(false)
-    val recording: StateFlow<Boolean> = _recording.asStateFlow()
-    internal val _streaming = MutableStateFlow(false)
-    val streaming: StateFlow<Boolean> = _streaming.asStateFlow()
-    internal val _muted = MutableStateFlow(false)
-    val muted: StateFlow<Boolean> = _muted.asStateFlow()
-    internal val _stealthMode = MutableStateFlow(false)
-    val stealthMode: StateFlow<Boolean> = _stealthMode.asStateFlow()
-    internal val _previewStream = MutableStateFlow(false)
-    val previewStream: StateFlow<Boolean> = _previewStream.asStateFlow()
-    internal val _presentingPreview = MutableStateFlow(true)
-    val presentingPreview: StateFlow<Boolean> = _presentingPreview.asStateFlow()
-    internal val _presentingPreviewFullScreen = MutableStateFlow(false)
-    val presentingPreviewFullScreen: StateFlow<Boolean> = _presentingPreviewFullScreen.asStateFlow()
-    internal val _presentingStreamers = MutableStateFlow(false)
-    val presentingStreamers: StateFlow<Boolean> = _presentingStreamers.asStateFlow()
-    internal val _pixellate = MutableStateFlow(false)
-    val pixellate: StateFlow<Boolean> = _pixellate.asStateFlow()
-    internal val _movie = MutableStateFlow(false)
-    val movie: StateFlow<Boolean> = _movie.asStateFlow()
-    internal val _grayScale = MutableStateFlow(false)
-    val grayScale: StateFlow<Boolean> = _grayScale.asStateFlow()
-    internal val _sepia = MutableStateFlow(false)
-    val sepia: StateFlow<Boolean> = _sepia.asStateFlow()
-    internal val _triple = MutableStateFlow(false)
-    val triple: StateFlow<Boolean> = _triple.asStateFlow()
-    internal val _twin = MutableStateFlow(false)
-    val twin: StateFlow<Boolean> = _twin.asStateFlow()
-    internal val _fourThree = MutableStateFlow(false)
-    val fourThree: StateFlow<Boolean> = _fourThree.asStateFlow()
-    internal val _crt = MutableStateFlow(false)
-    val crt: StateFlow<Boolean> = _crt.asStateFlow()
-    internal val _pinch = MutableStateFlow(false)
-    val pinch: StateFlow<Boolean> = _pinch.asStateFlow()
-    internal val _whirlpool = MutableStateFlow(false)
-    val whirlpool: StateFlow<Boolean> = _whirlpool.asStateFlow()
-    internal val _poll = MutableStateFlow(false)
-    val poll: StateFlow<Boolean> = _poll.asStateFlow()
-    internal val _blurFaces = MutableStateFlow(false)
-    val blurFaces: StateFlow<Boolean> = _blurFaces.asStateFlow()
-    internal val _privacy = MutableStateFlow(false)
-    val privacy: StateFlow<Boolean> = _privacy.asStateFlow()
-    internal val _beauty = MutableStateFlow(false)
-    val beauty: StateFlow<Boolean> = _beauty.asStateFlow()
-    internal val _moblinInMouth = MutableStateFlow(false)
-    val moblinInMouth: StateFlow<Boolean> = _moblinInMouth.asStateFlow()
-    internal val _cameraMan = MutableStateFlow(false)
-    val cameraMan: StateFlow<Boolean> = _cameraMan.asStateFlow()
+    val general = MutableStateFlow<RemoteControlStatusGeneral?>(null)
+    val topLeft = MutableStateFlow<RemoteControlStatusTopLeft?>(null)
+    val topRight = MutableStateFlow<RemoteControlStatusTopRight?>(null)
+    val settings = MutableStateFlow<RemoteControlSettings?>(null)
+    val scene = MutableStateFlow(UUID.randomUUID())
+    val autoSceneSwitcher = MutableStateFlow<UUID?>(null)
+    val mic = MutableStateFlow("")
+    val bitrate = MutableStateFlow(UUID.randomUUID())
+    val zoom = MutableStateFlow("")
+    val zoomPresets = MutableStateFlow<List<RemoteControlZoomPreset>>(emptyList())
+    val gimbalPresets = MutableStateFlow<List<RemoteControlSettingsGimbalPreset>>(emptyList())
+    val macros = MutableStateFlow<List<RemoteControlMacro>>(emptyList())
+    val zoomPreset = MutableStateFlow(UUID.randomUUID())
+    val debugLogging = MutableStateFlow(false)
+    val preview = MutableStateFlow<Bitmap?>(null)
+    val recording = MutableStateFlow(false)
+    val streaming = MutableStateFlow(false)
+    val muted = MutableStateFlow(false)
+    val stealthMode = MutableStateFlow(false)
+    val previewStream = MutableStateFlow(false)
+    val presentingPreview = MutableStateFlow(true)
+    val presentingPreviewFullScreen = MutableStateFlow(false)
+    val presentingStreamers = MutableStateFlow(false)
+    val pixellate = MutableStateFlow(false)
+    val movie = MutableStateFlow(false)
+    val grayScale = MutableStateFlow(false)
+    val sepia = MutableStateFlow(false)
+    val triple = MutableStateFlow(false)
+    val twin = MutableStateFlow(false)
+    val fourThree = MutableStateFlow(false)
+    val crt = MutableStateFlow(false)
+    val pinch = MutableStateFlow(false)
+    val whirlpool = MutableStateFlow(false)
+    val poll = MutableStateFlow(false)
+    val blurFaces = MutableStateFlow(false)
+    val privacy = MutableStateFlow(false)
+    val beauty = MutableStateFlow(false)
+    val moblinInMouth = MutableStateFlow(false)
+    val cameraMan = MutableStateFlow(false)
 }
 
 enum class RemoteControlAssistantPreviewUser {
@@ -266,15 +227,15 @@ fun Model.updateRemoteControlAssistantStatus() {
         return
     }
     remoteControlAssistant?.getStatus { general, topLeft, topRight ->
-        remoteControl._general.value = general
-        remoteControl._topLeft.value = topLeft
-        remoteControl._topRight.value = topRight
+        remoteControl.general.value = general
+        remoteControl.topLeft.value = topLeft
+        remoteControl.topRight.value = topRight
         if (isWatchRemoteControl()) {
             sendRemoteControlAssistantStatusToWatch()
         }
     }
     remoteControlAssistant?.getSettings { settings ->
-        remoteControl._settings.value = settings
+        remoteControl.settings.value = settings
     }
 }
 
@@ -1219,92 +1180,92 @@ fun Model.remoteControlAssistantConnected() {
 
 fun Model.remoteControlAssistantDisconnected() {
     makeToast(title = localized("Remote control streamer disconnected"))
-    remoteControl._topLeft.value = null
-    remoteControl._topRight.value = null
+    remoteControl.topLeft.value = null
+    remoteControl.topRight.value = null
     updateRemoteControlStatus()
 }
 
 fun Model.remoteControlAssistantStateChanged(state: RemoteControlAssistantStreamerState) {
     state.scene?.let {
         remoteControlAssistantStreamerState.scene = it
-        remoteControl._scene.value = it
+        remoteControl.scene.value = it
     }
     state.autoSceneSwitcher?.let {
         remoteControlAssistantStreamerState.autoSceneSwitcher = it
-        remoteControl._autoSceneSwitcher.value = it.id
+        remoteControl.autoSceneSwitcher.value = it.id
     }
     state.mic?.let {
         remoteControlAssistantStreamerState.mic = it
-        remoteControl._mic.value = it
+        remoteControl.mic.value = it
     }
     state.bitrate?.let {
         remoteControlAssistantStreamerState.bitrate = it
-        remoteControl._bitrate.value = it
+        remoteControl.bitrate.value = it
     }
     state.zoomPresets?.let {
         remoteControlAssistantStreamerState.zoomPresets = it
-        remoteControl._zoomPresets.value = it
+        remoteControl.zoomPresets.value = it
     }
     state.gimbalPresets?.let {
         remoteControlAssistantStreamerState.gimbalPresets = it
-        remoteControl._gimbalPresets.value = it
+        remoteControl.gimbalPresets.value = it
     }
     state.macros?.let {
         remoteControlAssistantStreamerState.macros = it
-        remoteControl._macros.value = it
+        remoteControl.macros.value = it
     }
     state.zoomPreset?.let {
         remoteControlAssistantStreamerState.zoomPreset = it
-        remoteControl._zoomPreset.value = it
+        remoteControl.zoomPreset.value = it
     }
     state.zoom?.let {
         remoteControlAssistantStreamerState.zoom = it
-        remoteControl._zoom.value = it.toString()
+        remoteControl.zoom.value = it.toString()
     }
     state.debugLogging?.let {
         remoteControlAssistantStreamerState.debugLogging = it
-        remoteControl._debugLogging.value = it
+        remoteControl.debugLogging.value = it
     }
     state.streaming?.let {
         remoteControlAssistantStreamerState.streaming = it
-        remoteControl._streaming.value = it
+        remoteControl.streaming.value = it
     }
     state.recording?.let {
         remoteControlAssistantStreamerState.recording = it
-        remoteControl._recording.value = it
+        remoteControl.recording.value = it
     }
     state.muted?.let {
         remoteControlAssistantStreamerState.muted = it
-        remoteControl._muted.value = it
+        remoteControl.muted.value = it
     }
     state.stealthMode?.let {
         remoteControlAssistantStreamerState.stealthMode = it
-        remoteControl._stealthMode.value = it
+        remoteControl.stealthMode.value = it
     }
     state.previewStream?.let {
         remoteControlAssistantStreamerState.previewStream = it
-        remoteControl._previewStream.value = it
+        remoteControl.previewStream.value = it
     }
     state.filters?.let { filters ->
         for ((filter, on) in filters) {
             remoteControlAssistantStreamerState.filters?.put(filter, on)
             when (filter) {
-                RemoteControlFilter.pixellate -> remoteControl._pixellate.value = on
-                RemoteControlFilter.movie -> remoteControl._movie.value = on
-                RemoteControlFilter.grayScale -> remoteControl._grayScale.value = on
-                RemoteControlFilter.sepia -> remoteControl._sepia.value = on
-                RemoteControlFilter.triple -> remoteControl._triple.value = on
-                RemoteControlFilter.twin -> remoteControl._twin.value = on
-                RemoteControlFilter.fourThree -> remoteControl._fourThree.value = on
-                RemoteControlFilter.crt -> remoteControl._crt.value = on
-                RemoteControlFilter.pinch -> remoteControl._pinch.value = on
-                RemoteControlFilter.whirlpool -> remoteControl._whirlpool.value = on
-                RemoteControlFilter.poll -> remoteControl._poll.value = on
-                RemoteControlFilter.blurFaces -> remoteControl._blurFaces.value = on
-                RemoteControlFilter.privacy -> remoteControl._privacy.value = on
-                RemoteControlFilter.beauty -> remoteControl._beauty.value = on
-                RemoteControlFilter.moblinInMouth -> remoteControl._moblinInMouth.value = on
-                RemoteControlFilter.cameraMan -> remoteControl._cameraMan.value = on
+                RemoteControlFilter.pixellate -> remoteControl.pixellate.value = on
+                RemoteControlFilter.movie -> remoteControl.movie.value = on
+                RemoteControlFilter.grayScale -> remoteControl.grayScale.value = on
+                RemoteControlFilter.sepia -> remoteControl.sepia.value = on
+                RemoteControlFilter.triple -> remoteControl.triple.value = on
+                RemoteControlFilter.twin -> remoteControl.twin.value = on
+                RemoteControlFilter.fourThree -> remoteControl.fourThree.value = on
+                RemoteControlFilter.crt -> remoteControl.crt.value = on
+                RemoteControlFilter.pinch -> remoteControl.pinch.value = on
+                RemoteControlFilter.whirlpool -> remoteControl.whirlpool.value = on
+                RemoteControlFilter.poll -> remoteControl.poll.value = on
+                RemoteControlFilter.blurFaces -> remoteControl.blurFaces.value = on
+                RemoteControlFilter.privacy -> remoteControl.privacy.value = on
+                RemoteControlFilter.beauty -> remoteControl.beauty.value = on
+                RemoteControlFilter.moblinInMouth -> remoteControl.moblinInMouth.value = on
+                RemoteControlFilter.cameraMan -> remoteControl.cameraMan.value = on
             }
         }
     }
@@ -1314,7 +1275,7 @@ fun Model.remoteControlAssistantStateChanged(state: RemoteControlAssistantStream
 }
 
 fun Model.remoteControlAssistantPreview(preview: ByteArray) {
-    remoteControl._preview.value = BitmapFactory.decodeByteArray(preview, 0, preview.size)
+    remoteControl.preview.value = BitmapFactory.decodeByteArray(preview, 0, preview.size)
     if (isWatchRemoteControl()) {
         sendPreviewToWatch(image = preview)
     }
@@ -1334,7 +1295,7 @@ fun Model.remoteControlAssistantStatus(
     topRight: RemoteControlStatusTopRight?
 ) {
     if (topRight != null) {
-        remoteControl._topRight.value = topRight
+        remoteControl.topRight.value = topRight
     }
 }
 

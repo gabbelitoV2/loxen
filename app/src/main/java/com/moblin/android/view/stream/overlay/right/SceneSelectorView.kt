@@ -31,10 +31,11 @@ import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.defaultSegmentedPickerSelectedColor
 import kotlin.math.max
 import kotlin.math.min
+import com.moblin.android.LocalModel
 
 @Composable
 private fun SceneItemView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     scene: SettingsScene,
     width: Float,
@@ -72,7 +73,7 @@ private fun SceneItemView(
 
 @Composable
 fun StreamOverlayRightSceneSelectorView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     sceneSelector: SceneSelector,
     width: Float,
@@ -133,7 +134,7 @@ fun StreamOverlayRightSceneSelectorView(
 
 @Composable
 fun StreamOverlayRightSceneVSelectorView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     sceneSelector: SceneSelector,
     width: Float,

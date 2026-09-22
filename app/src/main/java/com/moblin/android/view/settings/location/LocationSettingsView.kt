@@ -54,6 +54,8 @@ import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private data class CLLocationCoordinate2D(
     val latitude: Double,
@@ -72,7 +74,7 @@ private data class MKCoordinateRegion(
 
 @Composable
 private fun PrivacyRegionView(
-    model: Model,
+    model: Model = LocalModel.current,
     region: SettingsPrivacyRegion,
     current: MKCoordinateRegion,
 ) {
@@ -100,12 +102,12 @@ private fun PrivacyRegionView(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun LocationSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     location: SettingsLocation,
     locationManager: Location,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val showAllSettings by database.showAllSettings.collectAsState()
     val isDenied by locationManager.isDenied.collectAsState()

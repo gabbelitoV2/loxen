@@ -27,11 +27,12 @@ import com.moblin.android.various.settings.SettingsKeyboard
 import com.moblin.android.various.settings.SettingsKeyboardKey
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeyboardSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     keyboard: SettingsKeyboard,
 ) {
     val keys by keyboard.keys.collectAsState()

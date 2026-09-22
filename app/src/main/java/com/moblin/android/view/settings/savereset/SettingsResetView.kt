@@ -16,9 +16,10 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.view.utils.HCenter
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalModel
 
 @Composable
-fun SettingsResetView(model: Model) {
+fun SettingsResetView(model: Model = LocalModel.current) {
     var presentingResetConfirm by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     HCenter {

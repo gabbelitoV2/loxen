@@ -31,6 +31,7 @@ import com.moblin.android.view.utils.CommandCopyView
 import com.moblin.android.view.utils.ExternalButtonView
 import com.moblin.android.view.utils.TextButtonView
 import java.net.URI
+import com.moblin.android.LocalModel
 
 private const val ffmpegCommand = "ffmpeg -i input.mp4 -c copy output.mp4"
 
@@ -43,7 +44,7 @@ ffmpeg -i input.mp4 -af "asetrate=48002.2,aresample=48000" -c:v copy -c:a aac ou
 """
 
 @Composable
-fun FilesLocationView(model: Model, text: String, path: URI) {
+fun FilesLocationView(model: Model = LocalModel.current, text: String, path: URI) {
     val clipboard = LocalClipboardManager.current
     ExternalButtonView(
         onClick = {
@@ -163,7 +164,7 @@ private fun HelpView(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecordingsSettingsView(model: Model) {
+fun RecordingsSettingsView(model: Model = LocalModel.current) {
     var presentingHelp by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 

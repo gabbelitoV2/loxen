@@ -48,6 +48,8 @@ import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private val loadedImages: MutableMap<UUID, ByteArray> = mutableMapOf()
 
@@ -68,7 +70,7 @@ fun loadAlertImage(model: Model, imageId: UUID): ByteArray? {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomImageView(
-    model: Model,
+    model: Model = LocalModel.current,
     media: SettingsAlertsMediaGalleryItem,
     image: ByteArray?,
 ) {
@@ -136,9 +138,9 @@ fun CustomImageView(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ImageGalleryItemView(
-    model: Model,
+    model: Model = LocalModel.current,
     image: SettingsAlertsMediaGalleryItem,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     onDelete: () -> Unit,
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -168,12 +170,12 @@ fun ImageGalleryItemView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageGalleryView(
-    model: Model,
+    model: Model = LocalModel.current,
     gallery: SettingsAlertsMediaGallery,
     alert: SettingsWidgetAlertsAlert,
     imageId: UUID,
     onImageIdChange: (UUID) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     fun deleteImage(index: Int) {
         gallery.customImages.removeAt(index)
@@ -219,13 +221,13 @@ fun ImageGalleryView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertImageSelectorView(
-    model: Model,
+    model: Model = LocalModel.current,
     gallery: SettingsAlertsMediaGallery,
     alert: SettingsWidgetAlertsAlert,
     imageId: UUID,
     onImageIdChange: (UUID) -> Unit,
     loopCount: Float,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var loopCountState by remember(loopCount) { mutableStateOf(loopCount) }
 

@@ -15,20 +15,15 @@ import kotlinx.coroutines.launch
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
 class MediaPlayerPlayer {
-    internal val _playing = MutableStateFlow(false)
-    val playing: StateFlow<Boolean> = _playing.asStateFlow()
+    val playing = MutableStateFlow(false)
 
-    internal val _position = MutableStateFlow(0f)
-    val position: StateFlow<Float> = _position.asStateFlow()
+    val position = MutableStateFlow(0f)
 
-    internal val _time = MutableStateFlow("0:00")
-    val time: StateFlow<String> = _time.asStateFlow()
+    val time = MutableStateFlow("0:00")
 
-    internal val _fileName = MutableStateFlow("Media name")
-    val fileName: StateFlow<String> = _fileName.asStateFlow()
+    val fileName = MutableStateFlow("Media name")
 
-    internal val _seeking = MutableStateFlow(false)
-    val seeking: StateFlow<Boolean> = _seeking.asStateFlow()
+    val seeking = MutableStateFlow(false)
 }
 
 fun Model.initMediaPlayers() {
@@ -75,7 +70,7 @@ fun Model.mediaPlayerTogglePlaying() {
     } else {
         mediaPlayer.play()
     }
-    mediaPlayerPlayer._playing.value = !mediaPlayerPlayer.playing.value
+    mediaPlayerPlayer.playing.value = !mediaPlayerPlayer.playing.value
 }
 
 fun Model.mediaPlayerNext() {
@@ -143,12 +138,12 @@ fun Model.mediaPlayerStateUpdate(
     time: String
 ) {
     mainScope.launch {
-        mediaPlayerPlayer._playing.value = playing
-        mediaPlayerPlayer._fileName.value = name
+        mediaPlayerPlayer.playing.value = playing
+        mediaPlayerPlayer.fileName.value = name
         if (!mediaPlayerPlayer.seeking.value) {
-            mediaPlayerPlayer._position.value = position.toFloat()
+            mediaPlayerPlayer.position.value = position.toFloat()
         }
-        mediaPlayerPlayer._time.value = time
+        mediaPlayerPlayer.time.value = time
     }
 }
 

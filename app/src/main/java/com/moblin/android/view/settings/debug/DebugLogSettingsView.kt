@@ -33,6 +33,7 @@ import com.moblin.android.various.settings.SettingsDebug
 import com.moblin.android.view.utils.CloseToolbar
 import com.moblin.android.view.utils.ShareSheetView
 import java.util.UUID
+import com.moblin.android.LocalModel
 
 private data class ShareItem(
     val id: String = UUID.randomUUID().toString(),
@@ -45,7 +46,7 @@ private fun isMessageVisible(logFilter: String, message: String): Boolean =
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DebugLogSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     debug: SettingsDebug,
     log: List<LogEntry>,
     presentingLog: Boolean,

@@ -46,6 +46,8 @@ import com.moblin.android.various.settings.SettingsStreamRateControl
 import com.moblin.android.various.settings.SettingsStreamResolution
 import com.moblin.android.various.settings.fpss
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun SettingsSection(
@@ -173,7 +175,7 @@ private fun <T> SettingsPicker(
 }
 
 @Composable
-private fun ResolutionSettingsView(model: Model, stream: SettingsStream) {
+private fun ResolutionSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
     SettingsSection {
@@ -192,7 +194,7 @@ private fun ResolutionSettingsView(model: Model, stream: SettingsStream) {
 }
 
 @Composable
-private fun FpsSettingsView(model: Model, stream: SettingsStream) {
+private fun FpsSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
     SettingsSection(
@@ -217,7 +219,7 @@ private fun FpsSettingsView(model: Model, stream: SettingsStream) {
 }
 
 @Composable
-private fun LowLightBoostSettingsView(model: Model, stream: SettingsStream) {
+private fun LowLightBoostSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
     SettingsSection(
         footer = {
             SettingsFooterText(
@@ -240,7 +242,7 @@ private fun LowLightBoostSettingsView(model: Model, stream: SettingsStream) {
 }
 
 @Composable
-private fun CodecSettingsView(model: Model, stream: SettingsStream) {
+private fun CodecSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
     val isLive by model.isLive.collectAsState()
     SettingsSection(
         footer = {
@@ -280,7 +282,7 @@ private fun CodecSettingsView(model: Model, stream: SettingsStream) {
 }
 
 @Composable
-private fun RateControlView(model: Model, stream: SettingsStream) {
+private fun RateControlView(model: Model = LocalModel.current, stream: SettingsStream) {
     val isLive by model.isLive.collectAsState()
     SettingsSection {
         SettingsPicker(
@@ -299,10 +301,10 @@ private fun RateControlView(model: Model, stream: SettingsStream) {
 
 @Composable
 private fun BitrateSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val bitratePresets = database.bitratePresets
     SettingsSection(
@@ -350,9 +352,9 @@ private fun submitMaxKeyFrameInterval(value: String, stream: SettingsStream, mod
 
 @Composable
 private fun KeyFrameIntervalSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isLive by model.isLive.collectAsState()
     SettingsSection {
@@ -374,7 +376,7 @@ private fun KeyFrameIntervalSettingsView(
 }
 
 @Composable
-private fun BFramesSettingsView(model: Model, stream: SettingsStream) {
+private fun BFramesSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
     val isLive by model.isLive.collectAsState()
     SettingsToggle(
         title = localized("B-frames"),
@@ -399,7 +401,7 @@ private fun formatBitrate(value: Long): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AdaptiveResolutionThresholdSettingsView(model: Model, stream: SettingsStream) {
+private fun AdaptiveResolutionThresholdSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
     val isLive by model.isLive.collectAsState()
     val settings = encoderSettings(stream)
     Scaffold(
@@ -454,9 +456,9 @@ private fun AdaptiveResolutionThresholdSettingsView(model: Model, stream: Settin
 
 @Composable
 private fun AdaptiveResolutionSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isLive by model.isLive.collectAsState()
     SettingsSection(
@@ -510,9 +512,9 @@ private fun areTimecodesDisabled(stream: SettingsStream, isLive: Boolean): Boole
 
 @Composable
 private fun StreamTimecodesSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isLive by model.isLive.collectAsState()
     val disabled = areTimecodesDisabled(stream, isLive)
@@ -555,8 +557,8 @@ private fun StreamTimecodesSettingsView(
 fun StreamVideoSettingsView(
     database: Database,
     stream: SettingsStream,
-    model: Model,
-    onNavigate: (String) -> Unit,
+    model: Model = LocalModel.current,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val showAllSettings by database.showAllSettings.collectAsState()
     Scaffold(

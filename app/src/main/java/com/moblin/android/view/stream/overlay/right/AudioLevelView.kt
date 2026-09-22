@@ -34,6 +34,7 @@ import com.moblin.android.common.various.zeroThresholdDb
 import com.moblin.android.various.model.AudioLevel
 import com.moblin.android.various.model.AudioProvider
 import com.moblin.android.various.model.Model
+import com.moblin.android.LocalModel
 
 private val barWidthPerDb: Float = 1.0f
 private val barHeight: Dp = 5.dp
@@ -153,7 +154,7 @@ private fun SampleRateView(audio: AudioProvider) {
 }
 
 @Composable
-fun AudioLevelView(model: Model, big: Boolean = false) {
+fun AudioLevelView(model: Model = LocalModel.current, big: Boolean = false) {
     Row(
         modifier = Modifier.padding(0.dp),
         horizontalArrangement = Arrangement.spacedBy(1.dp)

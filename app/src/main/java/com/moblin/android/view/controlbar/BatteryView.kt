@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.various.model.Battery
 import com.moblin.android.various.model.Model
+import com.moblin.android.LocalModel
 
 private fun percentage(level: Double): String {
     return (level * 100).toInt().toString()
@@ -39,7 +40,7 @@ private fun boltColor(model: Model): Color {
 }
 
 @Composable
-fun BatteryView(model: Model, battery: Battery) {
+fun BatteryView(model: Model = LocalModel.current, battery: Battery) {
     val level by battery.level.collectAsState()
     Row(
         modifier = Modifier.padding(top = 1.dp),

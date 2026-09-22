@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.common.various.backgroundColor
 import com.moblin.android.various.model.MediaPlayerPlayer
 import com.moblin.android.various.model.Model
+import com.moblin.android.LocalModel
 
 private fun playPauseImage(playing: Boolean): String {
     return if (playing) {
@@ -39,7 +40,7 @@ private fun playPauseImage(playing: Boolean): String {
 }
 
 @Composable
-fun StreamOverlayRightMediaPlayerControlsView(model: Model, mediaPlayer: MediaPlayerPlayer) {
+fun StreamOverlayRightMediaPlayerControlsView(model: Model = LocalModel.current, mediaPlayer: MediaPlayerPlayer) {
     val playing by mediaPlayer.playing.collectAsState()
     val fileName by mediaPlayer.fileName.collectAsState()
     val time by mediaPlayer.time.collectAsState()

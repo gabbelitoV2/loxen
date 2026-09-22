@@ -34,6 +34,8 @@ import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.FormFieldError
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun nextDisabled(customWhipUrl: String, urlError: String): Boolean {
     return customWhipUrl.isEmpty() || urlError.isNotEmpty()
@@ -51,9 +53,9 @@ private fun updateUrlError(customWhipUrl: String): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardCustomWhipSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val customWhipUrl by createStreamWizard.customWhipUrl.collectAsState()
     var urlError by remember { mutableStateOf("") }

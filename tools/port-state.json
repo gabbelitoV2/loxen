@@ -18522,5 +18522,53 @@
     "tokens_out": 42117,
     "seconds": 144.5,
     "ported_at": "2026-09-22T14:19:13+00:00"
+  },
+  "Moblin Watch/Shared/WatchProtocol.swift": {
+    "status": "ok",
+    "sha256": "1c5c9201c1b6592f1b0b11988eaf3c83e04660700f22534fe65f1ebd119caf65",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/moblinwatch/shared/WatchProtocol.kt",
+    "notes": [
+      "WatchProtocolWorkoutStats.update(statistics:) relied on HealthKit; its body is TODO and the parameter is typed Any because HKStatistics has no Android counterpart in the glossary.",
+      "Codable structs became @Serializable data classes; Swift optionals (which decode as missing-key -> nil) keep = null defaults so kotlinx.serialization accepts absent keys.",
+      "Raw-value enums keep their Swift case names as entries plus a rawValue property and a companion fromRawValue, so packed strings stay byte-identical.",
+      "pack/unpack are companion functions returning Map<String, Any> and Pair<WatchMessageToWatch, Any>? instead of [String: Any] and a Swift tuple.",
+      "The two enums with associated values (padel and generic scoreboard actions) became @Serializable sealed classes with nested object/data class cases and @SerialName matching the Swift case names.",
+      "URL properties are stored as String, as this file never parses them.",
+      "The SwiftUI extension on WatchProtocolColor is now a file-private colorScale extension followed by a Compose Color extension; colors are converted to Float channels.",
+      "WatchProtocolChatHighlightKind and WatchProtocolWorkoutType have no raw values, so they are plain @Serializable enum classes whose entry names match the Swift case names."
+    ],
+    "unsupported": [
+      "HealthKit (HKStatistics, HKUnit, heart rate / energy / distance / step / power / cadence quantity types)"
+    ],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 4880,
+    "tokens_out": 9695,
+    "seconds": 36.8,
+    "ported_at": "2026-09-22T15:18:57+00:00"
+  },
+  "Moblin Watch/Shared/WatchSettings.swift": {
+    "status": "ok",
+    "sha256": "ca974ba02cf376007eb2813066011c7afb001f9f52763e16b8c89a6e7c2304c9",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/moblinwatch/shared/WatchSettings.kt",
+    "notes": [
+      "@Published properties map to a private MutableStateFlow backing field plus a public read-only StateFlow, so the Compose/Wear UI can collect them.",
+      "StateFlow is not serializable, so each class is annotated @Serializable(with = ...) and carries a nested Serializer object with a private Snapshot data class that reproduces the Swift CodingKeys.",
+      "JSON keys and the missing-key fallbacks (17.0, true, false, 30, ...) are byte-identical to the Swift encode(to:)/init(from:) helpers.",
+      "The nested CodingKeys enums are kept from Swift for side-by-side reading; the actual element names are set with @SerialName.",
+      "chat and show stay plain mutable properties, matching Swift's non-@Published vars; the outer class encodes them through the nested serializers.",
+      "The app must serialize with Json { encodeDefaults = true } to match Swift, which always writes every key.",
+      "The types stay reference types (plain classes), so equality is identity based, exactly like the Swift classes.",
+      "Serializer and Snapshot are Kotlin-only additions required by kotlinx.serialization; no other API was invented."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 2172,
+    "tokens_out": 29747,
+    "seconds": 122.2,
+    "ported_at": "2026-09-22T15:20:22+00:00"
   }
 }

@@ -19,11 +19,12 @@ import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.view.settings.scenes.widgets.widget.WidgetLayoutView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.WidgetShortcutView
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SceneWidgetSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     sceneWidget: SettingsSceneWidget,
     widget: SettingsWidget,

@@ -31,6 +31,7 @@ import com.moblin.android.view.settings.streams.stream.DiscordLogoAndNameView
 import com.moblin.android.view.utils.MultiLineTextFieldDoneButtonView
 import com.moblin.android.view.utils.MultiLineTextFieldView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun GoLiveNotificationDiscordTextSettingsView(stream: SettingsStream) {
@@ -95,7 +96,7 @@ private fun GoLiveNotificationDiscordSettingsView(stream: SettingsStream) {
 @Composable
 fun GoLiveNotificationSettingsView(
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Scaffold(
         topBar = {

@@ -107,6 +107,7 @@ import com.moblin.android.various.settings.SettingsRemoteControl
 import java.util.UUID
 import kotlin.math.min
 import kotlin.math.roundToInt
+import com.moblin.android.LocalModel
 
 @Composable
 private fun StatusItemView(icon: String, status: RemoteControlStatusItem?) {
@@ -125,7 +126,7 @@ private fun StatusItemView(icon: String, status: RemoteControlStatusItem?) {
 
 @Composable
 private fun RemoteControlSrtConnectionPriorityView(
-    model: Model,
+    model: Model = LocalModel.current,
     priority: RemoteControlSettingsSrtConnectionPriority,
     enabled: Boolean,
     prio: Float,
@@ -174,7 +175,7 @@ private fun RemoteControlSrtConnectionPriorityView(
 
 @Composable
 private fun RemoteControlSrtConnectionPrioritiesView(
-    model: Model,
+    model: Model = LocalModel.current,
     srt: RemoteControlSettingsSrt,
     enabled: Boolean,
 ) {
@@ -317,7 +318,7 @@ private fun ssidStatus(status: RemoteControlStatusGeneral): RemoteControlStatusI
 
 @Composable
 private fun ControlBarRemoteControlAssistantStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     remoteControl: RemoteControl,
     title: String = "",
 ) {
@@ -445,7 +446,7 @@ private fun ControlBarRemoteControlAssistantStatusView(
 }
 
 @Composable
-private fun LiveView(model: Model, remoteControl: RemoteControl) {
+private fun LiveView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val streaming = remoteControl.streaming.collectAsState().value
     var checked by remember(streaming) { mutableStateOf(streaming) }
     var presentingConfirm by remember { mutableStateOf(false) }
@@ -482,7 +483,7 @@ private fun LiveView(model: Model, remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun RecordingView(model: Model, remoteControl: RemoteControl) {
+private fun RecordingView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val recording = remoteControl.recording.collectAsState().value
     var checked by remember(recording) { mutableStateOf(recording) }
     var presentingConfirm by remember { mutableStateOf(false) }
@@ -519,7 +520,7 @@ private fun RecordingView(model: Model, remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun MutedView(model: Model, remoteControl: RemoteControl) {
+private fun MutedView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val mutedFlow = remoteControl.muted.collectAsState().value
     var muted by remember(mutedFlow) { mutableStateOf(mutedFlow) }
 
@@ -536,7 +537,7 @@ private fun MutedView(model: Model, remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun PreviewStreamView(model: Model, remoteControl: RemoteControl) {
+private fun PreviewStreamView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val previewStreamFlow = remoteControl.previewStream.collectAsState().value
     var previewStream by remember(previewStreamFlow) { mutableStateOf(previewStreamFlow) }
 
@@ -553,7 +554,7 @@ private fun PreviewStreamView(model: Model, remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun StealthModeControlView(model: Model, remoteControl: RemoteControl) {
+private fun StealthModeControlView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val stealthModeFlow = remoteControl.stealthMode.collectAsState().value
     var stealthMode by remember(stealthModeFlow) { mutableStateOf(stealthModeFlow) }
 
@@ -570,7 +571,7 @@ private fun StealthModeControlView(model: Model, remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun ZoomView(model: Model, remoteControl: RemoteControl) {
+private fun ZoomView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val zoomFlow = remoteControl.zoom.collectAsState().value
     val zoomPreset = remoteControl.zoomPreset.collectAsState().value
     val zoomPresets = remoteControl.zoomPresets.collectAsState().value
@@ -621,7 +622,7 @@ private fun ZoomView(model: Model, remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun ScenePickerView(model: Model, remoteControl: RemoteControl) {
+private fun ScenePickerView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val scene = remoteControl.scene.collectAsState().value
     val settings = remoteControl.settings.collectAsState().value
     val scenes = settings?.scenes ?: emptyList()
@@ -639,7 +640,7 @@ private fun ScenePickerView(model: Model, remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun AutoSceneSwitcherPickerView(model: Model, remoteControl: RemoteControl) {
+private fun AutoSceneSwitcherPickerView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val autoSceneSwitcher = remoteControl.autoSceneSwitcher.collectAsState().value
     val settings = remoteControl.settings.collectAsState().value
     val autoSceneSwitchers = settings?.autoSceneSwitchers ?: emptyList()
@@ -659,7 +660,7 @@ private fun AutoSceneSwitcherPickerView(model: Model, remoteControl: RemoteContr
 }
 
 @Composable
-private fun MicView(model: Model, remoteControl: RemoteControl) {
+private fun MicView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val mic = remoteControl.mic.collectAsState().value
     val settings = remoteControl.settings.collectAsState().value
     val mics = settings?.mics ?: emptyList()
@@ -677,7 +678,7 @@ private fun MicView(model: Model, remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun BitrateView(model: Model, remoteControl: RemoteControl) {
+private fun BitrateView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val bitrate = remoteControl.bitrate.collectAsState().value
     val settings = remoteControl.settings.collectAsState().value
     val bitratePresets = settings?.bitratePresets ?: emptyList()
@@ -702,7 +703,7 @@ private fun BitrateView(model: Model, remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun GimbalPresetView(model: Model, remoteControl: RemoteControl) {
+private fun GimbalPresetView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val gimbalPresets = remoteControl.gimbalPresets.collectAsState().value
 
     Column {
@@ -722,7 +723,7 @@ private fun GimbalPresetView(model: Model, remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun MacroView(model: Model, macro: RemoteControlMacro) {
+private fun MacroView(model: Model = LocalModel.current, macro: RemoteControlMacro) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(macro.name)
         Spacer(Modifier.weight(1f))
@@ -743,7 +744,7 @@ private fun MacroView(model: Model, macro: RemoteControlMacro) {
 }
 
 @Composable
-private fun MacrosView(model: Model, remoteControl: RemoteControl) {
+private fun MacrosView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val macros = remoteControl.macros.collectAsState().value
 
     Column {
@@ -761,7 +762,7 @@ private fun MacrosView(model: Model, remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun SrtConnectionPrioritiesView(model: Model, remoteControl: RemoteControl) {
+private fun SrtConnectionPrioritiesView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val settings = remoteControl.settings.collectAsState().value
 
     if (settings != null) {
@@ -774,7 +775,7 @@ private fun SrtConnectionPrioritiesView(model: Model, remoteControl: RemoteContr
 }
 
 @Composable
-private fun FilterToggleView(model: Model, filter: RemoteControlFilter, value: Boolean) {
+private fun FilterToggleView(model: Model = LocalModel.current, filter: RemoteControlFilter, value: Boolean) {
     var valueState by remember(value) { mutableStateOf(value) }
 
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -790,7 +791,7 @@ private fun FilterToggleView(model: Model, filter: RemoteControlFilter, value: B
 }
 
 @Composable
-private fun FiltersView(model: Model, remoteControl: RemoteControl) {
+private fun FiltersView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val pixellate = remoteControl.pixellate.collectAsState().value
     val movie = remoteControl.movie.collectAsState().value
     val grayScale = remoteControl.grayScale.collectAsState().value
@@ -832,7 +833,7 @@ private fun FiltersView(model: Model, remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun SendMessageView(model: Model) {
+private fun SendMessageView(model: Model = LocalModel.current) {
     var text by remember { mutableStateOf("") }
 
     fun send() {
@@ -861,7 +862,7 @@ private fun SendMessageView(model: Model) {
 }
 
 @Composable
-private fun DebugLoggingView(model: Model, remoteControl: RemoteControl) {
+private fun DebugLoggingView(model: Model = LocalModel.current, remoteControl: RemoteControl) {
     val debugLoggingFlow = remoteControl.debugLogging.collectAsState().value
     var debugLogging by remember(debugLoggingFlow) { mutableStateOf(debugLoggingFlow) }
 
@@ -879,7 +880,7 @@ private fun DebugLoggingView(model: Model, remoteControl: RemoteControl) {
 
 @Composable
 private fun ControlBarRemoteControlAssistantControlView(
-    model: Model,
+    model: Model = LocalModel.current,
     remoteControl: RemoteControl,
     title: String = "",
 ) {
@@ -963,7 +964,7 @@ private fun StreamerSelectionButtonView(remoteControl: RemoteControl) {
 }
 
 @Composable
-private fun ButtonsView(model: Model) {
+private fun ButtonsView(model: Model = LocalModel.current) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Spacer(Modifier.weight(1f))
         Column(horizontalAlignment = Alignment.End) {
@@ -1008,7 +1009,7 @@ private fun WaitingForStreamerView() {
 
 @Composable
 private fun ControlBarRemoteControlAssistantInnerView(
-    model: Model,
+    model: Model = LocalModel.current,
     remoteControlSettings: SettingsRemoteControl,
     remoteControl: RemoteControl,
     orientation: Orientation,
@@ -1141,7 +1142,7 @@ private fun ControlBarRemoteControlAssistantInnerView(
 
 @Composable
 fun ControlBarRemoteControlAssistantView(
-    model: Model,
+    model: Model = LocalModel.current,
     remoteControlSettings: SettingsRemoteControl,
 ) {
     fun title(): String {

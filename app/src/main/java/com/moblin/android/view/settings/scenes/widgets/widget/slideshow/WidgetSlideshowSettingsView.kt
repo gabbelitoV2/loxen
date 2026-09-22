@@ -34,6 +34,8 @@ import com.moblin.android.view.settings.scenes.widgets.widget.WidgetNameView
 import com.moblin.android.view.utils.AddButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun widgets(database: Database): List<SettingsWidget> =
     database.widgets.filter {
@@ -96,7 +98,7 @@ fun WidgetSlideshowSlidePickerView(
 
 @Composable
 fun WidgetSlideshowSlideSummaryView(
-    model: Model,
+    model: Model = LocalModel.current,
     slide: SettingsWidgetSlideshowSlide,
 ) {
     Row(
@@ -117,10 +119,10 @@ fun WidgetSlideshowSlideSummaryView(
 
 @Composable
 private fun SlideView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     slide: SettingsWidgetSlideshowSlide,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Box(
         modifier = Modifier
@@ -143,9 +145,9 @@ private fun deleteSlide(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SlidesView(
-    model: Model,
+    model: Model = LocalModel.current,
     slideshow: SettingsWidgetSlideshow,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text("Slides", style = MaterialTheme.typography.titleMedium)
@@ -180,7 +182,7 @@ private fun SlidesView(
 
 @Composable
 fun WidgetSlideshowSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     onNavigate: (String) -> Unit = {},
 ) {

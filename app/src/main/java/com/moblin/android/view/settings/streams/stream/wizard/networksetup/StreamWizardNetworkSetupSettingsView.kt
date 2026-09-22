@@ -23,14 +23,16 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardNetworkSetupSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
     platform: String,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Scaffold(
         topBar = {

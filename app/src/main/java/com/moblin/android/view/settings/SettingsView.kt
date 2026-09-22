@@ -70,13 +70,15 @@ import com.moblin.android.various.utils.isPhone
 import com.moblin.android.view.settings.savereset.SettingsResetView
 import com.moblin.android.view.settings.savereset.SettingsSaveView
 import com.moblin.android.view.utils.InfoBannerView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 val settingsHalfWidth = 350.0
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AppModeView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
 ) {
     val isLive by model.isLive.collectAsState()
@@ -133,9 +135,9 @@ private fun AppModeView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isLive by model.isLive.collectAsState()
     val showAllSettings by database.showAllSettings.collectAsState()

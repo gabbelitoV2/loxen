@@ -12,11 +12,9 @@ import kotlinx.serialization.encoding.Encoder
 
 @Serializable(with = SettingsTalkbackSerializer::class)
 class SettingsTalkback {
-    private val _enabled = MutableStateFlow(false)
-    val enabled: StateFlow<Boolean> = _enabled.asStateFlow()
+    val enabled = MutableStateFlow(false)
 
-    private val _micId = MutableStateFlow("")
-    val micId: StateFlow<String> = _micId.asStateFlow()
+    val micId = MutableStateFlow("")
 
     enum class CodingKeys(val rawValue: String) {
         enabled("enabled"),
@@ -29,11 +27,11 @@ class SettingsTalkback {
     }
 
     fun setEnabled(value: Boolean) {
-        _enabled.value = value
+        enabled.value = value
     }
 
     fun setMicId(value: String) {
-        _micId.value = value
+        micId.value = value
     }
 }
 

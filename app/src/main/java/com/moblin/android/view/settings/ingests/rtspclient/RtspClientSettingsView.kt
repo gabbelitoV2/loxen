@@ -39,6 +39,8 @@ import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun status(numberOfEnabledStreams: Int): String {
     return numberOfEnabledStreams.toString()
@@ -53,9 +55,9 @@ private fun deleteStream(model: Model, rtspClient: SettingsRtspClient, indexes: 
 
 @Composable
 fun RtspClientSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     rtspClient: SettingsRtspClient,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val streams by rtspClient.streams.collectAsState()
     val numberOfEnabledStreams = streams.count { it.enabled }
@@ -75,9 +77,9 @@ fun RtspClientSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RtspClientSettingsViewDestination(
-    model: Model,
+    model: Model = LocalModel.current,
     rtspClient: SettingsRtspClient,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val streams by rtspClient.streams.collectAsState()
     Column(modifier = Modifier.fillMaxSize()) {

@@ -23,11 +23,12 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.bluetoothNotAllowedMessage
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.InlinePickerItem
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlackSharkCoolerDeviceScannerSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     scanner: BlackSharkCoolerScanner,
     onChange: (String) -> Unit,
     selectedId: String,

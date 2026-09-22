@@ -7,6 +7,7 @@ import com.moblin.android.various.network.DefaultTcpPorts
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamMultiStreamingDestination
 import com.moblin.android.view.settings.ingests.rtspclient.UrlSettingsView
+import com.moblin.android.LocalModel
 
 private val rtmpExamples: List<Pair<String, String>> = listOf(
     "Twitch" to "rtmp://arn03.contribute.live-video.net/app/live_123321_sdfopjfwjfpawjefpjawef",
@@ -35,7 +36,7 @@ private val mobcamExamples: List<Pair<String, String>> = listOf(
 
 @Composable
 fun StreamUrlSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
 ) {
     val isLive = model.isLive.collectAsState().value
@@ -57,7 +58,7 @@ fun StreamUrlSettingsView(
 
 @Composable
 fun StreamMultiStreamingUrlView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     destination: SettingsStreamMultiStreamingDestination,
 ) {

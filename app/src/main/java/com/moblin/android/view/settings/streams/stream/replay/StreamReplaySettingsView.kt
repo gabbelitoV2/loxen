@@ -51,9 +51,10 @@ import com.moblin.android.view.utils.PositionEditView
 import com.moblin.android.view.utils.SizeEditView
 import com.moblin.android.view.utils.TextButtonView
 import java.io.File
+import com.moblin.android.LocalModel
 
 @Composable
-private fun VideoPickerView(model: Model, onDismiss: () -> Unit) {
+private fun VideoPickerView(model: Model = LocalModel.current, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
@@ -105,7 +106,7 @@ private fun HelpView(presentingHelp: Boolean, onPresentingHelpChange: (Boolean) 
 
 @Composable
 private fun StingerView(
-    model: Model,
+    model: Model = LocalModel.current,
     title: String,
     stinger: SettingsStreamReplayStinger,
 ) {
@@ -184,7 +185,7 @@ private fun StingerView(
 
 @Composable
 private fun LayoutView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     replay: SettingsStreamReplay,
 ) {
@@ -402,7 +403,7 @@ private fun LayoutView(
 
 @Composable
 fun StreamReplaySettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     stream: SettingsStream,
     replay: SettingsStreamReplay,

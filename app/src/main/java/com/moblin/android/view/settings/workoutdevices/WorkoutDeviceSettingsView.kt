@@ -31,6 +31,8 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun formatWorkoutDeviceState(state: WorkoutDeviceState?): String {
     return when {
@@ -44,11 +46,11 @@ private fun formatWorkoutDeviceState(state: WorkoutDeviceState?): String {
 
 @Composable
 fun WorkoutDeviceSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     workoutDevices: SettingsWorkoutDevices,
     device: SettingsWorkoutDevice,
     status: StatusTopRight,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     modifier: Modifier = Modifier,
 ) {
     val name = device.name.collectAsState().value
@@ -63,11 +65,11 @@ fun WorkoutDeviceSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutDeviceSettingsViewContent(
-    model: Model,
+    model: Model = LocalModel.current,
     workoutDevices: SettingsWorkoutDevices,
     device: SettingsWorkoutDevice,
     status: StatusTopRight,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     modifier: Modifier = Modifier,
 ) {
     val deviceName = device.name.collectAsState().value

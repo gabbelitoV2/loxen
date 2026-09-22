@@ -4,6 +4,7 @@ import com.moblin.android.localized
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.remotecontrol.RemoteControlSettingsGimbalPreset
 import com.moblin.android.various.Gimbal
+import com.moblin.android.various.Vector3D
 import com.moblin.android.various.settings.SettingsGimbalMotion
 import com.moblin.android.various.settings.SettingsGimbalPreset
 import com.moblin.android.various.settings.SettingsQuickButtonType
@@ -17,8 +18,6 @@ import kotlinx.coroutines.launch
 private const val gimbalAngularVelocity: Double = 0.3
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
-
-data class Vector3D(val x: Double, val y: Double, val z: Double)
 
 fun Model.setGimbalTracking(on: Boolean) {
     database.gimbal.tracking = on

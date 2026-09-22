@@ -20,6 +20,8 @@ import com.moblin.android.view.settings.ingests.rtmpserver.IngestStreamItemView
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.UrlsView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun changeStreamId(value: String, model: Model): String? {
     val streamId = value.trim()
@@ -58,11 +60,11 @@ private fun formatUrl(
 
 @Composable
 fun SrtlaServerStreamSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     status: StatusOther,
     srtlaServer: SettingsSrtlaServer,
     stream: SettingsSrtlaServerStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Box(modifier = Modifier.clickable { onNavigate("Stream") }) {
         IngestStreamItemView(
@@ -74,7 +76,7 @@ fun SrtlaServerStreamSettingsView(
 
 @Composable
 fun SrtlaServerStreamSettingsDetailView(
-    model: Model,
+    model: Model = LocalModel.current,
     status: StatusOther,
     srtlaServer: SettingsSrtlaServer,
     stream: SettingsSrtlaServerStream,

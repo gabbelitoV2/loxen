@@ -13,6 +13,7 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
 
 fun submitUrl(model: Model, stream: SettingsStream, value: String) {
     if (isValidWebSocketUrl(value) != null) {
@@ -33,7 +34,7 @@ fun submitRoom(model: Model, stream: SettingsStream, value: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreamOpenStreamingPlatformSettingsView(model: Model, stream: SettingsStream) {
+fun StreamOpenStreamingPlatformSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Open Streaming Platform") })

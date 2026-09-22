@@ -6,6 +6,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.settings.scenes.widgets.widget.effects.WidgetEffectsView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
 
 private fun submitMessage(model: Model, widget: SettingsWidget, value: String) {
     widget.qrCode.message = value
@@ -13,7 +14,7 @@ private fun submitMessage(model: Model, widget: SettingsWidget, value: String) {
 }
 
 @Composable
-fun WidgetQrCodeSettingsView(model: Model, widget: SettingsWidget) {
+fun WidgetQrCodeSettingsView(model: Model = LocalModel.current, widget: SettingsWidget) {
     Column {
         TextEditNavigationView(
             title = "Message",

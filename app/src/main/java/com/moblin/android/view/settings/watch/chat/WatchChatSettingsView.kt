@@ -33,6 +33,7 @@ import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.moblin.android.LocalModel
 
 class WatchSettingsChat {
     val fontSize = MutableStateFlow(20.0f)
@@ -44,7 +45,7 @@ class WatchSettingsChat {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WatchChatSettingsView(model: Model, chat: WatchSettingsChat) {
+fun WatchChatSettingsView(model: Model = LocalModel.current, chat: WatchSettingsChat) {
     var pickerExpanded by remember { mutableStateOf(false) }
     val fontSize by chat.fontSize.collectAsState()
     val timestampEnabled by chat.timestampEnabled.collectAsState()

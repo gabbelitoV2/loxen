@@ -23,6 +23,8 @@ import com.moblin.android.various.settings.SettingsMediaPlayer
 import com.moblin.android.various.settings.SettingsMediaPlayerFile
 import com.moblin.android.various.utils.createThumbnail
 import com.moblin.android.view.utils.DraggableItemPrefixView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun submitName(
     model: Model,
@@ -36,10 +38,10 @@ private fun submitName(
 
 @Composable
 fun MediaPlayerFileSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     player: SettingsMediaPlayer,
     file: SettingsMediaPlayerFile,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var image by remember { mutableStateOf<Bitmap?>(null) }
 

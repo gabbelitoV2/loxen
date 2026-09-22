@@ -48,12 +48,14 @@ import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.MultiLineTextFieldDoneButtonView
 import com.moblin.android.view.utils.MultiLineTextFieldView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 val wheelOfLuckOptionWeights = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 40, 60, 80, 100)
 
 @Composable
 private fun WheelOfLuckWidgetView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     effect: WheelOfLuckEffect,
     indented: Boolean,
@@ -93,13 +95,13 @@ private fun WheelOfLuckWidgetView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OptionView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     wheelOfLuck: SettingsWidgetWheelOfLuck,
     options: SettingsWidgetWheelOfLuckOption,
     deleteDisabled: Boolean,
     onDelete: () -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val optionsText by options.text.collectAsState()
     val weight by options.weight.collectAsState()
@@ -182,7 +184,7 @@ private fun OptionView(
 
 @Composable
 fun WidgetWheelOfLuckQuickButtonControlsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
 ) {
     model.getWheelOfLuckEffect(widget.id)?.let { effect ->
@@ -218,7 +220,7 @@ fun WheelOfLuckWidgetOptionsView(
 
 @Composable
 fun WidgetWheelOfLuckSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     wheelOfLuck: SettingsWidgetWheelOfLuck,
     onNavigate: (String) -> Unit = {},

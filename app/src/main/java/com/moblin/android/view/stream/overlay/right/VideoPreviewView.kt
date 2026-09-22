@@ -30,6 +30,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.VideoPreviewProvider
 import com.moblin.android.view.stream.SharedUiViewContainerView
+import com.moblin.android.LocalModel
 
 @Composable
 fun VideoPreviewItemView(previewView: PreviewView, modifier: Modifier = Modifier) {
@@ -80,7 +81,7 @@ private fun VideoPreviewItem(
 
 @Composable
 fun StreamOverlayRightVideoPreviewView(
-    model: Model,
+    model: Model = LocalModel.current,
     orientation: Orientation,
     videoPreview: VideoPreviewProvider,
 ) {

@@ -21,10 +21,11 @@ import com.moblin.android.view.settings.scenes.widgets.widget.wheelofluck.Widget
 import com.moblin.android.view.utils.IconAndTextView
 import com.moblin.android.view.utils.ScenesShortcutView
 import com.moblin.android.view.utils.ShortcutSectionView
+import com.moblin.android.LocalModel
 
 @Composable
 private fun WidgetView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     widget: SettingsWidget,
     sceneWidget: SettingsSceneWidget,
@@ -80,7 +81,7 @@ private fun WidgetView(
 
 @Composable
 fun QuickButtonSceneWidgetsView(
-    model: Model,
+    model: Model = LocalModel.current,
     sceneSelector: SceneSelector,
 ) {
     Column {

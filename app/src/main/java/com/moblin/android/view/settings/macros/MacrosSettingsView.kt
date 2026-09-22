@@ -65,6 +65,8 @@ import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun <T> isSelected(values: Set<T>, type: T): Boolean {
     return values.contains(type)
@@ -228,7 +230,7 @@ private fun ActionIfBarsView(bars: List<MacroActionIfBar>) {
 
 @Composable
 private fun TextFormatView(
-    model: Model,
+    model: Model = LocalModel.current,
     title: String,
     suggestions: Boolean,
     text: String,
@@ -280,13 +282,13 @@ private fun submitZoomX(action: SettingsMacrosAction, zoomX: String) {
 
 @Composable
 private fun ActionView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     macros: SettingsMacros,
     macro: SettingsMacrosMacro,
     action: SettingsMacrosAction,
     ifBars: List<MacroActionIfBar>,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val contextMenuDeleteButton: () -> Unit = {
         TODO("contextMenuDeleteButton has no Compose counterpart")
@@ -418,12 +420,12 @@ private fun ActionView(
 
 @Composable
 fun ActionDestinationView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     macros: SettingsMacros,
     macro: SettingsMacrosMacro,
     action: SettingsMacrosAction,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     LaunchedEffect(action.function) {
         TODO("objectWillChange has no Android counterpart")
@@ -699,11 +701,11 @@ fun ActionDestinationView(
 
 @Composable
 private fun MacroView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     macros: SettingsMacros,
     macro: SettingsMacrosMacro,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val contextMenuDeleteButton: () -> Unit = {
         TODO("contextMenuDeleteButton has no Compose counterpart")
@@ -720,11 +722,11 @@ private fun MacroView(
 
 @Composable
 fun MacroDestinationView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     macros: SettingsMacros,
     macro: SettingsMacrosMacro,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val onMove: (List<Int>, Int) -> Unit = { _, _ ->
         TODO("List onMove has no Compose counterpart")
@@ -819,10 +821,10 @@ fun MacroDestinationView(
 
 @Composable
 fun MacrosSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     macros: SettingsMacros,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val onMove: (List<Int>, Int) -> Unit = { _, _ ->
         TODO("List onMove has no Compose counterpart")

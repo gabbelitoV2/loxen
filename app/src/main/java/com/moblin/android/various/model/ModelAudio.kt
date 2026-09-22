@@ -28,62 +28,54 @@ private const val TAG = "Model"
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
 class AudioLevel {
-    private val _level = MutableStateFlow(defaultAudioLevel)
-    val level: StateFlow<Float> = _level.asStateFlow()
+    val level = MutableStateFlow(defaultAudioLevel)
 
     fun setLevel(level: Float) {
-        _level.value = level
+        level.value = level
     }
 }
 
 class AudioProvider {
     val level = AudioLevel()
-    private val _muted = MutableStateFlow(false)
-    val muted: StateFlow<Boolean> = _muted.asStateFlow()
-    private val _numberOfChannels = MutableStateFlow(0)
-    val numberOfChannels: StateFlow<Int> = _numberOfChannels.asStateFlow()
-    private val _sampleRate = MutableStateFlow(0.0)
-    val sampleRate: StateFlow<Double> = _sampleRate.asStateFlow()
+    val muted = MutableStateFlow(false)
+    val numberOfChannels = MutableStateFlow(0)
+    val sampleRate = MutableStateFlow(0.0)
 
     fun setMuted(muted: Boolean) {
-        _muted.value = muted
+        muted.value = muted
     }
 
     fun setNumberOfChannels(numberOfChannels: Int) {
-        _numberOfChannels.value = numberOfChannels
+        numberOfChannels.value = numberOfChannels
     }
 
     fun setSampleRate(sampleRate: Double) {
-        _sampleRate.value = sampleRate
+        sampleRate.value = sampleRate
     }
 }
 
 class Mic {
-    private val _current = MutableStateFlow(noMic)
-    val current: StateFlow<SettingsMicsMic> = _current.asStateFlow()
-    private val _inputGain = MutableStateFlow(1.0f)
-    val inputGain: StateFlow<Float> = _inputGain.asStateFlow()
-    private val _inputGainSettable = MutableStateFlow(false)
-    val inputGainSettable: StateFlow<Boolean> = _inputGainSettable.asStateFlow()
+    val current = MutableStateFlow(noMic)
+    val inputGain = MutableStateFlow(1.0f)
+    val inputGainSettable = MutableStateFlow(false)
     val inputGainTimer = SimpleTimer(queue = processorControlQueue)
     var requested: SettingsMicsMic? = null
-    private val _isSwitchTimerRunning = MutableStateFlow(false)
-    val isSwitchTimerRunning: StateFlow<Boolean> = _isSwitchTimerRunning.asStateFlow()
+    val isSwitchTimerRunning = MutableStateFlow(false)
 
     fun setCurrent(current: SettingsMicsMic) {
-        _current.value = current
+        current.value = current
     }
 
     fun setInputGain(inputGain: Float) {
-        _inputGain.value = inputGain
+        inputGain.value = inputGain
     }
 
     fun setInputGainSettable(inputGainSettable: Boolean) {
-        _inputGainSettable.value = inputGainSettable
+        inputGainSettable.value = inputGainSettable
     }
 
     fun setIsSwitchTimerRunning(isSwitchTimerRunning: Boolean) {
-        _isSwitchTimerRunning.value = isSwitchTimerRunning
+        isSwitchTimerRunning.value = isSwitchTimerRunning
     }
 }
 

@@ -56,9 +56,11 @@ import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.SwipeLeftToRemoveHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.VideoSourceRotationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
-private fun VideoStabilizationView(model: Model, scene: SettingsScene) {
+private fun VideoStabilizationView(model: Model = LocalModel.current, scene: SettingsScene) {
     var expanded by remember { mutableStateOf(false) }
     val videoStabilizationMode by scene.videoStabilizationMode.collectAsState()
     Row(
@@ -98,10 +100,10 @@ private fun VideoStabilizationView(model: Model, scene: SettingsScene) {
 
 @Composable
 private fun MicView(
-    model: Model,
+    model: Model = LocalModel.current,
     scene: SettingsScene,
     mic: Mic,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val micId by scene.micId.collectAsState()
     LaunchedEffect(Unit) {
@@ -124,10 +126,10 @@ private fun MicView(
 
 @Composable
 private fun SceneWidgetView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     sceneWidget: SettingsSceneWidget,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     onLongClick: () -> Unit,
 ) {
     val widgets by database.widgets.collectAsState()
@@ -160,10 +162,10 @@ val startScreenCatptureHelp = localized("Start a screen capture by long-pressing
 
 @Composable
 private fun VideoSourceView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     scene: SettingsScene,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var presentingScreenCaptureAlert by remember { mutableStateOf(false) }
     val showAllSettings by database.showAllSettings.collectAsState()
@@ -273,7 +275,7 @@ private fun VideoSourceView(
 }
 
 @Composable
-private fun QuickSwitchGroupView(model: Model, database: Database, scene: SettingsScene) {
+private fun QuickSwitchGroupView(model: Model = LocalModel.current, database: Database, scene: SettingsScene) {
     var expanded by remember { mutableStateOf(false) }
     val quickSwitchGroup by scene.quickSwitchGroup.collectAsState()
     val forceSceneSwitchTransition by database.forceSceneSwitchTransition.collectAsState()
@@ -336,7 +338,7 @@ private fun QuickSwitchGroupView(model: Model, database: Database, scene: Settin
 }
 
 @Composable
-private fun SceneColorView(model: Model, scene: SettingsScene) {
+private fun SceneColorView(model: Model = LocalModel.current, scene: SettingsScene) {
     val backgroundColorColor by scene.backgroundColorColor.collectAsState()
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
@@ -368,10 +370,10 @@ private fun SceneColorView(model: Model, scene: SettingsScene) {
 
 @Composable
 private fun SceneMicView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     scene: SettingsScene,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val showAllSettings by database.showAllSettings.collectAsState()
     val overrideMic by scene.overrideMic.collectAsState()
@@ -409,10 +411,10 @@ private fun SceneMicView(
 
 @Composable
 private fun WidgetsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     scene: SettingsScene,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var presentingAddWidget by remember { mutableStateOf(false) }
     var pendingDelete by remember { mutableStateOf<SettingsSceneWidget?>(null) }
@@ -521,7 +523,7 @@ private fun WidgetsView(
 fun SceneShortcutView(
     database: Database,
     scene: SettingsScene,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier
@@ -535,10 +537,10 @@ fun SceneShortcutView(
 
 @Composable
 fun SceneSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     scene: SettingsScene,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val name by scene.name.collectAsState()
     val scenes by database.scenes.collectAsState()

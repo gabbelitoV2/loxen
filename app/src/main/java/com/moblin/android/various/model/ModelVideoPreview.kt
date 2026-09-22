@@ -16,15 +16,14 @@ class VideoPreviewFeed(val cameraId: UUID, val name: String) {
 }
 
 class VideoPreviewProvider {
-    private val _feeds = MutableStateFlow<List<VideoPreviewFeed>>(emptyList())
-    val feeds: StateFlow<List<VideoPreviewFeed>> = _feeds.asStateFlow()
+    val feeds = MutableStateFlow<List<VideoPreviewFeed>>(emptyList())
 
     fun removeAllFeeds() {
-        _feeds.value = emptyList()
+        feeds.value = emptyList()
     }
 
     fun appendFeed(feed: VideoPreviewFeed) {
-        _feeds.value = _feeds.value + feed
+        feeds.value = feeds.value + feed
     }
 }
 

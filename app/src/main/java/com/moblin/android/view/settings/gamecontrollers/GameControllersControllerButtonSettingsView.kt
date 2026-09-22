@@ -32,10 +32,12 @@ import com.moblin.android.various.settings.SettingsGimbalMotion
 import com.moblin.android.view.settings.scenes.SceneNameView
 import com.moblin.android.view.settings.scenes.widgets.widget.WidgetNameView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun ControllerButtonView(
-    model: Model,
+    model: Model = LocalModel.current,
     functions: List<SettingsControllerFunction>,
     function: SettingsControllerFunction,
     onFunctionChange: (SettingsControllerFunction) -> Unit,
@@ -157,9 +159,9 @@ fun ControllerButtonView(
 
 @Composable
 fun GameControllersControllerButtonSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     button: SettingsGameControllerButton,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val function by button.function.collectAsState()
     val functionData by button.functionData.collectAsState()
@@ -190,7 +192,7 @@ fun GameControllersControllerButtonSettingsView(
 
 @Composable
 fun GameControllersControllerButtonSettingsViewDestination(
-    model: Model,
+    model: Model = LocalModel.current,
     button: SettingsGameControllerButton,
 ) {
     val function by button.function.collectAsState()

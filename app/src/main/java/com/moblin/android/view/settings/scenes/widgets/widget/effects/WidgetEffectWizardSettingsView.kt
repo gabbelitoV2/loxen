@@ -27,11 +27,12 @@ import com.moblin.android.various.settings.SettingsVideoEffectType
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.utils.CloseToolbarButtonView
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetEffectWizardSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     effect: SettingsVideoEffect,
     presentingCreateWizard: Boolean,

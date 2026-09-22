@@ -20,11 +20,12 @@ import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSelect
 import com.moblin.android.view.settings.scenes.widgets.widget.basicWidgetSettingsTitle
 import com.moblin.android.view.settings.scenes.widgets.widget.vtuber.WidgetVTuberPickerView
 import com.moblin.android.view.utils.CloseToolbarButtonView
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetWizardVTuberSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     vTuber: SettingsWidgetVTuber,
     createWidgetWizard: CreateWidgetWizard,

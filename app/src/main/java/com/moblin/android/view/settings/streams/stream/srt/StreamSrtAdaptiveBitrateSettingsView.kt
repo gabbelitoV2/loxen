@@ -23,10 +23,11 @@ import com.moblin.android.various.settings.SettingsStreamSrtAdaptiveBitrate
 import com.moblin.android.various.settings.SettingsStreamSrtAdaptiveBitrateAlgorithm
 import com.moblin.android.view.utils.SliderView
 import kotlin.math.pow
+import com.moblin.android.LocalModel
 
 @Composable
 fun StreamSrtAdaptiveBitrateSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     srt: SettingsStreamSrt,
     adaptiveBitrate: SettingsStreamSrtAdaptiveBitrate,

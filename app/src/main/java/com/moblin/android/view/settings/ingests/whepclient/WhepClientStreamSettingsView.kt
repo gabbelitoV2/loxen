@@ -26,13 +26,15 @@ import com.moblin.android.various.settings.SettingsWhepClientStream
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun WhepClientStreamSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     whepClient: SettingsWhepClient,
     stream: SettingsWhepClientStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier
@@ -58,10 +60,10 @@ fun WhepClientStreamSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WhepClientStreamSettingsViewInner(
-    model: Model,
+    model: Model = LocalModel.current,
     whepClient: SettingsWhepClient,
     stream: SettingsWhepClientStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Scaffold(
         topBar = {

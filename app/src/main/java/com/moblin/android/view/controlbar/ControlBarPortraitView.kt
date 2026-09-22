@@ -51,6 +51,7 @@ import com.moblin.android.various.model.ShowingPanel
 import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.model.Store
 import com.moblin.android.various.settings.SettingsQuickButtons
+import com.moblin.android.LocalModel
 
 private class ControlBarPageScrollTargetBehavior(private val model: Model) {
     fun updateTarget(targetRectMinY: Double, containerHeight: Double): Double {
@@ -67,7 +68,7 @@ private fun buttonSize(bigButtons: Boolean) =
 
 @Composable
 private fun QuickButtonsView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
     page: Int,
@@ -137,7 +138,7 @@ private fun QuickButtonsView(
 
 @Composable
 private fun PageView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
     page: Int,
@@ -162,7 +163,7 @@ private fun PageView(
 }
 
 @Composable
-private fun IconAndSettingsView(model: Model, store: Store) {
+private fun IconAndSettingsView(model: Model = LocalModel.current, store: Store) {
     val iconImage by store.iconImage.collectAsState()
     val context = LocalContext.current
     val storeIconResId = remember(iconImage) {
@@ -209,7 +210,7 @@ private fun IconAndSettingsView(model: Model, store: Store) {
 
 @Composable
 private fun MainPageView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
     status: StatusOther,
@@ -271,7 +272,7 @@ private fun MainPageView(
 
 @Composable
 private fun PagesView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
     height: Double,
@@ -313,7 +314,7 @@ private fun PagesView(
 }
 
 @Composable
-fun ControlBarPortraitView(model: Model, quickButtons: SettingsQuickButtons) {
+fun ControlBarPortraitView(model: Model = LocalModel.current, quickButtons: SettingsQuickButtons) {
     Box(
         modifier = Modifier
             .fillMaxWidth()

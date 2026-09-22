@@ -64,13 +64,15 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun CustomLutView(
-    model: Model,
+    model: Model = LocalModel.current,
     lut: SettingsColorLut,
     name: String,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var nameState by remember { mutableStateOf(name) }
 
@@ -87,7 +89,7 @@ fun CustomLutView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomLutDestinationView(
-    model: Model,
+    model: Model = LocalModel.current,
     lut: SettingsColorLut,
     name: String,
 ) {
@@ -134,7 +136,7 @@ fun CustomLutDestinationView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CameraSettingsCubeLutsView(
-    model: Model,
+    model: Model = LocalModel.current,
     color: SettingsColor,
 ) {
     var showPicker by remember { mutableStateOf(false) }
@@ -185,7 +187,7 @@ private fun CameraSettingsCubeLutsView(
 
 @Composable
 private fun CameraSettingsPngLutsView(
-    model: Model,
+    model: Model = LocalModel.current,
     color: SettingsColor,
 ) {
     var presentingPicker by remember { mutableStateOf(false) }
@@ -238,9 +240,9 @@ private fun CameraSettingsPngLutsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CameraSettingsLutsView(
-    model: Model,
+    model: Model = LocalModel.current,
     color: SettingsColor,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var selectedImageItem: Any? by remember { mutableStateOf<Any?>(null) }
 
@@ -313,9 +315,9 @@ private fun ColorSpacePicker(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CameraSettingsAppleLogLutView(
-    model: Model,
+    model: Model = LocalModel.current,
     color: SettingsColor,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val lutEnabled by color.lutEnabled.collectAsState()
     val lut by color.lut.collectAsState()
@@ -368,7 +370,7 @@ private fun CameraSettingsAppleLogLutView(
 
 @Composable
 private fun CameraPreviewSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
 ) {
     val alwaysAttachCameraPreview by database.alwaysAttachCameraPreview.collectAsState()
@@ -394,7 +396,7 @@ private fun CameraPreviewSettingsView(
 
 @Composable
 private fun PhotoShootSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
 ) {
     val alwaysAttachPhotoShoot by database.alwaysAttachPhotoShoot.collectAsState()
@@ -421,11 +423,11 @@ private fun PhotoShootSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CameraSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     stream: SettingsStream,
     color: SettingsColor,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val showAllSettings by database.showAllSettings.collectAsState()
     val zoom by database.zoom.collectAsState()

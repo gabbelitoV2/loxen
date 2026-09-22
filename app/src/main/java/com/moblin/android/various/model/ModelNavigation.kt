@@ -29,46 +29,38 @@ class Navigation {
         val shared = Navigation()
     }
 
-    private val _cameraPosition = MutableStateFlow<Any?>(null)
-    val cameraPosition: StateFlow<Any?> = _cameraPosition.asStateFlow()
+    val cameraPosition = MutableStateFlow<Any?>(null)
 
     var cameraRegion: Any? = null
 
-    private val _route = MutableStateFlow<Any?>(null)
-    val route: StateFlow<Any?> = _route.asStateFlow()
+    val route = MutableStateFlow<Any?>(null)
 
-    private val _isSmall = MutableStateFlow(true)
-    val isSmall: StateFlow<Boolean> = _isSmall.asStateFlow()
+    val isSmall = MutableStateFlow(true)
 
-    private val _destination = MutableStateFlow<Any?>(null)
-    val destination: StateFlow<Any?> = _destination.asStateFlow()
+    val destination = MutableStateFlow<Any?>(null)
 
-    private val _transportType = MutableStateFlow(NavigationTransportType.walking)
-    val transportType: StateFlow<NavigationTransportType> = _transportType.asStateFlow()
+    val transportType = MutableStateFlow(NavigationTransportType.walking)
 
-    private val _longPressLocation = MutableStateFlow<Any?>(null)
-    val longPressLocation: StateFlow<Any?> = _longPressLocation.asStateFlow()
+    val longPressLocation = MutableStateFlow<Any?>(null)
 
-    private val _searchText = MutableStateFlow("")
-    val searchText: StateFlow<String> = _searchText.asStateFlow()
+    val searchText = MutableStateFlow("")
 
-    private val _searchResults = MutableStateFlow<List<Any>>(emptyList())
-    val searchResults: StateFlow<List<Any>> = _searchResults.asStateFlow()
+    val searchResults = MutableStateFlow<List<Any>>(emptyList())
 
     val timer = MainTimer()
 
     fun updateCameraPosition(settings: SettingsNavigation, region: Any? = null) {
         val region = region ?: cameraRegion ?: return
         if (settings.followUser) {
-            _cameraPosition.value = TODO("no Android counterpart for MapKit MapCameraPosition userLocation")
+            cameraPosition.value = TODO("no Android counterpart for MapKit MapCameraPosition userLocation")
         } else {
-            _cameraPosition.value = TODO("no Android counterpart for MapKit MapCameraPosition region")
+            cameraPosition.value = TODO("no Android counterpart for MapKit MapCameraPosition region")
         }
     }
 
     fun updateDirections() {
-        val destination = _destination.value ?: return
-        _route.value = null
+        val destination = destination.value ?: return
+        route.value = null
         TODO("no Android counterpart for MapKit MKDirections")
     }
 }

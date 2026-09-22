@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -36,6 +37,7 @@ fun MoblinApp() {
     val toast by model.toast.collectAsState()
     val orientation by model.orientation.collectAsState()
     val database by model.database.collectAsState()
+    CompositionLocalProvider(LocalModel provides model) {
     Box(modifier = Modifier.background(Color.Black)) {
         MainView(
             webBrowserController = model.webBrowserController,
@@ -52,6 +54,7 @@ fun MoblinApp() {
             quickButtons = database.quickButtonsGeneral,
             model = model
         )
+    }
     }
 }
 

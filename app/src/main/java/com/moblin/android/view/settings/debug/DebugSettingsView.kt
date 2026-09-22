@@ -34,13 +34,15 @@ import com.moblin.android.view.settings.recordings.FilesLocationView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import kotlin.math.roundToInt
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DebugSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     debug: SettingsDebug,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var presentingLog by remember { mutableStateOf(false) }
     val log = remember { mutableStateOf(ArrayDeque<LogEntry>()) }

@@ -21,6 +21,8 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsWidget
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun ShortcutSectionView(content: @Composable () -> Unit) {
@@ -36,10 +38,10 @@ fun ShortcutSectionView(content: @Composable () -> Unit) {
 
 @Composable
 fun WidgetShortcutView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     widget: SettingsWidget,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Text(
         text = "Widget",
@@ -53,7 +55,7 @@ fun WidgetShortcutView(
 @Composable
 fun ScenesShortcutView(
     database: Database,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -72,9 +74,9 @@ fun ScenesShortcutView(
 
 @Composable
 fun StreamingPlatformsShortcutView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -93,8 +95,8 @@ fun StreamingPlatformsShortcutView(
 
 @Composable
 fun RemoteControlWebShortcutView(
-    model: Model,
-    onNavigate: (String) -> Unit,
+    model: Model = LocalModel.current,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -113,8 +115,8 @@ fun RemoteControlWebShortcutView(
 
 @Composable
 fun RemoteControlAssistantShortcutView(
-    model: Model,
-    onNavigate: (String) -> Unit,
+    model: Model = LocalModel.current,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -133,8 +135,8 @@ fun RemoteControlAssistantShortcutView(
 
 @Composable
 fun IngestsShortcutView(
-    model: Model,
-    onNavigate: (String) -> Unit,
+    model: Model = LocalModel.current,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,

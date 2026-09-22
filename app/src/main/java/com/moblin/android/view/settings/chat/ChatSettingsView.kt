@@ -31,6 +31,8 @@ import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.StreamingPlatformsShortcutView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun submitMaximumAge(chat: SettingsChat, value: String) {
     val maximumAge = value.toIntOrNull() ?: return
@@ -42,10 +44,10 @@ private fun submitMaximumAge(chat: SettingsChat, value: String) {
 
 @Composable
 private fun ChatSettingsGeneralView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     chat: SettingsChat,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val botEnabled by chat.botEnabled.collectAsState()
     val textToSpeechEnabled by chat.textToSpeechEnabled.collectAsState()
@@ -129,11 +131,11 @@ private fun ChatSettingsGeneralView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     chat: SettingsChat,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val enabled by chat.enabled.collectAsState()
     val activityFeed by chat.activityFeed.collectAsState()

@@ -39,11 +39,12 @@ import com.moblin.android.various.settings.SettingsMicsMic
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun QuickButtonMicMicView(
-    model: Model,
+    model: Model = LocalModel.current,
     mic: SettingsMicsMic,
     modelMic: Mic,
     deleteEnabled: Boolean,
@@ -94,7 +95,7 @@ private fun QuickButtonMicMicView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonMicView(
-    model: Model,
+    model: Model = LocalModel.current,
     mics: SettingsMics,
     modelMic: Mic,
 ) {

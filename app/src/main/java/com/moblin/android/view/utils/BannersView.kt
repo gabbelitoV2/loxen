@@ -57,6 +57,7 @@ import com.moblin.android.various.model.TwitchPrediction
 import com.moblin.android.various.model.TwitchPredictionOutcome
 import com.moblin.android.various.model.TwitchPredictionState
 import com.moblin.android.view.controlbar.quickbutton.chat.ChannelImageView
+import com.moblin.android.LocalModel
 
 private val bannerBackgroundColor = RgbColor(red = 0x64, green = 0x41, blue = 0xA5).color()
 
@@ -127,7 +128,7 @@ private fun HypeTrainProgressView(progress: ProgressBar, message: String) {
 }
 
 @Composable
-private fun HypeTrainView(model: Model, hypeTrain: HypeTrain) {
+private fun HypeTrainView(model: Model = LocalModel.current, hypeTrain: HypeTrain) {
     val level by hypeTrain.level.collectAsState()
     val progress by hypeTrain.progress.collectAsState()
     val message by hypeTrain.message.collectAsState()
@@ -160,7 +161,7 @@ private fun HypeTrainView(model: Model, hypeTrain: HypeTrain) {
 }
 
 @Composable
-private fun RaidView(model: Model, raid: Raid) {
+private fun RaidView(model: Model = LocalModel.current, raid: Raid) {
     val state by raid.state.collectAsState()
     val message by raid.message.collectAsState()
     val channelImage by raid.channelImage.collectAsState()
@@ -303,7 +304,7 @@ private fun BannerView(
 }
 
 @Composable
-private fun TwitchPollView(model: Model, poll: TwitchPoll) {
+private fun TwitchPollView(model: Model = LocalModel.current, poll: TwitchPoll) {
     val state by poll.state.collectAsState()
     val title by poll.title.collectAsState()
     val message by poll.message.collectAsState()
@@ -340,7 +341,7 @@ private fun TwitchPollView(model: Model, poll: TwitchPoll) {
 }
 
 @Composable
-private fun TwitchPredictionView(model: Model, prediction: TwitchPrediction) {
+private fun TwitchPredictionView(model: Model = LocalModel.current, prediction: TwitchPrediction) {
     val state by prediction.state.collectAsState()
     val title by prediction.title.collectAsState()
     val message by prediction.message.collectAsState()
@@ -433,7 +434,7 @@ private fun MinimizedView(
 }
 
 @Composable
-fun BannersView(model: Model, banners: Banners) {
+fun BannersView(model: Model = LocalModel.current, banners: Banners) {
     val minimized by banners.minimized.collectAsState()
     val hypeTrain by model.hypeTrain.collectAsState()
     val raid by model.raid.collectAsState()

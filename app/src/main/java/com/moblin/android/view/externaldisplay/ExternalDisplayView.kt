@@ -35,6 +35,7 @@ import com.moblin.android.view.utils.ChatLineContent
 import com.moblin.android.view.utils.ChatLineStyle
 import com.moblin.android.view.utils.ChatLineTextStyle
 import com.moblin.android.view.utils.ChatLineView
+import com.moblin.android.LocalModel
 
 @Composable
 private fun makeChatLineStyle(chat: SettingsChat): ChatLineStyle {
@@ -211,14 +212,14 @@ private fun MessagesView(chatSettings: SettingsChat, chat: ChatProvider) {
 }
 
 @Composable
-private fun ChatView(model: Model, chat: ChatProvider) {
+private fun ChatView(model: Model = LocalModel.current, chat: ChatProvider) {
     Box(modifier = Modifier.padding(16.dp)) {
         MessagesView(chatSettings = model.database.chat, chat = chat)
     }
 }
 
 @Composable
-private fun ExternalDisplayStreamPreviewView(model: Model) {
+private fun ExternalDisplayStreamPreviewView(model: Model = LocalModel.current) {
     AndroidView(
         factory = { context ->
             SharedUiViewContainerView(context, model.externalDisplayStreamPreviewView)
@@ -230,7 +231,7 @@ private fun ExternalDisplayStreamPreviewView(model: Model) {
 }
 
 @Composable
-fun ExternalDisplayView(model: Model, externalDisplay: ExternalDisplay) {
+fun ExternalDisplayView(model: Model = LocalModel.current, externalDisplay: ExternalDisplay) {
     val chatEnabled by externalDisplay.chatEnabled.collectAsState()
     Box(
         modifier = Modifier

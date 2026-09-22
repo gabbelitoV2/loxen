@@ -10,9 +10,10 @@ import androidx.compose.runtime.setValue
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import kotlin.math.PI
+import com.moblin.android.LocalModel
 
 @Composable
-fun StreamOverlayRightWhirlpoolView(model: Model, database: Database) {
+fun StreamOverlayRightWhirlpoolView(model: Model = LocalModel.current, database: Database) {
     val databaseAngle by database.whirlpoolAngle.collectAsState()
     var angle by remember { mutableStateOf(databaseAngle) }
     LaunchedEffect(databaseAngle) {

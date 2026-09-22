@@ -31,13 +31,15 @@ import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun NicknameView(
-    model: Model,
+    model: Model = LocalModel.current,
     nickname: SettingsChatNickname,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     onDelete: () -> Unit,
 ) {
     Row(
@@ -58,7 +60,7 @@ private fun NicknameView(
 
 @Composable
 fun NicknameViewDestination(
-    model: Model,
+    model: Model = LocalModel.current,
     nickname: SettingsChatNickname,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -89,9 +91,9 @@ fun NicknameViewDestination(
 
 @Composable
 fun ChatNicknamesSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     nicknames: SettingsChatNicknames,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val nicknameList by nicknames.nicknames.collectAsState()
     Row(
@@ -121,9 +123,9 @@ private fun deleteNickname(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ChatNicknamesSettingsViewDestination(
-    model: Model,
+    model: Model = LocalModel.current,
     nicknames: SettingsChatNicknames,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val nicknameList by nicknames.nicknames.collectAsState()
     val onMove: (List<Int>, Int) -> Unit = { _, _ ->

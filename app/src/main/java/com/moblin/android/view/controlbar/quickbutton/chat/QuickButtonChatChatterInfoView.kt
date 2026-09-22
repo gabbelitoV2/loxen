@@ -37,6 +37,7 @@ import com.moblin.android.various.ChatPost
 import com.moblin.android.various.model.Model
 import com.moblin.android.view.CloseButtonTopRightView
 import com.moblin.android.view.utils.HCenter
+import com.moblin.android.LocalModel
 
 enum class ChatterRole {
     owner,
@@ -76,7 +77,7 @@ private fun InfoRowView(label: String, value: String) {
 }
 
 @Composable
-private fun profileHeader(model: Model, post: ChatPost, info: ChatterInfo) {
+private fun profileHeader(model: Model = LocalModel.current, post: ChatPost, info: ChatterInfo) {
     Row(
         modifier = Modifier.padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -189,7 +190,7 @@ private fun infoRows(info: ChatterInfo) {
 
 @Composable
 fun QuickButtonChatChatterInfoView(
-    model: Model,
+    model: Model = LocalModel.current,
     post: ChatPost,
     presenting: Boolean,
     onPresentingChange: (Boolean) -> Unit,

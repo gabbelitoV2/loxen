@@ -31,6 +31,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamAudioCodec
 import kotlin.math.ceil
+import com.moblin.android.LocalModel
 
 private fun calcBitrate(bitrate: Float): Int {
     return ceil(bitrate * 1000.0f).toInt()
@@ -39,7 +40,7 @@ private fun calcBitrate(bitrate: Float): Int {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamAudioSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
 ) {
     var bitrate by remember { mutableStateOf(stream.audioBitrate.value / 1000.0f) }

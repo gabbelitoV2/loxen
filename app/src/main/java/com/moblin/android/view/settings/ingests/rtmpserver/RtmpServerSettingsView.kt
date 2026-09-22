@@ -36,12 +36,14 @@ import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.InfoBannerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun RtmpServerSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     rtmpServer: SettingsRtmpServer,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier
@@ -58,7 +60,7 @@ fun RtmpServerSettingsView(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun RtmpServerSettingsForm(
-    model: Model,
+    model: Model = LocalModel.current,
     rtmpServer: SettingsRtmpServer,
 ) {
     val enabled by rtmpServer.enabled.collectAsState()

@@ -20,6 +20,7 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
 
 private fun submitWebSocketUrl(model: Model, stream: SettingsStream, value: String) {
     val url = cleanUrl(value)
@@ -54,7 +55,7 @@ private fun submitMainScene(stream: SettingsStream, value: String) {
 }
 
 @Composable
-fun StreamObsRemoteControlSettingsInnerView(model: Model, stream: SettingsStream) {
+fun StreamObsRemoteControlSettingsInnerView(model: Model = LocalModel.current, stream: SettingsStream) {
     val showAllSettings by model.database.showAllSettings.collectAsState()
     Column {
         Text("WebSocket")
@@ -169,7 +170,7 @@ fun StreamObsRemoteControlSettingsInnerView(model: Model, stream: SettingsStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreamObsRemoteControlSettingsView(model: Model, stream: SettingsStream) {
+fun StreamObsRemoteControlSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(localized("OBS remote control")) })

@@ -51,6 +51,7 @@ import com.moblin.android.various.settings.SettingsNavigation
 import com.moblin.android.view.stream.overlay.right.segmentHeight
 import com.moblin.android.view.stream.overlay.right.segmentHeightBig
 import kotlin.math.min
+import com.moblin.android.LocalModel
 
 private const val smallMapSide = 200.0
 private const val maximumBigMapSide = 600.0
@@ -236,7 +237,7 @@ private fun MarkerLabel(navigation: Navigation, item: Any) {
 
 @Composable
 private fun MapView(
-    model: Model,
+    model: Model = LocalModel.current,
     navigationSettings: SettingsNavigation,
     navigation: Navigation,
     maxWidth: Dp,
@@ -254,7 +255,7 @@ private fun MapView(
 
 @Composable
 fun StreamOverlayNavigationView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     navigation: Navigation
 ) {

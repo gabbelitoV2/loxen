@@ -23,6 +23,7 @@ import com.moblin.android.various.utils.randomHumanString
 import com.moblin.android.view.CloseButtonTopRightView
 import java.net.URI
 import java.util.UUID
+import com.moblin.android.LocalModel
 
 private const val authorizeUrl = "https://id.twitch.tv/oauth2/authorize"
 const val twitchMoblinAppClientId = "qv6bnocuwapqigeqjoamfhif0cv2xn"
@@ -71,7 +72,7 @@ private fun TwitchAuthView(twitchAuth: TwitchAuth, modifier: Modifier = Modifier
 }
 
 @Composable
-fun TwitchLoginView(model: Model, presenting: Boolean, onPresentingChange: (Boolean) -> Unit) {
+fun TwitchLoginView(model: Model = LocalModel.current, presenting: Boolean, onPresentingChange: (Boolean) -> Unit) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             TwitchAuthView(twitchAuth = model.twitchAuth, modifier = Modifier.height(2500.dp))

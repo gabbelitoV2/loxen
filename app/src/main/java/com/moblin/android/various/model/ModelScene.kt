@@ -98,15 +98,13 @@ import kotlinx.coroutines.launch
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
 class CreateWidgetWizard {
-    private val _name = MutableStateFlow("")
-    val name: StateFlow<String> = _name.asStateFlow()
-    private val _type = MutableStateFlow(SettingsWidgetType.TEXT)
-    val type: StateFlow<SettingsWidgetType> = _type.asStateFlow()
+    val name = MutableStateFlow("")
+    val type = MutableStateFlow(SettingsWidgetType.TEXT)
     var widget: SettingsWidget = SettingsWidget(name = "")
 
     fun reset() {
-        _name.value = ""
-        _type.value = SettingsWidgetType.TEXT
+        name.value = ""
+        type.value = SettingsWidgetType.TEXT
         widget = SettingsWidget(name = "")
         widget.text.formatString = ""
         val yes = SettingsWidgetWheelOfLuckOption()

@@ -44,6 +44,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatNickname
 import com.moblin.android.view.controlbar.quickbutton.chat.QuickButtonChatChatterInfoView
+import com.moblin.android.LocalModel
 
 @Composable
 private fun ActionButtonView(
@@ -81,7 +82,7 @@ private fun ActionButtonView(
 
 @Composable
 private fun banButton(
-    model: Model,
+    model: Model = LocalModel.current,
     selectedPost: ChatPost,
     presentingBanConfirm: Boolean,
     onPresentingBanConfirmChange: (Boolean) -> Unit,
@@ -114,7 +115,7 @@ private fun banButton(
 
 @Composable
 private fun timeoutButton(
-    model: Model,
+    model: Model = LocalModel.current,
     selectedPost: ChatPost,
     presentingTimeoutConfirm: Boolean,
     onPresentingTimeoutConfirmChange: (Boolean) -> Unit,
@@ -161,7 +162,7 @@ private fun timeoutButton(
 
 @Composable
 private fun deleteButton(
-    model: Model,
+    model: Model = LocalModel.current,
     selectedPost: ChatPost,
     presentingDeleteConfirm: Boolean,
     onPresentingDeleteConfirmChange: (Boolean) -> Unit,
@@ -194,7 +195,7 @@ private fun deleteButton(
 
 @Composable
 private fun copyButton(
-    model: Model,
+    model: Model = LocalModel.current,
     selectedPost: ChatPost,
     onDismiss: () -> Unit,
 ) {
@@ -206,7 +207,7 @@ private fun copyButton(
 
 @Composable
 private fun nicknameButton(
-    model: Model,
+    model: Model = LocalModel.current,
     chat: SettingsChat,
     selectedPost: ChatPost,
     presentingNicknameDialog: Boolean,
@@ -290,7 +291,7 @@ private fun saveNickname(
 
 @Composable
 private fun lineView(
-    model: Model,
+    model: Model = LocalModel.current,
     style: ChatLineStyle,
     selectedPost: ChatPost,
     onLinkUrlChange: (String?) -> Unit,
@@ -309,7 +310,7 @@ private fun lineView(
 
 @Composable
 fun ChatActionButtonsView(
-    model: Model,
+    model: Model = LocalModel.current,
     style: ChatLineStyle,
     selectedPost: ChatPost?,
     onSelectedPostChange: (ChatPost?) -> Unit,

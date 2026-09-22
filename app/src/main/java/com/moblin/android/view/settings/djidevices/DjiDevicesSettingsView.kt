@@ -27,13 +27,15 @@ import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun DjiDeviceSettingsWrapperView(
-    model: Model,
+    model: Model = LocalModel.current,
     djiDevices: SettingsDjiDevices,
     device: SettingsDjiDevice,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val name by device.name.collectAsState()
     val state by device.state.collectAsState()
@@ -53,9 +55,9 @@ private fun DjiDeviceSettingsWrapperView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DjiDevicesSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     djiDevices: SettingsDjiDevices,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val devices by djiDevices.devices.collectAsState()
 

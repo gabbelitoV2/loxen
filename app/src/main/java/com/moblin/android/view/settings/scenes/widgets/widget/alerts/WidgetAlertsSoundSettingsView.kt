@@ -42,6 +42,8 @@ import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun loadSound(model: Model, soundId: UUID): AudioPlayer? {
     val bundledSound = model.database.alertsMediaGallery.bundledSounds.firstOrNull { it.id == soundId }
@@ -57,7 +59,7 @@ private fun loadSound(model: Model, soundId: UUID): AudioPlayer? {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomSoundView(
-    model: Model,
+    model: Model = LocalModel.current,
     media: SettingsAlertsMediaGalleryItem,
     initialAudioPlayer: AudioPlayer? = null,
 ) {
@@ -121,9 +123,9 @@ fun CustomSoundView(
 
 @Composable
 fun SoundGalleryItemView(
-    model: Model,
+    model: Model = LocalModel.current,
     sound: SettingsAlertsMediaGalleryItem,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Text(
         sound.name,
@@ -139,12 +141,12 @@ fun SoundGalleryItemView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SoundGalleryView(
-    model: Model,
+    model: Model = LocalModel.current,
     gallery: SettingsAlertsMediaGallery,
     alert: SettingsWidgetAlertsAlert,
     soundId: UUID,
     onSoundIdChange: (UUID) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     fun deleteSound(sound: SettingsAlertsMediaGalleryItem) {
         val index = gallery.customSounds.indexOfFirst { it.id == sound.id }
@@ -202,12 +204,12 @@ private var player: AudioPlayer? = null
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertSoundSelectorView(
-    model: Model,
+    model: Model = LocalModel.current,
     gallery: SettingsAlertsMediaGallery,
     alert: SettingsWidgetAlertsAlert,
     soundId: UUID,
     onSoundIdChange: (UUID) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Scaffold(
         topBar = {

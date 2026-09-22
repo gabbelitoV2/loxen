@@ -23,13 +23,15 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardSoopSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val soopChannelName by createStreamWizard.soopChannelName.collectAsState()
     val soopStreamId by createStreamWizard.soopStreamId.collectAsState()

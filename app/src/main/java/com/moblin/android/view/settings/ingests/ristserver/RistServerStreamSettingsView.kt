@@ -24,15 +24,17 @@ import com.moblin.android.various.settings.SettingsRistServerStream
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.UrlsView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RistServerStreamSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     status: StatusOther,
     ristServer: SettingsRistServer,
     stream: SettingsRistServerStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     fun submitPort(value: String) {
         val parsedPort = value.trim().toIntOrNull()

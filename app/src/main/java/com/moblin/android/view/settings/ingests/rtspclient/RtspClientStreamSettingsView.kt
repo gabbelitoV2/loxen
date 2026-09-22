@@ -48,6 +48,8 @@ import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.view.utils.UrlCopyView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -155,10 +157,10 @@ fun UrlSettingsView(
 
 @Composable
 fun RtspClientStreamSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     rtspClient: SettingsRtspClient,
     stream: SettingsRtspClientStream,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Row(
         modifier = Modifier
@@ -182,10 +184,10 @@ fun RtspClientStreamSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RtspClientStreamSettingsViewDestination(
-    model: Model,
+    model: Model = LocalModel.current,
     rtspClient: SettingsRtspClient,
     stream: SettingsRtspClientStream,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     var transportExpanded by remember { mutableStateOf(false) }
 

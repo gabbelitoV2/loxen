@@ -76,6 +76,8 @@ import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 fun rtmpServerStreamUrl(address: String, port: Int, streamKey: String): String {
     return "rtmp://$address:$port$rtmpServerApp/$streamKey"
@@ -185,7 +187,7 @@ private fun ColumnScope.DjiDeviceWiFiSettingsView(
 private fun DjiDeviceWiFiSettingsInnerView(
     database: Database,
     device: SettingsDjiDevice,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val wifiSsid by device.wifiSsid.collectAsState()
     val wifiPassword by device.wifiPassword.collectAsState()
@@ -788,11 +790,11 @@ private fun ColumnScope.DjiDeviceStartStopButtonSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DjiDeviceSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     djiDevices: SettingsDjiDevices,
     device: SettingsDjiDevice,
     status: StatusTopRight,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val name by device.name.collectAsState()
     val existingNames by djiDevices.devices.collectAsState()

@@ -50,6 +50,7 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
+import com.moblin.android.localized
 
 private fun decodeCameraId(container: JsonObject, key: String, defaultValue: CameraId): CameraId {
     val cameraId = container[key]?.jsonPrimitive?.contentOrNull ?: return defaultValue

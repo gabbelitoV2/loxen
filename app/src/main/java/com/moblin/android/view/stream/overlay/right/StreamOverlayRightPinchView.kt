@@ -5,10 +5,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
+import com.moblin.android.LocalModel
 
 @Composable
 fun StreamOverlayRightPinchView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
 ) {
     val pinchScale by database.pinchScale.collectAsState()

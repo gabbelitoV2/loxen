@@ -21,11 +21,12 @@ import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSelect
 import com.moblin.android.view.settings.scenes.widgets.widget.basicWidgetSettingsTitle
 import com.moblin.android.view.settings.scenes.widgets.widget.image.WidgetImagePickerView
 import com.moblin.android.view.utils.CloseToolbar
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetWizardImageSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     widget: SettingsWidget,
     createWidgetWizard: CreateWidgetWizard,

@@ -70,6 +70,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalModel
 
 private sealed class ScheduleStreamState {
     data object Idle : ScheduleStreamState()
@@ -83,7 +84,7 @@ private sealed class ScheduleStreamState {
 
 @Composable
 private fun StreamDescriptionView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     youTubeStream: YouTubeApiLiveBroadcast,
     ingests: List<YouTubeApiLiveStream>,
@@ -196,7 +197,7 @@ private fun StreamDescriptionView(
 
 @Composable
 private fun YouTubeStreamView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     youTubeStream: YouTubeApiLiveBroadcast,
     ingests: List<YouTubeApiLiveStream>,
@@ -282,7 +283,7 @@ private fun YouTubeStreamView(
 
 @Composable
 private fun StreamsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     title: String,
     streams: List<YouTubeApiLiveBroadcast>,
@@ -320,7 +321,7 @@ private fun StreamsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScheduleStreamView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     schedulingStreamState: ScheduleStreamState,
     onSchedulingStreamStateChange: (ScheduleStreamState) -> Unit,
@@ -504,7 +505,7 @@ private fun ScheduleStreamView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamYouTubeScheduleStreamView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
 ) {
     var schedulingStreamState by remember { mutableStateOf<ScheduleStreamState>(ScheduleStreamState.Idle) }
@@ -648,7 +649,7 @@ fun StreamYouTubeScheduleStreamView(
 
 @Composable
 fun StreamYouTubeSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     debug: SettingsDebug,
     stream: SettingsStream,
 ) {

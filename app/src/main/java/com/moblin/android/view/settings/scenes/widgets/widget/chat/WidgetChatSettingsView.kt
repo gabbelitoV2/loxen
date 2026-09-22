@@ -29,10 +29,11 @@ import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetChat
 import com.moblin.android.view.settings.chat.sliderValuePercentageWidth
 import com.moblin.android.view.utils.RgbColorPickerView
+import com.moblin.android.LocalModel
 
 @Composable
 fun WidgetChatSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     widget: SettingsWidget,
     chat: SettingsWidgetChat,

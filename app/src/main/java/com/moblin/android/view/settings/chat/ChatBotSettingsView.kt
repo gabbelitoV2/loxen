@@ -38,6 +38,8 @@ import com.moblin.android.view.settings.scenes.widgets.widget.text.TextWidgetSug
 import com.moblin.android.view.settings.scenes.widgets.widget.text.TextWidgetTextView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.CreateButtonView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -153,7 +155,7 @@ private fun PermissionsSettingsInnerView(permissions: SettingsChatBotPermissions
 private fun PermissionsSettingsView(
     title: String,
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Row(
         modifier = Modifier
@@ -168,7 +170,7 @@ private fun PermissionsSettingsView(
 @Composable
 private fun FixPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -183,7 +185,7 @@ private fun FixPermissionsSettingsView(
 @Composable
 private fun GimbalPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -198,7 +200,7 @@ private fun GimbalPermissionsSettingsView(
 @Composable
 private fun AlertPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -216,7 +218,7 @@ private fun AlertPermissionsSettingsView(
 @Composable
 private fun FaxPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -231,7 +233,7 @@ private fun FaxPermissionsSettingsView(
 @Composable
 private fun SnapshotPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -246,7 +248,7 @@ private fun SnapshotPermissionsSettingsView(
 @Composable
 private fun ReactionPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -265,7 +267,7 @@ private fun ReactionPermissionsSettingsView(
 @Composable
 private fun FilterPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -286,7 +288,7 @@ private fun FilterPermissionsSettingsView(
 @Composable
 private fun ZoomPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -301,7 +303,7 @@ private fun ZoomPermissionsSettingsView(
 @Composable
 private fun ScenePermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -316,7 +318,7 @@ private fun ScenePermissionsSettingsView(
 @Composable
 private fun StreamPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -343,7 +345,7 @@ private fun StreamPermissionsSettingsView(
 @Composable
 private fun WidgetPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -373,7 +375,7 @@ private fun WidgetPermissionsSettingsView(
 @Composable
 private fun LocationPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -394,7 +396,7 @@ private fun LocationPermissionsSettingsView(
 @Composable
 private fun MapPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -409,7 +411,7 @@ private fun MapPermissionsSettingsView(
 @Composable
 private fun TtsSayPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -434,7 +436,7 @@ private fun TtsSayPermissionsSettingsView(
 private fun AiPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
     ai: SettingsOpenAi,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         Row(
@@ -452,7 +454,7 @@ private fun AiPermissionsSettingsView(
 @Composable
 private fun TwitchPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -470,7 +472,7 @@ private fun TwitchPermissionsSettingsView(
 @Composable
 private fun MuteUnmutePermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -491,7 +493,7 @@ private fun MuteUnmutePermissionsSettingsView(
 @Composable
 private fun TeslaPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -521,7 +523,7 @@ private fun TeslaPermissionsSettingsView(
 @Composable
 private fun MacroPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -542,7 +544,7 @@ private fun MacroPermissionsSettingsView(
 @Composable
 private fun SendPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -560,7 +562,7 @@ private fun SendPermissionsSettingsView(
 @Composable
 private fun AppleMusicPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column {
         PermissionsSettingsView(
@@ -592,7 +594,7 @@ private fun AppleMusicPermissionsSettingsView(
 }
 
 @Composable
-private fun ChatBotCommandsSettingsView(model: Model, onNavigate: (String) -> Unit) {
+private fun ChatBotCommandsSettingsView(model: Model = LocalModel.current, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
     val database = model.database.collectAsState().value
     val permissions = database.chat.botCommandPermissions
     LazyColumn {
@@ -761,7 +763,7 @@ private fun onReplacementChange(value: String): String? {
 @Composable
 private fun ChatBotAliasSettingsView(
     alias: SettingsChatBotAlias,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Row(
         modifier = Modifier
@@ -777,7 +779,7 @@ private fun ChatBotAliasSettingsView(
 
 @Composable
 private fun ChatBotCustomCommandTextSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     customCommand: SettingsChatBotCustomCommand,
     value: String
 ) {
@@ -829,7 +831,7 @@ private fun onNameChange(value: String): String? {
 @Composable
 private fun ChatBotCustomCommandSettingsView(
     customCommand: SettingsChatBotCustomCommand,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Row(
         modifier = Modifier
@@ -845,9 +847,9 @@ private fun ChatBotCustomCommandSettingsView(
 
 @Composable
 private fun ChatBotCustomCommandsSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     chat: SettingsChat,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     val customCommands = chat.customCommands.collectAsState().value
     LazyColumn {
@@ -875,7 +877,7 @@ private fun ChatBotCustomCommandsSettingsView(
 @Composable
 private fun ChatBotAliasesSettingsView(
     chat: SettingsChat,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     val aliases = chat.aliases.collectAsState().value
     LazyColumn {
@@ -895,7 +897,7 @@ private fun ChatBotAliasesSettingsView(
 }
 
 @Composable
-fun ChatBotSettingsView(model: Model, onNavigate: (String) -> Unit) {
+fun ChatBotSettingsView(model: Model = LocalModel.current, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
     val database = model.database.collectAsState().value
     LazyColumn {
         item {

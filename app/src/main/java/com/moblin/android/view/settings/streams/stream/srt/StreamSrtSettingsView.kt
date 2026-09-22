@@ -36,14 +36,16 @@ import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamSrt
 import com.moblin.android.various.settings.SettingsStreamSrtImplementation
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamSrtSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     srt: SettingsStreamSrt,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isLive = model.isLive.collectAsState().value
     val latency = srt.latency.collectAsState().value

@@ -33,6 +33,7 @@ import com.moblin.android.various.model.Show
 import com.moblin.android.various.model.ShowingPanel
 import com.moblin.android.various.settings.Database
 import com.moblin.android.view.settings.streams.stream.StreamWizardSettingsView
+import com.moblin.android.LocalModel
 
 @Composable
 private fun StreamButtonText(database: Database, text: String) {
@@ -51,7 +52,7 @@ private fun StreamButtonText(database: Database, text: String) {
 
 @Composable
 private fun EndButtonView(
-    model: Model,
+    model: Model = LocalModel.current,
     presentingGoLiveNotificationConfirm: Boolean,
     onPresentingGoLiveNotificationConfirmChange: (Boolean) -> Unit,
     enabled: Boolean = true,
@@ -156,7 +157,7 @@ private fun EndButtonView(
 
 @Composable
 private fun GoLiveButtonView(
-    model: Model,
+    model: Model = LocalModel.current,
     presentingGoLiveNotificationConfirm: Boolean,
     onPresentingGoLiveNotificationConfirmChange: (Boolean) -> Unit,
     enabled: Boolean = true,
@@ -216,7 +217,7 @@ private fun GoLiveButtonView(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SetupButtonView(model: Model, createStreamWizard: CreateStreamWizard) {
+private fun SetupButtonView(model: Model = LocalModel.current, createStreamWizard: CreateStreamWizard) {
     val database by model.database.collectAsState()
     val presentingSetup by createStreamWizard.presentingSetup.collectAsState()
 
@@ -251,7 +252,7 @@ private fun SetupButtonView(model: Model, createStreamWizard: CreateStreamWizard
 }
 
 @Composable
-fun StreamButton(model: Model, show: Show) {
+fun StreamButton(model: Model = LocalModel.current, show: Show) {
     val isLive by model.isLive.collectAsState()
     val chatPhone by show.chatPhone.collectAsState()
     var presentingGoLiveNotificationConfirm by remember { mutableStateOf(false) }

@@ -36,6 +36,7 @@ import com.moblin.android.view.settings.scenes.widgets.widget.effects.WidgetEffe
 import com.moblin.android.view.utils.InlinePickerItem
 import com.moblin.android.view.utils.InlinePickerView
 import com.moblin.android.view.utils.VideoSourceRotationView
+import com.moblin.android.LocalModel
 
 enum class AnchorPoint {
     topLeft,
@@ -196,7 +197,7 @@ fun calculatePositioningAnchorPoint(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetVideoSourceSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     videoSource: SettingsWidgetVideoSource,
 ) {

@@ -35,6 +35,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.utils.isPhone
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun MultiLineTextFieldView(
@@ -84,7 +85,7 @@ fun MultiLineTextFieldNavigationView(
     footers: List<String> = emptyList(),
     color: Color = Color.Gray,
     onValueChange: (String) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Box(
         modifier = Modifier.clickable {

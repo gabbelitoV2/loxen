@@ -55,11 +55,12 @@ import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import kotlin.random.random
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TwitchFollowsView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     onBack: () -> Unit,
 ) {
@@ -124,7 +125,7 @@ private fun TwitchFollowsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TwitchSubscriptionsView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     onBack: () -> Unit,
 ) {
@@ -192,7 +193,7 @@ private fun TwitchSubscriptionsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TwitchRaidsView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     onBack: () -> Unit,
 ) {
@@ -273,7 +274,7 @@ private fun formatTitle(bits: Int, comparisonOperator: String): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TwitchCheerView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     cheerBit: SettingsWidgetAlertsCheerBitsAlert,
     bits: Int,
@@ -407,7 +408,7 @@ private fun TwitchCheerView(
 
 @Composable
 private fun TwitchCheerBitsItemView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     cheerBit: SettingsWidgetAlertsCheerBitsAlert,
 ) {
@@ -452,7 +453,7 @@ private fun deleteCheerBit(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TwitchCheerBitsView(
-    model: Model,
+    model: Model = LocalModel.current,
     twitch: SettingsWidgetAlertsTwitch,
     onBack: () -> Unit,
 ) {
@@ -507,7 +508,7 @@ private fun TwitchCheerBitsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TwitchRewardView(
-    model: Model,
+    model: Model = LocalModel.current,
     reward: SettingsStreamTwitchReward,
     onBack: () -> Unit,
 ) {
@@ -547,7 +548,7 @@ private fun TwitchRewardView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TwitchRewardsView(
-    model: Model,
+    model: Model = LocalModel.current,
     onBack: () -> Unit,
 ) {
     val stream by model.stream.collectAsState()
@@ -599,7 +600,7 @@ private fun TwitchRewardsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetAlertsTwitchSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     twitch: SettingsWidgetAlertsTwitch,
 ) {
     val database by model.database.collectAsState()

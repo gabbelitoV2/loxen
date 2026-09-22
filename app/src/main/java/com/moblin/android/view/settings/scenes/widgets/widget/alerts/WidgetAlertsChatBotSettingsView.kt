@@ -34,14 +34,16 @@ import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ChatBotCommandView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     command: SettingsWidgetAlertsChatBotCommand,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     onDelete: () -> Unit,
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -75,7 +77,7 @@ private fun ChatBotCommandView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatBotCommandDetailView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     command: SettingsWidgetAlertsChatBotCommand,
 ) {
@@ -157,9 +159,9 @@ fun ChatBotCommandDetailView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetAlertsChatBotSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     chatBot: SettingsWidgetAlertsChatBot,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     fun deleteCommand(indexes: IntRange) {
         indexes.sortedDescending().forEach { index ->

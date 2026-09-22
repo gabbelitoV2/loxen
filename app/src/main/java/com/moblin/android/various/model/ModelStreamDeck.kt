@@ -15,25 +15,24 @@ import com.moblin.android.view.settings.streamdeck.StreamDeckKeyView
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.moblin.android.LocalModel
 
 class StreamDeck {
-    private val _isDeviceDriverInstalled = MutableStateFlow(true)
-    val isDeviceDriverInstalled: StateFlow<Boolean> = _isDeviceDriverInstalled.asStateFlow()
+    val isDeviceDriverInstalled = MutableStateFlow(true)
 
-    private val _streamDeck = MutableStateFlow<SettingsStreamDeckLayout?>(null)
-    val streamDeck: StateFlow<SettingsStreamDeckLayout?> = _streamDeck.asStateFlow()
+    val streamDeck = MutableStateFlow<SettingsStreamDeckLayout?>(null)
 
     fun setIsDeviceDriverInstalled(value: Boolean) {
-        _isDeviceDriverInstalled.value = value
+        isDeviceDriverInstalled.value = value
     }
 
     fun setStreamDeck(value: SettingsStreamDeckLayout?) {
-        _streamDeck.value = value
+        streamDeck.value = value
     }
 }
 
 @Composable
-private fun StreamDeckKeyItemView(model: Model, index: Int, key: SettingsStreamDeckKey) {
+private fun StreamDeckKeyItemView(model: Model = LocalModel.current, index: Int, key: SettingsStreamDeckKey) {
     StreamDeckKeyView(
         onPressed = { pressed ->
             model.handleControllerFunction(
@@ -55,7 +54,7 @@ private fun StreamDeckKeyItemView(model: Model, index: Int, key: SettingsStreamD
 }
 
 @Composable
-private fun StreamDeckView(model: Model, streamDeck: StreamDeck) {
+private fun StreamDeckView(model: Model = LocalModel.current, streamDeck: StreamDeck) {
     val layout by streamDeck.streamDeck.collectAsState()
     if (layout != null) {
         TODO("no Android counterpart for StreamDeckKit StreamDeckLayout and StreamDeckKeyAreaLayout")

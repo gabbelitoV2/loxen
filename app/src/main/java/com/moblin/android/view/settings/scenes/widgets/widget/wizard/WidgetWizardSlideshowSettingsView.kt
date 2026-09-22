@@ -33,15 +33,17 @@ import com.moblin.android.view.settings.scenes.widgets.widget.slideshow.WidgetSl
 import com.moblin.android.view.utils.AddButtonView
 import com.moblin.android.view.utils.CloseToolbar
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun SlideView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     slide: SettingsWidgetSlideshowSlide,
     presentingCreateWizard: Boolean,
     onChangePresentingCreateWizard: (Boolean) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Column(
         modifier = Modifier
@@ -54,11 +56,11 @@ private fun SlideView(
 
 @Composable
 private fun SlidesView(
-    model: Model,
+    model: Model = LocalModel.current,
     slideshow: SettingsWidgetSlideshow,
     presentingCreateWizard: Boolean,
     onChangePresentingCreateWizard: (Boolean) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Column {
         Text("Slides")
@@ -106,13 +108,13 @@ private fun SlidesView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetWizardSlideshowSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     createWidgetWizard: CreateWidgetWizard,
     slideshow: SettingsWidgetSlideshow,
     presentingCreateWizard: Boolean,
     onChangePresentingCreateWizard: (Boolean) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Scaffold(
         topBar = {

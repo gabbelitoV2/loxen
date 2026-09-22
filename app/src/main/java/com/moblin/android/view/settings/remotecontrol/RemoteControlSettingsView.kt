@@ -74,6 +74,8 @@ import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.view.utils.UrlCopyView
 import com.moblin.android.view.utils.UrlsIpv4View
 import com.moblin.android.view.utils.UrlsIpv6View
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -134,7 +136,7 @@ private fun PasswordView(
 
 @Composable
 private fun AssistantUrlSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     streamer: SettingsRemoteControlStreamer,
     url: SettingsRemoteControlStreamerUrl,
     onDelete: () -> Unit,
@@ -162,7 +164,7 @@ private fun AssistantUrlSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun UrlSettingsInnerView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     streamer: SettingsRemoteControlStreamer,
 ) {
@@ -206,9 +208,9 @@ private fun UrlSettingsInnerView(
 
 @Composable
 private fun RemoteControlSettingsStreamerView(
-    model: Model,
+    model: Model = LocalModel.current,
     streamer: SettingsRemoteControlStreamer,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text("Enabled")
@@ -271,7 +273,7 @@ private fun RemoteControlUrlsView(
     relay: SettingsRemoteControlServerRelay,
     port: UShort,
     status: StatusOther,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Text("URLs", modifier = Modifier.clickable { onNavigate("URLs") })
     Text(
@@ -308,11 +310,11 @@ private fun RemoteControlUrlsForm(
 
 @Composable
 private fun StreamerView(
-    model: Model,
+    model: Model = LocalModel.current,
     remoteControlSettings: SettingsRemoteControl,
     streamer: SettingsRemoteControlAssistant,
     streamerRelay: SettingsRemoteControlServerRelay,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     DraggableItemTextView(
         name = streamer.name,
@@ -323,11 +325,11 @@ private fun StreamerView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StreamerForm(
-    model: Model,
+    model: Model = LocalModel.current,
     remoteControlSettings: SettingsRemoteControl,
     streamer: SettingsRemoteControlAssistant,
     streamerRelay: SettingsRemoteControlServerRelay,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("Streamer") }) },
@@ -444,9 +446,9 @@ private fun StreamerItemView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RemoteControlStreamersView(
-    model: Model,
+    model: Model = LocalModel.current,
     remoteControlSettings: SettingsRemoteControl,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val selectedStreamer = remoteControlSettings.selectedStreamer
@@ -528,9 +530,9 @@ fun RemoteControlStreamersView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AssistantForm(
-    model: Model,
+    model: Model = LocalModel.current,
     remoteControlSettings: SettingsRemoteControl,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("Assistant") }) },
@@ -571,7 +573,7 @@ private fun formatUrl(ip: String, port: UShort): String {
 private fun WebUrlsView(
     web: SettingsRemoteControlWeb,
     status: StatusOther,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Text("URLs", modifier = Modifier.clickable { onNavigate("URLs") })
 }
@@ -640,9 +642,9 @@ fun RemoteControlWebDefaultUrlView(
 
 @Composable
 fun RemoteControlSettingsWebView(
-    model: Model,
+    model: Model = LocalModel.current,
     web: SettingsRemoteControlWeb,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text("Enabled")
@@ -675,11 +677,11 @@ fun RemoteControlSettingsWebView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RemoteControlSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     stream: SettingsStream,
     onStreamChange: (SettingsStream) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("Remote control") }) },

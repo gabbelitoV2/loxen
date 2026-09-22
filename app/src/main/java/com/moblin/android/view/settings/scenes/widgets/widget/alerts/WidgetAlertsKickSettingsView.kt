@@ -50,10 +50,12 @@ import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun KickSubscriptionsView(model: Model, alert: SettingsWidgetAlertsAlert) {
+private fun KickSubscriptionsView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(localized("Subscriptions")) })
@@ -111,7 +113,7 @@ private fun KickSubscriptionsView(model: Model, alert: SettingsWidgetAlertsAlert
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun KickGiftedSubscriptionsView(model: Model, alert: SettingsWidgetAlertsAlert) {
+private fun KickGiftedSubscriptionsView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(localized("Gift subscriptions")) })
@@ -170,7 +172,7 @@ private fun KickGiftedSubscriptionsView(model: Model, alert: SettingsWidgetAlert
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun KickHostsView(model: Model, alert: SettingsWidgetAlertsAlert) {
+private fun KickHostsView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(localized("Hosts")) })
@@ -228,7 +230,7 @@ private fun KickHostsView(model: Model, alert: SettingsWidgetAlertsAlert) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun KickRewardsView(model: Model, alert: SettingsWidgetAlertsAlert) {
+private fun KickRewardsView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text(localized("Rewards")) })
@@ -297,7 +299,7 @@ private fun formatKickGiftTitle(amount: Int, comparisonOperator: String): String
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KickGiftView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     kickGift: SettingsWidgetAlertsKickGiftsAlert,
     amount: Int,
@@ -431,7 +433,7 @@ private fun KickGiftView(
 private fun KickGiftItemView(
     alert: SettingsWidgetAlertsAlert,
     kickGift: SettingsWidgetAlertsKickGiftsAlert,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     var amount by remember { mutableStateOf(kickGift.amount) }
     var comparisonOperator by remember { mutableStateOf(kickGift.comparisonOperator.rawValue) }
@@ -446,7 +448,7 @@ private fun KickGiftItemView(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun KickGiftsView(model: Model, kick: SettingsWidgetAlertsKick, onNavigate: (String) -> Unit) {
+private fun KickGiftsView(model: Model = LocalModel.current, kick: SettingsWidgetAlertsKick, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
     fun deleteKickGift(offsets: List<Int>) {
         offsets.sortedDescending().forEach { offset ->
             kick.kickGifts.removeAt(offset)
@@ -488,9 +490,9 @@ private fun KickGiftsView(model: Model, kick: SettingsWidgetAlertsKick, onNaviga
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetAlertsKickSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     kick: SettingsWidgetAlertsKick,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Scaffold(
         topBar = {

@@ -214,17 +214,15 @@ class SettingsGameControllerButton {
     var id: UUID = UUID.randomUUID()
     var name: String = ""
     var text: String = ""
-    private val _function = MutableStateFlow(SettingsControllerFunction.UNUSED)
-    val function: StateFlow<SettingsControllerFunction> = _function.asStateFlow()
-    private val _functionData = MutableStateFlow(SettingsControllerFunctionData())
-    val functionData: StateFlow<SettingsControllerFunctionData> = _functionData.asStateFlow()
+    val function = MutableStateFlow(SettingsControllerFunction.UNUSED)
+    val functionData = MutableStateFlow(SettingsControllerFunctionData())
 
     fun setFunction(value: SettingsControllerFunction) {
-        _function.value = value
+        function.value = value
     }
 
     fun setFunctionData(value: SettingsControllerFunctionData) {
-        _functionData.value = value
+        functionData.value = value
     }
 }
 
@@ -289,25 +287,20 @@ object SettingsGameControllerButtonSerializer : KSerializer<SettingsGameControll
 @Serializable(with = SettingsGameControllerSerializer::class)
 class SettingsGameController {
     var id: UUID = UUID.randomUUID()
-    private val _buttons = MutableStateFlow<List<SettingsGameControllerButton>>(emptyList())
-    val buttons: StateFlow<List<SettingsGameControllerButton>> = _buttons.asStateFlow()
-    private val _leftThumbStickFunction = MutableStateFlow(SettingsControllerThumbStickFunction.UNUSED)
-    val leftThumbStickFunction: StateFlow<SettingsControllerThumbStickFunction> =
-        _leftThumbStickFunction.asStateFlow()
-    private val _rightThumbStickFunction = MutableStateFlow(SettingsControllerThumbStickFunction.UNUSED)
-    val rightThumbStickFunction: StateFlow<SettingsControllerThumbStickFunction> =
-        _rightThumbStickFunction.asStateFlow()
+    val buttons = MutableStateFlow<List<SettingsGameControllerButton>>(emptyList())
+    val leftThumbStickFunction = MutableStateFlow(SettingsControllerThumbStickFunction.UNUSED)
+    val rightThumbStickFunction = MutableStateFlow(SettingsControllerThumbStickFunction.UNUSED)
 
     fun setButtons(value: List<SettingsGameControllerButton>) {
-        _buttons.value = value
+        buttons.value = value
     }
 
     fun setLeftThumbStickFunction(value: SettingsControllerThumbStickFunction) {
-        _leftThumbStickFunction.value = value
+        leftThumbStickFunction.value = value
     }
 
     fun setRightThumbStickFunction(value: SettingsControllerThumbStickFunction) {
-        _rightThumbStickFunction.value = value
+        rightThumbStickFunction.value = value
     }
 
     init {
@@ -408,7 +401,7 @@ class SettingsGameController {
         button.text = "R1"
         button.setFunction(SettingsControllerFunction.TRIPLE)
         defaultButtons.add(button)
-        _buttons.value = defaultButtons
+        buttons.value = defaultButtons
     }
 }
 

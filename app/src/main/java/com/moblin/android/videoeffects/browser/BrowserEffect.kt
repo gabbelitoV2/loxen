@@ -73,8 +73,7 @@ class BrowserEffect(
     private val url: URI
     var isLoaded: Boolean = false
         private set
-    private val _layout = MutableStateFlow<SettingsWidgetLayout?>(null)
-    val layout: StateFlow<SettingsWidgetLayout?> = _layout.asStateFlow()
+    val layout = MutableStateFlow<SettingsWidgetLayout?>(null)
     private val mode: SettingsWidgetBrowserMode
     private var baseFps: Double
     private var fps: Double
@@ -159,7 +158,7 @@ class BrowserEffect(
     }
 
     fun setSceneWidget(sceneWidget: SettingsSceneWidget?, crops: List<WidgetCrop>) {
-        _layout.value = sceneWidget?.layout
+        layout.value = sceneWidget?.layout
         stopTakeSnapshots()
         if (sceneWidget != null || crops.isNotEmpty()) {
             setSceneWidgetEnabled(sceneWidget, crops)

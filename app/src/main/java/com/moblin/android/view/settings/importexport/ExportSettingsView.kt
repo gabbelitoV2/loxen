@@ -9,9 +9,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.moblin.android.various.model.Model
 import com.moblin.android.view.utils.HCenter
+import com.moblin.android.LocalModel
 
 @Composable
-fun ExportSettingsView(model: Model) {
+fun ExportSettingsView(model: Model = LocalModel.current) {
     var url by remember { mutableStateOf<String?>(null) }
 
     HCenter {

@@ -13,11 +13,11 @@ import kotlinx.coroutines.launch
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
 class WebBrowserState {
-    private val _isSmall = MutableStateFlow(false)
-    val isSmall: StateFlow<Boolean> = _isSmall
+    private val isSmall = MutableStateFlow(false)
+    val isSmall: StateFlow<Boolean> = isSmall
 
     fun setIsSmall(value: Boolean) {
-        _isSmall.value = value
+        isSmall.value = value
     }
 }
 

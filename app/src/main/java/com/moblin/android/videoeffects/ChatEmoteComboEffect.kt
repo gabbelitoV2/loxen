@@ -40,17 +40,15 @@ private const val borderWidth: Double = 1.5
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
 private class EmoteComboState {
-    private val _emoteUrl = MutableStateFlow<String?>(null)
-    val emoteUrl: StateFlow<String?> = _emoteUrl.asStateFlow()
-    private val _count = MutableStateFlow(0)
-    val count: StateFlow<Int> = _count.asStateFlow()
+    val emoteUrl = MutableStateFlow<String?>(null)
+    val count = MutableStateFlow(0)
 
     fun updateEmoteUrl(value: String?) {
-        _emoteUrl.value = value
+        emoteUrl.value = value
     }
 
     fun updateCount(value: Int) {
-        _count.value = value
+        count.value = value
     }
 }
 

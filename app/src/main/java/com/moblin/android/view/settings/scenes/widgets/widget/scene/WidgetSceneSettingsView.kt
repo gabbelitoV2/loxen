@@ -21,10 +21,11 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.settings.scenes.SceneNameView
 import java.util.UUID
+import com.moblin.android.LocalModel
 
 @Composable
 fun WidgetSceneSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     selectedSceneId: UUID,
 ) {

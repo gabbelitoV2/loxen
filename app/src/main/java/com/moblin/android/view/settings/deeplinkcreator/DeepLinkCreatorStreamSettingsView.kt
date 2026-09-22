@@ -54,6 +54,8 @@ import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemView
 import kotlin.math.ceil
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun submitMaxKeyFrameInterval(video: DeepLinkCreatorStreamVideo, value: String) {
     val interval = value.toIntOrNull() ?: return
@@ -66,9 +68,9 @@ private fun submitMaxKeyFrameInterval(video: DeepLinkCreatorStreamVideo, value: 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeepLinkCreatorStreamVideoView(
-    model: Model,
+    model: Model = LocalModel.current,
     video: DeepLinkCreatorStreamVideo,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val bitratePresets = model.database.bitratePresets.collectAsState().value
     val resolution by video.resolution.collectAsState()
@@ -419,7 +421,7 @@ private fun submitWebSocketUrl(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeepLinkCreatorStreamObsView(
-    model: Model,
+    model: Model = LocalModel.current,
     obs: DeepLinkCreatorStreamObs,
 ) {
     val webSocketUrl by obs.webSocketUrl.collectAsState()
@@ -534,7 +536,7 @@ private fun DeepLinkCreatorStreamKickView(kick: DeepLinkCreatorStreamKick) {
 fun DeepLinkCreatorStreamSettingsView(
     deepLinkCreator: DeepLinkCreator,
     stream: DeepLinkCreatorStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val streams = deepLinkCreator.streams.collectAsState().value
     val name by stream.name.collectAsState()

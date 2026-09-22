@@ -15,10 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStream
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreamEmotesSettingsView(model: Model, stream: SettingsStream) {
+fun StreamEmotesSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Emotes") })

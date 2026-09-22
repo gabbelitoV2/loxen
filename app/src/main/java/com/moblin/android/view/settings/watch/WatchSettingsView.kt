@@ -20,14 +20,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.WatchSettings
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WatchSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     watch: WatchSettings,
     onViaRemoteControlChange: (Boolean) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val viaRemoteControl by watch.viaRemoteControl.collectAsState()
     LaunchedEffect(viaRemoteControl) {

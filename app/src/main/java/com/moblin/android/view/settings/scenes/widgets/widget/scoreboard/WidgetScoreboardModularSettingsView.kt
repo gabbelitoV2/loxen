@@ -31,13 +31,14 @@ import com.moblin.android.various.settings.SettingsWidgetScoreboardClock
 import com.moblin.android.various.settings.SettingsWidgetScoreboardLayout
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun TeamView(
     side: String,
     team: SettingsWidgetModularScoreboardTeam,
     updated: () -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier
@@ -111,7 +112,7 @@ fun WidgetScoreboardModularSettingsView(
     modular: SettingsWidgetModularScoreboard,
     clock: SettingsWidgetScoreboardClock,
     updated: () -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text("Teams")
@@ -181,7 +182,7 @@ fun WidgetScoreboardModularSettingsView(
 fun WidgetScoreboardModularGeneralSettingsView(
     modular: SettingsWidgetModularScoreboard,
     updated: () -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Text(
         text = "Layout",

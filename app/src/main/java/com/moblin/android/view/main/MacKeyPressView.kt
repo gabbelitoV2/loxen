@@ -15,6 +15,7 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
 import com.moblin.android.various.model.Model
+import com.moblin.android.LocalModel
 
 class MacKeyPressUIView {
     var model: Model? = null
@@ -83,7 +84,7 @@ private suspend fun updateUIView(uiView: MacKeyPressUIView, shouldClaimFocus: Bo
 
 @Composable
 fun MacKeyPressView(
-    model: Model,
+    model: Model = LocalModel.current,
     shouldClaimFocus: Boolean,
     modifier: Modifier = Modifier,
 ) {

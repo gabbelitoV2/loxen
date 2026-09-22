@@ -291,24 +291,24 @@ class OpenGopro_NotifStartScanning {
 
 class OpenGopro_RequestConnect {
     var ssid: String
-        get() = _ssid ?: ""
+        get() = ssid ?: ""
         set(value) {
-            _ssid = value
+            ssid = value
         }
 
     val hasSsid: Boolean
-        get() = _ssid != null
+        get() = ssid != null
 
     fun clearSsid() {
-        _ssid = null
+        ssid = null
     }
 
     var unknownFields: ByteArray = ByteArray(0)
 
-    private var _ssid: String? = null
+    private var ssid: String? = null
 
     val isInitialized: Boolean
-        get() = _ssid != null
+        get() = ssid != null
 
     fun <D> decodeMessage(decoder: D) {
         TODO("SwiftProtobuf decoder has no Android counterpart")
@@ -325,7 +325,7 @@ class OpenGopro_RequestConnect {
         if (other !is OpenGopro_RequestConnect) {
             return false
         }
-        if (_ssid != other._ssid) {
+        if (ssid != other.ssid) {
             return false
         }
         if (!unknownFields.contentEquals(other.unknownFields)) {
@@ -335,7 +335,7 @@ class OpenGopro_RequestConnect {
     }
 
     override fun hashCode(): Int {
-        var result = _ssid?.hashCode() ?: 0
+        var result = ssid?.hashCode() ?: 0
         result = 31 * result + unknownFields.contentHashCode()
         return result
     }
@@ -351,16 +351,16 @@ class OpenGopro_RequestConnect {
 
 class OpenGopro_RequestConnectNew {
     var ssid: String
-        get() = _ssid ?: ""
+        get() = ssid ?: ""
         set(value) {
-            _ssid = value
+            ssid = value
         }
 
     val hasSsid: Boolean
-        get() = _ssid != null
+        get() = ssid != null
 
     fun clearSsid() {
-        _ssid = null
+        ssid = null
     }
 
     var password: String
@@ -456,7 +456,7 @@ class OpenGopro_RequestConnectNew {
 
     var unknownFields: ByteArray = ByteArray(0)
 
-    private var _ssid: String? = null
+    private var ssid: String? = null
     private var _password: String? = null
     private var _staticIp: ByteArray? = null
     private var _gateway: ByteArray? = null
@@ -467,7 +467,7 @@ class OpenGopro_RequestConnectNew {
 
     val isInitialized: Boolean
         get() {
-            if (_ssid == null) {
+            if (ssid == null) {
                 return false
             }
             if (_password == null) {
@@ -491,7 +491,7 @@ class OpenGopro_RequestConnectNew {
         if (other !is OpenGopro_RequestConnectNew) {
             return false
         }
-        if (_ssid != other._ssid) {
+        if (ssid != other.ssid) {
             return false
         }
         if (_password != other._password) {
@@ -522,7 +522,7 @@ class OpenGopro_RequestConnectNew {
     }
 
     override fun hashCode(): Int {
-        var result = _ssid?.hashCode() ?: 0
+        var result = ssid?.hashCode() ?: 0
         result = 31 * result + (_password?.hashCode() ?: 0)
         result = 31 * result + (_staticIp?.contentHashCode() ?: 0)
         result = 31 * result + (_gateway?.contentHashCode() ?: 0)
@@ -986,16 +986,16 @@ class OpenGopro_ResponseGetApEntries {
 
     class ScanEntry {
         var ssid: String
-            get() = _ssid ?: ""
+            get() = ssid ?: ""
             set(value) {
-                _ssid = value
+                ssid = value
             }
 
         val hasSsid: Boolean
-            get() = _ssid != null
+            get() = ssid != null
 
         fun clearSsid() {
-            _ssid = null
+            ssid = null
         }
 
         var signalStrengthBars: Int
@@ -1039,14 +1039,14 @@ class OpenGopro_ResponseGetApEntries {
 
         var unknownFields: ByteArray = ByteArray(0)
 
-        private var _ssid: String? = null
+        private var ssid: String? = null
         private var _signalStrengthBars: Int? = null
         private var _signalFrequencyMhz: Int? = null
         private var _scanEntryFlags: Int? = null
 
         val isInitialized: Boolean
             get() {
-                if (_ssid == null) {
+                if (ssid == null) {
                     return false
                 }
                 if (_signalStrengthBars == null) {
@@ -1076,7 +1076,7 @@ class OpenGopro_ResponseGetApEntries {
             if (other !is ScanEntry) {
                 return false
             }
-            if (_ssid != other._ssid) {
+            if (ssid != other.ssid) {
                 return false
             }
             if (_signalStrengthBars != other._signalStrengthBars) {
@@ -1095,7 +1095,7 @@ class OpenGopro_ResponseGetApEntries {
         }
 
         override fun hashCode(): Int {
-            var result = _ssid?.hashCode() ?: 0
+            var result = ssid?.hashCode() ?: 0
             result = 31 * result + (_signalStrengthBars?.hashCode() ?: 0)
             result = 31 * result + (_signalFrequencyMhz?.hashCode() ?: 0)
             result = 31 * result + (_scanEntryFlags?.hashCode() ?: 0)

@@ -25,13 +25,13 @@ import kotlinx.serialization.encoding.encodeStructure
 class SettingsStreamDeckKey {
     val id: UUID
     var color: RgbColor
-    private val _text: MutableStateFlow<String>
+    private val text: MutableStateFlow<String>
     val text: StateFlow<String>
     private val _colorColor: MutableStateFlow<Color>
     val colorColor: StateFlow<Color>
-    private val _function: MutableStateFlow<SettingsControllerFunction>
+    private val function: MutableStateFlow<SettingsControllerFunction>
     val function: StateFlow<SettingsControllerFunction>
-    private val _functionData: MutableStateFlow<SettingsControllerFunctionData>
+    private val functionData: MutableStateFlow<SettingsControllerFunctionData>
     val functionData: StateFlow<SettingsControllerFunctionData>
 
     companion object {
@@ -41,14 +41,14 @@ class SettingsStreamDeckKey {
     constructor() {
         id = UUID.randomUUID()
         color = defaultColor
-        _text = MutableStateFlow("")
-        text = _text.asStateFlow()
+        text = MutableStateFlow("")
+        text = text.asStateFlow()
         _colorColor = MutableStateFlow(defaultColor.color())
         colorColor = _colorColor.asStateFlow()
-        _function = MutableStateFlow(SettingsControllerFunction.unused)
-        function = _function.asStateFlow()
-        _functionData = MutableStateFlow(SettingsControllerFunctionData())
-        functionData = _functionData.asStateFlow()
+        function = MutableStateFlow(SettingsControllerFunction.unused)
+        function = function.asStateFlow()
+        functionData = MutableStateFlow(SettingsControllerFunctionData())
+        functionData = functionData.asStateFlow()
     }
 
     internal constructor(
@@ -60,14 +60,14 @@ class SettingsStreamDeckKey {
     ) {
         this.id = id
         this.color = color
-        this._text = MutableStateFlow(text)
-        this.text = this._text.asStateFlow()
+        this.text = MutableStateFlow(text)
+        this.text = this.text.asStateFlow()
         this._colorColor = MutableStateFlow(color.color())
         this.colorColor = this._colorColor.asStateFlow()
-        this._function = MutableStateFlow(function)
-        this.function = this._function.asStateFlow()
-        this._functionData = MutableStateFlow(functionData)
-        this.functionData = this._functionData.asStateFlow()
+        this.function = MutableStateFlow(function)
+        this.function = this.function.asStateFlow()
+        this.functionData = MutableStateFlow(functionData)
+        this.functionData = this.functionData.asStateFlow()
     }
 }
 
@@ -165,7 +165,7 @@ enum class SettingsStreamDeckModel(val rawValue: String) {
 @Serializable(with = SettingsStreamDeckLayoutSerializer::class)
 class SettingsStreamDeckLayout : Named {
     val id: UUID
-    private val _name: MutableStateFlow<String>
+    private val name: MutableStateFlow<String>
     override val name: StateFlow<String>
     private val _model: MutableStateFlow<SettingsStreamDeckModel>
     val model: StateFlow<SettingsStreamDeckModel>
@@ -178,8 +178,8 @@ class SettingsStreamDeckLayout : Named {
 
     constructor() {
         id = UUID.randomUUID()
-        _name = MutableStateFlow(baseName)
-        name = _name.asStateFlow()
+        name = MutableStateFlow(baseName)
+        name = name.asStateFlow()
         _model = MutableStateFlow(SettingsStreamDeckModel.classic)
         model = _model.asStateFlow()
         val initialKeys = MutableList(36) { SettingsStreamDeckKey() }
@@ -194,8 +194,8 @@ class SettingsStreamDeckLayout : Named {
         keys: List<SettingsStreamDeckKey>,
     ) {
         this.id = id
-        this._name = MutableStateFlow(name)
-        this.name = this._name.asStateFlow()
+        this.name = MutableStateFlow(name)
+        this.name = this.name.asStateFlow()
         this._model = MutableStateFlow(model)
         this.model = this._model.asStateFlow()
         val initialKeys = keys.toMutableList()
@@ -258,21 +258,21 @@ object SettingsStreamDeckLayoutSerializer : KSerializer<SettingsStreamDeckLayout
 class SettingsStreamDecks {
     private val _layouts: MutableStateFlow<List<SettingsStreamDeckLayout>>
     val layouts: StateFlow<List<SettingsStreamDeckLayout>>
-    private val _selectedId: MutableStateFlow<UUID?>
+    private val selectedId: MutableStateFlow<UUID?>
     val selectedId: StateFlow<UUID?>
 
     constructor() {
         _layouts = MutableStateFlow(emptyList())
         layouts = _layouts.asStateFlow()
-        _selectedId = MutableStateFlow(null)
-        selectedId = _selectedId.asStateFlow()
+        selectedId = MutableStateFlow(null)
+        selectedId = selectedId.asStateFlow()
     }
 
     internal constructor(layouts: List<SettingsStreamDeckLayout>, selectedId: UUID?) {
         this._layouts = MutableStateFlow(layouts)
         this.layouts = this._layouts.asStateFlow()
-        this._selectedId = MutableStateFlow(selectedId)
-        this.selectedId = this._selectedId.asStateFlow()
+        this.selectedId = MutableStateFlow(selectedId)
+        this.selectedId = this.selectedId.asStateFlow()
     }
 }
 

@@ -13,12 +13,14 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun StreamRealtimeIrlSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     fun submitBaseUrl(value: String) {
         stream.realtimeIrlBaseUrl = value

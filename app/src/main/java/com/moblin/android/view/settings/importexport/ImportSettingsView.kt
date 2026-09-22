@@ -15,9 +15,10 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.utils.moblinSettingsFileType
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.LocalModel
 
 @Composable
-private fun SettingsFilePickerView(model: Model, onFinished: () -> Unit) {
+private fun SettingsFilePickerView(model: Model = LocalModel.current, onFinished: () -> Unit) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
     ) { uri ->
@@ -36,7 +37,7 @@ private enum class ImportState {
 }
 
 @Composable
-fun ImportSettingsView(model: Model) {
+fun ImportSettingsView(model: Model = LocalModel.current) {
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
     var showPicker by remember { mutableStateOf(false) }

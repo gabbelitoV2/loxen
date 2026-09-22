@@ -38,6 +38,8 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.FormFieldError
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun nextDisabled(createStreamWizard: CreateStreamWizard, urlError: String): Boolean {
     if (createStreamWizard.obsRemoteControlEnabled.value) {
@@ -54,9 +56,9 @@ private fun nextDisabled(createStreamWizard: CreateStreamWizard, urlError: Strin
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardObsRemoteControlSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val obsRemoteControlEnabled by createStreamWizard.obsRemoteControlEnabled.collectAsState()
     val obsRemoteControlUrl by createStreamWizard.obsRemoteControlUrl.collectAsState()

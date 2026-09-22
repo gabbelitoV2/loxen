@@ -30,9 +30,10 @@ import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsBeauty
 import com.moblin.android.various.settings.SettingsBeautySettings
+import com.moblin.android.LocalModel
 
 @Composable
-private fun SmoothnessView(model: Model, beauty: SettingsBeauty) {
+private fun SmoothnessView(model: Model = LocalModel.current, beauty: SettingsBeauty) {
     val smoothnessRadius by beauty.smoothnessRadius.collectAsState()
     val smoothnessStrength by beauty.smoothnessStrength.collectAsState()
 
@@ -66,7 +67,7 @@ private fun SmoothnessView(model: Model, beauty: SettingsBeauty) {
 }
 
 @Composable
-private fun ShapeView(model: Model, beauty: SettingsBeauty) {
+private fun ShapeView(model: Model = LocalModel.current, beauty: SettingsBeauty) {
     val shapePosition by beauty.shapePosition.collectAsState()
     val shapeRadius by beauty.shapeRadius.collectAsState()
     val shapeStrength by beauty.shapeStrength.collectAsState()
@@ -112,7 +113,7 @@ private fun ShapeView(model: Model, beauty: SettingsBeauty) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreamOverlayRightBeautyView(model: Model, beauty: SettingsBeauty) {
+fun StreamOverlayRightBeautyView(model: Model = LocalModel.current, beauty: SettingsBeauty) {
     val settings by beauty.settings.collectAsState()
     val enabled by beauty.enabled.collectAsState()
     var expanded by remember { mutableStateOf(false) }

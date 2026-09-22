@@ -27,6 +27,9 @@ import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.StreamWizardGeneralSettingsView
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.FormFieldError
+import com.moblin.android.localized
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun StreamWizardSrtUrlSettingsView(
@@ -80,9 +83,9 @@ fun StreamWizardSrtUrlSettingsView(
 
 @Composable
 fun StreamWizardCustomSrtSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var urlError by remember { mutableStateOf("") }
     val nextDisabled = createStreamWizard.customSrtUrl.isEmpty() ||

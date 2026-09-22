@@ -29,6 +29,7 @@ import com.moblin.android.view.utils.IngestsShortcutView
 import com.moblin.android.view.utils.InlinePickerItem
 import com.moblin.android.view.utils.InlinePickerView
 import com.moblin.android.view.utils.ShortcutSectionView
+import com.moblin.android.LocalModel
 
 private fun onChange(micId: String, model: Model, talkback: SettingsTalkback) {
     talkback.micId.value = micId
@@ -38,7 +39,7 @@ private fun onChange(micId: String, model: Model, talkback: SettingsTalkback) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TalkbackSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     mics: SettingsMics,
     talkback: SettingsTalkback,
 ) {

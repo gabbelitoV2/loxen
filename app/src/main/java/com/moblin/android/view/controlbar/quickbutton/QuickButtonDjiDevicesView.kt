@@ -30,10 +30,12 @@ import com.moblin.android.various.settings.SettingsDjiDevices
 import com.moblin.android.view.settings.djidevices.formatDjiDeviceState
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.ShortcutSectionView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun DeviceView(
-    model: Model,
+    model: Model = LocalModel.current,
     status: StatusOther,
     device: SettingsDjiDevice,
 ) {
@@ -67,9 +69,9 @@ private fun DeviceView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonDjiDevicesView(
-    model: Model,
+    model: Model = LocalModel.current,
     djiDevices: SettingsDjiDevices,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val devices by djiDevices.devices.collectAsState()
     Column(modifier = Modifier.fillMaxSize()) {

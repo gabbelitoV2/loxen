@@ -513,11 +513,11 @@ object SettingsMacrosActionSerializer : KSerializer<SettingsMacrosAction> {
 class SettingsMacrosAction {
     var id: UUID = UUID.randomUUID()
 
-    @Transient private val _function = MutableStateFlow<SettingsMacrosActionFunction?>(null)
+    @Transient private val function = MutableStateFlow<SettingsMacrosActionFunction?>(null)
     var function: SettingsMacrosActionFunction?
-        get() = _function.value
+        get() = function.value
         set(value) {
-            _function.value = value
+            function.value = value
         }
 
     @Transient private val _sceneId = MutableStateFlow<UUID?>(null)
@@ -789,11 +789,11 @@ object SettingsMacrosMacroSerializer : KSerializer<SettingsMacrosMacro> {
 class SettingsMacrosMacro : Named {
     var id: UUID = UUID.randomUUID()
 
-    @Transient private val _name = MutableStateFlow(baseName)
+    @Transient private val name = MutableStateFlow(baseName)
     override var name: String
-        get() = _name.value
+        get() = name.value
         set(value) {
-            _name.value = value
+            name.value = value
         }
 
     @Transient private val _actions = MutableStateFlow<List<SettingsMacrosAction>>(emptyList())
@@ -909,10 +909,10 @@ object SettingsMacrosSerializer : KSerializer<SettingsMacros> {
 
 @Serializable(with = SettingsMacrosSerializer::class)
 class SettingsMacros {
-    @Transient private val _macros = MutableStateFlow<List<SettingsMacrosMacro>>(emptyList())
+    @Transient private val macros = MutableStateFlow<List<SettingsMacrosMacro>>(emptyList())
     var macros: List<SettingsMacrosMacro>
-        get() = _macros.value
+        get() = macros.value
         set(value) {
-            _macros.value = value
+            macros.value = value
         }
 }

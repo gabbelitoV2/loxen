@@ -61,6 +61,7 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.PositionEditView
 import com.moblin.android.view.utils.SizeEditView
+import com.moblin.android.LocalModel
 
 @Composable
 fun AlignmentOptionView(
@@ -82,7 +83,7 @@ fun AlignmentOptionView(
 
 @Composable
 fun SaveLoadLayoutView(
-    model: Model,
+    model: Model = LocalModel.current,
     layout: MutableState<SettingsWidgetLayout>
 ) {
     Column(horizontalAlignment = Alignment.Start) {
@@ -142,7 +143,7 @@ private fun setYBasedOnXIfLocked(layout: MutableState<SettingsWidgetLayout>, mod
 
 @Composable
 private fun generalAndAlignmentPicker(
-    model: Model,
+    model: Model = LocalModel.current,
     layout: MutableState<SettingsWidgetLayout>,
     widget: SettingsWidget
 ) {
@@ -179,7 +180,7 @@ private fun generalAndAlignmentPicker(
 
 @Composable
 private fun horizontalAndVerticalPositioning(
-    model: Model,
+    model: Model = LocalModel.current,
     layout: MutableState<SettingsWidgetLayout>,
     numericInput: MutableState<Boolean>
 ) {
@@ -236,7 +237,7 @@ private fun horizontalAndVerticalPositioning(
 
 @Composable
 private fun horizontalPositioning(
-    model: Model,
+    model: Model = LocalModel.current,
     layout: MutableState<SettingsWidgetLayout>,
     numericInput: MutableState<Boolean>
 ) {
@@ -258,7 +259,7 @@ private fun horizontalPositioning(
 
 @Composable
 private fun verticalPositioning(
-    model: Model,
+    model: Model = LocalModel.current,
     layout: MutableState<SettingsWidgetLayout>,
     numericInput: MutableState<Boolean>
 ) {
@@ -280,7 +281,7 @@ private fun verticalPositioning(
 
 @Composable
 fun WidgetLayoutView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     layout: MutableState<SettingsWidgetLayout>,
     widget: SettingsWidget,
@@ -339,7 +340,7 @@ fun WidgetNameView(widget: SettingsWidget) {
 
 @Composable
 fun WidgetSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     widget: SettingsWidget
 ) {

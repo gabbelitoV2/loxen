@@ -47,6 +47,7 @@ import com.moblin.android.various.model.StreamOverlay
 import com.moblin.android.various.model.chat.ChatProvider
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsQuickButtons
+import com.moblin.android.LocalModel
 
 private const val startRadiusFraction = 0.45f
 
@@ -92,7 +93,7 @@ fun ChatInfo(message: String) {
 
 @Composable
 fun ChatOverlayView(
-    model: Model,
+    model: Model = LocalModel.current,
     chatSettings: SettingsChat,
     chat: ChatProvider,
     chatActivityFeed: ChatProvider,
@@ -224,7 +225,7 @@ private fun leadingPadding(orientation: Orientation): Dp {
 
 @Composable
 fun StreamOverlayView(
-    model: Model,
+    model: Model = LocalModel.current,
     streamOverlay: StreamOverlay,
     chatSettings: SettingsChat,
     orientation: Orientation,

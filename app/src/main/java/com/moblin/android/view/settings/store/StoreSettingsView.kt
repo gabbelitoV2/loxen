@@ -44,11 +44,12 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Store
 import com.moblin.android.view.utils.TextButtonView
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalModel
 
 private const val TAG = "StoreSettingsIconsToBuy"
 
 @Composable
-private fun StoreSettingsRestoreView(model: Model) {
+private fun StoreSettingsRestoreView(model: Model = LocalModel.current) {
     var isRestoring by remember { mutableStateOf(false) }
     var showErrorAlert by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -105,7 +106,7 @@ private fun StoreSettingsBoughtEverythingView() {
 }
 
 @Composable
-private fun StoreSettingsIconsToBuyView(model: Model, store: Store) {
+private fun StoreSettingsIconsToBuyView(model: Model = LocalModel.current, store: Store) {
     val iconsInStore by store.iconsInStore.collectAsState()
     var disabledPurchaseButtons by remember { mutableStateOf(setOf<String>()) }
     val scope = rememberCoroutineScope()
@@ -163,7 +164,7 @@ private fun setAppIcon(iconImage: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun StoreSettingsMyIconsView(model: Model, store: Store) {
+private fun StoreSettingsMyIconsView(model: Model = LocalModel.current, store: Store) {
     val myIcons by store.myIcons.collectAsState()
     val iconImage by store.iconImage.collectAsState()
     var expanded by remember { mutableStateOf(false) }
@@ -228,7 +229,7 @@ private fun StoreSettingsMyIconsView(model: Model, store: Store) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StoreSettingsView(model: Model, store: Store) {
+fun StoreSettingsView(model: Model = LocalModel.current, store: Store) {
     val iconsInStore by store.iconsInStore.collectAsState()
     var disabledPurchaseButtons by remember { mutableStateOf(setOf<String>()) }
     Scaffold(

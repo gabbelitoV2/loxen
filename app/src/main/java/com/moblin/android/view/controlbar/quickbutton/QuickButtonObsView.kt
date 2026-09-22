@@ -53,6 +53,7 @@ import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.ValueEditView
+import com.moblin.android.LocalModel
 
 @Composable
 private fun ObsStartStopButtonView(
@@ -135,7 +136,7 @@ private fun ObsStartStopButtonView(
 
 @Composable
 private fun ObsStartStopStreamingView(
-    model: Model,
+    model: Model = LocalModel.current,
     obsQuickButton: QuickButtonObs,
 ) {
     val streamingState by obsQuickButton.streamingState.collectAsState()
@@ -154,7 +155,7 @@ private fun ObsStartStopStreamingView(
 
 @Composable
 private fun ObsStartStopRecordingView(
-    model: Model,
+    model: Model = LocalModel.current,
     obsQuickButton: QuickButtonObs,
 ) {
     val recordingState by obsQuickButton.recordingState.collectAsState()
@@ -174,7 +175,7 @@ private fun ObsStartStopRecordingView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ObsSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
 ) {
     val obsWebSocketEnabled by stream.obsWebSocketEnabled.collectAsState()
@@ -234,7 +235,7 @@ private fun ObsSnapshotView(
 
 @Composable
 private fun ObsScenesView(
-    model: Model,
+    model: Model = LocalModel.current,
     obsQuickButton: QuickButtonObs,
 ) {
     val scenes by obsQuickButton.scenes.collectAsState()
@@ -275,7 +276,7 @@ private fun ObsScenesView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ObsSceneMediaSourceView(
-    model: Model,
+    model: Model = LocalModel.current,
     source: ObsSceneMediaSource,
 ) {
     var showSettings by remember { mutableStateOf(false) }
@@ -304,7 +305,7 @@ private fun ObsSceneMediaSourceView(
 
 @Composable
 private fun ObsSceneMediaSourcesView(
-    model: Model,
+    model: Model = LocalModel.current,
     obsQuickButton: QuickButtonObs,
 ) {
     val sceneMediaSources by obsQuickButton.sceneMediaSources.collectAsState()
@@ -322,7 +323,7 @@ private fun ObsSceneMediaSourcesView(
 
 @Composable
 private fun ObsSceneAudioInputsView(
-    model: Model,
+    model: Model = LocalModel.current,
     obsQuickButton: QuickButtonObs,
 ) {
     val sceneInputs by obsQuickButton.sceneInputs.collectAsState()
@@ -367,7 +368,7 @@ private fun ObsSceneAudioInputsView(
 
 @Composable
 private fun ObsFixSourceView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     obsQuickButton: QuickButtonObs,
 ) {
@@ -406,7 +407,7 @@ private fun ObsFixSourceView(
 
 @Composable
 private fun ObsAudioSyncView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     obsQuickButton: QuickButtonObs,
 ) {

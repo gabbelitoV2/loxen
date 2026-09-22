@@ -28,6 +28,8 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextButtonView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun formatCatPrinterState(state: CatPrinterState?): String {
     return when (state) {
@@ -51,11 +53,11 @@ fun onDeviceChange(device: SettingsCatPrinter, value: String) {
 
 @Composable
 fun CatPrinterSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     catPrinters: SettingsCatPrinters,
     device: SettingsCatPrinter,
     status: StatusTopRight,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val name by device.name.collectAsState()
     val bluetoothPeripheralId by device.bluetoothPeripheralId.collectAsState()

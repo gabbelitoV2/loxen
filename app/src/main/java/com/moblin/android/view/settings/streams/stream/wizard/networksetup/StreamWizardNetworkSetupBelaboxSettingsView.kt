@@ -36,13 +36,15 @@ import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.FormFieldError
 import com.moblin.android.view.utils.HCenter
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardNetworkSetupBelaboxSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var urlError by remember { mutableStateOf("") }
     val belaboxUrl by createStreamWizard.belaboxUrl.collectAsState()

@@ -33,6 +33,7 @@ import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.FormFieldError
+import com.moblin.android.LocalModel
 
 private fun nextDisabled(url: String, streamKey: String, urlError: String): Boolean {
     return url.isEmpty() || streamKey.isEmpty() || urlError.isNotEmpty()
@@ -50,7 +51,7 @@ private fun updateUrlError(url: String): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardCustomRtmpSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
     onCustomRtmpUrlChange: (String) -> Unit = {},
     onCustomRtmpStreamKeyChange: (String) -> Unit = {},

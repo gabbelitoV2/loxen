@@ -27,16 +27,18 @@ import com.moblin.android.view.settings.ingests.rtmpserver.IngestStreamItemView
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.UrlsView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private const val WhipServerStreamDestination = "whipServerStream"
 
 @Composable
 fun WhipServerStreamSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     status: StatusOther,
     whipServer: SettingsWhipServer,
     stream: SettingsWhipServerStream,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Box(
         modifier = Modifier.clickable {
@@ -73,7 +75,7 @@ private fun submitLatency(stream: SettingsWhipServerStream, value: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WhipServerStreamSettingsDetail(
-    model: Model,
+    model: Model = LocalModel.current,
     status: StatusOther,
     whipServer: SettingsWhipServer,
     stream: SettingsWhipServerStream

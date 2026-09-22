@@ -66,6 +66,7 @@ import com.moblin.android.view.utils.ChatLineStyle
 import com.moblin.android.view.utils.ChatLineView
 import java.util.UUID
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalModel
 
 private fun makeChatLineStyle(chat: SettingsChat, interactive: Boolean): ChatLineStyle {
     return ChatLineStyle(
@@ -263,7 +264,7 @@ private fun Modifier.hitTestEnabled(enabled: Boolean): Modifier {
 
 @Composable
 private fun MessagesView(
-    model: Model,
+    model: Model = LocalModel.current,
     chatSettings: SettingsChat,
     chat: ChatProvider,
     width: Float,
@@ -558,7 +559,7 @@ private fun SeparatorView(
 
 @Composable
 fun StreamOverlayChatView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     chatSettings: SettingsChat,
     chat: ChatProvider,

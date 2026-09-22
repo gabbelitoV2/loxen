@@ -48,10 +48,11 @@ import com.moblin.android.various.settings.SettingsWidgetScoreboardClock
 import com.moblin.android.view.settings.scenes.widgets.widget.text.TimeButtonView
 import com.moblin.android.view.settings.scenes.widgets.widget.text.TimeComponentPickerView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
 
 @Composable
 private fun TimePickerView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     clock: SettingsWidgetScoreboardClock,
     presenting: Boolean,
@@ -101,7 +102,7 @@ private fun TimePickerView(
 
 @Composable
 private fun ScoreboardSetClockButtonView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     clock: SettingsWidgetScoreboardClock
 ) {
@@ -192,7 +193,7 @@ fun ScoreboardResetScoreButtonView(action: () -> Unit) {
 }
 
 @Composable
-fun WidgetScoreboardGenericQuickButtonControlsView(model: Model, widget: SettingsWidget) {
+fun WidgetScoreboardGenericQuickButtonControlsView(model: Model = LocalModel.current, widget: SettingsWidget) {
     Row(
         modifier = Modifier.height(IntrinsicSize.Min),
         horizontalArrangement = Arrangement.spacedBy(13.dp),

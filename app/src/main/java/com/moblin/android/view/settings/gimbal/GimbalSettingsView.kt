@@ -54,6 +54,8 @@ import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import kotlin.math.PI
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun ZoomValueView(
@@ -77,10 +79,10 @@ private fun ZoomValueView(
 
 @Composable
 private fun GimbalPresetView(
-    model: Model,
+    model: Model = LocalModel.current,
     gimbal: SettingsGimbal,
     preset: SettingsGimbalPreset,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val presetName by preset.name.collectAsState()
     Row(
@@ -95,7 +97,7 @@ private fun GimbalPresetView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GimbalPresetDetailView(
-    model: Model,
+    model: Model = LocalModel.current,
     gimbal: SettingsGimbal,
     preset: SettingsGimbalPreset,
 ) {
@@ -214,9 +216,9 @@ fun GimbalPresetDetailView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GimbalSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     gimbal: SettingsGimbal,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val zoomSpeed by gimbal.zoomSpeed.collectAsState()
     val naturalZoom by gimbal.naturalZoom.collectAsState()

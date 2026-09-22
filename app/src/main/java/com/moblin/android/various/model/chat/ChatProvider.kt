@@ -10,21 +10,14 @@ import kotlinx.coroutines.flow.asStateFlow
 class ChatProvider(maximumNumberOfMessages: Int) {
     var newPosts: ArrayDeque<ChatPost> = ArrayDeque()
     var pausedPosts: ArrayDeque<ChatPost> = ArrayDeque()
-    private val _posts = MutableStateFlow<List<ChatPost>>(emptyList())
-    val posts: StateFlow<List<ChatPost>> = _posts.asStateFlow()
-    private val _pausedPostsCount = MutableStateFlow(0)
-    val pausedPostsCount: StateFlow<Int> = _pausedPostsCount.asStateFlow()
-    private val _paused = MutableStateFlow(false)
-    val paused: StateFlow<Boolean> = _paused.asStateFlow()
+    val posts = MutableStateFlow<List<ChatPost>>(emptyList())
+    val pausedPostsCount = MutableStateFlow(0)
+    val paused = MutableStateFlow(false)
     private val maximumNumberOfMessages: Int
-    private val _moreThanOneStreamingPlatform = MutableStateFlow(false)
-    val moreThanOneStreamingPlatform: StateFlow<Boolean> = _moreThanOneStreamingPlatform.asStateFlow()
-    private val _interactiveChat = MutableStateFlow(false)
-    val interactiveChat: StateFlow<Boolean> = _interactiveChat.asStateFlow()
-    private val _triggerScrollToBottom = MutableStateFlow(false)
-    val triggerScrollToBottom: StateFlow<Boolean> = _triggerScrollToBottom.asStateFlow()
-    private val _showLabel = MutableStateFlow(false)
-    val showLabel: StateFlow<Boolean> = _showLabel.asStateFlow()
+    val moreThanOneStreamingPlatform = MutableStateFlow(false)
+    val interactiveChat = MutableStateFlow(false)
+    val triggerScrollToBottom = MutableStateFlow(false)
+    val showLabel = MutableStateFlow(false)
     private val hideLabelTimer = MainTimer()
 
     init {
@@ -32,14 +25,14 @@ class ChatProvider(maximumNumberOfMessages: Int) {
     }
 
     fun showLabelForAWhile() {
-        _showLabel.value = true
+        showLabel.value = true
         hideLabelTimer.startSingleShot(5.0) {
-            _showLabel.value = false
+            showLabel.value = false
         }
     }
 
     fun appendMessage(post: ChatPost) {
-        if (_paused.value) {
+        if (paused.value) {
             if (pausedPosts.size < 2 * maximumNumberOfMessages) {
                 pausedPosts.addLast(post)
             }
@@ -85,13 +78,13 @@ class ChatProvider(maximumNumberOfMessages: Int) {
     }
 
     fun update() {
-        if (_paused.value) {
+        if (paused.value) {
             val count = max(pausedPosts.size - 1, 0)
-            if (count != _pausedPostsCount.value) {
-                _pausedPostsCount.value = count
+            if (count != pausedPostsCount.value) {
+                pausedPostsCount.value = count
             }
         } else {
-            val updated = _posts.value.toMutableList()
+            val updated = posts.value.toMutableList()
             while (newPosts.isNotEmpty()) {
                 val post = newPosts.removeFirst()
                 if (updated.size > maximumNumberOfMessages - 1) {
@@ -99,13 +92,13 @@ class ChatProvider(maximumNumberOfMessages: Int) {
                 }
                 updated.add(0, post)
             }
-            _posts.value = updated
+            posts.value = updated
         }
     }
 
     fun pause(redLine: ChatPost) {
-        _paused.value = true
-        _pausedPostsCount.value = 0
+        paused.value = true
+        pausedPostsCount.value = 0
         pausedPosts.clear()
         pausedPosts.addLast(redLine)
         while (newPosts.isNotEmpty()) {
@@ -114,7 +107,7 @@ class ChatProvider(maximumNumberOfMessages: Int) {
     }
 
     fun endReachedWhenPaused() {
-        val updated = _posts.value.toMutableList()
+        val updated = posts.value.toMutableList()
         while (pausedPosts.isNotEmpty()) {
             val post = pausedPosts.removeFirst()
             if (post.isRedLine()) {
@@ -130,7 +123,7 @@ class ChatProvider(maximumNumberOfMessages: Int) {
             }
             updated.add(0, post)
         }
-        _posts.value = updated
-        _paused.value = false
+        posts.value = updated
+        paused.value = false
     }
 }

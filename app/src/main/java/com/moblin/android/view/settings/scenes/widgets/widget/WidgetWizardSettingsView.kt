@@ -45,6 +45,8 @@ import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 fun basicWidgetSettingsTitle(createWidgetWizard: CreateWidgetWizard): String {
     return localized("Basic ${createWidgetWizard.type.value.toString()} widget settings")
@@ -77,17 +79,16 @@ private fun AddWidgetToSceneView(scene: SceneToAddWidgetTo) {
 
 class SceneToAddWidgetTo(val scene: SettingsScene, enabled: Boolean) {
     val id: UUID = UUID.randomUUID()
-    private val _enabled = MutableStateFlow(enabled)
-    val enabled: StateFlow<Boolean> = _enabled.asStateFlow()
+    val enabled = MutableStateFlow(enabled)
 
     fun toggleEnabled() {
-        _enabled.value = !_enabled.value
+        enabled.value = !enabled.value
     }
 }
 
 @Composable
 private fun SelectScenesView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     createWidgetWizard: CreateWidgetWizard,
     presentingCreateWizard: Boolean,
@@ -142,12 +143,12 @@ private fun SelectScenesView(
 
 @Composable
 fun WidgetWizardSelectScenesNavigationView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     createWidgetWizard: CreateWidgetWizard,
     presentingCreateWizard: Boolean,
     onPresentingCreateWizardChange: (Boolean) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Column {
         WizardNextButtonView(onClick = { onNavigate("SelectScenesView") })
@@ -156,12 +157,12 @@ fun WidgetWizardSelectScenesNavigationView(
 
 @Composable
 fun WidgetWizardSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     createWidgetWizard: CreateWidgetWizard,
     presentingCreateWizard: Boolean,
     onPresentingCreateWizardChange: (Boolean) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val type by createWidgetWizard.type.collectAsState()
     val name by createWidgetWizard.name.collectAsState()

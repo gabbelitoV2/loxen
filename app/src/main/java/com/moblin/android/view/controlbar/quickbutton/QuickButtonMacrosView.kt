@@ -28,9 +28,11 @@ import com.moblin.android.various.model.ShowingPanel
 import com.moblin.android.various.settings.SettingsMacros
 import com.moblin.android.various.settings.SettingsMacrosMacro
 import com.moblin.android.view.utils.ShortcutSectionView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
-private fun MacroView(model: Model, macro: SettingsMacrosMacro) {
+private fun MacroView(model: Model = LocalModel.current, macro: SettingsMacrosMacro) {
     val name by macro.name.collectAsState()
     val running by macro.running.collectAsState()
     val finished by macro.finished.collectAsState()
@@ -73,9 +75,9 @@ private fun MacroView(model: Model, macro: SettingsMacrosMacro) {
 
 @Composable
 fun QuickButtonMacrosView(
-    model: Model,
+    model: Model = LocalModel.current,
     macros: SettingsMacros,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val macrosList by macros.macros.collectAsState()
     LazyColumn(modifier = Modifier.fillMaxSize()) {

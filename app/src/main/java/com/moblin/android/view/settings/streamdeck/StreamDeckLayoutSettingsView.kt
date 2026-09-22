@@ -58,6 +58,8 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun functions(): List<SettingsControllerFunction> {
     return SettingsControllerFunction.entries.filter {
@@ -66,7 +68,7 @@ private fun functions(): List<SettingsControllerFunction> {
 }
 
 @Composable
-private fun StreamDeckSettingsKeyView(model: Model, key: SettingsStreamDeckKey) {
+private fun StreamDeckSettingsKeyView(model: Model = LocalModel.current, key: SettingsStreamDeckKey) {
     val text by key.text.collectAsState()
     val colorColor by key.colorColor.collectAsState()
     val function by key.function.collectAsState()
@@ -253,9 +255,9 @@ private fun StreamDeckXlView(
 
 @Composable
 private fun StreamDeckLayoutSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     layout: SettingsStreamDeckLayout,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val name by layout.name.collectAsState()
     Text(
@@ -268,7 +270,7 @@ private fun StreamDeckLayoutSettingsView(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreamDeckLayoutSettingsDetailView(model: Model, layout: SettingsStreamDeckLayout) {
+fun StreamDeckLayoutSettingsDetailView(model: Model = LocalModel.current, layout: SettingsStreamDeckLayout) {
     val name by layout.name.collectAsState()
     val deckModel by layout.model.collectAsState()
     val keys by layout.keys.collectAsState()
@@ -360,10 +362,10 @@ fun StreamDeckLayoutSettingsDetailView(model: Model, layout: SettingsStreamDeckL
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamDecksSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     streamDeck: StreamDeck,
     streamDecks: SettingsStreamDecks,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isDeviceDriverInstalled by streamDeck.isDeviceDriverInstalled.collectAsState()
     val selectedId by streamDecks.selectedId.collectAsState()

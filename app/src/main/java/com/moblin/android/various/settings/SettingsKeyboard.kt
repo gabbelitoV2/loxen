@@ -21,20 +21,20 @@ class SettingsKeyboardKey {
             _key.value = value
         }
 
-    private val _function = MutableStateFlow(SettingsControllerFunction.unused)
+    private val function = MutableStateFlow(SettingsControllerFunction.unused)
 
     var function: SettingsControllerFunction
-        get() = _function.value
+        get() = function.value
         set(value) {
-            _function.value = value
+            function.value = value
         }
 
-    private val _functionData = MutableStateFlow(SettingsControllerFunctionData())
+    private val functionData = MutableStateFlow(SettingsControllerFunctionData())
 
     var functionData: SettingsControllerFunctionData
-        get() = _functionData.value
+        get() = functionData.value
         set(value) {
-            _functionData.value = value
+            functionData.value = value
         }
 }
 

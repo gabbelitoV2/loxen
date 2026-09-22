@@ -38,14 +38,16 @@ import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.InfoBannerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private const val ristServerSettingsDestination = "RIST server"
 
 @Composable
 fun RistServerSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     ristServer: SettingsRistServer,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier
@@ -63,7 +65,7 @@ fun RistServerSettingsView(
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun RistServerSettingsDetailView(
-    model: Model,
+    model: Model = LocalModel.current,
     ristServer: SettingsRistServer,
 ) {
     val statusOther by model.statusOther.collectAsState()

@@ -20,10 +20,11 @@ import com.moblin.android.various.settings.SettingsMediaPlayers
 import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.utils.CreateButtonView
+import com.moblin.android.LocalModel
 
 @Composable
 fun MediaPlayersSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     mediaPlayers: SettingsMediaPlayers,
 ) {
     LazyColumn(modifier = Modifier.fillMaxWidth()) {

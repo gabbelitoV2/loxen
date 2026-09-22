@@ -78,11 +78,11 @@ class CreateStreamWizard {
         set(value) {
             _presentingSetup.value = value
         }
-    private val _showTwitchAuth = MutableStateFlow(false)
+    private val showTwitchAuth = MutableStateFlow(false)
     var showTwitchAuth: Boolean
-        get() = _showTwitchAuth.value
+        get() = showTwitchAuth.value
         set(value) {
-            _showTwitchAuth.value = value
+            showTwitchAuth.value = value
         }
     private val _showKickAuth = MutableStateFlow(false)
     var showKickAuth: Boolean
@@ -90,11 +90,11 @@ class CreateStreamWizard {
         set(value) {
             _showKickAuth.value = value
         }
-    private val _name = MutableStateFlow("")
+    private val name = MutableStateFlow("")
     var name: String
-        get() = _name.value
+        get() = name.value
         set(value) {
-            _name.value = value
+            name.value = value
         }
     private val _backgroundStreaming = MutableStateFlow(false)
     var backgroundStreaming: Boolean

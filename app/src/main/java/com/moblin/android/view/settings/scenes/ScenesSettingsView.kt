@@ -48,13 +48,15 @@ import com.moblin.android.view.utils.SwipeLeftToDeleteButtonView
 import com.moblin.android.view.utils.SwipeLeftToDuplicateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDuplicateOrDeleteHelpView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun SceneItemView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     scene: SettingsScene,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val name by scene.name.collectAsState()
     val enabled by scene.enabled.collectAsState()
@@ -106,9 +108,9 @@ private fun SceneItemView(
 
 @Composable
 private fun ScenesListView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val scenes by database.scenes.collectAsState()
 
@@ -148,10 +150,10 @@ private fun ScenesListView(
 
 @Composable
 private fun SceneSwitching(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     debug: SettingsDebug,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Text(
         text = "Scene switching",
@@ -162,7 +164,7 @@ private fun SceneSwitching(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SceneSwitchingDetail(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     debug: SettingsDebug,
 ) {
@@ -239,7 +241,7 @@ private fun SceneSwitchingDetail(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RemoteSceneView(model: Model) {
+private fun RemoteSceneView(model: Model = LocalModel.current) {
     var selectedSceneId by remember { mutableStateOf(model.database.remoteSceneId.value) }
     var expanded by remember { mutableStateOf(false) }
     val scenes by model.database.scenes.collectAsState()
@@ -297,9 +299,9 @@ private fun RemoteSceneView(model: Model) {
 
 @Composable
 private fun GraphicsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Text(
         text = "Graphics",
@@ -310,7 +312,7 @@ private fun GraphicsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GraphicsDetail(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
 ) {
     val implementation by database.graphicsImplementation.collectAsState()
@@ -386,9 +388,9 @@ fun SceneNameView(scene: SettingsScene) {
 
 @Composable
 fun ScenesSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val showAllSettings by database.showAllSettings.collectAsState()
 

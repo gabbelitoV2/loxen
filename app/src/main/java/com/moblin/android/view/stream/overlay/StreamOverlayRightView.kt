@@ -70,6 +70,7 @@ import com.moblin.android.view.stream.overlay.right.StreamOverlayRightVideoPrevi
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightWhirlpoolView
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightZoomPresetSelctorView
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightZoomPresetVSelctorView
+import com.moblin.android.LocalModel
 
 @Composable
 private fun CollapsedBondingView(bonding: Bonding, color: Color) {
@@ -97,7 +98,7 @@ private fun CollapsedBondingView(bonding: Bonding, color: Color) {
 
 @Composable
 private fun BondingStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     bonding: Bonding,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -129,7 +130,7 @@ private fun BondingStatusView(
 
 @Composable
 private fun ReplayStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     replay: SettingsStreamReplay,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -172,7 +173,7 @@ private fun CollapsedAdsRemainingTimerView(status: StatusTopRight) {
 
 @Composable
 private fun AdsRemainingTimerView(
-    model: Model,
+    model: Model = LocalModel.current,
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
@@ -224,7 +225,7 @@ private fun CollapsedBitrateView(bitrate: Bitrate) {
 
 @Composable
 private fun BitrateStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     bitrate: Bitrate,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -248,7 +249,7 @@ private fun BitrateStatusView(
 }
 
 @Composable
-private fun netStreamColor(model: Model): Color {
+private fun netStreamColor(model: Model = LocalModel.current): Color {
     val streamState by model.streamState.collectAsState()
     return if (model.isStreaming()) {
         when (streamState) {
@@ -263,7 +264,7 @@ private fun netStreamColor(model: Model): Color {
 
 @Composable
 private fun StreamUptimeStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     streamUptime: StreamUptimeProvider,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -281,7 +282,7 @@ private fun StreamUptimeStatusView(
 
 @Composable
 private fun CpuStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     systemMonitor: SystemMonitor,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -322,7 +323,7 @@ private fun CpuStatusView(
 
 @Composable
 private fun MoblinkStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     moblink: Moblink,
     streamer: SettingsMoblinkStreamer,
@@ -354,7 +355,7 @@ private fun MoblinkStatusView(
 
 @Composable
 private fun RemoteControlStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     status: StatusTopRight,
     streamer: SettingsRemoteControlStreamer,
@@ -384,7 +385,7 @@ private fun RemoteControlStatusView(
 
 @Composable
 private fun DjiDevicesStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -402,7 +403,7 @@ private fun DjiDevicesStatusView(
 
 @Composable
 private fun GameControllersStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -419,7 +420,7 @@ private fun GameControllersStatusView(
 
 @Composable
 private fun IngestsStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     ingests: Ingests,
     rtmpServer: SettingsRtmpServer,
@@ -438,7 +439,7 @@ private fun IngestsStatusView(
 
 @Composable
 private fun LocationStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     location: com.moblin.android.various.settings.SettingsLocation,
     status: StatusTopRight,
@@ -456,7 +457,7 @@ private fun LocationStatusView(
 
 @Composable
 private fun RecordingStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     recording: RecordingProvider,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -473,7 +474,7 @@ private fun RecordingStatusView(
 
 @Composable
 private fun BrowserWidgetsStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -490,7 +491,7 @@ private fun BrowserWidgetsStatusView(
 
 @Composable
 private fun CatPrinterStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -516,7 +517,7 @@ private fun CatPrinterStatusView(
 
 @Composable
 private fun WorkoutDeviceStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -542,7 +543,7 @@ private fun WorkoutDeviceStatusView(
 
 @Composable
 private fun FixedHorizonStatusView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -606,7 +607,7 @@ private fun AutoSceneSwitcherStatusView(
 
 @Composable
 private fun StatusesView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
@@ -727,7 +728,7 @@ private fun StatusesView(
 
 @Composable
 private fun AudioView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     show: SettingsShow,
 ) {
@@ -738,7 +739,7 @@ private fun AudioView(
 }
 
 @Composable
-fun RightOverlayTopView(model: Model, database: Database) {
+fun RightOverlayTopView(model: Model = LocalModel.current, database: Database) {
     val verboseStatuses by database.verboseStatuses.collectAsState()
     Column(
         horizontalAlignment = Alignment.End,
@@ -777,7 +778,7 @@ fun RightOverlayTopView(model: Model, database: Database) {
 
 @Composable
 private fun RightOverlayBottomVerticalView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     show: SettingsShow,
     streamOverlay: StreamOverlay,
@@ -838,7 +839,7 @@ private fun RightOverlayBottomVerticalView(
 
 @Composable
 private fun RightOverlayBottomHorizontalView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     show: SettingsShow,
     streamOverlay: StreamOverlay,
@@ -894,7 +895,7 @@ private fun RightOverlayBottomHorizontalView(
 
 @Composable
 fun RightOverlayBottomView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     show: SettingsShow,
     streamOverlay: StreamOverlay,

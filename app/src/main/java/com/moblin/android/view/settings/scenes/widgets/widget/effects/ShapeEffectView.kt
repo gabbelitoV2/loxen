@@ -42,6 +42,7 @@ import com.moblin.android.view.settings.scenes.widgets.widget.videosource.calcul
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.calculatePositioningRectangle
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.drawPositioningRectangle
 import com.moblin.android.view.utils.RgbColorPickerView
+import com.moblin.android.LocalModel
 
 @Composable
 private fun CornerRadiusView(
@@ -216,7 +217,7 @@ private fun CropView(
 
 @Composable
 fun ShapeEffectView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     effect: SettingsVideoEffect,
     shape: SettingsVideoEffectShape

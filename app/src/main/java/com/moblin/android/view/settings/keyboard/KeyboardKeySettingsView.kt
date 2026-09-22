@@ -36,6 +36,8 @@ import com.moblin.android.various.settings.SettingsControllerFunction
 import com.moblin.android.various.settings.SettingsKeyboardKey
 import com.moblin.android.view.settings.gamecontrollers.ControllerButtonView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun SelectedKeyView(key: SettingsKeyboardKey) {
@@ -96,9 +98,9 @@ private fun functions(): List<SettingsControllerFunction> {
 
 @Composable
 fun KeyboardKeySettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     key: SettingsKeyboardKey,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val function by key.function.collectAsState()
     val functionData by key.functionData.collectAsState()
@@ -129,9 +131,9 @@ fun KeyboardKeySettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeyboardKeySettingsForm(
-    model: Model,
+    model: Model = LocalModel.current,
     key: SettingsKeyboardKey,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Scaffold(
         topBar = {

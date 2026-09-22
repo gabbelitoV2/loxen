@@ -20,11 +20,12 @@ import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSelect
 import com.moblin.android.view.settings.scenes.widgets.widget.basicWidgetSettingsTitle
 import com.moblin.android.view.settings.scenes.widgets.widget.wheelofluck.WheelOfLuckWidgetOptionsView
 import com.moblin.android.view.utils.CloseToolbarButtonView
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetWizardWheelOfLuckSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     wheelOfLuck: SettingsWidgetWheelOfLuck,
     createWidgetWizard: CreateWidgetWizard,

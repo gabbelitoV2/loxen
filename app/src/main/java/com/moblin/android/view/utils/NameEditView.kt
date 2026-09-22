@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.moblin.android.localized
 import com.moblin.android.various.utils.Named
+import com.moblin.android.LocalOnNavigate
 
 private fun onChange(value: String, name: String, existingNames: List<Named>): String? {
     if (value.isEmpty()) {
@@ -21,7 +22,7 @@ private fun onChange(value: String, name: String, existingNames: List<Named>): S
 fun NameEditView(
     name: String,
     onNameChange: (String) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     existingNames: List<Named> = emptyList(),
 ) {
     Box(modifier = Modifier.clickable { onNavigate("TextEditView") }) {

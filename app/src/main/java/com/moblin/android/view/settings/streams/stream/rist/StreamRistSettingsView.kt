@@ -16,10 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStream
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreamRistSettingsView(model: Model, stream: SettingsStream) {
+fun StreamRistSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("RIST") })

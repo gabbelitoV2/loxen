@@ -61,6 +61,7 @@ import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.isPhone
 import com.moblin.android.view.utils.HCenter
+import com.moblin.android.LocalModel
 
 private fun edgesToIgnore(): List<String> {
     return if (isPhone()) {
@@ -80,7 +81,7 @@ fun controlBarWidth(quickButtons: SettingsQuickButtons): Double {
 
 @Composable
 private fun QuickButtonsView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
     page: Int,
@@ -166,7 +167,7 @@ private fun QuickButtonsView(
 }
 
 @Composable
-private fun StatusView(model: Model, status: StatusOther) {
+private fun StatusView(model: Model = LocalModel.current, status: StatusOther) {
     var presentingThermalState by remember { mutableStateOf(false) }
     val battery = model.battery.collectAsState().value
     val thermalState = status.thermalState.collectAsState().value
@@ -210,7 +211,7 @@ private fun StatusView(model: Model, status: StatusOther) {
 }
 
 @Composable
-private fun IconAndSettingsView(model: Model, store: Store) {
+private fun IconAndSettingsView(model: Model = LocalModel.current, store: Store) {
     val iconImage = store.iconImage.collectAsState().value
 
     HCenter {
@@ -255,7 +256,7 @@ private fun IconAndSettingsView(model: Model, store: Store) {
 
 @Composable
 private fun PageView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
     page: Int,
@@ -285,7 +286,7 @@ private fun PageView(
 
 @Composable
 private fun MainPageView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
     store: Store,
@@ -341,7 +342,7 @@ private class ControlBarPageScrollTargetBehavior(private val model: Model) {
 }
 
 @Composable
-private fun PageIndicatorView(model: Model, size: Float, quickButtons: QuickButtons) {
+private fun PageIndicatorView(model: Model = LocalModel.current, size: Float, quickButtons: QuickButtons) {
     val pairs = quickButtons.pairs.collectAsState().value
     val activePage = quickButtons.activePage.collectAsState().value
 
@@ -378,7 +379,7 @@ private fun PageIndicatorView(model: Model, size: Float, quickButtons: QuickButt
 
 @Composable
 private fun PagesView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtons: QuickButtons,
     quickButtonsSettings: SettingsQuickButtons,
     width: Double,
@@ -463,7 +464,7 @@ private fun PagesView(
 }
 
 @Composable
-fun ControlBarLandscapeView(model: Model, quickButtons: SettingsQuickButtons) {
+fun ControlBarLandscapeView(model: Model = LocalModel.current, quickButtons: SettingsQuickButtons) {
     val statusOther = model.statusOther.collectAsState().value
     val quickButtonsState = model.quickButtons.collectAsState().value
     val controlBar = model.controlBar.collectAsState().value

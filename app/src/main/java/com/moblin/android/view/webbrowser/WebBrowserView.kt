@@ -66,16 +66,17 @@ import com.moblin.android.view.utils.CloseToolbar
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.LocalModel
 
 private val smallBrowserSide = 250.dp
 
 @Composable
-fun WebView(model: Model) {
+fun WebView(model: Model = LocalModel.current) {
     AndroidView(factory = { model.getWebBrowser() })
 }
 
 @Composable
-private fun UrlView(model: Model) {
+private fun UrlView(model: Model = LocalModel.current) {
     val url by model.webBrowserUrl.collectAsState()
     OutlinedTextField(
         value = url,
@@ -100,7 +101,7 @@ private fun UrlView(model: Model) {
 }
 
 @Composable
-private fun NextPrevView(model: Model) {
+private fun NextPrevView(model: Model = LocalModel.current) {
     Row {
         IconButton(
             onClick = { model.getWebBrowser().goBack() },
@@ -127,7 +128,7 @@ private fun NextPrevView(model: Model) {
 
 @Composable
 private fun RefreshBookmarksView(
-    model: Model,
+    model: Model = LocalModel.current,
     showingBookmarks: Boolean,
     onShowingBookmarksChange: (Boolean) -> Unit,
     isSmall: Boolean,
@@ -161,7 +162,7 @@ private fun RefreshBookmarksView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BookmarksView(
-    model: Model,
+    model: Model = LocalModel.current,
     webBrowser: WebBrowserSettings,
     presentingBookmarks: Boolean,
     onPresentingBookmarksChange: (Boolean) -> Unit,
@@ -234,7 +235,7 @@ private fun offset(database: Database): Dp {
 
 @Composable
 private fun WebBrowserSmallView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     webBrowserState: WebBrowserState,
 ) {
@@ -285,7 +286,7 @@ private fun WebBrowserSmallView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WebBrowserBigView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     orientation: Orientation,
     webBrowserState: WebBrowserState,
@@ -357,7 +358,7 @@ private fun WebBrowserBigView(
 
 @Composable
 fun WebBrowserView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     orientation: Orientation,
     webBrowserState: WebBrowserState,

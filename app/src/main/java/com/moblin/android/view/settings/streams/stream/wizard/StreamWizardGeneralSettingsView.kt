@@ -29,10 +29,11 @@ import com.moblin.android.view.settings.streams.stream.BackgroundStreamingFooter
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.utils.TextButtonView
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreamWizardGeneralSettingsView(model: Model, createStreamWizard: CreateStreamWizard) {
+fun StreamWizardGeneralSettingsView(model: Model = LocalModel.current, createStreamWizard: CreateStreamWizard) {
     val name by createStreamWizard.name.collectAsState()
     val platform by createStreamWizard.platform.collectAsState()
     val autoGoLive by createStreamWizard.autoGoLive.collectAsState()

@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -137,7 +138,7 @@ fun TextEditNavigationView(
     placeholder: String = "",
     sensitive: Boolean = false,
     valueFormat: ((String) -> String)? = null,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val currentValue = remember { mutableStateOf(value) }
     val errorMessage = remember { mutableStateOf<String?>(null) }

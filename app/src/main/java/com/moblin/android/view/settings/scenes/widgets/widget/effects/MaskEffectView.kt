@@ -70,6 +70,7 @@ import com.moblin.android.videoeffects.makeCatmullRomPath
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.RgbColorPickerView
 import kotlin.math.hypot
+import com.moblin.android.LocalModel
 
 private val maskPointHandleRadius: Float = 12f
 private val maskEdgeHitWidth: Float = 20f
@@ -546,7 +547,7 @@ private fun MaskEditorView(
 
 @Composable
 fun MaskEffectView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     effect: SettingsVideoEffect,
     mask: SettingsVideoEffectMask,

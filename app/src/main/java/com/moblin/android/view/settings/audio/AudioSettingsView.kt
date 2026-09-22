@@ -39,13 +39,15 @@ import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun MicView(
-    model: Model,
+    model: Model = LocalModel.current,
     mics: SettingsMics,
     mic: Mic,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier
@@ -64,13 +66,13 @@ private fun MicView(
 
 @Composable
 fun AudioSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     stream: SettingsStream,
     mic: Mic,
     debug: SettingsDebug,
     audio: SettingsAudio,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val showAllSettings by database.showAllSettings.collectAsState()
     val audioBitrate by stream.audioBitrate.collectAsState()

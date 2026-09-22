@@ -51,6 +51,8 @@ import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.view.utils.UrlsView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun isAllowedPassword(password: String): Boolean {
     return password.isNotEmpty()
@@ -59,7 +61,7 @@ private fun isAllowedPassword(password: String): Boolean {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PasswordView(
-    model: Model,
+    model: Model = LocalModel.current,
     initialValue: String,
     onSubmit: (String) -> Unit,
 ) {
@@ -166,7 +168,7 @@ private fun RelayStreamerServerView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RelayStreamerUrlView(
-    model: Model,
+    model: Model = LocalModel.current,
     moblink: Moblink,
     initialStreamerUrl: String,
     onDismiss: () -> Unit,
@@ -224,9 +226,9 @@ private fun RelayStreamerUrlView(
 
 @Composable
 private fun RelayView(
-    model: Model,
+    model: Model = LocalModel.current,
     relay: SettingsMoblinkRelay,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val isLive by model.isLive.collectAsState()
     val enabled by relay.enabled.collectAsState()
@@ -301,7 +303,7 @@ private fun RelayView(
 
 @Composable
 private fun StreamerView(
-    model: Model,
+    model: Model = LocalModel.current,
     streamer: SettingsMoblinkStreamer,
 ) {
     val isLive by model.isLive.collectAsState()
@@ -351,10 +353,10 @@ private fun StreamerView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoblinkSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     status: StatusOther,
     streamer: SettingsMoblinkStreamer,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val password by model.database.moblink.password.collectAsState()
     val streamerEnabled by streamer.enabled.collectAsState()

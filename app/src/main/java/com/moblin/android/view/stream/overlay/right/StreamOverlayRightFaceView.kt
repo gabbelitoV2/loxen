@@ -36,6 +36,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsFace
 import com.moblin.android.various.settings.SettingsFacePrivacyMode
 import kotlin.math.roundToInt
+import com.moblin.android.LocalModel
 
 @Composable
 fun EffectSlider(
@@ -75,7 +76,7 @@ fun EffectSlider(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreamOverlayRightFaceView(model: Model, face: SettingsFace) {
+fun StreamOverlayRightFaceView(model: Model = LocalModel.current, face: SettingsFace) {
     var selectedImageItem by remember { mutableStateOf<ByteArray?>(null) }
     val blurFaces by face.blurFaces.collectAsState()
     val blurText by face.blurText.collectAsState()

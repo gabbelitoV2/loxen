@@ -52,6 +52,8 @@ import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextEditNavigationView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun getPomodoroSoundName(model: Model, soundId: UUID?): String {
     return model.getAllAlertSounds().firstOrNull { it.id == soundId }?.name ?: localized("-- None --")
@@ -60,7 +62,7 @@ private fun getPomodoroSoundName(model: Model, soundId: UUID?): String {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PomodoroSoundSelectorView(
-    model: Model,
+    model: Model = LocalModel.current,
     soundId: UUID?,
     onChange: (UUID?) -> Unit,
 ) {
@@ -153,9 +155,9 @@ fun WidgetPomodoroTimerQuickButtonControlsView(pomodoroTimer: SettingsWidgetPomo
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetPomodoroTimerSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     pomodoroTimer: SettingsWidgetPomodoroTimer,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val focusDuration by pomodoroTimer.focusDuration.collectAsState()
     val breakDuration by pomodoroTimer.breakDuration.collectAsState()

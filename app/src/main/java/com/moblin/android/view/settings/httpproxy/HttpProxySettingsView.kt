@@ -22,10 +22,11 @@ import com.moblin.android.various.network.DefaultTcpPorts
 import com.moblin.android.various.settings.SettingsHttpProxy
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.UrlsView
+import com.moblin.android.LocalModel
 
 @Composable
 fun HttpProxySettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     status: StatusOther,
     httpProxy: SettingsHttpProxy,
 ) {

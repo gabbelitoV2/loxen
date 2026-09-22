@@ -25,6 +25,7 @@ import com.moblin.android.common.various.formatBytesPerSecond
 import com.moblin.android.various.settings.SettingsStreamPreviewStream
 import com.moblin.android.various.settings.SettingsStreamResolution
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.LocalOnNavigate
 
 private fun resolutions(): List<SettingsStreamResolution> =
     listOf(
@@ -40,7 +41,7 @@ private fun videoBitrates(): List<Int> =
 @Composable
 fun StreamPreviewStreamSettingsView(
     previewStream: SettingsStreamPreviewStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val url by previewStream.url.collectAsState()
     val resolution by previewStream.resolution.collectAsState()

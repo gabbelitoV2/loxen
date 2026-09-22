@@ -25,6 +25,8 @@ import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsGameController
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun gameControllerIndex(database: Database, gameController: SettingsGameController): Int {
     val index = database.gameControllers.value.indexOfFirst { gameController2 ->
@@ -36,9 +38,9 @@ private fun gameControllerIndex(database: Database, gameController: SettingsGame
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun GameControllersSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val gameControllers by database.gameControllers.collectAsState()
     Scaffold(

@@ -23,11 +23,12 @@ import com.moblin.android.view.CloseButtonTopRightView
 import com.moblin.android.view.utils.ExternalUrlButtonView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutSettingsView(
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var presentingVersionHistory by remember { mutableStateOf(false) }
 

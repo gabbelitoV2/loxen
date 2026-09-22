@@ -29,6 +29,7 @@ import com.moblin.android.various.settings.SettingsMediaPlayers
 import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
+import com.moblin.android.LocalModel
 
 data class Video(val url: String) {
     companion object {
@@ -57,7 +58,7 @@ private suspend fun loadTransferableVideo(item: Uri): Result<Video?> =
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaPlayerSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     mediaPlayers: SettingsMediaPlayers,
     player: SettingsMediaPlayer,
     onNavigate: (String) -> Unit = {},

@@ -50,11 +50,13 @@ import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AuthenticationView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     onLoggedIn: () -> Unit
 ) {
@@ -92,7 +94,7 @@ private fun AuthenticationView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryButton(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     category: KickCategory,
     onDismiss: () -> Unit
@@ -123,7 +125,7 @@ private fun CategoryButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KickCategoryPickerView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     onDismiss: () -> Unit
 ) {
@@ -184,13 +186,13 @@ private fun KickCategoryPickerView(
 
 @Composable
 fun KickStreamLiveSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     title: String?,
     onTitleChange: (String?) -> Unit,
     category: String?,
     onCategoryChange: (String?) -> Unit,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -347,9 +349,9 @@ suspend fun loadKickStreamInfo(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamKickSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     var fetchingChannelInfo by remember { mutableStateOf(false) }
     var fetchChannelInfoFailed by remember { mutableStateOf(false) }

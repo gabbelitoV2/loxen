@@ -28,6 +28,7 @@ import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSelect
 import com.moblin.android.view.settings.scenes.widgets.widget.basicWidgetSettingsTitle
 import com.moblin.android.view.utils.CloseToolbar
 import com.moblin.android.view.utils.InlinePickerItem
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,7 +86,7 @@ private fun PickerView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetWizardVideoSourceSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     createWidgetWizard: CreateWidgetWizard,
     videoSource: SettingsWidgetVideoSource,

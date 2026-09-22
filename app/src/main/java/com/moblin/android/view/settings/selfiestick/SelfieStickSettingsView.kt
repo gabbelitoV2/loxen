@@ -21,6 +21,7 @@ import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsControllerFunction
 import com.moblin.android.various.settings.SettingsSelfieStick
 import com.moblin.android.view.settings.gamecontrollers.ControllerButtonView
+import com.moblin.android.LocalModel
 
 @Composable
 fun SelfieStickDoesNotWorkView(database: Database, selfieStick: SettingsSelfieStick) {
@@ -41,7 +42,7 @@ private fun functions(): List<SettingsControllerFunction> {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SelfieStickSettingsView(model: Model, selfieStick: SettingsSelfieStick) {
+fun SelfieStickSettingsView(model: Model = LocalModel.current, selfieStick: SettingsSelfieStick) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Selfie stick") })

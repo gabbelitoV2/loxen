@@ -57,6 +57,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalModel
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
@@ -93,7 +94,7 @@ private fun StealthButtonView(
 
 @Composable
 fun StealthModeView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtons: SettingsQuickButtons,
     chat: ChatProvider,
     chatAlerts: ChatProvider,

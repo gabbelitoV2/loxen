@@ -41,10 +41,12 @@ import com.moblin.android.view.settings.streams.stream.youtube.StreamYouTubeSche
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.StreamingPlatformsShortcutView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun TwitchView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     title: String?,
     onTitleChange: (String?) -> Unit,
@@ -70,7 +72,7 @@ private fun TwitchView(
 
 @Composable
 private fun KickView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     title: String?,
     onTitleChange: (String?) -> Unit,
@@ -96,7 +98,7 @@ private fun KickView(
 
 @Composable
 private fun YouTubeView(
-    model: Model,
+    model: Model = LocalModel.current,
     debug: SettingsDebug,
     stream: SettingsStream,
 ) {
@@ -119,9 +121,9 @@ private fun SoopView(
 
 @Composable
 private fun GoLiveNotificationView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val goLiveNotificationDiscordWebhookUrl by stream.goLiveNotificationDiscordWebhookUrl.collectAsState()
     var sending by remember { mutableStateOf(false) }
@@ -158,10 +160,10 @@ private fun GoLiveNotificationView(
 
 @Composable
 private fun ShortcutView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val showAllSettings by database.showAllSettings.collectAsState()
     ShortcutSectionView {
@@ -210,10 +212,10 @@ private fun isGoLiveNotificationConfigured(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonLiveView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var twitchTitle by remember { mutableStateOf<String?>(null) }
     var twitchCategory by remember { mutableStateOf<String?>(null) }

@@ -34,6 +34,8 @@ import com.moblin.android.various.settings.SettingsRtmpServerStream
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.UrlsView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun IngestStreamItemView(
@@ -58,11 +60,11 @@ fun IngestStreamItemView(
 
 @Composable
 fun RtmpServerStreamSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     status: StatusOther,
     rtmpServer: SettingsRtmpServer,
     stream: SettingsRtmpServerStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val name by stream.name.collectAsState()
     val streamKey by stream.streamKey.collectAsState()
@@ -102,7 +104,7 @@ private fun submitLatency(stream: SettingsRtmpServerStream, value: String) {
 
 @Composable
 fun RtmpServerStreamSettingsForm(
-    model: Model,
+    model: Model = LocalModel.current,
     status: StatusOther,
     rtmpServer: SettingsRtmpServer,
     stream: SettingsRtmpServerStream,

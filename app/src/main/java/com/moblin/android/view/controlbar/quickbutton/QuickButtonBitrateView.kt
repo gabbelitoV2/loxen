@@ -35,6 +35,8 @@ import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsBitratePreset
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.utils.ShortcutSectionView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun BitratePresetView(preset: SettingsBitratePreset) {
@@ -84,10 +86,10 @@ private fun BitratePicker(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonBitrateView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val bitrate by stream.bitrate.collectAsState()
     val bitratePresets by database.bitratePresets.collectAsState()

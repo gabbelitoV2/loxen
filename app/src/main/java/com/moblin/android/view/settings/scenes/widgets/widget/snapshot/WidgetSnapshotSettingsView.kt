@@ -23,11 +23,12 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetSnapshot
 import com.moblin.android.view.settings.scenes.widgets.widget.effects.WidgetEffectsView
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetSnapshotSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     snapshot: SettingsWidgetSnapshot,
 ) {

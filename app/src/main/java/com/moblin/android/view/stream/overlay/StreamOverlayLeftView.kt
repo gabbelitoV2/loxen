@@ -40,6 +40,7 @@ import com.moblin.android.various.model.StatusTopLeft
 import com.moblin.android.various.model.StreamingPlatformStatus
 import com.moblin.android.various.model.Zoom
 import com.moblin.android.various.settings.SettingsShow
+import com.moblin.android.LocalModel
 
 @Composable
 private fun CollapsedViewersView(status: StatusTopLeft) {
@@ -249,7 +250,7 @@ private fun obsStatusColor(model: Model): Color {
 
 @Composable
 private fun StatusesView(
-    model: Model,
+    model: Model = LocalModel.current,
     show: SettingsShow,
     status: StatusTopLeft,
     mic: Mic,
@@ -319,7 +320,7 @@ private fun StatusesView(
 }
 
 @Composable
-fun LeftOverlayView(model: Model, database: Database) {
+fun LeftOverlayView(model: Model = LocalModel.current, database: Database) {
     val verboseStatuses by database.verboseStatuses.collectAsState()
     Column(
         horizontalAlignment = Alignment.Start,

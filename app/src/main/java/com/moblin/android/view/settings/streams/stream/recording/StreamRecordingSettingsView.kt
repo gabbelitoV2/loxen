@@ -45,9 +45,11 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
-private fun PickerView(model: Model) {
+private fun PickerView(model: Model = LocalModel.current) {
     TODO("no Android counterpart for UIDocumentPickerViewController")
 }
 
@@ -62,7 +64,7 @@ private fun onUrl(url: String, recording: SettingsStreamRecording) {
 @Composable
 private fun RecordingPathView(
     recording: SettingsStreamRecording,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val recordingPath = recording.recordingPath.collectAsState().value
     Row(
@@ -82,7 +84,7 @@ private fun RecordingPathView(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecordingPathFormView(recording: SettingsStreamRecording, model: Model) {
+fun RecordingPathFormView(recording: SettingsStreamRecording, model: Model = LocalModel.current) {
     var showPicker by remember { mutableStateOf(false) }
     val recordingPath = recording.recordingPath.collectAsState().value
     Column(modifier = Modifier.fillMaxSize()) {
@@ -126,7 +128,7 @@ fun RecordingPathFormView(recording: SettingsStreamRecording, model: Model) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ResolutionSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     recording: SettingsStreamRecording,
     enabled: Boolean = true,
@@ -180,10 +182,10 @@ private fun submitMaxKeyFrameInterval(recording: SettingsStreamRecording, value:
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamRecordingSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     recording: SettingsStreamRecording,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val streamEnabled = stream.enabled.collectAsState().value
     val isLive = model.isLive.collectAsState().value

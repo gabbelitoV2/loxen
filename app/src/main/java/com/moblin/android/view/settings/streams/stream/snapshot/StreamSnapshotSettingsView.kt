@@ -27,11 +27,12 @@ import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamRecording
 import com.moblin.android.view.settings.streams.stream.DiscordLogoAndNameView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamSnapshotSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
     recording: SettingsStreamRecording,
 ) {

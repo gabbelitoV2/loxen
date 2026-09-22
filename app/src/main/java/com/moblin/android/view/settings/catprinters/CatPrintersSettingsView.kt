@@ -44,6 +44,8 @@ import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun IntegrationImageView(imageName: String, height: Double? = null) {
@@ -68,7 +70,7 @@ private fun CatPrinterSettingsWrapperView(
     catPrinters: SettingsCatPrinters,
     device: SettingsCatPrinter,
     status: StatusTopRight,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     modifier: Modifier = Modifier,
 ) {
     Text(
@@ -82,9 +84,9 @@ private fun CatPrinterSettingsWrapperView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CatPrintersSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     catPrinters: SettingsCatPrinters,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val statusTopRight = model.statusTopRight.collectAsState().value
     val devices = catPrinters.devices.collectAsState().value

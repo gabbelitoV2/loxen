@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import com.moblin.android.localized
 import com.moblin.android.various.settings.SettingsControllerThumbStickFunction
 import com.moblin.android.various.settings.color
+import com.moblin.android.LocalOnNavigate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,7 +73,7 @@ fun GameControllersControllerThumbStickSettingsView(
     name: String,
     function: SettingsControllerThumbStickFunction,
     onFunctionChange: (SettingsControllerThumbStickFunction) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier

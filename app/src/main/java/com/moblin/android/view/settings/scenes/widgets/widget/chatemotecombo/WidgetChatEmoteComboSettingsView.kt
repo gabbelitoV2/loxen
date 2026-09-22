@@ -20,10 +20,11 @@ import androidx.compose.ui.Modifier
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetChatEmoteCombo
+import com.moblin.android.LocalModel
 
 @Composable
 fun WidgetChatEmoteComboSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     chatEmoteCombo: SettingsWidgetChatEmoteCombo,
 ) {

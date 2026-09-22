@@ -26,11 +26,12 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.InlinePickerItem
 import com.moblin.android.workout.WorkoutDeviceScanner
 import com.moblin.android.workout.workoutDeviceScanner
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutDeviceScannerSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     scanner: WorkoutDeviceScanner = workoutDeviceScanner,
     onChange: (String) -> Unit,
     selectedId: String,

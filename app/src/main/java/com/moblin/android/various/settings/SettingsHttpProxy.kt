@@ -17,14 +17,11 @@ class SettingsHttpProxy(
     initialLocalNetwork: Boolean = false,
     initialPort: UShort = DefaultTcpPorts.httpProxy,
 ) {
-    private val _enabled = MutableStateFlow(initialEnabled)
-    val enabled: StateFlow<Boolean> = _enabled.asStateFlow()
+    val enabled = MutableStateFlow(initialEnabled)
 
-    private val _localNetwork = MutableStateFlow(initialLocalNetwork)
-    val localNetwork: StateFlow<Boolean> = _localNetwork.asStateFlow()
+    val localNetwork = MutableStateFlow(initialLocalNetwork)
 
-    private val _port = MutableStateFlow(initialPort)
-    val port: StateFlow<UShort> = _port.asStateFlow()
+    val port = MutableStateFlow(initialPort)
 }
 
 @Serializable

@@ -56,12 +56,14 @@ import com.moblin.android.view.utils.QrCodeImageView
 import com.moblin.android.view.utils.ShortcutSectionView
 import java.util.UUID
 import kotlinx.coroutines.launch
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private data class PickerEntry(val id: UUID, val name: String)
 
 @Composable
 private fun QuickButtonGoProBleDeviceView(
-    model: Model,
+    model: Model = LocalModel.current,
     device: SettingsGoProDevice,
 ) {
     val name by device.name.collectAsState()
@@ -353,10 +355,10 @@ private fun QuickButtonGoProRtmpUrlView(
 
 @Composable
 fun QuickButtonGoProView(
-    model: Model,
+    model: Model = LocalModel.current,
     goProState: GoProState,
     goPro: SettingsGoPro,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var activeIndex by remember { mutableStateOf<Int?>(0) }
     val devices by goPro.devices.collectAsState()

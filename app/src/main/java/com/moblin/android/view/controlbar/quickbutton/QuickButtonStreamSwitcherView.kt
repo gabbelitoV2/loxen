@@ -26,10 +26,11 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import kotlinx.coroutines.delay
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QuickButtonStreamSwitcherView(model: Model, database: Database) {
+fun QuickButtonStreamSwitcherView(model: Model = LocalModel.current, database: Database) {
     val currentStreamId by model.currentStreamId.collectAsState()
     var isFirstComposition by remember { mutableStateOf(true) }
     LaunchedEffect(currentStreamId) {

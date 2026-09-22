@@ -28,11 +28,12 @@ import com.moblin.android.view.settings.catprinters.IntegrationImageView
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutDevicesSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     workoutDevices: SettingsWorkoutDevices,
 ) {
     val devices = workoutDevices.devices.collectAsState().value

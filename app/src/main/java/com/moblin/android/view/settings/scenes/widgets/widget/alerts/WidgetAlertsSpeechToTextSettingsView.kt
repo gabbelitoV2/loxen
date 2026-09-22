@@ -33,13 +33,15 @@ import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun SpeechToTextStringView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     string: SettingsWidgetAlertsSpeechToTextString,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     onDelete: () -> Unit,
 ) {
     var text by remember { mutableStateOf(string.string) }
@@ -60,10 +62,10 @@ private fun SpeechToTextStringView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpeechToTextStringDetailView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     string: SettingsWidgetAlertsSpeechToTextString,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var text by remember { mutableStateOf(string.string) }
 
@@ -110,9 +112,9 @@ fun SpeechToTextStringDetailView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetAlertsSpeechToTextSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     speechToText: SettingsWidgetAlertsSpeechToText,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     fun deleteString(indexes: Set<Int>) {
         for (index in indexes.sortedDescending()) {

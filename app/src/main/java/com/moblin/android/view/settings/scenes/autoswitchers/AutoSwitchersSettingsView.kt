@@ -43,6 +43,8 @@ import com.moblin.android.view.utils.DraggableItemTextView
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private const val AUTO_SWITCHERS_VIEW_DESTINATION = "AutoSwitchersView"
 private const val AUTO_SWITCHER_SETTINGS_VIEW_DESTINATION = "AutoSwitcherSettingsView"
@@ -99,7 +101,7 @@ fun SwitcherTimePickerView(time: Int, onTimeChange: (Int) -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AutoSwitcherSceneSettingsDestinationView(
-    model: Model,
+    model: Model = LocalModel.current,
     scene: SettingsAutoSceneSwitcherScene
 ) {
     val sceneId by scene.sceneId.collectAsState()
@@ -146,9 +148,9 @@ private fun AutoSwitcherSceneSettingsDestinationView(
 
 @Composable
 private fun AutoSwitcherSceneSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     scene: SettingsAutoSceneSwitcherScene,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     val sceneId by scene.sceneId.collectAsState()
     val time by scene.time.collectAsState()
@@ -169,9 +171,9 @@ private fun AutoSwitcherSceneSettingsView(
 
 @Composable
 private fun AutoSwitcherScenesSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     autoSwitcher: SettingsAutoSceneSwitcher,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     val scenes by autoSwitcher.scenes.collectAsState()
     val onDeleteScene: (SettingsAutoSceneSwitcherScene) -> Unit = { target ->
@@ -194,10 +196,10 @@ private fun AutoSwitcherScenesSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AutoSwitcherSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     autoSceneSwitchers: SettingsAutoSceneSwitchers,
     autoSwitcher: SettingsAutoSceneSwitcher,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     val name by autoSwitcher.name.collectAsState()
     val shuffle by autoSwitcher.shuffle.collectAsState()
@@ -242,7 +244,7 @@ private fun AutoSwitcherSettingsView(
 private fun AutoSwitcherSettingsItemView(
     autoSceneSwitchers: SettingsAutoSceneSwitchers,
     autoSwitcher: SettingsAutoSceneSwitcher,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     val name by autoSwitcher.name.collectAsState()
     Row(
@@ -266,7 +268,7 @@ private fun AutoSceneSwitcherItemView(autoSceneSwitcher: SettingsAutoSceneSwitch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AutoSwitchersSelectView(
-    model: Model,
+    model: Model = LocalModel.current,
     autoSceneSwitcher: AutoSceneSwitcherProvider,
     autoSceneSwitchers: SettingsAutoSceneSwitchers
 ) {
@@ -320,10 +322,10 @@ fun AutoSwitchersSelectView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AutoSwitchersView(
-    model: Model,
+    model: Model = LocalModel.current,
     autoSceneSwitchers: SettingsAutoSceneSwitchers,
     showSelector: Boolean,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     val switchers by autoSceneSwitchers.switchers.collectAsState()
     val onDeleteAutoSwitcher: (SettingsAutoSceneSwitcher) -> Unit = { target ->
@@ -381,7 +383,7 @@ fun AutoSwitchersView(
 fun AutoSwitchersSettingsView(
     autoSceneSwitchers: SettingsAutoSceneSwitchers,
     showSelector: Boolean,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     Row(
         modifier = Modifier

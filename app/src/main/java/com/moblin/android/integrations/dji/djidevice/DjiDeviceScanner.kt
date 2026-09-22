@@ -23,8 +23,7 @@ class DjiDeviceScanner {
         private const val tag = "DjiDeviceScanner"
     }
 
-    private val _discoveredDevices = MutableStateFlow<List<DjiDiscoveredDevice>>(emptyList())
-    val discoveredDevices: StateFlow<List<DjiDiscoveredDevice>> = _discoveredDevices.asStateFlow()
+    val discoveredDevices = MutableStateFlow<List<DjiDiscoveredDevice>>(emptyList())
 
     private var centralManager: BluetoothAdapter? = null
     private var scanner: BluetoothLeScanner? = null
@@ -50,7 +49,7 @@ class DjiDeviceScanner {
     }
 
     fun startScanningForDevices() {
-        _discoveredDevices.value = emptyList()
+        discoveredDevices.value = emptyList()
         centralManager = BluetoothAdapter.getDefaultAdapter()
         centralManagerDidUpdateState(centralManager)
     }
@@ -76,7 +75,7 @@ class DjiDeviceScanner {
         if (!isDjiDevice(manufacturerData)) {
             return
         }
-        if (_discoveredDevices.value.any { it.peripheral == peripheral }) {
+        if (discoveredDevices.value.any { it.peripheral == peripheral }) {
             return
         }
         val model = djiModelFromManufacturerData(manufacturerData)
@@ -85,6 +84,6 @@ class DjiDeviceScanner {
             "dji-scanner: Manufacturer data ${manufacturerData.joinToString("") { "%02x".format(it) }} for " +
                 "peripheral id ${peripheral.address} and model $model",
         )
-        _discoveredDevices.value = _discoveredDevices.value + DjiDiscoveredDevice(peripheral, model)
+        discoveredDevices.value = discoveredDevices.value + DjiDiscoveredDevice(peripheral, model)
     }
 }

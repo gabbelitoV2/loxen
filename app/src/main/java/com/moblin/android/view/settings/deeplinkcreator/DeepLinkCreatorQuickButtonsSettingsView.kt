@@ -34,11 +34,12 @@ import com.moblin.android.various.settings.DeepLinkCreatorQuickButtons
 import com.moblin.android.view.controlbar.controlBarPages
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.IconAndTextView
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeepLinkCreatorQuickButtonSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     button: DeepLinkCreatorQuickButton,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -104,7 +105,7 @@ private fun DeepLinkCreatorQuickButtonSettingsView(
 @Composable
 fun DeepLinkCreatorQuickButtonsSettingsView(
     quickButtons: DeepLinkCreatorQuickButtons,
-    model: Model,
+    model: Model = LocalModel.current,
 ) {
     Scaffold(
         topBar = {

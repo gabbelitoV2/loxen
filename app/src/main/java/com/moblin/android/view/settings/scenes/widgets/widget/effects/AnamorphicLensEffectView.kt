@@ -9,10 +9,11 @@ import com.moblin.android.various.settings.SettingsVideoEffect
 import com.moblin.android.various.settings.SettingsVideoEffectAnamorphicLens
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.LocalModel
 
 @Composable
 fun AnamorphicLensEffectView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     effect: SettingsVideoEffect,
     anamorphicLens: SettingsVideoEffectAnamorphicLens

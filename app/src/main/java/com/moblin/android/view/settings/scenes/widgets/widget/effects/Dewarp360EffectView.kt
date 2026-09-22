@@ -26,10 +26,11 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsVideoEffect
 import com.moblin.android.various.settings.SettingsVideoEffectDewarp360
 import com.moblin.android.various.settings.SettingsWidget
+import com.moblin.android.LocalModel
 
 @Composable
 fun Dewarp360EffectView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     effect: SettingsVideoEffect,
     dewarp360: SettingsVideoEffectDewarp360,

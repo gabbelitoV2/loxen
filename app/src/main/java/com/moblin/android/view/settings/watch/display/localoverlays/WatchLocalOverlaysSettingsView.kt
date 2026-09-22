@@ -20,10 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.Model
 import com.moblin.android.view.settings.watch.WatchSettingsShow
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WatchLocalOverlaysSettingsView(model: Model, show: WatchSettingsShow) {
+fun WatchLocalOverlaysSettingsView(model: Model = LocalModel.current, show: WatchSettingsShow) {
     val thermalState by show.thermalState.collectAsState()
     val audioLevel by show.audioLevel.collectAsState()
     val speed by show.speed.collectAsState()

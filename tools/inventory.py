@@ -56,7 +56,7 @@ IDENT_RE = re.compile(r"\b[A-Za-z_]\w*\b")
 
 
 def classify(rel, imports):
-    if rel.startswith(SKIP_DIRS):
+    if rel.startswith(SKIP_DIRS) and not rel.startswith("Moblin Watch/Shared/"):
         return "skip"
     if rel.startswith("MoblinTests/"):
         return "test"

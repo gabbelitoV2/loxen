@@ -16,9 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStream
+import com.moblin.android.LocalModel
 
 @Composable
-fun StreamRtmpSettingsView(model: Model, stream: SettingsStream) {
+fun StreamRtmpSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
     val isLive by model.isLive.collectAsState()
     Column(
         modifier = Modifier

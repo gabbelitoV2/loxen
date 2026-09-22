@@ -27,9 +27,11 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsColor
 import com.moblin.android.various.settings.SettingsColorLut
 import com.moblin.android.view.utils.ShortcutSectionView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
-private fun LutView(model: Model, lut: SettingsColorLut) {
+private fun LutView(model: Model = LocalModel.current, lut: SettingsColorLut) {
     val enabled by lut.enabled.collectAsState()
     var previousEnabled by remember { mutableStateOf(enabled) }
     LaunchedEffect(enabled) {
@@ -52,7 +54,7 @@ private fun LutView(model: Model, lut: SettingsColorLut) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun QuickButtonLutsView(model: Model, color: SettingsColor, onNavigate: (String) -> Unit) {
+fun QuickButtonLutsView(model: Model = LocalModel.current, color: SettingsColor, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("LUTs") })

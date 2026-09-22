@@ -32,8 +32,7 @@ private class BackgroundActivity {
 }
 
 class Location(private val context: Context) : LocationListener {
-    private val _isDenied = MutableStateFlow(false)
-    val isDenied: StateFlow<Boolean> = _isDenied.asStateFlow()
+    val isDenied = MutableStateFlow(false)
     private val manager: LocationManager =
         context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     private var onUpdate: ((AndroidLocation) -> Unit)? = null
@@ -100,7 +99,7 @@ class Location(private val context: Context) : LocationListener {
             context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) ==
             PackageManager.PERMISSION_GRANTED
         Log.d(TAG, "location: Auth did change $granted")
-        _isDenied.value = !granted
+        isDenied.value = !granted
     }
 
     override fun onProviderDisabled(provider: String) {

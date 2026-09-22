@@ -22,10 +22,11 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.settings.scenes.widgets.widget.effects.WidgetEffectsView
 import com.moblin.android.view.utils.HCenter
+import com.moblin.android.LocalModel
 
 @Composable
 fun WidgetImagePickerView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     image: Bitmap?,
     onImageChange: (Bitmap?) -> Unit,
@@ -79,7 +80,7 @@ fun WidgetImagePickerView(
 }
 
 @Composable
-fun WidgetImageSettingsView(model: Model, widget: SettingsWidget) {
+fun WidgetImageSettingsView(model: Model = LocalModel.current, widget: SettingsWidget) {
     var image by remember { mutableStateOf<Bitmap?>(null) }
 
     Column {

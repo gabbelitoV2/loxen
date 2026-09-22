@@ -21,11 +21,12 @@ import com.moblin.android.view.settings.scenes.widgets.widget.basicWidgetSetting
 import com.moblin.android.view.settings.scenes.widgets.widget.text.TextWidgetSuggestionsView
 import com.moblin.android.view.settings.scenes.widgets.widget.text.TextWidgetTextView
 import com.moblin.android.view.utils.CloseToolbarButtonView
+import com.moblin.android.LocalModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetWizardTextSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     createWidgetWizard: CreateWidgetWizard,
     text: SettingsWidgetText,

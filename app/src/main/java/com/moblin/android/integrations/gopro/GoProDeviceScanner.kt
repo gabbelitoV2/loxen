@@ -31,8 +31,7 @@ class GoProDeviceScanner {
         val shared: GoProDeviceScanner by lazy { GoProDeviceScanner() }
     }
 
-    private val _discoveredDevices = MutableStateFlow<List<GoProDiscoveredDevice>>(emptyList())
-    val discoveredDevices: StateFlow<List<GoProDiscoveredDevice>> = _discoveredDevices.asStateFlow()
+    val discoveredDevices = MutableStateFlow<List<GoProDiscoveredDevice>>(emptyList())
 
     private var centralManager: BluetoothLeScanner? = null
     private var scanContext: Context? = null
@@ -57,7 +56,7 @@ class GoProDeviceScanner {
 
     @SuppressLint("MissingPermission")
     fun startScanningForDevices(context: Context) {
-        _discoveredDevices.value = emptyList()
+        discoveredDevices.value = emptyList()
         val appContext = context.applicationContext
         scanContext = appContext
         appContext.registerReceiver(
@@ -104,12 +103,12 @@ class GoProDeviceScanner {
         advertisementData: ScanRecord?,
         rssi: Int
     ) {
-        if (_discoveredDevices.value.any { it.peripheral.address == peripheral.address }) {
+        if (discoveredDevices.value.any { it.peripheral.address == peripheral.address }) {
             return
         }
         val name = advertisementData?.deviceName
             ?: peripheral.name
             ?: localized("Unknown")
-        _discoveredDevices.value = _discoveredDevices.value + GoProDiscoveredDevice(peripheral, name)
+        discoveredDevices.value = discoveredDevices.value + GoProDiscoveredDevice(peripheral, name)
     }
 }

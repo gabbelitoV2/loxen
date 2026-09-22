@@ -23,12 +23,14 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.settings.scenes.widgets.widget.effects.WidgetEffectsView
 import com.moblin.android.view.utils.ShortcutSectionView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 fun WidgetMapSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
     initialDelay: Double,
     initialSize: Double,
 ) {

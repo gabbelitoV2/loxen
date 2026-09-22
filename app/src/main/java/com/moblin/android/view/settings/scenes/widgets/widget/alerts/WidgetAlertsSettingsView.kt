@@ -60,19 +60,21 @@ import com.moblin.android.view.settings.streams.stream.TwitchLogoAndNameView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextItemLocalizedView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 val alertTestNames = listOf("Mark", "Natasha", "Pedro", "Anna")
 
 @Composable
-fun AlertPickerView(model: Model, type: String) {
+fun AlertPickerView(model: Model = LocalModel.current, type: String) {
     TODO("no Android counterpart for UIDocumentPickerViewController")
 }
 
 @Composable
 fun AlertTextToSpeechView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var ttsDelay by remember(alert) { mutableStateOf(alert.textToSpeechDelay) }
     var rate by remember { mutableFloatStateOf(0.4f) }
@@ -125,13 +127,13 @@ private fun getSoundName(model: Model, id: UUID?): String {
 }
 
 @Composable
-private fun VideoPickerView(model: Model) {
+private fun VideoPickerView(model: Model = LocalModel.current) {
     TODO("no Android counterpart for UIDocumentPickerViewController")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun VideoView(model: Model, alert: SettingsWidgetAlertsAlert) {
+private fun VideoView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
     var showForm by remember { mutableStateOf(false) }
     var showPicker by remember { mutableStateOf(false) }
 
@@ -184,9 +186,9 @@ private fun VideoView(model: Model, alert: SettingsWidgetAlertsAlert) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertMediaView(
-    model: Model,
+    model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Text("Media", style = MaterialTheme.typography.titleSmall)
     var expanded by remember { mutableStateOf(false) }
@@ -238,7 +240,7 @@ fun AlertMediaView(
 }
 
 @Composable
-private fun AlertPositionFaceView(model: Model, alert: SettingsWidgetAlertsAlert) {
+private fun AlertPositionFaceView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
     var facePosition by remember { mutableStateOf(Offset(100f, 100f)) }
     var facePositionOffset by remember { mutableStateOf(Size(0f, 0f)) }
     var facePositionAnchorPoint by remember { mutableStateOf<AnchorPoint?>(null) }
@@ -337,7 +339,7 @@ private fun AlertPositionFaceView(model: Model, alert: SettingsWidgetAlertsAlert
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlertPositionView(model: Model, alert: SettingsWidgetAlertsAlert) {
+fun AlertPositionView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
     Text("Position", style = MaterialTheme.typography.titleSmall)
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
@@ -372,10 +374,10 @@ fun AlertPositionView(model: Model, alert: SettingsWidgetAlertsAlert) {
 
 @Composable
 private fun AiResponseView(
-    model: Model,
+    model: Model = LocalModel.current,
     alerts: SettingsWidgetAlerts,
     ai: SettingsOpenAi,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier
@@ -412,9 +414,9 @@ private fun AiResponseView(
 
 @Composable
 fun WidgetAlertsSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Row(
         modifier = Modifier

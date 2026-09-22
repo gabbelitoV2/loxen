@@ -14,9 +14,10 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
+import com.moblin.android.LocalModel
 
 @Composable
-fun TapScreenToFocusSettingsView(model: Model, database: Database) {
+fun TapScreenToFocusSettingsView(model: Model = LocalModel.current, database: Database) {
     val tapToFocus by database.tapToFocus.collectAsState()
     Row(
         modifier = Modifier

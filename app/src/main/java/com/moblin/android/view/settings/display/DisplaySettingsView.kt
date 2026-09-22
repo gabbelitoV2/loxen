@@ -61,10 +61,12 @@ import com.moblin.android.view.settings.scenes.widgets.widget.videosource.calcul
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.calculatePositioningRectangle
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.drawPositioningRectangle
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun BackgroundImageCropView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtons: SettingsQuickButtons,
     image: Bitmap
 ) {
@@ -151,7 +153,7 @@ private fun BackgroundImageCropView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BackgroundImageSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     quickButtons: SettingsQuickButtons
 ) {
     var image by remember { mutableStateOf<Bitmap?>(null) }
@@ -231,7 +233,7 @@ private fun BackgroundImageSettingsView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ExternalDisplayContentView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -269,9 +271,9 @@ private fun ExternalDisplayContentView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DisplaySettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     val bigButtons by database.bigButtons.collectAsState()
     val bigAudioLevelMeter by database.bigAudioLevelMeter.collectAsState()

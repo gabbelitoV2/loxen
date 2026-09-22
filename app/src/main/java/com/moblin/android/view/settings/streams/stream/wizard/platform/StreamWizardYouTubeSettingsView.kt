@@ -28,6 +28,8 @@ import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun fetchLiveStreams(
     model: Model,
@@ -56,10 +58,10 @@ private fun fetchChannelHandle(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardYouTubeSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
     youTubeStream: SettingsStream,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     val youTubeAuthState by youTubeStream.youTubeAuthState.collectAsState()
     val youTubeHandle by createStreamWizard.youTubeHandle.collectAsState()

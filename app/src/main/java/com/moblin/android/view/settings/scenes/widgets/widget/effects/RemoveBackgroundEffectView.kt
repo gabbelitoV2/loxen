@@ -11,10 +11,11 @@ import com.moblin.android.various.settings.SettingsVideoEffect
 import com.moblin.android.various.settings.SettingsVideoEffectRemoveBackground
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.utils.RgbColorPickerView
+import com.moblin.android.LocalModel
 
 @Composable
 fun RemoveBackgroundEffectView(
-    model: Model,
+    model: Model = LocalModel.current,
     widget: SettingsWidget,
     effect: SettingsVideoEffect,
     removeBackground: SettingsVideoEffectRemoveBackground,

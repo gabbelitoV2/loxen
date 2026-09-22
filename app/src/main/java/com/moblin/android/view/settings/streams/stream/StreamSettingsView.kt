@@ -40,6 +40,8 @@ import com.moblin.android.view.utils.IconAndTextSettingView
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import kotlin.time.Duration
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun PlatformLogoAndNameView(
@@ -136,9 +138,9 @@ fun TokenExpiresInView(expiresIn: Duration?) {
 
 @Composable
 fun StreamPlatformsSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val twitchChannelName by stream.twitchChannelName.collectAsState()
     val kickChannelName by stream.kickChannelName.collectAsState()
@@ -209,9 +211,9 @@ fun AutoGoLiveFooterView() {
 
 @Composable
 private fun BackgroundStreamingView(
-    model: Model,
+    model: Model = LocalModel.current,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val backgroundStreaming by stream.backgroundStreaming.collectAsState()
     val enabled by stream.enabled.collectAsState()
@@ -242,10 +244,10 @@ private fun BackgroundStreamingView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamSettingsView(
-    model: Model,
+    model: Model = LocalModel.current,
     database: Database,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val showAllSettings by database.showAllSettings.collectAsState()
     val streams by database.streams.collectAsState()

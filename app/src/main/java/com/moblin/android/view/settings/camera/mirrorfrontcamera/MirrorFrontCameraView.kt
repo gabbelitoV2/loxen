@@ -17,9 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
+import com.moblin.android.LocalModel
 
 @Composable
-fun MirrorFrontCameraOnStreamView(model: Model, database: Database) {
+fun MirrorFrontCameraOnStreamView(model: Model = LocalModel.current, database: Database) {
     val mirrorFrontCameraOnStream by database.mirrorFrontCameraOnStream.collectAsState()
     var previousMirrorFrontCameraOnStream by remember {
         mutableStateOf(mirrorFrontCameraOnStream)

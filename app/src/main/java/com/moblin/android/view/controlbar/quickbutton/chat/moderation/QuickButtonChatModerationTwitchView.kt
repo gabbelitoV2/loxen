@@ -61,9 +61,11 @@ import com.moblin.android.view.utils.BorderlessButtonView
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 @Composable
-private fun CreatePollView(model: Model, onCreated: () -> Unit) {
+private fun CreatePollView(model: Model = LocalModel.current, onCreated: () -> Unit) {
     var title by remember { mutableStateOf("") }
     var options by remember { mutableStateOf(listOf(PollOption(), PollOption())) }
     var duration by remember { mutableStateOf(60) }
@@ -115,7 +117,7 @@ private fun CreatePollView(model: Model, onCreated: () -> Unit) {
 }
 
 @Composable
-private fun ActivePollView(model: Model, poll: TwitchApiPollData, onEnded: () -> Unit) {
+private fun ActivePollView(model: Model = LocalModel.current, poll: TwitchApiPollData, onEnded: () -> Unit) {
     fun end(status: TwitchApiPollStatus, onComplete: (OperationResult) -> Unit) {
         model.endTwitchPoll(id = poll.id, status = status) { result ->
             onComplete(result)
@@ -146,7 +148,7 @@ private fun ActivePollView(model: Model, poll: TwitchApiPollData, onEnded: () ->
 }
 
 @Composable
-private fun PollFormView(model: Model) {
+private fun PollFormView(model: Model = LocalModel.current) {
     var loaded by remember { mutableStateOf(false) }
     var poll by remember { mutableStateOf<TwitchApiPollData?>(null) }
     val executor = remember { Executor() }
@@ -191,14 +193,14 @@ private fun PollFormView(model: Model) {
 }
 
 @Composable
-private fun PollView(model: Model) {
+private fun PollView(model: Model = LocalModel.current) {
     NavigationLinkView(text = "Poll", image = "chart.bar") {
         PollFormView(model = model)
     }
 }
 
 @Composable
-private fun CreatePredictionView(model: Model, onCreated: () -> Unit) {
+private fun CreatePredictionView(model: Model = LocalModel.current, onCreated: () -> Unit) {
     var title by remember { mutableStateOf("") }
     var outcomes by remember { mutableStateOf(listOf(PollOption(), PollOption())) }
     var predictionWindow by remember { mutableStateOf(300) }
@@ -270,7 +272,7 @@ private fun PredictionOutcomeView(
 
 @Composable
 private fun ActivePredictionView(
-    model: Model,
+    model: Model = LocalModel.current,
     prediction: TwitchApiPredictionData,
     onEnded: () -> Unit,
 ) {
@@ -318,7 +320,7 @@ private fun ActivePredictionView(
 }
 
 @Composable
-private fun PredictionFormView(model: Model) {
+private fun PredictionFormView(model: Model = LocalModel.current) {
     var loaded by remember { mutableStateOf(false) }
     var prediction by remember { mutableStateOf<TwitchApiPredictionData?>(null) }
     val executor = remember { Executor() }
@@ -367,14 +369,14 @@ private fun PredictionFormView(model: Model) {
 }
 
 @Composable
-private fun PredictionView(model: Model) {
+private fun PredictionView(model: Model = LocalModel.current) {
     NavigationLinkView(text = "Prediction", image = "sparkles") {
         PredictionFormView(model = model)
     }
 }
 
 @Composable
-private fun RaidChannelSearchView(model: Model) {
+private fun RaidChannelSearchView(model: Model = LocalModel.current) {
     var searchText by remember { mutableStateOf("") }
     var channels by remember { mutableStateOf<List<TwitchApiChannel>>(emptyList()) }
     val executor = remember { Executor() }
@@ -477,7 +479,7 @@ private fun makeRaidSuggestions(
 }
 
 @Composable
-private fun RaidSuggestionsView(model: Model, suggestions: List<RaidSuggestion>) {
+private fun RaidSuggestionsView(model: Model = LocalModel.current, suggestions: List<RaidSuggestion>) {
     Column {
         suggestions.forEach { suggestion ->
             RaidChannelView(
@@ -499,7 +501,7 @@ private fun RaidSuggestionsView(model: Model, suggestions: List<RaidSuggestion>)
 }
 
 @Composable
-private fun RaidHistoryView(model: Model, title: String, suggestions: List<RaidSuggestion>) {
+private fun RaidHistoryView(model: Model = LocalModel.current, title: String, suggestions: List<RaidSuggestion>) {
     Column {
         Text(title, style = MaterialTheme.typography.titleMedium)
         RaidSuggestionsView(model = model, suggestions = suggestions)
@@ -537,7 +539,7 @@ private fun setRaidSuggestionImages(
 
 @Composable
 private fun RaidFollowedChannelsView(
-    model: Model,
+    model: Model = LocalModel.current,
     suggestions: List<RaidSuggestion>,
     executor: Executor,
 ) {
@@ -550,7 +552,7 @@ private fun RaidFollowedChannelsView(
 }
 
 @Composable
-private fun RunCommercialView(model: Model) {
+private fun RunCommercialView(model: Model = LocalModel.current) {
     var duration by remember { mutableStateOf(30) }
     val executor = remember { Executor() }
 
@@ -598,7 +600,7 @@ private enum class AnnouncementColor(val rawValue: String) {
 }
 
 @Composable
-private fun SendAnnouncementView(model: Model) {
+private fun SendAnnouncementView(model: Model = LocalModel.current) {
     var message by remember { mutableStateOf("") }
     var color by remember { mutableStateOf(AnnouncementColor.primary) }
     val executor = remember { Executor() }
@@ -640,7 +642,7 @@ private fun SendAnnouncementView(model: Model) {
 }
 
 @Composable
-private fun StartRaidView(model: Model) {
+private fun StartRaidView(model: Model = LocalModel.current) {
     var raidsSent by remember { mutableStateOf<List<RaidSuggestion>>(emptyList()) }
     var raidsReceived by remember { mutableStateOf<List<RaidSuggestion>>(emptyList()) }
     var followedChannels by remember { mutableStateOf<List<RaidSuggestion>>(emptyList()) }
@@ -727,10 +729,10 @@ private fun StartRaidView(model: Model) {
 
 @Composable
 fun QuickButtonChatModerationTwitchView(
-    model: Model,
+    model: Model = LocalModel.current,
     platform: Platform?,
     onPlatformChange: (Platform?) -> Unit,
-    onNavigate: (String) -> Unit,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Box(modifier = Modifier.clickable { onNavigate("QuickButtonChatModerationTwitch") }) {
         TwitchLogoAndNameView()
@@ -740,7 +742,7 @@ fun QuickButtonChatModerationTwitchView(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonChatModerationTwitchForm(
-    model: Model,
+    model: Model = LocalModel.current,
     onPlatformChange: (Platform?) -> Unit,
 ) {
     fun slowModeAction(duration: Int?, onComplete: (OperationResult) -> Unit) {

@@ -33,6 +33,8 @@ import com.moblin.android.various.settings.SettingsVideoEffectLut
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.utils.ShortcutSectionView
 import java.util.UUID
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 
 private fun updateWidget(
     model: Model,
@@ -53,12 +55,12 @@ private fun updateWidget(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LutEffectView(
-    model: Model,
+    model: Model = LocalModel.current,
     color: SettingsColor,
     widget: SettingsWidget,
     effect: SettingsVideoEffect,
     lut: SettingsVideoEffectLut,
-    onNavigate: (String) -> Unit
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
     var selectedLutId by remember { mutableStateOf(lut.lut) }
     var initialized by remember { mutableStateOf(false) }
