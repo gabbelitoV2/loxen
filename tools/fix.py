@@ -35,7 +35,7 @@ Rules
 - When a symbol comes from an iOS-only or missing library and cannot exist here, replace the use with TODO("...") in the smallest possible scope.
 - Keep public signatures unchanged unless an error is about the signature itself. When a call does not match a declaration listed under the dependencies, change the call, not the declaration.
 - @Composable functions may take `model: Model = LocalModel.current` and `onNavigate: (String) -> Unit = LocalOnNavigate.current`; keep those defaults, and add them when a composable needs the model or navigation and callers do not pass it.
-- Observable state on model classes is `val name = MutableStateFlow(...)`. Read it in composables with `val x by name.collectAsState()` and write it with `name.value = ...`."""
+- Observable state on model classes is `val name = MutableStateFlow(...)`. Read it in composables with `val x by name.collectAsState()` and write it with `name.value = ...`. When the dependency declarations show a property as a plain val or var instead, access it directly without .value or collectAsState()."""
 
 
 def find_java_home():
@@ -199,17 +199,21 @@ def main():
             (ROOT / "build-errors.log").write_text(output, encoding="utf-8", newline="\n")
             return
         previous_count = count
-        files = sorted(errors.items(), key=lambda item: -len(item[1]))
+        def wave_of(path):
+            entry = by_kotlin.get(path)
+            return entry["wave"] if entry else 1_000_000
+
+        files = sorted(errors.items(), key=lambda item: (wave_of(item[0]), -len(item[1])))
         if args.max_files:
             files = files[: args.max_files]
         if args.dry_run:
             for path, file_errors in files:
-                print(f"  {len(file_errors):>4}  {path.relative_to(ROOT).as_posix()}")
+                print(f"  wave {wave_of(path):>3}  {len(file_errors):>4}  {path.relative_to(ROOT).as_posix()}")
             (ROOT / "build-errors.log").write_text(output, encoding="utf-8", newline="\n")
             return
         if backend is None:
             backend = port.pick_backend(args)
-            print(f"backend {backend.name} ({args.provider}), model {args.model}, {args.workers} workers")
+            print(f"backend {backend.name} ({args.provider}), model {args.model}, effort {args.effort}, {args.workers} workers")
         lock = threading.Lock()
         finished = 0
 
@@ -220,16 +224,20 @@ def main():
             except Exception as exc:
                 return path, None, str(exc)
 
-        with ThreadPoolExecutor(max_workers=args.workers) as pool:
-            for future in as_completed([pool.submit(work, item) for item in files]):
-                path, result, error = future.result()
-                with lock:
-                    finished += 1
-                    rel = path.relative_to(ROOT).as_posix()
-                    if error:
-                        print(f"  [{finished}/{len(files)}] FAIL {rel}: {error[:200]}")
-                    else:
-                        print(f"  [{finished}/{len(files)}] ok   {rel} ({result[0]}s)")
+        waves = {}
+        for item in files:
+            waves.setdefault(wave_of(item[0]), []).append(item)
+        for wave in sorted(waves):
+            with ThreadPoolExecutor(max_workers=args.workers) as pool:
+                for future in as_completed([pool.submit(work, item) for item in waves[wave]]):
+                    path, result, error = future.result()
+                    with lock:
+                        finished += 1
+                        rel = path.relative_to(ROOT).as_posix()
+                        if error:
+                            print(f"  [{finished}/{len(files)}] FAIL {rel}: {error[:200]}")
+                        else:
+                            print(f"  [{finished}/{len(files)}] ok   {rel} ({result[0]}s)")
     print("compiling after the last round...")
     output = compile_kotlin()
     errors = parse_errors(output)
