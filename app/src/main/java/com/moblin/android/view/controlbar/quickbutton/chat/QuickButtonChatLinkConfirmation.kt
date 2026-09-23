@@ -2,40 +2,30 @@ package com.moblin.android.view.controlbar.quickbutton.chat
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import com.moblin.android.platform.swiftui.formPalette
-import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ConfirmationDialog
+import com.moblin.android.platform.swiftui.Visibility
 
 @Composable
 fun QuickButtonChatLinkConfirmationModifier(url: String?, onUrlChange: (String?) -> Unit) {
-    if (url == null) {
-        return
-    }
     val context = LocalContext.current
-    val palette = formPalette()
-    AlertDialog(
+    val presentedUrl = remember { arrayOfNulls<String>(1) }
+    if (url != null) {
+        presentedUrl[0] = url
+    }
+    val shownUrl = url ?: presentedUrl[0] ?: ""
+    ConfirmationDialog(
+        title = shownUrl,
+        isPresented = url != null,
         onDismissRequest = { onUrlChange(null) },
-        title = { Text(url) },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                    onUrlChange(null)
-                }
-            ) {
-                Text(localized("Open link"), color = palette.accent)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = { onUrlChange(null) }) {
-                Text(localized("Cancel"), color = palette.accent)
-            }
+        titleVisibility = Visibility.visible,
+    ) {
+        Button("Open link") {
+            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(shownUrl)))
         }
-    )
+    }
 }
 
 @Composable

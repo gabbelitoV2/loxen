@@ -1,8 +1,10 @@
 package com.moblin.android.media.srtla.client
 
-import android.net.Network
-import android.net.NetworkCapabilities
 import android.util.Log
+import com.moblin.android.common.various.getInt64Be
+import com.moblin.android.common.various.getUInt32Be
+import com.moblin.android.common.various.setInt64Be
+import com.moblin.android.common.various.setUInt32Be
 import com.moblin.android.common.various.sizeFormatter
 import com.moblin.android.media.haishinkit.mpeg.MpegTsPacket
 import com.moblin.android.media.srtla.common.SrtPacketType
@@ -14,18 +16,13 @@ import com.moblin.android.media.srtla.common.isSrtDataPacket
 import com.moblin.android.media.srtla.common.isSrtSnAcked
 import com.moblin.android.media.srtla.common.processSrtNak
 import com.moblin.android.media.srtla.common.srtControlTypeSize
+import com.moblin.android.platform.network.NWConnection
+import com.moblin.android.platform.network.NWEndpoint
+import com.moblin.android.platform.network.NWInterface
+import com.moblin.android.platform.network.NWParameters
 import com.moblin.android.various.SimpleTimer
-import java.io.IOException
-import java.net.InetSocketAddress
-import java.net.Socket
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.security.SecureRandom
 import java.util.UUID
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 private const val TAG = "RemoteConnection"
 
@@ -40,36 +37,35 @@ private const val windowMultiply = 1000
 private const val windowDecrement = 100
 private const val windowIncrement = 30
 
-private val connectionScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-private val random = SecureRandom()
-
-private enum class ConnectionState {
-    ready,
-    failed,
-}
-
 interface RemoteConnectionDelegate {
     fun remoteConnectionOnSocketConnected(connection: RemoteConnection)
+
     fun remoteConnectionOnRegNgp(connection: RemoteConnection)
+
     fun remoteConnectionOnReg2(groupId: ByteArray)
+
     fun remoteConnectionOnRegistered()
+
     fun remoteConnectionPacketHandler(packet: ByteArray)
+
     fun remoteConnectionOnSrtAck(sn: UInt)
+
     fun remoteConnectionOnSrtNak(sn: UInt)
+
     fun remoteConnectionOnSrtlaAck(sn: UInt)
+
     fun remoteConnectionOnMoblinkReconnect(connection: RemoteConnection)
 }
 
 class RemoteConnection(
-    var type: Int?,
-    private val mpegtsPacketsPerPacket: Int,
-    private val packetPadding: Boolean,
-    val `interface`: Network?,
-    private var networkInterfaces: SrtlaNetworkInterfaces,
-    private var priority: Float,
-    val relayId: UUID? = null,
-    private val relayName: String? = null,
+    type: NWInterface.InterfaceType?,
+    mpegtsPacketsPerPacket: Int,
+    packetPadding: Boolean,
+    `interface`: NWInterface?,
+    networkInterfaces: SrtlaNetworkInterfaces,
+    priority: Float,
+    relayId: UUID? = null,
+    relayName: String? = null,
 ) {
     private enum class State {
         idle,
@@ -79,110 +75,95 @@ class RemoteConnection(
         registered,
     }
 
-    private var connection: Socket? = null
+    var type: NWInterface.InterfaceType? = type
+
+    private var connection: NWConnection? = null
         set(value) {
-            val previous = field
+            val oldValue = field
             field = value
-            if (previous != null) {
-                try {
-                    previous.close()
-                } catch (e: IOException) {
-                    Log.i(TAG, "srtla: $typeString: Close $e")
-                }
-            }
+            oldValue?.stateUpdateHandler = null
+            oldValue?.forceCancel()
         }
 
     private val connectTimer = SimpleTimer(queue = srtlaClientQueue)
     private val keepaliveTimer = SimpleTimer(queue = srtlaClientQueue)
-    private var latestReceivedTime: Long = System.nanoTime()
-    private val packetsInFlight: MutableSet<UInt> = mutableSetOf()
+    private var latestReceivedTime = System.nanoTime()
+    private var packetsInFlight: HashSet<UInt> = HashSet()
     private var windowSize: Int = 0
     private var hasFullGroupId: Boolean = false
-    private var groupId: ByteArray = ByteArray(0)
-    private var state: State = State.idle
+    private var groupId = ByteArray(0)
+    private var priority: Float = priority
+    private var state = State.idle
         set(value) {
-            Log.d(TAG, "srtla: $typeString: State $field -> $value")
+            val oldValue = field
             field = value
+            Log.d(TAG, "srtla: $typeString: State $oldValue -> $value")
         }
 
-    private var keepAliveSendBaseTime: Long = System.nanoTime()
+    private var keepAliveSendBaseTime = System.nanoTime()
     var rtt: Int = 0
+    val `interface`: NWInterface? = `interface`
     private val dataPacketsToSend: MutableList<ByteArray> = mutableListOf()
     private var totalDataSentByteCount: Long = 0
 
     private val nullPacket: ByteArray = ByteArray(MpegTsPacket.size).also { packet ->
         packet.setUInt32Be(
-            value = (MpegTsPacket.syncByte.toInt().toUInt() shl 24) or (0x1FFFu shl 8) or (1u shl 4),
+            value = (MpegTsPacket.syncByte.toUInt() shl 24) or (0x1FFFu shl 8) or (0x1u shl 4),
         )
     }
 
-    var destinationHost: String? = null
+    var destinationHost: NWEndpoint.Host? = null
         private set
-    var destinationPort: Int? = null
+    var destinationPort: NWEndpoint.Port? = null
         private set
-
+    private val mpegtsPacketsPerPacket: Int = mpegtsPacketsPerPacket
+    private val packetPadding: Boolean = packetPadding
     val typeString: String
         get() = when (type) {
-            NetworkCapabilities.TRANSPORT_WIFI -> "WiFi"
-            NetworkCapabilities.TRANSPORT_ETHERNET -> {
-                networkInterfaces.names[`interface`?.toString() ?: ""] ?: `interface`?.toString() ?: "Ethernet"
-            }
-            NetworkCapabilities.TRANSPORT_CELLULAR -> "Cellular"
+            NWInterface.InterfaceType.wifi -> "WiFi"
+            NWInterface.InterfaceType.wiredEthernet ->
+                networkInterfaces.names[`interface`?.name ?: ""] ?: `interface`?.name ?: "Ethernet"
+            NWInterface.InterfaceType.cellular -> "Cellular"
             else -> relayName ?: "Any"
         }
 
-    var delegate: RemoteConnectionDelegate? = null
+    val relayId: UUID? = relayId
+    private val relayName: String? = relayName
 
-    fun finalize() {
-        Log.d(TAG, "srtla: $typeString: deinit remote connection")
-    }
+    var delegate: RemoteConnectionDelegate? = null
+    private var networkInterfaces: SrtlaNetworkInterfaces = networkInterfaces
 
     fun setPriority(priority: Float) {
         this.priority = priority
     }
 
-    fun start(host: String, port: Int) {
+    fun start(host: NWEndpoint.Host, port: NWEndpoint.Port) {
         destinationHost = host
         destinationPort = port
         startInternal()
     }
 
     private fun startInternal() {
-        val host = destinationHost
-        val port = destinationPort
-        if (state != State.idle || host == null || port == null) {
+        val destinationHost = destinationHost
+        val destinationPort = destinationPort
+        if (state != State.idle || destinationHost == null || destinationPort == null) {
             return
         }
-        Log.i(TAG, "srtla: $typeString: Start with destination $host:$port")
-        val socket = try {
-            `interface`?.socketFactory?.createSocket() ?: Socket()
-        } catch (e: IOException) {
-            Log.i(TAG, "srtla: $typeString: Create socket failed $e")
-            handleStateUpdate(state = ConnectionState.failed)
-            return
-        }
-        connection = socket
+        Log.i(TAG, "srtla: $typeString: Start with destination $destinationHost:$destinationPort")
+        val params = NWParameters.dtls(null)
+        params.prohibitExpensivePaths = false
+        params.requiredInterface = `interface`
+        connection = NWConnection(host = destinationHost, port = destinationPort, using = params)
+        connection!!.stateUpdateHandler = ::handleStateUpdate
+        connection!!.start(queue = srtlaClientQueue)
+        receivePackets()
         state = State.socketConnecting
-        connectionScope.launch {
-            val connected = try {
-                socket.connect(InetSocketAddress(host, port), 5000)
-                true
-            } catch (e: IOException) {
-                Log.i(TAG, "srtla: $typeString: Connect failed $e")
-                false
-            }
-            if (connected) {
-                receivePackets()
-                handleStateUpdate(state = ConnectionState.ready)
-            } else {
-                handleStateUpdate(state = ConnectionState.failed)
-            }
-        }
     }
 
     fun stop(reason: String) {
         val sent = sizeFormatter.string(fromByteCount = totalDataSentByteCount)
         Log.d(TAG, "srtla: $typeString: Stop with reason: $reason ($sent sent)")
+        connection?.forceCancel()
         connection = null
         cancelAllTimers()
         state = State.idle
@@ -199,12 +180,12 @@ class RemoteConnection(
         } else {
             val score = windowSize / (packetsInFlight.size + 1)
             if (windowSize > windowStableMaximum * windowMultiply) {
-                return (score * priority).toInt()
+                return (score.toFloat() * priority).toInt()
             } else if (windowSize > windowStableMinimum * windowMultiply) {
                 var factor = (windowSize - windowStableMinimum * windowMultiply).toFloat()
                 factor /= ((windowStableMaximum - windowStableMinimum) * windowMultiply).toFloat()
                 val scaledPriority = 1 + (priority - 1) * factor
-                return (score * scaledPriority).toInt()
+                return (score.toFloat() * scaledPriority).toInt()
             } else {
                 return score
             }
@@ -226,7 +207,7 @@ class RemoteConnection(
     }
 
     fun probe() {
-        groupId = randomData(length = 256)
+        groupId = Random.nextBytes(256)
         sendSrtlaReg2()
     }
 
@@ -241,14 +222,15 @@ class RemoteConnection(
 
     fun sendSrtlaReg1() {
         Log.d(TAG, "srtla: $typeString: Sending reg 1 (create group)")
-        groupId = randomData(length = 256)
+        groupId = Random.nextBytes(256)
         val packet = createSrtlaPacket(type = SrtlaPacketType.reg1, length = srtControlTypeSize + groupId.size)
         groupId.copyInto(packet, srtControlTypeSize)
         sendPacket(packet = packet)
     }
 
     fun handleSrtAckSn(sn: UInt) {
-        packetsInFlight.retainAll { packetSn -> !isSrtSnAcked(sn = packetSn, ackSn = sn) }
+        val ackSn = sn
+        packetsInFlight.retainAll { packetSn -> !isSrtSnAcked(sn = packetSn, ackSn = ackSn) }
     }
 
     fun handleSrtNakSn(sn: UInt) {
@@ -281,12 +263,13 @@ class RemoteConnection(
     }
 
     fun getDataSentDelta(): Long? {
-        val dataSent = totalDataSentByteCount
-        totalDataSentByteCount = 0
-        return if (state == State.registered) {
-            dataSent
-        } else {
-            null
+        try {
+            if (state != State.registered) {
+                return null
+            }
+            return totalDataSentByteCount
+        } finally {
+            totalDataSentByteCount = 0
         }
     }
 
@@ -299,10 +282,10 @@ class RemoteConnection(
         return relayId != null
     }
 
-    private fun handleStateUpdate(state: ConnectionState) {
+    private fun handleStateUpdate(state: NWConnection.State) {
         Log.d(TAG, "srtla: $typeString: State change to $state")
         when (state) {
-            ConnectionState.ready -> {
+            NWConnection.State.ready -> {
                 cancelAllTimers()
                 connectTimer.startSingleShot(timeout = 5.0) {
                     reconnect(reason = "Connection timeout")
@@ -322,10 +305,8 @@ class RemoteConnection(
                 }
                 delegate?.remoteConnectionOnSocketConnected(connection = this)
             }
-
-            ConnectionState.failed -> {
-                reconnect(reason = "Connection failed")
-            }
+            is NWConnection.State.failed -> reconnect(reason = "Connection failed")
+            else -> Unit
         }
     }
 
@@ -339,33 +320,22 @@ class RemoteConnection(
     }
 
     private fun receivePackets() {
-        val socket = connection ?: return
-        connectionScope.launch {
-            val input = try {
-                socket.getInputStream()
-            } catch (e: IOException) {
-                Log.i(TAG, "srtla: $typeString: Receive $e")
-                return@launch
+        connection?.batch {
+            for (index in 0 until connectionReceiveBatchSize) {
+                connection?.receiveMessage { packet, _, _, error ->
+                    if (packet != null && packet.isNotEmpty()) {
+                        handlePacketFromClient(packet = packet)
+                    }
+                    if (index != connectionReceiveBatchSize - 1) {
+                        return@receiveMessage
+                    }
+                    if (error != null) {
+                        Log.i(TAG, "srtla: $typeString: Receive $error")
+                        return@receiveMessage
+                    }
+                    receivePackets()
+                }
             }
-            val buffer = ByteArray(2048)
-            var index = 0
-            while (index < connectionReceiveBatchSize) {
-                val count = try {
-                    input.read(buffer)
-                } catch (e: IOException) {
-                    Log.i(TAG, "srtla: $typeString: Receive $e")
-                    return@launch
-                }
-                if (count > 0) {
-                    handlePacketFromClient(packet = buffer.copyOf(count))
-                }
-                if (count < 0) {
-                    Log.i(TAG, "srtla: $typeString: Receive end of stream")
-                    return@launch
-                }
-                index += 1
-            }
-            receivePackets()
         }
     }
 
@@ -391,9 +361,7 @@ class RemoteConnection(
     }
 
     private fun sendControlPacketInternal(packet: ByteArray) {
-        connectionScope.launch {
-            writePacket(packet = packet)
-        }
+        connection?.send(content = packet, completion = NWConnection.SendCompletion.idempotent)
     }
 
     private fun sendDataPacketInternal(packet: ByteArray) {
@@ -404,26 +372,12 @@ class RemoteConnection(
     }
 
     private fun sendDataPackets() {
-        val packets = dataPacketsToSend.toList()
+        connection?.batch {
+            for (packet in dataPacketsToSend) {
+                connection?.send(content = packet, completion = NWConnection.SendCompletion.idempotent)
+            }
+        }
         dataPacketsToSend.clear()
-        connectionScope.launch {
-            for (packet in packets) {
-                writePacket(packet = packet)
-            }
-        }
-    }
-
-    private fun writePacket(packet: ByteArray) {
-        val socket = connection ?: return
-        try {
-            synchronized(socket) {
-                val output = socket.getOutputStream()
-                output.write(packet)
-                output.flush()
-            }
-        } catch (e: IOException) {
-            Log.i(TAG, "srtla: $typeString: Send $e")
-        }
     }
 
     private fun sendSrtlaReg2() {
@@ -440,7 +394,7 @@ class RemoteConnection(
     }
 
     private fun getKeepAliveTime(): Long {
-        return (System.nanoTime() - keepAliveSendBaseTime) / 1_000_000
+        return (System.nanoTime() - keepAliveSendBaseTime) / 1_000_000L
     }
 
     private fun handleSrtAck(packet: ByteArray) {
@@ -468,10 +422,8 @@ class RemoteConnection(
         if (packet.size % 4 != 0) {
             return
         }
-        var offset = 4
-        while (offset < packet.size) {
+        for (offset in 4 until packet.size step 4) {
             delegate?.remoteConnectionOnSrtlaAck(sn = packet.getUInt32Be(offset = offset))
-            offset += 4
         }
     }
 
@@ -484,10 +436,9 @@ class RemoteConnection(
         if (groupId.size != 256) {
             return
         }
-        val length = groupId.size / 2
-        val packetGroupId = packet.copyOfRange(srtControlTypeSize, srtControlTypeSize + length)
-        val localGroupId = groupId.copyOfRange(0, length)
-        if (!packetGroupId.contentEquals(localGroupId)) {
+        val groupIdLength = groupId.size / 2
+        val packetGroupId = packet.copyOfRange(srtControlTypeSize, srtControlTypeSize + groupIdLength)
+        if (!packetGroupId.contentEquals(groupId.copyOfRange(0, groupIdLength))) {
             Log.i(TAG, "srtla: $typeString: Wrong group id in reg 2")
             return
         }
@@ -534,7 +485,6 @@ class RemoteConnection(
             SrtlaPacketType.regErr -> handleSrtlaRegErr()
             SrtlaPacketType.regNgp -> handleSrtlaRegNgp()
             SrtlaPacketType.regNak -> handleSrtlaRegNak()
-            else -> Unit
         }
     }
 
@@ -569,7 +519,7 @@ class RemoteConnection(
 
     private fun handlePacketFromClient(packet: ByteArray) {
         if (packet.size < srtControlTypeSize) {
-            Log.i(TAG, "srtla: $typeString: Packet too short (${packet.size}) bytes.")
+            Log.i(TAG, "srtla: $typeString: Packet too short (${packet.size} bytes.")
             return
         }
         latestReceivedTime = System.nanoTime()
@@ -579,24 +529,4 @@ class RemoteConnection(
             handleControlPacket(packet = packet)
         }
     }
-}
-
-private fun ByteArray.getUInt32Be(offset: Int): UInt {
-    return ByteBuffer.wrap(this).order(ByteOrder.BIG_ENDIAN).getInt(offset).toUInt()
-}
-
-private fun ByteArray.setUInt32Be(value: UInt, offset: Int = 0) {
-    ByteBuffer.wrap(this).order(ByteOrder.BIG_ENDIAN).putInt(offset, value.toInt())
-}
-
-private fun ByteArray.getInt64Be(offset: Int): Long {
-    return ByteBuffer.wrap(this).order(ByteOrder.BIG_ENDIAN).getLong(offset)
-}
-
-private fun ByteArray.setInt64Be(value: Long, offset: Int) {
-    ByteBuffer.wrap(this).order(ByteOrder.BIG_ENDIAN).putLong(offset, value)
-}
-
-private fun randomData(length: Int): ByteArray {
-    return ByteArray(length).also { random.nextBytes(it) }
 }

@@ -29,6 +29,7 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import okhttp3.Request
 import com.moblin.android.AppDelegate
+import com.moblin.android.media.haishinkit.extension.dictionaryFromQuery
 
 fun randomBytes(length: Int): ByteArray = ByteArray(length) { Random.nextInt(0, 256).toByte() }
 
@@ -345,7 +346,7 @@ fun extractSrtStreamId(url: String): String? {
     for (part in query.split("&")) {
         val pair = part.split("=", limit = 2)
         if (pair.size == 2 && pair[0] == "streamid") {
-            return pair[1]
+            return URI(url).dictionaryFromQuery()["streamid"]
         }
     }
     return null

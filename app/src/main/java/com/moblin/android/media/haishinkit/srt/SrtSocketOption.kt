@@ -2,79 +2,17 @@ package com.moblin.android.media.haishinkit.srt
 
 import android.net.Uri
 import android.util.Log
+import com.moblin.android.platform.srt.SrtNative
+import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 private const val TAG = "SrtSocketOption"
 
-private const val SRTT_LIVE = 1
-private const val SRTT_FILE = 2
-
-private const val SRTO_MSS = 0
-private const val SRTO_SNDSYN = 1
-private const val SRTO_RCVSYN = 2
-private const val SRTO_ISN = 3
-private const val SRTO_FC = 4
-private const val SRTO_SNDBUF = 5
-private const val SRTO_RCVBUF = 6
-private const val SRTO_LINGER = 7
-private const val SRTO_UDP_SNDBUF = 8
-private const val SRTO_UDP_RCVBUF = 9
-private const val SRTO_RENDEZVOUS = 10
-private const val SRTO_SNDTIMEO = 11
-private const val SRTO_RCVTIMEO = 12
-private const val SRTO_REUSEADDR = 13
-private const val SRTO_MAXBW = 14
-private const val SRTO_STATE = 15
-private const val SRTO_EVENT = 16
-private const val SRTO_SNDDATA = 17
-private const val SRTO_RCVDATA = 18
-private const val SRTO_SENDER = 19
-private const val SRTO_TSBPDMODE = 20
-private const val SRTO_LATENCY = 21
-private const val SRTO_INPUTBW = 22
-private const val SRTO_OHEADBW = 23
-private const val SRTO_PASSPHRASE = 24
-private const val SRTO_PBKEYLEN = 25
-private const val SRTO_KMSTATE = 26
-private const val SRTO_IPTTL = 27
-private const val SRTO_IPTOS = 28
-private const val SRTO_TLPKTDROP = 29
-private const val SRTO_SNDDROPDELAY = 32
-private const val SRTO_NAKREPORT = 31
-private const val SRTO_CONNTIMEO = 34
-private const val SRTO_SNDKMSTATE = 36
-private const val SRTO_LOSSMAXTTL = 38
-private const val SRTO_RCVLATENCY = 39
-private const val SRTO_PEERLATENCY = 40
-private const val SRTO_MINVERSION = 41
-private const val SRTO_STREAMID = 42
-private const val SRTO_MESSAGEAPI = 44
-private const val SRTO_PAYLOADSIZE = 45
-private const val SRTO_TRANSTYPE = 46
-private const val SRTO_KMREFRESHRATE = 47
-private const val SRTO_KMPREANNOUNCE = 48
-private const val SRTO_MAXREXMITBW = 53
-private const val SRTO_SRTLAPATCHES = 1000
-
-private val enummapTranstype: Map<String, Int> = mapOf(
-    "live" to SRTT_LIVE,
-    "file" to SRTT_FILE,
+private val enummapTranstype: Map<String, Any> = mapOf(
+    "live" to SrtNative.SRTT_LIVE,
+    "file" to SrtNative.SRTT_FILE,
 )
-
-private fun Int.toSrtBytes(): ByteArray =
-    ByteBuffer.allocate(Int.SIZE_BYTES).order(ByteOrder.nativeOrder()).putInt(this).array()
-
-private fun Long.toSrtBytes(): ByteArray =
-    ByteBuffer.allocate(Long.SIZE_BYTES).order(ByteOrder.nativeOrder()).putLong(this).array()
-
-internal object SrtNative {
-    init {
-        System.loadLibrary("srt")
-    }
-
-    external fun srt_setsockopt(u: Int, level: Int, optname: Int, optval: ByteArray, optlen: Int): Int
-}
 
 enum class SrtSocketOption(val rawValue: String) {
     mss("mss"),
@@ -129,62 +67,70 @@ enum class SrtSocketOption(val rawValue: String) {
         int(1),
         int64(2),
         bool(3),
-        enumeration(4),
+        enumeration(4);
+
+        companion object {
+            fun fromRawValue(rawValue: Int): Type? = entries.firstOrNull { it.rawValue == rawValue }
+        }
     }
 
     enum class Binding(val rawValue: Int) {
         pre(0),
-        post(1),
+        post(1);
+
+        companion object {
+            fun fromRawValue(rawValue: Int): Binding? = entries.firstOrNull { it.rawValue == rawValue }
+        }
     }
 
     private val symbol: Int
         get() = when (this) {
-            rcvsyn -> SRTO_RCVSYN
-            maxbw -> SRTO_MAXBW
-            pbkeylen -> SRTO_PBKEYLEN
-            passphrase -> SRTO_PASSPHRASE
-            mss -> SRTO_MSS
-            fc -> SRTO_FC
-            sndbuf -> SRTO_SNDBUF
-            rcvbuf -> SRTO_RCVBUF
-            ipttl -> SRTO_IPTTL
-            iptos -> SRTO_IPTOS
-            inputbw -> SRTO_INPUTBW
-            oheadbw -> SRTO_OHEADBW
-            latency -> SRTO_LATENCY
-            tsbdmode -> SRTO_TSBPDMODE
-            tlpktdrop -> SRTO_TLPKTDROP
-            nakreport -> SRTO_NAKREPORT
-            conntimeo -> SRTO_CONNTIMEO
-            lossmaxttl -> SRTO_LOSSMAXTTL
-            rcvlatency -> SRTO_RCVLATENCY
-            peerlatency -> SRTO_PEERLATENCY
-            minversion -> SRTO_MINVERSION
-            streamid -> SRTO_STREAMID
-            messageapi -> SRTO_MESSAGEAPI
-            payloadsize -> SRTO_PAYLOADSIZE
-            transtype -> SRTO_TRANSTYPE
-            kmrefreshrate -> SRTO_KMREFRESHRATE
-            kmpreannounce -> SRTO_KMPREANNOUNCE
-            maxrexmitbw -> SRTO_MAXREXMITBW
-            sndsyn -> SRTO_SNDSYN
-            isn -> SRTO_ISN
-            linger -> SRTO_LINGER
-            udpsndbuf -> SRTO_UDP_SNDBUF
-            udprcvbuf -> SRTO_UDP_RCVBUF
-            rendezvous -> SRTO_RENDEZVOUS
-            sndtimeo -> SRTO_SNDTIMEO
-            rcvtimeo -> SRTO_RCVTIMEO
-            reuseaddr -> SRTO_REUSEADDR
-            state -> SRTO_STATE
-            event -> SRTO_EVENT
-            snddata -> SRTO_SNDDATA
-            rcvdata -> SRTO_RCVDATA
-            sender -> SRTO_SENDER
-            kmstate -> SRTO_KMSTATE
-            snddropdelay -> SRTO_SNDDROPDELAY
-            sndkmstate -> SRTO_SNDKMSTATE
-            srtlaPatches -> SRTO_SRTLAPATCHES
+            rcvsyn -> SrtNative.SRTO_RCVSYN
+            maxbw -> SrtNative.SRTO_MAXBW
+            pbkeylen -> SrtNative.SRTO_PBKEYLEN
+            passphrase -> SrtNative.SRTO_PASSPHRASE
+            mss -> SrtNative.SRTO_MSS
+            fc -> SrtNative.SRTO_FC
+            sndbuf -> SrtNative.SRTO_SNDBUF
+            rcvbuf -> SrtNative.SRTO_RCVBUF
+            ipttl -> SrtNative.SRTO_IPTTL
+            iptos -> SrtNative.SRTO_IPTOS
+            inputbw -> SrtNative.SRTO_INPUTBW
+            oheadbw -> SrtNative.SRTO_OHEADBW
+            latency -> SrtNative.SRTO_LATENCY
+            tsbdmode -> SrtNative.SRTO_TSBPDMODE
+            tlpktdrop -> SrtNative.SRTO_TLPKTDROP
+            nakreport -> SrtNative.SRTO_NAKREPORT
+            conntimeo -> SrtNative.SRTO_CONNTIMEO
+            lossmaxttl -> SrtNative.SRTO_LOSSMAXTTL
+            rcvlatency -> SrtNative.SRTO_RCVLATENCY
+            peerlatency -> SrtNative.SRTO_PEERLATENCY
+            minversion -> SrtNative.SRTO_MINVERSION
+            streamid -> SrtNative.SRTO_STREAMID
+            messageapi -> SrtNative.SRTO_MESSAGEAPI
+            payloadsize -> SrtNative.SRTO_PAYLOADSIZE
+            transtype -> SrtNative.SRTO_TRANSTYPE
+            kmrefreshrate -> SrtNative.SRTO_KMREFRESHRATE
+            kmpreannounce -> SrtNative.SRTO_KMPREANNOUNCE
+            maxrexmitbw -> SrtNative.SRTO_MAXREXMITBW
+            sndsyn -> SrtNative.SRTO_SNDSYN
+            isn -> SrtNative.SRTO_ISN
+            linger -> SrtNative.SRTO_LINGER
+            udpsndbuf -> SrtNative.SRTO_UDP_SNDBUF
+            udprcvbuf -> SrtNative.SRTO_UDP_RCVBUF
+            rendezvous -> SrtNative.SRTO_RENDEZVOUS
+            sndtimeo -> SrtNative.SRTO_SNDTIMEO
+            rcvtimeo -> SrtNative.SRTO_RCVTIMEO
+            reuseaddr -> SrtNative.SRTO_REUSEADDR
+            state -> SrtNative.SRTO_STATE
+            event -> SrtNative.SRTO_EVENT
+            snddata -> SrtNative.SRTO_SNDDATA
+            rcvdata -> SrtNative.SRTO_RCVDATA
+            sender -> SrtNative.SRTO_SENDER
+            kmstate -> SrtNative.SRTO_KMSTATE
+            snddropdelay -> 32
+            sndkmstate -> SrtNative.SRTO_SNDKMSTATE
+            srtlaPatches -> SrtNative.SRTO_SRTLAPATCHES
         }
 
     val binding: Binding
@@ -287,14 +233,14 @@ enum class SrtSocketOption(val rawValue: String) {
             srtlaPatches -> Type.bool
         }
 
-    val valmap: Map<String, Int>?
+    val valmap: Map<String, Any>?
         get() = when (this) {
             transtype -> enummapTranstype
             else -> null
         }
 
     fun setOption(socket: Int, value: String): Boolean {
-        val data = this.data(value) ?: return false
+        val data = data(value) ?: return false
         val result: Int = SrtNative.srt_setsockopt(socket, 0, symbol, data, data.size)
         return result != -1
     }
@@ -303,21 +249,23 @@ enum class SrtSocketOption(val rawValue: String) {
         return when (type) {
             Type.string -> value.toByteArray(Charsets.UTF_8)
             Type.int -> {
-                val v = value.toIntOrNull() ?: return null
-                v.toSrtBytes()
+                val intValue = value.toIntOrNull() ?: return null
+                ByteBuffer.allocate(Int.SIZE_BYTES).order(ByteOrder.nativeOrder()).putInt(intValue).array()
             }
             Type.int64 -> {
-                val v = value.toLongOrNull() ?: return null
-                v.toSrtBytes()
+                val longValue = value.toLongOrNull() ?: return null
+                ByteBuffer.allocate(Long.SIZE_BYTES).order(ByteOrder.nativeOrder()).putLong(longValue).array()
             }
             Type.bool -> {
-                val v = value.toIntOrNull() ?: return null
-                (if (v != 0) 1 else 0).toSrtBytes()
+                var boolValue = value.toIntOrNull() ?: return null
+                boolValue = if (boolValue != 0) 1 else 0
+                ByteBuffer.allocate(Int.SIZE_BYTES).order(ByteOrder.nativeOrder()).putInt(boolValue).array()
             }
             Type.enumeration -> when (this) {
                 transtype -> {
-                    val v = valmap?.get(value) ?: return null
-                    v.toSrtBytes()
+                    val key = value
+                    val v = valmap?.get(key) as? Int ?: return null
+                    ByteBuffer.allocate(Int.SIZE_BYTES).order(ByteOrder.nativeOrder()).putInt(v).array()
                 }
                 else -> null
             }
@@ -325,46 +273,53 @@ enum class SrtSocketOption(val rawValue: String) {
     }
 
     companion object {
-        fun fromRawValue(rawValue: String): SrtSocketOption? =
-            SrtSocketOption.entries.firstOrNull { it.rawValue == rawValue }
+        fun fromRawValue(rawValue: String): SrtSocketOption? = entries.firstOrNull { it.rawValue == rawValue }
 
-        fun from(uri: String?): Map<SrtSocketOption, String> {
+        fun from(uri: URI?): Map<SrtSocketOption, String> {
             if (uri == null) {
                 return emptyMap()
             }
-            val queryItems = getQueryItems(uri)
+            val queryItems = getQueryItems(uri = uri)
             val options = mutableMapOf<SrtSocketOption, String>()
-            for ((key, value) in queryItems) {
-                val option = fromRawValue(key)
+            for (item in queryItems) {
+                val option = fromRawValue(item.key)
                 if (option == null) {
-                    Log.i(TAG, "Unknown option: $key")
+                    Log.i(TAG, "Unknown option: ${item.key}")
                     continue
                 }
-                options[option] = value
+                options[option] = item.value
             }
             return options
         }
 
-        fun configure(socket: Int,
-                      binding: Binding,
-                      options: Map<SrtSocketOption, String>): List<String>
-        {
+        fun configure(
+            socket: Int,
+            binding: Binding,
+            options: Map<SrtSocketOption, String>,
+        ): List<String> {
             val failures = mutableListOf<String>()
             for ((key, value) in options) {
-                if (key.binding == binding) {
-                    if (!key.setOption(socket, value)) {
-                        failures.add(key.rawValue)
-                    }
+                if (key.binding != binding) {
+                    continue
+                }
+                if (!key.setOption(socket, value = value)) {
+                    failures.add(key.rawValue)
                 }
             }
             return failures
         }
 
-        fun getQueryItems(uri: String): Map<String, String> {
-            val urlComponent = Uri.parse(uri)
+        fun getQueryItems(uri: URI): Map<String, String> {
+            val query = uri.rawQuery ?: return emptyMap()
             val params = mutableMapOf<String, String>()
-            for (name in urlComponent.queryParameterNames) {
-                params[name] = urlComponent.getQueryParameter(name) ?: ""
+            for (item in query.split("&")) {
+                if (item.isEmpty()) {
+                    continue
+                }
+                val separator = item.indexOf('=')
+                val name: String = Uri.decode(if (separator < 0) item else item.substring(0, separator)) ?: ""
+                val value: String? = if (separator < 0) null else Uri.decode(item.substring(separator + 1))
+                params[name] = value?.let { Uri.decode(it) } ?: ""
             }
             return params
         }

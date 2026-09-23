@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +37,8 @@ import com.moblin.android.common.various.isValidRtmpUrl
 import com.moblin.android.localized
 import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ButtonRole
+import com.moblin.android.platform.swiftui.ConfirmationDialog
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
 import com.moblin.android.platform.swiftui.FormRow
@@ -45,6 +46,7 @@ import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.Visibility
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formFootnoteStyle
 import com.moblin.android.platform.swiftui.formPalette
@@ -193,44 +195,23 @@ private fun StreamDescriptionView(
             }
         }
     }
-    if (presentingConfigureConfirm) {
-        AlertDialog(
-            onDismissRequest = { presentingConfigureConfirm = false },
-            title = {
-                Text(localized("Overwrite Settings → Streams → ${stream.name} → URL?"))
-            },
-            confirmButton = {
-                Text(
-                    localized("Yes"),
-                    color = palette.red,
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        if (isValidRtmpUrl(url = ingestsUrl, rtmpStreamKeyRequired = true) == null) {
-                            stream.url = ingestsUrl
-                            stream.youTubeVideoIds = youTubeStream.id
-                            model.reloadStreamIfEnabled(stream)
-                        }
-                        presentingConfigureConfirm = false
-                    }
-                )
-            },
-            dismissButton = {
-                Text(
-                    localized("No"),
-                    color = palette.accent,
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        stream.youTubeVideoIds = youTubeStream.id
-                        model.youTubeVideoIdUpdated()
-                        presentingConfigureConfirm = false
-                    }
-                )
+    ConfirmationDialog(
+        title = "Overwrite Settings → Streams → ${stream.name} → URL?",
+        isPresented = presentingConfigureConfirm,
+        onDismissRequest = { presentingConfigureConfirm = false },
+        titleVisibility = Visibility.visible,
+    ) {
+        Button("Yes", role = ButtonRole.destructive) {
+            if (isValidRtmpUrl(url = ingestsUrl, rtmpStreamKeyRequired = true) == null) {
+                stream.url = ingestsUrl
+                stream.youTubeVideoIds = youTubeStream.id
+                model.reloadStreamIfEnabled(stream)
             }
-        )
+        }
+        Button("No") {
+            stream.youTubeVideoIds = youTubeStream.id
+            model.youTubeVideoIdUpdated()
+        }
     }
 }
 
@@ -307,23 +288,14 @@ private fun YouTubeStreamView(
                     }
                 }
             }
-            if (presentingConfirm) {
-                AlertDialog(
-                    onDismissRequest = { presentingConfirm = false },
-                    confirmButton = {
-                        Text(
-                            destroyText,
-                            color = palette.red,
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) {
-                                presentingConfirm = false
-                                handleDestroy()
-                            }
-                        )
-                    }
-                )
+            ConfirmationDialog(
+                title = "",
+                isPresented = presentingConfirm,
+                onDismissRequest = { presentingConfirm = false },
+            ) {
+                Button(destroyText, role = ButtonRole.destructive) {
+                    handleDestroy()
+                }
             }
         }
     }

@@ -33,16 +33,14 @@ import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.platform.swiftui.rememberAssetImage
 
 @Composable
 fun IntegrationImageView(imageName: String, height: Double? = null) {
-    val context = LocalContext.current
-    val resourceId = remember(imageName) {
-        context.resources.getIdentifier(imageName, "drawable", context.packageName)
-    }
-    if (resourceId != 0) {
+    val bitmap = rememberAssetImage(imageName)
+    if (bitmap != null) {
         Image(
-            painter = painterResource(id = resourceId),
+            bitmap = bitmap,
             contentDescription = null,
             contentScale = ContentScale.Fit,
             modifier = Modifier

@@ -15,9 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -30,12 +28,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Alert
+import com.moblin.android.platform.swiftui.ButtonRole
+import com.moblin.android.platform.swiftui.ConfirmationDialog
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.ChatPost
 import com.moblin.android.various.model.Model
@@ -85,26 +85,6 @@ private fun ActionButtonView(
 }
 
 @Composable
-private fun DialogButton(
-    title: String,
-    color: Color,
-    action: () -> Unit,
-) {
-    Text(
-        text = localized(title),
-        color = color,
-        fontSize = 17.sp,
-        modifier = Modifier
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = action,
-            )
-            .padding(8.dp),
-    )
-}
-
-@Composable
 private fun banButton(
     model: Model = LocalModel.current,
     selectedPost: ChatPost,
@@ -116,24 +96,15 @@ private fun banButton(
     ActionButtonView(image = "nosign", text = "Ban", foreground = palette.red) {
         onPresentingBanConfirmChange(true)
     }
-    if (presentingBanConfirm) {
-        AlertDialog(
-            onDismissRequest = { onPresentingBanConfirmChange(false) },
-            title = null,
-            text = null,
-            confirmButton = {
-                DialogButton(title = "Ban", color = palette.red) {
-                    model.banUser(post = selectedPost)
-                    onPresentingBanConfirmChange(false)
-                    onDismiss()
-                }
-            },
-            dismissButton = {
-                DialogButton(title = "Cancel", color = palette.accent) {
-                    onPresentingBanConfirmChange(false)
-                }
-            },
-        )
+    ConfirmationDialog(
+        title = "",
+        isPresented = presentingBanConfirm,
+        onDismissRequest = { onPresentingBanConfirmChange(false) },
+    ) {
+        Button("Ban", role = ButtonRole.destructive) {
+            model.banUser(post = selectedPost)
+            onDismiss()
+        }
     }
 }
 
@@ -145,40 +116,26 @@ private fun timeoutButton(
     onPresentingTimeoutConfirmChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val palette = formPalette()
     ActionButtonView(image = "timer", text = "Timeout", foreground = null) {
         onPresentingTimeoutConfirmChange(true)
     }
-    if (presentingTimeoutConfirm) {
-        AlertDialog(
-            onDismissRequest = { onPresentingTimeoutConfirmChange(false) },
-            title = null,
-            text = null,
-            confirmButton = {
-                Column {
-                    DialogButton(title = "5 minutes timeout", color = palette.red) {
-                        model.timeoutUser(post = selectedPost, duration = 300)
-                        onPresentingTimeoutConfirmChange(false)
-                        onDismiss()
-                    }
-                    DialogButton(title = "1 hour timeout", color = palette.red) {
-                        model.timeoutUser(post = selectedPost, duration = 3600)
-                        onPresentingTimeoutConfirmChange(false)
-                        onDismiss()
-                    }
-                    DialogButton(title = "24 hours timeout", color = palette.red) {
-                        model.timeoutUser(post = selectedPost, duration = 86400)
-                        onPresentingTimeoutConfirmChange(false)
-                        onDismiss()
-                    }
-                }
-            },
-            dismissButton = {
-                DialogButton(title = "Cancel", color = palette.accent) {
-                    onPresentingTimeoutConfirmChange(false)
-                }
-            },
-        )
+    ConfirmationDialog(
+        title = "",
+        isPresented = presentingTimeoutConfirm,
+        onDismissRequest = { onPresentingTimeoutConfirmChange(false) },
+    ) {
+        Button("5 minutes timeout", role = ButtonRole.destructive) {
+            model.timeoutUser(post = selectedPost, duration = 300)
+            onDismiss()
+        }
+        Button("1 hour timeout", role = ButtonRole.destructive) {
+            model.timeoutUser(post = selectedPost, duration = 3600)
+            onDismiss()
+        }
+        Button("24 hours timeout", role = ButtonRole.destructive) {
+            model.timeoutUser(post = selectedPost, duration = 86400)
+            onDismiss()
+        }
     }
 }
 
@@ -190,28 +147,18 @@ private fun deleteButton(
     onPresentingDeleteConfirmChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val palette = formPalette()
     ActionButtonView(image = "trash", text = "Delete", foreground = null) {
         onPresentingDeleteConfirmChange(true)
     }
-    if (presentingDeleteConfirm) {
-        AlertDialog(
-            onDismissRequest = { onPresentingDeleteConfirmChange(false) },
-            title = null,
-            text = null,
-            confirmButton = {
-                DialogButton(title = "Delete message", color = palette.red) {
-                    model.deleteMessage(post = selectedPost)
-                    onPresentingDeleteConfirmChange(false)
-                    onDismiss()
-                }
-            },
-            dismissButton = {
-                DialogButton(title = "Cancel", color = palette.accent) {
-                    onPresentingDeleteConfirmChange(false)
-                }
-            },
-        )
+    ConfirmationDialog(
+        title = "",
+        isPresented = presentingDeleteConfirm,
+        onDismissRequest = { onPresentingDeleteConfirmChange(false) },
+    ) {
+        Button("Delete message", role = ButtonRole.destructive) {
+            model.deleteMessage(post = selectedPost)
+            onDismiss()
+        }
     }
 }
 
@@ -238,57 +185,28 @@ private fun nicknameButton(
     onNicknameTextChange: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val palette = formPalette()
     ActionButtonView(image = "person.badge.plus", text = "Nickname", foreground = null) {
         val user = selectedPost.user
         onNicknameTextChange(user?.let { chat.nicknames.getNickname(user = it) } ?: "")
         onPresentingNicknameDialogChange(true)
     }
-    if (presentingNicknameDialog) {
-        AlertDialog(
-            onDismissRequest = { onPresentingNicknameDialogChange(false) },
-            title = { Text("Nickname for ${selectedPost.user ?: ""}") },
-            text = {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    BasicTextField(
-                        value = nicknameText,
-                        onValueChange = onNicknameTextChange,
-                        singleLine = true,
-                        textStyle = TextStyle(color = palette.label, fontSize = 17.sp),
-                        modifier = Modifier.fillMaxWidth(),
-                        decorationBox = { innerTextField ->
-                            Box {
-                                if (nicknameText.isEmpty()) {
-                                    Text(
-                                        text = localized("Nickname"),
-                                        color = palette.secondaryLabel,
-                                        fontSize = 17.sp,
-                                    )
-                                }
-                                innerTextField()
-                            }
-                        },
-                    )
-                }
-            },
-            confirmButton = {
-                DialogButton(title = "Save", color = palette.accent) {
-                    saveNickname(
-                        model = model,
-                        selectedPost = selectedPost,
-                        nicknameText = nicknameText,
-                    )
-                    onPresentingNicknameDialogChange(false)
-                    onDismiss()
-                }
-            },
-            dismissButton = {
-                DialogButton(title = "Cancel", color = palette.accent) {
-                    onPresentingNicknameDialogChange(false)
-                    onDismiss()
-                }
-            },
-        )
+    Alert(
+        title = "Nickname for ${selectedPost.user ?: ""}",
+        isPresented = presentingNicknameDialog,
+        onDismissRequest = { onPresentingNicknameDialogChange(false) },
+    ) {
+        TextField("Nickname", text = nicknameText, onTextChange = onNicknameTextChange)
+        Button("Save") {
+            saveNickname(
+                model = model,
+                selectedPost = selectedPost,
+                nicknameText = nicknameText,
+            )
+            onDismiss()
+        }
+        Button("Cancel", role = ButtonRole.cancel) {
+            onDismiss()
+        }
     }
 }
 

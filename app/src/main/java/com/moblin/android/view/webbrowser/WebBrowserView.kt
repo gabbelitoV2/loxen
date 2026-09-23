@@ -32,7 +32,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,6 +53,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.WebBrowserState
@@ -346,15 +346,13 @@ private fun WebBrowserBigView(
             WebView(model = model)
         }
     }
-    if (presentingBookmarks) {
-        ModalBottomSheet(onDismissRequest = { presentingBookmarks = false }) {
-            BookmarksView(
-                model = model,
-                webBrowser = database.webBrowser,
-                presentingBookmarks = presentingBookmarks,
-                onPresentingBookmarksChange = { presentingBookmarks = it },
-            )
-        }
+    Sheet(isPresented = presentingBookmarks, onDismissRequest = { presentingBookmarks = false }) {
+        BookmarksView(
+            model = model,
+            webBrowser = database.webBrowser,
+            presentingBookmarks = presentingBookmarks,
+            onPresentingBookmarksChange = { presentingBookmarks = it },
+        )
     }
 }
 

@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.common.various.controlBarButtonSize
 import com.moblin.android.platform.Bundle
+import com.moblin.android.platform.swiftui.Alert
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
@@ -76,16 +75,12 @@ private fun StoreSettingsRestoreView(model: Model = LocalModel.current) {
             }
         }
     }
-    if (showErrorAlert) {
-        AlertDialog(
-            onDismissRequest = { showErrorAlert = false },
-            title = { Text("Restore purchases failed") },
-            confirmButton = {
-                TextButton(onClick = { showErrorAlert = false }) {
-                    Text("Ok")
-                }
-            }
-        )
+    Alert(
+        title = "Restore purchases failed",
+        isPresented = showErrorAlert,
+        onDismissRequest = { showErrorAlert = false },
+    ) {
+        Button("Ok")
     }
 }
 

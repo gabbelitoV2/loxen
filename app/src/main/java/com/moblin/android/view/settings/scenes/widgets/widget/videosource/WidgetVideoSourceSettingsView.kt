@@ -3,9 +3,7 @@ package com.moblin.android.view.settings.scenes.widgets.widget.videosource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import com.moblin.android.LocalModel
+import com.moblin.android.platform.swiftui.Alert
 import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.FormSlider
 import com.moblin.android.platform.swiftui.NavigationLink
@@ -241,16 +240,14 @@ fun WidgetVideoSourceSettingsView(
                     text = model.getCameraPositionName(videoSourceWidget = videoSource),
                 )
             }
-            if (presentingScreenCaptureAlert) {
-                AlertDialog(
-                    onDismissRequest = { presentingScreenCaptureAlert = false },
-                    title = { Text(startScreenCatptureHelp) },
-                    confirmButton = {
-                        TextButton(onClick = { presentingScreenCaptureAlert = false }) {
-                            Text(localized("Got it"))
-                        }
-                    },
-                )
+            Alert(
+                title = startScreenCatptureHelp,
+                isPresented = presentingScreenCaptureAlert,
+                onDismissRequest = { presentingScreenCaptureAlert = false },
+            ) {
+                Button("Got it") {
+                    presentingScreenCaptureAlert = false
+                }
             }
         }
         Section {

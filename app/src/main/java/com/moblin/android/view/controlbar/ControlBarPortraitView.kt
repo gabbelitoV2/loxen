@@ -30,8 +30,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -58,6 +56,7 @@ import com.moblin.android.common.various.controlBarWidthDefault
 import com.moblin.android.common.view.ThermalStateView
 import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.QuickButtons
 import com.moblin.android.various.model.ShowingPanel
@@ -278,7 +277,6 @@ private fun IconAndSettingsView(model: Model = LocalModel.current, store: Store)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainPageView(
     model: Model = LocalModel.current,
@@ -346,13 +344,11 @@ private fun MainPageView(
             }
         }
     }
-    if (presentingThermalState) {
-        ModalBottomSheet(onDismissRequest = { presentingThermalState = false }) {
-            ThermalStateSheetView(
-                presenting = presentingThermalState,
-                onPresentingChange = { presentingThermalState = it },
-            )
-        }
+    Sheet(isPresented = presentingThermalState, onDismissRequest = { presentingThermalState = false }) {
+        ThermalStateSheetView(
+            presenting = presentingThermalState,
+            onPresentingChange = { presentingThermalState = it },
+        )
     }
 }
 

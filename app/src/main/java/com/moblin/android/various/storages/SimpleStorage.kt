@@ -79,7 +79,12 @@ class SimpleIntStorage(key: String) {
 
 private fun File.writeString(value: String) {
     try {
-        writeText(value)
+        val temporary = File(parentFile, ".$name.tmp")
+        temporary.writeText(value)
+        if (!temporary.renameTo(this)) {
+            temporary.delete()
+            writeText(value)
+        }
     } catch (e: Exception) {
         Log.e("SimpleStorage", "Failed to write $name: $e")
     }

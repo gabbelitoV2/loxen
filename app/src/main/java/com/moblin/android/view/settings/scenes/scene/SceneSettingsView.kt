@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -200,23 +199,14 @@ private fun VideoSourceView(
             }
         }
     }
-    if (presentingScreenCaptureAlert) {
-        AlertDialog(
-            onDismissRequest = { presentingScreenCaptureAlert = false },
-            text = { Text(startScreenCatptureHelp) },
-            confirmButton = {
-                Text(
-                    localized("Got it"),
-                    color = formPalette().accent,
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                    ) {
-                        presentingScreenCaptureAlert = false
-                    },
-                )
-            },
-        )
+    Alert(
+        title = startScreenCatptureHelp,
+        isPresented = presentingScreenCaptureAlert,
+        onDismissRequest = { presentingScreenCaptureAlert = false },
+    ) {
+        Button("Got it") {
+            presentingScreenCaptureAlert = false
+        }
     }
 }
 
@@ -390,40 +380,22 @@ private fun WidgetsView(
                 }
             }
         }
-        pendingDelete?.let { sceneWidget ->
-            AlertDialog(
-                onDismissRequest = { pendingDelete = null },
-                title = { Text(localized("Delete widget?")) },
-                text = { Text(localized("Remove this widget from the scene?")) },
-                confirmButton = {
-                    Text(
-                        localized("Delete"),
-                        color = formPalette().red,
-                        modifier = Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                        ) {
-                            val offset = sceneWidgets.indexOfFirst { it.id == sceneWidget.id }
-                            if (offset != -1) {
-                                deleteSceneWidget(listOf(offset))
-                            }
-                            pendingDelete = null
-                        },
-                    )
-                },
-                dismissButton = {
-                    Text(
-                        localized("Cancel"),
-                        color = formPalette().accent,
-                        modifier = Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                        ) {
-                            pendingDelete = null
-                        },
-                    )
-                },
-            )
+        val sceneWidgetToDelete = pendingDelete
+        Alert(
+            title = "Delete widget?",
+            isPresented = sceneWidgetToDelete != null,
+            onDismissRequest = { pendingDelete = null },
+            message = "Remove this widget from the scene?",
+        ) {
+            Button("Cancel", role = ButtonRole.cancel)
+            Button("Delete", role = ButtonRole.destructive) {
+                if (sceneWidgetToDelete != null) {
+                    val offset = sceneWidgets.indexOfFirst { it.id == sceneWidgetToDelete.id }
+                    if (offset != -1) {
+                        deleteSceneWidget(listOf(offset))
+                    }
+                }
+            }
         }
     }
 }

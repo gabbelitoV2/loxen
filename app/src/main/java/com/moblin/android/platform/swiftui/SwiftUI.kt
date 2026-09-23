@@ -2,18 +2,32 @@ package com.moblin.android.platform.swiftui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -21,20 +35,26 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -68,10 +88,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.input.pointer.pointerInput
@@ -79,9 +102,17 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
@@ -91,6 +122,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
@@ -201,8 +233,34 @@ private val darkFormPalette = FormPalette(
     menu = Color(0xFF252527),
 )
 
+private val darkElevatedFormPalette = FormPalette(
+    groupedBackground = Color(0xFF1C1C1E),
+    cell = Color(0xFF2C2C2E),
+    label = Color(0xFFFFFFFF),
+    secondaryLabel = Color(0x99EBEBF5),
+    tertiaryLabel = Color(0x4DEBEBF5),
+    separator = Color(0x99545458),
+    accent = Color(0xFF0A84FF),
+    green = Color(0xFF30D158),
+    red = Color(0xFFFF453A),
+    gray = Color(0xFF8E8E93),
+    highlight = Color(0xFF3A3A3C),
+    switchOff = Color(0xFF39393D),
+    sliderTrack = Color(0x5C787880),
+    bar = Color(0xF0252527),
+    menu = Color(0xFF252527),
+)
+
+private val LocalElevated = staticCompositionLocalOf { false }
+
 @Composable
-fun formPalette(): FormPalette = if (isSystemInDarkTheme()) darkFormPalette else lightFormPalette
+fun formPalette(): FormPalette = if (!isSystemInDarkTheme()) {
+    lightFormPalette
+} else if (LocalElevated.current) {
+    darkElevatedFormPalette
+} else {
+    darkFormPalette
+}
 
 val formBodyStyle = TextStyle(fontSize = 17.sp, lineHeight = 22.sp)
 
@@ -1036,31 +1094,669 @@ private fun Modifier.pointerInputSlider(
     )
 }
 
+enum class ButtonRole {
+    cancel,
+    destructive,
+}
+
+enum class Visibility {
+    automatic,
+    visible,
+    hidden,
+}
+
+internal class DialogButton(
+    val title: String,
+    val role: ButtonRole?,
+    val action: () -> Unit,
+)
+
+internal class DialogTextField(
+    val title: String,
+    val text: String,
+    val onTextChange: (String) -> Unit,
+    val secure: Boolean,
+)
+
+class DialogActions internal constructor() {
+    internal val buttons = ArrayList<DialogButton>()
+    internal val textFields = ArrayList<DialogTextField>()
+
+    fun Button(title: String, role: ButtonRole? = null, action: () -> Unit = {}) {
+        buttons.add(DialogButton(title = localized(title), role = role, action = action))
+    }
+
+    fun TextField(title: String, text: String, onTextChange: (String) -> Unit) {
+        textFields.add(
+            DialogTextField(title = localized(title), text = text, onTextChange = onTextChange, secure = false),
+        )
+    }
+
+    fun TextField(title: String, text: MutableState<String>) {
+        TextField(title = title, text = text.value, onTextChange = { text.value = it })
+    }
+
+    fun SecureField(title: String, text: String, onTextChange: (String) -> Unit) {
+        textFields.add(
+            DialogTextField(title = localized(title), text = text, onTextChange = onTextChange, secure = true),
+        )
+    }
+
+    fun SecureField(title: String, text: MutableState<String>) {
+        SecureField(title = title, text = text.value, onTextChange = { text.value = it })
+    }
+}
+
+private class DialogColors(
+    val dimming: Color,
+    val material: Color,
+    val cancel: Color,
+    val pressed: Color,
+    val field: Color,
+)
+
+private val lightDialogColors = DialogColors(
+    dimming = Color(0x33000000),
+    material = Color(0xF2F2F2F2),
+    cancel = Color(0xFFFFFFFF),
+    pressed = Color(0x1F000000),
+    field = Color(0xFFFFFFFF),
+)
+
+private val darkDialogColors = DialogColors(
+    dimming = Color(0x7A000000),
+    material = Color(0xF2252527),
+    cancel = Color(0xFF2C2C2E),
+    pressed = Color(0x29FFFFFF),
+    field = Color(0xFF1C1C1E),
+)
+
+@Composable
+private fun dialogColors(): DialogColors = if (isSystemInDarkTheme()) darkDialogColors else lightDialogColors
+
+private val presentationEasing = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
+
+private val dialogCornerRadius = 14.dp
+
+private val actionSheetButtonStyle = TextStyle(fontSize = 20.sp, lineHeight = 25.sp)
+
+@Composable
+private fun rememberPresentation(isPresented: Boolean): MutableTransitionState<Boolean> {
+    val state = remember { MutableTransitionState(false) }
+    state.targetState = isPresented
+    return state
+}
+
+private fun MutableTransitionState<Boolean>.isShowing(): Boolean = currentState || targetState
+
+private fun Modifier.blockPointerInput(): Modifier = pointerInput(Unit) {
+    awaitPointerEventScope {
+        while (true) {
+            awaitPointerEvent()
+        }
+    }
+}
+
+@Composable
+private fun hairline(): Dp = with(LocalDensity.current) { 1.toDp() }
+
+@Composable
+private fun PresentationDialog(
+    state: MutableTransitionState<Boolean>,
+    onBack: () -> Unit,
+    content: @Composable AnimatedVisibilityScope.() -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onBack,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
+        ),
+    ) {
+        val window = (LocalView.current.parent as? DialogWindowProvider)?.window
+        SideEffect {
+            window?.setDimAmount(0f)
+            window?.setWindowAnimations(0)
+        }
+        AnimatedVisibility(
+            visibleState = state,
+            enter = EnterTransition.None,
+            exit = ExitTransition.None,
+            content = content,
+        )
+    }
+}
+
+@Composable
+private fun DialogButtonCell(
+    title: String,
+    style: TextStyle,
+    color: Color,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
+    val colors = dialogColors()
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Box(
+        modifier = modifier
+            .background(if (pressed) colors.pressed else Color.Transparent)
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text = title, style = style, color = color, textAlign = TextAlign.Center)
+    }
+}
+
+@Composable
+private fun Separator(modifier: Modifier = Modifier.fillMaxWidth().height(hairline())) {
+    Box(modifier = modifier.background(formPalette().separator))
+}
+
 @Composable
 fun Sheet(onDismissRequest: () -> Unit, content: @Composable () -> Unit) {
-    val palette = formPalette()
-    Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(24.dp)
-                .widthIn(max = 540.dp)
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(formCornerRadius))
-                .background(palette.groupedBackground),
-        ) {
-            CompositionLocalProvider(
-                LocalNavigator provides null,
-                LocalNavigationEntry provides null,
-                LocalInSection provides false,
-                LocalContentColor provides palette.label,
-                LocalTextStyle provides formBodyStyle,
-            ) {
-                content()
+    Sheet(isPresented = true, onDismissRequest = onDismissRequest, content = content)
+}
+
+@Composable
+fun Sheet(isPresented: MutableState<Boolean>, content: @Composable () -> Unit) {
+    Sheet(isPresented = isPresented.value, onDismissRequest = { isPresented.value = false }, content = content)
+}
+
+@Composable
+fun Sheet(isPresented: Boolean, onDismissRequest: () -> Unit, content: @Composable () -> Unit) {
+    val state = rememberPresentation(isPresented)
+    if (!state.isShowing()) {
+        return
+    }
+    val currentOnDismissRequest by rememberUpdatedState(onDismissRequest)
+    PresentationDialog(state = state, onBack = onDismissRequest) {
+        CompositionLocalProvider(LocalElevated provides true) {
+            val palette = formPalette()
+            val colors = dialogColors()
+            Box(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .animateEnterExit(enter = fadeIn(tween(400)), exit = fadeOut(tween(300)))
+                        .background(colors.dimming)
+                        .pointerInput(Unit) {
+                            detectTapGestures {
+                                if (state.targetState) {
+                                    currentOnDismissRequest()
+                                }
+                            }
+                        },
+                )
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .animateEnterExit(
+                            enter = slideInVertically(tween(450, easing = presentationEasing)) { it },
+                            exit = slideOutVertically(tween(300, easing = presentationEasing)) { it },
+                        )
+                        .windowInsetsPadding(
+                            WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                        )
+                        .padding(top = 10.dp)
+                        .widthIn(max = 700.dp)
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(topStart = formCornerRadius, topEnd = formCornerRadius))
+                        .background(palette.groupedBackground)
+                        .blockPointerInput()
+                        .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)),
+                ) {
+                    CompositionLocalProvider(
+                        LocalNavigator provides null,
+                        LocalNavigationEntry provides null,
+                        LocalInSection provides false,
+                        LocalContentColor provides palette.label,
+                        LocalTextStyle provides formBodyStyle,
+                    ) {
+                        content()
+                    }
+                }
             }
+        }
+    }
+}
+
+@Composable
+fun Alert(
+    title: String,
+    isPresented: MutableState<Boolean>,
+    message: String? = null,
+    actions: DialogActions.() -> Unit = {},
+) {
+    Alert(
+        title = title,
+        isPresented = isPresented.value,
+        onDismissRequest = { isPresented.value = false },
+        message = message,
+        actions = actions,
+    )
+}
+
+@Composable
+fun Alert(
+    title: String,
+    isPresented: Boolean,
+    onDismissRequest: () -> Unit,
+    message: String? = null,
+    actions: DialogActions.() -> Unit = {},
+) {
+    val state = rememberPresentation(isPresented)
+    if (!state.isShowing()) {
+        return
+    }
+    val dialogActions = DialogActions().apply(actions)
+    val buttons: List<DialogButton> = dialogActions.buttons.ifEmpty {
+        listOf(DialogButton(title = localized("OK"), role = null, action = {}))
+    }
+    val onButton: (DialogButton) -> Unit = { button ->
+        if (state.targetState) {
+            state.targetState = false
+            button.action()
+            onDismissRequest()
+        }
+    }
+    val onBack: () -> Unit = {
+        val cancel = buttons.firstOrNull { it.role == ButtonRole.cancel }
+        if (cancel != null) {
+            onButton(cancel)
+        } else if (state.targetState) {
+            state.targetState = false
+            onDismissRequest()
+        }
+    }
+    PresentationDialog(state = state, onBack = onBack) {
+        val colors = dialogColors()
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .animateEnterExit(enter = fadeIn(tween(250)), exit = fadeOut(tween(250)))
+                    .background(colors.dimming),
+            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                AlertCard(
+                    title = localized(title),
+                    message = message?.let { localized(it) },
+                    textFields = dialogActions.textFields,
+                    buttons = buttons,
+                    onButton = onButton,
+                    modifier = Modifier.animateEnterExit(
+                        enter = fadeIn(tween(250)) +
+                            scaleIn(tween(350, easing = presentationEasing), initialScale = 1.15f),
+                        exit = fadeOut(tween(200)),
+                    ),
+                )
+            }
+        }
+    }
+}
+
+private fun alertButtonStyle(role: ButtonRole?): TextStyle = if (role == ButtonRole.cancel) {
+    formBodyStyle.copy(fontWeight = FontWeight.SemiBold)
+} else {
+    formBodyStyle
+}
+
+@Composable
+private fun AlertCard(
+    title: String,
+    message: String?,
+    textFields: List<DialogTextField>,
+    buttons: List<DialogButton>,
+    onButton: (DialogButton) -> Unit,
+    modifier: Modifier,
+) {
+    val palette = formPalette()
+    val colors = dialogColors()
+    val tint = LocalTint.current.takeOrElse { palette.accent }
+    val measurer = rememberTextMeasurer()
+    val maximumSideBySideWidth = with(LocalDensity.current) { 111.dp.roundToPx() }
+    val sideBySide = buttons.size == 2 && buttons.all {
+        measurer.measure(
+            text = it.title,
+            style = alertButtonStyle(it.role),
+            softWrap = false,
+            maxLines = 1,
+        ).size.width <= maximumSideBySideWidth
+    }
+    val ordered = buttons.sortedBy { button ->
+        when {
+            button.role != ButtonRole.cancel -> 1
+            sideBySide -> 0
+            else -> 2
+        }
+    }
+    val hasMessage = !message.isNullOrEmpty()
+    val hasHeader = title.isNotEmpty() || hasMessage || textFields.isNotEmpty()
+    Column(
+        modifier = modifier
+            .width(270.dp)
+            .clip(RoundedCornerShape(dialogCornerRadius))
+            .background(colors.material)
+            .blockPointerInput(),
+    ) {
+        if (hasHeader) {
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState())
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 19.dp, bottom = 19.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                if (title.isNotEmpty()) {
+                    Text(
+                        text = title,
+                        style = formBodyStyle.copy(fontWeight = FontWeight.SemiBold),
+                        color = palette.label,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                if (message != null && hasMessage) {
+                    Text(
+                        text = message,
+                        style = formFootnoteStyle,
+                        color = palette.label,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = if (title.isNotEmpty()) 2.dp else 0.dp),
+                    )
+                }
+                if (textFields.isNotEmpty()) {
+                    AlertTextFields(
+                        textFields = textFields,
+                        tint = tint,
+                        modifier = Modifier.padding(top = if (title.isNotEmpty() || hasMessage) 16.dp else 0.dp),
+                    )
+                }
+            }
+            Separator()
+        }
+        if (sideBySide) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
+            ) {
+                ordered.forEachIndexed { index, button ->
+                    if (index > 0) {
+                        Separator(
+                            modifier = Modifier
+                                .width(hairline())
+                                .fillMaxHeight(),
+                        )
+                    }
+                    DialogButtonCell(
+                        title = button.title,
+                        style = alertButtonStyle(button.role),
+                        color = if (button.role == ButtonRole.destructive) palette.red else tint,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                    ) {
+                        onButton(button)
+                    }
+                }
+            }
+        } else {
+            ordered.forEachIndexed { index, button ->
+                if (index > 0) {
+                    Separator()
+                }
+                DialogButtonCell(
+                    title = button.title,
+                    style = alertButtonStyle(button.role),
+                    color = if (button.role == ButtonRole.destructive) palette.red else tint,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 44.dp),
+                ) {
+                    onButton(button)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AlertTextFields(textFields: List<DialogTextField>, tint: Color, modifier: Modifier) {
+    val palette = formPalette()
+    val colors = dialogColors()
+    val focusRequester = remember { FocusRequester() }
+    val keyboard = LocalSoftwareKeyboardController.current
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+        keyboard?.show()
+    }
+    val shape = RoundedCornerShape(7.dp)
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(colors.field)
+            .border(hairline(), palette.separator, shape),
+    ) {
+        textFields.forEachIndexed { index, field ->
+            if (index > 0) {
+                Separator()
+            }
+            AlertTextField(
+                field = field,
+                tint = tint,
+                modifier = if (index == 0) Modifier.focusRequester(focusRequester) else Modifier,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AlertTextField(field: DialogTextField, tint: Color, modifier: Modifier) {
+    val palette = formPalette()
+    var state by remember { mutableStateOf(TextFieldValue(field.text, TextRange(field.text.length))) }
+    val value = if (state.text == field.text) {
+        state
+    } else {
+        TextFieldValue(field.text, TextRange(field.text.length))
+    }
+    BasicTextField(
+        value = value,
+        onValueChange = {
+            val textChanged = it.text != state.text
+            state = it
+            if (textChanged) {
+                field.onTextChange(it.text)
+            }
+        },
+        modifier = modifier.fillMaxWidth(),
+        textStyle = formFootnoteStyle.copy(color = palette.label),
+        singleLine = true,
+        visualTransformation = if (field.secure) {
+            PasswordVisualTransformation()
+        } else {
+            VisualTransformation.None
+        },
+        cursorBrush = SolidColor(tint),
+        decorationBox = { innerTextField ->
+            Box(modifier = Modifier.padding(horizontal = 6.dp, vertical = 5.dp)) {
+                if (value.text.isEmpty()) {
+                    Text(text = field.title, style = formFootnoteStyle, color = palette.tertiaryLabel)
+                }
+                innerTextField()
+            }
+        },
+    )
+}
+
+@Composable
+fun ConfirmationDialog(
+    title: String,
+    isPresented: MutableState<Boolean>,
+    titleVisibility: Visibility = Visibility.automatic,
+    message: String? = null,
+    actions: DialogActions.() -> Unit,
+) {
+    ConfirmationDialog(
+        title = title,
+        isPresented = isPresented.value,
+        onDismissRequest = { isPresented.value = false },
+        titleVisibility = titleVisibility,
+        message = message,
+        actions = actions,
+    )
+}
+
+@Composable
+fun ConfirmationDialog(
+    title: String,
+    isPresented: Boolean,
+    onDismissRequest: () -> Unit,
+    titleVisibility: Visibility = Visibility.automatic,
+    message: String? = null,
+    actions: DialogActions.() -> Unit,
+) {
+    val state = rememberPresentation(isPresented)
+    if (!state.isShowing()) {
+        return
+    }
+    val dialogActions = DialogActions().apply(actions)
+    val cancel = dialogActions.buttons.firstOrNull { it.role == ButtonRole.cancel }
+        ?: DialogButton(title = localized("Cancel"), role = ButtonRole.cancel, action = {})
+    val buttons = dialogActions.buttons.filter { it.role != ButtonRole.cancel }
+    val onButton: (DialogButton) -> Unit = { button ->
+        if (state.targetState) {
+            state.targetState = false
+            button.action()
+            onDismissRequest()
+        }
+    }
+    val onCancel by rememberUpdatedState(newValue = { onButton(cancel) })
+    PresentationDialog(state = state, onBack = onCancel) {
+        val colors = dialogColors()
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .animateEnterExit(enter = fadeIn(tween(300)), exit = fadeOut(tween(250)))
+                    .background(colors.dimming)
+                    .pointerInput(Unit) {
+                        detectTapGestures {
+                            onCancel()
+                        }
+                    },
+            )
+            ActionSheet(
+                title = if (titleVisibility == Visibility.visible) localized(title) else "",
+                message = message?.let { localized(it) },
+                buttons = buttons,
+                cancel = cancel,
+                onButton = onButton,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .animateEnterExit(
+                        enter = slideInVertically(tween(400, easing = presentationEasing)) { it },
+                        exit = slideOutVertically(tween(250, easing = presentationEasing)) { it },
+                    )
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .padding(8.dp)
+                    .widthIn(max = 400.dp)
+                    .fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActionSheet(
+    title: String,
+    message: String?,
+    buttons: List<DialogButton>,
+    cancel: DialogButton,
+    onButton: (DialogButton) -> Unit,
+    modifier: Modifier,
+) {
+    val palette = formPalette()
+    val colors = dialogColors()
+    val tint = LocalTint.current.takeOrElse { palette.accent }
+    val hasMessage = !message.isNullOrEmpty()
+    val hasHeader = title.isNotEmpty() || hasMessage
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (hasHeader || buttons.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(dialogCornerRadius))
+                    .background(colors.material)
+                    .blockPointerInput()
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                if (hasHeader) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        if (title.isNotEmpty()) {
+                            Text(
+                                text = title,
+                                style = formFootnoteStyle.copy(fontWeight = FontWeight.SemiBold),
+                                color = palette.gray,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                        if (message != null && hasMessage) {
+                            Text(
+                                text = message,
+                                style = formFootnoteStyle,
+                                color = palette.gray,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
+                }
+                buttons.forEachIndexed { index, button ->
+                    if (index > 0 || hasHeader) {
+                        Separator()
+                    }
+                    DialogButtonCell(
+                        title = button.title,
+                        style = actionSheetButtonStyle,
+                        color = if (button.role == ButtonRole.destructive) palette.red else tint,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 57.dp),
+                    ) {
+                        onButton(button)
+                    }
+                }
+            }
+        }
+        DialogButtonCell(
+            title = cancel.title,
+            style = actionSheetButtonStyle.copy(fontWeight = FontWeight.SemiBold),
+            color = tint,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 57.dp)
+                .clip(RoundedCornerShape(dialogCornerRadius))
+                .background(colors.cancel),
+        ) {
+            onButton(cancel)
         }
     }
 }

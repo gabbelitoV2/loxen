@@ -8,15 +8,12 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -42,6 +39,7 @@ import com.moblin.android.common.various.color
 import com.moblin.android.common.various.controlBarButtonSize
 import com.moblin.android.localized
 import com.moblin.android.platform.Bundle
+import com.moblin.android.platform.swiftui.ConfirmationDialog
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.QuickButtons
@@ -105,26 +103,6 @@ private fun MinimumScaleText(
         modifier = modifier.drawWithContent {
             if (ready) {
                 drawContent()
-            }
-        },
-    )
-}
-
-@Composable
-private fun ConfirmationDialog(
-    onDismiss: () -> Unit,
-    buttons: @Composable ColumnScope.() -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            Column(horizontalAlignment = Alignment.End) {
-                buttons()
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(localized("Cancel"))
             }
         },
     )
@@ -657,20 +635,13 @@ fun QuickButtonsInnerView(
                                 recordAction()
                             }
                         }
-                        if (presentingRecordConfirm) {
-                            ConfirmationDialog(onDismiss = { presentingRecordConfirm = false }) {
-                                TextButton(onClick = {
-                                    presentingRecordConfirm = false
-                                    recordAction()
-                                }) {
-                                    Text(
-                                        if (isOn) {
-                                            localized("Stop recording")
-                                        } else {
-                                            localized("Start recording")
-                                        },
-                                    )
-                                }
+                        ConfirmationDialog(
+                            title = "",
+                            isPresented = presentingRecordConfirm,
+                            onDismissRequest = { presentingRecordConfirm = false },
+                        ) {
+                            Button(if (isOn) "Stop recording" else "Start recording") {
+                                recordAction()
                             }
                         }
                     }
@@ -809,40 +780,32 @@ fun QuickButtonsInnerView(
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 presentingStopWorkoutConfirm = true
                             }
-                            if (presentingStopWorkoutConfirm) {
-                                ConfirmationDialog(onDismiss = { presentingStopWorkoutConfirm = false }) {
-                                    TextButton(onClick = {
-                                        presentingStopWorkoutConfirm = false
-                                        model.stopWorkout()
-                                    }) {
-                                        Text(localized("End workout"))
-                                    }
+                            ConfirmationDialog(
+                                title = "",
+                                isPresented = presentingStopWorkoutConfirm,
+                                onDismissRequest = { presentingStopWorkoutConfirm = false },
+                            ) {
+                                Button("End workout") {
+                                    model.stopWorkout()
                                 }
                             }
                         } else {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 presentingStartWorkoutTypePicker = true
                             }
-                            if (presentingStartWorkoutTypePicker) {
-                                ConfirmationDialog(onDismiss = { presentingStartWorkoutTypePicker = false }) {
-                                    TextButton(onClick = {
-                                        presentingStartWorkoutTypePicker = false
-                                        model.startWorkout(type = TODO("walking"))
-                                    }) {
-                                        Text(localized("Start walking workout"))
-                                    }
-                                    TextButton(onClick = {
-                                        presentingStartWorkoutTypePicker = false
-                                        model.startWorkout(type = WatchProtocolWorkoutType.running)
-                                    }) {
-                                        Text(localized("Start running workout"))
-                                    }
-                                    TextButton(onClick = {
-                                        presentingStartWorkoutTypePicker = false
-                                        model.startWorkout(type = WatchProtocolWorkoutType.cycling)
-                                    }) {
-                                        Text(localized("Start cycling workout"))
-                                    }
+                            ConfirmationDialog(
+                                title = "",
+                                isPresented = presentingStartWorkoutTypePicker,
+                                onDismissRequest = { presentingStartWorkoutTypePicker = false },
+                            ) {
+                                Button("Start walking workout") {
+                                    model.startWorkout(type = TODO("walking"))
+                                }
+                                Button("Start running workout") {
+                                    model.startWorkout(type = WatchProtocolWorkoutType.running)
+                                }
+                                Button("Start cycling workout") {
+                                    model.startWorkout(type = WatchProtocolWorkoutType.cycling)
                                 }
                             }
                         }
@@ -1024,20 +987,13 @@ fun QuickButtonsInnerView(
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             presentingPreviewStreamConfirm = true
                         }
-                        if (presentingPreviewStreamConfirm) {
-                            ConfirmationDialog(onDismiss = { presentingPreviewStreamConfirm = false }) {
-                                TextButton(onClick = {
-                                    presentingPreviewStreamConfirm = false
-                                    previewStreamAction()
-                                }) {
-                                    Text(
-                                        if (isOn) {
-                                            localized("Stop preview stream")
-                                        } else {
-                                            localized("Start preview stream")
-                                        },
-                                    )
-                                }
+                        ConfirmationDialog(
+                            title = "",
+                            isPresented = presentingPreviewStreamConfirm,
+                            onDismissRequest = { presentingPreviewStreamConfirm = false },
+                        ) {
+                            Button(if (isOn) "Stop preview stream" else "Start preview stream") {
+                                previewStreamAction()
                             }
                         }
                     }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -17,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
+import com.moblin.android.platform.swiftui.ButtonRole
+import com.moblin.android.platform.swiftui.ConfirmationDialog
 import com.moblin.android.platform.swiftui.Label
 import com.moblin.android.platform.swiftui.LocalTint
 import com.moblin.android.platform.swiftui.formPalette
@@ -47,16 +48,10 @@ fun Modifier.contextMenuDeleteButton(disabled: Boolean = false, action: () -> Un
         this
     } else {
         var expanded by remember { mutableStateOf(false) }
-        if (expanded) {
-            AlertDialog(
-                onDismissRequest = { expanded = false },
-                confirmButton = {
-                    ContextMenuDeleteButtonView {
-                        expanded = false
-                        action()
-                    }
-                },
-            )
+        ConfirmationDialog(title = "", isPresented = expanded, onDismissRequest = { expanded = false }) {
+            Button("Delete", role = ButtonRole.destructive) {
+                action()
+            }
         }
         combinedClickable(
             onClick = {},

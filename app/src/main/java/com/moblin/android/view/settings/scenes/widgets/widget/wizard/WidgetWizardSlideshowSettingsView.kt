@@ -1,14 +1,8 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.wizard
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -17,15 +11,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ButtonRole
+import com.moblin.android.platform.swiftui.ConfirmationDialog
+import com.moblin.android.platform.swiftui.DialogActions
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
-import com.moblin.android.platform.swiftui.formBodyStyle
-import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.CreateWidgetWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
@@ -88,25 +82,19 @@ private fun SlidesView(
         slideshow.slides.forEachIndexed { index, slide ->
             key(slide.id) {
                 ContextMenuActions(
-                    actions = buildList<Pair<String, () -> Unit>> {
-                        add(
-                            localized("Delete") to {
-                                slideshow.slides = slideshow.slides.filterNot { it.id == slide.id }
-                            },
-                        )
+                    actions = {
+                        Button("Delete", role = ButtonRole.destructive) {
+                            slideshow.slides = slideshow.slides.filterNot { it.id == slide.id }
+                        }
                         if (index > 0) {
-                            add(
-                                localized("Move Up") to {
-                                    slideshow.slides = slideshow.slides.moveElement(index, index - 1)
-                                },
-                            )
+                            Button("Move Up") {
+                                slideshow.slides = slideshow.slides.moveElement(index, index - 1)
+                            }
                         }
                         if (index < slideshow.slides.size - 1) {
-                            add(
-                                localized("Move Down") to {
-                                    slideshow.slides = slideshow.slides.moveElement(index, index + 1)
-                                },
-                            )
+                            Button("Move Down") {
+                                slideshow.slides = slideshow.slides.moveElement(index, index + 1)
+                            }
                         }
                     },
                 ) {
@@ -165,7 +153,7 @@ fun WidgetWizardSlideshowSettingsView(
 
 @Composable
 private fun ContextMenuActions(
-    actions: List<Pair<String, () -> Unit>>,
+    actions: DialogActions.() -> Unit,
     content: @Composable () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -178,45 +166,7 @@ private fun ContextMenuActions(
     ) {
         content()
     }
-    if (expanded) {
-        AlertDialog(
-            onDismissRequest = { expanded = false },
-            confirmButton = {
-                Text(
-                    text = localized("Cancel"),
-                    style = formBodyStyle,
-                    color = formPalette().accent,
-                    modifier = Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                    ) {
-                        expanded = false
-                    },
-                )
-            },
-            text = {
-                Column {
-                    actions.forEach { action ->
-                        Text(
-                            text = action.first,
-                            style = formBodyStyle,
-                            color = formPalette().label,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                ) {
-                                    expanded = false
-                                    action.second()
-                                }
-                                .padding(vertical = 12.dp),
-                        )
-                    }
-                }
-            },
-        )
-    }
+    ConfirmationDialog(title = "", isPresented = expanded, onDismissRequest = { expanded = false }, actions = actions)
 }
 
 private fun <T> List<T>.moveElement(fromIndex: Int, toIndex: Int): List<T> {

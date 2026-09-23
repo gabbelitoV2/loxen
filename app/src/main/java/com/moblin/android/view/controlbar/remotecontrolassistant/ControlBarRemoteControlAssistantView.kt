@@ -38,7 +38,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,7 +47,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -90,7 +88,11 @@ import com.moblin.android.remotecontrol.RemoteControlSettingsSrt
 import com.moblin.android.remotecontrol.RemoteControlSettingsSrtConnectionPriority
 import com.moblin.android.remotecontrol.RemoteControlStatusGeneral
 import com.moblin.android.remotecontrol.RemoteControlStatusItem
+import com.moblin.android.platform.swiftui.ConfirmationDialog
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.view.CloseButtonView
+import com.moblin.android.view.utils.CloseToolbar
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.settings.debug.DebugLogSettingsView
 import com.moblin.android.view.settings.remotecontrol.RemoteControlStreamersView
@@ -480,20 +482,16 @@ private fun LiveView(model: Model = LocalModel.current, remoteControl: RemoteCon
             },
         )
     }
-    if (presentingConfirm) {
-        AlertDialog(
-            onDismissRequest = { presentingConfirm = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    model.remoteControlAssistantSetLive(on = pendingStreaming)
-                    remoteControl.streaming.value = pendingStreaming
-                    checked = pendingStreaming
-                    presentingConfirm = false
-                }) {
-                    Text(if (pendingStreaming) "Go Live" else "End")
-                }
-            },
-        )
+    ConfirmationDialog(
+        title = "",
+        isPresented = presentingConfirm,
+        onDismissRequest = { presentingConfirm = false },
+    ) {
+        Button(if (pendingStreaming) "Go Live" else "End") {
+            model.remoteControlAssistantSetLive(on = pendingStreaming)
+            remoteControl.streaming.value = pendingStreaming
+            checked = pendingStreaming
+        }
     }
 }
 
@@ -517,20 +515,16 @@ private fun RecordingView(model: Model = LocalModel.current, remoteControl: Remo
             },
         )
     }
-    if (presentingConfirm) {
-        AlertDialog(
-            onDismissRequest = { presentingConfirm = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    model.remoteControlAssistantSetRecord(on = pendingRecording)
-                    remoteControl.recording.value = pendingRecording
-                    checked = pendingRecording
-                    presentingConfirm = false
-                }) {
-                    Text(if (pendingRecording) "Start recording" else "Stop recording")
-                }
-            },
-        )
+    ConfirmationDialog(
+        title = "",
+        isPresented = presentingConfirm,
+        onDismissRequest = { presentingConfirm = false },
+    ) {
+        Button(if (pendingRecording) "Start recording" else "Stop recording") {
+            model.remoteControlAssistantSetRecord(on = pendingRecording)
+            remoteControl.recording.value = pendingRecording
+            checked = pendingRecording
+        }
     }
 }
 
@@ -1131,21 +1125,23 @@ private fun ControlBarRemoteControlAssistantInnerView(
             Unit
         }
     }
-    if (presentingStreamers) {
-        ModalBottomSheet(onDismissRequest = {
-            remoteControl.presentingStreamers.value = false
-        }) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-            ) {
-                Text("Streamers", style = MaterialTheme.typography.titleSmall)
-                RemoteControlStreamersView(
-                    model = model,
-                    remoteControlSettings = model.database.remoteControl,
+    Sheet(
+        isPresented = presentingStreamers,
+        onDismissRequest = { remoteControl.presentingStreamers.value = false },
+    ) {
+        Form(
+            title = "Streamers",
+            toolbar = {
+                CloseToolbar(
+                    presenting = presentingStreamers,
+                    onPresentingChange = { remoteControl.presentingStreamers.value = it },
                 )
-            }
+            },
+        ) {
+            RemoteControlStreamersView(
+                model = model,
+                remoteControlSettings = model.database.remoteControl,
+            )
         }
     }
 }

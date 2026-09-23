@@ -14,9 +14,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,6 +30,8 @@ import com.moblin.android.LocalModel
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ButtonRole
+import com.moblin.android.platform.swiftui.ConfirmationDialog
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
@@ -182,23 +181,14 @@ fun ScoreboardResetScoreButtonView(action: () -> Unit) {
     ScoreboardIconButton(name = "trash", tint = formPalette().red) {
         presentingResetConfirimation = true
     }
-    if (presentingResetConfirimation) {
-        AlertDialog(
-            onDismissRequest = { presentingResetConfirimation = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    presentingResetConfirimation = false
-                    action()
-                }) {
-                    Text(localized("Reset score"), color = formPalette().red)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { presentingResetConfirimation = false }) {
-                    Text(localized("Cancel"))
-                }
-            }
-        )
+    ConfirmationDialog(
+        title = "",
+        isPresented = presentingResetConfirimation,
+        onDismissRequest = { presentingResetConfirimation = false },
+    ) {
+        Button("Reset score", role = ButtonRole.destructive) {
+            action()
+        }
     }
 }
 

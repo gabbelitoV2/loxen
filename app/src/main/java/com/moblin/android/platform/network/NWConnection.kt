@@ -150,6 +150,9 @@ class NWConnection private constructor(
     val state: State
         get() = currentState
 
+    internal val isCancelled: Boolean
+        get() = cancelled
+
     private val description: String
         get() = if (isDatagram) "udp#$id $endpoint" else "tcp#$id $endpoint"
 
@@ -216,6 +219,7 @@ class NWConnection private constructor(
             inboundChunks.addLast(datagram)
             inboundBytes += datagram.size
         }
+        PipelineStats.increment("udpRx", datagram.size.toLong())
         postDeliverReceives()
     }
 
@@ -589,6 +593,7 @@ class NWConnection private constructor(
                 DatagramPacket(content, content.size)
             }
             socket.send(packet)
+            PipelineStats.increment("udpTx", content.size.toLong())
             complete(completion, null)
         } catch (error: Throwable) {
             val nwError = makeError(error)

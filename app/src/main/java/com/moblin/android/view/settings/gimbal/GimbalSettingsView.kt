@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,11 +38,14 @@ import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.common.various.toRadians
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ButtonRole
+import com.moblin.android.platform.swiftui.ConfirmationDialog
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormSlider
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.Visibility
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsControllerFunction
@@ -125,7 +127,6 @@ fun GimbalPresetDetailView(
     gimbal: SettingsGimbal,
     preset: SettingsGimbalPreset,
 ) {
-    val palette = formPalette()
     var presentingConfirm by remember { mutableStateOf(false) }
     var moveAllowed by remember { mutableStateOf(false) }
     var x by remember { mutableStateOf(0f) }
@@ -242,40 +243,16 @@ fun GimbalPresetDetailView(
             )
         }
     }
-    if (presentingConfirm) {
-        AlertDialog(
-            onDismissRequest = { dismissConfirm() },
-            title = {
-                Text(localized("Beware, changing settings will move the Gimbal to the new position."))
-            },
-            confirmButton = {
-                val interactionSource = remember { MutableInteractionSource() }
-                Text(
-                    text = localized("Ok"),
-                    color = palette.red,
-                    modifier = Modifier.clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                    ) {
-                        moveAllowed = true
-                        settingChanged()
-                        presentingConfirm = false
-                    },
-                )
-            },
-            dismissButton = {
-                val interactionSource = remember { MutableInteractionSource() }
-                Text(
-                    text = localized("Cancel"),
-                    modifier = Modifier.clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                    ) {
-                        dismissConfirm()
-                    },
-                )
-            },
-        )
+    ConfirmationDialog(
+        title = "Beware, changing settings will move the Gimbal to the new position.",
+        isPresented = presentingConfirm,
+        onDismissRequest = { dismissConfirm() },
+        titleVisibility = Visibility.visible,
+    ) {
+        Button("Ok", role = ButtonRole.destructive) {
+            moveAllowed = true
+            settingChanged()
+        }
     }
 }
 

@@ -1,79 +1,19 @@
 package com.moblin.android.media.haishinkit.srt
 
 import android.util.Log
-import com.moblin.android.media.haishinkit.media.AudioVideoEncoderDelegate
 import com.moblin.android.media.haishinkit.media.Processor
 import com.moblin.android.media.haishinkit.media.processorControlQueue
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.mpeg.MpegTsWriter
 import com.moblin.android.media.haishinkit.mpeg.MpegTsWriterDelegate
+import com.moblin.android.platform.srt.SrtError
+import com.moblin.android.platform.srt.SrtNative
+import com.moblin.android.platform.srt.SrtSendHook
 import java.io.IOException
-import java.net.Inet4Address
-import java.net.InetAddress
-import java.net.InetSocketAddress
 import java.net.URI
 import kotlinx.coroutines.launch
-import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderDelegate
-import com.moblin.android.media.haishinkit.codec.video.VideoEncoderDelegate
 
 private const val TAG = "SrtStreamOfficial"
-
-private const val SRT_INVALID_SOCK = -1
-private const val SRT_ERROR = -1
-private const val SRTO_SNDDATA = 17
-private const val SRT_ECONNREJ = 1003
-
-private fun srt_startup() {
-    Unit
-}
-
-private fun srt_cleanup() {
-    Unit
-}
-
-private fun srt_close(socket: Int) {
-    Unit
-}
-
-private fun srt_bstats(socket: Int, perf: CBytePerfMon, instant: Int) {
-    Unit
-}
-
-private fun srt_getsockflag(socket: Int, option: Int, value: IntArray, size: IntArray): Int {
-    return 0
-}
-
-private fun srt_create_socket(): Int {
-    return 0
-}
-
-private fun srt_send_callback(socket: Int, callback: (ByteArray?, Int, ByteArray?, Int) -> Int) {
-    Unit
-}
-
-private fun srt_connect(socket: Int, addr: InetSocketAddress): Int {
-    return 0
-}
-
-private fun srt_getlasterror_str(): String? {
-    return null
-}
-
-private fun srt_getlasterror(errno: Int?): Int {
-    return 0
-}
-
-private fun srt_getrejectreason(socket: Int): Int {
-    return 0
-}
-
-private fun srt_rejectreason_str(reason: Int): String? {
-    return null
-}
-
-private fun srt_sendmsg2(socket: Int, buffer: ByteArray, length: Int): Int {
-    return 0
-}
 
 interface SrtStreamOfficialDelegate {
     fun srtStreamOfficialError()
@@ -88,11 +28,7 @@ private enum class ReadyState(val rawValue: UByte) {
     }
 }
 
-private class SendHook(var closure: ((ByteArray) -> Boolean)? = null)
-
-private class MpegTsWriterEncoderDelegate(
-    private val writer: MpegTsWriter,
-) : AudioVideoEncoderDelegate, AudioEncoderDelegate by writer, VideoEncoderDelegate by writer
+private class SendHook(var closure: ((ByteArray) -> Boolean)?)
 
 open class SrtStreamOfficial(
     private val processor: Processor,
@@ -100,26 +36,26 @@ open class SrtStreamOfficial(
     delegate: SrtStreamOfficialDelegate,
 ) : MpegTsWriterDelegate {
     private val writer: MpegTsWriter = MpegTsWriter(timecodesEnabled = timecodesEnabled, newSrt = false)
-    private val encoderDelegate: AudioVideoEncoderDelegate = MpegTsWriterEncoderDelegate(writer)
-    private var sendHook = SendHook(null)
-    private var options: MutableMap<SrtSocketOption, String> = mutableMapOf()
+    private var sendHook = SendHook(closure = null)
+    private var options: Map<SrtSocketOption, String> = emptyMap()
     private var perf = CBytePerfMon()
-    private var socket: Int = SRT_INVALID_SOCK
+    private var socket: Int = SrtNative.SRT_INVALID_SOCK
     private val srtStreamDelegate: SrtStreamOfficialDelegate? = delegate
+
     private var readyState: ReadyState = ReadyState.initialized
         set(value) {
-            if (field == value) {
-                return
-            }
             val oldValue = field
             field = value
+            if (oldValue == value) {
+                return
+            }
             Log.i(TAG, "srt: State change $oldValue -> $value")
             when (oldValue) {
                 ReadyState.publishing -> {
                     Log.i(TAG, "srt: Stop publishing")
                     processorPipelineQueue.launch {
                         writer.stopRunning()
-                        processor.stopEncoding(encoderDelegate)
+                        processor.stopEncoding(writer)
                     }
                 }
                 else -> Unit
@@ -128,7 +64,7 @@ open class SrtStreamOfficial(
                 ReadyState.publishing -> {
                     Log.i(TAG, "srt: Start publishing")
                     processorPipelineQueue.launch {
-                        processor.startEncoding(encoderDelegate)
+                        processor.startEncoding(writer)
                         writer.startRunning()
                     }
                 }
@@ -138,15 +74,15 @@ open class SrtStreamOfficial(
 
     init {
         writer.delegate = this
-        srt_startup()
+        SrtNative.srt_startup()
     }
 
     protected fun finalize() {
-        srt_cleanup()
+        SrtNative.srt_cleanup()
     }
 
     @Throws(IOException::class)
-    fun open(uri: URI?, sendHook: (ByteArray) -> Boolean) {
+    open fun open(uri: URI?, sendHook: (ByteArray) -> Boolean) {
         if (uri == null || uri.scheme != "srt") {
             return
         }
@@ -155,93 +91,78 @@ open class SrtStreamOfficial(
         if (port == -1) {
             return
         }
-        this.sendHook = SendHook(sendHook)
-        socket = SRT_INVALID_SOCK
-        val options = SrtSocketOption.from(uri.toString()).toMutableMap()
+        this.sendHook = SendHook(closure = sendHook)
+        socket = SrtNative.SRT_INVALID_SOCK
+        val options = SrtSocketOption.from(uri = uri).toMutableMap()
         options[SrtSocketOption.sndsyn] = "0"
-        connect(sockaddrIn(host, port.coerceIn(0, 0xFFFF).toUShort()), options)
+        connect(sockaddrIn(host, port = port.coerceIn(0, 0xFFFF)), options)
     }
 
-    fun close() {
+    open fun close() {
         processorControlQueue.launch {
             readyState = ReadyState.initialized
-            if (socket == SRT_INVALID_SOCK) {
+            if (socket == SrtNative.SRT_INVALID_SOCK) {
                 return@launch
             }
-            srt_close(socket)
-            socket = SRT_INVALID_SOCK
+            SrtNative.srt_close(socket)
+            socket = SrtNative.SRT_INVALID_SOCK
         }
     }
 
-    fun getPerformanceData(): SrtPerformanceData {
-        if (socket == SRT_INVALID_SOCK) {
+    open fun getPerformanceData(): SrtPerformanceData {
+        if (socket == SrtNative.SRT_INVALID_SOCK) {
             return SrtPerformanceData.zero
         }
-        srt_bstats(socket, perf, 1)
-        return SrtPerformanceData(perf)
+        SrtNative.srt_bstats(socket, perf, 1)
+        return SrtPerformanceData(mon = perf)
     }
 
-    fun getSndData(): Int {
-        if (socket == SRT_INVALID_SOCK) {
-            return SRT_ERROR
+    open fun getSndData(): Int {
+        if (socket == SrtNative.SRT_INVALID_SOCK) {
+            return SrtNative.SRT_ERROR
         }
         val sndData = IntArray(1)
-        val size = IntArray(1)
-        size[0] = Int.SIZE_BYTES
-        val result = srt_getsockflag(socket, SRTO_SNDDATA, sndData, size)
-        if (result == SRT_ERROR) {
+        val size = intArrayOf(Int.SIZE_BYTES)
+        val result = SrtNative.srt_getsockflag(socket, SrtNative.SRTO_SNDDATA, sndData, size)
+        if (result == SrtNative.SRT_ERROR) {
+            Log.d(TAG, "srt: Failed to get snddata")
         }
         return sndData[0]
     }
 
-    private fun sockaddrIn(host: String, port: UShort): InetSocketAddress {
-        val address = runCatching { InetAddress.getByName(host) }.getOrNull()
-        if (address is Inet4Address) {
-            return InetSocketAddress(address, port.toInt())
-        }
-        return InetSocketAddress.createUnresolved(host, port.toInt())
-    }
-
-    private fun sendCallback(buf1: ByteArray?, size1: Int, buf2: ByteArray?, size2: Int): Int {
-        if (buf1 == null || buf2 == null) {
-            return -1
-        }
-        val data = ByteArray(size1 + size2)
-        System.arraycopy(buf1, 0, data, 0, size1)
-        System.arraycopy(buf2, 0, data, size1, size2)
-        return if (sendHook.closure?.invoke(data) == true) {
-            size1 + size2
-        } else {
-            -1
-        }
+    private fun sockaddrIn(host: String, port: Int): ByteArray {
+        return SrtNative.sockaddrIn(host, port)
     }
 
     @Throws(IOException::class)
-    private fun connect(addr: InetSocketAddress, options: Map<SrtSocketOption, String>) {
-        if (socket != SRT_INVALID_SOCK) {
+    private fun connect(addr: ByteArray, options: Map<SrtSocketOption, String>) {
+        if (socket != SrtNative.SRT_INVALID_SOCK) {
             return
         }
-        socket = srt_create_socket()
-        if (socket == SRT_INVALID_SOCK) {
-            throw IOException(makeSocketError())
+        socket = SrtNative.srt_create_socket()
+        if (socket == SrtNative.SRT_INVALID_SOCK) {
+            throw SrtError(makeSocketError())
         }
-        srt_send_callback(socket, ::sendCallback)
-        this.options = options.toMutableMap()
+        val context = sendHook
+        SrtNative.srt_send_callback(socket, SrtSendHook { data ->
+            context.closure?.invoke(data) ?: false
+        })
+        this.options = options
         if (!configure(SrtSocketOption.Binding.pre)) {
-            throw IOException(makeSocketError())
+            throw SrtError(makeSocketError())
         }
-        val result = srt_connect(socket, addr)
-        if (result == SRT_ERROR) {
-            throw IOException(makeSocketError())
+        val result = SrtNative.srt_connect(socket, addr, addr.size)
+        if (result == SrtNative.SRT_ERROR) {
+            throw SrtError(makeSocketError())
         }
         if (!configure(SrtSocketOption.Binding.post)) {
-            throw IOException(makeSocketError())
+            throw SrtError(makeSocketError())
         }
         readyState = ReadyState.publishing
     }
 
     private fun configure(binding: SrtSocketOption.Binding): Boolean {
-        val failures = SrtSocketOption.configure(socket, binding, options)
+        val failures = SrtSocketOption.configure(socket, binding = binding, options = options)
         if (failures.isNotEmpty()) {
             Log.i(TAG, "srt: configure failures: $failures")
             return false
@@ -250,18 +171,14 @@ open class SrtStreamOfficial(
     }
 
     private fun makeSocketError(): String {
-        val lastError = srt_getlasterror_str()
-        if (lastError == null) {
-            return "Last error not set"
-        }
+        val lastError = SrtNative.srt_getlasterror_str()
         var message = lastError
-        when (srt_getlasterror(null)) {
-            SRT_ECONNREJ -> {
-                val rejectReason = srt_rejectreason_str(srt_getrejectreason(socket))
-                if (rejectReason != null) {
-                    message += ": " + rejectReason
-                }
+        when (SrtNative.srt_getlasterror(null)) {
+            SrtNative.SRT_ECONNREJ -> {
+                val rejectReason = SrtNative.srt_rejectreason_str(SrtNative.srt_getrejectreason(socket))
+                message += ": " + rejectReason
             }
+            else -> Unit
         }
         return message
     }
@@ -269,9 +186,9 @@ open class SrtStreamOfficial(
     override fun writer(writer: MpegTsWriter, doOutput: ByteArray, containsAudio: Boolean) {
         val sent = if (doOutput.isEmpty()) {
             Log.i(TAG, "srt: error buffer size ${doOutput.size}")
-            SRT_ERROR
+            SrtNative.SRT_ERROR
         } else {
-            srt_sendmsg2(socket, doOutput, doOutput.size)
+            SrtNative.srt_sendmsg2(socket, doOutput, doOutput.size)
         }
         if (sent != doOutput.size) {
             processorControlQueue.launch {
@@ -285,7 +202,7 @@ open class SrtStreamOfficial(
         if (doOutputPointer.isEmpty()) {
             return
         }
-        if (srt_sendmsg2(socket, doOutputPointer, count) != count) {
+        if (SrtNative.srt_sendmsg2(socket, doOutputPointer, count) != count) {
             processorControlQueue.launch {
                 readyState = ReadyState.initialized
                 srtStreamDelegate?.srtStreamOfficialError()

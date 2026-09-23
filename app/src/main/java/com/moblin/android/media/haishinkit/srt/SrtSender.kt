@@ -285,7 +285,7 @@ class SrtSender(private val streamId: String?,
     }
 
     fun getPerformanceData(): SrtPerformanceData? {
-        return performanceData.value
+        return performanceData.mutate { it.value.copy() }
     }
 
     private fun handleConnectTimeout() {

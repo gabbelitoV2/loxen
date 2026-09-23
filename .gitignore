@@ -9,3 +9,4 @@ tools/__pycache__/
 tools/*.tmp
 .kotlin/
 .upstream/
+.cxx/

@@ -8,9 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -31,6 +29,7 @@ import com.moblin.android.obs.ObsOutputState
 import com.moblin.android.obs.obsMaximumAudioDelay
 import com.moblin.android.obs.obsMinimumAudioDelay
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ConfirmationDialog
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.Label
@@ -84,23 +83,14 @@ private fun ObsStartStopButtonView(
             Section {
                 TextButtonView(title = startText, action = { presentingStartConfirm = true })
             }
-            if (presentingStartConfirm) {
-                AlertDialog(
-                    onDismissRequest = { presentingStartConfirm = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            presentingStartConfirm = false
-                            startAction()
-                        }) {
-                            Text(startText)
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { presentingStartConfirm = false }) {
-                            Text(localized("Cancel"))
-                        }
-                    },
-                )
+            ConfirmationDialog(
+                title = "",
+                isPresented = presentingStartConfirm,
+                onDismissRequest = { presentingStartConfirm = false },
+            ) {
+                Button(startText) {
+                    startAction()
+                }
             }
         }
         ObsOutputState.starting -> {
@@ -130,23 +120,14 @@ private fun ObsStartStopButtonView(
                     }
                 }
             }
-            if (presentingStopConfirm) {
-                AlertDialog(
-                    onDismissRequest = { presentingStopConfirm = false },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            presentingStopConfirm = false
-                            stopAction()
-                        }) {
-                            Text(stopText)
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { presentingStopConfirm = false }) {
-                            Text(localized("Cancel"))
-                        }
-                    },
-                )
+            ConfirmationDialog(
+                title = "",
+                isPresented = presentingStopConfirm,
+                onDismissRequest = { presentingStopConfirm = false },
+            ) {
+                Button(stopText) {
+                    stopAction()
+                }
             }
         }
         ObsOutputState.stopping -> {

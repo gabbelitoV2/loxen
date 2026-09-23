@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "com.moblin.android"
     compileSdk = 35
+    ndkVersion = "28.2.13676358"
 
     defaultConfig {
         applicationId = "com.moblin.android"
@@ -15,6 +16,21 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1"
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64")
+        }
+        externalNativeBuild {
+            cmake {
+                arguments += listOf("-DANDROID_STL=c++_static")
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 
     buildFeatures {

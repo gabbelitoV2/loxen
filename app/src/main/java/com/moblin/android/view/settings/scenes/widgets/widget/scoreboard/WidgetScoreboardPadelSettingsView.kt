@@ -1,21 +1,16 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.scoreboard
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +23,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.LocalNavigator
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsWidget
@@ -104,40 +102,29 @@ private fun PlayersView(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PlayerView(
     model: Model = LocalModel.current,
     playerId: UUID,
     onPlayerIdChange: (UUID) -> Unit
 ) {
-    var showPicker by remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { showPicker = true },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = model.findScoreboardPlayer(playerId))
-        Spacer(modifier = Modifier.weight(1f))
-        Icon(imageVector = Icons.Default.KeyboardArrowRight, contentDescription = null)
-    }
-    if (showPicker) {
-        ModalBottomSheet(onDismissRequest = { showPicker = false }) {
+    NavigationLink(
+        destination = {
+            val navigator = LocalNavigator.current
             InlinePickerView(
                 title = "Name",
                 onChange = {
-                    onPlayerIdChange(
-                        runCatching { UUID.fromString(it) }.getOrNull() ?: UUID.randomUUID()
-                    )
-                    showPicker = false
+                    onPlayerIdChange(runCatching { UUID.fromString(it) }.getOrNull() ?: UUID.randomUUID())
                 },
                 items = model.database.scoreboardPlayers.map {
                     InlinePickerItem(id = it.id.toString(), text = it.name)
                 },
-                initialSelectedId = playerId.toString()
+                initialSelectedId = playerId.toString(),
+                onDismiss = { navigator?.pop() }
             )
         }
+    ) {
+        Text(text = model.findScoreboardPlayer(playerId))
     }
 }
 
@@ -227,8 +214,7 @@ fun WidgetScoreboardPadelSettingsView(
     padel: SettingsWidgetPadelScoreboard,
     updated: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = "Home", style = MaterialTheme.typography.titleMedium)
+    Section(header = "Home") {
         PlayerView(
             model = model,
             playerId = padel.homePlayer1,
@@ -248,8 +234,7 @@ fun WidgetScoreboardPadelSettingsView(
             }
         }
     }
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = "Away", style = MaterialTheme.typography.titleMedium)
+    Section(header = "Away") {
         PlayerView(
             model = model,
             playerId = padel.awayPlayer1,

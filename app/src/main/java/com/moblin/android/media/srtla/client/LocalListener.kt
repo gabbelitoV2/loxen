@@ -1,111 +1,60 @@
 package com.moblin.android.media.srtla.client
 
 import android.util.Log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import java.net.DatagramPacket
-import java.net.DatagramSocket
-import java.net.InetAddress
-import java.net.InetSocketAddress
+import com.moblin.android.platform.network.NWConnection
+import com.moblin.android.platform.network.NWListener
+import com.moblin.android.platform.network.NWParameters
+import com.moblin.android.platform.network.NWProtocolUDP
+
+private const val TAG = "LocalListener"
 
 class LocalListener {
-    private var listener: DatagramSocket? = null
-    @Volatile private var connection: DatagramSocket? = null
-    @Volatile private var remoteAddress: InetSocketAddress? = null
+    private var listener: NWListener? = null
+    private var connection: NWConnection? = null
     var onReady: ((port: Int) -> Unit)? = null
     var onError: ((message: String) -> Unit)? = null
-    private val scope = CoroutineScope(SupervisorJob() + srtlaClientQueue)
-    private var receiveLoopJob: Job? = null
-
-    init {
-    }
 
     fun start() {
-        val socket = try {
-            DatagramSocket(null).apply {
-                reuseAddress = true
-                bind(InetSocketAddress(InetAddress.getLoopbackAddress(), 0))
-            }
-        } catch (e: Exception) {
-            Log.i(TAG, "srtla: local: Failed to create listener with error $e")
+        val listener = try {
+            val options = NWProtocolUDP.Options()
+            val parameters = NWParameters.dtls(null, options)
+            parameters.acceptLocalOnly = true
+            NWListener(using = parameters)
+        } catch (error: Exception) {
+            Log.i(TAG, "srtla: local: Failed to create listener with error $error")
             return
         }
-        listener = socket
-        receiveLoopJob = scope.launch {
-            handleListenerStateChange(ListenerState.ready)
-            receiveLoop(socket)
-        }
+        this.listener = listener
+        listener.stateUpdateHandler = ::handleListenerStateChange
+        listener.newConnectionHandler = ::handleNewListenerConnection
+        listener.start(queue = srtlaClientQueue)
     }
 
     fun stop() {
-        receiveLoopJob?.cancel()
-        receiveLoopJob = null
-        listener?.close()
+        listener?.cancel()
         listener = null
-        connection?.close()
+        connection?.cancel()
         connection = null
-        remoteAddress = null
     }
 
     fun sendPacket(packet: ByteArray) {
-        val socket = connection ?: return
-        val address = remoteAddress ?: return
-        scope.launch {
-            try {
-                socket.send(DatagramPacket(packet, packet.size, address))
-            } catch (e: Exception) {
-                Log.i(TAG, "srtla: local: Failed to send packet with error $e")
-            }
-        }
+        val connection = connection ?: return
+        connection.send(content = packet, completion = NWConnection.SendCompletion.idempotent)
     }
 
-    private fun handleListenerStateChange(state: ListenerState) {
+    private fun handleListenerStateChange(state: NWListener.State) {
         when (state) {
-            ListenerState.setup -> {
+            NWListener.State.setup -> Unit
+            NWListener.State.ready -> {
+                val port = listener?.port ?: return
+                onReady?.invoke(port.value)
             }
-            ListenerState.ready -> {
-                val port = listener?.localPort ?: return
-                onReady?.invoke(port)
-            }
-            ListenerState.failed -> onError?.invoke("bad network state")
+            else -> onError?.invoke("bad network state")
         }
     }
 
-    private fun handleNewListenerConnection(socket: DatagramSocket, address: InetSocketAddress) {
-        connection = socket
-        remoteAddress = address
-    }
-
-    private suspend fun receiveLoop(socket: DatagramSocket) {
-        val buffer = ByteArray(MAX_PACKET_SIZE)
-        while (currentCoroutineContext().isActive) {
-            val packet = DatagramPacket(buffer, buffer.size)
-            try {
-                socket.receive(packet)
-            } catch (e: Exception) {
-                Log.i(TAG, "srtla: local: Failed to receive packet with error $e")
-                return
-            }
-            val address = InetSocketAddress(packet.address, packet.port)
-            val current = remoteAddress
-            if (current == null || current.address != address.address || current.port != address.port) {
-                handleNewListenerConnection(socket, address)
-            }
-        }
-    }
-
-    private enum class ListenerState {
-        setup,
-        ready,
-        failed,
-    }
-
-    companion object {
-        private const val TAG = "LocalListener"
-        private const val MAX_PACKET_SIZE = 65507
+    private fun handleNewListenerConnection(connection: NWConnection) {
+        this.connection = connection
+        connection.start(queue = srtlaClientQueue)
     }
 }

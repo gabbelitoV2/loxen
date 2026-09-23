@@ -66,6 +66,7 @@ import com.moblin.android.various.model.reloadStream
 import com.moblin.android.various.model.resetSelectedScene
 import com.moblin.android.various.model.setCurrentStream
 import com.moblin.android.various.model.updatePictureInPicture
+import com.moblin.android.platform.swiftui.AssetImage
 
 @Composable
 private fun PlatformLogoAndNameView(
@@ -78,11 +79,8 @@ private fun PlatformLogoAndNameView(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        val context = LocalContext.current
-        val logoId = context.resources.getIdentifier(logo, "drawable", context.packageName)
-        Image(
-            painter = painterResource(id = logoId),
-            contentDescription = null,
+        AssetImage(
+            name = logo,
             contentScale = ContentScale.Fit,
             modifier = Modifier.size(width = (30 * scale).dp, height = (25 * scale).dp),
         )

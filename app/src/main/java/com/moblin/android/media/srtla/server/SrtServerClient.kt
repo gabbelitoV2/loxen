@@ -4,13 +4,17 @@ import android.util.Log
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReader
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReaderDelegate
+import com.moblin.android.platform.srt.SrtNative
 import java.lang.ref.WeakReference
 import java.util.UUID
-import kotlinx.coroutines.Dispatchers
+import kotlin.coroutines.ContinuationInterceptor
+import kotlinx.coroutines.CoroutineDispatcher
+
+private const val TAG = "SrtServerClient"
 
 val srtServerClientLatency = 0.5
 
-class SrtServerClient(
+open class SrtServerClient(
     server: SrtServer,
     private val cameraId: UUID,
     timecodesEnabled: Boolean,
@@ -19,7 +23,8 @@ class SrtServerClient(
     private val server: WeakReference<SrtServer> = WeakReference(server)
     private val reader: MpegTsReader = MpegTsReader(
         name = "srt-server",
-        decoderQueue = Dispatchers.IO,
+        decoderQueue = (srtlaServerQueue.coroutineContext[ContinuationInterceptor] as CoroutineDispatcher)
+            .limitedParallelism(1),
         timecodesEnabled = timecodesEnabled,
         softwareDecoding = softwareDecoding,
         targetLatency = srtServerClientLatency,
@@ -29,7 +34,7 @@ class SrtServerClient(
         reader.delegate = this
     }
 
-    fun run(clientSocket: Int) {
+    open fun run(clientSocket: Int) {
         val packetSize = 2048
         val packet = ByteArray(packetSize)
         while (server.get()?.running == true) {
@@ -37,14 +42,13 @@ class SrtServerClient(
             if (count == SrtNative.SRT_ERROR) {
                 break
             }
-            val payload = if (count == packetSize) packet else packet.copyOf(count)
-            server.get()?.srtlaServer?.bitrateStats?.mutate { stats: Any ->
-                stats.javaClass.getMethod("add", Int::class.java).invoke(stats, payload.size)
+            server.get()?.srtlaServer?.bitrateStats?.mutate {
+                it.value.add(bytesTransferred = count)
             }
             try {
-                reader.handlePacketFromClient(payload)
-            } catch (e: Exception) {
-                Log.i("SrtServerClient", "srt-server-client: Got corrupt packet $e.")
+                reader.handlePacketFromClient(packet = packet.copyOf(count))
+            } catch (error: Exception) {
+                Log.i(TAG, "srt-server-client: Got corrupt packet $error.")
             }
         }
         SrtNative.srt_close(clientSocket)
@@ -63,12 +67,4 @@ class SrtServerClient(
             sampleBuffer = sampleBuffer,
         )
     }
-}
-
-object SrtNative {
-    const val SRT_ERROR: Int = -1
-
-    external fun srt_recvmsg(socket: Int, buf: ByteArray, len: Int): Int
-
-    external fun srt_close(socket: Int): Int
 }

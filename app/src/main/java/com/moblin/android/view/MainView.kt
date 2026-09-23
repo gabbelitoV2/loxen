@@ -47,12 +47,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -93,6 +88,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.moblin.android.LocalModel
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ButtonRole
+import com.moblin.android.platform.swiftui.ConfirmationDialog
+import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.Visibility
 import com.moblin.android.streamingplatforms.twitch.TwitchLoginView
 import com.moblin.android.various.WebBrowserAlertDialog
 import com.moblin.android.various.WebBrowserController
@@ -581,73 +580,6 @@ private fun InteractiveBrowserView(
     }
 }
 
-private class ConfirmationDialogButton(
-    val title: String,
-    val destructive: Boolean,
-    val action: () -> Unit,
-)
-
-@Composable
-private fun ConfirmationDialogView(
-    title: String,
-    buttons: List<ConfirmationDialogButton>,
-    onDismiss: () -> Unit,
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = title,
-                color = Color.Gray,
-                fontSize = 13.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        confirmButton = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                for (button in buttons) {
-                    TextButton(
-                        onClick = {
-                            button.action()
-                            onDismiss()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = button.title,
-                            color = if (button.destructive) Color(0xFFFF3B30) else Color(0xFF007AFF),
-                            fontSize = 17.sp
-                        )
-                    }
-                }
-                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        text = localized("Cancel"),
-                        color = Color(0xFF007AFF),
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-        }
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SheetView(onDismiss: () -> Unit, content: @Composable () -> Unit) {
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ) {
-        content()
-    }
-}
-
 @Composable
 private fun AlertToastView(toast: Toast) {
     val showingToast by toast.showingToast.collectAsState()
@@ -823,67 +755,60 @@ fun MainView(
             )
         }
     }
-    if (showTwitchAuth) {
-        SheetView(onDismiss = { model.showTwitchAuth.value = false }) {
-            TwitchLoginView(
-                model = model,
-                presenting = showTwitchAuth,
-                onPresentingChange = { model.showTwitchAuth.value = it }
-            )
-        }
-    }
-    if (presentingModeration) {
-        SheetView(onDismiss = { model.presentingModeration.value = false }) {
-            QuickButtonChatModerationView(
-                model = model,
-                presentingModeration = presentingModeration,
-                onPresentingModerationChange = { model.presentingModeration.value = it }
-            )
-        }
-    }
-    if (presentingPredefinedMessages) {
-        SheetView(onDismiss = { model.presentingPredefinedMessages.value = false }) {
-            var messageToSend by remember { mutableStateOf<UUID?>(null) }
-            PredefinedMessagesView(
-                model = model,
-                chat = model.database.chat,
-                filter = model.database.chat.predefinedMessagesFilter,
-                presentingPredefinedMessages = presentingPredefinedMessages,
-                onPresentingPredefinedMessagesChange = { model.presentingPredefinedMessages.value = it },
-                messageToSend = messageToSend,
-                onMessageToSendChange = { messageToSend = it }
-            )
-        }
-    }
-    if (presentingSettingsImportConfirmation) {
-        ConfirmationDialogView(
-            title = localized(
-                "Are you sure you want to import settings? This will replace your current settings."
-            ),
-            buttons = listOf(
-                ConfirmationDialogButton(title = localized("Import settings"), destructive = true) {
-                    model.pendingSettingsImportAction?.invoke()
-                    model.pendingSettingsImportAction = null
-                }
-            ),
-            onDismiss = { model.presentingSettingsImportConfirmation.value = false }
+    Sheet(isPresented = showTwitchAuth, onDismissRequest = { model.showTwitchAuth.value = false }) {
+        TwitchLoginView(
+            model = model,
+            presenting = showTwitchAuth,
+            onPresentingChange = { model.showTwitchAuth.value = it }
         )
     }
-    if (presentingStreamImportCollisionConfirmation) {
-        ConfirmationDialogView(
-            title = model.pendingStreamImportCollisionTitle,
-            buttons = listOf(
-                ConfirmationDialogButton(title = localized("Create new"), destructive = false) {
-                    model.pendingStreamImportCollisionAction?.invoke(false)
-                    model.pendingStreamImportCollisionAction = null
-                },
-                ConfirmationDialogButton(title = localized("Merge"), destructive = true) {
-                    model.pendingStreamImportCollisionAction?.invoke(true)
-                    model.pendingStreamImportCollisionAction = null
-                }
-            ),
-            onDismiss = { model.presentingStreamImportCollisionConfirmation.value = false }
+    Sheet(isPresented = presentingModeration, onDismissRequest = { model.presentingModeration.value = false }) {
+        QuickButtonChatModerationView(
+            model = model,
+            presentingModeration = presentingModeration,
+            onPresentingModerationChange = { model.presentingModeration.value = it }
         )
+    }
+    Sheet(
+        isPresented = presentingPredefinedMessages,
+        onDismissRequest = { model.presentingPredefinedMessages.value = false }
+    ) {
+        var messageToSend by remember { mutableStateOf<UUID?>(null) }
+        PredefinedMessagesView(
+            model = model,
+            chat = model.database.chat,
+            filter = model.database.chat.predefinedMessagesFilter,
+            presentingPredefinedMessages = presentingPredefinedMessages,
+            onPresentingPredefinedMessagesChange = { model.presentingPredefinedMessages.value = it },
+            messageToSend = messageToSend,
+            onMessageToSendChange = { messageToSend = it }
+        )
+    }
+    ConfirmationDialog(
+        title = "Are you sure you want to import settings? This will replace your current settings.",
+        isPresented = presentingSettingsImportConfirmation,
+        onDismissRequest = { model.presentingSettingsImportConfirmation.value = false },
+        titleVisibility = Visibility.visible
+    ) {
+        Button("Import settings", role = ButtonRole.destructive) {
+            model.pendingSettingsImportAction?.invoke()
+            model.pendingSettingsImportAction = null
+        }
+    }
+    ConfirmationDialog(
+        title = model.pendingStreamImportCollisionTitle,
+        isPresented = presentingStreamImportCollisionConfirmation,
+        onDismissRequest = { model.presentingStreamImportCollisionConfirmation.value = false },
+        titleVisibility = Visibility.visible
+    ) {
+        Button("Create new") {
+            model.pendingStreamImportCollisionAction?.invoke(false)
+            model.pendingStreamImportCollisionAction = null
+        }
+        Button("Merge", role = ButtonRole.destructive) {
+            model.pendingStreamImportCollisionAction?.invoke(true)
+            model.pendingStreamImportCollisionAction = null
+        }
     }
 }
 

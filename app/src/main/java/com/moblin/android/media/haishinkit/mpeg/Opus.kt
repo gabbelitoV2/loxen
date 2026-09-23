@@ -6,8 +6,8 @@ object OpusHeader {
     fun encode(length: Int): ByteArray {
         var header = ByteArray(2)
         val value = 0x3FF shl 5
-        header[0] = (value and 0xFF).toByte()
-        header[1] = ((value ushr 8) and 0xFF).toByte()
+        header[0] = ((value ushr 8) and 0xFF).toByte()
+        header[1] = (value and 0xFF).toByte()
         var remaining = length
         while (remaining >= 0) {
             header += (if (remaining < 255) remaining.toByte() else 255.toByte())

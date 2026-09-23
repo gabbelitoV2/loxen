@@ -11,6 +11,7 @@ import com.moblin.android.various.settings.SettingsQuickButtonType
 import java.io.File
 import java.time.Instant
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.moblin.android.common.various.uptimeFormatter
 
 class RecordingProvider {
     private val _length = MutableStateFlow(noValue)
@@ -105,7 +106,7 @@ fun Model.stopRecorderIfNeeded(forceStop: Boolean = false) {
 fun Model.updateRecordingLength(now: Instant) {
     val current = currentRecording
     if (current != null) {
-        val elapsed = TODO("uptimeFormatter.string(from:) has no direct Android equivalent")
+        val elapsed = uptimeFormatter.string(from = java.time.Duration.between(current.startTime, now).toMillis() / 1000.0)!!
         val url = current.url()
         val size = if (url != null) sizeFormatter.string(fromByteCount = File(url.toString()).length()) else "-"
         recording.length = "$elapsed ($size)"

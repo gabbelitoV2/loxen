@@ -33,7 +33,7 @@ interface MpegTsWriterDelegate {
 
 class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
     AudioEncoderDelegate,
-    VideoEncoderDelegate
+    VideoEncoderDelegate, com.moblin.android.media.haishinkit.media.AudioVideoEncoderDelegate
 {
     companion object {
         val programAssociationTablePacketId: UShort = 0u
@@ -446,7 +446,7 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
         val config = videoConfig ?: return
         val bytes = sampleBuffer.data
         val length = bytes.size
-        val decodeTimeStamp = sampleBuffer.presentationTimeUs - decodeTimeStampOffset
+        val decodeTimeStamp = (if (sampleBuffer.decodeTimeStampUs >= 0) sampleBuffer.decodeTimeStampUs else sampleBuffer.presentationTimeUs) - decodeTimeStampOffset
         val randomAccessIndicator = sampleBuffer.isKeyFrame
         val timecode = makeTimecode(sampleBuffer.presentationTimeUs, decodeTimeStamp)
         val data: ByteArray = when (config) {
@@ -533,7 +533,7 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
         }
         if (timecode != null) {
             data += nalUnitStartCode
-            val timeCode: HevcSeiPayloadTimeCode = TODO("private constructor")
+            val timeCode = HevcSeiPayloadTimeCode(clock = timecode.clock, frame = timecode.frame.toUInt())
             val sei = HevcNalUnitSei(HevcNalUnitSeiPayload.TimeCode(timeCode))
             data += HevcNalUnit(
                 HevcNalUnitType.prefixSeiNut,
@@ -549,7 +549,7 @@ class MpegTsWriter(timecodesEnabled: Boolean, private val newSrt: Boolean) :
     private fun makeTimecode(presentationTimeStamp: Long, decodeTimeStamp: Long): MpegTsTimecode? {
         val generator = timecodeGenerator ?: return null
         if (!generator.hasReference()) {
-            val now = Instant.now().toEpochMilli() / 1000.0
+            val now = com.moblin.android.platform.ntp.TrueTimeClient.sharedInstance.referenceTime?.now()?.toEpochMilli()?.div(1000.0) ?: return null
             generator.setReference(now, currentPresentationTimeStamp() / 1_000_000.0)
         }
         return generator.makeTimecode(presentationTimeStamp, decodeTimeStamp)

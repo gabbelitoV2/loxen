@@ -1,0 +1,89 @@
+{
+  "task": "T9",
+  "hooks": [
+    {
+      "id": "H9.1",
+      "file": "media/haishinkit/mpeg/MpegTsWriter.kt",
+      "scope": "class MpegTsWriter",
+      "op": "replace",
+      "old": "    VideoEncoderDelegate",
+      "new": "    VideoEncoderDelegate, com.moblin.android.media.haishinkit.media.AudioVideoEncoderDelegate",
+      "occurrence": 1,
+      "note": "Swift passes the writer as any AudioEncoderDelegate & VideoEncoderDelegate; fixes the ClassCastException in SrtStreamMoblin.srtSenderConnected"
+    },
+    {
+      "id": "H9.2",
+      "file": "media/haishinkit/mpeg/MpegTsWriter.kt",
+      "scope": "fun videoEncoderOutputSampleBuffer",
+      "op": "replace",
+      "old": "        val decodeTimeStamp = sampleBuffer.presentationTimeUs - decodeTimeStampOffset",
+      "new": "        val decodeTimeStamp = (if (sampleBuffer.decodeTimeStampUs >= 0) sampleBuffer.decodeTimeStampUs else sampleBuffer.presentationTimeUs) - decodeTimeStampOffset",
+      "occurrence": 1,
+      "note": "Swift uses CMSampleBuffer.decodeTimeStamp; MediaSample carries it in decodeTimeStampUs"
+    },
+    {
+      "id": "H9.3",
+      "file": "media/haishinkit/mpeg/MpegTsWriter.kt",
+      "scope": "fun packH265",
+      "op": "replace",
+      "old": "            val timeCode: HevcSeiPayloadTimeCode = TODO(\"private constructor\")",
+      "new": "            val timeCode = HevcSeiPayloadTimeCode(clock = timecode.clock, frame = timecode.frame.toUInt())",
+      "occurrence": 1
+    },
+    {
+      "id": "H9.4",
+      "file": "media/haishinkit/mpeg/MpegTsWriter.kt",
+      "scope": "fun makeTimecode",
+      "op": "replace",
+      "old": "            val now = Instant.now().toEpochMilli() / 1000.0",
+      "new": "            val now = com.moblin.android.platform.ntp.TrueTimeClient.sharedInstance.referenceTime?.now()?.toEpochMilli()?.div(1000.0) ?: return null",
+      "occurrence": 1,
+      "note": "Swift takes the NTP time from TrueTimeClient and returns nil without it"
+    },
+    {
+      "id": "H9.5",
+      "file": "media/haishinkit/mpeg/Opus.kt",
+      "scope": "fun encode",
+      "op": "replace",
+      "old": "        header[0] = (value and 0xFF).toByte()",
+      "new": "        header[0] = ((value ushr 8) and 0xFF).toByte()",
+      "occurrence": 1,
+      "note": "Swift writeUInt16 is big-endian: 0x7F 0xE0"
+    },
+    {
+      "id": "H9.6",
+      "file": "media/haishinkit/mpeg/Opus.kt",
+      "scope": "fun encode",
+      "op": "replace",
+      "old": "        header[1] = ((value ushr 8) and 0xFF).toByte()",
+      "new": "        header[1] = (value and 0xFF).toByte()",
+      "occurrence": 1
+    },
+    {
+      "id": "H9.7",
+      "file": "media/haishinkit/srt/SrtSender.kt",
+      "scope": "fun getPerformanceData",
+      "op": "replace",
+      "old": "        return performanceData.value",
+      "new": "        return performanceData.mutate { it.value.copy() }",
+      "occurrence": 1,
+      "note": "Swift returns the struct by value, copied under the Atomic lock; updatePerformanceData mutates it in place"
+    },
+    {
+      "id": "H9.8",
+      "file": "various/utils/Utils.kt",
+      "scope": "fun extractSrtStreamId",
+      "op": "replace",
+      "old": "            return pair[1]",
+      "new": "            return URI(url).dictionaryFromQuery()[\"streamid\"]",
+      "occurrence": 1,
+      "note": "URLComponents semantics: percent-decoded, the last occurrence wins"
+    },
+    {
+      "id": "H9.9",
+      "file": "various/utils/Utils.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.media.haishinkit.extension.dictionaryFromQuery"
+    }
+  ]
+}

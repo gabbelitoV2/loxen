@@ -1,0 +1,35 @@
+cmake_minimum_required(VERSION 3.22.1)
+project(moblin_native C CXX)
+
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
+set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+set(GEN_FILES OFF CACHE BOOL "" FORCE)
+set(MBEDTLS_FATAL_WARNINGS OFF CACHE BOOL "" FORCE)
+set(USE_SHARED_MBEDTLS_LIBRARY OFF CACHE BOOL "" FORCE)
+set(USE_STATIC_MBEDTLS_LIBRARY ON CACHE BOOL "" FORCE)
+add_subdirectory(mbedtls EXCLUDE_FROM_ALL)
+
+set(USE_ENCLIB mbedtls CACHE STRING "" FORCE)
+set(SSL_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/mbedtls/include)
+set(SSL_LIBRARY_DIRS ${CMAKE_CURRENT_BINARY_DIR}/mbedtls/library)
+set(SSL_LIBRARIES mbedtls mbedx509 mbedcrypto)
+set(ENABLE_APPS OFF CACHE BOOL "" FORCE)
+set(ENABLE_SHARED OFF CACHE BOOL "" FORCE)
+set(ENABLE_STATIC ON CACHE BOOL "" FORCE)
+set(ENABLE_MAXREXMITBW ON CACHE BOOL "" FORCE)
+set(ENABLE_PKTINFO ON CACHE BOOL "" FORCE)
+set(ENABLE_LOGGING OFF CACHE BOOL "" FORCE)
+set(ENABLE_ENCRYPTION ON CACHE BOOL "" FORCE)
+add_subdirectory(srt EXCLUDE_FROM_ALL)
+
+file(GLOB MOBLIN_SRT_JNI ${CMAKE_CURRENT_SOURCE_DIR}/jni/*.cpp)
+if(MOBLIN_SRT_JNI)
+    add_library(moblin_srt SHARED ${MOBLIN_SRT_JNI})
+    target_compile_definitions(moblin_srt PRIVATE ENABLE_MAXREXMITBW=1)
+    target_include_directories(moblin_srt PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/srt/srtcore
+        ${CMAKE_CURRENT_BINARY_DIR}/srt)
+    target_link_libraries(moblin_srt srt_static mbedtls mbedx509 mbedcrypto log)
+endif()

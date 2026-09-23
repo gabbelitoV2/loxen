@@ -1,0 +1,6 @@
+[submodule "app/src/main/cpp/srt"]
+	path = app/src/main/cpp/srt
+	url = https://github.com/eerimoq/srt
+[submodule "app/src/main/cpp/mbedtls"]
+	path = app/src/main/cpp/mbedtls
+	url = https://github.com/Mbed-TLS/mbedtls

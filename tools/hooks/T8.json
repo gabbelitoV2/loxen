@@ -1,0 +1,21 @@
+{
+  "task": "T8",
+  "hooks": [
+    {
+      "id": "H8.1",
+      "file": "various/model/ModelRecording.kt",
+      "scope": "fun updateRecordingLength",
+      "op": "replace",
+      "old": "        val elapsed = TODO(\"uptimeFormatter.string(from:) has no direct Android equivalent\")",
+      "new": "        val elapsed = uptimeFormatter.string(from = java.time.Duration.between(current.startTime, now).toMillis() / 1000.0)!!",
+      "occurrence": 1,
+      "note": "Recording length in the UI; the TODO also aborted the rest of Model.handle1sTimer every second while recording."
+    },
+    {
+      "id": "H8.2",
+      "file": "various/model/ModelRecording.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.common.various.uptimeFormatter"
+    }
+  ]
+}

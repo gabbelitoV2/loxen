@@ -10,9 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -36,6 +34,8 @@ import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.common.various.iconWidth
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ButtonRole
+import com.moblin.android.platform.swiftui.ConfirmationDialog
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.FormSlider
@@ -46,6 +46,7 @@ import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.Visibility
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.getTextEffects
@@ -198,31 +199,19 @@ private fun SuggestionView(
             Text(suggestion.text)
         }
     }
-    if (presentingConfirmation) {
-        AlertDialog(
-            onDismissRequest = { presentingConfirmation = false },
-            title = {
-                Text(
-                    if (widget) {
-                        localized(
-                            "Are you sure you want to replace the content of the current text widget?",
-                        )
-                    } else {
-                        localized("Are you sure you want to replace the text of the current command?")
-                    },
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = { submit() }) {
-                    Text(localized("Yes"), color = formPalette().red)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { presentingConfirmation = false }) {
-                    Text(localized("Cancel"))
-                }
-            },
-        )
+    ConfirmationDialog(
+        title = if (widget) {
+            "Are you sure you want to replace the content of the current text widget?"
+        } else {
+            "Are you sure you want to replace the text of the current command?"
+        },
+        isPresented = presentingConfirmation,
+        onDismissRequest = { presentingConfirmation = false },
+        titleVisibility = Visibility.visible,
+    ) {
+        Button("Yes", role = ButtonRole.destructive) {
+            submit()
+        }
     }
 }
 

@@ -49,7 +49,11 @@ object SystemEvents {
 
         override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
 
-        override fun onActivityDestroyed(activity: Activity) {}
+        override fun onActivityDestroyed(activity: Activity) {
+            if (activity.isFinishing && !activity.isChangingConfigurations) {
+                applicationWillTerminate()
+            }
+        }
     }
 
     fun install(application: Application) {
@@ -82,6 +86,26 @@ object SystemEvents {
             model?.handleApplicationDidEnterBackground()
         } catch (error: Throwable) {
             Log.e(TAG, "handleApplicationDidEnterBackground failed", error)
+        }
+        storeState()
+    }
+
+    private fun applicationWillTerminate() {
+        Log.i(TAG, "Application will terminate")
+        try {
+            model?.handleApplicationWillTerminate()
+        } catch (error: Throwable) {
+            Log.e(TAG, "handleApplicationWillTerminate failed", error)
+        }
+    }
+
+    private fun storeState() {
+        val model = model ?: return
+        try {
+            model.storeSettings()
+            model.replaysStorage.store()
+        } catch (error: Throwable) {
+            Log.e(TAG, "Storing settings failed", error)
         }
     }
 

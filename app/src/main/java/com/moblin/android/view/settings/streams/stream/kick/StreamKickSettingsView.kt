@@ -15,13 +15,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,6 +35,7 @@ import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.streamingplatforms.kick.KickCategory
 import com.moblin.android.streamingplatforms.kick.KickLoginView
 import com.moblin.android.streamingplatforms.kick.KickUser
@@ -52,7 +51,6 @@ import kotlinx.coroutines.launch
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AuthenticationView(
     model: Model = LocalModel.current,
@@ -60,7 +58,6 @@ private fun AuthenticationView(
     onLoggedIn: () -> Unit
 ) {
     var presentingWebView by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
     Column(modifier = Modifier.fillMaxWidth()) {
         if (!stream.kickLoggedIn) {
             TextButtonView("Login") {
@@ -73,17 +70,12 @@ private fun AuthenticationView(
             }
         }
     }
-    if (presentingWebView) {
-        ModalBottomSheet(
-            onDismissRequest = { presentingWebView = false },
-            sheetState = sheetState
-        ) {
-            KickLoginView(
-                presenting = presentingWebView,
-                onPresentingChange = { presentingWebView = it }
-            ) { accessToken ->
-                model.kickAuthOnComplete?.invoke(accessToken)
-            }
+    Sheet(isPresented = presentingWebView, onDismissRequest = { presentingWebView = false }) {
+        KickLoginView(
+            presenting = presentingWebView,
+            onPresentingChange = { presentingWebView = it }
+        ) { accessToken ->
+            model.kickAuthOnComplete?.invoke(accessToken)
         }
     }
 }

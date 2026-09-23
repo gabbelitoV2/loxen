@@ -1,11 +1,11 @@
 package com.moblin.android.media.srtla.client
 
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
-import android.net.NetworkRequest
 import android.util.Log
 import com.moblin.android.media.srtla.common.isSrtDataPacket
+import com.moblin.android.platform.network.NWEndpoint
+import com.moblin.android.platform.network.NWInterface
+import com.moblin.android.platform.network.NWPath
+import com.moblin.android.platform.network.NWPathMonitor
 import com.moblin.android.various.BondingConnection
 import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.network.DnsLookupFamily
@@ -23,6 +23,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+
+private const val TAG = "SrtlaClient"
 
 interface SrtlaDelegate {
     fun srtlaReady(port: Int)
@@ -50,14 +53,15 @@ class SrtlaNetworkInterfaces {
     var names: MutableMap<String, String> = mutableMapOf()
 }
 
-val srtlaClientQueue: CoroutineDispatcher =
-    Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+val srtlaClientQueue: CoroutineDispatcher = Executors.newSingleThreadExecutor { runnable ->
+    Thread(runnable, "com.eerimoq.srtla-client")
+}.asCoroutineDispatcher()
 
-private val srtlaClientScope = CoroutineScope(srtlaClientQueue)
-
-private const val tag = "SrtlaClient"
-
-var srtlaConnectivityManager: ConnectivityManager? = null
+private val srtlaClientDnsQueue: CoroutineDispatcher = Executors.newCachedThreadPool { runnable ->
+    Thread(runnable, "com.eerimoq.srtla-client-dns").apply {
+        isDaemon = true
+    }
+}.asCoroutineDispatcher()
 
 class SrtlaClient(
     delegate: SrtlaDelegate,
@@ -70,38 +74,34 @@ class SrtlaClient(
 ) : RemoteConnectionDelegate {
     private var remoteConnections: MutableList<RemoteConnection> = mutableListOf()
     private var localListener: LocalListener? = null
-    private val delegate: SrtlaDelegate?
-    private val passThrough: Boolean
-    private var connectTimer: SimpleTimer = SimpleTimer(srtlaClientQueue)
+    private val delegate: SrtlaDelegate? = delegate
+    private val passThrough: Boolean = passThrough
+    private val connectTimer = SimpleTimer(queue = srtlaClientQueue)
     private var state: State = State.idle
         set(value) {
-            Log.d(tag, "srtla: State $field -> $value")
+            val oldValue = field
             field = value
+            Log.d(TAG, "srtla: State $oldValue -> $value")
         }
-    private var networkPathMonitor: ConnectivityManager.NetworkCallback? = null
-    private var networkPathInterfaces: MutableMap<Network, Int> = mutableMapOf()
-    private val mpegtsPacketsPerPacket: Int
-    private val packetPadding: Boolean
+
+    private val networkPathMonitor = NWPathMonitor()
+    private val mpegtsPacketsPerPacket: Int = mpegtsPacketsPerPacket
+    private val packetPadding: Boolean = packetPadding
     private var host: String = ""
     private var port: Int = 0
     private var groupId: ByteArray? = null
+
     private var totalByteCount: Long = 0
-    private var networkInterfaces: SrtlaNetworkInterfaces
-    private var connectionPriorities: MutableList<SettingsStreamSrtConnectionPriority>
-    private var latestFlushDataPacketsTime: Long = System.nanoTime()
-    private val srtImplementation: SettingsStreamSrtImplementation
+    private var networkInterfaces: SrtlaNetworkInterfaces = SrtlaNetworkInterfaces()
+    private var connectionPriorities: MutableList<SettingsStreamSrtConnectionPriority> = mutableListOf()
+    private var latestFlushDataPacketsTime = System.nanoTime()
+    private val srtImplementation: SettingsStreamSrtImplementation = srtImplementation
+    private var numberOfStops = 0
 
     init {
-        this.delegate = delegate
-        this.passThrough = passThrough
-        this.mpegtsPacketsPerPacket = mpegtsPacketsPerPacket
-        this.packetPadding = packetPadding
-        networkInterfaces = SrtlaNetworkInterfaces()
-        this.connectionPriorities = mutableListOf()
-        this.srtImplementation = srtImplementation
-        setNetworkInterfaceNames(networkInterfaceNames)
-        updateConnectionPriorities(connectionPriorities)
-        Log.d(tag, "srtla: SRT instead of SRTLA: $passThrough")
+        setNetworkInterfaceNames(networkInterfaceNames = networkInterfaceNames)
+        updateConnectionPriorities(connectionPriorities = connectionPriorities)
+        Log.d(TAG, "srtla: SRT instead of SRTLA: $passThrough")
         if (passThrough) {
             remoteConnections.add(
                 RemoteConnection(
@@ -111,152 +111,126 @@ class SrtlaClient(
                     `interface` = null,
                     networkInterfaces = networkInterfaces,
                     priority = 1.0f,
-                )
+                ),
             )
         }
     }
 
     fun start(uri: String, timeout: Double, dnsLookupStrategy: SettingsDnsLookupStrategy) {
-        srtlaClientScope.launch {
-            val url = runCatching { URI(uri) }.getOrNull()
-            val parsedHost = url?.host
-            val parsedPort = url?.port
-            if (url == null || parsedHost == null || parsedPort == null || parsedPort < 0) {
-                Log.i(tag, "srtla: Malformed URL")
+        CoroutineScope(srtlaClientQueue).launch {
+            val url = try {
+                URI(uri)
+            } catch (error: Exception) {
+                null
+            }
+            val urlHost = url?.host?.removePrefix("[")?.removeSuffix("]")
+            val port = url?.port ?: -1
+            if (urlHost == null || urlHost.isEmpty() || port < 0) {
+                Log.i(TAG, "srtla: Malformed URL")
                 return@launch
             }
-            var host = parsedHost
-            val port = parsedPort
+            var host: String = urlHost
             if (!isIpAddress(host)) {
-                Log.i(tag, "dns: Lookup strategy $dnsLookupStrategy")
-                host = when (dnsLookupStrategy) {
-                    SettingsDnsLookupStrategy.ipv4 ->
-                        performDnsLookup(host = host, family = DnsLookupFamily.ipv4) ?: host
-                    SettingsDnsLookupStrategy.ipv6 ->
-                        performDnsLookup(host = host, family = DnsLookupFamily.ipv6) ?: host
-                    SettingsDnsLookupStrategy.ipv4AndIpv6 ->
-                        performDnsLookup(host = host, family = DnsLookupFamily.unspec) ?: host
-                    SettingsDnsLookupStrategy.system -> host
+                Log.i(TAG, "dns: Lookup strategy $dnsLookupStrategy")
+                val family = when (dnsLookupStrategy) {
+                    SettingsDnsLookupStrategy.ipv4 -> DnsLookupFamily.ipv4
+                    SettingsDnsLookupStrategy.ipv6 -> DnsLookupFamily.ipv6
+                    SettingsDnsLookupStrategy.ipv4AndIpv6 -> DnsLookupFamily.unspec
+                    SettingsDnsLookupStrategy.system -> null
+                }
+                if (family != null) {
+                    val numberOfStopsBeforeLookup = numberOfStops
+                    val lookupHost: String = host
+                    host = withContext(srtlaClientDnsQueue) {
+                        performDnsLookup(host = lookupHost, family = family)
+                    } ?: host
+                    if (numberOfStops != numberOfStopsBeforeLookup) {
+                        return@launch
+                    }
                 }
             }
             if (!passThrough) {
-                val manager = srtlaConnectivityManager
-                    ?: TODO("no ConnectivityManager available, set srtlaConnectivityManager from the Activity layer")
-                val callback = object : ConnectivityManager.NetworkCallback() {
-                    override fun onAvailable(network: Network) {
-                        srtlaClientScope.launch {
-                            handleNetworkPathUpdate(network)
-                        }
-                    }
-
-                    override fun onLost(network: Network) {
-                        srtlaClientScope.launch {
-                            networkPathInterfaces.remove(network)
-                            handleNetworkPathUpdate(network)
-                        }
-                    }
-
-                    override fun onCapabilitiesChanged(
-                        network: Network,
-                        networkCapabilities: NetworkCapabilities,
-                    ) {
-                        srtlaClientScope.launch {
-                            val type = when {
-                                networkCapabilities.hasTransport(
-                                    NetworkCapabilities.TRANSPORT_CELLULAR
-                                ) -> NetworkCapabilities.TRANSPORT_CELLULAR
-                                networkCapabilities.hasTransport(
-                                    NetworkCapabilities.TRANSPORT_WIFI
-                                ) -> NetworkCapabilities.TRANSPORT_WIFI
-                                networkCapabilities.hasTransport(
-                                    NetworkCapabilities.TRANSPORT_ETHERNET
-                                ) -> NetworkCapabilities.TRANSPORT_ETHERNET
-                                else -> null
-                            } ?: return@launch
-                            networkPathInterfaces[network] = type
-                            handleNetworkPathUpdate(network)
-                        }
-                    }
-                }
-                networkPathMonitor = callback
-                val request = NetworkRequest.Builder()
-                    .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                    .build()
-                manager.registerNetworkCallback(request, callback)
+                networkPathMonitor.pathUpdateHandler = this@SrtlaClient::handleNetworkPathUpdate
+                networkPathMonitor.start(queue = srtlaClientQueue)
             }
             totalByteCount = 0
             this@SrtlaClient.host = host
             this@SrtlaClient.port = port
-            Log.i(tag, "srtla: Using destination address $host and port $port")
+            Log.i(TAG, "srtla: Using destination address $host and port $port")
             for (connection in remoteConnections) {
-                startRemote(connection, host, port)
+                startRemote(
+                    connection = connection,
+                    host = NWEndpoint.Host(host),
+                    port = NWEndpoint.Port(port.coerceIn(0, 65535)),
+                )
             }
-            Log.d(tag, "srtla: Setting connect timer to $timeout seconds")
-            connectTimer.startSingleShot(timeout) {
-                Log.d(tag, "srtla: Connect timer expired after $timeout seconds")
-                onDisconnected("connect timer expired")
+            Log.d(TAG, "srtla: Setting connect timer to $timeout seconds")
+            connectTimer.startSingleShot(timeout = timeout) {
+                Log.d(TAG, "srtla: Connect timer expired after $timeout seconds")
+                onDisconnected(message = "connect timer expired")
             }
             state = State.waitForRemoteSocketConnected
-            delegate?.moblinkStreamerDestinationAddress(host, port.coerceIn(0, 65535))
+            delegate?.moblinkStreamerDestinationAddress(address = host, port = port.coerceIn(0, 65535))
         }
     }
 
     fun stop() {
-        srtlaClientScope.launch {
+        CoroutineScope(srtlaClientQueue).launch {
+            numberOfStops += 1
             for (connection in remoteConnections) {
-                stopRemote(connection)
+                stopRemote(connection = connection)
             }
             remoteConnections = mutableListOf()
             stopListener()
             cancelConnectTimer()
             state = State.idle
-            val callback = networkPathMonitor
-            if (callback != null) {
-                srtlaConnectivityManager?.let { manager ->
-                    runCatching { manager.unregisterNetworkCallback(callback) }
-                }
-                networkPathMonitor = null
-            }
-            networkPathInterfaces.clear()
+            networkPathMonitor.cancel()
         }
     }
 
     fun addMoblink(host: String, port: Int, id: UUID, name: String) {
-        srtlaClientScope.launch {
+        CoroutineScope(srtlaClientQueue).launch {
             if (state == State.idle) {
                 return@launch
             }
             val remoteConnection = RemoteConnection(
-                type = null,
+                type = NWInterface.InterfaceType.other,
                 mpegtsPacketsPerPacket = mpegtsPacketsPerPacket,
                 packetPadding = packetPadding,
                 `interface` = null,
                 networkInterfaces = networkInterfaces,
-                priority = getRelayConnectionPriority(id),
+                priority = getRelayConnectionPriority(relayId = id),
                 relayId = id,
                 relayName = name,
             )
-            startRemote(remoteConnection, host, port)
-            groupId?.let { remoteConnection.register(it) }
+            startRemote(
+                connection = remoteConnection,
+                host = NWEndpoint.Host(host),
+                port = NWEndpoint.Port(port.coerceIn(0, 65535)),
+            )
+            val groupId = groupId
+            if (groupId != null) {
+                remoteConnection.register(groupId = groupId)
+            }
             remoteConnections.add(remoteConnection)
         }
     }
 
     fun removeMoblink(host: String, port: Int) {
-        srtlaClientScope.launch {
+        CoroutineScope(srtlaClientQueue).launch {
             if (state == State.idle) {
                 return@launch
             }
             val remoteConnection = remoteConnections.firstOrNull {
-                it.destinationHost == host && it.destinationPort == port
+                it.destinationHost == NWEndpoint.Host(host) && it.destinationPort == NWEndpoint.Port(port)
             } ?: return@launch
-            stopRemote(remoteConnection)
+            stopRemote(connection = remoteConnection)
             remoteConnections.removeAll { it === remoteConnection }
         }
     }
 
     fun setNetworkInterfaceNames(networkInterfaceNames: List<SettingsNetworkInterfaceName>) {
-        srtlaClientScope.launch {
+        CoroutineScope(srtlaClientQueue).launch {
             networkInterfaces.names.clear()
             for (networkInterface in networkInterfaceNames) {
                 networkInterfaces.names[networkInterface.interfaceName] = networkInterface.name
@@ -265,15 +239,15 @@ class SrtlaClient(
     }
 
     fun setConnectionPriorities(connectionPriorities: SettingsStreamSrtConnectionPriorities) {
-        srtlaClientScope.launch {
-            updateConnectionPriorities(connectionPriorities)
+        CoroutineScope(srtlaClientQueue).launch {
+            updateConnectionPriorities(connectionPriorities = connectionPriorities)
             for (connection in remoteConnections) {
                 val relayId = connection.relayId
                 if (relayId != null) {
-                    connection.setPriority(getRelayConnectionPriority(relayId))
+                    connection.setPriority(priority = getRelayConnectionPriority(relayId = relayId))
                 } else {
-                    val name = interfaceName(connection.type, connection.`interface`)
-                    connection.setPriority(getConnectionPriority(name))
+                    val name = interfaceName(type = connection.type, `interface` = connection.`interface`)
+                    connection.setPriority(priority = getConnectionPriority(name = name))
                 }
             }
         }
@@ -289,10 +263,10 @@ class SrtlaClient(
                 val byteCount = connection.getDataSentDelta() ?: continue
                 connections.add(
                     BondingConnection(
-                        connection.typeString,
-                        byteCount,
-                        connection.rtt,
-                    )
+                        name = connection.typeString,
+                        usage = byteCount,
+                        rtt = connection.rtt,
+                    ),
                 )
             }
         }
@@ -300,7 +274,7 @@ class SrtlaClient(
     }
 
     fun logStatistics() {
-        srtlaClientScope.launch {
+        CoroutineScope(srtlaClientQueue).launch {
             for (connection in remoteConnections) {
                 connection.logStatistics()
             }
@@ -315,8 +289,8 @@ class SrtlaClient(
 
     fun handleLocalPacket(packet: ByteArray) {
         val connection = selectRemoteConnection() ?: return
-        connection.sendSrtPacket(packet)
-        if (isSrtDataPacket(packet)) {
+        connection.sendSrtPacket(packet = packet)
+        if (isSrtDataPacket(packet = packet)) {
             val now = System.nanoTime()
             if (now - latestFlushDataPacketsTime > 15_000_000L) {
                 latestFlushDataPacketsTime = now
@@ -328,20 +302,19 @@ class SrtlaClient(
         totalByteCount += packet.size.toLong()
     }
 
-    private fun updateConnectionPriorities(
-        connectionPriorities: SettingsStreamSrtConnectionPriorities,
-    ) {
+    private fun updateConnectionPriorities(connectionPriorities: SettingsStreamSrtConnectionPriorities) {
         this.connectionPriorities = mutableListOf()
         if (!connectionPriorities.enabled) {
             return
         }
         val lowestPriority = connectionPriorities.priorities
-            .filter { it.enabled }
-            .minByOrNull { it.priority }
+            .filter { priority -> priority.enabled }
+            .minByOrNull { priority -> priority.priority }
             ?: return
         for (connectionPriority in connectionPriorities.priorities) {
             val priority = connectionPriority.clone()
-            priority.priority = priority.priority - lowestPriority.priority + 1
+            priority.priority -= lowestPriority.priority
+            priority.priority += 1
             this.connectionPriorities.add(priority)
         }
     }
@@ -364,65 +337,69 @@ class SrtlaClient(
         }
     }
 
-    private fun handleNetworkPathUpdate(network: Network) {
+    private fun handleNetworkPathUpdate(path: NWPath) {
         val newRemoteConnections = mutableListOf<RemoteConnection>()
         for (connection in remoteConnections) {
-            val connectionNetwork = connection.`interface`
-            if (connectionNetwork != null) {
-                if (networkPathInterfaces.containsKey(connectionNetwork)) {
+            val connectionInterface = connection.`interface`
+            if (connectionInterface != null) {
+                if (path.uniqueAvailableInterfaces().contains(connectionInterface)) {
                     newRemoteConnections.add(connection)
                 } else {
-                    stopRemote(connection)
+                    stopRemote(connection = connection)
                 }
             } else {
                 newRemoteConnections.add(connection)
             }
         }
         val interfaceTypes = listOf(
-            NetworkCapabilities.TRANSPORT_CELLULAR,
-            NetworkCapabilities.TRANSPORT_WIFI,
-            NetworkCapabilities.TRANSPORT_ETHERNET,
+            NWInterface.InterfaceType.cellular,
+            NWInterface.InterfaceType.wifi,
+            NWInterface.InterfaceType.wiredEthernet,
         )
-        for ((availableNetwork, type) in networkPathInterfaces) {
-            if (type !in interfaceTypes) {
+        for (availableInterface in path.uniqueAvailableInterfaces()) {
+            if (!interfaceTypes.contains(availableInterface.type)) {
                 continue
             }
-            if (newRemoteConnections.any { it.`interface` == availableNetwork }) {
+            if (newRemoteConnections.any { it.`interface` == availableInterface }) {
                 continue
             }
-            val name = interfaceName(type, availableNetwork)
-            val newConnection = RemoteConnection(
-                type = type,
-                mpegtsPacketsPerPacket = mpegtsPacketsPerPacket,
-                packetPadding = packetPadding,
-                `interface` = availableNetwork,
-                networkInterfaces = networkInterfaces,
-                priority = getConnectionPriority(name),
+            val name = interfaceName(type = availableInterface.type, `interface` = availableInterface)
+            newRemoteConnections.add(
+                RemoteConnection(
+                    type = availableInterface.type,
+                    mpegtsPacketsPerPacket = mpegtsPacketsPerPacket,
+                    packetPadding = packetPadding,
+                    `interface` = availableInterface,
+                    networkInterfaces = networkInterfaces,
+                    priority = getConnectionPriority(name = name),
+                ),
             )
-            newRemoteConnections.add(newConnection)
-            startRemote(newConnection, host, port)
-            groupId?.let { newConnection.register(it) }
+            startRemote(
+                connection = newRemoteConnections.last(),
+                host = NWEndpoint.Host(host),
+                port = NWEndpoint.Port(port.coerceIn(0, 65535)),
+            )
+            val groupId = groupId
+            if (groupId != null) {
+                newRemoteConnections.last().register(groupId = groupId)
+            }
         }
-        remoteConnections = newRemoteConnections
-            .sortedWith(
-                compareBy {
-                    when (it.type) {
-                        NetworkCapabilities.TRANSPORT_CELLULAR -> 0
-                        NetworkCapabilities.TRANSPORT_WIFI -> 1
-                        else -> 2
-                    }
-                }
-            )
-            .toMutableList()
+        remoteConnections = newRemoteConnections.sortedBy { connection ->
+            when (connection.type) {
+                NWInterface.InterfaceType.cellular -> 0
+                NWInterface.InterfaceType.wifi -> 1
+                else -> 2
+            }
+        }.toMutableList()
     }
 
-    private fun startRemote(connection: RemoteConnection, host: String, port: Int) {
+    private fun startRemote(connection: RemoteConnection, host: NWEndpoint.Host, port: NWEndpoint.Port) {
         connection.delegate = this
-        connection.start(host, port)
+        connection.start(host = host, port = port)
     }
 
     private fun stopRemote(connection: RemoteConnection) {
-        connection.stop("Stopping stream")
+        connection.stop(reason = "Stopping stream")
         connection.delegate = null
     }
 
@@ -435,7 +412,7 @@ class SrtlaClient(
 
     private fun startListenerMoblin() {
         state = State.running
-        delegate?.srtlaReady(0)
+        delegate?.srtlaReady(port = 0)
         cancelConnectTimer()
     }
 
@@ -443,11 +420,10 @@ class SrtlaClient(
         if (localListener != null) {
             return
         }
-        val listener = LocalListener()
-        localListener = listener
-        listener.onReady = { port -> handleLocalReady(port) }
-        listener.onError = { message -> handleLocalError(message) }
-        listener.start()
+        localListener = LocalListener()
+        localListener!!.onReady = ::handleLocalReady
+        localListener!!.onError = ::handleLocalError
+        localListener!!.start()
         state = State.waitForLocalSocketListening
     }
 
@@ -463,7 +439,7 @@ class SrtlaClient(
             return
         }
         state = State.running
-        delegate?.srtlaReady(port)
+        delegate?.srtlaReady(port = port)
         cancelConnectTimer()
     }
 
@@ -472,7 +448,7 @@ class SrtlaClient(
     }
 
     private fun handleLocalError(message: String) {
-        onDisconnected(message)
+        onDisconnected(message = message)
     }
 
     private fun onDisconnected(message: String) {
@@ -480,7 +456,7 @@ class SrtlaClient(
             return
         }
         stop()
-        delegate?.srtlaError(message)
+        delegate?.srtlaError(message = message)
         state = State.idle
     }
 
@@ -523,7 +499,7 @@ class SrtlaClient(
         }
         this.groupId = groupId
         for (connection in remoteConnections) {
-            connection.register(groupId)
+            connection.register(groupId = groupId)
         }
         state = State.waitForRegistered
     }
@@ -537,44 +513,43 @@ class SrtlaClient(
 
     override fun remoteConnectionPacketHandler(packet: ByteArray) {
         when (srtImplementation) {
-            SettingsStreamSrtImplementation.moblin -> delegate?.srtlaReceivedPacket(packet)
-            SettingsStreamSrtImplementation.official -> localListener?.sendPacket(packet)
+            SettingsStreamSrtImplementation.moblin -> delegate?.srtlaReceivedPacket(packet = packet)
+            SettingsStreamSrtImplementation.official -> localListener?.sendPacket(packet = packet)
         }
         totalByteCount += packet.size.toLong()
     }
 
     override fun remoteConnectionOnSrtAck(sn: UInt) {
         for (connection in remoteConnections) {
-            connection.handleSrtAckSn(sn)
+            connection.handleSrtAckSn(sn = sn)
         }
     }
 
     override fun remoteConnectionOnSrtNak(sn: UInt) {
         for (connection in remoteConnections) {
-            connection.handleSrtNakSn(sn)
+            connection.handleSrtNakSn(sn = sn)
         }
     }
 
     override fun remoteConnectionOnSrtlaAck(sn: UInt) {
         for (connection in remoteConnections) {
-            connection.handleSrtlaAckSn(sn)
+            connection.handleSrtlaAckSn(sn = sn)
         }
     }
 
     override fun remoteConnectionOnMoblinkReconnect(connection: RemoteConnection) {
         val relayId = connection.relayId ?: return
-        delegate?.moblinkStreamerRestartTunnel(relayId)
+        delegate?.moblinkStreamerRestartTunnel(relayId = relayId)
     }
 }
 
-private fun interfaceName(type: Int?, network: Network?): String =
-    when (type) {
-        NetworkCapabilities.TRANSPORT_CELLULAR -> "Cellular"
-        NetworkCapabilities.TRANSPORT_WIFI -> "WiFi"
-        else -> network?.let {
-            srtlaConnectivityManager?.getLinkProperties(it)?.interfaceName ?: ""
-        } ?: ""
+private fun interfaceName(type: NWInterface.InterfaceType?, `interface`: NWInterface?): String {
+    return when (type) {
+        NWInterface.InterfaceType.cellular -> "Cellular"
+        NWInterface.InterfaceType.wifi -> "WiFi"
+        else -> `interface`?.name ?: ""
     }
+}
 
 private fun isIpAddress(host: String): Boolean {
     if (host.contains(':')) {

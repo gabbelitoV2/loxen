@@ -2,6 +2,7 @@ package com.moblin.android.platform.ntp
 
 import android.os.SystemClock
 import android.util.Log
+import java.io.IOException
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -62,10 +63,17 @@ class TrueTimeClient private constructor() {
             val packet = DatagramPacket(response, response.size)
             socket.receive(packet)
             val receiveElapsed = SystemClock.elapsedRealtime()
+            val mode = response[0].toInt() and 0x07
+            val stratum = response[1].toInt() and 0xFF
+            val hasTransmitTime = (40 until 48).any { response[it] != 0.toByte() }
+            if (packet.length < 48 || mode != 4 || stratum !in 1..15 || !hasTransmitTime) {
+                throw IOException("Invalid NTP response (length ${packet.length}, mode $mode, stratum $stratum)")
+            }
             val receiveEpoch = sendEpoch + (receiveElapsed - sendElapsed)
             val serverReceive = readTimestamp(response, 32)
             val serverTransmit = readTimestamp(response, 40)
             val offset = ((serverReceive - sendEpoch) + (serverTransmit - receiveEpoch)) / 2
+            Log.i(TAG, "ntp offset $offset ms, round trip ${receiveElapsed - sendElapsed} ms, server $host")
             return ReferenceTime(receiveEpoch + offset, receiveElapsed)
         }
     }
@@ -81,7 +89,7 @@ class TrueTimeClient private constructor() {
     }
 
     companion object {
-        private const val TAG = "TrueTimeClient"
+        private const val TAG = "MoblinNet"
         private const val NTP_EPOCH_OFFSET_SECONDS = 2_208_988_800L
         val sharedInstance = TrueTimeClient()
     }

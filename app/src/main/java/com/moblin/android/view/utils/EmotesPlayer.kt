@@ -447,12 +447,7 @@ class EmotesPlayer private constructor(private val context: Context) {
         return when (source) {
             is ChatImageSource.Url -> null
             is ChatImageSource.Asset -> {
-                val id = context.resources.getIdentifier(source.name, "drawable", context.packageName)
-                if (id == 0) {
-                    null
-                } else {
-                    BitmapFactory.decodeResource(context.resources, id)?.let { EmoteImage(it, null) }
-                }
+                com.moblin.android.platform.Bundle.image(source.name)?.let { EmoteImage(it, null) }
             }
             is ChatImageSource.Symbol -> renderSymbol(source.name, source.size, source.color)
         }
