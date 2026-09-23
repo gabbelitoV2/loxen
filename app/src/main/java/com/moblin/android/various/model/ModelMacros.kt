@@ -4,6 +4,8 @@ import android.util.Log
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.remotecontrol.RemoteControlMacro
 import com.moblin.android.various.settings.MacroEvent
+import com.moblin.android.various.settings.MacroVariable
+import com.moblin.android.various.settings.MacroVariables
 import com.moblin.android.various.settings.SettingsMacrosAction
 import com.moblin.android.various.settings.SettingsMacrosActionFunction
 import com.moblin.android.various.settings.SettingsMacrosMacro
@@ -28,6 +30,7 @@ fun Model.startMacro(macro: SettingsMacrosMacro) {
     macro.delayed = false
     macro.waitingForEventAction = null
     macro.eventQueue.clear()
+    macro.variables.removeAll()
     macro.stack = mutableListOf(macro)
     remoteControlMacrosStateChanged()
     executeNextAction(macro = macro)
@@ -121,7 +124,9 @@ private fun Model.takeQueuedEvent(macro: SettingsMacrosMacro,
                                   action: SettingsMacrosAction): Boolean
 {
     while (macro.eventQueue.isNotEmpty()) {
-        if (action.matches(event = macro.eventQueue.removeAt(0))) {
+        val event = macro.eventQueue.removeAt(0)
+        if (action.matches(event = event)) {
+            macro.variables.set(event.variables)
             return true
         }
     }
@@ -242,13 +247,17 @@ private fun Model.executeNextAction(macro: SettingsMacrosMacro) {
         SettingsMacrosActionFunction.GIMBAL_PRESET ->
             executeGimbalPreset(action = action)
         SettingsMacrosActionFunction.SEND_CHAT_MESSAGE ->
-            executeSendChatMessage(action = action)
+            executeSendChatMessage(action = action, variables = macro.variables)
+        SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT ->
+            executeSendTwitchShoutout(variables = macro.variables)
         SettingsMacrosActionFunction.DELAY ->
             executeDelay(currentMacro = currentMacro, action = action, macro = macro)
         SettingsMacrosActionFunction.WAIT_FOR_EVENT ->
             executeWaitForEvent(currentMacro = currentMacro, action = action, macro = macro)
         SettingsMacrosActionFunction.IF_CONDITION ->
-            executeIfCondition(currentMacro = currentMacro, action = action)
+            executeIfCondition(currentMacro = currentMacro,
+                               action = action,
+                               variables = macro.variables)
         SettingsMacrosActionFunction.MACRO ->
             executeMacro(action = action, macro = macro)
         SettingsMacrosActionFunction.DJI_DEVICES ->
@@ -304,8 +313,17 @@ private fun Model.executeGimbalPreset(action: SettingsMacrosAction): Boolean {
     return true
 }
 
-private fun Model.executeSendChatMessage(action: SettingsMacrosAction): Boolean {
-    sendChatMessage(message = formatPlainText(formatString = action.chatMessage))
+private fun Model.executeSendChatMessage(action: SettingsMacrosAction,
+                                         variables: MacroVariables): Boolean
+{
+    sendChatMessage(message = formatPlainText(formatString = variables.substitute(action.chatMessage)))
+    return true
+}
+
+private fun Model.executeSendTwitchShoutout(variables: MacroVariables): Boolean {
+    variables.get(MacroVariable.TWITCH_RAID_CHANNEL_ID)?.let { channelId ->
+        sendTwitchShoutout(channelId = channelId)
+    }
     return true
 }
 
@@ -334,10 +352,11 @@ private fun Model.executeMacro(action: SettingsMacrosAction,
 }
 
 private fun Model.executeIfCondition(currentMacro: SettingsMacrosMacro,
-                                     action: SettingsMacrosAction): Boolean
+                                     action: SettingsMacrosAction,
+                                     variables: MacroVariables): Boolean
 {
-    val value = formatPlainText(formatString = action.ifValue)
-    val otherValue = formatPlainText(formatString = action.ifOtherValue)
+    val value = formatPlainText(formatString = variables.substitute(action.ifValue))
+    val otherValue = formatPlainText(formatString = variables.substitute(action.ifOtherValue))
     if (!action.ifComparison.evaluate(value = value, otherValue = otherValue)) {
         currentMacro.nextActionIndex += action.ifRunCount
     }

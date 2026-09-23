@@ -132,6 +132,7 @@ enum class SettingsMacrosActionFunction(val rawValue: String) {
     DJI_DEVICES("DJI devices"),
     GIMBAL_PRESET("Move to gimbal preset"),
     SEND_CHAT_MESSAGE("Send chat message"),
+    SEND_TWITCH_SHOUTOUT("Send Twitch shoutout"),
     DELAY("Delay"),
     WAIT_FOR_EVENT("Wait for event"),
     IF_CONDITION("If"),
@@ -152,6 +153,7 @@ enum class SettingsMacrosActionFunction(val rawValue: String) {
             DJI_DEVICES -> localized("DJI devices")
             GIMBAL_PRESET -> localized("Move to gimbal preset")
             SEND_CHAT_MESSAGE -> localized("Send chat message")
+            SEND_TWITCH_SHOUTOUT -> localized("Send Twitch shoutout")
             DELAY -> localized("Delay")
             WAIT_FOR_EVENT -> localized("Wait for event")
             IF_CONDITION -> localized("If")
@@ -221,6 +223,31 @@ enum class SettingsMacrosEvent(val rawValue: String) {
         }
     }
 
+    fun variables(): List<MacroVariable> {
+        return when (this) {
+            TWITCH_FOLLOW -> listOf(MacroVariable.TWITCH_FOLLOW_USER)
+            TWITCH_SUBSCRIPTION -> listOf(MacroVariable.TWITCH_SUBSCRIPTION_USER)
+            TWITCH_GIFT_SUBSCRIPTION -> listOf(MacroVariable.TWITCH_GIFT_SUBSCRIPTION_USER)
+            TWITCH_RESUBSCRIPTION -> listOf(MacroVariable.TWITCH_RESUBSCRIPTION_USER)
+            TWITCH_REWARD -> listOf(MacroVariable.TWITCH_REWARD_USER)
+            TWITCH_WATCH_STREAK -> listOf(MacroVariable.TWITCH_WATCH_STREAK_USER)
+            TWITCH_CHEER -> listOf(MacroVariable.TWITCH_CHEER_USER)
+            TWITCH_RAID -> listOf(
+                MacroVariable.TWITCH_RAID_CHANNEL_ID,
+                MacroVariable.TWITCH_RAID_CHANNEL_NAME,
+            )
+            else -> emptyList()
+        }
+    }
+
+    fun variablesToString(): String? {
+        val variables = variables()
+        if (variables.isEmpty()) {
+            return null
+        }
+        return variables.joinToString(separator = ", ") { it.toString() }
+    }
+
     fun textTitle(): String? {
         return when (this) {
             TWITCH_REWARD, KICK_REWARD -> localized("Reward")
@@ -235,11 +262,52 @@ enum class SettingsMacrosEvent(val rawValue: String) {
     }
 }
 
+enum class MacroVariable(val rawValue: String) {
+    TWITCH_FOLLOW_USER("twitchFollowUser"),
+    TWITCH_SUBSCRIPTION_USER("twitchSubscriptionUser"),
+    TWITCH_GIFT_SUBSCRIPTION_USER("twitchGiftSubscriptionUser"),
+    TWITCH_RESUBSCRIPTION_USER("twitchResubscriptionUser"),
+    TWITCH_REWARD_USER("twitchRewardUser"),
+    TWITCH_WATCH_STREAK_USER("twitchWatchStreakUser"),
+    TWITCH_CHEER_USER("twitchCheerUser"),
+    TWITCH_RAID_CHANNEL_ID("twitchRaidChannelId"),
+    TWITCH_RAID_CHANNEL_NAME("twitchRaidChannelName");
+
+    override fun toString(): String {
+        return "{$rawValue}"
+    }
+}
+
+class MacroVariables {
+    private val values: MutableMap<MacroVariable, String> = mutableMapOf()
+
+    fun set(variables: Map<MacroVariable, String>) {
+        values.putAll(variables)
+    }
+
+    fun get(variable: MacroVariable): String? {
+        return values[variable]
+    }
+
+    fun removeAll() {
+        values.clear()
+    }
+
+    fun substitute(text: String): String {
+        var text = text
+        for ((variable, value) in values) {
+            text = text.replace(variable.toString(), value, ignoreCase = true)
+        }
+        return text
+    }
+}
+
 data class MacroEvent(
     val event: SettingsMacrosEvent,
     var amount: Int = 0,
     var text: String = "",
     var sceneId: UUID? = null,
+    var variables: MutableMap<MacroVariable, String> = mutableMapOf(),
 )
 
 enum class SettingsMacrosActionIfComparison(val rawValue: String) {
@@ -845,6 +913,7 @@ class SettingsMacrosMacro : Named {
             _runAtAppStart.value = value
         }
 
+    val variables: MacroVariables = MacroVariables()
     var nextActionIndex: Int = 0
     var waitingForEventAction: SettingsMacrosAction? = null
     var eventQueue: ArrayDeque<MacroEvent> = ArrayDeque()

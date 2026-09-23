@@ -350,7 +350,7 @@ fun Model.toggleCameraPreview() {
     if (database.alwaysAttachCameraPreview) {
         media.setShowCameraPreview(updateShowCameraPreview())
     } else {
-        reattachCamera()
+        attachCamera()
     }
 }
 

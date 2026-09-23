@@ -15,6 +15,6 @@ fun Model.stopPhotoShoot() {
 
 fun Model.togglePhotoShoot() {
     if (!database.alwaysAttachPhotoShoot) {
-        reattachCamera()
+        attachCamera()
     }
 }

@@ -24,6 +24,7 @@ private class EventSubTestDelegate : TwitchEventSubDelegate {
     val polls = mutableListOf<Pair<String, TwitchEventSubChannelPollEvent>>()
     val predictions = mutableListOf<Pair<String, TwitchEventSubChannelPredictionEvent>>()
     val moderates = mutableListOf<TwitchEventSubChannelModerateEvent>()
+    val shoutoutCreates = mutableListOf<TwitchEventSubChannelShoutoutCreateEvent>()
     var unauthorizedCount = 0
     val notifications = mutableListOf<String>()
 
@@ -117,6 +118,10 @@ private class EventSubTestDelegate : TwitchEventSubDelegate {
 
     override fun twitchEventSubChannelModerate(event: TwitchEventSubChannelModerateEvent) {
         moderates.add(event)
+    }
+
+    override fun twitchEventSubChannelShoutoutCreate(event: TwitchEventSubChannelShoutoutCreateEvent) {
+        shoutoutCreates.add(event)
     }
 
     override fun twitchEventSubUnauthorized() {
@@ -668,6 +673,35 @@ class TwitchEventSubSuite {
         assertEquals(1, delegate.adBreaks.size)
         assertEquals(60, delegate.adBreaks.firstOrNull()?.duration_seconds)
         assertEquals(false, delegate.adBreaks.firstOrNull()?.is_automatic)
+    }
+
+    @Test
+    fun shoutoutCreate() {
+        val delegate = EventSubTestDelegate()
+        makeEventSub(delegate).handleMessage(messageText = notification(
+            subscriptionType = "channel.shoutout.create",
+            event = """
+            {
+              "broadcaster_user_id": "111",
+              "broadcaster_user_login": "me",
+              "broadcaster_user_name": "Me",
+              "moderator_user_id": "444",
+              "moderator_user_login": "mod",
+              "moderator_user_name": "Mod",
+              "to_broadcaster_user_id": "555",
+              "to_broadcaster_user_login": "friend",
+              "to_broadcaster_user_name": "Friend",
+              "viewer_count": 860,
+              "started_at": "2026-09-06T10:00:00.000Z",
+              "cooldown_ends_at": "2026-09-06T10:02:00.000Z",
+              "target_cooldown_ends_at": "2026-09-06T11:00:00.000Z"
+            }
+            """
+        ))
+        assertEquals(1, delegate.shoutoutCreates.size)
+        assertEquals("Mod", delegate.shoutoutCreates.firstOrNull()?.moderator_user_name)
+        assertEquals("Friend", delegate.shoutoutCreates.firstOrNull()?.to_broadcaster_user_name)
+        assertEquals(1, delegate.notifications.size)
     }
 
     @Test

@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-09-22T15:20:22+00:00
+Generated 2026-09-23T11:20:53+00:00
 
 ## Summary
 
@@ -84,16 +84,6 @@ Generated 2026-09-22T15:20:22+00:00
   - AVAudioFormat(streamDescription:) / AudioStreamBasicDescription (makeAudioFormat)
 - Moblin/Media/HaishinKit/Media/Video/PreviewView.swift
   - AVSampleBufferDisplayLayer (enqueue, flush, flushAndRemoveImage)
-- Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift
-  - AVCaptureMultiCamSession / AVCaptureSession (start/stop/configuration/controls)
-  - AVCaptureDevice, AVCaptureDeviceInput, AVCaptureDevice.Format, AVCaptureDevice.lockForConfiguration
-  - AVCaptureVideoDataOutput, AVCaptureOutput, AVCaptureConnection, AVCaptureInput
-  - AVCapturePhotoOutput, AVCapturePhoto, AVCapturePhotoSettings
-  - AVCaptureSystemZoomSlider, AVCaptureSystemExposureBiasSlider, AVCaptureSessionControlsDelegate
-  - AVCaptureVideoPreviewLayer
-  - NotificationCenter AVCaptureSessionRuntimeError / WasInterrupted / InterruptionEnded observers
-  - AVError (error code and localized failure reason)
-  - PHPhotoLibrary / PHAssetCreationRequest (photo library saving)
 - Moblin/Media/HaishinKit/Media/Video/VideoEffect.swift
   - VNFaceObservation / Vision framework face observations (sceneFaceDetections, faceDetections)
 - Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift
@@ -106,13 +96,6 @@ Generated 2026-09-22T15:20:22+00:00
   - Core Image CIContext.createCGImage render
   - Vision CalculateImageAestheticsScoresRequest
   - CMSampleBuffer.imageBuffer (MediaCodec decode to android.media.Image)
-- Moblin/Media/HaishinKit/Media/Video/VideoUnit.swift
-  - Vision framework (VNDetectFaceLandmarksRequest, VNRecognizeTextRequest, VNImageRequestHandler, VNFaceObservation)
-  - CoreVideo pixel buffer pools (CVPixelBufferPool, CVPixelBufferPoolCreate, CVPixelBufferPoolCreatePixelBuffer, CVPixelBufferCopyCreationAttributes)
-  - VideoToolbox pixel transfer (VTPixelTransferSessionCreate, VTPixelTransferSessionTransferImage)
-  - Core Image rendering (CIImage, CIContext.render)
-  - CMSampleBuffer members missing on MediaSample (imageBuffer, duration, decodeTimeStamp, setAttachmentDisplayImmediately, replacePresentationTimeStamp, create)
-  - MetalPetal (MTIImage)
 - Moblin/Media/HaishinKit/Mpeg/Avc/MpegTsVideoConfigAvc.swift
   - CMFormatDescription atoms() avcC extraction (getAvcC)
 - Moblin/Media/HaishinKit/Mpeg/Hevc/HevcNalUnit.swift
@@ -156,10 +139,6 @@ Generated 2026-09-22T15:20:22+00:00
   - UIApplicationDelegateAdaptor
 - Moblin/RemoteControl/RemoteControlWeb.swift
   - NetService Bonjour advertisement (`_http._tcp` passed to HttpServer) has no Android counterpart and is passed as TODO()
-- Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift
-  - ASWebAuthenticationSession (AuthenticationServices) - no Android counterpart for the system browser login session
-  - ASWebAuthenticationSessionErrorDomain / ASWebAuthenticationSessionError.canceledLogin (AuthenticationServices) - no Android counterpart for detecting user cancellation of the system login sheet
-  - ASWebAuthenticationPresentationContextProviding / ASPresentationAnchor (AuthenticationServices) - no Android counterpart for the presentation anchor of the login sheet
 - Moblin/Various/ChatPost.swift
   - WatchConnectivity: WatchProtocolChatHighlight / WatchProtocolChatHighlightKind do not exist on Android, so ChatHighlight.toWatchProtocol() is TODO().
 - Moblin/Various/ChatTextToSpeech.swift
@@ -187,20 +166,7 @@ Generated 2026-09-22T15:20:22+00:00
   - CMSampleBuffer
   - CMTime
 - Moblin/Various/Model/Model.swift
-  - ActivityKit (Activity / Live Activity)
-  - WatchConnectivity (WCSession)
-  - TrueTime (NTP client)
-  - PhotosUI (PHPhotoLibrary)
-  - CoreBluetooth (CBCentralManager)
-  - CoreMotion (CMMotionManager device motion)
-  - GameController (GCController wireless discovery)
-  - ReplayKit (SampleBufferReceiver)
-  - NotificationCenter.addObserver / Notification
-  - UIDevice batteryLevel, batteryState, isBatteryMonitoringEnabled, vibrate, orientation
-  - ProcessInfo.thermalState
-  - AVCaptureDevice built-in camera discovery / getUIZoomRange selection
-  - AVAudioSession.setAllowHapticsAndSystemSoundsDuringRecording
-  - SDWebImageWebPCoder
+  - AlertsEffectAlert.quickButton
 - Moblin/Various/Model/ModelAppIntents.swift
   - AppIntents (AppDependencyManager.shared.add(dependency:)) - no Android counterpart for AppIntents
 - Moblin/Various/Model/ModelAppMode.swift
@@ -215,14 +181,6 @@ Generated 2026-09-22T15:20:22+00:00
   - AVAudioSession volume-change / route-change notifications (NSNotificationCenter observers)
   - MPVolumeView (setting the system volume)
   - AVAudioSessionPortDescription / AVAudioSessionDataSourceDescription / AVAudioSession.Orientation typed parameters
-- Moblin/Various/Model/ModelCamera.swift
-  - AVCaptureDevice.isFocusPointOfInterestSupported / focusPointOfInterest / focusMode / exp osurePointOfInterest / exposureMode and lockForConfiguration()
-  - AVCaptureDevice.isLockingFocusWithCustomLensPositionSupported / lensPosition / setFocusModeLocked(lensPosition:)
-  - NSKeyValueObservation of lensPosition, iso, exposureDuration and deviceWhiteBalanceGains
-  - AVCaptureDevice.isExposureModeSupported(_:) / exposureMode / setExposureModeCustom(duration:iso:) / currentISO / currentExposureDuration
-  - AVCaptureDevice.isWhiteBalanceModeSupported(_:) / whiteBalanceMode / setWhiteBalanceModeLocked(with:) / isLockingWhiteBalanceWithCustomDeviceGainsSupported / deviceWhiteBalanceGains / maxWhiteBalanceGain
-  - AVCaptureDevice.DiscoverySession with .external / .builtInTripleCamera and friends
-  - AVCaptureDevice.minExposureTargetBias / maxExposureTargetBias / setExposureTargetBias(_:)
 - Moblin/Various/Model/ModelChat.swift
   - SwiftUI ImageRenderer (offscreen chat-message rendering for the CatPrinter in printChatMessage)
   - CIImage (chat-message image handed to the CatPrinter in printChatMessage)
@@ -275,6 +233,10 @@ Generated 2026-09-22T15:20:22+00:00
 - Moblin/Various/Model/ModelStreamDeck.swift
   - StreamDeckKit (StreamDeckSession.setUp, StreamDeckLayout, StreamDeckKeyAreaLayout)
   - UIApplication.canOpenURL
+- Moblin/Various/Model/ModelTwitch.swift
+  - AVFoundation alert sounds (playAlert) -> TODO("no Android counterpart for Alert")
+  - EventCatPrinter event printing -> TODO("no Android counterpart for EventCatPrinterEvent")
+  - Missing ChatHighlightKind cases (newFollower, redemption, other) -> TODO("no ChatHighlightKind case for ...")
 - Moblin/Various/Model/ModelWebBrowser.swift
   - WKWebViewConfiguration.setHttpProxy(endpoint:) (NetworkExtension proxy configuration)
   - WKUIDelegate (webBrowserController)
@@ -307,8 +269,6 @@ Generated 2026-09-22T15:20:22+00:00
   - AVCaptureDevice zoom factor scale in backCameraZoomFactorScale()
   - WatchConnectivity / WatchSettings replaced by a raw JsonObject (no Android counterpart)
   - CIImage / CGImage in SettingsFace.toEffectSettings mapped to android.media.Image (Core Image needs an OpenGL ES port)
-- Moblin/Various/Settings/SettingsMacros.swift
-  - AVCaptureReactionType (SettingsReaction.toSystem)
 - Moblin/Various/Settings/SettingsScene.swift
   - CIColor (SettingsVideoEffectShape.toSettings)
   - ContinuousClock.Instant (SettingsWidgetTextTimer.textEffectEndTime)
@@ -324,12 +284,6 @@ Generated 2026-09-22T15:20:22+00:00
   - URL(resolvingBookmarkData:bookmarkDataIsStale:) / startAccessingSecurityScopedResource security-scoped bookmarks
 - Moblin/Various/Subtitles/Translator.swift
   - Translation framework (TranslationSession, TranslationError, TranslationSession.translate)
-- Moblin/Various/Utils/CameraUtils.swift
-  - AVCaptureDevice.default / camera enumeration (CameraX CameraSelector / CameraManager)
-  - AVCaptureDevice.activeVideoMinFrameDuration / activeVideoMaxFrameDuration / isAutoVideoFrameRateEnabled (Camera2 frame duration configuration)
-  - AVCaptureDevice.deviceWhiteBalanceGains(for:) / temperatureAndTintValues(for:) (Camera2 COLOR_CORRECTION gains conversion)
-  - AVCaptureDevice.Format.supportedColorSpaces .appleLog (Apple Log color space)
-  - AVCaptureDevice.dynamicAspectRatio (iOS 26 landscape stream with portrait UI)
 - Moblin/Various/Utils/UiUtils.swift
   - AudioServicesPlaySystemSound(kSystemSoundID_Vibrate) in UIDevice.vibrate()
   - UIApplication.shared.connectedScenes / UIWindowScene / UIWindow in getWindow()
@@ -558,12 +512,6 @@ Generated 2026-09-22T15:20:22+00:00
 - Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift
   - NavigationLink
   - navigationTitle
-- Moblin/View/ControlBar/QuickButtonsView.swift
-  - SwiftUI Image(systemName:) SF Symbols - SystemImage helper body is TODO("no Android counterpart for SF Symbol ..."); each symbol needs a manual Material icon mapping
-  - Named image assets (MoblinInMouth) - AssetImage helper body is TODO("port the asset ... to an Android drawable resource")
-- Moblin/View/MainView.swift
-  - toast.toast SwiftUI view has no Compose equivalent
-  - UIViewControllerRepresentable (WebBrowserController) has no Compose equivalent
 - Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift
   - MusicKit MusicSubscription.subscriptionUpdates
   - MusicKit MusicSubscriptionOffer (musicSubscriptionOffer modifier)
@@ -573,9 +521,6 @@ Generated 2026-09-22T15:20:22+00:00
   - onMove (List drag-to-reorder)
 - Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDeviceSettingsView.swift
   - ColorPicker (no Compose counterpart)
-- Moblin/View/Settings/Camera/CameraSettingsView.swift
-  - PhotosPicker
-  - PhotosPickerItem
 - Moblin/View/Settings/CatPrinters/CatPrinterSettingsView.swift
   - No setter for SettingsCatPrinter.name in this port (NameEditView binding)
   - No setter for SettingsCatPrinter.bluetoothPeripheralName and bluetoothPeripheralId in this port (onDeviceChange)
@@ -617,9 +562,7 @@ Generated 2026-09-22T15:20:22+00:00
 - Moblin/View/Settings/Ingests/SrtlaServer/SrtlaServerSettingsView.swift
   - contextMenuDeleteButton (SwiftUI .contextMenu on stream rows)
 - Moblin/View/Settings/Macros/MacrosSettingsView.swift
-  - objectWillChange (ObservableObject publisher)
-  - contextMenuDeleteButton (SwiftUI context menu delete)
-  - List onMove (drag to reorder)
+  - SettingsMacrosEvent.variablesToString() (no Android counterpart declared; replaced by TODO())
 - Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift
   - Transferable / TransferRepresentation (Video.transferRepresentation)
   - PhotosPickerItem and .photosPicker modifier
@@ -741,7 +684,7 @@ Generated 2026-09-22T15:20:22+00:00
 - MoblinTests/Moblin/VideoEffects/EffectUtilsSuite.swift
   - CoreImage (CIImage.black, cropped(to:), move(_:), extent) in metalPetalLayerPositionMatchesCoreImage
 - MoblinTests/Moblin/VideoEffects/LutEffectSuite.swift
-  - SwiftCube (SC3DLut, SwiftCubeError) has no Android counterpart; it was replaced by lutEffectConvertCube plus a generic Exception instead of TODO().
+  - MetalPetal (MTIColorLookupFilter, MTIImage, MTIContext), CoreGraphics (CGContext), Metal (MTLCreateSystemDefaultDevice) and CVPixelBuffer have no Android counterpart
 - MoblinTests/Moblin/VideoEffects/Text/TextEffectSuite.swift
   - WeatherKit WeatherCondition (no Android counterpart, replaced by TODO in conditions() and plainText())
 
@@ -828,17 +771,17 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/Media/HaishinKit/Media/BufferedStats.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/BufferedStats.kt | deepseek-flash | 3.8 |
 | Moblin/Media/HaishinKit/Media/DriftTracker.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/DriftTracker.kt | deepseek-flash | 26.9 |
 | Moblin/Media/HaishinKit/Media/MacScreenCapture.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/MacScreenCapture.kt | deepseek-flash | 46.4 |
-| Moblin/Media/HaishinKit/Media/Processor.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/Processor.kt | deepseek-flash | 72.5 |
+| Moblin/Media/HaishinKit/Media/Processor.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/Processor.kt | deepseek-flash | 11.7 |
 | Moblin/Media/HaishinKit/Media/Recorder.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/Recorder.kt | deepseek-flash | 142.0 |
 | Moblin/Media/HaishinKit/Media/Video/BufferedVideo.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/BufferedVideo.kt | deepseek-flash | 40.4 |
 | Moblin/Media/HaishinKit/Media/Video/PreviewView.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/PreviewView.kt | deepseek-flash | 44.4 |
-| Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoCaptureSession.kt | deepseek-flash | 77.8 |
+| Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoCaptureSession.kt | deepseek-flash | 72.2 |
 | Moblin/Media/HaishinKit/Media/Video/VideoEffect.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt | deepseek-flash | 47.1 |
 | Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt | deepseek-flash | 112.6 |
 | Moblin/Media/HaishinKit/Media/Video/VideoFpsEstimator.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoFpsEstimator.kt | deepseek-flash | 5.9 |
 | Moblin/Media/HaishinKit/Media/Video/VideoLowFpsImage.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoLowFpsImage.kt | deepseek-flash | 29.5 |
 | Moblin/Media/HaishinKit/Media/Video/VideoSnapshots.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoSnapshots.kt | deepseek-flash | 80.7 |
-| Moblin/Media/HaishinKit/Media/Video/VideoUnit.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoUnit.kt | deepseek-flash | 212.2 |
+| Moblin/Media/HaishinKit/Media/Video/VideoUnit.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoUnit.kt | deepseek-flash | 23.2 |
 | Moblin/Media/HaishinKit/Mpeg/Adts.swift | app/src/main/java/com/moblin/android/media/haishinkit/mpeg/Adts.kt | deepseek-flash | 84.4 |
 | Moblin/Media/HaishinKit/Mpeg/AudioSpecificConfig.swift | app/src/main/java/com/moblin/android/media/haishinkit/mpeg/AudioSpecificConfig.kt | deepseek-flash | 20.4 |
 | Moblin/Media/HaishinKit/Mpeg/Avc/AvcNalUnit.swift | app/src/main/java/com/moblin/android/media/haishinkit/mpeg/avc/AvcNalUnit.kt | deepseek-flash | 50.4 |
@@ -936,7 +879,7 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/Moblink/MoblinkStreamer.swift | app/src/main/java/com/moblin/android/moblink/MoblinkStreamer.kt | deepseek-flash | 122.1 |
 | Moblin/Obs/ObsWebSocket.swift | app/src/main/java/com/moblin/android/obs/ObsWebSocket.kt | deepseek-flash | 132.1 |
 | Moblin/RemoteControl/RemoteControl.swift | app/src/main/java/com/moblin/android/remotecontrol/RemoteControl.kt | deepseek-flash | 151.7 |
-| Moblin/RemoteControl/RemoteControlAssistant.swift | app/src/main/java/com/moblin/android/remotecontrol/RemoteControlAssistant.kt | deepseek-flash | 112.8 |
+| Moblin/RemoteControl/RemoteControlAssistant.swift | app/src/main/java/com/moblin/android/remotecontrol/RemoteControlAssistant.kt | deepseek-flash | 23.4 |
 | Moblin/RemoteControl/RemoteControlRelay.swift | app/src/main/java/com/moblin/android/remotecontrol/RemoteControlRelay.kt | deepseek-flash | 40.2 |
 | Moblin/RemoteControl/RemoteControlStreamer.swift | app/src/main/java/com/moblin/android/remotecontrol/RemoteControlStreamer.kt | deepseek-flash | 76.7 |
 | Moblin/RemoteControl/RemoteControlWeb.swift | app/src/main/java/com/moblin/android/remotecontrol/RemoteControlWeb.kt | deepseek-flash | 89.1 |
@@ -948,11 +891,11 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/StreamingPlatforms/Platform.swift | app/src/main/java/com/moblin/android/streamingplatforms/Platform.kt | deepseek-flash | 7.3 |
 | Moblin/StreamingPlatforms/Soop/SoopChat.swift | app/src/main/java/com/moblin/android/streamingplatforms/soop/SoopChat.kt | deepseek-flash | 95.4 |
 | Moblin/StreamingPlatforms/Soop/SoopPlatformStatus.swift | app/src/main/java/com/moblin/android/streamingplatforms/soop/SoopPlatformStatus.kt | deepseek-flash | 22.6 |
-| Moblin/StreamingPlatforms/Twitch/TwitchApi.swift | app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchApi.kt | deepseek-flash | 112.4 |
-| Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift | app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchAuth.kt | deepseek-flash | 48.3 |
+| Moblin/StreamingPlatforms/Twitch/TwitchApi.swift | app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchApi.kt | deepseek-flash | 19.9 |
+| Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift | app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchAuth.kt | deepseek-flash | 5.5 |
 | Moblin/StreamingPlatforms/Twitch/TwitchChat.swift | app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchChat.kt | deepseek-flash | 161.5 |
 | Moblin/StreamingPlatforms/Twitch/TwitchCommon.swift | app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchCommon.kt | deepseek-flash | 4.7 |
-| Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift | app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt | deepseek-flash | 85.6 |
+| Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift | app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt | deepseek-flash | 41.7 |
 | Moblin/StreamingPlatforms/YouTube/YouTubeApi.swift | app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeApi.kt | deepseek-flash | 81.1 |
 | Moblin/StreamingPlatforms/YouTube/YouTubeAuth.swift | app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeAuth.kt | deepseek-flash | 10.7 |
 | Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift | app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeLiveChat.kt | deepseek-flash | 121.9 |
@@ -977,7 +920,7 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/Various/MediaPlayer.swift | app/src/main/java/com/moblin/android/various/MediaPlayer.kt | deepseek-flash | 57.2 |
 | Moblin/Various/MoblinSettingsUrl.swift | app/src/main/java/com/moblin/android/various/MoblinSettingsUrl.kt | deepseek-flash | 66.4 |
 | Moblin/Various/Model/Chat/ChatProvider.swift | app/src/main/java/com/moblin/android/various/model/chat/ChatProvider.kt | deepseek-flash | 49.7 |
-| Moblin/Various/Model/Model.swift | app/src/main/java/com/moblin/android/various/model/Model.kt | deepseek-flash | 298.7 |
+| Moblin/Various/Model/Model.swift | app/src/main/java/com/moblin/android/various/model/Model.kt | deepseek-flash | 82.7 |
 | Moblin/Various/Model/ModelAppIntents.swift | app/src/main/java/com/moblin/android/various/model/ModelAppIntents.kt | deepseek-flash | 2.6 |
 | Moblin/Various/Model/ModelAppMode.swift | app/src/main/java/com/moblin/android/various/model/ModelAppMode.kt | deepseek-flash | 25.7 |
 | Moblin/Various/Model/ModelAppleWatch.swift | app/src/main/java/com/moblin/android/various/model/ModelAppleWatch.kt | deepseek-flash | 36.6 |
@@ -985,7 +928,7 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/Various/Model/ModelAutoSceneSwitcher.swift | app/src/main/java/com/moblin/android/various/model/ModelAutoSceneSwitcher.kt | deepseek-flash | 64.7 |
 | Moblin/Various/Model/ModelBlackSharkCoolerDevice.swift | app/src/main/java/com/moblin/android/various/model/ModelBlackSharkCoolerDevice.kt | deepseek-flash | 42.8 |
 | Moblin/Various/Model/ModelBluetooth.swift | app/src/main/java/com/moblin/android/various/model/ModelBluetooth.kt | deepseek-flash | 12.4 |
-| Moblin/Various/Model/ModelCamera.swift | app/src/main/java/com/moblin/android/various/model/ModelCamera.kt | deepseek-flash | 166.2 |
+| Moblin/Various/Model/ModelCamera.swift | app/src/main/java/com/moblin/android/various/model/ModelCamera.kt | deepseek-flash | 17.0 |
 | Moblin/Various/Model/ModelCatPrinters.swift | app/src/main/java/com/moblin/android/various/model/ModelCatPrinters.kt | deepseek-flash | 51.9 |
 | Moblin/Various/Model/ModelChat.swift | app/src/main/java/com/moblin/android/various/model/ModelChat.kt | deepseek-flash | 125.1 |
 | Moblin/Various/Model/ModelChatBot.swift | app/src/main/java/com/moblin/android/various/model/ModelChatBot.kt | deepseek-flash | 139.6 |
@@ -1003,14 +946,14 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/Various/Model/ModelLocation.swift | app/src/main/java/com/moblin/android/various/model/ModelLocation.kt | deepseek-flash | 32.3 |
 | Moblin/Various/Model/ModelLog.swift | app/src/main/java/com/moblin/android/various/model/ModelLog.kt | deepseek-flash | 35.3 |
 | Moblin/Various/Model/ModelMacStatusItem.swift | app/src/main/java/com/moblin/android/various/model/ModelMacStatusItem.kt | deepseek-flash | 25.4 |
-| Moblin/Various/Model/ModelMacros.swift | app/src/main/java/com/moblin/android/various/model/ModelMacros.kt | deepseek-flash | 67.9 |
+| Moblin/Various/Model/ModelMacros.swift | app/src/main/java/com/moblin/android/various/model/ModelMacros.kt | deepseek-flash | 21.9 |
 | Moblin/Various/Model/ModelMediaPlayer.swift | app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt | deepseek-flash | 57.4 |
 | Moblin/Various/Model/ModelMoblinWebsite.swift | app/src/main/java/com/moblin/android/various/model/ModelMoblinWebsite.kt | deepseek-flash | 82.5 |
 | Moblin/Various/Model/ModelMoblink.swift | app/src/main/java/com/moblin/android/various/model/ModelMoblink.kt | deepseek-flash | 50.7 |
 | Moblin/Various/Model/ModelMusic.swift | app/src/main/java/com/moblin/android/various/model/ModelMusic.kt | deepseek-flash | 40.1 |
 | Moblin/Various/Model/ModelNavigation.swift | app/src/main/java/com/moblin/android/various/model/ModelNavigation.kt | deepseek-flash | 20.6 |
 | Moblin/Various/Model/ModelObs.swift | app/src/main/java/com/moblin/android/various/model/ModelObs.kt | deepseek-flash | 96.2 |
-| Moblin/Various/Model/ModelPhotoShoot.swift | app/src/main/java/com/moblin/android/various/model/ModelPhotoShoot.kt | deepseek-flash | 8.1 |
+| Moblin/Various/Model/ModelPhotoShoot.swift | app/src/main/java/com/moblin/android/various/model/ModelPhotoShoot.kt | deepseek-flash | 1.4 |
 | Moblin/Various/Model/ModelPictureInPicture.swift | app/src/main/java/com/moblin/android/various/model/ModelPictureInPicture.kt | deepseek-flash | 36.4 |
 | Moblin/Various/Model/ModelRecording.swift | app/src/main/java/com/moblin/android/various/model/ModelRecording.kt | deepseek-flash | 56.5 |
 | Moblin/Various/Model/ModelRemoteControl.swift | app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt | deepseek-flash | 169.6 |
@@ -1035,7 +978,7 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/Various/Model/ModelStreamWizard.swift | app/src/main/java/com/moblin/android/various/model/ModelStreamWizard.kt | deepseek-flash | 94.9 |
 | Moblin/Various/Model/ModelTesla.swift | app/src/main/java/com/moblin/android/various/model/ModelTesla.kt | deepseek-flash | 63.3 |
 | Moblin/Various/Model/ModelTextToSpeech.swift | app/src/main/java/com/moblin/android/various/model/ModelTextToSpeech.kt | deepseek-flash | 14.2 |
-| Moblin/Various/Model/ModelTwitch.swift | app/src/main/java/com/moblin/android/various/model/ModelTwitch.kt | deepseek-flash | 152.3 |
+| Moblin/Various/Model/ModelTwitch.swift | app/src/main/java/com/moblin/android/various/model/ModelTwitch.kt | deepseek-flash | 67.7 |
 | Moblin/Various/Model/ModelVariables.swift | app/src/main/java/com/moblin/android/various/model/ModelVariables.kt | deepseek-flash | 24.9 |
 | Moblin/Various/Model/ModelVideoPreview.swift | app/src/main/java/com/moblin/android/various/model/ModelVideoPreview.kt | deepseek-flash | 29.4 |
 | Moblin/Various/Model/ModelWebBrowser.swift | app/src/main/java/com/moblin/android/various/model/ModelWebBrowser.kt | deepseek-flash | 38.6 |
@@ -1060,7 +1003,7 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/Various/Settings/SettingsAudio.swift | app/src/main/java/com/moblin/android/various/settings/SettingsAudio.kt | deepseek-flash | 98.2 |
 | Moblin/Various/Settings/SettingsCatPrinter.swift | app/src/main/java/com/moblin/android/various/settings/SettingsCatPrinter.kt | deepseek-flash | 111.6 |
 | Moblin/Various/Settings/SettingsChat.swift | app/src/main/java/com/moblin/android/various/settings/SettingsChat.kt | deepseek-flash | 108.0 |
-| Moblin/Various/Settings/SettingsDebug.swift | app/src/main/java/com/moblin/android/various/settings/SettingsDebug.kt | deepseek-flash | 112.4 |
+| Moblin/Various/Settings/SettingsDebug.swift | app/src/main/java/com/moblin/android/various/settings/SettingsDebug.kt | deepseek-flash | 34.9 |
 | Moblin/Various/Settings/SettingsDeepLinkCreator.swift | app/src/main/java/com/moblin/android/various/settings/SettingsDeepLinkCreator.kt | deepseek-flash | 67.4 |
 | Moblin/Various/Settings/SettingsDjiDevice.swift | app/src/main/java/com/moblin/android/various/settings/SettingsDjiDevice.kt | deepseek-flash | 111.4 |
 | Moblin/Various/Settings/SettingsGameController.swift | app/src/main/java/com/moblin/android/various/settings/SettingsGameController.kt | deepseek-flash | 59.8 |
@@ -1070,7 +1013,7 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/Various/Settings/SettingsIngests.swift | app/src/main/java/com/moblin/android/various/settings/SettingsIngests.kt | deepseek-flash | 59.2 |
 | Moblin/Various/Settings/SettingsKeyboard.swift | app/src/main/java/com/moblin/android/various/settings/SettingsKeyboard.kt | deepseek-flash | 106.6 |
 | Moblin/Various/Settings/SettingsLocation.swift | app/src/main/java/com/moblin/android/various/settings/SettingsLocation.kt | deepseek-flash | 140.2 |
-| Moblin/Various/Settings/SettingsMacros.swift | app/src/main/java/com/moblin/android/various/settings/SettingsMacros.kt | deepseek-flash | 296.3 |
+| Moblin/Various/Settings/SettingsMacros.swift | app/src/main/java/com/moblin/android/various/settings/SettingsMacros.kt | deepseek-flash | 29.1 |
 | Moblin/Various/Settings/SettingsMoblink.swift | app/src/main/java/com/moblin/android/various/settings/SettingsMoblink.kt | deepseek-flash | 57.5 |
 | Moblin/Various/Settings/SettingsNavigation.swift | app/src/main/java/com/moblin/android/various/settings/SettingsNavigation.kt | deepseek-flash | 22.4 |
 | Moblin/Various/Settings/SettingsQuickButtons.swift | app/src/main/java/com/moblin/android/various/settings/SettingsQuickButtons.kt | deepseek-flash | 94.2 |
@@ -1097,7 +1040,7 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/Various/Subtitles/Subtitles.swift | app/src/main/java/com/moblin/android/various/subtitles/Subtitles.kt | deepseek-flash | 10.6 |
 | Moblin/Various/Subtitles/TextAligner.swift | app/src/main/java/com/moblin/android/various/subtitles/TextAligner.kt | deepseek-flash | 7.7 |
 | Moblin/Various/Subtitles/Translator.swift | app/src/main/java/com/moblin/android/various/subtitles/Translator.kt | deepseek-flash | 46.0 |
-| Moblin/Various/Utils/CameraUtils.swift | app/src/main/java/com/moblin/android/various/utils/CameraUtils.kt | deepseek-flash | 62.7 |
+| Moblin/Various/Utils/CameraUtils.swift | app/src/main/java/com/moblin/android/various/utils/CameraUtils.kt | deepseek-flash | 31.3 |
 | Moblin/Various/Utils/FileSystemUtils.swift | app/src/main/java/com/moblin/android/various/utils/FileSystemUtils.kt | deepseek-flash | 57.2 |
 | Moblin/Various/Utils/LocationUtils.swift | app/src/main/java/com/moblin/android/various/utils/LocationUtils.kt | deepseek-flash | 19.9 |
 | Moblin/Various/Utils/UiUtils.swift | app/src/main/java/com/moblin/android/various/utils/UiUtils.kt | deepseek-flash | 41.1 |
@@ -1130,7 +1073,7 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/VideoEffects/FourThreeEffect.swift | app/src/main/java/com/moblin/android/videoeffects/FourThreeEffect.kt | deepseek-flash | 10.2 |
 | Moblin/VideoEffects/GrayScaleEffect.swift | app/src/main/java/com/moblin/android/videoeffects/GrayScaleEffect.kt | deepseek-flash | 19.0 |
 | Moblin/VideoEffects/ImageEffect.swift | app/src/main/java/com/moblin/android/videoeffects/ImageEffect.kt | deepseek-flash | 45.8 |
-| Moblin/VideoEffects/LutEffect.swift | app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt | deepseek-flash | 161.6 |
+| Moblin/VideoEffects/LutEffect.swift | app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt | deepseek-flash | 15.2 |
 | Moblin/VideoEffects/MapEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt | deepseek-flash | 149.3 |
 | Moblin/VideoEffects/MaskEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MaskEffect.kt | deepseek-flash | 131.3 |
 | Moblin/VideoEffects/MovieEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MovieEffect.kt | deepseek-flash | 8.9 |
@@ -1189,7 +1132,7 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/View/ControlBar/QuickButton/QuickButtonObsView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonObsView.kt | deepseek-flash | 105.5 |
 | Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonSceneWidgetsView.kt | deepseek-flash | 29.7 |
 | Moblin/View/ControlBar/QuickButton/QuickButtonStreamSwitcherView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/QuickButtonStreamSwitcherView.kt | deepseek-flash | 21.0 |
-| Moblin/View/ControlBar/QuickButtonsView.swift | app/src/main/java/com/moblin/android/view/controlbar/QuickButtonsView.kt | deepseek-flash | 100.6 |
+| Moblin/View/ControlBar/QuickButtonsView.swift | app/src/main/java/com/moblin/android/view/controlbar/QuickButtonsView.kt | deepseek-flash | 19.4 |
 | Moblin/View/ControlBar/RemoteControlAssistant/ControlBarRemoteControlAssistantView.swift | app/src/main/java/com/moblin/android/view/controlbar/remotecontrolassistant/ControlBarRemoteControlAssistantView.kt | deepseek-flash | 170.7 |
 | Moblin/View/ControlBar/StreamButton.swift | app/src/main/java/com/moblin/android/view/controlbar/StreamButton.kt | deepseek-flash | 48.9 |
 | Moblin/View/ControlBar/ThermalStateSheetView.swift | app/src/main/java/com/moblin/android/view/controlbar/ThermalStateSheetView.kt | deepseek-flash | 18.3 |
@@ -1198,7 +1141,7 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/View/Main/MacKeyPressView.swift | app/src/main/java/com/moblin/android/view/main/MacKeyPressView.kt | deepseek-flash | 20.2 |
 | Moblin/View/Main/SnapshotCountdownView.swift | app/src/main/java/com/moblin/android/view/main/SnapshotCountdownView.kt | deepseek-flash | 3.8 |
 | Moblin/View/Main/StealthModeView.swift | app/src/main/java/com/moblin/android/view/main/StealthModeView.kt | deepseek-flash | 79.5 |
-| Moblin/View/MainView.swift | app/src/main/java/com/moblin/android/view/MainView.kt | deepseek-flash | 144.5 |
+| Moblin/View/MainView.swift | app/src/main/java/com/moblin/android/view/MainView.kt | deepseek-flash | 27.8 |
 | Moblin/View/Settings/About/AboutAttributionsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/about/AboutAttributionsSettingsView.kt | deepseek-flash | 20.8 |
 | Moblin/View/Settings/About/AboutSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/about/AboutSettingsView.kt | deepseek-flash | 15.0 |
 | Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/about/AboutVersionHistorySettingsView.kt | deepseek-flash | 212.2 |
@@ -1211,11 +1154,11 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDeviceSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/blacksharkcoolers/BlackSharkCoolerDeviceSettingsView.kt | deepseek-flash | 82.7 |
 | Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDevicesSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/blacksharkcoolers/BlackSharkCoolerDevicesSettingsView.kt | deepseek-flash | 22.9 |
 | Moblin/View/Settings/Camera/CameraControls/CameraControlsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/cameracontrols/CameraControlsView.kt | deepseek-flash | 11.7 |
-| Moblin/View/Settings/Camera/CameraSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/CameraSettingsView.kt | deepseek-flash | 102.3 |
+| Moblin/View/Settings/Camera/CameraSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/CameraSettingsView.kt | deepseek-flash | 13.6 |
 | Moblin/View/Settings/Camera/FixedHorizon/FixedHorizonView.swift | app/src/main/java/com/moblin/android/view/settings/camera/fixedhorizon/FixedHorizonView.kt | deepseek-flash | 11.5 |
-| Moblin/View/Settings/Camera/MirrorFrontCamera/MirrorFrontCameraView.swift | app/src/main/java/com/moblin/android/view/settings/camera/mirrorfrontcamera/MirrorFrontCameraView.kt | deepseek-flash | 10.3 |
+| Moblin/View/Settings/Camera/MirrorFrontCamera/MirrorFrontCameraView.swift | app/src/main/java/com/moblin/android/view/settings/camera/mirrorfrontcamera/MirrorFrontCameraView.kt | deepseek-flash | 2.5 |
 | Moblin/View/Settings/Camera/TapScreenToFocus/TapScreenToFocusSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/tapscreentofocus/TapScreenToFocusSettingsView.kt | deepseek-flash | 9.9 |
-| Moblin/View/Settings/Camera/VideoStabilization/VideoStabilizationSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/videostabilization/VideoStabilizationSettingsView.kt | deepseek-flash | 20.0 |
+| Moblin/View/Settings/Camera/VideoStabilization/VideoStabilizationSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/videostabilization/VideoStabilizationSettingsView.kt | deepseek-flash | 2.9 |
 | Moblin/View/Settings/Camera/Zoom/ZoomPresetSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/zoom/ZoomPresetSettingsView.kt | deepseek-flash | 14.1 |
 | Moblin/View/Settings/Camera/Zoom/ZoomSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/zoom/ZoomSettingsView.kt | deepseek-flash | 93.0 |
 | Moblin/View/Settings/Camera/Zoom/ZoomSwitchToSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/zoom/ZoomSwitchToSettingsView.kt | deepseek-flash | 34.7 |
@@ -1231,7 +1174,7 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/chat/ChatTextToSpeechSettingsView.kt | deepseek-flash | 92.0 |
 | Moblin/View/Settings/Debug/DebugLogSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/debug/DebugLogSettingsView.kt | deepseek-flash | 34.2 |
 | Moblin/View/Settings/Debug/DebugSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/debug/DebugSettingsView.kt | deepseek-flash | 95.8 |
-| Moblin/View/Settings/Debug/DebugVideoSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/debug/DebugVideoSettingsView.kt | deepseek-flash | 26.7 |
+| Moblin/View/Settings/Debug/DebugVideoSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/debug/DebugVideoSettingsView.kt | deepseek-flash | 8.2 |
 | Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorQuickButtonsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/deeplinkcreator/DeepLinkCreatorQuickButtonsSettingsView.kt | deepseek-flash | 36.5 |
 | Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/deeplinkcreator/DeepLinkCreatorSettingsView.kt | deepseek-flash | 69.5 |
 | Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/deeplinkcreator/DeepLinkCreatorStreamSettingsView.kt | deepseek-flash | 100.8 |
@@ -1276,7 +1219,7 @@ Generated 2026-09-22T15:20:22+00:00
 | Moblin/View/Settings/Keyboard/KeyboardKeySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/keyboard/KeyboardKeySettingsView.kt | deepseek-flash | 40.9 |
 | Moblin/View/Settings/Keyboard/KeyboardSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/keyboard/KeyboardSettingsView.kt | deepseek-flash | 43.5 |
 | Moblin/View/Settings/Location/LocationSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/location/LocationSettingsView.kt | deepseek-flash | 109.1 |
-| Moblin/View/Settings/Macros/MacrosSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/macros/MacrosSettingsView.kt | deepseek-flash | 195.2 |
+| Moblin/View/Settings/Macros/MacrosSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/macros/MacrosSettingsView.kt | deepseek-flash | 36.0 |
 | Moblin/View/Settings/MediaPlayer/MediaPlayerFileSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/mediaplayer/MediaPlayerFileSettingsView.kt | deepseek-flash | 21.9 |
 | Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/mediaplayer/MediaPlayerSettingsView.kt | deepseek-flash | 105.7 |
 | Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/mediaplayer/MediaPlayersSettingsView.kt | deepseek-flash | 28.1 |
@@ -1520,7 +1463,7 @@ Generated 2026-09-22T15:20:22+00:00
 | MoblinTests/Moblin/StreamingPlatforms/Twitch/CheermotesSuite.swift | app/src/test/java/com/moblin/android/streamingplatforms/twitch/CheermotesSuite.kt | deepseek-flash | 17.3 |
 | MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchChatSegmentsSuite.swift | app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchChatSegmentsSuite.kt | deepseek-flash | 43.4 |
 | MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchChatSuite.swift | app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchChatSuite.kt | deepseek-flash | 75.3 |
-| MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchEventSubSuite.swift | app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSubSuite.kt | deepseek-flash | 93.3 |
+| MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchEventSubSuite.swift | app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSubSuite.kt | deepseek-flash | 28.1 |
 | MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchRaidHistorySuite.swift | app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchRaidHistorySuite.kt | deepseek-flash | 5.8 |
 | MoblinTests/Moblin/Various/ChatBotCommandSuite.swift | app/src/test/java/com/moblin/android/various/ChatBotCommandSuite.kt | deepseek-flash | 45.2 |
 | MoblinTests/Moblin/Various/ChatPostUrlSuite.swift | app/src/test/java/com/moblin/android/various/ChatPostUrlSuite.kt | deepseek-flash | 2.9 |
@@ -1537,7 +1480,7 @@ Generated 2026-09-22T15:20:22+00:00
 | MoblinTests/Moblin/Various/Utils/CmTimeSuite.swift | app/src/test/java/com/moblin/android/various/utils/CmTimeSuite.kt | deepseek-flash | 44.9 |
 | MoblinTests/Moblin/Various/Utils/UtilsSuite.swift | app/src/test/java/com/moblin/android/various/utils/UtilsSuite.kt | deepseek-flash | 45.1 |
 | MoblinTests/Moblin/VideoEffects/EffectUtilsSuite.swift | app/src/test/java/com/moblin/android/videoeffects/EffectUtilsSuite.kt | deepseek-flash | 35.6 |
-| MoblinTests/Moblin/VideoEffects/LutEffectSuite.swift | app/src/test/java/com/moblin/android/videoeffects/LutEffectSuite.kt | deepseek-flash | 116.5 |
+| MoblinTests/Moblin/VideoEffects/LutEffectSuite.swift | app/src/test/java/com/moblin/android/videoeffects/LutEffectSuite.kt | deepseek-flash | 43.6 |
 | MoblinTests/Moblin/VideoEffects/Text/TextEffectSuite.swift | app/src/test/java/com/moblin/android/videoeffects/text/TextEffectSuite.kt | deepseek-flash | 71.5 |
 | MoblinTests/Moblin/View/Settings/Macros/MacrosSettingsViewSuite.swift | app/src/test/java/com/moblin/android/view/settings/macros/MacrosSettingsViewSuite.kt | deepseek-flash | 8.4 |
 | MoblinTests/TestUtils.swift | app/src/test/java/com/moblin/android/TestUtils.kt | deepseek-flash | 21.9 |

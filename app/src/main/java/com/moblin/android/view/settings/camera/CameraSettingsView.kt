@@ -387,7 +387,7 @@ private fun CameraPreviewSettingsView(
                 checked = alwaysAttachCameraPreview,
                 onCheckedChange = {
                     database.alwaysAttachCameraPreview = it
-                    model.reattachCamera()
+                    model.attachCamera()
                 },
             )
         }
@@ -413,7 +413,7 @@ private fun PhotoShootSettingsView(
                 checked = alwaysAttachPhotoShoot,
                 onCheckedChange = {
                     database.alwaysAttachPhotoShoot = it
-                    model.reattachCamera()
+                    model.attachCamera()
                 },
             )
         }

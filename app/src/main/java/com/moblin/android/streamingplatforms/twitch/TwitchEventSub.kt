@@ -3,6 +3,8 @@ package com.moblin.android.streamingplatforms.twitch
 import android.content.Context
 import android.util.Log
 import com.moblin.android.various.MainTimer
+import com.moblin.android.various.network.NetworkResponse
+import com.moblin.android.various.network.OperationResult
 import com.moblin.android.various.network.WebSocketClient
 import com.moblin.android.various.network.WebSocketClientDelegate
 import kotlinx.serialization.Serializable
@@ -466,6 +468,22 @@ private data class NotificationChannelModerateMessage(
     var payload: NotificationChannelModeratePayload,
 )
 
+@Serializable
+data class TwitchEventSubChannelShoutoutCreateEvent(
+    var moderator_user_name: String,
+    var to_broadcaster_user_name: String,
+)
+
+@Serializable
+private data class NotificationChannelShoutoutCreatePayload(
+    var event: TwitchEventSubChannelShoutoutCreateEvent,
+)
+
+@Serializable
+private data class NotificationChannelShoutoutCreateMessage(
+    var payload: NotificationChannelShoutoutCreatePayload,
+)
+
 private val url = "wss://eventsub.wss.twitch.tv/ws"
 
 interface TwitchEventSubDelegate {
@@ -496,6 +514,7 @@ interface TwitchEventSubDelegate {
     fun twitchEventSubChannelPredictionLock(event: TwitchEventSubChannelPredictionEvent)
     fun twitchEventSubChannelPredictionEnd(event: TwitchEventSubChannelPredictionEvent)
     fun twitchEventSubChannelModerate(event: TwitchEventSubChannelModerateEvent)
+    fun twitchEventSubChannelShoutoutCreate(event: TwitchEventSubChannelShoutoutCreateEvent)
     fun twitchEventSubUnauthorized()
     fun twitchEventSubNotification(message: String)
 }
@@ -518,6 +537,15 @@ private val subTypeChannelPredictionBegin = "channel.prediction.begin"
 private val subTypeChannelPredictionProgress = "channel.prediction.progress"
 private val subTypeChannelPredictionLock = "channel.prediction.lock"
 private val subTypeChannelPredictionEnd = "channel.prediction.end"
+private val subTypeChannelShoutoutCreate = "channel.shoutout.create"
+
+private const val initialReconnectDelay = 5.0
+
+private data class Subscription(
+    val type: String,
+    val version: Int,
+    val condition: String,
+)
 
 class TwitchEventSub(
     context: Context,
@@ -531,6 +559,8 @@ class TwitchEventSub(
     private var remoteControl: Boolean
     private val userId: String
     private var sessionId: String = ""
+    private var remainingSubscriptions = 0
+    private var reconnectDelay = initialReconnectDelay
     private var twitchApi: TwitchApi
     private val delegate: TwitchEventSubDelegate
     private var connected = false
@@ -554,6 +584,7 @@ class TwitchEventSub(
     fun start() {
         Log.d(tag, "twitch: event-sub: Start")
         stopInternal()
+        reconnectDelay = initialReconnectDelay
         connectDelayTimer.startSingleShot(2.0) {
             if (started) {
                 connect()
@@ -571,6 +602,7 @@ class TwitchEventSub(
 
     fun stopInternal() {
         connected = false
+        sessionId = ""
         webSocket.stop()
         connectDelayTimer.stop()
     }
@@ -613,169 +645,84 @@ class TwitchEventSub(
             return
         }
         sessionId = message.payload.session.id
-        subscribeToChannelFollow()
+        val subscriptions = makeSubscriptions()
+        remainingSubscriptions = subscriptions.size
+        subscribe(subscriptions)
     }
 
-    private fun subscribeToChannelFollow() {
-        val body = createBody(
-            subTypeChannelFollow,
-            2,
-            "{\"broadcaster_user_id\":\"$userId\",\"moderator_user_id\":\"$userId\"}",
+    private fun makeSubscriptions(): List<Subscription> {
+        val broadcaster = "{\"broadcaster_user_id\":\"$userId\"}"
+        val broadcasterAndModerator =
+            "{\"broadcaster_user_id\":\"$userId\",\"moderator_user_id\":\"$userId\"}"
+        return listOf(
+            Subscription(subTypeChannelFollow, 2, broadcasterAndModerator),
+            Subscription(
+                subTypeChannelChatNotification,
+                1,
+                "{\"broadcaster_user_id\":\"$userId\",\"user_id\":\"$userId\"}",
+            ),
+            Subscription(subTypeChannelChannelPointsCustomRewardRedemptionAdd, 1, broadcaster),
+            Subscription(subTypeChannelRaid, 1, "{\"to_broadcaster_user_id\":\"$userId\"}"),
+            Subscription(subTypeChannelRaid, 1, "{\"from_broadcaster_user_id\":\"$userId\"}"),
+            Subscription(subTypeChannelCheer, 1, broadcaster),
+            Subscription(subTypeChannelHypeTrainBegin, 2, broadcaster),
+            Subscription(subTypeChannelHypeTrainProgress, 2, broadcaster),
+            Subscription(subTypeChannelHypeTrainEnd, 2, broadcaster),
+            Subscription(subTypeChannelAdBreakBegin, 1, broadcaster),
+            Subscription(subTypeChannelModerate, 2, broadcasterAndModerator),
+            Subscription(subTypeChannelPollBegin, 1, broadcaster),
+            Subscription(subTypeChannelPollProgress, 1, broadcaster),
+            Subscription(subTypeChannelPollEnd, 1, broadcaster),
+            Subscription(subTypeChannelPredictionBegin, 1, broadcaster),
+            Subscription(subTypeChannelPredictionProgress, 1, broadcaster),
+            Subscription(subTypeChannelPredictionLock, 1, broadcaster),
+            Subscription(subTypeChannelPredictionEnd, 1, broadcaster),
+            Subscription(subTypeChannelShoutoutCreate, 1, broadcasterAndModerator),
         )
-        twitchApi.createEventSubSubscription(body) { ok ->
-            if (!ok) {
-                return@createEventSubSubscription
+    }
+
+    private fun subscribe(subscriptions: List<Subscription>) {
+        val sessionId = sessionId
+        for (subscription in subscriptions) {
+            val body = createBody(subscription.type, subscription.version, subscription.condition)
+            twitchApi.createEventSubSubscription(body) { result ->
+                if (sessionId != this.sessionId) {
+                    return@createEventSubSubscription
+                }
+                handleSubscribeResult(subscription, result)
             }
-            subscribeToChannelChatNotification()
         }
     }
 
-    private fun subscribeToChannelChatNotification() {
-        val body = createBody(
-            subTypeChannelChatNotification,
-            1,
-            "{\"broadcaster_user_id\":\"$userId\",\"user_id\":\"$userId\"}",
-        )
-        twitchApi.createEventSubSubscription(body) { ok ->
-            if (!ok) {
-                return@createEventSubSubscription
+    private fun handleSubscribeResult(subscription: Subscription, result: OperationResult) {
+        when (result) {
+            is NetworkResponse.Success<*> -> {
+                remainingSubscriptions -= 1
+                if (remainingSubscriptions == 0) {
+                    connected = true
+                    reconnectDelay = initialReconnectDelay
+                }
             }
-            subscribeToChannelPointsCustomRewardRedemptionAdd()
-        }
-    }
-
-    private fun subscribeToChannelPointsCustomRewardRedemptionAdd() {
-        subscribeBroadcasterUserId(subTypeChannelChannelPointsCustomRewardRedemptionAdd) {
-            subscribeToChannelRaidTo()
-        }
-    }
-
-    private fun subscribeToChannelRaidTo() {
-        val body = createBody(
-            subTypeChannelRaid,
-            1,
-            "{\"to_broadcaster_user_id\":\"$userId\"}",
-        )
-        twitchApi.createEventSubSubscription(body) { ok ->
-            if (!ok) {
-                return@createEventSubSubscription
+            NetworkResponse.AuthError -> Log.i(
+                tag,
+                "twitch: event-sub: Not authorized to subscribe to ${subscription.type}",
+            )
+            NetworkResponse.Error -> {
+                Log.i(tag, "twitch: event-sub: Failed to subscribe to ${subscription.type}")
+                reconnectLater()
             }
-            subscribeToChannelRaidFrom()
         }
     }
 
-    private fun subscribeToChannelRaidFrom() {
-        val body = createBody(
-            subTypeChannelRaid,
-            1,
-            "{\"from_broadcaster_user_id\":\"$userId\"}",
-        )
-        twitchApi.createEventSubSubscription(body) { ok ->
-            if (!ok) {
-                return@createEventSubSubscription
+    private fun reconnectLater() {
+        Log.i(tag, "twitch: event-sub: Reconnecting in $reconnectDelay seconds")
+        stopInternal()
+        connectDelayTimer.startSingleShot(reconnectDelay) {
+            if (started) {
+                connect()
             }
-            subscribeToChannelCheer()
         }
-    }
-
-    private fun subscribeToChannelCheer() {
-        subscribeBroadcasterUserId(subTypeChannelCheer) {
-            subscribeToChannelHypeTrainBegin()
-        }
-    }
-
-    private fun subscribeToChannelHypeTrainBegin() {
-        subscribeBroadcasterUserId(subTypeChannelHypeTrainBegin, 2) {
-            subscribeToChannelHypeTrainProgress()
-        }
-    }
-
-    private fun subscribeToChannelHypeTrainProgress() {
-        subscribeBroadcasterUserId(subTypeChannelHypeTrainProgress, 2) {
-            subscribeToChannelHypeTrainEnd()
-        }
-    }
-
-    private fun subscribeToChannelHypeTrainEnd() {
-        subscribeBroadcasterUserId(subTypeChannelHypeTrainEnd, 2) {
-            subscribeTochannelAdBreakBegin()
-        }
-    }
-
-    private fun subscribeTochannelAdBreakBegin() {
-        subscribeBroadcasterUserId(subTypeChannelAdBreakBegin) {
-            subscribeToChannelModerate()
-        }
-    }
-
-    private fun subscribeToChannelModerate() {
-        val body = createBody(
-            subTypeChannelModerate,
-            2,
-            "{\"broadcaster_user_id\":\"$userId\",\"moderator_user_id\":\"$userId\"}",
-        )
-        twitchApi.createEventSubSubscription(body) { ok ->
-            if (!ok) {
-                return@createEventSubSubscription
-            }
-            subscribeToChannelPollBegin()
-        }
-    }
-
-    private fun subscribeToChannelPollBegin() {
-        subscribeBroadcasterUserId(subTypeChannelPollBegin) {
-            subscribeToChannelPollProgress()
-        }
-    }
-
-    private fun subscribeToChannelPollProgress() {
-        subscribeBroadcasterUserId(subTypeChannelPollProgress) {
-            subscribeToChannelPollEnd()
-        }
-    }
-
-    private fun subscribeToChannelPollEnd() {
-        subscribeBroadcasterUserId(subTypeChannelPollEnd) {
-            subscribeToChannelPredictionBegin()
-        }
-    }
-
-    private fun subscribeToChannelPredictionBegin() {
-        subscribeBroadcasterUserId(subTypeChannelPredictionBegin) {
-            subscribeToChannelPredictionProgress()
-        }
-    }
-
-    private fun subscribeToChannelPredictionProgress() {
-        subscribeBroadcasterUserId(subTypeChannelPredictionProgress) {
-            subscribeToChannelPredictionLock()
-        }
-    }
-
-    private fun subscribeToChannelPredictionLock() {
-        subscribeBroadcasterUserId(subTypeChannelPredictionLock) {
-            subscribeToChannelPredictionEnd()
-        }
-    }
-
-    private fun subscribeToChannelPredictionEnd() {
-        subscribeBroadcasterUserId(subTypeChannelPredictionEnd) {
-            connected = true
-        }
-    }
-
-    private fun subscribeBroadcasterUserId(
-        type: String,
-        version: Int = 1,
-        onSuccess: () -> Unit,
-    ) {
-        val body = createBroadcasterUserIdBody(type, version)
-        twitchApi.createEventSubSubscription(body) { ok ->
-            if (!ok) {
-                return@createEventSubSubscription
-            }
-            onSuccess()
-        }
+        reconnectDelay = minOf(reconnectDelay * 2, 120.0)
     }
 
     private fun createBody(type: String, version: Int, condition: String): String {
@@ -790,14 +737,6 @@ class TwitchEventSub(
             }
         }
         """.trimIndent()
-    }
-
-    private fun createBroadcasterUserIdBody(type: String, version: Int = 1): String {
-        return createBody(
-            type,
-            version,
-            "{\"broadcaster_user_id\":\"$userId\"}",
-        )
     }
 
     private fun handleNotification(
@@ -825,6 +764,7 @@ class TwitchEventSub(
                 subTypeChannelPredictionProgress -> handleChannelPredictionProgress(messageData)
                 subTypeChannelPredictionLock -> handleChannelPredictionLock(messageData)
                 subTypeChannelPredictionEnd -> handleChannelPredictionEnd(messageData)
+                subTypeChannelShoutoutCreate -> handleChannelShoutoutCreate(messageData)
                 else -> {
                     val type = message.metadata.subscription_type
                     if (type != null) {
@@ -1078,6 +1018,13 @@ class TwitchEventSub(
             messageData.decodeToString(),
         )
         delegate.twitchEventSubChannelModerate(message.payload.event)
+    }
+
+    private fun handleChannelShoutoutCreate(messageData: ByteArray) {
+        val message = json.decodeFromString<NotificationChannelShoutoutCreateMessage>(
+            messageData.decodeToString(),
+        )
+        delegate.twitchEventSubChannelShoutoutCreate(message.payload.event)
     }
 
     override fun webSocketClientConnected(client: WebSocketClient) {}

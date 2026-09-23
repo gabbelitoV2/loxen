@@ -941,6 +941,10 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         allowVideoRangePixelFormat = database.debug.allowVideoRangePixelFormat.value
     }
 
+    fun setNativeLowLightBoost() {
+        nativeLowLightBoost = database.debug.nativeLowLightBoost.value
+    }
+
     fun setHighQualityDownsampling() {
         highQualityDownsampling = database.graphicsHighQualityDownsampling
     }
@@ -1193,6 +1197,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         faxReceiver.delegate = this
         fixAlertMediasNoUpdate()
         setAllowVideoRangePixelFormat()
+        setNativeLowLightBoost()
         setHighQualityDownsampling()
         setExternalDisplayContent()
         portraitVideoOffsetFromTop.value = database.portraitVideoOffsetFromTop
@@ -1783,7 +1788,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         externalDisplayWindow = null
         updateExternalMonitorWindow()
         externalDisplayPreview = true
-        reattachCamera()
+        attachCamera()
     }
 
     fun disableScreenPreview() {
@@ -1800,7 +1805,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun externalMonitorDisconnected() {
         externalDisplayWindow = null
         externalDisplayPreview = false
-        reattachCamera()
+        attachCamera()
     }
 
     private fun updateExternalMonitorWindow() {
@@ -2843,11 +2848,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     private fun getThermalState(): MoblinkThermalState = MoblinkThermalState.white
-
-    fun reattachCamera() {
-        detachCamera()
-        attachCamera()
-    }
 
     fun detachCamera() {
         val params = VideoUnitAttachParams(

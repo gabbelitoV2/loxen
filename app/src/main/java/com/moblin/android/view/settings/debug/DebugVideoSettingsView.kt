@@ -43,11 +43,16 @@ fun DebugVideoSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val allowVideoRangePixelFormat by debug.allowVideoRangePixelFormat.collectAsState()
+    val nativeLowLightBoost by debug.nativeLowLightBoost.collectAsState()
     val videoBitrateChange by debug.videoBitrateChange.collectAsState()
     val pixelFormat = model.database.debug.pixelFormat
 
     LaunchedEffect(allowVideoRangePixelFormat) {
         model.setAllowVideoRangePixelFormat()
+    }
+
+    LaunchedEffect(nativeLowLightBoost) {
+        model.setNativeLowLightBoost()
     }
 
     Scaffold(
@@ -81,6 +86,21 @@ fun DebugVideoSettingsView(
                 Switch(
                     checked = allowVideoRangePixelFormat,
                     onCheckedChange = { debug.allowVideoRangePixelFormat.value = it },
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = localized("Native low light boost"),
+                    modifier = Modifier.weight(1f),
+                )
+                Switch(
+                    checked = nativeLowLightBoost,
+                    onCheckedChange = { debug.nativeLowLightBoost.value = it },
                 )
             }
             Text(

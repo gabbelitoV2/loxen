@@ -376,14 +376,13 @@ class TwitchApi(accessToken: String) {
         }
     }
 
-    fun createEventSubSubscription(body: String, onComplete: (Boolean) -> Unit) {
+    fun createEventSubSubscription(body: String, onComplete: (OperationResult) -> Unit) {
         doPost(
             subPath = "eventsub/subscriptions",
             body = body.encodeToByteArray(),
             forbiddenIsAuthError = true,
-        ) { result ->
-            onComplete(result.isSuccessful())
-        }
+            onComplete = onComplete,
+        )
     }
 
     fun getStreamKey(broadcasterId: String, onComplete: (String?) -> Unit) {
@@ -718,6 +717,22 @@ class TwitchApi(accessToken: String) {
         doDelete(subPath = makeUrl("raids", listOf("broadcaster_id" to broadcasterId))) { result ->
             onComplete(result)
         }
+    }
+
+    fun sendShoutout(
+        broadcasterId: String,
+        toBroadcasterId: String,
+        onComplete: (OperationResult) -> Unit,
+    ) {
+        val subPath = makeUrl(
+            "chat/shoutouts",
+            listOf(
+                "from_broadcaster_id" to broadcasterId,
+                "to_broadcaster_id" to toBroadcasterId,
+                "moderator_id" to broadcasterId,
+            ),
+        )
+        doPost(subPath = subPath, body = ByteArray(0), onComplete = onComplete)
     }
 
     fun searchCategories(query: String, onComplete: (List<TwitchApiGameData>?) -> Unit) {

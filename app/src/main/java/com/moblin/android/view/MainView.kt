@@ -346,13 +346,15 @@ private fun MenuView(model: Model = LocalModel.current) {
             autoSceneSwitchers = model.database.autoSceneSwitchers
         )
         ShowingPanel.quickButtonSettings -> quickButtonSettingsButton?.let { button ->
-            QuickButtonsButtonSettingsView(
-                model = model,
-                orientation = model.orientation,
-                quickButtonsSettings = model.database.quickButtonsGeneral,
-                button = button,
-                showAll = true
-            )
+            key(button.id) {
+                QuickButtonsButtonSettingsView(
+                    model = model,
+                    orientation = model.orientation,
+                    quickButtonsSettings = model.database.quickButtonsGeneral,
+                    button = button,
+                    showAll = true
+                )
+            }
         }
         ShowingPanel.streamingButtonSettings -> StreamButtonsSettingsView(database = model.database)
         ShowingPanel.live -> QuickButtonLiveView(

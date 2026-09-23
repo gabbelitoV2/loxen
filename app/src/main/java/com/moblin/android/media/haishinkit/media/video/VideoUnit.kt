@@ -201,24 +201,6 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     private var currentAttachParams: VideoUnitAttachParams? = null
     private var macScreenCaptureActive = false
 
-    var videoOrientation: Int
-        get() = captureSession.videoOrientation
-        set(value) {
-            captureSession.videoOrientation = value
-        }
-
-    var torch: Boolean
-        get() = captureSession.torch
-        set(value) {
-            captureSession.torch = value
-        }
-
-    var torchLevel: Float
-        get() = captureSession.torchLevel
-        set(value) {
-            captureSession.torchLevel = value
-        }
-
     init {
         val effectsProcessor = VideoEffectsProcessor()
         this.effectsProcessor = effectsProcessor
@@ -240,6 +222,18 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
 
     fun stopRunning() {
         captureSession.stopRunning()
+    }
+
+    fun setVideoOrientation(value: Int) {
+        captureSession.videoOrientation = value
+    }
+
+    fun setTorch(value: Boolean) {
+        captureSession.torch = value
+    }
+
+    fun setTorchLevel(value: Float) {
+        captureSession.torchLevel = value
     }
 
     fun setFps(fps: Double, preferAutoFps: Boolean) {
@@ -804,7 +798,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
             imageBuffer,
             completion,
             this,
-            videoOrientation
+            captureSession.videoOrientation
         )
         if (cleanRecordings) {
             processor?.recorder?.appendVideo(sampleBuffer)

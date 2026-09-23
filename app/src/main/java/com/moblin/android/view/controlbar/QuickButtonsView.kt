@@ -508,7 +508,7 @@ fun QuickButtonsInnerView(
 
     fun portraitAction() {
         model.setDisplayPortrait(portrait = !model.database.portrait)
-        model.reattachCamera()
+        model.attachCamera()
     }
 
     fun goProAction() {

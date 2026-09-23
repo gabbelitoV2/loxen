@@ -1,6 +1,6 @@
 {
-  "root": "<home>\\Desktop\\code\\moblin",
-  "generated": "2026-09-22T15:17:55+00:00",
+  "root": "<home>\\Desktop\\code\\moblin-android\\.upstream",
+  "generated": "2026-09-23T11:18:38+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -4288,93 +4288,6 @@
       "wave": 5
     },
     {
-      "path": "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift",
-      "lines": 1056,
-      "sha256": "791e92d4b9aca53142b1f720f671c30c4d3d6bbed324ca3b1c56eeaccb642f46",
-      "imports": [
-        "Foundation"
-      ],
-      "tier": "logic",
-      "declared_types": [
-        "BasicMetadata",
-        "BasicMessage",
-        "WelcomePayloadSession",
-        "WelcomePayload",
-        "WelcomeMessage",
-        "TwitchEventSubMessageFragmentEmote",
-        "TwitchEventSubMessageFragment",
-        "TwitchEventSubMessage",
-        "TwitchEventSubSharedChat",
-        "TwitchEventSubBadge",
-        "TwitchEventSubChatter",
-        "TwitchEventSubNotificationChannelSubscribeEvent",
-        "TwitchEventSubNotificationChannelSubscriptionUpgradeEvent",
-        "TwitchEventSubNotificationChannelWatchStreakEvent",
-        "TwitchEventSubNotificationChannelSubscriptionGiftEvent",
-        "TwitchEventSubNotificationChannelSubscriptionMessageEvent",
-        "NotificationChannelChatNotificationSub",
-        "NotificationChannelChatNotificationResub",
-        "NotificationChannelChatNotificationSubGift",
-        "NotificationChannelChatNotificationCommunitySubGift",
-        "NotificationChannelChatNotificationPrimePaidUpgrade",
-        "NotificationChannelChatNotificationWatchStreak",
-        "NotificationChannelChatNotificationRaid",
-        "NotificationChannelChatNotificationEvent",
-        "NotificationChannelChatNotificationPayload",
-        "NotificationChannelChatNotificationMessage",
-        "TwitchEventSubNotificationChannelFollowEvent",
-        "NotificationChannelFollowPayload",
-        "NotificationChannelFollowMessage",
-        "TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEventReward",
-        "TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEvent",
-        "NotificationChannelPointsCustomRewardRedemptionAddPayload",
-        "NotificationChannelPointsCustomRewardRedemptionAddMessage",
-        "TwitchEventSubChannelRaidEvent",
-        "NotificationChannelRaidPayload",
-        "NotificationChannelRaidMessage",
-        "TwitchEventSubChannelCheerEvent",
-        "NotificationChannelCheerPayload",
-        "NotificationChannelCheerMessage",
-        "TwitchEventSubChannelHypeTrainBeginEvent",
-        "NotificationChannelHypeTrainBeginPayload",
-        "NotificationChannelHypeTrainBeginMessage",
-        "TwitchEventSubChannelHypeTrainProgressEvent",
-        "NotificationChannelHypeTrainProgressPayload",
-        "NotificationChannelHypeTrainProgressMessage",
-        "TwitchEventSubChannelHypeTrainEndEvent",
-        "NotificationChannelHypeTrainEndPayload",
-        "NotificationChannelHypeTrainEndMessage",
-        "TwitchEventSubChannelPollChoice",
-        "TwitchEventSubChannelPollEvent",
-        "NotificationChannelPollPayload",
-        "NotificationChannelPollMessage",
-        "TwitchEventSubChannelPredictionOutcome",
-        "TwitchEventSubChannelPredictionEvent",
-        "NotificationChannelPredictionPayload",
-        "NotificationChannelPredictionMessage",
-        "TwitchEventSubChannelAdBreakBeginEvent",
-        "NotificationChannelAdBreakBeginPayload",
-        "NotificationChannelAdBreakBeginMessage",
-        "TwitchEventSubChannelModerateRaid",
-        "TwitchEventSubChannelModerateEvent",
-        "NotificationChannelModeratePayload",
-        "NotificationChannelModerateMessage",
-        "TwitchEventSubDelegate",
-        "TwitchEventSub"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.streamingplatforms.twitch",
-      "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt",
-      "deps": [
-        "Moblin/StreamingPlatforms/Twitch/TwitchApi.swift",
-        "Moblin/StreamingPlatforms/Twitch/TwitchCommon.swift",
-        "Moblin/Various/MainTimer.swift",
-        "Moblin/Various/Network/WebSocketClient.swift"
-      ],
-      "wave": 5
-    },
-    {
       "path": "Moblin/StreamingPlatforms/YouTube/YouTubeApi.swift",
       "lines": 360,
       "sha256": "e58457f33989f018ac1ed619685d6d6cb7389bbb4948a063147745fd16374eab",
@@ -4645,7 +4558,7 @@
     {
       "path": "Moblin/Various/Model/ModelPhotoShoot.swift",
       "lines": 21,
-      "sha256": "4038c8ba1a45f37a1b7f41bf92b3305123168ff07bb6f2211853a7702d5a875d",
+      "sha256": "f31188dddf033c34c7412ae4cb66e58c0ee13b99ddaafed58c21266bd85e5d30",
       "imports": [],
       "tier": "logic",
       "declared_types": [],
@@ -4820,8 +4733,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsDebug.swift",
-      "lines": 186,
-      "sha256": "a20df492fce40fbf8be94aa412daebd53eda32ed250733d1b18ce3e377b3fa49",
+      "lines": 190,
+      "sha256": "f0673a5c17a4ce0cc284940da891b4746f1187108553e8d42cca0d16e64fe833",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -6302,8 +6215,8 @@
     },
     {
       "path": "Moblin/StreamingPlatforms/Twitch/TwitchApi.swift",
-      "lines": 923,
-      "sha256": "639edbcccfee37091cd42d7355aee749ce4c1d44ae22234d6a8fa07759196da1",
+      "lines": 942,
+      "sha256": "9cd7db4468088fc3c3741a8de511bd494e5fdf1e63d6e6991d88df37a8089039",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -6360,6 +6273,98 @@
         "Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift",
         "Moblin/StreamingPlatforms/Twitch/TwitchCommon.swift",
         "Moblin/Various/Network/NetworkUtils.swift"
+      ],
+      "wave": 8
+    },
+    {
+      "path": "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift",
+      "lines": 1015,
+      "sha256": "5c3cf6a77820b2a080f3c7892ca59da3daddfc12f2a75766031d87be8eed76e4",
+      "imports": [
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "BasicMetadata",
+        "BasicMessage",
+        "WelcomePayloadSession",
+        "WelcomePayload",
+        "WelcomeMessage",
+        "TwitchEventSubMessageFragmentEmote",
+        "TwitchEventSubMessageFragment",
+        "TwitchEventSubMessage",
+        "TwitchEventSubSharedChat",
+        "TwitchEventSubBadge",
+        "TwitchEventSubChatter",
+        "TwitchEventSubNotificationChannelSubscribeEvent",
+        "TwitchEventSubNotificationChannelSubscriptionUpgradeEvent",
+        "TwitchEventSubNotificationChannelWatchStreakEvent",
+        "TwitchEventSubNotificationChannelSubscriptionGiftEvent",
+        "TwitchEventSubNotificationChannelSubscriptionMessageEvent",
+        "NotificationChannelChatNotificationSub",
+        "NotificationChannelChatNotificationResub",
+        "NotificationChannelChatNotificationSubGift",
+        "NotificationChannelChatNotificationCommunitySubGift",
+        "NotificationChannelChatNotificationPrimePaidUpgrade",
+        "NotificationChannelChatNotificationWatchStreak",
+        "NotificationChannelChatNotificationRaid",
+        "NotificationChannelChatNotificationEvent",
+        "NotificationChannelChatNotificationPayload",
+        "NotificationChannelChatNotificationMessage",
+        "TwitchEventSubNotificationChannelFollowEvent",
+        "NotificationChannelFollowPayload",
+        "NotificationChannelFollowMessage",
+        "TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEventReward",
+        "TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEvent",
+        "NotificationChannelPointsCustomRewardRedemptionAddPayload",
+        "NotificationChannelPointsCustomRewardRedemptionAddMessage",
+        "TwitchEventSubChannelRaidEvent",
+        "NotificationChannelRaidPayload",
+        "NotificationChannelRaidMessage",
+        "TwitchEventSubChannelCheerEvent",
+        "NotificationChannelCheerPayload",
+        "NotificationChannelCheerMessage",
+        "TwitchEventSubChannelHypeTrainBeginEvent",
+        "NotificationChannelHypeTrainBeginPayload",
+        "NotificationChannelHypeTrainBeginMessage",
+        "TwitchEventSubChannelHypeTrainProgressEvent",
+        "NotificationChannelHypeTrainProgressPayload",
+        "NotificationChannelHypeTrainProgressMessage",
+        "TwitchEventSubChannelHypeTrainEndEvent",
+        "NotificationChannelHypeTrainEndPayload",
+        "NotificationChannelHypeTrainEndMessage",
+        "TwitchEventSubChannelPollChoice",
+        "TwitchEventSubChannelPollEvent",
+        "NotificationChannelPollPayload",
+        "NotificationChannelPollMessage",
+        "TwitchEventSubChannelPredictionOutcome",
+        "TwitchEventSubChannelPredictionEvent",
+        "NotificationChannelPredictionPayload",
+        "NotificationChannelPredictionMessage",
+        "TwitchEventSubChannelAdBreakBeginEvent",
+        "NotificationChannelAdBreakBeginPayload",
+        "NotificationChannelAdBreakBeginMessage",
+        "TwitchEventSubChannelModerateRaid",
+        "TwitchEventSubChannelModerateEvent",
+        "NotificationChannelModeratePayload",
+        "NotificationChannelModerateMessage",
+        "TwitchEventSubChannelShoutoutCreateEvent",
+        "NotificationChannelShoutoutCreatePayload",
+        "NotificationChannelShoutoutCreateMessage",
+        "TwitchEventSubDelegate",
+        "Subscription",
+        "TwitchEventSub"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.streamingplatforms.twitch",
+      "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt",
+      "deps": [
+        "Moblin/StreamingPlatforms/Twitch/TwitchApi.swift",
+        "Moblin/StreamingPlatforms/Twitch/TwitchCommon.swift",
+        "Moblin/Various/MainTimer.swift",
+        "Moblin/Various/Network/NetworkUtils.swift",
+        "Moblin/Various/Network/WebSocketClient.swift"
       ],
       "wave": 8
     },
@@ -6722,29 +6727,6 @@
       "wave": 8
     },
     {
-      "path": "MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchEventSubSuite.swift",
-      "lines": 1083,
-      "sha256": "4d6993c48686f087adc328002eeb3557aedd2a2d4684e1a3dcd5d39d287dfd87",
-      "imports": [
-        "Foundation",
-        "Testing"
-      ],
-      "tier": "test",
-      "declared_types": [
-        "Delegate",
-        "TwitchEventSubSuite"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.streamingplatforms.twitch",
-      "kotlin_path": "app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSubSuite.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift",
-        "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift"
-      ],
-      "wave": 8
-    },
-    {
       "path": "Moblin/Media/HaishinKit/Mpeg/NalUnitStream.swift",
       "lines": 120,
       "sha256": "e77f401f44e7adccdd2ecb7acdde15f62138eb1463ff815e00e28273293d42b9",
@@ -6917,6 +6899,29 @@
       "deps": [
         "Moblin/StreamingPlatforms/Twitch/TwitchApi.swift",
         "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift"
+      ],
+      "wave": 10
+    },
+    {
+      "path": "MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchEventSubSuite.swift",
+      "lines": 1117,
+      "sha256": "fdd85aab966b72c366a842020ae7e8051de5b3e2d84ae9e2c6c49ed261e30d7c",
+      "imports": [
+        "Foundation",
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "Delegate",
+        "TwitchEventSubSuite"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.streamingplatforms.twitch",
+      "kotlin_path": "app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSubSuite.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
+        "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift"
       ],
       "wave": 10
     },
@@ -8302,8 +8307,8 @@
     },
     {
       "path": "Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift",
-      "lines": 211,
-      "sha256": "8173c5931f5eb0915d8058d02274057ac638db23ceb62d2d00e0b121d98d104e",
+      "lines": 212,
+      "sha256": "180e4cd9ea143f2f5c5635606a2eafd60bfcb85a40d4d578fe61719760589632",
       "imports": [
         "AuthenticationServices",
         "SwiftUI",
@@ -9166,7 +9171,7 @@
     {
       "path": "Moblin/View/Settings/Camera/MirrorFrontCamera/MirrorFrontCameraView.swift",
       "lines": 14,
-      "sha256": "41a5ee55cdade76a30bb9742487cbcfa593928212c7f33ec3626c6a38319d80a",
+      "sha256": "8a83269b5d292d75413cfd2b10e5ddf353ce52a43984e906f06e8e8c602d44da",
       "imports": [
         "SwiftUI"
       ],
@@ -10206,9 +10211,10 @@
     },
     {
       "path": "MoblinTests/Moblin/VideoEffects/LutEffectSuite.swift",
-      "lines": 254,
-      "sha256": "cd2d2ca1b071d7c581930e6ced9b4ecb44d6180dd59ef875794933174a5ddc10",
+      "lines": 309,
+      "sha256": "09ebd82c7d8443759338dc7d77ba03e152dc625a248c241691edbbef51082cba",
       "imports": [
+        "MetalPetal",
         "SwiftCube",
         "SwiftUI",
         "Testing"
@@ -11987,8 +11993,8 @@
     },
     {
       "path": "Moblin/Various/Utils/CameraUtils.swift",
-      "lines": 313,
-      "sha256": "b62b422b6e9d2212d061446bdac69fe8aaf0f279c1fd1d123978ec027ecca3da",
+      "lines": 320,
+      "sha256": "c0d060c73219a12beb69f773cc4e2121a18ceb21800e8e0199832c610fc38d55",
       "imports": [
         "AVKit",
         "CoreMotion"
@@ -12210,8 +12216,8 @@
     },
     {
       "path": "Moblin/View/Settings/Debug/DebugVideoSettingsView.swift",
-      "lines": 41,
-      "sha256": "88564e34d571c4d7d9d8c678ac91b3aab4f42f4dc16fd8341cc77b66773291bb",
+      "lines": 45,
+      "sha256": "0b954d00b2729c1794888adf11d11b78d3cf30202048fd77cab05fc80432029c",
       "imports": [
         "SwiftUI"
       ],
@@ -12606,8 +12612,8 @@
     },
     {
       "path": "Moblin/RemoteControl/RemoteControlAssistant.swift",
-      "lines": 784,
-      "sha256": "fcb307bd742205ce5e66544144e66e7e4da8baf4d7413bc4e4bb8b6aba89780a",
+      "lines": 786,
+      "sha256": "384a32f34fa6848d7b12369c8baf9b17baacb1410ed52e7ba7fd84129473e611",
       "imports": [
         "Collections",
         "CryptoKit",
@@ -12982,8 +12988,8 @@
     },
     {
       "path": "Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift",
-      "lines": 648,
-      "sha256": "4a3f3dc16c3ae289e920c043eaa4d3b42d91b095ad6926bd508cc166a95840e5",
+      "lines": 652,
+      "sha256": "12851f60ca701ef9f50dc80c3f1334485b2b8b8e6856d1e475112aae56c664a4",
       "imports": [
         "AVFoundation",
         "Photos"
@@ -12993,6 +12999,7 @@
         "CaptureDevice",
         "CaptureDevices",
         "VideoCaptureSessionDelegate",
+        "DeviceOutputHandler",
         "CaptureSessionDevice",
         "VideoCaptureSession"
       ],
@@ -13543,8 +13550,8 @@
     },
     {
       "path": "Moblin/VideoEffects/LutEffect.swift",
-      "lines": 324,
-      "sha256": "6075d45be5fe284d56e1ed2a9f67cceac6bb692c128f362dda5a9daa13be6a8b",
+      "lines": 331,
+      "sha256": "f4bc076783c847c6b81a44bdb50b46e9c00ac620096da5d90d18099c2b83fd4d",
       "imports": [
         "CoreImage",
         "MetalPetal",
@@ -16111,7 +16118,7 @@
     {
       "path": "Moblin/Media/HaishinKit/Media/Processor.swift",
       "lines": 424,
-      "sha256": "904e71d9813437fc1bb63acbc996dcc59dbb83d962ed12a3fe0c4bcfc4fbdf84",
+      "sha256": "e90aa5445b99539e571222e6654a1c6542a254b79d5a9e024b2d979140fa1e77",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -16148,8 +16155,8 @@
     },
     {
       "path": "Moblin/Media/HaishinKit/Media/Video/VideoUnit.swift",
-      "lines": 1121,
-      "sha256": "f2d6e7fb1ab77e4f0be69e4a297366e1b9dd7cef203b3c79124a8fcfc130770e",
+      "lines": 1106,
+      "sha256": "901301873c19790f4fc5386a80310575f024617b7a75feaefe27093799dbc28e",
       "imports": [
         "AVFoundation",
         "CoreImage",
@@ -16254,7 +16261,7 @@
     {
       "path": "Moblin/Various/Model/ModelCamera.swift",
       "lines": 934,
-      "sha256": "3eaf46785a9447a48a6cda6f5d5235340626068278863c7fc6d8082d5ff7285c",
+      "sha256": "954b9118fc2fa0f680cb253acaaf860c905a79f195d6ce2598f8bc7238ed4790",
       "imports": [
         "Foundation"
       ],
@@ -16459,8 +16466,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelTwitch.swift",
-      "lines": 1289,
-      "sha256": "6c5f45679a68f30615381d69875cae1e76723f961a05f68b5204b7047f591944",
+      "lines": 1337,
+      "sha256": "d21652f8eac6f286e151c6054ca6ef4e796d2c6b6c1800873a9bb6426839743c",
       "imports": [
         "CoreImage",
         "Foundation",
@@ -16811,7 +16818,7 @@
     {
       "path": "Moblin/View/ControlBar/QuickButtonsView.swift",
       "lines": 1025,
-      "sha256": "ba3ffb8329d94df932471b6314d5aa9cc35055550660103314200bb5cb7c2339",
+      "sha256": "5629cfe426a5dcf71b53bbe04b1ece1e4d03fc4ab6550a119d8f048f62fb5bfa",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -16920,7 +16927,7 @@
     {
       "path": "Moblin/View/Settings/Camera/VideoStabilization/VideoStabilizationSettingsView.swift",
       "lines": 20,
-      "sha256": "cdfd7c8cb973d25fc1ec0dff177437b236bbf57605e74fa010befb7e433b84f5",
+      "sha256": "07e0ffa9e163530a383b976b7fce76b9dbec110ceeebd1e99d59bc5d9b7e71f1",
       "imports": [
         "SwiftUI"
       ],
@@ -18159,8 +18166,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsMacros.swift",
-      "lines": 518,
-      "sha256": "3db578e9776286ec3afa0427ce65a907c485a9a37948e94bf8032427797cf3b0",
+      "lines": 594,
+      "sha256": "f5514eb0d59547da76e2c69e25acb33e4c645bc20ced2241daa4009c0d1b2af8",
       "imports": [
         "AVFoundation",
         "Collections",
@@ -18171,6 +18178,8 @@
         "SettingsReaction",
         "SettingsMacrosActionFunction",
         "SettingsMacrosEvent",
+        "MacroVariable",
+        "MacroVariables",
         "MacroEvent",
         "SettingsMacrosActionIfComparison",
         "SettingsMacrosAction",
@@ -18548,8 +18557,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelMacros.swift",
-      "lines": 424,
-      "sha256": "b40b191d6a1f0b50bb47d83dcfc4ff0fea2fdfc1702219e2d6b8c6bfb9f58959",
+      "lines": 439,
+      "sha256": "365a15a8247f5c0b460eb8aa001ee701cf6d0a7b238d4235d5e8e7664a698967",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -19002,7 +19011,7 @@
     {
       "path": "Moblin/Various/Model/Model.swift",
       "lines": 3464,
-      "sha256": "3988fa3d735c776b3404eafdd1c3a94353618706392de0ff4ece372d144d886d",
+      "sha256": "95d9fcc0b27d01aa897e2b66f948d0b7cd9ed82bcdf4fda6d15f421fabbf4931",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -20259,8 +20268,8 @@
     },
     {
       "path": "Moblin/View/Settings/Macros/MacrosSettingsView.swift",
-      "lines": 574,
-      "sha256": "ffb3d54f157bd8121a829ecd2c8c62d553d283a4005bfd9893bad908cb734616",
+      "lines": 588,
+      "sha256": "9b97f0eb09d638da6967d36ba89fa6d695d9238f134bb963e3520ce141e33289",
       "imports": [
         "SwiftUI"
       ],
@@ -21003,7 +21012,7 @@
     {
       "path": "Moblin/View/Settings/Camera/CameraSettingsView.swift",
       "lines": 331,
-      "sha256": "344970a8dec2c3fb2449b8135f01c9257800760c9647fb645e363431cafa5131",
+      "sha256": "4324352233e92465f8c82bbd4bc44584a57b208471a670f918be607e0de3ec1f",
       "imports": [
         "PhotosUI",
         "SwiftUI"
@@ -21916,8 +21925,8 @@
     },
     {
       "path": "Moblin/View/MainView.swift",
-      "lines": 751,
-      "sha256": "83931fe7cf01ab506216bdae4af81fe45bf71e78e09b41a295948f575ed8a784",
+      "lines": 752,
+      "sha256": "65c81a783a554b3a68c26fe19bdf408698b35abbd6e6ca50ba2ff620374d350c",
       "imports": [
         "AVFoundation",
         "SwiftUI",

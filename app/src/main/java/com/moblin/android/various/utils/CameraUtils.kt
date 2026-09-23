@@ -64,6 +64,8 @@ class AVCaptureDevice {
     var minAvailableVideoZoomFactor: Float = 1f
     var maxAvailableVideoZoomFactor: Float = 1f
     var maxWhiteBalanceGain: Float = 1f
+    var isLowLightBoostSupported: Boolean = false
+    var automaticallyEnablesLowLightBoostWhenAvailable: Boolean = false
 
     fun deviceWhiteBalanceGains(
         values: WhiteBalanceTemperatureAndTintValues,
@@ -205,6 +207,13 @@ fun AVCaptureDevice.setFps(frameRate: Double) {
 fun AVCaptureDevice.setAutoFps() {
     activeVideoMinFrameDuration = CM_TIME_ONE_60TH * 2
     activeVideoMaxFrameDuration = CM_TIME_ONE_60TH * 2
+}
+
+fun AVCaptureDevice.setLowLightBoost(value: Boolean) {
+    if (!isLowLightBoostSupported) {
+        return
+    }
+    automaticallyEnablesLowLightBoostWhenAvailable = value
 }
 
 fun AVCaptureDevice.name(): String {

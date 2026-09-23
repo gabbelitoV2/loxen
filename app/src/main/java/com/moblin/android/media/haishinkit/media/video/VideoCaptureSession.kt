@@ -15,6 +15,8 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "VideoCaptureSession"
 
+var nativeLowLightBoost = false
+
 data class CaptureDevice(
     val device: Any,
     val id: UUID,
@@ -40,6 +42,16 @@ interface VideoCaptureSessionDelegate {
     fun videoCaptureSessionWasInterrupted()
 }
 
+private class DeviceOutputHandler(
+    private val device: Any,
+    private val cameraId: UUID,
+    private val delegate: VideoCaptureSessionDelegate?,
+) {
+    fun captureOutput(sampleBuffer: MediaSample) {
+        delegate?.videoCaptureSessionDidOutput(device, cameraId, sampleBuffer)
+    }
+}
+
 private data class CaptureSessionDevice(
     val device: CaptureDevice,
     val input: Any,
@@ -47,16 +59,8 @@ private data class CaptureSessionDevice(
     val connection: Any,
     val photoOutput: Any?,
     val photoConnection: Any?,
-) {
-    fun connections(): List<Any> {
-        val photoConnection = photoConnection
-        return if (photoConnection != null) {
-            listOf(connection, photoConnection)
-        } else {
-            listOf(connection)
-        }
-    }
-}
+    val outputHandler: DeviceOutputHandler,
+)
 
 private data class VideoFormatSearch(
     val format: Any?,
@@ -96,7 +100,9 @@ class VideoCaptureSession {
                 return
             }
             field = value
-            Unit
+            for (device in devices) {
+                updateOrientation(device)
+            }
         }
 
     var torch = false
@@ -169,6 +175,7 @@ class VideoCaptureSession {
     @Throws(Exception::class)
     fun attach(params: VideoUnitAttachParams) {
         isLandscapeStreamAndPortraitUi = params.isLandscapeStreamAndPortraitUi
+        removeDevices(session)
         for (device in params.devices.devices) {
             setDeviceFormat(
                 device = device.device,
@@ -176,17 +183,36 @@ class VideoCaptureSession {
                 preferAutoFrameRate = preferAutoFps,
                 colorSpace = colorSpace,
             )
+            attachDevice(device, session, params.attachPhotoShoot)
         }
-        configure(params)
-        updateDevicesFormat()
+        device = params.devices.getSceneDevice()?.device
+        for (device in devices) {
+            updateOrientation(device = device)
+            Unit
+        }
+        updateCameraControls()
+        attachCameraPreviewLayers(params = params)
     }
 
     fun takePhoto() {
         Unit
     }
 
-    private fun configure(params: VideoUnitAttachParams) {
-        Unit
+    private fun updateOrientation(device: CaptureSessionDevice) {
+        updateOrientation(device = device, connection = device.connection)
+        val photoConnection = device.photoConnection
+        if (photoConnection != null) {
+            updateOrientation(device = device, connection = photoConnection)
+        }
+    }
+
+    private fun updateOrientation(device: CaptureSessionDevice, connection: Any) {
+        setOrientation(
+            device = device.device.device,
+            isLandscapeStreamAndPortraitUi = isLandscapeStreamAndPortraitUi,
+            connection = connection,
+            orientation = videoOrientation,
+        )
     }
 
     private fun attachCameraPreviewLayers(params: VideoUnitAttachParams) {
@@ -281,7 +307,14 @@ class VideoCaptureSession {
     }
 
     private fun removeDevices(session: Any) {
-        Unit
+        for (device in devices) {
+            removeConnection(session, device.photoConnection)
+            removeOutput(session, device.photoOutput)
+            removeConnection(session, device.connection)
+            removeInput(session, device.input)
+            removeOutput(session, device.output)
+        }
+        devices.clear()
     }
 
     private fun removeConnection(session: Any, connection: Any?) {
@@ -310,12 +343,6 @@ class VideoCaptureSession {
 
     fun removeCameraControls() {
         Unit
-    }
-
-    fun captureOutput(output: Any, sampleBuffer: MediaSample, connection: Any) {
-        val device: Any = TODO("no Android counterpart for AVCaptureConnection.inputPorts; use ImageAnalysis.Analyzer")
-        val cameraId = devices.firstOrNull { it.device.device == device }?.device?.id
-        delegate?.videoCaptureSessionDidOutput(device, cameraId, sampleBuffer)
     }
 
     fun sessionControlsDidBecomeActive(session: Any) {}

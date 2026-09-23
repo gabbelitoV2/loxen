@@ -71,6 +71,8 @@ class SettingsDebug {
 
     val allowVideoRangePixelFormat = MutableStateFlow(false)
 
+    val nativeLowLightBoost = MutableStateFlow(false)
+
     var blurSceneSwitch: Boolean = true
     var preferStereoMicToBeRemoved: Boolean = false
 
@@ -144,6 +146,7 @@ class SettingsDebug {
             element("highQualityDownsampling", Boolean.serializer().descriptor)
             element("httpProxy3", Boolean.serializer().descriptor)
             element("packetPadding", Boolean.serializer().descriptor)
+            element("nativeLowLightBoost", Boolean.serializer().descriptor)
         }
 
         override fun serialize(encoder: Encoder, value: SettingsDebug) {
@@ -184,6 +187,7 @@ class SettingsDebug {
                 encodeBooleanElement(descriptor, 30, value.highQualityDownsamplingToBeRemoved)
                 encodeBooleanElement(descriptor, 31, value.httpProxyToBeRemoved)
                 encodeBooleanElement(descriptor, 32, value.packetPadding.value)
+                encodeBooleanElement(descriptor, 33, value.nativeLowLightBoost.value)
             }
         }
 
@@ -234,6 +238,7 @@ class SettingsDebug {
                         30 -> result.highQualityDownsamplingToBeRemoved = decodeBooleanElement(descriptor, 30)
                         31 -> result.httpProxyToBeRemoved = decodeBooleanElement(descriptor, 31)
                         32 -> result.packetPadding.value = decodeBooleanElement(descriptor, 32)
+                        33 -> result.nativeLowLightBoost.value = decodeBooleanElement(descriptor, 33)
                     }
                 }
             }

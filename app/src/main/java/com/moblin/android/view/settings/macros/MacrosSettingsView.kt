@@ -383,7 +383,7 @@ private fun ActionView(
                         text = if (action.torch) localized("On") else localized("Off"),
                     )
                 }
-                SettingsMacrosActionFunction.SNAPSHOT -> {}
+                SettingsMacrosActionFunction.SNAPSHOT, SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT -> {}
                 SettingsMacrosActionFunction.REACTION -> {
                     Spacer(modifier = Modifier.weight(1f))
                     GrayTextView(text = action.reaction.toString())
@@ -522,6 +522,7 @@ fun ActionDestinationView(
                     )
                 }
             }
+            SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT -> {}
             SettingsMacrosActionFunction.DELAY -> {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(localized("Delay"))
@@ -682,22 +683,38 @@ fun ActionDestinationView(
         }
         when (action.function) {
             SettingsMacrosActionFunction.WAIT_FOR_EVENT -> {
-                when (action.event) {
-                    SettingsMacrosEvent.TWITCH_REWARD, SettingsMacrosEvent.KICK_REWARD -> {
-                        Text(
-                            localized(
-                                "Wait until a viewer redeems the reward, then continue with the following actions. Leave reward empty to wait for any reward.",
-                            ),
-                        )
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    when (action.event) {
+                        SettingsMacrosEvent.TWITCH_REWARD, SettingsMacrosEvent.KICK_REWARD -> {
+                            Text(
+                                localized(
+                                    "Wait until a viewer redeems the reward, then continue with the following actions. Leave reward empty to wait for any reward.",
+                                ),
+                            )
+                        }
+                        else -> {
+                            Text(
+                                localized(
+                                    "Wait until the event happens, then continue with the following actions.",
+                                ),
+                            )
+                        }
                     }
-                    else -> {
-                        Text(
-                            localized(
-                                "Wait until the event happens, then continue with the following actions.",
-                            ),
-                        )
+                    val variables: String? = TODO("SettingsMacrosEvent.variablesToString is not available")
+                    if (variables != null) {
+                        Text("Sets $variables, which following actions can use.")
                     }
                 }
+            }
+            SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT -> {
+                Text(
+                    localized(
+                        "Send a Twitch shoutout to the channel in {twitchRaidChannelId}, typically set by an earlier Twitch raid event.",
+                    ),
+                )
             }
             SettingsMacrosActionFunction.IF_CONDITION -> {
                 Text(localized("Run given number of following actions if the condition is met."))

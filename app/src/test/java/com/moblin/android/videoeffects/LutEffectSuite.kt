@@ -298,6 +298,42 @@ class LutEffectSuite {
     }
 
     @Test
+    fun convertBigPngLutTo64() {
+        val dimension = 65
+        val original = SC3DLut(makeCubeFile(dimension, ::linear))
+        val cgImage = assertNotNull(
+            makeLutCgImage(dimension, makeCubeData(original.entries))
+        )
+        val (convertedDimension, convertedData) = lutEffectConvertLut(cgImage)
+        assertEquals(64f, convertedDimension)
+        assertEquals(64 * 64 * 64 * 4 * 4, convertedData.size)
+        val points = listOf(
+            Triple(0, 0, 0),
+            Triple(63, 0, 0),
+            Triple(0, 63, 0),
+            Triple(0, 0, 63),
+            Triple(21, 42, 63),
+            Triple(63, 63, 63)
+        )
+        for ((red, green, blue) in points) {
+            val actual = entry(convertedData, 64, red, green, blue)
+            val expected = linear(
+                SIMD3(
+                    red.toFloat() / 63f,
+                    green.toFloat() / 63f,
+                    blue.toFloat() / 63f
+                )
+            )
+            assertTrue(isEqual(actual, expected, 0.6f / 255f))
+        }
+    }
+
+    @Test
+    fun renderBigPngLutWithMetalPetal() {
+        Unit
+    }
+
+    @Test
     fun appleLogToRec709() {
         val bytes = readMainFile(name = "LUTs.bundle/Apple Log To Rec 709", suffix = "png")
         val image = assertNotNull(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))

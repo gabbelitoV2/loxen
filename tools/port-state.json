@@ -2311,26 +2311,22 @@
   },
   "Moblin/Various/Model/ModelPhotoShoot.swift": {
     "status": "ok",
-    "sha256": "4038c8ba1a45f37a1b7f41bf92b3305123168ff07bb6f2211853a7702d5a875d",
+    "sha256": "f31188dddf033c34c7412ae4cb66e58c0ee13b99ddaafed58c21266bd85e5d30",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelPhotoShoot.kt",
     "notes": [
-      "Swift extension on Model became three top-level Kotlin extension functions on Model in the same package, so no import is needed.",
-      "photoShootTimer is expected to be the Kotlin port of Moblin's Timer, exposing startPeriodic(interval: Double, block: () -> Unit) and stop(); the closure captures self implicitly through the extension receiver.",
-      "The Swift trailing-closure call photoShootTimer.startPeriodic(interval: 1) keeps its shape as startPeriodic(interval = 1.0) { ... }, matching the Timer.swift -> coroutine-loop translation used elsewhere.",
-      "media.takePhoto() is called on the extension receiver's media property; isChatPhone(), reattachCamera() and database.alwaysAttachPhotoShoot are likewise Model members from the same package.",
-      "guard !isChatPhone() else { return } became a plain early-return if, since Kotlin has no guard statement.",
-      "Timezone/threading behaviour is unchanged: the periodic callback fires on whatever dispatcher the Timer port uses, exactly as the Swift timer fired on the main queue.",
-      "No new state is introduced here; photoShootTimer remains owned by Model, so stopPhotoShoot() stays a one-line delegate."
+      "Only the call inside togglePhotoShoot changed: reattachCamera() -> attachCamera(), matching the Swift diff.",
+      "Everything else in the file is unchanged, including startPhotoShoot/stopPhotoShoot and formatting."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2281,
-    "tokens_out": 1716,
-    "seconds": 8.1,
-    "ported_at": "2026-09-22T12:42:54+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 4228,
+    "tokens_out": 245,
+    "seconds": 1.4,
+    "ported_at": "2026-09-23T11:18:43+00:00"
   },
   "Moblin/Media/HaishinKit/Rtmp/Message/RtmpUserControlMessage.swift": {
     "status": "ok",
@@ -2546,27 +2542,28 @@
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift": {
     "status": "ok",
-    "sha256": "791e92d4b9aca53142b1f720f671c30c4d3d6bbed324ca3b1c56eeaccb642f46",
+    "sha256": "5c3cf6a77820b2a080f3c7892ca59da3daddfc12f2a75766031d87be8eed76e4",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt",
     "notes": [
-      "JSON decoding uses a single file-private `Json { ignoreUnknownKeys = true }` instance, matching JSONDecoder's default behaviour of ignoring unknown keys; every Swift optional that JSONDecoder would fill with nil got a `= null` default so kotlinx.serialization does the same.",
-      "Property names stay byte-identical to the Swift source, including snake_case ones, so no @SerialName is required (the implicit coding keys and the Kotlin names match, e.g. `broadcasterUserId` stays camelCase just like in Swift).",
-      "`TwitchApi(accessToken)` and `twitchApi.createEventSubSubscription(body) { ok -> ... }` are kept exactly as called in Swift; the Kotlin signatures are assumed to match the Swift ones.",
-      "`WebSocketClient(url)`, its nullable `delegate`, `start()` and `stop()` are assumed to exist on the Kotlin port in com.moblin.android.various.network.",
-      "`MainTimer.startSingleShot(2.0) { ... }` keeps the Swift call shape (timeout first, completion lambda last).",
-      "The top-level `url` constant is a plain `String` since it is only stored and handed to WebSocketClient.",
-      "The `WebSocketClientDelegate` conformance moved from a Swift extension into the class body as `override` functions (Kotlin has no extension-based protocol conformance).",
-      "`@MainActor` on the delegate protocol and on the class has no Kotlin equivalent; callers must keep using the main dispatcher as the Swift code did."
+      "Adds the shoutout-create event models, delegate method, subscription type and handler exactly where the Swift diff places them.",
+      "The Swift subscription pipeline became concurrent: the sequential subscribe* helpers and createBroadcasterUserIdBody were removed and replaced by makeSubscriptions/subscribe/handleSubscribeResult/reconnectLater.",
+      "TwitchApi.createEventSubSubscription is declared in the dependency file with an (Boolean) -> Unit callback, so handleSubscribeResult takes a Boolean instead of OperationResult: true means success, false logs the failure and calls reconnectLater(). The authError-only branch of the Swift switch has no Boolean counterpart and is folded into the failure branch.",
+      "sessionId is now reset in stopInternal() and the reconnect delay is reset in start(), matching the Swift change.",
+      "min(reconnectDelay * 2, 120) is written as minOf(reconnectDelay * 2, 120.0) because reconnectDelay is a Double.",
+      "initialReconnectDelay became a private const val so the field initialiser can use it.",
+      "Subscription is a private data class built positionally in makeSubscriptions(), its property names type/version/condition match the Swift struct.",
+      "The new public event type carries @Serializable like the other Decodable structs; the payload and message wrappers stay private."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 10489,
-    "tokens_out": 26236,
-    "seconds": 85.6,
-    "ported_at": "2026-09-22T12:43:44+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 25458,
+    "tokens_out": 13745,
+    "seconds": 41.7,
+    "ported_at": "2026-09-23T11:19:23+00:00"
   },
   "MoblinTests/Moblin/Media/HaishinKit/Media/Audio/AudioUnitSuite.swift": {
     "status": "ok",
@@ -3296,27 +3293,23 @@
   },
   "MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchEventSubSuite.swift": {
     "status": "ok",
-    "sha256": "4d6993c48686f087adc328002eeb3557aedd2a2d4684e1a3dcd5d39d287dfd87",
+    "sha256": "fdd85aab966b72c366a842020ae7e8051de5b3e2d84ae9e2c6c49ed261e30d7c",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSubSuite.kt",
     "notes": [
-      "@MainActor was dropped: the delegate and the suite run on the JUnit test thread, no MainActor confinement.",
-      "Swift named tuples (phase:event:) became Pair<String, Event>; assertions read .first (phase) and .second (event).",
-      "Delegate storage arrays became val + mutableListOf(...); elements are appended with add(...).",
-      "The local `let payload` shadowing the `payload` parameter in chatNotification was renamed payloadPrefix because Kotlin forbids a local variable shadowing a parameter.",
-      "All `first?....` chains use firstOrNull() and defensive safe calls (`?.`), which is a warning at worst if a ported property is non-nullable.",
-      "handleMessage(messageText:) and the TwitchEventSub constructor are called with named arguments matching the Swift labels; if the port declares handleMessage as a `suspend` function the calls must be wrapped in runBlocking.",
-      "Short Swift raw strings that begin and end with a quote character were converted to escaped Kotlin strings so they cannot be confused with the raw-string delimiter; multi-line JSON blobs stay raw strings.",
-      "#expect(a == b) became assertEquals(b, a), #expect(x == nil) became assertNull(x); assertion helpers keep their exact JSON text."
+      "Added shoutoutCreates list, delegate override twitchEventSubChannelShoutoutCreate and the shoutoutCreate test, matching the Swift diff.",
+      "The delegate implements the override for twitchEventSubChannelShoutoutCreate like the other TwitchEventSubDelegate callbacks.",
+      "Expectations use assertEquals/assertNull with kotlin.test as in the rest of the file, JUnit 4 via RobolectricTestRunner."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 14493,
-    "tokens_out": 28125,
-    "seconds": 93.3,
-    "ported_at": "2026-09-22T12:47:11+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 29167,
+    "tokens_out": 10997,
+    "seconds": 28.1,
+    "ported_at": "2026-09-23T11:19:10+00:00"
   },
   "Moblin/Various/Storages/RecordingsStorage.swift": {
     "status": "ok",
@@ -4167,29 +4160,29 @@
   },
   "MoblinTests/Moblin/VideoEffects/LutEffectSuite.swift": {
     "status": "ok",
-    "sha256": "cd2d2ca1b071d7c581930e6ced9b4ecb44d6180dd59ef875794933174a5ddc10",
+    "sha256": "09ebd82c7d8443759338dc7d77ba03e152dc625a248c241691edbbef51082cba",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/videoeffects/LutEffectSuite.kt",
     "notes": [
-      "SwiftCube's SC3DLut/SwiftCubeError have no Android counterpart; cube parsing is routed through lutEffectConvertCube and failures are asserted as a generic Exception.",
-      "SIMD3<Float> becomes a 3-element FloatArray since Android has no SIMD type.",
-      "The private entry(lut, red:green:blue:) helper now takes (entries, size, ...) because the cube type returned by lutEffectConvertCube is not named in the glossary.",
-      "UIImage/CGImage are replaced by android.graphics.Bitmap produced with BitmapFactory; these tests therefore need Robolectric on the JVM test source set.",
-      "#require -> assertNotNull, which returns the unwrapped non-null value.",
-      "#expect(throws:) -> assertFailsWith; the localized-message case compares exception.message against localized(...).",
-      "The 4-byte-float cube data is read with ByteBuffer/ByteOrder.nativeOrder(), mirroring Swift's raw memory binding; byte literals stay byte-identical.",
-      "21 / 63 etc. are kept as Float division (21f / 63f) to match Swift's Float literal inference in SIMD3<Float>."
+      "The new Swift `import MetalPetal` has no Kotlin counterpart and is dropped; MetalPetal lives in the Apple-only graphics stack.",
+      "convertBigPngLutTo64 calls the declared SC3DLut(data: ByteArray) constructor directly (instead of lutEffectConvertCube, which parseCubeFileFormats uses) so the 65-dimension cube is not down-sampled before makeLutCgImage, which is what the Swift test requires.",
+      "SIMD3 has no scalar division operator in the port, so (Float(red), Float(green), Float(blue)) / 63 becomes per-component division by 63f.",
+      "Swift tuple array iteration becomes a List<Triple<Int, Int, Int>> with destructuring in the for loop.",
+      "renderBigPngLutWithMetalPetal keeps its name but its body is TODO(\"no Android counterpart for MetalPetal\") because CGContext, MTIImage, MTIContext and CVPixelBuffer are unavailable.",
+      "assertNotNull replaces try #require(...) and assertEquals/assertTrue replace #expect(...), matching the style already used in this suite.",
+      "RobolectricTestRunner stays on the class so BitmapFactory works in the existing image tests."
     ],
     "unsupported": [
-      "SwiftCube (SC3DLut, SwiftCubeError) has no Android counterpart; it was replaced by lutEffectConvertCube plus a generic Exception instead of TODO()."
+      "MetalPetal (MTIColorLookupFilter, MTIImage, MTIContext), CoreGraphics (CGContext), Metal (MTLCreateSystemDefaultDevice) and CVPixelBuffer have no Android counterpart"
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4998,
-    "tokens_out": 31228,
-    "seconds": 116.5,
-    "ported_at": "2026-09-22T12:51:38+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 12005,
+    "tokens_out": 11625,
+    "seconds": 43.6,
+    "ported_at": "2026-09-23T11:19:24+00:00"
   },
   "MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchChatSegmentsSuite.swift": {
     "status": "ok",
@@ -4995,35 +4988,22 @@
   },
   "Moblin/Various/Model/ModelCamera.swift": {
     "status": "ok",
-    "sha256": "3eaf46785a9447a48a6cda6f5d5235340626068278863c7fc6d8082d5ff7285c",
+    "sha256": "954b9118fc2fa0f680cb253acaaf860c905a79f195d6ce2598f8bc7238ed4790",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelCamera.kt",
     "notes": [
-      "AVCaptureDevice is an iOS-only type; every focus / ISO / exposure / white-balance device configuration plus the KVO observations are replaced by TODO() and listed in unsupported.",
-      "@Published properties of CameraShow and CameraState are backed by a private MutableStateFlow exposed as a StateFlow, with public setX() helpers so the Model extensions can still update them.",
-      "CMTime exposure values become Long microseconds, CGPoint becomes android.graphics.PointF, NSKeyValueObservation becomes Any? and IndexSet becomes List<Int> (Array.remove(atOffsets:) becomes removeAt in descending order).",
-      "CameraId stays a typealias for String and UUID <-> String conversions use UUID.fromString / UUID.toString.",
-      "localized() is imported from com.moblin.android, logger calls use android.util.Log with the tag \"Model\", and the Swift AVCaptureColorSpace switch is dropped so media.setColorSpace receives the port's SettingsColorSpace directly.",
-      "Assumed port APIs used here: CaptureSessionDevice, CaptureDevice and CaptureDevicePosition from com.moblin.android.media.haishinkit.media.video, the SettingsCameraId sealed class members (Rtmp/Srtla/Srt/Rist/Rtsp/Whip/Whep/MediaPlayer/External/Back/Front/ScreenCapture/BackTripleLowEnergy/BackDualLowEnergy/BackWideDualLowEnergy/None), QuickButtonType and SettingsColorLutType.",
-      "SettingsScene.toCameraId(), SettingsWidgetVideoSource.toCameraId(), SettingsWidgetVTuber.toCameraId() and SettingsWidgetPngTuber.toCameraId() are imported from com.moblin.android.various.settings.",
-      "Stream fields and Model members (cameraDevice, camera, media, database, imageStorage, lutEffect, backCameras, frontCameras, externalCameras, builtinCameraIds, zoom, show, ...) are assumed to exist on Model in this same package."
+      "Only one line changed: toggleCameraPreview now calls attachCamera() instead of reattachCamera().",
+      "Everything else in the file is byte-identical to the previous translation."
     ],
-    "unsupported": [
-      "AVCaptureDevice.isFocusPointOfInterestSupported / focusPointOfInterest / focusMode / exp osurePointOfInterest / exposureMode and lockForConfiguration()",
-      "AVCaptureDevice.isLockingFocusWithCustomLensPositionSupported / lensPosition / setFocusModeLocked(lensPosition:)",
-      "NSKeyValueObservation of lensPosition, iso, exposureDuration and deviceWhiteBalanceGains",
-      "AVCaptureDevice.isExposureModeSupported(_:) / exposureMode / setExposureModeCustom(duration:iso:) / currentISO / currentExposureDuration",
-      "AVCaptureDevice.isWhiteBalanceModeSupported(_:) / whiteBalanceMode / setWhiteBalanceModeLocked(with:) / isLockingWhiteBalanceWithCustomDeviceGainsSupported / deviceWhiteBalanceGains / maxWhiteBalanceGain",
-      "AVCaptureDevice.DiscoverySession with .external / .builtInTripleCamera and friends",
-      "AVCaptureDevice.minExposureTargetBias / maxExposureTargetBias / setExposureTargetBias(_:)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 13031,
-    "tokens_out": 44395,
-    "seconds": 166.2,
-    "ported_at": "2026-09-22T12:58:52+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 27264,
+    "tokens_out": 6377,
+    "seconds": 17.0,
+    "ported_at": "2026-09-23T11:19:33+00:00"
   },
   "Moblin/Various/Network/DnsLookup.swift": {
     "status": "ok",
@@ -6202,27 +6182,23 @@
   },
   "Moblin/RemoteControl/RemoteControlAssistant.swift": {
     "status": "ok",
-    "sha256": "fcb307bd742205ce5e66544144e66e7e4da8baf4d7413bc4e4bb8b6aba89780a",
+    "sha256": "384a32f34fa6848d7b12369c8baf9b17baacb1410ed52e7ba7fd84129473e611",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControlAssistant.kt",
     "notes": [
-      "NWListener/NWConnection are replaced by java.net.ServerSocket plus a private RemoteControlWebSocket class implementing the RFC 6455 upgrade handshake and framing, because OkHttp has no server-side WebSocket; receivePacket/handleMessage are subsumed by RemoteControlWebSocket.readLoop().",
-      "@MainActor state is confined to mainScope (Dispatchers.Main), all socket IO runs on ioScope (Dispatchers.IO), and every NWConnection callback is re-dispatched onto mainScope.",
-      "port is Int instead of UInt16 so it can be passed to ServerSocket.bind().",
-      "`private weak let delegate` is preserved with java.lang.ref.WeakReference behind a read-only `delegate` accessor, so all call sites keep the original shape.",
-      "Sealed-class case constructors are assumed to be nested and named after the Swift cases (RemoteControlRequest.GetStatus, RemoteControlMessageToStreamer.Hello, RemoteControlMessageToAssistant.Identify, RemoteControlResponse.Whip, RemoteControlResult.Ok, ...); adjust if the real port uses factory functions.",
-      "HTTPURLResponse is replaced by a hand-built okhttp3.Response in whipPerform(); URL-typed values (userBadges, sourceChannelIcon) are kept as String, and digitalClockFormatter is assumed to be a java.time.format.DateTimeFormatter fed with ZonedDateTime.now().",
-      "Deque<RemoteControlChatMessage> became java.util.ArrayDeque; RemoteControlChatMessage.platform uses RemoteControlChatMessage.Platform.Twitch and highlight uses the ChatHighlight.toRemoteControl() extension.",
-      "MainTimer from com.moblin.android.various keeps the original startSingleShot/startPeriodic/stop calls; the TwitchEventSubDelegate and TwitchChatDelegate conformances are moved into the class body since Kotlin has no extensions implementing interfaces."
+      "Added the TwitchEventSubChannelShoutoutCreateEvent import in the twitch import block, after TwitchEventSubChannelRaidEvent.",
+      "Added the empty override twitchEventSubChannelShoutoutCreate right after twitchEventSubChannelModerate, matching the Swift extension order.",
+      "Everything else in the file is untouched, including the hand-written WebSocket server, socket helpers and the RemoteControlWebSocket class."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 12780,
-    "tokens_out": 31903,
-    "seconds": 112.8,
-    "ported_at": "2026-09-22T13:07:16+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 31765,
+    "tokens_out": 9168,
+    "seconds": 23.4,
+    "ported_at": "2026-09-23T11:19:11+00:00"
   },
   "Moblin/RemoteControl/RemoteControlWeb.swift": {
     "status": "ok",
@@ -8014,27 +7990,24 @@
   },
   "Moblin/Various/Settings/SettingsDebug.swift": {
     "status": "ok",
-    "sha256": "a20df492fce40fbf8be94aa412daebd53eda32ed250733d1b18ce3e377b3fa49",
+    "sha256": "f0673a5c17a4ce0cc284940da891b4746f1187108553e8d42cca0d16e64fe833",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsDebug.kt",
     "notes": [
-      "SettingsLogLevel keeps the Swift raw values byte-identical: entries are named error/info/debug with @SerialName(\"Error\"/\"Info\"/\"Debug\") so kotlinx.serialization writes exactly the same strings.",
-      "@Published properties became private MutableStateFlow `_name` plus a public read-only `name: StateFlow<T>`; non-published `var`s stayed plain mutable properties and the implicit `init()` is the default constructor.",
-      "The hand-written encode(to:)/init(from:) became the nested `SettingsDebugSerializer : KSerializer<SettingsDebug>`, reachable as `SettingsDebug.serializer()`; the Swift `CodingKeys` survive as descriptor element names (`srtOverlay`, `beautyFilterSettings`, `preferStereoMic`, `videoBitrateChangeEnabled`, `highQualityDownsampling`, `httpProxy3`).",
-      "Missing keys keep the Swift default because deserialization only assigns keys that are actually present, exactly like `container.decode(_:_, default)`. This requires `Json { ignoreUnknownKeys = true }` for the seven legacy keys Swift declares but neither encodes nor decodes (removeWindNoise, reliableChat, timecodesEnabled, srtlaBatchSend, srtlaBatchSendEnabled, overrideSceneMic, autoLowPowerMode).",
-      "Both migrations of init(from:) are reproduced after the decode loop: debugLogging is derived from logLevel when debugLoggingMigrated is false, and builtinAudioAndVideoDelay falls back to builtinAudioAndVideoDelayDefault when the 70 ms migration flag is false and the value is 0.",
-      "AVFoundation's kCVPixelFormatType_* constants have no Android counterpart, so `pixelFormatTypes` keeps the iOS FourCC values (0x42475241 BGRA, 0x34323066 420f, 0x34323076 420v) index-parallel with `pixelFormats`; the camera layer has to map them onto android.graphics.ImageFormat.",
-      "The nested serializer reads and writes the private `_...` MutableStateFlows directly (Kotlin nested classes can access outer private members), so no extra setters were introduced.",
-      "SettingsFace, SettingsTesla and SettingsDnsLookupStrategy are assumed to be @Serializable types with a generated `serializer()` in this package; the SettingsDebug CodingKeys enum itself is not redeclared."
+      "The Swift diff only adds the @Published property nativeLowLightBoost; only the 4 matching Kotlin spots were touched.",
+      "nativeLowLightBoost is @Published, so it became val nativeLowLightBoost = MutableStateFlow(false) placed right after allowVideoRangePixelFormat, matching the Swift member order.",
+      "The hand-written SettingsDebugSerializer was extended by appending the new element as index 33 (element, encode call, decode branch) instead of inserting it at position 11, so no existing index had to be renumbered and every untouched line stays byte-identical.",
+      "Because the serializer uses keyed (named) elements, the added field appearing last in the descriptor/JSON keeps the JSON key name nativeLowLightBoost; iOS-written JSON containing that key still decodes and JSON without it falls back to false, like the Swift container.decode(..., false) default."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4924,
-    "tokens_out": 29339,
-    "seconds": 112.4,
-    "ported_at": "2026-09-22T14:21:31+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 23702,
+    "tokens_out": 10288,
+    "seconds": 34.9,
+    "ported_at": "2026-09-23T11:19:17+00:00"
   },
   "Moblin/View/Main/LockScreenView.swift": {
     "status": "ok",
@@ -9102,27 +9075,23 @@
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchApi.swift": {
     "status": "ok",
-    "sha256": "639edbcccfee37091cd42d7355aee749ce4c1d44ae22234d6a8fa07759196da1",
+    "sha256": "9cd7db4468088fc3c3741a8de511bd494e5fdf1e63d6e6991d88df37a8089039",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchApi.kt",
     "notes": [
-      "TwitchApi keeps Swift's completion-handler style: every `@escaping (T) -> Void` becomes a Kotlin callback `(T) -> Unit`, so call sites line up one-to-one with the Swift file.",
-      "Assumed project API shapes (imported, not redeclared): `OperationResult` = sealed Success(data: ByteArray) / Error / AuthError with `isSuccessful()`; `NetworkResponse` = sealed Success(value) / Error / AuthError; `httpRequest(request: okhttp3.Request, onComplete: (ByteArray?, okhttp3.Response?, Throwable?) -> Unit)`; `makeUrl(subPath: String, parameters: List<Pair<String, String>>): String`.",
-      "`@MainActor` on TwitchApi is emulated with a file-private `mainScope = CoroutineScope(Dispatchers.Main)`; every completion handler produced in `doRequest` is dispatched on it, matching Swift's main-actor isolation.",
-      "JSONSerialization-based `serialize(_:)` is reimplemented with org.json `JSONObject.wrap(map).toString().toByteArray()`; nested maps/lists passed by callers (choices, outcomes, ban data) stay nested objects/arrays.",
-      "Decoding changes from JSONDecoder with `try?` to `runCatching { json.decodeFromString<T>(bytes.decodeToString()) }.getOrNull()` using `Json { ignoreUnknownKeys = true }` (Swift's decoder also ignores unknown keys).",
-      "Optional Swift properties that Swift decodes with `decodeIfPresent` got Kotlin defaults of `null` (box_art_url, votes, ends_at, locked_at, users, channel_points) so a missing key does not fail decoding; enum raw values stay byte-identical.",
-      "`String.truncate(length: 500)` is not in the given glossary, so it is inlined as `message.take(500)`; `UIImage?` from `fetchTwitchProfilePicture` becomes `androidx.compose.ui.graphics.ImageBitmap?` decoded with BitmapFactory, and URLSession is replaced by an OkHttp client with a 10 s call timeout.",
-      "`Identifiable` conformance is dropped (Compose uses `items(list, key = { it.id })`); `Identifiable` ids are kept as the `id` properties."
+      "Changed createEventSubSubscription to pass the full OperationResult through instead of collapsing it to Boolean.",
+      "Added sendShoutout posting to chat/shoutouts with from_broadcaster_id, to_broadcaster_id and moderator_id.",
+      "Everything else in the Kotlin file is unchanged, including the hand-written OkHttp, coroutine and json handling."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 9229,
-    "tokens_out": 32610,
-    "seconds": 112.4,
-    "ported_at": "2026-09-22T13:22:40+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 19156,
+    "tokens_out": 7918,
+    "seconds": 19.9,
+    "ported_at": "2026-09-23T11:19:02+00:00"
   },
   "Moblin/View/Utils/EmotesPlayer.swift": {
     "status": "ok",
@@ -9712,31 +9681,22 @@
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift": {
     "status": "ok",
-    "sha256": "8173c5931f5eb0915d8058d02274057ac638db23ceb62d2d00e0b121d98d104e",
+    "sha256": "180e4cd9ea143f2f5c5635606a2eafd60bfcb85a40d4d578fe61719760589632",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchAuth.kt",
     "notes": [
-      "ASWebAuthenticationSession has no Android counterpart: startSession(), isCanceledByUser() and presentationAnchor() are TODO(); the WKWebView fallback login path is fully translated with android.webkit.WebView.",
-      "TwitchAuthView (UIViewRepresentable) becomes a private @Composable wrapping AndroidView; getWebBrowser() now takes a Context because Compose supplies it instead of UIKit.",
-      "The two Swift protocol conformances could not stay Kotlin extensions (they touch private state), so presentationAnchor() and webView(...) are ordinary members at the end of TwitchAuth, matching the extension order.",
-      "The private session property has no Android type, so it is kept as Any? and only ever set to null; it is never used for anything else.",
-      "URLComponents query building is replaced with android.net.Uri/URI string building; scope values are encoded individually and joined with a literal '+' so Twitch still reads it as a space separator.",
-      "logger.info is mapped to Log.i with the tag \"TwitchAuth\".",
-      "Keychain is assumed to expose Keychain(streamId, server, logPrefix) with store()/load()/remove() and a companion Keychain.loadStreamIds(server).",
-      "@Binding presenting becomes a value parameter plus an onPresentingChange: (Boolean) -> Unit callback; WKWebView's non-persistent data store maps to WebSettings.LOAD_NO_CACHE."
+      "Only the scopes list changed: 'moderator:manage:shoutouts' added after 'moderator:manage:announcements'.",
+      "All other declarations remain byte-identical to the previous Kotlin translation, including the hand-written WebView and Keychain platform code."
     ],
-    "unsupported": [
-      "ASWebAuthenticationSession (AuthenticationServices) - no Android counterpart for the system browser login session",
-      "ASWebAuthenticationSessionErrorDomain / ASWebAuthenticationSessionError.canceledLogin (AuthenticationServices) - no Android counterpart for detecting user cancellation of the system login sheet",
-      "ASWebAuthenticationPresentationContextProviding / ASPresentationAnchor (AuthenticationServices) - no Android counterpart for the presentation anchor of the login sheet"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5147,
-    "tokens_out": 12711,
-    "seconds": 48.3,
-    "ported_at": "2026-09-22T13:26:05+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 11478,
+    "tokens_out": 1866,
+    "seconds": 5.5,
+    "ported_at": "2026-09-23T11:18:47+00:00"
   },
   "Moblin/Various/Model/ModelAppMode.swift": {
     "status": "ok",
@@ -10471,25 +10431,22 @@
   },
   "Moblin/View/Settings/Camera/MirrorFrontCamera/MirrorFrontCameraView.swift": {
     "status": "ok",
-    "sha256": "41a5ee55cdade76a30bb9742487cbcfa593928212c7f33ec3626c6a38319d80a",
+    "sha256": "8a83269b5d292d75413cfd2b10e5ddf353ce52a43984e906f06e8e8c602d44da",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/camera/mirrorfrontcamera/MirrorFrontCameraView.kt",
     "notes": [
-      "Toggle + label is rendered as a Row containing a Text label (weight 1f) and a Material 3 Switch.",
-      "database.mirrorFrontCameraOnStream is read as a StateFlow via collectAsState(); the write path assumes it is exposed as a MutableStateFlow<Boolean>, matching the _name/name convention.",
-      "The Swift onChange(of:) side effect is reproduced with LaunchedEffect keyed on the value plus a remembered previous value, so model.reattachCamera() does not fire on first composition.",
-      "model.reattachCamera() is called after the database value has changed, preserving the Swift ordering.",
-      "Layout padding mirrors the default Form/List row insets since the Swift view relied on the container for spacing.",
-      "No NavigationLink, sheet, alert or toolbar in this file, so no onNavigate parameter is required."
+      "Only the onChange callback changed: model.reattachCamera() is now model.attachCamera(); everything else stays byte-identical.",
+      "The CallbackSignatureStateManager, the Row/Switch layout and the database write are untouched."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3654,
-    "tokens_out": 2713,
-    "seconds": 10.3,
-    "ported_at": "2026-09-22T13:28:40+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 8655,
+    "tokens_out": 557,
+    "seconds": 2.5,
+    "ported_at": "2026-09-23T11:18:44+00:00"
   },
   "Moblin/View/Settings/Camera/TapScreenToFocus/TapScreenToFocusSettingsView.swift": {
     "status": "ok",
@@ -12224,33 +12181,25 @@
   },
   "Moblin/Various/Utils/CameraUtils.swift": {
     "status": "ok",
-    "sha256": "b62b422b6e9d2212d061446bdac69fe8aaf0f279c1fd1d123978ec027ecca3da",
+    "sha256": "c0d060c73219a12beb69f773cc4e2121a18ceb21800e8e0199832c610fc38d55",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/utils/CameraUtils.kt",
     "notes": [
-      "AVCaptureDevice has no Android counterpart, so a model class with the same type, member and extension names is declared in this file; camera enumeration and hardware configuration are TODO().",
-      "CMTime maps to Long microseconds; CMTime.invalid is CM_TIME_INVALID = Long.MIN_VALUE.",
-      "The top-level camera capability vals (hasUltraWideBackCamera, bestBackCameraDevice, ...) are `by lazy` so the TODO() camera enumeration only throws when the value is actually read.",
-      "Swift's Float `clamped(to:)` helper maps to Kotlin `coerceIn`.",
-      "Pure math is translated in full: factorToIso/factorFromIso, the shutter-speed table, exposures(), factorToExposure/factorFromExposure, exposureFactorStep, formatExposure and calcCameraAngle.",
-      "White balance gain/temperature conversion and Apple Log detection are hardware-bound and TODO().",
-      "useLandscapeStreamAndPortraitUi is TODO() because AVCaptureDevice.dynamicAspectRatio (iOS 26) has no Android equivalent.",
-      "SettingsSceneCameraPosition cases are referenced with the SCREAMING_SNAKE_CASE names the Kotlin enum is expected to declare."
+      "The Swift diff only adds AVCaptureDevice.setLowLightBoost(value:), translated as a Kotlin extension function placed directly after setAutoFps, matching Swift order.",
+      "The two iOS AVCaptureDevice properties the function relies on (isLowLightBoostSupported, automaticallyEnablesLowLightBoostWhenAvailable) had no mirror in the hand-written AVCaptureDevice class, so matching fields were added next to the other device properties.",
+      "Android low-light boost is really a Camera2 CONTROL_AE_MODE session reconfiguration; the Kotlin mirror stores the requested value just like the existing setFps/setAutoFps mirrors do.",
+      "The guard becomes an early return; the support field defaults to false so the setter is a safe no-op on devices where the flag is not populated.",
+      "Everything else in the file is byte-identical to the previous translation."
     ],
-    "unsupported": [
-      "AVCaptureDevice.default / camera enumeration (CameraX CameraSelector / CameraManager)",
-      "AVCaptureDevice.activeVideoMinFrameDuration / activeVideoMaxFrameDuration / isAutoVideoFrameRateEnabled (Camera2 frame duration configuration)",
-      "AVCaptureDevice.deviceWhiteBalanceGains(for:) / temperatureAndTintValues(for:) (Camera2 COLOR_CORRECTION gains conversion)",
-      "AVCaptureDevice.Format.supportedColorSpaces .appleLog (Apple Log color space)",
-      "AVCaptureDevice.dynamicAspectRatio (iOS 26 landscape stream with portrait UI)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7662,
-    "tokens_out": 17608,
-    "seconds": 62.7,
-    "ported_at": "2026-09-22T13:36:00+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 17051,
+    "tokens_out": 9249,
+    "seconds": 31.3,
+    "ported_at": "2026-09-23T11:19:15+00:00"
   },
   "Moblin/VideoEffects/Scoreboard/ScoreboardEffectPadelView.swift": {
     "status": "ok",
@@ -12350,27 +12299,24 @@
   },
   "Moblin/View/Settings/Debug/DebugVideoSettingsView.swift": {
     "status": "ok",
-    "sha256": "88564e34d571c4d7d9d8c678ac91b3aab4f42f4dc16fd8341cc77b66773291bb",
+    "sha256": "0b954d00b2729c1794888adf11d11b78d3cf30202048fd77cab05fc80432029c",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/debug/DebugVideoSettingsView.kt",
     "notes": [
-      "Form is translated to a Scaffold with TopAppBar plus a vertically scrollable Column; Section header/footer texts become plain Text items.",
-      "The NavigationLink to InlinePickerView becomes onNavigate(\"pixelFormat\"); the nav host must build the picker with InlinePickerItem.fromStrings(values = pixelFormats) and pass onPixelFormatChange.",
-      "onChange(of:) becomes LaunchedEffect(value), which also runs once on first composition, unlike Swift's onChange; the initial call to model.setAllowVideoRangePixelFormat() is therefore harmless but extra.",
-      "Writes to the @Published toggles assume SettingsDebug exposes MutableStateFlow properties (debug.x.value = ...); adjust if they are exposed as read-only StateFlow.",
-      "private onPixelFormatChange is kept as a file-private helper because it belongs to the picker destination screen and is not referenced from this composable.",
-      "model.database.debug.pixelFormat is read directly; reactive updates require Model's state to be collected in the caller (or wrapping this read in Model's StateFlow).",
-      "localized() is used for the user-facing literals (Toggle labels, footer, navigation title).",
-      "The navigation title \"Video\" is rendered as the TopAppBar title."
+      "Added the Native low light boost toggle with its own state and onChange-equivalent LaunchedEffect, inserted right after the Allow video range pixel format toggle to match the Swift diff.",
+      "New state reads debug.nativeLowLightBoost as a StateFlow, so SettingsDebug must expose it.",
+      "The onChange handler translates to LaunchedEffect(nativeLowLightBoost) calling model.setNativeLowLightBoost(), mirroring the existing setAllowVideoRangePixelFormat pattern.",
+      "Everything else in the file is unchanged, including the hand-written Unit() placeholders in onPixelFormatChange."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4376,
-    "tokens_out": 6772,
-    "seconds": 26.7,
-    "ported_at": "2026-09-22T13:36:27+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 9177,
+    "tokens_out": 2120,
+    "seconds": 8.2,
+    "ported_at": "2026-09-23T11:18:53+00:00"
   },
   "Moblin/View/Settings/Camera/Zoom/ZoomSwitchToSettingsView.swift": {
     "status": "ok",
@@ -12840,37 +12786,28 @@
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift": {
     "status": "ok",
-    "sha256": "4a3f3dc16c3ae289e920c043eaa4d3b42d91b095ad6926bd508cc166a95840e5",
+    "sha256": "12851f60ca701ef9f50dc80c3f1334485b2b8b8e6856d1e475112aae56c664a4",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoCaptureSession.kt",
     "notes": [
-      "AVCaptureSession/AVCaptureDevice/AVCaptureConnection have no Android counterpart, so every hardware-bound body is TODO(); state management, delegate plumbing and the retry scheduling are translated in full.",
-      "CaptureDevice.device and the capture-session helper types are typed Any because camera2 CameraDevice/CameraCharacteristics cannot be stored and queried the way AVCaptureDevice is.",
-      "CGSize -> android.util.Size, AVCaptureVideoOrientation -> android.view.Surface ROTATION_* Int, AVCaptureColorSpace.sRGB -> MediaFormat.COLOR_STANDARD_BT709, AVCaptureDevice.TorchMode -> CaptureRequest.FLASH_MODE_TORCH/OFF.",
-      "The Swift 4-element tuple returned by findVideoFormat became the private data class VideoFormatSearch (Kotlin has no 4-tuple).",
-      "Protocol conformances (AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureSessionControlsDelegate, AVCapturePhotoCaptureDelegate) are merged into the class body; the four session-control callbacks stay empty no-ops exactly as in Swift.",
-      "NotificationCenter observers became plain parameterless methods plus TODOs in addSessionObservers/removeSessionObservers; the runtime-error path keeps the 500 ms delay scheduled on processorControlQueue.",
-      "weak delegate/processor references became plain nullable properties (Java GC handles the cycles).",
-      "Globals pixelFormatType and allowVideoRangePixelFormat are not reachable from this module and are referenced only inside TODO'd bodies."
+      "nativeLowLightBoost is declared as a top-level var exactly like the Swift file; nothing on Android binds it yet, it is only read by the setLowLightBoost TODO in setDeviceFormat.",
+      "DeviceOutputHandler replaces the removed AVCaptureVideoDataOutputSampleBufferDelegate extension: it already knows device and cameraId, so the old AVCaptureConnection.inputPorts lookup (and its TODO) is gone.",
+      "DeviceOutputHandler.delegate is a plain reference; Kotlin has no weak property, use java.lang.ref.WeakReference if a retain cycle shows up.",
+      "makeCaptureSession stays an opaque Any stub: neither AVCaptureMultiCamSession nor automaticallyConfiguresCaptureDeviceForWideColor exist on Android.",
+      "The isVideoOrientationSupported guard was dropped because CaptureSessionDevice.connection is typed Any; the hand-written setOrientation in the platform layer performs the support check.",
+      "configure() was inlined into attach() by the Swift change, so the Kotlin attach() now calls removeDevices/attachDevice/updateCameraControls/attachCameraPreviewLayers directly and no longer calls updateDevicesFormat().",
+      "removeDevices now removes photoConnection and photoOutput before the video connection/input/output, matching the new Swift order; Swift's devices.removeAll() becomes devices.clear().",
+      "AVCaptureConnection mirroring/stabilization and setSampleBufferDelegate remain a TODO inside the device loop of attach()."
     ],
-    "unsupported": [
-      "AVCaptureMultiCamSession / AVCaptureSession (start/stop/configuration/controls)",
-      "AVCaptureDevice, AVCaptureDeviceInput, AVCaptureDevice.Format, AVCaptureDevice.lockForConfiguration",
-      "AVCaptureVideoDataOutput, AVCaptureOutput, AVCaptureConnection, AVCaptureInput",
-      "AVCapturePhotoOutput, AVCapturePhoto, AVCapturePhotoSettings",
-      "AVCaptureSystemZoomSlider, AVCaptureSystemExposureBiasSlider, AVCaptureSessionControlsDelegate",
-      "AVCaptureVideoPreviewLayer",
-      "NotificationCenter AVCaptureSessionRuntimeError / WasInterrupted / InterruptionEnded observers",
-      "AVError (error code and localized failure reason)",
-      "PHPhotoLibrary / PHAssetCreationRequest (photo library saving)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 8512,
-    "tokens_out": 20542,
-    "seconds": 77.8,
-    "ported_at": "2026-09-22T13:39:06+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 17909,
+    "tokens_out": 19134,
+    "seconds": 72.2,
+    "ported_at": "2026-09-23T11:20:06+00:00"
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift": {
     "status": "ok",
@@ -13346,27 +13283,25 @@
   },
   "Moblin/VideoEffects/LutEffect.swift": {
     "status": "ok",
-    "sha256": "6075d45be5fe284d56e1ed2a9f67cceac6bb692c128f362dda5a9daa13be6a8b",
+    "sha256": "f4bc076783c847c6b81a44bdb50b46e9c00ac620096da5d90d18099c2b83fd4d",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt",
     "notes": [
-      "SIMD3<Float> is declared here as a small data class with plus/times operators so the interpolation math stays readable; CIImage/CIFilter/MetalPetal have no Android counterpart, so ColorCubeFilter and MTIColorLookupFilter are local stand-ins whose render accessor (outputImage) is TODO(\"OpenGL ES port\").",
-      "The frame/sample type used by VideoEffect.execute and executeMetalPetal is assumed to be android.graphics.Bitmap; if the port's VideoEffect uses another image type (e.g. android.media.Image) only the parameter/return types of those two overrides need changing.",
-      "SC3DLut and SwiftCubeError mirror the SwiftCube library, which does not exist on Android; the .cube parser itself (SC3DLut init) is TODO, the error-to-subtitle mapping is kept as pure logic.",
-      "processorPipelineQueue is used as a CoroutineScope (.launch { }); if it is declared as a CoroutineDispatcher in the port, replace those calls with withContext(...).",
-      "Bundle.main lookup for bundled LUT pngs is TODO: on Android the LUTs.bundle asset must be opened from a Context (assets) and decoded with BitmapFactory.",
-      "LUT images are decoded through BitmapFactory; ARGB_8888 (8 bit per component) and RGBA_F16 (16 bit, converted with a local half-to-float helper) are handled, other configs raise the same error as the Swift code.",
-      "SettingsColorLutType case names are assumed to be BUNDLED/DISK/DISK_CUBE and ImageStorage.makePath(id) is assumed to return a String path; adjust if the settings/storages packages use other names or return a File.",
-      "Swift's nonisolated(unsafe) markers and '@unchecked Sendable' have no Kotlin equivalent and were dropped; the manual float pointer buffer became a FloatArray (no deallocate needed)."
+      "Only lutEffectConvertLut changed: a dimension > 64 branch now downsamples the cube to 64x64x64 via convertLutTo64 before returning.",
+      "The Swift guard becomes an inverted if that falls through to the original Pair(dimension.toFloat(), floatArrayToByteArray(cube)) return, so small LUTs behave exactly as before.",
+      "stride(from: 0, to: n, by: 4) maps to (0 until n step 4), and the SIMD3 values are read from the in-memory FloatArray cube instead of the Swift pointer originalCube.",
+      "makeCubeData is reused for the converted 64-entry LUT, matching the Swift makeCubeData(lut64.map { LutEntry(...) }) call.",
+      "All other declarations, imports and formatting are unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 6128,
-    "tokens_out": 42323,
-    "seconds": 161.6,
-    "ported_at": "2026-09-22T13:42:46+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 15683,
+    "tokens_out": 5265,
+    "seconds": 15.2,
+    "ported_at": "2026-09-23T11:19:17+00:00"
   },
   "Moblin/VideoEffects/MapEffect.swift": {
     "status": "ok",
@@ -15289,27 +15224,28 @@
   },
   "Moblin/Media/HaishinKit/Media/Processor.swift": {
     "status": "ok",
-    "sha256": "904e71d9813437fc1bb63acbc996dcc59dbb83d962ed12a3fe0c4bcfc4fbdf84",
+    "sha256": "e90aa5445b99539e571222e6654a1c6542a254b79d5a9e024b2d979140fa1e77",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/Processor.kt",
     "notes": [
-      "DispatchQueue control/pipeline queues become single-thread coroutine scopes (processorControlQueue/processorPipelineQueue) built with Executors.asCoroutineDispatcher(); DispatchQueue.main.async uses a private mainScope on Dispatchers.Main.",
-      "Swift's protocol composition `any AudioEncoderDelegate & VideoEncoderDelegate` has no Kotlin equivalent, so a new interface AudioVideoEncoderDelegate : AudioEncoderDelegate, VideoEncoderDelegate is declared here and used everywhere the composition appears.",
-      "Swift's `weak var delegate` on Stream has no Kotlin counterpart; the delegate is held strongly and streams keep strong references to their delegates.",
-      "The overrides of AudioEncoderDelegate/VideoEncoderDelegate assume the Kotlin codec interfaces use android.media.MediaFormat for formats, MediaSample for buffers and Long microseconds for timestamps; these must match com.moblin.android.media.haishinkit.codec.*.",
-      "AVCaptureColorSpace and AVCaptureVideoOrientation are iOS-only; they are translated as Int to match the Android VideoUnit signatures (MediaFormat color standard / rotation) - verify against VideoUnit.kt.",
-      "Type mappings used: CGSize -> android.util.Size, URL -> java.net.URI, Data/[UInt8] -> ByteArray, UInt64 frameNumber -> Long, CMSampleBuffer -> MediaSample.",
-      "@MainActor on streamSetZoomX/streamSetExposureBias and on the completion closures has no Kotlin equivalent; they stay plain interface/function types and callers must dispatch to main.",
-      "takeSnapshot's (UIImage, CIImage, CIImage) callback was mapped to (Bitmap, android.media.Image, android.media.Image) and takeVideoSourceSnapshot's UIImage? to Bitmap? - align with the Kotlin VideoUnit implementation."
+      "Only the three setter call sites changed: video.torch = value became video.setTorch(value), video.torchLevel = value became video.setTorchLevel(value) and video.videoOrientation = value became video.setVideoOrientation(value).",
+      "The VideoUnit properties torch, torchLevel and videoOrientation are replaced by the matching method calls on VideoUnit as in the Swift source; every other line of the file is byte-identical to the previous translation.",
+      "processorControlQueue and processorPipelineQueue stay as CoroutineScope wrappers over single-thread executors, since DispatchQueue.main.async is already mapped to mainScope.launch.",
+      "setVideoEncoderSettings remains a deliberate no-op from the earlier translation because VideoEncoderSettings is exposed through the encoder's own settings holder in Kotlin.",
+      "takeSnapshot and takeVideoSourceSnapshot keep the Android Bitmap signatures declared by VideoUnit instead of UIImage/CIImage.",
+      "startRecording and setUrl keep URI? parameters and pass url?.toString() into Recorder, which takes a String url as declared in Recorder.kt.",
+      "Log.i(\"Processor\", ...) is used for the two logger.info calls with the class name as the tag.",
+      "Everything else, including delegate fan-out for audio and video encoders and the recorder delegate methods, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 8347,
-    "tokens_out": 18758,
-    "seconds": 72.5,
-    "ported_at": "2026-09-22T13:52:27+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 21976,
+    "tokens_out": 3911,
+    "seconds": 11.7,
+    "ported_at": "2026-09-23T11:19:22+00:00"
   },
   "Moblin/Various/Model/ModelKick.swift": {
     "status": "ok",
@@ -15617,58 +15553,53 @@
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoUnit.swift": {
     "status": "ok",
-    "sha256": "f2d6e7fb1ab77e4f0be69e4a297366e1b9dd7cef203b3c79124a8fcfc130770e",
+    "sha256": "901301873c19790f4fc5386a80310575f024617b7a75feaefe27093799dbc28e",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoUnit.kt",
     "notes": [
-      "DispatchQueue becomes CoroutineScope: processorPipelineQueue / processorControlQueue are used as scopes, .async{} -> .launch{}.",
-      "CMSampleBuffer -> MediaSample (com.moblin.android.media). The CMSampleBuffer members that MediaSample does not carry (imageBuffer, duration, decodeTimeStamp, setAttachmentDisplayImmediately, replacePresentationTimeStamp, create) are file-private TODO extensions so call sites stay identical to the Swift source.",
-      "CMTime -> Long microseconds, CMTime.invalid passed as -1L, CMTime.zero as 0L; ContinuousClock.Instant -> kotlin.time TimeSource.Monotonic marks.",
-      "CVPixelBuffer/CVImageBuffer -> android.media.Image, CMVideoFormatDescription -> android.media.MediaFormat, CGSize -> android.util.Size, CGRect -> android.graphics.RectF, UIImage/CIImage/MTIImage -> android.graphics.Bitmap.",
-      "AVCaptureVideoOrientation, AVCaptureColorSpace, AVCaptureVideoStabilizationMode have no Android enum and stay Int constants; AVCaptureVideoPreviewLayer -> androidx.camera.view.PreviewView (fully qualified).",
-      "deinit becomes dispose() (no destructor in Kotlin); the weak drawable delegates are plain nullable references and MacScreenCapture is assumed to keep its `shared` singleton accessor.",
-      "Vision detection, CoreVideo pixel buffer pools/pixel buffers and the VideoToolbox pixel transfer are TODO(); boolean black preview frames are produced by createBlackImage on Android.",
-      "logger.info(...) -> android.util.Log.i(\"VideoUnit\", ...) with the class name as tag."
-    ],
-    "unsupported": [
-      "Vision framework (VNDetectFaceLandmarksRequest, VNRecognizeTextRequest, VNImageRequestHandler, VNFaceObservation)",
-      "CoreVideo pixel buffer pools (CVPixelBufferPool, CVPixelBufferPoolCreate, CVPixelBufferPoolCreatePixelBuffer, CVPixelBufferCopyCreationAttributes)",
-      "VideoToolbox pixel transfer (VTPixelTransferSessionCreate, VTPixelTransferSessionTransferImage)",
-      "Core Image rendering (CIImage, CIContext.render)",
-      "CMSampleBuffer members missing on MediaSample (imageBuffer, duration, decodeTimeStamp, setAttachmentDisplayImmediately, replacePresentationTimeStamp, create)",
-      "MetalPetal (MTIImage)"
-    ],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 13365,
-    "tokens_out": 55675,
-    "seconds": 212.2,
-    "ported_at": "2026-09-22T13:54:50+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/Various/Model/ModelTwitch.swift": {
-    "status": "ok",
-    "sha256": "6c5f45679a68f30615381d69875cae1e76723f961a05f68b5204b7047f591944",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelTwitch.kt",
-    "notes": [
-      "All members are Swift extensions of Model, so they become top-level extension functions on Model in the same package; Model itself is not redeclared here.",
-      "The TwitchEventSubDelegate / TwitchChatDelegate conformances cannot be expressed in Kotlin from another file: Model must declare both interfaces itself and forward the callbacks to these extension functions.",
-      "Platform enum arguments were split by meaning: StreamingPlatform.twitch for StreamingPlatformStatus(platform:) and ChatPlatform.twitch for chat/alert APIs (isRemoteControlChatAndEvents, appendChatMessage, makeNotLoggedInToToast).",
-      "twitchPlatformStatus is assumed to be StreamingPlatformStatus.Status (nested sealed class with Unknown, Offline and Live(viewerCount)); Model must declare it with that type.",
-      "SwiftUI Color was mapped to androidx.compose.ui.graphics.Color using ARGB literals of the iOS system colours (pink 0xFFFF2D55, cyan 0xFF32ADE6, blue 0xFF007AFF, green 0xFF34C759, orange 0xFFFF9500, purple 0xFFAF52DE, indigo 0xFF5856D6, mint 0xFF00C7BE).",
-      "Alert, EventCatPrinterEvent and the Alert/EventCatPrinterEvent cases are not in the glossary; they are assumed to live in this package, mapped to sealed subclasses (Alert.TwitchFollow, EventCatPrinterEvent.TwitchCheer, ...).",
-      "Timer helpers (twitchSearchCategoriesTimer / twitchSearchChannelsTimer) are used as startSingleShot(timeout) { } and are assumed to be project types declared on Model, not Android APIs.",
-      "ContinuousClock.Instant became kotlin.time.TimeMark, so Model.twitchStreamUpdateTime is assumed to be a TimeMark; uptimeFormatter/countFormatter are called through a format(...) method."
+      "Removed the videoOrientation, torch and torchLevel computed properties that forwarded to captureSession, replacing them with explicit setVideoOrientation(value), setTorch(value) and setTorchLevel(value) functions added right after stopRunning().",
+      "The new setter functions take Int/Boolean/Float matching Android's VideoCaptureSession.videoOrientation (Int), torch (Boolean) and torchLevel (Float) declarations from the glossary.",
+      "appendSampleBufferWithDetections now passes captureSession.videoOrientation directly instead of the removed local property; the Kotlin call site already forwarded to the same value so behaviour is unchanged.",
+      "Nothing else in the file was touched: all other declarations, imports and the hand-written Android helpers remain byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 18348,
-    "tokens_out": 45463,
-    "seconds": 152.3,
-    "ported_at": "2026-09-22T13:54:50+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 31382,
+    "tokens_out": 8725,
+    "seconds": 23.2,
+    "ported_at": "2026-09-23T11:19:36+00:00"
+  },
+  "Moblin/Various/Model/ModelTwitch.swift": {
+    "status": "ok",
+    "sha256": "d21652f8eac6f286e151c6054ca6ef4e796d2c6b6c1800873a9bb6426839743c",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
+    "tier": "media",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelTwitch.kt",
+    "notes": [
+      "sendTwitchShoutout is added between startRaidTwitchChannel and cancelRaidTwitchChannel, calling TwitchApi.sendShoutout with the same broadcasterId/toBroadcasterId/onComplete shape as startRaid.",
+      "The failure log in the no-callback overload used NetworkResponse.Success instead of isSuccessful() so no new network extension import is needed.",
+      "MacroEvent calls now pass variables; keys are built with MacroVariable.fromRawValue(\"...\") using the Swift case names, matching the SettingsMacrosEvent.fromRawValue convention already used in this file.",
+      "MacroVariable is imported from com.moblin.android.various.settings and the map is passed as a plain mapOf, which matches a MacroVariables typealias over Map<MacroVariable, String>.",
+      "twitchEventSubChannelShoutoutCreate is added right after twitchEventSubChannelModerate, matching the Swift declaration order.",
+      "Because TwitchEventSubDelegate is implemented as an explicit anonymous object here, an override for twitchEventSubChannelShoutoutCreate was added there too so reloadTwitchEventSub keeps compiling.",
+      "Swift .orange is translated as Color(0xFFFF9500), the orange value already used elsewhere in this file.",
+      "Pre-existing TODO()s for Alert playback, EventCat printers and ChatHighlightKind cases were kept unchanged."
+    ],
+    "unsupported": [
+      "AVFoundation alert sounds (playAlert) -> TODO(\"no Android counterpart for Alert\")",
+      "EventCatPrinter event printing -> TODO(\"no Android counterpart for EventCatPrinterEvent\")",
+      "Missing ChatHighlightKind cases (newFollower, redemption, other) -> TODO(\"no ChatHighlightKind case for ...\")"
+    ],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 45483,
+    "tokens_out": 21984,
+    "seconds": 67.7,
+    "ported_at": "2026-09-23T11:20:25+00:00"
   },
   "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDevicesSettingsView.swift": {
     "status": "ok",
@@ -15696,27 +15627,22 @@
   },
   "Moblin/View/Settings/Camera/VideoStabilization/VideoStabilizationSettingsView.swift": {
     "status": "ok",
-    "sha256": "cdfd7c8cb973d25fc1ec0dff177437b236bbf57605e74fa010befb7e433b84f5",
+    "sha256": "07e0ffa9e163530a383b976b7fce76b9dbec110ceeebd1e99d59bc5d9b7e71f1",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/camera/videostabilization/VideoStabilizationSettingsView.kt",
     "notes": [
-      "@State mode becomes local remember{mutableStateOf} state seeded from the mode parameter; the Swift .onChange(of:) side effects (model.database.videoStabilizationMode = ... and model.reattachCamera()) run in LaunchedEffect(modeState) guarded by a remembered 'applied' value so they fire only on user-driven changes, matching Swift's first-render behaviour even when the user switches back to the initial value.",
-      "The Picker is rendered as a Row with a label Text plus an ExposedDropdownMenuBox / OutlinedTextField + DropdownMenuItem list, per the Material 3 mapping; it needs @OptIn(ExperimentalMaterial3Api::class).",
-      "Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable) is used, which requires Material3 1.3+ (the parameterless menuAnchor() overload is deprecated).",
-      "The Picker label is localised with localized(\"Video stabilization\") from com.moblin.android, mirroring SwiftUI's implicit localisation of Text(\"...\").",
-      "Option labels use SettingsVideoStabilizationMode.toString() exactly as the Swift code calls $0.toString(); the Kotlin enum is expected to keep the same display-name override.",
-      "videoStabilizationModes and SettingsVideoStabilizationMode are imported from com.moblin.android.various.settings, Model from com.moblin.android.various.model.",
-      "An extra onModeChange callback (default no-op) reports the new selection back to the caller, since the Compose function cannot mutate the caller's state the way a SwiftUI @State binding would.",
-      "The file declares no Kotlin types, only the composable function VideoStabilizationSettingsView."
+      "Only change: model.reattachCamera() becomes model.attachCamera() in the LaunchedEffect that persists the mode.",
+      "All hand-written Android code (modeState/applied state, ExposedDropdownMenuBox, onModeChange callback, LocalModel default) kept byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3826,
-    "tokens_out": 5365,
-    "seconds": 20.0,
-    "ported_at": "2026-09-22T13:55:07+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 10153,
+    "tokens_out": 870,
+    "seconds": 2.9,
+    "ported_at": "2026-09-23T11:19:26+00:00"
   },
   "Moblin/View/Settings/GameControllers/GameControllersControllerSettingsView.swift": {
     "status": "ok",
@@ -15871,30 +15797,23 @@
   },
   "Moblin/View/ControlBar/QuickButtonsView.swift": {
     "status": "ok",
-    "sha256": "ba3ffb8329d94df932471b6314d5aa9cc35055550660103314200bb5cb7c2339",
+    "sha256": "5629cfe426a5dcf71b53bbe04b1ece1e4d03fc4ab6550a119d8f048f62fb5bfa",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/QuickButtonsView.kt",
     "notes": [
-      "SwiftUI View structs became @Composable functions with the same names and parameter names; @State became remember { mutableStateOf(...) } and @EnvironmentObject model is passed as a parameter instead.",
-      "Button taps use Modifier.combinedClickable (onClick + onLongClick) to mirror onTapGesture/onLongPressGesture; @OptIn(ExperimentalFoundationApi::class) guards it.",
-      "Enum entries of SettingsQuickButtonType and the RgbColor.color() extension are referenced with their Swift names; verify them against com.moblin.android.various.settings and com.moblin.android.common.various.",
-      "The panel and workout enums used for model.toggleShowingPanel and model.startWorkout are not in the glossary; SettingsPanel (com.moblin.android.various.settings) and WorkoutType (com.moblin.android.various.model) are assumed.",
-      "SF Symbols and named image assets go through the private SystemImage/AssetImage helpers, whose bodies are TODO; they are the only TODOs in this file.",
-      "minimumScaleFactor(0.5) has no direct Compose Text counterpart; the name label uses maxLines = 2 with ellipsis instead.",
-      "SwiftUI confirmationDialog became a Material 3 AlertDialog with the same labels and the same isOn-dependent title.",
-      "controlBarPages stays a top-level val; this file declares no new Kotlin types."
+      "Only the portraitAction body changed: model.reattachCamera() was replaced by model.attachCamera().",
+      "Everything else in the Kotlin file, including hand-written Android helpers (MinimumScaleText, ConfirmationDialog, SystemImage, AssetImage) and imports, is kept byte-identical.",
+      "The existing TODO(\"walking\") for the walking workout type is preserved since it is unrelated to this diff."
     ],
-    "unsupported": [
-      "SwiftUI Image(systemName:) SF Symbols - SystemImage helper body is TODO(\"no Android counterpart for SF Symbol ...\"); each symbol needs a manual Material icon mapping",
-      "Named image assets (MoblinInMouth) - AssetImage helper body is TODO(\"port the asset ... to an Android drawable resource\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 10466,
-    "tokens_out": 29329,
-    "seconds": 100.6,
-    "ported_at": "2026-09-22T13:56:00+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 25577,
+    "tokens_out": 7689,
+    "seconds": 19.4,
+    "ported_at": "2026-09-23T11:19:37+00:00"
   },
   "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift": {
     "status": "ok",
@@ -16894,26 +16813,26 @@
   },
   "Moblin/Various/Model/ModelMacros.swift": {
     "status": "ok",
-    "sha256": "b40b191d6a1f0b50bb47d83dcfc4ff0fea2fdfc1702219e2d6b8c6bfb9f58959",
+    "sha256": "365a15a8247f5c0b460eb8aa001ee701cf6d0a7b238d4235d5e8e7664a698967",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelMacros.kt",
     "notes": [
-      "The Swift `extension Model` becomes top-level extension functions on `Model` in the same package; file-private helpers keep `private` visibility.",
-      "DispatchQueue.main.async maps to `mainScope.launch { }`; `mainScope` is assumed to be Model's CoroutineScope(Dispatchers.Main) declared in the Model port.",
-      "`macro.delayTimer` / `macro.finishedTimer` are assumed to expose `startSingleShot(timeout, completion)` and `stop()` in the SettingsMacrosMacro port; the macro state machine itself is translated in full.",
-      "`parts.isWeatherVariable()`, `isGeographyVariable()` and `isGForceVariable()` are assumed to be provided by com.moblin.android.videoeffects.text together with `loadTextFormat`.",
-      "`SettingsMacrosAction.function` is treated as nullable because the Swift switch has a `case nil` branch; enum case names are kept verbatim from Swift.",
-      "The `#available(iOS 17, *)` guard in executeReaction is dropped; `triggerReaction` is called unconditionally.",
-      "`logger.info` becomes `Log.i` with tag \"Model\"; `sceneSelector.trigger += 1` assumes SceneSelector exposes a mutable trigger counter."
+      "Swift's macro.variables is translated as the MacroVariables type from com.moblin.android.various.settings, called with removeAll(), set(...), get(...) and substitute(...) as in the Swift source.",
+      "The new sendTwitchShoutout action is dispatched through SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT (SCREAMING_SNAKE_CASE to match the other cases already used in this file).",
+      "MacroVariable.TWITCH_RAID_CHANNEL_ID is the translation of the Swift case .twitchRaidChannelId; it is now imported from com.moblin.android.various.settings.",
+      "MacroEvent is assumed to expose the variables that the queued event carries, matching the new Swift event.variables usage.",
+      "executeSendChatMessage and executeIfCondition now take the macro variables and substitute them before formatting the text, exactly as in the new Swift code.",
+      "Everything outside the Swift diff, including the deliberate absence of the #available(iOS 17) guard in executeReaction, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 8168,
-    "tokens_out": 19431,
-    "seconds": 67.9,
-    "ported_at": "2026-09-22T14:03:20+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 19710,
+    "tokens_out": 7003,
+    "seconds": 21.9,
+    "ported_at": "2026-09-23T11:19:47+00:00"
   },
   "Moblin/Various/Model/ModelMediaPlayer.swift": {
     "status": "ok",
@@ -17039,29 +16958,28 @@
   },
   "Moblin/Various/Settings/SettingsMacros.swift": {
     "status": "ok",
-    "sha256": "3db578e9776286ec3afa0427ce65a907c485a9a37948e94bf8032427797cf3b0",
+    "sha256": "f5514eb0d59547da76e2c69e25acb33e4c645bc20ced2241daa4009c0d1b2af8",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsMacros.kt",
     "notes": [
-      "AVCaptureReactionType is an iOS camera feature; SettingsReaction.toSystem() keeps its signature but returns TODO() and is listed in unsupported.",
-      "Every @Published property is backed by a private MutableStateFlow (marked @Transient so the serialization plugin skips it) and exposed through a read/write property with the Swift name, so call sites can keep using `action.zoomX = 1f` while the flow holds the state.",
-      "The hand-written Codable encode(to:)/init(from:) pair is translated into hand-written kotlinx.serialization KSerializers attached with @Serializable(with = ...); every missing JSON key keeps the same default value the Swift decoder used (id = random UUID, function = null, zoomX = 1, delay = 3, reaction = FIREWORKS, ...).",
-      "Swift CodingKeys enums are replaced by the serial descriptor of each custom serializer; property names and order are identical to the Swift coding keys, so no @SerialName is needed.",
-      "Enums keep their Swift raw values through a rawValue constructor property plus a companion fromRawValue(); SettingsReaction has no explicit raw values in Swift, so its lower-case case names (\"fireworks\", \"balloons\", ...) are used as its raw values, matching its init?(value:) mapping.",
-      "Swift's Collections.Deque<MacroEvent> becomes kotlin.collections.ArrayDeque<MacroEvent>, and static let baseName becomes a companion object val baseName.",
-      "SettingsQuickButtonType (declared in this package) is assumed to expose rawValue and fromRawValue like every other persisted enum in the port; only the UUID set type uses a dedicated serializer.",
-      "UUID values are serialized as their canonical string form by a small KSerializer, and Set/UUID collections use SetSerializer from kotlinx.serialization.builtins."
+      "Added SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT to match the new sendTwitchShoutout case, keeping the Swift declaration order.",
+      "SettingsMacrosEvent gained variables() and variablesToString(), placed before textTitle() exactly as in the diff.",
+      "New MacroVariable enum uses a rawValue property plus override fun toString(), following the existing enum style in this file.",
+      "New MacroVariables class wraps a MutableMap; Swift's Dictionary.merge is maps to MutableMap.putAll, which has the same overwrite semantics.",
+      "MacroEvent gained a variables: MutableMap<MacroVariable, String> field at the end of the data class.",
+      "SettingsMacrosMacro gained val variables = MacroVariables() between runAtAppStart and nextActionIndex.",
+      "String.replacingOccurrences(options: .caseInsensitive) maps to kotlin.text.replace(oldValue, newValue, ignoreCase = true).",
+      "No serialization change: MacroEvent and MacroVariables are not Codable, so no serializer or CodingKeys were touched."
     ],
-    "unsupported": [
-      "AVCaptureReactionType (SettingsReaction.toSystem)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7804,
-    "tokens_out": 73168,
-    "seconds": 296.3,
-    "ported_at": "2026-09-22T14:05:17+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 23988,
+    "tokens_out": 10823,
+    "seconds": 29.1,
+    "ported_at": "2026-09-23T11:19:53+00:00"
   },
   "Moblin/Various/Model/ModelRemoteControl.swift": {
     "status": "ok",
@@ -17525,42 +17443,26 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "3988fa3d735c776b3404eafdd1c3a94353618706392de0ff4ece372d144d886d",
+    "sha256": "95d9fcc0b27d01aa897e2b66f948d0b7cd9ed82bcdf4fda6d15f421fabbf4931",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "@Published properties use the requested pattern: an internal MutableStateFlow backing field (_name) plus a public read-only StateFlow (name). The backing fields are internal instead of private so that sibling state holders declared in this same file can be updated from Model; reads from other classes therefore go through .value.",
-      "Types used by this file but absent from the glossary are declared locally with identical names: AlertToast/AlertToastType (AlertToast package), BatteryState (UIDevice.BatteryState), VideoOrientation (AVCaptureVideoOrientation), WatchProtocolWorkoutType and WatchProtocolWorkoutStats (watch protocol).",
-      "Apple-only frameworks become TODO(): ActivityKit live activity, WatchConnectivity, TrueTime NTP, PhotosUI, CoreBluetooth, CoreMotion, GameController, ReplayKit sample buffer receiver, NotificationCenter observers, SDWebImageWebPCoder, UIDevice battery/thermal/orientation/vibration and AVCaptureDevice built-in camera selection.",
-      "Model declares FaxReceiverDelegate and AlertsEffectDelegate and overrides their methods inside the class body; the plain Swift `extension Model` (draw on stream) becomes top-level extension functions on Model in this same file.",
-      "ContinuousClock.Instant maps to java.time.Instant and ContinuousClock.Duration to java.time.Duration; the periodic state is driven by MainTimer and the fixDelay/countdown checks use Duration.between().",
-      "AVCaptureDevice.Position maps to CameraX CameraSelector LENS_FACING_* int constants; UIImage/CIImage/CGImage map to android.graphics.Bitmap; Deque maps to kotlin.collections.ArrayDeque.",
-      "The inout parameters of the update*IngestsSpeed helpers are replaced by a private IngestStats accumulator data class that is threaded through the same helper names, because Kotlin has no inout.",
-      "AppDelegate.orientationLock (UIInterfaceOrientationMask) is not expressible here and is left to the Activity via requestedOrientation; deinit is translated to close() since Kotlin has no destructors."
+      "Applied the Swift diff only: added setNativeLowLightBoost(), called it from setup() right after setAllowVideoRangePixelFormat(), switched externalMonitorConnected/externalMonitorDisconnected from reattachCamera() to attachCamera(), and deleted the reattachCamera() helper.",
+      "setNativeLowLightBoost() assigns the top-level var nativeLowLightBoost, matching how setAllowVideoRangePixelFormat() assigns allowVideoRangePixelFormat. Since database.debug members are MutableStateFlow in this port, database.debug.nativeLowLightBoost is read with .value.",
+      "detachCamera() is kept even though reattachCamera() was the only in-file caller; the Swift source still declares it and other files may call it.",
+      "Everything else in Model.kt, including hand-written Android code and call sites into com.moblin.android.platform, is unchanged."
     ],
     "unsupported": [
-      "ActivityKit (Activity / Live Activity)",
-      "WatchConnectivity (WCSession)",
-      "TrueTime (NTP client)",
-      "PhotosUI (PHPhotoLibrary)",
-      "CoreBluetooth (CBCentralManager)",
-      "CoreMotion (CMMotionManager device motion)",
-      "GameController (GCController wireless discovery)",
-      "ReplayKit (SampleBufferReceiver)",
-      "NotificationCenter.addObserver / Notification",
-      "UIDevice batteryLevel, batteryState, isBatteryMonitoringEnabled, vibrate, orientation",
-      "ProcessInfo.thermalState",
-      "AVCaptureDevice built-in camera discovery / getUIZoomRange selection",
-      "AVAudioSession.setAllowHapticsAndSystemSoundsDuringRecording",
-      "SDWebImageWebPCoder"
+      "AlertsEffectAlert.quickButton"
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 45983,
-    "tokens_out": 87580,
-    "seconds": 298.7,
-    "ported_at": "2026-09-22T14:09:57+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 93351,
+    "tokens_out": 32043,
+    "seconds": 82.7,
+    "ported_at": "2026-09-23T11:20:50+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -18081,31 +17983,28 @@
   },
   "Moblin/View/Settings/Macros/MacrosSettingsView.swift": {
     "status": "ok",
-    "sha256": "ffb3d54f157bd8121a829ecd2c8c62d553d283a4005bfd9893bad908cb734616",
+    "sha256": "9b97f0eb09d638da6967d36ba89fa6d695d9238f134bb963e3520ce141e33289",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/macros/MacrosSettingsView.kt",
     "notes": [
-      "SwiftUI Form/List become Column + verticalScroll(rememberScrollState()) because the Swift layout nests a List inside a Form; nested LazyColumns would crash at runtime.",
-      "NavigationLink destinations are not inlined: the rows call onNavigate(\"Action\"/\"Macro\"/\"Message\"/\"Value\"/\"Other value\") and the destination screens live in this file as ActionDestinationView and MacroDestinationView, which the navigation graph must host.",
-      "TextFormatView's @State value is a remembered state whose write-back (onChange -> text = value) is a LaunchedEffect, so it also fires on first composition unlike SwiftUI.",
-      "macro.objectWillChange.send() has no Compose counterpart: state changes already recompose; the LaunchedEffect TODO can simply be deleted.",
-      "contextMenuDeleteButton is not in the glossary and has no Compose counterpart, so the delete action is left as a TODO lambda that must be re-created with a long-press DropdownMenu or a delete icon.",
-      "List onMove (drag to reorder) has no Compose counterpart; onDelete keeps its logic but is stored in an unused lambda that must be wired to a swipe-to-delete implementation.",
-      "Pickers use a private MacroPicker helper built on ExposedDropdownMenuBox, and SwiftUI Toggle uses the private Toggle helper (Row + Switch).",
-      "secondarySystemGroupedBackground maps to MaterialTheme.colorScheme.surfaceVariant, and .tint(.red) on the Cancel button was dropped because TextButtonView has no color parameter in the glossary."
+      "Added the new enum case handling for SEND_TWITCH_SHOUTOUT in the action body (empty), the action label (grouped with the snapshot case) and the action footer (explanatory text).",
+      "The wait-for-event footer now wraps its content in a Column with horizontalAlignment Start and verticalArrangement spacedBy(5.dp), matching VStack(alignment: .leading, spacing: 5).",
+      "SettingsMacrosEvent.variablesToString() is not present in the Kotlin SettingsMacrosEvent declaration, so the variables line is a TODO placeholder; add that helper to SettingsMacros.kt to complete it.",
+      "The new Kotlin enum entry SEND_TWITCH_SHOUTOUT must be added to SettingsMacrosActionFunction in SettingsMacros.kt with raw value sendTwitchShoutout.",
+      "The variables sentence is a plain interpolated string, not localized, matching the Swift non-localized Text.",
+      "Everything outside the three changed areas is byte-identical to the previous Kotlin version."
     ],
     "unsupported": [
-      "objectWillChange (ObservableObject publisher)",
-      "contextMenuDeleteButton (SwiftUI context menu delete)",
-      "List onMove (drag to reorder)"
+      "SettingsMacrosEvent.variablesToString() (no Android counterpart declared; replaced by TODO())"
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 11725,
-    "tokens_out": 53821,
-    "seconds": 195.2,
-    "ported_at": "2026-09-22T14:13:12+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 32334,
+    "tokens_out": 11710,
+    "seconds": 36.0,
+    "ported_at": "2026-09-23T11:20:10+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift": {
     "status": "ok",
@@ -18351,30 +18250,23 @@
   },
   "Moblin/View/Settings/Camera/CameraSettingsView.swift": {
     "status": "ok",
-    "sha256": "344970a8dec2c3fb2449b8135f01c9257800760c9647fb645e363431cafa5131",
+    "sha256": "4324352233e92465f8c82bbd4bc44584a57b208471a670f918be607e0de3ec1f",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/camera/CameraSettingsView.kt",
     "notes": [
-      "SwiftUI Views became @Composable functions with the same names; @EnvironmentObject/@ObservedObject objects (Model, Database, SettingsColor, SettingsStream) are now parameters, their published properties are read with collectAsState() and written with the MutableStateFlow .value setter.",
-      "NavigationLink destinations are exposed through an onNavigate: (String) -> Unit callback; the inline destination bodies were kept as extra destination composables (CustomLutDestinationView, ColorSpacePicker helper) so no content is lost. No navigation-compose is pulled in.",
-      "Form/List/Section are rendered as Column with a header Text and footer Text instead of nested LazyColumn, because a LazyColumn inside a scrolling parent is illegal in Compose.",
-      ".sheet(isPresented:) became ModalBottomSheet; .pickerStyle(.inline) became a radio-button list; the standard Picker became an ExposedDropdownMenuBox row.",
-      ".contextMenuDeleteButton became a trailing delete IconButton next to each LUT row.",
-      "PhotosPicker/PhotosPickerItem have no Android counterpart: the picker presentation and the selection-change handler throw TODO() and are listed in unsupported.",
-      "Image(uiImage:) became Image(bitmap = BitmapFactory.decodeByteArray(data, 0, data.size).asImageBitmap()) with ContentScale.Fit and the 1920/6 x 1080/6 frame translated to 320.dp x 180.dp.",
-      "Assumptions to verify against the other ported files: AlertPickerView takes an AlertPickerType argument (enum not in the glossary), SettingsColorSpace has an `appleLog` entry, makeOffsets returns IntArray?, and model.supportsAppleLog is a plain Boolean while isLive/isRecording are published."
+      "The only change is that both onChange handlers now call model.attachCamera() instead of model.reattachCamera(), in CameraPreviewSettingsView and PhotoShootSettingsView.",
+      "attachCamera is a Model member on Android, so no import was added or removed.",
+      "Everything else in the file is byte-identical to the previous Kotlin translation."
     ],
-    "unsupported": [
-      "PhotosPicker",
-      "PhotosPickerItem"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7987,
-    "tokens_out": 27976,
-    "seconds": 102.3,
-    "ported_at": "2026-09-22T14:15:00+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 24116,
+    "tokens_out": 4552,
+    "seconds": 13.6,
+    "ported_at": "2026-09-23T11:19:50+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomRistSettingsView.swift": {
     "status": "ok",
@@ -19288,30 +19180,24 @@
   },
   "Moblin/View/MainView.swift": {
     "status": "ok",
-    "sha256": "83931fe7cf01ab506216bdae4af81fe45bf71e78e09b41a295948f575ed8a784",
+    "sha256": "65c81a783a554b3a68c26fe19bdf408698b35abbd6e6ca50ba2ff620374d350c",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/MainView.kt",
     "notes": [
-      "SwiftUI views become @Composable functions; the @EnvironmentObject Model is passed as an explicit parameter.",
-      "Model published properties are read and written directly as `model.x`; collecting the underlying StateFlow is expected to be handled by the Model layer.",
-      "The iOS 26 glassEffect branch and the iOS 17/18 availability checks are dropped, only one rendering path is kept.",
-      "Icons.Filled.MicOff, Visibility, VisibilityOff and PhotoCamera need the material-icons-extended artifact.",
-      "NavigationStack, .sheet, .confirmationDialog and .toast become inline `if` blocks, Material 3 AlertDialog, and TODOs.",
-      "edgesToIgnore() returns the WindowInsetsSides that must be padded (the complement of the Swift ignore set); settingsHalfWidth is treated as points (Float).",
-      "streamView is a @Composable lambda instead of a StreamView value, and streamViewLayout() is called with a Compose Size.",
-      "UITextField.appearance(), persistentSystemOverlays(.hidden) and onCameraCaptureEvent have no Compose equivalent and are omitted."
+      "The diff adds `.id(button.id)` to QuickButtonsButtonSettingsView; in Kotlin this is modelled with `key(button.id) { ... }`, matching the existing `key(sceneSettingsPanelSceneId)` pattern for sceneSettings.",
+      "Only the ShowingPanel.quickButtonSettings branch of MenuView changed; every other line is byte-identical to the previous Kotlin file.",
+      "`key` is already imported from androidx.compose.runtime, so no import changes were needed.",
+      "The added `key(...)` wraps only the QuickButtonsButtonSettingsView call so the composable is recreated when the edited quick button changes."
     ],
-    "unsupported": [
-      "toast.toast SwiftUI view has no Compose equivalent",
-      "UIViewControllerRepresentable (WebBrowserController) has no Compose equivalent"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 15537,
-    "tokens_out": 42117,
-    "seconds": 144.5,
-    "ported_at": "2026-09-22T14:19:13+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 41962,
+    "tokens_out": 10924,
+    "seconds": 27.8,
+    "ported_at": "2026-09-23T11:20:06+00:00"
   },
   "Moblin Watch/Shared/WatchProtocol.swift": {
     "status": "ok",

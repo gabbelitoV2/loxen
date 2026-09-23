@@ -28,7 +28,7 @@ fun MirrorFrontCameraOnStreamView(model: Model = LocalModel.current, database: D
     LaunchedEffect(mirrorFrontCameraOnStream) {
         if (mirrorFrontCameraOnStream != previousMirrorFrontCameraOnStream) {
             previousMirrorFrontCameraOnStream = mirrorFrontCameraOnStream
-            model.reattachCamera()
+            model.attachCamera()
         }
     }
     Row(

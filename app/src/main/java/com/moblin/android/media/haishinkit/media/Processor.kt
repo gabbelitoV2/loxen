@@ -77,13 +77,13 @@ class Processor(val delegate: ProcessorDelegate) :
 
     fun setTorch(value: Boolean) {
         processorControlQueue.launch {
-            video.torch = value
+            video.setTorch(value)
         }
     }
 
     fun setTorchLevel(value: Float) {
         processorControlQueue.launch {
-            video.torchLevel = value
+            video.setTorchLevel(value)
         }
     }
 
@@ -114,7 +114,7 @@ class Processor(val delegate: ProcessorDelegate) :
 
     fun setVideoOrientation(value: Int) {
         processorControlQueue.launch {
-            video.videoOrientation = value
+            video.setVideoOrientation(value)
         }
     }
 

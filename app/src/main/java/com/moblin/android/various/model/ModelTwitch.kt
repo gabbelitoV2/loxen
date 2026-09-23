@@ -16,6 +16,7 @@ import com.moblin.android.various.makeChatPostTextSegments
 import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.OperationResult
 import com.moblin.android.various.settings.MacroEvent
+import com.moblin.android.various.settings.MacroVariable
 import com.moblin.android.various.settings.SettingsMacrosEvent
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamTwitchReward
@@ -30,6 +31,10 @@ import kotlin.time.TimeMark
 import com.moblin.android.AppDelegate
 
 private const val TAG = "Model"
+
+private fun macroVariableFromRawValue(rawValue: String): MacroVariable =
+    enumValues<MacroVariable>().firstOrNull { it.name == rawValue || it.rawValue == rawValue }
+        ?: error("Unknown macro variable: $rawValue")
 
 fun Model.updateViewersTwitch(): StreamingPlatformStatus {
     return StreamingPlatformStatus(platform = Platform.twitch, status = twitchPlatformStatus)
@@ -159,6 +164,9 @@ fun Model.reloadTwitchEventSub() {
                 }
                 override fun twitchEventSubChannelModerate(event: TwitchEventSubChannelModerateEvent) {
                     this@reloadTwitchEventSub.twitchEventSubChannelModerate(event)
+                }
+                override fun twitchEventSubChannelShoutoutCreate(event: TwitchEventSubChannelShoutoutCreateEvent) {
+                    this@reloadTwitchEventSub.twitchEventSubChannelShoutoutCreate(event)
                 }
                 override fun twitchEventSubUnauthorized() {
                     this@reloadTwitchEventSub.twitchEventSubUnauthorized()
@@ -663,6 +671,22 @@ fun Model.startRaidTwitchChannel(
     )
 }
 
+fun Model.sendTwitchShoutout(channelId: String, onComplete: (OperationResult) -> Unit) {
+    createTwitchApi(stream.value).sendShoutout(
+        broadcasterId = stream.value.twitchChannelId,
+        toBroadcasterId = channelId,
+        onComplete = onComplete
+    )
+}
+
+fun Model.sendTwitchShoutout(channelId: String) {
+    sendTwitchShoutout(channelId) { result ->
+        if (result !is NetworkResponse.Success) {
+            Log.i(TAG, "Failed to shoutout Twitch channel $channelId")
+        }
+    }
+}
+
 fun Model.cancelRaidTwitchChannel(onComplete: (OperationResult) -> Unit) {
     createTwitchApi(stream.value).cancelRaid(
         broadcasterId = stream.value.twitchChannelId,
@@ -969,7 +993,12 @@ fun Model.twitchEventSubChannelFollow(event: TwitchEventSubNotificationChannelFo
         username = event.user_name,
         message = text
     )
-    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchFollow")!!))
+    macrosEventOccurred(
+        MacroEvent(
+            event = SettingsMacrosEvent.fromRawValue("twitchFollow")!!,
+            variables = mutableMapOf(macroVariableFromRawValue("twitchFollowUser") to event.user_name)
+        )
+    )
 }
 
 fun Model.twitchEventSubChannelSubscribe(event: TwitchEventSubNotificationChannelSubscribeEvent) {
@@ -1011,7 +1040,12 @@ fun Model.twitchEventSubChannelSubscribe(event: TwitchEventSubNotificationChanne
         username = event.user_name,
         message = textWithMessage
     )
-    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchSubscription")!!))
+    macrosEventOccurred(
+        MacroEvent(
+            event = SettingsMacrosEvent.fromRawValue("twitchSubscription")!!,
+            variables = mutableMapOf(macroVariableFromRawValue("twitchSubscriptionUser") to event.user_name)
+        )
+    )
     latestSubscriber = event.user_name
 }
 
@@ -1053,7 +1087,11 @@ fun Model.twitchEventSubChannelSubscriptionGift(
         message = textWithMessage
     )
     macrosEventOccurred(
-        MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchGiftSubscription")!!, amount = event.total)
+        MacroEvent(
+            event = SettingsMacrosEvent.fromRawValue("twitchGiftSubscription")!!,
+            amount = event.total,
+            variables = mutableMapOf(macroVariableFromRawValue("twitchGiftSubscriptionUser") to user)
+        )
     )
     latestSubscriber = user
 }
@@ -1101,7 +1139,11 @@ fun Model.twitchEventSubChannelSubscriptionMessage(
         message = textWithMessage
     )
     macrosEventOccurred(
-        MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchResubscription")!!, amount = event.cumulative_months)
+        MacroEvent(
+            event = SettingsMacrosEvent.fromRawValue("twitchResubscription")!!,
+            amount = event.cumulative_months,
+            variables = mutableMapOf(macroVariableFromRawValue("twitchResubscriptionUser") to event.user_name)
+        )
     )
     latestSubscriber = event.user_name
 }
@@ -1145,7 +1187,12 @@ fun Model.twitchEventSubChannelSubscriptionUpgrade(
         username = event.user_name,
         message = textWithMessage
     )
-    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchSubscription")!!))
+    macrosEventOccurred(
+        MacroEvent(
+            event = SettingsMacrosEvent.fromRawValue("twitchSubscription")!!,
+            variables = mutableMapOf(macroVariableFromRawValue("twitchSubscriptionUser") to event.user_name)
+        )
+    )
     latestSubscriber = event.user_name
 }
 
@@ -1176,7 +1223,11 @@ fun Model.twitchEventSubChannelWatchStreak(
         )
     }
     macrosEventOccurred(
-        MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchWatchStreak")!!, amount = event.streak_count)
+        MacroEvent(
+            event = SettingsMacrosEvent.fromRawValue("twitchWatchStreak")!!,
+            amount = event.streak_count,
+            variables = mutableMapOf(macroVariableFromRawValue("twitchWatchStreakUser") to event.user_name)
+        )
     )
 }
 
@@ -1207,7 +1258,11 @@ fun Model.twitchEventSubChannelPointsCustomRewardRedemptionAdd(
         message = text
     )
     macrosEventOccurred(
-        MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchReward")!!, text = event.reward.title)
+        MacroEvent(
+            event = SettingsMacrosEvent.fromRawValue("twitchReward")!!,
+            text = event.reward.title,
+            variables = mutableMapOf(macroVariableFromRawValue("twitchRewardUser") to event.user_name)
+        )
     )
 }
 
@@ -1250,7 +1305,16 @@ fun Model.twitchEventSubChannelRaid(event: TwitchEventSubChannelRaidEvent) {
             username = event.from_broadcaster_user_name,
             message = textWithMessage
         )
-        macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchRaid")!!, amount = event.viewers))
+        macrosEventOccurred(
+            MacroEvent(
+                event = SettingsMacrosEvent.fromRawValue("twitchRaid")!!,
+                amount = event.viewers,
+                variables = mutableMapOf(
+                    macroVariableFromRawValue("twitchRaidChannelId") to event.from_broadcaster_user_id,
+                    macroVariableFromRawValue("twitchRaidChannelName") to event.from_broadcaster_user_name
+                )
+            )
+        )
     }
 }
 
@@ -1279,7 +1343,13 @@ fun Model.twitchEventSubChannelCheer(event: TwitchEventSubChannelCheerEvent) {
         username = user,
         message = message
     )
-    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.fromRawValue("twitchCheer")!!, amount = event.bits))
+    macrosEventOccurred(
+        MacroEvent(
+            event = SettingsMacrosEvent.fromRawValue("twitchCheer")!!,
+            amount = event.bits,
+            variables = mutableMapOf(macroVariableFromRawValue("twitchCheerUser") to user)
+        )
+    )
 }
 
 fun Model.twitchEventSubChannelHypeTrainBegin(event: TwitchEventSubChannelHypeTrainBeginEvent) {
@@ -1450,6 +1520,20 @@ fun Model.twitchEventSubChannelModerate(event: TwitchEventSubChannelModerateEven
         }
         "unraid" -> twitchRaidCancelled()
     }
+}
+
+fun Model.twitchEventSubChannelShoutoutCreate(event: TwitchEventSubChannelShoutoutCreateEvent) {
+    appendTwitchChatAlertMessage(
+        user = event.moderator_user_name,
+        segments = makeTwitchAlertSegments(
+            text = localized("gave a shoutout to ${event.to_broadcaster_user_name}!")
+        ),
+        title = localized("Shoutout sent"),
+        color = Color(0xFFFF9500),
+        image = "megaphone",
+        kind = TODO("no ChatHighlightKind case for other"),
+        sharedChat = null
+    )
 }
 
 fun Model.twitchEventSubUnauthorized() {

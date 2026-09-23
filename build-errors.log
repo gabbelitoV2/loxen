@@ -1,10 +1,9 @@
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeLiveChat.kt:11:35 Unresolved reference 'Platform'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeLiveChat.kt:460:15 Unresolved reference 'appendChatMessage'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeLiveChat.kt:461:24 Unresolved reference 'Platform'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeLiveChat.kt:467:26 Cannot infer type for this parameter. Specify it explicitly.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelSoop.kt:29:44 Unresolved reference 'StreamingPlatform'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelSoop.kt:31:44 Unresolved reference 'StreamingPlatform'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/various/model/ModelSoop.kt:55:76 Unresolved reference 'ChatPlatform'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt:6:43 Unresolved reference 'AuthError'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt:7:43 Unresolved reference 'Error'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt:9:43 Unresolved reference 'Success'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt:700:9 'when' expression must be exhaustive. Add the 'AuthError', 'Error', 'is Success<*>' branches or an 'else' branch.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt:701:16 Unresolved reference 'Success'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt:708:16 Unresolved reference 'AuthError'.
 
 FAILURE: Build failed with an exception.
 
@@ -19,4 +18,4 @@ Execution failed for task ':app:compileDebugKotlin'.
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 6s
+BUILD FAILED in 48s

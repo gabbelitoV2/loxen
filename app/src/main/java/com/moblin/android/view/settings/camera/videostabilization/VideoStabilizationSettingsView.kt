@@ -42,7 +42,7 @@ fun VideoStabilizationSettingsView(
         if (modeState != applied) {
             applied = modeState
             model.database.videoStabilizationMode = modeState
-            model.reattachCamera()
+            model.attachCamera()
             onModeChange(modeState)
         }
     }

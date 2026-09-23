@@ -244,6 +244,18 @@ fun lutEffectConvertLut(image: Bitmap): Pair<Float, ByteArray> {
             }
         }
     }
+    if (dimension > 64) {
+        val bigLut = (0 until numberOutputOfComponents step 4).map { index ->
+            SIMD3(cube[index], cube[index + 1], cube[index + 2])
+        }
+        val lut64 = convertLutTo64(bigLut = bigLut, bigDimension = dimension)
+        return Pair(
+            64f,
+            makeCubeData(
+                lut64.map { entry -> LutEntry(red = entry.x, green = entry.y, blue = entry.z) },
+            ),
+        )
+    }
     return Pair(dimension.toFloat(), floatArrayToByteArray(cube))
 }
 

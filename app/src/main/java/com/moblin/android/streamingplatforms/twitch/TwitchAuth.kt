@@ -41,6 +41,7 @@ private val scopes = listOf(
     "moderator:manage:banned_users",
     "moderator:manage:chat_settings",
     "moderator:manage:announcements",
+    "moderator:manage:shoutouts",
     "channel:moderate",
     "channel:read:subscriptions",
     "channel:read:redemptions",
