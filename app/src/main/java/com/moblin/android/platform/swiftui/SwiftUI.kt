@@ -46,6 +46,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -1200,12 +1201,21 @@ private fun Modifier.blockPointerInput(): Modifier = pointerInput(Unit) {
 @Composable
 private fun hairline(): Dp = with(LocalDensity.current) { 1.toDp() }
 
+private val LocalHostSafeArea = staticCompositionLocalOf<WindowInsets?> { null }
+
+@Composable
+private fun hostSafeArea(): WindowInsets {
+    val host = LocalHostSafeArea.current ?: return WindowInsets.safeDrawing
+    return host.union(WindowInsets.safeDrawing)
+}
+
 @Composable
 private fun PresentationDialog(
     state: MutableTransitionState<Boolean>,
     onBack: () -> Unit,
     content: @Composable AnimatedVisibilityScope.() -> Unit,
 ) {
+    val hostSafeArea = LocalHostSafeArea.current ?: WindowInsets.safeDrawing
     Dialog(
         onDismissRequest = onBack,
         properties = DialogProperties(
@@ -1219,13 +1229,31 @@ private fun PresentationDialog(
         SideEffect {
             window?.setDimAmount(0f)
             window?.setWindowAnimations(0)
+            window?.setLayout(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+            )
+            if (window != null && android.os.Build.VERSION.SDK_INT >= 30) {
+                val attributes = window.attributes
+                if (attributes.fitInsetsTypes != 0 ||
+                    attributes.layoutInDisplayCutoutMode !=
+                    android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                ) {
+                    attributes.fitInsetsTypes = 0
+                    attributes.layoutInDisplayCutoutMode =
+                        android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+                    window.attributes = attributes
+                }
+            }
         }
-        AnimatedVisibility(
-            visibleState = state,
-            enter = EnterTransition.None,
-            exit = ExitTransition.None,
-            content = content,
-        )
+        CompositionLocalProvider(LocalHostSafeArea provides hostSafeArea) {
+            AnimatedVisibility(
+                visibleState = state,
+                enter = EnterTransition.None,
+                exit = ExitTransition.None,
+                content = content,
+            )
+        }
     }
 }
 
@@ -1299,7 +1327,7 @@ fun Sheet(isPresented: Boolean, onDismissRequest: () -> Unit, content: @Composab
                             exit = slideOutVertically(tween(300, easing = presentationEasing)) { it },
                         )
                         .windowInsetsPadding(
-                            WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                            hostSafeArea().only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
                         )
                         .padding(top = 10.dp)
                         .widthIn(max = 700.dp)
@@ -1307,7 +1335,7 @@ fun Sheet(isPresented: Boolean, onDismissRequest: () -> Unit, content: @Composab
                         .clip(RoundedCornerShape(topStart = formCornerRadius, topEnd = formCornerRadius))
                         .background(palette.groupedBackground)
                         .blockPointerInput()
-                        .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)),
+                        .windowInsetsPadding(hostSafeArea().only(WindowInsetsSides.Bottom)),
                 ) {
                     CompositionLocalProvider(
                         LocalNavigator provides null,
@@ -1384,7 +1412,7 @@ fun Alert(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .windowInsetsPadding(hostSafeArea())
                     .padding(16.dp),
                 contentAlignment = Alignment.Center,
             ) {
@@ -1669,7 +1697,7 @@ fun ConfirmationDialog(
                         enter = slideInVertically(tween(400, easing = presentationEasing)) { it },
                         exit = slideOutVertically(tween(250, easing = presentationEasing)) { it },
                     )
-                    .windowInsetsPadding(WindowInsets.safeDrawing)
+                    .windowInsetsPadding(hostSafeArea())
                     .padding(8.dp)
                     .widthIn(max = 400.dp)
                     .fillMaxWidth(),

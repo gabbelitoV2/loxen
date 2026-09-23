@@ -279,6 +279,7 @@ class Crawler:
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser()
     parser.add_argument("--adb", required=True)
     parser.add_argument("--serial", required=True)
