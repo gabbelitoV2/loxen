@@ -5,13 +5,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -23,19 +21,21 @@ import com.moblin.android.AppDelegate
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
-import com.moblin.android.platform.swiftui.FormButton
 import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsAlertsMediaGallery
 import com.moblin.android.various.settings.SettingsAlertsMediaGalleryItem
 import com.moblin.android.various.settings.SettingsWidgetAlertsAlert
-import com.moblin.android.various.utils.makeOffsets
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
@@ -113,10 +113,8 @@ fun CustomImageView(
                 }
             }
         }
-        if (showPicker) {
-            Sheet(onDismissRequest = { showPicker = false }) {
-                AlertPickerView(model = model, type = "gif")
-            }
+        Sheet(isPresented = showPicker, onDismissRequest = { showPicker = false }) {
+            AlertPickerView(model = model, type = "gif")
         }
     }
 }
@@ -126,7 +124,6 @@ fun ImageGalleryItemView(
     model: Model = LocalModel.current,
     image: SettingsAlertsMediaGalleryItem,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
-    onDelete: () -> Unit,
 ) {
     NavigationLink(
         destination = {
@@ -138,10 +135,6 @@ fun ImageGalleryItemView(
         },
     ) {
         Text(image.name)
-        Spacer(Modifier.weight(1f))
-        FormButton(title = "Delete", destructive = true) {
-            onDelete()
-        }
     }
 }
 
@@ -154,26 +147,31 @@ fun ImageGalleryView(
     onImageIdChange: (UUID) -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    fun deleteImage(index: Int) {
-        gallery.customImages = gallery.customImages.toMutableList().also { it.removeAt(index) }
+    fun deleteImage(offsets: IndexSet) {
+        gallery.customImages = gallery.customImages.removing(atOffsets = offsets)
         model.fixAlertMedias()
         onImageIdChange(alert.imageId)
     }
 
     Form(title = localized("My images")) {
         Section(footerContent = { SwipeLeftToDeleteHelpView(localized("an image")) }) {
-            gallery.customImages.forEach { image ->
-                key(image.id) {
+            ForEach(
+                gallery.customImages,
+                id = { it.id },
+                onDelete = { deleteImage(it) },
+            ) { image ->
+                ContextMenuDeleteButton(
+                    action = {
+                        val index = gallery.customImages.indexOfFirst { it.id == image.id }
+                        if (index >= 0) {
+                            deleteImage(setOf(index))
+                        }
+                    },
+                ) {
                     ImageGalleryItemView(
                         model = model,
                         image = image,
                         onNavigate = onNavigate,
-                        onDelete = {
-                            val index = gallery.customImages.indexOfFirst { it.id == image.id }
-                            if (index >= 0) {
-                                deleteImage(index)
-                            }
-                        },
                     )
                 }
             }

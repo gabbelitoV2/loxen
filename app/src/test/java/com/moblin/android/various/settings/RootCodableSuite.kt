@@ -1,5 +1,7 @@
 package com.moblin.android.various.settings
 
+import androidx.compose.runtime.snapshots.Snapshot
+import androidx.compose.ui.graphics.Color
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.platform.codable.codableJson
 import com.moblin.android.platform.codable.decode
@@ -65,6 +67,32 @@ private inline fun <reified T> assertRawValue(value: T, rawValue: String) {
 private inline fun <reified T> assertUnknownRawValueFallsBack(default: T) {
     val container = codableJson.parseToJsonElement("{\"value\":\"No such raw value\"}").jsonObject
     assertEquals(default, container.decode("value", default))
+}
+
+private fun observedReads(read: () -> Any?): Set<Any> {
+    val reads = mutableSetOf<Any>()
+    Snapshot.observe(readObserver = { reads.add(it) }) {
+        read()
+    }
+    return reads
+}
+
+private fun observedWrites(write: () -> Unit): Set<Any> {
+    val writes = mutableSetOf<Any>()
+    val snapshot = Snapshot.takeMutableSnapshot(writeObserver = { writes.add(it) })
+    try {
+        snapshot.enter(write)
+        snapshot.apply().check()
+    } finally {
+        snapshot.dispose()
+    }
+    return writes
+}
+
+private fun assertPublished(read: () -> Any?, write: () -> Unit) {
+    val reads = observedReads(read)
+    assertTrue(reads.isNotEmpty())
+    assertTrue(observedWrites(write).any { it in reads })
 }
 
 @RunWith(RobolectricTestRunner::class)
@@ -1015,5 +1043,71 @@ class RootCodableSuite {
         assertFailsWith<Exception> { decodeFromString(SettingsShow.serializer(), "[]") }
         val container = JsonObject(mapOf("show" to codableJson.parseToJsonElement("[]")))
         assertTrue(container.decode("show", SettingsShow.serializer(), SettingsShow(chat = false)).chat.not())
+    }
+
+    @Test
+    fun publishedPropertiesAreObservable() {
+        val database = Database()
+        assertPublished({ database.show.chat }) { database.show.chat = false }
+        assertPublished({ database.tapToFocus }) { database.tapToFocus = true }
+        assertPublished({ database.appMode }) { database.appMode = SettingsAppMode.chatPhone }
+        assertPublished({ database.savedWifiNetworks }) {
+            database.savedWifiNetworks = database.savedWifiNetworks + SettingsWiFi(ssid = "Home")
+        }
+        assertPublished({ database.zoom.speed }) { database.zoom.speed = 2.0f }
+        assertPublished({ database.zoom.switchToBack.enabled }) { database.zoom.switchToBack.enabled = true }
+        assertPublished({ database.color.diskLutsCube }) {
+            database.color.diskLutsCube = listOf(SettingsColorLut(type = SettingsColorLutType.diskCube))
+        }
+        assertPublished({ database.color.diskLutsCube[0].name }) { database.color.diskLutsCube[0].name = "LUT" }
+        assertPublished({ database.face.privacyMode }) { database.face.privacyMode = SettingsFacePrivacyMode.icon }
+        assertPublished({ database.beauty.settings }) { database.beauty.settings = SettingsBeautySettings.shape }
+        assertPublished({ database.replay.speed }) { database.replay.speed = SettingsReplaySpeed.oneHalf }
+        assertPublished({ database.tesla.bluetoothPeripheralId }) {
+            database.tesla.bluetoothPeripheralId = UUID.randomUUID()
+        }
+        assertPublished({ database.disconnectProtection.liveSceneId }) {
+            database.disconnectProtection.liveSceneId = UUID.randomUUID()
+        }
+        assertPublished({ database.wiFiAware.role }) { database.wiFiAware.role = SettingsWiFiAwareRole.receiver }
+        assertPublished({ database.webBrowser.bookmarks }) {
+            database.webBrowser.bookmarks = listOf(WebBrowserBookmarkSettings())
+        }
+        assertPublished({ database.alertsMediaGallery.customSounds }) {
+            database.alertsMediaGallery.customSounds = listOf(SettingsAlertsMediaGalleryItem(name = "Sound"))
+        }
+        val cooler = SettingsBlackSharkCoolerDevice()
+        assertPublished({ cooler.rgbLightColorColor }) { cooler.rgbLightColorColor = Color.Red }
+        assertPublished({ database.blackSharkCoolerDevices.devices }) {
+            database.blackSharkCoolerDevices.devices = listOf(cooler)
+        }
+        assertPublished({ database.zoom.back.size }) {
+            database.zoom.back.add(SettingsZoomPreset(name = "3x", x = 3.0f))
+        }
+        assertEquals("3x", database.zoom.back.last().name)
+        assertPublished({ database.zoom.back[0].x }) { database.zoom.back[0].x = 4.0f }
+        assertPublished({ database.bitratePresets.toList() }) {
+            database.bitratePresets.add(SettingsBitratePreset(bitrate = 1_000_000))
+        }
+        assertPublished({ database.bitratePresets[0].bitrate }) { database.bitratePresets[0].bitrate = 2_000_000 }
+        val player = SettingsMediaPlayer()
+        database.mediaPlayers.players = listOf(player)
+        assertPublished({ database.mediaPlayers.players.firstOrNull()?.playlist?.size }) {
+            player.playlist.add(SettingsMediaPlayerFile())
+        }
+        assertPublished({ player.name }) { player.name = "Player" }
+        database.workoutDevices.devices.add(SettingsWorkoutDevice())
+        assertPublished({ database.workoutDevices.devices.size }) { database.workoutDevices.devices.removeAt(0) }
+        assertTrue(database.workoutDevices.devices.isEmpty())
+        val source = mutableListOf(SettingsZoomPreset(name = "1x"))
+        database.zoom.front = source
+        source.clear()
+        assertEquals(1, database.zoom.front.size)
+        val decoded = decodeFromString(Database.serializer(), encodeToString(Database.serializer(), database))
+        assertEquals(database.zoom.back.map { it.name }, decoded.zoom.back.map { it.name })
+        assertEquals(database.bitratePresets.map { it.bitrate }, decoded.bitratePresets.map { it.bitrate })
+        assertTrue(decoded.tapToFocus)
+        assertEquals(SettingsAppMode.chatPhone, decoded.appMode)
+        assertPublished({ decoded.zoom.back.size }) { decoded.zoom.back.removeAt(0) }
     }
 }

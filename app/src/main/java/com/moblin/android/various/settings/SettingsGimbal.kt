@@ -4,6 +4,7 @@ import com.moblin.android.localized
 import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
 import com.moblin.android.various.utils.Named
 import java.util.UUID
 import kotlinx.serialization.KSerializer
@@ -15,13 +16,10 @@ import kotlinx.serialization.json.JsonObject
 class SettingsGimbalPreset : Named {
     var id: UUID = UUID.randomUUID()
 
-    override var name: String = baseName
-
-    var x: Float = 0f
-
-    var y: Float = 0f
-
-    var zoomX: Float = 1f
+    override var name: String by Published(baseName)
+    var x: Float by Published(0f)
+    var y: Float by Published(0f)
+    var zoomX: Float by Published(1f)
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -54,21 +52,14 @@ class SettingsGimbalPreset : Named {
 
 @Serializable(with = SettingsGimbal.Serializer::class)
 class SettingsGimbal {
-    var zoomSpeed: Float = zoomSpeedDefault
-
-    var naturalZoom: Boolean = true
-
-    var tracking: Boolean = true
-
-    var functionShutter: SettingsControllerFunction = SettingsControllerFunction.RECORD
-
-    var functionDataShutter: SettingsControllerFunctionData = SettingsControllerFunctionData()
-
-    var functionFlip: SettingsControllerFunction = SettingsControllerFunction.SWITCH_SCENE
-
-    var functionDataFlip: SettingsControllerFunctionData = SettingsControllerFunctionData()
-
-    var presets: List<SettingsGimbalPreset> = emptyList()
+    var zoomSpeed: Float by Published(zoomSpeedDefault)
+    var naturalZoom: Boolean by Published(true)
+    var tracking: Boolean by Published(true)
+    var functionShutter: SettingsControllerFunction by Published(SettingsControllerFunction.RECORD)
+    var functionDataShutter: SettingsControllerFunctionData by Published(SettingsControllerFunctionData())
+    var functionFlip: SettingsControllerFunction by Published(SettingsControllerFunction.SWITCH_SCENE)
+    var functionDataFlip: SettingsControllerFunctionData by Published(SettingsControllerFunctionData())
+    var presets: List<SettingsGimbalPreset> by Published(emptyList())
 
     fun encode(): JsonObject = encodeContainer {
         encode("zoomSpeed", zoomSpeed)
@@ -100,19 +91,23 @@ class SettingsGimbal {
             gimbal.naturalZoom = container.decode("naturalZoom", true)
             gimbal.tracking = container.decode("tracking", true)
             gimbal.functionShutter = container.decode("functionShutter", SettingsControllerFunction.RECORD)
-            gimbal.functionDataShutter.sceneId = container.decode<UUID?>("shutterSceneId", null)
-            gimbal.functionDataShutter.widgetId = container.decode<UUID?>("shutterWidgetId", null)
-            gimbal.functionDataShutter.gimbalPresetId = container.decode<UUID?>("shutterGimbalPresetId", null)
-            gimbal.functionDataShutter.gimbalMotion = container.decode("shutterMotion", SettingsGimbalMotion.KAPOW)
-            gimbal.functionDataShutter.macroId = container.decode<UUID?>("shutterMacroId", null)
-            gimbal.functionDataShutter.streamDeckLayoutId = container.decode<UUID?>("shutterStreamDeckLayoutId", null)
+            gimbal.functionDataShutter = SettingsControllerFunctionData(
+                sceneId = container.decode<UUID?>("shutterSceneId", null),
+                widgetId = container.decode<UUID?>("shutterWidgetId", null),
+                gimbalPresetId = container.decode<UUID?>("shutterGimbalPresetId", null),
+                gimbalMotion = container.decode("shutterMotion", SettingsGimbalMotion.KAPOW),
+                macroId = container.decode<UUID?>("shutterMacroId", null),
+                streamDeckLayoutId = container.decode<UUID?>("shutterStreamDeckLayoutId", null),
+            )
             gimbal.functionFlip = container.decode("functionFlip", SettingsControllerFunction.SWITCH_SCENE)
-            gimbal.functionDataFlip.sceneId = container.decode<UUID?>("flipSceneId", null)
-            gimbal.functionDataFlip.widgetId = container.decode<UUID?>("flipWidgetId", null)
-            gimbal.functionDataFlip.gimbalPresetId = container.decode<UUID?>("flipGimbalPresetId", null)
-            gimbal.functionDataFlip.gimbalMotion = container.decode("flipMotion", SettingsGimbalMotion.KAPOW)
-            gimbal.functionDataFlip.macroId = container.decode<UUID?>("flipMacroId", null)
-            gimbal.functionDataFlip.streamDeckLayoutId = container.decode<UUID?>("flipStreamDeckLayoutId", null)
+            gimbal.functionDataFlip = SettingsControllerFunctionData(
+                sceneId = container.decode<UUID?>("flipSceneId", null),
+                widgetId = container.decode<UUID?>("flipWidgetId", null),
+                gimbalPresetId = container.decode<UUID?>("flipGimbalPresetId", null),
+                gimbalMotion = container.decode("flipMotion", SettingsGimbalMotion.KAPOW),
+                macroId = container.decode<UUID?>("flipMacroId", null),
+                streamDeckLayoutId = container.decode<UUID?>("flipStreamDeckLayoutId", null),
+            )
             gimbal.presets = container.decode("presets", ListSerializer(SettingsGimbalPreset.serializer()), emptyList())
             return gimbal
         }

@@ -260,12 +260,12 @@ enum class SettingsControllerFunction(val rawValue: String) {
 }
 
 data class SettingsControllerFunctionData(
-    var sceneId: UUID? = null,
-    var widgetId: UUID? = null,
-    var gimbalPresetId: UUID? = null,
-    var gimbalMotion: SettingsGimbalMotion = SettingsGimbalMotion.KAPOW,
-    var macroId: UUID? = null,
-    var streamDeckLayoutId: UUID? = null,
+    val sceneId: UUID? = null,
+    val widgetId: UUID? = null,
+    val gimbalPresetId: UUID? = null,
+    val gimbalMotion: SettingsGimbalMotion = SettingsGimbalMotion.KAPOW,
+    val macroId: UUID? = null,
+    val streamDeckLayoutId: UUID? = null,
 )
 
 @Serializable(with = SettingsGameControllerButton.Serializer::class)
@@ -304,12 +304,14 @@ class SettingsGameControllerButton {
             button.name = container.decode("name", "")
             button.text = container.decode("text", "")
             button.function.value = container.decode("function", SettingsControllerFunction.UNUSED)
-            button.functionData.value.sceneId = container.decode<UUID?>("sceneId", null)
-            button.functionData.value.widgetId = container.decode<UUID?>("widgetId", null)
-            button.functionData.value.gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null)
-            button.functionData.value.gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW)
-            button.functionData.value.macroId = container.decode<UUID?>("macroId", null)
-            button.functionData.value.streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null)
+            button.functionData.value = SettingsControllerFunctionData(
+                sceneId = container.decode<UUID?>("sceneId", null),
+                widgetId = container.decode<UUID?>("widgetId", null),
+                gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null),
+                gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW),
+                macroId = container.decode<UUID?>("macroId", null),
+                streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null),
+            )
             return button
         }
     }

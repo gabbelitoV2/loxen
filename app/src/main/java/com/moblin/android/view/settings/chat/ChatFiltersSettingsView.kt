@@ -1,22 +1,28 @@
 package com.moblin.android.view.settings.chat
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.move
+import com.moblin.android.platform.swiftui.remove
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatFilter
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.AddButtonView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToRemoveHelpView
 import com.moblin.android.view.utils.TextEditView
@@ -96,8 +102,13 @@ private fun ChatFilterSettingsView(
     NavigationLink(
         destination = { ChatFilterFormView(filter = filter, onNavigate = onNavigate) },
     ) {
-        DraggableItemPrefixView()
-        TextItemLocalizedView(name = "Username", value = filter.username())
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            DraggableItemPrefixView()
+            TextItemLocalizedView(name = "Username", value = filter.username())
+        }
     }
 }
 
@@ -138,8 +149,6 @@ private fun ChatFiltersFormView(
     chat: SettingsChat,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val filters = chat.filters
-
     Form(title = localized("Filters")) {
         Section(
             footerContent = {
@@ -150,8 +159,21 @@ private fun ChatFiltersFormView(
                 }
             },
         ) {
-            for (filter in filters) {
-                key(filter.id) {
+            ForEach(
+                chat.filters,
+                id = { it.id },
+                onDelete = { offsets ->
+                    chat.filters.remove(atOffsets = offsets)
+                },
+                onMove = { froms, to ->
+                    chat.filters.move(fromOffsets = froms, toOffset = to)
+                },
+            ) { filter ->
+                ContextMenuDeleteButton(
+                    action = {
+                        chat.filters.removeAll { it.id == filter.id }
+                    },
+                ) {
                     ChatFilterSettingsView(filter = filter, onNavigate = onNavigate)
                 }
             }
@@ -195,32 +217,4 @@ private fun ChatFilterMessageStartEditView(
             filter.messageStart = filter.messageStartWords.joinToString(" ")
         },
     )
-}
-
-private fun deleteFilters(
-    chat: SettingsChat,
-    offsets: List<Int>,
-) {
-    val current = chat.filters.toMutableList()
-    offsets.sortedDescending().forEach { current.removeAt(it) }
-    chat.filters.clear()
-    chat.filters.addAll(current)
-}
-
-private fun moveFilters(
-    chat: SettingsChat,
-    froms: List<Int>,
-    to: Int,
-) {
-    val current = chat.filters.toMutableList()
-    val moving = froms.sorted().mapNotNull { current.getOrNull(it) }
-    froms.sortedDescending().forEach { index ->
-        if (index in current.indices) {
-            current.removeAt(index)
-        }
-    }
-    val destination = (to - froms.count { it < to }).coerceIn(0, current.size)
-    current.addAll(destination, moving)
-    chat.filters.clear()
-    chat.filters.addAll(current)
 }

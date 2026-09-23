@@ -10,6 +10,8 @@ import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.decodeIfPresent
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
+import com.moblin.android.platform.swiftui.PublishedList
 import com.moblin.android.streamingplatforms.kick.storeKickAccessTokenInKeychain
 import com.moblin.android.streamingplatforms.twitch.storeTwitchAccessTokenInKeychain
 import com.moblin.android.streamingplatforms.youtube.YouTubeApiLiveBroadcaseVisibility
@@ -567,7 +569,7 @@ class SettingsStreamSrtAdaptiveBitrateBelaboxSettings(
 
 @Serializable(with = SettingsStreamSrtAdaptiveBitrate.Serializer::class)
 class SettingsStreamSrtAdaptiveBitrate(
-    var algorithm: SettingsStreamSrtAdaptiveBitrateAlgorithm =
+    algorithm: SettingsStreamSrtAdaptiveBitrateAlgorithm =
         SettingsStreamSrtAdaptiveBitrateAlgorithm.belabox,
     var fastIrlSettings: SettingsStreamSrtAdaptiveBitrateFastIrlSettings =
         SettingsStreamSrtAdaptiveBitrateFastIrlSettings(),
@@ -576,6 +578,8 @@ class SettingsStreamSrtAdaptiveBitrate(
     var belaboxSettings: SettingsStreamSrtAdaptiveBitrateBelaboxSettings =
         SettingsStreamSrtAdaptiveBitrateBelaboxSettings(),
 ) {
+    var algorithm: SettingsStreamSrtAdaptiveBitrateAlgorithm by Published(algorithm)
+
     fun encode(): JsonObject = encodeContainer {
         encode("algorithm", algorithm)
         encode("fastIrlSettings", fastIrlSettings)
@@ -624,20 +628,27 @@ class SettingsStreamSrtAdaptiveBitrate(
 
 @Serializable(with = SettingsStreamSrt.Serializer::class)
 class SettingsStreamSrt(
-    var latency: Int = defaultSrtLatency,
-    var maximumBandwidthFollowInput: Boolean = true,
+    latency: Int = defaultSrtLatency,
+    maximumBandwidthFollowInput: Boolean = true,
     var overheadBandwidth: Int = 25,
-    var adaptiveBitrateEnabled: Boolean = true,
+    adaptiveBitrateEnabled: Boolean = true,
     var adaptiveBitrate: SettingsStreamSrtAdaptiveBitrate = SettingsStreamSrtAdaptiveBitrate(),
     var connectionPriorities: SettingsStreamSrtConnectionPriorities =
         SettingsStreamSrtConnectionPriorities(),
     var mpegtsPacketsPerPacketRemove: Int = 7,
-    var dnsLookupStrategy: SettingsDnsLookupStrategy = SettingsDnsLookupStrategy.system,
-    var implementation: SettingsStreamSrtImplementation = SettingsStreamSrtImplementation.moblin,
-    var bigPackets: Boolean = true,
+    dnsLookupStrategy: SettingsDnsLookupStrategy = SettingsDnsLookupStrategy.system,
+    implementation: SettingsStreamSrtImplementation = SettingsStreamSrtImplementation.moblin,
+    bigPackets: Boolean = true,
     var bigPacketsMigrated: Boolean = false,
     var implemenationMigrated: Boolean = false,
 ) {
+    var latency: Int by Published(latency)
+    var maximumBandwidthFollowInput: Boolean by Published(maximumBandwidthFollowInput)
+    var adaptiveBitrateEnabled: Boolean by Published(adaptiveBitrateEnabled)
+    var dnsLookupStrategy: SettingsDnsLookupStrategy by Published(dnsLookupStrategy)
+    var implementation: SettingsStreamSrtImplementation by Published(implementation)
+    var bigPackets: Boolean by Published(bigPackets)
+
     fun encode(): JsonObject = encodeContainer {
         encode("latency", latency)
         encode("maximumBandwidthFollowInput", maximumBandwidthFollowInput)
@@ -789,8 +800,8 @@ class SettingsStreamRist(
 
 @Serializable(with = SettingsHttpHeader.Serializer::class)
 data class SettingsHttpHeader(
-    var name: String = "",
-    var value: String = "",
+    val name: String = "",
+    val value: String = "",
 ) {
     fun encode(): JsonObject = encodeContainer {
         encode("name", name)
@@ -799,12 +810,12 @@ data class SettingsHttpHeader(
 
     companion object {
         fun decode(container: JsonObject): SettingsHttpHeader {
-            val header = SettingsHttpHeader()
-            header.name = container.decodeIfPresent<String>("name")
-                ?: throw SerializationException("Missing key 'name'")
-            header.value = container.decodeIfPresent<String>("value")
-                ?: throw SerializationException("Missing key 'value'")
-            return header
+            return SettingsHttpHeader(
+                name = container.decodeIfPresent<String>("name")
+                    ?: throw SerializationException("Missing key 'name'"),
+                value = container.decodeIfPresent<String>("value")
+                    ?: throw SerializationException("Missing key 'value'"),
+            )
         }
     }
 
@@ -854,9 +865,12 @@ enum class SettingsStreamWhipHttpTransport {
 
 @Serializable(with = SettingsStreamWhip.Serializer::class)
 class SettingsStreamWhip(
-    var headers: MutableList<SettingsHttpHeader> = mutableListOf(),
-    var httpTransport: SettingsStreamWhipHttpTransport = SettingsStreamWhipHttpTransport.standard,
+    headers: MutableList<SettingsHttpHeader> = mutableListOf(),
+    httpTransport: SettingsStreamWhipHttpTransport = SettingsStreamWhipHttpTransport.standard,
 ) {
+    var headers: MutableList<SettingsHttpHeader> by PublishedList(headers)
+    var httpTransport: SettingsStreamWhipHttpTransport by Published(httpTransport)
+
     fun encode(): JsonObject = encodeContainer {
         encode("headers", headers)
         encode("httpTransport", httpTransport)
@@ -931,19 +945,32 @@ class SettingsStreamChat(
 
 @Serializable(with = SettingsStreamRecording.Serializer::class)
 class SettingsStreamRecording(
-    var overrideStream: Boolean = false,
-    var resolution: SettingsStreamResolution = SettingsStream.defaultResolution,
-    var fps: Int = SettingsStream.defaultFps,
-    var videoCodec: SettingsStreamCodec = SettingsStreamCodec.h265hevc,
-    var videoBitrate: Int = 0,
-    var maxKeyFrameInterval: Int = 0,
-    var audioBitrate: Int = 128_000,
-    var autoStartRecording: Boolean = false,
-    var autoStopRecording: Boolean = false,
-    var cleanRecordings: Boolean = false,
-    var cleanSnapshots: Boolean = false,
-    var recordingPath: ByteArray? = null,
+    overrideStream: Boolean = false,
+    resolution: SettingsStreamResolution = SettingsStream.defaultResolution,
+    fps: Int = SettingsStream.defaultFps,
+    videoCodec: SettingsStreamCodec = SettingsStreamCodec.h265hevc,
+    videoBitrate: Int = 0,
+    maxKeyFrameInterval: Int = 0,
+    audioBitrate: Int = 128_000,
+    autoStartRecording: Boolean = false,
+    autoStopRecording: Boolean = false,
+    cleanRecordings: Boolean = false,
+    cleanSnapshots: Boolean = false,
+    recordingPath: ByteArray? = null,
 ) {
+    var overrideStream: Boolean by Published(overrideStream)
+    var resolution: SettingsStreamResolution by Published(resolution)
+    var fps: Int by Published(fps)
+    var videoCodec: SettingsStreamCodec by Published(videoCodec)
+    var videoBitrate: Int by Published(videoBitrate)
+    var maxKeyFrameInterval: Int by Published(maxKeyFrameInterval)
+    var audioBitrate: Int by Published(audioBitrate)
+    var autoStartRecording: Boolean by Published(autoStartRecording)
+    var autoStopRecording: Boolean by Published(autoStopRecording)
+    var cleanRecordings: Boolean by Published(cleanRecordings)
+    var cleanSnapshots: Boolean by Published(cleanSnapshots)
+    var recordingPath: ByteArray? by Published(recordingPath)
+
     fun encode(): JsonObject = encodeContainer {
         encode("overrideStream", overrideStream)
         encode("resolution", resolution)
@@ -1032,10 +1059,14 @@ class SettingsStreamRecording(
 
 @Serializable(with = SettingsStreamPreviewStream.Serializer::class)
 class SettingsStreamPreviewStream(
-    var url: String = "",
-    var resolution: SettingsStreamResolution = SettingsStreamResolution.r640x360,
-    var bitrate: Int = 500_000,
+    url: String = "",
+    resolution: SettingsStreamResolution = SettingsStreamResolution.r640x360,
+    bitrate: Int = 500_000,
 ) {
+    var url: String by Published(url)
+    var resolution: SettingsStreamResolution by Published(resolution)
+    var bitrate: Int by Published(bitrate)
+
     fun encode(): JsonObject = encodeContainer {
         encode("url", url)
         encode("resolution", resolution)
@@ -1098,9 +1129,9 @@ enum class SettingsStreamReplayTransitionType(val rawValue: String) {
 
 @Serializable(with = SettingsStreamReplayStinger.Serializer::class)
 data class SettingsStreamReplayStinger(
-    var id: UUID = UUID.randomUUID(),
-    var name: String = "",
-    var transitionPoint: Double = 0.5,
+    val id: UUID = UUID.randomUUID(),
+    val name: String = "",
+    val transitionPoint: Double = 0.5,
 ) {
     fun makeFilename(): String? {
         val path = runCatching { URI("file:///$name").path ?: "" }.getOrElse { return null }
@@ -1116,14 +1147,14 @@ data class SettingsStreamReplayStinger(
 
     companion object {
         fun decode(container: JsonObject): SettingsStreamReplayStinger {
-            val stinger = SettingsStreamReplayStinger()
-            stinger.id = container.decodeIfPresent<UUID>("id")
-                ?: throw SerializationException("Missing key 'id'")
-            stinger.name = container.decodeIfPresent<String>("name")
-                ?: throw SerializationException("Missing key 'name'")
-            stinger.transitionPoint = container.decodeIfPresent<Double>("transitionPoint")
-                ?: throw SerializationException("Missing key 'transitionPoint'")
-            return stinger
+            return SettingsStreamReplayStinger(
+                id = container.decodeIfPresent<UUID>("id")
+                    ?: throw SerializationException("Missing key 'id'"),
+                name = container.decodeIfPresent<String>("name")
+                    ?: throw SerializationException("Missing key 'name'"),
+                transitionPoint = container.decodeIfPresent<Double>("transitionPoint")
+                    ?: throw SerializationException("Missing key 'transitionPoint'"),
+            )
         }
     }
 
@@ -1136,11 +1167,11 @@ data class SettingsStreamReplayStinger(
 
 @Serializable(with = SettingsStreamReplay.Serializer::class)
 class SettingsStreamReplay(
-    var enabled: Boolean = false,
-    var transitionType: SettingsStreamReplayTransitionType = SettingsStreamReplayTransitionType.fade,
-    var inStinger: SettingsStreamReplayStinger = SettingsStreamReplayStinger(),
-    var outStinger: SettingsStreamReplayStinger = SettingsStreamReplayStinger(),
-    var postTriggerDelay: Int = 3,
+    enabled: Boolean = false,
+    transitionType: SettingsStreamReplayTransitionType = SettingsStreamReplayTransitionType.fade,
+    inStinger: SettingsStreamReplayStinger = SettingsStreamReplayStinger(),
+    outStinger: SettingsStreamReplayStinger = SettingsStreamReplayStinger(),
+    postTriggerDelay: Int = 3,
     var x: Double = 0.0,
     var y: Double = 0.0,
     var size: Double = 100.0,
@@ -1149,24 +1180,31 @@ class SettingsStreamReplay(
     var enterForegroundCountAtLatestUsage: Int? = null,
     var fade: Boolean? = null,
 ) {
-    var layout: SettingsWidgetLayout = SettingsWidgetLayout()
+    var enabled: Boolean by Published(enabled)
+    var transitionType: SettingsStreamReplayTransitionType by Published(transitionType)
+    var inStinger: SettingsStreamReplayStinger by Published(inStinger)
+    var outStinger: SettingsStreamReplayStinger by Published(outStinger)
+    var postTriggerDelay: Int by Published(postTriggerDelay)
+    var layout: SettingsWidgetLayout by Published(SettingsWidgetLayout())
 
     init {
         if (fade != null) {
-            transitionType = if (fade == true) {
+            this.transitionType = if (fade == true) {
                 SettingsStreamReplayTransitionType.fade
             } else {
                 SettingsStreamReplayTransitionType.none
             }
         }
-        layout.x = x
-        layout.updateXString()
-        layout.y = y
-        layout.updateYString()
-        layout.size = size
-        layout.updateSizeString()
-        layout.alignment = alignment
-        layout.positioningLock = positioningLock
+        layout = SettingsWidgetLayout(
+            x = x,
+            xString = x.toString(),
+            y = y,
+            yString = y.toString(),
+            size = size,
+            sizeString = size.toString(),
+            alignment = alignment,
+            positioningLock = positioningLock,
+        )
     }
 
     fun encode(): JsonObject = encodeContainer {
@@ -1234,14 +1272,19 @@ class SettingsStreamReplay(
                 SettingsStreamReplayStinger(),
             )
             replay.postTriggerDelay = container.decode("postTriggerDelay", 3)
-            replay.layout.x = container.decode("x", 0.0)
-            replay.layout.updateXString()
-            replay.layout.y = container.decode("y", 0.0)
-            replay.layout.updateYString()
-            replay.layout.size = container.decode("size", 100.0)
-            replay.layout.updateSizeString()
-            replay.layout.alignment = container.decode("alignment", SettingsAlignment.topLeft)
-            replay.layout.positioningLock = container.decode("positioningLock", false)
+            val x = container.decode("x", 0.0)
+            val y = container.decode("y", 0.0)
+            val size = container.decode("size", 100.0)
+            replay.layout = SettingsWidgetLayout(
+                x = x,
+                xString = x.toString(),
+                y = y,
+                yString = y.toString(),
+                size = size,
+                sizeString = size.toString(),
+                alignment = container.decode("alignment", SettingsAlignment.topLeft),
+                positioningLock = container.decode("positioningLock", false),
+            )
             replay.enterForegroundCountAtLatestUsage = container.decode<Int?>(
                 "enterForegroundCountAtLatestUsage",
                 null,
@@ -1345,10 +1388,13 @@ fun appendTwitchRaidChannel(
 
 @Serializable(with = SettingsStreamMultiStreamingDestination.Serializer::class)
 class SettingsStreamMultiStreamingDestination(
-    override var name: String = SettingsStreamMultiStreamingDestination.baseName,
-    var url: String = defaultRtmpStreamUrl,
-    var enabled: Boolean = false,
+    name: String = SettingsStreamMultiStreamingDestination.baseName,
+    url: String = defaultRtmpStreamUrl,
+    enabled: Boolean = false,
 ) : Named {
+    override var name: String by Published(name)
+    var url: String by Published(url)
+    var enabled: Boolean by Published(enabled)
     var id: UUID = UUID.randomUUID()
 
     companion object {
@@ -1386,8 +1432,10 @@ class SettingsStreamMultiStreamingDestination(
 
 @Serializable(with = SettingsStreamMultiStreaming.Serializer::class)
 class SettingsStreamMultiStreaming(
-    var destinations: MutableList<SettingsStreamMultiStreamingDestination> = mutableListOf(),
+    destinations: MutableList<SettingsStreamMultiStreamingDestination> = mutableListOf(),
 ) {
+    var destinations: MutableList<SettingsStreamMultiStreamingDestination> by PublishedList(destinations)
+
     fun encode(): JsonObject = encodeContainer {
         encode("destinations", destinations)
     }
@@ -1421,18 +1469,30 @@ class SettingsStreamMultiStreaming(
 
 @Serializable(with = SettingsTwitchAlerts.Serializer::class)
 class SettingsTwitchAlerts(
-    var follows: Boolean = true,
-    var subscriptions: Boolean = true,
-    var giftSubscriptions: Boolean = true,
-    var resubscriptions: Boolean = true,
-    var rewards: Boolean = true,
-    var raids: Boolean = true,
-    var cheers: Boolean = true,
-    var minimumCheerBits: Int = 0,
-    var watchStreaks: Boolean = true,
-    var minimumWatchStreak: Int = 5,
-    var sharedChat: Boolean = false,
+    follows: Boolean = true,
+    subscriptions: Boolean = true,
+    giftSubscriptions: Boolean = true,
+    resubscriptions: Boolean = true,
+    rewards: Boolean = true,
+    raids: Boolean = true,
+    cheers: Boolean = true,
+    minimumCheerBits: Int = 0,
+    watchStreaks: Boolean = true,
+    minimumWatchStreak: Int = 5,
+    sharedChat: Boolean = false,
 ) {
+    var follows: Boolean by Published(follows)
+    var subscriptions: Boolean by Published(subscriptions)
+    var giftSubscriptions: Boolean by Published(giftSubscriptions)
+    var resubscriptions: Boolean by Published(resubscriptions)
+    var rewards: Boolean by Published(rewards)
+    var raids: Boolean by Published(raids)
+    var cheers: Boolean by Published(cheers)
+    var minimumCheerBits: Int by Published(minimumCheerBits)
+    var watchStreaks: Boolean by Published(watchStreaks)
+    var minimumWatchStreak: Int by Published(minimumWatchStreak)
+    var sharedChat: Boolean by Published(sharedChat)
+
     fun encode(): JsonObject = encodeContainer {
         encode("follows", follows)
         encode("subscriptions", subscriptions)
@@ -1498,14 +1558,22 @@ class SettingsTwitchAlerts(
 
 @Serializable(with = SettingsKickAlerts.Serializer::class)
 class SettingsKickAlerts(
-    var subscriptions: Boolean = true,
-    var giftedSubscriptions: Boolean = true,
-    var rewards: Boolean = true,
-    var hosts: Boolean = true,
-    var bans: Boolean = true,
-    var kicks: Boolean = true,
-    var minimumKicks: Int = 0,
+    subscriptions: Boolean = true,
+    giftedSubscriptions: Boolean = true,
+    rewards: Boolean = true,
+    hosts: Boolean = true,
+    bans: Boolean = true,
+    kicks: Boolean = true,
+    minimumKicks: Int = 0,
 ) {
+    var subscriptions: Boolean by Published(subscriptions)
+    var giftedSubscriptions: Boolean by Published(giftedSubscriptions)
+    var rewards: Boolean by Published(rewards)
+    var hosts: Boolean by Published(hosts)
+    var bans: Boolean by Published(bans)
+    var kicks: Boolean by Published(kicks)
+    var minimumKicks: Int by Published(minimumKicks)
+
     fun encode(): JsonObject = encodeContainer {
         encode("subscriptions", subscriptions)
         encode("giftedSubscriptions", giftedSubscriptions)
@@ -1555,11 +1623,11 @@ class SettingsKickAlerts(
 
 @Serializable(with = SettingsStream.Serializer::class)
 class SettingsStream(
-    override var name: String = "My stream",
+    name: String = "My stream",
     var id: UUID = UUID.randomUUID(),
     var enabled: Boolean = false,
-    var url: String = defaultStreamUrl,
-    var twitchChannelName: String = "",
+    url: String = defaultStreamUrl,
+    twitchChannelName: String = "",
     var twitchChannelId: String = "",
     var twitchShowFollows: Boolean? = null,
     var twitchChatAlerts: SettingsTwitchAlerts = SettingsTwitchAlerts(),
@@ -1569,37 +1637,37 @@ class SettingsStream(
     var twitchWantsToBeLoggedIn: Boolean = false,
     var twitchNotLoggedInCount: Int = 0,
     var twitchRewards: MutableList<SettingsStreamTwitchReward> = mutableListOf(),
-    var twitchRaidsSent: MutableList<SettingsStreamTwitchRaidChannel> = mutableListOf(),
-    var twitchRaidsReceived: MutableList<SettingsStreamTwitchRaidChannel> = mutableListOf(),
-    var twitchSendMessagesTo: Boolean = true,
-    var kickChannelName: String = "",
-    var kickChannelId: String? = null,
-    var kickChatroomChannelId: String? = null,
-    var kickSlug: String? = null,
+    twitchRaidsSent: MutableList<SettingsStreamTwitchRaidChannel> = mutableListOf(),
+    twitchRaidsReceived: MutableList<SettingsStreamTwitchRaidChannel> = mutableListOf(),
+    twitchSendMessagesTo: Boolean = true,
+    kickChannelName: String = "",
+    kickChannelId: String? = null,
+    kickChatroomChannelId: String? = null,
+    kickSlug: String? = null,
     var kickAccessToken: String = "",
-    var kickLoggedIn: Boolean = false,
+    kickLoggedIn: Boolean = false,
     var kickWantsToBeLoggedIn: Boolean = false,
     var kickNotLoggedInCount: Int = 0,
-    var kickSendMessagesTo: Boolean = true,
+    kickSendMessagesTo: Boolean = true,
     var kickChatAlerts: SettingsKickAlerts = SettingsKickAlerts(),
     var kickToastAlerts: SettingsKickAlerts = SettingsKickAlerts(),
-    var youTubeAuthState: Any? = null,
+    youTubeAuthState: Any? = null,
     var youTubeWantsToBeLoggedIn: Boolean = false,
     var youTubeNotLoggedInCount: Int = 0,
-    var youTubeVideoIds: String = "",
-    var youTubeHandle: String = "",
-    var youTubeScheduleStreamTitle: String = "",
-    var youTubeScheduleStreamVisibility: YouTubeApiLiveBroadcaseVisibility =
+    youTubeVideoIds: String = "",
+    youTubeHandle: String = "",
+    youTubeScheduleStreamTitle: String = "",
+    youTubeScheduleStreamVisibility: YouTubeApiLiveBroadcaseVisibility =
         YouTubeApiLiveBroadcaseVisibility.public,
-    var youTubeScheduleStreamAutoStop: Boolean = true,
-    var soopChannelName: String = "",
+    youTubeScheduleStreamAutoStop: Boolean = true,
+    soopChannelName: String = "",
     var soopStreamId: String = "",
     var openStreamingPlatformUrl: String = "",
     var openStreamingPlatformChannelId: String = "",
-    var obsWebSocketEnabled: Boolean = false,
+    obsWebSocketEnabled: Boolean = false,
     var obsWebSocketUrl: String = "",
     var obsWebSocketPassword: String = "",
-    var obsSourceName: String = "",
+    obsSourceName: String = "",
     var obsMainScene: String = "",
     var obsBrbScene: String = "",
     var obsBrbSceneVideoSourceBroken: Boolean = false,
@@ -1607,47 +1675,97 @@ class SettingsStream(
     var obsAutoStopStream: Boolean = false,
     var obsAutoStartRecording: Boolean = false,
     var obsAutoStopRecording: Boolean = false,
-    var streamingDirectlyToObs: Boolean = false,
+    streamingDirectlyToObs: Boolean = false,
     var discordSnapshotWebhook: String = "",
     var discordChatBotSnapshotWebhook: String = "",
-    var discordSnapshotWebhookOnlyWhenLive: Boolean = true,
-    var resolution: SettingsStreamResolution = SettingsStream.defaultResolution,
-    var fps: Int = SettingsStream.defaultFps,
-    var lowLightBoost: Boolean = false,
-    var bitrate: Int = 5_000_000,
-    var rateControl: SettingsStreamRateControl = SettingsStreamRateControl.abr,
-    var codec: SettingsStreamCodec = SettingsStreamCodec.h265hevc,
-    var h264Profile: SettingsStreamH264Profile = SettingsStreamH264Profile.main,
-    var bFrames: Boolean = false,
-    var adaptiveEncoderResolution: Boolean = false,
-    var adaptiveEncoderResolutionThreashold: Double = 1.0,
+    discordSnapshotWebhookOnlyWhenLive: Boolean = true,
+    resolution: SettingsStreamResolution = SettingsStream.defaultResolution,
+    fps: Int = SettingsStream.defaultFps,
+    lowLightBoost: Boolean = false,
+    bitrate: Int = 5_000_000,
+    rateControl: SettingsStreamRateControl = SettingsStreamRateControl.abr,
+    codec: SettingsStreamCodec = SettingsStreamCodec.h265hevc,
+    h264Profile: SettingsStreamH264Profile = SettingsStreamH264Profile.main,
+    bFrames: Boolean = false,
+    adaptiveEncoderResolution: Boolean = false,
+    adaptiveEncoderResolutionThreashold: Double = 1.0,
     var adaptiveBitrate: Boolean = true,
     var srt: SettingsStreamSrt = SettingsStreamSrt(),
     var rtmp: SettingsStreamRtmp = SettingsStreamRtmp(),
     var rist: SettingsStreamRist = SettingsStreamRist(),
     var whip: SettingsStreamWhip = SettingsStreamWhip(),
-    var maxKeyFrameInterval: Int = 2,
-    var audioCodec: SettingsStreamAudioCodec = SettingsStreamAudioCodec.aac,
+    maxKeyFrameInterval: Int = 2,
+    audioCodec: SettingsStreamAudioCodec = SettingsStreamAudioCodec.aac,
     var audioBitrate: Int = 128_000,
     var chat: SettingsStreamChat = SettingsStreamChat(),
     var recording: SettingsStreamRecording = SettingsStreamRecording(),
-    var realtimeIrlEnabled: Boolean = false,
-    var realtimeIrlBaseUrl: String = SettingsStream.defaultRealtimeIrlBaseUrl,
-    var realtimeIrlPushKey: String = "",
-    var portrait: Boolean = false,
-    var backgroundStreaming: Boolean = false,
-    var backgroundStreamingPiP: Boolean = true,
-    var estimatedViewerDelay: Float = 8.0f,
-    var ntpPoolAddress: String = "time.apple.com",
-    var timecodesEnabled: Boolean = false,
+    realtimeIrlEnabled: Boolean = false,
+    realtimeIrlBaseUrl: String = SettingsStream.defaultRealtimeIrlBaseUrl,
+    realtimeIrlPushKey: String = "",
+    portrait: Boolean = false,
+    backgroundStreaming: Boolean = false,
+    backgroundStreamingPiP: Boolean = true,
+    estimatedViewerDelay: Float = 8.0f,
+    ntpPoolAddress: String = "time.apple.com",
+    timecodesEnabled: Boolean = false,
     var replay: SettingsStreamReplay = SettingsStreamReplay(),
-    var goLiveNotificationDiscordMessage: String = "",
-    var goLiveNotificationDiscordWebhookUrl: String = "",
-    var goLiveNotificationMoblinWebsite: Boolean = false,
-    var multiStreaming: SettingsStreamMultiStreaming = SettingsStreamMultiStreaming(),
+    goLiveNotificationDiscordMessage: String = "",
+    goLiveNotificationDiscordWebhookUrl: String = "",
+    goLiveNotificationMoblinWebsite: Boolean = false,
+    multiStreaming: SettingsStreamMultiStreaming = SettingsStreamMultiStreaming(),
     var previewStream: SettingsStreamPreviewStream = SettingsStreamPreviewStream(),
-    var autoGoLive: Boolean = false,
+    autoGoLive: Boolean = false,
 ) : Named {
+    override var name: String by Published(name)
+    var url: String by Published(url)
+    var twitchChannelName: String by Published(twitchChannelName)
+    var twitchRaidsSent: MutableList<SettingsStreamTwitchRaidChannel> by PublishedList(twitchRaidsSent)
+    var twitchRaidsReceived: MutableList<SettingsStreamTwitchRaidChannel> by PublishedList(twitchRaidsReceived)
+    var twitchSendMessagesTo: Boolean by Published(twitchSendMessagesTo)
+    var kickChannelName: String by Published(kickChannelName)
+    var kickChannelId: String? by Published(kickChannelId)
+    var kickChatroomChannelId: String? by Published(kickChatroomChannelId)
+    var kickSlug: String? by Published(kickSlug)
+    var kickLoggedIn: Boolean by Published(kickLoggedIn)
+    var kickSendMessagesTo: Boolean by Published(kickSendMessagesTo)
+    var youTubeAuthState: Any? by Published(youTubeAuthState)
+    var youTubeVideoIds: String by Published(youTubeVideoIds)
+    var youTubeHandle: String by Published(youTubeHandle)
+    var youTubeScheduleStreamTitle: String by Published(youTubeScheduleStreamTitle)
+    var youTubeScheduleStreamVisibility: YouTubeApiLiveBroadcaseVisibility by Published(youTubeScheduleStreamVisibility)
+    var youTubeScheduleStreamAutoStop: Boolean by Published(youTubeScheduleStreamAutoStop)
+    var soopChannelName: String by Published(soopChannelName)
+    var obsWebSocketEnabled: Boolean by Published(obsWebSocketEnabled)
+    var obsSourceName: String by Published(obsSourceName)
+    var streamingDirectlyToObs: Boolean by Published(streamingDirectlyToObs)
+    var discordSnapshotWebhookOnlyWhenLive: Boolean by Published(discordSnapshotWebhookOnlyWhenLive)
+    var resolution: SettingsStreamResolution by Published(resolution)
+    var fps: Int by Published(fps)
+    var lowLightBoost: Boolean by Published(lowLightBoost)
+    var bitrate: Int by Published(bitrate)
+    var rateControl: SettingsStreamRateControl by Published(rateControl)
+    var codec: SettingsStreamCodec by Published(codec)
+    var h264Profile: SettingsStreamH264Profile by Published(h264Profile)
+    var bFrames: Boolean by Published(bFrames)
+    var adaptiveEncoderResolution: Boolean by Published(adaptiveEncoderResolution)
+    var adaptiveEncoderResolutionThreashold: Double by Published(adaptiveEncoderResolutionThreashold)
+    var maxKeyFrameInterval: Int by Published(maxKeyFrameInterval)
+    var audioCodec: SettingsStreamAudioCodec by Published(audioCodec)
+    var realtimeIrlEnabled: Boolean by Published(realtimeIrlEnabled)
+    var realtimeIrlBaseUrl: String by Published(realtimeIrlBaseUrl)
+    var realtimeIrlPushKey: String by Published(realtimeIrlPushKey)
+    var portrait: Boolean by Published(portrait)
+    var backgroundStreaming: Boolean by Published(backgroundStreaming)
+    var backgroundStreamingPiP: Boolean by Published(backgroundStreamingPiP)
+    var estimatedViewerDelay: Float by Published(estimatedViewerDelay)
+    var ntpPoolAddress: String by Published(ntpPoolAddress)
+    var timecodesEnabled: Boolean by Published(timecodesEnabled)
+    var goLiveNotificationDiscordMessage: String by Published(goLiveNotificationDiscordMessage)
+    var goLiveNotificationDiscordWebhookUrl: String by Published(goLiveNotificationDiscordWebhookUrl)
+    var goLiveNotificationMoblinWebsite: Boolean by Published(goLiveNotificationMoblinWebsite)
+    var multiStreaming: SettingsStreamMultiStreaming by Published(multiStreaming)
+    var autoGoLive: Boolean by Published(autoGoLive)
+
     companion object {
         val defaultRealtimeIrlBaseUrl: String = "https://rtirl.com/api"
         val defaultResolution: SettingsStreamResolution = SettingsStreamResolution.r1920x1080

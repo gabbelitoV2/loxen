@@ -14,6 +14,8 @@ import com.moblin.android.platform.codable.codableJson
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.decodeIfPresent
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
+import com.moblin.android.platform.swiftui.PublishedList
 import com.moblin.android.streamingplatforms.kick.loadKickAccessTokenFromKeychain
 import com.moblin.android.streamingplatforms.twitch.loadTwitchAccessTokenFromKeychain
 import com.moblin.android.various.model.CameraId
@@ -107,10 +109,14 @@ enum class SettingsColorLutType(val rawValue: String) {
 @Serializable(with = SettingsColorLut.Serializer::class)
 class SettingsColorLut(
     var id: UUID = UUID.randomUUID(),
-    var type: SettingsColorLutType = SettingsColorLutType.bundled,
-    var name: String = "",
-    var enabled: Boolean = false,
+    type: SettingsColorLutType = SettingsColorLutType.bundled,
+    name: String = "",
+    enabled: Boolean = false,
 ) {
+    var type: SettingsColorLutType by Published(type)
+    var name: String by Published(name)
+    var enabled: Boolean by Published(enabled)
+
     fun clone(): SettingsColorLut {
         val new = SettingsColorLut(type = type, name = name)
         new.id = id
@@ -171,14 +177,21 @@ private val allBundledLuts = listOf(
 
 @Serializable(with = SettingsColor.Serializer::class)
 class SettingsColor(
-    var space: SettingsColorSpace = SettingsColorSpace.srgb,
-    var lutEnabled: Boolean = true,
-    var lut: UUID = UUID.randomUUID(),
+    space: SettingsColorSpace = SettingsColorSpace.srgb,
+    lutEnabled: Boolean = true,
+    lut: UUID = UUID.randomUUID(),
     var bundledLuts: List<SettingsColorLut> = allBundledLuts,
-    var diskLuts: List<SettingsColorLut> = emptyList(),
-    var diskLutsPng: List<SettingsColorLut> = emptyList(),
-    var diskLutsCube: List<SettingsColorLut> = emptyList(),
+    diskLuts: List<SettingsColorLut> = emptyList(),
+    diskLutsPng: List<SettingsColorLut> = emptyList(),
+    diskLutsCube: List<SettingsColorLut> = emptyList(),
 ) {
+    var space: SettingsColorSpace by Published(space)
+    var lutEnabled: Boolean by Published(lutEnabled)
+    var lut: UUID by Published(lut)
+    var diskLuts: List<SettingsColorLut> by Published(diskLuts)
+    var diskLutsPng: List<SettingsColorLut> by Published(diskLutsPng)
+    var diskLutsCube: List<SettingsColorLut> by Published(diskLutsCube)
+
     fun allLuts(): List<SettingsColorLut> {
         return bundledLuts + diskLutsCube + diskLutsPng
     }
@@ -220,32 +233,58 @@ class SettingsColor(
 
 @Serializable(with = SettingsShow.Serializer::class)
 class SettingsShow(
-    var chat: Boolean = true,
-    var viewers: Boolean = true,
-    var uptime: Boolean = true,
-    var stream: Boolean = false,
-    var speed: Boolean = true,
-    var audioLevel: Boolean = true,
-    var zoom: Boolean = false,
-    var zoomPresets: Boolean = true,
-    var microphone: Boolean = false,
-    var audioBar: Boolean = true,
-    var cameras: Boolean = false,
-    var obsStatus: Boolean = true,
-    var ingests: Boolean = true,
-    var gameController: Boolean = true,
-    var location: Boolean = false,
-    var remoteControl: Boolean = true,
-    var browserWidgets: Boolean = true,
-    var bonding: Boolean = true,
-    var events: Boolean = true,
-    var djiDevices: Boolean = true,
-    var bondingRtts: Boolean = false,
-    var moblink: Boolean = true,
-    var catPrinter: Boolean = true,
-    var workoutDevice: Boolean = true,
-    var systemMonitor: Boolean = false,
+    chat: Boolean = true,
+    viewers: Boolean = true,
+    uptime: Boolean = true,
+    stream: Boolean = false,
+    speed: Boolean = true,
+    audioLevel: Boolean = true,
+    zoom: Boolean = false,
+    zoomPresets: Boolean = true,
+    microphone: Boolean = false,
+    audioBar: Boolean = true,
+    cameras: Boolean = false,
+    obsStatus: Boolean = true,
+    ingests: Boolean = true,
+    gameController: Boolean = true,
+    location: Boolean = false,
+    remoteControl: Boolean = true,
+    browserWidgets: Boolean = true,
+    bonding: Boolean = true,
+    events: Boolean = true,
+    djiDevices: Boolean = true,
+    bondingRtts: Boolean = false,
+    moblink: Boolean = true,
+    catPrinter: Boolean = true,
+    workoutDevice: Boolean = true,
+    systemMonitor: Boolean = false,
 ) {
+    var chat: Boolean by Published(chat)
+    var viewers: Boolean by Published(viewers)
+    var uptime: Boolean by Published(uptime)
+    var stream: Boolean by Published(stream)
+    var speed: Boolean by Published(speed)
+    var audioLevel: Boolean by Published(audioLevel)
+    var zoom: Boolean by Published(zoom)
+    var zoomPresets: Boolean by Published(zoomPresets)
+    var microphone: Boolean by Published(microphone)
+    var audioBar: Boolean by Published(audioBar)
+    var cameras: Boolean by Published(cameras)
+    var obsStatus: Boolean by Published(obsStatus)
+    var ingests: Boolean by Published(ingests)
+    var gameController: Boolean by Published(gameController)
+    var location: Boolean by Published(location)
+    var remoteControl: Boolean by Published(remoteControl)
+    var browserWidgets: Boolean by Published(browserWidgets)
+    var bonding: Boolean by Published(bonding)
+    var events: Boolean by Published(events)
+    var djiDevices: Boolean by Published(djiDevices)
+    var bondingRtts: Boolean by Published(bondingRtts)
+    var moblink: Boolean by Published(moblink)
+    var catPrinter: Boolean by Published(catPrinter)
+    var workoutDevice: Boolean by Published(workoutDevice)
+    var systemMonitor: Boolean by Published(systemMonitor)
+
     fun encode(): JsonObject = encodeContainer {
         encode("chat", chat)
         encode("viewers", viewers)
@@ -316,9 +355,12 @@ class SettingsShow(
 @Serializable(with = SettingsZoomPreset.Serializer::class)
 class SettingsZoomPreset(
     var id: UUID = UUID.randomUUID(),
-    var name: String = "",
-    var x: Float = 1.0f,
+    name: String = "",
+    x: Float = 1.0f,
 ) {
+    var name: String by Published(name)
+    var x: Float by Published(x)
+
     override fun equals(other: Any?): Boolean {
         return other is SettingsZoomPreset && other.id == id
     }
@@ -352,10 +394,14 @@ class SettingsZoomPreset(
 
 @Serializable(with = SettingsZoomSwitchTo.Serializer::class)
 class SettingsZoomSwitchTo(
-    var level: Float = 1.0f,
-    var x: Float = 1.0f,
-    var enabled: Boolean = false,
+    level: Float = 1.0f,
+    x: Float = 1.0f,
+    enabled: Boolean = false,
 ) {
+    var level: Float by Published(level)
+    var x: Float by Published(x)
+    var enabled: Boolean by Published(enabled)
+
     fun encode(): JsonObject = encodeContainer {
         encode("level", level)
         encode("x", x)
@@ -381,14 +427,19 @@ class SettingsZoomSwitchTo(
 
 @Serializable(with = SettingsZoom.Serializer::class)
 class SettingsZoom(
-    var back: MutableList<SettingsZoomPreset> = mutableListOf(),
-    var front: MutableList<SettingsZoomPreset> = mutableListOf(),
-    var switchToBack: SettingsZoomSwitchTo = SettingsZoomSwitchTo(),
-    var switchToFront: SettingsZoomSwitchTo = SettingsZoomSwitchTo(),
-    var speed: Float = 5.0f,
+    back: MutableList<SettingsZoomPreset> = mutableListOf(),
+    front: MutableList<SettingsZoomPreset> = mutableListOf(),
+    switchToBack: SettingsZoomSwitchTo = SettingsZoomSwitchTo(),
+    switchToFront: SettingsZoomSwitchTo = SettingsZoomSwitchTo(),
+    speed: Float = 5.0f,
     var backgroundColor: RgbColor = defaultSegmentedPickerSelectedColor,
 ) {
-    var backgroundColorColor: Color = backgroundColor.color()
+    var back: MutableList<SettingsZoomPreset> by PublishedList(back)
+    var front: MutableList<SettingsZoomPreset> by PublishedList(front)
+    var switchToBack: SettingsZoomSwitchTo by Published(switchToBack)
+    var switchToFront: SettingsZoomSwitchTo by Published(switchToFront)
+    var speed: Float by Published(speed)
+    var backgroundColorColor: Color by Published(backgroundColor.color())
 
     fun encode(): JsonObject = encodeContainer {
         encode("back", back, ListSerializer(SettingsZoomPreset.serializer()))
@@ -436,8 +487,10 @@ class SettingsZoom(
 @Serializable(with = SettingsBitratePreset.Serializer::class)
 class SettingsBitratePreset(
     var id: UUID = UUID.randomUUID(),
-    var bitrate: Int = 5_000_000,
+    bitrate: Int = 5_000_000,
 ) {
+    var bitrate: Int by Published(bitrate)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("bitrate", bitrate)
@@ -496,9 +549,12 @@ class SettingsTesla(
     var vin: String = "",
     var privateKey: String = "",
     var enabled: Boolean = true,
-    var bluetoothPeripheralName: String? = null,
-    var bluetoothPeripheralId: UUID? = null,
+    bluetoothPeripheralName: String? = null,
+    bluetoothPeripheralId: UUID? = null,
 ) {
+    var bluetoothPeripheralName: String? by Published(bluetoothPeripheralName)
+    var bluetoothPeripheralId: UUID? by Published(bluetoothPeripheralId)
+
     fun encode(): JsonObject = encodeContainer {
         encode("vin", vin)
         encode("privateKey", privateKey)
@@ -550,8 +606,10 @@ enum class SettingsDnsLookupStrategy(val rawValue: String) {
 @Serializable(with = SettingsMediaPlayerFile.Serializer::class)
 class SettingsMediaPlayerFile(
     var id: UUID = UUID.randomUUID(),
-    var name: String = "My video",
+    name: String = "My video",
 ) {
+    var name: String by Published(name)
+
     fun clone(): SettingsMediaPlayerFile {
         val new = SettingsMediaPlayerFile()
         new.id = id
@@ -583,11 +641,16 @@ class SettingsMediaPlayerFile(
 @Serializable(with = SettingsMediaPlayer.Serializer::class)
 class SettingsMediaPlayer(
     var id: UUID = UUID.randomUUID(),
-    override var name: String = baseName,
-    var playerId: String = "",
-    var autoSelectMic: Boolean = true,
-    var playlist: MutableList<SettingsMediaPlayerFile> = mutableListOf(),
+    name: String = baseName,
+    playerId: String = "",
+    autoSelectMic: Boolean = true,
+    playlist: MutableList<SettingsMediaPlayerFile> = mutableListOf(),
 ) : Named {
+    override var name: String by Published(name)
+    var playerId: String by Published(playerId)
+    var autoSelectMic: Boolean by Published(autoSelectMic)
+    var playlist: MutableList<SettingsMediaPlayerFile> by PublishedList(playlist)
+
     fun camera(): String {
         return mediaPlayerCamera(name)
     }
@@ -639,8 +702,10 @@ class SettingsMediaPlayer(
 
 @Serializable(with = SettingsMediaPlayers.Serializer::class)
 class SettingsMediaPlayers(
-    var players: List<SettingsMediaPlayer> = emptyList(),
+    players: List<SettingsMediaPlayer> = emptyList(),
 ) {
+    var players: List<SettingsMediaPlayer> by Published(players)
+
     fun encode(): JsonObject = encodeContainer {
         encode("players", players, ListSerializer(SettingsMediaPlayer.serializer()))
     }
@@ -688,10 +753,14 @@ enum class SettingsReplaySpeed(val rawValue: String) {
 
 @Serializable(with = SettingsReplay.Serializer::class)
 class SettingsReplay(
-    var start: Double = 20.0,
-    var stop: Double = SettingsReplay.stop,
-    var speed: SettingsReplaySpeed = SettingsReplaySpeed.one,
+    start: Double = 20.0,
+    stop: Double = SettingsReplay.stop,
+    speed: SettingsReplaySpeed = SettingsReplaySpeed.one,
 ) {
+    var start: Double by Published(start)
+    var stop: Double by Published(stop)
+    var speed: SettingsReplaySpeed by Published(speed)
+
     fun encode(): JsonObject = encodeContainer {
         encode("start", start)
         encode("stop", stop)
@@ -720,11 +789,16 @@ class SettingsReplay(
 @Serializable(with = SettingsCyclingPowerDevice.Serializer::class)
 class SettingsCyclingPowerDevice(
     var id: UUID = UUID.randomUUID(),
-    override var name: String = "",
-    var enabled: Boolean = false,
-    var bluetoothPeripheralName: String? = null,
-    var bluetoothPeripheralId: UUID? = null,
+    name: String = "",
+    enabled: Boolean = false,
+    bluetoothPeripheralName: String? = null,
+    bluetoothPeripheralId: UUID? = null,
 ) : Named {
+    override var name: String by Published(name)
+    var enabled: Boolean by Published(enabled)
+    var bluetoothPeripheralName: String? by Published(bluetoothPeripheralName)
+    var bluetoothPeripheralId: UUID? by Published(bluetoothPeripheralId)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("name", name)
@@ -756,8 +830,10 @@ class SettingsCyclingPowerDevice(
 
 @Serializable(with = SettingsCyclingPowerDevices.Serializer::class)
 class SettingsCyclingPowerDevices(
-    var devices: MutableList<SettingsCyclingPowerDevice> = mutableListOf(),
+    devices: MutableList<SettingsCyclingPowerDevice> = mutableListOf(),
 ) {
+    var devices: MutableList<SettingsCyclingPowerDevice> by PublishedList(devices)
+
     fun encode(): JsonObject = encodeContainer {
         encode("devices", devices, ListSerializer(SettingsCyclingPowerDevice.serializer()))
     }
@@ -786,12 +862,18 @@ val defaultWheelCircumference = 2105
 @Serializable(with = SettingsWorkoutDevice.Serializer::class)
 class SettingsWorkoutDevice(
     var id: UUID = UUID.randomUUID(),
-    override var name: String = baseName,
-    var enabled: Boolean = false,
-    var bluetoothPeripheralName: String? = null,
-    var bluetoothPeripheralId: UUID? = null,
-    var wheelCircumference: Int = defaultWheelCircumference,
+    name: String = baseName,
+    enabled: Boolean = false,
+    bluetoothPeripheralName: String? = null,
+    bluetoothPeripheralId: UUID? = null,
+    wheelCircumference: Int = defaultWheelCircumference,
 ) : Named {
+    override var name: String by Published(name)
+    var enabled: Boolean by Published(enabled)
+    var bluetoothPeripheralName: String? by Published(bluetoothPeripheralName)
+    var bluetoothPeripheralId: UUID? by Published(bluetoothPeripheralId)
+    var wheelCircumference: Int by Published(wheelCircumference)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("name", name)
@@ -825,8 +907,10 @@ class SettingsWorkoutDevice(
 
 @Serializable(with = SettingsWorkoutDevices.Serializer::class)
 class SettingsWorkoutDevices(
-    var devices: MutableList<SettingsWorkoutDevice> = mutableListOf(),
+    devices: MutableList<SettingsWorkoutDevice> = mutableListOf(),
 ) {
+    var devices: MutableList<SettingsWorkoutDevice> by PublishedList(devices)
+
     fun encode(): JsonObject = encodeContainer {
         encode("devices", devices, ListSerializer(SettingsWorkoutDevice.serializer()))
     }
@@ -855,15 +939,21 @@ private val defaultRgbLightColor = RgbColor(red = 0, green = 255, blue = 0)
 @Serializable(with = SettingsBlackSharkCoolerDevice.Serializer::class)
 class SettingsBlackSharkCoolerDevice(
     var id: UUID = UUID.randomUUID(),
-    override var name: String = baseName,
-    var enabled: Boolean = false,
-    var bluetoothPeripheralName: String? = null,
-    var bluetoothPeripheralId: UUID? = null,
-    var rgbLightEnabled: Boolean = false,
+    name: String = baseName,
+    enabled: Boolean = false,
+    bluetoothPeripheralName: String? = null,
+    bluetoothPeripheralId: UUID? = null,
+    rgbLightEnabled: Boolean = false,
     var rgbLightColor: RgbColor = defaultRgbLightColor,
-    var rgbLightBrightness: Double = 100.0,
+    rgbLightBrightness: Double = 100.0,
 ) : Named {
-    var rgbLightColorColor: Color = rgbLightColor.color()
+    override var name: String by Published(name)
+    var enabled: Boolean by Published(enabled)
+    var bluetoothPeripheralName: String? by Published(bluetoothPeripheralName)
+    var bluetoothPeripheralId: UUID? by Published(bluetoothPeripheralId)
+    var rgbLightEnabled: Boolean by Published(rgbLightEnabled)
+    var rgbLightColorColor: Color by Published(rgbLightColor.color())
+    var rgbLightBrightness: Double by Published(rgbLightBrightness)
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -903,8 +993,10 @@ class SettingsBlackSharkCoolerDevice(
 
 @Serializable(with = SettingsBlackSharkCoolerDevices.Serializer::class)
 class SettingsBlackSharkCoolerDevices(
-    var devices: List<SettingsBlackSharkCoolerDevice> = emptyList(),
+    devices: List<SettingsBlackSharkCoolerDevice> = emptyList(),
 ) {
+    var devices: List<SettingsBlackSharkCoolerDevice> by Published(devices)
+
     fun encode(): JsonObject = encodeContainer {
         encode("devices", devices, ListSerializer(SettingsBlackSharkCoolerDevice.serializer()))
     }
@@ -1011,9 +1103,10 @@ enum class SettingsAppMode(val rawValue: String) {
 
 @Serializable(with = WebBrowserBookmarkSettings.Serializer::class)
 class WebBrowserBookmarkSettings(
-    var url: String = "https://google.com",
+    url: String = "https://google.com",
 ) {
     var id: UUID = UUID.randomUUID()
+    var url: String by Published(url)
 
     fun encode(): JsonObject = encodeContainer {
         encode("url", url)
@@ -1036,9 +1129,12 @@ class WebBrowserBookmarkSettings(
 
 @Serializable(with = WebBrowserSettings.Serializer::class)
 class WebBrowserSettings(
-    var home: String = "https://google.com",
-    var bookmarks: List<WebBrowserBookmarkSettings> = emptyList(),
+    home: String = "https://google.com",
+    bookmarks: List<WebBrowserBookmarkSettings> = emptyList(),
 ) {
+    var home: String by Published(home)
+    var bookmarks: List<WebBrowserBookmarkSettings> by Published(bookmarks)
+
     fun encode(): JsonObject = encodeContainer {
         encode("home", home)
         encode("bookmarks", bookmarks, ListSerializer(WebBrowserBookmarkSettings.serializer()))
@@ -1067,8 +1163,10 @@ class WebBrowserSettings(
 @Serializable(with = SettingsAlertsMediaGalleryItem.Serializer::class)
 class SettingsAlertsMediaGalleryItem(
     var id: UUID = UUID.randomUUID(),
-    var name: String = "",
+    name: String = "",
 ) {
+    var name: String by Published(name)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("name", name)
@@ -1121,10 +1219,13 @@ private val allBundledAlertsMediaGallerySounds = listOf(
 @Serializable(with = SettingsAlertsMediaGallery.Serializer::class)
 class SettingsAlertsMediaGallery(
     var bundledImages: List<SettingsAlertsMediaGalleryItem> = allBundledAlertsMediaGalleryImages,
-    var customImages: List<SettingsAlertsMediaGalleryItem> = emptyList(),
+    customImages: List<SettingsAlertsMediaGalleryItem> = emptyList(),
     var bundledSounds: List<SettingsAlertsMediaGalleryItem> = allBundledAlertsMediaGallerySounds,
-    var customSounds: List<SettingsAlertsMediaGalleryItem> = emptyList(),
+    customSounds: List<SettingsAlertsMediaGalleryItem> = emptyList(),
 ) {
+    var customImages: List<SettingsAlertsMediaGalleryItem> by Published(customImages)
+    var customSounds: List<SettingsAlertsMediaGalleryItem> by Published(customSounds)
+
     fun getWhiteStarImageId(): UUID {
         return bundledImages[3].id
     }
@@ -1176,9 +1277,12 @@ class SettingsAlertsMediaGallery(
 
 @Serializable(with = SettingsDisconnectProtection.Serializer::class)
 class SettingsDisconnectProtection(
-    var liveSceneId: UUID? = null,
-    var fallbackSceneId: UUID? = null,
+    liveSceneId: UUID? = null,
+    fallbackSceneId: UUID? = null,
 ) {
+    var liveSceneId: UUID? by Published(liveSceneId)
+    var fallbackSceneId: UUID? by Published(fallbackSceneId)
+
     fun encode(): JsonObject = encodeContainer {
         encode("liveSceneId", liveSceneId)
         encode("fallbackSceneId", fallbackSceneId)
@@ -1247,9 +1351,12 @@ enum class SettingsWiFiAwareRole {
 
 @Serializable(with = SettingsWiFiAware.Serializer::class)
 class SettingsWiFiAware(
-    var enabled: Boolean = false,
-    var role: SettingsWiFiAwareRole = SettingsWiFiAwareRole.sender,
+    enabled: Boolean = false,
+    role: SettingsWiFiAwareRole = SettingsWiFiAwareRole.sender,
 ) {
+    var enabled: Boolean by Published(enabled)
+    var role: SettingsWiFiAwareRole by Published(role)
+
     fun encode(): JsonObject = encodeContainer {
         encode("enabled", enabled)
         encode("role", role)
@@ -1296,14 +1403,22 @@ enum class SettingsFacePrivacyMode(val rawValue: String) {
 
 @Serializable(with = SettingsFace.Serializer::class)
 class SettingsFace(
-    var blurFaces: Boolean = false,
-    var blurText: Boolean = false,
-    var blurBackground: Boolean = false,
-    var showMoblin: Boolean = false,
-    var privacyMode: SettingsFacePrivacyMode = SettingsFacePrivacyMode.blur,
-    var blurStrength: Float = 0.8f,
-    var pixellateStrength: Float = 0.3f,
+    blurFaces: Boolean = false,
+    blurText: Boolean = false,
+    blurBackground: Boolean = false,
+    showMoblin: Boolean = false,
+    privacyMode: SettingsFacePrivacyMode = SettingsFacePrivacyMode.blur,
+    blurStrength: Float = 0.8f,
+    pixellateStrength: Float = 0.3f,
 ) {
+    var blurFaces: Boolean by Published(blurFaces)
+    var blurText: Boolean by Published(blurText)
+    var blurBackground: Boolean by Published(blurBackground)
+    var showMoblin: Boolean by Published(showMoblin)
+    var privacyMode: SettingsFacePrivacyMode by Published(privacyMode)
+    var blurStrength: Float by Published(blurStrength)
+    var pixellateStrength: Float by Published(pixellateStrength)
+
     fun toEffectSettings(backgroundImage: com.moblin.android.platform.coreimage.CIImage?, iconImage: android.graphics.Bitmap?): FaceEffectSettings {
         val faceEffectPrivacyMode: FaceEffectPrivacyMode = when (privacyMode) {
             SettingsFacePrivacyMode.blur -> FaceEffectPrivacyMode.Blur(blurStrength)
@@ -1362,14 +1477,20 @@ enum class SettingsBeautySettings {
 
 @Serializable(with = SettingsBeauty.Serializer::class)
 class SettingsBeauty(
-    var enabled: Boolean = false,
-    var smoothnessRadius: Float = 10.0f,
-    var smoothnessStrength: Float = 0.65f,
-    var shapePosition: Float = 0.5f,
-    var shapeRadius: Float = 0.5f,
-    var shapeStrength: Float = 0.5f,
+    enabled: Boolean = false,
+    smoothnessRadius: Float = 10.0f,
+    smoothnessStrength: Float = 0.65f,
+    shapePosition: Float = 0.5f,
+    shapeRadius: Float = 0.5f,
+    shapeStrength: Float = 0.5f,
 ) {
-    var settings: SettingsBeautySettings = SettingsBeautySettings.smoothness
+    var enabled: Boolean by Published(enabled)
+    var smoothnessRadius: Float by Published(smoothnessRadius)
+    var smoothnessStrength: Float by Published(smoothnessStrength)
+    var shapePosition: Float by Published(shapePosition)
+    var shapeRadius: Float by Published(shapeRadius)
+    var shapeStrength: Float by Published(shapeStrength)
+    var settings: SettingsBeautySettings by Published(SettingsBeautySettings.smoothness)
 
     fun encode(): JsonObject = encodeContainer {
         encode("enabled", enabled)
@@ -1451,13 +1572,13 @@ private fun normalizeWatchSettings(container: JsonObject): JsonObject = encodeCo
 
 @Serializable(with = Database.Serializer::class)
 class Database(
-    var streams: MutableList<SettingsStream> = mutableListOf(),
-    var scenes: MutableList<SettingsScene> = mutableListOf(),
-    var widgets: MutableList<SettingsWidget> = mutableListOf(),
+    streams: MutableList<SettingsStream> = mutableListOf(),
+    scenes: MutableList<SettingsScene> = mutableListOf(),
+    widgets: MutableList<SettingsWidget> = mutableListOf(),
     var show: SettingsShow = SettingsShow(),
     var zoom: SettingsZoom = SettingsZoom(),
-    var tapToFocus: Boolean = false,
-    var bitratePresets: MutableList<SettingsBitratePreset> = mutableListOf(),
+    tapToFocus: Boolean = false,
+    bitratePresets: MutableList<SettingsBitratePreset> = mutableListOf(),
     var iconImage: String = plainIcon.image(),
     var videoStabilizationMode: SettingsVideoStabilizationMode =
         SettingsVideoStabilizationMode.off,
@@ -1466,17 +1587,17 @@ class Database(
     var mics: SettingsMics = SettingsMics(),
     var debug: SettingsDebug = SettingsDebug(),
     var quickButtonsGeneral: SettingsQuickButtons = SettingsQuickButtons(),
-    var quickButtons: MutableList<SettingsQuickButton> = mutableListOf(),
+    quickButtons: MutableList<SettingsQuickButton> = mutableListOf(),
     var rtmpServer: SettingsRtmpServer = SettingsRtmpServer(),
-    var networkInterfaceNames: MutableList<SettingsNetworkInterfaceName> = mutableListOf(),
-    var lowBitrateWarning: Boolean = true,
-    var vibrate: Boolean = false,
-    var gameControllers: MutableList<SettingsGameController> =
+    networkInterfaceNames: MutableList<SettingsNetworkInterfaceName> = mutableListOf(),
+    lowBitrateWarning: Boolean = true,
+    vibrate: Boolean = false,
+    gameControllers: MutableList<SettingsGameController> =
         mutableListOf(SettingsGameController()),
     var remoteControl: SettingsRemoteControl = SettingsRemoteControl(),
-    var startStopRecordingConfirmations: Boolean = true,
+    startStopRecordingConfirmations: Boolean = true,
     var color: SettingsColor = SettingsColor(),
-    var mirrorFrontCameraOnStream: Boolean = true,
+    mirrorFrontCameraOnStream: Boolean = true,
     var streamButtonColor: RgbColor = defaultStreamButtonColor,
     var location: SettingsLocation = SettingsLocation(),
     var watch: JsonObject = JsonObject(emptyMap()),
@@ -1486,25 +1607,25 @@ class Database(
     var deepLinkCreator: DeepLinkCreator = DeepLinkCreator(),
     var srtlaServer: SettingsSrtlaServer = SettingsSrtlaServer(),
     var mediaPlayers: SettingsMediaPlayers = SettingsMediaPlayers(),
-    var showAllSettings: Boolean = false,
-    var portrait: Boolean = false,
+    showAllSettings: Boolean = false,
+    portrait: Boolean = false,
     var djiDevices: SettingsDjiDevices = SettingsDjiDevices(),
     var alertsMediaGallery: SettingsAlertsMediaGallery = SettingsAlertsMediaGallery(),
     var catPrinters: SettingsCatPrinters = SettingsCatPrinters(),
-    var verboseStatuses: Boolean = false,
-    var scoreboardPlayers: MutableList<SettingsWidgetScoreboardPlayer> = mutableListOf(),
+    verboseStatuses: Boolean = false,
+    scoreboardPlayers: MutableList<SettingsWidgetScoreboardPlayer> = mutableListOf(),
     var keyboard: SettingsKeyboard = SettingsKeyboard(),
     var tesla: SettingsTesla = SettingsTesla(),
     var srtlaRelay: SettingsMoblink = SettingsMoblink(),
-    var pixellateStrength: Float = 0.3f,
+    pixellateStrength: Float = 0.3f,
     var moblink: SettingsMoblink = SettingsMoblink(),
-    var sceneSwitchTransition: SettingsSceneSwitchTransition =
+    sceneSwitchTransition: SettingsSceneSwitchTransition =
         SettingsSceneSwitchTransition.blur,
-    var forceSceneSwitchTransition: Boolean = false,
-    var alwaysAttachCameraPreview: Boolean = false,
-    var alwaysAttachPhotoShoot: Boolean = false,
-    var cameraControlsEnabled: Boolean = false,
-    var externalDisplayContent: SettingsExternalDisplayContent =
+    forceSceneSwitchTransition: Boolean = false,
+    alwaysAttachCameraPreview: Boolean = false,
+    alwaysAttachPhotoShoot: Boolean = false,
+    cameraControlsEnabled: Boolean = false,
+    externalDisplayContent: SettingsExternalDisplayContent =
         SettingsExternalDisplayContent.stream,
     var cyclingPowerDevices: SettingsCyclingPowerDevices = SettingsCyclingPowerDevices(),
     var cyclingPowerDevicesMigrated: Boolean = false,
@@ -1512,19 +1633,19 @@ class Database(
     var blackSharkCoolerDevices: SettingsBlackSharkCoolerDevices =
         SettingsBlackSharkCoolerDevices(),
     var remoteSceneId: UUID? = null,
-    var sceneNumericInput: Boolean = false,
-    var savedWifiNetworks: List<SettingsWiFi> = emptyList(),
+    sceneNumericInput: Boolean = false,
+    savedWifiNetworks: List<SettingsWiFi> = emptyList(),
     var goPro: SettingsGoPro = SettingsGoPro(),
     var replay: SettingsReplay = SettingsReplay(),
     var portraitVideoOffsetFromTop: Double = 0.0,
     var autoSceneSwitchers: SettingsAutoSceneSwitchers = SettingsAutoSceneSwitchers(),
-    var fixedHorizon: Boolean = false,
-    var whirlpoolAngle: Float = (PI / 2).toFloat(),
-    var pinchScale: Float = 0.5f,
+    fixedHorizon: Boolean = false,
+    whirlpoolAngle: Float = (PI / 2).toFloat(),
+    pinchScale: Float = 0.5f,
     var selfieStick: SettingsSelfieStick = SettingsSelfieStick(),
-    var bigButtons: Boolean = false,
-    var verticalButtons: Boolean = false,
-    var bigAudioLevelMeter: Boolean = false,
+    bigButtons: Boolean = false,
+    verticalButtons: Boolean = false,
+    bigAudioLevelMeter: Boolean = false,
     var ristServer: SettingsRistServer = SettingsRistServer(),
     var disconnectProtection: SettingsDisconnectProtection = SettingsDisconnectProtection(),
     var rtspClient: SettingsRtspClient = SettingsRtspClient(),
@@ -1539,15 +1660,51 @@ class Database(
     var gimbal: SettingsGimbal = SettingsGimbal(),
     var scoreboardSizeMigrated: Boolean = false,
     var streamDecks: SettingsStreamDecks = SettingsStreamDecks(),
-    var graphicsImplementation: SettingsGraphicsImplementation =
+    graphicsImplementation: SettingsGraphicsImplementation =
         SettingsGraphicsImplementation.coreImage,
-    var graphicsHighQualityDownsampling: Boolean = false,
-    var ingestsSoftwareVideoDecoding: Boolean = false,
-    var torchLevel: Float = 1.0f,
-    var appMode: SettingsAppMode = SettingsAppMode.streaming,
+    graphicsHighQualityDownsampling: Boolean = false,
+    ingestsSoftwareVideoDecoding: Boolean = false,
+    torchLevel: Float = 1.0f,
+    appMode: SettingsAppMode = SettingsAppMode.streaming,
     var httpProxy: SettingsHttpProxy = SettingsHttpProxy(),
 ) {
-    var streamButtonColorColor: Color = defaultStreamButtonColor.color()
+    var streams: MutableList<SettingsStream> by PublishedList(streams)
+    var scenes: MutableList<SettingsScene> by PublishedList(scenes)
+    var widgets: MutableList<SettingsWidget> by PublishedList(widgets)
+    var tapToFocus: Boolean by Published(tapToFocus)
+    var bitratePresets: MutableList<SettingsBitratePreset> by PublishedList(bitratePresets)
+    var quickButtons: MutableList<SettingsQuickButton> by PublishedList(quickButtons)
+    var networkInterfaceNames: MutableList<SettingsNetworkInterfaceName> by PublishedList(networkInterfaceNames)
+    var lowBitrateWarning: Boolean by Published(lowBitrateWarning)
+    var vibrate: Boolean by Published(vibrate)
+    var gameControllers: MutableList<SettingsGameController> by PublishedList(gameControllers)
+    var startStopRecordingConfirmations: Boolean by Published(startStopRecordingConfirmations)
+    var mirrorFrontCameraOnStream: Boolean by Published(mirrorFrontCameraOnStream)
+    var streamButtonColorColor: Color by Published(defaultStreamButtonColor.color())
+    var showAllSettings: Boolean by Published(showAllSettings)
+    var portrait: Boolean by Published(portrait)
+    var verboseStatuses: Boolean by Published(verboseStatuses)
+    var scoreboardPlayers: MutableList<SettingsWidgetScoreboardPlayer> by PublishedList(scoreboardPlayers)
+    var pixellateStrength: Float by Published(pixellateStrength)
+    var sceneSwitchTransition: SettingsSceneSwitchTransition by Published(sceneSwitchTransition)
+    var forceSceneSwitchTransition: Boolean by Published(forceSceneSwitchTransition)
+    var alwaysAttachCameraPreview: Boolean by Published(alwaysAttachCameraPreview)
+    var alwaysAttachPhotoShoot: Boolean by Published(alwaysAttachPhotoShoot)
+    var cameraControlsEnabled: Boolean by Published(cameraControlsEnabled)
+    var externalDisplayContent: SettingsExternalDisplayContent by Published(externalDisplayContent)
+    var sceneNumericInput: Boolean by Published(sceneNumericInput)
+    var savedWifiNetworks: List<SettingsWiFi> by Published(savedWifiNetworks)
+    var fixedHorizon: Boolean by Published(fixedHorizon)
+    var whirlpoolAngle: Float by Published(whirlpoolAngle)
+    var pinchScale: Float by Published(pinchScale)
+    var bigButtons: Boolean by Published(bigButtons)
+    var verticalButtons: Boolean by Published(verticalButtons)
+    var bigAudioLevelMeter: Boolean by Published(bigAudioLevelMeter)
+    var graphicsImplementation: SettingsGraphicsImplementation by Published(graphicsImplementation)
+    var graphicsHighQualityDownsampling: Boolean by Published(graphicsHighQualityDownsampling)
+    var ingestsSoftwareVideoDecoding: Boolean by Published(ingestsSoftwareVideoDecoding)
+    var torchLevel: Float by Published(torchLevel)
+    var appMode: SettingsAppMode by Published(appMode)
 
     fun getSavedWiFiNetwork(ssid: String): SettingsWiFi? {
         return savedWifiNetworks.firstOrNull { it.ssid == ssid }
@@ -1866,7 +2023,7 @@ class Database(
                     for (scene in database.scenes) {
                         for (sceneWidget in scene.widgets) {
                             if (sceneWidget.widgetId == widget.id) {
-                                sceneWidget.layout.size = defaultScoreboardSize
+                                sceneWidget.layout = sceneWidget.layout.copy(size = defaultScoreboardSize)
                             }
                         }
                     }
@@ -1932,23 +2089,28 @@ class Database(
 private fun addDefaultScenes(database: Database) {
     if (isMac()) {
         var scene = SettingsScene(name = localized("Screen"))
-        scene.videoSource.cameraPosition =
-            TODO()
+        scene.videoSource = scene.videoSource.copy(cameraPosition = SettingsSceneCameraPosition.screenCapture)
         database.scenes.add(scene)
         if (bestFrontCameraId.isNotEmpty()) {
             scene = SettingsScene(name = localized("Front"))
-            scene.videoSource.cameraPosition = SettingsSceneCameraPosition.front
-            scene.videoSource.frontCameraId = bestFrontCameraId
+            scene.videoSource = scene.videoSource.copy(
+                cameraPosition = SettingsSceneCameraPosition.front,
+                frontCameraId = bestFrontCameraId,
+            )
             database.scenes.add(scene)
         }
     } else {
         var scene = SettingsScene(name = localized("Back"))
-        scene.videoSource.cameraPosition = defaultBackCameraPosition
-        scene.videoSource.backCameraId = bestBackCameraId
+        scene.videoSource = scene.videoSource.copy(
+            cameraPosition = defaultBackCameraPosition,
+            backCameraId = bestBackCameraId,
+        )
         database.scenes.add(scene)
         scene = SettingsScene(name = localized("Front"))
-        scene.videoSource.cameraPosition = SettingsSceneCameraPosition.front
-        scene.videoSource.frontCameraId = bestFrontCameraId
+        scene.videoSource = scene.videoSource.copy(
+            cameraPosition = SettingsSceneCameraPosition.front,
+            frontCameraId = bestFrontCameraId,
+        )
         database.scenes.add(scene)
     }
 }
@@ -2572,11 +2734,11 @@ private fun updateBundledAlertsMediaGallery(database: Database) {
 private fun addScenesToGameController(database: Database) {
     var button = database.gameControllers[0].buttons.value[0]
     button.function.value = SettingsControllerFunction.SWITCH_SCENE
-    button.functionData.value.sceneId = database.scenes[0].id
+    button.functionData.value = button.functionData.value.copy(sceneId = database.scenes[0].id)
     if (database.scenes.size > 1) {
         button = database.gameControllers[0].buttons.value[1]
         button.function.value = SettingsControllerFunction.SWITCH_SCENE
-        button.functionData.value.sceneId = database.scenes[1].id
+        button.functionData.value = button.functionData.value.copy(sceneId = database.scenes[1].id)
     }
 }
 
@@ -2847,23 +3009,25 @@ class Settings {
                 if (widget.text.verticalAlignment == SettingsVerticalAlignment.bottom &&
                     widget.text.horizontalAlignment == SettingsHorizontalAlignment.trailing
                 ) {
-                    sceneWidget.layout.alignment = SettingsAlignment.bottomRight
-                    sceneWidget.layout.x = 100 - sceneWidget.layout.x
-                    sceneWidget.layout.updateXString()
-                    sceneWidget.layout.y = 100 - sceneWidget.layout.y
-                    sceneWidget.layout.updateYString()
+                    sceneWidget.layout = sceneWidget.layout.copy(
+                        alignment = SettingsAlignment.bottomRight,
+                        x = 100 - sceneWidget.layout.x,
+                        y = 100 - sceneWidget.layout.y,
+                    ).updatingXString().updatingYString()
                 } else if (widget.text.verticalAlignment == SettingsVerticalAlignment.top &&
                     widget.text.horizontalAlignment == SettingsHorizontalAlignment.trailing
                 ) {
-                    sceneWidget.layout.alignment = SettingsAlignment.topRight
-                    sceneWidget.layout.x = 100 - sceneWidget.layout.x
-                    sceneWidget.layout.updateXString()
+                    sceneWidget.layout = sceneWidget.layout.copy(
+                        alignment = SettingsAlignment.topRight,
+                        x = 100 - sceneWidget.layout.x,
+                    ).updatingXString()
                 } else if (widget.text.verticalAlignment == SettingsVerticalAlignment.bottom &&
                     widget.text.horizontalAlignment == SettingsHorizontalAlignment.leading
                 ) {
-                    sceneWidget.layout.alignment = SettingsAlignment.bottomLeft
-                    sceneWidget.layout.y = 100 - sceneWidget.layout.y
-                    sceneWidget.layout.updateYString()
+                    sceneWidget.layout = sceneWidget.layout.copy(
+                        alignment = SettingsAlignment.bottomLeft,
+                        y = 100 - sceneWidget.layout.y,
+                    ).updatingYString()
                 }
             }
         }
@@ -2886,8 +3050,7 @@ class Settings {
                     .coerceIn(1.0, 100.0)
                 val height = (100.0 * widget.browser.height / resolution.height)
                     .coerceIn(1.0, 100.0)
-                sceneWidget.layout.size = maxOf(width, height)
-                sceneWidget.layout.updateSizeString()
+                sceneWidget.layout = sceneWidget.layout.copy(size = maxOf(width, height)).updatingSizeString()
             }
         }
     }

@@ -4,10 +4,10 @@ import com.moblin.android.localized
 import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.utils.Named
 import java.util.UUID
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -291,10 +291,10 @@ class MacroVariables {
 
 data class MacroEvent(
     val event: SettingsMacrosEvent,
-    var amount: Int = 0,
-    var text: String = "",
-    var sceneId: UUID? = null,
-    var variables: MutableMap<MacroVariable, String> = mutableMapOf(),
+    val amount: Int = 0,
+    val text: String = "",
+    val sceneId: UUID? = null,
+    val variables: Map<MacroVariable, String> = emptyMap(),
 )
 
 @Serializable(with = SettingsMacrosActionIfComparison.Serializer::class)
@@ -367,166 +367,29 @@ enum class SettingsMacrosActionIfComparison(val rawValue: String) {
 class SettingsMacrosAction {
     var id: UUID = UUID.randomUUID()
 
-    private val _function = MutableStateFlow<SettingsMacrosActionFunction?>(null)
-    var function: SettingsMacrosActionFunction?
-        get() = _function.value
-        set(value) {
-            _function.value = value
-        }
-
-    private val _sceneId = MutableStateFlow<UUID?>(null)
-    var sceneId: UUID?
-        get() = _sceneId.value
-        set(value) {
-            _sceneId.value = value
-        }
-
-    private val _sceneIds = MutableStateFlow<Set<UUID>>(emptySet())
-    var sceneIds: Set<UUID>
-        get() = _sceneIds.value
-        set(value) {
-            _sceneIds.value = value
-        }
-
-    private val _autoSceneSwitcherId = MutableStateFlow<UUID?>(null)
-    var autoSceneSwitcherId: UUID?
-        get() = _autoSceneSwitcherId.value
-        set(value) {
-            _autoSceneSwitcherId.value = value
-        }
-
-    private val _zoomX = MutableStateFlow(1f)
-    var zoomX: Float
-        get() = _zoomX.value
-        set(value) {
-            _zoomX.value = value
-        }
-
-    private val _gimbalPresetId = MutableStateFlow<UUID?>(null)
-    var gimbalPresetId: UUID?
-        get() = _gimbalPresetId.value
-        set(value) {
-            _gimbalPresetId.value = value
-        }
-
-    private val _chatMessage = MutableStateFlow("")
-    var chatMessage: String
-        get() = _chatMessage.value
-        set(value) {
-            _chatMessage.value = value
-        }
-
-    private val _delay = MutableStateFlow(3.0)
-    var delay: Double
-        get() = _delay.value
-        set(value) {
-            _delay.value = value
-        }
-
-    private val _macroId = MutableStateFlow<UUID?>(null)
-    var macroId: UUID?
-        get() = _macroId.value
-        set(value) {
-            _macroId.value = value
-        }
-
-    private val _djiDevices = MutableStateFlow<Set<UUID>>(emptySet())
-    var djiDevices: Set<UUID>
-        get() = _djiDevices.value
-        set(value) {
-            _djiDevices.value = value
-        }
-
-    private val _filters = MutableStateFlow<Set<SettingsQuickButtonType>>(emptySet())
-    var filters: Set<SettingsQuickButtonType>
-        get() = _filters.value
-        set(value) {
-            _filters.value = value
-        }
-
-    private val _record = MutableStateFlow(true)
-    var record: Boolean
-        get() = _record.value
-        set(value) {
-            _record.value = value
-        }
-
-    private val _mute = MutableStateFlow(true)
-    var mute: Boolean
-        get() = _mute.value
-        set(value) {
-            _mute.value = value
-        }
-
-    private val _torch = MutableStateFlow(true)
-    var torch: Boolean
-        get() = _torch.value
-        set(value) {
-            _torch.value = value
-        }
-
-    private val _reaction = MutableStateFlow(SettingsReaction.FIREWORKS)
-    var reaction: SettingsReaction
-        get() = _reaction.value
-        set(value) {
-            _reaction.value = value
-        }
-
-    private val _ifValue = MutableStateFlow("")
-    var ifValue: String
-        get() = _ifValue.value
-        set(value) {
-            _ifValue.value = value
-        }
-
-    private val _ifComparison = MutableStateFlow(SettingsMacrosActionIfComparison.EQUAL)
-    var ifComparison: SettingsMacrosActionIfComparison
-        get() = _ifComparison.value
-        set(value) {
-            _ifComparison.value = value
-        }
-
-    private val _ifOtherValue = MutableStateFlow("")
-    var ifOtherValue: String
-        get() = _ifOtherValue.value
-        set(value) {
-            _ifOtherValue.value = value
-        }
-
-    private val _ifRunCount = MutableStateFlow(1)
-    var ifRunCount: Int
-        get() = _ifRunCount.value
-        set(value) {
-            _ifRunCount.value = value
-        }
-
-    private val _event = MutableStateFlow(SettingsMacrosEvent.TWITCH_FOLLOW)
-    var event: SettingsMacrosEvent
-        get() = _event.value
-        set(value) {
-            _event.value = value
-        }
-
-    private val _eventMinimumAmount = MutableStateFlow(0)
-    var eventMinimumAmount: Int
-        get() = _eventMinimumAmount.value
-        set(value) {
-            _eventMinimumAmount.value = value
-        }
-
-    private val _eventText = MutableStateFlow("")
-    var eventText: String
-        get() = _eventText.value
-        set(value) {
-            _eventText.value = value
-        }
-
-    private val _eventSceneId = MutableStateFlow<UUID?>(null)
-    var eventSceneId: UUID?
-        get() = _eventSceneId.value
-        set(value) {
-            _eventSceneId.value = value
-        }
+    var function: SettingsMacrosActionFunction? by Published(null)
+    var sceneId: UUID? by Published(null)
+    var sceneIds: Set<UUID> by Published(emptySet())
+    var autoSceneSwitcherId: UUID? by Published(null)
+    var zoomX: Float by Published(1f)
+    var gimbalPresetId: UUID? by Published(null)
+    var chatMessage: String by Published("")
+    var delay: Double by Published(3.0)
+    var macroId: UUID? by Published(null)
+    var djiDevices: Set<UUID> by Published(emptySet())
+    var filters: Set<SettingsQuickButtonType> by Published(emptySet())
+    var record: Boolean by Published(true)
+    var mute: Boolean by Published(true)
+    var torch: Boolean by Published(true)
+    var reaction: SettingsReaction by Published(SettingsReaction.FIREWORKS)
+    var ifValue: String by Published("")
+    var ifComparison: SettingsMacrosActionIfComparison by Published(SettingsMacrosActionIfComparison.EQUAL)
+    var ifOtherValue: String by Published("")
+    var ifRunCount: Int by Published(1)
+    var event: SettingsMacrosEvent by Published(SettingsMacrosEvent.TWITCH_FOLLOW)
+    var eventMinimumAmount: Int by Published(0)
+    var eventText: String by Published("")
+    var eventSceneId: UUID? by Published(null)
 
     var needsWeather: Boolean = false
     var needsGeography: Boolean = false
@@ -640,61 +503,14 @@ enum class SettingsMacrosMacroRepeatMode(val rawValue: String) {
 class SettingsMacrosMacro : Named {
     var id: UUID = UUID.randomUUID()
 
-    private val _name = MutableStateFlow(baseName)
-    override var name: String
-        get() = _name.value
-        set(value) {
-            _name.value = value
-        }
-
-    private val _actions = MutableStateFlow<List<SettingsMacrosAction>>(emptyList())
-    var actions: List<SettingsMacrosAction>
-        get() = _actions.value
-        set(value) {
-            _actions.value = value
-        }
-
-    private val _running = MutableStateFlow(false)
-    var running: Boolean
-        get() = _running.value
-        set(value) {
-            _running.value = value
-        }
-
-    private val _finished = MutableStateFlow(false)
-    var finished: Boolean
-        get() = _finished.value
-        set(value) {
-            _finished.value = value
-        }
-
-    private val _repeatMode = MutableStateFlow(SettingsMacrosMacroRepeatMode.OFF)
-    var repeatMode: SettingsMacrosMacroRepeatMode
-        get() = _repeatMode.value
-        set(value) {
-            _repeatMode.value = value
-        }
-
-    private val _repeatCount = MutableStateFlow(5)
-    var repeatCount: Int
-        get() = _repeatCount.value
-        set(value) {
-            _repeatCount.value = value
-        }
-
-    private val _closePanelOnRun = MutableStateFlow(false)
-    var closePanelOnRun: Boolean
-        get() = _closePanelOnRun.value
-        set(value) {
-            _closePanelOnRun.value = value
-        }
-
-    private val _runAtAppStart = MutableStateFlow(false)
-    var runAtAppStart: Boolean
-        get() = _runAtAppStart.value
-        set(value) {
-            _runAtAppStart.value = value
-        }
+    override var name: String by Published(baseName)
+    var actions: List<SettingsMacrosAction> by Published(emptyList())
+    var running: Boolean by Published(false)
+    var finished: Boolean by Published(false)
+    var repeatMode: SettingsMacrosMacroRepeatMode by Published(SettingsMacrosMacroRepeatMode.OFF)
+    var repeatCount: Int by Published(5)
+    var closePanelOnRun: Boolean by Published(false)
+    var runAtAppStart: Boolean by Published(false)
 
     val variables: MacroVariables = MacroVariables()
     var nextActionIndex: Int = 0
@@ -751,12 +567,7 @@ class SettingsMacrosMacro : Named {
 
 @Serializable(with = SettingsMacros.Serializer::class)
 class SettingsMacros {
-    private val _macros = MutableStateFlow<List<SettingsMacrosMacro>>(emptyList())
-    var macros: List<SettingsMacrosMacro>
-        get() = _macros.value
-        set(value) {
-            _macros.value = value
-        }
+    var macros: List<SettingsMacrosMacro> by Published(emptyList())
 
     fun encode(): JsonObject = encodeContainer {
         encode("macros", macros)

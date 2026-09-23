@@ -1,21 +1,10 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.effects
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
@@ -24,28 +13,23 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsVideoEffect
 import com.moblin.android.various.settings.SettingsVideoEffectType
 import com.moblin.android.various.settings.SettingsWidget
-import com.moblin.android.various.utils.makeOffsets
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
-import com.moblin.android.view.utils.DraggableItemPrefixView
+import com.moblin.android.view.utils.DraggableItemTextView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.various.model.resetSelectedScene
 
 @Composable
 private fun EffectLabelView(model: Model = LocalModel.current, effect: SettingsVideoEffect) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        DraggableItemPrefixView()
-        Toggle(
-            title = effect.type.toString(),
-            isOn = effect.enabled,
-            onChange = { enabled ->
-                effect.enabled = enabled
-                model.resetSelectedScene(changeScene = false)
-            },
-        )
+    val enabled = binding(
+        get = { effect.enabled },
+        set = { value ->
+            effect.enabled = value
+            model.resetSelectedScene(changeScene = false)
+        },
+    )
+    Toggle(isOn = enabled.value, onChange = { enabled.value = it }) {
+        DraggableItemTextView(name = effect.type.toString())
     }
 }
 
@@ -123,7 +107,6 @@ private fun EffectView(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WidgetEffectsView(
     model: Model = LocalModel.current,
@@ -133,33 +116,8 @@ fun WidgetEffectsView(
     var presentingCreateWizard by remember { mutableStateOf(false) }
     var newEffect by remember { mutableStateOf(SettingsVideoEffect()) }
 
-    fun deleteEffect(offsets: List<Int>) {
-        val effects = widget.effects.toMutableList()
-        for (offset in offsets.sortedDescending()) {
-            if (offset in effects.indices) {
-                effects.removeAt(offset)
-            }
-        }
-        widget.effects = effects
-        model.resetSelectedScene(changeScene = false)
-    }
-
-    fun moveEffects(fromOffsets: List<Int>, toOffset: Int) {
-        val effects = widget.effects.toMutableList()
-        val moved = fromOffsets.sorted().map { effects[it] }
-        for (index in fromOffsets.sortedDescending()) {
-            if (index in effects.indices) {
-                effects.removeAt(index)
-            }
-        }
-        var destination = toOffset
-        for (index in fromOffsets) {
-            if (index < toOffset) {
-                destination -= 1
-            }
-        }
-        effects.addAll(destination.coerceIn(0, effects.size), moved)
-        widget.effects = effects
+    fun deleteEffect(offsets: IndexSet) {
+        widget.effects = widget.effects.removing(atOffsets = offsets)
         model.resetSelectedScene(changeScene = false)
     }
 
@@ -169,30 +127,29 @@ fun WidgetEffectsView(
             SwipeLeftToDeleteHelpView(kind = localized("an effect"))
         },
     ) {
-        widget.effects.forEach { effect ->
-            key(effect.id) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .combinedClickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = {},
-                            onLongClick = {
-                                val offset = widget.effects.indexOfFirst { it.id == effect.id }
-                                if (offset != -1) {
-                                    deleteEffect(listOf(offset))
-                                }
-                            },
-                        ),
-                ) {
-                    EffectView(
-                        model = model,
-                        widget = widget,
-                        effect = effect,
-                        onNavigate = onNavigate,
-                    )
-                }
+        ForEach(
+            widget.effects,
+            id = { it.id },
+            onDelete = { deleteEffect(it) },
+            onMove = { froms, to ->
+                widget.effects = widget.effects.moving(fromOffsets = froms, toOffset = to)
+                model.resetSelectedScene(changeScene = false)
+            },
+        ) { effect ->
+            ContextMenuDeleteButton(
+                action = {
+                    val offset = widget.effects.indexOfFirst { it.id == effect.id }
+                    if (offset != -1) {
+                        deleteEffect(setOf(offset))
+                    }
+                },
+            ) {
+                EffectView(
+                    model = model,
+                    widget = widget,
+                    effect = effect,
+                    onNavigate = onNavigate,
+                )
             }
         }
         CreateButtonView {
@@ -200,17 +157,15 @@ fun WidgetEffectsView(
             presentingCreateWizard = true
         }
     }
-    if (presentingCreateWizard) {
-        Sheet(onDismissRequest = { presentingCreateWizard = false }) {
-            NavigationStack {
-                WidgetEffectWizardSettingsView(
-                    model = model,
-                    widget = widget,
-                    effect = newEffect,
-                    presentingCreateWizard = presentingCreateWizard,
-                ) {
-                    presentingCreateWizard = it
-                }
+    Sheet(isPresented = presentingCreateWizard, onDismissRequest = { presentingCreateWizard = false }) {
+        NavigationStack {
+            WidgetEffectWizardSettingsView(
+                model = model,
+                widget = widget,
+                effect = newEffect,
+                presentingCreateWizard = presentingCreateWizard,
+            ) {
+                presentingCreateWizard = it
             }
         }
     }

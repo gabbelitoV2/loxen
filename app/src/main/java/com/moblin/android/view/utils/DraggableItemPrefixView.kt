@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -14,7 +15,7 @@ import com.moblin.android.platform.SystemImage
 
 @Composable
 fun DraggableItemPrefixView(modifier: Modifier = Modifier) {
-    SystemImage(name = "line.3.horizontal", fontSize = 17.sp, modifier = modifier)
+    SystemImage(name = "line.3.horizontal", fontSize = 17.sp, modifier = modifier, tint = LocalContentColor.current)
 }
 
 @Composable

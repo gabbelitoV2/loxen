@@ -1,10 +1,6 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.alerts
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,18 +11,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.moblin.android.LocalModel
 import com.moblin.android.common.various.color
 import com.moblin.android.common.various.countFormatter
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.moving
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubChannelCheerEvent
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubChannelRaidEvent
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelFollowEvent
@@ -38,8 +37,9 @@ import com.moblin.android.various.settings.SettingsWidgetAlertsCheerBitsAlert
 import com.moblin.android.various.settings.SettingsWidgetAlertsCheerBitsAlertOperator
 import com.moblin.android.various.settings.SettingsWidgetAlertsTwitch
 import com.moblin.android.various.settings.cheerBitsAlertOperators
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
-import com.moblin.android.view.utils.DraggableItemPrefixView
+import com.moblin.android.view.utils.DraggableItemTextView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
@@ -289,39 +289,33 @@ private fun TwitchCheerBitsItemView(
     var comparisonOperator by remember(cheerBit) {
         mutableStateOf(cheerBit.comparisonOperator.rawValue)
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        DraggableItemPrefixView()
-        NavigationLink(
-            destination = {
-                TwitchCheerView(
-                    model = model,
-                    alert = alert,
-                    cheerBit = cheerBit,
-                    bits = bits,
-                    comparisonOperator = comparisonOperator,
-                    onBitsChange = { bits = it },
-                    onComparisonOperatorChange = { comparisonOperator = it },
-                    onBack = {},
-                )
-            },
-        ) {
-            Text(formatTitle(bits, comparisonOperator))
-        }
+    NavigationLink(
+        destination = {
+            TwitchCheerView(
+                model = model,
+                alert = alert,
+                cheerBit = cheerBit,
+                bits = bits,
+                comparisonOperator = comparisonOperator,
+                onBitsChange = { bits = it },
+                onComparisonOperatorChange = { comparisonOperator = it },
+                onBack = {},
+            )
+        },
+    ) {
+        DraggableItemTextView(name = formatTitle(bits, comparisonOperator))
     }
 }
 
 private fun deleteCheerBit(
     twitch: SettingsWidgetAlertsTwitch,
     model: Model,
-    index: Int,
+    offsets: IndexSet,
 ) {
-    if (index in twitch.cheerBits.indices) {
-        twitch.cheerBits = twitch.cheerBits.filterIndexed { i, _ -> i != index }
-    }
+    twitch.cheerBits = twitch.cheerBits.removing(atOffsets = offsets)
     model.updateAlertsSettings()
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TwitchCheerBitsView(
     model: Model = LocalModel.current,
@@ -338,22 +332,28 @@ private fun TwitchCheerBitsView(
                 }
             },
         ) {
-            twitch.cheerBits.forEach { cheerBit ->
-                key(cheerBit.id) {
-                    Box(
-                        modifier = Modifier.combinedClickable(
-                            onClick = {},
-                            onLongClick = {
-                                deleteCheerBit(twitch, model, twitch.cheerBits.indexOf(cheerBit))
-                            },
-                        ),
-                    ) {
-                        TwitchCheerBitsItemView(
-                            model = model,
-                            alert = cheerBit.alert,
-                            cheerBit = cheerBit,
-                        )
-                    }
+            ForEach(
+                twitch.cheerBits,
+                id = { it.id },
+                onDelete = { deleteCheerBit(twitch, model, it) },
+                onMove = { froms, to ->
+                    twitch.cheerBits = twitch.cheerBits.moving(fromOffsets = froms, toOffset = to)
+                    model.updateAlertsSettings()
+                },
+            ) { cheerBit ->
+                ContextMenuDeleteButton(
+                    action = {
+                        val index = twitch.cheerBits.indexOfFirst { it.id == cheerBit.id }
+                        if (index >= 0) {
+                            deleteCheerBit(twitch, model, setOf(index))
+                        }
+                    },
+                ) {
+                    TwitchCheerBitsItemView(
+                        model = model,
+                        alert = cheerBit.alert,
+                        cheerBit = cheerBit,
+                    )
                 }
             }
             CreateButtonView {

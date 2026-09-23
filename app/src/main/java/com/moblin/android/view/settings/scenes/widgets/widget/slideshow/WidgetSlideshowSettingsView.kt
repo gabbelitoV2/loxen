@@ -1,17 +1,12 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.slideshow
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -21,20 +16,24 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.moving
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetSlideshow
 import com.moblin.android.various.settings.SettingsWidgetSlideshowSlide
 import com.moblin.android.various.settings.SettingsWidgetType
-import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.view.settings.scenes.autoswitchers.SwitcherTimePickerView
 import com.moblin.android.view.settings.scenes.widgets.widget.WidgetNameView
 import com.moblin.android.view.utils.AddButtonView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
@@ -134,13 +133,12 @@ private fun SlideView(
 private fun deleteSlide(
     model: Model,
     slideshow: SettingsWidgetSlideshow,
-    at: Int,
+    at: IndexSet,
 ) {
-    slideshow.slides = slideshow.slides.filterIndexed { index, _ -> index != at }
+    slideshow.slides = slideshow.slides.removing(atOffsets = at)
     model.resetSelectedScene(false, false)
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SlidesView(
     model: Model = LocalModel.current,
@@ -151,34 +149,33 @@ private fun SlidesView(
         header = "Slides",
         footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a slide")) },
     ) {
-        slideshow.slides.forEach { slide ->
-            key(slide.id) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .combinedClickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = {},
-                            onLongClick = {
-                                val index = slideshow.slides.indexOfFirst { it.id == slide.id }
-                                if (index >= 0) {
-                                    deleteSlide(
-                                        model = model,
-                                        slideshow = slideshow,
-                                        at = index,
-                                    )
-                                }
-                            },
-                        ),
-                ) {
-                    SlideView(
-                        model = model,
-                        database = model.database,
-                        slide = slide,
-                        onNavigate = onNavigate,
-                    )
-                }
+        ForEach(
+            slideshow.slides,
+            id = { it.id },
+            onDelete = { deleteSlide(model = model, slideshow = slideshow, at = it) },
+            onMove = { froms, to ->
+                slideshow.slides = slideshow.slides.moving(fromOffsets = froms, toOffset = to)
+                model.resetSelectedScene(false, false)
+            },
+        ) { slide ->
+            ContextMenuDeleteButton(
+                action = {
+                    val index = slideshow.slides.indexOfFirst { it.id == slide.id }
+                    if (index >= 0) {
+                        deleteSlide(
+                            model = model,
+                            slideshow = slideshow,
+                            at = setOf(index),
+                        )
+                    }
+                },
+            ) {
+                SlideView(
+                    model = model,
+                    database = model.database,
+                    slide = slide,
+                    onNavigate = onNavigate,
+                )
             }
         }
         AddButtonView {

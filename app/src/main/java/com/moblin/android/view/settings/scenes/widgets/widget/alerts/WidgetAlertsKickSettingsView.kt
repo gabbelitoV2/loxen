@@ -3,7 +3,6 @@ package com.moblin.android.view.settings.scenes.widgets.widget.alerts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -13,12 +12,15 @@ import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.color
 import com.moblin.android.common.various.countFormatter
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
-import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.moving
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.streamingplatforms.kick.KickPusherGiftedSubscriptionsEvent
 import com.moblin.android.streamingplatforms.kick.KickPusherKickGift
 import com.moblin.android.streamingplatforms.kick.KickPusherKickSender
@@ -32,8 +34,9 @@ import com.moblin.android.various.settings.SettingsWidgetAlertsCheerBitsAlertOpe
 import com.moblin.android.various.settings.SettingsWidgetAlertsKick
 import com.moblin.android.various.settings.SettingsWidgetAlertsKickGiftsAlert
 import com.moblin.android.various.settings.cheerBitsAlertOperators
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
-import com.moblin.android.view.utils.DraggableItemPrefixView
+import com.moblin.android.view.utils.DraggableItemTextView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
@@ -296,22 +299,19 @@ private fun KickGiftItemView(
 ) {
     val amount = remember { mutableStateOf(kickGift.amount) }
     val comparisonOperator = remember { mutableStateOf(kickGift.comparisonOperator.rawValue) }
-    FormRow {
-        DraggableItemPrefixView()
-        NavigationLink(
-            destination = {
-                KickGiftView(
-                    alert = alert,
-                    kickGift = kickGift,
-                    amount = amount.value,
-                    onAmountChange = { amount.value = it },
-                    comparisonOperator = comparisonOperator.value,
-                    onComparisonOperatorChange = { comparisonOperator.value = it }
-                )
-            }
-        ) {
-            Text(formatKickGiftTitle(amount.value, comparisonOperator.value))
+    NavigationLink(
+        destination = {
+            KickGiftView(
+                alert = alert,
+                kickGift = kickGift,
+                amount = amount.value,
+                onAmountChange = { amount.value = it },
+                comparisonOperator = comparisonOperator.value,
+                onComparisonOperatorChange = { comparisonOperator.value = it }
+            )
         }
+    ) {
+        DraggableItemTextView(name = formatKickGiftTitle(amount.value, comparisonOperator.value))
     }
 }
 
@@ -321,8 +321,8 @@ private fun KickGiftsView(
     kick: SettingsWidgetAlertsKick,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    fun deleteKickGift(offsets: List<Int>) {
-        kick.kickGifts = kick.kickGifts.filterIndexed { index, _ -> index !in offsets }
+    fun deleteKickGift(offsets: IndexSet) {
+        kick.kickGifts = kick.kickGifts.removing(atOffsets = offsets)
         model.updateAlertsSettings()
     }
 
@@ -336,8 +336,23 @@ private fun KickGiftsView(
                 }
             }
         ) {
-            kick.kickGifts.forEach { kickGift ->
-                key(kickGift.id) {
+            ForEach(
+                kick.kickGifts,
+                id = { it.id },
+                onDelete = { deleteKickGift(it) },
+                onMove = { froms, to ->
+                    kick.kickGifts = kick.kickGifts.moving(fromOffsets = froms, toOffset = to)
+                    model.updateAlertsSettings()
+                },
+            ) { kickGift ->
+                ContextMenuDeleteButton(
+                    action = {
+                        val index = kick.kickGifts.indexOfFirst { it.id == kickGift.id }
+                        if (index >= 0) {
+                            deleteKickGift(setOf(index))
+                        }
+                    },
+                ) {
                     KickGiftItemView(
                         alert = kickGift.alert,
                         kickGift = kickGift,

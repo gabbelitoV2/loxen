@@ -12,11 +12,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.LocalTint
+import com.moblin.android.platform.swiftui.formPalette
 
 @Composable
 fun CopyToClipboardButtonView(text: String) {
@@ -26,6 +29,7 @@ fun CopyToClipboardButtonView(text: String) {
     SystemImage(
         name = "square.and.arrow.up",
         fontSize = 20.sp,
+        tint = LocalTint.current.takeOrElse { formPalette().accent },
         modifier = Modifier
             .alpha(if (pressed) 0.2f else 1f)
             .clickable(interactionSource = interactionSource, indication = null) {

@@ -3,13 +3,11 @@ package com.moblin.android.view.settings.scenes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -20,13 +18,18 @@ import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ContextMenu
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.HorizontalEdge
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.SwipeActions
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.move
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsDebug
@@ -73,34 +76,44 @@ private fun SceneItemView(
         }
     }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
-        NavigationLink(
-            destination = {
-                SceneSettingsView(database = model.database, scene = scene)
+    ContextMenu(
+        menu = {
+            if (isMac()) {
+                ContextMenuDuplicateButtonView { duplicate() }
+                ContextMenuDeleteButtonView { delete() }
+            }
+        },
+    ) {
+        SwipeActions(
+            edge = HorizontalEdge.trailing,
+            allowsFullSwipe = false,
+            actions = {
+                SwipeLeftToDeleteButtonView { delete() }
+                SwipeLeftToDuplicateButtonView { duplicate() }
             },
-            label = {
-                DraggableItemPrefixView()
-                Toggle(
-                    title = scene.name,
-                    isOn = binding(
-                        get = { scene.enabled },
-                        set = { value ->
-                            scene.enabled = value
-                            if (model.getSelectedScene() === scene) {
-                                model.resetSelectedScene()
-                            } else {
-                                model.sceneSelector.sceneIndex.value += 0
-                            }
-                        },
-                    ),
-                )
-            },
-        )
-        SwipeLeftToDeleteButtonView(action = { delete() })
-        SwipeLeftToDuplicateButtonView { duplicate() }
-        if (isMac()) {
-            ContextMenuDuplicateButtonView { duplicate() }
-            ContextMenuDeleteButtonView { delete() }
+        ) {
+            NavigationLink(
+                destination = {
+                    SceneSettingsView(database = model.database, scene = scene)
+                },
+                label = {
+                    DraggableItemPrefixView()
+                    Toggle(
+                        title = scene.name,
+                        isOn = binding(
+                            get = { scene.enabled },
+                            set = { value ->
+                                scene.enabled = value
+                                if (model.getSelectedScene() === scene) {
+                                    model.resetSelectedScene()
+                                } else {
+                                    model.sceneSelector.sceneIndex.value += 0
+                                }
+                            },
+                        ),
+                    )
+                },
+            )
         }
     }
 }
@@ -117,14 +130,18 @@ private fun ScenesListView(
             SwipeLeftToDuplicateOrDeleteHelpView(kind = localized("a scene"))
         },
     ) {
-        database.scenes.forEach { scene ->
-            key(scene.id) {
-                SceneItemView(
-                    model = model,
-                    database = database,
-                    scene = scene,
-                )
-            }
+        ForEach(
+            database.scenes,
+            id = { it.id },
+            onMove = { froms, to ->
+                database.scenes.move(fromOffsets = froms, toOffset = to)
+            },
+        ) { scene ->
+            SceneItemView(
+                model = model,
+                database = database,
+                scene = scene,
+            )
         }
         CreateButtonView {
             val name = makeUniqueName(SettingsScene.baseName, database.scenes)

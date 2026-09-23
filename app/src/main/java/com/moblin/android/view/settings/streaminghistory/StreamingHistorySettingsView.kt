@@ -1,35 +1,37 @@
 package com.moblin.android.view.settings.streaminghistory
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.format
 import com.moblin.android.common.various.formatDate
 import com.moblin.android.common.various.formatOneDecimal
-import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.NavigationTitle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.storages.StreamingHistoryDatabase
 import com.moblin.android.various.storages.StreamingHistoryStream
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.localized
 
 @Composable
@@ -86,48 +88,37 @@ private fun deleteStream(offsets: List<Int>, database: StreamingHistoryDatabase,
 private fun StreamingHistorySettingsStreamsView(
     model: Model = LocalModel.current,
     database: StreamingHistoryDatabase,
+    modifier: Modifier = Modifier,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val streams by database.streams.collectAsState()
-    val palette = formPalette()
-    Section {
-        streams.forEachIndexed { index, stream ->
-            key(stream.id) {
-                NavigationLink(
-                    destination = {
-                        StreamingHistoryStreamSettingsView(stream = stream)
-                    },
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.Start,
-                    ) {
-                        Text(formatStreamTitle(stream = stream), color = palette.label)
-                        Text(
-                            stream.settings.name,
-                            fontSize = 13.sp,
-                            color = palette.secondaryLabel,
-                        )
+    Form(modifier = modifier) {
+        Section {
+            ForEach(
+                streams,
+                id = { it.id },
+                onDelete = { deleteStream(offsets = it.toList(), database = database, model = model) },
+            ) { stream ->
+                ContextMenuDeleteButton(action = {
+                    val offset = database.streams.value.indexOfFirst { it.id == stream.id }
+                    if (offset != -1) {
+                        deleteStream(offsets = listOf(offset), database = database, model = model)
                     }
-                    val interactionSource = remember { MutableInteractionSource() }
-                    val pressed by interactionSource.collectIsPressedAsState()
-                    SystemImage(
-                        name = "trash",
-                        fontSize = 22.sp,
-                        tint = palette.red,
-                        modifier = Modifier
-                            .clickable(
-                                interactionSource = interactionSource,
-                                indication = null,
-                            ) {
-                                deleteStream(
-                                    offsets = listOf(index),
-                                    database = database,
-                                    model = model,
-                                )
-                            }
-                            .alpha(if (pressed) 0.2f else 1f),
-                    )
+                }) {
+                    NavigationLink(
+                        destination = {
+                            StreamingHistoryStreamSettingsView(stream = stream)
+                        },
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(formatStreamTitle(stream = stream))
+                            Text(stream.settings.name, fontSize = 13.sp)
+                        }
+                    }
                 }
             }
         }
@@ -139,11 +130,19 @@ fun StreamingHistorySettingsView(
     model: Model = LocalModel.current,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Form(title = "Streaming history") {
+    NavigationTitle("Streaming history")
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(if (isSystemInDarkTheme()) Color.Black else Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         StreamingHistorySettingsSummaryView(database = model.streamingHistory.database)
         StreamingHistorySettingsStreamsView(
             model = model,
             database = model.streamingHistory.database,
+            modifier = Modifier.weight(1f),
             onNavigate = onNavigate,
         )
     }

@@ -1,7 +1,6 @@
 package com.moblin.android.view.controlbar.quickbutton.chat
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.CircularProgressIndicator
@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,6 +35,8 @@ import com.moblin.android.common.various.countFormatter
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.DeleteDisabled
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.NavigationLink
@@ -44,6 +45,7 @@ import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.streamingplatforms.twitch.TwitchLoginView
 import com.moblin.android.various.CacheAsyncImage
@@ -55,6 +57,7 @@ import com.moblin.android.view.controlbar.quickbutton.chat.moderation.QuickButto
 import com.moblin.android.view.utils.AddButtonView
 import com.moblin.android.view.utils.BorderlessButtonView
 import com.moblin.android.view.utils.CloseToolbar
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.IconAndTextLocalizedView
 import com.moblin.android.view.utils.ShortcutSectionView
@@ -228,7 +231,7 @@ fun DurationActionView(
     var duration by remember { mutableStateOf<Int?>(null) }
     val durationOptions: List<Int?> = listOf(null) + durations
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    FormRow {
         IconAndTextLocalizedView(image = image, text = text)
         Spacer(Modifier.weight(1f))
         ExecutorView(model = model, executor = executor) {
@@ -243,6 +246,7 @@ fun DurationActionView(
                     onChange = { duration = it },
                 )
             }
+            Spacer(Modifier.width(8.dp))
             BorderlessButtonView(text = "Send") {
                 executor.startProgress()
                 action(duration, executor::completed)
@@ -404,16 +408,14 @@ fun UserModerationItemView(
             }
         }
         if (action == ModActionType.timeout) {
-            Section(header = localized("Duration")) {
-                FormRow {
-                    Picker(
-                        title = "",
-                        selection = timeoutDuration,
-                        options = timeoutPresets,
-                        text = { formatShortDuration(seconds = it) },
-                        onChange = { timeoutDuration = it },
-                    )
-                }
+            Section {
+                Picker(
+                    title = "Duration",
+                    selection = timeoutDuration,
+                    options = timeoutPresets,
+                    text = { formatShortDuration(seconds = it) },
+                    onChange = { timeoutDuration = it },
+                )
             }
         }
         if (action == ModActionType.ban) {
@@ -486,36 +488,38 @@ fun PollOptionsSectionView(
     onOptionsChange: (List<PollOption>) -> Unit,
     maxCount: Int,
 ) {
-    val palette = formPalette()
     Section(
         header = localized(header),
         footerContent = {
             SwipeLeftToDeleteHelpView(kind = kind)
         },
     ) {
-        options.forEach { option ->
-            key(option.id) {
-                FormRow {
-                    FormTextField(
-                        value = option.text,
-                        onValueChange = { newValue ->
-                            onOptionsChange(
-                                options.map {
-                                    if (it.id == option.id) it.copy(text = newValue) else it
-                                },
-                            )
-                        },
-                        placeholder = placeholder,
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (options.size > 2) {
-                        SystemImage(
-                            name = "minus.circle",
-                            fontSize = 17.sp,
-                            modifier = Modifier.clickable {
-                                onOptionsChange(options.filterNot { it.id == option.id })
+        ForEach(
+            options,
+            id = { it.id },
+            onDelete = { offsets ->
+                onOptionsChange(options.removing(atOffsets = offsets))
+            },
+        ) { option ->
+            ContextMenuDeleteButton(
+                disabled = options.size <= 2,
+                action = {
+                    onOptionsChange(options.filterNot { it.id == option.id })
+                },
+            ) {
+                DeleteDisabled(options.size <= 2) {
+                    FormRow {
+                        FormTextField(
+                            value = option.text,
+                            onValueChange = { newValue ->
+                                onOptionsChange(
+                                    options.map {
+                                        if (it.id == option.id) it.copy(text = newValue) else it
+                                    },
+                                )
                             },
-                            tint = palette.red,
+                            placeholder = placeholder,
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 }
@@ -723,16 +727,14 @@ fun QuickButtonChatModerationView(
         }
     }
 
-    if (showModerationAuth) {
-        Sheet(onDismissRequest = { model.showModerationAuth.value = false }) {
-            when (platform) {
-                Platform.twitch -> TwitchLoginView(
-                    model = model,
-                    presenting = showModerationAuth,
-                    onPresentingChange = { model.showModerationAuth.value = it },
-                )
-                else -> Unit
-            }
+    Sheet(isPresented = showModerationAuth, onDismissRequest = { model.showModerationAuth.value = false }) {
+        when (platform) {
+            Platform.twitch -> TwitchLoginView(
+                model = model,
+                presenting = showModerationAuth,
+                onPresentingChange = { model.showModerationAuth.value = it },
+            )
+            else -> Unit
         }
     }
 }

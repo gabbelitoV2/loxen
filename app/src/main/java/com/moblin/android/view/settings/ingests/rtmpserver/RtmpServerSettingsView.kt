@@ -1,14 +1,9 @@
 package com.moblin.android.view.settings.ingests.rtmpserver
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -16,6 +11,7 @@ import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.isValidPort
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
@@ -26,6 +22,7 @@ import com.moblin.android.various.settings.SettingsRtmpServerStream
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.various.utils.randomHumanString
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.InfoBannerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
@@ -50,7 +47,6 @@ fun RtmpServerSettingsView(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RtmpServerSettingsForm(
     model: Model = LocalModel.current,
@@ -99,30 +95,30 @@ fun RtmpServerSettingsForm(
                 }
             },
         ) {
-            rtmpServer.streams.forEach { stream ->
-                key(stream.id) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .combinedClickable(
-                                onClick = {},
-                                onLongClick = {
-                                    if (!rtmpServer.enabled) {
-                                        val index = rtmpServer.streams
-                                            .indexOfFirst { it.id == stream.id }
-                                        if (index >= 0) {
-                                            deleteStream(model, rtmpServer, listOf(index))
-                                        }
-                                    }
-                                },
-                            ),
-                    ) {
-                        RtmpServerStreamSettingsView(
-                            status = model.statusOther,
-                            rtmpServer = rtmpServer,
-                            stream = stream,
-                        )
-                    }
+            ForEach(
+                rtmpServer.streams,
+                id = { it.id },
+                onDelete = if (!rtmpServer.enabled) {
+                    { offsets -> deleteStream(model, rtmpServer, offsets.toList()) }
+                } else {
+                    null
+                },
+            ) { stream ->
+                ContextMenuDeleteButton(
+                    disabled = rtmpServer.enabled,
+                    action = {
+                        val index = rtmpServer.streams
+                            .indexOfFirst { it.id == stream.id }
+                        if (index >= 0) {
+                            deleteStream(model, rtmpServer, listOf(index))
+                        }
+                    },
+                ) {
+                    RtmpServerStreamSettingsView(
+                        status = model.statusOther,
+                        rtmpServer = rtmpServer,
+                        stream = stream,
+                    )
                 }
             }
             CreateButtonView {

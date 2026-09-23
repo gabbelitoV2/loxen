@@ -11,7 +11,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -28,8 +27,11 @@ import com.moblin.android.common.various.isValidPort
 import com.moblin.android.common.various.isValidWebSocketUrl
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ContextMenu
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.Label
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
@@ -37,7 +39,10 @@ import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.moving
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.view.settings.streams.stream.obsremotecontrol.StreamObsRemoteControlSettingsView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.ContextMenuDeleteButtonView
 import com.moblin.android.view.utils.CopyToClipboardButtonView
 import com.moblin.android.view.utils.DraggableItemTextView
@@ -65,6 +70,7 @@ import com.moblin.android.various.settings.SettingsRemoteControlStreamer
 import com.moblin.android.various.settings.SettingsRemoteControlStreamerUrl
 import com.moblin.android.various.settings.SettingsRemoteControlWeb
 import com.moblin.android.various.settings.SettingsStream
+import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.various.model.obsWebSocketEnabledUpdated
 import com.moblin.android.various.model.reloadRemoteControlAssistant
@@ -130,25 +136,31 @@ private fun AssistantUrlSettingsView(
     model: Model = LocalModel.current,
     streamer: SettingsRemoteControlStreamer,
     url: SettingsRemoteControlStreamerUrl,
-    onDelete: () -> Unit,
 ) {
-    FormRow(
-        onClick = {
-            streamer.name = url.name
-            streamer.url = url.url
-            model.reloadRemoteControlStreamer()
-            model.reloadConnections()
+    ContextMenu(
+        menu = {
+            if (isMac()) {
+                ContextMenuDeleteButtonView {
+                    streamer.savedUrls = streamer.savedUrls.filterNot { it === url }
+                }
+            }
         },
     ) {
-        Text(url.name)
-        Spacer(Modifier.weight(1f))
-        Text(url.url)
-        if (streamer.url == url.url) {
-            SystemImage(name = "checkmark", fontSize = 17.sp, tint = formPalette().accent)
+        FormRow(
+            onClick = {
+                streamer.name = url.name
+                streamer.url = url.url
+                model.reloadRemoteControlStreamer()
+                model.reloadConnections()
+            },
+        ) {
+            Text(url.name)
+            Spacer(Modifier.weight(1f))
+            Text(url.url)
+            if (streamer.url == url.url) {
+                SystemImage(name = "checkmark", fontSize = 17.sp, tint = formPalette().accent)
+            }
         }
-    }
-    ContextMenuDeleteButtonView {
-        onDelete()
     }
 }
 
@@ -181,12 +193,17 @@ private fun UrlSettingsInnerView(
             header = localized("Saved URLs"),
             footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a URL")) },
         ) {
-            streamer.savedUrls.forEach { url ->
+            ForEach(
+                streamer.savedUrls,
+                id = { it.id },
+                onDelete = { offsets ->
+                    streamer.savedUrls = streamer.savedUrls.removing(atOffsets = offsets)
+                },
+            ) { url ->
                 AssistantUrlSettingsView(
                     model = model,
                     streamer = streamer,
                     url = url,
-                    onDelete = { streamer.savedUrls = streamer.savedUrls.filter { it != url } },
                 )
             }
         }
@@ -491,28 +508,39 @@ fun RemoteControlStreamersView(
     Section(
         footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a streamer")) },
     ) {
-        remoteControlSettings.streamers.forEach { streamer ->
-            key(streamer.id) {
-                Box {
-                    StreamerView(
+        ForEach(
+            remoteControlSettings.streamers,
+            id = { it.id },
+            onDelete = { offsets ->
+                deleteStreamer(
+                    model = model,
+                    remoteControlSettings = remoteControlSettings,
+                    offsets = offsets,
+                )
+            },
+            onMove = { froms, to ->
+                remoteControlSettings.streamers =
+                    remoteControlSettings.streamers.moving(fromOffsets = froms, toOffset = to)
+            },
+        ) { streamer ->
+            ContextMenuDeleteButton(action = {
+                val offset = remoteControlSettings.streamers
+                    .indexOfFirst { it.id == streamer.id }
+                if (offset != -1) {
+                    deleteStreamer(
                         model = model,
                         remoteControlSettings = remoteControlSettings,
-                        streamer = streamer,
-                        streamerRelay = streamer.relay,
-                        onNavigate = onNavigate,
+                        offsets = setOf(offset),
                     )
-                    ContextMenuDeleteButtonView {
-                        val offsets = remoteControlSettings.streamers
-                            .indexOfFirst { it.id == streamer.id }
-                        if (offsets != -1) {
-                            deleteStreamer(
-                                model = model,
-                                remoteControlSettings = remoteControlSettings,
-                                offsets = offsets,
-                            )
-                        }
-                    }
                 }
+            }) {
+                StreamerView(
+                    model = model,
+                    remoteControlSettings = remoteControlSettings,
+                    streamer = streamer,
+                    streamerRelay = streamer.relay,
+                    onNavigate = onNavigate,
+                )
             }
         }
         TextButtonView(localized("Create")) {
@@ -908,30 +936,15 @@ private fun onStreamerChanged(model: Model, remoteControlSettings: SettingsRemot
 private fun deleteStreamer(
     model: Model,
     remoteControlSettings: SettingsRemoteControl,
-    offsets: Int,
+    offsets: IndexSet,
 ) {
-    if (offsets in remoteControlSettings.streamers.indices) {
-        remoteControlSettings.streamers =
-            remoteControlSettings.streamers.filterIndexed { index, _ -> index != offsets }
-    }
+    remoteControlSettings.streamers = remoteControlSettings.streamers.removing(atOffsets = offsets)
     val selectedStreamer = remoteControlSettings.selectedStreamer ?: return
     if (remoteControlSettings.streamers.any { it.id == selectedStreamer }) {
         return
     }
     remoteControlSettings.selectedStreamer = null
     onStreamerChanged(model = model, remoteControlSettings = remoteControlSettings)
-}
-
-private fun <T> moveItems(items: MutableList<T>, fromIndex: Int, toIndex: Int) {
-    if (fromIndex == toIndex) {
-        return
-    }
-    if (fromIndex !in items.indices) {
-        return
-    }
-    val item = items.removeAt(fromIndex)
-    val index = if (toIndex > fromIndex) toIndex - 1 else toIndex
-    items.add(index.coerceIn(0, items.size), item)
 }
 
 private fun submitPort(model: Model, web: SettingsRemoteControlWeb, value: String) {

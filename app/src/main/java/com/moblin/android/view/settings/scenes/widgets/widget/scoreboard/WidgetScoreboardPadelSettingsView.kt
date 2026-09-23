@@ -5,28 +5,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
+import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.LocalNavigator
 import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.move
+import com.moblin.android.platform.swiftui.remove
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.sceneUpdated
+import com.moblin.android.various.model.sendScoreboardPlayersToWatch
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetPadelScoreboard
@@ -34,6 +29,7 @@ import com.moblin.android.various.settings.SettingsWidgetPadelScoreboardGameType
 import com.moblin.android.various.settings.SettingsWidgetScoreboard
 import com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer
 import com.moblin.android.various.utils.makeUniqueName
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.InlinePickerItem
 import com.moblin.android.view.utils.InlinePickerView
@@ -51,27 +47,25 @@ private fun PlayersPlayerView(
     NameEditView(
         name = player.name,
         existingNames = database.scoreboardPlayers,
-        onNameChange = { player.name = it }
+        onNameChange = {
+            if (player.name != it) {
+                player.name = it
+                model.sceneUpdated()
+                model.sendScoreboardPlayersToWatch()
+            }
+        }
     )
-    LaunchedEffect(player.name) {
-        Unit
-        Unit
-    }
 }
 
 private fun deletePlayer(
     model: Model,
     database: Database,
-    offsets: List<Int>,
+    offsets: IndexSet,
     updated: () -> Unit
 ) {
-    offsets.sortedDescending().forEach { index ->
-        if (index in database.scoreboardPlayers.indices) {
-            database.scoreboardPlayers.removeAt(index)
-        }
-    }
+    database.scoreboardPlayers.remove(atOffsets = offsets)
     updated()
-    Unit
+    model.sendScoreboardPlayersToWatch()
 }
 
 @Composable
@@ -80,15 +74,31 @@ private fun PlayersView(
     database: Database,
     updated: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = "Players", style = MaterialTheme.typography.titleMedium)
-        database.scoreboardPlayers.forEachIndexed { index, player ->
-            PlayersPlayerView(model = model, database = database, player = player)
-            if (index < database.scoreboardPlayers.size) {
-                Unit
+    Section(
+        header = "Players",
+        footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a player")) }
+    ) {
+        ForEach(
+            database.scoreboardPlayers,
+            id = { it.id },
+            onDelete = { deletePlayer(model, database, it, updated) },
+            onMove = { froms, to ->
+                database.scoreboardPlayers.move(fromOffsets = froms, toOffset = to)
+                updated()
+                model.sendScoreboardPlayersToWatch()
+            }
+        ) { player ->
+            ContextMenuDeleteButton(
+                action = {
+                    val index = database.scoreboardPlayers.indexOfFirst { it.id == player.id }
+                    if (index >= 0) {
+                        deletePlayer(model, database, setOf(index), updated)
+                    }
+                }
+            ) {
+                PlayersPlayerView(model = model, database = database, player = player)
             }
         }
-        Unit
         CreateButtonView(action = {
             val player = SettingsWidgetScoreboardPlayer()
             player.name = makeUniqueName(
@@ -96,9 +106,8 @@ private fun PlayersView(
                 existingNames = database.scoreboardPlayers
             )
             database.scoreboardPlayers.add(player)
-            Unit
+            model.sendScoreboardPlayersToWatch()
         })
-        SwipeLeftToDeleteHelpView(kind = localized("a player"))
     }
 }
 
@@ -164,7 +173,6 @@ fun WidgetScoreboardPadelQuickButtonControlsView(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetScoreboardPadelGeneralSettingsView(
     widget: SettingsWidget,
@@ -172,37 +180,14 @@ fun WidgetScoreboardPadelGeneralSettingsView(
     padel: SettingsWidgetPadelScoreboard,
     updated: () -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+    val type = binding(get = { padel.type }, set = { padel.type = it })
+    Picker(
+        title = "Game type",
+        selection = type.value,
+        options = SettingsWidgetPadelScoreboardGameType.entries,
+        text = { it.toString() }
     ) {
-        Text(text = "Game type")
-        Spacer(modifier = Modifier.weight(1f))
-        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-            OutlinedTextField(
-                value = padel.type.toString(),
-                onValueChange = {},
-                readOnly = true,
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                },
-                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable)
-            )
-            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                SettingsWidgetPadelScoreboardGameType.values().forEach { type ->
-                    DropdownMenuItem(
-                        text = { Text(type.toString()) },
-                        onClick = {
-                            padel.type = type
-                            expanded = false
-                        }
-                    )
-                }
-            }
-        }
-    }
-    LaunchedEffect(padel.type) {
+        type.value = it
         updated()
     }
     ScoreboardColorsView(scoreboard = scoreboard, updated = updated)
@@ -218,40 +203,48 @@ fun WidgetScoreboardPadelSettingsView(
         PlayerView(
             model = model,
             playerId = padel.homePlayer1,
-            onPlayerIdChange = { padel.homePlayer1 = it }
+            onPlayerIdChange = {
+                if (padel.homePlayer1 != it) {
+                    padel.homePlayer1 = it
+                    updated()
+                }
+            }
         )
-        LaunchedEffect(padel.homePlayer1) {
-            updated()
-        }
         if (padel.type == SettingsWidgetPadelScoreboardGameType.doubles) {
             PlayerView(
                 model = model,
                 playerId = padel.homePlayer2,
-                onPlayerIdChange = { padel.homePlayer2 = it }
+                onPlayerIdChange = {
+                    if (padel.homePlayer2 != it) {
+                        padel.homePlayer2 = it
+                        updated()
+                    }
+                }
             )
-            LaunchedEffect(padel.homePlayer2) {
-                updated()
-            }
         }
     }
     Section(header = "Away") {
         PlayerView(
             model = model,
             playerId = padel.awayPlayer1,
-            onPlayerIdChange = { padel.awayPlayer1 = it }
+            onPlayerIdChange = {
+                if (padel.awayPlayer1 != it) {
+                    padel.awayPlayer1 = it
+                    updated()
+                }
+            }
         )
-        LaunchedEffect(padel.awayPlayer1) {
-            updated()
-        }
         if (padel.type == SettingsWidgetPadelScoreboardGameType.doubles) {
             PlayerView(
                 model = model,
                 playerId = padel.awayPlayer2,
-                onPlayerIdChange = { padel.awayPlayer2 = it }
+                onPlayerIdChange = {
+                    if (padel.awayPlayer2 != it) {
+                        padel.awayPlayer2 = it
+                        updated()
+                    }
+                }
             )
-            LaunchedEffect(padel.awayPlayer2) {
-                updated()
-            }
         }
     }
     PlayersView(model = model, database = model.database, updated = updated)

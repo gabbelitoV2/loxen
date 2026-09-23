@@ -48,12 +48,14 @@ class SettingsSelfieStick(
             val selfieStick = SettingsSelfieStick()
             selfieStick.enabled.value = container.decode("enabled", false)
             selfieStick.function.value = container.decode("function", SettingsControllerFunction.SWITCH_SCENE)
-            selfieStick.functionData.value.sceneId = container.decode<UUID?>("sceneId", null)
-            selfieStick.functionData.value.widgetId = container.decode<UUID?>("widgetId", null)
-            selfieStick.functionData.value.gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null)
-            selfieStick.functionData.value.gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW)
-            selfieStick.functionData.value.macroId = container.decode<UUID?>("macroId", null)
-            selfieStick.functionData.value.streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null)
+            selfieStick.functionData.value = SettingsControllerFunctionData(
+                sceneId = container.decode<UUID?>("sceneId", null),
+                widgetId = container.decode<UUID?>("widgetId", null),
+                gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null),
+                gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW),
+                macroId = container.decode<UUID?>("macroId", null),
+                streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null),
+            )
             return selfieStick
         }
     }

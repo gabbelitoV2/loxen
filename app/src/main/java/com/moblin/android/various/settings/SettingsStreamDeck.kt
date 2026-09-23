@@ -7,6 +7,7 @@ import com.moblin.android.localized
 import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
 import com.moblin.android.various.utils.Named
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -86,12 +87,14 @@ class SettingsStreamDeckKey {
             key.color = container.decode("color", RgbColor.white)
             key._colorColor.value = key.color.color()
             key._function.value = container.decode("function", SettingsControllerFunction.UNUSED)
-            key._functionData.value.sceneId = container.decode<UUID?>("sceneId", null)
-            key._functionData.value.widgetId = container.decode<UUID?>("widgetId", null)
-            key._functionData.value.gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null)
-            key._functionData.value.gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW)
-            key._functionData.value.macroId = container.decode<UUID?>("macroId", null)
-            key._functionData.value.streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null)
+            key._functionData.value = SettingsControllerFunctionData(
+                sceneId = container.decode<UUID?>("sceneId", null),
+                widgetId = container.decode<UUID?>("widgetId", null),
+                gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null),
+                gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW),
+                macroId = container.decode<UUID?>("macroId", null),
+                streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null),
+            )
             return key
         }
     }
@@ -127,7 +130,7 @@ enum class SettingsStreamDeckModel(val rawValue: String) {
 class SettingsStreamDeckLayout : Named {
     var id: UUID
         private set
-    override var name: String
+    override var name: String by Published(baseName)
     private val _model: MutableStateFlow<SettingsStreamDeckModel>
     val model: StateFlow<SettingsStreamDeckModel>
     private val _keys: MutableStateFlow<List<SettingsStreamDeckKey>>
@@ -135,7 +138,6 @@ class SettingsStreamDeckLayout : Named {
 
     constructor() {
         id = UUID.randomUUID()
-        name = baseName
         _model = MutableStateFlow(SettingsStreamDeckModel.classic)
         model = _model.asStateFlow()
         val initialKeys = MutableList(36) { SettingsStreamDeckKey() }

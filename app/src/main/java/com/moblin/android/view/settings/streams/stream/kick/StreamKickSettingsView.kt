@@ -12,7 +12,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
@@ -23,6 +27,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -31,21 +36,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Button
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.LocalNavigator
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.streamingplatforms.kick.KickCategory
 import com.moblin.android.streamingplatforms.kick.KickLoginView
 import com.moblin.android.streamingplatforms.kick.KickUser
 import com.moblin.android.streamingplatforms.kick.getKickChannelInfo
+import com.moblin.android.various.CacheAsyncImage
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.fetchKickCategories
+import com.moblin.android.various.model.searchKickCategories
+import com.moblin.android.various.model.setKickStreamCategory
+import com.moblin.android.various.model.setKickStreamTitle
 import com.moblin.android.various.settings.SettingsKickAlerts
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.view.utils.TextEditView
+import java.net.URI
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.moblin.android.LocalModel
@@ -80,7 +100,6 @@ private fun AuthenticationView(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryButton(
     model: Model = LocalModel.current,
@@ -88,22 +107,47 @@ private fun CategoryButton(
     category: KickCategory,
     onDismiss: () -> Unit
 ) {
-    Button(onClick = {
+    Button(action = {
         val categoryId = category.id.toIntOrNull() ?: return@Button
-        Unit
+        model.setKickStreamCategory(stream = stream, categoryId = categoryId)
         onDismiss()
     }) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            val imageUrl = category.src
-            if (imageUrl != null) {
-                Unit
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val url = category.src?.let { runCatching { URI(it) }.getOrNull() }
+            if (url != null) {
+                Box(
+                    modifier = Modifier
+                        .size(width = 40.dp, height = 50.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                ) {
+                    CacheAsyncImage(
+                        url = url,
+                        content = { bitmap ->
+                            Image(
+                                bitmap = bitmap,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        },
+                        placeholder = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Gray.copy(alpha = 0.3f))
+                            )
+                        }
+                    )
+                }
             }
             Text(category.name)
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KickCategoryPickerView(
     model: Model = LocalModel.current,
@@ -116,43 +160,63 @@ private fun KickCategoryPickerView(
     fun fetchDefaultCategories() {
         val categoryNames = listOf("IRL", "Just Chatting", "Slots & Casino")
         for (categoryName in categoryNames) {
-            Unit
+            model.fetchKickCategories(stream = stream, query = categoryName) { result ->
+                val category = result?.firstOrNull()
+                if (category != null) {
+                    categories = categories + category
+                }
+            }
         }
     }
 
-    LaunchedEffect(searchText) {
-        if (searchText.isEmpty()) {
-            categories = emptyList()
-            fetchDefaultCategories()
-        } else {
-            Unit
-        }
+    LaunchedEffect(Unit) {
+        fetchDefaultCategories()
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Category") }) }) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
-            OutlinedTextField(
+    Form(title = "Category") {
+        Section {
+            val palette = formPalette()
+            BasicTextField(
                 value = searchText,
-                onValueChange = { searchText = it },
-                label = { Text("Search") },
-                singleLine = true,
+                onValueChange = { newValue ->
+                    val changed = newValue != searchText
+                    searchText = newValue
+                    if (changed) {
+                        if (newValue.isEmpty()) {
+                            categories = emptyList()
+                            fetchDefaultCategories()
+                        } else {
+                            model.searchKickCategories(stream = stream, query = newValue) { result ->
+                                categories = result ?: emptyList()
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = formBodyStyle.copy(color = palette.label),
                 keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                singleLine = true,
+                cursorBrush = SolidColor(palette.accent),
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (searchText.isEmpty()) {
+                            Text(text = localized("Search"), style = formBodyStyle, color = palette.tertiaryLabel)
+                        }
+                        innerTextField()
+                    }
+                }
             )
+        }
+        Section {
             for (category in categories) {
-                CategoryButton(
-                    model = model,
-                    stream = stream,
-                    category = category,
-                    onDismiss = onDismiss
-                )
+                key(category.id) {
+                    CategoryButton(
+                        model = model,
+                        stream = stream,
+                        category = category,
+                        onDismiss = onDismiss
+                    )
+                }
             }
         }
     }
@@ -168,36 +232,37 @@ fun KickStreamLiveSettingsView(
     onCategoryChange: (String?) -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("KickStreamTitle") }
-                .padding(vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Title")
-            Spacer(Modifier.weight(1f))
-            if (title != null) {
-                GrayTextView(text = title)
-            } else {
-                CircularProgressIndicator()
-            }
+    NavigationLink(
+        destination = {
+            TextEditView(
+                title = localized("Title"),
+                value = title ?: "",
+                onSubmit = { value ->
+                    model.setKickStreamTitle(stream = stream, title = value) {}
+                }
+            )
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("KickStreamCategory") }
-                .padding(vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Category")
-            Spacer(Modifier.weight(1f))
-            if (category != null) {
-                GrayTextView(text = category)
-            } else {
-                CircularProgressIndicator()
-            }
+    ) {
+        Text(localized("Title"))
+        Spacer(Modifier.weight(1f))
+        if (title != null) {
+            GrayTextView(text = title)
+        } else {
+            CircularProgressIndicator()
+        }
+    }
+    NavigationLink(
+        destination = {
+            val navigator = LocalNavigator.current
+            KickCategoryPickerView(model = model, stream = stream, onDismiss = { navigator?.pop() })
+        }
+    ) {
+        Text(localized("Category"))
+        Spacer(Modifier.weight(1f))
+        if (category != null) {
+            GrayTextView(text = category)
+        } else {
+            CircularProgressIndicator()
         }
     }
 }

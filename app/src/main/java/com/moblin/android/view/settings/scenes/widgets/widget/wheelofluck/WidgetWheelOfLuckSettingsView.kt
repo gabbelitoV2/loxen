@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -27,18 +26,24 @@ import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.iconWidth
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.DeleteDisabled
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.moving
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.getWheelOfLuckEffect
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetWheelOfLuck
 import com.moblin.android.various.settings.SettingsWidgetWheelOfLuckOption
-import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.videoeffects.WheelOfLuckEffect
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.MultiLineTextFieldDoneButtonView
@@ -108,8 +113,6 @@ private fun OptionView(
     widget: SettingsWidget,
     wheelOfLuck: SettingsWidgetWheelOfLuck,
     options: SettingsWidgetWheelOfLuckOption,
-    deleteDisabled: Boolean,
-    onDelete: () -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     fun updateEffect() {
@@ -126,12 +129,10 @@ private fun OptionView(
                 TextEditNavigationView(
                     title = localized("Text"),
                     value = options.text,
-                    onChange = {
+                    onSubmit = {
                         options.text = it
                         updateEffect()
-                        null
                     },
-                    onSubmit = {},
                 )
                 Picker(
                     title = "Weight",
@@ -147,16 +148,15 @@ private fun OptionView(
             }
         },
     ) {
-        DraggableItemPrefixView()
-        Text(options.text)
-        Spacer(modifier = Modifier.weight(1f))
-        Text("${calcPercent()}%")
-        SymbolButton(
-            systemImage = "trash",
-            fontSize = 17.sp,
-            enabled = !deleteDisabled,
-            onClick = onDelete,
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            DraggableItemPrefixView()
+            Text(options.text)
+            Spacer(modifier = Modifier.weight(1f))
+            Text("${calcPercent()}%")
+        }
     }
 }
 
@@ -206,52 +206,51 @@ fun WidgetWheelOfLuckSettingsView(
     wheelOfLuck: SettingsWidgetWheelOfLuck,
     onNavigate: (String) -> Unit = {},
 ) {
-    val advanced = wheelOfLuck.advanced
+    val advanced = binding(get = { wheelOfLuck.advanced }, set = { wheelOfLuck.advanced = it })
     val text = wheelOfLuck.text
-    val options = wheelOfLuck.options
 
     fun updateEffect() {
         model.getWheelOfLuckEffect(widget.id)?.setSettings(wheelOfLuck)
     }
 
-    fun deleteOption(offset: Int) {
-        wheelOfLuck.options = wheelOfLuck.options
-            .filterIndexed { index, _ -> index != offset }
+    fun deleteOption(offsets: IndexSet) {
+        wheelOfLuck.options = wheelOfLuck.options.removing(atOffsets = offsets)
         wheelOfLuck.updateText()
         wheelOfLuck.updateTotalWeight()
         updateEffect()
     }
 
-    fun moveOptions(froms: Set<Int>, to: Int) {
-        val moved = wheelOfLuck.options.toMutableList()
-        val sortedFroms = froms.sorted()
-        val moving = sortedFroms.map { moved[it] }
-        sortedFroms.sortedDescending().forEach { moved.removeAt(it) }
-        val insertAt = (to - sortedFroms.count { it < to }).coerceIn(0, moved.size)
-        moved.addAll(insertAt, moving)
-        wheelOfLuck.options = moved
-        wheelOfLuck.updateText()
-        updateEffect()
-    }
-
-    if (advanced) {
+    if (advanced.value) {
         Section(header = "Options") {
-            options.forEach { option ->
-                key(option.id) {
-                    OptionView(
-                        model = model,
-                        widget = widget,
-                        wheelOfLuck = wheelOfLuck,
-                        options = option,
-                        deleteDisabled = options.size < 2,
-                        onDelete = {
-                            val offset = options.indexOfFirst { it.id == option.id }
+            val deleteDisabled = wheelOfLuck.options.size < 2
+            ForEach(
+                wheelOfLuck.options,
+                id = { it.id },
+                onDelete = { deleteOption(it) },
+                onMove = { froms, to ->
+                    wheelOfLuck.options = wheelOfLuck.options.moving(fromOffsets = froms, toOffset = to)
+                    wheelOfLuck.updateText()
+                    updateEffect()
+                },
+            ) { option ->
+                DeleteDisabled(deleteDisabled) {
+                    ContextMenuDeleteButton(
+                        disabled = deleteDisabled,
+                        action = {
+                            val offset = wheelOfLuck.options.indexOfFirst { it.id == option.id }
                             if (offset != -1) {
-                                deleteOption(offset)
+                                deleteOption(setOf(offset))
                             }
                         },
-                        onNavigate = onNavigate,
-                    )
+                    ) {
+                        OptionView(
+                            model = model,
+                            widget = widget,
+                            wheelOfLuck = wheelOfLuck,
+                            options = option,
+                            onNavigate = onNavigate,
+                        )
+                    }
                 }
             }
             CreateButtonView(action = {
@@ -277,9 +276,7 @@ fun WidgetWheelOfLuckSettingsView(
         }
     }
     Section {
-        Toggle("Advanced", isOn = advanced) { value ->
-            wheelOfLuck.advanced = value
-        }
+        Toggle("Advanced", isOn = advanced)
     }
     Section {
         model.getWheelOfLuckEffect(widget.id)?.let { effect ->

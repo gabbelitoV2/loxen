@@ -33,12 +33,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
-import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.moving
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StreamDeck
 import com.moblin.android.various.model.setSelectedStreamDeck
@@ -420,7 +422,7 @@ fun StreamDecksSettingsView(
                 options = listOf<SettingsStreamDeckLayout?>(null) + layouts,
                 text = { it?.name ?: "-- None --" },
                 onChange = {
-                    streamDecks.selectedId.setFlowValue(it?.id)
+                    streamDecks.setSelectedId(it?.id)
                     model.setSelectedStreamDeck()
                 },
             )
@@ -431,72 +433,26 @@ fun StreamDecksSettingsView(
                 SwipeLeftToDeleteHelpView(kind = "a layout")
             },
         ) {
-            layouts.forEachIndexed { index, streamDeckLayout ->
-                key(streamDeckLayout.id) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            StreamDeckLayoutSettingsView(
-                                model = model,
-                                layout = streamDeckLayout,
-                                onNavigate = onNavigate,
-                            )
-                        }
-                        SystemImage(
-                            name = "arrow.up",
-                            fontSize = 17.sp,
-                            modifier = Modifier
-                                .padding(start = 10.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                    enabled = index > 0,
-                                ) {
-                                    if (index > 0) {
-                                        val reordered = layouts.toMutableList()
-                                        val moved = reordered.removeAt(index)
-                                        reordered.add(index - 1, moved)
-                                        streamDecks.layouts.setFlowValue(reordered)
-                                    }
-                                },
-                        )
-                        SystemImage(
-                            name = "arrow.down",
-                            fontSize = 17.sp,
-                            modifier = Modifier
-                                .padding(start = 10.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                    enabled = index < layouts.size - 1,
-                                ) {
-                                    if (index < layouts.size - 1) {
-                                        val reordered = layouts.toMutableList()
-                                        val moved = reordered.removeAt(index)
-                                        reordered.add(index + 1, moved)
-                                        streamDecks.layouts.setFlowValue(reordered)
-                                    }
-                                },
-                        )
-                        SystemImage(
-                            name = "trash",
-                            fontSize = 17.sp,
-                            modifier = Modifier
-                                .padding(start = 10.dp)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                ) {
-                                    streamDecks.layouts.setFlowValue(
-                                        layouts.filterIndexed { i, _ -> i != index },
-                                    )
-                                    model.setSelectedStreamDeck()
-                                },
-                        )
-                    }
-                }
+            ForEach(
+                layouts,
+                id = { it.id },
+                onDelete = { offsets ->
+                    streamDecks.layouts.setFlowValue(
+                        streamDecks.layouts.value.removing(atOffsets = offsets),
+                    )
+                    model.setSelectedStreamDeck()
+                },
+                onMove = { froms, to ->
+                    streamDecks.layouts.setFlowValue(
+                        streamDecks.layouts.value.moving(fromOffsets = froms, toOffset = to),
+                    )
+                },
+            ) { streamDeckLayout ->
+                StreamDeckLayoutSettingsView(
+                    model = model,
+                    layout = streamDeckLayout,
+                    onNavigate = onNavigate,
+                )
             }
             CreateButtonView {
                 val streamDeckLayout = SettingsStreamDeckLayout()

@@ -6,6 +6,8 @@ import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.decodeIfPresent
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
+import com.moblin.android.platform.swiftui.PublishedList
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.utils.Named
 import java.util.UUID
@@ -18,9 +20,9 @@ import kotlinx.serialization.json.JsonObject
 @Serializable(with = SettingsGoProWifiCredentials.Serializer::class)
 class SettingsGoProWifiCredentials : Named {
     var id: UUID = UUID.randomUUID()
-    override var name: String = baseName
-    var ssid: String = ""
-    var password: String = ""
+    override var name: String by Published(baseName)
+    var ssid: String by Published("")
+    var password: String by Published("")
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -52,11 +54,11 @@ class SettingsGoProWifiCredentials : Named {
 @Serializable(with = SettingsGoProRtmpUrl.Serializer::class)
 class SettingsGoProRtmpUrl : Named {
     var id: UUID = UUID.randomUUID()
-    override var name: String = baseName
-    var type: SettingsDjiDeviceUrlType = SettingsDjiDeviceUrlType.server
-    var serverStreamId: UUID = UUID.randomUUID()
-    var serverUrl: String = ""
-    var customUrl: String = ""
+    override var name: String by Published(baseName)
+    var type: SettingsDjiDeviceUrlType by Published(SettingsDjiDeviceUrlType.server)
+    var serverStreamId: UUID by Published(UUID.randomUUID())
+    var serverUrl: String by Published("")
+    var customUrl: String by Published("")
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -145,21 +147,21 @@ val goProDeviceBitrates: List<Int> = listOf(
 @Serializable(with = SettingsGoProDevice.Serializer::class)
 class SettingsGoProDevice : Named {
     var id: UUID = UUID.randomUUID()
-    override var name: String = baseName
-    var bluetoothPeripheralName: String? = null
-    var bluetoothPeripheralId: UUID? = null
-    var wifiSsid: String = ""
-    var wifiPassword: String = ""
-    var rtmpUrlType: SettingsDjiDeviceUrlType = SettingsDjiDeviceUrlType.server
-    var serverRtmpStreamId: UUID = UUID.randomUUID()
-    var serverRtmpUrl: String? = null
-    var customRtmpUrl: String = ""
-    var resolution: SettingsGoProLaunchLiveStreamResolution = SettingsGoProLaunchLiveStreamResolution.r1080p
-    var bitrate: Int = 6_000_000
-    var lens: SettingsGoProLens = SettingsGoProLens.auto
-    var autoRestartStream: Boolean = false
-    var isStarted: Boolean = false
-    var state: GoProDeviceState? = null
+    override var name: String by Published(baseName)
+    var bluetoothPeripheralName: String? by Published(null)
+    var bluetoothPeripheralId: UUID? by Published(null)
+    var wifiSsid: String by Published("")
+    var wifiPassword: String by Published("")
+    var rtmpUrlType: SettingsDjiDeviceUrlType by Published(SettingsDjiDeviceUrlType.server)
+    var serverRtmpStreamId: UUID by Published(UUID.randomUUID())
+    var serverRtmpUrl: String? by Published(null)
+    var customRtmpUrl: String by Published("")
+    var resolution: SettingsGoProLaunchLiveStreamResolution by Published(SettingsGoProLaunchLiveStreamResolution.r1080p)
+    var bitrate: Int by Published(6_000_000)
+    var lens: SettingsGoProLens by Published(SettingsGoProLens.auto)
+    var autoRestartStream: Boolean by Published(false)
+    var isStarted: Boolean by Published(false)
+    var state: GoProDeviceState? by Published(null)
     val autoRestartStreamTimer = MainTimer()
 
     fun encode(): JsonObject = encodeContainer {
@@ -232,9 +234,9 @@ class SettingsGoProDevice : Named {
 @Serializable(with = SettingsGoProLaunchLiveStream.Serializer::class)
 class SettingsGoProLaunchLiveStream : Named {
     var id: UUID = UUID.randomUUID()
-    override var name: String = baseName
-    var isHero12Or13: Boolean = true
-    var resolution: SettingsGoProLaunchLiveStreamResolution = SettingsGoProLaunchLiveStreamResolution.r1080p
+    override var name: String by Published(baseName)
+    var isHero12Or13: Boolean by Published(true)
+    var resolution: SettingsGoProLaunchLiveStreamResolution by Published(SettingsGoProLaunchLiveStreamResolution.r1080p)
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -268,13 +270,13 @@ class SettingsGoProLaunchLiveStream : Named {
 
 @Serializable(with = SettingsGoPro.Serializer::class)
 class SettingsGoPro {
-    var devices: MutableList<SettingsGoProDevice> = mutableListOf()
-    var launchLiveStream: MutableList<SettingsGoProLaunchLiveStream> = mutableListOf()
-    var selectedLaunchLiveStream: UUID? = null
-    var wifiCredentials: MutableList<SettingsGoProWifiCredentials> = mutableListOf()
-    var selectedWifiCredentials: UUID? = null
-    var rtmpUrls: MutableList<SettingsGoProRtmpUrl> = mutableListOf()
-    var selectedRtmpUrl: UUID? = null
+    var devices: MutableList<SettingsGoProDevice> by PublishedList()
+    var launchLiveStream: MutableList<SettingsGoProLaunchLiveStream> by PublishedList()
+    var selectedLaunchLiveStream: UUID? by Published(null)
+    var wifiCredentials: MutableList<SettingsGoProWifiCredentials> by PublishedList()
+    var selectedWifiCredentials: UUID? by Published(null)
+    var rtmpUrls: MutableList<SettingsGoProRtmpUrl> by PublishedList()
+    var selectedRtmpUrl: UUID? by Published(null)
 
     fun encode(): JsonObject = encodeContainer {
         encode("devices", devices, ListSerializer(SettingsGoProDevice.serializer()))

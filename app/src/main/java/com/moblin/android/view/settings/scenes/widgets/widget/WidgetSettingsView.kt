@@ -72,7 +72,7 @@ fun AlignmentOptionView(
             interactionSource = interactionSource,
             indication = null
         ) {
-            layout.value.alignment = alignment
+            layout.value = layout.value.copy(alignment = alignment)
         }
     )
 }
@@ -116,16 +116,16 @@ private fun setXBasedOnYIfLocked(layout: MutableState<SettingsWidgetLayout>, mod
     if (!layout.value.positioningLock) {
         return
     }
-    layout.value.x = layout.value.y * horizontalIncrement(model) / verticalIncrement(model)
-    layout.value.xString = layout.value.x.toString()
+    val x = layout.value.y * horizontalIncrement(model) / verticalIncrement(model)
+    layout.value = layout.value.copy(x = x, xString = x.toString())
 }
 
 private fun setYBasedOnXIfLocked(layout: MutableState<SettingsWidgetLayout>, model: Model) {
     if (!layout.value.positioningLock) {
         return
     }
-    layout.value.y = layout.value.x * verticalIncrement(model) / horizontalIncrement(model)
-    layout.value.yString = layout.value.y.toString()
+    val y = layout.value.x * verticalIncrement(model) / horizontalIncrement(model)
+    layout.value = layout.value.copy(y = y, yString = y.toString())
 }
 
 @Composable
@@ -188,8 +188,8 @@ private fun horizontalAndVerticalPositioning(
             PositionEditView(
                 number = layout.value.x,
                 value = layout.value.xString,
-                onNumberChange = { layout.value.x = it },
-                onValueChange = { layout.value.xString = it },
+                onNumberChange = { layout.value = layout.value.copy(x = it) },
+                onValueChange = { layout.value = layout.value.copy(xString = it) },
                 onSubmit = {
                     setYBasedOnXIfLocked(layout, model)
                     model.sceneUpdated()
@@ -205,8 +205,8 @@ private fun horizontalAndVerticalPositioning(
             PositionEditView(
                 number = layout.value.y,
                 value = layout.value.yString,
-                onNumberChange = { layout.value.y = it },
-                onValueChange = { layout.value.yString = it },
+                onNumberChange = { layout.value = layout.value.copy(y = it) },
+                onValueChange = { layout.value = layout.value.copy(yString = it) },
                 onSubmit = {
                     setXBasedOnYIfLocked(layout, model)
                     model.sceneUpdated()
@@ -227,7 +227,7 @@ private fun horizontalAndVerticalPositioning(
                     interactionSource = interactionSource,
                     indication = null
                 ) {
-                    layout.value.positioningLock = !layout.value.positioningLock
+                    layout.value = layout.value.copy(positioningLock = !layout.value.positioningLock)
                     setYBasedOnXIfLocked(layout, model)
                 },
             contentAlignment = Alignment.Center
@@ -249,8 +249,8 @@ private fun horizontalPositioning(
     PositionEditView(
         number = layout.value.x,
         value = layout.value.xString,
-        onNumberChange = { layout.value.x = it },
-        onValueChange = { layout.value.xString = it },
+        onNumberChange = { layout.value = layout.value.copy(x = it) },
+        onValueChange = { layout.value = layout.value.copy(xString = it) },
         onSubmit = {
             model.sceneUpdated()
         },
@@ -272,8 +272,8 @@ private fun verticalPositioning(
     PositionEditView(
         number = layout.value.y,
         value = layout.value.yString,
-        onNumberChange = { layout.value.y = it },
-        onValueChange = { layout.value.yString = it },
+        onNumberChange = { layout.value = layout.value.copy(y = it) },
+        onValueChange = { layout.value = layout.value.copy(yString = it) },
         onSubmit = {
             model.sceneUpdated()
         },
@@ -329,8 +329,8 @@ fun WidgetLayoutView(
                 SizeEditView(
                     number = layout.value.size,
                     value = layout.value.sizeString,
-                    onNumberChange = { layout.value.size = it },
-                    onValueChange = { layout.value.sizeString = it },
+                    onNumberChange = { layout.value = layout.value.copy(size = it) },
+                    onValueChange = { layout.value = layout.value.copy(sizeString = it) },
                     onSubmit = {
                         model.sceneUpdated()
                     },

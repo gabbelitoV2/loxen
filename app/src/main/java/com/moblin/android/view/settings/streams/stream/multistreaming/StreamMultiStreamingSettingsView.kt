@@ -1,34 +1,27 @@
 package com.moblin.android.view.settings.streams.stream.multistreaming
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.remove
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamMultiStreaming
@@ -36,6 +29,7 @@ import com.moblin.android.various.settings.SettingsStreamMultiStreamingDestinati
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.settings.streams.stream.url.StreamMultiStreamingUrlView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
@@ -125,7 +119,6 @@ fun StreamMultiStreamingSettingsView(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MultiStreamingSettingsView(
     model: Model = LocalModel.current,
@@ -153,37 +146,29 @@ fun MultiStreamingSettingsView(
                 SwipeLeftToDeleteHelpView(kind = localized("a destination"))
             },
         ) {
-            multiStreaming.destinations.forEach { destination ->
-                key(destination.id) {
-                    var deleteMenuVisible by remember { mutableStateOf(false) }
-                    Box(
-                        modifier = Modifier.combinedClickable(
-                            enabled = !locked,
-                            onClick = {},
-                            onLongClick = { deleteMenuVisible = true },
-                        ),
-                    ) {
-                        DestinationView(
-                            model = model,
-                            stream = stream,
-                            destination = destination,
-                            onNavigate = onNavigate,
-                        )
-                        DropdownMenu(
-                            expanded = deleteMenuVisible,
-                            onDismissRequest = { deleteMenuVisible = false },
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(localized("Delete")) },
-                                onClick = {
-                                    deleteMenuVisible = false
-                                    multiStreaming.destinations.removeAll { item ->
-                                        item.id == destination.id
-                                    }
-                                },
-                            )
+            ForEach(
+                multiStreaming.destinations,
+                id = { it.id },
+                onDelete = if (locked) {
+                    null
+                } else {
+                    { offsets -> multiStreaming.destinations.remove(atOffsets = offsets) }
+                },
+            ) { destination ->
+                ContextMenuDeleteButton(
+                    disabled = locked,
+                    action = {
+                        multiStreaming.destinations.removeAll { item ->
+                            item.id == destination.id
                         }
-                    }
+                    },
+                ) {
+                    DestinationView(
+                        model = model,
+                        stream = stream,
+                        destination = destination,
+                        onNavigate = onNavigate,
+                    )
                 }
             }
             CreateButtonView(

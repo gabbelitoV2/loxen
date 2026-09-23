@@ -136,7 +136,8 @@ class Crawler:
             n
             for n in nodes(root)
             if n["text"]
-            and n["bounds"][1] < self.top
+            and n["bounds"][1] >= 50
+            and n["bounds"][3] <= 112
             and self.panel_left < (n["bounds"][0] + n["bounds"][2]) // 2 < self.panel_right
         ]
         centre = (self.panel_left + self.panel_right) // 2
@@ -289,7 +290,9 @@ class Crawler:
             new_title = self.title(after)
             if new_title and new_title != title:
                 self.crawl(path + [label], depth + 1)
-                self.back(title)
+                check = self.device.dump()
+                if check is None or self.title(check) != title:
+                    self.back(title)
                 check = self.device.dump()
                 if check is not None and self.title(check) != title:
                     self.log(f"back did not return to {title!r}, recovering")
