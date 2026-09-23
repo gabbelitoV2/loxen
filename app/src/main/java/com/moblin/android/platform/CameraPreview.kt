@@ -130,29 +130,24 @@ object CameraPreview {
         }
         val manager = AppDelegate.context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         @Suppress("DEPRECATION")
-        val displayRotation = manager.defaultDisplay.rotation
-        val displayDegrees = when (displayRotation) {
-            Surface.ROTATION_90 -> 90
-            Surface.ROTATION_180 -> 180
-            Surface.ROTATION_270 -> 270
-            else -> 0
-        }
-        val rotation = (sensorOrientation - displayDegrees + 360) % 360
+        val rotation = manager.defaultDisplay.rotation
         val matrix = Matrix()
         val viewRect = RectF(0f, 0f, viewWidth.toFloat(), viewHeight.toFloat())
         val centerX = viewRect.centerX()
         val centerY = viewRect.centerY()
-        if (rotation == 90 || rotation == 270) {
-            val bufferRect = RectF(0f, 0f, viewHeight.toFloat(), viewWidth.toFloat())
+        val rotated = rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270
+        if (rotated) {
+            val bufferRect = RectF(0f, 0f, HEIGHT.toFloat(), WIDTH.toFloat())
             bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY())
             matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL)
-            val scale = maxOf(viewHeight.toFloat() / viewWidth.toFloat(), viewWidth.toFloat() / viewHeight.toFloat())
+            val scale = maxOf(viewHeight.toFloat() / HEIGHT, viewWidth.toFloat() / WIDTH)
             matrix.postScale(scale, scale, centerX, centerY)
-            matrix.postRotate(rotation.toFloat(), centerX, centerY)
-        } else if (rotation == 180) {
+            matrix.postRotate(90f * (rotation - 2), centerX, centerY)
+        } else if (rotation == Surface.ROTATION_180) {
             matrix.postRotate(180f, centerX, centerY)
         }
         view.setTransform(matrix)
+        Log.i(TAG, "Transform for ${viewWidth}x$viewHeight, display rotation $rotation, sensor $sensorOrientation")
     }
 
     private fun close() {
