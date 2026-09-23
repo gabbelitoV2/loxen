@@ -201,8 +201,9 @@ class Recorder : AVAssetWriterDelegate {
         if (!isRecording) {
             return
         }
+        com.moblin.android.platform.video.retainLease(sampleBuffer)
         queue.launch {
-            appendVideoInternal(sampleBuffer)
+            try { appendVideoInternal(sampleBuffer) } finally { com.moblin.android.platform.video.releaseLease(sampleBuffer) }
         }
     }
 
@@ -291,6 +292,7 @@ class Recorder : AVAssetWriterDelegate {
             return
         }
         if (basePresentationTimeStamp == kCMTimeInvalidUs) {
+            if (writer.inputs.any { !it.isReadyForMoreMediaData }) return
             basePresentationTimeStamp = sampleBuffer.presentationTimeUs
         }
         val relativeSampleBuffer = sampleBuffer

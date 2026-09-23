@@ -7,6 +7,7 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.platform.audio.audioChannelCount
 import com.moblin.android.platform.audio.audioSampleRate
 import com.moblin.android.platform.audio.makePcmFormat
+import com.moblin.android.platform.capture.CaptureFrameRate
 import com.moblin.android.platform.core.PipelineStats
 import com.moblin.android.platform.core.PipelineThread
 import com.moblin.android.platform.mp4.FragmentedMp4Muxer
@@ -15,6 +16,9 @@ import com.moblin.android.platform.mp4.Mp4AudioTrackConfig
 import com.moblin.android.platform.mp4.Mp4TrackReport
 import com.moblin.android.platform.mp4.Mp4VideoTrackConfig
 import com.moblin.android.platform.mp4.makeAacAudioSpecificConfig
+import com.moblin.android.platform.video.CVPixelBuffer
+import com.moblin.android.platform.video.PixelBufferLeases
+import com.moblin.android.platform.video.releaseLease
 import com.moblin.android.platform.videotoolbox.CMFormatDescriptionGetExtension
 import com.moblin.android.platform.videotoolbox.VTCompressionSession
 import com.moblin.android.platform.videotoolbox.VTCompressionSessionCreate
@@ -41,9 +45,12 @@ import kotlin.math.roundToLong
 private const val TAG = "MoblinRecorder"
 private const val aacFramesPerPacket = 1024
 private const val finishEncoderDrainMs = 300L
-private const val maximumNumberOfPendingVideoFrames = 3
 
 private val loggedMessages: MutableSet<String> = Collections.synchronizedSet(HashSet())
+
+private val encoderSetupExecutor = Executors.newCachedThreadPool { runnable ->
+    Thread(runnable, "MoblinRecorderEncoderSetup").apply { isDaemon = true }
+}
 
 private fun logOnce(message: String) {
     if (loggedMessages.add(message)) {
@@ -511,6 +518,8 @@ class AVAssetWriterInput(
     internal fun attach(writer: AVAssetWriter, trackID: Int) {
         this.writer = writer
         this.trackID = trackID
+        videoEncoder?.prepare(writer)
+        audioEncoder?.prepare()
     }
 
     internal fun makeAudioTrackConfig(): Mp4AudioTrackConfig? {
@@ -537,18 +546,35 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
     private val requestedKeyFrameInterval =
         (compressionProperties?.get(AVVideoMaxKeyFrameIntervalDurationKey) as? Number)?.toDouble()
     private var session: VTCompressionSession? = null
-    private var firstSampleBuffer: MediaSample? = null
-    private val numberOfPendingFrames = AtomicInteger(0)
+    private var isCreatingSession = false
+    private var hasAppendedFirstFrame = false
+    private var numberOfFramesBeforeSession = 0
     private val numberOfEncodeErrors = AtomicInteger(0)
+
+    @Volatile
+    private var sessionRequestTimeNs = 0L
 
     @Volatile
     private var released = false
 
     val isReadyForMoreMediaData: Boolean
-        get() = numberOfPendingFrames.get() < maximumNumberOfPendingVideoFrames
+        get() {
+            val (session, isCreatingSession) = synchronized(lock) { Pair(session, isCreatingSession) }
+            if (session == null) {
+                return !isCreatingSession
+            }
+            return session.isReadyForMoreFrames
+        }
+
+    fun prepare(writer: AVAssetWriter) {
+        if (requestedWidth > 0 && requestedHeight > 0) {
+            startCreatingSession(writer, requestedWidth, requestedHeight)
+        }
+    }
 
     fun append(writer: AVAssetWriter, sampleBuffer: MediaSample): Boolean {
-        if (sampleBuffer.imageBuffer == null) {
+        val imageBuffer = sampleBuffer.imageBuffer
+        if (imageBuffer == null) {
             logOnce("Video input needs image buffers")
             return false
         }
@@ -557,16 +583,21 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
         }
         val hasSession = synchronized(lock) { session != null }
         if (!hasSession) {
-            val firstSampleBuffer = firstSampleBuffer
-            if (firstSampleBuffer == null) {
-                this.firstSampleBuffer = sampleBuffer
-                return true
-            }
-            this.firstSampleBuffer = null
-            if (!createSession(writer, firstSampleBuffer, sampleBuffer)) {
-                return false
-            }
-            encode(writer, firstSampleBuffer)
+            startCreatingSession(
+                writer,
+                if (requestedWidth > 0) requestedWidth else imageBuffer.width,
+                if (requestedHeight > 0) requestedHeight else imageBuffer.height,
+            )
+            numberOfFramesBeforeSession += 1
+            return true
+        }
+        if (!hasAppendedFirstFrame) {
+            hasAppendedFirstFrame = true
+            Log.i(
+                TAG,
+                "First video frame appended ${elapsedMs(sessionRequestTimeNs)} ms after the video encoder was " +
+                    "requested, $numberOfFramesBeforeSession frames arrived before the encoder was ready",
+            )
         }
         encode(writer, sampleBuffer)
         return true
@@ -579,19 +610,44 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
             this.session = null
             current
         }
-        firstSampleBuffer = null
         if (session != null) {
             VTCompressionSessionInvalidate(session)
         }
     }
 
-    private fun createSession(writer: AVAssetWriter, first: MediaSample, second: MediaSample): Boolean {
-        val imageBuffer = first.imageBuffer ?: return false
-        val width = (if (requestedWidth > 0) requestedWidth else imageBuffer.width) and 1.inv()
-        val height = (if (requestedHeight > 0) requestedHeight else imageBuffer.height) and 1.inv()
-        val frameRate = estimateFrameRate(first.presentationTimeUs, second.presentationTimeUs)
+    private fun startCreatingSession(writer: AVAssetWriter, width: Int, height: Int) {
+        synchronized(lock) {
+            if (isCreatingSession || session != null || released) {
+                return
+            }
+            isCreatingSession = true
+        }
+        sessionRequestTimeNs = System.nanoTime()
+        val frameRate = CaptureFrameRate.value.roundToInt().coerceIn(5, 120).toDouble()
+        Log.i(TAG, "Creating the video encoder for ${width}x$height at ${frameRate.roundToInt()} fps")
+        encoderSetupExecutor.execute {
+            val created = try {
+                createSession(writer, width and 1.inv(), height and 1.inv(), frameRate)
+            } catch (error: Throwable) {
+                writer.fail("Video encoder setup failed: $error")
+                false
+            }
+            synchronized(lock) {
+                isCreatingSession = false
+            }
+            Log.i(
+                TAG,
+                "Video encoder ${if (created) "ready" else "not created"} after ${elapsedMs(sessionRequestTimeNs)} ms",
+            )
+        }
+    }
+
+    private fun createSession(writer: AVAssetWriter, width: Int, height: Int, frameRate: Double): Boolean {
         val failures = mutableListOf<String>()
         for (codecType in listOf(mimeType, MediaFormat.MIMETYPE_VIDEO_AVC).distinct()) {
+            if (released) {
+                return false
+            }
             if (failures.isNotEmpty()) {
                 Log.i(TAG, "${failures.last()}, falling back to $codecType")
             }
@@ -660,28 +716,42 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
         val imageBuffer = sampleBuffer.imageBuffer ?: return
         val presentationTimeStamp = sampleBuffer.presentationTimeUs
         val duration = sampleBuffer.durationUs
-        numberOfPendingFrames.incrementAndGet()
+        if (!PixelBufferLeases.retain(imageBuffer, "recorder encode")) {
+            return
+        }
         PipelineThread.post {
-            numberOfPendingFrames.decrementAndGet()
-            val session = synchronized(lock) { session } ?: return@post
-            val status = VTCompressionSessionEncodeFrame(
-                session,
-                imageBuffer,
-                presentationTimeStamp,
-                duration,
-                null,
-            ) { outputStatus, infoFlags, outputSampleBuffer ->
-                handleOutput(writer, outputStatus, infoFlags, outputSampleBuffer)
+            try {
+                encodeOnPipeline(writer, imageBuffer, presentationTimeStamp, duration)
+            } finally {
+                releaseLease(imageBuffer)
             }
-            if (status == kVTInvalidSessionErr) {
-                if (!released) {
-                    writer.fail("Video encoder session is invalid")
-                }
-            } else if (status != noErr) {
-                val count = numberOfEncodeErrors.incrementAndGet()
-                if (count <= 5 || count % 100 == 0) {
-                    Log.i(TAG, "Video encode failed with status $status ($count so far)")
-                }
+        }
+    }
+
+    private fun encodeOnPipeline(
+        writer: AVAssetWriter,
+        imageBuffer: CVPixelBuffer,
+        presentationTimeStamp: Long,
+        duration: Long,
+    ) {
+        val session = synchronized(lock) { session } ?: return
+        val status = VTCompressionSessionEncodeFrame(
+            session,
+            imageBuffer,
+            presentationTimeStamp,
+            duration,
+            null,
+        ) { outputStatus, infoFlags, outputSampleBuffer ->
+            handleOutput(writer, outputStatus, infoFlags, outputSampleBuffer)
+        }
+        if (status == kVTInvalidSessionErr) {
+            if (!released) {
+                writer.fail("Video encoder session is invalid")
+            }
+        } else if (status != noErr) {
+            val count = numberOfEncodeErrors.incrementAndGet()
+            if (count <= 5 || count % 100 == 0) {
+                Log.i(TAG, "Video encode failed with status $status ($count so far)")
             }
         }
     }
@@ -699,12 +769,8 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
         writer.appendEncodedVideo(sampleBuffer)
     }
 
-    private fun estimateFrameRate(firstPresentationTimeStamp: Long, secondPresentationTimeStamp: Long): Double {
-        val delta = secondPresentationTimeStamp - firstPresentationTimeStamp
-        if (delta <= 0) {
-            return 30.0
-        }
-        return (1_000_000.0 / delta).roundToInt().coerceIn(5, 120).toDouble()
+    private fun elapsedMs(startNs: Long): Long {
+        return (System.nanoTime() - startNs) / 1_000_000
     }
 }
 
@@ -722,10 +788,10 @@ internal class AssetWriterAudioEncoder(outputSettings: Map<String, Any>?, source
     private var pendingStartTimeUs = 0.0
     private val chunkPresentationTimeStamps = ArrayDeque<Long>()
     private var released = false
+    private val sourceChannels = sourceFormatHint?.audioChannelCount() ?: 0
 
     init {
         val sourceSampleRate = sourceFormatHint?.audioSampleRate() ?: 0
-        val sourceChannels = sourceFormatHint?.audioChannelCount() ?: 0
         val requestedSampleRate = (outputSettings?.get(AVSampleRateKey) as? Number)?.toInt() ?: 0
         val requestedChannels = (outputSettings?.get(AVNumberOfChannelsKey) as? Number)?.toInt() ?: 0
         sampleRate = when {
@@ -739,6 +805,19 @@ internal class AssetWriterAudioEncoder(outputSettings: Map<String, Any>?, source
         channelCount = (if (requestedChannels > 0) requestedChannels else sourceChannels).coerceIn(1, 2)
         bitrate = (outputSettings?.get(AVEncoderBitRateKey) as? Number)?.toInt()?.takeIf { it > 0 }
             ?: (64_000 * channelCount)
+    }
+
+    fun prepare() {
+        if (sourceChannels <= 0) {
+            return
+        }
+        encoderSetupExecutor.execute {
+            synchronized(lock) {
+                if (!released && converter == null) {
+                    getConverter(sourceChannels)
+                }
+            }
+        }
     }
 
     fun makeTrackConfig(trackID: Int): Mp4AudioTrackConfig {

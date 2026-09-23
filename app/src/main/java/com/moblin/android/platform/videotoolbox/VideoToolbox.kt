@@ -76,6 +76,9 @@ class VTCompressionSession internal constructor(
 
     @Volatile
     private var reorderingDetected = false
+
+    @Volatile
+    private var latestOutputTimeNs = 0L
     private var numberOfUnmatchedOutputs = 0
     private var scalingMode = GlRenderer.ScalingMode.stretch
     private var bitrateRange: Range<Int>? = null
@@ -111,6 +114,18 @@ class VTCompressionSession internal constructor(
             }
         }
     }
+
+    internal val isReadyForMoreFrames: Boolean
+        get() {
+            if (!prepared || invalidated || failed) {
+                return true
+            }
+            val numberOfPendingFrames = synchronized(lock) { outputHandlers.size }
+            if (numberOfPendingFrames < maximumNumberOfPendingFrames()) {
+                return true
+            }
+            return System.nanoTime() - latestOutputTimeNs > 2_000_000_000L
+        }
 
     internal fun applyProperties(properties: Map<String, Any>): Int {
         if (invalidated) {
@@ -179,6 +194,7 @@ class VTCompressionSession internal constructor(
             releaseResources()
             return kVTParameterErr
         }
+        latestOutputTimeNs = System.nanoTime()
         prepared = true
         Log.i(TAG, configuration.summary)
         return noErr
@@ -210,6 +226,11 @@ class VTCompressionSession internal constructor(
             }
         }
         val surface = eglSurface ?: return kVTInvalidSessionErr
+        if (!imageBuffer.checkReadable("video encoder")) {
+            PipelineStats.increment("encDrop")
+            postDroppedFrame(outputHandler)
+            return noErr
+        }
         if (presentationTimeStamp <= latestInputPresentationTimeStamp) {
             logOnce("video-encoder: Dropping frames with non-increasing presentation time stamps")
             return kVTParameterErr
@@ -217,8 +238,7 @@ class VTCompressionSession internal constructor(
         val (numberOfPendingFrames, oldestPendingPresentationTimeStamp) = synchronized(lock) {
             Pair(outputHandlers.size, outputHandlers.keys.firstOrNull() ?: presentationTimeStamp)
         }
-        val maximumNumberOfPendingFrames = if (allowFrameReordering || reorderingDetected) 8 else 5
-        if (numberOfPendingFrames >= maximumNumberOfPendingFrames) {
+        if (numberOfPendingFrames >= maximumNumberOfPendingFrames()) {
             if (presentationTimeStamp - oldestPendingPresentationTimeStamp > 2_000_000) {
                 Log.i(
                     TAG,
@@ -297,6 +317,10 @@ class VTCompressionSession internal constructor(
         } else {
             releaseResources()
         }
+    }
+
+    private fun maximumNumberOfPendingFrames(): Int {
+        return if (allowFrameReordering || reorderingDetected) 8 else 5
     }
 
     private fun configure(codec: MediaCodec, configuration: EncoderConfiguration, handler: Handler) {
@@ -440,6 +464,7 @@ class VTCompressionSession internal constructor(
     }
 
     private fun handleOutputData(data: ByteArray, flags: Int, presentationTimeStamp: Long) {
+        latestOutputTimeNs = System.nanoTime()
         val nalUnits = getNalUnits(data).asReversed()
         val keptNalUnits = mutableListOf<NalUnitInfo>()
         var vps: ByteArray? = null

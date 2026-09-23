@@ -110,7 +110,7 @@ void main() {
     }
 
     fun drawOes(oesTexture: Int, stMatrix: FloatArray, target: CVPixelBuffer, rotationDegreesCw: Int, mirror: Boolean) {
-        if (!EglCore.isReady) {
+        if (!EglCore.isReady || !target.checkReadable("camera draw target")) {
             return
         }
         val previousFramebuffer = currentFramebuffer()
@@ -143,9 +143,13 @@ void main() {
         if (!EglCore.isReady) {
             return
         }
-        if (clearBlack) {
+        val isReadable = source.checkReadable("draw")
+        if (clearBlack || !isReadable) {
             GLES20.glViewport(0, 0, targetWidth, targetHeight)
             clear(0f, 0f, 0f, 1f)
+        }
+        if (!isReadable) {
+            return
         }
         drawTexture(
             texture = source.texture,

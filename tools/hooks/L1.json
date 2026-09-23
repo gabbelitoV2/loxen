@@ -1,0 +1,217 @@
+{
+  "task": "L1",
+  "hooks": [
+    {
+      "id": "HL1.1",
+      "file": "media/haishinkit/media/video/BufferedVideo.kt",
+      "scope": "fun appendSampleBuffer",
+      "op": "insert_after",
+      "anchor": "        hasBufferBeenAppended = true",
+      "new": "        com.moblin.android.platform.video.retainLease(sampleBuffer)",
+      "note": "The deque keeps the frame (a camera buffer while it holds at most 4) for the buffered latency, like the Swift Deque<CMSampleBuffer>."
+    },
+    {
+      "id": "HL1.2",
+      "file": "media/haishinkit/media/video/BufferedVideo.kt",
+      "scope": "fun consumeBuffer",
+      "op": "replace",
+      "old": "        sampleBuffers.removeFirst()",
+      "new": "        com.moblin.android.platform.video.releaseLease(sampleBuffers.removeFirst())",
+      "occurrence": 1,
+      "note": "Consumed and overflowed frames. On the pipeline thread the release takes effect at the end of the turn, so the frame can still become the current one."
+    },
+    {
+      "id": "HL1.3",
+      "file": "media/haishinkit/media/video/BufferedVideo.kt",
+      "scope": "fun updateSampleBuffer",
+      "op": "replace",
+      "old": "            currentSampleBuffer = sampleBuffer",
+      "new": "            currentSampleBuffer = com.moblin.android.platform.video.swapLease(currentSampleBuffer, sampleBuffer)",
+      "occurrence": 1
+    },
+    {
+      "id": "HL1.4",
+      "file": "media/haishinkit/media/video/BufferedVideo.kt",
+      "scope": "fun setLatestSampleBuffer",
+      "op": "replace",
+      "old": "        currentSampleBuffer = sampleBuffer",
+      "new": "        currentSampleBuffer = com.moblin.android.platform.video.swapLease(currentSampleBuffer, sampleBuffer)",
+      "occurrence": 1,
+      "note": "Builtin cameras with latency <= 0 keep their latest frame here, also cameras that are not in the scene."
+    },
+    {
+      "id": "HL1.5",
+      "file": "media/haishinkit/media/video/BufferedVideo.kt",
+      "scope": "fun close",
+      "op": "insert_after",
+      "anchor": "    fun close() {",
+      "new": "        com.moblin.android.platform.video.drainLeases(sampleBuffers)",
+      "note": "A closed BufferedVideo is dropped by VideoUnit, which frees its frames in Swift."
+    },
+    {
+      "id": "HL1.6",
+      "file": "media/haishinkit/media/video/BufferedVideo.kt",
+      "scope": "fun close",
+      "op": "insert_after",
+      "anchor": "        processor?.delegate?.streamVideoBufferedVideoRemoved(cameraId)",
+      "new": "        currentSampleBuffer = com.moblin.android.platform.video.swapLease(currentSampleBuffer, null)"
+    },
+    {
+      "id": "HL1.7",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun appendNewSampleBuffer",
+      "op": "replace",
+      "old": "        latestSampleBuffer = sampleBuffer",
+      "new": "        latestSampleBuffer = com.moblin.android.platform.video.swapLease(latestSampleBuffer, sampleBuffer)",
+      "occurrence": 1,
+      "note": "The gap filler re-sends this frame on every frame timer tick during a scene switch."
+    },
+    {
+      "id": "HL1.8",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun handleGapFillerTimer",
+      "op": "replace",
+      "old": "            this.latestSampleBuffer = latestSampleBuffer",
+      "new": "            this.latestSampleBuffer = com.moblin.android.platform.video.swapLease(this.latestSampleBuffer, latestSampleBuffer)",
+      "occurrence": 1
+    },
+    {
+      "id": "HL1.9",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun appendSampleBuffer",
+      "op": "insert_after",
+      "anchor": "        nextDetectionsSequenceNumber += 1",
+      "new": "        com.moblin.android.platform.video.retainLeases(completion.sampleBuffer, completion.detectionJobs.map { it.imageBuffer })",
+      "note": "Detection jobs run on Dispatchers.Default and complete in a later pipeline turn, possibly after out-of-order completions."
+    },
+    {
+      "id": "HL1.10",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun detectObjectsComplete",
+      "op": "insert_after",
+      "anchor": "            appendSampleBufferWithDetections(nextCompletion)",
+      "new": "            com.moblin.android.platform.video.releaseLeases(nextCompletion.sampleBuffer, nextCompletion.detectionJobs.map { it.imageBuffer })"
+    },
+    {
+      "id": "HL1.11",
+      "file": "media/haishinkit/media/video/PreviewView.kt",
+      "scope": "fun enqueue",
+      "op": "insert_after",
+      "anchor": "        val sample = sampleBuffer ?: return",
+      "new": "        com.moblin.android.platform.video.retainLease(sample)",
+      "note": "DispatchQueue.main.async holds the sample until the main thread enqueues it."
+    },
+    {
+      "id": "HL1.12",
+      "file": "media/haishinkit/media/video/PreviewView.kt",
+      "scope": "fun enqueue",
+      "op": "insert_after",
+      "anchor": "            }",
+      "new": "            com.moblin.android.platform.video.releaseLease(sample)",
+      "occurrence": 1,
+      "note": "After the if/else in the main thread block, so both the render and the flush paths release it."
+    },
+    {
+      "id": "HL1.13",
+      "file": "media/haishinkit/media/Recorder.kt",
+      "scope": "fun appendVideo",
+      "op": "insert_after",
+      "anchor": "        }",
+      "new": "        com.moblin.android.platform.video.retainLease(sampleBuffer)",
+      "occurrence": 1,
+      "note": "After the isRecording check: queue.async holds the frame until the recorder thread appends it."
+    },
+    {
+      "id": "HL1.14",
+      "file": "media/haishinkit/media/Recorder.kt",
+      "scope": "fun appendVideo",
+      "op": "replace",
+      "old": "            appendVideoInternal(sampleBuffer)",
+      "new": "            try { appendVideoInternal(sampleBuffer) } finally { com.moblin.android.platform.video.releaseLease(sampleBuffer) }",
+      "occurrence": 1
+    },
+    {
+      "id": "HL1.15",
+      "file": "media/haishinkit/media/Recorder.kt",
+      "scope": "fun appendVideoInternal",
+      "op": "insert_after",
+      "anchor": "        if (basePresentationTimeStamp == kCMTimeInvalidUs) {",
+      "new": "            if (writer.inputs.any { !it.isReadyForMoreMediaData }) return",
+      "note": "The recording starts at the first frame the writer can take. AVAssetWriter has its encoders at startWriting; the Android writer creates the MediaCodec encoder off the recorder thread, which takes about a second."
+    },
+    {
+      "id": "HL1.16",
+      "file": "media/haishinkit/media/video/VideoLowFpsImage.kt",
+      "scope": "fun handleImageBuffer",
+      "op": "insert_after",
+      "anchor": "        latest = presentationTimeStamp",
+      "new": "        com.moblin.android.platform.video.retainLease(imageBuffer)",
+      "note": "lowFpsImageQueue.async holds the buffer until the JPEG is made."
+    },
+    {
+      "id": "HL1.17",
+      "file": "media/haishinkit/media/video/VideoLowFpsImage.kt",
+      "scope": "fun handleImageBuffer",
+      "op": "replace",
+      "old": "            createImage(imageBuffer)",
+      "new": "            try { createImage(imageBuffer) } finally { com.moblin.android.platform.video.releaseLease(imageBuffer) }",
+      "occurrence": 1
+    },
+    {
+      "id": "HL1.18",
+      "file": "media/haishinkit/media/video/VideoSnapshots.kt",
+      "scope": "fun handleTakeSnapshot",
+      "op": "replace",
+      "old": "            takeSnapshotSampleBuffers.addLast(copy)",
+      "new": "            takeSnapshotSampleBuffers.addLast(com.moblin.android.platform.video.retainLease(copy))",
+      "occurrence": 1,
+      "note": "Snapshot history copies live about 9 s."
+    },
+    {
+      "id": "HL1.19",
+      "file": "media/haishinkit/media/video/VideoSnapshots.kt",
+      "scope": "fun handleTakeSnapshot",
+      "op": "replace",
+      "old": "                takeSnapshotSampleBuffers.removeFirst()",
+      "new": "                com.moblin.android.platform.video.releaseLease(takeSnapshotSampleBuffers.removeFirst())",
+      "occurrence": 1
+    },
+    {
+      "id": "HL1.20",
+      "file": "media/haishinkit/media/video/VideoSnapshots.kt",
+      "scope": "fun handleTakeSnapshot",
+      "op": "insert_after",
+      "anchor": "        val age = takeSnapshotAge",
+      "new": "        com.moblin.android.platform.video.retainLeases(sampleBuffers + copy)",
+      "note": "The request copy and the history copies are read back on the main thread after hops through Default."
+    },
+    {
+      "id": "HL1.21",
+      "file": "media/haishinkit/media/video/VideoSnapshots.kt",
+      "scope": "fun takeSnapshot",
+      "scope_occurrence": 2,
+      "op": "replace",
+      "old": "            val image = createBitmap(imageBuffer) ?: return@findBestSnapshot",
+      "new": "            val image = createBitmap(imageBuffer).also { com.moblin.android.platform.video.releaseLeases(sampleBuffers + sampleBuffer) } ?: return@findBestSnapshot",
+      "occurrence": 1
+    },
+    {
+      "id": "HL1.22",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun appendBufferedVideoSampleBuffer",
+      "op": "insert_after",
+      "anchor": "    fun appendBufferedVideoSampleBuffer(cameraId: UUID, sampleBuffer: MediaSample) {",
+      "new": "        com.moblin.android.platform.video.retainLease(sampleBuffer)",
+      "note": "processorPipelineQueue.async holds the frame until the pipeline thread stores it in its BufferedVideo."
+    },
+    {
+      "id": "HL1.23",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun appendBufferedVideoSampleBuffer",
+      "op": "replace",
+      "old": "            appendBufferedVideoSampleBufferInternal(cameraId = cameraId, sampleBuffer)",
+      "new": "            try { appendBufferedVideoSampleBufferInternal(cameraId = cameraId, sampleBuffer) } finally { com.moblin.android.platform.video.releaseLease(sampleBuffer) }",
+      "occurrence": 1
+    }
+  ]
+}

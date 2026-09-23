@@ -31,8 +31,9 @@ class VideoLowFpsImage(context: Any) {
             return
         }
         latest = presentationTimeStamp
+        com.moblin.android.platform.video.retainLease(imageBuffer)
         lowFpsImageQueue.launch {
-            createImage(imageBuffer)
+            try { createImage(imageBuffer) } finally { com.moblin.android.platform.video.releaseLease(imageBuffer) }
         }
     }
 
