@@ -24,10 +24,7 @@ import com.moblin.android.various.model.reloadStream
 import com.moblin.android.various.model.resetSelectedScene
 import com.moblin.android.various.model.setCurrentStream
 import com.moblin.android.various.utils.isPhone
-import com.moblin.android.view.settings.FormButton
-import com.moblin.android.view.settings.formBodyStyle
-import com.moblin.android.view.settings.formFootnoteStyle
-import com.moblin.android.view.settings.formPalette
+import com.moblin.android.platform.swiftui.*
 
 @Composable
 fun SettingsResetView(model: Model = LocalModel.current) {

@@ -21,10 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
 import com.moblin.android.various.utils.openUrl
-import com.moblin.android.view.settings.FormRow
-import com.moblin.android.view.settings.LocalTint
-import com.moblin.android.view.settings.Section
-import com.moblin.android.view.settings.formPalette
+import com.moblin.android.platform.swiftui.*
 
 @Composable
 fun TextButtonView(title: String, action: () -> Unit) {

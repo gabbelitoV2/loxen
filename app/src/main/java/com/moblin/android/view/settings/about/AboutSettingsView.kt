@@ -11,13 +11,10 @@ import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.appVersion
 import com.moblin.android.localized
 import com.moblin.android.view.CloseButtonTopRightView
-import com.moblin.android.view.settings.Form
-import com.moblin.android.view.settings.NavigationLink
-import com.moblin.android.view.settings.Section
-import com.moblin.android.view.settings.Sheet
 import com.moblin.android.view.utils.ExternalUrlButtonView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.platform.swiftui.*
 
 @Composable
 fun AboutSettingsView(

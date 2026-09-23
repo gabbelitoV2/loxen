@@ -53,24 +53,16 @@ import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsExternalDisplayContent
 import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.various.utils.isMac
-import com.moblin.android.view.settings.Form
-import com.moblin.android.view.settings.FormSlider
-import com.moblin.android.view.settings.LocalTint
-import com.moblin.android.view.settings.NavigationLink
-import com.moblin.android.view.settings.Picker
-import com.moblin.android.view.settings.Section
-import com.moblin.android.view.settings.Toggle
-import com.moblin.android.view.settings.binding
 import com.moblin.android.view.settings.display.localoverlays.LocalOverlaysSettingsView
 import com.moblin.android.view.settings.display.networkinterfacenames.LocalOverlaysNetworkInterfaceNamesSettingsView
 import com.moblin.android.view.settings.display.quickbuttons.QuickButtonsSettingsView
 import com.moblin.android.view.settings.display.streambutton.StreamButtonsSettingsView
-import com.moblin.android.view.settings.formPalette
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.AnchorPoint
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.calculatePositioningAnchorPoint
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.calculatePositioningRectangle
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.drawPositioningRectangle
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.platform.swiftui.*
 
 @Composable
 private fun BackgroundImageCropView(

@@ -11,8 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
-import com.moblin.android.view.settings.Section
-import com.moblin.android.view.settings.formPalette
+import com.moblin.android.platform.swiftui.*
 
 @Composable
 fun InfoBannerView(text: String, modifier: Modifier = Modifier) {

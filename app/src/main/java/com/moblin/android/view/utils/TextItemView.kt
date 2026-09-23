@@ -13,7 +13,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.moblin.android.common.various.replaceSensitive
 import com.moblin.android.localized
-import com.moblin.android.view.settings.formPalette
+import com.moblin.android.platform.swiftui.*
 
 @Composable
 private fun TextItemRow(name: String, value: String, sensitive: Boolean, color: Color) {

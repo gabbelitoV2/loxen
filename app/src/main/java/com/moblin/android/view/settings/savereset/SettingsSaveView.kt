@@ -10,9 +10,9 @@ import androidx.compose.runtime.setValue
 import com.moblin.android.LocalModel
 import com.moblin.android.localized
 import com.moblin.android.various.model.Model
-import com.moblin.android.view.settings.FormButton
 import com.moblin.android.view.utils.HCenter
 import kotlinx.coroutines.delay
+import com.moblin.android.platform.swiftui.*
 
 @Composable
 fun SettingsSaveView(model: Model = LocalModel.current) {
