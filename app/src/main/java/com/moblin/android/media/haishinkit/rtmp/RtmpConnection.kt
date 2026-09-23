@@ -15,7 +15,6 @@ import com.moblin.android.media.haishinkit.util.calculateMd5Base64
 import com.moblin.android.various.SimpleTimer
 import java.net.URI
 import java.net.URLDecoder
-import javax.net.ssl.SSLContext
 import kotlin.random.Random
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -120,7 +119,7 @@ class RtmpConnection(private val name: String, private val queue: CoroutineDispa
     private var nextTransactionId = 0
     private val timer: SimpleTimer
     private val chunkReader = RtmpChunkReader()
-    private val scope = CoroutineScope(queue)
+    private val scope = CoroutineScope(queue + kotlinx.coroutines.SupervisorJob())
 
     init {
         timer = SimpleTimer(queue)
@@ -136,7 +135,7 @@ class RtmpConnection(private val name: String, private val queue: CoroutineDispa
         socket = RtmpSocket(name, queue)
         socket.delegate = this
         if (scheme == "rtmps") {
-            socket.connect(host, if (uri.port >= 0) uri.port else 443, SSLContext.getInstance("TLS").apply { init(null, null, null) })
+            socket.connect(host, if (uri.port >= 0) uri.port else 443, com.moblin.android.platform.network.NWProtocolTLS.Options())
         } else {
             socket.connect(host, if (uri.port >= 0) uri.port else 1935, null)
         }
@@ -351,8 +350,7 @@ class RtmpConnection(private val name: String, private val queue: CoroutineDispa
     }
 
     override fun socketDataReceived(data: ByteArray): ByteArray {
-        chunkReader.read(data) { message -> processMessage(message) }
-        return data
+        return chunkReader.read(data) { message -> processMessage(message) }
     }
 
     private fun processMessage(message: RtmpMessage) {

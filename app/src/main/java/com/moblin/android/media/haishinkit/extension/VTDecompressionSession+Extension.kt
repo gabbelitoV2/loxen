@@ -1,6 +1,6 @@
 package com.moblin.android.media.haishinkit.extension
 
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.media.MediaCodec
 import com.moblin.android.media.MediaSample
 

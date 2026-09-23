@@ -1,6 +1,6 @@
 package com.moblin.android.videoeffects.dewarp360
 
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo

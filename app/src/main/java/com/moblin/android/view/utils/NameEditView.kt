@@ -1,12 +1,10 @@
 package com.moblin.android.view.utils
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import com.moblin.android.localized
 import com.moblin.android.various.utils.Named
 import com.moblin.android.LocalOnNavigate
+import com.moblin.android.platform.swiftui.NavigationLink
 
 private fun onChange(value: String, name: String, existingNames: List<Named>): String? {
     if (value.isEmpty()) {
@@ -25,7 +23,17 @@ fun NameEditView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
     existingNames: List<Named> = emptyList(),
 ) {
-    Box(modifier = Modifier.clickable { onNavigate("TextEditView") }) {
+    NavigationLink(
+        destination = {
+            TextEditView(
+                title = localized("Name"),
+                value = name,
+                capitalize = true,
+                onChange = { onChange(it, name, existingNames) },
+                onSubmit = { onNameChange(it) },
+            )
+        },
+    ) {
         TextItemLocalizedView(name = "Name", value = name)
     }
 }

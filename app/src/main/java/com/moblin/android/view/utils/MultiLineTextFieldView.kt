@@ -1,26 +1,16 @@
 package com.moblin.android.view.utils
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -33,9 +23,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
-import com.moblin.android.various.utils.isPhone
+import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalOnNavigate
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formFootnoteStyle
+import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.various.utils.isPhone
 
 @Composable
 fun MultiLineTextFieldView(
@@ -45,31 +44,48 @@ fun MultiLineTextFieldView(
     modifier: Modifier = Modifier,
     focusRequester: FocusRequester = remember { FocusRequester() },
 ) {
+    val palette = formPalette()
     Box(
         modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.TopEnd,
     ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = { Text(placeholder) },
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(end = 30.dp)
-                .focusRequester(focusRequester),
-        )
+                .padding(end = 30.dp),
+        ) {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester),
+                textStyle = formBodyStyle.copy(color = palette.label),
+                cursorBrush = SolidColor(palette.accent),
+            )
+            if (value.isEmpty()) {
+                Text(text = placeholder, style = formBodyStyle, color = palette.tertiaryLabel)
+            }
+        }
         if (value.isNotEmpty()) {
-            IconButton(
-                onClick = {
-                    onValueChange("")
-                    runCatching { focusRequester.requestFocus() }
-                },
-                modifier = Modifier.padding(top = 1.dp, end = 5.dp),
+            val interactionSource = remember { MutableInteractionSource() }
+            val pressed by interactionSource.collectIsPressedAsState()
+            Box(
+                modifier = Modifier
+                    .padding(top = 1.dp, end = 5.dp)
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = {
+                            onValueChange("")
+                            runCatching { focusRequester.requestFocus() }
+                        },
+                    ),
             ) {
-                Icon(
-                    imageVector = Icons.Default.Cancel,
-                    contentDescription = null,
-                    tint = Color.Gray.copy(alpha = 0.5f),
+                SystemImage(
+                    name = "xmark.circle.fill",
+                    fontSize = 17.sp,
+                    tint = palette.gray.copy(alpha = if (pressed) 0.25f else 0.5f),
                 )
             }
         }
@@ -87,16 +103,22 @@ fun MultiLineTextFieldNavigationView(
     onValueChange: (String) -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Box(
-        modifier = Modifier.clickable {
-            onNavigate("MultiLineTextFieldBindingView")
+    NavigationLink(
+        destination = {
+            MultiLineTextFieldBindingView(
+                title = title,
+                placeholder = placeholder,
+                value = value,
+                onValueChange = onValueChange,
+                onSubmit = onSubmit,
+                footers = footers,
+            )
         },
     ) {
         TextItemView(name = title, value = value, color = color)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MultiLineTextFieldBindingView(
     title: String,
@@ -110,6 +132,7 @@ internal fun MultiLineTextFieldBindingView(
     var changed by remember { mutableStateOf(false) }
     val latestValue by rememberUpdatedState(value)
     val latestChanged by rememberUpdatedState(changed)
+    val palette = formPalette()
 
     DisposableEffect(Unit) {
         onDispose {
@@ -121,38 +144,28 @@ internal fun MultiLineTextFieldBindingView(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(title) },
-            )
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            item {
-                MultiLineTextFieldView(
-                    value = value,
-                    placeholder = placeholder,
-                    onValueChange = {
-                        onValueChange(it)
-                        changed = true
-                    },
+    Form(title = title) {
+        Section(
+            footerContent = {
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                )
-            }
-            items(footers) { footer ->
-                Text(
-                    text = footer,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                )
-            }
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    footers.forEach { footer ->
+                        Text(text = footer, style = formFootnoteStyle, color = palette.secondaryLabel)
+                    }
+                }
+            },
+        ) {
+            MultiLineTextFieldView(
+                value = value,
+                placeholder = placeholder,
+                onValueChange = {
+                    onValueChange(it)
+                    changed = true
+                },
+            )
         }
     }
 }
@@ -163,16 +176,25 @@ fun MultiLineTextFieldDoneButtonView(
     onEditingTextChange: (Boolean) -> Unit,
 ) {
     if (isPhone()) {
+        val palette = formPalette()
+        val interactionSource = remember { MutableInteractionSource() }
+        val pressed by interactionSource.collectIsPressedAsState()
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End,
         ) {
-            TextButton(
-                onClick = { onEditingTextChange(false) },
-                enabled = editingText,
-            ) {
-                Text("Done")
-            }
+            Text(
+                text = "Done",
+                style = formBodyStyle,
+                color = (if (editingText) palette.accent else palette.gray)
+                    .copy(alpha = if (pressed && editingText) 0.2f else 1f),
+                modifier = Modifier.clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    enabled = editingText,
+                    onClick = { onEditingTextChange(false) },
+                ),
+            )
         }
     }
 }

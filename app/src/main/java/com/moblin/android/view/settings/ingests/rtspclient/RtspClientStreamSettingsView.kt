@@ -1,41 +1,27 @@
 package com.moblin.android.view.settings.ingests.rtspclient
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.cleanUrl
 import com.moblin.android.common.various.isValidIngestLatency
 import com.moblin.android.common.various.isValidUrl
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsRtspClient
 import com.moblin.android.various.settings.SettingsRtspClientStream
@@ -48,10 +34,8 @@ import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.view.utils.UrlCopyView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.reloadRtspClient
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UrlSettingsView(
     disabled: Boolean,
@@ -93,58 +77,48 @@ fun UrlSettingsView(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("URL")) })
+    Form(title = "URL") {
+        Section(footerContent = {
+            error?.let {
+                FormFieldError(error = it)
+            }
+        }) {
+            MultiLineTextFieldView(
+                value = valueState,
+                onValueChange = { newValue ->
+                    valueState = newValue
+                    error = isValidUrl(newValue, allowedSchemes)
+                    changed = true
+                    if (newValue.contains("\n")) {
+                        valueState = newValue.replace("\n", "")
+                        submitUrl()
+                    }
+                },
+                placeholder = placeholder
+            )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
-            item {
-                Column {
-                    MultiLineTextFieldView(
-                        value = valueState,
-                        onValueChange = { newValue ->
-                            valueState = newValue
-                            error = isValidUrl(newValue, allowedSchemes)
-                            changed = true
-                            if (newValue.contains("\n")) {
-                                valueState = newValue.replace("\n", "")
-                                submitUrl()
-                            }
-                        },
-                        placeholder = placeholder
-                    )
-                    error?.let { FormFieldError(error = it) }
-                }
-            }
-            item {
-                TextButtonView(
-                    title = localized("Examples"),
-                    action = { presentingHelp = true }
-                )
-            }
+        Section {
+            TextButtonView(
+                title = localized("Examples"),
+                action = { presentingHelp = true }
+            )
         }
     }
 
     if (presentingHelp) {
-        ModalBottomSheet(onDismissRequest = { presentingHelp = false }) {
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = { Text(localized("Examples")) },
-                        actions = {
-                            CloseToolbar(
-                                presenting = presentingHelp,
-                                onPresentingChange = { presentingHelp = it }
-                            )
-                        }
+        Sheet(onDismissRequest = { presentingHelp = false }) {
+            Form(
+                title = "Examples",
+                toolbar = {
+                    CloseToolbar(
+                        presenting = presentingHelp,
+                        onPresentingChange = { presentingHelp = it }
                     )
                 }
-            ) { padding ->
-                LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
-                    items(items = examples, key = { it.second }) { example ->
-                        Column {
-                            Text(localized(example.first))
+            ) {
+                examples.forEach { example ->
+                    key(example.second) {
+                        Section(header = example.first) {
                             UrlCopyView(url = example.second)
                         }
                     }
@@ -161,26 +135,29 @@ fun RtspClientStreamSettingsView(
     stream: SettingsRtspClientStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("Stream") }
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+    NavigationLink(
+        destination = {
+            RtspClientStreamSettingsViewDestination(
+                model = model,
+                rtspClient = rtspClient,
+                stream = stream
+            )
+        }
     ) {
-        Text(stream.name)
-        Spacer(Modifier.weight(1f))
-        Switch(
-            checked = stream.enabled,
-            onCheckedChange = { enabled ->
+        Toggle(
+            isOn = stream.enabled,
+            onChange = { enabled ->
                 stream.enabled = enabled
-                Unit
+                model.reloadRtspClient()
             }
-        )
+        ) {
+            Row {
+                Text(stream.name)
+            }
+        }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RtspClientStreamSettingsViewDestination(
     model: Model = LocalModel.current,
@@ -188,95 +165,67 @@ fun RtspClientStreamSettingsViewDestination(
     stream: SettingsRtspClientStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    var transportExpanded by remember { mutableStateOf(false) }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("Stream")) })
+    Form(title = "Stream") {
+        Section {
+            NameEditView(
+                name = stream.name,
+                onNameChange = { stream.name = it },
+                existingNames = rtspClient.streams
+            )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
-            item {
-                NameEditView(
-                    name = stream.name,
-                    onNameChange = { stream.name = it },
-                    existingNames = rtspClient.streams
-                )
-            }
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("URL") }
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextItemLocalizedView(name = "URL", value = stream.url, sensitive = true)
-                }
-            }
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(localized("Transport"))
-                    Spacer(Modifier.width(16.dp))
-                    Box(Modifier.weight(1f)) {
-                        ExposedDropdownMenuBox(
-                            expanded = transportExpanded,
-                            onExpandedChange = { transportExpanded = it }
-                        ) {
-                            OutlinedTextField(
-                                value = stream.transport.toString(),
-                                onValueChange = {},
-                                readOnly = true,
-                                trailingIcon = {
-                                    ExposedDropdownMenuDefaults.TrailingIcon(
-                                        expanded = transportExpanded
-                                    )
-                                },
-                                modifier = Modifier
-                                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                                    .fillMaxWidth()
-                            )
-                            ExposedDropdownMenu(
-                                expanded = transportExpanded,
-                                onDismissRequest = { transportExpanded = false }
-                            ) {
-                                SettingsRtspTransport.entries.forEach { transport ->
-                                    DropdownMenuItem(
-                                        text = { Text(transport.toString()) },
-                                        onClick = {
-                                            stream.transport = transport
-                                            transportExpanded = false
-                                            Unit
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            item {
-                Column {
-                    TextEditNavigationView(
-                        title = localized("Latency"),
-                        value = stream.latency.toString(),
-                        onChange = { isValidIngestLatency(it) },
-                        onSubmit = { text ->
-                            val latency = text.toIntOrNull()
-                            if (latency != null) {
-                                stream.latency = latency
-                                Unit
-                            }
-                        },
-                        footers = listOf(
-                            localized("5 or more milliseconds. 2000 ms by default.")
+        Section {
+            NavigationLink(
+                destination = {
+                    UrlSettingsView(
+                        disabled = false,
+                        url = stream.url,
+                        onChangeUrl = { stream.url = it },
+                        value = stream.url,
+                        placeholder = "rtsp://192.168.1.83/stream1",
+                        allowedSchemes = listOf("rtsp"),
+                        examples = listOf(
+                            "TP-Link" to "rtsp://username:password@192.168.1.83/stream1"
                         ),
-                        keyboardType = KeyboardType.Number,
-                        valueFormat = { "$it ms" }
+                        onSubmitted = { model.reloadRtspClient() },
+                        onDismiss = {}
                     )
-                    Text(localized("The higher, the lower risk of stuttering."))
                 }
+            ) {
+                TextItemLocalizedView(name = "URL", value = stream.url, sensitive = true)
             }
+        }
+        Section {
+            Picker(
+                title = "Transport",
+                selection = stream.transport,
+                options = SettingsRtspTransport.entries,
+                text = { it.toString() },
+                onChange = { transport ->
+                    stream.transport = transport
+                    model.reloadRtspClient()
+                }
+            )
+        }
+        Section(footerContent = {
+            Text(localized("The higher, the lower risk of stuttering."))
+        }) {
+            TextEditNavigationView(
+                title = localized("Latency"),
+                value = stream.latency.toString(),
+                onChange = { isValidIngestLatency(it) },
+                onSubmit = { text ->
+                    val latency = text.toIntOrNull()
+                    if (latency != null) {
+                        stream.latency = latency
+                        model.reloadRtspClient()
+                    }
+                },
+                footers = listOf(
+                    localized("5 or more milliseconds. 2000 ms by default.")
+                ),
+                keyboardType = KeyboardType.Number,
+                valueFormat = { "$it ms" }
+            )
         }
     }
 }

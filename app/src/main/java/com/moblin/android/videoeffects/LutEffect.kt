@@ -3,7 +3,7 @@ package com.moblin.android.videoeffects
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ColorSpace
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect

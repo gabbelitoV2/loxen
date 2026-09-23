@@ -1,32 +1,23 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.effects
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.ZoomIn
-import androidx.compose.material.icons.filled.ZoomOut
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsVideoEffect
 import com.moblin.android.various.settings.SettingsVideoEffectDewarp360
 import com.moblin.android.various.settings.SettingsWidget
-import com.moblin.android.LocalModel
+import kotlin.math.roundToInt
+import com.moblin.android.various.model.getWidgetDewarp360Effect
 
 @Composable
 fun Dewarp360EffectView(
@@ -36,61 +27,70 @@ fun Dewarp360EffectView(
     dewarp360: SettingsVideoEffectDewarp360,
 ) {
     fun updateWidget() {
-        Unit
+        model.getWidgetDewarp360Effect(widget, effect)?.setSettings(dewarp360.toSettings())
     }
 
-    val pan = dewarp360.pan
-    val tilt = dewarp360.tilt
-    val inverseFieldOfView = dewarp360.inverseFieldOfView
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "Pan, tilt and zoom",
-            style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.padding(vertical = 8.dp),
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.ArrowBack, contentDescription = null)
-            Slider(
-                value = pan.toFloat(),
-                onValueChange = { dewarp360.pan = it },
+    Section(header = "Pan, tilt and zoom") {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            SystemImage(name = "arrow.left", fontSize = 17.sp)
+            FormSlider(
+                value = dewarp360.pan,
+                onValueChange = { newValue ->
+                    val value = newValue.roundToInt().toFloat()
+                    if (value != dewarp360.pan) {
+                        dewarp360.pan = value
+                        updateWidget()
+                    }
+                },
+                modifier = Modifier.weight(1f),
                 valueRange = -180f..180f,
-                steps = 359,
-                modifier = Modifier.weight(1f),
             )
-            Icon(Icons.Default.ArrowForward, contentDescription = null)
+            SystemImage(name = "arrow.right", fontSize = 17.sp)
         }
-        LaunchedEffect(pan) {
-            updateWidget()
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.ArrowDownward, contentDescription = null)
-            Slider(
-                value = tilt.toFloat(),
-                onValueChange = { dewarp360.tilt = it },
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            SystemImage(name = "arrow.down", fontSize = 17.sp)
+            FormSlider(
+                value = dewarp360.tilt,
+                onValueChange = { newValue ->
+                    val value = newValue.roundToInt().toFloat()
+                    if (value != dewarp360.tilt) {
+                        dewarp360.tilt = value
+                        updateWidget()
+                    }
+                },
+                modifier = Modifier.weight(1f),
                 valueRange = -90f..90f,
-                steps = 179,
-                modifier = Modifier.weight(1f),
             )
-            Icon(Icons.Default.ArrowUpward, contentDescription = null)
+            SystemImage(name = "arrow.up", fontSize = 17.sp)
         }
-        LaunchedEffect(tilt) {
-            updateWidget()
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.ZoomOut, contentDescription = null)
-            Slider(
-                value = inverseFieldOfView.toFloat(),
-                onValueChange = { dewarp360.inverseFieldOfView = it },
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            SystemImage(name = "minus.magnifyingglass", fontSize = 17.sp)
+            FormSlider(
+                value = dewarp360.inverseFieldOfView,
+                onValueChange = { newValue ->
+                    val value = newValue.roundToInt().toFloat()
+                    if (value != dewarp360.inverseFieldOfView) {
+                        dewarp360.inverseFieldOfView = value
+                        dewarp360.updateZoomFromInverseFieldOfView()
+                        updateWidget()
+                    }
+                },
+                modifier = Modifier.weight(1f),
                 valueRange = 30f..170f,
-                steps = 139,
-                modifier = Modifier.weight(1f),
             )
-            Icon(Icons.Default.ZoomIn, contentDescription = null)
-        }
-        LaunchedEffect(inverseFieldOfView) {
-            dewarp360.updateZoomFromInverseFieldOfView()
-            updateWidget()
+            SystemImage(name = "plus.magnifyingglass", fontSize = 17.sp)
         }
     }
 }

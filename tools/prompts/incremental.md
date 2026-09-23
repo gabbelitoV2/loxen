@@ -8,4 +8,5 @@ The current Kotlin file is the truth for everything the diff does not touch. It 
 - Every Kotlin line that does not correspond to a changed Swift line must stay byte-identical, including formatting, imports and declaration order.
 - When the diff removes Swift code, remove the matching Kotlin code. When it adds Swift code, add the Kotlin translation at the matching position. When it renames or moves code, do the same in Kotlin.
 - If a changed Swift line maps to Kotlin code that was hand-written for Android, keep the Android behaviour and adapt it to the new Swift intent.
+- Lines that call com.moblin.android.platform are Android hooks; keep them byte-identical. tools/hooks re-applies them anyway.
 - Return the complete updated Kotlin file in the kotlin block, with the json block first as usual.

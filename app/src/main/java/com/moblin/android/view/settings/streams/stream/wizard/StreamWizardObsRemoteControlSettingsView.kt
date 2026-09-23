@@ -1,45 +1,45 @@
 package com.moblin.android.view.settings.streams.stream.wizard
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import com.moblin.android.R
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.cleanUrl
 import com.moblin.android.common.various.isValidWebSocketUrl
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
 import com.moblin.android.view.utils.FormFieldError
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 
 private fun nextDisabled(createStreamWizard: CreateStreamWizard, urlError: String): Boolean {
     if (createStreamWizard.obsRemoteControlEnabled) {
@@ -53,235 +53,191 @@ private fun nextDisabled(createStreamWizard: CreateStreamWizard, urlError: Strin
     return false
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ObsTextFieldRow(
+    value: String,
+    placeholder: String,
+    capitalization: KeyboardCapitalization = KeyboardCapitalization.Unspecified,
+    onValueChange: (String) -> Unit,
+) {
+    val palette = formPalette()
+    FormRow {
+        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+            if (value.isEmpty()) {
+                Text(text = placeholder, color = palette.secondaryLabel, style = formBodyStyle)
+            }
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = formBodyStyle.copy(color = palette.label),
+                singleLine = true,
+                cursorBrush = SolidColor(palette.accent),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = capitalization,
+                    autoCorrectEnabled = false,
+                ),
+            )
+        }
+    }
+}
+
 @Composable
 fun StreamWizardObsRemoteControlSettingsView(
     model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    var obsRemoteControlEnabled by remember { mutableStateOf(createStreamWizard.obsRemoteControlEnabled) }
-    var obsRemoteControlUrl by remember { mutableStateOf(createStreamWizard.obsRemoteControlUrl) }
-    var obsRemoteControlPassword by remember { mutableStateOf(createStreamWizard.obsRemoteControlPassword) }
-    var obsRemoteControlMainScene by remember { mutableStateOf(createStreamWizard.obsRemoteControlMainScene) }
-    var obsRemoteControlBrbScene by remember { mutableStateOf(createStreamWizard.obsRemoteControlBrbScene) }
-    var obsRemoteControlSourceName by remember { mutableStateOf(createStreamWizard.obsRemoteControlSourceName) }
     var urlError by remember { mutableStateOf("") }
 
-    val updateUrlError: () -> Unit = {
-        val url = cleanUrl(value = obsRemoteControlUrl)
-        val message = isValidWebSocketUrl(value = url)
-        urlError = message ?: ""
-    }
+    val obsRemoteControlEnabled = binding(
+        get = { createStreamWizard.obsRemoteControlEnabled },
+        set = { createStreamWizard.obsRemoteControlEnabled = it },
+    )
+    val obsRemoteControlUrl = binding(
+        get = { createStreamWizard.obsRemoteControlUrl },
+        set = {
+            createStreamWizard.obsRemoteControlUrl = it
+            urlError = isValidWebSocketUrl(value = cleanUrl(value = it)) ?: ""
+        },
+    )
+    val obsRemoteControlPassword = binding(
+        get = { createStreamWizard.obsRemoteControlPassword },
+        set = { createStreamWizard.obsRemoteControlPassword = it },
+    )
+    val obsRemoteControlMainScene = binding(
+        get = { createStreamWizard.obsRemoteControlMainScene },
+        set = { createStreamWizard.obsRemoteControlMainScene = it },
+    )
+    val obsRemoteControlBrbScene = binding(
+        get = { createStreamWizard.obsRemoteControlBrbScene },
+        set = { createStreamWizard.obsRemoteControlBrbScene = it },
+    )
+    val obsRemoteControlSourceName = binding(
+        get = { createStreamWizard.obsRemoteControlSourceName },
+        set = { createStreamWizard.obsRemoteControlSourceName = it },
+    )
 
     LaunchedEffect(Unit) {
-        updateUrlError()
-    }
-    LaunchedEffect(obsRemoteControlUrl) {
-        updateUrlError()
+        urlError = isValidWebSocketUrl(
+            value = cleanUrl(value = createStreamWizard.obsRemoteControlUrl),
+        ) ?: ""
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("OBS remote control") },
-                actions = {
-                    CreateStreamWizardToolbar(createStreamWizard = createStreamWizard)
-                },
-            )
-        },
-    ) { paddingValues ->
-        LazyColumn(modifier = Modifier.padding(paddingValues)) {
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Enabled", modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = obsRemoteControlEnabled,
-                        onCheckedChange = {
-                            obsRemoteControlEnabled = it
-                            createStreamWizard.obsRemoteControlEnabled = it
-                        },
-                    )
-                }
-            }
-            if (obsRemoteControlEnabled) {
-                item {
-                    Text(
-                        "URL",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = obsRemoteControlUrl,
-                        onValueChange = {
-                            obsRemoteControlUrl = it
-                            createStreamWizard.obsRemoteControlUrl = it
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        placeholder = { Text("ws://213.33.45.132:4567") },
-                        keyboardOptions = KeyboardOptions(
-                            capitalization = KeyboardCapitalization.None,
-                            autoCorrectEnabled = false,
-                        ),
-                    )
-                }
-                item {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+    Form(
+        title = "OBS remote control",
+        toolbar = { CreateStreamWizardToolbar(createStreamWizard = createStreamWizard) },
+    ) {
+        Section {
+            Toggle("Enabled", isOn = obsRemoteControlEnabled)
+        }
+        if (obsRemoteControlEnabled.value) {
+            Section(
+                header = "URL",
+                footerContent = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
                         FormFieldError(error = urlError)
                         Text("Use your public IP address if streaming over the internet.")
                         Text("")
                         Text("Configure port forwarding in your router to forward incoming traffic to OBS.")
                     }
-                }
-                item {
-                    Text(
-                        "Password",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = obsRemoteControlPassword,
-                        onValueChange = {
-                            obsRemoteControlPassword = it
-                            createStreamWizard.obsRemoteControlPassword = it
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        placeholder = { Text("po3Gg4pflp3s") },
-                        keyboardOptions = KeyboardOptions(
-                            capitalization = KeyboardCapitalization.None,
-                            autoCorrectEnabled = false,
-                        ),
-                    )
-                }
-                item {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                },
+            ) {
+                ObsTextFieldRow(
+                    value = obsRemoteControlUrl.value,
+                    placeholder = "ws://213.33.45.132:4567",
+                    capitalization = KeyboardCapitalization.None,
+                    onValueChange = { obsRemoteControlUrl.value = it },
+                )
+            }
+            Section(
+                header = "Password",
+                footerContent = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
                         Text(
                             "Copy from OBS Show Connect Info as seen in the screenshot below. " +
                                 "Tools → WebSocket Server Settings → Show Connect Info → Server Password.",
                         )
-                        Row(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
                             Spacer(modifier = Modifier.weight(1f))
-                            Image(
-                                painter = TODO("Add the OBS remote control screenshot drawable"),
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxWidth(),
-                                contentScale = ContentScale.Fit,
-                            )
+                            com.moblin.android.platform.Bundle.image("ObsRemoteControl")?.asImageBitmap()?.let {
+                                Image(
+                                    bitmap = it,
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentScale = ContentScale.Fit,
+                                )
+                            }
                             Spacer(modifier = Modifier.weight(1f))
                         }
                     }
-                }
-                item {
-                    Text(
-                        "Main scene",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = obsRemoteControlMainScene,
-                        onValueChange = {
-                            obsRemoteControlMainScene = it
-                            createStreamWizard.obsRemoteControlMainScene = it
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        placeholder = { Text("Main scene") },
-                        keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
-                    )
-                }
-                item {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                        Text(
-                            "The name of your main scene in OBS. Moblin will periodically try to switch " +
-                                "to this scene from your BRB scene if the stream is likely working.",
-                        )
-                    }
-                }
-                item {
-                    Text(
-                        "BRB scene",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = obsRemoteControlBrbScene,
-                        onValueChange = {
-                            obsRemoteControlBrbScene = it
-                            createStreamWizard.obsRemoteControlBrbScene = it
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        placeholder = { Text("My BRB scene") },
-                        keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
-                    )
-                }
-                item {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                        Text(
-                            "The name of your BRB scene in OBS. Moblin will periodically try to switch " +
-                                "from your main scene to this scene if the stream is likely broken.",
-                        )
-                    }
-                }
-                item {
-                    Text(
-                        "Source name",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
-                item {
-                    OutlinedTextField(
-                        value = obsRemoteControlSourceName,
-                        onValueChange = {
-                            obsRemoteControlSourceName = it
-                            createStreamWizard.obsRemoteControlSourceName = it
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        placeholder = { Text("My source") },
-                        keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
-                    )
-                }
-                item {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                        Text("The name of the Source in OBS that receives the stream from Moblin.")
-                    }
-                }
+                },
+            ) {
+                ObsTextFieldRow(
+                    value = obsRemoteControlPassword.value,
+                    placeholder = "po3Gg4pflp3s",
+                    capitalization = KeyboardCapitalization.None,
+                    onValueChange = { obsRemoteControlPassword.value = it },
+                )
             }
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .clickable(
-                            enabled = !nextDisabled(createStreamWizard = createStreamWizard, urlError = urlError),
-                        ) {
-                            onNavigate("StreamWizardGeneralSettingsView")
-                        },
-                ) {
-                    WizardNextButtonView()
-                }
+            Section(
+                header = "Main scene",
+                footer = "The name of your main scene in OBS. Moblin will periodically try to " +
+                    "switch to this scene from your BRB scene if the stream is likely working.",
+            ) {
+                ObsTextFieldRow(
+                    value = obsRemoteControlMainScene.value,
+                    placeholder = "Main scene",
+                    onValueChange = { obsRemoteControlMainScene.value = it },
+                )
+            }
+            Section(
+                header = "BRB scene",
+                footer = "The name of your BRB scene in OBS. Moblin will periodically try to " +
+                    "switch from your main scene to this scene if the stream is likely broken.",
+            ) {
+                ObsTextFieldRow(
+                    value = obsRemoteControlBrbScene.value,
+                    placeholder = "My BRB scene",
+                    onValueChange = { obsRemoteControlBrbScene.value = it },
+                )
+            }
+            Section(
+                header = "Source name",
+                footer = "The name of the Source in OBS that receives the stream from Moblin.",
+            ) {
+                ObsTextFieldRow(
+                    value = obsRemoteControlSourceName.value,
+                    placeholder = "My source",
+                    onValueChange = { obsRemoteControlSourceName.value = it },
+                )
+            }
+        }
+        Section {
+            NavigationLink(
+                destination = {
+                    StreamWizardGeneralSettingsView(
+                        model = model,
+                        createStreamWizard = createStreamWizard,
+                    )
+                },
+                enabled = !nextDisabled(
+                    createStreamWizard = createStreamWizard,
+                    urlError = urlError,
+                ),
+            ) {
+                WizardNextButtonView()
             }
         }
     }

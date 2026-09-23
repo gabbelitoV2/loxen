@@ -1,0 +1,14 @@
+{
+  "task": "T5",
+  "hooks": [
+    {
+      "id": "H5.1",
+      "file": "media/haishinkit/media/audio/BufferedAudio.kt",
+      "scope": "fun initialize",
+      "op": "replace",
+      "old": "        frameLength = TODO(\"MediaSample does not expose the PCM frame count (CMSampleBuffer.numSamples)\")",
+      "new": "        frameLength = sampleBuffer.numSamples.toDouble()",
+      "occurrence": 1
+    }
+  ]
+}

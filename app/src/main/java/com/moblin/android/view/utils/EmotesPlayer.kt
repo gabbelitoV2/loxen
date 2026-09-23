@@ -27,6 +27,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import kotlinx.coroutines.CoroutineScope
@@ -52,6 +53,7 @@ import kotlin.math.roundToInt
 private val maxFramesBytes = 256 * 1024 * 1024
 private const val animatedFrameRate = 15.0
 private const val emotesPlayerTag = "EmotesPlayer"
+private const val symbolRenderScale = 3f
 
 sealed class ChatImageSource {
     data class Url(val url: String) : ChatImageSource()
@@ -452,8 +454,29 @@ class EmotesPlayer private constructor(private val context: Context) {
                     BitmapFactory.decodeResource(context.resources, id)?.let { EmoteImage(it, null) }
                 }
             }
-            is ChatImageSource.Symbol -> TODO("no Android counterpart for UIImage(systemName:)")
+            is ChatImageSource.Symbol -> renderSymbol(source.name, source.size, source.color)
         }
+    }
+
+    private fun renderSymbol(name: String, pointSize: Float, color: Color): EmoteImage? {
+        val resourceId = context.resources.getIdentifier(
+            name.replace(".", "_"),
+            "drawable",
+            context.packageName,
+        )
+        if (resourceId == 0) {
+            return null
+        }
+        val drawable = context.getDrawable(resourceId) ?: return null
+        drawable.setTint(color.toArgb())
+        val width = max((pointSize * symbolRenderScale).roundToInt(), 1)
+        val intrinsicWidth = max(drawable.intrinsicWidth, 1)
+        val intrinsicHeight = max(drawable.intrinsicHeight, 1)
+        val height = max((width.toFloat() * intrinsicHeight / intrinsicWidth).roundToInt(), 1)
+        val context = makeBitmapContext(width, height) ?: return null
+        drawable.setBounds(0, 0, width, height)
+        drawable.draw(context.canvas)
+        return EmoteImage(context.bitmap, null)
     }
 
     private fun load(url: String, onLoaded: (EmoteImage) -> Unit) {
@@ -662,7 +685,12 @@ fun EmoteUiView(
     }
     Box(
         modifier = modifier.onSizeChanged {
-            view.onSizeChanged(it.width, it.height, density.density)
+            val scale = if (density.density > 0f) density.density else 1f
+            view.onSizeChanged(
+                (it.width / scale).roundToInt(),
+                (it.height / scale).roundToInt(),
+                scale,
+            )
         },
     ) {
         val bitmap = frame
@@ -670,6 +698,7 @@ fun EmoteUiView(
             Image(
                 bitmap = bitmap.asImageBitmap(),
                 contentDescription = null,
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier.fillMaxSize(),
             )
         }

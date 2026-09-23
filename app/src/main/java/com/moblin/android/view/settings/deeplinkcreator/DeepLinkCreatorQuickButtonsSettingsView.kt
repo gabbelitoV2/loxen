@@ -1,164 +1,102 @@
 package com.moblin.android.view.settings.deeplinkcreator
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.DeepLinkCreatorQuickButton
 import com.moblin.android.various.settings.DeepLinkCreatorQuickButtons
 import com.moblin.android.view.controlbar.controlBarPages
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.IconAndTextView
-import com.moblin.android.LocalModel
+import com.moblin.android.localized
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeepLinkCreatorQuickButtonSettingsView(
     model: Model = LocalModel.current,
     button: DeepLinkCreatorQuickButton,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         DraggableItemPrefixView()
         val quickButton = model.getQuickButton(button.type)
         if (quickButton != null) {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Switch(
-                        checked = button.enabled,
-                        onCheckedChange = { button.enabled = it },
-                    )
+            Column(
+                modifier = Modifier.weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Toggle(
+                    isOn = button.enabled,
+                    onChange = { button.enabled = it },
+                ) {
                     IconAndTextView(
                         image = quickButton.imageOff,
                         text = quickButton.name,
                         longDivider = true,
                     )
                 }
-                Row {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     Spacer(Modifier.weight(1f))
-                    var pageExpanded by remember { mutableStateOf(false) }
-                    ExposedDropdownMenuBox(
-                        expanded = pageExpanded,
-                        onExpandedChange = { pageExpanded = it },
-                        modifier = Modifier.width(120.dp),
-                    ) {
-                        OutlinedTextField(
-                            value = button.page.toString(),
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Page") },
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = pageExpanded)
-                            },
-                            modifier = Modifier
-                                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                                .fillMaxWidth(),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = pageExpanded,
-                            onDismissRequest = { pageExpanded = false },
-                        ) {
-                            for (page in 1..controlBarPages) {
-                                DropdownMenuItem(
-                                    text = { Text(page.toString()) },
-                                    onClick = {
-                                        button.page = page
-                                        pageExpanded = false
-                                    },
-                                )
-                            }
-                        }
-                    }
+                    Picker(
+                        title = "Page",
+                        selection = button.page,
+                        options = (1..controlBarPages).toList(),
+                        onChange = { button.page = it },
+                    )
                 }
             }
         } else {
-            Text("Unknown")
+            Text(localized("Unknown"))
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeepLinkCreatorQuickButtonsSettingsView(
     quickButtons: DeepLinkCreatorQuickButtons,
     model: Model = LocalModel.current,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Quick buttons") })
-        },
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            Text(
-                "Appearance",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
+    Form(title = "Quick buttons") {
+        Section(header = "Appearance") {
+            Toggle(
+                title = "Scroll",
+                isOn = quickButtons.enableScroll,
             ) {
-                Text("Scroll", modifier = Modifier.weight(1f))
-                Switch(
-                    checked = quickButtons.enableScroll,
-                    onCheckedChange = { quickButtons.enableScroll = it },
-                )
+                quickButtons.enableScroll = it
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            Toggle(
+                title = "Two columns",
+                isOn = quickButtons.twoColumns,
             ) {
-                Text("Two columns", modifier = Modifier.weight(1f))
-                Switch(
-                    checked = quickButtons.twoColumns,
-                    onCheckedChange = { quickButtons.twoColumns = it },
-                )
+                quickButtons.twoColumns = it
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            Toggle(
+                title = "Show name",
+                isOn = quickButtons.showName,
             ) {
-                Text("Show name", modifier = Modifier.weight(1f))
-                Switch(
-                    checked = quickButtons.showName,
-                    onCheckedChange = { quickButtons.showName = it },
-                )
+                quickButtons.showName = it
             }
+        }
+        Section {
             quickButtons.buttons.forEach { button ->
                 DeepLinkCreatorQuickButtonSettingsView(model = model, button = button)
             }

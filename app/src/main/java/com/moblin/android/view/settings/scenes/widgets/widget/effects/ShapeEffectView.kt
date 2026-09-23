@@ -4,16 +4,12 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -30,9 +27,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.moblin.android.R
+import com.moblin.android.LocalModel
+import com.moblin.android.platform.Bundle
+import com.moblin.android.platform.swiftui.*
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsVideoEffect
 import com.moblin.android.various.settings.SettingsVideoEffectShape
@@ -42,28 +40,34 @@ import com.moblin.android.view.settings.scenes.widgets.widget.videosource.calcul
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.calculatePositioningRectangle
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.drawPositioningRectangle
 import com.moblin.android.view.utils.RgbColorPickerView
-import com.moblin.android.LocalModel
+import com.moblin.android.various.model.getWidgetShapeEffect
+import com.moblin.android.various.model.takeVideoSourcePreviewImage
 
 @Composable
 private fun CornerRadiusView(
     shape: SettingsVideoEffectShape,
     updateWidget: () -> Unit
 ) {
-    val cornerRadius = shape.cornerRadius
-    LaunchedEffect(cornerRadius) {
-        updateWidget()
-    }
-    Column {
-        Text("Corner radius", style = MaterialTheme.typography.titleSmall)
-        Row {
-            Slider(
-                value = cornerRadius.toFloat(),
-                onValueChange = { shape.cornerRadius = it.toFloat() },
-                valueRange = 0f..1f,
-                steps = 99,
-                modifier = Modifier.weight(1f)
+    Section(header = "Corner radius") {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FormSlider(
+                value = shape.cornerRadius.toFloat(),
+                onValueChange = {
+                    shape.cornerRadius = it.toFloat()
+                    updateWidget()
+                },
+                modifier = Modifier.weight(1f),
+                valueRange = 0f..1f
             )
-            Text((cornerRadius * 100).toInt().toString(), modifier = Modifier.width(35.dp))
+            Box(
+                modifier = Modifier.width(35.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text((shape.cornerRadius * 100).toInt().toString())
+            }
         }
     }
 }
@@ -73,26 +77,25 @@ private fun BorderView(
     shape: SettingsVideoEffectShape,
     updateWidget: () -> Unit
 ) {
-    val borderWidth = shape.borderWidth
-    val borderColorColor = shape.borderColorColor
-    LaunchedEffect(borderWidth) {
-        updateWidget()
-    }
-    Column {
-        Text("Border", style = MaterialTheme.typography.titleSmall)
-        Row {
+    Section(header = "Border") {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             Text("Width")
-            Slider(
-                value = borderWidth.toFloat(),
-                onValueChange = { shape.borderWidth = it.toDouble() },
-                valueRange = 0f..1f,
-                steps = 99,
-                modifier = Modifier.weight(1f)
+            FormSlider(
+                value = shape.borderWidth.toFloat(),
+                onValueChange = {
+                    shape.borderWidth = it.toDouble()
+                    updateWidget()
+                },
+                modifier = Modifier.weight(1f),
+                valueRange = 0f..1f
             )
         }
         RgbColorPickerView(
             title = "Color",
-            color = borderColorColor,
+            color = shape.borderColorColor,
             onColorChanged = { color: Color ->
                 shape.borderColorColor = color
                 updateWidget()
@@ -115,7 +118,6 @@ private fun CropView(
     var position by remember { mutableStateOf(Offset(100f, 100f)) }
     var positionOffset by remember { mutableStateOf(Size(0f, 0f)) }
     var positionAnchorPoint by remember { mutableStateOf<AnchorPoint?>(null) }
-    val cropEnabled = shape.cropEnabled
 
     fun updatePositionAnchorPoint(location: Offset, size: Size) {
         if (positionAnchorPoint == null) {
@@ -156,28 +158,35 @@ private fun CropView(
         )
     }
 
-    LaunchedEffect(cropEnabled) {
-        updateWidget()
-    }
-
     val aspectRatio = if (isPortrait) 9f / 16f else 16f / 9f
 
-    Column {
-        Text("Crop", style = MaterialTheme.typography.titleSmall)
-        Box(modifier = Modifier.fillMaxWidth()) {
-            if (previewImage != null) {
+    Section(header = "Crop") {
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            val preview = previewImage?.asImageBitmap()
+            if (preview != null) {
                 Image(
-                    bitmap = previewImage.asImageBitmap(),
+                    bitmap = preview,
                     contentDescription = null,
                     modifier = Modifier.aspectRatio(aspectRatio),
                     contentScale = ContentScale.Fit
                 )
             } else {
-                Unit
+                val placeholder = Bundle.image("GamlaLinkoping")?.asImageBitmap()
+                if (placeholder != null) {
+                    Image(
+                        bitmap = placeholder,
+                        contentDescription = null,
+                        modifier = Modifier.aspectRatio(aspectRatio),
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
             Canvas(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .matchParentSize()
                     .pointerInput(Unit) {
                         detectDragGestures(
                             onDragStart = { offset ->
@@ -203,13 +212,14 @@ private fun CropView(
                 drawPositioningRectangle(createPositionRectangle(size))
             }
         }
-        Row {
-            Text("Enabled")
-            Switch(
-                checked = cropEnabled,
-                onCheckedChange = { shape.cropEnabled = it }
-            )
-        }
+        Toggle(
+            title = "Enabled",
+            isOn = shape.cropEnabled,
+            onChange = { newValue ->
+                shape.cropEnabled = newValue
+                updateWidget()
+            }
+        )
     }
 }
 
@@ -221,24 +231,25 @@ fun ShapeEffectView(
     shape: SettingsVideoEffectShape
 ) {
     var previewImage by remember { mutableStateOf<Bitmap?>(null) }
-    val isPortrait = TODO("model.stream.portrait is not available")
+    val stream by model.stream.collectAsState()
+    val isPortrait = stream.portrait
 
     fun updateWidget() {
-        Unit
+        model.getWidgetShapeEffect(widget, effect)?.setSettings(shape.toSettings())
     }
 
     LaunchedEffect(Unit) {
-        Unit
+        model.takeVideoSourcePreviewImage(widget) { image ->
+            previewImage = image
+        }
     }
 
-    Column {
-        CornerRadiusView(shape = shape, updateWidget = { updateWidget() })
-        BorderView(shape = shape, updateWidget = { updateWidget() })
-        CropView(
-            shape = shape,
-            updateWidget = { updateWidget() },
-            previewImage = previewImage,
-            isPortrait = isPortrait
-        )
-    }
+    CornerRadiusView(shape = shape, updateWidget = { updateWidget() })
+    BorderView(shape = shape, updateWidget = { updateWidget() })
+    CropView(
+        shape = shape,
+        updateWidget = { updateWidget() },
+        previewImage = previewImage,
+        isPortrait = isPortrait
+    )
 }

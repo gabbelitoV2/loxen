@@ -1,32 +1,23 @@
 package com.moblin.android.view.settings.selfiestick
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.getValue
+import com.moblin.android.LocalModel
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsControllerFunction
 import com.moblin.android.various.settings.SettingsSelfieStick
 import com.moblin.android.view.settings.gamecontrollers.ControllerButtonView
-import com.moblin.android.LocalModel
 
 @Composable
 fun SelfieStickDoesNotWorkView(database: Database, selfieStick: SettingsSelfieStick) {
     val cameraControlsEnabled = database.cameraControlsEnabled
-    val enabled = selfieStick.enabled.collectAsState().value
+    val enabled by selfieStick.enabled.collectAsState()
     if (cameraControlsEnabled && enabled) {
         Text("⚠️ Selfie stick button does not work with Camera controls enabled.")
     }
@@ -40,41 +31,26 @@ private fun functions(): List<SettingsControllerFunction> {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelfieStickSettingsView(model: Model = LocalModel.current, selfieStick: SettingsSelfieStick) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Selfie stick") })
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .verticalScroll(rememberScrollState()),
+    Form(title = "Selfie stick") {
+        Section(
+            header = "Button",
+            footer = "⚠️ Hijacks volume buttons. You can only change volume in Control Center when enabled.",
         ) {
-            Text("Button", style = MaterialTheme.typography.titleSmall)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Enabled")
-                Spacer(Modifier.weight(1f))
-                Switch(
-                    checked = selfieStick.enabled.collectAsState().value,
-                    onCheckedChange = { selfieStick.enabled.value = it },
-                )
-            }
+            val enabled by selfieStick.enabled.collectAsState()
+            val function by selfieStick.function.collectAsState()
+            val functionData by selfieStick.functionData.collectAsState()
+            Toggle("Enabled", isOn = enabled) { selfieStick.enabled.value = it }
             ControllerButtonView(
                 model = model,
                 functions = functions(),
-                function = selfieStick.function.collectAsState().value,
+                function = function,
                 onFunctionChange = { selfieStick.function.value = it },
-                functionData = selfieStick.functionData.collectAsState().value,
+                functionData = functionData,
                 onFunctionDataChange = { selfieStick.functionData.value = it },
             )
             SelfieStickDoesNotWorkView(database = model.database, selfieStick = selfieStick)
-            Text(
-                "⚠️ Hijacks volume buttons. You can only change volume in Control Center when enabled.",
-                style = MaterialTheme.typography.bodySmall,
-            )
         }
     }
 }

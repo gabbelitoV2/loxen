@@ -7,6 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.localized
 
 @Composable
 fun QuickButtonChatLinkConfirmationModifier(url: String?, onUrlChange: (String?) -> Unit) {
@@ -14,6 +16,7 @@ fun QuickButtonChatLinkConfirmationModifier(url: String?, onUrlChange: (String?)
         return
     }
     val context = LocalContext.current
+    val palette = formPalette()
     AlertDialog(
         onDismissRequest = { onUrlChange(null) },
         title = { Text(url) },
@@ -24,7 +27,12 @@ fun QuickButtonChatLinkConfirmationModifier(url: String?, onUrlChange: (String?)
                     onUrlChange(null)
                 }
             ) {
-                Text("Open link")
+                Text(localized("Open link"), color = palette.accent)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onUrlChange(null) }) {
+                Text(localized("Cancel"), color = palette.accent)
             }
         }
     )

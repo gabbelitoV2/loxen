@@ -15,7 +15,12 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
+import postprocess
+
 PROMPTS = HERE / "prompts"
+SHIMS = PROMPTS / "shims"
+KOTLIN_PACKAGE_DIR = Path("app/src/main/java/com/moblin/android")
+PLATFORM_API_LIMIT = 600
 ALL_TIERS = ["logic", "platform", "test", "media", "ui", "apple_only"]
 DEFAULT_TIERS = ["logic", "platform", "test"]
 PROVIDERS = {
@@ -142,6 +147,338 @@ def load_prompts():
     system = (PROMPTS / "system.md").read_text(encoding="utf-8")
     tiers = {tier: (PROMPTS / f"{tier}.md").read_text(encoding="utf-8") for tier in ALL_TIERS}
     return system, tiers
+
+
+SHIM_INTRO = (
+    "The hand-written platform layer implements these Apple APIs under their Apple names, so a translation keeps "
+    "the Swift calls. Translate every use listed below to the shim as described. Never replace them with TODO(), "
+    "never declare stand-ins for them and never call the Android API underneath from generated code."
+)
+
+
+def shim_glossary():
+    if not SHIMS.exists():
+        return ""
+    parts = []
+    for path in sorted(SHIMS.glob("*.md"), key=lambda p: postprocess.natural_key(p.name)):
+        if path.name.lower() == "readme.md":
+            continue
+        text = path.read_text(encoding="utf-8-sig").strip()
+        if text:
+            parts.append(text)
+    if not parts:
+        return ""
+    return "# Apple API shims\n\n" + SHIM_INTRO + "\n\n" + "\n\n".join(parts)
+
+
+API_DECLARATION_RE = re.compile(
+    r"(?P<annotations>(?:@[\w.]+(?:\([^()]*\))?\s+)*)"
+    r"(?P<modifiers>(?:(?:public|private|protected|internal|open|abstract|final|override|suspend|inline|operator|"
+    r"infix|const|lateinit|data|sealed|enum|inner|annotation|value|tailrec|external|companion|actual|expect)\s+)*)"
+    r"(?P<keyword>fun\s+interface|fun|class|interface|object|val|var|typealias|constructor)(?=[\s(<{:])"
+)
+API_TYPE_KEYWORDS = ("class", "interface", "object", "fun interface")
+API_HIDDEN_MODIFIERS = {"private", "internal", "protected", "override"}
+API_HEADER_ENDINGS = (",", "(", "[", ":", "->", ".", "&&", "||")
+API_HEADER_STARTS = (":", "where ", "{", ")", "]", ",", "->", ".")
+
+
+def api_valid_declaration(masked, match):
+    keyword = " ".join(match.group("keyword").split())
+    rest = masked[match.end():match.end() + 200].lstrip(" \t")
+    if not rest:
+        return False
+    if keyword == "constructor":
+        return rest[0] == "("
+    if keyword == "object" and "companion" in match.group("modifiers").split():
+        return rest[0] in "{:\n" or rest[0].isalpha() or rest[0] == "_"
+    if keyword in ("fun", "val", "var"):
+        return rest[0] == "<" or rest[0] == "`" or rest[0].isalpha() or rest[0] == "_"
+    return rest[0] == "`" or rest[0].isalpha() or rest[0] == "_"
+
+
+def api_header_continues(masked, newline):
+    line_start = masked.rfind("\n", 0, newline) + 1
+    if masked[line_start:newline].rstrip().endswith(API_HEADER_ENDINGS):
+        return True
+    following = masked[newline + 1:]
+    stripped = following.lstrip()
+    return stripped.startswith(API_HEADER_STARTS)
+
+
+def api_header_end(masked, match):
+    keyword = match.group("keyword")
+    parens = 0
+    i = match.end()
+    while i < len(masked):
+        c = masked[i]
+        if c in "([":
+            parens += 1
+        elif c in ")]":
+            parens -= 1
+        elif parens <= 0:
+            if c == "{":
+                return i, i
+            if c == "=" and keyword != "typealias" and postprocess.is_assignment(masked, i):
+                return i, None
+            if c == ";" or (c == "\n" and not api_header_continues(masked, i)):
+                return i, None
+        i += 1
+    return len(masked), None
+
+
+def api_initializer(masked, readable, equals):
+    parens = 0
+    i = equals + 1
+    while i < len(masked):
+        c = masked[i]
+        if c in "([":
+            parens += 1
+        elif c in ")]":
+            parens -= 1
+        elif parens <= 0 and c in "{\n;":
+            break
+        i += 1
+    value = re.sub(r"\s+", " ", readable[equals + 1:i]).strip()
+    if not value:
+        return ""
+    if len(value) > 100:
+        value = value[:100] + "..."
+    return " = " + value
+
+
+def api_enum_entries(masked, readable, start):
+    entries = []
+    parens = 0
+    braces = 0
+    segment_start = start
+    i = start
+    while i < len(masked):
+        c = masked[i]
+        if c in "([":
+            parens += 1
+        elif c in ")]":
+            parens -= 1
+        elif c == "{":
+            braces += 1
+        elif c == "}":
+            if braces == 0 and parens <= 0:
+                break
+            braces -= 1
+        elif parens <= 0 and braces == 0 and c in ",;":
+            entries.append(readable[segment_start:i])
+            segment_start = i + 1
+            if c == ";":
+                i += 1
+                break
+        i += 1
+    else:
+        i = len(masked)
+    if masked[segment_start:i].strip() and (i >= len(masked) or masked[i] == "}"):
+        entries.append(readable[segment_start:i])
+    names = []
+    for entry in entries:
+        value = re.sub(r"\s+", " ", re.sub(r"^\s*(?:@\w+(?:\([^()]*\))?\s+)*", "", entry.split("{")[0])).strip()
+        if value:
+            names.append(value if len(value) <= 60 else value[:60] + "...")
+    return i, names
+
+
+def api_declarations(text):
+    masked = postprocess.mask_kotlin(text)
+    readable = "".join(" " if m == " " and t not in " \t" else t for m, t in zip(masked, text))
+    result = []
+    stack = []
+    parens = 0
+    i = 0
+    statement_start = True
+    body_brace = None
+    enum_next = False
+    while i < len(masked):
+        c = masked[i]
+        if statement_start:
+            if c in " \t\r\n;":
+                i += 1
+                continue
+            statement_start = False
+            if all(block["type"] for block in stack):
+                visible_level = all(block["visible"] for block in stack)
+                if enum_next:
+                    enum_next = False
+                    end, names = api_enum_entries(masked, readable, i)
+                    if names and visible_level:
+                        result.append((len(stack), ", ".join(names) + ";"))
+                    i = end
+                    statement_start = True
+                    continue
+                match = API_DECLARATION_RE.match(masked, i)
+                if match and api_valid_declaration(masked, match):
+                    header_end, brace = api_header_end(masked, match)
+                    modifiers = set(match.group("modifiers").split())
+                    keyword = " ".join(match.group("keyword").split())
+                    visible = visible_level and not (modifiers & API_HIDDEN_MODIFIERS)
+                    if visible:
+                        annotations = " ".join(
+                            a for a in re.findall(r"@[\w.]+", match.group("annotations")) if a == "@Composable"
+                        )
+                        signature = readable[match.start("modifiers"):header_end]
+                        if keyword in ("val", "var") and brace is None and header_end < len(masked) and masked[header_end] == "=":
+                            head = masked[match.end():header_end]
+                            if "const" in modifiers or ":" not in head:
+                                signature += api_initializer(masked, readable, header_end)
+                        signature = re.sub(r"\s+", " ", ((annotations + " ") if annotations else "") + signature).strip()
+                        signature = re.sub(r"\s*,\s*\)", ")", re.sub(r"\(\s+", "(", signature))
+                        signature = re.sub(r"\s+by\s+lazy\b.*$", "", signature)
+                        result.append((len(stack), signature))
+                    if brace is not None:
+                        is_type = keyword in API_TYPE_KEYWORDS
+                        body_brace = (brace, is_type, visible and is_type, is_type and "enum" in modifiers)
+                    i = header_end
+                    continue
+        if c in "([":
+            parens += 1
+        elif c in ")]":
+            parens = max(0, parens - 1)
+        elif c == "{":
+            if body_brace is not None and body_brace[0] == i:
+                stack.append({"type": body_brace[1], "visible": body_brace[2], "parens": parens})
+                enum_next = body_brace[3]
+            else:
+                stack.append({"type": False, "visible": False, "parens": parens})
+                enum_next = False
+            body_brace = None
+            parens = 0
+            statement_start = True
+        elif c == "}":
+            if stack:
+                parens = stack.pop()["parens"]
+            enum_next = False
+        elif c in "\n;" and parens == 0:
+            statement_start = True
+        i += 1
+    return result
+
+
+def platform_api_files(out_dir, tier):
+    package_dir = out_dir / KOTLIN_PACKAGE_DIR
+    files = []
+    sample = package_dir / "media/MediaSample.kt"
+    if sample.exists():
+        files.append(sample)
+    platform = package_dir / "platform"
+    if platform.exists():
+        files += sorted(platform.rglob("*.kt"), key=lambda p: platform_api_rank(p.relative_to(platform), tier))
+    return files
+
+
+def platform_api_rank(relative, tier):
+    parts = relative.parts
+    group = parts[0] if len(parts) > 1 else ""
+    order = ["", "core", "video", "avfoundation", "videotoolbox", "audio", "network", "ntp", "srt", "mp4", "uikit"]
+    late = ["swiftui", "capture", "host"]
+    if tier == "ui":
+        order = ["", "swiftui", "uikit"] + [name for name in order if name not in ("", "uikit")]
+        late = ["capture", "host"]
+    if group in order:
+        rank = order.index(group)
+    elif group in late:
+        rank = 100 + late.index(group)
+    else:
+        rank = 50
+    return (rank, group, relative.as_posix())
+
+
+API_NAME_RE = re.compile(r"\b(?:fun\s+interface|fun|class|interface|object|val|var|typealias)\s+(?:<[^>]*>\s*)?(?:[\w.<>?*, ]+\.)?(\w+)")
+API_CACHE = {}
+
+
+def platform_api_blocks(out_dir, tier):
+    key = (str(out_dir), tier)
+    if key not in API_CACHE:
+        package_dir = out_dir / KOTLIN_PACKAGE_DIR
+        blocks = []
+        for path in platform_api_files(out_dir, tier):
+            text = path.read_text(encoding="utf-8", errors="replace")
+            declarations = api_declarations(text)
+            if not declarations:
+                continue
+            package = re.search(r"^package ([\w.]+)", text, re.M)
+            relative = path.relative_to(package_dir).as_posix()
+            lines = [f"// {package.group(1) if package else ''} ({relative})"]
+            lines += ["    " * depth + signature for depth, signature in declarations]
+            names = set()
+            for depth, signature in declarations:
+                match = API_NAME_RE.search(signature)
+                if depth == 0 and match:
+                    names.add(match.group(1))
+            blocks.append({"path": relative, "lines": lines, "names": names})
+        API_CACHE[key] = blocks
+    return API_CACHE[key]
+
+
+def platform_api(out_dir, tier, limit=PLATFORM_API_LIMIT):
+    lines = []
+    omitted = []
+    for block in platform_api_blocks(out_dir, tier):
+        room = limit - len(lines)
+        if room <= 1:
+            omitted.append(block["path"])
+            continue
+        if len(block["lines"]) > room:
+            lines += block["lines"][:room] + [""]
+            omitted.append(block["path"] + " (in part)")
+            continue
+        lines += block["lines"] + [""]
+    if not lines:
+        return ""
+    if omitted:
+        lines.append(
+            "// Left out for room: " + ", ".join(omitted) + ". When the Swift file uses one of their names, the "
+            "request lists that file's declarations."
+        )
+    return (
+        "# Platform API\n\n"
+        "The current public declarations of the hand-written platform layer (every file under "
+        "com.moblin.android.platform, and com.moblin.android.media.MediaSample). Members are indented under their "
+        "type, bodies are left out. Import from the package in each file's header line and call these exactly as "
+        "declared. Never redeclare them in a generated file.\n\n"
+        "```kotlin\n" + "\n".join(lines).rstrip() + "\n```"
+    )
+
+
+def referenced_platform_api(out_dir, tier, source, limit=PLATFORM_API_LIMIT):
+    listed = 0
+    omitted = []
+    for block in platform_api_blocks(out_dir, tier):
+        room = limit - listed
+        listed += len(block["lines"]) + 1
+        if room > 1 and len(block["lines"]) <= room:
+            continue
+        omitted.append(block)
+    chosen = set()
+    text = source
+    while text:
+        found = [
+            index for index, block in enumerate(omitted)
+            if index not in chosen and any(re.search(r"\b" + re.escape(name) + r"\b", text) for name in block["names"])
+        ]
+        chosen.update(found)
+        text = "\n".join(line for index in found for line in omitted[index]["lines"])
+    return "\n\n".join("\n".join(block["lines"]) for index, block in enumerate(omitted) if index in chosen)
+
+
+PROMPT_CACHE = {}
+
+
+def system_prompt(system, tiers, tier, out_dir, incremental=False):
+    key = (tier, str(out_dir))
+    if key not in PROMPT_CACHE:
+        sections = [system.rstrip(), shim_glossary(), platform_api(out_dir, tier), tiers[tier].rstrip()]
+        PROMPT_CACHE[key] = "\n\n".join(section for section in sections if section)
+    prompt = PROMPT_CACHE[key]
+    if incremental:
+        prompt += "\n\n" + INCREMENTAL
+    return prompt
 
 
 def select_entries(inventory, args):
@@ -324,23 +661,44 @@ def build_incremental_prompt(entry, glossary, old_source, source, kotlin, depend
     return "\n\n".join(parts)
 
 
-def port_one(backend, entry, root, out_dir, by_path, system, tiers, previous=None, incremental=False, commit=None):
+def build_prompts(entry, root, out_dir, by_path, system, tiers, previous=None, incremental=False):
     source = (root / entry["path"]).read_text(encoding="utf-8", errors="replace")
     target = out_dir / entry["kotlin_path"]
     glossary = glossary_for(entry, by_path)
     dependencies = dependency_signatures(entry, by_path, out_dir)
+    platform = referenced_platform_api(out_dir, entry["tier"], source)
+    if platform:
+        dependencies = "\n\n".join(part for part in (dependencies, platform) if part)
     old_source = None
     if incremental and previous and previous.get("status") == "ok" and target.exists():
         old_source = swift_at(root, previous.get("moblin_commit"), entry["path"])
-    started = time.time()
-    mode = "full"
-    warning = None
     if old_source is not None:
-        mode = "incremental"
         kotlin_before = target.read_text(encoding="utf-8", errors="replace")
-        swift_changed = changed_lines(old_source, source)
-        prompt_system = system + "\n\n" + tiers[entry["tier"]] + "\n\n" + INCREMENTAL
-        prompt_user = build_incremental_prompt(entry, glossary, old_source, source, kotlin_before, dependencies)
+        return {
+            "mode": "incremental",
+            "system": system_prompt(system, tiers, entry["tier"], out_dir, incremental=True),
+            "user": build_incremental_prompt(entry, glossary, old_source, source, kotlin_before, dependencies),
+            "kotlin_before": kotlin_before,
+            "swift_changed": changed_lines(old_source, source),
+        }
+    return {
+        "mode": "full",
+        "system": system_prompt(system, tiers, entry["tier"], out_dir),
+        "user": build_user_prompt(entry, glossary, source, dependencies),
+    }
+
+
+def port_one(backend, entry, root, out_dir, by_path, system, tiers, previous=None, incremental=False, commit=None):
+    target = out_dir / entry["kotlin_path"]
+    prompts = build_prompts(entry, root, out_dir, by_path, system, tiers, previous, incremental)
+    started = time.time()
+    mode = prompts["mode"]
+    warning = None
+    if mode == "incremental":
+        kotlin_before = prompts["kotlin_before"]
+        swift_changed = prompts["swift_changed"]
+        prompt_system = prompts["system"]
+        prompt_user = prompts["user"]
         limit = max(60, 5 * swift_changed + 20)
         text, tokens_in, tokens_out = backend.complete(prompt_system, prompt_user)
         meta, kotlin = parse_response(text)
@@ -361,9 +719,7 @@ def port_one(backend, entry, root, out_dir, by_path, system, tiers, previous=Non
             if kotlin_changed > limit:
                 warning = f"changed {kotlin_changed} Kotlin lines for {swift_changed} changed Swift lines"
     else:
-        prompt_system = system + "\n\n" + tiers[entry["tier"]]
-        prompt_user = build_user_prompt(entry, glossary, source, dependencies)
-        text, tokens_in, tokens_out = backend.complete(prompt_system, prompt_user)
+        text, tokens_in, tokens_out = backend.complete(prompts["system"], prompts["user"])
         meta, kotlin = parse_response(text)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(kotlin.rstrip() + "\n", encoding="utf-8", newline="\n")
@@ -388,14 +744,45 @@ def port_one(backend, entry, root, out_dir, by_path, system, tiers, previous=Non
     return result
 
 
-def dry_run(todo, root, args, system, tiers):
+def find_entry(path, root, by_path):
+    wanted = path.strip().replace("\\", "/")
+    candidate = Path(wanted)
+    if candidate.is_absolute():
+        try:
+            wanted = candidate.resolve().relative_to(root).as_posix()
+        except ValueError:
+            pass
+    wanted = wanted.removeprefix("./")
+    if wanted in by_path:
+        return by_path[wanted]
+    matches = [entry for key, entry in by_path.items() if key.endswith("/" + wanted)]
+    if len(matches) == 1:
+        return matches[0]
+    if matches:
+        sys.exit(f"{path} matches several Swift files: " + ", ".join(entry["path"] for entry in matches))
+    sys.exit(f"{path} is not in the inventory")
+
+
+def print_prompt(path, root, out_dir, by_path, state, system, tiers, incremental):
+    entry = find_entry(path, root, by_path)
+    if entry["tier"] == "skip":
+        sys.exit(f"{entry['path']} is in the skip tier and is never ported")
+    prompts = build_prompts(entry, root, out_dir, by_path, system, tiers, state.get(entry["path"]), incremental)
+    print(f"=== system prompt ({prompts['mode']}, {len(prompts['system']):,} characters, "
+          f"about {estimate_tokens(prompts['system']):,} tokens) ===")
+    print(prompts["system"])
+    print(f"\n=== user prompt ({len(prompts['user']):,} characters, about {estimate_tokens(prompts['user']):,} tokens) ===")
+    print(prompts["user"])
+
+
+def dry_run(todo, root, args, system, tiers, out_dir):
     per_tier = {}
     tokens_in = 0
     tokens_out = 0
     for entry in todo:
         source = (root / entry["path"]).read_text(encoding="utf-8", errors="replace")
         source_tokens = estimate_tokens(source)
-        tokens_in += estimate_tokens(system + tiers[entry["tier"]]) + source_tokens
+        tokens_in += estimate_tokens(system_prompt(system, tiers, entry["tier"], out_dir)) + source_tokens
         tokens_out += int(source_tokens * 1.1) + 200
         row = per_tier.setdefault(entry["tier"], [0, 0])
         row[0] += 1
@@ -510,6 +897,11 @@ def main():
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--report-only", action="store_true")
     parser.add_argument("--incremental", action="store_true")
+    parser.add_argument("--no-postprocess", action="store_true",
+                        help="do not run tools/postprocess.py (rules and hooks) on the files written")
+    parser.add_argument("--print-prompt", metavar="SWIFT_PATH", default=None,
+                        help="print the system and user prompt for one Swift file and stop; with --incremental, "
+                        "the incremental prompt when the file was ported before")
     args = parser.parse_args()
     if args.model is None:
         args.model = PROVIDERS[args.provider]["model"]
@@ -529,6 +921,9 @@ def main():
         return
 
     system, tiers = load_prompts()
+    if args.print_prompt:
+        print_prompt(args.print_prompt, root, out_dir, by_path, state, system, tiers, args.incremental)
+        return
     entries = select_entries(inventory, args)
     todo = [e for e in entries if needs_port(e, state, args.force)]
     print(f"{len(entries)} files selected, {len(entries) - len(todo)} already done, {len(todo)} to port")
@@ -539,7 +934,7 @@ def main():
         write_report(out_dir, inventory, state)
         return
     if args.dry_run:
-        dry_run(todo, root, args, system, tiers)
+        dry_run(todo, root, args, system, tiers, out_dir)
         return
 
     backend = pick_backend(args)
@@ -591,8 +986,10 @@ def main():
             write_report(out_dir, inventory, state)
             raise SystemExit(130)
 
-    import postprocess
-    postprocess.run(False)
+    written = [out_dir / e["kotlin_path"] for e in todo if state.get(e["path"], {}).get("status") == "ok"]
+    if written and not args.no_postprocess:
+        print(f"\npostprocessing the {len(written)} files written")
+        postprocess.run(False, only=written)
     write_report(out_dir, inventory, state)
     ok = sum(1 for e in todo if state.get(e["path"], {}).get("status") == "ok")
     print(f"\ndone: {ok} ok, {len(todo) - ok} failed. Report: {out_dir / 'PORT-REPORT.md'}")

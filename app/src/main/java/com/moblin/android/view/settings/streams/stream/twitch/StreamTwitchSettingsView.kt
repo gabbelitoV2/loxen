@@ -1,42 +1,31 @@
 package com.moblin.android.view.settings.streams.stream.twitch
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.*
 import com.moblin.android.streamingplatforms.twitch.TwitchApiGameData
 import com.moblin.android.various.CacheAsyncImage
 import com.moblin.android.various.model.Model
@@ -46,12 +35,22 @@ import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.settings.streams.stream.TokenExpiresInView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.view.utils.TextEditView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.nanoseconds
 import java.net.URI
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.fetchTwitchGames
+import com.moblin.android.various.model.getTwitchChannelInformation
+import com.moblin.android.various.model.getTwitchTokenExpiresIn
+import com.moblin.android.various.model.searchTwitchCategories
+import com.moblin.android.various.model.setTwitchStreamCategory
+import com.moblin.android.various.model.setTwitchStreamTitle
+import com.moblin.android.various.model.twitchChannelIdUpdated
+import com.moblin.android.various.model.twitchChannelNameUpdated
+import com.moblin.android.various.model.twitchLogin
+import com.moblin.android.various.model.twitchLogout
 
 @Composable
 fun TwitchStreamLiveSettingsView(
@@ -61,41 +60,40 @@ fun TwitchStreamLiveSettingsView(
     category: String?,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("title") }
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("Title")
-            Spacer(Modifier.weight(1f))
-            if (title != null) {
-                GrayTextView(text = title)
-            } else {
-                CircularProgressIndicator()
-            }
+    NavigationLink(
+        destination = {
+            TextEditView(
+                title = localized("Title"),
+                value = title ?: "",
+                onSubmit = { value ->
+                    model.setTwitchStreamTitle(stream, value)
+                },
+            )
+        },
+    ) {
+        Text(localized("Title"))
+        Spacer(Modifier.weight(1f))
+        if (title != null) {
+            GrayTextView(text = title)
+        } else {
+            CircularProgressIndicator()
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("category") }
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("Category")
-            Spacer(Modifier.weight(1f))
-            if (category != null) {
-                GrayTextView(text = category)
-            } else {
-                CircularProgressIndicator()
-            }
+    }
+    NavigationLink(
+        destination = {
+            TwitchCategoryPickerView(stream = stream, onDismiss = {})
+        },
+    ) {
+        Text(localized("Category"))
+        Spacer(Modifier.weight(1f))
+        if (category != null) {
+            GrayTextView(text = category)
+        } else {
+            CircularProgressIndicator()
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TwitchCategoryPickerView(
     model: Model = LocalModel.current,
@@ -106,36 +104,58 @@ private fun TwitchCategoryPickerView(
     var categories by remember { mutableStateOf<List<TwitchApiGameData>>(emptyList()) }
 
     fun fetchDefaultCategories() {
-        val categoryNames = listOf("IRL", "Just Chatting", "Food & Drink")
-        Unit
+        model.fetchTwitchGames(stream, listOf("IRL", "Just Chatting", "Food & Drink")) { games ->
+            categories = games ?: emptyList()
+        }
     }
 
     LaunchedEffect(Unit) {
         fetchDefaultCategories()
     }
-    LaunchedEffect(searchText) {
-        if (searchText.isEmpty()) {
-            categories = emptyList()
-            fetchDefaultCategories()
-        } else {
-            Unit
-        }
-    }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Category") }) }) { innerPadding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            item {
-                OutlinedTextField(
-                    value = searchText,
-                    onValueChange = { searchText = it },
-                    label = { Text("Search") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                )
-            }
-            items(categories) { category ->
-                categoryButton(category = category, model = model, stream = stream, onDismiss = onDismiss)
+    Form(title = "Category") {
+        Section {
+            BasicTextField(
+                value = searchText,
+                onValueChange = { value ->
+                    searchText = value
+                    if (value.isEmpty()) {
+                        categories = emptyList()
+                        fetchDefaultCategories()
+                    } else {
+                        model.searchTwitchCategories(stream, value) { result ->
+                            categories = result ?: emptyList()
+                        }
+                    }
+                },
+                textStyle = formBodyStyle.copy(color = formPalette().label),
+                singleLine = true,
+                cursorBrush = SolidColor(formPalette().accent),
+                keyboardOptions = KeyboardOptions(autoCorrectEnabled = false),
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (searchText.isEmpty()) {
+                            Text(
+                                text = localized("Search"),
+                                style = formBodyStyle,
+                                color = formPalette().tertiaryLabel,
+                            )
+                        }
+                        innerTextField()
+                    }
+                },
+            )
+        }
+        Section {
+            categories.forEach { category ->
+                key(category.id) {
+                    categoryButton(
+                        category = category,
+                        model = model,
+                        stream = stream,
+                        onDismiss = onDismiss,
+                    )
+                }
             }
         }
     }
@@ -148,151 +168,94 @@ private fun categoryButton(
     stream: SettingsStream,
     onDismiss: () -> Unit,
 ) {
-    Button(
+    FormRow(
         onClick = {
-            Unit
+            model.setTwitchStreamCategory(stream, category.id)
             onDismiss()
         },
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            category.boxArtUrl(width = 80, height = 100)?.let { boxArtUrl ->
-                CacheAsyncImage(
-                    url = URI(boxArtUrl),
-                    content = { image ->
-                        Image(
-                            bitmap = image,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(width = 40.dp, height = 50.dp)
-                                .clip(RoundedCornerShape(6.dp)),
-                        )
-                    },
-                    placeholder = {},
-                )
-            }
-            Text(category.name)
+        category.boxArtUrl(width = 80, height = 100)?.let { boxArtUrl ->
+            CacheAsyncImage(
+                url = URI(boxArtUrl),
+                content = { image ->
+                    Image(
+                        bitmap = image,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .size(width = 40.dp, height = 50.dp),
+                    )
+                },
+                placeholder = {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp)).background(formPalette().gray.copy(alpha = 0.3f))
+                            .size(width = 40.dp, height = 50.dp),
+                    )
+                },
+            )
         }
+        Text(category.name)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TwitchAlertsSettingsView(title: String, alerts: SettingsTwitchAlerts) {
-    Scaffold(topBar = { TopAppBar(title = { Text(title) }) }) { innerPadding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Follows", modifier = Modifier.weight(1f))
-                    Switch(checked = alerts.follows, onCheckedChange = { alerts.follows = it })
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Subscriptions", modifier = Modifier.weight(1f))
-                    Switch(checked = alerts.subscriptions, onCheckedChange = { alerts.subscriptions = it })
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Gift subscriptions", modifier = Modifier.weight(1f))
-                    Switch(checked = alerts.giftSubscriptions, onCheckedChange = { alerts.giftSubscriptions = it })
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Resubscriptions", modifier = Modifier.weight(1f))
-                    Switch(checked = alerts.resubscriptions, onCheckedChange = { alerts.resubscriptions = it })
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Rewards", modifier = Modifier.weight(1f))
-                    Switch(checked = alerts.rewards, onCheckedChange = { alerts.rewards = it })
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Raids", modifier = Modifier.weight(1f))
-                    Switch(checked = alerts.raids, onCheckedChange = { alerts.raids = it })
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Bits", modifier = Modifier.weight(1f))
-                    Switch(checked = alerts.cheers, onCheckedChange = { alerts.cheers = it })
-                }
-            }
-            item {
-                TextEditNavigationView(
-                    title = localized("Minimum bits"),
-                    value = alerts.minimumCheerBits.toString(),
-                    onSubmit = { alerts.minimumCheerBits = it.toIntOrNull() ?: 0 },
-                )
-            }
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Watch streaks", modifier = Modifier.weight(1f))
-                    Switch(checked = alerts.watchStreaks, onCheckedChange = { alerts.watchStreaks = it })
-                }
-            }
-            item {
-                var expanded by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-                    OutlinedTextField(
-                        value = alerts.minimumWatchStreak.toString(),
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Minimum watch streak") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth().padding(16.dp),
-                    )
-                    ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                        listOf(1, 3, 5, 10, 15, 20, 25).forEach { value ->
-                            DropdownMenuItem(
-                                text = { Text(value.toString()) },
-                                onClick = {
-                                    alerts.minimumWatchStreak = value
-                                    expanded = false
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Shared chat", modifier = Modifier.weight(1f))
-                    Switch(checked = alerts.sharedChat, onCheckedChange = { alerts.sharedChat = it })
-                }
-                Text("Also show events from other channels in a shared chat session.")
-            }
+    Form(title = title) {
+        Section {
+            Toggle(
+                "Follows",
+                isOn = binding({ alerts.follows }, { alerts.follows = it }),
+            )
+            Toggle(
+                "Subscriptions",
+                isOn = binding({ alerts.subscriptions }, { alerts.subscriptions = it }),
+            )
+            Toggle(
+                "Gift subscriptions",
+                isOn = binding({ alerts.giftSubscriptions }, { alerts.giftSubscriptions = it }),
+            )
+            Toggle(
+                "Resubscriptions",
+                isOn = binding({ alerts.resubscriptions }, { alerts.resubscriptions = it }),
+            )
+            Toggle(
+                "Rewards",
+                isOn = binding({ alerts.rewards }, { alerts.rewards = it }),
+            )
+            Toggle(
+                "Raids",
+                isOn = binding({ alerts.raids }, { alerts.raids = it }),
+            )
+            Toggle(
+                "Bits",
+                isOn = binding({ alerts.cheers }, { alerts.cheers = it }),
+            )
+            TextEditNavigationView(
+                title = localized("Minimum bits"),
+                value = alerts.minimumCheerBits.toString(),
+                onSubmit = { alerts.minimumCheerBits = it.toIntOrNull() ?: 0 },
+            )
+            Toggle(
+                "Watch streaks",
+                isOn = binding({ alerts.watchStreaks }, { alerts.watchStreaks = it }),
+            )
+            Picker(
+                title = "Minimum watch streak",
+                selection = alerts.minimumWatchStreak,
+                options = listOf(1, 3, 5, 10, 15, 20, 25),
+                onChange = { alerts.minimumWatchStreak = it },
+            )
+        }
+        Section(
+            footerContent = {
+                Text(localized("Also show events from other channels in a shared chat session."))
+            },
+        ) {
+            Toggle(
+                "Shared chat",
+                isOn = binding({ alerts.sharedChat }, { alerts.sharedChat = it }),
+            )
         }
     }
 }
@@ -308,10 +271,11 @@ suspend fun loadTwitchStreamInfo(
         return
     }
     delay(1000)
-    Unit
+    model.getTwitchChannelInformation(stream) { info ->
+        onChange(info.title, info.game_name)
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamTwitchSettingsView(
     model: Model = LocalModel.current,
@@ -328,14 +292,14 @@ fun StreamTwitchSettingsView(
     fun submitChannelName(value: String) {
         stream.twitchChannelName = value
         if (stream.enabled) {
-            Unit
+            model.twitchChannelNameUpdated()
         }
     }
 
     fun submitChannelId(value: String) {
         stream.twitchChannelId = value
         if (stream.enabled) {
-            Unit
+            model.twitchChannelIdUpdated()
         }
     }
 
@@ -353,7 +317,9 @@ fun StreamTwitchSettingsView(
         if (!loggedIn) {
             return
         }
-        Unit
+        model.getTwitchTokenExpiresIn(stream) {
+            tokenExpiresIn = it?.let { duration -> duration.toNanos().nanoseconds }
+        }
     }
 
     fun onLoggedIn() {
@@ -367,72 +333,80 @@ fun StreamTwitchSettingsView(
         loadTokenExpiresIn()
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Twitch") }) }) { innerPadding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            item {
-                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    if (!loggedIn) {
-                        TextButtonView("Login") {
-                            model.showTwitchAuth.value = true
-                            Unit
-                        }
-                    } else {
-                        TextButtonView("Logout") {
-                            Unit
-                            loggedIn = false
-                            tokenExpiresIn = null
-                        }
+    Form(title = "Twitch") {
+        Section(
+            footerContent = {
+                TokenExpiresInView(expiresIn = tokenExpiresIn)
+            },
+        ) {
+            if (!loggedIn) {
+                TextButtonView("Login") {
+                    model.twitchLogin(stream, { onLoggedIn() }) {
+                        model.showTwitchAuth.value = true
                     }
-                    TokenExpiresInView(tokenExpiresIn)
+                }
+            } else {
+                TextButtonView("Logout") {
+                    model.twitchLogout(stream)
+                    loggedIn = false
+                    tokenExpiresIn = null
                 }
             }
-            item {
-                TextEditNavigationView(
-                    title = localized("Channel name"),
-                    value = stream.twitchChannelName,
-                    onSubmit = { submitChannelName(it) },
-                    capitalize = true,
+        }
+        Section(
+            footerContent = {
+                Text(localized("The name of your channel."))
+            },
+        ) {
+            TextEditNavigationView(
+                title = localized("Channel name"),
+                value = stream.twitchChannelName,
+                onSubmit = { submitChannelName(it) },
+                capitalize = true,
+            )
+        }
+        Section {
+            TextEditNavigationView(
+                title = localized("Channel id"),
+                value = stream.twitchChannelId,
+                onSubmit = { submitChannelId(it) },
+            )
+        }
+        if (loggedIn) {
+            Section {
+                TwitchStreamLiveSettingsView(
+                    model = model,
+                    stream = stream,
+                    title = title,
+                    category = category,
+                    onNavigate = onNavigate,
                 )
-                Text("The name of your channel.")
             }
-            item {
-                TextEditNavigationView(
-                    title = localized("Channel id"),
-                    value = stream.twitchChannelId,
-                    onSubmit = { submitChannelId(it) },
-                )
-            }
-            if (loggedIn) {
-                item {
-                    TwitchStreamLiveSettingsView(
-                        model = model,
-                        stream = stream,
-                        title = title,
-                        category = category,
-                        onNavigate = onNavigate,
+        }
+        Section(
+            headerContent = {
+                Text(localized("Alerts"))
+            },
+        ) {
+            NavigationLink(
+                destination = {
+                    TwitchAlertsSettingsView(
+                        title = localized("Chat"),
+                        alerts = stream.twitchChatAlerts,
                     )
-                }
+                },
+            ) {
+                Text(localized("Chat"))
             }
-            item {
-                Text("Alerts")
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("chatAlerts") }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Chat")
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("toastAlerts") }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("Toasts")
-                }
+            NavigationLink(
+                destination = {
+                    TwitchAlertsSettingsView(
+                        title = localized("Toasts"),
+                        alerts = stream.twitchToastAlerts,
+                    )
+                },
+            ) {
+                Text(localized("Toasts"))
             }
         }
     }

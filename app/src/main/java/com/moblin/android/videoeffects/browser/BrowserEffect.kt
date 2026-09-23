@@ -2,7 +2,7 @@ package com.moblin.android.videoeffects.browser
 
 import android.content.Context
 import android.graphics.Color
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.webkit.WebView
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect

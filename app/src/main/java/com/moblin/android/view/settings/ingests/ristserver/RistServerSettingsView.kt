@@ -1,33 +1,26 @@
 package com.moblin.android.view.settings.ingests.ristserver
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.isValidPort
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsRistServer
 import com.moblin.android.various.settings.SettingsRistServerStream
@@ -39,11 +32,10 @@ import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.InfoBannerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 import java.util.UUID
-
-private const val ristServerSettingsDestination = "RIST server"
+import com.moblin.android.various.model.reloadRistServer
+import com.moblin.android.various.model.ristServerEnabled
+import com.moblin.android.various.model.updateMicsListAsync
 
 @Composable
 fun RistServerSettingsView(
@@ -51,114 +43,111 @@ fun RistServerSettingsView(
     ristServer: SettingsRistServer,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate(ristServerSettingsDestination) }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    NavigationLink(
+        destination = {
+            RistServerSettingsDetailView(model = model, ristServer = ristServer)
+        },
     ) {
-        Text("RIST server")
+        Text(localized("RIST server"))
         Spacer(Modifier.weight(1f))
         GrayTextView(text = status(ristServer))
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun RistServerSettingsDetailView(
     model: Model = LocalModel.current,
     ristServer: SettingsRistServer,
 ) {
-    val statusOther = model.statusOther
-    val enabled = ristServer.enabled
-    val port = ristServer.port
-    val streams = ristServer.streams
-
-    LaunchedEffect(enabled) {
-        Unit
-    }
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text("RIST server") })
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+    Form(title = localized("RIST server")) {
+        Section {
+            Text(
+                localized(
+                    "The RIST server allows Moblin to receive video streams over the network.",
+                ),
+            )
+        }
+        Section {
+            Toggle(
+                title = localized("Enabled"),
+                isOn = ristServer.enabled,
+                onChange = { value ->
+                    ristServer.enabled = value
+                    model.reloadRistServer()
+                },
+            )
+        }
+        if (ristServer.enabled) {
+            InfoBannerView(text = localized("Disable the RIST server to change its settings."))
+        }
+        Section(
+            footer = localized("The UDP port the RIST server listens for RIST publishers on."),
         ) {
-            Text("The RIST server allows Moblin to receive video streams over the network.")
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Enabled")
-                Spacer(Modifier.weight(1f))
-                Switch(
-                    checked = enabled,
-                    onCheckedChange = { ristServer.enabled = it },
+            Box(modifier = Modifier.alpha(if (ristServer.enabled) 0.5f else 1f)) {
+                TextEditNavigationView(
+                    title = localized("Port"),
+                    value = ristServer.port.toString(),
+                    onChange = { value -> isValidPort(value) },
+                    onSubmit = { value -> submitPort(model, ristServer, value) },
+                    keyboardType = KeyboardType.Number,
                 )
             }
-            if (enabled) {
-                InfoBannerView(text = "Disable the RIST server to change its settings.")
-            }
-            Box(modifier = Modifier.alpha(if (enabled) 0.5f else 1f)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = !enabled) { },
-                ) {
-                    TextEditNavigationView(
-                        title = localized("Port"),
-                        value = port.toString(),
-                        onChange = { value -> isValidPort(value) },
-                        onSubmit = { value -> submitPort(model, ristServer, value) },
-                        keyboardType = KeyboardType.Number,
-                    )
+        }
+        Section(
+            header = localized("Streams"),
+            footerContent = {
+                Column(horizontalAlignment = Alignment.Start) {
+                    Text(localized("Each stream can receive video from one RIST publisher."))
+                    Text("")
+                    SwipeLeftToDeleteHelpView(kind = localized("a stream"))
                 }
-            }
-            Text("The UDP port the RIST server listens for RIST publishers on.")
-            Text("Streams", style = MaterialTheme.typography.titleMedium)
-            for (stream in streams) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .combinedClickable(
-                            onClick = {},
-                            onLongClick = {
-                                if (!enabled) {
-                                    makeOffsets(
-                                        streams.map { IdentifiedStream(it.id) },
-                                        stream.id,
-                                    )?.let { offsets ->
-                                        deleteStream(model, ristServer, setOf(offsets))
-                                    }
-                                }
+            },
+        ) {
+            for (stream in ristServer.streams) {
+                key(stream.id) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .pointerInput(ristServer.enabled) {
+                                detectTapGestures(
+                                    onLongPress = {
+                                        if (!ristServer.enabled) {
+                                            makeOffsets(
+                                                ristServer.streams.map {
+                                                    IdentifiedStream(it.id)
+                                                },
+                                                stream.id,
+                                            )?.let { offset ->
+                                                deleteStream(model, ristServer, setOf(offset))
+                                            }
+                                        }
+                                    },
+                                )
                             },
-                        ),
-                ) {
-                    RistServerStreamSettingsView(
-                        status = statusOther,
-                        ristServer = ristServer,
-                        stream = stream,
-                    )
+                    ) {
+                        RistServerStreamSettingsView(
+                            status = model.statusOther,
+                            ristServer = ristServer,
+                            stream = stream,
+                        )
+                    }
                 }
             }
-            Box(modifier = Modifier.alpha(if (enabled) 0.5f else 1f)) {
+            Box(modifier = Modifier.alpha(if (model.ristServerEnabled()) 0.5f else 1f)) {
                 CreateButtonView(
                     action = {
                         val stream = SettingsRistServerStream()
                         stream.name = makeUniqueName(
                             SettingsRistServerStream.baseName,
-                            streams,
+                            ristServer.streams,
                         )
-                        stream.virtualDestinationPort = ristServer.makeUniqueVirtualDestinationPort()
-                        streams.add(stream)
-                        Unit
+                        stream.virtualDestinationPort =
+                            ristServer.makeUniqueVirtualDestinationPort()
+                        ristServer.streams.add(stream)
+                        model.updateMicsListAsync()
                     },
                 )
             }
-            Text("Each stream can receive video from one RIST publisher.")
-            Text("")
-            SwipeLeftToDeleteHelpView(kind = localized("a stream"))
         }
     }
 }
@@ -169,7 +158,7 @@ private fun submitPort(model: Model, ristServer: SettingsRistServer, value: Stri
         return
     }
     ristServer.port = port
-    Unit
+    model.reloadRistServer()
 }
 
 private fun status(ristServer: SettingsRistServer): String {
@@ -186,8 +175,8 @@ private fun deleteStream(model: Model, ristServer: SettingsRistServer, indexes: 
             ristServer.streams.removeAt(index)
         }
     }
-    Unit
-    Unit
+    model.reloadRistServer()
+    model.updateMicsListAsync()
 }
 
 private data class IdentifiedStream(override val id: UUID) : Identifiable<UUID>

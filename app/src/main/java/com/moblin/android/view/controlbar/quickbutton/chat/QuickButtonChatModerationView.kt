@@ -2,6 +2,7 @@ package com.moblin.android.view.controlbar.quickbutton.chat
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,39 +13,37 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
-import com.moblin.android.R
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
 import com.moblin.android.common.various.countFormatter
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.streamingplatforms.twitch.TwitchLoginView
 import com.moblin.android.various.CacheAsyncImage
@@ -68,10 +67,20 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import com.moblin.android.LocalModel
+import com.moblin.android.various.model.banKickUser
+import com.moblin.android.various.model.banTwitchUser
+import com.moblin.android.various.model.modKickUser
+import com.moblin.android.various.model.modTwitchUser
+import com.moblin.android.various.model.twitchLogin
+import com.moblin.android.various.model.unbanKickUser
+import com.moblin.android.various.model.unbanTwitchUser
+import com.moblin.android.various.model.unmodKickUser
+import com.moblin.android.various.model.unmodTwitchUser
+import com.moblin.android.various.model.unvipKickUser
+import com.moblin.android.various.model.unvipTwitchUser
+import com.moblin.android.various.model.vipKickUser
+import com.moblin.android.various.model.vipTwitchUser
 
 enum class ExecutorState {
     idle,
@@ -118,16 +127,16 @@ fun ExecutorView(
     content: @Composable () -> Unit,
 ) {
     val state by executor.state.collectAsState()
+    val palette = formPalette()
 
-    val handleState: () -> Unit = {
+    fun handleState() {
         if (executor.state.value == ExecutorState.authError) {
-            Unit
+            model.twitchLogin(stream = model.stream.value) {
+                model.showModerationAuth.value = true
+            }
         }
     }
 
-    LaunchedEffect(Unit) {
-        handleState()
-    }
     LaunchedEffect(state) {
         handleState()
     }
@@ -146,28 +155,28 @@ fun ExecutorView(
         ExecutorState.success -> {
             if (centerNonContent) {
                 HCenter {
-                    Text(text = localized("Success"), color = Color.Green)
+                    Text(text = localized("Success"), color = palette.green)
                 }
             } else {
-                Text(text = localized("Success"), color = Color.Green)
+                Text(text = localized("Success"), color = palette.green)
             }
         }
         ExecutorState.authError -> {
             if (centerNonContent) {
                 HCenter {
-                    Text(text = localized("Not logged in"), color = Color.Red)
+                    Text(text = localized("Not logged in"), color = palette.red)
                 }
             } else {
-                Text(text = localized("Not logged in"), color = Color.Red)
+                Text(text = localized("Not logged in"), color = palette.red)
             }
         }
         ExecutorState.error -> {
             if (centerNonContent) {
                 HCenter {
-                    Text(text = localized("Failed"), color = Color.Red)
+                    Text(text = localized("Failed"), color = palette.red)
                 }
             } else {
-                Text(text = localized("Failed"), color = Color.Red)
+                Text(text = localized("Failed"), color = palette.red)
             }
         }
     }
@@ -207,7 +216,6 @@ fun ToggleActionView(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DurationActionView(
     model: Model = LocalModel.current,
@@ -218,48 +226,22 @@ fun DurationActionView(
 ) {
     val executor = remember { Executor() }
     var duration by remember { mutableStateOf<Int?>(null) }
-    var expanded by remember { mutableStateOf(false) }
+    val durationOptions: List<Int?> = listOf(null) + durations
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         IconAndTextLocalizedView(image = image, text = text)
         Spacer(Modifier.weight(1f))
         ExecutorView(model = model, executor = executor) {
             Box(modifier = Modifier.padding(end = 15.dp)) {
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it },
-                ) {
-                    OutlinedTextField(
-                        value = duration?.let { formatShortDuration(seconds = it) } ?: localized("Off"),
-                        onValueChange = {},
-                        readOnly = true,
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                        },
-                        modifier = Modifier.menuAnchor(),
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(localized("Off")) },
-                            onClick = {
-                                duration = null
-                                expanded = false
-                            },
-                        )
-                        durations.forEach { value ->
-                            DropdownMenuItem(
-                                text = { Text(formatShortDuration(seconds = value)) },
-                                onClick = {
-                                    duration = value
-                                    expanded = false
-                                },
-                            )
-                        }
-                    }
-                }
+                Picker(
+                    title = "",
+                    selection = duration,
+                    options = durationOptions,
+                    text = { value ->
+                        value?.let { formatShortDuration(seconds = it) } ?: localized("Off")
+                    },
+                    onChange = { duration = it },
+                )
             }
             BorderlessButtonView(text = "Send") {
                 executor.startProgress()
@@ -303,7 +285,36 @@ enum class ModActionType {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FormTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+) {
+    val palette = formPalette()
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier,
+        textStyle = formBodyStyle.copy(color = palette.label),
+        cursorBrush = SolidColor(palette.accent),
+        singleLine = true,
+        decorationBox = { innerTextField ->
+            Box {
+                if (value.isEmpty()) {
+                    Text(
+                        text = localized(placeholder),
+                        style = formBodyStyle,
+                        color = palette.tertiaryLabel,
+                    )
+                }
+                innerTextField()
+            }
+        },
+    )
+}
+
 @Composable
 fun UserModerationItemView(
     model: Model = LocalModel.current,
@@ -315,7 +326,6 @@ fun UserModerationItemView(
     var timeoutDuration by remember { mutableStateOf(60) }
     val executor = remember { Executor() }
     val timeoutPresets = remember { listOf(60, 300, 600, 1800, 3600, 21600, 86400, 604800) }
-    var timeoutExpanded by remember { mutableStateOf(false) }
 
     fun canExecute(): Boolean {
         return username.trim().isNotEmpty()
@@ -327,13 +337,22 @@ fun UserModerationItemView(
         onComplete: (OperationResult) -> Unit,
     ) {
         when (action) {
-            ModActionType.ban -> TODO("Model.banKickUser is not implemented")
-            ModActionType.timeout -> TODO("Model.banKickUser is not implemented")
-            ModActionType.unban -> TODO("Model.unbanKickUser is not implemented")
-            ModActionType.mod -> TODO("Model.modKickUser is not implemented")
-            ModActionType.unmod -> TODO("Model.unmodKickUser is not implemented")
-            ModActionType.vip -> TODO("Model.vipKickUser is not implemented")
-            ModActionType.unvip -> TODO("Model.unvipKickUser is not implemented")
+            ModActionType.ban -> model.banKickUser(
+                user = user,
+                duration = null,
+                reason = banReason.ifEmpty { null },
+                onComplete = onComplete,
+            )
+            ModActionType.timeout -> model.banKickUser(
+                user = user,
+                duration = timeoutDuration,
+                onComplete = onComplete,
+            )
+            ModActionType.unban -> model.unbanKickUser(user = user, onComplete = onComplete)
+            ModActionType.mod -> model.modKickUser(user = user, onComplete = onComplete)
+            ModActionType.unmod -> model.unmodKickUser(user = user, onComplete = onComplete)
+            ModActionType.vip -> model.vipKickUser(user = user, onComplete = onComplete)
+            ModActionType.unvip -> model.unvipKickUser(user = user, onComplete = onComplete)
         }
     }
 
@@ -343,13 +362,23 @@ fun UserModerationItemView(
         onComplete: (OperationResult) -> Unit,
     ) {
         when (action) {
-            ModActionType.ban -> TODO("Model.banTwitchUser is not implemented")
-            ModActionType.timeout -> TODO("Model.banTwitchUser is not implemented")
-            ModActionType.unban -> TODO("Model.unbanTwitchUser is not implemented")
-            ModActionType.mod -> TODO("Model.modTwitchUser is not implemented")
-            ModActionType.unmod -> TODO("Model.unmodTwitchUser is not implemented")
-            ModActionType.vip -> TODO("Model.vipTwitchUser is not implemented")
-            ModActionType.unvip -> TODO("Model.unvipTwitchUser is not implemented")
+            ModActionType.ban -> model.banTwitchUser(
+                user = user,
+                duration = null,
+                reason = banReason.ifEmpty { null },
+                onComplete = onComplete,
+            )
+            ModActionType.timeout -> model.banTwitchUser(
+                user = user,
+                duration = timeoutDuration,
+                reason = null,
+                onComplete = onComplete,
+            )
+            ModActionType.unban -> model.unbanTwitchUser(user = user, onComplete = onComplete)
+            ModActionType.mod -> model.modTwitchUser(user = user, onComplete = onComplete)
+            ModActionType.unmod -> model.unmodTwitchUser(user = user, onComplete = onComplete)
+            ModActionType.vip -> model.vipTwitchUser(user = user, onComplete = onComplete)
+            ModActionType.unvip -> model.unvipTwitchUser(user = user, onComplete = onComplete)
         }
     }
 
@@ -357,67 +386,52 @@ fun UserModerationItemView(
         val user = username.trim()
         val banReason = reason.trim()
         when (platform) {
-            Platform.kick -> executeKickAction(user, banReason, onComplete)
-            Platform.twitch -> executeTwitchAction(user, banReason, onComplete)
+            Platform.kick -> executeKickAction(user = user, banReason = banReason, onComplete = onComplete)
+            Platform.twitch -> executeTwitchAction(user = user, banReason = banReason, onComplete = onComplete)
             else -> Unit
         }
     }
 
     NavigationLinkView(text = action.title(), image = action.image()) {
-        Column(horizontalAlignment = Alignment.Start) {
-            Text(localized("Username"))
-            OutlinedTextField(
-                value = username,
-                onValueChange = { username = it },
-                placeholder = { Text(localized("Username")) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            if (action == ModActionType.timeout) {
-                Column {
-                    Text(localized("Duration"))
-                    ExposedDropdownMenuBox(
-                        expanded = timeoutExpanded,
-                        onExpandedChange = { timeoutExpanded = it },
-                    ) {
-                        OutlinedTextField(
-                            value = formatShortDuration(seconds = timeoutDuration),
-                            onValueChange = {},
-                            readOnly = true,
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = timeoutExpanded)
-                            },
-                            modifier = Modifier.menuAnchor(),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = timeoutExpanded,
-                            onDismissRequest = { timeoutExpanded = false },
-                        ) {
-                            timeoutPresets.forEach { preset ->
-                                DropdownMenuItem(
-                                    text = { Text(formatShortDuration(seconds = preset)) },
-                                    onClick = {
-                                        timeoutDuration = preset
-                                        timeoutExpanded = false
-                                    },
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-            if (action == ModActionType.ban) {
-                Text(localized("Reason"))
-                OutlinedTextField(
-                    value = reason,
-                    onValueChange = { reason = it },
-                    placeholder = { Text(localized("Reason")) },
-                    modifier = Modifier.fillMaxWidth(),
+        Section(header = localized("Username")) {
+            FormRow {
+                FormTextField(
+                    value = username,
+                    onValueChange = { username = it },
+                    placeholder = "Username",
+                    modifier = Modifier.weight(1f),
                 )
             }
+        }
+        if (action == ModActionType.timeout) {
+            Section(header = localized("Duration")) {
+                FormRow {
+                    Picker(
+                        title = "",
+                        selection = timeoutDuration,
+                        options = timeoutPresets,
+                        text = { formatShortDuration(seconds = it) },
+                        onChange = { timeoutDuration = it },
+                    )
+                }
+            }
+        }
+        if (action == ModActionType.ban) {
+            Section(header = localized("Reason")) {
+                FormRow {
+                    FormTextField(
+                        value = reason,
+                        onValueChange = { reason = it },
+                        placeholder = "Reason",
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
+        Section {
             HCenter {
                 ExecutorView(model = model, executor = executor) {
-                    TextButtonView("Send") {
+                    TextButtonView(title = "Send") {
                         if (canExecute()) {
                             executor.startProgress()
                             executeAction(executor::completed)
@@ -472,30 +486,37 @@ fun PollOptionsSectionView(
     onOptionsChange: (List<PollOption>) -> Unit,
     maxCount: Int,
 ) {
-    Column(horizontalAlignment = Alignment.Start) {
-        Text(header)
+    val palette = formPalette()
+    Section(
+        header = localized(header),
+        footerContent = {
+            SwipeLeftToDeleteHelpView(kind = kind)
+        },
+    ) {
         options.forEach { option ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                OutlinedTextField(
-                    value = option.text,
-                    onValueChange = { newValue ->
-                        onOptionsChange(
-                            options.map {
-                                if (it.id == option.id) it.copy(text = newValue) else it
+            key(option.id) {
+                FormRow {
+                    FormTextField(
+                        value = option.text,
+                        onValueChange = { newValue ->
+                            onOptionsChange(
+                                options.map {
+                                    if (it.id == option.id) it.copy(text = newValue) else it
+                                },
+                            )
+                        },
+                        placeholder = placeholder,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (options.size > 2) {
+                        SystemImage(
+                            name = "minus.circle",
+                            fontSize = 17.sp,
+                            modifier = Modifier.clickable {
+                                onOptionsChange(options.filterNot { it.id == option.id })
                             },
+                            tint = palette.red,
                         )
-                    },
-                    placeholder = { Text(placeholder) },
-                    modifier = Modifier.weight(1f),
-                )
-                if (options.size > 2) {
-                    IconButton(onClick = {
-                        onOptionsChange(options.filterNot { it.id == option.id })
-                    }) {
-                        Icon(Icons.Default.Delete, contentDescription = null)
                     }
                 }
             }
@@ -505,20 +526,23 @@ fun PollOptionsSectionView(
                 onOptionsChange(options + PollOption())
             }
         }
-        SwipeLeftToDeleteHelpView(kind = kind)
     }
 }
 
 @Composable
 fun ChannelImageView(image: String?) {
+    val url = image?.let { URI(it) }
+    val appIcon = remember {
+        com.moblin.android.platform.Bundle.image("AppIconNoBackground")?.asImageBitmap()
+    }
     Box(
         modifier = Modifier
             .size(50.dp)
             .clip(CircleShape),
     ) {
-        if (!image.isNullOrEmpty()) {
+        if (url != null) {
             CacheAsyncImage(
-                url = URI(image),
+                url = url,
                 content = { bitmap ->
                     Image(
                         bitmap = bitmap,
@@ -526,11 +550,19 @@ fun ChannelImageView(image: String?) {
                         modifier = Modifier.fillMaxSize(),
                     )
                 },
-                placeholder = {},
+                placeholder = {
+                    if (appIcon != null) {
+                        Image(
+                            bitmap = appIcon,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
+                },
             )
-        } else {
-            Icon(
-                painter = painterResource(id = TODO("app icon drawable is missing")),
+        } else if (appIcon != null) {
+            Image(
+                bitmap = appIcon,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
             )
@@ -557,20 +589,20 @@ fun RaidChannelView(
         Column(horizontalAlignment = Alignment.Start) {
             Text(channel)
             if (isLive) {
-                Text(category, style = MaterialTheme.typography.bodySmall)
-                Text(title, style = MaterialTheme.typography.bodySmall)
+                Text(category, fontSize = 12.sp)
+                Text(title, fontSize = 12.sp)
             } else {
-                Text(localized("Offline"), style = MaterialTheme.typography.bodySmall)
+                Text(localized("Offline"), fontSize = 12.sp)
             }
         }
         Spacer(Modifier.weight(1f))
         if (viewerCount != null) {
-            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                Icon(Icons.Default.Visibility, contentDescription = null)
-                Text(
-                    countFormatter.format(viewerCount),
-                    style = MaterialTheme.typography.bodySmall,
-                )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SystemImage(name = "eye", fontSize = 12.sp)
+                Text(countFormatter.format(viewerCount), fontSize = 12.sp)
             }
         }
         if (isLive) {
@@ -632,7 +664,7 @@ fun EmotesOnlyView(
     model: Model = LocalModel.current,
     action: (Boolean, (OperationResult) -> Unit) -> Unit,
 ) {
-    val darkMode = androidx.compose.foundation.isSystemInDarkTheme()
+    val darkMode = isSystemInDarkTheme()
     ToggleActionView(
         model = model,
         text = "Emotes only",
@@ -647,29 +679,17 @@ fun NavigationLinkView(
     image: String,
     content: @Composable () -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Column(horizontalAlignment = Alignment.Start) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded }
-                .padding(vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconAndTextLocalizedView(image = image, text = text)
-            Spacer(Modifier.weight(1f))
-            Icon(Icons.Default.KeyboardArrowRight, contentDescription = null)
-        }
-        if (expanded) {
-            Column(horizontalAlignment = Alignment.Start) {
+    NavigationLink(
+        destination = {
+            Form(title = localized(text)) {
                 content()
             }
-        }
+        },
+    ) {
+        IconAndTextLocalizedView(image = image, text = text)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonChatModerationView(
     model: Model = LocalModel.current,
@@ -678,15 +698,15 @@ fun QuickButtonChatModerationView(
 ) {
     var platform by remember { mutableStateOf<Platform?>(null) }
     val showModerationAuth by model.showModerationAuth.collectAsState()
+    val stream by model.stream.collectAsState()
 
-    Column {
-        TopAppBar(
-            title = { Text(localized("Moderation")) },
-            navigationIcon = {
-                CloseToolbar(presentingModeration, onPresentingModerationChange)
-            },
-        )
-        Column {
+    Form(
+        title = localized("Moderation"),
+        toolbar = {
+            CloseToolbar(presentingModeration, onPresentingModerationChange)
+        },
+    ) {
+        Section {
             QuickButtonChatModerationTwitchView(
                 model = model,
                 platform = platform,
@@ -697,18 +717,20 @@ fun QuickButtonChatModerationView(
                 platform = platform,
                 onPlatformChange = { platform = it },
             )
-            ShortcutSectionView {
-                StreamingPlatformsShortcutView(model = model, stream = model.stream.value)
-            }
+        }
+        ShortcutSectionView {
+            StreamingPlatformsShortcutView(model = model, stream = stream)
         }
     }
 
     if (showModerationAuth) {
-        ModalBottomSheet(onDismissRequest = { model.showModerationAuth.value = false }) {
+        Sheet(onDismissRequest = { model.showModerationAuth.value = false }) {
             when (platform) {
-                Platform.twitch -> TwitchLoginView(model, showModerationAuth) {
-                    model.showModerationAuth.value = it
-                }
+                Platform.twitch -> TwitchLoginView(
+                    model = model,
+                    presenting = showModerationAuth,
+                    onPresentingChange = { model.showModerationAuth.value = it },
+                )
                 else -> Unit
             }
         }

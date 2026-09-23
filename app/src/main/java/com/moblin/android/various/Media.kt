@@ -76,6 +76,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.Request
 import okhttp3.Response
+import com.moblin.android.platform.avfoundation.AVCaptureDevice
 
 interface MediaDelegate {
     fun mediaOnSrtConnected()
@@ -256,7 +257,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
             }
         }
         this.processor = processor
-        processor.setVideoOrientation(value = if (portrait) Surface.ROTATION_90 else Surface.ROTATION_0)
+        processor.setVideoOrientation(value = if (portrait) com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.portrait else com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)
         if (attachDefaultAudio) {
             attachDefaultAudioDevice(builtinDelay = builtinAudioDelay)
         }
@@ -371,11 +372,11 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
             SettingsStreamSrtAdaptiveBitrateAlgorithm.fastIrl,
             SettingsStreamSrtAdaptiveBitrateAlgorithm.slowIrl,
             SettingsStreamSrtAdaptiveBitrateAlgorithm.customIrl -> {
-                adaptiveBitrate = AdaptiveBitrate(delegate = this)
+                adaptiveBitrate = AdaptiveBitrateSrtFight(targetBitrate = targetBitrate, delegate = this)
                 adaptiveBitrate?.setTargetBitrate(bitrate = targetBitrate)
             }
             SettingsStreamSrtAdaptiveBitrateAlgorithm.belabox -> {
-                adaptiveBitrate = AdaptiveBitrate(delegate = this)
+                adaptiveBitrate = AdaptiveBitrateSrtBelabox(targetBitrate = targetBitrate, delegate = this)
                 adaptiveBitrate?.setTargetBitrate(bitrate = targetBitrate)
             }
             null -> {
@@ -663,7 +664,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         adaptiveBitrateEnabled: Boolean
     ) {
         if (adaptiveBitrateEnabled) {
-            adaptiveBitrate = AdaptiveBitrate(delegate = this)
+            adaptiveBitrate = AdaptiveBitrateSrtFight(targetBitrate = targetBitrate, delegate = this, rttMax = 500.0, pifMax = 100.0)
             adaptiveBitrate?.setTargetBitrate(bitrate = targetBitrate)
         } else {
             adaptiveBitrate = null
@@ -688,7 +689,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         adaptiveBitrateEnabled: Boolean
     ) {
         if (adaptiveBitrateEnabled) {
-            adaptiveBitrate = AdaptiveBitrate(delegate = this)
+            adaptiveBitrate = AdaptiveBitrateRistExperiment(targetBitrate = targetBitrate, delegate = this)
             adaptiveBitrate?.setTargetBitrate(bitrate = targetBitrate)
         } else {
             adaptiveBitrate = null
@@ -972,7 +973,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
             Log.i("Media", "Device not ready to zoom")
             return null
         }
-        return null
+        return com.moblin.android.platform.avfoundation.setCameraZoomLevel(device.device as AVCaptureDevice, level, rate)
     }
 
     fun stopCameraZoomLevel(device: CaptureDevice?): Float? {
@@ -980,7 +981,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
             Log.i("Media", "Device not ready to zoom")
             return null
         }
-        return null
+        return com.moblin.android.platform.avfoundation.stopCameraZoomLevel(device.device as AVCaptureDevice)
     }
 
     fun attachCamera(params: VideoUnitAttachParams, onSuccess: (() -> Unit)? = null) {
@@ -998,7 +999,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
     fun attachBufferedCamera(
         devices: CaptureDevices,
         builtinDelay: Double,
-        cameraPreviewLayers: Map<UUID, androidx.camera.view.PreviewView>,
+        cameraPreviewLayers: Map<UUID, Any>,
         attachCameraPreview: Boolean,
         showCameraPreview: Boolean,
         externalDisplayPreview: Boolean,
@@ -1061,7 +1062,7 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
 
     fun attachDefaultAudioDevice(builtinDelay: Double) {
         val params = AudioUnitAttachParams(
-            device = null,
+            device = AVCaptureDevice.default(com.moblin.android.platform.avfoundation.AVMediaType.audio),
             builtinDelay = builtinDelay,
             bufferedAudio = null
         )

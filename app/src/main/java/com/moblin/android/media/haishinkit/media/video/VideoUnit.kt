@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.ImageFormat
 import android.graphics.RectF
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.media.MediaFormat
 import android.os.SystemClock
 import android.util.Log
@@ -51,7 +51,7 @@ data class DetectionJob(
 data class VideoUnitAttachParams(
     val devices: CaptureDevices,
     val builtinDelay: Double,
-    val cameraPreviewLayers: Map<UUID, androidx.camera.view.PreviewView>,
+    val cameraPreviewLayers: Map<UUID, Any>,
     val attachCameraPreview: Boolean,
     val showCameraPreview: Boolean,
     val externalDisplayPreview: Boolean,
@@ -348,7 +348,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     fun takeSnapshot(age: Float, onComplete: suspend (Bitmap, Bitmap, Bitmap) -> Unit) {
         processorPipelineQueue.launch {
             snapshots.takeSnapshot(age = age) { a, b, c ->
-                processorPipelineQueue.launch {
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main.immediate).launch {
                     onComplete(a, b, c)
                 }
             }
@@ -366,7 +366,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
                 return@launch
             }
             snapshots.takeVideoSourceSnapshot(imageBuffer) { bitmap ->
-                processorPipelineQueue.launch {
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main.immediate).launch {
                     onComplete(bitmap)
                 }
             }
@@ -428,7 +428,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
 
     fun startPreviewEncoding(delegate: VideoEncoderDelegate, settings: VideoEncoderSettings) {
         val encoder = VideoEncoder(lockQueue = processorPipelineQueue)
-        encoder.settings.mutate { settings }
+        encoder.settings.mutate { it.value = settings }
         encoder.delegate = delegate
         encoder.startRunning()
         processorPipelineQueue.launch {
@@ -526,13 +526,13 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
             for (device in params.devices.devices) {
                 val bufferedVideo = BufferedVideo(
                     cameraId = device.id,
-                    name = TODO("no Android counterpart for AVCaptureDevice.localizedName"),
+                    name = (device.device as com.moblin.android.platform.avfoundation.AVCaptureDevice).localizedName,
                     update = false,
                     latency = params.builtinDelay,
                     processor = processor,
                     driftTracker = null
                 )
-                bufferedVideos[device.id] = bufferedVideo
+                bufferedVideos.put(device.id, bufferedVideo)?.close()
                 bufferedVideoBuiltins[device.device] = bufferedVideo
             }
             effectsProcessor.prepareForAttach()
@@ -565,7 +565,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     }
 
     private fun makePresentationTimeStamp(): Long {
-        return (outputCounter * 1_000_000 / captureSession.getFps()).toLong() + startPresentationTimeStamp
+        return (outputCounter * 1_000_000 / captureSession.getFps().toInt()) + startPresentationTimeStamp
     }
 
     private fun handleFrameTimer() {
@@ -670,11 +670,11 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     }
 
     private fun getBufferedBufferPool(sampleBuffer: MediaSample): Any? {
-        return null
+        return com.moblin.android.platform.video.CVPixelBufferPool.matching(bufferedPool, sampleBuffer).also { bufferedPool = it }
     }
 
     private fun createBufferedPixelBuffer(sampleBuffer: MediaSample): Image? {
-        return null
+        return (getBufferedBufferPool(sampleBuffer) as? com.moblin.android.platform.video.CVPixelBufferPool)?.createPixelBuffer()
     }
 
     private fun appendBufferedVideoSampleBufferInternal(cameraId: UUID, sampleBuffer: MediaSample) {
@@ -694,7 +694,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     }
 
     private fun removeBufferedVideoInternal(cameraId: UUID) {
-        bufferedVideos.remove(cameraId)
+        bufferedVideos.remove(cameraId)?.close()
         processor?.removeDriftTracker(cameraId = cameraId)
     }
 
@@ -703,7 +703,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         presentationTimeUs: Long,
         decodeTimeStampUs: Long
     ): MediaSample? {
-        val buffer = blackImageBuffer
+        val buffer = blackImageBuffer ?: com.moblin.android.platform.video.makeBlackPixelBuffer(canvasSize.width, canvasSize.height)?.also { blackImageBuffer = it; blackFormatDescription = com.moblin.android.platform.video.CMVideoFormatDescriptionCreateForImageBuffer(it) }
         val format = blackFormatDescription
         if (buffer == null || format == null) {
             return null
@@ -766,7 +766,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     }
 
     private fun detectObjects(detectionJob: DetectionJob, completion: DetectionsCompletion) {
-        Unit
+        processorPipelineQueue.launch { completion.detections[detectionJob.videoSourceId] = Detections(face = emptyList(), text = emptyList()); detectObjectsComplete(completion) }
     }
 
     private fun detectObjectsComplete(completion: DetectionsCompletion) {
@@ -807,6 +807,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         }
         modSampleBuffer.setAttachmentDisplayImmediately()
         val isFirstAfterAttach = completion.isFirstAfterAttach
+        com.moblin.android.platform.core.PipelineStats.increment("vuOut")
         if (!showCameraPreview && screenPreviewEnabled) {
             drawable?.enqueue(modSampleBuffer, isFirstAfterAttach = isFirstAfterAttach)
         }
@@ -892,7 +893,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
 
     private fun makeCopy(sampleBuffer: MediaSample): MediaSample? {
         val imageBufferCopy = createBufferedPixelBuffer(sampleBuffer = sampleBuffer) ?: return null
-        return null
+        return com.moblin.android.platform.video.makeCopy(sampleBuffer, imageBufferCopy)
     }
 
     private fun appendBufferedBuiltinVideo(sampleBuffer: MediaSample, device: Any): BufferedVideo? {
@@ -919,7 +920,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         drawable.enqueue(sampleBuffer, isFirstAfterAttach = false)
     }
 
-    override fun videoCaptureSessionDidOutput(device: Any, cameraId: UUID?, sampleBuffer: MediaSample) {
+    override fun videoCaptureSessionDidOutput(device: com.moblin.android.platform.avfoundation.AVCaptureDevice, cameraId: UUID?, sampleBuffer: MediaSample) {
         if (videoPreviewEnabled && cameraId != null) {
             enqueueVideoPreview(cameraId = cameraId, sampleBuffer = sampleBuffer)
         }
@@ -993,4 +994,4 @@ private fun createMediaSample(
     durationUs: Long,
     presentationTimeUs: Long,
     decodeTimeStampUs: Long
-): MediaSample? = TODO("no Android counterpart for CMSampleBuffer.create; build a MediaSample from the codec output")
+): MediaSample? = format?.let { com.moblin.android.common.various.create(imageBuffer, it, durationUs, presentationTimeUs, decodeTimeStampUs) }

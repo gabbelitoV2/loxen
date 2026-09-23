@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun HCenter(content: @Composable () -> Unit) {
-    Row {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Spacer(Modifier.weight(1f))
         content()
         Spacer(Modifier.weight(1f))

@@ -1,48 +1,55 @@
 package com.moblin.android.view.settings.display.quickbuttons
 
 import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.color
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.Label
+import com.moblin.android.platform.swiftui.LocalTint
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.StealthMode
@@ -55,8 +62,8 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.TextButtonView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.deleteStealthModeImage
+import com.moblin.android.various.model.saveStealthModeImage
 
 @Composable
 private fun QuickButtonStealthModeView(
@@ -64,11 +71,26 @@ private fun QuickButtonStealthModeView(
     stealthMode: StealthMode,
 ) {
     val image = stealthMode.image.collectAsState().value
-    var presentingPicker by remember { mutableStateOf(false) }
-    var selectedImageItem by remember { mutableStateOf<Any?>(null) }
-
-    Column {
-        Button(onClick = { presentingPicker = true }) {
+    val context = LocalContext.current
+    val pickImage = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+    ) { uri ->
+        if (uri != null) {
+            val data = context.contentResolver.openInputStream(uri)?.use { stream ->
+                stream.readBytes()
+            }
+            if (data != null) {
+                model.saveStealthModeImage(data)
+                stealthMode.image.value = BitmapFactory.decodeByteArray(data, 0, data.size)
+            }
+        }
+    }
+    Section(footer = localized("Show selected image instead of a black screen.")) {
+        FormRow(onClick = {
+            pickImage.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+            )
+        }) {
             if (image != null) {
                 HCenter {
                     Image(
@@ -84,28 +106,14 @@ private fun QuickButtonStealthModeView(
                 }
             }
         }
-        LaunchedEffect(presentingPicker) {
-            if (presentingPicker) {
-                Unit
-            }
-        }
-        LaunchedEffect(selectedImageItem) {
-            val imageItem = selectedImageItem
-            selectedImageItem = null
-            if (imageItem != null) {
-                val data: ByteArray =
-                    TODO()
-                Unit
-                stealthMode.image.value = BitmapFactory.decodeByteArray(data, 0, data.size)
-            }
-        }
         if (image != null) {
-            TextButtonView(localized("Delete image")) {
-                stealthMode.image.value = null
-                Unit
+            CompositionLocalProvider(LocalTint provides formPalette().red) {
+                TextButtonView(localized("Delete image")) {
+                    stealthMode.image.value = null
+                    model.deleteStealthModeImage()
+                }
             }
         }
-        Text(localized("Show selected image instead of a black screen."))
     }
     LaunchedEffect(Unit) {
         model.checkPhotoLibraryAuthorization()
@@ -118,8 +126,25 @@ fun PositionButtonView(
     action: () -> Unit,
     enabled: Boolean = true,
 ) {
-    Button(onClick = action, enabled = enabled) {
-        Icon(imageVector = positionButtonIcon(image), contentDescription = null)
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Box(
+        modifier = Modifier
+            .alpha(if (pressed) 0.2f else 1f)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                enabled = enabled,
+                onClick = action,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = positionButtonIcon(image),
+            contentDescription = null,
+            tint = formPalette().accent,
+            modifier = Modifier.size(28.dp),
+        )
     }
 }
 
@@ -131,7 +156,6 @@ private fun positionButtonIcon(image: String): ImageVector = when (image) {
     else -> Icons.Default.ArrowBack
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonsButtonSettingsView(
     model: Model = LocalModel.current,
@@ -141,130 +165,79 @@ fun QuickButtonsButtonSettingsView(
     showAll: Boolean,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val isPortrait = orientation.isPortrait.collectAsState().value
+    val isPortrait by orientation.isPortrait.collectAsState()
     val enabled by button.enabled.collectAsState()
     val isOn by button.isOn.collectAsState()
-    Column {
-        TopAppBar(title = { Text("${button.name} quick button") })
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            item {
-                Text(
-                    text = localized("Layout"),
-                    style = MaterialTheme.typography.titleMedium,
-                )
+    val page by button.page.collectAsState()
+    Form(title = "${button.name} quick button") {
+        Section(header = localized("Layout")) {
+            Picker(
+                title = localized("Page"),
+                selection = page,
+                options = (1..controlBarPages).toList(),
+            ) { newPage ->
+                button.page.value = newPage
+                model.quickButtons.page = newPage
+                model.quickButtons.activePage.value = newPage
+                model.updateQuickButtonPairs()
             }
-            item {
-                var expanded by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it },
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(localized("Position"))
+                Spacer(Modifier.weight(1f))
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(7.dp),
                 ) {
-                    TextField(
-                        value = button.page.toString(),
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(localized("Page")) },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                        },
-                        modifier = Modifier.menuAnchor(),
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                    ) {
-                        for (page in 1..controlBarPages) {
-                            DropdownMenuItem(
-                                text = { Text(page.toString()) },
-                                onClick = {
-                                    button.page.value = page
-                                    model.quickButtons.page = page
-                                    model.quickButtons.activePage.value = page
-                                    model.updateQuickButtonPairs()
-                                    expanded = false
-                                },
-                            )
-                        }
-                    }
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(localized("Position"))
-                    Spacer(Modifier.weight(1f))
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(7.dp),
-                    ) {
-                        if (isPortrait) {
-                            positionPortrait(model, quickButtonsSettings, button)
-                        } else {
-                            positionLandscape(model, quickButtonsSettings, button)
-                        }
+                    if (isPortrait) {
+                        positionPortrait(model, quickButtonsSettings, button)
+                    } else {
+                        positionLandscape(model, quickButtonsSettings, button)
                     }
                 }
             }
-            item {
-                Text(
-                    text = localized("Color"),
-                    style = MaterialTheme.typography.titleMedium,
-                )
+        }
+        Section(header = localized("Color")) {
+            RgbColorPickerView(
+                title = localized("Background"),
+                color = button.color.collectAsState().value,
+                onColorChanged = { button.color.value = it },
+            ) { newColor ->
+                button.backgroundColor = newColor
+                model.updateQuickButtonPairs()
             }
-            item {
-                RgbColorPickerView(
-                    title = localized("Background"),
-                    color = button.color.collectAsState().value,
-                    onColorChanged = { button.color.value = it },
-                ) { newColor ->
-                    button.backgroundColor = newColor
-                    model.updateQuickButtonPairs()
-                }
-                TextButtonView(localized("Reset")) {
-                    button.backgroundColor = defaultQuickButtonColor
-                    button.color.value = (button.backgroundColor as RgbColor).color()
+            TextButtonView(localized("Reset")) {
+                button.backgroundColor = defaultQuickButtonColor
+                button.color.value = (button.backgroundColor as RgbColor).color()
+                model.updateQuickButtonPairs()
+            }
+        }
+        if (button.type == SettingsQuickButtonType.blackScreen) {
+            QuickButtonStealthModeView(
+                model = model,
+                stealthMode = model.stealthMode,
+            )
+        }
+        if (showAll) {
+            Section {
+                Toggle(
+                    title = localized("Enabled"),
+                    isOn = enabled,
+                    enabled = !(isOn && enabled),
+                ) { newValue ->
+                    button.enabled.value = newValue
                     model.updateQuickButtonPairs()
                 }
             }
-            if (button.type == SettingsQuickButtonType.blackScreen) {
-                item {
-                    QuickButtonStealthModeView(
-                        model = model,
-                        stealthMode = model.stealthMode,
-                    )
-                }
-            }
-            if (showAll) {
-                item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(localized("Enabled"))
-                        Spacer(Modifier.weight(1f))
-                        Switch(
-                            checked = enabled,
-                            onCheckedChange = { enabled ->
-                                button.enabled.value = enabled
-                                model.updateQuickButtonPairs()
-                            },
-                            enabled = !(isOn && enabled),
-                        )
-                    }
-                }
-                item {
-                    ShortcutSectionView {
-                        TextButton(onClick = { onNavigate("QuickButtonsSettingsView") }) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.List,
-                                    contentDescription = null,
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text(localized("Quick buttons"))
-                            }
-                        }
-                    }
+            ShortcutSectionView {
+                NavigationLink(
+                    destination = {
+                        QuickButtonsSettingsView(model = model, showAll = false)
+                    },
+                ) {
+                    Label(localized("Quick buttons"), systemImage = "rectangle.inset.topright.fill")
                 }
             }
         }
@@ -283,7 +256,7 @@ private fun positionPortrait(
         action = { moveLeftRight(model, button) },
         enabled = twoColumns,
     )
-    Row {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         PositionButtonView(
             image = "arrow.left.circle",
             action = { moveUp(model, quickButtonsSettings, button) },
@@ -311,7 +284,7 @@ private fun positionLandscape(
         image = "arrow.up.circle",
         action = { moveUp(model, quickButtonsSettings, button) },
     )
-    Row {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         PositionButtonView(
             image = "arrow.left.circle",
             action = { moveLeftRight(model, button) },

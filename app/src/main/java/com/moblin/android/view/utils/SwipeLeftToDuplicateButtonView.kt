@@ -1,36 +1,33 @@
 package com.moblin.android.view.utils
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import com.moblin.android.platform.swiftui.Label
+import com.moblin.android.platform.swiftui.LocalTint
 
 @Composable
 fun SwipeLeftToDuplicateButtonView(action: () -> Unit) {
-    Button(
-        onClick = action,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Blue,
-            contentColor = Color.White
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    CompositionLocalProvider(LocalTint provides Color(0xFF007AFF)) {
+        Label(
+            title = "Duplicate",
+            systemImage = "plus",
+            modifier = Modifier
+                .alpha(if (pressed) 0.2f else 1f)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = action,
+                ),
         )
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.ContentCopy,
-                contentDescription = null
-            )
-            Text(text = "Duplicate")
-        }
     }
 }

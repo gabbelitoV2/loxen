@@ -1,24 +1,11 @@
 package com.moblin.android.view.settings.audio
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.GraphicEq
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.VolumeDown
-import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,24 +13,37 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.formatOneDecimal
+import com.moblin.android.common.various.iconWidth
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.Label
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Mic
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.fallbackStream
 import com.moblin.android.various.model.reloadAudioSession
+import com.moblin.android.various.model.reloadStreamIfEnabled
 import com.moblin.android.various.model.selectMicDefault
+import com.moblin.android.various.model.setAudioGain
 import com.moblin.android.various.model.setInputGainIfSupported
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsAudio
 import com.moblin.android.various.settings.SettingsDebug
 import com.moblin.android.various.settings.SettingsMics
 import com.moblin.android.various.settings.SettingsStream
+import com.moblin.android.view.controlbar.quickbutton.QuickButtonMicView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.settings.streams.stream.audio.StreamAudioSettingsView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.TextEditNavigationView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun MicView(
@@ -53,17 +53,14 @@ private fun MicView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val currentMic by mic.current.collectAsState()
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("QuickButtonMicView") }
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    NavigationLink(
+        destination = {
+            QuickButtonMicView(model = model, mics = mics, modelMic = mic)
+        },
     ) {
-        Icon(Icons.Default.Mic, contentDescription = null)
-        Spacer(Modifier.width(16.dp))
-        Text("Mic")
-        Spacer(Modifier.weight(1f))
+        SystemImage(name = "music.mic", fontSize = 17.sp, modifier = Modifier.width(iconWidth.dp))
+        Text(localized("Mic"))
+        Spacer(modifier = Modifier.weight(1f))
         GrayTextView(text = currentMic.name)
     }
 }
@@ -79,7 +76,6 @@ fun AudioSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val showAllSettings = database.showAllSettings
-    val audioBitrate = stream.audioBitrate
     val inputGain by mic.inputGain.collectAsState()
     val gainDb by audio.gainDb.collectAsState()
     val bluetoothOutputOnly by debug.bluetoothOutputOnly.collectAsState()
@@ -100,180 +96,135 @@ fun AudioSettingsView(
     fun submitOutputChannel1(value: String) {
         val channel = value.toIntOrNull() ?: return
         audio.outputToInputChannelsMap.channel1 = maxOf(channel - 1, -1)
-        Unit
+        model.reloadStreamIfEnabled(stream)
     }
 
     fun submitOutputChannel2(value: String) {
         val channel = value.toIntOrNull() ?: return
         audio.outputToInputChannelsMap.channel2 = maxOf(channel - 1, -1)
-        Unit
+        model.reloadStreamIfEnabled(stream)
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-    ) {
+    Form(title = "Audio") {
         if (showAllSettings && stream !== fallbackStream) {
             ShortcutSectionView {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("StreamAudioSettingsView") }
-                        .padding(vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                NavigationLink(
+                    destination = {
+                        StreamAudioSettingsView(
+                            stream = stream,
+                        )
+                    },
                 ) {
-                    Icon(Icons.Default.GraphicEq, contentDescription = null)
-                    Spacer(Modifier.width(16.dp))
-                    Text("Audio")
+                    Label("Audio", systemImage = "dot.radiowaves.left.and.right")
                 }
             }
         }
-        MicView(model = model, mics = database.mics, mic = mic, onNavigate = onNavigate)
+        Section {
+            MicView(
+                model = model,
+                mics = database.mics,
+                mic = mic,
+                onNavigate = onNavigate,
+            )
+            if (showAllSettings) {
+                NavigationLink("Delays") {
+                    MicsDelaySettingsView(model = model, mics = database.mics)
+                }
+            }
+        }
         if (showAllSettings) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onNavigate("MicsDelaySettingsView") }
-                    .padding(vertical = 12.dp),
+            Section(
+                header = "Input gain",
+                footer = "Typically only supported by external mics.",
             ) {
-                Text("Delays")
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    SystemImage(name = "speaker.fill", fontSize = 17.sp)
+                    FormSlider(
+                        value = inputGain,
+                        onValueChange = {
+                            mic.inputGain.value = it
+                            model.setInputGainIfSupported(inputGain = it)
+                        },
+                        modifier = Modifier.weight(1f),
+                        valueRange = 0.0f..1.0f,
+                        enabled = !(currentMic.isAudioSession() && !inputGainSettable),
+                    )
+                    SystemImage(name = "speaker.wave.3.fill", fontSize = 17.sp)
+                }
             }
-        }
-        if (showAllSettings) {
-            Text(
-                "Input gain",
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(top = 16.dp),
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.VolumeDown, contentDescription = null)
-                Slider(
-                    value = inputGain,
-                    onValueChange = {
-                        mic.inputGain.value = it
-                        model.setInputGainIfSupported(it)
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp),
-                    enabled = !(currentMic.isAudioSession() && !inputGainSettable),
-                    valueRange = 0.0f..1.0f,
-                    steps = 9,
-                )
-                Icon(Icons.Default.VolumeUp, contentDescription = null)
-            }
-            Text(
-                "Typically only supported by external mics.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Text(
-                "Output gain",
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(top = 16.dp),
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.VolumeDown, contentDescription = null)
-                Slider(
-                    value = gainDb,
-                    onValueChange = {
-                        audio._gainDb.value = it
-                        Unit
-                    },
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 8.dp),
-                    valueRange = 0.0f..24.0f,
-                    steps = 23,
-                )
-                Icon(Icons.Default.VolumeUp, contentDescription = null)
-                Text(
-                    "${formatOneDecimal(gainDb)} dB",
-                    modifier = Modifier.width(65.dp),
-                )
-            }
-            Text(
-                "0.0 dB by default, leaving the input level unchanged.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("Bluetooth output only", modifier = Modifier.weight(1f))
-            Switch(
-                checked = bluetoothOutputOnly,
-                onCheckedChange = {
-                    debug.bluetoothOutputOnly.value = it
-                    model.reloadAudioSession()
-                },
-            )
-        }
-        Text(
-            "Makes most Bluetooth speakers work better.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        if (showAllSettings) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            Section(
+                header = "Output gain",
+                footer = "0.0 dB by default, leaving the input level unchanged.",
             ) {
-                Text("Prefer stereo mic", modifier = Modifier.weight(1f))
-                Switch(
-                    checked = preferStereoMic,
-                    onCheckedChange = {
-                        audio._preferStereoMic.value = it
-                        if (currentMic.isAudioSession()) {
-                            model.reloadAudioSession()
-                            model.selectMicDefault(currentMic)
-                        }
-                    },
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    SystemImage(name = "speaker.wave.1.fill", fontSize = 17.sp)
+                    FormSlider(
+                        value = gainDb,
+                        onValueChange = {
+                            audio._gainDb.value = it
+                            model.setAudioGain(it)
+                        },
+                        modifier = Modifier.weight(1f),
+                        valueRange = 0.0f..24.0f,
+                    )
+                    SystemImage(name = "speaker.wave.3.fill", fontSize = 17.sp)
+                    Box(
+                        modifier = Modifier.width(65.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text("${formatOneDecimal(gainDb)} dB")
+                    }
+                }
+            }
+        }
+        Section(footer = "Makes most Bluetooth speakers work better.") {
+            Toggle("Bluetooth output only", isOn = bluetoothOutputOnly) {
+                debug.bluetoothOutputOnly.value = it
+                model.reloadAudioSession()
+            }
+        }
+        if (showAllSettings) {
+            Section(footerContent = {
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(localized("Only works when front or back mic is selected."))
+                    Text("")
+                    Text(localized("Switching between mono and stereo mics may not work."))
+                }
+            }) {
+                Toggle("Prefer stereo mic", isOn = preferStereoMic) {
+                    audio._preferStereoMic.value = it
+                    if (currentMic.isAudioSession()) {
+                        model.reloadAudioSession()
+                        model.selectMicDefault(mic = currentMic)
+                    }
+                }
+            }
+            Section(
+                header = "Input to output channel mapping",
+                footer = "Mono audio only uses output channel 1. Stereo audio uses both output channels.",
+            ) {
+                TextEditNavigationView(
+                    title = localized("Output channel 1"),
+                    value = (audio.outputToInputChannelsMap.channel1 + 1).toString(),
+                    onChange = { changeOutputChannel(it) },
+                    onSubmit = { submitOutputChannel1(it) },
+                )
+                TextEditNavigationView(
+                    title = localized("Output channel 2"),
+                    value = (audio.outputToInputChannelsMap.channel2 + 1).toString(),
+                    onChange = { changeOutputChannel(it) },
+                    onSubmit = { submitOutputChannel2(it) },
                 )
             }
-            Column {
-                Text(
-                    "Only works when front or back mic is selected.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text("")
-                Text(
-                    "Switching between mono and stereo mics may not work.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            Text(
-                "Input to output channel mapping",
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(top = 16.dp),
-            )
-            TextEditNavigationView(
-                title = localized("Output channel 1"),
-                value = (audio.outputToInputChannelsMap.channel1 + 1).toString(),
-                onChange = { changeOutputChannel(it) },
-                onSubmit = { submitOutputChannel1(it) },
-            )
-            TextEditNavigationView(
-                title = localized("Output channel 2"),
-                value = (audio.outputToInputChannelsMap.channel2 + 1).toString(),
-                onChange = { changeOutputChannel(it) },
-                onSubmit = { submitOutputChannel2(it) },
-            )
-            Text(
-                "Mono audio only uses output channel 1. Stereo audio uses both output channels.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

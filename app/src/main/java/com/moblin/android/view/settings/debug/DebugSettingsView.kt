@@ -4,16 +4,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,21 +16,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.common.various.formatTwoDecimals
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.*
 import com.moblin.android.various.model.LogEntry
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.clearLog
 import com.moblin.android.various.settings.SettingsDebug
+import com.moblin.android.view.settings.httpproxy.HttpProxySettingsView
 import com.moblin.android.view.settings.recordings.FilesLocationView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
-import kotlin.math.roundToInt
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
-import com.moblin.android.various.model.clearLog
+import com.moblin.android.various.model.updateDebugOverlay
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DebugSettingsView(
     model: Model = LocalModel.current,
@@ -83,213 +76,153 @@ fun DebugSettingsView(
     val cameraManSpeed by debug.cameraManSpeed.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = {
-                TopAppBar(title = { Text("Debug") })
-            },
-        ) { padding ->
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-            ) {
-                item {
-                    TextButtonView(title = "Log", action = { presentingLog = true })
+        Form(title = "Debug") {
+            Section {
+                TextButtonView(title = "Log", action = { presentingLog = true })
+            }
+            FilesLocationView(
+                model = model,
+                text = localized("Logs directory"),
+                path = model.logsStorage.storageDirectory().toURI(),
+            )
+            Section {
+                Toggle(
+                    "Debug logging",
+                    isOn = debugLogging,
+                    onChange = {
+                        debug.debugLogging.value = it
+                        model.setDebugLogging(on = it)
+                    },
+                )
+                TextEditNavigationView(
+                    title = "Maximum log lines",
+                    value = maximumLogLines.toString(),
+                    onChange = { changeLogLines(it) },
+                    onSubmit = { submitLogLines(it) },
+                )
+                Toggle(
+                    "Debug overlay",
+                    isOn = debugOverlay,
+                    onChange = {
+                        debug.debugOverlay.value = it
+                        model.updateDebugOverlay()
+                    },
+                )
+            }
+            Section(header = "Experimental") {
+                NavigationLink(destination = {
+                    DebugVideoSettingsView(debug = debug)
+                }) {
+                    Text(localized("Video"))
                 }
-                item {
-                    FilesLocationView(
-                        model = model,
-                        text = "Logs directory",
-                        path = model.logsStorage.storageDirectory().toURI(),
+                Toggle(
+                    "Bitrate drop fix",
+                    isOn = bitrateDropFix,
+                    onChange = {
+                        debug.bitrateDropFix.value = it
+                        model.setBitrateDropFix()
+                    },
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(localized("Data rate limit"))
+                    FormSlider(
+                        value = dataRateLimitFactor.toFloat(),
+                        onValueChange = { debug.dataRateLimitFactor.value = it },
+                        modifier = Modifier.weight(1f),
+                        valueRange = 1.2f..2.5f,
+                        onValueChangeFinished = { model.setBitrateDropFix() },
+                    )
+                    Text(
+                        formatOneDecimal(dataRateLimitFactor),
+                        modifier = Modifier.width(40.dp),
                     )
                 }
-                item {
+                Toggle(
+                    "Relaxed bitrate decrement after scene switch",
+                    isOn = relaxedBitrate,
+                    onChange = { debug.relaxedBitrate.value = it },
+                )
+                Toggle(
+                    "Twitch rewards",
+                    isOn = twitchRewards,
+                    onChange = { debug.twitchRewards.value = it },
+                )
+                Column(horizontalAlignment = Alignment.Start) {
+                    Text(localized("Builtin audio and video delay"))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Debug logging", modifier = Modifier.weight(1f))
-                        Switch(
-                            checked = debugLogging,
-                            onCheckedChange = {
-                                debug.debugLogging.value = it
-                                model.setDebugLogging(on = it)
+                        FormSlider(
+                            value = builtinAudioAndVideoDelay.toFloat(),
+                            onValueChange = {
+                                debug.builtinAudioAndVideoDelay.value = it.toDouble()
                             },
-                        )
-                    }
-                }
-                item {
-                    TextEditNavigationView(
-                        title = "Maximum log lines",
-                        value = maximumLogLines.toString(),
-                        onChange = { changeLogLines(it) },
-                        onSubmit = { submitLogLines(it) },
-                    )
-                }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Debug overlay", modifier = Modifier.weight(1f))
-                        Switch(
-                            checked = debugOverlay,
-                            onCheckedChange = {
-                                debug.debugOverlay.value = it
-                                Unit
-                            },
-                        )
-                    }
-                }
-                item {
-                    Text("Experimental", style = MaterialTheme.typography.titleSmall)
-                }
-                item {
-                    TextButtonView(
-                        title = "Video",
-                        action = { onNavigate("DebugVideoSettingsView") },
-                    )
-                }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Bitrate drop fix", modifier = Modifier.weight(1f))
-                        Switch(
-                            checked = bitrateDropFix,
-                            onCheckedChange = {
-                                debug.bitrateDropFix.value = it
-                                model.setBitrateDropFix()
-                            },
-                        )
-                    }
-                }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Data rate limit")
-                        Slider(
-                            value = dataRateLimitFactor.toFloat(),
-                            onValueChange = { debug.dataRateLimitFactor.value = it },
                             modifier = Modifier.weight(1f),
-                            valueRange = 1.2f..2.5f,
-                            steps = ((2.5 - 1.2) / 0.1).roundToInt() - 1,
-                            onValueChangeFinished = { model.setBitrateDropFix() },
+                            valueRange = 0.0f..4.0f,
                         )
                         Text(
-                            formatOneDecimal(dataRateLimitFactor),
+                            formatTwoDecimals(builtinAudioAndVideoDelay),
                             modifier = Modifier.width(40.dp),
                         )
                     }
                 }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "Relaxed bitrate decrement after scene switch",
-                            modifier = Modifier.weight(1f),
-                        )
-                        Switch(
-                            checked = relaxedBitrate,
-                            onCheckedChange = { debug.relaxedBitrate.value = it },
-                        )
-                    }
-                }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Twitch rewards", modifier = Modifier.weight(1f))
-                        Switch(
-                            checked = twitchRewards,
-                            onCheckedChange = { debug.twitchRewards.value = it },
-                        )
-                    }
-                }
-                item {
-                    Column {
-                        Text("Builtin audio and video delay")
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Slider(
-                                value = builtinAudioAndVideoDelay.toFloat(),
-                                onValueChange = {
-                                    debug.builtinAudioAndVideoDelay.value = it.toDouble()
-                                },
-                                modifier = Modifier.weight(1f),
-                                valueRange = 0.0f..4.0f,
-                                steps = ((4.0 - 0.0) / 0.01).roundToInt() - 1,
-                            )
-                            Text(
-                                formatTwoDecimals(builtinAudioAndVideoDelay),
-                                modifier = Modifier.width(40.dp),
-                            )
-                        }
-                    }
-                }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Enhanced Moblin SRT", modifier = Modifier.weight(1f))
-                        Switch(
-                            checked = enhancedMoblinSrt,
-                            onCheckedChange = { debug.enhancedMoblinSrt.value = it },
-                        )
-                    }
-                }
-                item {
-                    TextButtonView(
-                        title = "HTTP proxy",
-                        action = { onNavigate("HttpProxySettingsView") },
+                Toggle(
+                    "Enhanced Moblin SRT",
+                    isOn = enhancedMoblinSrt,
+                    onChange = { debug.enhancedMoblinSrt.value = it },
+                )
+                NavigationLink(destination = {
+                    HttpProxySettingsView(
+                        status = model.statusOther,
+                        httpProxy = model.database.httpProxy,
                     )
+                }) {
+                    Text(localized("HTTP proxy"))
                 }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("SRT(LA) packet padding", modifier = Modifier.weight(1f))
-                        Switch(
-                            checked = packetPadding,
-                            onCheckedChange = { debug.packetPadding.value = it },
+                Toggle(
+                    "SRT(LA) packet padding",
+                    isOn = packetPadding,
+                    onChange = { debug.packetPadding.value = it },
+                )
+            }
+            Section(header = "Camera man") {
+                Toggle(
+                    "Vertical movement",
+                    isOn = cameraManMoveVertically,
+                    onChange = {
+                        debug.cameraManMoveVertically.value = it
+                        model.cameraManEffect.setSettings(
+                            moveVertically = it,
+                            speed = cameraManSpeed,
+                            alwaysMove = cameraManAlwaysMove,
                         )
-                    }
-                }
-                item {
-                    Text("Camera man", style = MaterialTheme.typography.titleSmall)
-                }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Vertical movement", modifier = Modifier.weight(1f))
-                        Switch(
-                            checked = cameraManMoveVertically,
-                            onCheckedChange = {
-                                debug.cameraManMoveVertically.value = it
-                                model.cameraManEffect.setSettings(
-                                    moveVertically = it,
-                                    speed = cameraManSpeed,
-                                    alwaysMove = cameraManAlwaysMove,
-                                )
-                            },
+                    },
+                )
+                Toggle(
+                    "Always move",
+                    isOn = cameraManAlwaysMove,
+                    onChange = {
+                        debug.cameraManAlwaysMove.value = it
+                        model.cameraManEffect.setSettings(
+                            moveVertically = cameraManMoveVertically,
+                            speed = cameraManSpeed,
+                            alwaysMove = it,
                         )
-                    }
-                }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Always move", modifier = Modifier.weight(1f))
-                        Switch(
-                            checked = cameraManAlwaysMove,
-                            onCheckedChange = {
-                                debug.cameraManAlwaysMove.value = it
-                                model.cameraManEffect.setSettings(
-                                    moveVertically = cameraManMoveVertically,
-                                    speed = cameraManSpeed,
-                                    alwaysMove = it,
-                                )
-                            },
-                        )
-                    }
-                }
-                item {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("Speed")
-                        Slider(
-                            value = cameraManSpeed.toFloat(),
-                            onValueChange = { debug.cameraManSpeed.value = it.toDouble() },
-                            modifier = Modifier.weight(1f),
-                            valueRange = 0.2f..4.0f,
-                            onValueChangeFinished = {
-                                model.cameraManEffect.setSettings(
-                                    moveVertically = cameraManMoveVertically,
-                                    speed = cameraManSpeed,
-                                    alwaysMove = cameraManAlwaysMove,
-                                )
-                            },
-                        )
-                    }
+                    },
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(localized("Speed"))
+                    FormSlider(
+                        value = cameraManSpeed.toFloat(),
+                        onValueChange = { debug.cameraManSpeed.value = it.toDouble() },
+                        modifier = Modifier.weight(1f),
+                        valueRange = 0.2f..4.0f,
+                        onValueChangeFinished = {
+                            model.cameraManEffect.setSettings(
+                                moveVertically = cameraManMoveVertically,
+                                speed = cameraManSpeed,
+                                alwaysMove = cameraManAlwaysMove,
+                            )
+                        },
+                    )
                 }
             }
         }

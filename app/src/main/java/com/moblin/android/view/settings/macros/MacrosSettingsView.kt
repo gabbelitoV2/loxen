@@ -1,7 +1,6 @@
 package com.moblin.android.view.settings.macros
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,20 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,8 +28,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.LocalTint
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsMacros
@@ -52,7 +53,6 @@ import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsReaction
 import com.moblin.android.various.settings.minZoomX
 import com.moblin.android.various.utils.makeUniqueName
-import com.moblin.android.view.settings.scenes.SceneNameView
 import com.moblin.android.view.settings.scenes.widgets.widget.text.TextFormatVariablesView
 import com.moblin.android.view.settings.scenes.widgets.widget.text.TextFormatWarningsView
 import com.moblin.android.view.settings.scenes.widgets.widget.text.TextWidgetSuggestionsView
@@ -65,8 +65,6 @@ import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 import java.util.UUID
 
 private fun <T> isSelected(values: Set<T>, type: T): Boolean {
@@ -122,75 +120,11 @@ fun macroActionIfBars(actions: List<SettingsMacrosAction>): List<List<MacroActio
 }
 
 private val macroActionIfColors: List<Color> = listOf(
-    Color.Blue,
-    Color(0xFF800080L),
-    Color(0xFFFFA500L),
-    Color(0xFF008080L),
+    Color(0xFF007AFFL),
+    Color(0xFFAF52DEL),
+    Color(0xFFFF9500L),
+    Color(0xFF30B0C7L),
 )
-
-@Composable
-private fun Toggle(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = label,
-            modifier = Modifier.weight(1f),
-        )
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun <T> MacroPicker(
-    title: String,
-    selectedText: String,
-    values: List<T>,
-    optionContent: @Composable (T) -> Unit,
-    onSelect: (T) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-    ) {
-        OutlinedTextField(
-            value = selectedText,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text(title) },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth(),
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            values.forEach { value ->
-                DropdownMenuItem(
-                    text = { optionContent(value) },
-                    onClick = {
-                        onSelect(value)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun bar(bars: List<MacroActionIfBar>, level: Int) {
@@ -223,9 +157,9 @@ private fun bar(bars: List<MacroActionIfBar>, level: Int) {
 private fun ActionIfBarsView(bars: List<MacroActionIfBar>) {
     Row(
         modifier = Modifier
-            .padding(start = 3.dp)
+            .background(formPalette().cell)
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
+            .padding(start = 3.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         val levels = (bars.maxOfOrNull { it.level } ?: -1) + 1
@@ -248,13 +182,8 @@ private fun TextFormatView(
     var currentValue by remember { mutableStateOf(value) }
     LaunchedEffect(currentValue) {
         onTextChange(currentValue)
-        Unit
     }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-    ) {
+    Form(title = title) {
         TextWidgetTextView(
             value = currentValue,
             onChange = { currentValue = it },
@@ -266,11 +195,13 @@ private fun TextFormatView(
             onChange = { currentValue = it },
         )
         if (suggestions) {
-            TextWidgetSuggestionsView(
-                widget = false,
-                text = currentValue,
-                onChange = { currentValue = it },
-            )
+            Section {
+                TextWidgetSuggestionsView(
+                    widget = false,
+                    text = currentValue,
+                    onChange = { currentValue = it },
+                )
+            }
         }
         TextFormatVariablesView(
             widget = false,
@@ -298,20 +229,23 @@ private fun ActionView(
     ifBars: List<MacroActionIfBar>,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val contextMenuDeleteButton: () -> Unit = {
-        Unit
-    }
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(IntrinsicSize.Min),
     ) {
         ActionIfBarsView(bars = ifBars)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("Action") },
-            verticalAlignment = Alignment.CenterVertically,
+        NavigationLink(
+            destination = {
+                ActionDestinationView(
+                    model = model,
+                    database = database,
+                    macros = macros,
+                    macro = macro,
+                    action = action,
+                    onNavigate = onNavigate,
+                )
+            },
         ) {
             DraggableItemPrefixView()
             Text(action.function?.toString() ?: localized("-- None --"))
@@ -383,7 +317,9 @@ private fun ActionView(
                         text = if (action.torch) localized("On") else localized("Off"),
                     )
                 }
-                SettingsMacrosActionFunction.SNAPSHOT, SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT -> {}
+                SettingsMacrosActionFunction.SNAPSHOT,
+                SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT,
+                -> {}
                 SettingsMacrosActionFunction.REACTION -> {
                     Spacer(modifier = Modifier.weight(1f))
                     GrayTextView(text = action.reaction.toString())
@@ -435,291 +371,341 @@ fun ActionDestinationView(
     action: SettingsMacrosAction,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    LaunchedEffect(action.function) {
-        Unit
-    }
-    LaunchedEffect(action.ifRunCount) {
-        Unit
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-    ) {
-        MacroPicker(
-            title = localized("Function"),
-            selectedText = action.function?.toString() ?: localized("-- None --"),
-            values = listOf(null) + SettingsMacrosActionFunction.entries,
-            optionContent = { Text(it?.toString() ?: localized("-- None --")) },
-            onSelect = { action.function = it },
-        )
-        when (action.function) {
-            SettingsMacrosActionFunction.SCENE -> {
-                MacroPicker(
-                    title = localized("Scene"),
-                    selectedText = getSceneName(database = database, id = action.sceneId) ?: localized("-- None --"),
-                    values = listOf(null) + database.scenes,
-                    optionContent = { scene ->
-                        if (scene == null) {
-                            Text(localized("-- None --"))
-                        } else {
-                            SceneNameView(scene = scene)
+    Form(title = localized("Action")) {
+        Section(
+            footerContent = {
+                when (action.function) {
+                    SettingsMacrosActionFunction.WAIT_FOR_EVENT -> {
+                        Column(
+                            horizontalAlignment = Alignment.Start,
+                            verticalArrangement = Arrangement.spacedBy(5.dp),
+                        ) {
+                            when (action.event) {
+                                SettingsMacrosEvent.TWITCH_REWARD, SettingsMacrosEvent.KICK_REWARD -> {
+                                    Text(
+                                        localized(
+                                            "Wait until a viewer redeems the reward, then continue " +
+                                                "with the following actions. Leave reward empty to " +
+                                                "wait for any reward.",
+                                        ),
+                                    )
+                                }
+                                else -> {
+                                    Text(
+                                        localized(
+                                            "Wait until the event happens, then continue with the " +
+                                                "following actions.",
+                                        ),
+                                    )
+                                }
+                            }
                         }
-                    },
-                    onSelect = { action.sceneId = it?.id },
-                )
-            }
-            SettingsMacrosActionFunction.ENABLE_DISABLE_SCENES -> {
-                database.scenes.forEach { scene ->
-                    Toggle(
-                        label = scene.name,
-                        checked = isSelected(action.sceneIds, scene.id),
-                        onCheckedChange = { action.sceneIds = setSelected(action.sceneIds, scene.id, it) },
-                    )
+                    }
+                    SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT -> {
+                        Text(
+                            localized(
+                                "Send a Twitch shoutout to the channel in {twitchRaidChannelId}, " +
+                                    "typically set by an earlier Twitch raid event.",
+                            ),
+                        )
+                    }
+                    SettingsMacrosActionFunction.IF_CONDITION -> {
+                        Text(
+                            localized(
+                                "Run given number of following actions if the condition is met.",
+                            ),
+                        )
+                    }
+                    else -> {}
                 }
-            }
-            SettingsMacrosActionFunction.AUTO_SCENE_SWITCHER -> {
-                MacroPicker(
-                    title = localized("Auto scene switcher"),
-                    selectedText = database.autoSceneSwitchers.switchers
-                        .firstOrNull { it.id == action.autoSceneSwitcherId }
-                        ?.name
-                        ?: localized("-- None --"),
-                    values = listOf(null) + database.autoSceneSwitchers.switchers,
-                    optionContent = { Text(it?.name ?: localized("-- None --")) },
-                    onSelect = { action.autoSceneSwitcherId = it?.id },
-                )
-            }
-            SettingsMacrosActionFunction.ZOOM -> {
-                TextEditNavigationView(
-                    title = localized("X"),
-                    value = action.zoomX.toString(),
-                    onSubmit = { submitZoomX(action = action, zoomX = it) },
-                    keyboardType = KeyboardType.Number,
-                )
-            }
-            SettingsMacrosActionFunction.GIMBAL_PRESET -> {
-                MacroPicker(
-                    title = localized("Preset"),
-                    selectedText = database.gimbal.presets
-                        .firstOrNull { it.id == action.gimbalPresetId }
-                        ?.name
-                        ?: localized("-- None --"),
-                    values = listOf(null) + database.gimbal.presets,
-                    optionContent = { Text(it?.name ?: localized("-- None --")) },
-                    onSelect = { action.gimbalPresetId = it?.id },
-                )
-            }
-            SettingsMacrosActionFunction.SEND_CHAT_MESSAGE -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("Message") },
-                ) {
-                    TextItemLocalizedView(
-                        name = "Message",
-                        value = action.chatMessage,
-                    )
-                }
-            }
-            SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT -> {}
-            SettingsMacrosActionFunction.DELAY -> {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(localized("Delay"))
-                    Slider(
-                        value = action.delay.toFloat(),
-                        onValueChange = { action.delay = it.toDouble() },
-                        valueRange = 1f..60f,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text("${action.delay.toInt()}s")
-                }
-            }
-            SettingsMacrosActionFunction.DJI_DEVICES -> {
-                database.djiDevices.devices.forEach { device ->
-                    Toggle(
-                        label = device.name,
-                        checked = isSelected(action.djiDevices, device.id),
-                        onCheckedChange = { action.djiDevices = setSelected(action.djiDevices, device.id, it) },
-                    )
-                }
-            }
-            SettingsMacrosActionFunction.RECORD -> {
-                MacroPicker(
-                    title = localized("Record"),
-                    selectedText = if (action.record) localized("Start") else localized("Stop"),
-                    values = listOf(true, false),
-                    optionContent = { Text(if (it) localized("Start") else localized("Stop")) },
-                    onSelect = { action.record = it },
-                )
-            }
-            SettingsMacrosActionFunction.MUTE -> {
-                MacroPicker(
-                    title = localized("Mute"),
-                    selectedText = if (action.mute) localized("On") else localized("Off"),
-                    values = listOf(true, false),
-                    optionContent = { Text(if (it) localized("On") else localized("Off")) },
-                    onSelect = { action.mute = it },
-                )
-            }
-            SettingsMacrosActionFunction.TORCH -> {
-                MacroPicker(
-                    title = localized("Torch"),
-                    selectedText = if (action.torch) localized("On") else localized("Off"),
-                    values = listOf(true, false),
-                    optionContent = { Text(if (it) localized("On") else localized("Off")) },
-                    onSelect = { action.torch = it },
-                )
-            }
-            SettingsMacrosActionFunction.SNAPSHOT -> {}
-            SettingsMacrosActionFunction.FILTERS -> {
-                SettingsQuickButtonType.filters().forEach { filter ->
-                    Toggle(
-                        label = filter.toString(),
-                        checked = isSelected(action.filters, filter),
-                        onCheckedChange = { action.filters = setSelected(action.filters, filter, it) },
-                    )
-                }
-            }
-            SettingsMacrosActionFunction.REACTION -> {
-                MacroPicker(
-                    title = localized("Reaction"),
-                    selectedText = action.reaction.toString(),
-                    values = SettingsReaction.entries.toList(),
-                    optionContent = { Text(it.toString()) },
-                    onSelect = { action.reaction = it },
-                )
-            }
-            SettingsMacrosActionFunction.WAIT_FOR_EVENT -> {
-                MacroPicker(
-                    title = localized("Event"),
-                    selectedText = action.event.toString(),
-                    values = SettingsMacrosEvent.entries.toList(),
-                    optionContent = { Text(it.toString()) },
-                    onSelect = { action.event = it },
-                )
-                action.event.minimumAmountTitle()?.let { title ->
-                    TextEditNavigationView(
-                        title = title,
-                        value = action.eventMinimumAmount.toString(),
-                        onSubmit = { action.eventMinimumAmount = it.toIntOrNull() ?: 0 },
-                        keyboardType = KeyboardType.Number,
-                    )
-                }
-                action.event.textTitle()?.let { title ->
-                    TextEditNavigationView(
-                        title = title,
-                        value = action.eventText,
-                        onSubmit = { action.eventText = it },
-                        keyboardType = KeyboardType.Text,
-                    )
-                }
-                if (action.event == SettingsMacrosEvent.SWITCH_SCENE) {
-                    MacroPicker(
+            },
+        ) {
+            Picker(
+                title = localized("Function"),
+                selection = action.function,
+                options = listOf<SettingsMacrosActionFunction?>(null) +
+                    SettingsMacrosActionFunction.entries,
+                text = { it?.toString() ?: localized("-- None --") },
+                onChange = { action.function = it },
+            )
+            when (action.function) {
+                SettingsMacrosActionFunction.SCENE -> {
+                    Picker(
                         title = localized("Scene"),
-                        selectedText = getSceneName(database = database, id = action.eventSceneId)
-                            ?: localized("-- Any --"),
-                        values = listOf(null) + database.scenes,
-                        optionContent = { scene ->
-                            if (scene == null) {
-                                Text(localized("-- Any --"))
+                        selection = action.sceneId,
+                        options = listOf<UUID?>(null) + database.scenes.map { it.id },
+                        text = { id ->
+                            if (id == null) {
+                                localized("-- None --")
                             } else {
-                                SceneNameView(scene = scene)
+                                getSceneName(database = database, id = id)
+                                    ?: localized("-- None --")
                             }
                         },
-                        onSelect = { action.eventSceneId = it?.id },
+                        onChange = { action.sceneId = it },
                     )
                 }
-            }
-            SettingsMacrosActionFunction.IF_CONDITION -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("Value") },
-                ) {
-                    TextItemLocalizedView(
-                        name = "Value",
-                        value = action.ifValue,
-                    )
-                }
-                MacroPicker(
-                    title = localized("Comparison"),
-                    selectedText = action.ifComparison.toString(),
-                    values = SettingsMacrosActionIfComparison.entries.toList(),
-                    optionContent = { Text(it.toString()) },
-                    onSelect = { action.ifComparison = it },
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("Other value") },
-                ) {
-                    TextItemLocalizedView(
-                        name = "Other value",
-                        value = action.ifOtherValue,
-                    )
-                }
-                MacroPicker(
-                    title = localized("Actions to run"),
-                    selectedText = action.ifRunCount.toString(),
-                    values = (1..10).toList(),
-                    optionContent = { Text(it.toString()) },
-                    onSelect = { action.ifRunCount = it },
-                )
-            }
-            SettingsMacrosActionFunction.MACRO -> {
-                MacroPicker(
-                    title = localized("Macro"),
-                    selectedText = macros.macros
-                        .firstOrNull { it.id == action.macroId }
-                        ?.name
-                        ?: localized("-- None --"),
-                    values = listOf(null) + macros.macros,
-                    optionContent = { Text(it?.name ?: localized("-- None --")) },
-                    onSelect = { action.macroId = it?.id },
-                )
-            }
-            null -> {}
-        }
-        when (action.function) {
-            SettingsMacrosActionFunction.WAIT_FOR_EVENT -> {
-                Column(
-                    horizontalAlignment = Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                ) {
-                    when (action.event) {
-                        SettingsMacrosEvent.TWITCH_REWARD, SettingsMacrosEvent.KICK_REWARD -> {
-                            Text(
-                                localized(
-                                    "Wait until a viewer redeems the reward, then continue with the following actions. Leave reward empty to wait for any reward.",
-                                ),
-                            )
-                        }
-                        else -> {
-                            Text(
-                                localized(
-                                    "Wait until the event happens, then continue with the following actions.",
-                                ),
+                SettingsMacrosActionFunction.ENABLE_DISABLE_SCENES -> {
+                    database.scenes.forEach { scene ->
+                        key(scene.id) {
+                            Toggle(
+                                title = scene.name,
+                                isOn = isSelected(action.sceneIds, scene.id),
+                                onChange = {
+                                    action.sceneIds = setSelected(action.sceneIds, scene.id, it)
+                                },
                             )
                         }
                     }
-                    val variables: String? = TODO("SettingsMacrosEvent.variablesToString is not available")
-                    if (variables != null) {
-                        Text("Sets $variables, which following actions can use.")
+                }
+                SettingsMacrosActionFunction.AUTO_SCENE_SWITCHER -> {
+                    val switchers = database.autoSceneSwitchers.switchers
+                    Picker(
+                        title = localized("Auto scene switcher"),
+                        selection = action.autoSceneSwitcherId,
+                        options = listOf<UUID?>(null) + switchers.map { it.id },
+                        text = { id ->
+                            if (id == null) {
+                                localized("-- None --")
+                            } else {
+                                switchers.firstOrNull { it.id == id }?.name
+                                    ?: localized("-- None --")
+                            }
+                        },
+                        onChange = { action.autoSceneSwitcherId = it },
+                    )
+                }
+                SettingsMacrosActionFunction.ZOOM -> {
+                    TextEditNavigationView(
+                        title = localized("X"),
+                        value = action.zoomX.toString(),
+                        onSubmit = { submitZoomX(action = action, zoomX = it) },
+                        keyboardType = KeyboardType.Decimal,
+                    )
+                }
+                SettingsMacrosActionFunction.GIMBAL_PRESET -> {
+                    val presets = database.gimbal.presets
+                    Picker(
+                        title = localized("Preset"),
+                        selection = action.gimbalPresetId,
+                        options = listOf<UUID?>(null) + presets.map { it.id },
+                        text = { id ->
+                            if (id == null) {
+                                localized("-- None --")
+                            } else {
+                                presets.firstOrNull { it.id == id }?.name
+                                    ?: localized("-- None --")
+                            }
+                        },
+                        onChange = { action.gimbalPresetId = it },
+                    )
+                }
+                SettingsMacrosActionFunction.SEND_CHAT_MESSAGE -> {
+                    NavigationLink(
+                        destination = {
+                            TextFormatView(
+                                model = model,
+                                title = localized("Message"),
+                                suggestions = true,
+                                text = action.chatMessage,
+                                onTextChange = { action.chatMessage = it },
+                                value = action.chatMessage,
+                            )
+                        },
+                    ) {
+                        TextItemLocalizedView(
+                            name = "Message",
+                            value = action.chatMessage,
+                        )
                     }
                 }
+                SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT -> {}
+                SettingsMacrosActionFunction.DELAY -> {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(localized("Delay"))
+                        FormSlider(
+                            value = action.delay.toFloat(),
+                            onValueChange = { action.delay = it.toDouble() },
+                            modifier = Modifier.weight(1f),
+                            valueRange = 1f..60f,
+                        )
+                        Text("${action.delay.toInt()}s")
+                    }
+                }
+                SettingsMacrosActionFunction.DJI_DEVICES -> {
+                    database.djiDevices.devices.forEach { device ->
+                        key(device.id) {
+                            Toggle(
+                                title = device.name,
+                                isOn = isSelected(action.djiDevices, device.id),
+                                onChange = {
+                                    action.djiDevices = setSelected(action.djiDevices, device.id, it)
+                                },
+                            )
+                        }
+                    }
+                }
+                SettingsMacrosActionFunction.RECORD -> {
+                    Picker(
+                        title = localized("Record"),
+                        selection = action.record,
+                        options = listOf(true, false),
+                        text = { if (it) localized("Start") else localized("Stop") },
+                        onChange = { action.record = it },
+                    )
+                }
+                SettingsMacrosActionFunction.MUTE -> {
+                    Picker(
+                        title = localized("Mute"),
+                        selection = action.mute,
+                        options = listOf(true, false),
+                        text = { if (it) localized("On") else localized("Off") },
+                        onChange = { action.mute = it },
+                    )
+                }
+                SettingsMacrosActionFunction.TORCH -> {
+                    Picker(
+                        title = localized("Torch"),
+                        selection = action.torch,
+                        options = listOf(true, false),
+                        text = { if (it) localized("On") else localized("Off") },
+                        onChange = { action.torch = it },
+                    )
+                }
+                SettingsMacrosActionFunction.SNAPSHOT -> {}
+                SettingsMacrosActionFunction.FILTERS -> {
+                    SettingsQuickButtonType.filters().forEach { filter ->
+                        Toggle(
+                            title = filter.toString(),
+                            isOn = isSelected(action.filters, filter),
+                            onChange = {
+                                action.filters = setSelected(action.filters, filter, it)
+                            },
+                        )
+                    }
+                }
+                SettingsMacrosActionFunction.REACTION -> {
+                    Picker(
+                        title = localized("Reaction"),
+                        selection = action.reaction,
+                        options = SettingsReaction.entries.toList(),
+                        text = { it.toString() },
+                        onChange = { action.reaction = it },
+                    )
+                }
+                SettingsMacrosActionFunction.WAIT_FOR_EVENT -> {
+                    Picker(
+                        title = localized("Event"),
+                        selection = action.event,
+                        options = SettingsMacrosEvent.entries.toList(),
+                        text = { it.toString() },
+                        onChange = { action.event = it },
+                    )
+                    action.event.minimumAmountTitle()?.let { title ->
+                        TextEditNavigationView(
+                            title = title,
+                            value = action.eventMinimumAmount.toString(),
+                            onSubmit = { action.eventMinimumAmount = it.toIntOrNull() ?: 0 },
+                            keyboardType = KeyboardType.Number,
+                        )
+                    }
+                    action.event.textTitle()?.let { title ->
+                        TextEditNavigationView(
+                            title = title,
+                            value = action.eventText,
+                            onSubmit = { action.eventText = it },
+                            keyboardType = KeyboardType.Text,
+                        )
+                    }
+                    if (action.event == SettingsMacrosEvent.SWITCH_SCENE) {
+                        Picker(
+                            title = localized("Scene"),
+                            selection = action.eventSceneId,
+                            options = listOf<UUID?>(null) + database.scenes.map { it.id },
+                            text = { id ->
+                                if (id == null) {
+                                    localized("-- Any --")
+                                } else {
+                                    getSceneName(database = database, id = id)
+                                        ?: localized("-- Any --")
+                                }
+                            },
+                            onChange = { action.eventSceneId = it },
+                        )
+                    }
+                }
+                SettingsMacrosActionFunction.IF_CONDITION -> {
+                    NavigationLink(
+                        destination = {
+                            TextFormatView(
+                                model = model,
+                                title = localized("Value"),
+                                suggestions = false,
+                                text = action.ifValue,
+                                onTextChange = { action.ifValue = it },
+                                value = action.ifValue,
+                            )
+                        },
+                    ) {
+                        TextItemLocalizedView(
+                            name = "Value",
+                            value = action.ifValue,
+                        )
+                    }
+                    Picker(
+                        title = localized("Comparison"),
+                        selection = action.ifComparison,
+                        options = SettingsMacrosActionIfComparison.entries.toList(),
+                        text = { it.toString() },
+                        onChange = { action.ifComparison = it },
+                    )
+                    NavigationLink(
+                        destination = {
+                            TextFormatView(
+                                model = model,
+                                title = localized("Other value"),
+                                suggestions = false,
+                                text = action.ifOtherValue,
+                                onTextChange = { action.ifOtherValue = it },
+                                value = action.ifOtherValue,
+                            )
+                        },
+                    ) {
+                        TextItemLocalizedView(
+                            name = "Other value",
+                            value = action.ifOtherValue,
+                        )
+                    }
+                    Picker(
+                        title = localized("Actions to run"),
+                        selection = action.ifRunCount,
+                        options = (1..10).toList(),
+                        text = { it.toString() },
+                        onChange = { action.ifRunCount = it },
+                    )
+                }
+                SettingsMacrosActionFunction.MACRO -> {
+                    val availableMacros = macros.macros
+                    Picker(
+                        title = localized("Macro"),
+                        selection = action.macroId,
+                        options = listOf<UUID?>(null) + availableMacros.map { it.id },
+                        text = { id ->
+                            if (id == null) {
+                                localized("-- None --")
+                            } else {
+                                availableMacros.firstOrNull { it.id == id }?.name
+                                    ?: localized("-- None --")
+                            }
+                        },
+                        onChange = { action.macroId = it },
+                    )
+                }
+                null -> {}
             }
-            SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT -> {
-                Text(
-                    localized(
-                        "Send a Twitch shoutout to the channel in {twitchRaidChannelId}, typically set by an earlier Twitch raid event.",
-                    ),
-                )
-            }
-            SettingsMacrosActionFunction.IF_CONDITION -> {
-                Text(localized("Run given number of following actions if the condition is met."))
-            }
-            else -> {}
         }
     }
 }
@@ -732,14 +718,16 @@ private fun MacroView(
     macro: SettingsMacrosMacro,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val contextMenuDeleteButton: () -> Unit = {
-        Unit
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("Macro") },
-        verticalAlignment = Alignment.CenterVertically,
+    NavigationLink(
+        destination = {
+            MacroDestinationView(
+                model = model,
+                database = database,
+                macros = macros,
+                macro = macro,
+                onNavigate = onNavigate,
+            )
+        },
     ) {
         Text(macro.name)
     }
@@ -753,92 +741,94 @@ fun MacroDestinationView(
     macro: SettingsMacrosMacro,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val onMove: (List<Int>, Int) -> Unit = { _, _ ->
-        Unit
-    }
-    val onDelete: (List<Int>) -> Unit = { offsets ->
-        macro.actions = macro.actions.filterIndexed { index, _ -> index !in offsets }
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-    ) {
-        NameEditView(
-            name = macro.name,
-            onNameChange = {
-                macro.name = it
-                Unit
+    Form(title = localized("Macro")) {
+        Section {
+            NameEditView(
+                name = macro.name,
+                onNameChange = { macro.name = it },
+                existingNames = macros.macros,
+            )
+        }
+        Section(
+            header = localized("Actions"),
+            footerContent = {
+                SwipeLeftToDeleteHelpView(kind = localized("an action"))
             },
-            existingNames = macros.macros,
-        )
-        Text(
-            text = localized("Actions"),
-            style = MaterialTheme.typography.titleSmall,
-        )
-        val ifBars = macroActionIfBars(actions = macro.actions)
-        macro.actions.forEachIndexed { index, action ->
-            ActionView(
-                model = model,
-                database = database,
-                macros = macros,
-                macro = macro,
-                action = action,
-                ifBars = ifBars[index],
-                onNavigate = onNavigate,
-            )
-        }
-        CreateButtonView {
-            macro.actions = macro.actions + SettingsMacrosAction()
-        }
-        SwipeLeftToDeleteHelpView(kind = localized("an action"))
-        MacroPicker(
-            title = localized("Repeat"),
-            selectedText = macro.repeatMode.toString(),
-            values = SettingsMacrosMacroRepeatMode.entries.toList(),
-            optionContent = { Text(it.toString()) },
-            onSelect = { macro.repeatMode = it },
-        )
-        if (macro.repeatMode == SettingsMacrosMacroRepeatMode.COUNT) {
-            TextEditNavigationView(
-                title = localized("Count"),
-                value = macro.repeatCount.toString(),
-                onSubmit = { value ->
-                    val count = value.toIntOrNull() ?: return@TextEditNavigationView
-                    macro.repeatCount = count.coerceIn(1, 1_000_000)
-                },
-                keyboardType = KeyboardType.Number,
-            )
-        }
-        Toggle(
-            label = localized("Close macros panel on run"),
-            checked = macro.closePanelOnRun,
-            onCheckedChange = { macro.closePanelOnRun = it },
-        )
-        Toggle(
-            label = localized("Run at app start"),
-            checked = macro.runAtAppStart,
-            onCheckedChange = { macro.runAtAppStart = it },
-        )
-        Text(
-            localized(
-                "Run at app start is useful for macros that wait for events, for example to run actions when someone follows. Set repeat to forever to wait again after each event.",
-            ),
-        )
-        if (macro.running) {
-            TextButtonView(localized("Cancel")) {
-                Unit
+        ) {
+            val ifBars = macroActionIfBars(actions = macro.actions)
+            macro.actions.forEachIndexed { index, action ->
+                key(action.id) {
+                    ActionView(
+                        model = model,
+                        database = database,
+                        macros = macros,
+                        macro = macro,
+                        action = action,
+                        ifBars = ifBars[index],
+                        onNavigate = onNavigate,
+                    )
+                }
             }
-        } else if (macro.finished) {
-            Text(
-                text = localized("Finished"),
-                color = Color.Green,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center,
+            CreateButtonView {
+                macro.actions = macro.actions + SettingsMacrosAction()
+            }
+        }
+        Section {
+            Picker(
+                title = localized("Repeat"),
+                selection = macro.repeatMode,
+                options = SettingsMacrosMacroRepeatMode.entries.toList(),
+                text = { it.toString() },
+                onChange = { macro.repeatMode = it },
             )
-        } else {
-            TextButtonView(localized("Run")) {
-                Unit
+            if (macro.repeatMode == SettingsMacrosMacroRepeatMode.COUNT) {
+                TextEditNavigationView(
+                    title = localized("Count"),
+                    value = macro.repeatCount.toString(),
+                    onSubmit = { value ->
+                        val count = value.toIntOrNull() ?: return@TextEditNavigationView
+                        macro.repeatCount = count.coerceIn(1, 1_000_000)
+                    },
+                    keyboardType = KeyboardType.Number,
+                )
+            }
+        }
+        Section(
+            footerContent = {
+                Text(
+                    localized(
+                        "Run at app start is useful for macros that wait for events, for example " +
+                            "to run actions when someone follows. Set repeat to forever to wait " +
+                            "again after each event.",
+                    ),
+                )
+            },
+        ) {
+            Toggle(
+                title = localized("Close macros panel on run"),
+                isOn = macro.closePanelOnRun,
+                onChange = { macro.closePanelOnRun = it },
+            )
+            Toggle(
+                title = localized("Run at app start"),
+                isOn = macro.runAtAppStart,
+                onChange = { macro.runAtAppStart = it },
+            )
+        }
+        Section {
+            if (macro.running) {
+                CompositionLocalProvider(LocalTint provides formPalette().red) {
+                    TextButtonView(localized("Cancel")) {}
+                }
+            } else if (macro.finished) {
+                Text(
+                    text = localized("Finished"),
+                    color = formPalette().green,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center,
+                )
+            } else {
+                TextButtonView(localized("Run")) {}
             }
         }
     }
@@ -851,44 +841,40 @@ fun MacrosSettingsView(
     macros: SettingsMacros,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val onMove: (List<Int>, Int) -> Unit = { _, _ ->
-        Unit
-    }
-    val onDelete: (List<Int>) -> Unit = { offsets ->
-        for (offset in offsets) {
-            Unit
-        }
-        macros.macros = macros.macros.filterIndexed { index, _ -> index !in offsets }
-        Unit
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-    ) {
-        Text(
-            localized(
-                "A macro is a sequence of actions that can change settings, filters, etc. with a single button tap. It can also wait for events, for example new followers, before continuing.",
-            ),
-        )
-        macros.macros.forEach { macro ->
-            MacroView(
-                model = model,
-                database = database,
-                macros = macros,
-                macro = macro,
-                onNavigate = onNavigate,
+    Form(title = localized("Macros")) {
+        Section {
+            Text(
+                localized(
+                    "A macro is a sequence of actions that can change settings, filters, etc. " +
+                        "with a single button tap. It can also wait for events, for example new " +
+                        "followers, before continuing.",
+                ),
             )
         }
-        CreateButtonView {
-            val macro = SettingsMacrosMacro()
-            macro.name = makeUniqueName(
-                name = SettingsMacrosMacro.baseName,
-                existingNames = macros.macros,
-            )
-            macros.macros = macros.macros + macro
-            Unit
+        Section(
+            footerContent = {
+                SwipeLeftToDeleteHelpView(kind = localized("a macro"))
+            },
+        ) {
+            macros.macros.forEach { macro ->
+                key(macro.id) {
+                    MacroView(
+                        model = model,
+                        database = database,
+                        macros = macros,
+                        macro = macro,
+                        onNavigate = onNavigate,
+                    )
+                }
+            }
+            CreateButtonView {
+                val macro = SettingsMacrosMacro()
+                macro.name = makeUniqueName(
+                    name = SettingsMacrosMacro.baseName,
+                    existingNames = macros.macros,
+                )
+                macros.macros = macros.macros + macro
+            }
         }
-        SwipeLeftToDeleteHelpView(kind = localized("a macro"))
     }
 }

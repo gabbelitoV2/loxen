@@ -1,29 +1,17 @@
 package com.moblin.android.view.settings.watch
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.moblin.android.moblinwatch.shared.WatchSettings
-import com.moblin.android.various.model.Model
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
+import com.moblin.android.moblinwatch.shared.WatchSettings
+import com.moblin.android.platform.swiftui.*
+import com.moblin.android.various.model.Model
+import com.moblin.android.view.settings.watch.chat.WatchChatSettingsView
+import com.moblin.android.view.settings.watch.display.WatchDisplaySettingsView
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WatchSettingsView(
     model: Model = LocalModel.current,
@@ -32,59 +20,38 @@ fun WatchSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val viaRemoteControl by watch.viaRemoteControl.collectAsState()
-    LaunchedEffect(viaRemoteControl) {
-        Unit
-    }
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Apple Watch") })
-        },
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(paddingValues),
-        ) {
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("WatchChatSettingsView") }
-                        .padding(16.dp),
-                ) {
-                    Text("Chat")
-                }
-            }
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("WatchDisplaySettingsView") }
-                        .padding(16.dp),
-                ) {
-                    Text("Display")
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                ) {
-                    Text("Remote control assistant")
-                    Spacer(Modifier.weight(1f))
-                    Switch(
-                        checked = viaRemoteControl,
-                        onCheckedChange = { onViaRemoteControlChange(it) },
+    Form(title = "Apple Watch") {
+        Section {
+            NavigationLink(
+                destination = {
+                    WatchChatSettingsView(
+                        chat = com.moblin.android.view.settings.watch.chat.WatchSettingsChat().apply {
+                            fontSize.value = watch.chat.fontSize.value
+                            timestampEnabled.value = watch.chat.timestampEnabled.value
+                            badges.value = watch.chat.badges.value
+                            notificationOnMessage.value = watch.chat.notificationOnMessage.value
+                            notificationRate.value = watch.chat.notificationRate.value
+                        },
                     )
-                }
+                },
+            ) {
+                Text("Chat")
             }
-            item {
-                Text(
-                    "The watch acts as remote control assistant when enabled. Please note that in " +
-                        "this case, chat, skip current TTS and a few other features are not supported.",
-                    modifier = Modifier.padding(16.dp),
-                )
+            NavigationLink(
+                destination = {
+                    WatchDisplaySettingsView(show = watch.show)
+                },
+            ) {
+                Text("Display")
+            }
+        }
+        Section(
+            footer = "The watch acts as remote control assistant when enabled. Please note " +
+                "that in this case, chat, skip current TTS and a few other features are not " +
+                "supported.",
+        ) {
+            Toggle("Remote control assistant", isOn = viaRemoteControl) { value ->
+                onViaRemoteControlChange(value)
             }
         }
     }

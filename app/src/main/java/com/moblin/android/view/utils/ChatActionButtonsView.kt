@@ -3,6 +3,10 @@ package com.moblin.android.view.utils
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,73 +14,94 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.ChatPost
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatNickname
 import com.moblin.android.view.controlbar.quickbutton.chat.QuickButtonChatChatterInfoView
-import com.moblin.android.LocalModel
+import com.moblin.android.various.model.banUser
+import com.moblin.android.various.model.copyMessage
+import com.moblin.android.various.model.deleteMessage
+import com.moblin.android.various.model.reloadChatMessages
+import com.moblin.android.various.model.timeoutUser
+import com.moblin.android.streamingplatforms.Platform
 
 @Composable
 private fun ActionButtonView(
-    image: ImageVector,
+    image: String,
     text: String,
     foreground: Color?,
     enabled: Boolean = true,
     action: () -> Unit,
 ) {
-    Button(onClick = action, enabled = enabled) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            if (foreground != null) {
-                Icon(
-                    imageVector = image,
-                    contentDescription = null,
-                    tint = foreground,
-                    modifier = Modifier.size(22.dp),
-                )
-            } else {
-                Icon(
-                    imageVector = image,
-                    contentDescription = null,
-                    modifier = Modifier.size(22.dp),
-                )
-            }
-            Text(
-                text = localized(text),
-                color = Color.White,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 1,
-            )
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .alpha(if (pressed) 0.2f else 1f)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                enabled = enabled,
+                onClick = action,
+            ),
+    ) {
+        if (foreground != null) {
+            SystemImage(name = image, fontSize = 22.sp, tint = foreground)
+        } else {
+            SystemImage(name = image, fontSize = 22.sp)
         }
+        Text(
+            text = localized(text),
+            color = Color.White,
+            fontSize = 12.sp,
+            maxLines = 1,
+        )
     }
+}
+
+@Composable
+private fun DialogButton(
+    title: String,
+    color: Color,
+    action: () -> Unit,
+) {
+    Text(
+        text = localized(title),
+        color = color,
+        fontSize = 17.sp,
+        modifier = Modifier
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = action,
+            )
+            .padding(8.dp),
+    )
 }
 
 @Composable
@@ -87,7 +112,8 @@ private fun banButton(
     onPresentingBanConfirmChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ActionButtonView(image = Icons.Default.Block, text = "Ban", foreground = Color.Red) {
+    val palette = formPalette()
+    ActionButtonView(image = "nosign", text = "Ban", foreground = palette.red) {
         onPresentingBanConfirmChange(true)
     }
     if (presentingBanConfirm) {
@@ -96,16 +122,15 @@ private fun banButton(
             title = null,
             text = null,
             confirmButton = {
-                TextButton(onClick = {
-                    Unit
+                DialogButton(title = "Ban", color = palette.red) {
+                    model.banUser(post = selectedPost)
+                    onPresentingBanConfirmChange(false)
                     onDismiss()
-                }) {
-                    Text(localized("Ban"), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onPresentingBanConfirmChange(false) }) {
-                    Text(localized("Cancel"))
+                DialogButton(title = "Cancel", color = palette.accent) {
+                    onPresentingBanConfirmChange(false)
                 }
             },
         )
@@ -120,7 +145,8 @@ private fun timeoutButton(
     onPresentingTimeoutConfirmChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ActionButtonView(image = Icons.Default.Timer, text = "Timeout", foreground = null) {
+    val palette = formPalette()
+    ActionButtonView(image = "timer", text = "Timeout", foreground = null) {
         onPresentingTimeoutConfirmChange(true)
     }
     if (presentingTimeoutConfirm) {
@@ -130,29 +156,26 @@ private fun timeoutButton(
             text = null,
             confirmButton = {
                 Column {
-                    TextButton(onClick = {
-                        Unit
+                    DialogButton(title = "5 minutes timeout", color = palette.red) {
+                        model.timeoutUser(post = selectedPost, duration = 300)
+                        onPresentingTimeoutConfirmChange(false)
                         onDismiss()
-                    }) {
-                        Text(localized("5 minutes timeout"), color = MaterialTheme.colorScheme.error)
                     }
-                    TextButton(onClick = {
-                        Unit
+                    DialogButton(title = "1 hour timeout", color = palette.red) {
+                        model.timeoutUser(post = selectedPost, duration = 3600)
+                        onPresentingTimeoutConfirmChange(false)
                         onDismiss()
-                    }) {
-                        Text(localized("1 hour timeout"), color = MaterialTheme.colorScheme.error)
                     }
-                    TextButton(onClick = {
-                        Unit
+                    DialogButton(title = "24 hours timeout", color = palette.red) {
+                        model.timeoutUser(post = selectedPost, duration = 86400)
+                        onPresentingTimeoutConfirmChange(false)
                         onDismiss()
-                    }) {
-                        Text(localized("24 hours timeout"), color = MaterialTheme.colorScheme.error)
                     }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onPresentingTimeoutConfirmChange(false) }) {
-                    Text(localized("Cancel"))
+                DialogButton(title = "Cancel", color = palette.accent) {
+                    onPresentingTimeoutConfirmChange(false)
                 }
             },
         )
@@ -167,7 +190,8 @@ private fun deleteButton(
     onPresentingDeleteConfirmChange: (Boolean) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ActionButtonView(image = Icons.Default.Delete, text = "Delete", foreground = null) {
+    val palette = formPalette()
+    ActionButtonView(image = "trash", text = "Delete", foreground = null) {
         onPresentingDeleteConfirmChange(true)
     }
     if (presentingDeleteConfirm) {
@@ -176,16 +200,15 @@ private fun deleteButton(
             title = null,
             text = null,
             confirmButton = {
-                TextButton(onClick = {
-                    Unit
+                DialogButton(title = "Delete message", color = palette.red) {
+                    model.deleteMessage(post = selectedPost)
+                    onPresentingDeleteConfirmChange(false)
                     onDismiss()
-                }) {
-                    Text(localized("Delete message"), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onPresentingDeleteConfirmChange(false) }) {
-                    Text(localized("Cancel"))
+                DialogButton(title = "Cancel", color = palette.accent) {
+                    onPresentingDeleteConfirmChange(false)
                 }
             },
         )
@@ -198,8 +221,8 @@ private fun copyButton(
     selectedPost: ChatPost,
     onDismiss: () -> Unit,
 ) {
-    ActionButtonView(image = Icons.Default.ContentCopy, text = "Copy", foreground = null) {
-        Unit
+    ActionButtonView(image = "document.on.document", text = "Copy", foreground = null) {
+        model.copyMessage(post = selectedPost)
         onDismiss()
     }
 }
@@ -215,7 +238,8 @@ private fun nicknameButton(
     onNicknameTextChange: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    ActionButtonView(image = Icons.Default.PersonAdd, text = "Nickname", foreground = null) {
+    val palette = formPalette()
+    ActionButtonView(image = "person.badge.plus", text = "Nickname", foreground = null) {
         val user = selectedPost.user
         onNicknameTextChange(user?.let { chat.nicknames.getNickname(user = it) } ?: "")
         onPresentingNicknameDialogChange(true)
@@ -225,24 +249,43 @@ private fun nicknameButton(
             onDismissRequest = { onPresentingNicknameDialogChange(false) },
             title = { Text("Nickname for ${selectedPost.user ?: ""}") },
             text = {
-                OutlinedTextField(
-                    value = nicknameText,
-                    onValueChange = onNicknameTextChange,
-                    label = { Text(localized("Nickname")) },
-                    singleLine = true,
-                )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    BasicTextField(
+                        value = nicknameText,
+                        onValueChange = onNicknameTextChange,
+                        singleLine = true,
+                        textStyle = TextStyle(color = palette.label, fontSize = 17.sp),
+                        modifier = Modifier.fillMaxWidth(),
+                        decorationBox = { innerTextField ->
+                            Box {
+                                if (nicknameText.isEmpty()) {
+                                    Text(
+                                        text = localized("Nickname"),
+                                        color = palette.secondaryLabel,
+                                        fontSize = 17.sp,
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        },
+                    )
+                }
             },
             confirmButton = {
-                TextButton(onClick = {
-                    saveNickname(model = model, selectedPost = selectedPost, nicknameText = nicknameText)
+                DialogButton(title = "Save", color = palette.accent) {
+                    saveNickname(
+                        model = model,
+                        selectedPost = selectedPost,
+                        nicknameText = nicknameText,
+                    )
+                    onPresentingNicknameDialogChange(false)
                     onDismiss()
-                }) {
-                    Text(localized("Save"))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onDismiss() }) {
-                    Text(localized("Cancel"))
+                DialogButton(title = "Cancel", color = palette.accent) {
+                    onPresentingNicknameDialogChange(false)
+                    onDismiss()
                 }
             },
         )
@@ -255,7 +298,7 @@ private fun infoButton(
     onShowInfo: () -> Unit,
 ) {
     ActionButtonView(
-        image = Icons.Default.Info,
+        image = "info.circle",
         text = "Info",
         foreground = null,
         enabled = enabled,
@@ -285,7 +328,7 @@ private fun saveNickname(
             chat.nicknames.nicknames.add(item)
         }
     }
-    Unit
+    model.reloadChatMessages()
 }
 
 @Composable
@@ -295,10 +338,12 @@ private fun lineView(
     selectedPost: ChatPost,
     onLinkUrlChange: (String?) -> Unit,
 ) {
+    val moreThanOneStreamingPlatform by model.chat.moreThanOneStreamingPlatform.collectAsState()
+    val deleted by selectedPost.state.deleted.collectAsState()
     val content = style.makeContent(
         post = selectedPost,
-        platform = model.chat.moreThanOneStreamingPlatform.value,
-        deleted = selectedPost.state.deleted.value,
+        platform = moreThanOneStreamingPlatform,
+        deleted = deleted,
     )
     ChatLineView(content = content) { url ->
         if (url != null) {
@@ -323,6 +368,8 @@ fun ChatActionButtonsView(
     var nicknameText by remember { mutableStateOf("") }
     var showingChatterInfo by remember { mutableStateOf(false) }
 
+    val palette = formPalette()
+
     fun dismiss() {
         showingChatterInfo = false
         onSelectedPostChange(null)
@@ -336,7 +383,7 @@ fun ChatActionButtonsView(
             Box(
                 modifier = Modifier
                     .padding(horizontal = 5.dp)
-                    .border(1.dp, Color.Gray)
+                    .border(1.dp, palette.gray),
             ) {
                 QuickButtonChatChatterInfoView(
                     model = model,
@@ -345,25 +392,29 @@ fun ChatActionButtonsView(
                 ) { showingChatterInfo = it }
             }
         } else {
-            Column {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Spacer(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
-                        .clickable { onSelectedPostChange(null) }
+                        .pointerInput(Unit) {
+                            detectTapGestures {
+                                onSelectedPostChange(null)
+                            }
+                        },
                 )
                 Column(
                     horizontalAlignment = Alignment.Start,
                     modifier = Modifier
                         .background(Color.Black)
                         .padding(horizontal = 5.dp)
-                        .border(1.dp, Color.Gray)
+                        .border(1.dp, palette.gray),
                 ) {
                     Column(
                         modifier = Modifier
                             .padding(vertical = 5.dp)
                             .height(100.dp)
-                            .verticalScroll(rememberScrollState())
+                            .verticalScroll(rememberScrollState()),
                     ) {
                         lineView(
                             model = model,
@@ -374,7 +425,8 @@ fun ChatActionButtonsView(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 5.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(bottom = 5.dp),
                     ) {
                         Spacer(Modifier.weight(1f))
                         banButton(
@@ -418,7 +470,7 @@ fun ChatActionButtonsView(
                             onDismiss = { dismiss() },
                         )
                         Spacer(Modifier.weight(1f))
-                        infoButton(enabled = post.platform?.name == "kick") {
+                        infoButton(enabled = post.platform == Platform.kick) {
                             showingChatterInfo = true
                         }
                         Spacer(Modifier.weight(1f))

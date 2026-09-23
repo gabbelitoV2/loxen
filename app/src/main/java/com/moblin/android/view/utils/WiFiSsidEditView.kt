@@ -1,23 +1,13 @@
 package com.moblin.android.view.utils
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -27,13 +17,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.various.utils.fetchCurrentWiFiSsid
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
 private class CurrentWiFiNetwork {
     val ssid = MutableStateFlow<String?>(null)
@@ -41,11 +39,12 @@ private class CurrentWiFiNetwork {
     val locationDenied = MutableStateFlow(false)
 
     fun locationManagerDidChangeAuthorization() {
-        Unit
+        fetchCurrentWiFiSsid { newSsid ->
+            ssid.value = newSsid
+        }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WiFiSsidEditView(
     value: String,
@@ -71,9 +70,14 @@ fun WiFiSsidEditView(
         latestOnSubmit(trimmed)
     }
 
+    LaunchedEffect(Unit) {
+        currentNetwork.locationManagerDidChangeAuthorization()
+    }
+
     LaunchedEffect(ssid) {
         val currentSsid = ssid
         if (latestValue.isEmpty() && currentSsid != null) {
+            changed = true
             latestOnValueChange(currentSsid)
         }
     }
@@ -86,26 +90,22 @@ fun WiFiSsidEditView(
         }
     }
 
+    val palette = formPalette()
     val currentSsid = ssid
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("SSID") })
-        },
-    ) { contentPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(contentPadding),
-        ) {
-            item {
-                OutlinedTextField(
+    Form(title = "SSID") {
+        Section {
+            FormRow {
+                BasicTextField(
                     value = value,
                     onValueChange = {
                         onValueChange(it)
                         changed = true
                     },
+                    modifier = Modifier.weight(1f),
+                    textStyle = formBodyStyle.copy(color = palette.label),
                     singleLine = true,
+                    cursorBrush = SolidColor(palette.accent),
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.None,
                         autoCorrectEnabled = false,
@@ -117,54 +117,39 @@ fun WiFiSsidEditView(
                             onDismiss()
                         },
                     ),
-                    modifier = Modifier.fillMaxWidth(),
                 )
             }
-            if (currentSsid != null) {
-                item {
-                    Text(
-                        text = "Current network",
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                }
-                item {
-                    TextButton(
-                        onClick = {
-                            submit(currentSsid)
-                            onDismiss()
-                        },
+        }
+        if (currentSsid != null) {
+            Section(
+                header = "Current network",
+                footer = "The WiFi network this device is currently connected to.",
+            ) {
+                FormRow(
+                    onClick = {
+                        submit(currentSsid)
+                        onDismiss()
+                    },
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Row {
-                            Icon(
-                                imageVector = Icons.Default.Wifi,
-                                contentDescription = null,
-                            )
-                            Text(
-                                text = currentSsid,
-                                modifier = Modifier.padding(start = 8.dp),
-                            )
-                            Spacer(Modifier.weight(1f))
-                            if (currentSsid == value) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = null,
-                                )
-                            }
+                        SystemImage("wifi", fontSize = 17.sp, tint = palette.accent)
+                        Text(text = currentSsid, color = palette.accent)
+                        Spacer(Modifier.weight(1f))
+                        if (currentSsid == value) {
+                            SystemImage("checkmark", fontSize = 17.sp, tint = palette.accent)
                         }
                     }
                 }
-                item {
-                    Text(
-                        text = "The WiFi network this device is currently connected to.",
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-            } else if (locationDenied) {
-                item {
-                    Text(
-                        text = "⚠️ Allow Moblin to access your location in iOS Settings to see the current WiFi network.",
-                    )
-                }
+            }
+        } else if (locationDenied) {
+            Section {
+                Text(
+                    "⚠️ Allow Moblin to access your location in iOS Settings to see the current WiFi network.",
+                )
             }
         }
     }

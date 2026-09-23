@@ -1,7 +1,7 @@
 package com.moblin.android.media.haishinkit.media
 
 import android.graphics.Bitmap
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.media.MediaFormat
 import android.util.Log
 import android.util.Size
@@ -54,7 +54,7 @@ private val mainScope = CoroutineScope(Dispatchers.Main)
 val processorControlQueue = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
 val processorPipelineQueue = CoroutineScope(
-    Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+    com.moblin.android.platform.core.PipelineThread.dispatcher
 )
 
 private class Stream(var delegate: AudioVideoEncoderDelegate? = null)
@@ -145,7 +145,7 @@ class Processor(val delegate: ProcessorDelegate) :
     }
 
     fun setVideoEncoderSettings(settings: VideoEncoderSettings) {
-        Unit
+        video.encoder.settings.mutate { it.value = com.moblin.android.platform.core.structCopy(settings) }
     }
 
     fun attachCamera(
@@ -159,7 +159,7 @@ class Processor(val delegate: ProcessorDelegate) :
                 mainScope.launch {
                     onSuccess?.invoke()
                 }
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 mainScope.launch {
                     onError?.invoke(e)
                 }
@@ -174,7 +174,7 @@ class Processor(val delegate: ProcessorDelegate) :
         processorControlQueue.launch {
             try {
                 attachAudioInternal(params)
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 mainScope.launch {
                     onError?.invoke(e)
                 }

@@ -1,28 +1,19 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.alerts
 
 import android.graphics.BitmapFactory
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,7 +31,18 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.formatOneDecimal
+import com.moblin.android.platform.Bundle
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormButton
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsOpenAi
 import com.moblin.android.various.settings.SettingsVoice
@@ -56,18 +58,23 @@ import com.moblin.android.view.settings.scenes.widgets.widget.videosource.drawPo
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.settings.streams.stream.KickLogoAndNameView
 import com.moblin.android.view.settings.streams.stream.TwitchLogoAndNameView
-import com.moblin.android.view.utils.HCenter
+import com.moblin.android.view.utils.OpenAiSettingsView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import java.io.File
 import java.util.UUID
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 
 val alertTestNames = listOf("Mark", "Natasha", "Pedro", "Anna")
 
 @Composable
 fun AlertPickerView(model: Model = LocalModel.current, type: String) {
-    Unit
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            model.onDocumentPickerUrl?.invoke(uri.toString())
+        }
+    }
+    LaunchedEffect(Unit) {
+        launcher.launch(arrayOf(type))
+    }
 }
 
 @Composable
@@ -89,33 +96,38 @@ fun AlertTextToSpeechView(
         model.updateAlertsSettings()
     }
 
-    Text("Text to speech", style = MaterialTheme.typography.titleSmall)
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("Enabled", modifier = Modifier.weight(1f))
-        Switch(
-            checked = alert.textToSpeechEnabled,
-            onCheckedChange = { value ->
+    Section(header = "Text to speech") {
+        Toggle(
+            title = "Enabled",
+            isOn = alert.textToSpeechEnabled,
+            onChange = { value ->
                 alert.textToSpeechEnabled = value
                 model.updateAlertsSettings()
             },
         )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Delay")
+            FormSlider(
+                value = ttsDelay.toFloat(),
+                onValueChange = { value ->
+                    ttsDelay = value.toDouble()
+                    alert.textToSpeechDelay = ttsDelay
+                    model.updateAlertsSettings()
+                },
+                modifier = Modifier.weight(1f),
+                valueRange = 0f..5f,
+            )
+            Box(modifier = Modifier.width(35.dp), contentAlignment = Alignment.Center) {
+                Text(formatOneDecimal(ttsDelay.toFloat()))
+            }
+        }
+        FormRow(onClick = { onNavigate("voices") }) {
+            Text("Voices")
+        }
     }
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("Delay")
-        Slider(
-            value = ttsDelay.toFloat(),
-            onValueChange = { ttsDelay = it.toDouble() },
-            valueRange = 0f..5f,
-            steps = 9,
-            modifier = Modifier.weight(1f),
-        )
-        Text(formatOneDecimal(ttsDelay.toFloat()), modifier = Modifier.width(35.dp))
-    }
-    LaunchedEffect(ttsDelay) {
-        alert.textToSpeechDelay = ttsDelay
-        model.updateAlertsSettings()
-    }
-    Text("Voices", modifier = Modifier.clickable { onNavigate("voices") })
 }
 
 private fun getImageName(model: Model, id: UUID?): String {
@@ -128,13 +140,18 @@ private fun getSoundName(model: Model, id: UUID?): String {
 
 @Composable
 private fun VideoPickerView(model: Model = LocalModel.current) {
-    Unit
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            model.onDocumentPickerUrl?.invoke(uri.toString())
+        }
+    }
+    LaunchedEffect(Unit) {
+        launcher.launch(arrayOf("video/*"))
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun VideoView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
-    var showForm by remember { mutableStateOf(false) }
     var showPicker by remember { mutableStateOf(false) }
 
     val onUrl: (String) -> Unit = { url ->
@@ -147,94 +164,65 @@ private fun VideoView(model: Model = LocalModel.current, alert: SettingsWidgetAl
         }
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { showForm = true },
-        verticalAlignment = Alignment.CenterVertically,
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        showPicker = false
+        if (uri != null) {
+            model.onDocumentPickerUrl?.invoke(uri.toString())
+        }
+    }
+
+    NavigationLink(
+        destination = {
+            Form(title = "Video") {
+                Section {
+                    FormButton(
+                        title = if (alert.videoName.isEmpty()) "Select video" else alert.videoName,
+                        centered = true,
+                    ) {
+                        showPicker = true
+                        model.onDocumentPickerUrl = onUrl
+                        launcher.launch(arrayOf("video/*"))
+                    }
+                }
+            }
+        },
     ) {
         Text("Video")
         Spacer(Modifier.weight(1f))
         GrayTextView(text = alert.videoName)
     }
-    if (showForm) {
-        ModalBottomSheet(onDismissRequest = { showForm = false }) {
-            Text("Video", style = MaterialTheme.typography.titleMedium)
-            Button(
-                onClick = {
-                    showPicker = true
-                    model.onDocumentPickerUrl = onUrl
-                },
-            ) {
-                HCenter {
-                    if (alert.videoName.isEmpty()) {
-                        Text("Select video")
-                    } else {
-                        Text(alert.videoName)
-                    }
-                }
-            }
-        }
-    }
-    if (showPicker) {
-        ModalBottomSheet(onDismissRequest = { showPicker = false }) {
-            VideoPickerView(model = model)
-        }
-    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertMediaView(
     model: Model = LocalModel.current,
     alert: SettingsWidgetAlertsAlert,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Text("Media", style = MaterialTheme.typography.titleSmall)
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-        OutlinedTextField(
-            value = alert.mediaType.toString(),
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Type") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth(),
+    Section(header = "Media") {
+        Picker(
+            title = "Type",
+            selection = alert.mediaType,
+            options = SettingsWidgetAlertsAlertMediaType.entries,
+            onChange = { value ->
+                alert.mediaType = value
+                model.updateAlertsSettings()
+            },
         )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            SettingsWidgetAlertsAlertMediaType.entries.forEach { type ->
-                DropdownMenuItem(
-                    text = { Text(type.toString()) },
-                    onClick = {
-                        alert.mediaType = type
-                        expanded = false
-                        model.updateAlertsSettings()
-                    },
-                )
-            }
-        }
     }
-    when (alert.mediaType) {
-        SettingsWidgetAlertsAlertMediaType.gifAndSound -> {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onNavigate("alertImageSelector") },
-            ) {
-                TextItemLocalizedView(name = "Image", value = getImageName(model = model, id = alert.imageId))
+    Section {
+        when (alert.mediaType) {
+            SettingsWidgetAlertsAlertMediaType.gifAndSound -> {
+                FormRow(onClick = { onNavigate("alertImageSelector") }) {
+                    TextItemLocalizedView(name = "Image", value = getImageName(model = model, id = alert.imageId))
+                }
+                FormRow(onClick = { onNavigate("alertSoundSelector") }) {
+                    TextItemLocalizedView(name = "Sound", value = getSoundName(model = model, id = alert.soundId))
+                }
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onNavigate("alertSoundSelector") },
-            ) {
-                TextItemLocalizedView(name = "Sound", value = getSoundName(model = model, id = alert.soundId))
+            SettingsWidgetAlertsAlertMediaType.video -> {
+                VideoView(model = model, alert = alert)
             }
-        }
-        SettingsWidgetAlertsAlertMediaType.video -> {
-            VideoView(model = model, alert = alert)
         }
     }
 }
@@ -291,8 +279,16 @@ private fun AlertPositionFaceView(model: Model = LocalModel.current, alert: Sett
         return Rect(xPoints.toFloat(), yPoints.toFloat(), (xPoints + widthPoints).toFloat(), (yPoints + heightPoints).toFloat())
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Unit
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        val alertFace = remember { Bundle.image("AlertFace")?.asImageBitmap() }
+        if (alertFace != null) {
+            Image(
+                bitmap = alertFace,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
         val image = loadAlertImage(model = model, imageId = alert.imageId)
         if (image != null) {
             val bitmap = remember(image) { BitmapFactory.decodeByteArray(image, 0, image.size) }
@@ -302,9 +298,8 @@ private fun AlertPositionFaceView(model: Model = LocalModel.current, alert: Sett
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
                     modifier = Modifier
-                        .width(imageWidth.dp)
-                        .height(imageHeight.dp)
-                        .offset(x = imageOffset.width.dp, y = imageOffset.height.dp),
+                        .offset(x = imageOffset.width.dp, y = imageOffset.height.dp)
+                        .size(imageWidth.dp, imageHeight.dp),
                 )
             }
         }
@@ -337,38 +332,24 @@ private fun AlertPositionFaceView(model: Model = LocalModel.current, alert: Sett
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertPositionView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
-    Text("Position", style = MaterialTheme.typography.titleSmall)
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
-        OutlinedTextField(
-            value = alert.positionType.toString(),
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Type") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth(),
+    Section(header = "Position") {
+        Picker(
+            title = "Type",
+            selection = alert.positionType,
+            options = SettingsWidgetAlertPositionType.entries,
+            onChange = { value ->
+                alert.positionType = value
+                model.updateAlertsSettings()
+            },
         )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            SettingsWidgetAlertPositionType.entries.forEach { type ->
-                DropdownMenuItem(
-                    text = { Text(type.toString()) },
-                    onClick = {
-                        alert.positionType = type
-                        expanded = false
-                        model.updateAlertsSettings()
-                    },
-                )
-            }
-        }
     }
-    when (alert.positionType) {
-        SettingsWidgetAlertPositionType.face -> AlertPositionFaceView(model = model, alert = alert)
-        else -> {}
+    Section {
+        when (alert.positionType) {
+            SettingsWidgetAlertPositionType.face -> AlertPositionFaceView(model = model, alert = alert)
+            else -> {}
+        }
     }
 }
 
@@ -379,36 +360,50 @@ private fun AiResponseView(
     ai: SettingsOpenAi,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("openAiSettings") },
-        verticalAlignment = Alignment.CenterVertically,
+    NavigationLink(
+        destination = {
+            Form(title = "AI response") {
+                OpenAiSettingsView(ai = ai)
+            }
+            var previousBaseUrl by remember { mutableStateOf(ai.baseUrl) }
+            var previousApiKey by remember { mutableStateOf(ai.apiKey) }
+            var previousModelName by remember { mutableStateOf(ai.model) }
+            var previousPersonality by remember { mutableStateOf(ai.personality) }
+            LaunchedEffect(ai.baseUrl) {
+                if (previousBaseUrl != ai.baseUrl) {
+                    previousBaseUrl = ai.baseUrl
+                    model.updateAlertsSettings()
+                }
+            }
+            LaunchedEffect(ai.apiKey) {
+                if (previousApiKey != ai.apiKey) {
+                    previousApiKey = ai.apiKey
+                    model.updateAlertsSettings()
+                }
+            }
+            LaunchedEffect(ai.model) {
+                if (previousModelName != ai.model) {
+                    previousModelName = ai.model
+                    model.updateAlertsSettings()
+                }
+            }
+            LaunchedEffect(ai.personality) {
+                if (previousPersonality != ai.personality) {
+                    previousPersonality = ai.personality
+                    model.updateAlertsSettings()
+                }
+            }
+        },
     ) {
-        Text("AI response", modifier = Modifier.weight(1f))
-        Switch(
-            checked = alerts.aiEnabled,
-            onCheckedChange = { value ->
+        Toggle(
+            title = "AI response",
+            isOn = alerts.aiEnabled,
+            enabled = ai.isConfigured(),
+            onChange = { value ->
                 alerts.aiEnabled = value
                 model.updateAlertsSettings()
             },
-            enabled = ai.isConfigured(),
         )
-    }
-    LaunchedEffect(ai.baseUrl) {
-        model.updateAlertsSettings()
-    }
-    LaunchedEffect(ai.apiKey) {
-        model.updateAlertsSettings()
-    }
-    LaunchedEffect(ai.model) {
-        model.updateAlertsSettings()
-    }
-    LaunchedEffect(ai.personality) {
-        model.updateAlertsSettings()
-    }
-    LaunchedEffect(alerts.aiEnabled) {
-        model.updateAlertsSettings()
     }
 }
 
@@ -418,32 +413,20 @@ fun WidgetAlertsSettingsView(
     widget: SettingsWidget,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("twitchAlerts") },
-    ) {
-        TwitchLogoAndNameView()
+    Section {
+        FormRow(onClick = { onNavigate("twitchAlerts") }) {
+            TwitchLogoAndNameView()
+        }
+        FormRow(onClick = { onNavigate("kickAlerts") }) {
+            KickLogoAndNameView()
+        }
+        FormRow(onClick = { onNavigate("chatBotAlerts") }) {
+            Text("Chat bot")
+        }
+        FormRow(onClick = { onNavigate("speechToTextAlerts") }) {
+            Text("Speech to text")
+        }
     }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("kickAlerts") },
-    ) {
-        KickLogoAndNameView()
-    }
-    Text(
-        "Chat bot",
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("chatBotAlerts") },
-    )
-    Text(
-        "Speech to text",
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("speechToTextAlerts") },
-    )
     AiResponseView(
         model = model,
         alerts = widget.alerts,

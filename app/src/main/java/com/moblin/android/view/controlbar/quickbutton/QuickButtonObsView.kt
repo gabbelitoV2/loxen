@@ -3,46 +3,43 @@ package com.moblin.android.view.controlbar.quickbutton
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.MicOff
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
 import com.moblin.android.localized
 import com.moblin.android.obs.ObsOutputState
 import com.moblin.android.obs.obsMaximumAudioDelay
 import com.moblin.android.obs.obsMinimumAudioDelay
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.Label
+import com.moblin.android.platform.swiftui.LocalTint
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.ObsSceneMediaSource
 import com.moblin.android.various.model.QuickButtonObs
@@ -70,7 +67,6 @@ import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.ValueEditView
-import com.moblin.android.LocalModel
 
 @Composable
 private fun ObsStartStopButtonView(
@@ -82,69 +78,88 @@ private fun ObsStartStopButtonView(
 ) {
     var presentingStartConfirm by remember { mutableStateOf(false) }
     var presentingStopConfirm by remember { mutableStateOf(false) }
+    val palette = formPalette()
     when (state) {
         ObsOutputState.stopped -> {
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Section {
                 TextButtonView(title = startText, action = { presentingStartConfirm = true })
-                if (presentingStartConfirm) {
-                    AlertDialog(
-                        onDismissRequest = { presentingStartConfirm = false },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                presentingStartConfirm = false
-                                startAction()
-                            }) {
-                                Text(startText)
-                            }
-                        },
-                    )
-                }
+            }
+            if (presentingStartConfirm) {
+                AlertDialog(
+                    onDismissRequest = { presentingStartConfirm = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            presentingStartConfirm = false
+                            startAction()
+                        }) {
+                            Text(startText)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { presentingStartConfirm = false }) {
+                            Text(localized("Cancel"))
+                        }
+                    },
+                )
             }
         }
         ObsOutputState.starting -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Gray)
-                    .padding(8.dp),
-            ) {
-                HCenter {
-                    Text(text = localized("Starting..."), color = Color.White)
+            Section {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(palette.gray)
+                        .padding(vertical = 11.dp),
+                ) {
+                    HCenter {
+                        Text(localized("Starting..."), color = Color.White)
+                    }
                 }
             }
         }
         ObsOutputState.started -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Blue)
-                    .padding(8.dp),
-            ) {
-                TextButtonView(title = stopText, action = { presentingStopConfirm = true })
-                if (presentingStopConfirm) {
-                    AlertDialog(
-                        onDismissRequest = { presentingStopConfirm = false },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                presentingStopConfirm = false
-                                stopAction()
-                            }) {
-                                Text(stopText)
-                            }
-                        },
-                    )
+            Section {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(palette.accent)
+                        .padding(vertical = 11.dp),
+                ) {
+                    CompositionLocalProvider(LocalTint provides Color.White) {
+                        TextButtonView(title = stopText, action = { presentingStopConfirm = true })
+                    }
                 }
+            }
+            if (presentingStopConfirm) {
+                AlertDialog(
+                    onDismissRequest = { presentingStopConfirm = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            presentingStopConfirm = false
+                            stopAction()
+                        }) {
+                            Text(stopText)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { presentingStopConfirm = false }) {
+                            Text(localized("Cancel"))
+                        }
+                    },
+                )
             }
         }
         ObsOutputState.stopping -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Gray)
-                    .padding(8.dp),
-            ) {
-                HCenter {
-                    Text(text = localized("Stopping..."), color = Color.White)
+            Section {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(palette.gray)
+                        .padding(vertical = 11.dp),
+                ) {
+                    HCenter {
+                        Text(localized("Stopping..."), color = Color.White)
+                    }
                 }
             }
         }
@@ -189,37 +204,22 @@ private fun ObsStartStopRecordingView(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ObsSettingsView(
     model: Model = LocalModel.current,
     stream: SettingsStream,
 ) {
-    val obsWebSocketEnabled = stream.obsWebSocketEnabled
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
-    ) {
-        TopAppBar(title = { Text(localized("OBS remote control")) })
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(localized("Enabled"))
-            Switch(
-                checked = obsWebSocketEnabled,
-                onCheckedChange = { enabled ->
-                    stream.obsWebSocketEnabled = enabled
-                    if (stream.enabled) {
-                        model.obsWebSocketEnabledUpdated()
-                    }
-                },
-            )
-        }
+    Form(title = localized("OBS remote control")) {
+        Toggle(
+            title = localized("Enabled"),
+            isOn = stream.obsWebSocketEnabled,
+            onChange = { enabled ->
+                stream.obsWebSocketEnabled = enabled
+                if (stream.enabled) {
+                    model.obsWebSocketEnabledUpdated()
+                }
+            },
+        )
         StreamObsRemoteControlSettingsInnerView(stream = stream)
     }
 }
@@ -228,13 +228,8 @@ private fun ObsSettingsView(
 private fun ObsSnapshotView(
     obsQuickButton: QuickButtonObs,
 ) {
-    val screenshot = obsQuickButton.screenshot.collectAsState().value
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-    ) {
-        Text(localized("Current scene snapshot"))
+    Section(header = localized("Current scene snapshot")) {
+        val screenshot = obsQuickButton.screenshot.collectAsState().value
         if (screenshot != null) {
             Image(
                 bitmap = screenshot.asImageBitmap(),
@@ -255,58 +250,32 @@ private fun ObsScenesView(
     model: Model = LocalModel.current,
     obsQuickButton: QuickButtonObs,
 ) {
-    val scenes by obsQuickButton.scenes.collectAsState()
-    val currentScenePicker by obsQuickButton.currentScenePicker.collectAsState()
-    val currentScene by obsQuickButton.currentScene.collectAsState()
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-    ) {
-        Text(localized("Scenes"))
-        scenes.forEach { scene ->
-            val selectScene = {
-                if (currentScene != currentScenePicker) {
-                    model.setObsScene(name = currentScenePicker)
+    Section(header = localized("Scenes")) {
+        val scenes by obsQuickButton.scenes.collectAsState()
+        val currentScenePicker by obsQuickButton.currentScenePicker.collectAsState()
+        val currentScene by obsQuickButton.currentScene.collectAsState()
+        Picker(
+            title = "",
+            selection = currentScenePicker,
+            options = scenes,
+            onChange = { scene ->
+                obsQuickButton.currentScenePicker.value = scene
+                if (currentScene != scene) {
+                    model.setObsScene(name = scene)
                 }
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        obsQuickButton.currentScenePicker.value = scene
-                        selectScene()
-                    }
-                    .padding(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                RadioButton(
-                    selected = currentScenePicker == scene,
-                    onClick = null,
-                )
-                Text(scene)
-            }
-        }
+            },
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ObsSceneMediaSourceView(
     model: Model = LocalModel.current,
     source: ObsSceneMediaSource,
 ) {
-    var showSettings by remember { mutableStateOf(false) }
-    TextButtonView(title = source.name, action = { showSettings = true })
-    if (showSettings) {
-        Dialog(onDismissRequest = { showSettings = false }) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(16.dp),
-            ) {
-                TopAppBar(title = { Text("${source.name} settings") })
+    NavigationLink(destination = {
+        Form(title = "${source.name} settings") {
+            Section {
                 TextEditNavigationView(
                     title = localized("Input"),
                     value = source.input,
@@ -317,6 +286,8 @@ private fun ObsSceneMediaSourceView(
                 )
             }
         }
+    }) {
+        Text(source.name)
     }
 }
 
@@ -325,13 +296,8 @@ private fun ObsSceneMediaSourcesView(
     model: Model = LocalModel.current,
     obsQuickButton: QuickButtonObs,
 ) {
-    val sceneMediaSources by obsQuickButton.sceneMediaSources.collectAsState()
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-    ) {
-        Text(localized("Scene media sources"))
+    Section(header = localized("Scene media sources")) {
+        val sceneMediaSources by obsQuickButton.sceneMediaSources.collectAsState()
         sceneMediaSources.forEach { source ->
             ObsSceneMediaSourceView(model = model, source = source)
         }
@@ -343,40 +309,26 @@ private fun ObsSceneAudioInputsView(
     model: Model = LocalModel.current,
     obsQuickButton: QuickButtonObs,
 ) {
-    val sceneInputs by obsQuickButton.sceneInputs.collectAsState()
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-    ) {
-        Text(localized("Scene audio inputs"))
+    val palette = formPalette()
+    Section(header = localized("Scene audio inputs")) {
+        val sceneInputs by obsQuickButton.sceneInputs.collectAsState()
         sceneInputs.forEach { input ->
             val muted = input.muted
             if (muted != null) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                FormRow {
                     Text(input.name)
                     Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = {
-                        model.obsMuteAudio(inputName = input.name, muted = !muted)
-                    }) {
-                        if (muted) {
-                            Icon(
-                                imageVector = Icons.Filled.MicOff,
-                                contentDescription = null,
-                                tint = Color.Red,
-                            )
-                        } else {
-                            Icon(
-                                imageVector = Icons.Filled.Mic,
-                                contentDescription = null,
-                            )
-                        }
-                    }
+                    SystemImage(
+                        name = if (muted) "microphone.slash" else "microphone",
+                        fontSize = 17.sp,
+                        tint = if (muted) palette.red else Color.Unspecified,
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                        ) {
+                            model.obsMuteAudio(inputName = input.name, muted = !muted)
+                        },
+                    )
                 }
             }
         }
@@ -389,35 +341,28 @@ private fun ObsFixSourceView(
     stream: SettingsStream,
     obsQuickButton: QuickButtonObs,
 ) {
+    val palette = formPalette()
     val obsSourceName = stream.obsSourceName
     val fixOngoing by obsQuickButton.fixOngoing.collectAsState()
+    val footer = "Restarts the $obsSourceName source to hopefully fix audio and video issues."
     if (!fixOngoing) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-        ) {
+        Section(footer = footer) {
             TextButtonView(title = "Fix $obsSourceName source", action = {
                 model.obsFixStream()
             })
-            Text(
-                "Restarts the $obsSourceName source to hopefully fix audio and video issues.",
-            )
         }
     } else {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Gray)
-                .padding(8.dp),
-        ) {
-            HCenter {
-                Text(text = localized("Fixing..."), color = Color.White)
+        Section(footer = footer) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(palette.gray)
+                    .padding(vertical = 11.dp),
+            ) {
+                HCenter {
+                    Text(localized("Fixing..."), color = Color.White)
+                }
             }
-            Text(
-                text = "Restarts the $obsSourceName source to hopefully fix audio and video issues.",
-                color = Color.White,
-            )
         }
     }
 }
@@ -440,12 +385,7 @@ private fun ObsAudioSyncView(
         model.setObsAudioDelay(offset = offset)
         offset.toString()
     }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-    ) {
-        Text("$obsSourceName source audio sync")
+    Section(header = "$obsSourceName source audio sync") {
         ValueEditView(
             title = localized("Delay"),
             number = audioDelay.toFloat(),
@@ -468,12 +408,7 @@ private fun ObsAudioLevelsView(
     val isLive by model.isLive.collectAsState()
     val obsSourceName = stream.obsSourceName
     val audioVolume by obsQuickButton.audioVolume.collectAsState()
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
-    ) {
-        Text("$obsSourceName source audio levels")
+    Section(header = "$obsSourceName source audio levels") {
         if (isLive) {
             if (audioVolume.isNotEmpty()) {
                 Text(audioVolume)
@@ -504,46 +439,35 @@ private fun ObsConnectedView(
         ObsAudioSyncView(stream = stream, obsQuickButton = obsQuickButton)
         ObsAudioLevelsView(stream = stream, obsQuickButton = obsQuickButton)
     } else {
-        Text(
-            "Configure source name in Settings → Streams → $streamName → OBS remote control " +
-                "for Fix button and more.",
-        )
+        Section {
+            Text(
+                "Configure source name in Settings → Streams → $streamName → OBS remote control " +
+                    "for Fix button and more.",
+            )
+        }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonObsView(
     stream: SettingsStream,
     obsQuickButton: QuickButtonObs,
     model: Model = LocalModel.current,
 ) {
-    var showObsSettings by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
+    DisposableEffect(Unit) {
         model.listObsScenes(updateAudioInputs = true)
         obsQuickButton.startObsSourceScreenshot()
         model.startObsAudioVolume()
         model.updateObsAudioDelay()
-    }
-    DisposableEffect(Unit) {
         onDispose {
             obsQuickButton.stopObsSourceScreenshot()
             model.stopObsAudioVolume()
         }
     }
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .verticalScroll(rememberScrollState()),
-    ) {
-        TopAppBar(title = { Text(localized("OBS remote control")) })
+    Form(title = localized("OBS remote control")) {
         if (!model.isObsRemoteControlConfigured()) {
         } else if (!model.isObsConnected()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-            ) {
+            Section {
                 Text(localized("Unable to connect the OBS server. Retrying every 5 seconds."))
             }
         } else {
@@ -551,22 +475,14 @@ fun QuickButtonObsView(
         }
         if (stream !== fallbackStream) {
             ShortcutSectionView {
-                TextButtonView(
-                    title = localized("OBS remote control"),
-                    action = { showObsSettings = true },
-                )
-            }
-        }
-    }
-    if (showObsSettings) {
-        Dialog(onDismissRequest = { showObsSettings = false }) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(16.dp),
-            ) {
-                ObsSettingsView(stream = stream)
+                NavigationLink(destination = {
+                    ObsSettingsView(model = model, stream = stream)
+                }) {
+                    Label(
+                        localized("OBS remote control"),
+                        systemImage = "dot.radiowaves.left.and.right",
+                    )
+                }
             }
         }
     }

@@ -1,36 +1,39 @@
 package com.moblin.android.view.settings.catprinters
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.integrations.catprinter.CatPrinterState
-import com.moblin.android.integrations.catprinter.catPrinterScanner
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusTopRight
 import com.moblin.android.various.settings.SettingsCatPrinter
 import com.moblin.android.various.settings.SettingsCatPrinters
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.settings.streams.stream.KickLogoAndNameView
+import com.moblin.android.view.settings.streams.stream.TwitchLogoAndNameView
+import com.moblin.android.view.settings.streams.stream.kick.KickAlertsSettingsView
+import com.moblin.android.view.settings.streams.stream.twitch.TwitchAlertsSettingsView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextButtonView
 import java.util.UUID
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.catPrinterPrintTestImage
+import com.moblin.android.various.model.catPrinterSetFaxMeowSound
+import com.moblin.android.various.model.disableCatPrinter
+import com.moblin.android.various.model.enableCatPrinter
+import com.moblin.android.various.model.isCatPrinterEnabled
+import com.moblin.android.various.model.setCurrentCatPrinter
+
+private val catPrinterScanner = CatPrinterScanner()
 
 private fun formatCatPrinterState(state: CatPrinterState?): String {
     return when (state) {
@@ -44,10 +47,10 @@ private fun formatCatPrinterState(state: CatPrinterState?): String {
 
 fun onDeviceChange(device: SettingsCatPrinter, value: String) {
     val deviceId = runCatching { UUID.fromString(value) }.getOrNull() ?: return
-    TODO(
-        "No setter for SettingsCatPrinter.bluetoothPeripheralName and bluetoothPeripheralId: " +
-            "$deviceId"
-    )
+    val peripheral = catPrinterScanner.discoveredPeripherals.value
+        .firstOrNull { it.identifier == value } ?: return
+    device.bluetoothPeripheralName.value = peripheral.name
+    device.bluetoothPeripheralId.value = deviceId
 }
 
 @Composable
@@ -77,140 +80,124 @@ fun CatPrinterSettingsView(
     }
 
     LaunchedEffect(Unit) {
-        Unit
+        model.setCurrentCatPrinter(device)
     }
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        item {
+    Form(title = localized("Cat printer")) {
+        Section {
             NameEditView(
                 name = name,
                 onNameChange = { newName ->
-                    Unit
+                    device.name = newName
                 },
                 existingNames = devices,
             )
         }
-        item {
-            Text(
-                text = localized("Device"),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        Section(header = localized("Device")) {
+            NavigationLink(
+                destination = {
+                    CatPrinterScannerSettingsView(
+                        scanner = catPrinterScanner,
+                        selectedId = bluetoothPeripheralId?.toString()
+                            ?: localized("Select device"),
+                        onChange = { value ->
+                            onDeviceChange(device, value)
+                        },
+                        onDismiss = {},
+                    )
+                },
+                enabled = !model.isCatPrinterEnabled(device),
+                label = {
+                    GrayTextView(
+                        text = bluetoothPeripheralName ?: localized("Select device")
+                    )
+                },
             )
         }
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(enabled = !enabled) {
-                        onNavigate("CatPrinterScannerSettingsView")
+        Section {
+            Toggle(
+                title = localized("Enabled"),
+                isOn = enabled,
+                enabled = canEnable(),
+                onChange = { value ->
+                    device.enabled.value = value
+                    if (value) {
+                        model.enableCatPrinter(device)
+                    } else {
+                        model.disableCatPrinter(device)
                     }
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            ) {
-                GrayTextView(text = bluetoothPeripheralName ?: localized("Select device"))
-            }
+                },
+            )
         }
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = localized("Enabled"),
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(
-                    checked = enabled,
-                    onCheckedChange = { value ->
-                        if (value) {
-                            Unit
-                        } else {
-                            Unit
-                        }
-                    },
-                    enabled = canEnable(),
-                )
-            }
-        }
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = localized("Print chat"),
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(
-                    checked = printChat,
-                    onCheckedChange = { value ->
-                        Unit
-                    },
-                )
-            }
-        }
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = localized("Print snapshots"),
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(
-                    checked = printSnapshots,
-                    onCheckedChange = { value ->
-                        Unit
-                    },
-                )
-            }
-        }
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        onNavigate("PrintAlerts")
+        Section {
+            Toggle(
+                title = localized("Print chat"),
+                isOn = printChat,
+                onChange = { value ->
+                    device.printChat.value = value
+                },
+            )
+            Toggle(
+                title = localized("Print snapshots"),
+                isOn = printSnapshots,
+                onChange = { value ->
+                    device.printSnapshots.value = value
+                },
+            )
+            NavigationLink(
+                destination = {
+                    Form(title = localized("Print alerts")) {
+                        NavigationLink(
+                            destination = {
+                                val printTwitch by device.printTwitch.collectAsState()
+                                TwitchAlertsSettingsView(
+                                    title = localized("Twitch"),
+                                    alerts = printTwitch,
+                                )
+                            },
+                            label = {
+                                TwitchLogoAndNameView()
+                            },
+                        )
+                        NavigationLink(
+                            destination = {
+                                val printKick by device.printKick.collectAsState()
+                                KickAlertsSettingsView(
+                                    title = localized("Kick"),
+                                    alerts = printKick,
+                                    showBans = false,
+                                )
+                            },
+                            label = {
+                                KickLogoAndNameView()
+                            },
+                        )
                     }
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            ) {
-                Text(text = localized("Print alerts"))
-            }
+                },
+                label = {
+                    Text(localized("Print alerts"))
+                },
+            )
         }
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = localized("Fax meow sound"),
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(
-                    checked = faxMeowSound,
-                    onCheckedChange = { value ->
-                        Unit
-                    },
-                )
-            }
+        Section {
+            Toggle(
+                title = localized("Fax meow sound"),
+                isOn = faxMeowSound,
+                onChange = { value ->
+                    device.faxMeowSound.value = value
+                    model.catPrinterSetFaxMeowSound(device)
+                },
+            )
         }
         if (enabled) {
-            item {
+            Section {
                 HCenter {
-                    Text(text = state())
+                    Text(state())
                 }
             }
-            item {
-                TextButtonView("Test") {
-                    Unit
+            Section {
+                TextButtonView(localized("Test")) {
+                    model.catPrinterPrintTestImage(device)
                 }
             }
         }

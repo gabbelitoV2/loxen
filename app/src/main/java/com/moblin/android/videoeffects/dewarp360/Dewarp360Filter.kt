@@ -1,6 +1,6 @@
 package com.moblin.android.videoeffects.dewarp360
 
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin

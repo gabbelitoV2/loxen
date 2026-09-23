@@ -1,13 +1,10 @@
 package com.moblin.android.view.settings.streams.stream.wizard.custom
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -15,22 +12,66 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.cleanUrl
 import com.moblin.android.common.various.isValidUrl
+import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.WizardCustomProtocol
 import com.moblin.android.various.utils.extractSrtStreamId
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
-import com.moblin.android.view.settings.streams.stream.wizard.StreamWizardGeneralSettingsView
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
+import com.moblin.android.view.settings.streams.stream.wizard.StreamWizardGeneralSettingsView
 import com.moblin.android.view.utils.FormFieldError
-import com.moblin.android.localized
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+
+@Composable
+private fun FormTextField(
+    value: String,
+    placeholder: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val palette = formPalette()
+    Box(modifier = modifier) {
+        if (value.isEmpty()) {
+            Text(
+                text = placeholder,
+                style = formBodyStyle,
+                color = palette.tertiaryLabel,
+                maxLines = 1,
+            )
+        }
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = formBodyStyle.copy(color = palette.label),
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
+            singleLine = true,
+            cursorBrush = SolidColor(palette.accent),
+        )
+    }
+}
+
+private fun updateUrlError(url: String): String {
+    val cleaned = cleanUrl(value = url)
+    return if (cleaned.isEmpty()) {
+        ""
+    } else {
+        isValidUrl(value = cleaned, allowedSchemes = listOf("srt", "srtla")) ?: ""
+    }
+}
 
 @Composable
 fun StreamWizardSrtUrlSettingsView(
@@ -38,46 +79,35 @@ fun StreamWizardSrtUrlSettingsView(
     urlError: String,
     onUrlErrorChange: (String) -> Unit,
 ) {
-    val url = createStreamWizard.customSrtUrl
-    LaunchedEffect(url) {
-        val cleaned = cleanUrl(value = url)
-        if (cleaned.isEmpty()) {
-            onUrlErrorChange("")
-        } else {
-            onUrlErrorChange(isValidUrl(value = cleaned, allowedSchemes = listOf("srt", "srtla")) ?: "")
-        }
-        createStreamWizard.customSrtStreamId = extractSrtStreamId(url = url) ?: ""
-    }
-    LazyColumn {
-        item {
-            Text("URL")
-        }
-        item {
-            OutlinedTextField(
+    Section(
+        header = localized("URL"),
+        footerContent = { FormFieldError(error = urlError) },
+    ) {
+        FormRow {
+            FormTextField(
                 value = createStreamWizard.customSrtUrl,
-                onValueChange = { createStreamWizard.customSrtUrl = it },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
-                singleLine = true,
+                placeholder = "srt://107.32.12.132:5000?streamid=1234",
+                onValueChange = { newValue ->
+                    createStreamWizard.customSrtUrl = newValue
+                    onUrlErrorChange(updateUrlError(url = newValue))
+                    createStreamWizard.customSrtStreamId =
+                        extractSrtStreamId(url = newValue) ?: ""
+                },
+                modifier = Modifier.weight(1f),
             )
         }
-        item {
-            FormFieldError(error = urlError)
-        }
-        item {
-            Text("Stream id")
-        }
-        item {
-            OutlinedTextField(
+    }
+    Section(
+        header = localized("Stream id"),
+        footer = localized("Replaces or adds the stream id to the URL."),
+    ) {
+        FormRow {
+            FormTextField(
                 value = createStreamWizard.customSrtStreamId,
-                onValueChange = { createStreamWizard.customSrtStreamId = it },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
-                singleLine = true,
+                placeholder = "#!::r=stream/-NDZ1WPA4zjMBTJTyNwU,m=publish,...",
+                onValueChange = { newValue -> createStreamWizard.customSrtStreamId = newValue },
+                modifier = Modifier.weight(1f),
             )
-        }
-        item {
-            Text("Replaces or adds the stream id to the URL.")
         }
     }
 }
@@ -92,21 +122,6 @@ fun StreamWizardCustomSrtSettingsView(
     val nextDisabled = createStreamWizard.customSrtUrl.isEmpty() ||
         createStreamWizard.customSrtStreamId.isEmpty() ||
         urlError.isNotEmpty()
-    Column(modifier = Modifier.fillMaxWidth()) {
-        CreateStreamWizardToolbar(createStreamWizard = createStreamWizard)
-        Text("SRT(LA)")
-        StreamWizardSrtUrlSettingsView(
-            createStreamWizard = createStreamWizard,
-            urlError = urlError,
-            onUrlErrorChange = { urlError = it },
-        )
-        TextButton(
-            onClick = { onNavigate("StreamWizardGeneralSettingsView") },
-            enabled = !nextDisabled,
-        ) {
-            WizardNextButtonView()
-        }
-    }
     LaunchedEffect(Unit) {
         createStreamWizard.customProtocol = WizardCustomProtocol.srt
         createStreamWizard.name = makeUniqueName(
@@ -114,6 +129,27 @@ fun StreamWizardCustomSrtSettingsView(
             existingNames = model.database.streams,
         )
     }
+    Form(
+        title = localized("SRT(LA)"),
+        toolbar = { CreateStreamWizardToolbar(createStreamWizard = createStreamWizard) },
+    ) {
+        StreamWizardSrtUrlSettingsView(
+            createStreamWizard = createStreamWizard,
+            urlError = urlError,
+            onUrlErrorChange = { urlError = it },
+        )
+        Section {
+            NavigationLink(
+                enabled = !nextDisabled,
+                destination = {
+                    StreamWizardGeneralSettingsView(
+                        model = model,
+                        createStreamWizard = createStreamWizard,
+                    )
+                },
+            ) {
+                WizardNextButtonView()
+            }
+        }
+    }
 }
-
-private fun localized(key: String): String = key

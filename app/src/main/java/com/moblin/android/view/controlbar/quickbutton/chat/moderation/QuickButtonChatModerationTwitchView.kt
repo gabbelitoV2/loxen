@@ -1,24 +1,12 @@
 package com.moblin.android.view.controlbar.quickbutton.chat.moderation
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,9 +15,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.streamingplatforms.twitch.TwitchApiChannel
 import com.moblin.android.streamingplatforms.twitch.TwitchApiPollData
@@ -39,6 +36,7 @@ import com.moblin.android.streamingplatforms.twitch.TwitchApiPredictionOutcome
 import com.moblin.android.streamingplatforms.twitch.TwitchApiPredictionStatus
 import com.moblin.android.streamingplatforms.twitch.TwitchApiStreamData
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.OperationResult
 import com.moblin.android.various.settings.SettingsStreamTwitchRaidChannel
 import com.moblin.android.view.controlbar.quickbutton.chat.ActionRowView
@@ -61,8 +59,24 @@ import com.moblin.android.view.utils.BorderlessButtonView
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextButtonView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.common.various.isSuccessful
+import com.moblin.android.various.model.createTwitchPoll
+import com.moblin.android.various.model.createTwitchPrediction
+import com.moblin.android.various.model.endTwitchPoll
+import com.moblin.android.various.model.endTwitchPrediction
+import com.moblin.android.various.model.getTwitchFollowedStreams
+import com.moblin.android.various.model.getTwitchPolls
+import com.moblin.android.various.model.getTwitchPredictions
+import com.moblin.android.various.model.getTwitchStreams
+import com.moblin.android.various.model.getTwitchUsers
+import com.moblin.android.various.model.searchTwitchChannels
+import com.moblin.android.various.model.sendTwitchAnnouncement
+import com.moblin.android.various.model.setTwitchEmoteOnlyMode
+import com.moblin.android.various.model.setTwitchFollowersMode
+import com.moblin.android.various.model.setTwitchSlowMode
+import com.moblin.android.various.model.setTwitchSubscribersOnlyMode
+import com.moblin.android.various.model.startAds
+import com.moblin.android.various.model.startRaidTwitchChannel
 
 @Composable
 private fun CreatePollView(model: Model = LocalModel.current, onCreated: () -> Unit) {
@@ -71,22 +85,18 @@ private fun CreatePollView(model: Model = LocalModel.current, onCreated: () -> U
     var duration by remember { mutableStateOf(60) }
     val executor = remember { Executor() }
 
-    Column {
-        Text("Title", style = MaterialTheme.typography.titleMedium)
-        OutlinedTextField(
-            value = title,
-            onValueChange = { title = it },
-            label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        PollOptionsSectionView(
-            header = "Choices",
-            placeholder = "Choice",
-            kind = localized("a choice"),
-            options = options,
-            onOptionsChange = { options = it },
-            maxCount = 5,
-        )
+    Section(header = "Title") {
+        IosTextField(placeholder = "Title", value = title, onValueChange = { title = it })
+    }
+    PollOptionsSectionView(
+        header = "Choices",
+        placeholder = "Choice",
+        kind = localized("a choice"),
+        options = options,
+        onOptionsChange = { options = it },
+        maxCount = 5,
+    )
+    Section {
         PickerRow(
             title = "Duration",
             values = listOf(30, 60, 120, 180, 300, 600),
@@ -94,11 +104,25 @@ private fun CreatePollView(model: Model = LocalModel.current, onCreated: () -> U
             optionText = { formatShortDuration(seconds = it) },
             onSelected = { duration = it },
         )
+    }
+    Section {
         HCenter {
             ExecutorView(executor = executor) {
                 CreateButtonView {
-                    executor.startProgress()
-                    Unit
+                    if (canCreatePoll(title = title, options = options)) {
+                        executor.startProgress()
+                        model.createTwitchPoll(
+                            title = title.trim(),
+                            choices = pollOptionTitles(options = options),
+                            duration = duration,
+                            onComplete = { result ->
+                                executor.completed(result = result)
+                                if (result.isSuccessful()) {
+                                    onCreated()
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -108,26 +132,32 @@ private fun CreatePollView(model: Model = LocalModel.current, onCreated: () -> U
 @Composable
 private fun ActivePollView(model: Model = LocalModel.current, poll: TwitchApiPollData, onEnded: () -> Unit) {
     fun end(status: TwitchApiPollStatus, onComplete: (OperationResult) -> Unit) {
-        Unit
+        model.endTwitchPoll(id = poll.id, status = status) { result ->
+            onComplete(result)
+            if (result.isSuccessful()) {
+                onEnded()
+            }
+        }
     }
 
-    Column {
-        Text("Title", style = MaterialTheme.typography.titleMedium)
+    Section(header = "Title") {
         Text(poll.title)
-        Text("Choices", style = MaterialTheme.typography.titleMedium)
+    }
+    Section(header = "Choices") {
         poll.choices.forEach { choice ->
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(choice.title)
                 Spacer(modifier = Modifier.weight(1f))
             }
         }
+    }
+    Section(footer = "Ending the poll shows the final results. Archiving it hides them.") {
         ActionRowView(text = "End poll", image = "stop") { onComplete ->
             end(status = TwitchApiPollStatus.terminated, onComplete = onComplete)
         }
         ActionRowView(text = "Archive poll", image = "archivebox") { onComplete ->
             end(status = TwitchApiPollStatus.archived, onComplete = onComplete)
         }
-        Text("Ending the poll shows the final results. Archiving it hides them.")
     }
 }
 
@@ -139,7 +169,20 @@ private fun PollFormView(model: Model = LocalModel.current) {
 
     fun load() {
         executor.startProgress()
-        Unit
+        model.getTwitchPolls { result ->
+            when (result) {
+                is NetworkResponse.Success -> {
+                    poll = result.value.firstOrNull { it.isActive() }
+                    executor.completedNoTimer(result = NetworkResponse.Success(ByteArray(0)))
+                }
+                is NetworkResponse.AuthError -> {
+                    executor.completedNoTimer(result = NetworkResponse.AuthError)
+                }
+                is NetworkResponse.Error -> {
+                    executor.completedNoTimer(result = NetworkResponse.Error)
+                }
+            }
+        }
     }
 
     fun loadOnce() {
@@ -177,22 +220,18 @@ private fun CreatePredictionView(model: Model = LocalModel.current, onCreated: (
     var predictionWindow by remember { mutableStateOf(300) }
     val executor = remember { Executor() }
 
-    Column {
-        Text("Title", style = MaterialTheme.typography.titleMedium)
-        OutlinedTextField(
-            value = title,
-            onValueChange = { title = it },
-            label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        PollOptionsSectionView(
-            header = "Outcomes",
-            placeholder = "Outcome",
-            kind = localized("an outcome"),
-            options = outcomes,
-            onOptionsChange = { outcomes = it },
-            maxCount = 10,
-        )
+    Section(header = "Title") {
+        IosTextField(placeholder = "Title", value = title, onValueChange = { title = it })
+    }
+    PollOptionsSectionView(
+        header = "Outcomes",
+        placeholder = "Outcome",
+        kind = localized("an outcome"),
+        options = outcomes,
+        onOptionsChange = { outcomes = it },
+        maxCount = 10,
+    )
+    Section {
         PickerRow(
             title = "Duration",
             values = listOf(60, 300, 600, 1800),
@@ -200,11 +239,25 @@ private fun CreatePredictionView(model: Model = LocalModel.current, onCreated: (
             optionText = { formatShortDuration(seconds = it) },
             onSelected = { predictionWindow = it },
         )
+    }
+    Section {
         HCenter {
             ExecutorView(executor = executor) {
                 CreateButtonView {
-                    executor.startProgress()
-                    Unit
+                    if (canCreatePoll(title = title, options = outcomes)) {
+                        executor.startProgress()
+                        model.createTwitchPrediction(
+                            title = title.trim(),
+                            outcomes = pollOptionTitles(options = outcomes),
+                            predictionWindow = predictionWindow,
+                            onComplete = { result ->
+                                executor.completed(result = result)
+                                if (result.isSuccessful()) {
+                                    onCreated()
+                                }
+                            },
+                        )
+                    }
                 }
             }
         }
@@ -224,7 +277,7 @@ private fun PredictionOutcomeView(
         ExecutorView(executor = executor) {
             BorderlessButtonView(text = "Resolve") {
                 executor.startProgress()
-                action { result -> executor.completed(result) }
+                action { result -> executor.completed(result = result) }
             }
         }
     }
@@ -241,13 +294,25 @@ private fun ActivePredictionView(
         winningOutcomeId: String? = null,
         onComplete: (OperationResult) -> Unit,
     ) {
-        Unit
+        model.endTwitchPrediction(
+            id = prediction.id,
+            status = status,
+            winningOutcomeId = winningOutcomeId,
+        ) { result ->
+            onComplete(result)
+            if (result.isSuccessful()) {
+                onEnded()
+            }
+        }
     }
 
-    Column {
-        Text("Title", style = MaterialTheme.typography.titleMedium)
+    Section(header = "Title") {
         Text(prediction.title)
-        Text("Outcomes", style = MaterialTheme.typography.titleMedium)
+    }
+    Section(
+        header = "Outcomes",
+        footer = "Resolve the prediction by selecting the winning outcome.",
+    ) {
         prediction.outcomes.forEach { outcome ->
             PredictionOutcomeView(outcome = outcome) { onComplete ->
                 end(
@@ -257,7 +322,8 @@ private fun ActivePredictionView(
                 )
             }
         }
-        Text("Resolve the prediction by selecting the winning outcome.")
+    }
+    Section(footer = "Cancelling the prediction refunds all channel points.") {
         if (prediction.isActive()) {
             ActionRowView(text = "Lock prediction", image = "lock") { onComplete ->
                 end(status = TwitchApiPredictionStatus.locked, onComplete = onComplete)
@@ -266,7 +332,6 @@ private fun ActivePredictionView(
         ActionRowView(text = "Cancel prediction", image = "xmark") { onComplete ->
             end(status = TwitchApiPredictionStatus.canceled, onComplete = onComplete)
         }
-        Text("Cancelling the prediction refunds all channel points.")
     }
 }
 
@@ -278,7 +343,20 @@ private fun PredictionFormView(model: Model = LocalModel.current) {
 
     fun load() {
         executor.startProgress()
-        Unit
+        model.getTwitchPredictions { result ->
+            when (result) {
+                is NetworkResponse.Success -> {
+                    prediction = result.value.firstOrNull { it.isActive() || it.isLocked() }
+                    executor.completedNoTimer(result = NetworkResponse.Success(ByteArray(0)))
+                }
+                is NetworkResponse.AuthError -> {
+                    executor.completedNoTimer(result = NetworkResponse.AuthError)
+                }
+                is NetworkResponse.Error -> {
+                    executor.completedNoTimer(result = NetworkResponse.Error)
+                }
+            }
+        }
     }
 
     fun loadOnce() {
@@ -319,40 +397,60 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
     var channels by remember { mutableStateOf<List<TwitchApiChannel>>(emptyList()) }
     val executor = remember { Executor() }
 
-    LaunchedEffect(searchText) {
-        if (searchText.isEmpty()) {
-            channels = emptyList()
-            return@LaunchedEffect
-        }
-        executor.startProgress()
-        Unit
-    }
-
-    Column {
-        OutlinedTextField(
+    Section {
+        IosTextField(
+            placeholder = "Search",
             value = searchText,
-            onValueChange = { searchText = it },
-            label = { Text("Search") },
+            onValueChange = { newValue ->
+                searchText = newValue
+                if (newValue.isEmpty()) {
+                    channels = emptyList()
+                } else {
+                    executor.startProgress()
+                    model.searchTwitchChannels(stream = model.stream.value, filter = newValue) { result ->
+                        when (result) {
+                            is NetworkResponse.Success -> {
+                                val text = newValue.lowercase()
+                                channels = result.value.sortedWith(Comparator { first, second ->
+                                    val firstName = first.display_name.lowercase()
+                                    val secondName = second.display_name.lowercase()
+                                    when {
+                                        firstName.startsWith(text) -> -1
+                                        secondName.startsWith(text) -> 1
+                                        else -> -1
+                                    }
+                                })
+                                executor.completedNoTimer(result = NetworkResponse.Success(ByteArray(0)))
+                            }
+                            is NetworkResponse.AuthError -> {
+                                executor.completedNoTimer(result = NetworkResponse.AuthError)
+                            }
+                            is NetworkResponse.Error -> {
+                                executor.completedNoTimer(result = NetworkResponse.Error)
+                            }
+                        }
+                    }
+                }
+            },
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.None,
                 autoCorrectEnabled = false,
             ),
-            modifier = Modifier.fillMaxWidth(),
         )
+    }
+    Section {
         ExecutorView(executor = executor, centerNonContent = true) {
-            Column {
-                channels.forEach { channel ->
-                    RaidChannelView(
-                        buttonText = "Raid",
-                        channel = channel.display_name,
-                        category = channel.game_name,
-                        title = channel.title,
-                        image = channel.thumbnail_url,
-                        isLive = true,
-                        viewerCount = null,
-                    ) { onComplete ->
-                        Unit
-                    }
+            channels.forEach { channel ->
+                RaidChannelView(
+                    buttonText = "Raid",
+                    channel = channel.display_name,
+                    category = channel.game_name,
+                    title = channel.title,
+                    image = channel.thumbnail_url,
+                    isLive = true,
+                    viewerCount = null,
+                ) { onComplete ->
+                    model.startRaidTwitchChannel(channelId = channel.id, onComplete = onComplete)
                 }
             }
         }
@@ -393,27 +491,24 @@ private fun makeRaidSuggestions(
 
 @Composable
 private fun RaidSuggestionsView(model: Model = LocalModel.current, suggestions: List<RaidSuggestion>) {
-    Column {
-        suggestions.forEach { suggestion ->
-            RaidChannelView(
-                buttonText = "Raid",
-                channel = suggestion.name,
-                category = suggestion.category,
-                title = suggestion.title,
-                image = suggestion.image,
-                isLive = true,
-                viewerCount = suggestion.viewerCount,
-            ) { onComplete ->
-                Unit
-            }
+    suggestions.forEach { suggestion ->
+        RaidChannelView(
+            buttonText = "Raid",
+            channel = suggestion.name,
+            category = suggestion.category,
+            title = suggestion.title,
+            image = suggestion.image,
+            isLive = true,
+            viewerCount = suggestion.viewerCount,
+        ) { onComplete ->
+            model.startRaidTwitchChannel(channelId = suggestion.id, onComplete = onComplete)
         }
     }
 }
 
 @Composable
 private fun RaidHistoryView(model: Model = LocalModel.current, title: String, suggestions: List<RaidSuggestion>) {
-    Column {
-        Text(title, style = MaterialTheme.typography.titleMedium)
+    Section(header = title) {
         RaidSuggestionsView(model = model, suggestions = suggestions)
     }
 }
@@ -423,7 +518,16 @@ private fun fetchRaidSuggestionImages(
     userIds: List<String>,
     onComplete: (Map<String, String>) -> Unit,
 ) {
-    Unit
+    model.getTwitchUsers(stream = model.stream.value, userIds = userIds.distinct()) { users ->
+        if (users == null) {
+            return@getTwitchUsers
+        }
+        val images = mutableMapOf<String, String>()
+        for (user in users) {
+            images[user.id] = user.profile_image_url
+        }
+        onComplete(images)
+    }
 }
 
 private fun setRaidSuggestionImages(
@@ -441,8 +545,7 @@ private fun RaidFollowedChannelsView(
     suggestions: List<RaidSuggestion>,
     executor: Executor,
 ) {
-    Column {
-        Text("Followed channels", style = MaterialTheme.typography.titleMedium)
+    Section(header = "Followed channels") {
         ExecutorView(executor = executor, centerNonContent = true) {
             RaidSuggestionsView(model = model, suggestions = suggestions)
         }
@@ -455,20 +558,23 @@ private fun RunCommercialView(model: Model = LocalModel.current) {
     val executor = remember { Executor() }
 
     NavigationLinkView(text = "Run commercial", image = "cup.and.saucer") {
-        Column {
-            Text("Duration", style = MaterialTheme.typography.titleMedium)
+        Section(header = "Duration") {
             PickerRow(
-                title = null,
+                title = "Duration",
                 values = listOf(30, 60, 90, 120, 180),
                 selected = duration,
                 optionText = { formatShortDuration(seconds = it) },
                 onSelected = { duration = it },
             )
+        }
+        Section {
             HCenter {
                 ExecutorView(executor = executor) {
                     TextButtonView("Run commercial") {
                         executor.startProgress()
-                        Unit
+                        model.startAds(seconds = duration, onComplete = { result ->
+                            executor.completed(result = result)
+                        })
                     }
                 }
             }
@@ -505,14 +611,10 @@ private fun SendAnnouncementView(model: Model = LocalModel.current) {
     }
 
     NavigationLinkView(text = "Send announcement", image = "megaphone") {
-        Column {
-            Text("Message", style = MaterialTheme.typography.titleMedium)
-            OutlinedTextField(
-                value = message,
-                onValueChange = { message = it },
-                label = { Text("Message") },
-                modifier = Modifier.fillMaxWidth(),
-            )
+        Section(header = "Message") {
+            IosTextField(placeholder = "Message", value = message, onValueChange = { message = it })
+        }
+        Section {
             PickerRow(
                 title = "Color",
                 values = AnnouncementColor.entries,
@@ -520,11 +622,19 @@ private fun SendAnnouncementView(model: Model = LocalModel.current) {
                 optionText = { it.toString() },
                 onSelected = { color = it },
             )
+        }
+        Section {
             HCenter {
                 ExecutorView(executor = executor) {
                     TextButtonView("Send") {
-                        executor.startProgress()
-                        Unit
+                        if (canSend()) {
+                            executor.startProgress()
+                            model.sendTwitchAnnouncement(
+                                message = message.trim(),
+                                color = color.rawValue,
+                                onComplete = { result -> executor.completed(result = result) },
+                            )
+                        }
                     }
                 }
             }
@@ -540,33 +650,66 @@ private fun StartRaidView(model: Model = LocalModel.current) {
     val followedChannelsExecutor = remember { Executor() }
 
     fun loadRaidHistory() {
-        Unit
+        val sentChannels = model.stream.value.twitchRaidsSent
+        val receivedChannels = model.stream.value.twitchRaidsReceived
+        val userIds = (sentChannels.map { it.channelId } + receivedChannels.map { it.channelId }).distinct()
+        model.getTwitchStreams(stream = model.stream.value, userIds = userIds, live = true) { streams ->
+            if (streams == null) {
+                return@getTwitchStreams
+            }
+            raidsSent = makeRaidSuggestions(streams = streams, channels = sentChannels)
+            raidsReceived = makeRaidSuggestions(streams = streams, channels = receivedChannels)
+            fetchRaidSuggestionImages(
+                model = model,
+                userIds = raidsSent.map { it.id } + raidsReceived.map { it.id },
+            ) { images ->
+                raidsSent = setRaidSuggestionImages(suggestions = raidsSent, images = images)
+                raidsReceived = setRaidSuggestionImages(suggestions = raidsReceived, images = images)
+            }
+        }
     }
 
     fun loadFollowedChannels() {
         followedChannelsExecutor.startProgress()
-        Unit
+        model.getTwitchFollowedStreams(stream = model.stream.value) { result ->
+            when (result) {
+                is NetworkResponse.Success -> {
+                    followedChannels = makeRaidSuggestions(streams = result.value)
+                    followedChannelsExecutor.completedNoTimer(result = NetworkResponse.Success(ByteArray(0)))
+                    fetchRaidSuggestionImages(
+                        model = model,
+                        userIds = followedChannels.map { it.id },
+                    ) { images ->
+                        followedChannels = setRaidSuggestionImages(suggestions = followedChannels, images = images)
+                    }
+                }
+                is NetworkResponse.AuthError -> {
+                    followedChannelsExecutor.completedNoTimer(result = NetworkResponse.AuthError)
+                }
+                is NetworkResponse.Error -> {
+                    followedChannelsExecutor.completedNoTimer(result = NetworkResponse.Error)
+                }
+            }
+        }
     }
 
     NavigationLinkView(text = "Raid channel", image = "play.tv") {
-        Column {
-            RaidChannelSearchView(model = model)
-            RaidHistoryView(
-                model = model,
-                title = "Raided before",
-                suggestions = raidsSent,
-            )
-            RaidHistoryView(
-                model = model,
-                title = "Raided you",
-                suggestions = raidsReceived,
-            )
-            RaidFollowedChannelsView(
-                model = model,
-                suggestions = followedChannels,
-                executor = followedChannelsExecutor,
-            )
-        }
+        RaidChannelSearchView(model = model)
+        RaidHistoryView(
+            model = model,
+            title = "Raided before",
+            suggestions = raidsSent,
+        )
+        RaidHistoryView(
+            model = model,
+            title = "Raided you",
+            suggestions = raidsReceived,
+        )
+        RaidFollowedChannelsView(
+            model = model,
+            suggestions = followedChannels,
+            executor = followedChannelsExecutor,
+        )
     }
     LaunchedEffect(Unit) {
         loadRaidHistory()
@@ -581,82 +724,82 @@ fun QuickButtonChatModerationTwitchView(
     onPlatformChange: (Platform?) -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Box(modifier = Modifier.clickable { onNavigate("QuickButtonChatModerationTwitch") }) {
+    NavigationLink(
+        destination = {
+            QuickButtonChatModerationTwitchForm(
+                model = model,
+                onPlatformChange = onPlatformChange,
+            )
+        },
+    ) {
         TwitchLogoAndNameView()
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonChatModerationTwitchForm(
     model: Model = LocalModel.current,
     onPlatformChange: (Platform?) -> Unit,
 ) {
     fun slowModeAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
-        Unit
+        model.setTwitchSlowMode(enabled = duration != null, duration = duration, onComplete = onComplete)
     }
 
     fun followersOnlyAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
-        Unit
+        model.setTwitchFollowersMode(
+            enabled = duration != null,
+            duration = (duration ?: 0) / 60,
+            onComplete = onComplete,
+        )
     }
 
-    LaunchedEffect(Unit) {
-        onPlatformChange(Platform.twitch)
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Twitch") })
-        },
-    ) { innerPadding ->
-        LazyColumn(modifier = Modifier.padding(innerPadding)) {
-            item {
-                Column {
-                    StartRaidView(model = model)
-                    RunCommercialView(model = model)
-                    SendAnnouncementView(model = model)
-                    PollView(model = model)
-                    PredictionView(model = model)
-                }
-            }
-            item {
-                Column {
-                    SlowModeView(
-                        durations = listOf(3, 5, 10, 30, 60, 120),
-                        action = { duration, onComplete ->
-                            slowModeAction(duration = duration, onComplete = onComplete)
-                        },
-                    )
-                    FollowersOnlyView(
-                        durations = listOf(60, 300, 600, 3600),
-                        action = { duration, onComplete ->
-                            followersOnlyAction(duration = duration, onComplete = onComplete)
-                        },
-                    )
-                    SubscribersOnlyView(
-                        action = { _, _ -> Unit },
-                    )
-                    EmotesOnlyView(
-                        action = { _, _ -> Unit },
-                    )
-                }
-            }
-            item {
-                Column {
-                    ModActionType.entries.forEach { action ->
-                        UserModerationItemView(
-                            model = model,
-                            action = action,
-                            platform = Platform.twitch,
-                        )
-                    }
-                }
+    Form(title = "Twitch") {
+        LaunchedEffect(Unit) {
+            onPlatformChange(Platform.twitch)
+        }
+        Section {
+            StartRaidView(model = model)
+            RunCommercialView(model = model)
+            SendAnnouncementView(model = model)
+            PollView(model = model)
+            PredictionView(model = model)
+        }
+        Section {
+            SlowModeView(
+                durations = listOf(3, 5, 10, 30, 60, 120),
+                action = { duration, onComplete ->
+                    slowModeAction(duration = duration, onComplete = onComplete)
+                },
+            )
+            FollowersOnlyView(
+                durations = listOf(60, 300, 600, 3600),
+                action = { duration, onComplete ->
+                    followersOnlyAction(duration = duration, onComplete = onComplete)
+                },
+            )
+            SubscribersOnlyView(
+                action = { enabled, onComplete ->
+                    model.setTwitchSubscribersOnlyMode(enabled = enabled, onComplete = onComplete)
+                },
+            )
+            EmotesOnlyView(
+                action = { enabled, onComplete ->
+                    model.setTwitchEmoteOnlyMode(enabled = enabled, onComplete = onComplete)
+                },
+            )
+        }
+        Section {
+            ModActionType.entries.forEach { action ->
+                UserModerationItemView(
+                    model = model,
+                    action = action,
+                    platform = Platform.twitch,
+                )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun <T> PickerRow(
     title: String?,
@@ -665,38 +808,39 @@ private fun <T> PickerRow(
     optionText: (T) -> String,
     onSelected: (T) -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    Picker(
+        title = title.orEmpty(),
+        selection = selected,
+        options = values,
+        text = optionText,
+        onChange = onSelected,
+    )
+}
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        if (title != null) {
-            Text(title, modifier = Modifier.weight(1f))
-        } else {
-            Spacer(modifier = Modifier.weight(1f))
+@Composable
+private fun IosTextField(
+    placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+) {
+    val palette = formPalette()
+    Box(modifier = Modifier.fillMaxWidth()) {
+        if (value.isEmpty()) {
+            Text(
+                text = localized(placeholder),
+                style = formBodyStyle,
+                color = palette.secondaryLabel,
+            )
         }
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = it },
-        ) {
-            TextButton(
-                onClick = { expanded = true },
-                modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
-            ) {
-                Text(optionText(selected))
-            }
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-            ) {
-                values.forEach { value ->
-                    DropdownMenuItem(
-                        text = { Text(optionText(value)) },
-                        onClick = {
-                            onSelected(value)
-                            expanded = false
-                        },
-                    )
-                }
-            }
-        }
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = formBodyStyle.copy(color = palette.label),
+            keyboardOptions = keyboardOptions,
+            singleLine = true,
+            cursorBrush = SolidColor(palette.accent),
+        )
     }
 }

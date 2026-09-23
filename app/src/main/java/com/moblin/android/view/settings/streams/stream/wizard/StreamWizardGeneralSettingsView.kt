@@ -1,26 +1,20 @@
 package com.moblin.android.view.settings.streams.stream.wizard
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.SolidColor
+import com.moblin.android.LocalModel
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormButton
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.WizardPlatform
@@ -28,111 +22,77 @@ import com.moblin.android.various.utils.isMac
 import com.moblin.android.view.settings.streams.stream.AutoGoLiveFooterView
 import com.moblin.android.view.settings.streams.stream.BackgroundStreamingFooterView
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
-import com.moblin.android.view.utils.TextButtonView
 import kotlinx.coroutines.launch
-import com.moblin.android.LocalModel
+import com.moblin.android.localized
+import com.moblin.android.various.model.createStreamFromWizard
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardGeneralSettingsView(model: Model = LocalModel.current, createStreamWizard: CreateStreamWizard) {
-    val name = createStreamWizard.name
-    val platform = createStreamWizard.platform
-    val autoGoLive = createStreamWizard.autoGoLive
-    val backgroundStreaming = createStreamWizard.backgroundStreaming
-    val goLiveNotificationMoblinWebsite = createStreamWizard.goLiveNotificationMoblinWebsite
-    val isMacOs = isMac()
     val scope = rememberCoroutineScope()
+    val palette = formPalette()
+    val name = createStreamWizard.name
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("General") },
-                actions = {
-                    CreateStreamWizardToolbar(createStreamWizard = createStreamWizard)
-                }
-            )
+    Form(
+        title = localized("General"),
+        toolbar = {
+            CreateStreamWizardToolbar(createStreamWizard = createStreamWizard)
         }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Stream name", style = MaterialTheme.typography.titleSmall)
-                    OutlinedTextField(
-                        value = name,
-                        onValueChange = { createStreamWizard.name = it },
-                        label = { Text("Name") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+    ) {
+        Section(header = localized("Stream name")) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                if (name.isEmpty()) {
+                    Text(
+                        localized("Name"),
+                        style = formBodyStyle,
+                        color = palette.secondaryLabel
                     )
                 }
+                BasicTextField(
+                    value = name,
+                    onValueChange = { createStreamWizard.name = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = formBodyStyle.copy(color = palette.label),
+                    singleLine = true,
+                    cursorBrush = SolidColor(palette.accent)
+                )
             }
-            if (platform == WizardPlatform.mobcam) {
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Auto go live", modifier = Modifier.weight(1f))
-                            Switch(
-                                checked = autoGoLive,
-                                onCheckedChange = { createStreamWizard.autoGoLive = it }
-                            )
-                        }
-                        AutoGoLiveFooterView()
-                    }
-                }
-            } else if (!isMacOs) {
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Background streaming", modifier = Modifier.weight(1f))
-                            Switch(
-                                checked = backgroundStreaming,
-                                onCheckedChange = { createStreamWizard.backgroundStreaming = it }
-                            )
-                        }
-                        BackgroundStreamingFooterView()
-                    }
-                }
+        }
+        if (createStreamWizard.platform == WizardPlatform.mobcam) {
+            Section(footerContent = { AutoGoLiveFooterView() }) {
+                Toggle(
+                    localized("Auto go live"),
+                    isOn = createStreamWizard.autoGoLive,
+                    onChange = { createStreamWizard.autoGoLive = it }
+                )
             }
-            if (!isMacOs) {
-                item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            "Send Go live notification to Moblin website",
-                            modifier = Modifier.weight(1f)
-                        )
-                        Switch(
-                            checked = goLiveNotificationMoblinWebsite,
-                            onCheckedChange = {
-                                createStreamWizard.goLiveNotificationMoblinWebsite = it
-                            }
-                        )
-                    }
-                }
+        } else if (!isMac()) {
+            Section(footerContent = { BackgroundStreamingFooterView() }) {
+                Toggle(
+                    localized("Background streaming"),
+                    isOn = createStreamWizard.backgroundStreaming,
+                    onChange = { createStreamWizard.backgroundStreaming = it }
+                )
             }
-            item {
-                TextButtonView("Create") {
-                    if (name.isNotEmpty()) {
-                        scope.launch {
-                            Unit
-                            createStreamWizard.presenting = false
-                            createStreamWizard.presentingSetup = false
-                        }
-                    }
+        }
+        if (!isMac()) {
+            Section {
+                Toggle(
+                    localized("Send Go live notification to Moblin website"),
+                    isOn = createStreamWizard.goLiveNotificationMoblinWebsite,
+                    onChange = { createStreamWizard.goLiveNotificationMoblinWebsite = it }
+                )
+            }
+        }
+        Section {
+            FormButton(
+                title = localized("Create"),
+                centered = true,
+                enabled = name.isNotEmpty()
+            ) {
+                scope.launch {
+                    model.createStreamFromWizard()
+                    createStreamWizard.presenting = false
+                    createStreamWizard.presentingSetup = false
                 }
             }
         }

@@ -23,7 +23,7 @@ class RtmpStreamInfo {
     private var latestAckedSequenceHigh: Long = 0
 
     fun clear() {
-        stats.mutate { RtmpStreamStats() }
+        stats.mutate { it.value = RtmpStreamStats() }
         sendTimings.clear()
         latestWrittenSequence = 0
         latestAckedSequenceLow = 0u

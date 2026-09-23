@@ -1,17 +1,12 @@
 package com.moblin.android.view.settings.ingests.srtlaserver
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.settings.SettingsSrtlaServer
@@ -20,8 +15,7 @@ import com.moblin.android.view.settings.ingests.rtmpserver.IngestStreamItemView
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.UrlsView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.isSrtlaStreamConnected
 
 private fun changeStreamId(value: String, srtlaServer: SettingsSrtlaServer): String? {
     val streamId = value.trim()
@@ -34,7 +28,11 @@ private fun changeStreamId(value: String, srtlaServer: SettingsSrtlaServer): Str
     return null
 }
 
-private fun submitStreamId(value: String, srtlaServer: SettingsSrtlaServer, stream: SettingsSrtlaServerStream) {
+private fun submitStreamId(
+    value: String,
+    srtlaServer: SettingsSrtlaServer,
+    stream: SettingsSrtlaServerStream,
+) {
     val streamId = value.trim()
     if (!Regex("[a-zA-Z0-9]*").matches(streamId)) {
         return
@@ -66,10 +64,19 @@ fun SrtlaServerStreamSettingsView(
     stream: SettingsSrtlaServerStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Box(modifier = Modifier.clickable { onNavigate("Stream") }) {
+    NavigationLink(
+        destination = {
+            SrtlaServerStreamSettingsDetailView(
+                model = model,
+                status = status,
+                srtlaServer = srtlaServer,
+                stream = stream,
+            )
+        },
+    ) {
         IngestStreamItemView(
             name = stream.name,
-            connected = TODO("isSrtlaStreamConnected"),
+            connected = model.isSrtlaStreamConnected(streamId = stream.streamId),
         )
     }
 }
@@ -81,37 +88,34 @@ fun SrtlaServerStreamSettingsDetailView(
     srtlaServer: SettingsSrtlaServer,
     stream: SettingsSrtlaServerStream,
 ) {
-    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-        item {
-            Column(modifier = Modifier.padding(16.dp)) {
-                NameEditView(
-                    name = stream.name,
-                    onNameChange = { stream.name = it },
-                    existingNames = srtlaServer.streams,
-                )
-                TextEditNavigationView(
-                    title = localized("Stream id"),
-                    value = stream.streamId,
-                    onChange = { changeStreamId(value = it, srtlaServer = srtlaServer) },
-                    onSubmit = { submitStreamId(value = it, srtlaServer = srtlaServer, stream = stream) },
-                    footers = listOf(localized("May only contain lower case letters.")),
-                )
-                Text(
-                    text = localized(
-                        "The stream name is shown in the list of cameras in scene settings."
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
-        item {
-            Text(
-                text = localized("Publish URLs"),
-                style = MaterialTheme.typography.titleSmall,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+    Form(title = localized("Stream")) {
+        Section(
+            footer = localized(
+                "The stream name is shown in the list of cameras in scene settings."
+            ),
+        ) {
+            NameEditView(
+                name = stream.name,
+                onNameChange = { stream.name = it },
+                existingNames = srtlaServer.streams,
+            )
+            TextEditNavigationView(
+                title = localized("Stream id"),
+                value = stream.streamId,
+                onChange = { changeStreamId(value = it, srtlaServer = srtlaServer) },
+                onSubmit = {
+                    submitStreamId(value = it, srtlaServer = srtlaServer, stream = stream)
+                },
+                footers = listOf(localized("May only contain lower case letters.")),
             )
         }
-        item {
+        Section(
+            header = localized("Publish URLs"),
+            footer = localized(
+                "Enter one of the URLs into the SRT(LA) publisher device to send video " +
+                    "to this stream. Usually enter the WiFi or Personal Hotspot URL."
+            ),
+        ) {
             UrlsView(
                 status = status,
                 title = localized("SRT URLs"),
@@ -119,8 +123,6 @@ fun SrtlaServerStreamSettingsDetailView(
                     formatUrl(proto = "srt", ip = it, port = srtlaServer.srtPort, stream = stream)
                 },
             )
-        }
-        item {
             UrlsView(
                 status = status,
                 title = localized("SRTLA URLs"),
@@ -133,17 +135,6 @@ fun SrtlaServerStreamSettingsDetailView(
                     )
                 },
             )
-        }
-        item {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = localized(
-                        "Enter one of the URLs into the SRT(LA) publisher device to send video " +
-                            "to this stream. Usually enter the WiFi or Personal Hotspot URL."
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
         }
     }
 }

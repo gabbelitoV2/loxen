@@ -3,7 +3,7 @@ package com.moblin.android.media.haishinkit.media.video
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import com.moblin.android.media.MediaSample
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -131,9 +131,9 @@ class VideoSnapshots(private val context: Context) {
     }
 
     private fun imageBufferOf(sampleBuffer: MediaSample): Image? =
-        null
+        sampleBuffer.imageBuffer
     private fun createBitmap(imageBuffer: Image): Bitmap? =
-        null
+        imageBuffer.toBitmap()
     private fun orientedLeft(source: Bitmap): Bitmap {
         val matrix = Matrix()
         matrix.postRotate(-90.0f)

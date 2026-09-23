@@ -1,6 +1,6 @@
 package com.moblin.android.videoeffects
 
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding

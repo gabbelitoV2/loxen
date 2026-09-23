@@ -1,14 +1,52 @@
 package com.moblin.android.media.haishinkit.media.video
 
-import android.hardware.camera2.CaptureRequest
-import android.media.MediaFormat
 import android.util.Log
 import android.util.Size
-import android.view.Surface
+import com.moblin.android.common.various.clamped
 import com.moblin.android.media.MediaSample
+import com.moblin.android.media.haishinkit.extension.description
+import com.moblin.android.media.haishinkit.extension.isFrameRateSupported
 import com.moblin.android.media.haishinkit.media.Processor
 import com.moblin.android.media.haishinkit.media.processorControlQueue
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
+import com.moblin.android.platform.avfoundation.AVCaptureAspectRatio
+import com.moblin.android.platform.avfoundation.AVCaptureColorSpace
+import com.moblin.android.platform.avfoundation.AVCaptureConnection
+import com.moblin.android.platform.avfoundation.AVCaptureDevice
+import com.moblin.android.platform.avfoundation.AVCaptureDeviceInput
+import com.moblin.android.platform.avfoundation.AVCaptureInput
+import com.moblin.android.platform.avfoundation.AVCaptureMultiCamSession
+import com.moblin.android.platform.avfoundation.AVCaptureOutput
+import com.moblin.android.platform.avfoundation.AVCapturePhoto
+import com.moblin.android.platform.avfoundation.AVCapturePhotoCaptureDelegate
+import com.moblin.android.platform.avfoundation.AVCapturePhotoOutput
+import com.moblin.android.platform.avfoundation.AVCapturePhotoSettings
+import com.moblin.android.platform.avfoundation.AVCaptureSession
+import com.moblin.android.platform.avfoundation.AVCaptureSessionControlsDelegate
+import com.moblin.android.platform.avfoundation.AVCaptureSessionErrorKey
+import com.moblin.android.platform.avfoundation.AVCaptureSessionInterruptionEnded
+import com.moblin.android.platform.avfoundation.AVCaptureSessionRuntimeError
+import com.moblin.android.platform.avfoundation.AVCaptureSessionWasInterrupted
+import com.moblin.android.platform.avfoundation.AVCaptureVideoDataOutput
+import com.moblin.android.platform.avfoundation.AVCaptureVideoDataOutputSampleBufferDelegate
+import com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation
+import com.moblin.android.platform.avfoundation.AVCaptureVideoPreviewLayer
+import com.moblin.android.platform.avfoundation.AVError
+import com.moblin.android.platform.avfoundation.AVMediaType
+import com.moblin.android.platform.avfoundation.PHAssetCreationRequest
+import com.moblin.android.platform.avfoundation.PHAssetResourceType
+import com.moblin.android.platform.avfoundation.PHPhotoLibrary
+import com.moblin.android.platform.avfoundation.session
+import com.moblin.android.platform.avfoundation.setSessionWithNoConnection
+import com.moblin.android.platform.core.Notification
+import com.moblin.android.platform.core.NotificationCenter
+import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
+import com.moblin.android.platform.video.kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+import com.moblin.android.various.utils.fps
+import com.moblin.android.various.utils.setAutoFps
+import com.moblin.android.various.utils.setFps
+import com.moblin.android.various.utils.setLowLightBoost
+import com.moblin.android.various.utils.useLandscapeStreamAndPortraitUi
 import java.util.UUID
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -18,7 +56,7 @@ private const val TAG = "VideoCaptureSession"
 var nativeLowLightBoost = false
 
 data class CaptureDevice(
-    val device: Any,
+    val device: AVCaptureDevice,
     val id: UUID,
     val isVideoMirrored: Boolean,
 )
@@ -37,71 +75,89 @@ data class CaptureDevices(
 }
 
 interface VideoCaptureSessionDelegate {
-    fun videoCaptureSessionDidOutput(device: Any, cameraId: UUID?, sampleBuffer: MediaSample)
+    fun videoCaptureSessionDidOutput(device: AVCaptureDevice, cameraId: UUID?, sampleBuffer: MediaSample)
 
     fun videoCaptureSessionWasInterrupted()
 }
 
 private class DeviceOutputHandler(
-    private val device: Any,
+    private val device: AVCaptureDevice,
     private val cameraId: UUID,
     private val delegate: VideoCaptureSessionDelegate?,
-) {
-    fun captureOutput(sampleBuffer: MediaSample) {
-        delegate?.videoCaptureSessionDidOutput(device, cameraId, sampleBuffer)
+) : AVCaptureVideoDataOutputSampleBufferDelegate {
+    override fun captureOutput(output: AVCaptureOutput, didOutput: MediaSample, from: AVCaptureConnection) {
+        delegate?.videoCaptureSessionDidOutput(device, cameraId, didOutput)
     }
 }
 
 private data class CaptureSessionDevice(
     val device: CaptureDevice,
-    val input: Any,
-    val output: Any,
-    val connection: Any,
-    val photoOutput: Any?,
-    val photoConnection: Any?,
+    val input: AVCaptureInput,
+    val output: AVCaptureVideoDataOutput,
+    val connection: AVCaptureConnection,
+    val photoOutput: AVCapturePhotoOutput?,
+    val photoConnection: AVCaptureConnection?,
     val outputHandler: DeviceOutputHandler,
 )
 
 private data class VideoFormatSearch(
-    val format: Any?,
+    val format: AVCaptureDevice.Format?,
     val useAutoFrameRate: Boolean,
     val useLandscapeInPortrait: Boolean,
     val error: String?,
 )
 
-private fun makeCaptureSession(): Any = Any()
-
-private fun setOrientation(
-    device: Any?,
-    isLandscapeStreamAndPortraitUi: Boolean,
-    connection: Any,
-    orientation: Int,
-) {
-    Unit
+private fun makeCaptureSession(): AVCaptureMultiCamSession {
+    val session = AVCaptureMultiCamSession()
+    session.automaticallyConfiguresCaptureDeviceForWideColor = false
+    if (session.isMultitaskingCameraAccessSupported) {
+        session.isMultitaskingCameraAccessEnabled = true
+    }
+    return session
 }
 
-class VideoCaptureSession {
+private fun setOrientation(
+    device: AVCaptureDevice?,
+    isLandscapeStreamAndPortraitUi: Boolean,
+    connection: AVCaptureConnection,
+    orientation: Int,
+) {
+    if (device?.deviceType == AVCaptureDevice.DeviceType.external) {
+        connection.videoOrientation = AVCaptureVideoOrientation.landscapeRight
+    } else if (useLandscapeStreamAndPortraitUi(device, isLandscapeStreamAndPortraitUi)) {
+        connection.videoOrientation = AVCaptureVideoOrientation.portrait
+    } else {
+        connection.videoOrientation = orientation
+    }
+}
+
+class VideoCaptureSession : AVCaptureSessionControlsDelegate, AVCapturePhotoCaptureDelegate {
     var delegate: VideoCaptureSessionDelegate? = null
     var processor: Processor? = null
-    val session: Any = makeCaptureSession()
-    private var device: Any? = null
+    val session = makeCaptureSession()
+    private var device: AVCaptureDevice? = null
     private var devices: MutableList<CaptureSessionDevice> = mutableListOf()
     private var isRunning = false
     private var cameraControlsEnabled = false
-    private var captureSize: Size = Size(1920, 1080)
-    private var fps: Double = VideoUnit.defaultFrameRate
+    private var captureSize = Size(1920, 1080)
+    private var fps = VideoUnit.defaultFrameRate
     private var preferAutoFps = false
-    private var colorSpace: Int = MediaFormat.COLOR_STANDARD_BT709
+    private var colorSpace: Int = AVCaptureColorSpace.sRGB
     private var isLandscapeStreamAndPortraitUi = false
 
-    var videoOrientation: Int = Surface.ROTATION_0
+    var videoOrientation: Int = AVCaptureVideoOrientation.portrait
         set(value) {
-            if (field == value) {
+            if (value == field) {
                 return
             }
             field = value
-            for (device in devices) {
-                updateOrientation(device)
+            session.beginConfiguration()
+            try {
+                for (device in devices) {
+                    updateOrientation(device = device)
+                }
+            } finally {
+                session.commitConfiguration()
             }
         }
 
@@ -115,10 +171,7 @@ class VideoCaptureSession {
                 }
                 return
             }
-            setTorchMode(
-                device,
-                if (torch) CaptureRequest.FLASH_MODE_TORCH else CaptureRequest.FLASH_MODE_OFF,
-            )
+            setTorchMode(device, if (torch) AVCaptureDevice.TorchMode.on else AVCaptureDevice.TorchMode.off)
         }
 
     var torchLevel: Float = 1.0f
@@ -128,19 +181,25 @@ class VideoCaptureSession {
             if (device == null || !torch) {
                 return
             }
-            setTorchMode(device, CaptureRequest.FLASH_MODE_TORCH)
+            setTorchMode(device, AVCaptureDevice.TorchMode.on)
         }
+
+    init {
+        NotificationCenter.default.addObserver(this, AVCaptureSessionRuntimeError, session) {
+            handleSessionRuntimeError(it)
+        }
+    }
 
     fun startRunning() {
         isRunning = true
         addSessionObservers()
-        Unit
+        session.startRunning()
     }
 
     fun stopRunning() {
         isRunning = false
         removeSessionObservers()
-        Unit
+        session.stopRunning()
     }
 
     fun getFps(): Double {
@@ -165,37 +224,62 @@ class VideoCaptureSession {
 
     fun setCameraControl(enabled: Boolean) {
         cameraControlsEnabled = enabled
-        Unit
+        session.beginConfiguration()
+        try {
+            updateCameraControls()
+        } finally {
+            session.commitConfiguration()
+        }
     }
 
     fun stopOutputtingSampleBuffers() {
-        Unit
+        for (device in devices) {
+            device.output.setSampleBufferDelegate(null, processorPipelineQueue)
+        }
     }
 
     @Throws(Exception::class)
     fun attach(params: VideoUnitAttachParams) {
         isLandscapeStreamAndPortraitUi = params.isLandscapeStreamAndPortraitUi
-        removeDevices(session)
-        for (device in params.devices.devices) {
-            setDeviceFormat(
-                device = device.device,
-                fps = fps,
-                preferAutoFrameRate = preferAutoFps,
-                colorSpace = colorSpace,
-            )
-            attachDevice(device, session, params.attachPhotoShoot)
+        session.beginConfiguration()
+        try {
+            removeDevices(session)
+            for (device in params.devices.devices) {
+                setDeviceFormat(
+                    device = device.device,
+                    fps = fps,
+                    preferAutoFrameRate = preferAutoFps,
+                    colorSpace = colorSpace,
+                )
+                attachDevice(device, session, params.attachPhotoShoot)
+            }
+            device = params.devices.getSceneDevice()?.device
+            for (device in devices) {
+                if (device.connection.isVideoMirroringSupported) {
+                    device.connection.isVideoMirrored = device.device.isVideoMirrored
+                }
+                if (device.connection.isVideoStabilizationSupported) {
+                    device.connection.preferredVideoStabilizationMode = params.preferredVideoStabilizationMode
+                }
+                updateOrientation(device = device)
+                device.output.setSampleBufferDelegate(device.outputHandler, processorPipelineQueue)
+            }
+            updateCameraControls()
+            attachCameraPreviewLayers(params = params)
+        } finally {
+            session.commitConfiguration()
         }
-        device = params.devices.getSceneDevice()?.device
-        for (device in devices) {
-            updateOrientation(device = device)
-            Unit
-        }
-        updateCameraControls()
-        attachCameraPreviewLayers(params = params)
     }
 
     fun takePhoto() {
-        Unit
+        for (device in devices) {
+            val photoOutput = device.photoOutput ?: continue
+            val settings = AVCapturePhotoSettings()
+            settings.maxPhotoDimensions = photoOutput.maxPhotoDimensions
+            settings.photoQualityPrioritization = AVCapturePhotoOutput.QualityPrioritization.balanced
+            settings.isShutterSoundSuppressionEnabled = true
+            photoOutput.capturePhoto(settings = settings, delegate = this)
+        }
     }
 
     private fun updateOrientation(device: CaptureSessionDevice) {
@@ -206,7 +290,10 @@ class VideoCaptureSession {
         }
     }
 
-    private fun updateOrientation(device: CaptureSessionDevice, connection: Any) {
+    private fun updateOrientation(device: CaptureSessionDevice, connection: AVCaptureConnection) {
+        if (!connection.isVideoOrientationSupported) {
+            return
+        }
         setOrientation(
             device = device.device.device,
             isLandscapeStreamAndPortraitUi = isLandscapeStreamAndPortraitUi,
@@ -216,16 +303,35 @@ class VideoCaptureSession {
     }
 
     private fun attachCameraPreviewLayers(params: VideoUnitAttachParams) {
-        Unit
+        for ((id, value) in params.cameraPreviewLayers) {
+            val previewLayer = value as? AVCaptureVideoPreviewLayer ?: continue
+            val device = devices.firstOrNull { it.device.id == id }
+            val port = device?.input?.ports?.firstOrNull { it.mediaType == AVMediaType.video }
+            if (!params.attachCameraPreview || device == null || port == null) {
+                if (previewLayer.session != null) {
+                    previewLayer.session = null
+                }
+                continue
+            }
+            if (previewLayer.session !== session) {
+                previewLayer.setSessionWithNoConnection(session)
+            }
+            val connection = AVCaptureConnection(inputPort = port, videoPreviewLayer = previewLayer)
+            if (!session.canAddConnection(connection)) {
+                continue
+            }
+            session.addConnection(connection)
+        }
     }
 
-    private fun handleSessionRuntimeError(notification: Any) {
-        val message = TODO("no Android counterpart for AVCaptureSessionErrorKey / AVError")
+    private fun handleSessionRuntimeError(notification: Notification) {
+        val error = notification.userInfo[AVCaptureSessionErrorKey] as? AVError ?: return
+        val message = error.localizedFailureReason ?: "${error.code}"
         processor?.delegate?.streamVideoCaptureSessionError(message)
         processorControlQueue.launch {
             delay(500)
             if (isRunning) {
-                Unit
+                session.startRunning()
             }
         }
     }
@@ -242,40 +348,115 @@ class VideoCaptureSession {
     }
 
     private fun addSessionObservers() {
-        Unit
+        NotificationCenter.default.addObserver(this, AVCaptureSessionWasInterrupted, session) {
+            sessionWasInterrupted(it)
+        }
+        NotificationCenter.default.addObserver(this, AVCaptureSessionInterruptionEnded, session) {
+            sessionInterruptionEnded(it)
+        }
     }
 
     private fun removeSessionObservers() {
-        Unit
+        NotificationCenter.default.removeObserver(this, AVCaptureSessionWasInterrupted, session)
+        NotificationCenter.default.removeObserver(this, AVCaptureSessionInterruptionEnded, session)
     }
 
-    private fun sessionWasInterrupted() {
+    private fun sessionWasInterrupted(notification: Notification) {
         Log.d(TAG, "video-unit: Session interruption started")
         delegate?.videoCaptureSessionWasInterrupted()
     }
 
-    private fun sessionInterruptionEnded() {
+    private fun sessionInterruptionEnded(notification: Notification) {
         Log.d(TAG, "video-unit: Session interruption ended")
     }
 
     private fun findVideoFormat(
-        device: Any,
+        device: AVCaptureDevice,
         width: Int,
         height: Int,
         fps: Double,
         preferAutoFrameRate: Boolean,
         colorSpace: Int,
     ): VideoFormatSearch {
-        TODO()
+        var useAutoFrameRate = false
+        var useLandscapeInPortrait = false
+        var formats = device.formats
+        formats = formats.filter { it.isFrameRateSupported(fps) }
+        if (preferAutoFrameRate) {
+            val autoFrameRateFormats = formats.filter { it.isAutoVideoFrameRateSupported }
+            if (autoFrameRateFormats.isNotEmpty()) {
+                formats = autoFrameRateFormats
+                useAutoFrameRate = true
+            }
+        }
+        formats = formats.filter { it.formatDescription.dimensions.width == width }
+        if (isLandscapeStreamAndPortraitUi) {
+            val formatsWithRatio9x16 = formats.filter {
+                it.supportedDynamicAspectRatios.contains(AVCaptureAspectRatio.ratio9x16)
+            }
+            if (formatsWithRatio9x16.isNotEmpty()) {
+                formats = formatsWithRatio9x16
+                useLandscapeInPortrait = true
+            } else {
+                formats = formats.filter { it.formatDescription.dimensions.height == height }
+            }
+        } else {
+            formats = formats.filter { it.formatDescription.dimensions.height == height }
+        }
+        formats = formats.filter { it.supportedColorSpaces.contains(colorSpace) }
+        if (formats.isEmpty()) {
+            return VideoFormatSearch(
+                format = null,
+                useAutoFrameRate = useAutoFrameRate,
+                useLandscapeInPortrait = useLandscapeInPortrait,
+                error = "No format found matching ${height}p${fps.toInt()}, ${AVCaptureColorSpace.description(colorSpace)}",
+            )
+        }
+        formats = formats.filter { !it.isVideoBinned }
+        if (formats.isEmpty()) {
+            return VideoFormatSearch(
+                format = null,
+                useAutoFrameRate = useAutoFrameRate,
+                useLandscapeInPortrait = useLandscapeInPortrait,
+                error = "No unbinned video format found",
+            )
+        }
+        formats = formats.filter {
+            it.formatDescription.mediaSubType.rawValue != kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange ||
+                allowVideoRangePixelFormat
+        }
+        if (formats.isEmpty()) {
+            return VideoFormatSearch(
+                format = null,
+                useAutoFrameRate = useAutoFrameRate,
+                useLandscapeInPortrait = useLandscapeInPortrait,
+                error = "Unsupported pixel format",
+            )
+        }
+        return VideoFormatSearch(
+            format = formats.first(),
+            useAutoFrameRate = useAutoFrameRate,
+            useLandscapeInPortrait = useLandscapeInPortrait,
+            error = null,
+        )
     }
 
-    private fun reportFormatNotFound(device: Any, error: String) {
+    private fun reportFormatNotFound(device: AVCaptureDevice, error: String) {
+        val (minFps, maxFps) = device.fps
+        val activeFormat = "Using default: " +
+            "${device.activeFormat.formatDescription.dimensions.height}p, " +
+            "$minFps-$maxFps FPS, " +
+            "${AVCaptureColorSpace.description(device.activeColorSpace)}, " +
+            "${device.activeFormat.formatDescription.mediaSubType}"
         Log.i(TAG, "video-unit: $error")
-        Unit
+        Log.i(TAG, "video-unit: $activeFormat")
+        for (format in device.formats) {
+            Log.i(TAG, "video-unit: Available format: $format")
+        }
     }
 
     private fun setDeviceFormat(
-        device: Any?,
+        device: AVCaptureDevice?,
         fps: Double,
         preferAutoFrameRate: Boolean,
         colorSpace: Int,
@@ -283,7 +464,7 @@ class VideoCaptureSession {
         if (device == null) {
             return
         }
-        val result = findVideoFormat(
+        val (format, useAutoFrameRate, useLandscapeInPortrait, error) = findVideoFormat(
             device = device,
             width = captureSize.width,
             height = captureSize.height,
@@ -291,22 +472,112 @@ class VideoCaptureSession {
             preferAutoFrameRate = preferAutoFrameRate,
             colorSpace = colorSpace,
         )
-        val error = result.error
         if (error != null) {
             reportFormatNotFound(device, error)
             return
         }
-        if (result.format == null) {
+        if (format == null) {
             return
         }
-        Unit
+        Log.d(TAG, "video-unit: Selected format: $format")
+        try {
+            device.lockForConfiguration()
+            if (device.activeFormat != format) {
+                device.activeFormat = format
+            }
+            device.activeColorSpace = colorSpace
+            device.setLowLightBoost(value = nativeLowLightBoost)
+            if (useAutoFrameRate) {
+                device.setAutoFps()
+                processor?.delegate?.streamSelectedFps(auto = true)
+            } else {
+                device.setFps(frameRate = fps)
+                processor?.delegate?.streamSelectedFps(auto = false)
+            }
+            if (useLandscapeInPortrait) {
+                if (format.supportedDynamicAspectRatios.contains(AVCaptureAspectRatio.ratio9x16)) {
+                    device.setDynamicAspectRatio(AVCaptureAspectRatio.ratio9x16)
+                }
+            }
+            device.unlockForConfiguration()
+        } catch (error: Exception) {
+            Log.i(TAG, "video-unit: Error while locking device: $error")
+        }
     }
 
-    private fun attachDevice(device: CaptureDevice, session: Any, attachPhotoShoot: Boolean) {
-        Unit
+    @Throws(Exception::class)
+    private fun attachDevice(device: CaptureDevice, session: AVCaptureMultiCamSession, attachPhotoShoot: Boolean) {
+        val input = AVCaptureDeviceInput(device = device.device)
+        val output = AVCaptureVideoDataOutput()
+        output.videoSettings = mapOf(
+            kCVPixelBufferPixelFormatTypeKey to pixelFormatType,
+        )
+        var connection: AVCaptureConnection? = null
+        val port = input.ports.firstOrNull { it.mediaType == AVMediaType.video }
+        if (port != null) {
+            connection = AVCaptureConnection(inputPorts = listOf(port), output = output)
+        }
+        var failed = false
+        if (session.canAddInput(input)) {
+            session.addInputWithNoConnections(input)
+        } else {
+            failed = true
+        }
+        if (session.canAddOutput(output)) {
+            session.addOutputWithNoConnections(output)
+        } else {
+            failed = true
+        }
+        if (connection != null && session.canAddConnection(connection)) {
+            session.addConnection(connection)
+        } else {
+            failed = true
+        }
+        var photoOutput: AVCapturePhotoOutput? = null
+        var photoConnection: AVCaptureConnection? = null
+        if (attachPhotoShoot) {
+            val newPhotoOutput = AVCapturePhotoOutput()
+            photoOutput = newPhotoOutput
+            val photoPort = input.ports.firstOrNull { it.mediaType == AVMediaType.video }
+            if (photoPort != null) {
+                photoConnection = AVCaptureConnection(inputPorts = listOf(photoPort), output = newPhotoOutput)
+            }
+            if (session.canAddOutput(newPhotoOutput)) {
+                session.addOutputWithNoConnections(newPhotoOutput)
+            } else {
+                failed = true
+            }
+            val newPhotoConnection = photoConnection
+            if (newPhotoConnection != null && session.canAddConnection(newPhotoConnection)) {
+                session.addConnection(newPhotoConnection)
+            } else {
+                failed = true
+            }
+            newPhotoOutput.maxPhotoDimensions = device.device.activeFormat.supportedMaxPhotoDimensions.last()
+            newPhotoOutput.maxPhotoQualityPrioritization = AVCapturePhotoOutput.QualityPrioritization.balanced
+        }
+        if (failed) {
+            processor?.delegate?.streamVideoAttachCameraError()
+        } else {
+            devices.add(
+                CaptureSessionDevice(
+                    device = device,
+                    input = input,
+                    output = output,
+                    connection = connection!!,
+                    photoOutput = photoOutput,
+                    photoConnection = photoConnection,
+                    outputHandler = DeviceOutputHandler(
+                        device = device.device,
+                        cameraId = device.id,
+                        delegate = delegate,
+                    ),
+                )
+            )
+        }
     }
 
-    private fun removeDevices(session: Any) {
+    private fun removeDevices(session: AVCaptureMultiCamSession) {
         for (device in devices) {
             removeConnection(session, device.photoConnection)
             removeOutput(session, device.photoOutput)
@@ -317,47 +588,81 @@ class VideoCaptureSession {
         devices.clear()
     }
 
-    private fun removeConnection(session: Any, connection: Any?) {
-        Unit
+    private fun removeConnection(session: AVCaptureMultiCamSession, connection: AVCaptureConnection?) {
+        if (connection != null && session.connections.contains(connection)) {
+            session.removeConnection(connection)
+        }
     }
 
-    private fun removeInput(session: Any, input: Any?) {
-        Unit
+    private fun removeInput(session: AVCaptureMultiCamSession, input: AVCaptureInput?) {
+        if (input != null && session.inputs.contains(input)) {
+            session.removeInput(input)
+        }
     }
 
-    private fun removeOutput(session: Any, output: Any?) {
-        Unit
+    private fun removeOutput(session: AVCaptureMultiCamSession, output: AVCaptureOutput?) {
+        if (output != null && session.outputs.contains(output)) {
+            session.removeOutput(output)
+        }
     }
 
-    private fun setTorchMode(device: Any, torchMode: Int) {
-        Unit
+    private fun setTorchMode(device: AVCaptureDevice, torchMode: AVCaptureDevice.TorchMode) {
+        if (!device.isTorchModeSupported(torchMode)) {
+            if (torchMode == AVCaptureDevice.TorchMode.on) {
+                processor?.delegate?.streamNoTorch()
+            }
+            return
+        }
+        try {
+            device.lockForConfiguration()
+            if (torchMode == AVCaptureDevice.TorchMode.on) {
+                device.setTorchModeOn(level = torchLevel.clamped(to = 0.01f..1.0f))
+            } else {
+                device.torchMode = torchMode
+            }
+            device.unlockForConfiguration()
+        } catch (error: Exception) {
+            Log.i(TAG, "video-unit: Error while setting torch: $error")
+        }
     }
 
     private fun updateCameraControls() {
-        Unit
+        if (session.supportsControls) {
+            removeCameraControls()
+            addCameraControls()
+        }
     }
 
     fun addCameraControls() {
-        Unit
     }
 
     fun removeCameraControls() {
-        Unit
     }
 
-    fun sessionControlsDidBecomeActive(session: Any) {}
+    override fun sessionControlsDidBecomeActive(session: AVCaptureSession) {}
 
-    fun sessionControlsWillEnterFullscreenAppearance(session: Any) {}
+    override fun sessionControlsWillEnterFullscreenAppearance(session: AVCaptureSession) {}
 
-    fun sessionControlsWillExitFullscreenAppearance(session: Any) {}
+    override fun sessionControlsWillExitFullscreenAppearance(session: AVCaptureSession) {}
 
-    fun sessionControlsDidBecomeInactive(session: Any) {}
+    override fun sessionControlsDidBecomeInactive(session: AVCaptureSession) {}
 
-    fun photoOutput(photoOutput: Any, photo: Any?, error: Throwable?) {
+    override fun photoOutput(output: AVCapturePhotoOutput, didFinishProcessingPhoto: AVCapturePhoto, error: Throwable?) {
         if (error != null) {
             Log.i(TAG, "video-unit: Photo error: $error")
             return
         }
-        Unit
+        val photoData = didFinishProcessingPhoto.fileDataRepresentation()
+        if (photoData != null) {
+            PHPhotoLibrary.shared().performChanges({
+                val creationRequest = PHAssetCreationRequest.forAsset()
+                creationRequest.addResource(with = PHAssetResourceType.photo, data = photoData, options = null)
+            }) { _, saveError ->
+                if (saveError != null) {
+                    Log.i(TAG, "video-unit: Error saving photo: ${saveError.localizedMessage}")
+                    return@performChanges
+                }
+            }
+        }
     }
 }

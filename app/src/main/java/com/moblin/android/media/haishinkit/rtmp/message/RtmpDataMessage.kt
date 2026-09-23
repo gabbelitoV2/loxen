@@ -5,6 +5,8 @@ import com.moblin.android.media.haishinkit.rtmp.amf.Amf0Decoder
 import com.moblin.android.media.haishinkit.rtmp.amf.Amf0Encoder
 import com.moblin.android.media.haishinkit.rtmp.amf.AsValue
 
+private const val TAG = "RtmpDataMessage"
+
 class RtmpDataMessage : RtmpMessage {
     var handlerName: String = ""
     var arguments: MutableList<AsValue> = mutableListOf()
@@ -16,7 +18,7 @@ class RtmpDataMessage : RtmpMessage {
         dataType: RtmpMessageType,
         timestamp: UInt,
         handlerName: String,
-        arguments: List<AsValue> = emptyList()
+        arguments: List<AsValue> = emptyList(),
     ) : super(dataType) {
         this.handlerName = handlerName
         this.arguments = arguments.toMutableList()
@@ -24,28 +26,28 @@ class RtmpDataMessage : RtmpMessage {
         this.streamId = streamId
     }
 
-    var encodedData: ByteArray
+    override var encoded: ByteArray
         get() {
-            if (encoded.isNotEmpty()) {
-                return encoded
+            if (super.encoded.isNotEmpty()) {
+                return super.encoded
             }
             val serializer = Amf0Encoder()
             if (type == RtmpMessageType.amf3Data) {
-                serializer.writeUInt8(0.toUByte())
+                serializer.writeUInt8(0u)
             }
             serializer.encode(AsValue.String(handlerName))
             for (argument in arguments) {
                 serializer.encode(argument)
             }
-            encoded = serializer.data
-            return encoded
+            super.encoded = serializer.data
+            return super.encoded
         }
-        set(value) {
-            if (encoded.contentEquals(value)) {
+        set(newValue) {
+            if (super.encoded.contentEquals(newValue)) {
                 return
             }
-            if (length == value.size) {
-                val decoder = Amf0Decoder(value)
+            if (length == newValue.size) {
+                val decoder = Amf0Decoder(newValue)
                 if (type == RtmpMessageType.amf3Data) {
                     decoder.position = 1
                 }
@@ -54,14 +56,10 @@ class RtmpDataMessage : RtmpMessage {
                     while (decoder.bytesAvailable > 0) {
                         arguments.add(decoder.decode())
                     }
-                } catch (e: Exception) {
+                } catch (error: Exception) {
                     Log.i(TAG, "rtmp-data-message: $decoder")
                 }
             }
-            encoded = value
+            super.encoded = newValue
         }
-
-    companion object {
-        private const val TAG = "RtmpDataMessage"
-    }
 }

@@ -1,48 +1,22 @@
 package com.moblin.android.view.settings.display.streambutton
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import com.moblin.android.common.various.color
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.defaultStreamButtonColor
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextButtonView
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamButtonsSettingsView(database: Database) {
-    val streamButtonColorColor = database.streamButtonColorColor
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("Stream button")) })
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(padding)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            Text(
-                text = localized("Color"),
-                style = MaterialTheme.typography.titleMedium,
-            )
+    Form(title = localized("Stream button")) {
+        Section(header = localized("Color")) {
             RgbColorPickerView(
                 title = localized("Background"),
-                color = streamButtonColorColor,
+                color = database.streamButtonColorColor,
                 onColorChanged = { color ->
                     database.streamButtonColorColor = color
                 },
@@ -54,11 +28,7 @@ fun StreamButtonsSettingsView(database: Database) {
                 title = localized("Reset"),
                 action = {
                     database.streamButtonColor = defaultStreamButtonColor
-                    database.streamButtonColorColor = Color(
-                        red = defaultStreamButtonColor.red.toFloat() / 255f,
-                        green = defaultStreamButtonColor.green.toFloat() / 255f,
-                        blue = defaultStreamButtonColor.blue.toFloat() / 255f,
-                    )
+                    database.streamButtonColorColor = defaultStreamButtonColor.color()
                 },
             )
         }

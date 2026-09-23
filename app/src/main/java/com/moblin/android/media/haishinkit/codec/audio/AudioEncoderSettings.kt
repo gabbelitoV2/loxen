@@ -1,6 +1,10 @@
 package com.moblin.android.media.haishinkit.codec.audio
 
+import android.media.MediaCodecInfo
 import android.media.MediaFormat
+import com.moblin.android.platform.audio.hasAudioEncoder
+import com.moblin.android.platform.audio.isOpusSampleRateSupported
+import com.moblin.android.platform.avfoundation.AVAudioCompressedBuffer
 
 data class AudioEncoderSettings(
     var bitrate: Int = 64 * 1000,
@@ -15,9 +19,12 @@ data class AudioEncoderSettings(
         aac,
         opus;
 
-        fun makeAudioBuffer(format: MediaFormat): ByteArray {
-            val channels = format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-            return ByteArray(1024 * channels)
+        fun makeAudioBuffer(format: MediaFormat): AVAudioCompressedBuffer {
+            return AVAudioCompressedBuffer(
+                format = format,
+                packetCapacity = 1,
+                maximumPacketSize = 1024 * format.getInteger(MediaFormat.KEY_CHANNEL_COUNT),
+            )
         }
 
         fun makeAudioFormat(inSourceFormat: MediaFormat): MediaFormat? {
@@ -26,11 +33,23 @@ data class AudioEncoderSettings(
                 maximumNumberOfChannels,
             )
             val sampleRate = inSourceFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
-            val mimeType = when (this) {
-                aac -> MediaFormat.MIMETYPE_AUDIO_AAC
-                opus -> MediaFormat.MIMETYPE_AUDIO_OPUS
+            val streamDescription = when (this) {
+                aac -> {
+                    val format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, channels)
+                    format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
+                    format
+                }
+                opus -> {
+                    if (!isOpusSampleRateSupported(sampleRate)) {
+                        return null
+                    }
+                    MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_OPUS, sampleRate, channels)
+                }
             }
-            return MediaFormat.createAudioFormat(mimeType, sampleRate, channels)
+            if (!hasAudioEncoder(streamDescription)) {
+                return null
+            }
+            return streamDescription
         }
     }
 }

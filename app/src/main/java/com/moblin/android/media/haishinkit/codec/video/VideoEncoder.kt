@@ -1,12 +1,27 @@
 package com.moblin.android.media.haishinkit.codec.video
 
-import android.media.Image
-import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Log
 import android.util.Size
 import com.moblin.android.media.MediaSample
+import com.moblin.android.media.haishinkit.extension.convertTo
+import com.moblin.android.media.haishinkit.extension.encodeFrame
+import com.moblin.android.media.haishinkit.extension.invalidate
+import com.moblin.android.media.haishinkit.extension.prepareToEncodeFrames
+import com.moblin.android.media.haishinkit.extension.setProperties
+import com.moblin.android.media.haishinkit.media.video.pixelFormatType
 import com.moblin.android.media.haishinkit.util.Atomic
+import com.moblin.android.platform.video.CVImageBuffer
+import com.moblin.android.platform.video.kCVPixelBufferHeightKey
+import com.moblin.android.platform.video.kCVPixelBufferIOSurfacePropertiesKey
+import com.moblin.android.platform.video.kCVPixelBufferMetalCompatibilityKey
+import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
+import com.moblin.android.platform.video.kCVPixelBufferWidthKey
+import com.moblin.android.platform.videotoolbox.CMFormatDescriptionEqual
+import com.moblin.android.platform.videotoolbox.VTCompressionSession
+import com.moblin.android.platform.videotoolbox.VTCompressionSessionCreate
+import com.moblin.android.platform.videotoolbox.kVTInvalidSessionErr
+import com.moblin.android.platform.videotoolbox.noErr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -43,11 +58,9 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
     private var formatDescription: MediaFormat? = null
     var delegate: VideoEncoderDelegate? = null
     var controlDelegate: VideoEncoderControlDelegate? = null
-
-    private var session: MediaCodec? = null
+    private var session: VTCompressionSession? = null
         set(value) {
-            runCatching { field?.stop() }
-            runCatching { field?.release() }
+            field?.invalidate()
             field = value
             invalidateSession = false
         }
@@ -77,7 +90,7 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
         }
     }
 
-    fun encodeImageBuffer(imageBuffer: Image, presentationTimeStamp: Long, duration: Long) {
+    fun encodeImageBuffer(imageBuffer: CVImageBuffer, presentationTimeStamp: Long, duration: Long) {
         if (!isRunning) {
             return
         }
@@ -93,32 +106,32 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
             session = makeSession(settings)
         }
         updateBitrate(settings)
-        val codec = session
-        if (codec != null) {
-            try {
-                codec.encodeFrame(imageBuffer, presentationTimeStamp, duration) { status, sampleBuffer ->
-                    lockQueue.launch {
-                        if (sampleBuffer == null || status != 0) {
-                            Log.i(
-                                TAG,
-                                "video-encoder: Failed to encode frame status $status an got buffer ${sampleBuffer != null}",
-                            )
-                            numberOfFailedEncodings += 1
-                            return@launch
-                        }
-                        setFormatDescription(sampleBuffer.format)
-                        delegate?.videoEncoderOutputSampleBuffer(
-                            this@VideoEncoder,
-                            sampleBuffer,
-                            makeDecodeTimeStampOffset(settings),
-                        )
-                    }
+        val err = session?.encodeFrame(
+            imageBuffer,
+            presentationTimeStamp = presentationTimeStamp,
+            duration = duration,
+        ) { status, _, sampleBuffer ->
+            lockQueue.launch {
+                if (sampleBuffer == null || status != noErr) {
+                    Log.i(
+                        TAG,
+                        "video-encoder: Failed to encode frame status $status an got buffer ${sampleBuffer != null}",
+                    )
+                    numberOfFailedEncodings += 1
+                    return@launch
                 }
-            } catch (e: MediaCodec.CodecException) {
-                Log.i(TAG, "video-encoder: Encode failed. Resetting session.")
-                invalidateSession = true
-                currentBitrate = 0
+                setFormatDescription(sampleBuffer.format)
+                delegate?.videoEncoderOutputSampleBuffer(
+                    this@VideoEncoder,
+                    sampleBuffer,
+                    makeDecodeTimeStampOffset(settings),
+                )
             }
+        }
+        if (err == kVTInvalidSessionErr) {
+            Log.i(TAG, "video-encoder: Encode failed. Resetting session.")
+            invalidateSession = true
+            currentBitrate = 0
         }
     }
 
@@ -131,7 +144,7 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
     }
 
     private fun setFormatDescription(formatDescription: MediaFormat?) {
-        if (formatDescription == this.formatDescription) {
+        if (CMFormatDescriptionEqual(formatDescription, this.formatDescription)) {
             return
         }
         this.formatDescription = formatDescription
@@ -146,12 +159,9 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
         currentBitrate = settings.bitrate
         val bitrate = currentBitrate
         val properties = settings.bitrateProperties(bitrate)
-        val codec = session
-        if (codec != null) {
-            TODO(
-                "apply $properties to the running MediaCodec; VTCompressionSession.setProperties has no " +
-                    "MediaCodec equivalent that reports an OSStatus",
-            )
+        val status = session?.setProperties(properties)
+        if (status != null && status != noErr) {
+            Log.i(TAG, "video-encoder: Failed to set bitrate options $status $properties")
         }
     }
 
@@ -183,38 +193,38 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
         return videoSize
     }
 
-    private fun makeSession(settings: VideoEncoderSettings, videoSize: Size? = null): MediaCodec? {
-        TODO(
-            "create and start a MediaCodec encoder for VideoEncoderSettings.format at " +
-                "${videoSize?.width ?: settings.videoSize.width}x${videoSize?.height ?: settings.videoSize.height} " +
-                "using the async callback API and settings.properties()",
+    private fun makeSession(settings: VideoEncoderSettings, videoSize: Size? = null): VTCompressionSession? {
+        val attributes = mapOf<String, Any>(
+            kCVPixelBufferPixelFormatTypeKey to pixelFormatType,
+            kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
+            kCVPixelBufferMetalCompatibilityKey to true,
+            kCVPixelBufferWidthKey to settings.videoSize.width,
+            kCVPixelBufferHeightKey to settings.videoSize.height,
         )
+        var (status, session) = VTCompressionSessionCreate(
+            width = videoSize?.width ?: settings.videoSize.width,
+            height = videoSize?.height ?: settings.videoSize.height,
+            codecType = settings.format.codecType,
+            imageBufferAttributes = attributes,
+        )
+        if (status != noErr || session == null) {
+            Log.i(TAG, "video-encoder: Failed to create session with status $status")
+            return null
+        }
+        status = session.setProperties(settings.properties())
+        if (status != noErr) {
+            Log.i(TAG, "video-encoder: Failed to set options with status $status")
+            return null
+        }
+        status = session.prepareToEncodeFrames()
+        if (status != noErr) {
+            Log.i(TAG, "video-encoder: Failed to prepare with status $status")
+            return null
+        }
+        return session
     }
 
     companion object {
         private const val TAG = "VideoEncoder"
     }
-}
-
-private fun Size.convertTo(dimension: Int): Size? {
-    if (width <= dimension && height <= dimension) {
-        return null
-    }
-    return if (width >= height) {
-        Size(dimension, (height.toDouble() * dimension / width).toInt())
-    } else {
-        Size((width.toDouble() * dimension / height).toInt(), dimension)
-    }
-}
-
-private fun MediaCodec.encodeFrame(
-    imageBuffer: Image,
-    presentationTimeStamp: Long,
-    duration: Long,
-    onEncoded: (status: Int, sampleBuffer: MediaSample?) -> Unit,
-) {
-    TODO(
-        "copy $imageBuffer into a MediaCodec input buffer, queue it with presentationTimeUs=$presentationTimeStamp " +
-            "and durationUs=$duration, then invoke onEncoded from the async output callback",
-    )
 }

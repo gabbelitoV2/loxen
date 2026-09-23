@@ -2,6 +2,7 @@ package com.moblin.android.media.haishinkit.mpeg.hevc
 
 import android.media.MediaFormat
 import android.util.Log
+import com.moblin.android.common.various.atoms
 import com.moblin.android.media.haishinkit.util.ByteReader
 import java.nio.ByteBuffer
 
@@ -14,18 +15,11 @@ class MpegTsVideoConfigHevc(hvcC: ByteArray) {
         private const val TAG = "MpegTsVideoConfigHevc"
 
         fun getHvcC(formatDescription: MediaFormat): ByteArray? {
-            val buffer = formatDescription.getByteBuffer("csd-0") ?: return null
-            val data = ByteArray(buffer.remaining())
-            buffer.get(data)
-            if (data.size > 8 &&
-                data[4] == 'h'.code.toByte() &&
-                data[5] == 'v'.code.toByte() &&
-                data[6] == 'c'.code.toByte() &&
-                data[7] == 'C'.code.toByte()
-            ) {
-                return data.copyOfRange(8, data.size)
+            val atoms = formatDescription.atoms()
+            if (atoms != null) {
+                return atoms["hvcC"]
             }
-            return data
+            return null
         }
 
         fun create(formatDescription: MediaFormat): MpegTsVideoConfigHevc? {

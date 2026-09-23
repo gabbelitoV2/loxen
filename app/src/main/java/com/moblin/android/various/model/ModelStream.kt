@@ -304,7 +304,7 @@ fun Model.startStream(delayed: Boolean = false) {
     if (database.location.resetWhenGoingLive) {
         resetLocationData()
     }
-    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.entries.first { it.rawValue == "goLive" }))
+    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.GO_LIVE))
     setIsLive(value = true)
     streaming = true
     streamTotalBytes = 0L
@@ -343,7 +343,7 @@ fun Model.stopStream(
         return false
     }
     Log.i(TAG, "stream: Stop")
-    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.entries.first { it.rawValue == "end" }))
+    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.END))
     streamTotalBytes += media.streamTotal()
     streaming = false
     if (stream.value.recording.autoStopRecording) {
@@ -450,6 +450,7 @@ private fun Model.startNetStreamRtmp() {
 
 private fun Model.startNetStreamSrt() {
     val srt = stream.value.srt
+    com.moblin.android.media.haishinkit.mpeg.payloadSize = srt.mpegtsPacketsPerPacket() * MpegTsPacket.size
     previousSrtDroppedPacketsTotal = 0
     media.srtStartStream(
         isSrtla = stream.value.isSrtla(),
@@ -700,21 +701,21 @@ private fun Model.setStreamCodec() {
         SettingsStreamCodec.h264avc -> {
             when (stream.value.h264Profile) {
                 SettingsStreamH264Profile.baseline -> {
-                    media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline.toString())
+                    media.setVideoProfile(profile = com.moblin.android.platform.videotoolbox.kVTProfileLevel_H264_Baseline_AutoLevel)
                 }
                 SettingsStreamH264Profile.main -> {
-                    media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.AVCProfileMain.toString())
+                    media.setVideoProfile(profile = com.moblin.android.platform.videotoolbox.kVTProfileLevel_H264_Main_AutoLevel)
                 }
                 SettingsStreamH264Profile.high -> {
-                    media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.AVCProfileHigh.toString())
+                    media.setVideoProfile(profile = com.moblin.android.platform.videotoolbox.kVTProfileLevel_H264_High_AutoLevel)
                 }
             }
         }
         SettingsStreamCodec.h265hevc -> {
             if (database.color.space == SettingsColorSpace.hlgBt2020) {
-                media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10.toString())
+                media.setVideoProfile(profile = com.moblin.android.platform.videotoolbox.kVTProfileLevel_HEVC_Main10_AutoLevel)
             } else {
-                media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.HEVCProfileMain.toString())
+                media.setVideoProfile(profile = com.moblin.android.platform.videotoolbox.kVTProfileLevel_HEVC_Main_AutoLevel)
             }
         }
     }

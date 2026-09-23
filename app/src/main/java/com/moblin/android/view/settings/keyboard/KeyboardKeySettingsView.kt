@@ -1,49 +1,38 @@
 package com.moblin.android.view.settings.keyboard
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsControllerFunction
 import com.moblin.android.various.settings.SettingsKeyboardKey
 import com.moblin.android.view.settings.gamecontrollers.ControllerButtonView
-import java.util.UUID
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun SelectedKeyView(key: SettingsKeyboardKey) {
     val keyValue = key.key
     if (keyValue.isEmpty()) {
-        Text(text = "No key set", color = Color.Gray)
+        Text(text = "No key set", color = formPalette().gray)
     } else {
         Text(text = keyValue)
     }
@@ -51,32 +40,28 @@ private fun SelectedKeyView(key: SettingsKeyboardKey) {
 
 @Composable
 private fun KeyPickerView(key: SettingsKeyboardKey, onDismiss: () -> Unit) {
-    val keyValue = key.key
     val focusRequester = remember { FocusRequester() }
     var editingText by remember { mutableStateOf(false) }
 
-    LaunchedEffect(keyValue) {
-        if (keyValue.isEmpty()) {
-            return@LaunchedEffect
-        }
-        onDismiss()
-    }
     LaunchedEffect(editingText) {
-        if (!editingText) {
-            return@LaunchedEffect
+        if (editingText) {
+            key.key = ""
         }
-        key.key = ""
     }
     LaunchedEffect(Unit) {
         if (key.key.isEmpty()) {
-            editingText = true
             focusRequester.requestFocus()
         }
     }
     OutlinedTextField(
-        value = keyValue,
-        onValueChange = { key.key = it },
-        label = { Text(text = "No key set") },
+        value = key.key,
+        onValueChange = { newValue ->
+            key.key = newValue
+            if (newValue.isNotEmpty()) {
+                onDismiss()
+            }
+        },
+        placeholder = { Text(text = "No key set") },
         singleLine = true,
         keyboardOptions = KeyboardOptions(
             capitalization = KeyboardCapitalization.None,
@@ -102,57 +87,38 @@ fun KeyboardKeySettingsView(
     key: SettingsKeyboardKey,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val function = key.function
-    val functionData = key.functionData
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("keyboardKey") }
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
+    NavigationLink(destination = {
+        KeyboardKeySettingsForm(model = model, key = key, onNavigate = onNavigate)
+    }) {
         SelectedKeyView(key = key)
         Spacer(modifier = Modifier.weight(1f))
         Text(
-            text = function.toString(
+            text = key.function.toString(
                 sceneName = null,
                 widgetName = null,
             ),
-            color = function.color(),
+            color = key.function.color(),
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeyboardKeySettingsForm(
     model: Model = LocalModel.current,
     key: SettingsKeyboardKey,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(text = "Keyboard key") })
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onNavigate("key") }
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+    Form(title = "Keyboard key") {
+        Section {
+            NavigationLink(destination = {
+                KeyboardKeyPickerView(key = key, onDismiss = { onNavigate("keyboardKey") })
+            }) {
                 Text(text = "Key")
                 Spacer(modifier = Modifier.weight(1f))
                 SelectedKeyView(key = key)
             }
+        }
+        Section {
             ControllerButtonView(
                 model = model,
                 functions = functions(),
@@ -165,19 +131,10 @@ fun KeyboardKeySettingsForm(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KeyboardKeyPickerView(key: SettingsKeyboardKey, onDismiss: () -> Unit) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(text = "Key") })
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
+    Form(title = "Key") {
+        Section {
             KeyPickerView(key = key, onDismiss = onDismiss)
         }
     }

@@ -49,7 +49,7 @@ class RtmpChunkReader {
         val reader = ByteReader(data)
         reader.position = offset
         val basicHeader = readBasicHeader(reader) ?: return null
-        val chunkStream = chunkStreams[basicHeader.chunkStreamId] ?: RtmpChunkStream()
+        val chunkStream = (chunkStreams[basicHeader.chunkStreamId] ?: RtmpChunkStream()).copy()
         if (!readMessageHeader(reader, basicHeader.type, chunkStream)) {
             return null
         }

@@ -376,14 +376,12 @@ class ChatLineUiView(context: Context) : FrameLayout(context) {
 
     private fun layout(availableWidth: Float): ChatLineLayout? {
         val content = this.content ?: return null
-        for (layout in layouts) {
-            if (layout.availableWidth == availableWidth) {
-                if (!layout.hasUnknownImageSize || layout.sizesVersion == EmotesPlayer.shared.sizesVersion.value) {
-                    return layout
-                }
-                layouts.remove(layout)
-                break
+        val existing = layouts.firstOrNull { it.availableWidth == availableWidth }
+        if (existing != null) {
+            if (!existing.hasUnknownImageSize || existing.sizesVersion == EmotesPlayer.shared.sizesVersion.value) {
+                return existing
             }
+            layouts.remove(existing)
         }
         val layout = makeLayout(content = content, availableWidth = availableWidth)
         layouts.add(layout)
@@ -405,13 +403,16 @@ class ChatLineUiView(context: Context) : FrameLayout(context) {
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val availableWidth = View.MeasureSpec.getSize(widthMeasureSpec).toFloat()
+        val availableWidth = if (View.MeasureSpec.getMode(widthMeasureSpec) == View.MeasureSpec.UNSPECIFIED) {
+            measuredWidth ?: View.MeasureSpec.getSize(widthMeasureSpec).toFloat()
+        } else {
+            View.MeasureSpec.getSize(widthMeasureSpec).toFloat()
+        }
         val size = size(availableWidth = availableWidth)
         setMeasuredDimension(size.width, size.height)
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
-        super.onLayout(changed, left, top, right, bottom)
         val content = this.content ?: return
         val layout = layout(availableWidth = availableWidthForBounds()) ?: return
         if (currentLayout?.sizesVersion != layout.sizesVersion ||

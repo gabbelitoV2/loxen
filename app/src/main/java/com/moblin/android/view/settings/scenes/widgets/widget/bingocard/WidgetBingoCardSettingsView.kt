@@ -1,29 +1,32 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.bingocard
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckBox
-import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetBingoCard
@@ -31,45 +34,54 @@ import com.moblin.android.view.utils.MultiLineTextFieldDoneButtonView
 import com.moblin.android.view.utils.MultiLineTextFieldView
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextButtonView
-import com.moblin.android.LocalModel
+import com.moblin.android.various.model.getBingoCardEffect
 
 @Composable
 fun BingCardWidgetSquaresView(value: String, onValueChange: (String) -> Unit) {
     var editingText by remember { mutableStateOf(false) }
-    Text(text = "Squares", style = MaterialTheme.typography.titleSmall)
-    MultiLineTextFieldView(
-        value = value,
-        onValueChange = onValueChange,
-        placeholder = localized("My text"),
-    )
-    MultiLineTextFieldDoneButtonView(
-        editingText = editingText,
-        onEditingTextChange = { editingText = it },
-    )
+    Section(
+        header = localized("Squares"),
+        footerContent = {
+            MultiLineTextFieldDoneButtonView(
+                editingText = editingText,
+                onEditingTextChange = { editingText = it },
+            )
+        },
+    ) {
+        MultiLineTextFieldView(
+            value = value,
+            onValueChange = onValueChange,
+            placeholder = localized("My text"),
+        )
+    }
 }
 
 @Composable
 fun BingoCardMarksView(bingoCard: SettingsWidgetBingoCard, updateEffect: () -> Unit) {
+    val palette = formPalette()
     bingoCard.squares.forEachIndexed { index, square ->
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        val interactionSource = remember { MutableInteractionSource() }
+        val pressed by interactionSource.collectIsPressedAsState()
+        FormRow {
             Text(text = square.text)
             Spacer(modifier = Modifier.weight(1f))
-            IconButton(
-                onClick = {
-                    val squares = bingoCard.squares.toMutableList()
-                    squares[index] = squares[index].copy(checked = !squares[index].checked)
-                    bingoCard.squares = squares
-                    updateEffect()
-                },
-            ) {
-                Icon(
-                    imageVector = if (square.checked) {
-                        Icons.Filled.CheckBox
-                    } else {
-                        Icons.Filled.CheckBoxOutlineBlank
+            Box(
+                modifier = Modifier
+                    .alpha(if (pressed) 0.2f else 1f)
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                    ) {
+                        val squares = bingoCard.squares.toMutableList()
+                        squares[index] = squares[index].copy(checked = !squares[index].checked)
+                        bingoCard.squares = squares
+                        updateEffect()
                     },
-                    contentDescription = null,
-                    modifier = Modifier.size(28.dp),
+            ) {
+                SystemImage(
+                    name = if (square.checked) "squareshape.split.2x2" else "square",
+                    fontSize = 28.sp,
+                    tint = palette.label,
                 )
             }
         }
@@ -82,6 +94,7 @@ fun WidgetBingoCardQuickButtonControlsView(
     updateEffect: () -> Unit,
 ) {
     val squaresCountSide = bingoCard.size()
+    val palette = formPalette()
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         for (row in 0 until squaresCountSide) {
             Row(
@@ -91,31 +104,38 @@ fun WidgetBingoCardQuickButtonControlsView(
                 Spacer(modifier = Modifier.weight(1f))
                 for (column in 0 until squaresCountSide) {
                     val index = row * squaresCountSide + column
-                    if (index < bingoCard.squares.count()) {
-                        IconButton(
-                            onClick = {
-                                val squares = bingoCard.squares.toMutableList()
-                                squares[index] = squares[index].copy(checked = !squares[index].checked)
-                                bingoCard.squares = squares
-                                updateEffect()
-                            },
-                        ) {
-                            Icon(
-                                imageVector = if (bingoCard.squares[index].checked) {
-                                    Icons.Filled.CheckBox
-                                } else {
-                                    Icons.Filled.CheckBoxOutlineBlank
+                    if (index < bingoCard.squares.size) {
+                        val interactionSource = remember { MutableInteractionSource() }
+                        val pressed by interactionSource.collectIsPressedAsState()
+                        Box(
+                            modifier = Modifier
+                                .alpha(if (pressed) 0.2f else 1f)
+                                .clickable(
+                                    interactionSource = interactionSource,
+                                    indication = null,
+                                ) {
+                                    val squares = bingoCard.squares.toMutableList()
+                                    squares[index] =
+                                        squares[index].copy(checked = !squares[index].checked)
+                                    bingoCard.squares = squares
+                                    updateEffect()
                                 },
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp),
+                        ) {
+                            SystemImage(
+                                name = if (bingoCard.squares[index].checked) {
+                                    "squareshape.split.2x2"
+                                } else {
+                                    "square"
+                                },
+                                fontSize = 28.sp,
+                                tint = palette.label,
                             )
                         }
                     } else {
-                        Icon(
-                            imageVector = Icons.Filled.CheckBoxOutlineBlank,
-                            contentDescription = null,
-                            modifier = Modifier.size(28.dp),
-                            tint = Color.Gray,
+                        SystemImage(
+                            name = "square",
+                            fontSize = 28.sp,
+                            tint = palette.gray,
                         )
                     }
                 }
@@ -131,41 +151,47 @@ fun WidgetBingoCardSettingsView(
     bingoCard: SettingsWidgetBingoCard,
 ) {
     val updateEffect: () -> Unit = {
-        Unit
+        model.getBingoCardEffect(widget.id)?.setSettings(bingoCard)
     }
 
     BingCardWidgetSquaresView(
         value = bingoCard.squaresText,
-        onValueChange = { bingoCard.squaresText = it },
+        onValueChange = {
+            bingoCard.squaresText = it
+            bingoCard.squaresTextChanged()
+            updateEffect()
+        },
     )
-    LaunchedEffect(bingoCard.squaresText) {
-        bingoCard.squaresTextChanged()
-        updateEffect()
+    Section(header = localized("Marks")) {
+        BingoCardMarksView(bingoCard = bingoCard, updateEffect = updateEffect)
+        TextButtonView(localized("Reset"), action = {
+            bingoCard.uncheckAll()
+            updateEffect()
+        })
     }
-    Text(text = "Marks", style = MaterialTheme.typography.titleSmall)
-    BingoCardMarksView(bingoCard = bingoCard, updateEffect = updateEffect)
-    TextButtonView("Reset", action = {
-        bingoCard.uncheckAll()
-        updateEffect()
-    })
-    Text(text = "Colors", style = MaterialTheme.typography.titleSmall)
-    RgbColorPickerView(
-        title = "Background",
-        color = bingoCard.backgroundColorColor,
-        opacity = true,
-        onColorChanged = {},
-        onChange = { color: RgbColor ->
-            bingoCard.backgroundColor = color
-            updateEffect()
-        },
-    )
-    RgbColorPickerView(
-        title = "Foreground",
-        color = bingoCard.foregroundColorColor,
-        onColorChanged = {},
-        onChange = { color: RgbColor ->
-            bingoCard.foregroundColor = color
-            updateEffect()
-        },
-    )
+    Section(header = localized("Colors")) {
+        RgbColorPickerView(
+            title = localized("Background"),
+            color = bingoCard.backgroundColorColor,
+            opacity = true,
+            onColorChanged = { color: Color ->
+                bingoCard.backgroundColorColor = color
+            },
+            onChange = { color: RgbColor ->
+                bingoCard.backgroundColor = color
+                updateEffect()
+            },
+        )
+        RgbColorPickerView(
+            title = localized("Foreground"),
+            color = bingoCard.foregroundColorColor,
+            onColorChanged = { color: Color ->
+                bingoCard.foregroundColorColor = color
+            },
+            onChange = { color: RgbColor ->
+                bingoCard.foregroundColor = color
+                updateEffect()
+            },
+        )
+    }
 }

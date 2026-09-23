@@ -1,27 +1,21 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.chat
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
 import com.moblin.android.common.various.RgbColor
+import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsChatDisplayStyle
@@ -29,9 +23,8 @@ import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetChat
 import com.moblin.android.view.settings.chat.sliderValuePercentageWidth
 import com.moblin.android.view.utils.RgbColorPickerView
-import com.moblin.android.LocalModel
+import com.moblin.android.various.model.getChatEffect
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetChatSettingsView(
     model: Model = LocalModel.current,
@@ -40,156 +33,103 @@ fun WidgetChatSettingsView(
     chat: SettingsWidgetChat,
 ) {
     fun setEffectSettings() {
-        Unit
+        model.getChatEffect(widget.id)?.setSettings(chat)
     }
 
     val showAllSettings = database.showAllSettings
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Section {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Font size")
-            Slider(
+            Text("Font size", fontSize = 17.sp)
+            FormSlider(
                 value = chat.fontSize.toFloat(),
-                onValueChange = { chat.fontSize = it },
+                onValueChange = {
+                    chat.fontSize = it
+                    setEffectSettings()
+                },
+                modifier = Modifier.weight(1f),
                 valueRange = 10f..50f,
-                steps = 39,
                 onValueChangeFinished = { setEffectSettings() },
             )
             Text(
                 chat.fontSize.toInt().toString(),
                 modifier = Modifier.width(25.dp),
+                fontSize = 17.sp,
             )
         }
-        LaunchedEffect(chat.fontSize) {
-            setEffectSettings()
-        }
-        var messagesExpanded by remember { mutableStateOf(false) }
-        ExposedDropdownMenuBox(
-            expanded = messagesExpanded,
-            onExpandedChange = { messagesExpanded = it },
-        ) {
-            OutlinedTextField(
-                value = chat.maximumNumberOfMessages.toString(),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Messages") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = messagesExpanded)
-                },
-                modifier = Modifier.menuAnchor().fillMaxWidth(),
-            )
-            ExposedDropdownMenu(
-                expanded = messagesExpanded,
-                onDismissRequest = { messagesExpanded = false },
-            ) {
-                listOf(1, 2, 3, 4, 5).forEach { value ->
-                    DropdownMenuItem(
-                        text = { Text(value.toString()) },
-                        onClick = {
-                            chat.maximumNumberOfMessages = value
-                            messagesExpanded = false
-                        },
-                    )
-                }
-            }
-        }
-        LaunchedEffect(chat.maximumNumberOfMessages) {
-            setEffectSettings()
-        }
+        Picker(
+            title = "Messages",
+            selection = chat.maximumNumberOfMessages,
+            options = listOf(1, 2, 3, 4, 5),
+            text = { it.toString() },
+            onChange = {
+                chat.maximumNumberOfMessages = it
+                setEffectSettings()
+            },
+        )
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Height")
-            Slider(
+            Text("Height", fontSize = 17.sp)
+            FormSlider(
                 value = chat.height.toFloat(),
-                onValueChange = { chat.height = it },
+                onValueChange = {
+                    chat.height = it
+                    setEffectSettings()
+                },
+                modifier = Modifier.weight(1f),
                 valueRange = 0.1f..1f,
-                steps = 89,
-                onValueChangeFinished = { setEffectSettings() },
             )
             Text(
                 "${(100 * chat.height).toInt()}%",
                 modifier = Modifier.width(sliderValuePercentageWidth.dp),
+                fontSize = 17.sp,
             )
         }
-        LaunchedEffect(chat.height) {
-            setEffectSettings()
-        }
         if (showAllSettings) {
-            var displayStyleExpanded by remember { mutableStateOf(false) }
-            ExposedDropdownMenuBox(
-                expanded = displayStyleExpanded,
-                onExpandedChange = { displayStyleExpanded = it },
-            ) {
-                OutlinedTextField(
-                    value = chat.displayStyle.toString(),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Display style") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = displayStyleExpanded)
-                    },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
-                )
-                ExposedDropdownMenu(
-                    expanded = displayStyleExpanded,
-                    onDismissRequest = { displayStyleExpanded = false },
-                ) {
-                    SettingsChatDisplayStyle.entries.forEach { displayStyle ->
-                        DropdownMenuItem(
-                            text = { Text(displayStyle.toString()) },
-                            onClick = {
-                                chat.displayStyle = displayStyle
-                                displayStyleExpanded = false
-                            },
-                        )
-                    }
-                }
-            }
-            LaunchedEffect(chat.displayStyle) {
-                setEffectSettings()
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Bold name")
-                Switch(
-                    checked = chat.boldUsername,
-                    onCheckedChange = { chat.boldUsername = it },
-                )
-            }
-            LaunchedEffect(chat.boldUsername) {
-                setEffectSettings()
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Bold message")
-                Switch(
-                    checked = chat.boldMessage,
-                    onCheckedChange = { chat.boldMessage = it },
-                )
-            }
-            LaunchedEffect(chat.boldMessage) {
-                setEffectSettings()
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Badges")
-                Switch(
-                    checked = chat.badges,
-                    onCheckedChange = { chat.badges = it },
-                )
-            }
-            LaunchedEffect(chat.badges) {
-                setEffectSettings()
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Shared chat icons")
-                Switch(
-                    checked = chat.sharedChatIcons,
-                    onCheckedChange = { chat.sharedChatIcons = it },
-                )
-            }
-            LaunchedEffect(chat.sharedChatIcons) {
-                setEffectSettings()
-            }
+            Picker(
+                title = "Display style",
+                selection = chat.displayStyle,
+                options = SettingsChatDisplayStyle.entries,
+                text = { it.toString() },
+                onChange = {
+                    chat.displayStyle = it
+                    setEffectSettings()
+                },
+            )
+            Toggle(
+                title = "Bold name",
+                isOn = chat.boldUsername,
+                onChange = {
+                    chat.boldUsername = it
+                    setEffectSettings()
+                },
+            )
+            Toggle(
+                title = "Bold message",
+                isOn = chat.boldMessage,
+                onChange = {
+                    chat.boldMessage = it
+                    setEffectSettings()
+                },
+            )
+            Toggle(
+                title = "Badges",
+                isOn = chat.badges,
+                onChange = {
+                    chat.badges = it
+                    setEffectSettings()
+                },
+            )
+            Toggle(
+                title = "Shared chat icons",
+                isOn = chat.sharedChatIcons,
+                onChange = {
+                    chat.sharedChatIcons = it
+                    setEffectSettings()
+                },
+            )
         }
-
-        Text("Colors")
+    }
+    Section(header = "Colors") {
         if (showAllSettings) {
             RgbColorPickerView(
                 title = "Name",
@@ -208,7 +148,13 @@ fun WidgetChatSettingsView(
                 setEffectSettings()
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Toggle(
+            isOn = chat.backgroundColorEnabled,
+            onChange = {
+                chat.backgroundColorEnabled = it
+                setEffectSettings()
+            },
+        ) {
             RgbColorPickerView(
                 title = "Background",
                 color = chat.backgroundColorColor,
@@ -217,15 +163,14 @@ fun WidgetChatSettingsView(
                 chat.backgroundColor = newColor
                 setEffectSettings()
             }
-            Switch(
-                checked = chat.backgroundColorEnabled,
-                onCheckedChange = { chat.backgroundColorEnabled = it },
-            )
         }
-        LaunchedEffect(chat.backgroundColorEnabled) {
-            setEffectSettings()
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Toggle(
+            isOn = chat.shadowColorEnabled,
+            onChange = {
+                chat.shadowColorEnabled = it
+                setEffectSettings()
+            },
+        ) {
             RgbColorPickerView(
                 title = "Border",
                 color = chat.shadowColorColor,
@@ -234,13 +179,6 @@ fun WidgetChatSettingsView(
                 chat.shadowColor = newColor
                 setEffectSettings()
             }
-            Switch(
-                checked = chat.shadowColorEnabled,
-                onCheckedChange = { chat.shadowColorEnabled = it },
-            )
-        }
-        LaunchedEffect(chat.shadowColorEnabled) {
-            setEffectSettings()
         }
     }
 }

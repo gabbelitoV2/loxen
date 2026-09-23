@@ -12,7 +12,7 @@ import com.moblin.android.various.settings.SettingsScene
 import com.moblin.android.various.settings.SettingsWidgetPngTuber
 import com.moblin.android.various.settings.SettingsWidgetVTuber
 import com.moblin.android.various.settings.SettingsWidgetVideoSource
-import com.moblin.android.various.utils.AVCaptureDevice
+import com.moblin.android.platform.avfoundation.AVCaptureDevice
 import com.moblin.android.various.utils.exposureFactorStep
 import com.moblin.android.various.utils.hasDualBackCamera
 import com.moblin.android.various.utils.hasTripleBackCamera
@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import android.media.MediaFormat
+import com.moblin.android.various.utils.name
 
 private const val LOG_TAG = "Model"
 
@@ -257,7 +258,7 @@ fun Model.stopObservingWhiteBalance() {
 }
 
 fun Model.listCameras(position: AVCaptureDevice.Position): List<Camera> {
-    return emptyList()
+    return AVCaptureDevice.DiscoverySession(deviceTypes = AVCaptureDevice.DeviceType.entries.toList(), mediaType = com.moblin.android.platform.avfoundation.AVMediaType.video, position = position).devices.map { device -> Camera(id = device.uniqueID, name = device.name()) }
 }
 
 fun Model.colorSpaceUpdated() {
@@ -375,7 +376,7 @@ fun Model.updateCameraLists() {
 }
 
 private fun Model.listExternalCameras(): List<Camera> {
-    return emptyList()
+    return AVCaptureDevice.DiscoverySession(deviceTypes = listOf(AVCaptureDevice.DeviceType.external), mediaType = com.moblin.android.platform.avfoundation.AVMediaType.video, position = AVCaptureDevice.Position.unspecified).devices.map { Camera(id = it.uniqueID, name = it.name()) }
 }
 
 fun Model.listCameras(excludeBuiltin: Boolean = false): List<Camera> {
@@ -653,8 +654,8 @@ private fun Model.getBuiltinDeviceUniqueId(cameraId: UUID): String? {
 
 fun Model.makeCaptureDevice(device: CaptureDevice): CaptureDevice {
     return CaptureDevice(
-        device = device,
-        id = getBuiltinCameraId(deviceUniqueId = device.id.toString()),
+        device = device.device,
+        id = getBuiltinCameraId(deviceUniqueId = (device.device as AVCaptureDevice).uniqueID),
         isVideoMirrored = getVideoMirroredOnStream(device = device),
     )
 }

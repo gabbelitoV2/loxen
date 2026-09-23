@@ -2,19 +2,22 @@ package com.moblin.android.view.settings.about
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalOnNavigate
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.NavigationTitle
+import com.moblin.android.platform.swiftui.formBodyStyle
 
 private data class Attribution(
     val name: String,
@@ -154,31 +157,32 @@ private val imageAttributions: List<Attribution> = listOf(
     ),
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutAttributionsSoundsSettingsView() {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Sounds") })
-        },
-    ) { contentPadding ->
-        LazyColumn(
+    NavigationTitle("Sounds")
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+    ) {
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding)
+                .fillMaxWidth()
                 .padding(16.dp),
+            horizontalAlignment = Alignment.Start,
         ) {
-            items(soundAttributions, key = { it.name }) { attribution ->
-                Column(modifier = Modifier.padding(bottom = 16.dp)) {
-                    Text(
-                        text = attribution.name,
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(top = 16.dp),
-                    )
-                    Column(modifier = Modifier.padding(start = 5.dp, top = 5.dp)) {
-                        attribution.text.forEach { line ->
-                            Text(text = line)
-                        }
+            soundAttributions.forEach { attribution ->
+                Text(
+                    text = attribution.name,
+                    style = TextStyle(fontSize = 22.sp),
+                    modifier = Modifier.padding(top = 16.dp),
+                )
+                Column(
+                    modifier = Modifier.padding(start = 5.dp, top = 5.dp),
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    attribution.text.forEach { line ->
+                        Text(text = line, style = formBodyStyle)
                     }
                 }
             }
@@ -186,31 +190,32 @@ fun AboutAttributionsSoundsSettingsView() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutAttributionsImagesSettingsView() {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Images") })
-        },
-    ) { contentPadding ->
-        LazyColumn(
+    NavigationTitle("Images")
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+    ) {
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding)
+                .fillMaxWidth()
                 .padding(16.dp),
+            horizontalAlignment = Alignment.Start,
         ) {
-            items(imageAttributions, key = { it.name }) { attribution ->
-                Column(modifier = Modifier.padding(bottom = 16.dp)) {
-                    Text(
-                        text = attribution.name,
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(top = 16.dp),
-                    )
-                    Column(modifier = Modifier.padding(start = 5.dp, top = 5.dp)) {
-                        attribution.text.forEach { line ->
-                            Text(text = line)
-                        }
+            imageAttributions.forEach { attribution ->
+                Text(
+                    text = attribution.name,
+                    style = TextStyle(fontSize = 22.sp),
+                    modifier = Modifier.padding(top = 16.dp),
+                )
+                Column(
+                    modifier = Modifier.padding(start = 5.dp, top = 5.dp),
+                    horizontalAlignment = Alignment.Start,
+                ) {
+                    attribution.text.forEach { line ->
+                        Text(text = line, style = formBodyStyle)
                     }
                 }
             }
@@ -218,29 +223,14 @@ fun AboutAttributionsImagesSettingsView() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutAttributionsSettingsView(onNavigate: (String) -> Unit = LocalOnNavigate.current) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Attributions") })
-        },
-    ) { contentPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(contentPadding),
-        ) {
-            item {
-                TextButton(onClick = { onNavigate("AboutAttributionsSoundsSettingsView") }) {
-                    Text("Sounds")
-                }
-            }
-            item {
-                TextButton(onClick = { onNavigate("AboutAttributionsImagesSettingsView") }) {
-                    Text("Images")
-                }
-            }
+    Form(title = "Attributions") {
+        NavigationLink("Sounds") {
+            AboutAttributionsSoundsSettingsView()
+        }
+        NavigationLink("Images") {
+            AboutAttributionsImagesSettingsView()
         }
     }
 }

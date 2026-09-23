@@ -1,10 +1,14 @@
 package com.moblin.android.view.controlbar.quickbutton.chat
 
-import android.graphics.Color as AndroidColor
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,62 +20,53 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Send
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.moblin.android.view.stream.ChatInfo
-import com.moblin.android.view.utils.BorderlessButtonView
-import com.moblin.android.view.utils.ChatActionButtonsView
-import com.moblin.android.view.utils.ChatLineContent
-import com.moblin.android.view.utils.ChatLineStyle
-import com.moblin.android.view.utils.ChatLineView
-import com.moblin.android.view.utils.CloseToolbar
-import com.moblin.android.view.utils.DraggableItemPrefixView
-import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
-import com.moblin.android.view.utils.TextButtonView
-import com.moblin.android.view.utils.TextEditNavigationView
-import com.moblin.android.view.utils.BannersView
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
+import com.moblin.android.localized
+import com.moblin.android.platform.Bundle
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.LocalTint
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.NavigationTitle
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.streamingplatforms.Platform
+import com.moblin.android.various.ChatHighlight
+import com.moblin.android.various.ChatHighlightKind
 import com.moblin.android.various.ChatPost
 import com.moblin.android.various.ChatPostState
 import com.moblin.android.various.model.chat.ChatProvider
@@ -82,12 +77,24 @@ import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatPredefinedMessage
 import com.moblin.android.various.settings.SettingsChatPredefinedMessagesFilter
 import com.moblin.android.various.settings.SettingsStream
-import kotlinx.coroutines.launch
-import java.net.URL
+import com.moblin.android.view.stream.ChatInfo
+import com.moblin.android.view.utils.BannersView
+import com.moblin.android.view.utils.BorderlessButtonView
+import com.moblin.android.view.utils.ChatActionButtonsView
+import com.moblin.android.view.utils.ChatLineStyle
+import com.moblin.android.view.utils.ChatLineView
+import com.moblin.android.view.utils.CloseToolbar
+import com.moblin.android.view.utils.DraggableItemPrefixView
+import com.moblin.android.view.utils.IconAndTextLocalizedView
+import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.view.utils.TextEditNavigationView
 import java.util.UUID
-import com.moblin.android.localized
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.endOfQuickButtonChatAlertsReachedWhenPaused
+import com.moblin.android.various.model.endOfQuickButtonChatReachedWhenPaused
+import com.moblin.android.various.model.pauseQuickButtonChat
+import com.moblin.android.various.model.pauseQuickButtonChatAlerts
+import com.moblin.android.various.model.sendChatMessageShowLogin
 
 private fun makeChatLineStyle(chat: SettingsChat): ChatLineStyle =
     ChatLineStyle(
@@ -107,26 +114,24 @@ private fun makeChatLineStyle(chat: SettingsChat): ChatLineStyle =
 private fun HighlightMessageView(
     deleted: Boolean,
     style: ChatLineStyle,
-    highlight: com.moblin.android.various.ChatHighlight,
+    highlight: ChatHighlight,
     onLinkUrl: (String?) -> Unit,
 ) {
-    val titleSegments = highlight.titleSegments
-    if (titleSegments != null) {
-        val content = style.makeHighlightContent(
+    val titleSegments = highlight.titleSegments ?: return
+    ChatLineView(
+        content = style.makeHighlightContent(
             highlight = highlight,
             titleSegments = titleSegments,
             deleted = deleted,
-        )
-        ChatLineView(content = content) { url ->
-            onLinkUrl(url)
-        }
-    }
+        ),
+        onTap = { url -> onLinkUrl(url) },
+    )
 }
 
 @Composable
 private fun HighlightImageView(
     style: ChatLineStyle,
-    highlight: com.moblin.android.various.ChatHighlight,
+    highlight: ChatHighlight,
 ) {
     ChatLineView(content = style.makeHighlightImageContent(highlight = highlight))
 }
@@ -142,13 +147,14 @@ private fun LineView(
 ) {
     ChatLineView(
         content = style.makeContent(post = post, platform = platform, deleted = deleted),
-    ) { url ->
-        if (url != null) {
-            onLinkUrl(url)
-        } else {
-            onSelectedPost(post)
-        }
-    }
+        onTap = { url ->
+            if (url != null) {
+                onLinkUrl(url)
+            } else {
+                onSelectedPost(post)
+            }
+        },
+    )
 }
 
 @Composable
@@ -162,49 +168,55 @@ private fun PostView(
     state: ChatPostState,
     rotation: Double,
     scaleX: Double,
-    size: androidx.compose.ui.unit.IntSize,
+    size: IntSize,
 ) {
     val deleted by state.deleted.collectAsState()
-    if (post.user != null) {
-        if (!deleted || chatSettings.showDeletedMessages) {
-            val highlight = post.highlight
-            if (highlight != null) {
-                Row(modifier = Modifier.graphicsLayer {
+    if (post.user == null) {
+        Box(
+            modifier = Modifier
+                .padding(2.dp)
+                .graphicsLayer {
                     rotationZ = rotation.toFloat()
                     this.scaleX = scaleX.toFloat()
-                }) {
-                    Box(
-                        modifier = Modifier
-                            .width(3.dp)
-                            .height(androidx.compose.ui.unit.Dp.Unspecified)
-                            .background(highlight.barColor),
-                    )
-                    if (chatSettings.compactEvents && highlight.titleSegments != null) {
-                        HighlightImageView(style = style, highlight = highlight)
-                    }
-                    Column(
-                        modifier = Modifier,
-                        horizontalAlignment = Alignment.Start,
-                    ) {
-                        if (!chatSettings.compactEvents) {
-                            HighlightMessageView(
-                                deleted = deleted,
-                                style = style,
-                                highlight = highlight,
-                                onLinkUrl = onLinkUrl,
-                            )
-                        }
-                        LineView(
-                            deleted = deleted,
-                            post = post,
-                            style = style,
-                            platform = moreThanOneStreamingPlatform,
-                            onSelectedPost = onSelectedPost,
-                            onLinkUrl = onLinkUrl,
-                        )
-                    }
                 }
-            } else {
+                .width(size.width.dp)
+                .height(1.5.dp)
+                .background(Color.Red),
+        )
+        return
+    }
+    if (deleted && !chatSettings.showDeletedMessages) {
+        return
+    }
+    val highlight = post.highlight
+    if (highlight != null) {
+        Row(
+            modifier = Modifier
+                .graphicsLayer {
+                    rotationZ = rotation.toFloat()
+                    this.scaleX = scaleX.toFloat()
+                }
+                .drawBehind {
+                    drawRect(color = highlight.barColor, size = Size(3.dp.toPx(), this.size.height))
+                }
+                .padding(start = 3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (chatSettings.compactEvents && highlight.titleSegments != null) {
+                HighlightImageView(style = style, highlight = highlight)
+            }
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(1.dp),
+            ) {
+                if (!chatSettings.compactEvents) {
+                    HighlightMessageView(
+                        deleted = deleted,
+                        style = style,
+                        highlight = highlight,
+                        onLinkUrl = onLinkUrl,
+                    )
+                }
                 LineView(
                     deleted = deleted,
                     post = post,
@@ -218,15 +230,21 @@ private fun PostView(
     } else {
         Box(
             modifier = Modifier
-                .padding(2.dp)
                 .graphicsLayer {
                     rotationZ = rotation.toFloat()
                     this.scaleX = scaleX.toFloat()
                 }
-                .width(size.width.dp)
-                .height(1.5.dp)
-                .background(Color.Red),
-        )
+                .padding(start = 3.dp),
+        ) {
+            LineView(
+                deleted = deleted,
+                post = post,
+                style = style,
+                platform = moreThanOneStreamingPlatform,
+                onSelectedPost = onSelectedPost,
+                onLinkUrl = onLinkUrl,
+            )
+        }
     }
 }
 
@@ -241,8 +259,9 @@ private fun MessagesView(
     val rotation = chatSettings.getRotation()
     val scaleX = chatSettings.getScaleX()
     val style = makeChatLineStyle(chatSettings)
-    val scope = rememberCoroutineScope()
-    Box(
+    val posts by chat.posts.collectAsState()
+    val moreThanOneStreamingPlatform by chat.moreThanOneStreamingPlatform.collectAsState()
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .graphicsLayer {
@@ -250,31 +269,35 @@ private fun MessagesView(
                 this.scaleX = (scaleX * chatSettings.isMirrored()).toFloat()
             },
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.Start,
-        ) {
+        val size = IntSize(constraints.maxWidth, constraints.maxHeight)
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
-                Box(modifier = Modifier.height(1.dp))
+                Box(modifier = Modifier.height(1.dp)) {
+                    LaunchedEffect(Unit) {
+                        model.endOfQuickButtonChatReachedWhenPaused()
+                    }
+                    DisposableEffect(Unit) {
+                        onDispose {
+                            model.pauseQuickButtonChat()
+                        }
+                    }
+                }
             }
-            items(chat.posts.value) { post ->
+            items(posts) { post ->
                 PostView(
                     chatSettings = chatSettings,
                     style = style,
-                    moreThanOneStreamingPlatform = chat.moreThanOneStreamingPlatform.value,
+                    moreThanOneStreamingPlatform = moreThanOneStreamingPlatform,
                     onSelectedPost = onSelectedPost,
                     onLinkUrl = onLinkUrl,
                     post = post,
                     state = post.state,
                     rotation = rotation,
                     scaleX = scaleX,
-                    size = androidx.compose.ui.unit.IntSize(0, 0),
+                    size = size,
                 )
             }
         }
-    }
-    LaunchedEffect(Unit) {
-        Unit
     }
 }
 
@@ -285,6 +308,7 @@ private fun ChatView(
     onSelectedPost: (ChatPost?) -> Unit,
     onLinkUrl: (String?) -> Unit,
 ) {
+    val paused by chat.paused.collectAsState()
     Box(modifier = Modifier.fillMaxSize()) {
         MessagesView(
             model = model,
@@ -293,10 +317,12 @@ private fun ChatView(
             onSelectedPost = onSelectedPost,
             onLinkUrl = onLinkUrl,
         )
-        if (chat.paused.value) {
-            ChatInfo(
-                message = localized("Chat paused: ${chat.pausedPostsCount} new messages")
-            )
+        if (paused) {
+            Box(modifier = Modifier.padding(2.dp)) {
+                ChatInfo(
+                    message = localized("Chat paused: ${chat.pausedPostsCount} new messages"),
+                )
+            }
         }
         BannersView(model = model, banners = model.banners)
     }
@@ -315,63 +341,70 @@ private fun AlertsPostView(
     state: ChatPostState,
     rotation: Double,
     scaleX: Double,
-    size: androidx.compose.ui.unit.IntSize,
+    size: IntSize,
 ) {
     val deleted by state.deleted.collectAsState()
 
-    fun shouldShowMessage(highlight: com.moblin.android.various.ChatHighlight): Boolean {
-        if (highlight.kind.name.replace("_", "").equals("firstMessage", ignoreCase = true) &&
-            !showFirstTimeChatterMessage
-        ) {
+    fun shouldShowMessage(highlight: ChatHighlight): Boolean {
+        val kindName = highlight.kind.name.lowercase()
+        if (kindName.contains("first") && !showFirstTimeChatterMessage) {
             return false
         }
-        if (highlight.kind.name.replace("_", "").equals("newFollower", ignoreCase = true) &&
-            !showNewFollowerMessage
-        ) {
+        if (kindName.contains("follower") && !showNewFollowerMessage) {
             return false
         }
         return true
     }
 
-    if (post.user != null) {
-        if (!deleted || chatSettings.showDeletedMessages) {
-            val highlight = post.highlight
-            if (highlight != null) {
-                if (shouldShowMessage(highlight)) {
-                    Row(modifier = Modifier.graphicsLayer {
-                        rotationZ = rotation.toFloat()
-                        this.scaleX = scaleX.toFloat()
-                    }) {
-                        Box(
-                            modifier = Modifier
-                                .width(3.dp)
-                                .fillMaxSize()
-                                .background(highlight.barColor),
-                        )
-                        if (chatSettings.compactEvents && highlight.titleSegments != null) {
-                            HighlightImageView(style = style, highlight = highlight)
-                        }
-                        Column {
-                            if (!chatSettings.compactEvents) {
-                                HighlightMessageView(
-                                    deleted = deleted,
-                                    style = style,
-                                    highlight = highlight,
-                                    onLinkUrl = onLinkUrl,
-                                )
-                            }
-                            LineView(
-                                deleted = deleted,
-                                post = post,
-                                style = style,
-                                platform = moreThanOneStreamingPlatform,
-                                onSelectedPost = onSelectedPost,
-                                onLinkUrl = onLinkUrl,
-                            )
-                        }
-                    }
+    if (post.user == null) {
+        Box(
+            modifier = Modifier
+                .padding(2.dp)
+                .graphicsLayer {
+                    rotationZ = rotation.toFloat()
+                    this.scaleX = scaleX.toFloat()
                 }
-            } else {
+                .width(size.width.dp)
+                .height(1.5.dp)
+                .background(Color.Red),
+        )
+        return
+    }
+    if (deleted && !chatSettings.showDeletedMessages) {
+        return
+    }
+    val highlight = post.highlight
+    if (highlight != null) {
+        if (!shouldShowMessage(highlight)) {
+            return
+        }
+        Row(
+            modifier = Modifier
+                .graphicsLayer {
+                    rotationZ = rotation.toFloat()
+                    this.scaleX = scaleX.toFloat()
+                }
+                .drawBehind {
+                    drawRect(color = highlight.barColor, size = Size(3.dp.toPx(), this.size.height))
+                }
+                .padding(start = 3.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (chatSettings.compactEvents && highlight.titleSegments != null) {
+                HighlightImageView(style = style, highlight = highlight)
+            }
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(1.dp),
+            ) {
+                if (!chatSettings.compactEvents) {
+                    HighlightMessageView(
+                        deleted = deleted,
+                        style = style,
+                        highlight = highlight,
+                        onLinkUrl = onLinkUrl,
+                    )
+                }
                 LineView(
                     deleted = deleted,
                     post = post,
@@ -385,15 +418,21 @@ private fun AlertsPostView(
     } else {
         Box(
             modifier = Modifier
-                .padding(2.dp)
                 .graphicsLayer {
                     rotationZ = rotation.toFloat()
                     this.scaleX = scaleX.toFloat()
                 }
-                .width(size.width.dp)
-                .height(1.5.dp)
-                .background(Color.Red),
-        )
+                .padding(start = 3.dp),
+        ) {
+            LineView(
+                deleted = deleted,
+                post = post,
+                style = style,
+                platform = moreThanOneStreamingPlatform,
+                onSelectedPost = onSelectedPost,
+                onLinkUrl = onLinkUrl,
+            )
+        }
     }
 }
 
@@ -409,7 +448,11 @@ private fun AlertsMessagesView(
     val rotation = chatSettings.getRotation()
     val scaleX = chatSettings.getScaleX()
     val style = makeChatLineStyle(chatSettings)
-    Box(
+    val posts by quickButtonChat.chatAlertsPosts.collectAsState()
+    val showFirstTimeChatterMessage by quickButtonChat.showFirstTimeChatterMessage.collectAsState()
+    val showNewFollowerMessage by quickButtonChat.showNewFollowerMessage.collectAsState()
+    val moreThanOneStreamingPlatform by chat.moreThanOneStreamingPlatform.collectAsState()
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .graphicsLayer {
@@ -417,33 +460,37 @@ private fun AlertsMessagesView(
                 this.scaleX = (scaleX * chatSettings.isMirrored()).toFloat()
             },
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.Start,
-        ) {
+        val size = IntSize(constraints.maxWidth, constraints.maxHeight)
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
-                Box(modifier = Modifier.height(1.dp))
+                Box(modifier = Modifier.height(1.dp)) {
+                    LaunchedEffect(Unit) {
+                        model.endOfQuickButtonChatAlertsReachedWhenPaused()
+                    }
+                    DisposableEffect(Unit) {
+                        onDispose {
+                            model.pauseQuickButtonChatAlerts()
+                        }
+                    }
+                }
             }
-            items(quickButtonChat.chatAlertsPosts.value) { post ->
+            items(posts) { post ->
                 AlertsPostView(
                     chatSettings = chatSettings,
                     style = style,
-                    moreThanOneStreamingPlatform = chat.moreThanOneStreamingPlatform.value,
-                    showFirstTimeChatterMessage = quickButtonChat.showFirstTimeChatterMessage.value,
-                    showNewFollowerMessage = quickButtonChat.showNewFollowerMessage.value,
+                    moreThanOneStreamingPlatform = moreThanOneStreamingPlatform,
+                    showFirstTimeChatterMessage = showFirstTimeChatterMessage,
+                    showNewFollowerMessage = showNewFollowerMessage,
                     onSelectedPost = onSelectedPost,
                     onLinkUrl = onLinkUrl,
                     post = post,
                     state = post.state,
                     rotation = rotation,
                     scaleX = scaleX,
-                    size = androidx.compose.ui.unit.IntSize(0, 0),
+                    size = size,
                 )
             }
         }
-    }
-    LaunchedEffect(Unit) {
-        Unit
     }
 }
 
@@ -454,6 +501,7 @@ private fun ChatAlertsView(
     onSelectedPost: (ChatPost?) -> Unit,
     onLinkUrl: (String?) -> Unit,
 ) {
+    val chatAlertsPaused by quickButtonChat.chatAlertsPaused.collectAsState()
     Box(modifier = Modifier.fillMaxSize()) {
         AlertsMessagesView(
             model = model,
@@ -463,12 +511,14 @@ private fun ChatAlertsView(
             onSelectedPost = onSelectedPost,
             onLinkUrl = onLinkUrl,
         )
-        if (quickButtonChat.chatAlertsPaused.value) {
-            ChatInfo(
-                message = localized(
-                    "Chat paused: ${quickButtonChat.pausedChatAlertsPostsCount} new alerts"
+        if (chatAlertsPaused) {
+            Box(modifier = Modifier.padding(2.dp)) {
+                ChatInfo(
+                    message = localized(
+                        "Chat paused: ${quickButtonChat.pausedChatAlertsPostsCount} new alerts"
+                    ),
                 )
-            )
+            }
         }
         BannersView(model = model, banners = model.banners)
     }
@@ -480,17 +530,23 @@ private fun TagButtonView(
     enabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
 ) {
-    if (enabled) {
-        Button(
-            onClick = { onEnabledChange(!enabled) },
-            colors = ButtonDefaults.buttonColors(),
-        ) {
-            Text(tag)
-        }
-    } else {
-        TextButton(onClick = { onEnabledChange(!enabled) }) {
-            Text(tag)
-        }
+    val palette = formPalette()
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val shape = RoundedCornerShape(8.dp)
+    Box(
+        modifier = Modifier
+            .graphicsLayer { alpha = if (pressed) 0.2f else 1f }
+            .clip(shape)
+            .background(if (enabled) palette.accent else Color.Transparent)
+            .border(1.dp, palette.accent, shape)
+            .clickable(interactionSource = interactionSource, indication = null) {
+                onEnabledChange(!enabled)
+            }
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(tag, color = if (enabled) Color.White else palette.accent)
     }
 }
 
@@ -503,21 +559,72 @@ private fun PredefinedMessageView(
     onShowingPredefinedMessagesChange: (Boolean) -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Row(modifier = Modifier.fillMaxWidth().clickable { onNavigate("predefinedMessage") }) {
-        DraggableItemPrefixView(
-            modifier = Modifier.alpha(if (filter.isEnabled()) 0.5f else 1f)
-        )
+    NavigationLink(
+        destination = {
+            Form(title = localized("Predefined message")) {
+                Section {
+                    TextEditNavigationView(
+                        title = localized("Text"),
+                        value = predefinedMessage.text,
+                        onSubmit = { predefinedMessage.text = it },
+                        placeholder = localized("Hello chat!"),
+                    )
+                }
+                Section(header = localized("Tags")) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Spacer(modifier = Modifier.weight(1f))
+                        TagButtonView(
+                            tag = SettingsChatPredefinedMessage.tagBlue,
+                            enabled = predefinedMessage.blueTag,
+                            onEnabledChange = { predefinedMessage.blueTag = it },
+                        )
+                        TagButtonView(
+                            tag = SettingsChatPredefinedMessage.tagGreen,
+                            enabled = predefinedMessage.greenTag,
+                            onEnabledChange = { predefinedMessage.greenTag = it },
+                        )
+                        TagButtonView(
+                            tag = SettingsChatPredefinedMessage.tagYellow,
+                            enabled = predefinedMessage.yellowTag,
+                            onEnabledChange = { predefinedMessage.yellowTag = it },
+                        )
+                        TagButtonView(
+                            tag = SettingsChatPredefinedMessage.tagOrange,
+                            enabled = predefinedMessage.orangeTag,
+                            onEnabledChange = { predefinedMessage.orangeTag = it },
+                        )
+                        TagButtonView(
+                            tag = SettingsChatPredefinedMessage.tagRed,
+                            enabled = predefinedMessage.redTag,
+                            onEnabledChange = { predefinedMessage.redTag = it },
+                        )
+                    }
+                }
+            }
+        },
+    ) {
+        if (filter.isEnabled()) {
+            CompositionLocalProvider(LocalTint provides formPalette().gray) {
+                DraggableItemPrefixView()
+            }
+        } else {
+            DraggableItemPrefixView()
+        }
         Text(predefinedMessage.tagsString())
         Text(predefinedMessage.text)
         Spacer(modifier = Modifier.weight(1f))
         BorderlessButtonView(text = "Send") {
-            Unit
-            onShowingPredefinedMessagesChange(false)
+            if (predefinedMessage.text.isNotEmpty()) {
+                model.sendChatMessageShowLogin(predefinedMessage.text)
+                onShowingPredefinedMessagesChange(false)
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PredefinedMessagesView(
     model: Model = LocalModel.current,
@@ -545,61 +652,94 @@ fun PredefinedMessagesView(
         return messages
     }
 
-    Box {
-        TopAppBar(title = { Text(localized("Predefined messages")) })
-        Column(modifier = Modifier.padding(top = 56.dp)) {
-            Row(modifier = Modifier.fillMaxWidth().padding(11.dp)) {
-                Text("Filter")
+    Form(
+        title = localized("Predefined messages"),
+        toolbar = {
+            CloseToolbar(
+                presenting = presentingPredefinedMessages,
+                onPresentingChange = onPresentingPredefinedMessagesChange,
+            )
+        },
+    ) {
+        Section {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(localized("Filter"))
                 Spacer(modifier = Modifier.weight(1f))
                 TagButtonView(
                     tag = SettingsChatPredefinedMessage.tagBlue,
                     enabled = filter.blueTag,
-                    onEnabledChange = { filter.blueTag = it })
+                    onEnabledChange = { filter.blueTag = it },
+                )
                 TagButtonView(
                     tag = SettingsChatPredefinedMessage.tagGreen,
                     enabled = filter.greenTag,
-                    onEnabledChange = { filter.greenTag = it })
+                    onEnabledChange = { filter.greenTag = it },
+                )
                 TagButtonView(
                     tag = SettingsChatPredefinedMessage.tagYellow,
                     enabled = filter.yellowTag,
-                    onEnabledChange = { filter.yellowTag = it })
+                    onEnabledChange = { filter.yellowTag = it },
+                )
                 TagButtonView(
                     tag = SettingsChatPredefinedMessage.tagOrange,
                     enabled = filter.orangeTag,
-                    onEnabledChange = { filter.orangeTag = it })
+                    onEnabledChange = { filter.orangeTag = it },
+                )
                 TagButtonView(
                     tag = SettingsChatPredefinedMessage.tagRed,
                     enabled = filter.redTag,
-                    onEnabledChange = { filter.redTag = it })
+                    onEnabledChange = { filter.redTag = it },
+                )
             }
-            LazyColumn(modifier = Modifier.weight(1f)) {
-                items(filteredMessages()) { predefinedMessage ->
+        }
+        Section(
+            footerContent = {
+                if (filter.isEnabled()) {
+                    Text(localized("Cannot move or delete predefined messages when filtering."))
+                } else {
+                    SwipeLeftToDeleteHelpView(kind = localized("a predefined message"))
+                }
+            },
+        ) {
+            for (predefinedMessage in filteredMessages()) {
+                key(predefinedMessage.id) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        PredefinedMessageView(
-                            model = model,
-                            filter = filter,
-                            predefinedMessage = predefinedMessage,
-                            showingPredefinedMessages = presentingPredefinedMessages,
-                            onShowingPredefinedMessagesChange = onPresentingPredefinedMessagesChange,
-                            onNavigate = {},
-                        )
+                        Box(modifier = Modifier.weight(1f)) {
+                            PredefinedMessageView(
+                                model = model,
+                                filter = filter,
+                                predefinedMessage = predefinedMessage,
+                                showingPredefinedMessages = presentingPredefinedMessages,
+                                onShowingPredefinedMessagesChange = onPresentingPredefinedMessagesChange,
+                                onNavigate = {},
+                            )
+                        }
                         if (!filter.isEnabled()) {
-                            IconButton(onClick = {
-                                chat.predefinedMessages.removeAll { it.id == predefinedMessage.id }
-                            }) {
-                                Icon(Icons.Default.Delete, contentDescription = null)
+                            Box(
+                                modifier = Modifier
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                    ) {
+                                        chat.predefinedMessages.removeAll {
+                                            it.id == predefinedMessage.id
+                                        }
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                            ) {
+                                SystemImage("trash", 17.sp, Modifier, formPalette().red)
                             }
                         }
                     }
                 }
             }
-            TextButtonView("Create") {
-                chat.predefinedMessages.add(SettingsChatPredefinedMessage())
-            }
-            if (filter.isEnabled()) {
-                Text(localized("Cannot move or delete predefined messages when filtering."))
-            } else {
-                SwipeLeftToDeleteHelpView(kind = localized("a predefined message"))
+            Section {
+                TextButtonView("Create") {
+                    chat.predefinedMessages.add(SettingsChatPredefinedMessage())
+                }
             }
         }
     }
@@ -607,37 +747,37 @@ fun PredefinedMessagesView(
 
 @Composable
 private fun SendMessagesToView(
-    platform: com.moblin.android.streamingplatforms.Platform,
+    platform: Platform,
     enabled: Boolean,
     onEnabledChange: (Boolean) -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        androidx.compose.foundation.Image(
-            painter = painterResource(id = platformIconResource(platform.imageName())),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-        )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        val bitmap = Bundle.image(platform.imageName())?.asImageBitmap()
+        if (bitmap != null) {
+            Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(24.dp))
+        }
         Text(
             text = platform.displayName(),
             modifier = Modifier.padding(start = 6.dp),
-            color = MaterialTheme.colorScheme.onSurface,
+            color = formPalette().label,
         )
-        Switch(checked = enabled, onCheckedChange = { onEnabledChange(it) })
+        Toggle(isOn = enabled, onChange = { onEnabledChange(it) }) {}
     }
 }
 
 @Composable
 private fun PlatformIconView(image: String) {
-    androidx.compose.foundation.Image(
-        painter = painterResource(id = platformIconResource(image)),
-        contentDescription = null,
-        modifier = Modifier.size(25.dp),
-    )
+    val bitmap = Bundle.image(image)?.asImageBitmap()
+    if (bitmap != null) {
+        Image(bitmap = bitmap, contentDescription = null, modifier = Modifier.size(25.dp))
+    }
 }
 
 private fun platformIconResource(image: String): Int = 0
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SendMessagesToSelectorView(
     stream: SettingsStream,
@@ -648,33 +788,46 @@ private fun SendMessagesToSelectorView(
 
     fun isKickOnly(): Boolean = stream.kickSendMessagesTo && !stream.twitchSendMessagesTo
 
-    Box(modifier = Modifier.size(30.dp).clickable { onPresentingSelectorChange(true) }) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Box(
+        modifier = Modifier
+            .size(30.dp)
+            .graphicsLayer { alpha = if (pressed) 0.2f else 1f }
+            .clickable(interactionSource = interactionSource, indication = null) {
+                onPresentingSelectorChange(true)
+            },
+        contentAlignment = Alignment.Center,
+    ) {
         if (isTwitchOnly()) {
             PlatformIconView(image = "TwitchLogo")
         } else if (isKickOnly()) {
             PlatformIconView(image = "KickLogo")
         } else {
-            Icon(
-                imageVector = Icons.Default.Send,
-                contentDescription = null,
-                modifier = Modifier.size(30.dp),
-            )
+            SystemImage("globe", 28.sp, Modifier, formPalette().accent)
         }
     }
     if (presentingSelector) {
-        ModalBottomSheet(onDismissRequest = { onPresentingSelectorChange(false) }) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Send messages to", modifier = Modifier.padding(11.dp))
-                SendMessagesToView(
-                    platform = com.moblin.android.streamingplatforms.Platform.twitch,
-                    enabled = stream.twitchSendMessagesTo,
-                    onEnabledChange = { stream.twitchSendMessagesTo = it },
-                )
-                SendMessagesToView(
-                    platform = com.moblin.android.streamingplatforms.Platform.kick,
-                    enabled = stream.kickSendMessagesTo,
-                    onEnabledChange = { stream.kickSendMessagesTo = it },
-                )
+        Sheet(onDismissRequest = { onPresentingSelectorChange(false) }) {
+            Column(
+                modifier = Modifier.padding(5.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(localized("Send messages to"), modifier = Modifier.padding(11.dp))
+                Box(modifier = Modifier.padding(11.dp)) {
+                    SendMessagesToView(
+                        platform = Platform.twitch,
+                        enabled = stream.twitchSendMessagesTo,
+                        onEnabledChange = { stream.twitchSendMessagesTo = it },
+                    )
+                }
+                Box(modifier = Modifier.padding(11.dp)) {
+                    SendMessagesToView(
+                        platform = Platform.kick,
+                        enabled = stream.kickSendMessagesTo,
+                        onEnabledChange = { stream.kickSendMessagesTo = it },
+                    )
+                }
             }
         }
     }
@@ -687,35 +840,51 @@ private fun MenuItemView(
     action: () -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().clickable { action() }.padding(11.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+            ) {
+                action()
+            }
+            .padding(11.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            painter = painterResource(id = platformIconResource(image)),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-        )
-        Text(localized(text), modifier = Modifier.padding(start = 8.dp))
+        IconAndTextLocalizedView(image = image, text = text)
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ControlMenuButtonView(
     model: Model = LocalModel.current,
     presentingMenu: Boolean,
     onPresentingMenuChange: (Boolean) -> Unit,
 ) {
-    IconButton(onClick = { onPresentingMenuChange(true) }) {
-        Icon(
-            imageVector = Icons.Default.MoreVert,
-            contentDescription = null,
-            modifier = Modifier.graphicsLayer { rotationZ = 90f },
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Box(
+        modifier = Modifier
+            .padding(end = 13.dp)
+            .graphicsLayer { alpha = if (pressed) 0.2f else 1f }
+            .clickable(interactionSource = interactionSource, indication = null) {
+                onPresentingMenuChange(true)
+            },
+    ) {
+        SystemImage(
+            "ellipsis",
+            28.sp,
+            Modifier.graphicsLayer { rotationZ = 90f },
+            formPalette().accent,
         )
     }
     if (presentingMenu) {
-        ModalBottomSheet(onDismissRequest = { onPresentingMenuChange(false) }) {
-            Column(modifier = Modifier.padding(5.dp)) {
+        Sheet(onDismissRequest = { onPresentingMenuChange(false) }) {
+            Column(
+                modifier = Modifier.padding(5.dp),
+                horizontalAlignment = Alignment.Start,
+            ) {
                 MenuItemView(image = "shield", text = "Moderation") {
                     onPresentingMenuChange(false)
                     model.presentingModeration.value = true
@@ -731,16 +900,18 @@ private fun ControlMenuButtonView(
 
 @Composable
 private fun ControlAlertsButtonView(quickButtonChat: QuickButtonChat) {
-    IconButton(onClick = { quickButtonChat.showAllChatMessages.value = !quickButtonChat.showAllChatMessages.value }) {
-        Icon(
-            imageVector = if (quickButtonChat.showAllChatMessages.value) {
-                Icons.Default.Notifications
-            } else {
-                Icons.Default.Notifications
-            },
-            contentDescription = null,
-            modifier = Modifier.size(28.dp),
-        )
+    val showAllChatMessages by quickButtonChat.showAllChatMessages.collectAsState()
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Box(
+        modifier = Modifier
+            .graphicsLayer { alpha = if (pressed) 0.2f else 1f }
+            .clickable(interactionSource = interactionSource, indication = null) {
+                quickButtonChat.showAllChatMessages.value = !showAllChatMessages
+            }
+            .padding(5.dp),
+    ) {
+        SystemImage("megaphone", 28.sp, Modifier, formPalette().accent)
     }
 }
 
@@ -750,31 +921,44 @@ private fun ControlView(
     message: String,
     onMessageChange: (String) -> Unit,
 ) {
+    var presentingSelector by remember { mutableStateOf(false) }
+    var presentingMenu by remember { mutableStateOf(false) }
     Row(verticalAlignment = Alignment.CenterVertically) {
-        OutlinedTextField(
+        BasicTextField(
             value = message,
             onValueChange = onMessageChange,
-            placeholder = { Text("Send message", color = Color.Gray) },
-            modifier = Modifier.weight(1f).padding(5.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(5.dp),
+            textStyle = formBodyStyle.copy(color = Color.White),
+            cursorBrush = SolidColor(formPalette().accent),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+            keyboardActions = KeyboardActions(
+                onSend = {
+                    if (message.isNotEmpty()) {
+                        model.sendChatMessageShowLogin(message)
+                    }
+                    onMessageChange("")
+                },
+            ),
+            decorationBox = { innerTextField ->
+                if (message.isEmpty()) {
+                    Text(localized("Send message"), color = Color.Gray)
+                }
+                innerTextField()
+            },
         )
-        TextButton(onClick = {
-            if (message.isNotEmpty()) {
-                Unit
-            }
-            onMessageChange("")
-        }) {
-            Icon(Icons.Default.Send, contentDescription = null)
-        }
         SendMessagesToSelectorView(
             stream = model.stream.value,
-            presentingSelector = false,
-            onPresentingSelectorChange = {},
+            presentingSelector = presentingSelector,
+            onPresentingSelectorChange = { presentingSelector = it },
         )
         ControlAlertsButtonView(quickButtonChat = model.quickButtonChatState)
         ControlMenuButtonView(
             model = model,
-            presentingMenu = false,
-            onPresentingMenuChange = {},
+            presentingMenu = presentingMenu,
+            onPresentingMenuChange = { presentingMenu = it },
         )
     }
 }
@@ -786,46 +970,59 @@ private fun AlertsControlView(
     message: String,
     onMessageChange: (String) -> Unit,
 ) {
+    var presentingMenu by remember { mutableStateOf(false) }
+    val showFirstTimeChatterMessage by quickButtonChat.showFirstTimeChatterMessage.collectAsState()
+    val showNewFollowerMessage by quickButtonChat.showNewFollowerMessage.collectAsState()
+    val palette = formPalette()
     Row(verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = {
-            quickButtonChat.showFirstTimeChatterMessage.value = !quickButtonChat.showFirstTimeChatterMessage.value
-            model.database.chat.showFirstTimeChatterMessage = quickButtonChat.showFirstTimeChatterMessage.value
-        }) {
-            Icon(
-                imageVector = if (quickButtonChat.showFirstTimeChatterMessage.value) {
-                    Icons.Default.Email
-                } else {
-                    Icons.Default.MailOutline
-                },
-                contentDescription = null,
-                modifier = Modifier.size(28.dp),
+        Box(
+            modifier = Modifier
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                ) {
+                    val value = !showFirstTimeChatterMessage
+                    quickButtonChat.showFirstTimeChatterMessage.value = value
+                    model.database.chat.showFirstTimeChatterMessage = value
+                }
+                .padding(5.dp),
+        ) {
+            SystemImage(
+                if (showFirstTimeChatterMessage) "text.bubble" else "bubble.left",
+                28.sp,
+                Modifier,
+                palette.accent,
             )
         }
-        IconButton(onClick = {
-            quickButtonChat.showNewFollowerMessage.value = !quickButtonChat.showNewFollowerMessage.value
-            model.database.chat.showNewFollowerMessage = quickButtonChat.showNewFollowerMessage.value
-        }) {
-            Icon(
-                imageVector = if (quickButtonChat.showNewFollowerMessage.value) {
-                    Icons.Default.Star
-                } else {
-                    Icons.Default.Star
-                },
-                contentDescription = null,
-                modifier = Modifier.size(28.dp),
+        Box(
+            modifier = Modifier
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                ) {
+                    val value = !showNewFollowerMessage
+                    quickButtonChat.showNewFollowerMessage.value = value
+                    model.database.chat.showNewFollowerMessage = value
+                }
+                .padding(5.dp),
+        ) {
+            SystemImage(
+                if (showNewFollowerMessage) "person.2.fill" else "person.2",
+                28.sp,
+                Modifier,
+                palette.accent,
             )
         }
         Spacer(modifier = Modifier.weight(1f))
         ControlAlertsButtonView(quickButtonChat = quickButtonChat)
         ControlMenuButtonView(
             model = model,
-            presentingMenu = false,
-            onPresentingMenuChange = {},
+            presentingMenu = presentingMenu,
+            onPresentingMenuChange = { presentingMenu = it },
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonChatView(
     model: Model = LocalModel.current,
@@ -835,15 +1032,19 @@ fun QuickButtonChatView(
     var message by remember { mutableStateOf("") }
     var selectedPost by remember { mutableStateOf<ChatPost?>(null) }
     var linkUrl by remember { mutableStateOf<String?>(null) }
+    val showAllChatMessages by quickButtonChat.showAllChatMessages.collectAsState()
+    val palette = formPalette()
 
-    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = if (orientation.isPortrait.value) 5.dp else 0.dp),
-        ) {
+    NavigationTitle(localized("Chat"))
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .padding(bottom = if (orientation.isPortrait.value) 5.dp else 0.dp),
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
             Box(modifier = Modifier.weight(1f)) {
-                if (quickButtonChat.showAllChatMessages.value) {
+                if (showAllChatMessages) {
                     ChatView(
                         model = model,
                         chat = model.quickButtonChat,
@@ -861,12 +1062,13 @@ fun QuickButtonChatView(
             }
             Row(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .height(50.dp)
-                    .border(1.dp, Color.Gray)
+                    .border(1.dp, palette.gray)
                     .padding(horizontal = 5.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (quickButtonChat.showAllChatMessages.value) {
+                if (showAllChatMessages) {
                     ControlView(
                         model = model,
                         message = message,
@@ -891,7 +1093,6 @@ fun QuickButtonChatView(
             onLinkUrlChange = { linkUrl = it },
         )
     }
-    TopAppBar(title = { Text(localized("Chat")) })
     val uriHandler = LocalUriHandler.current
     LaunchedEffect(linkUrl) {
         val url = linkUrl ?: return@LaunchedEffect

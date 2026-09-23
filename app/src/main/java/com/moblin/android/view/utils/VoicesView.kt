@@ -4,40 +4,40 @@ import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
-import com.moblin.android.R
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.integrations.ttsmonster.TtsMonster
 import com.moblin.android.integrations.ttsmonster.TtsMonsterVoicesResponse
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.AudioPlayer
 import com.moblin.android.various.KeepSpeakerAlivePlayer
 import com.moblin.android.various.settings.SettingsVoice
@@ -47,7 +47,6 @@ import com.moblin.android.various.utils.emojiFlag
 import com.moblin.android.view.settings.chat.textToSpeechLanguages
 import com.moblin.android.view.settings.chat.textToSpeechLocalize
 import kotlinx.coroutines.launch
-import com.moblin.android.LocalOnNavigate
 
 private fun getVoice(
     appleVoices: List<android.speech.tts.Voice>,
@@ -148,6 +147,32 @@ private data class VoicePickerItem(
 }
 
 @Composable
+private fun TtsMonsterLogo(modifier: Modifier = Modifier) {
+    val bitmap = remember { com.moblin.android.platform.Bundle.image("TtsMonster")?.asImageBitmap() }
+    if (bitmap != null) {
+        Image(bitmap = bitmap, contentDescription = null, modifier = modifier.width(15.dp))
+    }
+}
+
+@Composable
+private fun PlayButton(onClick: () -> Unit, content: @Composable () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Box(
+        modifier = Modifier
+            .alpha(if (pressed) 0.2f else 1f)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        content()
+    }
+}
+
+@Composable
 private fun VoiceView(
     voiceItem: VoicePickerItem,
     appleVoices: List<android.speech.tts.Voice>,
@@ -161,6 +186,7 @@ private fun VoiceView(
     var audioPlayer by remember { mutableStateOf<AudioPlayer?>(null) }
     var fetching by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val palette = formPalette()
 
     fun playAppleTestMessage(languageCode: String, identifier: String) {
         synthesizer.setSpeechRate(rate)
@@ -200,42 +226,44 @@ private fun VoiceView(
 
     Row(
         modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         when (val voice = voiceItem.voice) {
             is Voice.Apple -> {
-                Icon(
-                    imageVector = Icons.Default.Phone,
-                    contentDescription = null,
-                    modifier = Modifier.size(15.dp),
+                SystemImage(
+                    name = "apple.logo",
+                    fontSize = 15.sp,
+                    modifier = Modifier.width(15.dp),
+                    tint = palette.label,
                 )
                 Text("${voiceItem.flagEmoji} ${voice.name}")
                 Spacer(Modifier.weight(1f))
-                IconButton(
+                PlayButton(
                     onClick = {
                         playAppleTestMessage(languageCode = languageCode, identifier = voice.identifier)
                     },
                 ) {
-                    Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null)
+                    SystemImage(name = "play.fill", fontSize = 17.sp, tint = palette.accent)
                 }
             }
             is Voice.TtsMonster -> {
-                Image(
-                    painter = TODO("No Android drawable resource for the TtsMonster logo"),
-                    contentDescription = null,
-                    modifier = Modifier.size(15.dp),
-                )
+                TtsMonsterLogo()
                 Text("${voiceItem.flagEmoji} ${voice.name}")
                 Spacer(Modifier.weight(1f))
-                IconButton(
+                PlayButton(
                     onClick = {
                         playTtsMonsterTestMessage(voiceId = voice.voiceId)
                     },
                 ) {
                     if (fetching) {
-                        CircularProgressIndicator()
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = palette.gray,
+                            strokeWidth = 2.dp,
+                        )
                     } else {
-                        Icon(imageVector = Icons.Default.PlayArrow, contentDescription = null)
+                        SystemImage(name = "play.fill", fontSize = 17.sp, tint = palette.accent)
                     }
                 }
             }
@@ -277,7 +305,6 @@ private fun voices(
     return voices
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LanguageView(
     appleVoices: List<android.speech.tts.Voice>,
@@ -292,51 +319,48 @@ private fun LanguageView(
     ttsMonsterApiToken: String,
 ) {
     var selectedVoice by remember { mutableStateOf(initialSelectedVoice) }
+    val palette = formPalette()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(textToSpeechLocalize(languageCode)) })
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .verticalScroll(rememberScrollState()),
-        ) {
+    Form(title = textToSpeechLocalize(languageCode)) {
+        Section {
             voices(
                 appleVoices = appleVoices,
                 ttsMonsterVoices = ttsMonsterVoices,
                 languageCode = languageCode,
             ).forEach { voiceItem ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
+                key(voiceItem.id) {
+                    FormRow(
+                        onClick = {
                             selectedVoice = voiceItem
                             onVoiceChange(languageCode, voiceItem.toSettings())
                         },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    RadioButton(
-                        selected = selectedVoice?.id == voiceItem.id,
-                        onClick = null,
-                    )
-                    VoiceView(
-                        voiceItem = voiceItem,
-                        appleVoices = appleVoices,
-                        languageCode = languageCode,
-                        synthesizer = synthesizer,
-                        rate = rate,
-                        volume = volume,
-                        ttsMonsterApiToken = ttsMonsterApiToken,
-                        modifier = Modifier.weight(1f),
-                    )
+                    ) {
+                        VoiceView(
+                            voiceItem = voiceItem,
+                            appleVoices = appleVoices,
+                            languageCode = languageCode,
+                            synthesizer = synthesizer,
+                            rate = rate,
+                            volume = volume,
+                            ttsMonsterApiToken = ttsMonsterApiToken,
+                            modifier = Modifier.weight(1f),
+                        )
+                        if (selectedVoice?.id == voiceItem.id) {
+                            SystemImage(name = "checkmark", fontSize = 17.sp, tint = palette.accent)
+                        }
+                    }
                 }
             }
+        }
+        Section {
             Text(
-                "Download enhanced and premium voices in iOS Settings → Accessibility → " +
-                    "Live Speech → Preferred Voices.",
+                localized(
+                    "Download enhanced and premium voices in iOS Settings → Accessibility → " +
+                        "Live Speech → Preferred Voices.",
+                ),
             )
+        }
+        Section {
             TextButtonView("Reset") {
                 selectedVoice = null
                 onLanguageReset(languageCode)
@@ -372,7 +396,6 @@ private fun selectedVoice(language: Language): VoicePickerItem? {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VoicesView(
     textToSpeechLanguageVoices: Map<String, SettingsVoice>,
@@ -386,53 +409,53 @@ fun VoicesView(
     val synthesizer = remember { createSpeechSynthesizer() }
     var appleVoices by remember { mutableStateOf<List<android.speech.tts.Voice>>(emptyList()) }
     var ttsMonsterVoices by remember { mutableStateOf<TtsMonsterVoicesResponse?>(null) }
+    val palette = formPalette()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Voices") })
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            languages(
-                textToSpeechLanguageVoices = textToSpeechLanguageVoices,
-                appleVoices = appleVoices,
-            ).forEach { language ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate(language.code) },
-                    verticalAlignment = Alignment.CenterVertically,
+    Form(title = "Voices") {
+        languages(
+            textToSpeechLanguageVoices = textToSpeechLanguageVoices,
+            appleVoices = appleVoices,
+        ).forEach { language ->
+            key(language.code) {
+                NavigationLink(
+                    destination = {
+                        LanguageView(
+                            appleVoices = appleVoices,
+                            ttsMonsterVoices = ttsMonsterVoices,
+                            languageCode = language.code,
+                            initialSelectedVoice = selectedVoice(language),
+                            onVoiceChange = onVoiceChange,
+                            onLanguageReset = onLanguageReset,
+                            synthesizer = synthesizer,
+                            rate = rate,
+                            volume = volume,
+                            ttsMonsterApiToken = ttsMonsterApiToken,
+                        )
+                    },
                 ) {
                     Text(language.name)
                     Spacer(Modifier.weight(1f))
-                    val selectedVoice = language.selectedVoice
-                    if (selectedVoice != null) {
-                        when (selectedVoice.type) {
+                    val voice = language.selectedVoice
+                    if (voice != null) {
+                        when (voice.type) {
                             SettingsVoiceType.apple -> {
-                                Icon(
-                                    imageVector = Icons.Default.Phone,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(15.dp),
+                                SystemImage(
+                                    name = "apple.logo",
+                                    fontSize = 15.sp,
+                                    modifier = Modifier.width(15.dp),
+                                    tint = palette.label,
                                 )
                                 Text(
                                     getVoice(
                                         appleVoices = appleVoices,
                                         languageCode = language.code,
-                                        identifier = selectedVoice.apple.voice,
+                                        identifier = voice.apple.voice,
                                     )?.name ?: localized("Unknown"),
                                 )
                             }
                             SettingsVoiceType.ttsMonster -> {
-                                Image(
-                                    painter = TODO("No Android drawable resource for the TtsMonster logo"),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(15.dp),
-                                )
-                                Text(selectedVoice.ttsMonster.name)
+                                TtsMonsterLogo()
+                                Text(voice.ttsMonster.name)
                             }
                         }
                     }
@@ -445,7 +468,7 @@ fun VoicesView(
         appleVoices = synthesizer.voices?.toList() ?: emptyList()
     }
 
-    LaunchedEffect(ttsMonsterApiToken) {
+    LaunchedEffect(Unit) {
         if (ttsMonsterVoices == null && ttsMonsterApiToken.isNotEmpty()) {
             val ttsMonster = TtsMonster(apiToken = ttsMonsterApiToken)
             ttsMonsterVoices = ttsMonster.getVoices()

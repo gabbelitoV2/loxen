@@ -1,46 +1,44 @@
 package com.moblin.android.view.settings.streams.stream.wizard.networksetup
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.KeyboardCapitalization
-import androidx.compose.foundation.text.KeyboardOptions
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.cleanUrl
 import com.moblin.android.common.various.isValidUrl
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formFootnoteStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
-import com.moblin.android.various.model.StreamingPlatformStatus
 import com.moblin.android.various.model.WizardNetworkSetup
 import com.moblin.android.various.model.WizardPlatform
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
+import com.moblin.android.view.settings.streams.stream.wizard.StreamWizardGeneralSettingsView
 import com.moblin.android.view.utils.FormFieldError
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardNetworkSetupDirectSettingsView(
     model: Model = LocalModel.current,
@@ -48,13 +46,13 @@ fun StreamWizardNetworkSetupDirectSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var ingestError by remember { mutableStateOf("") }
-    val directIngest = createStreamWizard.directIngest
-    val directStreamKey = createStreamWizard.directStreamKey
-    val platform = createStreamWizard.platform
     val uriHandler = LocalUriHandler.current
+    val palette = formPalette()
 
     fun nextDisabled(): Boolean {
-        return directIngest.isEmpty() || directStreamKey.isEmpty() || ingestError.isNotEmpty()
+        return createStreamWizard.directIngest.isEmpty() ||
+            createStreamWizard.directStreamKey.isEmpty() ||
+            ingestError.isNotEmpty()
     }
 
     fun twitchStreamKeyUrl(): String {
@@ -70,53 +68,23 @@ fun StreamWizardNetworkSetupDirectSettingsView(
         }
     }
 
-    LaunchedEffect(Unit) {
+    DisposableEffect(Unit) {
         createStreamWizard.networkSetup = WizardNetworkSetup.direct
         updateIngestError()
+        onDispose {}
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(localized("Direct")) },
-                actions = {
-                    CreateStreamWizardToolbar(createStreamWizard = createStreamWizard)
-                },
-            )
+    Form(
+        title = localized("Direct"),
+        toolbar = {
+            CreateStreamWizardToolbar(createStreamWizard = createStreamWizard)
         },
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-        ) {
-            when (platform) {
-                WizardPlatform.twitch -> {
-                    item {
-                        Text(
-                            text = localized("Nearby ingest endpoint"),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                    }
-                    item {
-                        OutlinedTextField(
-                            value = directIngest,
-                            onValueChange = {
-                                createStreamWizard.directIngest = it
-                                updateIngestError()
-                            },
-                            placeholder = {
-                                Text(localized("rtmp://arn03.contribute.live-video.net/app"))
-                            },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.None,
-                                autoCorrect = false,
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    item {
+    ) {
+        when (createStreamWizard.platform) {
+            WizardPlatform.twitch -> {
+                Section(
+                    header = localized("Nearby ingest endpoint"),
+                    footerContent = {
                         Column(horizontalAlignment = Alignment.Start) {
                             FormFieldError(error = ingestError)
                             Text(
@@ -125,72 +93,86 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                                 ),
                             )
                         }
-                    }
-                    item {
-                        Text(
-                            text = localized("Stream key"),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                    }
-                    item {
-                        OutlinedTextField(
-                            value = directStreamKey,
-                            onValueChange = {
-                                createStreamWizard.directStreamKey = it
-                            },
-                            placeholder = {
-                                Text(localized("live_48950233_okF4f455GRWEF443fFr23GRbt5rEv"))
-                            },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.None,
-                                autoCorrect = false,
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    item {
-                        Row {
+                    },
+                ) {
+                    BasicTextField(
+                        value = createStreamWizard.directIngest,
+                        onValueChange = {
+                            createStreamWizard.directIngest = it
+                            updateIngestError()
+                        },
+                        singleLine = true,
+                        textStyle = formBodyStyle.copy(color = palette.label),
+                        cursorBrush = SolidColor(palette.accent),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        decorationBox = { innerTextField ->
+                            if (createStreamWizard.directIngest.isEmpty()) {
+                                Text(
+                                    text = localized("rtmp://arn03.contribute.live-video.net/app"),
+                                    style = formBodyStyle,
+                                    color = palette.tertiaryLabel,
+                                )
+                            }
+                            innerTextField()
+                        },
+                    )
+                }
+                Section(
+                    header = localized("Stream key"),
+                    footerContent = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(localized("Copy from "))
                             val url = twitchStreamKeyUrl()
                             Text(
                                 text = url,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.clickable {
+                                style = formFootnoteStyle,
+                                color = palette.accent,
+                                modifier = Modifier.clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                ) {
                                     uriHandler.openUri(url)
                                 },
                             )
                             Text(localized(" (requires login)."))
                         }
-                    }
+                    },
+                ) {
+                    BasicTextField(
+                        value = createStreamWizard.directStreamKey,
+                        onValueChange = {
+                            createStreamWizard.directStreamKey = it
+                        },
+                        singleLine = true,
+                        textStyle = formBodyStyle.copy(color = palette.label),
+                        cursorBrush = SolidColor(palette.accent),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        decorationBox = { innerTextField ->
+                            if (createStreamWizard.directStreamKey.isEmpty()) {
+                                Text(
+                                    text = localized("live_48950233_okF4f455GRWEF443fFr23GRbt5rEv"),
+                                    style = formBodyStyle,
+                                    color = palette.tertiaryLabel,
+                                )
+                            }
+                            innerTextField()
+                        },
+                    )
                 }
+            }
 
-                WizardPlatform.kick -> {
-                    item {
-                        Text(
-                            text = localized("Stream URL"),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                    }
-                    item {
-                        OutlinedTextField(
-                            value = directIngest,
-                            onValueChange = {
-                                createStreamWizard.directIngest = it
-                                updateIngestError()
-                            },
-                            placeholder = {
-                                Text(localized("rtmps://fa723fc1b171.global-contribute.live-video.net"))
-                            },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.None,
-                                autoCorrect = false,
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    item {
+            WizardPlatform.kick -> {
+                Section(
+                    header = localized("Stream URL"),
+                    footerContent = {
                         Column(horizontalAlignment = Alignment.Start) {
                             FormFieldError(error = ingestError)
                             Text(
@@ -199,183 +181,226 @@ fun StreamWizardNetworkSetupDirectSettingsView(
                                 ),
                             )
                         }
-                    }
-                    item {
-                        Text(
-                            text = localized("Stream key"),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                    }
-                    item {
-                        OutlinedTextField(
-                            value = directStreamKey,
-                            onValueChange = {
-                                createStreamWizard.directStreamKey = it
-                            },
-                            placeholder = {
-                                Text(localized("sk_us-west-2_okfef49k34k_34g59gGDDHGHSREj754gYJYTJERH"))
-                            },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.None,
-                                autoCorrect = false,
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    item {
-                        Text(
-                            localized(
-                                "Copy from https://kick.com/dashboard/settings/stream (requires login).",
-                            ),
-                        )
-                    }
+                    },
+                ) {
+                    BasicTextField(
+                        value = createStreamWizard.directIngest,
+                        onValueChange = {
+                            createStreamWizard.directIngest = it
+                            updateIngestError()
+                        },
+                        singleLine = true,
+                        textStyle = formBodyStyle.copy(color = palette.label),
+                        cursorBrush = SolidColor(palette.accent),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        decorationBox = { innerTextField ->
+                            if (createStreamWizard.directIngest.isEmpty()) {
+                                Text(
+                                    text = localized("rtmps://fa723fc1b171.global-contribute.live-video.net"),
+                                    style = formBodyStyle,
+                                    color = palette.tertiaryLabel,
+                                )
+                            }
+                            innerTextField()
+                        },
+                    )
                 }
+                Section(
+                    header = localized("Stream key"),
+                    footer = localized(
+                        "Copy from https://kick.com/dashboard/settings/stream (requires login).",
+                    ),
+                ) {
+                    BasicTextField(
+                        value = createStreamWizard.directStreamKey,
+                        onValueChange = {
+                            createStreamWizard.directStreamKey = it
+                        },
+                        singleLine = true,
+                        textStyle = formBodyStyle.copy(color = palette.label),
+                        cursorBrush = SolidColor(palette.accent),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        decorationBox = { innerTextField ->
+                            if (createStreamWizard.directStreamKey.isEmpty()) {
+                                Text(
+                                    text = localized("sk_us-west-2_okfef49k34k_34g59gGDDHGHSREj754gYJYTJERH"),
+                                    style = formBodyStyle,
+                                    color = palette.tertiaryLabel,
+                                )
+                            }
+                            innerTextField()
+                        },
+                    )
+                }
+            }
 
-                WizardPlatform.youTube -> {
-                    item {
-                        Text(
-                            text = localized("Stream URL"),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                    }
-                    item {
-                        OutlinedTextField(
-                            value = directIngest,
-                            onValueChange = {
-                                createStreamWizard.directIngest = it
-                                updateIngestError()
-                            },
-                            placeholder = {
-                                Text(localized("rtmp://a.rtmp.youtube.com/live2"))
-                            },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.None,
-                                autoCorrect = false,
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    item {
+            WizardPlatform.youTube -> {
+                Section(
+                    header = localized("Stream URL"),
+                    footerContent = {
                         Column(horizontalAlignment = Alignment.Start) {
                             FormFieldError(error = ingestError)
                             Text(
                                 localized("Copy from https://youtube.com (requires login)."),
                             )
                         }
-                    }
-                    item {
-                        Text(
-                            text = localized("Stream key"),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                    }
-                    item {
-                        OutlinedTextField(
-                            value = directStreamKey,
-                            onValueChange = {
-                                createStreamWizard.directStreamKey = it
-                            },
-                            placeholder = {
-                                Text(localized("4bkf-8d03-g6w3-ekjh-emdc"))
-                            },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.None,
-                                autoCorrect = false,
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    item {
-                        Text(
-                            localized("Copy from https://youtube.com (requires login)."),
-                        )
-                    }
+                    },
+                ) {
+                    BasicTextField(
+                        value = createStreamWizard.directIngest,
+                        onValueChange = {
+                            createStreamWizard.directIngest = it
+                            updateIngestError()
+                        },
+                        singleLine = true,
+                        textStyle = formBodyStyle.copy(color = palette.label),
+                        cursorBrush = SolidColor(palette.accent),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        decorationBox = { innerTextField ->
+                            if (createStreamWizard.directIngest.isEmpty()) {
+                                Text(
+                                    text = localized("rtmp://a.rtmp.youtube.com/live2"),
+                                    style = formBodyStyle,
+                                    color = palette.tertiaryLabel,
+                                )
+                            }
+                            innerTextField()
+                        },
+                    )
                 }
+                Section(
+                    header = localized("Stream key"),
+                    footer = localized("Copy from https://youtube.com (requires login)."),
+                ) {
+                    BasicTextField(
+                        value = createStreamWizard.directStreamKey,
+                        onValueChange = {
+                            createStreamWizard.directStreamKey = it
+                        },
+                        singleLine = true,
+                        textStyle = formBodyStyle.copy(color = palette.label),
+                        cursorBrush = SolidColor(palette.accent),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        decorationBox = { innerTextField ->
+                            if (createStreamWizard.directStreamKey.isEmpty()) {
+                                Text(
+                                    text = localized("4bkf-8d03-g6w3-ekjh-emdc"),
+                                    style = formBodyStyle,
+                                    color = palette.tertiaryLabel,
+                                )
+                            }
+                            innerTextField()
+                        },
+                    )
+                }
+            }
 
-                WizardPlatform.soop -> {
-                    item {
-                        Text(
-                            text = localized("Stream URL"),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                    }
-                    item {
-                        OutlinedTextField(
-                            value = directIngest,
-                            onValueChange = {
-                                createStreamWizard.directIngest = it
-                                updateIngestError()
-                            },
-                            placeholder = {
-                                Text(localized("???"))
-                            },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.None,
-                                autoCorrect = false,
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    item {
+            WizardPlatform.soop -> {
+                Section(
+                    header = localized("Stream URL"),
+                    footerContent = {
                         Column(horizontalAlignment = Alignment.Start) {
                             FormFieldError(error = ingestError)
                             Text(
                                 localized("Copy from ??? (requires login)."),
                             )
                         }
-                    }
-                    item {
-                        Text(
-                            text = localized("Stream key"),
-                            style = MaterialTheme.typography.titleSmall,
-                        )
-                    }
-                    item {
-                        OutlinedTextField(
-                            value = directStreamKey,
-                            onValueChange = {
-                                createStreamWizard.directStreamKey = it
-                            },
-                            placeholder = {
-                                Text(localized("???"))
-                            },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                capitalization = KeyboardCapitalization.None,
-                                autoCorrect = false,
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    item {
-                        Text(
-                            localized("Copy from ??? (requires login)."),
-                        )
-                    }
+                    },
+                ) {
+                    BasicTextField(
+                        value = createStreamWizard.directIngest,
+                        onValueChange = {
+                            createStreamWizard.directIngest = it
+                            updateIngestError()
+                        },
+                        singleLine = true,
+                        textStyle = formBodyStyle.copy(color = palette.label),
+                        cursorBrush = SolidColor(palette.accent),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        decorationBox = { innerTextField ->
+                            if (createStreamWizard.directIngest.isEmpty()) {
+                                Text(
+                                    text = localized("???"),
+                                    style = formBodyStyle,
+                                    color = palette.tertiaryLabel,
+                                )
+                            }
+                            innerTextField()
+                        },
+                    )
                 }
-
-                WizardPlatform.custom -> {
-                }
-
-                WizardPlatform.obs -> {
-                }
-
-                WizardPlatform.mobcam -> {
+                Section(
+                    header = localized("Stream key"),
+                    footer = localized("Copy from ??? (requires login)."),
+                ) {
+                    BasicTextField(
+                        value = createStreamWizard.directStreamKey,
+                        onValueChange = {
+                            createStreamWizard.directStreamKey = it
+                        },
+                        singleLine = true,
+                        textStyle = formBodyStyle.copy(color = palette.label),
+                        cursorBrush = SolidColor(palette.accent),
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.None,
+                            autoCorrect = false,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                        decorationBox = { innerTextField ->
+                            if (createStreamWizard.directStreamKey.isEmpty()) {
+                                Text(
+                                    text = localized("???"),
+                                    style = formBodyStyle,
+                                    color = palette.tertiaryLabel,
+                                )
+                            }
+                            innerTextField()
+                        },
+                    )
                 }
             }
 
-            item {
-                Box(
-                    modifier = Modifier.clickable(enabled = !nextDisabled()) {
-                        onNavigate("StreamWizardGeneralSettingsView")
-                    },
-                ) {
-                    WizardNextButtonView()
-                }
+            WizardPlatform.custom -> {
+            }
+
+            WizardPlatform.obs -> {
+            }
+
+            WizardPlatform.mobcam -> {
+            }
+        }
+
+        Section {
+            NavigationLink(
+                destination = {
+                    StreamWizardGeneralSettingsView(
+                        model = model,
+                        createStreamWizard = createStreamWizard,
+                    )
+                },
+                enabled = !nextDisabled(),
+            ) {
+                WizardNextButtonView()
             }
         }
     }

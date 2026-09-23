@@ -1,58 +1,57 @@
 package com.moblin.android.view.settings.streams.stream.wizard.networksetup
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.Bundle
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formFootnoteStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.WizardNetworkSetup
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardNextButtonView
+import com.moblin.android.view.settings.streams.stream.wizard.StreamWizardObsRemoteControlSettingsView
 import com.moblin.android.view.utils.FormFieldError
 import com.moblin.android.view.utils.HCenter
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardNetworkSetupObsSettingsView(
     model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
+    val palette = formPalette()
     var obsAddress by remember { mutableStateOf(createStreamWizard.obsAddress) }
     var obsPort by remember { mutableStateOf(createStreamWizard.obsPort) }
     var portError by remember { mutableStateOf("") }
 
-    fun updatePortError() {
-        val port = obsPort.trim()
+    fun updatePortError(value: String) {
+        val port = value.trim()
         portError = when {
             port.isEmpty() -> ""
             else -> {
@@ -72,116 +71,119 @@ fun StreamWizardNetworkSetupObsSettingsView(
             portError.isNotEmpty()
     }
 
-    LaunchedEffect(Unit) {
+    DisposableEffect(Unit) {
         createStreamWizard.networkSetup = WizardNetworkSetup.obs
-        updatePortError()
+        updatePortError(obsPort)
+        onDispose {}
     }
 
-    LaunchedEffect(obsPort) {
-        updatePortError()
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("OBS") },
-                actions = {
-                    CreateStreamWizardToolbar(createStreamWizard = createStreamWizard)
+    Form(
+        title = "OBS",
+        toolbar = {
+            CreateStreamWizardToolbar(createStreamWizard = createStreamWizard)
+        },
+    ) {
+        Section(
+            header = localized("IP address or domain name"),
+            footer = localized("Your public IP address if streaming over the internet."),
+        ) {
+            BasicTextField(
+                value = obsAddress,
+                onValueChange = {
+                    obsAddress = it
+                    createStreamWizard.obsAddress = it
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                textStyle = formBodyStyle.copy(color = palette.label),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Uri,
+                ),
+                cursorBrush = SolidColor(palette.accent),
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (obsAddress.isEmpty()) {
+                            Text(
+                                text = localized("213.33.45.132"),
+                                style = formBodyStyle,
+                                color = palette.tertiaryLabel,
+                            )
+                        }
+                        innerTextField()
+                    }
                 },
             )
-        },
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-        ) {
-            item {
-                Text(
-                    text = "IP address or domain name",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(top = 8.dp),
-                )
-                OutlinedTextField(
-                    value = obsAddress,
-                    onValueChange = {
-                        obsAddress = it
-                        createStreamWizard.obsAddress = it
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    placeholder = { Text("213.33.45.132") },
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.None,
-                        autoCorrect = false,
-                        keyboardType = KeyboardType.Uri,
-                    ),
-                )
-                Text(
-                    text = "Your public IP address if streaming over the internet.",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
-            }
-            item {
-                Text(
-                    text = "Port",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(top = 16.dp),
-                )
-                OutlinedTextField(
-                    value = obsPort,
-                    onValueChange = {
-                        obsPort = it
-                        createStreamWizard.obsPort = it
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    placeholder = { Text("7654") },
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.None,
-                        autoCorrect = false,
-                        keyboardType = KeyboardType.Number,
-                    ),
-                )
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    horizontalAlignment = Alignment.Start,
-                ) {
+        }
+        Section(
+            header = localized("Port"),
+            footerContent = {
+                Column(horizontalAlignment = Alignment.Start) {
                     FormFieldError(error = portError)
                     Text(
-                        text = "Configure port forwarding in your router to forward incoming traffic to OBS.",
-                        style = MaterialTheme.typography.bodySmall,
+                        text = localized(
+                            "Configure port forwarding in your router to forward incoming traffic to OBS.",
+                        ),
+                        style = formFootnoteStyle,
+                        color = palette.secondaryLabel,
                     )
                 }
-            }
-            item {
+            },
+        ) {
+            BasicTextField(
+                value = obsPort,
+                onValueChange = {
+                    obsPort = it
+                    createStreamWizard.obsPort = it
+                    updatePortError(it)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                textStyle = formBodyStyle.copy(color = palette.label),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrect = false,
+                    keyboardType = KeyboardType.Number,
+                ),
+                cursorBrush = SolidColor(palette.accent),
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (obsPort.isEmpty()) {
+                            Text(
+                                text = localized("7654"),
+                                style = formBodyStyle,
+                                color = palette.tertiaryLabel,
+                            )
+                        }
+                        innerTextField()
+                    }
+                },
+            )
+        }
+        Section(header = localized("Configure OBS on your computer")) {
+            Column(horizontalAlignment = Alignment.Start) {
                 Text(
-                    text = "Configure OBS on your computer",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(top = 16.dp),
+                    text = localized(
+                        "1. Create a Media Source in OBS and configure it as shown in the image below.",
+                    ),
+                    style = formBodyStyle,
+                    color = palette.label,
                 )
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start,
-                ) {
-                    Text(
-                        text = "1. Create a Media Source in OBS and configure it as shown in the image below.",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(
-                        text = "",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(
-                        text = "2. Replace 7654 with your port.",
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    HCenter {
+                Text(
+                    text = "",
+                    style = formBodyStyle,
+                    color = palette.label,
+                )
+                Text(
+                    text = localized("2. Replace 7654 with your port."),
+                    style = formBodyStyle,
+                    color = palette.label,
+                )
+                HCenter {
+                    Bundle.image("ObsMediaSourceSrt")?.let { image ->
                         Image(
-                            painter = TODO("ObsMediaSourceSrt drawable"),
+                            bitmap = image.asImageBitmap(),
                             contentDescription = null,
                             modifier = Modifier.fillMaxWidth(),
                             contentScale = ContentScale.Fit,
@@ -189,14 +191,18 @@ fun StreamWizardNetworkSetupObsSettingsView(
                     }
                 }
             }
-            item {
-                Box(
-                    modifier = Modifier.clickable(enabled = !nextDisabled()) {
-                        onNavigate("StreamWizardObsRemoteControlSettingsView")
-                    },
-                ) {
-                    WizardNextButtonView()
-                }
+        }
+        Section {
+            NavigationLink(
+                destination = {
+                    StreamWizardObsRemoteControlSettingsView(
+                        model = model,
+                        createStreamWizard = createStreamWizard,
+                    )
+                },
+                enabled = !nextDisabled(),
+            ) {
+                WizardNextButtonView()
             }
         }
     }

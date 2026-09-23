@@ -44,31 +44,31 @@ private class ActionTaken(val message: String) {
     val timestamp: Long = System.nanoTime()
 }
 
-class AdaptiveBitrate(delegate: AdaptiveBitrateDelegate) {
+open class AdaptiveBitrate(delegate: AdaptiveBitrateDelegate) {
     val delegate: AdaptiveBitrateDelegate? = delegate
     private val actionsTaken: ArrayDeque<ActionTaken> = ArrayDeque()
     private val dateFormatter: DateTimeFormatter =
         DateTimeFormatter.ofPattern("HH:mm:ss.SSS").withZone(ZoneId.systemDefault())
 
-    fun setTargetBitrate(bitrate: Int) {}
+    open fun setTargetBitrate(bitrate: Int) {}
 
-    fun setSettings(settings: AdaptiveBitrateSettings) {}
+    open fun setSettings(settings: AdaptiveBitrateSettings) {}
 
-    fun getCurrentBitrate(): Int = 0
+    open fun getCurrentBitrate(): Int = 0
 
     fun getCurrentBitrateInKbps(): Long = (getCurrentBitrate() / 1000).toLong()
 
-    fun getCurrentMaximumBitrateInKbps(): Long = 0
+    open fun getCurrentMaximumBitrateInKbps(): Long = 0
 
-    fun getFastPif(): Long = 0
+    open fun getFastPif(): Long = 0
 
-    fun getSmoothPif(): Long = 0
+    open fun getSmoothPif(): Long = 0
 
-    fun update(stats: StreamStats) {
+    open fun update(stats: StreamStats) {
         removeOldActionsTaken()
     }
 
-    fun getActionsTaken(): List<String> {
+    open fun getActionsTaken(): List<String> {
         return actionsTaken.map { it.message }
     }
 

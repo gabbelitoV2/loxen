@@ -4,8 +4,11 @@ import android.graphics.Bitmap
 import android.graphics.PointF
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,56 +17,49 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asComposePath
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.moblin.android.R
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
 import com.moblin.android.common.various.formatOneDecimal
+import com.moblin.android.platform.Bundle
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.FormButton
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsMaskBackgroundType
 import com.moblin.android.various.settings.SettingsVideoEffect
@@ -71,16 +67,30 @@ import com.moblin.android.various.settings.SettingsVideoEffectMask
 import com.moblin.android.various.settings.SettingsVideoEffectMaskEffectPoint
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.videoeffects.makeCatmullRomPath
-import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.RgbColorPickerView
 import kotlin.math.hypot
-import com.moblin.android.LocalModel
+import com.moblin.android.various.model.getWidgetMaskEffect
+import com.moblin.android.various.model.takeVideoSourcePreviewImage
 
 private val maskPointHandleRadius: Float = 12f
 private val maskEdgeHitWidth: Float = 20f
 private val maskDragThreshold: Float = 6f
 private val maskTapThreshold: Float = 4f
 private val maskMinimumPoints: Int = 3
+
+@Composable
+private fun BorderlessIcon(name: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    SystemImage(
+        name = name,
+        fontSize = 28.sp,
+        modifier = modifier
+            .clickable(interactionSource = interactionSource, indication = null) { onClick() }
+            .alpha(if (pressed) 0.2f else 1f),
+        tint = formPalette().accent,
+    )
+}
 
 @Composable
 private fun MaskCanvasView(
@@ -96,6 +106,7 @@ private fun MaskCanvasView(
 ) {
     val points = mask.points
     val tension = mask.tension
+    val fallbackImage = remember { Bundle.image("GamlaLinkoping")?.asImageBitmap() }
     var dragIndex by remember { mutableStateOf<Int?>(null) }
     var pendingDragIndex by remember { mutableStateOf<Int?>(null) }
     var panStartPoints by remember { mutableStateOf<List<SettingsVideoEffectMaskEffectPoint>?>(null) }
@@ -291,27 +302,34 @@ private fun MaskCanvasView(
         updateWidget()
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(if (isPortrait) 9f / 16f else 16f / 9f)
                 .onSizeChanged { canvasSize = Size(it.width.toFloat(), it.height.toFloat()) }
         ) {
-            if (previewImage != null) {
+            val image = previewImage
+            if (image != null) {
                 Image(
-                    bitmap = previewImage.asImageBitmap(),
+                    bitmap = image.asImageBitmap(),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Image(
-                    painter = ColorPainter(Color.Gray),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
+                val fallback = fallbackImage
+                if (fallback != null) {
+                    Image(
+                        bitmap = fallback,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
             }
             Canvas(
                 modifier = Modifier
@@ -344,16 +362,10 @@ private fun MaskCanvasView(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { resizeShape(1 / 1.1) }) {
-                Icon(imageVector = Icons.Default.Remove, contentDescription = null, modifier = Modifier.size(28.dp))
-            }
-            IconButton(onClick = { resizeShape(1.1) }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
-            }
+            BorderlessIcon(name = "square.resize.down") { resizeShape(1 / 1.1) }
+            BorderlessIcon(name = "square.resize.up") { resizeShape(1.1) }
             Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = { refreshPreviewImage() }) {
-                Icon(imageVector = Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(28.dp))
-            }
+            BorderlessIcon(name = "arrow.clockwise") { refreshPreviewImage() }
         }
     }
 }
@@ -451,80 +463,78 @@ private fun MaskEditorView(
     val currentPointIndex = selectedPointIndex
     val currentEdgeIndex = selectedEdgeIndex
     if (currentPointIndex != null) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "X")
-                OutlinedTextField(
-                    value = xText,
-                    onValueChange = { xText = it },
-                    modifier = Modifier.weight(1f),
-                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(onDone = { commitX() })
-                )
-                IconButton(onClick = { adjustX(delta = -0.1) }) {
-                    Icon(imageVector = Icons.Default.Remove, contentDescription = null, modifier = Modifier.size(28.dp))
-                }
-                IconButton(onClick = { adjustX(delta = 0.1) }) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
-                }
+        FormRow {
+            Text(text = "X", style = formBodyStyle)
+            BasicTextField(
+                value = xText,
+                onValueChange = { xText = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp),
+                textStyle = formBodyStyle.copy(color = formPalette().label, textAlign = TextAlign.End),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(onDone = { commitX() }),
+                cursorBrush = SolidColor(formPalette().accent)
+            )
+            BorderlessIcon(name = "minus.circle", modifier = Modifier.padding(start = 8.dp)) {
+                adjustX(delta = -0.1)
             }
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "Y")
-                OutlinedTextField(
-                    value = yText,
-                    onValueChange = { yText = it },
-                    modifier = Modifier.weight(1f),
-                    textStyle = LocalTextStyle.current.copy(textAlign = TextAlign.End),
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(onDone = { commitY() })
-                )
-                IconButton(onClick = { adjustY(delta = -0.1) }) {
-                    Icon(imageVector = Icons.Default.Remove, contentDescription = null, modifier = Modifier.size(28.dp))
-                }
-                IconButton(onClick = { adjustY(delta = 0.1) }) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = null, modifier = Modifier.size(28.dp))
-                }
-            }
-            Button(
-                onClick = {
-                    val allPoints = mask.points
-                    if (currentPointIndex in allPoints.indices) {
-                        val updated = allPoints.toMutableList()
-                        updated.removeAt(currentPointIndex)
-                        mask.points = updated
-                    }
-                    onSelectedPointIndexChange(null)
-                    updateWidget()
-                },
-                enabled = points.size > maskMinimumPoints,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-            ) {
-                HCenter {
-                    Text(text = "Delete point")
-                }
+            BorderlessIcon(name = "plus.circle", modifier = Modifier.padding(start = 8.dp)) {
+                adjustX(delta = 0.1)
             }
         }
-        LaunchedEffect(selectedPointIndex, points) {
+        FormRow {
+            Text(text = "Y", style = formBodyStyle)
+            BasicTextField(
+                value = yText,
+                onValueChange = { yText = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp),
+                textStyle = formBodyStyle.copy(color = formPalette().label, textAlign = TextAlign.End),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Decimal,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(onDone = { commitY() }),
+                cursorBrush = SolidColor(formPalette().accent)
+            )
+            BorderlessIcon(name = "minus.circle", modifier = Modifier.padding(start = 8.dp)) {
+                adjustY(delta = -0.1)
+            }
+            BorderlessIcon(name = "plus.circle", modifier = Modifier.padding(start = 8.dp)) {
+                adjustY(delta = 0.1)
+            }
+        }
+        FormButton(
+            title = "Delete point",
+            destructive = true,
+            centered = true,
+            enabled = points.size > maskMinimumPoints,
+            action = {
+                val allPoints = mask.points
+                if (currentPointIndex in allPoints.indices) {
+                    val updated = allPoints.toMutableList()
+                    updated.removeAt(currentPointIndex)
+                    mask.points = updated
+                }
+                onSelectedPointIndexChange(null)
+                updateWidget()
+            }
+        )
+        LaunchedEffect(currentPointIndex, points) {
             updateXYText()
         }
     } else if (currentEdgeIndex != null) {
-        Button(
-            onClick = {
+        FormButton(
+            title = "Create point",
+            centered = true,
+            action = {
                 val allPoints = mask.points
                 if (currentEdgeIndex in allPoints.indices) {
                     val point1 = allPoints[currentEdgeIndex]
@@ -541,15 +551,10 @@ private fun MaskEditorView(
                 onSelectedPointIndexChange(currentEdgeIndex + 1)
                 updateWidget()
             }
-        ) {
-            HCenter {
-                Text(text = "Create point")
-            }
-        }
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MaskEffectView(
     model: Model = LocalModel.current,
@@ -560,30 +565,28 @@ fun MaskEffectView(
     var previewImage by remember { mutableStateOf<Bitmap?>(null) }
     var selectedPointIndex by remember { mutableStateOf<Int?>(null) }
     var selectedEdgeIndex by remember { mutableStateOf<Int?>(null) }
-    var backgroundTypeExpanded by remember { mutableStateOf(false) }
-
-    val inverted = mask.inverted
-    val tension = mask.tension
-    val backgroundType = mask.backgroundType
-    val backgroundColorColor = mask.backgroundColorColor
-    val backgroundColorColor2 = mask.backgroundColorColor2
 
     fun updateWidget() {
-        Unit
+        model.getWidgetMaskEffect(widget, effect)?.setSettings(settings = mask.toEffectSettings())
     }
 
     fun refreshPreviewImage() {
-        Unit
+        model.takeVideoSourcePreviewImage(widget = widget) { image ->
+            previewImage = image
+        }
     }
 
-    Column {
-        Text(text = "Shape", style = MaterialTheme.typography.titleSmall)
+    LaunchedEffect(Unit) {
+        refreshPreviewImage()
+    }
+
+    Section(header = "Shape") {
         MaskCanvasView(
             mask = mask,
             updateWidget = { updateWidget() },
             refreshPreviewImage = { refreshPreviewImage() },
             previewImage = previewImage,
-            isPortrait = TODO("no Android counterpart for SettingsStream.portrait"),
+            isPortrait = TODO("Model.stream.portrait has no Android counterpart"),
             selectedPointIndex = selectedPointIndex,
             onSelectedPointIndexChange = { selectedPointIndex = it },
             selectedEdgeIndex = selectedEdgeIndex,
@@ -598,74 +601,45 @@ fun MaskEffectView(
             onSelectedEdgeIndexChange = { selectedEdgeIndex = it }
         )
     }
-    LaunchedEffect(Unit) {
-        refreshPreviewImage()
-    }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "Inverted", modifier = Modifier.weight(1f))
-            Switch(
-                checked = inverted,
-                onCheckedChange = {
-                    mask.inverted = it
-                    updateWidget()
-                }
-            )
-        }
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "Smoothness")
-            Slider(
-                value = tension.toFloat(),
+    Section {
+        Toggle(
+            title = "Inverted",
+            isOn = mask.inverted,
+            onChange = {
+                mask.inverted = it
+                updateWidget()
+            }
+        )
+        FormRow {
+            Text(text = "Smoothness", style = formBodyStyle)
+            FormSlider(
+                value = mask.tension.toFloat(),
                 onValueChange = {
                     mask.tension = it.toDouble()
                     updateWidget()
                 },
-                valueRange = 0f..0.5f,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp),
+                valueRange = 0f..0.5f
             )
         }
     }
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(text = "Background", style = MaterialTheme.typography.titleSmall)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "Type", modifier = Modifier.weight(1f))
-            ExposedDropdownMenuBox(
-                expanded = backgroundTypeExpanded,
-                onExpandedChange = { backgroundTypeExpanded = it }
-            ) {
-                OutlinedTextField(
-                    value = backgroundType.toString(),
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = backgroundTypeExpanded)
-                    },
-                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                )
-                ExposedDropdownMenu(
-                    expanded = backgroundTypeExpanded,
-                    onDismissRequest = { backgroundTypeExpanded = false }
-                ) {
-                    SettingsMaskBackgroundType.entries.forEach { type ->
-                        DropdownMenuItem(
-                            text = { Text(text = type.toString()) },
-                            onClick = {
-                                mask.backgroundType = type
-                                backgroundTypeExpanded = false
-                                updateWidget()
-                            }
-                        )
-                    }
-                }
+    Section(header = "Background") {
+        Picker(
+            title = "Type",
+            selection = mask.backgroundType,
+            options = SettingsMaskBackgroundType.entries,
+            text = { it.toString() },
+            onChange = {
+                mask.backgroundType = it
+                updateWidget()
             }
-        }
-        if (backgroundType != SettingsMaskBackgroundType.transparent) {
+        )
+        if (mask.backgroundType != SettingsMaskBackgroundType.transparent) {
             RgbColorPickerView(
                 title = "Color",
-                color = backgroundColorColor,
+                color = mask.backgroundColorColor,
                 onColorChanged = {
                     mask.backgroundColorColor = it
                 },
@@ -675,10 +649,10 @@ fun MaskEffectView(
                 }
             )
         }
-        if (backgroundType == SettingsMaskBackgroundType.checkerboard) {
+        if (mask.backgroundType == SettingsMaskBackgroundType.checkerboard) {
             RgbColorPickerView(
                 title = "Color 2",
-                color = backgroundColorColor2,
+                color = mask.backgroundColorColor2,
                 onColorChanged = {
                     mask.backgroundColorColor2 = it
                 },

@@ -1,38 +1,35 @@
 package com.moblin.android.view.settings.recordings
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.makeRecordingPath
+import com.moblin.android.various.utils.openUrl
 import com.moblin.android.view.utils.CloseToolbar
 import com.moblin.android.view.utils.CommandCopyView
 import com.moblin.android.view.utils.ExternalButtonView
 import com.moblin.android.view.utils.TextButtonView
 import java.io.File
 import java.net.URI
-import com.moblin.android.LocalModel
 
 private const val ffmpegCommand = "ffmpeg -i input.mp4 -c copy output.mp4"
 
@@ -70,11 +67,11 @@ private fun makeSharedUrl(path: URI): URI? {
 }
 
 private fun openInFilesApp(sharedUrl: URI) {
-    Unit
+    openUrl(sharedUrl.toString())
 }
 
 private fun openInFinder(path: URI) {
-    Unit
+    openUrl(path.toString())
 }
 
 private fun copyPathToClipboard(model: Model, path: URI, clipboard: ClipboardManager) {
@@ -87,144 +84,108 @@ private fun copyPathToClipboard(model: Model, path: URI, clipboard: ClipboardMan
     model.makeToast(localized("Directory copied to clipboard"), subTitle)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HelpView(
     presentingHelp: Boolean,
     onPresentingHelpChange: (Boolean) -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(localized("Help")) },
-                actions = {
-                    CloseToolbar(
-                        presenting = presentingHelp,
-                        onPresentingChange = onPresentingHelpChange,
-                    )
-                },
+    Form(
+        title = localized("Help"),
+        toolbar = {
+            CloseToolbar(
+                presenting = presentingHelp,
+                onPresentingChange = onPresentingHelpChange,
             )
         },
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier.padding(innerPadding),
-            contentPadding = PaddingValues(16.dp),
+    ) {
+        Section {
+            Text(
+                localized(
+                    "Recordings are saved as variable frame rate (VFR) fragmented MP4 to be " +
+                        "resilient against crashes and other unexpected errors. Converting them " +
+                        "to constant frame rate (CFR) standard MP4 can improve compatibility " +
+                        "with video players and video editing software.",
+                ),
+            )
+        }
+        Section(header = localized("How to convert a recording to standard MP4")) {
+            CommandCopyView(command = ffmpegCommand)
+        }
+        Section(header = localized("How to fix audio and video slowly desynchronizing")) {
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                CommandCopyView(command = ffmpegAudioAndVideoSlowlyDesynchronizingCommand)
+                Text("")
+                Text(localized("Replace sample rates and audio codec to match your recording."))
+            }
+        }
+        Section(
+            header = localized(
+                "How to convert a recording to constant frame rate (CFR) standard MP4",
+            ),
         ) {
-            item {
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                CommandCopyView(command = ffmpegConstantFrameRateCommand)
+                Text("")
                 Text(
-                    "Recordings are saved as variable frame rate (VFR) fragmented MP4 to be resilient " +
-                        "against crashes and other unexpected errors. Converting them to constant frame " +
-                        "rate (CFR) standard MP4 can improve compatibility with video players and video " +
-                        "editing software.",
+                    localized(
+                        "Replace `hevc_videotoolbox` with your preferred encoder, typically a " +
+                            "hardware encoder for faster conversion.",
+                    ),
                 )
-            }
-            item {
-                HorizontalDivider()
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text(
-                        localized("How to convert a recording to standard MP4"),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    CommandCopyView(command = ffmpegCommand)
-                }
-            }
-            item {
-                HorizontalDivider()
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text(
-                        localized("How to fix audio and video slowly desynchronizing"),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Column {
-                        CommandCopyView(command = ffmpegAudioAndVideoSlowlyDesynchronizingCommand)
-                        Text("")
-                        Text(localized("Replace sample rates and audio codec to match your recording."))
-                    }
-                }
-            }
-            item {
-                HorizontalDivider()
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text(
-                        localized("How to convert a recording to constant frame rate (CFR) standard MP4"),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Column {
-                        CommandCopyView(command = ffmpegConstantFrameRateCommand)
-                        Text("")
-                        Text(
-                            "Replace `hevc_videotoolbox` with your preferred encoder, typically a " +
-                                "hardware encoder for faster conversion.",
-                        )
-                    }
-                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordingsSettingsView(model: Model = LocalModel.current) {
     var presentingHelp by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState()
+    val stream by model.stream.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("Recordings")) })
-        },
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier.padding(innerPadding),
-            contentPadding = PaddingValues(16.dp),
-        ) {
-            item {
+    Form(title = localized("Recordings")) {
+        FilesLocationView(
+            model = model,
+            text = localized("Default recordings directory"),
+            path = model.recordingsStorage.defaultStorageDirectory().toURI(),
+        )
+        val recordingPath = stream.recording.recordingPath
+        if (recordingPath != null) {
+            val path = makeRecordingPath(recordingPath)
+            if (path != null) {
                 FilesLocationView(
                     model = model,
-                    text = localized("Default recordings directory"),
-                    path = model.recordingsStorage.defaultStorageDirectory().toURI(),
+                    text = localized("Current recordings directory"),
+                    path = File(path).toURI(),
                 )
-            }
-            val recordingPath = model.stream.value.recording.recordingPath
-            if (recordingPath != null) {
-                item {
-                    val path = makeRecordingPath(recordingPath)
-                    if (path != null) {
-                        FilesLocationView(
-                            model = model,
-                            text = localized("Current recordings directory"),
-                            path = File(path).toURI(),
-                        )
-                    } else {
-                        Text(localized("Current recordings directory unavailable"))
-                    }
+            } else {
+                FormRow {
+                    Text(localized("Current recordings directory unavailable"))
                 }
             }
-            item {
-                FilesLocationView(
-                    model = model,
-                    text = localized("Replays directory"),
-                    path = model.replaysStorage.defaultStorageDirectory().toURI(),
-                )
-            }
-            item {
-                TextButtonView(
-                    title = localized("Help"),
-                    action = { presentingHelp = true },
-                )
-            }
+        }
+        FilesLocationView(
+            model = model,
+            text = localized("Replays directory"),
+            path = model.replaysStorage.defaultStorageDirectory().toURI(),
+        )
+        Section {
+            TextButtonView(
+                title = localized("Help"),
+                action = { presentingHelp = true },
+            )
         }
     }
 
-    if (presentingHelp) {
-        ModalBottomSheet(
-            onDismissRequest = { presentingHelp = false },
-            sheetState = sheetState,
-        ) {
-            HelpView(
-                presentingHelp = presentingHelp,
-                onPresentingHelpChange = { presentingHelp = it },
-            )
-        }
+    Sheet(onDismissRequest = { presentingHelp = false }) {
+        HelpView(
+            presentingHelp = presentingHelp,
+            onPresentingHelpChange = { presentingHelp = it },
+        )
     }
 }

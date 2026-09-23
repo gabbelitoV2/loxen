@@ -1,6 +1,6 @@
 package com.moblin.android.media.haishinkit.media.video
 
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import com.moblin.android.media.haishinkit.media.Processor
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
@@ -37,7 +37,7 @@ class VideoLowFpsImage(context: Any) {
     }
 
     private fun createImage(imageBuffer: Image) {
-        val jpeg: ByteArray = TODO("OpenGL ES port")
+        val jpeg: ByteArray = imageBuffer.jpegData(longSide = 400, compressionQuality = 0.3f) ?: return
         processor?.delegate?.streamLowFpsImage(lowFpsImage = jpeg, frameNumber = frameNumber)
         frameNumber += 1
     }

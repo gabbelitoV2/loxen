@@ -1,7 +1,7 @@
 package com.moblin.android.media.haishinkit.media.video
 
 import android.graphics.RectF
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.util.Size
 import androidx.compose.ui.geometry.Rect
 import com.moblin.android.various.settings.SettingsSceneWidget

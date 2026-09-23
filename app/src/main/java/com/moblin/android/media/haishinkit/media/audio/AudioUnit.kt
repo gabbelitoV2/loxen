@@ -1,26 +1,30 @@
 package com.moblin.android.media.haishinkit.media.audio
 
-import android.hardware.camera2.CameraDevice
+import android.media.AudioAttributes
 import android.media.AudioFormat
-import android.media.AudioRecord
 import android.media.AudioTrack
 import android.media.MediaFormat
 import android.util.Log
-import com.moblin.android.common.various.defaultAudioLevel
+import com.moblin.android.common.various.*
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.codec.audio.AudioEncoder
 import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderDelegate
 import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderSettings
 import com.moblin.android.media.haishinkit.media.Processor
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import com.moblin.android.platform.audio.isSameAudioFormat
+import com.moblin.android.platform.avfoundation.AVCaptureAudioDataOutput
+import com.moblin.android.platform.avfoundation.AVCaptureAudioDataOutputSampleBufferDelegate
+import com.moblin.android.platform.avfoundation.AVCaptureConnection
+import com.moblin.android.platform.avfoundation.AVCaptureDevice
+import com.moblin.android.platform.avfoundation.AVCaptureDeviceInput
+import com.moblin.android.platform.avfoundation.AVCaptureOutput
+import com.moblin.android.platform.avfoundation.AVCaptureSession
 import java.util.UUID
 import kotlin.coroutines.ContinuationInterceptor
 import kotlin.math.abs
 import kotlin.math.log10
 import kotlin.math.max
-import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.launch
 
@@ -35,58 +39,73 @@ private class TalkbackPlayer {
     var isRunning = false
         private set
 
-    fun start(format: AudioFormat) {
-        if (engine != null) {
-            return
+    fun start(format: MediaFormat) {
+        val sampleRate = format.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+        val channelMask = when (format.getInteger(MediaFormat.KEY_CHANNEL_COUNT)) {
+            1 -> AudioFormat.CHANNEL_OUT_MONO
+            2 -> AudioFormat.CHANNEL_OUT_STEREO
+            else -> {
+                Log.i(TAG, "audio-unit: Failed to start talkback player engine: unsupported channel count")
+                return
+            }
         }
-        val minBufferSize = AudioTrack.getMinBufferSize(
-            format.sampleRate,
-            format.channelMask,
-            format.encoding
-        )
-        if (minBufferSize <= 0) {
-            Log.i("TalkbackPlayer", "audio-unit: Failed to start talkback player engine: invalid buffer size")
-            return
-        }
-        val track: AudioTrack
+        val minBufferSize = AudioTrack.getMinBufferSize(sampleRate, channelMask, AudioFormat.ENCODING_PCM_16BIT)
         try {
-            track = AudioTrack.Builder()
-                .setAudioFormat(format)
-                .setBufferSizeInBytes(minBufferSize * 2)
+            val track = AudioTrack.Builder()
+                .setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                        .build()
+                )
+                .setAudioFormat(
+                    AudioFormat.Builder()
+                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                        .setSampleRate(sampleRate)
+                        .setChannelMask(channelMask)
+                        .build()
+                )
+                .setBufferSizeInBytes(max(minBufferSize, 0) * 4)
                 .setTransferMode(AudioTrack.MODE_STREAM)
                 .build()
+            track.play()
+            engine = track
+            isRunning = true
         } catch (error: Exception) {
-            Log.i("TalkbackPlayer", "audio-unit: Failed to start talkback player engine: $error")
-            return
+            Log.i(TAG, "audio-unit: Failed to start talkback player engine: $error")
         }
-        track.play()
-        engine = track
-        isRunning = true
     }
 
     fun stop() {
-        engine?.stop()
+        try {
+            engine?.stop()
+        } catch (error: Exception) {
+            Log.d(TAG, "audio-unit: Failed to stop talkback player engine: $error")
+        }
         engine?.release()
         engine = null
+        isRunning = false
     }
 
     fun appendSampleBuffer(sampleBuffer: MediaSample) {
-        val track = engine ?: return
         val pcmBuffer = makePcmBuffer(sampleBuffer) ?: return
-        track.write(pcmBuffer, 0, pcmBuffer.size)
+        engine?.write(pcmBuffer, 0, pcmBuffer.size, AudioTrack.WRITE_NON_BLOCKING)
     }
 
-    private fun makePcmBuffer(sampleBuffer: MediaSample): ShortArray? {
-        val data = sampleBuffer.data
-        if (data.size < 2) {
+    private fun makePcmBuffer(sampleBuffer: MediaSample): ByteArray? {
+        if (sampleBuffer.format == null) {
             return null
         }
-        return pcm16Samples(data)
+        val frameCount = sampleBuffer.numSamples
+        if (frameCount <= 0) {
+            return null
+        }
+        return sampleBuffer.data
     }
 }
 
 data class AudioUnitAttachParams(
-    val device: CameraDevice?,
+    val device: AVCaptureDevice?,
     val builtinDelay: Double,
     val bufferedAudio: UUID?
 )
@@ -120,10 +139,7 @@ fun calcAudioLevelPeakFloat32(samples: FloatArray, count: Int): Float {
 fun calcAudioLevelPeakInt16(samples: ShortArray, count: Int): Float {
     var peak = 0
     for (index in 0 until count) {
-        val magnitude = abs(samples[index].toInt())
-        if (magnitude > peak) {
-            peak = magnitude
-        }
+        peak = max(peak, abs(samples[index].toInt()))
     }
     return peak.toFloat() / (Short.MAX_VALUE.toFloat() + 1)
 }
@@ -135,21 +151,25 @@ private class AudioMeasurement {
     private val windowInterval = 0.2
 
     fun input(sampleBuffer: MediaSample): Float? {
-        val now = sampleBuffer.presentationTimeUs.toDouble() / 1_000_000.0
+        val now = sampleBuffer.presentationTimeUs / 1_000_000.0
         if (windowStart.isNaN()) {
             windowStart = now
         }
         if (now < windowStart) {
             return null
         }
-        val samples = pcm16Samples(sampleBuffer.data)
-        if (samples.isNotEmpty()) {
-            currentPeak = max(currentPeak, calcAudioLevelPeakInt16(samples, samples.size))
-        }
+        sampleBuffer.foreachAudioSample(
+            float32 = { samples, count ->
+                currentPeak = max(currentPeak, calcAudioLevelPeakFloat32(samples, count))
+            },
+            int16 = { samples, count ->
+                currentPeak = max(currentPeak, calcAudioLevelPeakInt16(samples, count))
+            }
+        )
         if (now < windowStart + windowDuration) {
             return null
         }
-        windowStart += windowInterval
+        windowStart = windowStart + windowInterval
         val audioLevel = peak()
         currentPeak = 0.0f
         return audioLevel
@@ -164,22 +184,26 @@ private class AudioMeasurement {
         if (currentPeak <= 0) {
             return defaultAudioLevel
         }
-        return 20.0f * log10(currentPeak)
+        return 20 * log10(currentPeak)
     }
 }
 
-class AudioUnit : BufferedAudioSampleBufferDelegate {
-    val encoder = AudioEncoder(processorPipelineDispatcher)
+class AudioUnit : BufferedAudioSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate {
+    val encoder = AudioEncoder(lockQueue = processorPipelineDispatcher)
     var previewEncoder: AudioEncoder? = null
-    private var input: AudioRecord? = null
-    private var output: Any? = null
+    private var input: AVCaptureDeviceInput? = null
+    private var output: AVCaptureAudioDataOutput? = null
+
+    @Volatile
     var muted = false
+
+    @Volatile
     var gain: Float = 1.0f
     private var delay = 0.0
     var processor: Processor? = null
     private var selectedBufferedAudioId: UUID? = null
     private var bufferedAudios: MutableMap<UUID, BufferedAudio> = mutableMapOf()
-    var session: AudioRecord? = null
+    val session = AVCaptureSession()
     private var speechToTextEnabled = false
     private var bufferedBuiltinAudio: BufferedAudio? = null
     private var talkbackCameraId: UUID? = null
@@ -190,7 +214,7 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
 
     private var inputSourceFormat: MediaFormat? = null
         set(value) {
-            if (field == value) {
+            if (value.isSameAudioFormat(field)) {
                 return
             }
             field = value
@@ -199,11 +223,11 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
         }
 
     fun startRunning() {
-        session?.startRecording()
+        session.startRunning()
     }
 
     fun stopRunning() {
-        session?.stop()
+        session.stopRunning()
     }
 
     fun attach(params: AudioUnitAttachParams) {
@@ -217,8 +241,9 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
                 driftTracker = null
             )
         }
-        params.device?.let {
-            attachDevice(it)
+        val device = params.device
+        if (device != null) {
+            attachDevice(device)
         }
         measurement.reset()
     }
@@ -236,12 +261,15 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
     }
 
     fun startPreviewEncoding(delegate: AudioEncoderDelegate, settings: AudioEncoderSettings) {
-        val encoder = AudioEncoder(processorPipelineDispatcher)
+        val encoder = AudioEncoder(lockQueue = processorPipelineDispatcher)
         encoder.setSettings(settings)
         encoder.delegate = delegate
         encoder.startRunning()
         processorPipelineQueue.launch {
-            inputSourceFormat?.let { encoder.setInputSourceFormat(it) }
+            val inputSourceFormat = inputSourceFormat
+            if (inputSourceFormat != null) {
+                encoder.setInputSourceFormat(inputSourceFormat)
+            }
             previewEncoder = encoder
         }
     }
@@ -289,13 +317,32 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
         }
     }
 
-    private fun attachDevice(device: CameraDevice) {
-        session?.stop()
-        session?.release()
-        session = null
-        input = null
-        output = null
-        Unit
+    private fun attachDevice(device: AVCaptureDevice) {
+        session.beginConfiguration()
+        try {
+            val input = input
+            if (input != null && session.inputs.contains(input)) {
+                session.removeInput(input)
+            }
+            val output = output
+            if (output != null && session.outputs.contains(output)) {
+                session.removeOutput(output)
+            }
+            val newInput = AVCaptureDeviceInput(device)
+            this.input = newInput
+            if (session.canAddInput(newInput)) {
+                session.addInput(newInput)
+            }
+            val newOutput = AVCaptureAudioDataOutput()
+            this.output = newOutput
+            newOutput.setSampleBufferDelegate(this, processorPipelineQueue)
+            if (session.canAddOutput(newOutput)) {
+                session.addOutput(newOutput)
+            }
+            session.automaticallyConfiguresApplicationAudioSession = false
+        } finally {
+            session.commitConfiguration()
+        }
     }
 
     private fun setTalkbackInternal(cameraId: UUID?) {
@@ -331,11 +378,11 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
     private fun appendNewSampleBuffer(
         processor: Processor,
         sampleBuffer: MediaSample,
-        presentationTimeUs: Long
+        presentationTimeStamp: Long
     ) {
         val sampleBuffer = sampleBuffer.muted(muted)?.withGain(gain) ?: return
-        val presentationTimeUs = presentationTimeUs + (delay * 1_000_000.0).toLong()
-        if (presentationTimeUs <= latestSampleBufferAppendTime) {
+        val presentationTimeStamp = presentationTimeStamp + (delay * 1_000_000.0).toLong()
+        if (presentationTimeStamp <= latestSampleBufferAppendTime) {
             numberOfDiscardedSampleBuffers += 1
             return
         }
@@ -343,14 +390,14 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
             Log.i(
                 TAG,
                 "audio-unit: Discarded $numberOfDiscardedSampleBuffers old buffers before " +
-                    (presentationTimeUs / 1_000_000.0)
+                    "${presentationTimeStamp / 1_000_000.0}"
             )
             numberOfDiscardedSampleBuffers = 0
         }
-        latestSampleBufferAppendTime = presentationTimeUs
+        latestSampleBufferAppendTime = presentationTimeStamp
         val audioLevel = measurement.input(sampleBuffer)
         if (audioLevel != null) {
-            val numberOfAudioChannels = sampleBuffer.numberOfAudioChannels()
+            val numberOfAudioChannels = sampleBuffer.format?.numberOfAudioChannels() ?: 0
             updateAudioLevel(
                 sampleBuffer = sampleBuffer,
                 audioLevel = audioLevel,
@@ -358,17 +405,17 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
             )
         }
         if (speechToTextEnabled) {
-            processor.delegate?.streamAudio(sampleBuffer)
+            processor.delegate.streamAudio(sampleBuffer)
         }
         inputSourceFormat = sampleBuffer.format
-        encoder.appendSampleBuffer(sampleBuffer, presentationTimeUs)
-        processor.recorder.appendAudio(sampleBuffer, presentationTimeUs)
-        previewEncoder?.appendSampleBuffer(sampleBuffer, presentationTimeUs)
+        encoder.appendSampleBuffer(sampleBuffer, presentationTimeStamp)
+        processor.recorder.appendAudio(sampleBuffer, presentationTimeStamp)
+        previewEncoder?.appendSampleBuffer(sampleBuffer, presentationTimeStamp)
     }
 
     private fun appendBufferedBuiltinAudio(
         sampleBuffer: MediaSample,
-        presentationTimeUs: Long
+        presentationTimeStamp: Long
     ): BufferedAudio? {
         val bufferedBuiltinAudio = bufferedBuiltinAudio ?: return null
         if (bufferedBuiltinAudio.latency <= 0) {
@@ -379,8 +426,8 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
         } else {
             sampleBuffer
         }
-        val presentationTimeUs = presentationTimeUs + (bufferedBuiltinAudio.latency * 1_000_000.0).toLong()
-        val replacedSampleBuffer = sampleBufferCopy.replacePresentationTimeStamp(presentationTimeUs) ?: return null
+        val presentationTimeStamp = presentationTimeStamp + (bufferedBuiltinAudio.latency * 1_000_000.0).toLong()
+        val replacedSampleBuffer = sampleBufferCopy.replacePresentationTimeStamp(presentationTimeStamp)
         bufferedBuiltinAudio.appendSampleBuffer(replacedSampleBuffer)
         return bufferedBuiltinAudio
     }
@@ -390,11 +437,16 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
         audioLevel: Float,
         numberOfAudioChannels: Int
     ) {
-        val sampleRate = sampleBuffer.sampleRate()
+        val format = sampleBuffer.format
+        val sampleRate = if (format != null && format.containsKey(MediaFormat.KEY_SAMPLE_RATE)) {
+            format.getInteger(MediaFormat.KEY_SAMPLE_RATE).toDouble()
+        } else {
+            0.0
+        }
         processor?.delegate?.streamAudioLevel(
             audioLevel = audioLevel,
             numberOfAudioChannels = numberOfAudioChannels,
-            sampleRate = sampleRate.toDouble()
+            sampleRate = sampleRate
         )
     }
 
@@ -407,25 +459,25 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
         talkbackPlayer.appendSampleBuffer(sampleBuffer)
     }
 
-    fun captureOutput(output: Any?, didOutput: MediaSample, from: Any?) {
-        val processor = this.processor ?: return
-        val presentationTimeUs = syncTimeToHost(processor, didOutput)
+    override fun captureOutput(output: AVCaptureOutput, didOutput: MediaSample, from: AVCaptureConnection?) {
+        val processor = processor ?: return
+        val presentationTimeStamp = syncTimeToHost(processor, didOutput)
         var sampleBuffer = didOutput
-        val bufferedAudio = appendBufferedBuiltinAudio(sampleBuffer, presentationTimeUs)
+        val bufferedAudio = appendBufferedBuiltinAudio(sampleBuffer, presentationTimeStamp)
         if (bufferedAudio != null) {
-            sampleBuffer = bufferedAudio.getSampleBuffer(presentationTimeUs / 1_000_000.0) ?: sampleBuffer
+            sampleBuffer = bufferedAudio.getSampleBuffer(presentationTimeStamp / 1_000_000.0) ?: sampleBuffer
         }
         if (selectedBufferedAudioId != null) {
             return
         }
-        appendNewSampleBuffer(processor, sampleBuffer, presentationTimeUs)
+        appendNewSampleBuffer(processor, sampleBuffer, presentationTimeStamp)
     }
 
     override fun didOutputBufferedSampleBuffer(cameraId: UUID, sampleBuffer: MediaSample) {
         if (cameraId == talkbackCameraId) {
             appendTalkback(sampleBuffer)
         }
-        val processor = this.processor
+        val processor = processor
         if (selectedBufferedAudioId != cameraId || processor == null) {
             return
         }
@@ -433,105 +485,15 @@ class AudioUnit : BufferedAudioSampleBufferDelegate {
     }
 }
 
-fun audioFormat(sampleBuffer: MediaSample): AudioFormat? {
-    val mediaFormat = sampleBuffer.format ?: return null
-    if (!mediaFormat.containsKey(MediaFormat.KEY_SAMPLE_RATE)) {
+fun audioFormat(sampleBuffer: MediaSample): MediaFormat? {
+    val format = sampleBuffer.format ?: return null
+    if (!format.containsKey(MediaFormat.KEY_SAMPLE_RATE) || !format.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
         return null
     }
-    if (!mediaFormat.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
-        return null
-    }
-    val sampleRate = mediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
-    val channels = mediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-    val channelMask = when (channels) {
-        1 -> AudioFormat.CHANNEL_OUT_MONO
-        2 -> AudioFormat.CHANNEL_OUT_STEREO
-        else -> return null
-    }
-    return AudioFormat.Builder()
-        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-        .setSampleRate(sampleRate)
-        .setChannelMask(channelMask)
-        .build()
+    return format
 }
 
 private fun syncTimeToHost(processor: Processor, sampleBuffer: MediaSample): Long {
-    return 0L
-}
-
-private fun pcm16Samples(data: ByteArray): ShortArray {
-    val count = data.size / 2
-    val samples = ShortArray(count)
-    ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(samples)
-    return samples
-}
-
-private fun MediaSample.muted(muted: Boolean): MediaSample? {
-    if (!muted) {
-        return this
-    }
-    if (data.size < 2) {
-        return this
-    }
-    return MediaSample(
-        data = ByteArray(data.size),
-        presentationTimeUs = presentationTimeUs,
-        isKeyFrame = isKeyFrame,
-        format = format
-    )
-}
-
-private fun MediaSample.withGain(gain: Float): MediaSample? {
-    if (gain == 1.0f) {
-        return this
-    }
-    val samples = pcm16Samples(data)
-    if (samples.isEmpty()) {
-        return this
-    }
-    val buffer = ByteBuffer.allocate(samples.size * 2).order(ByteOrder.LITTLE_ENDIAN)
-    for (sample in samples) {
-        val value = (sample.toFloat() * gain).roundToInt().coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
-        buffer.putShort(value.toShort())
-    }
-    return MediaSample(
-        data = buffer.array(),
-        presentationTimeUs = presentationTimeUs,
-        isKeyFrame = isKeyFrame,
-        format = format
-    )
-}
-
-private fun MediaSample.deepCopyAudioSampleBuffer(): MediaSample? {
-    return MediaSample(
-        data = data.copyOf(),
-        presentationTimeUs = presentationTimeUs,
-        isKeyFrame = isKeyFrame,
-        format = format
-    )
-}
-
-private fun MediaSample.replacePresentationTimeStamp(presentationTimeUs: Long): MediaSample? {
-    return MediaSample(
-        data = data,
-        presentationTimeUs = presentationTimeUs,
-        isKeyFrame = isKeyFrame,
-        format = format
-    )
-}
-
-private fun MediaSample.numberOfAudioChannels(): Int {
-    val mediaFormat = format ?: return 0
-    if (!mediaFormat.containsKey(MediaFormat.KEY_CHANNEL_COUNT)) {
-        return 0
-    }
-    return mediaFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-}
-
-private fun MediaSample.sampleRate(): Int {
-    val mediaFormat = format ?: return 0
-    if (!mediaFormat.containsKey(MediaFormat.KEY_SAMPLE_RATE)) {
-        return 0
-    }
-    return mediaFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+    return processor.audio.session.synchronizationClock?.convertTime(sampleBuffer.presentationTimeUs)
+        ?: sampleBuffer.presentationTimeUs
 }

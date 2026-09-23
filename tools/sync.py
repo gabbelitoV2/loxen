@@ -135,10 +135,20 @@ def main():
         fix = [sys.executable, HERE / "fix.py", "--provider", args.provider, "--rounds", str(args.fix_rounds),
                "--workers", str(args.workers), "--effort", "medium"]
         run(fix, check=False)
+    run([sys.executable, HERE / "postprocess.py"], check=False)
+    hooks = run([sys.executable, HERE / "check_hooks.py"], check=False, capture=True)
+    print(hooks.stdout.rstrip())
+    hooks_ok = hooks.returncode == 0
+    if not args.no_build:
         build_ok, errors = gradle(":app:assembleDebug")
         print(f"assembleDebug: {'ok' if build_ok else 'FAILED'} ({len(errors)} compile errors)")
         for line in errors[:20]:
             print("  " + line)
+
+    if not hooks_ok:
+        print(hooks.stderr.rstrip())
+        sys.exit("hooks are missing or not applied, stopping before the commit. Re-derive them as tools/hooks/README.md "
+                 "describes, then run python tools/postprocess.py and python tools/check_hooks.py.")
 
     if args.commit:
         run(["git", "add", "-A"])
@@ -148,6 +158,9 @@ def main():
         run(["git", "commit", "-q", "-m", message], check=False)
         if args.push:
             run(["git", "push", "-q", "origin", "HEAD"])
+    summary = [line for line in hooks.stdout.splitlines() if line.startswith("hooks: ")]
+    if summary:
+        print(summary[0])
     if not build_ok:
         sys.exit(1)
 

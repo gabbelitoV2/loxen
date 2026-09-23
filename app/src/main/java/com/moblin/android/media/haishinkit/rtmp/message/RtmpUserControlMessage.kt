@@ -1,78 +1,60 @@
 package com.moblin.android.media.haishinkit.rtmp.message
 
-class RtmpUserControlMessage() : RtmpMessage(RtmpMessageType.user) {
+class RtmpUserControlMessage : RtmpMessage {
     enum class Event(val rawValue: UByte) {
-        streamBegin(0x00.toUByte()),
-        streamEof(0x01.toUByte()),
-        streamDry(0x02.toUByte()),
-        setBuffer(0x03.toUByte()),
-        recorded(0x04.toUByte()),
-        ping(0x06.toUByte()),
-        pong(0x07.toUByte()),
-        bufferEmpty(0x1F.toUByte()),
-        bufferFull(0x20.toUByte()),
-        unknown(0xFF.toUByte());
+        streamBegin(0x00u),
+        streamEof(0x01u),
+        streamDry(0x02u),
+        setBuffer(0x03u),
+        recorded(0x04u),
+        ping(0x06u),
+        pong(0x07u),
+        bufferEmpty(0x1Fu),
+        bufferFull(0x20u),
+        unknown(0xFFu),
+        ;
 
         val bytes: ByteArray
-            get() = byteArrayOf(0x00.toByte(), rawValue.toByte())
+            get() = byteArrayOf(0x00, rawValue.toByte())
 
         companion object {
             fun fromRawValue(rawValue: UByte): Event? {
-                for (event in entries) {
-                    if (event.rawValue == rawValue) {
-                        return event
-                    }
-                }
-                return null
+                return entries.firstOrNull { it.rawValue == rawValue }
             }
         }
     }
 
     var event: Event = Event.unknown
-        set(newValue) {
-            field = newValue
-            buildEncoded()
-        }
-
     var value: Int = 0
-        set(newValue) {
-            field = newValue
-            buildEncoded()
-        }
 
-    init {
-        buildEncoded()
-    }
+    constructor() : super(RtmpMessageType.user)
 
-    constructor(event: Event, value: Int) : this() {
+    constructor(event: Event, value: Int) : super(RtmpMessageType.user) {
         this.event = event
         this.value = value
     }
 
-    private fun buildEncoded() {
-        super.encoded = event.bytes + byteArrayOf(
-            (value ushr 24).toByte(),
-            (value ushr 16).toByte(),
-            (value ushr 8).toByte(),
-            value.toByte()
-        )
-    }
-
-    fun decode(newValue: ByteArray) {
-        if (super.encoded.contentEquals(newValue)) {
-            return
-        }
-        if (super.encoded.size == newValue.size && newValue.size >= 2) {
-            Event.fromRawValue(newValue[1].toUByte())?.let { event = it }
-            var parsed = 0
-            var index = 2
-            val end = minOf(newValue.size, 6)
-            while (index < end) {
-                parsed = (parsed shl 8) or (newValue[index].toInt() and 0xFF)
-                index++
+    override var encoded: ByteArray
+        get() {
+            if (super.encoded.isNotEmpty()) {
+                return super.encoded
             }
-            value = parsed
+            super.encoded = ByteArray(0)
+            super.encoded = super.encoded + event.bytes
+            super.encoded = super.encoded + int32ToBigEndianBytes(value)
+            return super.encoded
         }
-        super.encoded = newValue
-    }
+        set(newValue) {
+            if (super.encoded.contentEquals(newValue)) {
+                return
+            }
+            if (length == newValue.size && newValue.size >= 2) {
+                val event = Event.fromRawValue(newValue[1].toUByte())
+                if (event != null) {
+                    this.event = event
+                }
+                value = readInt32BigEndian(newValue.copyOfRange(2, newValue.size))
+            }
+            super.encoded = newValue
+        }
 }

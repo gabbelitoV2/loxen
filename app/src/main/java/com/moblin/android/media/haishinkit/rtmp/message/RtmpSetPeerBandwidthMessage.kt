@@ -1,38 +1,61 @@
 package com.moblin.android.media.haishinkit.rtmp.message
 
-import java.nio.ByteBuffer
-
 class RtmpSetPeerBandwidthMessage : RtmpMessage {
-
     enum class Limit(val rawValue: UByte) {
-        HARD(0x00u),
-        SOFT(0x01u),
-        DYNAMIC(0x02u),
-        UNKNOWN(0xFFu);
+        hard(0x00u),
+        soft(0x01u),
+        `dynamic`(0x02u),
+        unknown(0xFFu),
+        ;
 
         companion object {
-            fun fromRawValue(value: UByte): Limit =
-                Limit.entries.firstOrNull { it.rawValue == value } ?: Limit.UNKNOWN
+            val HARD: Limit
+                get() = Limit.hard
+
+            val SOFT: Limit
+                get() = Limit.soft
+
+            val DYNAMIC: Limit
+                get() = Limit.`dynamic`
+
+            val UNKNOWN: Limit
+                get() = Limit.unknown
+
+            fun fromRawValue(rawValue: UByte): Limit {
+                return entries.firstOrNull { it.rawValue == rawValue } ?: Limit.unknown
+            }
         }
     }
 
     var size: UInt = 0u
-    var limit: Limit = Limit.HARD
+    var limit: Limit = Limit.hard
 
-    constructor() : super(RtmpMessageType.entries.first { it.rawValue.toInt() == 0x06 }) {
-        encoded = createEncoded()
-    }
+    constructor() : super(RtmpMessageType.bandwidth)
 
-    constructor(size: UInt, limit: Limit) : super(RtmpMessageType.entries.first { it.rawValue.toInt() == 0x06 }) {
+    constructor(size: UInt, limit: Limit) : super(RtmpMessageType.bandwidth) {
         this.size = size
         this.limit = limit
-        encoded = createEncoded()
     }
 
-    private fun createEncoded(): ByteArray {
-        val payload = ByteBuffer.allocate(5)
-        payload.putInt(size.toInt())
-        payload.put(limit.rawValue.toByte())
-        return payload.array()
-    }
+    override var encoded: ByteArray
+        get() {
+            if (super.encoded.isNotEmpty()) {
+                return super.encoded
+            }
+            var payload = ByteArray(0)
+            payload += uint32ToBigEndianBytes(size)
+            payload += limit.rawValue.toByte()
+            super.encoded = payload
+            return super.encoded
+        }
+        set(newValue) {
+            if (super.encoded.contentEquals(newValue)) {
+                return
+            }
+            if (newValue.size >= 5) {
+                size = readUInt32BigEndian(newValue.copyOfRange(0, 4))
+                limit = Limit.fromRawValue(newValue[4].toUByte())
+            }
+            super.encoded = newValue
+        }
 }

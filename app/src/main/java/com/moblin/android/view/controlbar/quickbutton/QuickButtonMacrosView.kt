@@ -1,35 +1,32 @@
 package com.moblin.android.view.controlbar.quickbutton
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import com.moblin.android.various.model.Model
-import com.moblin.android.various.model.ShowingPanel
-import com.moblin.android.various.settings.SettingsMacros
-import com.moblin.android.various.settings.SettingsMacrosMacro
-import com.moblin.android.view.utils.ShortcutSectionView
+import androidx.compose.ui.draw.alpha
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.Label
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.ShowingPanel
+import com.moblin.android.various.model.startMacro
+import com.moblin.android.various.model.stopMacro
+import com.moblin.android.various.settings.SettingsMacros
+import com.moblin.android.various.settings.SettingsMacrosMacro
+import com.moblin.android.view.settings.macros.MacrosSettingsView
+import com.moblin.android.view.utils.ShortcutSectionView
 
 @Composable
 private fun MacroView(model: Model = LocalModel.current, macro: SettingsMacrosMacro) {
@@ -37,38 +34,41 @@ private fun MacroView(model: Model = LocalModel.current, macro: SettingsMacrosMa
     val running = macro.running
     val finished = macro.finished
     val closePanelOnRun = macro.closePanelOnRun
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(name)
+    val palette = formPalette()
+    FormRow {
+        Text(name, style = formBodyStyle)
         Spacer(Modifier.weight(1f))
         if (running) {
-            TextButton(
-                onClick = {
-                    Unit
-                },
-                colors = ButtonDefaults.textButtonColors(contentColor = Color.Red),
-            ) {
-                Text("Cancel")
-            }
+            val interactionSource = remember { MutableInteractionSource() }
+            val pressed by interactionSource.collectIsPressedAsState()
+            Text(
+                "Cancel",
+                modifier = Modifier
+                    .alpha(if (pressed) 0.2f else 1f)
+                    .clickable(interactionSource = interactionSource, indication = null) {
+                        model.stopMacro(macro = macro)
+                    },
+                color = palette.red,
+                style = formBodyStyle,
+            )
         } else if (finished) {
-            Text("Finished", color = Color.Green)
+            Text("Finished", color = palette.green, style = formBodyStyle)
         } else {
-            TextButton(
-                onClick = {
-                    Unit
-                    if (closePanelOnRun) {
-                        model.toggleShowingPanel(type = null, panel = ShowingPanel.none)
-                    }
-                },
-            ) {
-                if (closePanelOnRun) {
-                    Text("Run and close")
-                } else {
-                    Text("Run")
-                }
-            }
+            val interactionSource = remember { MutableInteractionSource() }
+            val pressed by interactionSource.collectIsPressedAsState()
+            Text(
+                if (closePanelOnRun) "Run and close" else "Run",
+                modifier = Modifier
+                    .alpha(if (pressed) 0.2f else 1f)
+                    .clickable(interactionSource = interactionSource, indication = null) {
+                        model.startMacro(macro = macro)
+                        if (closePanelOnRun) {
+                            model.toggleShowingPanel(type = null, panel = ShowingPanel.none)
+                        }
+                    },
+                color = palette.accent,
+                style = formBodyStyle,
+            )
         }
     }
 }
@@ -79,28 +79,23 @@ fun QuickButtonMacrosView(
     macros: SettingsMacros,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val macrosList = macros.macros
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(macrosList) { macro ->
-            MacroView(model = model, macro = macro)
+    Form(title = "Macros") {
+        Section {
+            macros.macros.forEach { macro ->
+                MacroView(model = model, macro = macro)
+            }
         }
-        item {
-            Column {
-                ShortcutSectionView {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onNavigate("MacrosSettingsView")
-                            }
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(Icons.Default.List, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Macros")
-                    }
-                }
+        ShortcutSectionView {
+            NavigationLink(
+                destination = {
+                    MacrosSettingsView(
+                        model = model,
+                        database = model.database,
+                        macros = macros,
+                    )
+                },
+            ) {
+                Label("Macros", systemImage = "increase.indent")
             }
         }
     }

@@ -1,6 +1,12 @@
 package com.moblin.android.various.utils
 
+import com.moblin.android.common.various.clamped
 import com.moblin.android.localized
+import com.moblin.android.media.kCMTimeInvalidUs
+import com.moblin.android.platform.avfoundation.AVCaptureAspectRatio
+import com.moblin.android.platform.avfoundation.AVCaptureColorSpace
+import com.moblin.android.platform.avfoundation.AVCaptureDevice
+import com.moblin.android.platform.avfoundation.AVMediaType
 import com.moblin.android.various.model.CameraId
 import com.moblin.android.various.settings.SettingsSceneCameraPosition
 import kotlin.math.PI
@@ -9,176 +15,21 @@ import kotlin.math.atan2
 import kotlin.math.ln
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
-import android.content.Context
-import android.hardware.camera2.CameraCharacteristics
-import android.hardware.camera2.CameraManager
-import android.os.Build
-import com.moblin.android.AppDelegate
-
-private const val CM_TIME_INVALID = Long.MIN_VALUE
-private const val CM_TIME_ONE_60TH = 1_000_000L / 60
-
-class AVCaptureDevice {
-    enum class DeviceType {
-        BUILT_IN_TRIPLE_CAMERA,
-        BUILT_IN_DUAL_CAMERA,
-        BUILT_IN_DUAL_WIDE_CAMERA,
-        BUILT_IN_ULTRA_WIDE_CAMERA,
-        BUILT_IN_WIDE_ANGLE_CAMERA,
-        BUILT_IN_TELEPHOTO_CAMERA,
-    }
-
-    enum class Position {
-        BACK,
-        FRONT,
-        UNSPECIFIED,
-    }
-
-    class Format {
-        var minISO: Float = 0f
-        var maxISO: Float = 0f
-        var minExposureDuration: Long = CM_TIME_INVALID
-        var maxExposureDuration: Long = CM_TIME_INVALID
-    }
-
-    data class WhiteBalanceTemperatureAndTintValues(
-        val temperature: Float,
-        val tint: Float,
-    )
-
-    data class WhiteBalanceGains(
-        val redGain: Float,
-        val greenGain: Float,
-        val blueGain: Float,
-    )
-
-    var deviceType: DeviceType = DeviceType.BUILT_IN_WIDE_ANGLE_CAMERA
-    var position: Position = Position.UNSPECIFIED
-    var localizedName: String = ""
-    var uniqueID: String = ""
-    var activeFormat: Format = Format()
-    var formats: List<Format> = emptyList()
-    var virtualDeviceSwitchOverVideoZoomFactors: List<Float> = emptyList()
-    var activeVideoMinFrameDuration: Long = CM_TIME_INVALID
-    var activeVideoMaxFrameDuration: Long = CM_TIME_INVALID
-    var minAvailableVideoZoomFactor: Float = 1f
-    var maxAvailableVideoZoomFactor: Float = 1f
-    var maxWhiteBalanceGain: Float = 1f
-    var isLowLightBoostSupported: Boolean = false
-    var automaticallyEnablesLowLightBoostWhenAvailable: Boolean = false
-
-    fun deviceWhiteBalanceGains(
-        values: WhiteBalanceTemperatureAndTintValues,
-    ): WhiteBalanceGains = TODO("Camera2 COLOR_CORRECTION_GAINS conversion from temperature and tint")
-
-    fun temperatureAndTintValues(gains: WhiteBalanceGains): WhiteBalanceTemperatureAndTintValues =
-        TODO()
-    companion object {
-        private val cameraManager: CameraManager
-            get() = AppDelegate.context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-
-        private fun physicalCameraCount(characteristics: CameraCharacteristics): Int {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
-                return 1
-            }
-            return maxOf(1, characteristics.physicalCameraIds.size)
-        }
-
-        fun default(deviceType: DeviceType, position: Position): AVCaptureDevice? {
-            val facing = when (position) {
-                Position.BACK -> CameraCharacteristics.LENS_FACING_BACK
-                Position.FRONT -> CameraCharacteristics.LENS_FACING_FRONT
-                Position.UNSPECIFIED -> null
-            }
-            val wantedPhysicalCameras = when (deviceType) {
-                DeviceType.BUILT_IN_TRIPLE_CAMERA -> 3
-                DeviceType.BUILT_IN_DUAL_CAMERA, DeviceType.BUILT_IN_DUAL_WIDE_CAMERA -> 2
-                DeviceType.BUILT_IN_WIDE_ANGLE_CAMERA -> 1
-                DeviceType.BUILT_IN_ULTRA_WIDE_CAMERA, DeviceType.BUILT_IN_TELEPHOTO_CAMERA -> return null
-            }
-            val manager = cameraManager
-            val ids = runCatching { manager.cameraIdList.toList() }.getOrDefault(emptyList())
-            for (id in ids) {
-                val characteristics = runCatching { manager.getCameraCharacteristics(id) }.getOrNull() ?: continue
-                if (facing != null && characteristics.get(CameraCharacteristics.LENS_FACING) != facing) {
-                    continue
-                }
-                val physicalCameras = physicalCameraCount(characteristics)
-                if (wantedPhysicalCameras > 1 && physicalCameras < wantedPhysicalCameras) {
-                    continue
-                }
-                if (wantedPhysicalCameras == 1 && physicalCameras > 1) {
-                    continue
-                }
-                return fromCharacteristics(id, deviceType, position, characteristics)
-            }
-            if (wantedPhysicalCameras == 1) {
-                for (id in ids) {
-                    val characteristics = runCatching { manager.getCameraCharacteristics(id) }.getOrNull() ?: continue
-                    if (facing == null || characteristics.get(CameraCharacteristics.LENS_FACING) == facing) {
-                        return fromCharacteristics(id, deviceType, position, characteristics)
-                    }
-                }
-            }
-            return null
-        }
-
-        private fun fromCharacteristics(
-            id: String,
-            deviceType: DeviceType,
-            position: Position,
-            characteristics: CameraCharacteristics,
-        ): AVCaptureDevice {
-            val device = AVCaptureDevice()
-            device.deviceType = deviceType
-            device.position = position
-            device.uniqueID = id
-            device.localizedName = when (position) {
-                Position.BACK -> localized("Back camera")
-                Position.FRONT -> localized("Front camera")
-                Position.UNSPECIFIED -> localized("Camera")
-            } + " " + id
-            val format = Format()
-            characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE)?.let {
-                format.minISO = it.lower.toFloat()
-                format.maxISO = it.upper.toFloat()
-            }
-            characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE)?.let {
-                format.minExposureDuration = it.lower / 1000
-                format.maxExposureDuration = it.upper / 1000
-            }
-            device.activeFormat = format
-            device.formats = listOf(format)
-            device.activeVideoMinFrameDuration = CM_TIME_ONE_60TH * 2
-            device.activeVideoMaxFrameDuration = CM_TIME_ONE_60TH * 2
-            device.minAvailableVideoZoomFactor = 1f
-            device.maxAvailableVideoZoomFactor =
-                characteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM) ?: 1f
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                characteristics.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE)?.let {
-                    device.minAvailableVideoZoomFactor = it.lower
-                    device.maxAvailableVideoZoomFactor = it.upper
-                }
-            }
-            return device
-        }
-    }
-}
 
 fun AVCaptureDevice.getZoomFactorScale(hasUltraWideCamera: Boolean): Float {
     return if (hasUltraWideCamera) {
         when (deviceType) {
-            AVCaptureDevice.DeviceType.BUILT_IN_TRIPLE_CAMERA,
-            AVCaptureDevice.DeviceType.BUILT_IN_DUAL_WIDE_CAMERA,
-            AVCaptureDevice.DeviceType.BUILT_IN_ULTRA_WIDE_CAMERA,
+            AVCaptureDevice.DeviceType.builtInTripleCamera,
+            AVCaptureDevice.DeviceType.builtInDualWideCamera,
+            AVCaptureDevice.DeviceType.builtInUltraWideCamera,
             -> 0.5f
-            AVCaptureDevice.DeviceType.BUILT_IN_TELEPHOTO_CAMERA ->
-                (virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: 10.0f) / 2f
+            AVCaptureDevice.DeviceType.builtInTelephotoCamera ->
+                (virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: 10.0f) / 2
             else -> 1.0f
         }
     } else {
         when (deviceType) {
-            AVCaptureDevice.DeviceType.BUILT_IN_TELEPHOTO_CAMERA ->
+            AVCaptureDevice.DeviceType.builtInTelephotoCamera ->
                 virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: 2.0f
             else -> 1.0f
         }
@@ -186,27 +37,31 @@ fun AVCaptureDevice.getZoomFactorScale(hasUltraWideCamera: Boolean): Float {
 }
 
 fun AVCaptureDevice.getUIZoomRange(hasUltraWideCamera: Boolean): Pair<Float, Float> {
-    val factor = getZoomFactorScale(hasUltraWideCamera)
-    return Pair(
-        minAvailableVideoZoomFactor * factor,
-        maxAvailableVideoZoomFactor * factor,
-    )
+    val factor = getZoomFactorScale(hasUltraWideCamera = hasUltraWideCamera)
+    return Pair(minAvailableVideoZoomFactor * factor, maxAvailableVideoZoomFactor * factor)
 }
 
 val AVCaptureDevice.fps: Pair<Double, Double>
-    get() = Pair(
-        1.0 / (activeVideoMinFrameDuration / 1_000_000.0),
-        1.0 / (activeVideoMaxFrameDuration / 1_000_000.0),
-    )
+    get() = Pair(1 / cmTimeSeconds(activeVideoMinFrameDuration), 1 / cmTimeSeconds(activeVideoMaxFrameDuration))
+
+private fun cmTimeSeconds(time: Long): Double {
+    return if (time == kCMTimeInvalidUs) Double.NaN else time / 1_000_000.0
+}
 
 fun AVCaptureDevice.setFps(frameRate: Double) {
-    activeVideoMinFrameDuration = (1_000_000.0 / frameRate).toLong()
-    activeVideoMaxFrameDuration = activeVideoMinFrameDuration
+    if (activeFormat.isAutoVideoFrameRateSupported) {
+        isAutoVideoFrameRateEnabled = false
+    }
+    val timescale = (100 * frameRate).toInt()
+    val duration = if (timescale > 0) 100 * 1_000_000L / timescale else kCMTimeInvalidUs
+    activeVideoMinFrameDuration = duration
+    activeVideoMaxFrameDuration = duration
 }
 
 fun AVCaptureDevice.setAutoFps() {
-    activeVideoMinFrameDuration = CM_TIME_ONE_60TH * 2
-    activeVideoMaxFrameDuration = CM_TIME_ONE_60TH * 2
+    activeVideoMinFrameDuration = kCMTimeInvalidUs
+    activeVideoMaxFrameDuration = kCMTimeInvalidUs
+    isAutoVideoFrameRateEnabled = true
 }
 
 fun AVCaptureDevice.setLowLightBoost(value: Boolean) {
@@ -222,8 +77,8 @@ fun AVCaptureDevice.name(): String {
     } else {
         val name = baseName()
         return when (position) {
-            AVCaptureDevice.Position.BACK -> localized("Back $name")
-            AVCaptureDevice.Position.FRONT -> localized("Front $name")
+            AVCaptureDevice.Position.back -> localized("Back $name")
+            AVCaptureDevice.Position.front -> localized("Front $name")
             else -> name
         }
     }
@@ -231,59 +86,86 @@ fun AVCaptureDevice.name(): String {
 
 private fun AVCaptureDevice.baseName(): String {
     return when (deviceType) {
-        AVCaptureDevice.DeviceType.BUILT_IN_TRIPLE_CAMERA -> localized("Triple (auto)")
-        AVCaptureDevice.DeviceType.BUILT_IN_DUAL_CAMERA -> localized("Dual (auto)")
-        AVCaptureDevice.DeviceType.BUILT_IN_DUAL_WIDE_CAMERA -> localized("Wide dual (auto)")
-        AVCaptureDevice.DeviceType.BUILT_IN_ULTRA_WIDE_CAMERA -> localized("Ultra wide")
-        AVCaptureDevice.DeviceType.BUILT_IN_WIDE_ANGLE_CAMERA -> localized("Wide")
-        AVCaptureDevice.DeviceType.BUILT_IN_TELEPHOTO_CAMERA -> localized("Telephoto")
+        AVCaptureDevice.DeviceType.builtInTripleCamera -> localized("Triple (auto)")
+        AVCaptureDevice.DeviceType.builtInDualCamera -> localized("Dual (auto)")
+        AVCaptureDevice.DeviceType.builtInDualWideCamera -> localized("Wide dual (auto)")
+        AVCaptureDevice.DeviceType.builtInUltraWideCamera -> localized("Ultra wide")
+        AVCaptureDevice.DeviceType.builtInWideAngleCamera -> localized("Wide")
+        AVCaptureDevice.DeviceType.builtInTelephotoCamera -> localized("Telephoto")
         else -> localizedName
     }
 }
 
 val hasUltraWideBackCamera: Boolean by lazy {
-    AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_ULTRA_WIDE_CAMERA,
-        AVCaptureDevice.Position.BACK) != null
+    AVCaptureDevice.default(
+        AVCaptureDevice.DeviceType.builtInUltraWideCamera,
+        AVMediaType.video,
+        AVCaptureDevice.Position.back,
+    ) != null
 }
 val hasTripleBackCamera: Boolean by lazy {
-    AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_TRIPLE_CAMERA,
-        AVCaptureDevice.Position.BACK) != null
+    AVCaptureDevice.default(
+        AVCaptureDevice.DeviceType.builtInTripleCamera,
+        AVMediaType.video,
+        AVCaptureDevice.Position.back,
+    ) != null
 }
 val hasDualBackCamera: Boolean by lazy {
-    AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_DUAL_CAMERA,
-        AVCaptureDevice.Position.BACK) != null
+    AVCaptureDevice.default(
+        AVCaptureDevice.DeviceType.builtInDualCamera,
+        AVMediaType.video,
+        AVCaptureDevice.Position.back,
+    ) != null
 }
 val hasWideDualBackCamera: Boolean by lazy {
-    AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_DUAL_WIDE_CAMERA,
-        AVCaptureDevice.Position.BACK) != null
+    AVCaptureDevice.default(
+        AVCaptureDevice.DeviceType.builtInDualWideCamera,
+        AVMediaType.video,
+        AVCaptureDevice.Position.back,
+    ) != null
 }
 val hasUltraWideFrontCamera: Boolean by lazy {
-    AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_ULTRA_WIDE_CAMERA,
-        AVCaptureDevice.Position.FRONT) != null
+    AVCaptureDevice.default(
+        AVCaptureDevice.DeviceType.builtInUltraWideCamera,
+        AVMediaType.video,
+        AVCaptureDevice.Position.front,
+    ) != null
 }
 
 fun hasUltraWideCamera(position: AVCaptureDevice.Position): Boolean {
     return when (position) {
-        AVCaptureDevice.Position.BACK -> hasUltraWideBackCamera
-        AVCaptureDevice.Position.FRONT -> hasUltraWideFrontCamera
+        AVCaptureDevice.Position.back -> hasUltraWideBackCamera
+        AVCaptureDevice.Position.front -> hasUltraWideFrontCamera
         else -> false
     }
 }
 
 private fun findBestBackCameraDevice(): AVCaptureDevice? {
-    var device = AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_TRIPLE_CAMERA,
-        AVCaptureDevice.Position.BACK)
+    var device = AVCaptureDevice.default(
+        AVCaptureDevice.DeviceType.builtInTripleCamera,
+        AVMediaType.video,
+        AVCaptureDevice.Position.back,
+    )
     if (device == null) {
-        device = AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_DUAL_WIDE_CAMERA,
-            AVCaptureDevice.Position.BACK)
+        device = AVCaptureDevice.default(
+            AVCaptureDevice.DeviceType.builtInDualWideCamera,
+            AVMediaType.video,
+            AVCaptureDevice.Position.back,
+        )
     }
     if (device == null) {
-        device = AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_DUAL_CAMERA,
-            AVCaptureDevice.Position.BACK)
+        device = AVCaptureDevice.default(
+            AVCaptureDevice.DeviceType.builtInDualCamera,
+            AVMediaType.video,
+            AVCaptureDevice.Position.back,
+        )
     }
     if (device == null) {
-        device = AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_WIDE_ANGLE_CAMERA,
-            AVCaptureDevice.Position.BACK)
+        device = AVCaptureDevice.default(
+            AVCaptureDevice.DeviceType.builtInWideAngleCamera,
+            AVMediaType.video,
+            AVCaptureDevice.Position.back,
+        )
     }
     return device
 }
@@ -291,11 +173,17 @@ private fun findBestBackCameraDevice(): AVCaptureDevice? {
 val bestBackCameraDevice: AVCaptureDevice? by lazy { findBestBackCameraDevice() }
 
 private fun findBestFrontCameraDevice(): AVCaptureDevice? {
-    var device = AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_ULTRA_WIDE_CAMERA,
-        AVCaptureDevice.Position.FRONT)
+    var device = AVCaptureDevice.default(
+        AVCaptureDevice.DeviceType.builtInUltraWideCamera,
+        AVMediaType.video,
+        AVCaptureDevice.Position.front,
+    )
     if (device == null) {
-        device = AVCaptureDevice.default(AVCaptureDevice.DeviceType.BUILT_IN_WIDE_ANGLE_CAMERA,
-            AVCaptureDevice.Position.FRONT)
+        device = AVCaptureDevice.default(
+            AVCaptureDevice.DeviceType.builtInWideAngleCamera,
+            AVMediaType.video,
+            AVCaptureDevice.Position.front,
+        )
     }
     return device
 }
@@ -308,21 +196,15 @@ private fun findBestBackCameraId(): CameraId {
 
 val bestBackCameraId: CameraId by lazy { findBestBackCameraId() }
 
-private fun cameraPosition(rawValue: String): SettingsSceneCameraPosition {
-    return SettingsSceneCameraPosition.fromRawValue(rawValue)
-        ?: SettingsSceneCameraPosition.fromRawValue("back")
-        ?: TODO("SettingsSceneCameraPosition has no back case")
-}
-
 private fun findDefaultBackCameraPosition(): SettingsSceneCameraPosition {
     return if (hasTripleBackCamera) {
-        cameraPosition("backTripleLowEnergy")
+        SettingsSceneCameraPosition.backTripleLowEnergy
     } else if (hasWideDualBackCamera) {
-        cameraPosition("backWideDualLowEnergy")
+        SettingsSceneCameraPosition.backWideDualLowEnergy
     } else if (hasDualBackCamera) {
-        cameraPosition("backDualLowEnergy")
+        SettingsSceneCameraPosition.backDualLowEnergy
     } else {
-        cameraPosition("back")
+        SettingsSceneCameraPosition.back
     }
 }
 
@@ -335,13 +217,18 @@ private fun findBestFrontCameraId(): String {
 val bestFrontCameraId: String by lazy { findBestFrontCameraId() }
 
 fun hasAppleLog(): Boolean {
+    for (format in bestBackCameraDevice?.formats ?: emptyList()) {
+        if (format.supportedColorSpaces.contains(AVCaptureColorSpace.appleLog)) {
+            return true
+        }
+    }
     return false
 }
 
 fun factorToIso(device: AVCaptureDevice, factor: Float): Float {
     val minIso = device.activeFormat.minISO
     val maxIso = device.activeFormat.maxISO
-    var iso = minIso + (maxIso - minIso) * factor.coerceIn(0f, 1f)
+    var iso = minIso + (maxIso - minIso) * factor.clamped(to = 0f..1f)
     if (!iso.isFinite()) {
         iso = 0f
     }
@@ -355,7 +242,7 @@ fun factorFromIso(device: AVCaptureDevice, iso: Float): Float {
     if (!factor.isFinite()) {
         factor = 0f
     }
-    return factor.coerceIn(0f, 1f)
+    return factor.clamped(to = 0f..1f)
 }
 
 private val shutterSpeeds: List<Long> = listOf(
@@ -368,33 +255,33 @@ fun exposures(device: AVCaptureDevice): List<Long> {
     val fastest = device.activeFormat.minExposureDuration
     var slowest = device.activeFormat.maxExposureDuration
     val frameDuration = device.activeVideoMaxFrameDuration
-    if (frameDuration != CM_TIME_INVALID && frameDuration > 0) {
+    if (frameDuration != kCMTimeInvalidUs && frameDuration > 0) {
         slowest = minOf(slowest, frameDuration)
     } else {
         slowest = minOf(slowest, slowestExposureWithoutFrameDuration)
     }
     slowest = maxOf(fastest, slowest)
-    val filtered = shutterSpeeds.filter { it >= fastest && it <= slowest }
-    if (filtered.isEmpty()) {
+    val exposures = shutterSpeeds.filter { it >= fastest && it <= slowest }
+    if (exposures.isEmpty()) {
         return listOf(slowest)
     }
-    return filtered
+    return exposures
 }
 
 fun factorToExposure(device: AVCaptureDevice, factor: Float): Long {
-    return factorToExposure(exposures(device), factor)
+    return factorToExposure(exposures = exposures(device = device), factor = factor)
 }
 
 fun factorToExposure(exposures: List<Long>, factor: Float): Long {
     if (exposures.size <= 1) {
-        return exposures.firstOrNull() ?: CM_TIME_ONE_60TH
+        return exposures.firstOrNull() ?: (1_000_000L / 60)
     }
-    val index = (factor.coerceIn(0f, 1f) * (exposures.size - 1)).roundToInt()
-    return exposures[index.coerceIn(0, exposures.size - 1)]
+    val index = (factor.clamped(to = 0f..1f) * (exposures.size - 1)).roundToInt()
+    return exposures[index]
 }
 
 fun factorFromExposure(device: AVCaptureDevice, exposure: Long): Float {
-    return factorFromExposure(exposures(device), exposure)
+    return factorFromExposure(exposures = exposures(device = device), exposure = exposure)
 }
 
 fun factorFromExposure(exposures: List<Long>, exposure: Long): Float {
@@ -414,7 +301,7 @@ fun factorFromExposure(exposures: List<Long>, exposure: Long): Float {
 }
 
 fun exposureFactorStep(device: AVCaptureDevice): Float {
-    return exposureFactorStep(exposures(device))
+    return exposureFactorStep(exposures = exposures(device = device))
 }
 
 fun exposureFactorStep(exposures: List<Long>): Float {
@@ -429,7 +316,7 @@ fun formatExposure(exposure: Long): String {
     if (seconds <= 0 || !seconds.isFinite()) {
         return ""
     }
-    return "1/${(1.0 / seconds).roundToLong()}"
+    return "1/${(1 / seconds).roundToLong()}"
 }
 
 val minimumWhiteBalanceTemperature: Float = 2200f
@@ -446,10 +333,7 @@ fun factorToWhiteBalance(device: AVCaptureDevice, factor: Float): AVCaptureDevic
         .clamped(maxGain = device.maxWhiteBalanceGain)
 }
 
-fun factorFromWhiteBalance(
-    device: AVCaptureDevice,
-    gains: AVCaptureDevice.WhiteBalanceGains,
-): Float {
+fun factorFromWhiteBalance(device: AVCaptureDevice, gains: AVCaptureDevice.WhiteBalanceGains): Float {
     val temperature = device.temperatureAndTintValues(gains).temperature
     return (temperature - minimumWhiteBalanceTemperature) /
         (maximumWhiteBalanceTemperature - minimumWhiteBalanceTemperature)
@@ -457,9 +341,9 @@ fun factorFromWhiteBalance(
 
 fun AVCaptureDevice.WhiteBalanceGains.clamped(maxGain: Float): AVCaptureDevice.WhiteBalanceGains {
     return AVCaptureDevice.WhiteBalanceGains(
-        redGain = redGain.coerceIn(1f, maxGain),
-        greenGain = greenGain.coerceIn(1f, maxGain),
-        blueGain = blueGain.coerceIn(1f, maxGain),
+        redGain = redGain.clamped(to = 1f..maxGain),
+        greenGain = greenGain.clamped(to = 1f..maxGain),
+        blueGain = blueGain.clamped(to = 1f..maxGain),
     )
 }
 
@@ -478,4 +362,9 @@ fun calcCameraAngle(gravity: CMAcceleration, portrait: Boolean): Double {
 fun useLandscapeStreamAndPortraitUi(
     device: AVCaptureDevice?,
     isLandscapeStreamAndPortraitUi: Boolean,
-): Boolean = false
+): Boolean {
+    if (isLandscapeStreamAndPortraitUi && device?.dynamicAspectRatio == AVCaptureAspectRatio.ratio9x16) {
+        return true
+    }
+    return false
+}

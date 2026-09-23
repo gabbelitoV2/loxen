@@ -1,0 +1,76 @@
+{
+  "task": "T2",
+  "hooks": [
+    {
+      "id": "G1",
+      "file": "*",
+      "op": "replace",
+      "old": "import android.media.Image",
+      "new": "import com.moblin.android.platform.video.CVPixelBuffer as Image",
+      "occurrence": 1
+    },
+    {
+      "id": "H2.1",
+      "file": "media/haishinkit/media/Processor.kt",
+      "scope": "val processorPipelineQueue",
+      "op": "replace",
+      "old": "    Executors.newSingleThreadExecutor().asCoroutineDispatcher()",
+      "new": "    com.moblin.android.platform.core.PipelineThread.dispatcher",
+      "occurrence": 1
+    },
+    {
+      "id": "H2.2",
+      "file": "media/haishinkit/media/Processor.kt",
+      "scope": "fun attachCamera",
+      "op": "replace",
+      "old": "            } catch (e: Exception) {",
+      "new": "            } catch (e: Throwable) {",
+      "occurrence": 1
+    },
+    {
+      "id": "H2.3",
+      "file": "media/haishinkit/media/Processor.kt",
+      "scope": "fun attachAudio",
+      "op": "replace",
+      "old": "            } catch (e: Exception) {",
+      "new": "            } catch (e: Throwable) {",
+      "occurrence": 1
+    },
+    {
+      "id": "H2.4",
+      "file": "media/haishinkit/media/Processor.kt",
+      "scope": "fun setVideoEncoderSettings",
+      "op": "replace",
+      "old": "        Unit",
+      "new": "        video.encoder.settings.mutate { it.value = com.moblin.android.platform.core.structCopy(settings) }",
+      "occurrence": 1
+    },
+    {
+      "id": "H2.5",
+      "file": "common/various/CMSampleBuffer+Extension.kt",
+      "scope": "fun create",
+      "op": "replace",
+      "old": "    TODO()",
+      "new": "    return MediaSample(data = ByteArray(0), presentationTimeUs = presentationTimeStamp, isKeyFrame = true, format = formatDescription, imageBuffer = imageBuffer, durationUs = duration, decodeTimeStampUs = decodeTimeStamp)",
+      "occurrence": 1
+    },
+    {
+      "id": "H2.6",
+      "file": "media/haishinkit/extension/CMVideoFormatDescription+Extension.kt",
+      "scope": "fun create",
+      "op": "replace",
+      "old": "        val status: Int = TODO(\"no Android counterpart for CMVideoFormatDescriptionCreateForImageBuffer\")",
+      "new": "        val status: Int = 0",
+      "occurrence": 1
+    },
+    {
+      "id": "H2.7",
+      "file": "media/haishinkit/extension/CMVideoFormatDescription+Extension.kt",
+      "scope": "fun create",
+      "op": "replace",
+      "old": "        return null",
+      "new": "        return com.moblin.android.platform.video.CMVideoFormatDescriptionCreateForImageBuffer(imageBuffer)",
+      "occurrence": 2
+    }
+  ]
+}

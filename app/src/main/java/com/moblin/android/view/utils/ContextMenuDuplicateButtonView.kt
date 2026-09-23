@@ -1,25 +1,29 @@
 package com.moblin.android.view.utils
 
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Label
 
 @Composable
 fun ContextMenuDuplicateButtonView(action: () -> Unit) {
-    TextButton(onClick = { action() }) {
-        Row {
-            Icon(imageVector = Icons.Default.ContentCopy, contentDescription = null)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = localized("Duplicate"))
-        }
-    }
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Label(
+        title = localized("Duplicate"),
+        systemImage = "plus.square.on.square",
+        modifier = Modifier
+            .alpha(if (pressed) 0.2f else 1f)
+            .clip(RoundedCornerShape(6.dp))
+            .clickable(interactionSource = interactionSource, indication = null) { action() },
+    )
 }

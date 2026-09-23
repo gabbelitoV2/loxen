@@ -50,7 +50,7 @@ private const val TAG = "RtmpStream"
 val extendedVideoHeader: UByte = 0b1000_0000u.toUByte()
 
 private fun calcVideoCompositionTime(sampleBuffer: MediaSample): Int {
-    return 0
+    return if (sampleBuffer.decodeTimeStampUs < 0) 0 else ((sampleBuffer.presentationTimeUs - sampleBuffer.decodeTimeStampUs) / 1000).toInt()
 }
 
 private fun makeVideoHeader(
@@ -137,7 +137,7 @@ class RtmpStream(
     private var streamKey = ""
     private var url = ""
     private val connectTimer: SimpleTimer
-    private val queueScope = CoroutineScope(queue)
+    private val queueScope = CoroutineScope(queue + kotlinx.coroutines.SupervisorJob())
 
     private var baseTimeStamp = -1.0
     private var audioTimeStampDelta = 0.0
@@ -194,6 +194,7 @@ class RtmpStream(
             return
         }
         val code = value.value
+        android.util.Log.i("RtmpStream", "rtmp: $name: Status $code")
         delegate?.rtmpStreamStatus(this, code)
         when (code) {
             RtmpConnectionCode.connectSuccess.rawValue -> {
@@ -271,7 +272,7 @@ class RtmpStream(
         val timestamp = elapsed.coerceAtLeast(0L).toUInt()
         val chunk = RtmpChunk(
             type = if (dataWasSent) RtmpChunkType.one else RtmpChunkType.zero,
-            chunkStreamId = RtmpChunk.ChunkStreamId.command.rawValue,
+            chunkStreamId = RtmpChunk.ChunkStreamId.`data`.rawValue,
             message = RtmpDataMessage(
                 streamId = streamId,
                 dataType = RtmpMessageType.amf0Data,
@@ -509,7 +510,7 @@ class RtmpStream(
         format: VideoEncoderSettings.Format,
         sampleBuffer: MediaSample,
     ) {
-        val decodeTimeStamp = sampleBuffer.presentationTimeUs / 1_000_000.0
+        val decodeTimeStamp = (if (sampleBuffer.decodeTimeStampUs >= 0) sampleBuffer.decodeTimeStampUs else sampleBuffer.presentationTimeUs) / 1_000_000.0
         val rebasedTimestamp = rebaseTimeStamp(decodeTimeStamp) ?: return
         var delta = 0.0
         prevRebasedVideoTimeStamp?.let {

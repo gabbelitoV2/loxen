@@ -1,10 +1,13 @@
 package com.moblin.android.various.model
 
-import android.content.Intent
 import android.util.Log
 import com.moblin.android.common.various.defaultAudioLevel
 import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.processorControlQueue
+import com.moblin.android.platform.avfoundation.AVAudioSession
+import com.moblin.android.platform.avfoundation.AVAudioSessionDataSourceDescription
+import com.moblin.android.platform.avfoundation.AVAudioSessionPortDescription
+import com.moblin.android.platform.core.Notification
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.various.KeepSpeakerAlivePlayer
 import com.moblin.android.various.SimpleTimer
@@ -84,7 +87,11 @@ class Mic {
 }
 
 fun Model.setupInputGainObserver() {
-    Unit
+    inputGainObservation = AVAudioSession.sharedInstance().observeInputGain { session ->
+        mainScope.launch {
+            mic.setInputGain(session.inputGain)
+        }
+    }
 }
 
 fun Model.setupAudio() {
@@ -127,16 +134,65 @@ fun Model.reloadAudioSession() {
 
 fun Model.setInputGainIfSupported(inputGain: Float) {
     mic.inputGainTimer.startSingleShot(timeout = 0.5) {
-        Unit
+        val session = AVAudioSession.sharedInstance()
+        if (!session.isInputGainSettable || inputGain == session.inputGain) {
+            return@startSingleShot
+        }
+        runCatching { session.setInputGain(inputGain) }
     }
 }
 
 fun Model.setupAudioSession() {
-    Unit
+    val bluetoothOutputOnly = database.debug.bluetoothOutputOnly.value
+    val chatPhone = isChatPhone()
+    processorControlQueue.launch {
+        val session = AVAudioSession.sharedInstance()
+        try {
+            val bluetoothOption = if (bluetoothOutputOnly) {
+                AVAudioSession.CategoryOptions.allowBluetoothA2DP
+            } else {
+                AVAudioSession.CategoryOptions.allowBluetoothHFP or
+                    AVAudioSession.CategoryOptions.bluetoothHighQualityRecording
+            }
+            if (chatPhone) {
+                session.setCategory(
+                    AVAudioSession.Category.playback,
+                    options = AVAudioSession.CategoryOptions.mixWithOthers,
+                )
+            } else {
+                session.setCategory(
+                    AVAudioSession.Category.playAndRecord,
+                    options = AVAudioSession.CategoryOptions.mixWithOthers or
+                        bluetoothOption or
+                        AVAudioSession.CategoryOptions.defaultToSpeaker,
+                )
+            }
+            session.setPreferredSampleRate(48000.0)
+            session.setPrefersNoInterruptionsFromSystemAlerts(true)
+            session.setActive(true)
+            Log.i(TAG, "audio: Preferred sample rate: ${session.preferredSampleRate}")
+        } catch (error: Exception) {
+            mainScope.launch {
+                makeErrorToast(
+                    title = "Audio session setup failed",
+                    subTitle = error.localizedMessage,
+                )
+            }
+        }
+        mainScope.launch {
+            setAllowHapticsAndSystemSoundsDuringRecording()
+        }
+    }
 }
 
 fun Model.teardownAudioSession() {
-    Unit
+    processorControlQueue.launch {
+        try {
+            AVAudioSession.sharedInstance().setActive(false)
+        } catch (error: Exception) {
+            Log.i(TAG, "Failed to stop audio session with error: $error")
+        }
+    }
 }
 
 fun Model.switchMicIfNeededAfterSceneSwitch() {
@@ -255,8 +311,15 @@ fun Model.updateMicDelay() {
 
 fun Model.selectMicDefault(mic: SettingsMicsMic) {
     media.attachBufferedAudio(cameraId = null)
+    val preferStereoMic = database.audio.preferStereoMic.value
     processorControlQueue.launch {
-        Unit
+        val session = AVAudioSession.sharedInstance()
+        val inputPort = session.availableInputs?.firstOrNull { it.uid == mic.inputUid } ?: return@launch
+        runCatching { session.setPreferredInput(inputPort) }
+        val dataSourceId = mic.dataSourceId ?: return@launch
+        val dataSource = inputPort.dataSources?.firstOrNull { it.dataSourceID == dataSourceId } ?: return@launch
+        runCatching { setBuiltInMicAudioMode(dataSource = dataSource, preferStereoMic = preferStereoMic) }
+        runCatching { session.setInputDataSource(dataSource) }
     }
     media.attachDefaultAudioDevice(builtinDelay = database.debug.builtinAudioAndVideoDelay.value)
     remoteControlStateChanged(state = RemoteControlAssistantStreamerState(mic = mic.id))
@@ -305,11 +368,17 @@ fun Model.updateTalkback() {
     }
 }
 
-fun Model.handleSystemVolumeDidChange(notification: Intent) {
-    Unit
+fun Model.handleSystemVolumeDidChange(notification: Notification) {
+    val userInfo = notification.userInfo
+    val volume = userInfo["Volume"] as? Float ?: return
+    val reason = userInfo["Reason"] as? String ?: return
+    val sequenceNumber = userInfo["SequenceNumber"] as? Int ?: return
+    mainScope.launch {
+        handleSystemVolumeDidChange(volume = volume, reason = reason, sequenceNumber = sequenceNumber)
+    }
 }
 
-fun Model.handleAudioRouteChange(notification: Intent) {
+fun Model.handleAudioRouteChange(notification: Notification) {
     mainScope.launch {
         handleAudioRouteChange()
     }
@@ -320,7 +389,9 @@ private fun Model.handleAudioRouteChange() {
         return
     }
     switchMicIfNeededAfterRouteChange()
-    Unit
+    val session = AVAudioSession.sharedInstance()
+    mic.setInputGainSettable(session.isInputGainSettable)
+    mic.setInputGain(session.inputGain)
 }
 
 private fun Model.handleSystemVolumeDidChange(volume: Float, reason: String, sequenceNumber: Int) {
@@ -374,7 +445,29 @@ private fun Model.switchMicIfNeededAfterRouteChange() {
 }
 
 private fun Model.getActiveAudioSessionMic(): SettingsMicsMic? {
-    return null
+    val inputPort = AVAudioSession.sharedInstance().currentRoute.inputs.firstOrNull() ?: return null
+    val newMic: SettingsMicsMic
+    val dataSource = inputPort.preferredDataSource
+    if (dataSource != null) {
+        val name: String
+        var builtInMicOrientation: SettingsMic? = null
+        if (inputPort.portType == AVAudioSession.Port.builtInMic) {
+            name = dataSource.dataSourceName
+            builtInMicOrientation = getBuiltInMicOrientation(orientation = dataSource.orientation)
+        } else {
+            name = "${inputPort.portName}: ${dataSource.dataSourceName}"
+        }
+        newMic = SettingsMicsMic()
+        newMic.name = name
+        newMic.inputUid = inputPort.uid
+        newMic.dataSourceId = dataSource.dataSourceID
+        newMic.builtInOrientation = builtInMicOrientation
+    } else {
+        newMic = SettingsMicsMic()
+        newMic.name = inputPort.portName
+        newMic.inputUid = inputPort.uid
+    }
+    return newMic
 }
 
 private fun Model.autoSwitchMicIfNeededAfterRouteChange() {
@@ -697,26 +790,81 @@ private fun Model.stopTalkback() {
     media.setTalkback(cameraId = null)
 }
 
-private fun setBuiltInMicAudioMode(dataSource: Any, preferStereoMic: Boolean) {
-    Unit
+private fun setBuiltInMicAudioMode(
+    dataSource: AVAudioSessionDataSourceDescription,
+    preferStereoMic: Boolean
+) {
+    if (preferStereoMic) {
+        if (dataSource.supportedPolarPatterns?.contains(AVAudioSession.PolarPattern.stereo) == true) {
+            dataSource.setPreferredPolarPattern(AVAudioSession.PolarPattern.stereo)
+        } else {
+            dataSource.setPreferredPolarPattern(null)
+        }
+    } else {
+        dataSource.setPreferredPolarPattern(null)
+    }
 }
 
 private fun listAudioSessionMics(mics: MutableList<SettingsMicsMic>) {
-    Unit
+    for (inputPort in AVAudioSession.sharedInstance().availableInputs ?: emptyList()) {
+        val dataSources = inputPort.dataSources
+        if (dataSources != null && dataSources.isNotEmpty()) {
+            addAudioSessionBuiltinMics(mics, inputPort, dataSources)
+        } else {
+            addAudioSessionExternalMics(mics, inputPort)
+        }
+    }
 }
 
 private fun addAudioSessionBuiltinMics(
     mics: MutableList<SettingsMicsMic>,
-    inputPort: Any,
-    dataSources: List<Any>
+    inputPort: AVAudioSessionPortDescription,
+    dataSources: List<AVAudioSessionDataSourceDescription>
 ) {
-    Unit
+    val builtInMics = mutableListOf<SettingsMicsMic>()
+    for (dataSource in dataSources) {
+        val name: String
+        var builtInOrientation: SettingsMic? = null
+        if (inputPort.portType == AVAudioSession.Port.builtInMic) {
+            name = dataSource.dataSourceName
+            builtInOrientation = getBuiltInMicOrientation(orientation = dataSource.orientation)
+        } else {
+            name = "${inputPort.portName}: ${dataSource.dataSourceName}"
+        }
+        val mic = SettingsMicsMic()
+        mic.name = name
+        mic.inputUid = inputPort.uid
+        mic.dataSourceId = dataSource.dataSourceID
+        mic.builtInOrientation = builtInOrientation
+        mic._connected.value = true
+        when (mic.builtInOrientation) {
+            SettingsMic.bottom, SettingsMic.top -> builtInMics.add(mic)
+            else -> builtInMics.add(0, mic)
+        }
+    }
+    mics.addAll(builtInMics)
 }
 
-private fun addAudioSessionExternalMics(mics: MutableList<SettingsMicsMic>, inputPort: Any) {
-    Unit
+private fun addAudioSessionExternalMics(
+    mics: MutableList<SettingsMicsMic>,
+    inputPort: AVAudioSessionPortDescription
+) {
+    val mic = SettingsMicsMic()
+    mic.name = inputPort.portName
+    mic.inputUid = inputPort.uid
+    mic._connected.value = true
+    mics.add(mic)
 }
 
-private fun getBuiltInMicOrientation(orientation: Any?): SettingsMic? {
-    return null
+private fun getBuiltInMicOrientation(orientation: String?): SettingsMic? {
+    if (orientation == null) {
+        return null
+    }
+    return when (orientation) {
+        AVAudioSession.Orientation.bottom -> SettingsMic.bottom
+        AVAudioSession.Orientation.front -> SettingsMic.front
+        AVAudioSession.Orientation.back -> SettingsMic.back
+        AVAudioSession.Orientation.top -> SettingsMic.top
+        else -> null
+    }
 }

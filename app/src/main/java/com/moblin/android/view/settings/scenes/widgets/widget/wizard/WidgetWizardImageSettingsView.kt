@@ -1,18 +1,18 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.wizard
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import com.moblin.android.LocalModel
+import com.moblin.android.platform.swiftui.*
 import com.moblin.android.various.model.CreateWidgetWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
@@ -21,9 +21,7 @@ import com.moblin.android.view.settings.scenes.widgets.widget.WidgetWizardSelect
 import com.moblin.android.view.settings.scenes.widgets.widget.basicWidgetSettingsTitle
 import com.moblin.android.view.settings.scenes.widgets.widget.image.WidgetImagePickerView
 import com.moblin.android.view.utils.CloseToolbar
-import com.moblin.android.LocalModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetWizardImageSettingsView(
     model: Model = LocalModel.current,
@@ -35,38 +33,42 @@ fun WidgetWizardImageSettingsView(
 ) {
     var image by remember { mutableStateOf<Bitmap?>(null) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(basicWidgetSettingsTitle(createWidgetWizard)) },
-                actions = {
-                    CloseToolbar(
-                        presenting = presentingCreateWizard,
-                        onPresentingChange = onChangePresentingCreateWizard,
-                    )
-                },
+    Form(
+        title = basicWidgetSettingsTitle(createWidgetWizard),
+        toolbar = {
+            CloseToolbar(
+                presenting = presentingCreateWizard,
+                onPresentingChange = onChangePresentingCreateWizard,
             )
         },
-    ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            item {
-                WidgetImagePickerView(
-                    model = model,
-                    widget = widget,
-                    image = image,
-                    onImageChange = { image = it },
-                    sizeScale = 5.0,
-                )
-            }
-            item {
-                WidgetWizardSelectScenesNavigationView(
-                    model = model,
-                    database = database,
-                    createWidgetWizard = createWidgetWizard,
-                    presentingCreateWizard = presentingCreateWizard,
-                    onPresentingCreateWizardChange = onChangePresentingCreateWizard,
-                )
-            }
+    ) {
+        WidgetImagePickerView(
+            model = model,
+            widget = widget,
+            image = image,
+            onImageChange = { image = it },
+            sizeScale = 5.0,
+        )
+        Box(
+            modifier = Modifier
+                .alpha(if (image == null) 0.4f else 1f)
+                .pointerInput(image == null) {
+                    if (image == null) {
+                        awaitPointerEventScope {
+                            while (true) {
+                                awaitPointerEvent(PointerEventPass.Initial).changes.forEach { it.consume() }
+                            }
+                        }
+                    }
+                },
+        ) {
+            WidgetWizardSelectScenesNavigationView(
+                model = model,
+                database = database,
+                createWidgetWizard = createWidgetWizard,
+                presentingCreateWizard = presentingCreateWizard,
+                onPresentingCreateWizardChange = onChangePresentingCreateWizard,
+            )
         }
     }
 }

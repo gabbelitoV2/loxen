@@ -1,34 +1,28 @@
 package com.moblin.android.view.settings.ingests.rtmpserver
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.isValidPort
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsRtmpServer
 import com.moblin.android.various.settings.SettingsRtmpServerStream
-import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.various.utils.randomHumanString
 import com.moblin.android.view.settings.streams.stream.GrayTextView
@@ -36,8 +30,8 @@ import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.InfoBannerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.reloadRtmpServer
+import com.moblin.android.various.model.updateMicsListAsync
 
 @Composable
 fun RtmpServerSettingsView(
@@ -45,116 +39,106 @@ fun RtmpServerSettingsView(
     rtmpServer: SettingsRtmpServer,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("RtmpServerSettings") },
-        verticalAlignment = Alignment.CenterVertically,
+    NavigationLink(
+        destination = {
+            RtmpServerSettingsForm(model = model, rtmpServer = rtmpServer)
+        },
     ) {
-        Text("RTMP server")
+        Text(localized("RTMP server"))
         Spacer(Modifier.weight(1f))
         GrayTextView(text = status(rtmpServer))
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RtmpServerSettingsForm(
     model: Model = LocalModel.current,
     rtmpServer: SettingsRtmpServer,
 ) {
-    val enabled = rtmpServer.enabled
-    val statusOther = model.statusOther
-    val streams = rtmpServer.streams
-    LaunchedEffect(enabled) {
-        Unit
-    }
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("RTMP server") })
-        },
-    ) { paddingValues ->
-        LazyColumn(modifier = Modifier.padding(paddingValues)) {
-            item {
-                Text(
+    Form(title = localized("RTMP server")) {
+        Section {
+            Text(
+                localized(
                     "The RTMP server allows Moblin to receive video streams over the network. " +
                         "This allows the use of some drones and other cameras as sources.",
-                )
+                ),
+            )
+        }
+        Section {
+            Toggle("Enabled", isOn = rtmpServer.enabled) { newValue ->
+                rtmpServer.enabled = newValue
+                model.reloadRtmpServer()
             }
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Enabled")
-                    Spacer(Modifier.weight(1f))
-                    Switch(
-                        checked = enabled,
-                        onCheckedChange = { rtmpServer.enabled = it },
-                    )
-                }
-            }
-            if (enabled) {
-                item {
-                    InfoBannerView(text = "Disable the RTMP server to change its settings.")
-                }
-            }
-            item {
-                TextEditNavigationView(
-                    title = "Port",
-                    value = rtmpServer.port.toString(),
-                    onChange = { isValidPort(it) },
-                    onSubmit = { submitPort(model, rtmpServer, it) },
-                    keyboardType = KeyboardType.Number,
-                )
-            }
-            item {
-                Text("The TCP port the RTMP server listens for RTMP publishers on.")
-            }
-            item {
-                Text("Streams")
-            }
-            items(streams, key = { it.id }) { stream ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .combinedClickable(
-                            onClick = {},
-                            onLongClick = {
-                                if (!enabled) {
-                                    val index = rtmpServer.streams.indexOfFirst { it.id == stream.id }
-                                    if (index >= 0) {
-                                        deleteStream(model, rtmpServer, listOf(index))
-                                    }
-                                }
-                            },
-                        ),
-                ) {
-                    RtmpServerStreamSettingsView(
-                        status = statusOther,
-                        rtmpServer = rtmpServer,
-                        stream = stream,
-                    )
-                }
-            }
-            item {
-                CreateButtonView {
-                    val stream = SettingsRtmpServerStream()
-                    stream.name = makeUniqueName(SettingsRtmpServerStream.baseName, streams)
-                    while (true) {
-                        stream.streamKey = randomHumanString()
-                        val existingStream = streams.firstOrNull { it.streamKey == stream.streamKey }
-                        if (existingStream == null) {
-                            break
-                        }
-                    }
-                    streams.add(stream)
-                    Unit
-                }
-            }
-            item {
+        }
+        if (rtmpServer.enabled) {
+            InfoBannerView(text = localized("Disable the RTMP server to change its settings."))
+        }
+        Section(
+            footer = localized("The TCP port the RTMP server listens for RTMP publishers on."),
+        ) {
+            TextEditNavigationView(
+                title = localized("Port"),
+                value = rtmpServer.port.toString(),
+                onChange = { isValidPort(it) },
+                onSubmit = { submitPort(model, rtmpServer, it) },
+                keyboardType = KeyboardType.Number,
+            )
+        }
+        Section(
+            header = localized("Streams"),
+            footerContent = {
                 Column(horizontalAlignment = Alignment.Start) {
-                    Text("Each stream can receive video from one RTMP publisher, typically a drone.")
+                    Text(
+                        localized(
+                            "Each stream can receive video from one RTMP publisher, typically a drone.",
+                        ),
+                    )
                     Text("")
                     SwipeLeftToDeleteHelpView(kind = localized("a stream"))
                 }
+            },
+        ) {
+            rtmpServer.streams.forEach { stream ->
+                key(stream.id) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = {},
+                                onLongClick = {
+                                    if (!rtmpServer.enabled) {
+                                        val index = rtmpServer.streams
+                                            .indexOfFirst { it.id == stream.id }
+                                        if (index >= 0) {
+                                            deleteStream(model, rtmpServer, listOf(index))
+                                        }
+                                    }
+                                },
+                            ),
+                    ) {
+                        RtmpServerStreamSettingsView(
+                            status = model.statusOther,
+                            rtmpServer = rtmpServer,
+                            stream = stream,
+                        )
+                    }
+                }
+            }
+            CreateButtonView {
+                val stream = SettingsRtmpServerStream()
+                stream.name = makeUniqueName(
+                    SettingsRtmpServerStream.baseName,
+                    rtmpServer.streams,
+                )
+                while (true) {
+                    stream.streamKey = randomHumanString()
+                    if (rtmpServer.streams.none { it.streamKey == stream.streamKey }) {
+                        break
+                    }
+                }
+                rtmpServer.streams.add(stream)
+                model.updateMicsListAsync()
             }
         }
     }
@@ -166,7 +150,7 @@ private fun submitPort(model: Model, rtmpServer: SettingsRtmpServer, value: Stri
         return
     }
     rtmpServer.port = port
-    Unit
+    model.reloadRtmpServer()
 }
 
 private fun status(rtmpServer: SettingsRtmpServer): String {
@@ -183,6 +167,6 @@ private fun deleteStream(model: Model, rtmpServer: SettingsRtmpServer, indexes: 
             rtmpServer.streams.removeAt(index)
         }
     }
-    Unit
-    Unit
+    model.reloadRtmpServer()
+    model.updateMicsListAsync()
 }

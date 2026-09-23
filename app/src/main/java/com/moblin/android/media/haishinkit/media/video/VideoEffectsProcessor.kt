@@ -2,7 +2,7 @@ package com.moblin.android.media.haishinkit.media.video
 
 import android.graphics.Bitmap
 import android.graphics.ColorSpace
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.media.MediaFormat
 import android.os.SystemClock
 import android.util.SizeF
@@ -221,7 +221,7 @@ class VideoEffectsProcessor {
         val imageSize = SizeF(imageBuffer.width.toFloat(), imageBuffer.height.toFloat())
         if (enabledEffects.isEmpty() &&
             !completion.isSceneSwitchTransition &&
-            imageSize != canvasSize &&
+            imageSize == canvasSize &&
             rotation == 0.0 &&
             !mirror
         ) {
@@ -250,7 +250,7 @@ class VideoEffectsProcessor {
             sceneVideoSourceId = completion.sceneVideoSourceId,
             detectionJobs = completion.detectionJobs,
             detections = completion.detections,
-            presentationTimeStamp = (sampleBuffer.presentationTimeUs / 1_000_000.0).toLong(),
+            presentationTimeStamp = sampleBuffer.presentationTimeUs,
             videoUnit = videoUnit,
             isFirstAfterAttach = completion.isFirstAfterAttach
         )
@@ -289,7 +289,7 @@ class VideoEffectsProcessor {
         sampleBuffer: MediaSample,
         imageBuffer: Image,
         outputImageBuffer: Image
-    ): MediaSample = TODO("OpenGL ES port")
+    ): MediaSample = com.moblin.android.platform.video.CoreImageFallback.renderSceneSwitchTransitionEnd(sampleBuffer, imageBuffer, outputImageBuffer)
 
     private fun isMetalPetalGraphicsEnabled(): Boolean {
         return isMetalPetalGraphics || isMetalPetalGraphicsForcedByEffects
@@ -351,7 +351,7 @@ class VideoEffectsProcessor {
         videoOrientation: Int,
         info: VideoEffectInfo
     ): Pair<Image?, MediaSample?> {
-        return TODO("OpenGL ES port")
+        return com.moblin.android.platform.video.CoreImageFallback.applyEffects(imageBuffer, sampleBuffer, enabledEffects, isSceneSwitchTransition, videoOrientation, info, canvasSize, fillFrame, rotation, mirror)
     }
 
     private fun applyEffectsMetalPetal(
@@ -362,7 +362,7 @@ class VideoEffectsProcessor {
         videoOrientation: Int,
         info: VideoEffectInfo
     ): Pair<Image?, MediaSample?> {
-        return TODO("no Android counterpart for MetalPetal")
+        return com.moblin.android.platform.video.CoreImageFallback.applyEffects(imageBuffer, sampleBuffer, enabledEffects, isSceneSwitchTransition, videoOrientation, info, canvasSize, fillFrame, rotation, mirror)
     }
 
     private fun calcBlurRadius(): Float {

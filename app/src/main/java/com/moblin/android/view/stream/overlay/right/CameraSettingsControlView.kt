@@ -73,7 +73,7 @@ import com.moblin.android.various.model.stopObservingFocus
 import com.moblin.android.various.model.stopObservingIso
 import com.moblin.android.various.model.stopObservingWhiteBalance
 import com.moblin.android.various.settings.Database
-import com.moblin.android.various.utils.AVCaptureDevice
+import com.moblin.android.platform.avfoundation.AVCaptureDevice
 import com.moblin.android.various.utils.factorToIso
 import com.moblin.android.various.utils.formatExposure
 import com.moblin.android.various.utils.maximumWhiteBalanceTemperature

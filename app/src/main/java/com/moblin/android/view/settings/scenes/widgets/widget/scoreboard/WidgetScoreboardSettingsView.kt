@@ -1,27 +1,14 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.scoreboard
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsRemoteControlWeb
 import com.moblin.android.various.settings.SettingsWidget
@@ -31,8 +18,11 @@ import com.moblin.android.view.settings.remotecontrol.RemoteControlWebDefaultUrl
 import com.moblin.android.view.utils.RemoteControlWebShortcutView
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextButtonView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.getModularScoreboardConfig
+import com.moblin.android.various.model.getScoreboardEffect
+import com.moblin.android.various.model.remoteControlScoreboardUpdate
+import com.moblin.android.various.model.sendUpdateGenericScoreboardToWatch
+import com.moblin.android.various.model.sendUpdatePadelScoreboardToWatch
 
 @Composable
 fun WidgetScoreboardQuickButtonControlsView(
@@ -40,8 +30,7 @@ fun WidgetScoreboardQuickButtonControlsView(
     widget: SettingsWidget,
     scoreboard: SettingsWidgetScoreboard,
 ) {
-    val sport = scoreboard.sport
-    when (sport) {
+    when (scoreboard.sport) {
         SettingsWidgetScoreboardSport.generic -> WidgetScoreboardGenericQuickButtonControlsView(
             model = model,
             widget = widget,
@@ -60,13 +49,12 @@ fun ScoreboardColorsView(
     updated: () -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("Colors") }
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+    NavigationLink(
+        destination = {
+            ScoreboardColorsFormView(scoreboard = scoreboard, updated = updated)
+        },
     ) {
-        Text(text = localized("Colors"))
+        Text(localized("Colors"))
     }
 }
 
@@ -75,42 +63,48 @@ fun ScoreboardColorsFormView(
     scoreboard: SettingsWidgetScoreboard,
     updated: () -> Unit,
 ) {
-    val textColorColor = scoreboard.textColorColor
-    val primaryBackgroundColorColor = scoreboard.primaryBackgroundColorColor
-    val secondaryBackgroundColorColor = scoreboard.secondaryBackgroundColorColor
-    Column(modifier = Modifier.fillMaxWidth()) {
-        RgbColorPickerView(
-            title = localized("Text"),
-            color = textColorColor,
-            onColorChanged = {},
-        ) { color ->
-            scoreboard.textColor = color
-            updated()
+    Form(title = localized("Colors")) {
+        Section {
+            RgbColorPickerView(
+                title = localized("Text"),
+                color = scoreboard.textColorColor,
+                onColorChanged = { color ->
+                    scoreboard.textColorColor = color
+                },
+            ) { color ->
+                scoreboard.textColor = color
+                updated()
+            }
+            RgbColorPickerView(
+                title = localized("Primary background"),
+                color = scoreboard.primaryBackgroundColorColor,
+                onColorChanged = { color ->
+                    scoreboard.primaryBackgroundColorColor = color
+                },
+            ) { color ->
+                scoreboard.primaryBackgroundColor = color
+                updated()
+            }
+            RgbColorPickerView(
+                title = localized("Secondary background"),
+                color = scoreboard.secondaryBackgroundColorColor,
+                onColorChanged = { color ->
+                    scoreboard.secondaryBackgroundColorColor = color
+                },
+            ) { color ->
+                scoreboard.secondaryBackgroundColor = color
+                updated()
+            }
         }
-        RgbColorPickerView(
-            title = localized("Primary background"),
-            color = primaryBackgroundColorColor,
-            onColorChanged = {},
-        ) { color ->
-            scoreboard.primaryBackgroundColor = color
-            updated()
-        }
-        RgbColorPickerView(
-            title = localized("Secondary background"),
-            color = secondaryBackgroundColorColor,
-            onColorChanged = {},
-        ) { color ->
-            scoreboard.secondaryBackgroundColor = color
-            updated()
-        }
-        TextButtonView(localized("Reset")) {
-            scoreboard.resetColors()
-            updated()
+        Section {
+            TextButtonView(title = localized("Reset")) {
+                scoreboard.resetColors()
+                updated()
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetScoreboardSettingsView(
     model: Model = LocalModel.current,
@@ -118,111 +112,79 @@ fun WidgetScoreboardSettingsView(
     scoreboard: SettingsWidgetScoreboard,
     web: SettingsRemoteControlWeb,
 ) {
-    val sport = scoreboard.sport
-    val modular = scoreboard.modular
-    val generic = scoreboard.generic
-    val padel = scoreboard.padel
-    val golf = scoreboard.golf
-    val webEnabled = web.enabled
-    var sportExpanded by remember { mutableStateOf(false) }
-
     val updated: () -> Unit = {
-        when (sport) {
-            SettingsWidgetScoreboardSport.generic -> TODO("sendUpdateGenericScoreboardToWatch")
-            SettingsWidgetScoreboardSport.padel -> TODO("sendUpdatePadelScoreboardToWatch")
+        when (scoreboard.sport) {
+            SettingsWidgetScoreboardSport.generic -> model.sendUpdateGenericScoreboardToWatch(
+                widget.id,
+                scoreboard.generic,
+            )
+            SettingsWidgetScoreboardSport.padel -> model.sendUpdatePadelScoreboardToWatch(
+                widget.id,
+                scoreboard.padel,
+            )
             else -> Unit
         }
-        Unit
+        model.remoteControlScoreboardUpdate(scoreboard)
+        model.getScoreboardEffect(widget.id)?.update(
+            scoreboard,
+            model.getModularScoreboardConfig(scoreboard),
+            model.database.scoreboardPlayers,
+        )
     }
 
-    LaunchedEffect(sport) {
-        modular.config = null
-        updated()
-    }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        ) {
-            Text(
-                text = localized("Sport"),
-                modifier = Modifier.weight(1f),
-            )
-            ExposedDropdownMenuBox(
-                expanded = sportExpanded,
-                onExpandedChange = { sportExpanded = it },
-            ) {
-                OutlinedTextField(
-                    value = sport.toString(),
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = sportExpanded)
-                    },
-                    modifier = Modifier.menuAnchor(),
-                )
-                ExposedDropdownMenu(
-                    expanded = sportExpanded,
-                    onDismissRequest = { sportExpanded = false },
-                ) {
-                    SettingsWidgetScoreboardSport.entries.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option.toString()) },
-                            onClick = {
-                                scoreboard.sport = option
-                                sportExpanded = false
-                            },
-                        )
-                    }
-                }
-            }
-        }
-        when (sport) {
+    Section {
+        Picker(
+            title = localized("Sport"),
+            selection = scoreboard.sport,
+            options = SettingsWidgetScoreboardSport.entries,
+            text = { it.toString() },
+            onChange = { sport ->
+                scoreboard.sport = sport
+                scoreboard.modular.config = null
+                updated()
+            },
+        )
+        when (scoreboard.sport) {
             SettingsWidgetScoreboardSport.padel -> WidgetScoreboardPadelGeneralSettingsView(
                 widget = widget,
                 scoreboard = scoreboard,
-                padel = padel,
+                padel = scoreboard.padel,
                 updated = updated,
             )
             SettingsWidgetScoreboardSport.generic -> WidgetScoreboardGenericGeneralSettingsView(
                 widget = widget,
                 scoreboard = scoreboard,
-                generic = generic,
+                generic = scoreboard.generic,
                 updated = updated,
             )
             SettingsWidgetScoreboardSport.golf -> WidgetScoreboardGolfGeneralSettingsView(
                 scoreboard = scoreboard,
-                golf = golf,
+                golf = scoreboard.golf,
                 updated = updated,
             )
-            SettingsWidgetScoreboardSport.golfFullScorecard -> WidgetScoreboardGolfFullScorecardGeneralSettingsView(
-                scoreboard = scoreboard,
-                golf = golf,
-                updated = updated,
-            )
+            SettingsWidgetScoreboardSport.golfFullScorecard ->
+                WidgetScoreboardGolfFullScorecardGeneralSettingsView(
+                    scoreboard = scoreboard,
+                    golf = scoreboard.golf,
+                    updated = updated,
+                )
             else -> WidgetScoreboardModularGeneralSettingsView(
-                modular = modular,
+                modular = scoreboard.modular,
                 updated = updated,
             )
         }
-        Text(
-            text = localized("Remote control"),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
-        when (sport) {
-            SettingsWidgetScoreboardSport.padel, SettingsWidgetScoreboardSport.generic -> Text(
-                text = localized("Use your Apple Watch to update the scoreboard."),
-            )
+    }
+    Section(header = localized("Remote control")) {
+        when (scoreboard.sport) {
+            SettingsWidgetScoreboardSport.padel, SettingsWidgetScoreboardSport.generic ->
+                Text(localized("Use your Apple Watch to update the scoreboard."))
             SettingsWidgetScoreboardSport.golf -> {
                 Text(
-                    text = localized(
+                    localized(
                         "Use the web based remote control on another device to update the scoreboard.",
                     ),
                 )
-                if (webEnabled) {
+                if (web.enabled) {
                     RemoteControlWebDefaultUrlView(
                         web = web,
                         status = model.statusOther,
@@ -230,20 +192,19 @@ fun WidgetScoreboardSettingsView(
                     )
                 }
                 RemoteControlWebShortcutView(model = model)
-                if (!webEnabled) {
-                    Text(text = localized("⚠️ The web based remote control is not enabled."))
+                if (!web.enabled) {
+                    Text(localized("⚠️ The web based remote control is not enabled."))
                 }
             }
-            SettingsWidgetScoreboardSport.golfFullScorecard -> Text(
-                text = localized("Use a golf scoreboard widget to control this widget."),
-            )
+            SettingsWidgetScoreboardSport.golfFullScorecard ->
+                Text(localized("Use a golf scoreboard widget to control this widget."))
             else -> {
                 Text(
-                    text = localized(
+                    localized(
                         "Use the web based remote control on another device to update the scoreboard.",
                     ),
                 )
-                if (webEnabled) {
+                if (web.enabled) {
                     RemoteControlWebDefaultUrlView(
                         web = web,
                         status = model.statusOther,
@@ -251,32 +212,32 @@ fun WidgetScoreboardSettingsView(
                     )
                 }
                 RemoteControlWebShortcutView(model = model)
-                if (!webEnabled) {
-                    Text(text = localized("⚠️ The web based remote control is not enabled."))
+                if (!web.enabled) {
+                    Text(localized("⚠️ The web based remote control is not enabled."))
                 }
             }
         }
-        when (sport) {
-            SettingsWidgetScoreboardSport.padel -> WidgetScoreboardPadelSettingsView(
-                model = model,
-                padel = padel,
-                updated = updated,
-            )
-            SettingsWidgetScoreboardSport.generic -> WidgetScoreboardGenericSettingsView(
-                generic = generic,
-                clock = generic.clock,
-                updated = updated,
-            )
-            SettingsWidgetScoreboardSport.golf -> WidgetScoreboardGolfSettingsView(
-                golf = golf,
-                updated = updated,
-            )
-            SettingsWidgetScoreboardSport.golfFullScorecard -> Unit
-            else -> WidgetScoreboardModularSettingsView(
-                modular = modular,
-                clock = modular.clock,
-                updated = updated,
-            )
-        }
+    }
+    when (scoreboard.sport) {
+        SettingsWidgetScoreboardSport.padel -> WidgetScoreboardPadelSettingsView(
+            model = model,
+            padel = scoreboard.padel,
+            updated = updated,
+        )
+        SettingsWidgetScoreboardSport.generic -> WidgetScoreboardGenericSettingsView(
+            generic = scoreboard.generic,
+            clock = scoreboard.generic.clock,
+            updated = updated,
+        )
+        SettingsWidgetScoreboardSport.golf -> WidgetScoreboardGolfSettingsView(
+            golf = scoreboard.golf,
+            updated = updated,
+        )
+        SettingsWidgetScoreboardSport.golfFullScorecard -> Unit
+        else -> WidgetScoreboardModularSettingsView(
+            modular = scoreboard.modular,
+            clock = scoreboard.modular.clock,
+            updated = updated,
+        )
     }
 }

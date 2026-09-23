@@ -1,43 +1,39 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.wheelofluck
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.iconWidth
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.getWheelOfLuckEffect
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetWheelOfLuck
 import com.moblin.android.various.settings.SettingsWidgetWheelOfLuckOption
@@ -48,13 +44,37 @@ import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.MultiLineTextFieldDoneButtonView
 import com.moblin.android.view.utils.MultiLineTextFieldView
 import com.moblin.android.view.utils.TextEditNavigationView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 
 val wheelOfLuckOptionWeights = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 40, 60, 80, 100)
 
-private fun getWheelOfLuckEffect(model: Model, widget: SettingsWidget): WheelOfLuckEffect? =
-    null
+@Composable
+private fun SymbolButton(
+    systemImage: String,
+    fontSize: TextUnit,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    SystemImage(
+        systemImage,
+        fontSize = fontSize,
+        modifier = Modifier
+            .alpha(if (pressed && enabled) 0.2f else 1f)
+            .then(
+                if (enabled) {
+                    Modifier.clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        onClick = onClick,
+                    )
+                } else {
+                    Modifier
+                },
+            ),
+    )
+}
+
 @Composable
 private fun WheelOfLuckWidgetView(
     model: Model = LocalModel.current,
@@ -72,29 +92,16 @@ private fun WheelOfLuckWidgetView(
             Text("", modifier = Modifier.width(iconWidth.dp))
         }
         Spacer(modifier = Modifier.weight(1f))
-        IconButton(onClick = {
+        SymbolButton(systemImage = "shuffle", fontSize = 28.sp) {
             widget.wheelOfLuck.shuffle()
-            getWheelOfLuckEffect(model, widget)?.setSettings(widget.wheelOfLuck)
-        }) {
-            Icon(
-                Icons.Filled.Shuffle,
-                contentDescription = null,
-                modifier = Modifier.size(28.dp),
-            )
+            model.getWheelOfLuckEffect(widget.id)?.setSettings(widget.wheelOfLuck)
         }
-        IconButton(onClick = {
+        SymbolButton(systemImage = "play", fontSize = 28.sp) {
             effect.spin()
-        }) {
-            Icon(
-                Icons.Filled.PlayArrow,
-                contentDescription = null,
-                modifier = Modifier.size(28.dp),
-            )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OptionView(
     model: Model = LocalModel.current,
@@ -105,44 +112,20 @@ private fun OptionView(
     onDelete: () -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val optionsText = options.text
-    val weight = options.weight
-    var showDestination by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(false) }
-
     fun updateEffect() {
-        getWheelOfLuckEffect(model, widget)?.setSettings(wheelOfLuck)
+        model.getWheelOfLuckEffect(widget.id)?.setSettings(wheelOfLuck)
     }
 
     fun calcPercent(): Int {
-        return 100 * weight / wheelOfLuck.totalWeight
+        return 100 * options.weight / wheelOfLuck.totalWeight
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                onNavigate("Option")
-                showDestination = true
-            },
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        DraggableItemPrefixView()
-        Text(optionsText)
-        Spacer(modifier = Modifier.weight(1f))
-        Text("${calcPercent()}%")
-        IconButton(onClick = onDelete, enabled = !deleteDisabled) {
-            Icon(Icons.Filled.Delete, contentDescription = null)
-        }
-    }
-
-    if (showDestination) {
-        ModalBottomSheet(onDismissRequest = { showDestination = false }) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(localized("Option"), style = MaterialTheme.typography.titleMedium)
+    NavigationLink(
+        destination = {
+            Form(title = "Option") {
                 TextEditNavigationView(
                     title = localized("Text"),
-                    value = optionsText,
+                    value = options.text,
                     onChange = {
                         options.text = it
                         updateEffect()
@@ -150,39 +133,30 @@ private fun OptionView(
                     },
                     onSubmit = {},
                 )
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it },
-                ) {
-                    OutlinedTextField(
-                        value = weight.toString(),
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(localized("Weight")) },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                        },
-                        modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                    ) {
-                        wheelOfLuckOptionWeights.forEach { weightOption ->
-                            DropdownMenuItem(
-                                text = { Text(weightOption.toString()) },
-                                onClick = {
-                                    options.weight = weightOption
-                                    wheelOfLuck.updateTotalWeight()
-                                    updateEffect()
-                                    expanded = false
-                                },
-                            )
-                        }
-                    }
-                }
+                Picker(
+                    title = "Weight",
+                    selection = options.weight,
+                    options = wheelOfLuckOptionWeights,
+                    text = { it.toString() },
+                    onChange = { weight ->
+                        options.weight = weight
+                        wheelOfLuck.updateTotalWeight()
+                        updateEffect()
+                    },
+                )
             }
-        }
+        },
+    ) {
+        DraggableItemPrefixView()
+        Text(options.text)
+        Spacer(modifier = Modifier.weight(1f))
+        Text("${calcPercent()}%")
+        SymbolButton(
+            systemImage = "trash",
+            fontSize = 17.sp,
+            enabled = !deleteDisabled,
+            onClick = onDelete,
+        )
     }
 }
 
@@ -191,7 +165,7 @@ fun WidgetWheelOfLuckQuickButtonControlsView(
     model: Model = LocalModel.current,
     widget: SettingsWidget,
 ) {
-    getWheelOfLuckEffect(model, widget)?.let { effect ->
+    model.getWheelOfLuckEffect(widget.id)?.let { effect ->
         WheelOfLuckWidgetView(
             model = model,
             widget = widget,
@@ -208,16 +182,19 @@ fun WheelOfLuckWidgetOptionsView(
 ) {
     var editingText by remember { mutableStateOf(false) }
 
-    Column {
-        Text(localized("Options"), style = MaterialTheme.typography.titleSmall)
+    Section(
+        header = "Options",
+        footerContent = {
+            MultiLineTextFieldDoneButtonView(
+                editingText = editingText,
+                onEditingTextChange = { editingText = it },
+            )
+        },
+    ) {
         MultiLineTextFieldView(
             value = value,
             onValueChange = onChange,
             placeholder = localized("My text"),
-        )
-        MultiLineTextFieldDoneButtonView(
-            editingText = editingText,
-            onEditingTextChange = { editingText = it },
         )
     }
 }
@@ -234,7 +211,7 @@ fun WidgetWheelOfLuckSettingsView(
     val options = wheelOfLuck.options
 
     fun updateEffect() {
-        getWheelOfLuckEffect(model, widget)?.setSettings(wheelOfLuck)
+        model.getWheelOfLuckEffect(widget.id)?.setSettings(wheelOfLuck)
     }
 
     fun deleteOption(offset: Int) {
@@ -257,11 +234,10 @@ fun WidgetWheelOfLuckSettingsView(
         updateEffect()
     }
 
-    Column {
-        if (advanced) {
-            Column {
-                Text(localized("Options"), style = MaterialTheme.typography.titleSmall)
-                options.forEach { option ->
+    if (advanced) {
+        Section(header = "Options") {
+            options.forEach { option ->
+                key(option.id) {
                     OptionView(
                         model = model,
                         widget = widget,
@@ -270,54 +246,49 @@ fun WidgetWheelOfLuckSettingsView(
                         deleteDisabled = options.size < 2,
                         onDelete = {
                             val offset = options.indexOfFirst { it.id == option.id }
-                            if (offset >= 0) {
+                            if (offset != -1) {
                                 deleteOption(offset)
                             }
                         },
                         onNavigate = onNavigate,
                     )
                 }
-                CreateButtonView(action = {
-                    wheelOfLuck.options =
-                        wheelOfLuck.options + SettingsWidgetWheelOfLuckOption()
-                    wheelOfLuck.updateText()
-                    wheelOfLuck.updateTotalWeight()
-                    updateEffect()
-                })
             }
-        } else {
-            WheelOfLuckWidgetOptionsView(
-                value = text,
-                onChange = { wheelOfLuck.text = it },
+            CreateButtonView(action = {
+                wheelOfLuck.options =
+                    wheelOfLuck.options + SettingsWidgetWheelOfLuckOption()
+                wheelOfLuck.updateText()
+                wheelOfLuck.updateTotalWeight()
+                updateEffect()
+            })
+        }
+    } else {
+        WheelOfLuckWidgetOptionsView(
+            value = text,
+            onChange = { newText ->
+                wheelOfLuck.text = newText
+                wheelOfLuck.optionsFromText(newText)
+                updateEffect()
+            },
+        )
+        LaunchedEffect(Unit) {
+            wheelOfLuck.optionsFromText(wheelOfLuck.text)
+            updateEffect()
+        }
+    }
+    Section {
+        Toggle("Advanced", isOn = advanced) { value ->
+            wheelOfLuck.advanced = value
+        }
+    }
+    Section {
+        model.getWheelOfLuckEffect(widget.id)?.let { effect ->
+            WheelOfLuckWidgetView(
+                model = model,
+                widget = widget,
+                effect = effect,
+                indented = false,
             )
-            LaunchedEffect(Unit) {
-                wheelOfLuck.optionsFromText(text)
-                updateEffect()
-            }
-            LaunchedEffect(text) {
-                wheelOfLuck.optionsFromText(text)
-                updateEffect()
-            }
-        }
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(localized("Advanced"))
-                Spacer(modifier = Modifier.weight(1f))
-                Switch(
-                    checked = advanced,
-                    onCheckedChange = { wheelOfLuck.advanced = it },
-                )
-            }
-        }
-        Column {
-            getWheelOfLuckEffect(model, widget)?.let { effect ->
-                WheelOfLuckWidgetView(
-                    model = model,
-                    widget = widget,
-                    effect = effect,
-                    indented = false,
-                )
-            }
         }
     }
 }

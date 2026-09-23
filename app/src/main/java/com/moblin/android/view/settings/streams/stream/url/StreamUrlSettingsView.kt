@@ -8,6 +8,7 @@ import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamMultiStreamingDestination
 import com.moblin.android.view.settings.ingests.rtspclient.UrlSettingsView
 import com.moblin.android.LocalModel
+import com.moblin.android.various.model.reloadStreamIfEnabled
 
 private val rtmpExamples: List<Pair<String, String>> = listOf(
     "Twitch" to "rtmp://arn03.contribute.live-video.net/app/live_123321_sdfopjfwjfpawjefpjawef",
@@ -51,7 +52,7 @@ fun StreamUrlSettingsView(
         allowedSchemes = null,
         examples = rtmpExamples + srtExamples + whipExamples + mobcamExamples,
         onSubmitted = {
-            Unit
+            model.reloadStreamIfEnabled(stream = stream)
         },
         onDismiss = {
         },
@@ -76,7 +77,7 @@ fun StreamMultiStreamingUrlView(
         allowedSchemes = listOf("rtmp", "rtmps"),
         examples = rtmpExamples,
         onSubmitted = {
-            Unit
+            model.reloadStreamIfEnabled(stream = stream)
         },
         onDismiss = {
         },

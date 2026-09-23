@@ -1,47 +1,71 @@
 package com.moblin.android.view.settings.streams.stream
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
 import com.moblin.android.common.various.format
+import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.IosSwitch
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamProtocol
 import com.moblin.android.various.utils.isMac
+import com.moblin.android.view.settings.streams.stream.audio.StreamAudioSettingsView
+import com.moblin.android.view.settings.streams.stream.chat.StreamEmotesSettingsView
+import com.moblin.android.view.settings.streams.stream.golivenotification.GoLiveNotificationSettingsView
+import com.moblin.android.view.settings.streams.stream.kick.StreamKickSettingsView
+import com.moblin.android.view.settings.streams.stream.mobcam.StreamMobcamSettingsView
 import com.moblin.android.view.settings.streams.stream.multistreaming.StreamMultiStreamingSettingsView
+import com.moblin.android.view.settings.streams.stream.obsremotecontrol.StreamObsRemoteControlSettingsView
+import com.moblin.android.view.settings.streams.stream.openstreamingplatform.StreamOpenStreamingPlatformSettingsView
+import com.moblin.android.view.settings.streams.stream.previewstream.StreamPreviewStreamSettingsView
+import com.moblin.android.view.settings.streams.stream.realtimeirl.StreamRealtimeIrlSettingsView
+import com.moblin.android.view.settings.streams.stream.recording.StreamRecordingSettingsView
+import com.moblin.android.view.settings.streams.stream.replay.StreamReplaySettingsView
+import com.moblin.android.view.settings.streams.stream.rist.StreamRistSettingsView
+import com.moblin.android.view.settings.streams.stream.rtmp.StreamRtmpSettingsView
+import com.moblin.android.view.settings.streams.stream.snapshot.StreamSnapshotSettingsView
+import com.moblin.android.view.settings.streams.stream.soop.StreamSoopSettingsView
+import com.moblin.android.view.settings.streams.stream.srt.StreamSrtSettingsView
+import com.moblin.android.view.settings.streams.stream.twitch.StreamTwitchSettingsView
+import com.moblin.android.view.settings.streams.stream.url.StreamUrlSettingsView
+import com.moblin.android.view.settings.streams.stream.video.StreamVideoSettingsView
+import com.moblin.android.view.settings.streams.stream.whip.StreamWhipSettingsView
+import com.moblin.android.view.settings.streams.stream.youtube.StreamYouTubeSettingsView
 import com.moblin.android.view.utils.IconAndTextSettingView
 import com.moblin.android.view.utils.NameEditView
+import com.moblin.android.view.utils.TextEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import kotlin.time.Duration
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.obsWebSocketEnabledUpdated
+import com.moblin.android.various.model.reloadLocation
+import com.moblin.android.various.model.reloadStream
+import com.moblin.android.various.model.resetSelectedScene
+import com.moblin.android.various.model.setCurrentStream
+import com.moblin.android.various.model.updatePictureInPicture
 
 @Composable
 private fun PlatformLogoAndNameView(
@@ -50,7 +74,10 @@ private fun PlatformLogoAndNameView(
     channel: String = "",
     scale: Double = 1.0,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         val context = LocalContext.current
         val logoId = context.resources.getIdentifier(logo, "drawable", context.packageName)
         Image(
@@ -126,13 +153,18 @@ fun GithubLogoAndNameView() {
 
 @Composable
 fun GrayTextView(text: String) {
-    Text(text = text, color = Color.Gray, maxLines = 1)
+    Text(
+        text = text,
+        color = formPalette().gray,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+    )
 }
 
 @Composable
 fun TokenExpiresInView(expiresIn: Duration?) {
     if (expiresIn != null) {
-        Text("Expires in ${expiresIn.format()}.")
+        Text(localized("Expires in") + " " + expiresIn.format() + ".")
     }
 }
 
@@ -140,62 +172,39 @@ fun TokenExpiresInView(expiresIn: Duration?) {
 fun StreamPlatformsSettingsView(
     model: Model = LocalModel.current,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val twitchChannelName = stream.twitchChannelName
-    val kickChannelName = stream.kickChannelName
-    val youTubeHandle = stream.youTubeHandle
-    val soopChannelName = stream.soopChannelName
-
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("StreamTwitchSettings") },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TwitchLogoAndNameView()
-            Spacer(Modifier.weight(1f))
-            GrayTextView(text = twitchChannelName)
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("StreamKickSettings") },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            KickLogoAndNameView()
-            Spacer(Modifier.weight(1f))
-            GrayTextView(text = kickChannelName)
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("StreamYouTubeSettings") },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            YouTubeLogoAndNameView()
-            Spacer(Modifier.weight(1f))
-            GrayTextView(text = youTubeHandle)
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("StreamSoopSettings") },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            SoopLogoAndNameView()
-            Spacer(Modifier.weight(1f))
-            GrayTextView(text = soopChannelName)
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("StreamOpenStreamingPlatformSettings") },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            OpenStreamingPlatformLogoAndNameView()
-        }
+    NavigationLink(destination = {
+        StreamTwitchSettingsView(stream = stream, loggedInInitial = stream.twitchLoggedIn)
+    }) {
+        TwitchLogoAndNameView()
+        Spacer(Modifier.weight(1f))
+        GrayTextView(text = stream.twitchChannelName)
+    }
+    NavigationLink(destination = {
+        StreamKickSettingsView(stream = stream)
+    }) {
+        KickLogoAndNameView()
+        Spacer(Modifier.weight(1f))
+        GrayTextView(text = stream.kickChannelName)
+    }
+    NavigationLink(destination = {
+        StreamYouTubeSettingsView(debug = model.database.debug, stream = stream)
+    }) {
+        YouTubeLogoAndNameView()
+        Spacer(Modifier.weight(1f))
+        GrayTextView(text = stream.youTubeHandle)
+    }
+    NavigationLink(destination = {
+        StreamSoopSettingsView(stream = stream)
+    }) {
+        SoopLogoAndNameView()
+        Spacer(Modifier.weight(1f))
+        GrayTextView(text = stream.soopChannelName)
+    }
+    NavigationLink(destination = {
+        StreamOpenStreamingPlatformSettingsView(stream = stream)
+    }) {
+        OpenStreamingPlatformLogoAndNameView()
     }
 }
 
@@ -213,312 +222,245 @@ fun AutoGoLiveFooterView() {
 private fun BackgroundStreamingView(
     model: Model = LocalModel.current,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val backgroundStreaming = stream.backgroundStreaming
-    val enabled = stream.enabled
-
-    LaunchedEffect(backgroundStreaming) {
-        if (enabled) {
-            Unit
-        }
-    }
-
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("BackgroundStreaming") },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+    Section(footerContent = { BackgroundStreamingFooterView() }) {
+        NavigationLink(destination = {
+            Form(title = localized("Background streaming")) {
+                Section(
+                    footer = localized(
+                        "Make built-in and USB cameras not freeze in background mode."
+                    )
+                ) {
+                    Toggle(
+                        title = localized("Show PiP"),
+                        isOn = stream.backgroundStreamingPiP,
+                        onChange = { value ->
+                            stream.backgroundStreamingPiP = value
+                            if (stream.enabled) {
+                                model.updatePictureInPicture()
+                            }
+                        },
+                    )
+                }
+            }
+        }) {
             Text(localized("Background streaming"), modifier = Modifier.weight(1f))
-            Switch(
-                checked = backgroundStreaming,
-                onCheckedChange = { stream.backgroundStreaming = it },
+            IosSwitch(
+                checked = stream.backgroundStreaming,
+                onCheckedChange = { value ->
+                    stream.backgroundStreaming = value
+                    if (stream.enabled) {
+                        model.updatePictureInPicture()
+                    }
+                },
             )
         }
-        BackgroundStreamingFooterView()
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamSettingsView(
     model: Model = LocalModel.current,
     database: Database,
     stream: SettingsStream,
-    onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val showAllSettings = database.showAllSettings
-    val streams = database.streams
-    val streamName = stream.name
-    val streamUrl = stream.url
-    val enabled = stream.enabled
-    val portrait = stream.portrait
-    val obsWebSocketEnabled = stream.obsWebSocketEnabled
-    val realtimeIrlEnabled = stream.realtimeIrlEnabled
-    val estimatedViewerDelay = stream.estimatedViewerDelay
-    val autoGoLive = stream.autoGoLive
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
 
-    Scaffold(
-        topBar = { TopAppBar(title = { Text(localized("Stream")) }) },
-    ) { innerPadding ->
-        LazyColumn(modifier = Modifier.padding(innerPadding)) {
-            item {
-                NameEditView(
-                    name = streamName,
-                    onNameChange = { stream.name = it },
-                    existingNames = streams,
-                )
+    Form(title = localized("Stream")) {
+        Section {
+            NameEditView(
+                name = stream.name,
+                onNameChange = { stream.name = it },
+                existingNames = database.streams,
+            )
+        }
+        Section(header = localized("Destination")) {
+            NavigationLink(destination = {
+                StreamUrlSettingsView(stream = stream)
+            }) {
+                TextItemLocalizedView(name = "URL", value = stream.url, sensitive = true)
             }
-            item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Text(text = localized("Destination"), style = MaterialTheme.typography.titleSmall)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onNavigate("StreamUrlSettings") },
-                    ) {
-                        TextItemLocalizedView(name = "URL", value = streamUrl, sensitive = true)
+            if (database.showAllSettings) {
+                when (stream.getProtocol()) {
+                    SettingsStreamProtocol.srt -> NavigationLink(destination = {
+                        StreamSrtSettingsView(stream = stream, srt = stream.srt)
+                    }) {
+                        Text(localized("SRT(LA)"))
                     }
-                    if (showAllSettings) {
-                        when (stream.getProtocol()) {
-                            SettingsStreamProtocol.srt -> {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { onNavigate("StreamSrtSettings") },
-                                ) {
-                                    Text(localized("SRT(LA)"))
-                                }
-                            }
-                            SettingsStreamProtocol.rtmp -> {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { onNavigate("StreamRtmpSettings") },
-                                ) {
-                                    Text(localized("RTMP"))
-                                }
-                                StreamMultiStreamingSettingsView(
-                                    multiStreaming = stream.multiStreaming,
-                                    onNavigate = onNavigate,
-                                )
-                            }
-                            SettingsStreamProtocol.rist -> {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { onNavigate("StreamRistSettings") },
-                                ) {
-                                    Text(localized("RIST"))
-                                }
-                            }
-                            SettingsStreamProtocol.whip -> {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { onNavigate("StreamWhipSettings") },
-                                ) {
-                                    Text(localized("WHIP"))
-                                }
-                            }
-                            SettingsStreamProtocol.mobcam -> {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { onNavigate("StreamMobcamSettings") },
-                                ) {
-                                    Text(localized("Mobcam"))
-                                }
-                            }
-                            else -> Unit
+                    SettingsStreamProtocol.rtmp -> {
+                        NavigationLink(destination = {
+                            StreamRtmpSettingsView(stream = stream)
+                        }) {
+                            Text(localized("RTMP"))
                         }
+                        StreamMultiStreamingSettingsView(
+                            multiStreaming = stream.multiStreaming,
+                        )
                     }
+                    SettingsStreamProtocol.rist -> NavigationLink(destination = {
+                        StreamRistSettingsView(stream = stream)
+                    }) {
+                        Text(localized("RIST"))
+                    }
+                    SettingsStreamProtocol.whip -> NavigationLink(destination = {
+                        StreamWhipSettingsView(
+                            model = model,
+                            stream = stream,
+                            whip = stream.whip,
+                        )
+                    }) {
+                        Text(localized("WHIP"))
+                    }
+                    SettingsStreamProtocol.mobcam -> NavigationLink(destination = {
+                        StreamMobcamSettingsView(stream = stream)
+                    }) {
+                        Text(localized("Mobcam"))
+                    }
+                    else -> Unit
                 }
             }
-            item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Text(text = localized("Media"), style = MaterialTheme.typography.titleSmall)
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onNavigate("StreamVideoSettings") },
-                    ) {
-                        Text(localized("Video"))
-                    }
-                    if (showAllSettings) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onNavigate("StreamAudioSettings") },
-                        ) {
-                            Text(localized("Audio"))
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onNavigate("StreamRecordingSettings") },
-                        ) {
-                            IconAndTextSettingView(image = "record.circle", text = "Recording")
-                        }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onNavigate("StreamReplaySettings") },
-                    ) {
-                        IconAndTextSettingView(image = "play", text = "Replay")
-                    }
-                    if (showAllSettings) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onNavigate("StreamSnapshotSettings") },
-                        ) {
-                            IconAndTextSettingView(image = "camera.aperture", text = "Snapshot")
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onNavigate("StreamPreviewStreamSettings") },
-                        ) {
-                            IconAndTextSettingView(image = "video.circle", text = "Preview stream")
-                        }
-                    }
-                    if (!isMac()) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(localized("Portrait"), modifier = Modifier.weight(1f))
-                            Switch(
-                                checked = portrait,
-                                onCheckedChange = { stream.portrait = it },
-                                enabled = !(enabled && (isLive || isRecording)),
-                            )
-                        }
-                        LaunchedEffect(portrait) {
-                            if (enabled) {
-                                Unit
-                                Unit
-                                Unit
-                                model.updateOrientation()
-                                model.updateOrientationLock()
-                            }
-                        }
-                    }
-                }
+        }
+        Section(header = localized("Media")) {
+            NavigationLink(destination = {
+                StreamVideoSettingsView(database = database, stream = stream)
+            }) {
+                Text(localized("Video"))
             }
-            item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Text(
-                        text = localized("Streaming platforms"),
-                        style = MaterialTheme.typography.titleSmall,
-                    )
-                    StreamPlatformsSettingsView(
-                        model = model,
+            if (database.showAllSettings) {
+                NavigationLink(destination = {
+                    StreamAudioSettingsView(
                         stream = stream,
-                        onNavigate = onNavigate,
                     )
+                }) {
+                    Text(localized("Audio"))
+                }
+                NavigationLink(destination = {
+                    StreamRecordingSettingsView(stream = stream, recording = stream.recording)
+                }) {
+                    IconAndTextSettingView(image = "record.circle", text = "Recording")
+                }
+            }
+            NavigationLink(destination = {
+                StreamReplaySettingsView(
+                    database = database,
+                    stream = stream,
+                    replay = stream.replay,
+                )
+            }) {
+                IconAndTextSettingView(image = "play", text = "Replay")
+            }
+            if (database.showAllSettings) {
+                NavigationLink(destination = {
+                    StreamSnapshotSettingsView(stream = stream, recording = stream.recording)
+                }) {
+                    IconAndTextSettingView(image = "camera.aperture", text = "Snapshot")
+                }
+                NavigationLink(destination = {
+                    StreamPreviewStreamSettingsView(previewStream = stream.previewStream)
+                }) {
+                    IconAndTextSettingView(image = "video.circle", text = "Preview stream")
                 }
             }
             if (!isMac()) {
-                item {
-                    BackgroundStreamingView(
-                        model = model,
-                        stream = stream,
-                        onNavigate = onNavigate,
+                Toggle(
+                    isOn = stream.portrait,
+                    onChange = { value ->
+                        stream.portrait = value
+                        if (stream.enabled) {
+                            model.setCurrentStream(stream = stream)
+                            model.reloadStream()
+                            model.resetSelectedScene(changeScene = false)
+                            model.updateOrientation()
+                            model.updateOrientationLock()
+                        }
+                    },
+                    enabled = !(stream.enabled && (isLive || isRecording)),
+                ) {
+                    Text(localized("Portrait"))
+                }
+            }
+        }
+        Section(header = localized("Streaming platforms")) {
+            StreamPlatformsSettingsView(model = model, stream = stream)
+        }
+        if (!isMac()) {
+            BackgroundStreamingView(model = model, stream = stream)
+        }
+        if (stream.getProtocol() == SettingsStreamProtocol.mobcam) {
+            Section(footerContent = { AutoGoLiveFooterView() }) {
+                Toggle(
+                    title = localized("Auto go live"),
+                    isOn = stream.autoGoLive,
+                    onChange = { stream.autoGoLive = it },
+                )
+            }
+        }
+        Section {
+            NavigationLink(destination = {
+                StreamObsRemoteControlSettingsView(stream = stream)
+            }) {
+                Text(localized("OBS remote control"), modifier = Modifier.weight(1f))
+                IosSwitch(
+                    checked = stream.obsWebSocketEnabled,
+                    onCheckedChange = { value ->
+                        stream.obsWebSocketEnabled = value
+                        if (stream.enabled) {
+                            model.obsWebSocketEnabledUpdated()
+                        }
+                    },
+                )
+            }
+            if (database.showAllSettings) {
+                NavigationLink(destination = {
+                    GoLiveNotificationSettingsView(stream = stream)
+                }) {
+                    Text(localized("Go live notification"))
+                }
+                NavigationLink(destination = {
+                    StreamRealtimeIrlSettingsView(stream = stream)
+                }) {
+                    Text(localized("RealtimeIRL"), modifier = Modifier.weight(1f))
+                    IosSwitch(
+                        checked = stream.realtimeIrlEnabled,
+                        onCheckedChange = { value ->
+                            stream.realtimeIrlEnabled = value
+                            if (stream.enabled) {
+                                model.reloadLocation()
+                            }
+                        },
                     )
                 }
             }
-            if (stream.getProtocol() == SettingsStreamProtocol.mobcam) {
-                item {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(localized("Auto go live"), modifier = Modifier.weight(1f))
-                            Switch(
-                                checked = autoGoLive,
-                                onCheckedChange = { stream.autoGoLive = it },
-                            )
-                        }
-                        AutoGoLiveFooterView()
-                    }
-                }
+            NavigationLink(destination = {
+                StreamEmotesSettingsView(stream = stream)
+            }) {
+                Text(localized("Emotes"))
             }
-            item {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onNavigate("StreamObsRemoteControlSettings") },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(localized("OBS remote control"), modifier = Modifier.weight(1f))
-                        Switch(
-                            checked = obsWebSocketEnabled,
-                            onCheckedChange = { stream.obsWebSocketEnabled = it },
-                        )
-                    }
-                    LaunchedEffect(obsWebSocketEnabled) {
-                        if (enabled) {
-                            Unit
-                        }
-                    }
-                    if (showAllSettings) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onNavigate("GoLiveNotificationSettings") },
-                        ) {
-                            Text(localized("Go live notification"))
-                        }
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onNavigate("StreamRealtimeIrlSettings") },
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(localized("RealtimeIRL"), modifier = Modifier.weight(1f))
-                            Switch(
-                                checked = realtimeIrlEnabled,
-                                onCheckedChange = { value ->
-                                    stream.realtimeIrlEnabled = value
-                                    if (enabled) {
-                                        Unit
-                                    }
-                                },
-                            )
-                        }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onNavigate("StreamEmotesSettings") },
-                    ) {
-                        Text(localized("Emotes"))
-                    }
-                }
-            }
-            if (showAllSettings) {
-                item {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onNavigate("EstimatedViewerDelay") },
-                        ) {
-                            TextItemLocalizedView(
-                                name = "Estimated viewer delay",
-                                value = formatShortDuration(estimatedViewerDelay.toInt()),
-                            )
-                        }
-                        Text(
-                            localized(
-                                "Estimated viewer delay, for example used to make it easier to " +
-                                    "take snapshots using the chat bot. It does not delay the stream."
-                            )
-                        )
-                    }
+        }
+        if (database.showAllSettings) {
+            Section(
+                footer = localized(
+                    "Estimated viewer delay, for example used to make it easier to take " +
+                        "snapshots using the chat bot. It does not delay the stream."
+                )
+            ) {
+                NavigationLink(destination = {
+                    TextEditView(
+                        title = localized("Estimated viewer delay"),
+                        value = formatOneDecimal(stream.estimatedViewerDelay),
+                        onSubmit = { value ->
+                            val latency = value.toFloatOrNull()
+                            if (latency != null && latency >= 0.0f && latency <= 15.0f) {
+                                stream.estimatedViewerDelay = latency
+                            }
+                        },
+                    )
+                }) {
+                    TextItemLocalizedView(
+                        name = "Estimated viewer delay",
+                        value = formatShortDuration(stream.estimatedViewerDelay.toInt()),
+                    )
                 }
             }
         }

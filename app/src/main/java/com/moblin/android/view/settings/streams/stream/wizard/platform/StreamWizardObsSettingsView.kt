@@ -1,7 +1,7 @@
 package com.moblin.android.view.settings.streams.stream.wizard.platform
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.DisposableEffect
 import com.moblin.android.localized
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
@@ -15,12 +15,13 @@ fun StreamWizardObsSettingsView(
     model: Model = LocalModel.current,
     createStreamWizard: CreateStreamWizard,
 ) {
-    LaunchedEffect(Unit) {
+    DisposableEffect(Unit) {
         createStreamWizard.platform = WizardPlatform.obs
         createStreamWizard.name = makeUniqueName(
             name = localized("OBS"),
             existingNames = model.database.streams,
         )
+        onDispose {}
     }
     StreamWizardNetworkSetupObsSettingsView(
         model = model,

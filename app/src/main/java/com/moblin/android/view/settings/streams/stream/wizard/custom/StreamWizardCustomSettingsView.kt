@@ -1,29 +1,23 @@
 package com.moblin.android.view.settings.streams.stream.wizard.custom
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.WizardCustomProtocol
+import com.moblin.android.various.model.WizardPlatform
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.WizardSkipButtonView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.view.settings.streams.stream.wizard.StreamWizardGeneralSettingsView
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamWizardCustomSettingsView(
     model: Model = LocalModel.current,
@@ -31,90 +25,71 @@ fun StreamWizardCustomSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     LaunchedEffect(Unit) {
-        createStreamWizard.platform = TODO("assign the custom platform case of CreateStreamWizard.platform")
-        createStreamWizard.customProtocol = TODO("assign the none case of CreateStreamWizard.customProtocol")
+        createStreamWizard.platform = WizardPlatform.custom
+        createStreamWizard.customProtocol = WizardCustomProtocol.none
         createStreamWizard.name = makeUniqueName(
             name = localized("Custom"),
             existingNames = model.database.streams,
         )
     }
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Custom") },
-                actions = {
-                    CreateStreamWizardToolbar(createStreamWizard = createStreamWizard)
-                },
-            )
+    Form(
+        title = "Custom",
+        toolbar = {
+            CreateStreamWizardToolbar(createStreamWizard = createStreamWizard)
         },
-    ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            item {
-                Text(
-                    text = "Protocol",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                )
+    ) {
+        Section(header = "Protocol") {
+            NavigationLink(
+                destination = {
+                    StreamWizardCustomSrtSettingsView(
+                        model = model,
+                        createStreamWizard = createStreamWizard,
+                    )
+                },
+            ) {
+                Text(localized("SRT(LA)"))
             }
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onNavigate("StreamWizardCustomSrtSettingsView")
-                        }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                ) {
-                    Text("SRT(LA)")
-                }
+            NavigationLink(
+                destination = {
+                    StreamWizardCustomRtmpSettingsView(
+                        model = model,
+                        createStreamWizard = createStreamWizard,
+                    )
+                },
+            ) {
+                Text(localized("RTMP(S)"))
             }
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onNavigate("StreamWizardCustomRtmpSettingsView")
-                        }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                ) {
-                    Text("RTMP(S)")
-                }
+            NavigationLink(
+                destination = {
+                    StreamWizardCustomRistSettingsView(
+                        model = model,
+                        createStreamWizard = createStreamWizard,
+                    )
+                },
+            ) {
+                Text(localized("RIST"))
             }
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onNavigate("StreamWizardCustomRistSettingsView")
-                        }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                ) {
-                    Text("RIST")
-                }
+            NavigationLink(
+                destination = {
+                    StreamWizardCustomWhipSettingsView(
+                        model = model,
+                        createStreamWizard = createStreamWizard,
+                    )
+                },
+            ) {
+                Text(localized("WHIP"))
             }
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onNavigate("StreamWizardCustomWhipSettingsView")
-                        }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                ) {
-                    Text("WHIP")
-                }
-            }
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onNavigate("StreamWizardGeneralSettingsView")
-                        }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                ) {
-                    WizardSkipButtonView()
-                }
+        }
+        Section {
+            NavigationLink(
+                destination = {
+                    StreamWizardGeneralSettingsView(
+                        model = model,
+                        createStreamWizard = createStreamWizard,
+                    )
+                },
+            ) {
+                WizardSkipButtonView()
             }
         }
     }

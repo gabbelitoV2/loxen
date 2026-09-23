@@ -1,0 +1,20 @@
+{
+  "task": "T6",
+  "hooks": [
+    {
+      "id": "H6.1",
+      "file": "media/haishinkit/mpeg/avc/MpegTsVideoConfigAvc.kt",
+      "scope": "fun getAvcC",
+      "op": "replace",
+      "old": "            return null",
+      "new": "            return formatDescription.atoms()?.get(\"avcC\")",
+      "occurrence": 1
+    },
+    {
+      "id": "H6.2",
+      "file": "media/haishinkit/mpeg/avc/MpegTsVideoConfigAvc.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.common.various.atoms"
+    }
+  ]
+}

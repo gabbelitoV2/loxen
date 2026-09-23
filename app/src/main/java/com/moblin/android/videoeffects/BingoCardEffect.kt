@@ -1,7 +1,7 @@
 package com.moblin.android.videoeffects
 
 import android.graphics.Bitmap
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement

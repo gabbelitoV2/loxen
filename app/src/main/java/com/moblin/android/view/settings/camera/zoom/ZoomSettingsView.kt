@@ -1,35 +1,37 @@
 package com.moblin.android.view.settings.camera.zoom
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.moblin.android.localized
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
 import com.moblin.android.common.various.color
 import com.moblin.android.common.various.formatOneDecimal
+import com.moblin.android.common.various.iconWidth
+import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.backZoomPresetSettingsUpdated
 import com.moblin.android.various.model.frontZoomPresetSettingUpdated
 import com.moblin.android.various.model.getMinMaxZoomX
+import com.moblin.android.various.model.zoomPresetsMayHaveChanged
 import com.moblin.android.various.settings.SettingsZoom
 import com.moblin.android.various.settings.SettingsZoomPreset
 import com.moblin.android.various.settings.defaultSegmentedPickerSelectedColor
@@ -40,7 +42,8 @@ import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import java.util.UUID
-import com.moblin.android.LocalModel
+import kotlin.math.roundToInt
+import com.moblin.android.platform.avfoundation.AVCaptureDevice
 
 private const val cameraPositionBack = 0
 private const val cameraPositionFront = 1
@@ -66,189 +69,162 @@ private fun moveFrontZoomPreset(fromOffsets: List<Int>, toOffset: Int) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Zoom") })
+    Form(title = "Zoom") {
+        Section {
+            FormRow {
+                Text(localized("Speed"))
+                FormSlider(
+                    value = zoom.speed,
+                    onValueChange = { zoom.speed = (it * 10f).roundToInt() / 10f },
+                    modifier = Modifier.weight(1f),
+                    valueRange = 1f..10f,
+                )
+                Box(
+                    modifier = Modifier.width(35.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(formatOneDecimal(zoom.speed))
+                }
+            }
         }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+        Section(
+            header = "Back camera presets",
+            footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a preset")) },
         ) {
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Speed")
-                    Slider(
-                        value = zoom.speed.toFloat(),
-                        onValueChange = { zoom.speed = it },
-                        valueRange = 1.0f..10.0f,
-                        steps = 89,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = formatOneDecimal(zoom.speed),
-                        modifier = Modifier.width(35.dp)
-                    )
-                }
-            }
-            item {
-                Text(
-                    text = "Back camera presets",
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
-            items(items = zoom.back, key = { it.id }) { preset ->
-                val dismissState = rememberSwipeToDismissBoxState(
-                    confirmValueChange = { value ->
-                        if (value == SwipeToDismissBoxValue.EndToStart && zoom.back.size > 1) {
-                            val index = zoom.back.indexOfFirst { it.id == preset.id }
-                            if (index != -1) {
-                                deleteBackZoomPreset(model, zoom, listOf(index))
+            zoom.back.forEach { preset ->
+                key(preset.id) {
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = { value ->
+                            if (value == SwipeToDismissBoxValue.EndToStart && zoom.back.size > 1) {
+                                val offset = zoom.back.indexOfFirst { it.id == preset.id }
+                                if (offset >= 0) {
+                                    deleteBackZoomPreset(model, zoom, listOf(offset))
+                                }
+                                true
+                            } else {
+                                false
                             }
-                            true
-                        } else {
-                            false
                         }
-                    }
-                )
-                SwipeToDismissBox(
-                    state = dismissState,
-                    enableDismissFromStartToEnd = false,
-                    backgroundContent = {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.CenterEnd
-                        ) {
-                            Icon(imageVector = Icons.Default.Delete, contentDescription = null)
-                        }
-                    }
-                ) {
-                    ZoomPresetSettingsView(
-                        model = model,
-                        preset = preset,
-                        minX = minZoomX,
-                        maxX = model.getMinMaxZoomX(
-                            position = TODO("no Android counterpart for AVCaptureDevice.Position")
-                        ).second
                     )
-                }
-            }
-            item {
-                CreateButtonView {
-                    zoom.back.add(
-                        SettingsZoomPreset(
-                            id = UUID.randomUUID(),
-                            name = "1x",
-                            x = 1.0f
-                        )
-                    )
-                    model.backZoomPresetSettingsUpdated()
-                }
-            }
-            item {
-                SwipeLeftToDeleteHelpView(kind = localized("a preset"))
-            }
-            item {
-                Text(
-                    text = "Front camera presets",
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
-            items(items = zoom.front, key = { it.id }) { preset ->
-                val dismissState = rememberSwipeToDismissBoxState(
-                    confirmValueChange = { value ->
-                        if (value == SwipeToDismissBoxValue.EndToStart && zoom.front.size > 1) {
-                            val index = zoom.front.indexOfFirst { it.id == preset.id }
-                            if (index != -1) {
-                                deleteFrontZoomPreset(model, zoom, listOf(index))
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        backgroundContent = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(formPalette().red),
+                                contentAlignment = Alignment.CenterEnd,
+                            ) {
+                                SystemImage(name = "trash", fontSize = iconWidth.sp, tint = Color.White)
                             }
-                            true
-                        } else {
-                            false
-                        }
-                    }
-                )
-                SwipeToDismissBox(
-                    state = dismissState,
-                    enableDismissFromStartToEnd = false,
-                    backgroundContent = {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.CenterEnd
-                        ) {
-                            Icon(imageVector = Icons.Default.Delete, contentDescription = null)
-                        }
-                    }
-                ) {
-                    ZoomPresetSettingsView(
-                        model = model,
-                        preset = preset,
-                        minX = minZoomX,
-                        maxX = model.getMinMaxZoomX(
-                            position = TODO("no Android counterpart for AVCaptureDevice.Position")
-                        ).second
-                    )
-                }
-            }
-            item {
-                CreateButtonView {
-                    zoom.front.add(
-                        SettingsZoomPreset(
-                            id = UUID.randomUUID(),
-                            name = "1x",
-                            x = 1.0f
+                        },
+                        enableDismissFromStartToEnd = false,
+                    ) {
+                        ZoomPresetSettingsView(
+                            model = model,
+                            preset = preset,
+                            minX = minZoomX,
+                            maxX = model.getMinMaxZoomX(position = AVCaptureDevice.Position.back).second
                         )
+                    }
+                }
+            }
+            CreateButtonView {
+                zoom.back.add(
+                    SettingsZoomPreset(
+                        id = UUID.randomUUID(),
+                        name = "1x",
+                        x = 1.0f
                     )
-                    model.frontZoomPresetSettingUpdated()
+                )
+                model.backZoomPresetSettingsUpdated()
+            }
+        }
+        Section(
+            header = "Front camera presets",
+            footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a preset")) },
+        ) {
+            zoom.front.forEach { preset ->
+                key(preset.id) {
+                    val dismissState = rememberSwipeToDismissBoxState(
+                        confirmValueChange = { value ->
+                            if (value == SwipeToDismissBoxValue.EndToStart && zoom.front.size > 1) {
+                                val offset = zoom.front.indexOfFirst { it.id == preset.id }
+                                if (offset >= 0) {
+                                    deleteFrontZoomPreset(model, zoom, listOf(offset))
+                                }
+                                true
+                            } else {
+                                false
+                            }
+                        }
+                    )
+                    SwipeToDismissBox(
+                        state = dismissState,
+                        backgroundContent = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(formPalette().red),
+                                contentAlignment = Alignment.CenterEnd,
+                            ) {
+                                SystemImage(name = "trash", fontSize = iconWidth.sp, tint = Color.White)
+                            }
+                        },
+                        enableDismissFromStartToEnd = false,
+                    ) {
+                        ZoomPresetSettingsView(
+                            model = model,
+                            preset = preset,
+                            minX = minZoomX,
+                            maxX = model.getMinMaxZoomX(position = AVCaptureDevice.Position.front).second
+                        )
+                    }
                 }
             }
-            item {
-                SwipeLeftToDeleteHelpView(kind = localized("a preset"))
+            CreateButtonView {
+                zoom.front.add(
+                    SettingsZoomPreset(
+                        id = UUID.randomUUID(),
+                        name = "1x",
+                        x = 1.0f
+                    )
+                )
+                model.frontZoomPresetSettingUpdated()
             }
-            item {
-                Text(
-                    text = "Camera switching",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                ZoomSwitchToSettingsView(
-                    name = localized("back"),
-                    position = cameraPositionBack,
-                    defaultZoom = zoom.switchToBack
-                )
-                ZoomSwitchToSettingsView(
-                    name = localized("front"),
-                    position = cameraPositionFront,
-                    defaultZoom = zoom.switchToFront
-                )
-                Text(
-                    text = "The zoom (in X) to set when switching to given camera, if enabled.",
-                    style = MaterialTheme.typography.bodySmall
-                )
+        }
+        Section(
+            header = "Camera switching",
+            footer = "The zoom (in X) to set when switching to given camera, if enabled.",
+        ) {
+            ZoomSwitchToSettingsView(
+                name = localized("back"),
+                position = AVCaptureDevice.Position.back,
+                defaultZoom = zoom.switchToBack
+            )
+            ZoomSwitchToSettingsView(
+                name = localized("front"),
+                position = AVCaptureDevice.Position.front,
+                defaultZoom = zoom.switchToFront
+            )
+        }
+        Section(
+            header = "Color",
+            footer = "Background color of the zoom preset button when selected.",
+        ) {
+            RgbColorPickerView(
+                title = "Background",
+                color = zoom.backgroundColorColor,
+                onColorChanged = { zoom.backgroundColorColor = it },
+                opacity = true
+            ) {
+                zoom.backgroundColor = it
+                model.zoomPresetsMayHaveChanged()
             }
-            item {
-                Text(
-                    text = "Color",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                RgbColorPickerView(
-                    title = "Background",
-                    color = zoom.backgroundColorColor,
-                    onColorChanged = { zoom.backgroundColorColor = it },
-                    opacity = true
-                ) {
-                    zoom.backgroundColor = it
-                    Unit
-                }
-                TextButtonView("Reset") {
-                    zoom.backgroundColor = defaultSegmentedPickerSelectedColor
-                    zoom.backgroundColorColor = zoom.backgroundColor.color()
-                    Unit
-                }
-                Text(
-                    text = "Background color of the zoom preset button when selected.",
-                    style = MaterialTheme.typography.bodySmall
-                )
+            TextButtonView("Reset") {
+                zoom.backgroundColor = defaultSegmentedPickerSelectedColor
+                zoom.backgroundColorColor = zoom.backgroundColor.color()
+                model.zoomPresetsMayHaveChanged()
             }
         }
     }

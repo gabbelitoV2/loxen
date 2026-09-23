@@ -1,34 +1,24 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.alerts
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
+import com.moblin.android.common.various.color
 import com.moblin.android.common.various.countFormatter
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.streamingplatforms.kick.KickPusherGiftedSubscriptionsEvent
 import com.moblin.android.streamingplatforms.kick.KickPusherKickGift
 import com.moblin.android.streamingplatforms.kick.KickPusherKickSender
@@ -42,245 +32,165 @@ import com.moblin.android.various.settings.SettingsWidgetAlertsCheerBitsAlertOpe
 import com.moblin.android.various.settings.SettingsWidgetAlertsKick
 import com.moblin.android.various.settings.SettingsWidgetAlertsKickGiftsAlert
 import com.moblin.android.various.settings.cheerBitsAlertOperators
-import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
-import com.moblin.android.common.various.color
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KickSubscriptionsView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("Subscriptions")) })
+    Form(title = localized("Subscriptions")) {
+        Section {
+            Toggle(
+                title = localized("Enabled"),
+                isOn = alert.enabled,
+                onChange = { value ->
+                    alert.enabled = value
+                    model.updateAlertsSettings()
+                }
+            )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(localized("Enabled"), modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = alert.enabled,
-                        onCheckedChange = { value ->
-                            alert.enabled = value
-                            model.updateAlertsSettings()
-                        }
-                    )
-                }
-            }
-            item {
-                AlertMediaView(alert = alert)
-            }
-            item {
-                AlertPositionView(alert = alert)
-            }
-            item {
-                AlertColorsView(
-                    alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color()
+        AlertMediaView(alert = alert)
+        AlertPositionView(alert = alert)
+        AlertColorsView(
+            alert = alert,
+            textColor = alert.textColor.color(),
+            accentColor = alert.accentColor.color()
+        )
+        AlertFontView(
+            alert = alert,
+            fontSize = alert.fontSize.toFloat(),
+            fontDesign = alert.fontDesign,
+            fontWeight = alert.fontWeight
+        )
+        AlertTextToSpeechView(alert = alert)
+        Section {
+            TextButtonView("Test") {
+                val event = KickPusherSubscriptionEvent(
+                    username = alertTestNames.random(),
+                    months = (1..12).random()
                 )
-            }
-            item {
-                AlertFontView(
-                    alert = alert,
-                    fontSize = alert.fontSize.toFloat(),
-                    fontDesign = alert.fontDesign,
-                    fontWeight = alert.fontWeight
-                )
-            }
-            item {
-                AlertTextToSpeechView(alert = alert)
-            }
-            item {
-                TextButtonView("Test") {
-                    val event = KickPusherSubscriptionEvent(
-                        username = alertTestNames.random(),
-                        months = (1..12).random()
-                    )
-                    model.testAlert(TODO("Model test alert case for kickSubscription"))
-                }
+                model.testAlert(TODO("Model test alert case for kickSubscription"))
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KickGiftedSubscriptionsView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("Gift subscriptions")) })
+    Form(title = localized("Gift subscriptions")) {
+        Section {
+            Toggle(
+                title = localized("Enabled"),
+                isOn = alert.enabled,
+                onChange = { value ->
+                    alert.enabled = value
+                    model.updateAlertsSettings()
+                }
+            )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(localized("Enabled"), modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = alert.enabled,
-                        onCheckedChange = { value ->
-                            alert.enabled = value
-                            model.updateAlertsSettings()
-                        }
-                    )
-                }
-            }
-            item {
-                AlertMediaView(alert = alert)
-            }
-            item {
-                AlertPositionView(alert = alert)
-            }
-            item {
-                AlertColorsView(
-                    alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color()
+        AlertMediaView(alert = alert)
+        AlertPositionView(alert = alert)
+        AlertColorsView(
+            alert = alert,
+            textColor = alert.textColor.color(),
+            accentColor = alert.accentColor.color()
+        )
+        AlertFontView(
+            alert = alert,
+            fontSize = alert.fontSize.toFloat(),
+            fontDesign = alert.fontDesign,
+            fontWeight = alert.fontWeight
+        )
+        AlertTextToSpeechView(alert = alert)
+        Section {
+            TextButtonView("Test") {
+                val event = KickPusherGiftedSubscriptionsEvent(
+                    gifted_usernames = listOf("1", "2"),
+                    gifter_username = alertTestNames.random(),
+                    gifter_total = (1..50).random()
                 )
-            }
-            item {
-                AlertFontView(
-                    alert = alert,
-                    fontSize = alert.fontSize.toFloat(),
-                    fontDesign = alert.fontDesign,
-                    fontWeight = alert.fontWeight
-                )
-            }
-            item {
-                AlertTextToSpeechView(alert = alert)
-            }
-            item {
-                TextButtonView("Test") {
-                    val event = KickPusherGiftedSubscriptionsEvent(
-                        gifted_usernames = listOf("1", "2"),
-                        gifter_username = alertTestNames.random(),
-                        gifter_total = (1..50).random()
-                    )
-                    model.testAlert(TODO("Model test alert case for kickGiftedSubscriptions"))
-                }
+                model.testAlert(TODO("Model test alert case for kickGiftedSubscriptions"))
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KickHostsView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("Hosts")) })
+    Form(title = localized("Hosts")) {
+        Section {
+            Toggle(
+                title = localized("Enabled"),
+                isOn = alert.enabled,
+                onChange = { value ->
+                    alert.enabled = value
+                    model.updateAlertsSettings()
+                }
+            )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(localized("Enabled"), modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = alert.enabled,
-                        onCheckedChange = { value ->
-                            alert.enabled = value
-                            model.updateAlertsSettings()
-                        }
-                    )
-                }
-            }
-            item {
-                AlertMediaView(alert = alert)
-            }
-            item {
-                AlertPositionView(alert = alert)
-            }
-            item {
-                AlertColorsView(
-                    alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color()
+        AlertMediaView(alert = alert)
+        AlertPositionView(alert = alert)
+        AlertColorsView(
+            alert = alert,
+            textColor = alert.textColor.color(),
+            accentColor = alert.accentColor.color()
+        )
+        AlertFontView(
+            alert = alert,
+            fontSize = alert.fontSize.toFloat(),
+            fontDesign = alert.fontDesign,
+            fontWeight = alert.fontWeight
+        )
+        AlertTextToSpeechView(alert = alert)
+        Section {
+            TextButtonView("Test") {
+                val event = KickPusherStreamHostEvent(
+                    host_username = alertTestNames.random(),
+                    number_viewers = (1..1000).random()
                 )
-            }
-            item {
-                AlertFontView(
-                    alert = alert,
-                    fontSize = alert.fontSize.toFloat(),
-                    fontDesign = alert.fontDesign,
-                    fontWeight = alert.fontWeight
-                )
-            }
-            item {
-                AlertTextToSpeechView(alert = alert)
-            }
-            item {
-                TextButtonView("Test") {
-                    val event = KickPusherStreamHostEvent(
-                        host_username = alertTestNames.random(),
-                        number_viewers = (1..1000).random()
-                    )
-                    model.testAlert(TODO("Model test alert case for kickHost"))
-                }
+                model.testAlert(TODO("Model test alert case for kickHost"))
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KickRewardsView(model: Model = LocalModel.current, alert: SettingsWidgetAlertsAlert) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("Rewards")) })
+    Form(title = localized("Rewards")) {
+        Section {
+            Toggle(
+                title = localized("Enabled"),
+                isOn = alert.enabled,
+                onChange = { value ->
+                    alert.enabled = value
+                    model.updateAlertsSettings()
+                }
+            )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(localized("Enabled"), modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = alert.enabled,
-                        onCheckedChange = { value ->
-                            alert.enabled = value
-                            model.updateAlertsSettings()
-                        }
-                    )
-                }
-            }
-            item {
-                AlertMediaView(alert = alert)
-            }
-            item {
-                AlertPositionView(alert = alert)
-            }
-            item {
-                AlertColorsView(
-                    alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color()
+        AlertMediaView(alert = alert)
+        AlertPositionView(alert = alert)
+        AlertColorsView(
+            alert = alert,
+            textColor = alert.textColor.color(),
+            accentColor = alert.accentColor.color()
+        )
+        AlertFontView(
+            alert = alert,
+            fontSize = alert.fontSize.toFloat(),
+            fontDesign = alert.fontDesign,
+            fontWeight = alert.fontWeight
+        )
+        AlertTextToSpeechView(alert = alert)
+        Section {
+            TextButtonView("Test") {
+                val event = KickPusherRewardRedeemedEvent(
+                    reward_title = "Test Reward",
+                    username = alertTestNames.random(),
+                    user_input = ""
                 )
-            }
-            item {
-                AlertFontView(
-                    alert = alert,
-                    fontSize = alert.fontSize.toFloat(),
-                    fontDesign = alert.fontDesign,
-                    fontWeight = alert.fontWeight
-                )
-            }
-            item {
-                AlertTextToSpeechView(alert = alert)
-            }
-            item {
-                TextButtonView("Test") {
-                    val event = KickPusherRewardRedeemedEvent(
-                        reward_title = "Test Reward",
-                        username = alertTestNames.random(),
-                        user_input = ""
-                    )
-                    model.testAlert(TODO("Model test alert case for kickReward"))
-                }
+                model.testAlert(TODO("Model test alert case for kickReward"))
             }
         }
     }
@@ -295,7 +205,6 @@ private fun formatKickGiftTitle(amount: Int, comparisonOperator: String): String
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun KickGiftView(
     model: Model = LocalModel.current,
@@ -306,123 +215,74 @@ private fun KickGiftView(
     comparisonOperator: String,
     onComparisonOperatorChange: (String) -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    LaunchedEffect(comparisonOperator) {
-        val operator = SettingsWidgetAlertsCheerBitsAlertOperator.fromRawValue(comparisonOperator)
-        kickGift.comparisonOperator = operator ?: SettingsWidgetAlertsCheerBitsAlertOperator.greaterEqual
-        model.updateAlertsSettings()
-    }
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(formatKickGiftTitle(kickGift.amount, kickGift.comparisonOperator.rawValue))
+    Form(title = formatKickGiftTitle(kickGift.amount, kickGift.comparisonOperator.rawValue)) {
+        Section {
+            Toggle(
+                title = localized("Enabled"),
+                isOn = alert.enabled,
+                onChange = { value ->
+                    alert.enabled = value
+                    model.updateAlertsSettings()
                 }
             )
         }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(localized("Enabled"), modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = alert.enabled,
-                        onCheckedChange = { value ->
-                            alert.enabled = value
-                            model.updateAlertsSettings()
-                        }
-                    )
+        TextEditNavigationView(
+            title = localized("Amount"),
+            value = amount.toString(),
+            onChange = { value ->
+                if (value.toIntOrNull() == null) {
+                    localized("Not a number")
+                } else {
+                    null
                 }
-            }
-            item {
-                TextEditNavigationView(
-                    title = localized("Amount"),
-                    value = amount.toString(),
-                    onChange = { value ->
-                        if (value.toIntOrNull() == null) {
-                            localized("Not a number")
-                        } else {
-                            null
-                        }
-                    },
-                    onSubmit = { value ->
-                        val newAmount = value.toIntOrNull()
-                        if (newAmount != null) {
-                            onAmountChange(newAmount)
-                            kickGift.amount = newAmount
-                            model.updateAlertsSettings()
-                        }
-                    },
-                    keyboardType = KeyboardType.Number
-                )
-            }
-            item {
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { value -> expanded = value }
-                ) {
-                    OutlinedTextField(
-                        value = comparisonOperator,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text(localized("Comparison")) },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                        },
-                        modifier = Modifier.fillMaxWidth().menuAnchor()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        cheerBitsAlertOperators.forEach { operator ->
-                            DropdownMenuItem(
-                                text = { Text(operator) },
-                                onClick = {
-                                    onComparisonOperatorChange(operator)
-                                    expanded = false
-                                }
-                            )
-                        }
-                    }
+            },
+            onSubmit = { value ->
+                val newAmount = value.toIntOrNull()
+                if (newAmount != null) {
+                    onAmountChange(newAmount)
+                    kickGift.amount = newAmount
+                    model.updateAlertsSettings()
                 }
+            },
+            keyboardType = KeyboardType.Number
+        )
+        Picker(
+            title = localized("Comparison"),
+            selection = comparisonOperator,
+            options = cheerBitsAlertOperators,
+            onChange = { value ->
+                onComparisonOperatorChange(value)
+                kickGift.comparisonOperator =
+                    SettingsWidgetAlertsCheerBitsAlertOperator.fromRawValue(value)
+                        ?: SettingsWidgetAlertsCheerBitsAlertOperator.greaterEqual
+                model.updateAlertsSettings()
             }
-            item {
-                AlertMediaView(alert = alert)
-            }
-            item {
-                AlertPositionView(alert = alert)
-            }
-            item {
-                AlertColorsView(
-                    alert = alert,
-                    textColor = alert.textColor.color(),
-                    accentColor = alert.accentColor.color()
+        )
+        AlertMediaView(alert = alert)
+        AlertPositionView(alert = alert)
+        AlertColorsView(
+            alert = alert,
+            textColor = alert.textColor.color(),
+            accentColor = alert.accentColor.color()
+        )
+        AlertFontView(
+            alert = alert,
+            fontSize = alert.fontSize.toFloat(),
+            fontDesign = alert.fontDesign,
+            fontWeight = alert.fontWeight
+        )
+        AlertTextToSpeechView(alert = alert)
+        Section {
+            TextButtonView("Test") {
+                val event = KickPusherKicksGiftedEvent(
+                    message = "",
+                    sender = KickPusherKickSender(
+                        id = 1,
+                        username = alertTestNames.random()
+                    ),
+                    gift = KickPusherKickGift(name = "Kicks", amount = kickGift.amount)
                 )
-            }
-            item {
-                AlertFontView(
-                    alert = alert,
-                    fontSize = alert.fontSize.toFloat(),
-                    fontDesign = alert.fontDesign,
-                    fontWeight = alert.fontWeight
-                )
-            }
-            item {
-                AlertTextToSpeechView(alert = alert)
-            }
-            item {
-                TextButtonView("Test") {
-                    val event = KickPusherKicksGiftedEvent(
-                        message = "",
-                        sender = KickPusherKickSender(
-                            id = 1,
-                            username = alertTestNames.random()
-                        ),
-                        gift = KickPusherKickGift(name = "Kicks", amount = kickGift.amount)
-                    )
-                    model.testAlert(TODO("Model test alert case for kickKicks"))
-                }
+                model.testAlert(TODO("Model test alert case for kickKicks"))
             }
         }
     }
@@ -434,113 +294,107 @@ private fun KickGiftItemView(
     kickGift: SettingsWidgetAlertsKickGiftsAlert,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    var amount by remember { mutableStateOf(kickGift.amount) }
-    var comparisonOperator by remember { mutableStateOf(kickGift.comparisonOperator.rawValue) }
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    val amount = remember { mutableStateOf(kickGift.amount) }
+    val comparisonOperator = remember { mutableStateOf(kickGift.comparisonOperator.rawValue) }
+    FormRow {
         DraggableItemPrefixView()
-        Text(
-            text = formatKickGiftTitle(amount, comparisonOperator),
-            modifier = Modifier.weight(1f).clickable { onNavigate("kickGift") }
-        )
+        NavigationLink(
+            destination = {
+                KickGiftView(
+                    alert = alert,
+                    kickGift = kickGift,
+                    amount = amount.value,
+                    onAmountChange = { amount.value = it },
+                    comparisonOperator = comparisonOperator.value,
+                    onComparisonOperatorChange = { comparisonOperator.value = it }
+                )
+            }
+        ) {
+            Text(formatKickGiftTitle(amount.value, comparisonOperator.value))
+        }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun KickGiftsView(model: Model = LocalModel.current, kick: SettingsWidgetAlertsKick, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
+private fun KickGiftsView(
+    model: Model = LocalModel.current,
+    kick: SettingsWidgetAlertsKick,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
+) {
     fun deleteKickGift(offsets: List<Int>) {
         kick.kickGifts = kick.kickGifts.filterIndexed { index, _ -> index !in offsets }
         model.updateAlertsSettings()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("Kicks")) })
-        }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            items(items = kick.kickGifts, key = { kickGift -> kickGift.id }) { kickGift ->
-                KickGiftItemView(
-                    alert = kickGift.alert,
-                    kickGift = kickGift,
-                    onNavigate = onNavigate
-                )
-                Unit
-            }
-            item {
-                CreateButtonView {
-                    kick.kickGifts = kick.kickGifts + SettingsWidgetAlertsKickGiftsAlert()
-                    model.updateAlertsSettings()
-                }
-            }
-            item {
+    Form(title = localized("Kicks")) {
+        Section(
+            footerContent = {
                 Column(horizontalAlignment = Alignment.Start) {
                     Text(localized("The first item that matches kicks amount will be played."))
                     Text("")
                     SwipeLeftToDeleteHelpView(kind = "an item")
                 }
             }
+        ) {
+            kick.kickGifts.forEach { kickGift ->
+                key(kickGift.id) {
+                    KickGiftItemView(
+                        alert = kickGift.alert,
+                        kickGift = kickGift,
+                        onNavigate = onNavigate
+                    )
+                }
+            }
+            CreateButtonView {
+                kick.kickGifts = kick.kickGifts + SettingsWidgetAlertsKickGiftsAlert()
+                model.updateAlertsSettings()
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetAlertsKickSettingsView(
     model: Model = LocalModel.current,
     kick: SettingsWidgetAlertsKick,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("Kick")) })
-        }
-    ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            item {
-                Text(
-                    text = localized("Subscriptions"),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("kickSubscriptions") }
-                        .padding(vertical = 12.dp)
-                )
+    Form(title = localized("Kick")) {
+        Section {
+            NavigationLink(
+                destination = {
+                    KickSubscriptionsView(alert = kick.subscriptions)
+                }
+            ) {
+                Text(localized("Subscriptions"))
             }
-            item {
-                Text(
-                    text = localized("Gift subscriptions"),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("kickGiftedSubscriptions") }
-                        .padding(vertical = 12.dp)
-                )
+            NavigationLink(
+                destination = {
+                    KickGiftedSubscriptionsView(alert = kick.giftedSubscriptions)
+                }
+            ) {
+                Text(localized("Gift subscriptions"))
             }
-            item {
-                Text(
-                    text = localized("Hosts"),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("kickHosts") }
-                        .padding(vertical = 12.dp)
-                )
+            NavigationLink(
+                destination = {
+                    KickHostsView(alert = kick.hosts)
+                }
+            ) {
+                Text(localized("Hosts"))
             }
-            item {
-                Text(
-                    text = localized("Rewards"),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("kickRewards") }
-                        .padding(vertical = 12.dp)
-                )
+            NavigationLink(
+                destination = {
+                    KickRewardsView(alert = kick.rewards)
+                }
+            ) {
+                Text(localized("Rewards"))
             }
-            item {
-                Text(
-                    text = localized("Kicks"),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("kickGifts") }
-                        .padding(vertical = 12.dp)
-                )
+            NavigationLink(
+                destination = {
+                    KickGiftsView(kick = kick, onNavigate = onNavigate)
+                }
+            ) {
+                Text(localized("Kicks"))
             }
         }
     }

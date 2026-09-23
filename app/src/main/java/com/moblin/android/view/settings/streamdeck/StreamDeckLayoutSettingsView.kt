@@ -3,45 +3,42 @@ package com.moblin.android.view.settings.streamdeck
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StreamDeck
 import com.moblin.android.various.model.setSelectedStreamDeck
@@ -58,8 +55,6 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -74,29 +69,60 @@ private fun functions(): List<SettingsControllerFunction> {
     }
 }
 
+private val streamDeckKeyColors = listOf(
+    Color.Black,
+    Color(0xFF007AFF),
+    Color(0xFF34C759),
+    Color(0xFFFFCC00),
+    Color(0xFFFF9500),
+    Color(0xFFFF3B30),
+)
+
 @Composable
 private fun StreamDeckSettingsKeyView(model: Model = LocalModel.current, key: SettingsStreamDeckKey) {
-    val text by key.text.collectAsState()
-    val colorColor by key.colorColor.collectAsState()
     val function by key.function.collectAsState()
     val functionData by key.functionData.collectAsState()
-    Column {
-        ControllerButtonView(
-            model = model,
-            functions = functions(),
-            function = function,
-            onFunctionChange = { key.function.setFlowValue(it) },
-            functionData = functionData,
-            onFunctionDataChange = { key.functionData.setFlowValue(it) },
-        )
-        TextEditNavigationView(
-            title = "Text",
-            value = text,
-            onSubmit = { key.text.setFlowValue(it) },
-        )
-        Unit
-        LaunchedEffect(colorColor) {
-            Unit
+    val text by key.text.collectAsState()
+    val colorColor by key.colorColor.collectAsState()
+
+    ControllerButtonView(
+        model = model,
+        functions = functions(),
+        function = function,
+        onFunctionChange = { key.function.setFlowValue(it) },
+        functionData = functionData,
+        onFunctionDataChange = { key.functionData.setFlowValue(it) },
+    )
+    TextEditNavigationView(
+        title = "Text",
+        value = text,
+        onSubmit = { key.text.setFlowValue(it) },
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text = "Color", style = formBodyStyle)
+        Spacer(modifier = Modifier.weight(1f))
+        streamDeckKeyColors.forEach { swatch ->
+            Box(
+                modifier = Modifier
+                    .padding(start = 6.dp)
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(swatch)
+                    .border(
+                        width = if (swatch == colorColor) 2.dp else 1.dp,
+                        color = if (swatch == colorColor) Color(0xFF007AFF) else Color(0x33000000),
+                        shape = CircleShape,
+                    )
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                    ) {
+                        key.colorColor.setFlowValue(swatch)
+                    },
+            )
         }
     }
 }
@@ -112,25 +138,39 @@ private fun StreamDeckKeyView(
     val colorColor by key.colorColor.collectAsState()
     val text by key.text.collectAsState()
     val shape = RoundedCornerShape((size / 10).dp)
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    var fontSize by remember(text) { mutableStateOf(12f) }
     Box(
         modifier = Modifier
+            .alpha(if (pressed) 0.2f else 1f)
             .size(size.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+            ) {
+                onSelectedIndexChange(index)
+            }
             .clip(shape)
             .background(colorColor)
             .border(
                 width = if (index == selectedIndex) 5.dp else 2.dp,
-                color = Color.Blue,
+                color = Color(0xFF007AFF),
                 shape = shape,
-            )
-            .clickable { onSelectedIndexChange(index) },
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.labelSmall,
             color = Color.Black,
+            fontSize = fontSize.sp,
             textAlign = TextAlign.Center,
             maxLines = 2,
+            onTextLayout = { layout ->
+                if (layout.hasVisualOverflow && fontSize > 6f) {
+                    fontSize -= 1f
+                }
+            },
         )
     }
 }
@@ -163,7 +203,10 @@ private fun StreamDeckMiniView(
     selectedIndex: Int,
     onSelectedIndexChange: (Int) -> Unit,
 ) {
-    Column {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         HCenter {
             streamDeckKeyView(keys, 0, selectedIndex, onSelectedIndexChange, streamDeckMiniViewSize)
             streamDeckKeyView(keys, 1, selectedIndex, onSelectedIndexChange, streamDeckMiniViewSize)
@@ -184,7 +227,10 @@ private fun StreamDeckClassicView(
     selectedIndex: Int,
     onSelectedIndexChange: (Int) -> Unit,
 ) {
-    Column {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         HCenter {
             streamDeckKeyView(keys, 0, selectedIndex, onSelectedIndexChange, streamDeckClassicViewSize)
             streamDeckKeyView(keys, 1, selectedIndex, onSelectedIndexChange, streamDeckClassicViewSize)
@@ -216,7 +262,10 @@ private fun StreamDeckXlView(
     selectedIndex: Int,
     onSelectedIndexChange: (Int) -> Unit,
 ) {
-    Column {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         HCenter {
             streamDeckKeyView(keys, 0, selectedIndex, onSelectedIndexChange, streamDeckXlViewSize)
             streamDeckKeyView(keys, 1, selectedIndex, onSelectedIndexChange, streamDeckXlViewSize)
@@ -266,107 +315,77 @@ private fun StreamDeckLayoutSettingsView(
     layout: SettingsStreamDeckLayout,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val name = layout.name
-    Text(
-        text = name,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("streamDeckLayout") },
-    )
+    NavigationLink(
+        destination = {
+            StreamDeckLayoutSettingsDetailView(model = model, layout = layout)
+        },
+    ) {
+        Text(text = layout.name, style = formBodyStyle)
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun StreamDeckLayoutSettingsDetailView(model: Model = LocalModel.current, layout: SettingsStreamDeckLayout) {
-    val name = layout.name
+fun StreamDeckLayoutSettingsDetailView(
+    model: Model = LocalModel.current,
+    layout: SettingsStreamDeckLayout,
+) {
     val deckModel by layout.model.collectAsState()
     val keys by layout.keys.collectAsState()
     var selectedIndex by remember { mutableStateOf(0) }
-    var expanded by remember { mutableStateOf(false) }
 
-    LaunchedEffect(deckModel) {
-        selectedIndex = 0
-    }
-
-    Scaffold(
-        topBar = { TopAppBar(title = { Text("Stream deck") }) },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            item {
-                NameEditView(
-                    name = name,
-                    onNameChange = { layout.name = it },
+    Form(title = "Stream deck") {
+        Section {
+            NameEditView(
+                name = layout.name,
+                onNameChange = { layout.name = it },
+            )
+        }
+        Section {
+            Picker(
+                title = "Model",
+                selection = deckModel,
+                options = SettingsStreamDeckModel.entries,
+                text = { it.toString() },
+                onChange = {
+                    layout.model.setFlowValue(it)
+                    selectedIndex = 0
+                },
+            )
+        }
+        Section {
+            when (deckModel) {
+                SettingsStreamDeckModel.mini -> StreamDeckMiniView(
+                    keys = keys,
+                    onKeysChange = { layout.keys.setFlowValue(it) },
+                    selectedIndex = selectedIndex,
+                    onSelectedIndexChange = { selectedIndex = it },
+                )
+                SettingsStreamDeckModel.classic -> StreamDeckClassicView(
+                    keys = keys,
+                    onKeysChange = { layout.keys.setFlowValue(it) },
+                    selectedIndex = selectedIndex,
+                    onSelectedIndexChange = { selectedIndex = it },
+                )
+                SettingsStreamDeckModel.xl -> StreamDeckXlView(
+                    keys = keys,
+                    onKeysChange = { layout.keys.setFlowValue(it) },
+                    selectedIndex = selectedIndex,
+                    onSelectedIndexChange = { selectedIndex = it },
                 )
             }
-            item {
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it },
-                ) {
-                    OutlinedTextField(
-                        value = deckModel.toString(),
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Model") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                        },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth(),
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                    ) {
-                        SettingsStreamDeckModel.entries.forEach { entry ->
-                            DropdownMenuItem(
-                                text = { Text(entry.toString()) },
-                                onClick = {
-                                    layout.model.setFlowValue(entry)
-                                    expanded = false
-                                },
-                            )
-                        }
+        }
+        Section {
+            keys.forEach { deckKey ->
+                if (keys.indexOfFirst { it === deckKey } == selectedIndex) {
+                    key(deckKey.id) {
+                        StreamDeckSettingsKeyView(model = model, key = deckKey)
                     }
-                }
-            }
-            item {
-                when (deckModel) {
-                    SettingsStreamDeckModel.mini -> StreamDeckMiniView(
-                        keys = keys,
-                        onKeysChange = { layout.keys.setFlowValue(it) },
-                        selectedIndex = selectedIndex,
-                        onSelectedIndexChange = { selectedIndex = it },
-                    )
-                    SettingsStreamDeckModel.classic -> StreamDeckClassicView(
-                        keys = keys,
-                        onKeysChange = { layout.keys.setFlowValue(it) },
-                        selectedIndex = selectedIndex,
-                        onSelectedIndexChange = { selectedIndex = it },
-                    )
-                    SettingsStreamDeckModel.xl -> StreamDeckXlView(
-                        keys = keys,
-                        onKeysChange = { layout.keys.setFlowValue(it) },
-                        selectedIndex = selectedIndex,
-                        onSelectedIndexChange = { selectedIndex = it },
-                    )
-                }
-            }
-            itemsIndexed(keys) { _, key ->
-                if (keys.indexOfFirst { it === key } == selectedIndex) {
-                    StreamDeckSettingsKeyView(model = model, key = key)
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamDecksSettingsView(
     model: Model = LocalModel.current,
@@ -377,141 +396,116 @@ fun StreamDecksSettingsView(
     val isDeviceDriverInstalled by streamDeck.isDeviceDriverInstalled.collectAsState()
     val selectedId by streamDecks.selectedId.collectAsState()
     val layouts by streamDecks.layouts.collectAsState()
+    val selectedLayout = layouts.firstOrNull { it.id == selectedId }
 
-    Scaffold(
-        topBar = { TopAppBar(title = { Text("Stream deck") }) },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            item {
-                HCenter {
-                    IntegrationImageView(imageName = "StreamDeck")
-                }
+    Form(title = "Stream deck") {
+        Section {
+            HCenter {
+                IntegrationImageView(imageName = "StreamDeck")
             }
-            if (!isDeviceDriverInstalled) {
-                item {
-                    Text(
-                        "⚠️ Download and install Stream Deck Connect from the App Store, and then enable the Stream Deck Device Driver in its settings.",
-                    )
-                }
-            }
-            item {
-                var expanded by remember { mutableStateOf(false) }
-                val selectedLayout = layouts.firstOrNull { it.id == selectedId }
-                val currentName = if (selectedLayout == null) {
-                    "-- None --"
-                } else {
-                    selectedLayout.name
-                }
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = it },
-                ) {
-                    OutlinedTextField(
-                        value = currentName,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Current") },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                        },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth(),
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("-- None --") },
-                            onClick = {
-                                streamDecks.selectedId.setFlowValue(null)
-                                model.setSelectedStreamDeck()
-                                expanded = false
-                            },
-                        )
-                        layouts.forEach { layout ->
-                            DropdownMenuItem(
-                                text = { Text(layout.name) },
-                                onClick = {
-                                    streamDecks.selectedId.setFlowValue(layout.id)
-                                    model.setSelectedStreamDeck()
-                                    expanded = false
-                                },
-                            )
-                        }
-                    }
-                }
-            }
-            item {
+        }
+        if (!isDeviceDriverInstalled) {
+            Section {
                 Text(
-                    text = "Layouts",
-                    style = MaterialTheme.typography.titleSmall,
+                    text = "⚠️ Download and install Stream Deck Connect from the App Store, " +
+                        "and then enable the Stream Deck Device Driver in its settings.",
+                    style = formBodyStyle,
                 )
             }
-            itemsIndexed(layouts, key = { _, layout -> layout.id }) { index, layout ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    StreamDeckLayoutSettingsView(
-                        model = model,
-                        layout = layout,
-                        onNavigate = onNavigate,
-                    )
-                    IconButton(
-                        onClick = {
-                            if (index > 0) {
-                                val reordered = layouts.toMutableList()
-                                val moved = reordered.removeAt(index)
-                                reordered.add(index - 1, moved)
-                                streamDecks.layouts.setFlowValue(reordered)
-                            }
-                        },
-                    ) {
-                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = null)
-                    }
-                    IconButton(
-                        onClick = {
-                            if (index < layouts.size - 1) {
-                                val reordered = layouts.toMutableList()
-                                val moved = reordered.removeAt(index)
-                                reordered.add(index + 1, moved)
-                                streamDecks.layouts.setFlowValue(reordered)
-                            }
-                        },
-                    ) {
-                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
-                    }
-                    IconButton(
-                        onClick = {
-                            streamDecks.layouts.setFlowValue(
-                                layouts.filterIndexed { i, _ -> i != index },
-                            )
-                            model.setSelectedStreamDeck()
-                        },
-                    ) {
-                        Icon(Icons.Default.Delete, contentDescription = null)
-                    }
-                }
-            }
-            item {
-                CreateButtonView {
-                    val streamDeck = SettingsStreamDeckLayout()
-                    streamDeck.name =
-                        makeUniqueName(
-                            name = SettingsStreamDeckLayout.baseName,
-                            existingNames = layouts,
-                        )
-                    streamDecks.layouts.setFlowValue(layouts + streamDeck)
-                }
-            }
-            item {
+        }
+        Section {
+            Picker(
+                title = "Current",
+                selection = selectedLayout,
+                options = listOf<SettingsStreamDeckLayout?>(null) + layouts,
+                text = { it?.name ?: "-- None --" },
+                onChange = {
+                    streamDecks.selectedId.setFlowValue(it?.id)
+                    model.setSelectedStreamDeck()
+                },
+            )
+        }
+        Section(
+            header = "Layouts",
+            footerContent = {
                 SwipeLeftToDeleteHelpView(kind = "a layout")
+            },
+        ) {
+            layouts.forEachIndexed { index, streamDeckLayout ->
+                key(streamDeckLayout.id) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(modifier = Modifier.weight(1f)) {
+                            StreamDeckLayoutSettingsView(
+                                model = model,
+                                layout = streamDeckLayout,
+                                onNavigate = onNavigate,
+                            )
+                        }
+                        SystemImage(
+                            name = "arrow.up",
+                            fontSize = 17.sp,
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    enabled = index > 0,
+                                ) {
+                                    if (index > 0) {
+                                        val reordered = layouts.toMutableList()
+                                        val moved = reordered.removeAt(index)
+                                        reordered.add(index - 1, moved)
+                                        streamDecks.layouts.setFlowValue(reordered)
+                                    }
+                                },
+                        )
+                        SystemImage(
+                            name = "arrow.down",
+                            fontSize = 17.sp,
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    enabled = index < layouts.size - 1,
+                                ) {
+                                    if (index < layouts.size - 1) {
+                                        val reordered = layouts.toMutableList()
+                                        val moved = reordered.removeAt(index)
+                                        reordered.add(index + 1, moved)
+                                        streamDecks.layouts.setFlowValue(reordered)
+                                    }
+                                },
+                        )
+                        SystemImage(
+                            name = "trash",
+                            fontSize = 17.sp,
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                ) {
+                                    streamDecks.layouts.setFlowValue(
+                                        layouts.filterIndexed { i, _ -> i != index },
+                                    )
+                                    model.setSelectedStreamDeck()
+                                },
+                        )
+                    }
+                }
+            }
+            CreateButtonView {
+                val streamDeckLayout = SettingsStreamDeckLayout()
+                streamDeckLayout.name =
+                    makeUniqueName(
+                        name = SettingsStreamDeckLayout.baseName,
+                        existingNames = layouts,
+                    )
+                streamDecks.layouts.setFlowValue(layouts + streamDeckLayout)
             }
         }
     }

@@ -1,32 +1,34 @@
 package com.moblin.android.view.utils
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalOnNavigate
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formFootnoteStyle
+import com.moblin.android.platform.swiftui.formPalette
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TextEditNavigationViewInner(
     title: String,
@@ -46,82 +48,95 @@ private fun TextEditNavigationViewInner(
     modifier: Modifier = Modifier,
 ) {
     val submitted = remember { mutableStateOf(false) }
+    val palette = formPalette()
 
-    fun submit() {
-        if (submitted.value) {
-            return
+    val submit: () -> Unit = {
+        if (!submitted.value) {
+            if (errorMessage == null) {
+                val trimmed = value.trim()
+                onValueChange(trimmed)
+                onSubmit(trimmed)
+                onSubmittedValueChange(trimmed)
+            } else {
+                onErrorMessageChange(null)
+                onValueChange(submittedValue)
+            }
+            submitted.value = true
         }
-        if (errorMessage == null) {
-            val trimmed = value.trim()
-            onValueChange(trimmed)
-            onSubmit(trimmed)
-            onSubmittedValueChange(trimmed)
-        } else {
-            onErrorMessageChange(null)
-            onValueChange(submittedValue)
-        }
-        submitted.value = true
     }
+    val currentSubmit = rememberUpdatedState(submit)
 
+    val previousValue = remember { mutableStateOf(value) }
     LaunchedEffect(value) {
-        onErrorMessageChange(onChange?.invoke(value.trim()))
+        if (previousValue.value != value) {
+            previousValue.value = value
+            onErrorMessageChange(onChange?.invoke(value.trim()))
+        }
     }
 
     DisposableEffect(Unit) {
         onDispose {
-            submit()
+            currentSubmit.value()
         }
     }
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        TopAppBar(title = { Text(title) })
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            item {
-                OutlinedTextField(
-                    value = value,
-                    onValueChange = onValueChange,
-                    placeholder = { Text(placeholder) },
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = if (capitalize) {
-                            KeyboardCapitalization.Sentences
-                        } else {
-                            KeyboardCapitalization.None
-                        },
-                        autoCorrectEnabled = false,
-                        keyboardType = keyboardType,
-                        imeAction = ImeAction.Done,
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            submit()
-                            onDismiss()
-                        },
-                    ),
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                )
-            }
-            item {
+    Form(title = title, modifier = modifier) {
+        Section(
+            footerContent = {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     if (errorMessage != null) {
                         Text(
                             text = errorMessage,
+                            style = formFootnoteStyle,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Red,
+                            color = palette.red,
                         )
-                        Text(text = "")
+                        Text(text = "", style = formFootnoteStyle)
                     }
                     footers.forEach { footer ->
-                        Text(text = footer)
+                        Text(text = footer, style = formFootnoteStyle)
                     }
                 }
-            }
+            },
+        ) {
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                textStyle = formBodyStyle.copy(color = palette.label),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = if (capitalize) {
+                        KeyboardCapitalization.Sentences
+                    } else {
+                        KeyboardCapitalization.None
+                    },
+                    autoCorrectEnabled = false,
+                    keyboardType = keyboardType,
+                    imeAction = ImeAction.Done,
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        submit()
+                        onDismiss()
+                    },
+                ),
+                singleLine = true,
+                cursorBrush = SolidColor(palette.accent),
+                modifier = Modifier.fillMaxWidth(),
+                decorationBox = { innerTextField ->
+                    if (value.isEmpty()) {
+                        Text(
+                            text = placeholder,
+                            style = formBodyStyle,
+                            color = palette.secondaryLabel,
+                        )
+                    }
+                    innerTextField()
+                },
+            )
         }
     }
 }
@@ -149,9 +164,24 @@ fun TextEditNavigationView(
         submittedValue.value = value
     }
 
-    Box(
-        modifier = Modifier.clickable {
-            onNavigate("TextEditNavigationViewInner")
+    NavigationLink(
+        destination = {
+            TextEditNavigationViewInner(
+                title = title,
+                value = currentValue.value,
+                onValueChange = { currentValue.value = it },
+                onSubmit = onSubmit,
+                onChange = onChange,
+                footers = footers,
+                capitalize = capitalize,
+                keyboardType = keyboardType,
+                placeholder = placeholder,
+                errorMessage = errorMessage.value,
+                onErrorMessageChange = { errorMessage.value = it },
+                submittedValue = submittedValue.value,
+                onSubmittedValueChange = { submittedValue.value = it },
+                onDismiss = {},
+            )
         },
     ) {
         TextItemView(

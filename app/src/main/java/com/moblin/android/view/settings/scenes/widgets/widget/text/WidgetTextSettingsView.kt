@@ -1,62 +1,58 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.text
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.CheckBox
-import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Flag
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.RestartAlt
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.common.various.iconWidth
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.IosSwitch
+import com.moblin.android.platform.swiftui.LocalTint
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.getTextEffects
+import com.moblin.android.various.model.reloadLocation
+import com.moblin.android.various.model.remoteSceneSettingsUpdated
+import com.moblin.android.various.model.resetSelectedScene
+import com.moblin.android.various.model.textWidgetTextChanged
 import com.moblin.android.various.settings.SettingsFontDesign
 import com.moblin.android.various.settings.SettingsFontWeight
 import com.moblin.android.various.settings.SettingsHorizontalAlignment
@@ -73,6 +69,10 @@ import com.moblin.android.videoeffects.text.TextEffect
 import com.moblin.android.videoeffects.text.TextFormatLengthUnit
 import com.moblin.android.videoeffects.text.TextFormatSpeedUnit
 import com.moblin.android.videoeffects.text.TextFormatTemperatureUnit
+import com.moblin.android.videoeffects.text.getCheckboxText
+import com.moblin.android.videoeffects.text.isLocationVariable
+import com.moblin.android.videoeffects.text.isWeatherVariable
+import com.moblin.android.videoeffects.text.isWorkoutVariable
 import com.moblin.android.videoeffects.text.loadTextFormat
 import com.moblin.android.videoeffects.text.textEffectDateFormatter
 import com.moblin.android.videoeffects.text.textEffectFullDateFormatter
@@ -83,12 +83,11 @@ import com.moblin.android.view.utils.MultiLineTextFieldDoneButtonView
 import com.moblin.android.view.utils.MultiLineTextFieldView
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.view.utils.TextEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.min
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 
 private data class Suggestion(val id: Int, val name: String, val text: String)
 
@@ -148,6 +147,31 @@ private fun createChatBotSuggestions(): List<Suggestion> = listOf(
 )
 
 @Composable
+private fun RowIconButton(
+    systemImage: String,
+    width: Dp = 0.dp,
+    tint: Color = LocalTint.current,
+    action: () -> Unit,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Box(
+        modifier = Modifier
+            .then(if (width > 0.dp) Modifier.width(width) else Modifier)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = action,
+            )
+            .alpha(if (pressed) 0.2f else 1f)
+            .padding(4.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        SystemImage(name = systemImage, fontSize = 28.sp, modifier = Modifier, tint = tint)
+    }
+}
+
+@Composable
 private fun SuggestionView(
     suggestion: Suggestion,
     widget: Boolean,
@@ -162,34 +186,43 @@ private fun SuggestionView(
         dismiss()
     }
 
-    fun confirmationTitle(): String = if (widget) {
-        localized("Are you sure you want to replace the content of the current text widget?")
-    } else {
-        localized("Are you sure you want to replace the text of the current command?")
+    FormRow(onClick = {
+        if (text.isEmpty()) {
+            submit()
+        } else {
+            presentingConfirmation = true
+        }
+    }) {
+        Column(horizontalAlignment = Alignment.Start) {
+            Text(localized(suggestion.name), style = TextStyle(fontSize = 20.sp))
+            Text(suggestion.text)
+        }
     }
-
-    Column(horizontalAlignment = Alignment.Start) {
-        TextButton(onClick = {
-            if (text.isEmpty()) {
-                submit()
-            } else {
-                presentingConfirmation = true
-            }
-        }) {
-            Text(localized(suggestion.name), style = MaterialTheme.typography.titleMedium)
-        }
-        if (presentingConfirmation) {
-            AlertDialog(
-                onDismissRequest = { presentingConfirmation = false },
-                title = { Text(confirmationTitle()) },
-                confirmButton = {
-                    TextButton(onClick = { submit() }) {
-                        Text(localized("Yes"))
-                    }
-                },
-            )
-        }
-        Text(suggestion.text)
+    if (presentingConfirmation) {
+        AlertDialog(
+            onDismissRequest = { presentingConfirmation = false },
+            title = {
+                Text(
+                    if (widget) {
+                        localized(
+                            "Are you sure you want to replace the content of the current text widget?",
+                        )
+                    } else {
+                        localized("Are you sure you want to replace the text of the current command?")
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { submit() }) {
+                    Text(localized("Yes"), color = formPalette().red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { presentingConfirmation = false }) {
+                    Text(localized("Cancel"))
+                }
+            },
+        )
     }
 }
 
@@ -201,14 +234,14 @@ private fun VariableView(
     text: String,
     onChange: (String) -> Unit,
 ) {
-    Column(horizontalAlignment = Alignment.Start) {
-        TextButton(onClick = {
-            onChange(text + title)
-            model.makeToast(title = "Appended $title to text")
-        }) {
-            Text(title, style = MaterialTheme.typography.titleMedium)
+    FormRow(onClick = {
+        onChange(text + title)
+        model.makeToast(title = "Appended $title to text")
+    }) {
+        Column(horizontalAlignment = Alignment.Start) {
+            Text(title, style = TextStyle(fontSize = 20.sp))
+            Text(description)
         }
-        Text(description)
     }
 }
 
@@ -224,10 +257,41 @@ private fun SubtitlesWithLanguageView(
     text: String,
     onChange: (String) -> Unit,
 ) {
-    Unit
+    val languages = remember { mutableStateOf(listOf<Language>()) }.value
+    var presentingLanguagePicker by remember { mutableStateOf(false) }
+    FormRow(onClick = { presentingLanguagePicker = true }) {
+        Column(horizontalAlignment = Alignment.Start) {
+            Text("{subtitles:<language-identifier>}", style = TextStyle(fontSize = 20.sp))
+            Text(localized("Show subtitles in given language"))
+        }
+    }
+    if (presentingLanguagePicker) {
+        Sheet(onDismissRequest = { presentingLanguagePicker = false }) {
+            Form(title = localized("Subtitles language")) {
+                Section {
+                    Text(
+                        localized(
+                            "Download languages in iOS Settings → Apps → Translate → Languages.",
+                        ),
+                    )
+                }
+                Section {
+                    languages.forEach { language ->
+                        val value = "{subtitles:${language.identifier}}"
+                        FormRow(onClick = {
+                            onChange(text + value)
+                            model.makeToast(title = "Appended $value to text")
+                            presentingLanguagePicker = false
+                        }) {
+                            Text(language.name)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun VariableWithUnitView(
     model: Model = LocalModel.current,
@@ -238,31 +302,25 @@ private fun VariableWithUnitView(
     onChange: (String) -> Unit,
 ) {
     var presentingPicker by remember { mutableStateOf(false) }
-    Column(horizontalAlignment = Alignment.Start) {
-        TextButton(onClick = { presentingPicker = true }) {
-            Text("{$variable:<unit>}", style = MaterialTheme.typography.titleMedium)
+    FormRow(onClick = { presentingPicker = true }) {
+        Column(horizontalAlignment = Alignment.Start) {
+            Text("{$variable:<unit>}", style = TextStyle(fontSize = 20.sp))
+            Text(description)
         }
-        Text(description)
     }
     if (presentingPicker) {
-        ModalBottomSheet(onDismissRequest = { presentingPicker = false }) {
-            Column {
-                TopAppBar(
-                    title = { Text(localized("Unit")) },
-                    navigationIcon = {
-                        IconButton(onClick = { presentingPicker = false }) {
-                            Icon(Icons.Default.Close, contentDescription = null)
+        Sheet(onDismissRequest = { presentingPicker = false }) {
+            Form(title = localized("Unit")) {
+                Section {
+                    units.forEach { (name, symbol) ->
+                        FormRow(onClick = {
+                            val value = "{$variable:$symbol}"
+                            onChange(text + value)
+                            model.makeToast(title = "Appended $value to text")
+                            presentingPicker = false
+                        }) {
+                            Text(name)
                         }
-                    },
-                )
-                units.forEach { (name, symbol) ->
-                    TextButton(onClick = {
-                        val value = "{$variable:$symbol}"
-                        onChange(text + value)
-                        model.makeToast(title = "Appended $value to text")
-                        presentingPicker = false
-                    }) {
-                        Text(name)
                     }
                 }
             }
@@ -339,42 +397,6 @@ private fun VariableWithTemperatureUnitView(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun <T> PickerRow(
-    selection: T,
-    options: List<T>,
-    optionLabel: (T) -> String,
-    onSelectionChange: (T) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-        modifier = modifier,
-    ) {
-        OutlinedTextField(
-            value = optionLabel(selection),
-            onValueChange = {},
-            readOnly = true,
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(optionLabel(option)) },
-                    onClick = {
-                        onSelectionChange(option)
-                        expanded = false
-                    },
-                )
-            }
-        }
-    }
-}
-
 @Composable
 fun TimeComponentPickerView(
     title: String,
@@ -384,12 +406,12 @@ fun TimeComponentPickerView(
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(localized(title))
-        PickerRow(
+        Picker(
+            title = "",
             selection = time,
             options = range.toList(),
-            optionLabel = { it.toString() },
-            onSelectionChange = onChange,
-            modifier = Modifier.size(width = 100.dp, height = 150.dp),
+            text = { it.toString() },
+            onChange = onChange,
         )
     }
 }
@@ -399,8 +421,10 @@ fun TimeButtonView(
     text: String,
     action: () -> Unit,
 ) {
-    Button(onClick = action, modifier = Modifier.size(width = 100.dp, height = 30.dp)) {
-        Text(localized(text))
+    Box(modifier = Modifier.width(100.dp), contentAlignment = Alignment.Center) {
+        FormRow(onClick = action) {
+            Text(localized(text))
+        }
     }
 }
 
@@ -456,7 +480,6 @@ private fun TimerWidgetView(
     indented: Boolean,
 ) {
     var presentingSetTime by remember { mutableStateOf(false) }
-    val delta = timer.delta
 
     fun updateTextEffect() {
         for (effect in textEffects) {
@@ -464,55 +487,55 @@ private fun TimerWidgetView(
         }
     }
 
-    Row {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         if (indented) {
             Text("")
             Text("", modifier = Modifier.width(iconWidth.dp))
         }
-        Column(horizontalAlignment = Alignment.Start) {
-            Row {
+        Column(horizontalAlignment = Alignment.Start, modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(name)
                 Spacer(Modifier.weight(1f))
                 Text(timer.format())
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(13.dp)) {
-                PickerRow(
-                    selection = delta,
-                    options = listOf(1, 2, 5, 15, 60),
-                    optionLabel = { formatShortDuration(60 * it) },
-                    onSelectionChange = { timer.delta = it },
-                )
-                IconButton(onClick = {
-                    timer.add(delta = -60.0 * delta)
-                    updateTextEffect()
-                }) {
-                    Icon(Icons.Default.Remove, contentDescription = null, modifier = Modifier.size(24.dp))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(13.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    Picker(
+                        title = "",
+                        selection = timer.delta,
+                        options = listOf(1, 2, 5, 15, 60),
+                        text = { formatShortDuration(seconds = 60 * it) },
+                        onChange = { timer.delta = it },
+                    )
                 }
-                IconButton(onClick = {
-                    timer.add(delta = 60.0 * delta)
+                RowIconButton(systemImage = "minus") {
+                    timer.add(delta = -60.0 * timer.delta)
                     updateTextEffect()
-                }) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(24.dp))
                 }
-                IconButton(onClick = { presentingSetTime = true }) {
-                    Icon(Icons.Default.Schedule, contentDescription = null, modifier = Modifier.size(24.dp))
+                RowIconButton(systemImage = "plus") {
+                    timer.add(delta = 60.0 * timer.delta)
+                    updateTextEffect()
+                }
+                RowIconButton(systemImage = "clock") {
+                    presentingSetTime = true
                 }
             }
         }
     }
     if (presentingSetTime) {
-        Dialog(onDismissRequest = { presentingSetTime = false }) {
-            Surface {
-                TimePickerView(
-                    time = timer.timeLeft(),
-                    onSet = { time ->
-                        timer.set(time = time)
-                        updateTextEffect()
-                        presentingSetTime = false
-                    },
-                    onCancel = { presentingSetTime = false },
-                )
-            }
+        Sheet(onDismissRequest = { presentingSetTime = false }) {
+            TimePickerView(
+                time = timer.timeLeft(),
+                onSet = { time ->
+                    timer.set(time = time)
+                    updateTextEffect()
+                    presentingSetTime = false
+                },
+                onCancel = { presentingSetTime = false },
+            )
         }
     }
 }
@@ -526,7 +549,6 @@ private fun StopwatchWidgetView(
     indented: Boolean,
 ) {
     var presentingSetTime by remember { mutableStateOf(false) }
-    val running = stopwatch.running
 
     fun updateTextEffect() {
         for (effect in textEffects) {
@@ -534,30 +556,34 @@ private fun StopwatchWidgetView(
         }
     }
 
-    Row {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         if (indented) {
             Text("")
             Text("", modifier = Modifier.width(iconWidth.dp))
         }
-        Column(horizontalAlignment = Alignment.Start) {
-            Row {
+        Column(horizontalAlignment = Alignment.Start, modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(name)
                 Spacer(Modifier.weight(1f))
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(13.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(13.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Spacer(Modifier.weight(1f))
-                IconButton(onClick = { presentingSetTime = true }) {
-                    Icon(Icons.Default.Schedule, contentDescription = null, modifier = Modifier.size(24.dp))
+                RowIconButton(systemImage = "clock") {
+                    presentingSetTime = true
                 }
-                IconButton(onClick = {
+                RowIconButton(systemImage = "arrow.counterclockwise") {
                     stopwatch.totalElapsed = 0.0
                     stopwatch.running = false
                     updateTextEffect()
-                }) {
-                    Icon(Icons.Default.RestartAlt, contentDescription = null, modifier = Modifier.size(24.dp))
                 }
-                IconButton(onClick = {
-                    stopwatch.running = !running
+                RowIconButton(
+                    systemImage = if (stopwatch.running) "stop" else "play",
+                    width = 35.dp,
+                ) {
+                    stopwatch.running = !stopwatch.running
                     if (stopwatch.running) {
                         stopwatch.playPressedTime = Instant.now()
                     } else {
@@ -566,30 +592,22 @@ private fun StopwatchWidgetView(
                             .toMillis() / 1000.0
                     }
                     updateTextEffect()
-                }) {
-                    Icon(
-                        imageVector = if (running) Icons.Default.Stop else Icons.Default.PlayArrow,
-                        contentDescription = null,
-                        modifier = Modifier.size(35.dp),
-                    )
                 }
             }
         }
     }
     if (presentingSetTime) {
-        Dialog(onDismissRequest = { presentingSetTime = false }) {
-            Surface {
-                TimePickerView(
-                    time = stopwatch.currentTime(),
-                    onSet = { time ->
-                        stopwatch.playPressedTime = Instant.now()
-                        stopwatch.totalElapsed = time
-                        updateTextEffect()
-                        presentingSetTime = false
-                    },
-                    onCancel = { presentingSetTime = false },
-                )
-            }
+        Sheet(onDismissRequest = { presentingSetTime = false }) {
+            TimePickerView(
+                time = stopwatch.currentTime(),
+                onSet = { time ->
+                    stopwatch.playPressedTime = Instant.now()
+                    stopwatch.totalElapsed = time
+                    updateTextEffect()
+                    presentingSetTime = false
+                },
+                onCancel = { presentingSetTime = false },
+            )
         }
     }
 }
@@ -602,10 +620,7 @@ private fun CheckboxWidgetView(
     textEffects: List<TextEffect>,
     indented: Boolean,
 ) {
-    val checked = checkbox.checked
-    var image by remember {
-        mutableStateOf(if (checkbox.checked) "checkmark.square" else "square")
-    }
+    var checked by remember { mutableStateOf(checkbox.checked) }
 
     fun updateTextEffect() {
         for (effect in textEffects) {
@@ -620,20 +635,10 @@ private fun CheckboxWidgetView(
         }
         Text(name)
         Spacer(Modifier.weight(1f))
-        IconButton(onClick = {
-            checkbox.checked = !checked
-            image = if (checkbox.checked) "checkmark.square" else "square"
+        RowIconButton(systemImage = if (checked) "checkmark" else "square") {
+            checked = !checked
+            checkbox.checked = checked
             updateTextEffect()
-        }) {
-            Icon(
-                imageVector = if (image == "checkmark.square") {
-                    Icons.Default.CheckBox
-                } else {
-                    Icons.Default.CheckBoxOutlineBlank
-                },
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-            )
         }
     }
 }
@@ -659,17 +664,19 @@ private fun RatingWidgetView(
             Text("")
             Text("", modifier = Modifier.width(iconWidth.dp))
         }
-        PickerRow(
-            selection = ratingSelection,
-            options = (0 until 6).toList(),
-            optionLabel = { it.toString() },
-            onSelectionChange = {
-                ratingSelection = it
-                rating.rating = it
-                updateTextEffect()
-            },
-        )
-        Text(name)
+        Box(modifier = Modifier.weight(1f)) {
+            Picker(
+                title = name,
+                selection = ratingSelection,
+                options = (0 until 6).toList(),
+                text = { it.toString() },
+                onChange = {
+                    ratingSelection = it
+                    rating.rating = it
+                    updateTextEffect()
+                },
+            )
+        }
     }
 }
 
@@ -697,14 +704,12 @@ private fun LapTimesWidgetView(
         }
         Text(name)
         Spacer(Modifier.weight(1f))
-        IconButton(onClick = {
+        RowIconButton(systemImage = "trash", tint = formPalette().red) {
             lapTimes.currentLapStartTime = null
-            lapTimes.lapTimes = mutableListOf<Double>()
+            lapTimes.lapTimes = mutableListOf()
             updateTextEffect()
-        }) {
-            Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red, modifier = Modifier.size(24.dp))
         }
-        IconButton(onClick = {
+        RowIconButton(systemImage = "stopwatch") {
             val now = Instant.now().toEpochMilli() / 1000.0
             val updated = lapTimes.lapTimes.toMutableList()
             val lastIndex = updated.size - 1
@@ -716,10 +721,8 @@ private fun LapTimesWidgetView(
             updated.add(0.0)
             lapTimes.lapTimes = updated
             updateTextEffect()
-        }) {
-            Icon(Icons.Default.Timer, contentDescription = null, modifier = Modifier.size(24.dp))
         }
-        IconButton(onClick = {
+        RowIconButton(systemImage = "flag.checkered") {
             val currentLapStartTime = lapTimes.currentLapStartTime
             if (currentLapStartTime != null) {
                 val updated = lapTimes.lapTimes.toMutableList()
@@ -733,8 +736,6 @@ private fun LapTimesWidgetView(
                 lapTimes.lapTimes = updated
             }
             updateTextEffect()
-        }) {
-            Icon(Icons.Default.Flag, contentDescription = null, modifier = Modifier.size(24.dp))
         }
     }
 }
@@ -746,17 +747,20 @@ private fun TextWidgetSuggestionsInnerView(
     onChange: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    Column {
-        Text(localized("Suggestions"), style = MaterialTheme.typography.titleLarge)
-        val items = if (widget) suggestions else chatBotSuggestions
-        items.forEach { suggestion ->
-            SuggestionView(
-                suggestion = suggestion,
-                widget = widget,
-                text = text,
-                onChange = onChange,
-                dismiss = onDismiss,
-            )
+    Form(title = localized("Suggestions")) {
+        Section {
+            val items = if (widget) suggestions else chatBotSuggestions
+            items.forEach { suggestion ->
+                key(suggestion.id) {
+                    SuggestionView(
+                        suggestion = suggestion,
+                        widget = widget,
+                        text = text,
+                        onChange = onChange,
+                        dismiss = onDismiss,
+                    )
+                }
+            }
         }
     }
 }
@@ -768,60 +772,61 @@ private fun GeneralVariablesView(
     value: String,
     onChange: (String) -> Unit,
 ) {
-    Column {
-        Text(localized("General"), style = MaterialTheme.typography.titleLarge)
-        if (widget) {
+    NavigationLink(title = localized("General"), destination = {
+        Form(title = localized("General")) {
+            if (widget) {
+                VariableView(
+                    model = model,
+                    title = "{checkbox}",
+                    description = localized("Show a checkbox"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{rating}",
+                    description = localized("Show a 0-5 rating"),
+                    text = value,
+                    onChange = onChange,
+                )
+            }
             VariableView(
                 model = model,
-                title = "{checkbox}",
-                description = localized("Show a checkbox"),
+                title = "{muted}",
+                description = localized("Show muted"),
                 text = value,
                 onChange = onChange,
             )
             VariableView(
                 model = model,
-                title = "{rating}",
-                description = localized("Show a 0-5 rating"),
+                title = "{browserTitle}",
+                description = localized("Show browser title"),
+                text = value,
+                onChange = onChange,
+            )
+            VariableView(
+                model = model,
+                title = "{gForce}",
+                description = localized("Show G-force"),
+                text = value,
+                onChange = onChange,
+            )
+            VariableView(
+                model = model,
+                title = "{gForceRecentMax}",
+                description = localized("Show recent max G-force"),
+                text = value,
+                onChange = onChange,
+            )
+            VariableView(
+                model = model,
+                title = "{gForceMax}",
+                description = localized("Show max G-force"),
                 text = value,
                 onChange = onChange,
             )
         }
-        VariableView(
-            model = model,
-            title = "{muted}",
-            description = localized("Show muted"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{browserTitle}",
-            description = localized("Show browser title"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{gForce}",
-            description = localized("Show G-force"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{gForceRecentMax}",
-            description = localized("Show recent max G-force"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{gForceMax}",
-            description = localized("Show max G-force"),
-            text = value,
-            onChange = onChange,
-        )
-    }
+    })
 }
 
 @Composable
@@ -831,65 +836,66 @@ private fun TimeVariablesView(
     value: String,
     onChange: (String) -> Unit,
 ) {
-    Column {
-        Text(localized("Time"), style = MaterialTheme.typography.titleLarge)
-        val now = Instant.now()
-        val time = textEffectTimeFormat.format(now)
-        VariableView(
-            model = model,
-            title = "{time}",
-            description = localized("Show time as $time"),
-            text = value,
-            onChange = onChange,
-        )
-        val shortTime = textEffectShortTimeFormat.format(now)
-        VariableView(
-            model = model,
-            title = "{shortTime}",
-            description = localized("Show time as $shortTime"),
-            text = value,
-            onChange = onChange,
-        )
-        val date = textEffectDateFormatter.format(now)
-        VariableView(
-            model = model,
-            title = "{date}",
-            description = localized("Show date as $date"),
-            text = value,
-            onChange = onChange,
-        )
-        val fullDate = textEffectFullDateFormatter.format(now)
-        VariableView(
-            model = model,
-            title = "{fullDate}",
-            description = localized("Show date as $fullDate"),
-            text = value,
-            onChange = onChange,
-        )
-        if (widget) {
+    NavigationLink(title = localized("Time"), destination = {
+        Form(title = localized("Time")) {
+            val now = Instant.now()
+            val time = textEffectTimeFormat.format(now)
             VariableView(
                 model = model,
-                title = "{timer}",
-                description = localized("Show a timer"),
+                title = "{time}",
+                description = localized("Show time as $time"),
                 text = value,
                 onChange = onChange,
             )
+            val shortTime = textEffectShortTimeFormat.format(now)
             VariableView(
                 model = model,
-                title = "{stopwatch}",
-                description = localized("Show a stopwatch"),
+                title = "{shortTime}",
+                description = localized("Show time as $shortTime"),
                 text = value,
                 onChange = onChange,
             )
+            val date = textEffectDateFormatter.format(now)
             VariableView(
                 model = model,
-                title = "{lapTimes}",
-                description = localized("Show lap times"),
+                title = "{date}",
+                description = localized("Show date as $date"),
                 text = value,
                 onChange = onChange,
             )
+            val fullDate = textEffectFullDateFormatter.format(now)
+            VariableView(
+                model = model,
+                title = "{fullDate}",
+                description = localized("Show date as $fullDate"),
+                text = value,
+                onChange = onChange,
+            )
+            if (widget) {
+                VariableView(
+                    model = model,
+                    title = "{timer}",
+                    description = localized("Show a timer"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{stopwatch}",
+                    description = localized("Show a stopwatch"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{lapTimes}",
+                    description = localized("Show lap times"),
+                    text = value,
+                    onChange = onChange,
+                )
+            }
         }
-    }
+    })
 }
 
 @Composable
@@ -898,184 +904,187 @@ private fun LocationVariablesView(
     value: String,
     onChange: (String) -> Unit,
 ) {
-    Column {
-        Text(localized("Location"), style = MaterialTheme.typography.titleLarge)
-        VariableView(
-            model = model,
-            title = "{country}",
-            description = localized("Show country"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{countryFlag}",
-            description = localized("Show country flag"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{state}",
-            description = localized("Show state"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{area}",
-            description = localized("Show area"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{city}",
-            description = localized("Show city"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{neighborhood}",
-            description = localized("Show neighborhood"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{speed}",
-            description = localized("Show speed"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableWithSpeedUnitView(
-            model = model,
-            description = localized("Show speed in given unit"),
-            variable = "speed",
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{averageSpeed}",
-            description = localized("Show average speed"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableWithSpeedUnitView(
-            model = model,
-            description = localized("Show average speed in given unit"),
-            variable = "averageSpeed",
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{altitude}",
-            description = localized("Show altitude"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableWithLengthUnitView(
-            model = model,
-            description = localized("Show altitude in given unit"),
-            variable = "altitude",
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{distance}",
-            description = localized("Show distance"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableWithLengthUnitView(
-            model = model,
-            description = localized("Show distance in given unit"),
-            variable = "distance",
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{splitDistance}",
-            description = localized("Show split distance"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableWithLengthUnitView(
-            model = model,
-            description = localized("Show split distance in given unit"),
-            variable = "splitDistance",
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{altitudeAscent}",
-            description = localized("Show altitude ascent"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableWithLengthUnitView(
-            model = model,
-            description = localized("Show altitude ascent in given unit"),
-            variable = "altitudeAscent",
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{altitudeDescent}",
-            description = localized("Show altitude descent"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableWithLengthUnitView(
-            model = model,
-            description = localized("Show altitude descent in given unit"),
-            variable = "altitudeDescent",
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{splitAltitudeAscent}",
-            description = localized("Show split altitude ascent"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableWithLengthUnitView(
-            model = model,
-            description = localized("Show split altitude ascent in given unit"),
-            variable = "splitAltitudeAscent",
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{splitAltitudeDescent}",
-            description = localized("Show split altitude descent"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableWithLengthUnitView(
-            model = model,
-            description = localized("Show split altitude descent in given unit"),
-            variable = "splitAltitudeDescent",
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{slope}",
-            description = localized("Show slope"),
-            text = value,
-            onChange = onChange,
-        )
-    }
+    NavigationLink(title = localized("Location"), destination = {
+        Form(title = localized("Location")) {
+            Section {
+                VariableView(
+                    model = model,
+                    title = "{country}",
+                    description = localized("Show country"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{countryFlag}",
+                    description = localized("Show country flag"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{state}",
+                    description = localized("Show state"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{area}",
+                    description = localized("Show area"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{city}",
+                    description = localized("Show city"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{neighborhood}",
+                    description = localized("Show neighborhood"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{speed}",
+                    description = localized("Show speed"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableWithSpeedUnitView(
+                    model = model,
+                    description = localized("Show speed in given unit"),
+                    variable = "speed",
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{averageSpeed}",
+                    description = localized("Show average speed"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableWithSpeedUnitView(
+                    model = model,
+                    description = localized("Show average speed in given unit"),
+                    variable = "averageSpeed",
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{altitude}",
+                    description = localized("Show altitude"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableWithLengthUnitView(
+                    model = model,
+                    description = localized("Show altitude in given unit"),
+                    variable = "altitude",
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{distance}",
+                    description = localized("Show distance"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableWithLengthUnitView(
+                    model = model,
+                    description = localized("Show distance in given unit"),
+                    variable = "distance",
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{splitDistance}",
+                    description = localized("Show split distance"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableWithLengthUnitView(
+                    model = model,
+                    description = localized("Show split distance in given unit"),
+                    variable = "splitDistance",
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{altitudeAscent}",
+                    description = localized("Show altitude ascent"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableWithLengthUnitView(
+                    model = model,
+                    description = localized("Show altitude ascent in given unit"),
+                    variable = "altitudeAscent",
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{altitudeDescent}",
+                    description = localized("Show altitude descent"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableWithLengthUnitView(
+                    model = model,
+                    description = localized("Show altitude descent in given unit"),
+                    variable = "altitudeDescent",
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{splitAltitudeAscent}",
+                    description = localized("Show split altitude ascent"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableWithLengthUnitView(
+                    model = model,
+                    description = localized("Show split altitude ascent in given unit"),
+                    variable = "splitAltitudeAscent",
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{splitAltitudeDescent}",
+                    description = localized("Show split altitude descent"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableWithLengthUnitView(
+                    model = model,
+                    description = localized("Show split altitude descent in given unit"),
+                    variable = "splitAltitudeDescent",
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{slope}",
+                    description = localized("Show slope"),
+                    text = value,
+                    onChange = onChange,
+                )
+            }
+        }
+    })
 }
 
 @Composable
@@ -1084,64 +1093,70 @@ private fun WeatherVariablesView(
     value: String,
     onChange: (String) -> Unit,
 ) {
-    Column {
-        Text(localized("Weather"), style = MaterialTheme.typography.titleLarge)
-        VariableView(
-            model = model,
-            title = "{conditions}",
-            description = localized("Show conditions"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{temperature}",
-            description = localized("Show temperature"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableWithTemperatureUnitView(
-            model = model,
-            description = localized("Show temperature in given unit"),
-            variable = "temperature",
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{feelsLikeTemperature}",
-            description = localized("Show feels like temperature"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableWithTemperatureUnitView(
-            model = model,
-            description = localized("Show feels like temperature in given unit"),
-            variable = "feelsLikeTemperature",
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{wind}",
-            description = localized("Show wind"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableWithSpeedUnitView(
-            model = model,
-            description = localized("Show wind in given unit"),
-            variable = "wind",
-            text = value,
-            onChange = onChange,
-        )
-        Text(
-            localized(
-                "Weather data is provided by Apple Weather. " +
-                    "[Legal information](https://weatherkit.apple.com/legal-attribution.html).",
-            ),
-        )
-    }
+    NavigationLink(title = localized("Weather"), destination = {
+        Form(title = localized("Weather")) {
+            Section(footerContent = {
+                Column(horizontalAlignment = Alignment.Start) {
+                    Text(
+                        localized(
+                            "Weather data is provided by Apple Weather. " +
+                                "[Legal information](https://weatherkit.apple.com/legal-attribution.html).",
+                        ),
+                    )
+                }
+            }) {
+                VariableView(
+                    model = model,
+                    title = "{conditions}",
+                    description = localized("Show conditions"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{temperature}",
+                    description = localized("Show temperature"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableWithTemperatureUnitView(
+                    model = model,
+                    description = localized("Show temperature in given unit"),
+                    variable = "temperature",
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{feelsLikeTemperature}",
+                    description = localized("Show feels like temperature"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableWithTemperatureUnitView(
+                    model = model,
+                    description = localized("Show feels like temperature in given unit"),
+                    variable = "feelsLikeTemperature",
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{wind}",
+                    description = localized("Show wind"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableWithSpeedUnitView(
+                    model = model,
+                    description = localized("Show wind in given unit"),
+                    variable = "wind",
+                    text = value,
+                    onChange = onChange,
+                )
+            }
+        }
+    })
 }
 
 @Composable
@@ -1150,17 +1165,22 @@ private fun LanguageVariablesView(
     value: String,
     onChange: (String) -> Unit,
 ) {
-    Column {
-        Text(localized("Language"), style = MaterialTheme.typography.titleLarge)
-        VariableView(
-            model = model,
-            title = "{subtitles}",
-            description = localized("Show subtitles in app language"),
-            text = value,
-            onChange = onChange,
-        )
-        SubtitlesWithLanguageView(model = model, text = value, onChange = onChange)
-    }
+    NavigationLink(title = localized("Language"), destination = {
+        Form(title = localized("Language")) {
+            VariableView(
+                model = model,
+                title = "{subtitles}",
+                description = localized("Show subtitles in app language"),
+                text = value,
+                onChange = onChange,
+            )
+            SubtitlesWithLanguageView(
+                model = model,
+                text = value,
+                onChange = onChange,
+            )
+        }
+    })
 }
 
 @Composable
@@ -1169,88 +1189,90 @@ private fun WorkoutVariablesView(
     value: String,
     onChange: (String) -> Unit,
 ) {
-    val database = model.database
-    Column {
-        Text(localized("Workout"), style = MaterialTheme.typography.titleLarge)
-        Text(localized("Apple workout"), style = MaterialTheme.typography.titleSmall)
-        if (isPhone()) {
-            VariableView(
-                model = model,
-                title = "{heartRate}",
-                description = localized("Show heart rate."),
-                text = value,
-                onChange = onChange,
-            )
+    NavigationLink(title = localized("Workout"), destination = {
+        Form(title = localized("Workout")) {
+            Section(header = localized("Apple workout")) {
+                if (isPhone()) {
+                    VariableView(
+                        model = model,
+                        title = "{heartRate}",
+                        description = localized("Show heart rate."),
+                        text = value,
+                        onChange = onChange,
+                    )
+                }
+                VariableView(
+                    model = model,
+                    title = "{stepCount}",
+                    description = localized("Show step count."),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{workoutDistance}",
+                    description = localized("Show distance."),
+                    text = value,
+                    onChange = onChange,
+                )
+            }
+            Section(header = localized("Other devices")) {
+                model.database.workoutDevices.devices.forEach { device ->
+                    VariableView(
+                        model = model,
+                        title = "{heartRate:${device.name}}",
+                        description = localized(
+                            "Show heart rate for heart rate device called \"${device.name}\"",
+                        ),
+                        text = value,
+                        onChange = onChange,
+                    )
+                    VariableView(
+                        model = model,
+                        title = "{runningPace:${device.name}}",
+                        description = localized("Show running pace"),
+                        text = value,
+                        onChange = onChange,
+                    )
+                    VariableView(
+                        model = model,
+                        title = "{runningCadence:${device.name}}",
+                        description = localized("Show running cadence"),
+                        text = value,
+                        onChange = onChange,
+                    )
+                    VariableView(
+                        model = model,
+                        title = "{runningDistance:${device.name}}",
+                        description = localized("Show running distance"),
+                        text = value,
+                        onChange = onChange,
+                    )
+                }
+                VariableView(
+                    model = model,
+                    title = "{cyclingPower}",
+                    description = localized("Show cycling power"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{cyclingCadence}",
+                    description = localized("Show cycling cadence"),
+                    text = value,
+                    onChange = onChange,
+                )
+                VariableView(
+                    model = model,
+                    title = "{cyclingSpeed}",
+                    description = localized("Show cycling speed"),
+                    text = value,
+                    onChange = onChange,
+                )
+            }
         }
-        VariableView(
-            model = model,
-            title = "{stepCount}",
-            description = localized("Show step count."),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{workoutDistance}",
-            description = localized("Show distance."),
-            text = value,
-            onChange = onChange,
-        )
-        Text(localized("Other devices"), style = MaterialTheme.typography.titleSmall)
-        database.workoutDevices.devices.forEach { device ->
-            VariableView(
-                model = model,
-                title = "{heartRate:${device.name}}",
-                description = localized(
-                    "Show heart rate for heart rate device called \"${device.name}\"",
-                ),
-                text = value,
-                onChange = onChange,
-            )
-            VariableView(
-                model = model,
-                title = "{runningPace:${device.name}}",
-                description = localized("Show running pace"),
-                text = value,
-                onChange = onChange,
-            )
-            VariableView(
-                model = model,
-                title = "{runningCadence:${device.name}}",
-                description = localized("Show running cadence"),
-                text = value,
-                onChange = onChange,
-            )
-            VariableView(
-                model = model,
-                title = "{runningDistance:${device.name}}",
-                description = localized("Show running distance"),
-                text = value,
-                onChange = onChange,
-            )
-        }
-        VariableView(
-            model = model,
-            title = "{cyclingPower}",
-            description = localized("Show cycling power"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{cyclingCadence}",
-            description = localized("Show cycling cadence"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{cyclingSpeed}",
-            description = localized("Show cycling speed"),
-            text = value,
-            onChange = onChange,
-        )
-    }
+    })
 }
 
 @Composable
@@ -1259,30 +1281,31 @@ private fun TeslaVariablesView(
     value: String,
     onChange: (String) -> Unit,
 ) {
-    Column {
-        Text(localized("Tesla"), style = MaterialTheme.typography.titleLarge)
-        VariableView(
-            model = model,
-            title = "{teslaBatteryLevel}",
-            description = localized("Show Tesla battery level"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{teslaDrive}",
-            description = localized("Show Tesla drive information"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{teslaMedia}",
-            description = localized("Show Tesla media information"),
-            text = value,
-            onChange = onChange,
-        )
-    }
+    NavigationLink(title = localized("Tesla"), destination = {
+        Form(title = localized("Tesla")) {
+            VariableView(
+                model = model,
+                title = "{teslaBatteryLevel}",
+                description = localized("Show Tesla battery level"),
+                text = value,
+                onChange = onChange,
+            )
+            VariableView(
+                model = model,
+                title = "{teslaDrive}",
+                description = localized("Show Tesla drive information"),
+                text = value,
+                onChange = onChange,
+            )
+            VariableView(
+                model = model,
+                title = "{teslaMedia}",
+                description = localized("Show Tesla media information"),
+                text = value,
+                onChange = onChange,
+            )
+        }
+    })
 }
 
 @Composable
@@ -1291,23 +1314,24 @@ private fun StreamingVariablesView(
     value: String,
     onChange: (String) -> Unit,
 ) {
-    Column {
-        Text(localized("Streaming"), style = MaterialTheme.typography.titleLarge)
-        VariableView(
-            model = model,
-            title = "{latestSubscriber}",
-            description = localized("Show latest subscriber"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{latestFollower}",
-            description = localized("Show latest follower"),
-            text = value,
-            onChange = onChange,
-        )
-    }
+    NavigationLink(title = localized("Streaming"), destination = {
+        Form(title = localized("Streaming")) {
+            VariableView(
+                model = model,
+                title = "{latestSubscriber}",
+                description = localized("Show latest subscriber"),
+                text = value,
+                onChange = onChange,
+            )
+            VariableView(
+                model = model,
+                title = "{latestFollower}",
+                description = localized("Show latest follower"),
+                text = value,
+                onChange = onChange,
+            )
+        }
+    })
 }
 
 @Composable
@@ -1316,58 +1340,59 @@ private fun DebugVariablesView(
     value: String,
     onChange: (String) -> Unit,
 ) {
-    Column {
-        Text(localized("Debug"), style = MaterialTheme.typography.titleLarge)
-        VariableView(
-            model = model,
-            title = "{bitrate}",
-            description = localized("Show bitrate"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{bitrateAndTotal}",
-            description = localized("Show bitrate and total number of bytes sent"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{bonding}",
-            description = localized("Show bonding percentage split"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{resolution}",
-            description = localized("Show resolution"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{fps}",
-            description = localized("Show FPS"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{debugOverlay}",
-            description = localized("Show debug overlay (if enabled)"),
-            text = value,
-            onChange = onChange,
-        )
-        VariableView(
-            model = model,
-            title = "{systemMonitor}",
-            description = localized("Show system monitor (if enabled)"),
-            text = value,
-            onChange = onChange,
-        )
-    }
+    NavigationLink(title = localized("Debug"), destination = {
+        Form(title = localized("Debug")) {
+            VariableView(
+                model = model,
+                title = "{bitrate}",
+                description = localized("Show bitrate"),
+                text = value,
+                onChange = onChange,
+            )
+            VariableView(
+                model = model,
+                title = "{bitrateAndTotal}",
+                description = localized("Show bitrate and total number of bytes sent"),
+                text = value,
+                onChange = onChange,
+            )
+            VariableView(
+                model = model,
+                title = "{bonding}",
+                description = localized("Show bonding percentage split"),
+                text = value,
+                onChange = onChange,
+            )
+            VariableView(
+                model = model,
+                title = "{resolution}",
+                description = localized("Show resolution"),
+                text = value,
+                onChange = onChange,
+            )
+            VariableView(
+                model = model,
+                title = "{fps}",
+                description = localized("Show FPS"),
+                text = value,
+                onChange = onChange,
+            )
+            VariableView(
+                model = model,
+                title = "{debugOverlay}",
+                description = localized("Show debug overlay (if enabled)"),
+                text = value,
+                onChange = onChange,
+            )
+            VariableView(
+                model = model,
+                title = "{systemMonitor}",
+                description = localized("Show system monitor (if enabled)"),
+                text = value,
+                onChange = onChange,
+            )
+        }
+    })
 }
 
 @Composable
@@ -1378,37 +1403,18 @@ fun TextFormatVariablesView(
     onChange: (String) -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Column {
-        Text(localized("Variables"), style = MaterialTheme.typography.titleSmall)
-        TextButton(onClick = { onNavigate("General") }) {
-            Text(localized("General"))
-        }
-        TextButton(onClick = { onNavigate("Time") }) {
-            Text(localized("Time"))
-        }
-        TextButton(onClick = { onNavigate("Location") }) {
-            Text(localized("Location"))
-        }
-        TextButton(onClick = { onNavigate("Weather") }) {
-            Text(localized("Weather"))
-        }
+    Section(header = localized("Variables")) {
+        GeneralVariablesView(model = model, widget = widget, value = value, onChange = onChange)
+        TimeVariablesView(model = model, widget = widget, value = value, onChange = onChange)
+        LocationVariablesView(model = model, value = value, onChange = onChange)
+        WeatherVariablesView(model = model, value = value, onChange = onChange)
         if (widget) {
-            TextButton(onClick = { onNavigate("Language") }) {
-                Text(localized("Language"))
-            }
+            LanguageVariablesView(model = model, value = value, onChange = onChange)
         }
-        TextButton(onClick = { onNavigate("Workout") }) {
-            Text(localized("Workout"))
-        }
-        TextButton(onClick = { onNavigate("Tesla") }) {
-            Text(localized("Tesla"))
-        }
-        TextButton(onClick = { onNavigate("Streaming") }) {
-            Text(localized("Streaming"))
-        }
-        TextButton(onClick = { onNavigate("Debug") }) {
-            Text(localized("Debug"))
-        }
+        WorkoutVariablesView(model = model, value = value, onChange = onChange)
+        TeslaVariablesView(model = model, value = value, onChange = onChange)
+        StreamingVariablesView(model = model, value = value, onChange = onChange)
+        DebugVariablesView(model = model, value = value, onChange = onChange)
     }
 }
 
@@ -1419,27 +1425,28 @@ fun TextSelectionView(
     text: SettingsWidgetText,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val value = text.formatString
-    val database = model.database
+    var value by remember { mutableStateOf(text.formatString) }
     val onValueChange: (String) -> Unit = { newValue ->
+        value = newValue
         text.formatString = newValue
         model.textWidgetTextChanged(widget = widget)
     }
-    Column {
-        Text(localized("Text"), style = MaterialTheme.typography.titleLarge)
+    Form(title = localized("Text")) {
         TextWidgetTextView(value = value, onChange = onValueChange)
         TextFormatWarningsView(
             model = model,
-            location = database.location,
+            location = model.database.location,
             value = value,
             onChange = onValueChange,
         )
-        TextWidgetSuggestionsView(
-            widget = true,
-            text = value,
-            onChange = onValueChange,
-            onNavigate = onNavigate,
-        )
+        Section {
+            TextWidgetSuggestionsView(
+                widget = true,
+                text = value,
+                onChange = onValueChange,
+                onNavigate = onNavigate,
+            )
+        }
         TextFormatVariablesView(
             model = model,
             widget = true,
@@ -1456,15 +1463,16 @@ fun TextWidgetTextView(
     onChange: (String) -> Unit,
 ) {
     var editingText by remember { mutableStateOf(false) }
-    Column {
+    Section(footerContent = {
+        MultiLineTextFieldDoneButtonView(
+            editingText = editingText,
+            onEditingTextChange = { editingText = it },
+        )
+    }) {
         MultiLineTextFieldView(
             value = value,
             placeholder = localized("My text"),
             onValueChange = onChange,
-        )
-        MultiLineTextFieldDoneButtonView(
-            editingText = editingText,
-            onEditingTextChange = { editingText = it },
         )
     }
 }
@@ -1477,10 +1485,9 @@ fun TextFormatWarningsView(
     onChange: (String) -> Unit,
 ) {
     val textFormat = loadTextFormat(format = value)
-    val enabled = location.enabled
     val workoutType by model.workoutType.collectAsState()
-    Column {
-        if (textFormat.isWorkoutVariable() && workoutType == null) {
+    if (textFormat.isWorkoutVariable() && workoutType == null) {
+        Section {
             Text(
                 localized(
                     "⚠️ Start a workout using the Workout quick button or the Start workout " +
@@ -1488,33 +1495,23 @@ fun TextFormatWarningsView(
                 ),
             )
         }
-        if (textFormat.isLocationVariable() && !enabled) {
+    }
+    if (textFormat.isLocationVariable() && !location.enabled) {
+        Section {
             Text(localized("⚠️ Enable Location to update location variables."))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(localized("Location"))
-                Spacer(Modifier.weight(1f))
-                Switch(
-                    checked = enabled,
-                    onCheckedChange = {
-                        location.enabled = it
-                        model.reloadLocation()
-                    },
-                )
-            }
+            Toggle(title = localized("Location"), isOn = location.enabled, onChange = {
+                location.enabled = it
+                model.reloadLocation()
+            })
         }
-        if (textFormat.isWeatherVariable() && !enabled) {
+    }
+    if (textFormat.isWeatherVariable() && !location.enabled) {
+        Section {
             Text(localized("⚠️ Enable Location to update weather variables."))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(localized("Location"))
-                Spacer(Modifier.weight(1f))
-                Switch(
-                    checked = enabled,
-                    onCheckedChange = {
-                        location.enabled = it
-                        model.reloadLocation()
-                    },
-                )
-            }
+            Toggle(title = localized("Location"), isOn = location.enabled, onChange = {
+                location.enabled = it
+                model.reloadLocation()
+            })
         }
     }
 }
@@ -1526,65 +1523,57 @@ fun WidgetTextQuickButtonControlsView(
     text: SettingsWidgetText,
 ) {
     val textEffects = model.getTextEffects(id = widget.id)
-    val timers = text.timers
-    val stopwatches = text.stopwatches
-    val checkboxes = text.checkboxes
-    val ratings = text.ratings
-    val lapTimes = text.lapTimes
-    val formatString = text.formatString
     if (textEffects.isNotEmpty()) {
-        val textFormat = loadTextFormat(format = formatString)
-        Column {
-            timers.forEach { timer ->
-                val index = timers.indexOfFirst { it === timer }.takeIf { it >= 0 } ?: 0
-                TimerWidgetView(
-                    name = localized("Timer ${index + 1}"),
-                    timer = timer,
-                    index = index,
-                    textEffects = textEffects,
-                    indented = true,
-                )
-            }
-            stopwatches.forEach { stopwatch ->
-                val index = stopwatches.indexOfFirst { it === stopwatch }.takeIf { it >= 0 } ?: 0
-                StopwatchWidgetView(
-                    name = localized("Stopwatch ${index + 1}"),
-                    stopwatch = stopwatch,
-                    index = index,
-                    textEffects = textEffects,
-                    indented = true,
-                )
-            }
-            checkboxes.forEach { checkbox ->
-                val index = checkboxes.indexOfFirst { it === checkbox }.takeIf { it >= 0 } ?: 0
-                CheckboxWidgetView(
-                    name = textFormat.getCheckboxText(index = index),
-                    checkbox = checkbox,
-                    index = index,
-                    textEffects = textEffects,
-                    indented = true,
-                )
-            }
-            ratings.forEach { rating ->
-                val index = ratings.indexOfFirst { it === rating }.takeIf { it >= 0 } ?: 0
-                RatingWidgetView(
-                    name = localized("Rating ${index + 1}"),
-                    rating = rating,
-                    index = index,
-                    textEffects = textEffects,
-                    indented = true,
-                )
-            }
-            lapTimes.forEach { lapTime ->
-                val index = lapTimes.indexOfFirst { it === lapTime }.takeIf { it >= 0 } ?: 0
-                LapTimesWidgetView(
-                    name = localized("Lap times ${index + 1}"),
-                    lapTimes = lapTime,
-                    index = index,
-                    textEffects = textEffects,
-                    indented = true,
-                )
-            }
+        val textFormat = loadTextFormat(format = text.formatString)
+        text.timers.forEach { timer ->
+            val index = text.timers.indexOfFirst { it === timer }.takeIf { it >= 0 } ?: 0
+            TimerWidgetView(
+                name = localized("Timer ${index + 1}"),
+                timer = timer,
+                index = index,
+                textEffects = textEffects,
+                indented = true,
+            )
+        }
+        text.stopwatches.forEach { stopwatch ->
+            val index = text.stopwatches.indexOfFirst { it === stopwatch }.takeIf { it >= 0 } ?: 0
+            StopwatchWidgetView(
+                name = localized("Stopwatch ${index + 1}"),
+                stopwatch = stopwatch,
+                index = index,
+                textEffects = textEffects,
+                indented = true,
+            )
+        }
+        text.checkboxes.forEach { checkbox ->
+            val index = text.checkboxes.indexOfFirst { it === checkbox }.takeIf { it >= 0 } ?: 0
+            CheckboxWidgetView(
+                name = textFormat.getCheckboxText(index = index),
+                checkbox = checkbox,
+                index = index,
+                textEffects = textEffects,
+                indented = true,
+            )
+        }
+        text.ratings.forEach { rating ->
+            val index = text.ratings.indexOfFirst { it === rating }.takeIf { it >= 0 } ?: 0
+            RatingWidgetView(
+                name = localized("Rating ${index + 1}"),
+                rating = rating,
+                index = index,
+                textEffects = textEffects,
+                indented = true,
+            )
+        }
+        text.lapTimes.forEach { lapTime ->
+            val index = text.lapTimes.indexOfFirst { it === lapTime }.takeIf { it >= 0 } ?: 0
+            LapTimesWidgetView(
+                name = localized("Lap times ${index + 1}"),
+                lapTimes = lapTime,
+                index = index,
+                textEffects = textEffects,
+                indented = true,
+            )
         }
     }
 }
@@ -1596,9 +1585,14 @@ fun TextWidgetSuggestionsView(
     onChange: (String) -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Row(modifier = Modifier.clickable { onNavigate("Suggestions") }) {
-        Text(localized("Suggestions"))
-    }
+    NavigationLink(title = localized("Suggestions"), destination = {
+        TextWidgetSuggestionsInnerView(
+            widget = widget,
+            text = text,
+            onChange = onChange,
+            onDismiss = {},
+        )
+    })
 }
 
 @Composable
@@ -1626,24 +1620,26 @@ private fun FontFamilyPickerView(
             fontFamilies = loadFontFamilies()
         }
     }
-    Column {
-        Text(localized("Family"), style = MaterialTheme.typography.titleLarge)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(localized("System"))
-            Spacer(Modifier.weight(1f))
-            IconButton(onClick = { selectFamily(null) }) {
+    Form(title = localized("Family")) {
+        Section {
+            FormRow(onClick = { selectFamily(null) }) {
+                Text(localized("System"))
+                Spacer(Modifier.weight(1f))
                 if (text.fontFamily == null) {
-                    Icon(Icons.Default.Check, contentDescription = null)
+                    SystemImage(name = "checkmark", fontSize = 17.sp, modifier = Modifier, tint = LocalTint.current)
                 }
             }
-        }
-        fontFamilies.forEach { family ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(family)
-                Spacer(Modifier.weight(1f))
-                IconButton(onClick = { selectFamily(family) }) {
+            fontFamilies.forEach { family ->
+                FormRow(onClick = { selectFamily(family) }) {
+                    Text(family)
+                    Spacer(Modifier.weight(1f))
                     if (text.fontFamily == family) {
-                        Icon(Icons.Default.Check, contentDescription = null)
+                        SystemImage(
+                            name = "checkmark",
+                            fontSize = 17.sp,
+                            modifier = Modifier,
+                            tint = LocalTint.current,
+                        )
                     }
                 }
             }
@@ -1653,6 +1649,7 @@ private fun FontFamilyPickerView(
 
 private fun loadFontFamilies(): List<String> =
     emptyList()
+
 fun fontStyleName(family: String, fontName: String): String {
     val prefix = family.replace(" ", "")
     val name = fontName.replace("-", "")
@@ -1665,6 +1662,7 @@ fun fontStyleName(family: String, fontName: String): String {
 
 private fun fontStyles(fontFamily: String): List<String> =
     emptyList()
+
 @Composable
 private fun FontStylePickerView(
     model: Model = LocalModel.current,
@@ -1672,21 +1670,25 @@ private fun FontStylePickerView(
     text: SettingsWidgetText,
     fontFamily: String,
 ) {
-    Column {
-        Text(localized("Style"), style = MaterialTheme.typography.titleLarge)
-        fontStyles(fontFamily = fontFamily).forEach { style ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(fontStyleName(family = fontFamily, fontName = style))
-                Spacer(Modifier.weight(1f))
-                IconButton(onClick = {
+    Form(title = localized("Style")) {
+        Section {
+            fontStyles(fontFamily = fontFamily).forEach { style ->
+                FormRow(onClick = {
                     text.fontStyle = style
                     for (effect in model.getTextEffects(id = widget.id)) {
                         effect.setFontStyle(style = text.fontStyle)
                     }
                     model.remoteSceneSettingsUpdated()
                 }) {
+                    Text(fontStyleName(family = fontFamily, fontName = style))
+                    Spacer(Modifier.weight(1f))
                     if (text.fontStyle == style) {
-                        Icon(Icons.Default.Check, contentDescription = null)
+                        SystemImage(
+                            name = "checkmark",
+                            fontSize = 17.sp,
+                            modifier = Modifier,
+                            tint = LocalTint.current,
+                        )
                     }
                 }
             }
@@ -1746,46 +1748,25 @@ fun WidgetTextSettingsView(
         setLayout()
     }
 
-    val database = model.database
-    val textEffects = model.getTextEffects(id = widget.id)
-    val timers = text.timers
-    val stopwatches = text.stopwatches
-    val checkboxes = text.checkboxes
-    val ratings = text.ratings
-    val lapTimes = text.lapTimes
-    val formatString = text.formatString
-    val horizontalAlignment = text.horizontalAlignment
-    val widthEnabled = text.widthEnabled
-    val width = text.width
-    val cornerRadius = text.cornerRadius
-    val backgroundColorColor = text.backgroundColorColor
-    val foregroundColorColor = text.foregroundColorColor
-    val fontSizeFloat = text.fontSizeFloat
-    val fontFamily = text.fontFamily
-    val fontStyle = text.fontStyle
-    val fontDesign = text.fontDesign
-    val fontWeight = text.fontWeight
-    val fontMonospacedDigits = text.fontMonospacedDigits
-    val delay = text.delay
-
-    Column {
-        Row(
-            modifier = Modifier.clickable { onNavigate("Text") },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TextItemLocalizedView(name = "Text", value = formatString)
+    Section {
+        NavigationLink(destination = {
+            TextSelectionView(model = model, widget = widget, text = text, onNavigate = onNavigate)
+        }) {
+            TextItemLocalizedView(name = "Text", value = text.formatString)
         }
-        TextFormatWarningsView(
-            model = model,
-            location = database.location,
-            value = formatString,
-            onChange = { text.formatString = it },
-        )
-        if (textEffects.isNotEmpty()) {
-            if (timers.isNotEmpty()) {
-                Text(localized("Timers"), style = MaterialTheme.typography.titleSmall)
-                timers.forEach { timer ->
-                    val index = timers.indexOfFirst { it === timer }.takeIf { it >= 0 } ?: 0
+    }
+    TextFormatWarningsView(
+        model = model,
+        location = model.database.location,
+        value = text.formatString,
+        onChange = { text.formatString = it },
+    )
+    val textEffects = model.getTextEffects(id = widget.id)
+    if (textEffects.isNotEmpty()) {
+        if (text.timers.isNotEmpty()) {
+            Section(header = localized("Timers")) {
+                text.timers.forEach { timer ->
+                    val index = text.timers.indexOfFirst { it === timer }.takeIf { it >= 0 } ?: 0
                     TimerWidgetView(
                         name = localized("Timer ${index + 1}"),
                         timer = timer,
@@ -1795,10 +1776,11 @@ fun WidgetTextSettingsView(
                     )
                 }
             }
-            if (stopwatches.isNotEmpty()) {
-                Text(localized("Stopwatches"), style = MaterialTheme.typography.titleSmall)
-                stopwatches.forEach { stopwatch ->
-                    val index = stopwatches.indexOfFirst { it === stopwatch }.takeIf { it >= 0 } ?: 0
+        }
+        if (text.stopwatches.isNotEmpty()) {
+            Section(header = localized("Stopwatches")) {
+                text.stopwatches.forEach { stopwatch ->
+                    val index = text.stopwatches.indexOfFirst { it === stopwatch }.takeIf { it >= 0 } ?: 0
                     StopwatchWidgetView(
                         name = localized("Stopwatch ${index + 1}"),
                         stopwatch = stopwatch,
@@ -1808,11 +1790,12 @@ fun WidgetTextSettingsView(
                     )
                 }
             }
-            if (checkboxes.isNotEmpty()) {
-                val textFormat = loadTextFormat(format = formatString)
-                Text(localized("Checkboxes"), style = MaterialTheme.typography.titleSmall)
-                checkboxes.forEach { checkbox ->
-                    val index = checkboxes.indexOfFirst { it === checkbox }.takeIf { it >= 0 } ?: 0
+        }
+        if (text.checkboxes.isNotEmpty()) {
+            Section(header = localized("Checkboxes")) {
+                val textFormat = loadTextFormat(format = text.formatString)
+                text.checkboxes.forEach { checkbox ->
+                    val index = text.checkboxes.indexOfFirst { it === checkbox }.takeIf { it >= 0 } ?: 0
                     CheckboxWidgetView(
                         name = textFormat.getCheckboxText(index = index),
                         checkbox = checkbox,
@@ -1822,10 +1805,11 @@ fun WidgetTextSettingsView(
                     )
                 }
             }
-            if (ratings.isNotEmpty()) {
-                Text(localized("Ratings"), style = MaterialTheme.typography.titleSmall)
-                ratings.forEach { rating ->
-                    val index = ratings.indexOfFirst { it === rating }.takeIf { it >= 0 } ?: 0
+        }
+        if (text.ratings.isNotEmpty()) {
+            Section(header = localized("Ratings")) {
+                text.ratings.forEach { rating ->
+                    val index = text.ratings.indexOfFirst { it === rating }.takeIf { it >= 0 } ?: 0
                     RatingWidgetView(
                         name = localized("Rating ${index + 1}"),
                         rating = rating,
@@ -1835,10 +1819,11 @@ fun WidgetTextSettingsView(
                     )
                 }
             }
-            if (lapTimes.isNotEmpty()) {
-                Text(localized("Lap times"), style = MaterialTheme.typography.titleSmall)
-                lapTimes.forEach { lapTime ->
-                    val index = lapTimes.indexOfFirst { it === lapTime }.takeIf { it >= 0 } ?: 0
+        }
+        if (text.lapTimes.isNotEmpty()) {
+            Section(header = localized("Lap times")) {
+                text.lapTimes.forEach { lapTime ->
+                    val index = text.lapTimes.indexOfFirst { it === lapTime }.takeIf { it >= 0 } ?: 0
                     LapTimesWidgetView(
                         name = localized("Lap times ${index + 1}"),
                         lapTimes = lapTime,
@@ -1849,10 +1834,11 @@ fun WidgetTextSettingsView(
                 }
             }
         }
-        Text(localized("Colors"), style = MaterialTheme.typography.titleSmall)
+    }
+    Section(header = localized("Colors")) {
         RgbColorPickerView(
             title = "Background",
-            color = backgroundColorColor,
+            color = text.backgroundColorColor,
             onColorChanged = { text.backgroundColorColor = it },
             opacity = true,
             onChange = { color ->
@@ -1865,7 +1851,7 @@ fun WidgetTextSettingsView(
         )
         RgbColorPickerView(
             title = "Foreground",
-            color = foregroundColorColor,
+            color = text.foregroundColorColor,
             onColorChanged = { text.foregroundColorColor = it },
             opacity = true,
             onChange = { color ->
@@ -1876,11 +1862,12 @@ fun WidgetTextSettingsView(
                 model.remoteSceneSettingsUpdated()
             },
         )
-        Text(localized("Font"), style = MaterialTheme.typography.titleSmall)
+    }
+    Section(header = localized("Font")) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(localized("Size"))
-            Slider(
-                value = fontSizeFloat,
+            FormSlider(
+                value = text.fontSizeFloat,
                 onValueChange = { value ->
                     text.fontSizeFloat = value
                     text.fontSize = value.toInt()
@@ -1889,36 +1876,42 @@ fun WidgetTextSettingsView(
                     }
                     model.remoteSceneSettingsUpdated()
                 },
+                modifier = Modifier.weight(1f),
                 valueRange = 10f..200f,
-                steps = 37,
             )
-            Text(fontSizeFloat.toInt().toString(), modifier = Modifier.width(35.dp))
+            Text(text.fontSizeFloat.toInt().toString(), modifier = Modifier.width(35.dp))
         }
-        Row(
-            modifier = Modifier.clickable { onNavigate("Family") },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        NavigationLink(destination = {
+            FontFamilyPickerView(model = model, widget = widget, text = text)
+        }) {
             Text(localized("Family"))
             Spacer(Modifier.weight(1f))
             GrayTextView(text = text.fontFamilyString())
         }
+        val fontFamily = text.fontFamily
         if (fontFamily != null) {
-            Row(
-                modifier = Modifier
-                    .clickable { onNavigate("Style") }
-                    .clickable(enabled = fontStyles(fontFamily).size != 1) { onNavigate("Style") },
-                verticalAlignment = Alignment.CenterVertically,
+            NavigationLink(
+                enabled = fontStyles(fontFamily = fontFamily).size != 1,
+                destination = {
+                    FontStylePickerView(
+                        model = model,
+                        widget = widget,
+                        text = text,
+                        fontFamily = fontFamily,
+                    )
+                },
             ) {
                 Text(localized("Style"))
                 Spacer(Modifier.weight(1f))
                 GrayTextView(text = text.fontStyleString())
             }
         } else {
-            PickerRow(
-                selection = fontDesign,
+            Picker(
+                title = localized("Design"),
+                selection = text.fontDesign,
                 options = SettingsFontDesign.entries.toList(),
-                optionLabel = { it.toString() },
-                onSelectionChange = { design ->
+                text = { it.toString() },
+                onChange = { design ->
                     text.fontDesign = design
                     for (effect in model.getTextEffects(id = widget.id)) {
                         effect.setFontDesign(design = design)
@@ -1926,11 +1919,12 @@ fun WidgetTextSettingsView(
                     model.remoteSceneSettingsUpdated()
                 },
             )
-            PickerRow(
-                selection = fontWeight,
+            Picker(
+                title = localized("Weight"),
+                selection = text.fontWeight,
                 options = SettingsFontWeight.entries.toList(),
-                optionLabel = { it.toString() },
-                onSelectionChange = { weight ->
+                text = { it.toString() },
+                onChange = { weight ->
                     text.fontWeight = weight
                     for (effect in model.getTextEffects(id = widget.id)) {
                         effect.setFontWeight(weight = weight)
@@ -1938,87 +1932,71 @@ fun WidgetTextSettingsView(
                     model.remoteSceneSettingsUpdated()
                 },
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(localized("Monospaced digits"))
-                Spacer(Modifier.weight(1f))
-                Switch(
-                    checked = fontMonospacedDigits,
-                    onCheckedChange = { enabled ->
-                        text.fontMonospacedDigits = enabled
-                        for (effect in model.getTextEffects(id = widget.id)) {
-                            effect.setFontMonospacedDigits(enabled = enabled)
-                        }
-                        model.remoteSceneSettingsUpdated()
-                    },
-                )
-            }
+            Toggle(
+                title = localized("Monospaced digits"),
+                isOn = text.fontMonospacedDigits,
+                onChange = { enabled ->
+                    text.fontMonospacedDigits = enabled
+                    for (effect in model.getTextEffects(id = widget.id)) {
+                        effect.setFontMonospacedDigits(enabled = enabled)
+                    }
+                    model.remoteSceneSettingsUpdated()
+                },
+            )
         }
-        Text(localized("Layout"), style = MaterialTheme.typography.titleSmall)
-        PickerRow(
-            selection = horizontalAlignment,
+    }
+    Section(header = localized("Layout")) {
+        Picker(
+            title = localized("Alignment"),
+            selection = text.horizontalAlignment,
             options = SettingsHorizontalAlignment.entries.toList(),
-            optionLabel = { it.toString() },
-            onSelectionChange = {
+            text = { it.toString() },
+            onChange = {
                 text.horizontalAlignment = it
                 setLayout()
             },
         )
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        NavigationLink(destination = {
+            TextEditView(
+                title = localized("Minimum width"),
+                value = text.width.toString(),
+                onChange = { changeWidth(it) },
+                onSubmit = { submitWidth(it) },
+                keyboardType = KeyboardType.Number,
+            )
+        }) {
             Text(localized("Minimum width"))
             Spacer(Modifier.weight(1f))
-            Switch(
-                checked = widthEnabled,
+            IosSwitch(
+                checked = text.widthEnabled,
                 onCheckedChange = {
                     text.widthEnabled = it
                     setLayout()
                 },
             )
-            GrayTextView(text = width.toString())
+            GrayTextView(text = text.width.toString())
         }
         TextEditNavigationView(
-            title = localized("Minimum width"),
-            value = width.toString(),
-            onChange = { changeWidth(it) },
-            onSubmit = { submitWidth(it) },
-            keyboardType = KeyboardType.Number,
-        )
-        TextEditNavigationView(
             title = localized("Corner radius"),
-            value = cornerRadius.toString(),
+            value = text.cornerRadius.toString(),
             onChange = { changeCornerRadius(it) },
             onSubmit = { submitCornerRadius(it) },
             keyboardType = KeyboardType.Number,
         )
-        Text(localized("Delay"), style = MaterialTheme.typography.titleSmall)
+    }
+    Section(
+        header = localized("Delay"),
+        footer = localized("To show the widget in sync with high latency cameras."),
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Slider(
-                value = delay.toFloat(),
+            FormSlider(
+                value = text.delay.toFloat(),
                 onValueChange = { text.delay = it.toDouble() },
+                modifier = Modifier.weight(1f),
                 valueRange = 0f..10f,
-                steps = 19,
                 onValueChangeFinished = { model.resetSelectedScene(changeScene = false) },
             )
-            Text(delay.toString(), modifier = Modifier.width(35.dp))
+            Text(text.delay.toString(), modifier = Modifier.width(35.dp))
         }
-        Text(localized("To show the widget in sync with high latency cameras."))
     }
 }
-
-private fun Model.getTextEffects(id: Any?): List<TextEffect> =
-    emptyList()
-private fun Model.remoteSceneSettingsUpdated(): Unit =
-    Unit
-private fun Model.reloadLocation(): Unit =
-    Unit
-private fun Model.resetSelectedScene(changeScene: Boolean): Unit =
-    Unit
-private fun Model.textWidgetTextChanged(widget: SettingsWidget): Unit =
-    Unit
-private fun Any?.isWorkoutVariable(): Boolean =
-    false
-private fun Any?.isLocationVariable(): Boolean =
-    false
-private fun Any?.isWeatherVariable(): Boolean =
-    false
-private fun Any?.getCheckboxText(index: Int): String =
-    ""

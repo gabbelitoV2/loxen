@@ -1,44 +1,46 @@
 package com.moblin.android.view.settings.moblink
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
-import com.moblin.android.localized
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.isValidPort
 import com.moblin.android.common.various.isValidWebSocketUrl
+import com.moblin.android.localized
 import com.moblin.android.moblink.MoblinkScannerStreamer
 import com.moblin.android.moblink.getMoblinkRelayId
 import com.moblin.android.moblink.moblinkRelayResetId
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormButton
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formFootnoteStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Moblink
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
@@ -49,24 +51,21 @@ import com.moblin.android.various.settings.SettingsMoblinkRelay
 import com.moblin.android.various.settings.SettingsMoblinkStreamer
 import com.moblin.android.view.utils.CopyToClipboardButtonView
 import com.moblin.android.view.utils.NameEditView
-import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.view.utils.UrlsView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 
 private fun isAllowedPassword(password: String): Boolean {
     return password.isNotEmpty()
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PasswordView(
     model: Model = LocalModel.current,
     initialValue: String,
     onSubmit: (String) -> Unit,
 ) {
+    val palette = formPalette()
     val isLive by model.isLive.collectAsState()
     var value by remember { mutableStateOf(initialValue) }
     var changed by remember { mutableStateOf(false) }
@@ -85,13 +84,8 @@ private fun PasswordView(
         return if (isAllowedPassword(password = value)) {
             null
         } else {
-            "Not long and random enough"
+            localized("Not long and random enough")
         }
-    }
-
-    LaunchedEffect(value) {
-        changed = true
-        message = createMessage()
     }
 
     DisposableEffect(Unit) {
@@ -102,45 +96,45 @@ private fun PasswordView(
         }
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Password") }) }) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    OutlinedTextField(
-                        value = value,
-                        onValueChange = { value = it },
-                        modifier = Modifier.weight(1f),
-                        enabled = !isLive,
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            capitalization = KeyboardCapitalization.None,
-                            autoCorrectEnabled = false,
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Done,
-                        ),
-                        keyboardActions = KeyboardActions(onDone = { submit() }),
-                    )
-                    CopyToClipboardButtonView(text = value)
-                }
+    Form(title = "Password") {
+        Section(footerContent = {
+            message?.let {
+                Text(it, color = palette.red, fontWeight = FontWeight.Bold)
             }
-            item {
-                message?.let {
-                    Text(
-                        text = it,
-                        color = Color.Red,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
-            }
-            item {
-                TextButtonView(
-                    title = "Reset to default",
-                    action = {
-                        value = "1234"
-                        submit()
+        }) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                BasicTextField(
+                    value = value,
+                    onValueChange = {
+                        value = it
+                        changed = true
+                        message = createMessage()
                     },
+                    modifier = Modifier.weight(1f),
+                    enabled = !isLive,
+                    singleLine = true,
+                    textStyle = formBodyStyle.copy(color = palette.label),
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.None,
+                        autoCorrectEnabled = false,
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done,
+                    ),
+                    keyboardActions = KeyboardActions(onDone = { submit() }),
+                    cursorBrush = SolidColor(palette.accent),
                 )
+                CopyToClipboardButtonView(text = value)
             }
+        }
+        Section {
+            FormButton(
+                title = "Reset to default",
+                enabled = !isLive,
+                action = {
+                    value = "1234"
+                    submit()
+                },
+            )
         }
     }
 }
@@ -152,10 +146,9 @@ private fun RelayStreamerServerView(
     onStreamerUrlChange: (String) -> Unit,
     submitUrl: (String) -> Unit,
 ) {
-    Column {
-        Text(server.name, style = MaterialTheme.typography.titleSmall)
+    Section(headerContent = { Text(server.name) }) {
         server.urls.forEach { url ->
-            TextButtonView(
+            FormButton(
                 title = url,
                 action = {
                     onStreamerUrlChange(url)
@@ -166,7 +159,6 @@ private fun RelayStreamerServerView(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RelayStreamerUrlView(
     model: Model = LocalModel.current,
@@ -174,6 +166,7 @@ private fun RelayStreamerUrlView(
     initialStreamerUrl: String,
     onDismiss: () -> Unit,
 ) {
+    val palette = formPalette()
     val discoveredStreamers by moblink.scannerDiscoveredStreamers.collectAsState()
     var streamerUrl by remember { mutableStateOf(initialStreamerUrl) }
 
@@ -187,32 +180,43 @@ private fun RelayStreamerUrlView(
         onDismiss()
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Streamer URL") }) }) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            item {
-                OutlinedTextField(
-                    value = streamerUrl,
-                    onValueChange = { streamerUrl = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    placeholder = {
-                        Text("ws://32.143.32.12:${DefaultTcpPorts.remoteControlAssistant}")
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.None,
-                        autoCorrectEnabled = false,
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done,
-                    ),
-                    keyboardActions = KeyboardActions(onDone = { submitUrl(streamerUrl) }),
-                )
+    Form(title = "Streamer URL") {
+        Section {
+            BasicTextField(
+                value = streamerUrl,
+                onValueChange = { streamerUrl = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                textStyle = formBodyStyle.copy(color = palette.label),
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrectEnabled = false,
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Done,
+                ),
+                keyboardActions = KeyboardActions(onDone = { submitUrl(streamerUrl) }),
+                cursorBrush = SolidColor(palette.accent),
+                decorationBox = { innerTextField ->
+                    Box {
+                        if (streamerUrl.isEmpty()) {
+                            Text(
+                                "ws://32.143.32.12:${DefaultTcpPorts.remoteControlAssistant}",
+                                style = formBodyStyle,
+                                color = palette.tertiaryLabel,
+                            )
+                        }
+                        innerTextField()
+                    }
+                },
+            )
+        }
+        if (discoveredStreamers.isEmpty()) {
+            Section {
+                Text(localized("No streamers discovered yet on your local network."))
             }
-            if (discoveredStreamers.isEmpty()) {
-                item {
-                    Text("No streamers discovered yet on your local network.")
-                }
-            } else {
-                items(discoveredStreamers) { server ->
+        } else {
+            discoveredStreamers.forEach { server ->
+                key(server) {
                     RelayStreamerServerView(
                         server = server,
                         streamerUrl = streamerUrl,
@@ -237,49 +241,75 @@ private fun RelayView(
     val manual by relay.manual.collectAsState()
     val url by relay.url.collectAsState()
     var relayId by remember { mutableStateOf("") }
+    var idFontSize by remember { mutableStateOf(13.sp) }
 
     LaunchedEffect(Unit) {
         relayId = getMoblinkRelayId()
     }
-    LaunchedEffect(enabled) {
-        model.reloadMoblinkRelay()
-    }
-    LaunchedEffect(name) {
-        model.reloadMoblinkRelay()
-    }
-    LaunchedEffect(manual) {
-        model.reloadMoblinkRelay()
-    }
 
-    Column {
-        Text("Relay", style = MaterialTheme.typography.titleSmall)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Enabled")
-            Spacer(Modifier.weight(1f))
-            Switch(
-                checked = enabled,
-                onCheckedChange = { relay.enabled.value = it },
-            )
-        }
+    Section(
+        header = "Relay",
+        footerContent = {
+            Column(horizontalAlignment = Alignment.Start) {
+                Text(
+                    localized(
+                        "Enable this on the device you want to use as the extra bonding " +
+                            "connection. The device must have cellular data enabled.",
+                    ),
+                )
+                Text("")
+                Text(
+                    text = "ID: $relayId",
+                    maxLines = 1,
+                    style = formFootnoteStyle.copy(fontSize = idFontSize),
+                    onTextLayout = { layout ->
+                        if (layout.hasVisualOverflow && idFontSize > 6.5.sp) {
+                            idFontSize *= 0.9f
+                        }
+                    },
+                )
+            }
+        },
+    ) {
+        Toggle(
+            title = "Enabled",
+            isOn = enabled,
+            onChange = {
+                relay.enabled.value = it
+                model.reloadMoblinkRelay()
+            },
+        )
         NameEditView(
             name = name,
-            onNameChange = { relay.name.value = it },
+            onNameChange = {
+                relay.name.value = it
+                model.reloadMoblinkRelay()
+            },
         )
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Manual")
-            Spacer(Modifier.weight(1f))
-            Switch(
-                checked = manual,
-                onCheckedChange = { relay.manual.value = it },
-                enabled = !isLive,
-            )
-        }
+        Toggle(
+            title = "Manual",
+            isOn = manual,
+            enabled = !isLive,
+            onChange = {
+                relay.manual.value = it
+                model.reloadMoblinkRelay()
+            },
+        )
         if (manual) {
-            Box(modifier = Modifier.clickable { onNavigate("relayStreamerUrl") }) {
+            NavigationLink(
+                destination = {
+                    RelayStreamerUrlView(
+                        model = model,
+                        moblink = model.moblink,
+                        initialStreamerUrl = relay.url.value,
+                        onDismiss = {},
+                    )
+                },
+            ) {
                 TextItemLocalizedView(name = "Streamer URL", value = url)
             }
         }
-        TextButtonView(
+        FormButton(
             title = "Reset id",
             action = {
                 moblinkRelayResetId()
@@ -287,18 +317,6 @@ private fun RelayView(
                 relayId = getMoblinkRelayId()
             },
         )
-        Column(horizontalAlignment = Alignment.Start) {
-            Text(
-                "Enable this on the device you want to use as the extra bonding connection. " +
-                    "The device must have cellular data enabled.",
-            )
-            Text("")
-            Text(
-                text = "ID: $relayId",
-                maxLines = 1,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
     }
 }
 
@@ -321,21 +339,21 @@ private fun StreamerView(
         model.reloadMoblinkStreamer()
     }
 
-    LaunchedEffect(enabled) {
-        model.reloadMoblinkStreamer()
-    }
-
-    Column {
-        Text("Streamer", style = MaterialTheme.typography.titleSmall)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Enabled")
-            Spacer(Modifier.weight(1f))
-            Switch(
-                checked = enabled,
-                onCheckedChange = { streamer.enabled.value = it },
-                enabled = !isLive,
-            )
-        }
+    Section(
+        header = "Streamer",
+        footer = localized(
+            "Enable this on your streaming device. Configure relay devices to connect to this device.",
+        ),
+    ) {
+        Toggle(
+            title = "Enabled",
+            isOn = enabled,
+            enabled = !isLive,
+            onChange = {
+                streamer.enabled.value = it
+                model.reloadMoblinkStreamer()
+            },
+        )
         TextEditNavigationView(
             title = localized("Server port"),
             value = port.toString(),
@@ -344,13 +362,9 @@ private fun StreamerView(
             keyboardType = KeyboardType.Number,
             placeholder = DefaultTcpPorts.moblinkStreamer.toString(),
         )
-        Text(
-            "Enable this on your streaming device. Configure relay devices to connect to this device.",
-        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoblinkSettingsView(
     model: Model = LocalModel.current,
@@ -358,7 +372,6 @@ fun MoblinkSettingsView(
     streamer: SettingsMoblinkStreamer,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val password = model.database.moblink.password
     val streamerEnabled by streamer.enabled.collectAsState()
     val streamerPort by streamer.port.collectAsState()
 
@@ -368,52 +381,54 @@ fun MoblinkSettingsView(
         model.reloadMoblinkStreamer()
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Moblink") }) }) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            item {
-                Text(
-                    "Use phones as additional SRTLA and RIST bonding connections. " +
-                        "Install Moblink on Android phones to use them.",
+    Form(title = "Moblink") {
+        Section {
+            Text(
+                localized(
+                    "Use phones as additional SRTLA and RIST bonding connections. Install " +
+                        "Moblink on Android phones to use them.",
+                ),
+            )
+        }
+        Section(
+            footer = localized(
+                "Used by both relay and streamer devices. Copy the streamer's password to " +
+                    "the relay device.",
+            ),
+        ) {
+            NavigationLink(
+                destination = {
+                    PasswordView(
+                        model = model,
+                        initialValue = model.database.moblink.password,
+                        onSubmit = { submitPassword(it) },
+                    )
+                },
+            ) {
+                TextItemLocalizedView(
+                    name = "Password",
+                    value = model.database.moblink.password,
+                    sensitive = true,
                 )
             }
-            item {
-                Box(modifier = Modifier.clickable { onNavigate("password") }) {
-                    TextItemLocalizedView(
-                        name = "Password",
-                        value = password,
-                        sensitive = true,
-                    )
-                }
-            }
-            item {
-                Text(
-                    "Used by both relay and streamer devices. Copy the streamer's password to " +
-                        "the relay device.",
+        }
+        RelayView(
+            model = model,
+            relay = model.database.moblink.relay,
+            onNavigate = onNavigate,
+        )
+        StreamerView(model = model, streamer = streamer)
+        if (streamerEnabled) {
+            Section(
+                footer = localized(
+                    "Enter one of the URL:s as \"Streamer URL\" in the relay device to use " +
+                        "it as an additional bonding connection.",
+                ),
+            ) {
+                UrlsView(
+                    status = status,
+                    formatUrl = { "ws://$it:$streamerPort" },
                 )
-            }
-            item {
-                RelayView(
-                    model = model,
-                    relay = model.database.moblink.relay,
-                    onNavigate = onNavigate,
-                )
-            }
-            item {
-                StreamerView(model = model, streamer = streamer)
-            }
-            if (streamerEnabled) {
-                item {
-                    UrlsView(
-                        status = status,
-                        formatUrl = { "ws://$it:$streamerPort" },
-                    )
-                }
-                item {
-                    Text(
-                        "Enter one of the URL:s as \"Streamer URL\" in the relay device to " +
-                            "use it as an additional bonding connection.",
-                    )
-                }
             }
         }
     }

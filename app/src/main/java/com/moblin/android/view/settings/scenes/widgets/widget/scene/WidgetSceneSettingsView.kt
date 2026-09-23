@@ -1,27 +1,18 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.scene
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
-import com.moblin.android.view.settings.scenes.SceneNameView
 import java.util.UUID
-import com.moblin.android.LocalModel
+import com.moblin.android.localized
+import com.moblin.android.various.model.resetSelectedScene
 
 @Composable
 fun WidgetSceneSettingsView(
@@ -30,38 +21,18 @@ fun WidgetSceneSettingsView(
     selectedSceneId: UUID,
 ) {
     var sceneId by remember { mutableStateOf(selectedSceneId) }
-    var firstComposition by remember { mutableStateOf(true) }
-    LaunchedEffect(sceneId) {
-        if (firstComposition) {
-            firstComposition = false
-            return@LaunchedEffect
-        }
-        widget.scene.sceneId = sceneId
-        Unit
-    }
-    Column {
-        Text(
-            text = "Scene",
-            style = MaterialTheme.typography.titleSmall,
+    val scenes = model.database.scenes
+    Section(header = localized("Scene")) {
+        Picker(
+            title = "",
+            selection = sceneId,
+            options = scenes.map { it.id },
+            text = { id -> scenes.firstOrNull { it.id == id }?.name ?: "" },
+            onChange = { newSceneId ->
+                sceneId = newSceneId
+                widget.scene.sceneId = newSceneId
+                model.resetSelectedScene(changeScene = false)
+            },
         )
-        model.database.scenes.forEach { scene ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        sceneId = scene.id
-                    }
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                RadioButton(
-                    selected = sceneId == scene.id,
-                    onClick = {
-                        sceneId = scene.id
-                    },
-                )
-                SceneNameView(scene = scene)
-            }
-        }
     }
 }

@@ -13,7 +13,8 @@ enum class RtmpMessageType(val rawValue: UByte) {
     amf3Command(0x11u),
     amf0Data(0x12u),
     amf0Command(0x14u),
-    aggregate(0x16u);
+    aggregate(0x16u),
+    ;
 
     companion object {
         fun fromRawValue(rawValue: UByte): RtmpMessageType? {
@@ -26,7 +27,7 @@ open class RtmpMessage(val type: RtmpMessageType) {
     var length: Int = 0
     var streamId: UInt = 0u
     var timestamp: UInt = 0u
-    var encoded: ByteArray = ByteArray(0)
+    open var encoded: ByteArray = ByteArray(0)
 
     companion object {
         fun create(type: RtmpMessageType): RtmpMessage {
@@ -47,4 +48,29 @@ open class RtmpMessage(val type: RtmpMessageType) {
             }
         }
     }
+}
+
+internal fun uint32ToBigEndianBytes(value: UInt): ByteArray {
+    return byteArrayOf(
+        ((value shr 24) and 0xFFu).toByte(),
+        ((value shr 16) and 0xFFu).toByte(),
+        ((value shr 8) and 0xFFu).toByte(),
+        (value and 0xFFu).toByte(),
+    )
+}
+
+internal fun readUInt32BigEndian(data: ByteArray): UInt {
+    var value = 0u
+    for (index in 0 until minOf(data.size, 4)) {
+        value = (value shl 8) or (data[index].toUInt() and 0xFFu)
+    }
+    return value
+}
+
+internal fun int32ToBigEndianBytes(value: Int): ByteArray {
+    return uint32ToBigEndianBytes(value.toUInt())
+}
+
+internal fun readInt32BigEndian(data: ByteArray): Int {
+    return readUInt32BigEndian(data).toInt()
 }

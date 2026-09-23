@@ -1,268 +1,222 @@
 package com.moblin.android.view.settings.display.localoverlays
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.DirectionsWalk
-import androidx.compose.material.icons.filled.Dns
-import androidx.compose.material.icons.filled.GraphicEq
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Pets
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SettingsRemote
-import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material.icons.filled.VideogameAsset
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.Label
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.various.settings.SettingsShow
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocalOverlaysSettingsView(show: SettingsShow) {
-    val stream = show.stream
-    val cameras = show.cameras
-    val microphone = show.microphone
-    val zoom = show.zoom
-    val obsStatus = show.obsStatus
-    val events = show.events
-    val chat = show.chat
-    val viewers = show.viewers
-    val audioLevel = show.audioLevel
-    val systemMonitor = show.systemMonitor
-    val location = show.location
-    val ingests = show.ingests
-    val moblink = show.moblink
-    val remoteControl = show.remoteControl
-    val djiDevices = show.djiDevices
-    val gameController = show.gameController
-    val speed = show.speed
-    val uptime = show.uptime
-    val browserWidgets = show.browserWidgets
-    val bonding = show.bonding
-    val bondingRtts = show.bondingRtts
-    val catPrinter = show.catPrinter
-    val workoutDevice = show.workoutDevice
-    val zoomPresets = show.zoomPresets
+    val stream = binding({ show.stream }, { show.stream = it })
+    val cameras = binding({ show.cameras }, { show.cameras = it })
+    val microphone = binding({ show.microphone }, { show.microphone = it })
+    val zoom = binding({ show.zoom }, { show.zoom = it })
+    val obsStatus = binding({ show.obsStatus }, { show.obsStatus = it })
+    val events = binding({ show.events }, { show.events = it })
+    val chat = binding({ show.chat }, { show.chat = it })
+    val viewers = binding({ show.viewers }, { show.viewers = it })
+    val audioLevel = binding({ show.audioLevel }, { show.audioLevel = it })
+    val systemMonitor = binding({ show.systemMonitor }, { show.systemMonitor = it })
+    val location = binding({ show.location }, { show.location = it })
+    val ingests = binding({ show.ingests }, { show.ingests = it })
+    val moblink = binding({ show.moblink }, { show.moblink = it })
+    val remoteControl = binding({ show.remoteControl }, { show.remoteControl = it })
+    val djiDevices = binding({ show.djiDevices }, { show.djiDevices = it })
+    val gameController = binding({ show.gameController }, { show.gameController = it })
+    val speed = binding({ show.speed }, { show.speed = it })
+    val uptime = binding({ show.uptime }, { show.uptime = it })
+    val browserWidgets = binding({ show.browserWidgets }, { show.browserWidgets = it })
+    val bonding = binding({ show.bonding }, { show.bonding = it })
+    val bondingRtts = binding({ show.bondingRtts }, { show.bondingRtts = it })
+    val catPrinter = binding({ show.catPrinter }, { show.catPrinter = it })
+    val workoutDevice = binding({ show.workoutDevice }, { show.workoutDevice = it })
+    val zoomPresets = binding({ show.zoomPresets }, { show.zoomPresets = it })
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Local overlays") })
-        },
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-        ) {
-            item {
-                Text(
-                    "Top left",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+    Form(title = "Local overlays") {
+        Section(header = "Top left") {
+            Toggle(isOn = stream.value, onChange = { stream.value = it }) {
+                Label(
+                    "Stream",
+                    systemImage = "dot.radiowaves.left.and.right",
+                    modifier = Modifier.weight(1f),
                 )
             }
-            item {
-                LocalOverlayToggle("Stream", Icons.Default.PlayArrow, stream) {
-                    show.stream = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Camera", Icons.Default.CameraAlt, cameras) {
-                    show.cameras = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Mic", Icons.Default.Mic, microphone) {
-                    show.microphone = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Zoom", Icons.Default.Search, zoom) {
-                    show.zoom = it
-                }
-            }
-            item {
-                LocalOverlayToggle("OBS remote control", Icons.Default.Dns, obsStatus) {
-                    show.obsStatus = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Events (alerts)", Icons.Default.Notifications, events) {
-                    show.events = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Chat", Icons.Default.Chat, chat) {
-                    show.chat = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Viewers", Icons.Default.Visibility, viewers) {
-                    show.viewers = it
-                }
-            }
-            item {
-                Text(
-                    "Top right",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            Toggle(isOn = cameras.value, onChange = { cameras.value = it }) {
+                Label(
+                    "Camera",
+                    systemImage = "camera",
+                    modifier = Modifier.weight(1f),
                 )
             }
-            item {
-                LocalOverlayToggle("Audio level", Icons.Default.GraphicEq, audioLevel) {
-                    show.audioLevel = it
-                }
-            }
-            item {
-                LocalOverlayToggle("System monitor", Icons.Default.Memory, systemMonitor) {
-                    show.systemMonitor = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Location", Icons.Default.LocationOn, location) {
-                    show.location = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Ingests", Icons.Default.Storage, ingests) {
-                    show.ingests = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Moblink", Icons.Default.Link, moblink) {
-                    show.moblink = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Remote control", Icons.Default.SettingsRemote, remoteControl) {
-                    show.remoteControl = it
-                }
-            }
-            item {
-                LocalOverlayToggle("DJI devices", Icons.Default.SettingsRemote, djiDevices) {
-                    show.djiDevices = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Game controllers", Icons.Default.VideogameAsset, gameController) {
-                    show.gameController = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Bitrate", Icons.Default.Speed, speed) {
-                    show.speed = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Uptime", Icons.Default.AccessTime, uptime) {
-                    show.uptime = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Browser widgets", Icons.Default.Public, browserWidgets) {
-                    show.browserWidgets = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Bonding", Icons.Default.Phone, bonding) {
-                    show.bonding = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Bonding RTTs", Icons.Default.Phone, bondingRtts) {
-                    show.bondingRtts = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Cat printers", Icons.Default.Pets, catPrinter) {
-                    show.catPrinter = it
-                }
-            }
-            item {
-                LocalOverlayToggle("Workout devices", Icons.Default.DirectionsWalk, workoutDevice) {
-                    show.workoutDevice = it
-                }
-            }
-            item {
-                Text(
-                    "Bottom right",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            Toggle(isOn = microphone.value, onChange = { microphone.value = it }) {
+                Label(
+                    "Mic",
+                    systemImage = "music.mic",
+                    modifier = Modifier.weight(1f),
                 )
             }
-            item {
-                LocalOverlayToggle("Zoom presets", Icons.Default.Search, zoomPresets) {
-                    show.zoomPresets = it
-                }
-            }
-            item {
-                Text(
-                    "",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(horizontal = 16.dp),
+            Toggle(isOn = zoom.value, onChange = { zoom.value = it }) {
+                Label(
+                    "Zoom",
+                    systemImage = "magnifyingglass",
+                    modifier = Modifier.weight(1f),
                 )
             }
-            item {
-                Text(
-                    "Local overlays do not appear on stream.",
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            Toggle(isOn = obsStatus.value, onChange = { obsStatus.value = it }) {
+                Label(
+                    "OBS remote control",
+                    systemImage = "xserve",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = events.value, onChange = { events.value = it }) {
+                Label(
+                    "Events (alerts)",
+                    systemImage = "megaphone",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = chat.value, onChange = { chat.value = it }) {
+                Label(
+                    "Chat",
+                    systemImage = "message",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = viewers.value, onChange = { viewers.value = it }) {
+                Label(
+                    "Viewers",
+                    systemImage = "eye",
+                    modifier = Modifier.weight(1f),
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun LocalOverlayToggle(
-    title: String,
-    icon: ImageVector,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(icon, contentDescription = null)
-        Spacer(Modifier.width(16.dp))
-        Text(title, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Section(header = "Top right") {
+            Toggle(isOn = audioLevel.value, onChange = { audioLevel.value = it }) {
+                Label(
+                    "Audio level",
+                    systemImage = "waveform",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = systemMonitor.value, onChange = { systemMonitor.value = it }) {
+                Label(
+                    "System monitor",
+                    systemImage = "cpu",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = location.value, onChange = { location.value = it }) {
+                Label(
+                    "Location",
+                    systemImage = "location",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = ingests.value, onChange = { ingests.value = it }) {
+                Label(
+                    "Ingests",
+                    systemImage = "server.rack",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = moblink.value, onChange = { moblink.value = it }) {
+                Label(
+                    "Moblink",
+                    systemImage = "app.connected.to.app.below.fill",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = remoteControl.value, onChange = { remoteControl.value = it }) {
+                Label(
+                    "Remote control",
+                    systemImage = "appletvremote.gen1",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = djiDevices.value, onChange = { djiDevices.value = it }) {
+                Label(
+                    "DJI devices",
+                    systemImage = "appletvremote.gen1",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = gameController.value, onChange = { gameController.value = it }) {
+                Label(
+                    "Game controllers",
+                    systemImage = "gamecontroller",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = speed.value, onChange = { speed.value = it }) {
+                Label(
+                    "Bitrate",
+                    systemImage = "speedometer",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = uptime.value, onChange = { uptime.value = it }) {
+                Label(
+                    "Uptime",
+                    systemImage = "deskclock",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = browserWidgets.value, onChange = { browserWidgets.value = it }) {
+                Label(
+                    "Browser widgets",
+                    systemImage = "globe",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = bonding.value, onChange = { bonding.value = it }) {
+                Label(
+                    "Bonding",
+                    systemImage = "phone.connection",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = bondingRtts.value, onChange = { bondingRtts.value = it }) {
+                Label(
+                    "Bonding RTTs",
+                    systemImage = "phone.connection",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = catPrinter.value, onChange = { catPrinter.value = it }) {
+                Label(
+                    "Cat printers",
+                    systemImage = "pawprint",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Toggle(isOn = workoutDevice.value, onChange = { workoutDevice.value = it }) {
+                Label(
+                    "Workout devices",
+                    systemImage = "figure.walk.motion",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+        Section(
+            header = "Bottom right",
+            footerContent = {
+                Text("")
+                Text("Local overlays do not appear on stream.")
+            },
+        ) {
+            Toggle(isOn = zoomPresets.value, onChange = { zoomPresets.value = it }) {
+                Label(
+                    "Zoom presets",
+                    systemImage = "magnifyingglass",
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
     }
 }

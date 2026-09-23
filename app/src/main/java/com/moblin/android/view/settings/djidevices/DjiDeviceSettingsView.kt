@@ -1,49 +1,17 @@
 package com.moblin.android.view.settings.djidevices
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.HelpOutline
-import androidx.compose.material.icons.filled.Smartphone
-import androidx.compose.material.icons.filled.Wifi
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.formatBytesPerSecond
 import com.moblin.android.common.various.personalHotspotLocalAddress
 import com.moblin.android.common.various.urlImage
@@ -52,6 +20,14 @@ import com.moblin.android.integrations.dji.djidevice.DjiDeviceState
 import com.moblin.android.integrations.dji.djidevice.canStartLive
 import com.moblin.android.localized
 import com.moblin.android.media.rtmpserver.rtmpServerApp
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormButton
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.model.StatusTopRight
@@ -73,12 +49,13 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
-import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.view.utils.contextMenuDeleteButton
 import java.util.UUID
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.setCurrentDjiDevice
+import com.moblin.android.various.model.startDjiDeviceLiveStream
+import com.moblin.android.various.model.stopDjiDeviceLiveStream
 
 fun rtmpServerStreamUrl(address: String, port: Int, streamKey: String): String {
     return "rtmp://$address:$port$rtmpServerApp/$streamKey"
@@ -120,24 +97,13 @@ private fun ColumnScope.DjiDeviceSelectDeviceSettingsView(
         device.model = djiDevice.model
     }
 
-    Text(
-        text = "Device",
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp),
-    )
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = !isStarted) {
-                onNavigate("DjiDeviceScannerSettingsView")
-            }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        GrayTextView(
-            text = bluetoothPeripheralName ?: localized("Select device"),
-        )
+    Section(header = "Device") {
+        FormRow(
+            onClick = { onNavigate("DjiDeviceScannerSettingsView") },
+            enabled = !isStarted,
+        ) {
+            GrayTextView(text = bluetoothPeripheralName ?: localized("Select device"))
+        }
     }
 }
 
@@ -150,40 +116,22 @@ private fun ColumnScope.DjiDeviceWiFiSettingsView(
     val isStarted = device.isStarted
     val wifiSsid = device.wifiSsid
 
-    Text(
-        text = "WiFi",
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp),
-    )
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = !isStarted) {
-                onNavigate("DjiDeviceWiFiSettingsInnerView")
-            }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Section(
+        header = "WiFi",
+        footer = "The DJI device will connect to and stream RTMP over this WiFi.",
     ) {
-        TextItemLocalizedView(name = "Network", value = wifiSsid)
+        FormRow(
+            onClick = { onNavigate("DjiDeviceWiFiSettingsInnerView") },
+            enabled = !isStarted,
+        ) {
+            TextItemLocalizedView(name = "Network", value = wifiSsid)
+        }
+        if (wifiSsid.isEmpty()) {
+            Text(localized("⚠️ Enter the SSID of the network the DJI device should connect to."))
+        }
     }
-    if (wifiSsid.isEmpty()) {
-        Text(
-            text = "⚠️ Enter the SSID of the network the DJI device should connect to.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
-        )
-    }
-    Text(
-        text = "The DJI device will connect to and stream RTMP over this WiFi.",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
-    )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DjiDeviceWiFiSettingsInnerView(
     database: Database,
@@ -195,16 +143,16 @@ private fun DjiDeviceWiFiSettingsInnerView(
     val savedWifiNetworks = database.savedWifiNetworks
 
     fun updateSavedNetworks() {
-        if (wifiSsid.isEmpty()) {
+        if (device.wifiSsid.isEmpty()) {
             return
         }
-        val network = database.getSavedWiFiNetwork(wifiSsid)
+        val network = database.getSavedWiFiNetwork(device.wifiSsid)
         if (network != null) {
-            network.password = wifiPassword
+            network.password = device.wifiPassword
         } else {
             val newNetwork = SettingsWiFi()
-            newNetwork.ssid = wifiSsid
-            newNetwork.password = wifiPassword
+            newNetwork.ssid = device.wifiSsid
+            newNetwork.password = device.wifiPassword
             database.savedWifiNetworks =
                 (database.savedWifiNetworks + newNetwork).toMutableList()
         }
@@ -214,79 +162,48 @@ private fun DjiDeviceWiFiSettingsInnerView(
         updateSavedNetworks()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("WiFi") })
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        ) {
-            Text(
-                text = "Network",
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp),
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onNavigate("WiFiSsidEditView") }
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+    Form(title = "WiFi") {
+        Section(header = "Network") {
+            FormRow(onClick = { onNavigate("WiFiSsidEditView") }) {
                 TextItemLocalizedView(name = "SSID", value = wifiSsid)
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onNavigate("TextEditView") }
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            FormRow(onClick = { onNavigate("TextEditView") }) {
                 TextItemLocalizedView(name = "Password", value = wifiPassword, sensitive = true)
             }
-            if (savedWifiNetworks.isNotEmpty()) {
-                Text(
-                    text = "Saved networks",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp),
-                )
+        }
+        if (savedWifiNetworks.isNotEmpty()) {
+            Section(
+                header = "Saved networks",
+                footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a network")) },
+            ) {
                 savedWifiNetworks.forEach { network ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
+                    Box(
+                        modifier = Modifier.contextMenuDeleteButton {
+                            database.savedWifiNetworks = database.savedWifiNetworks
+                                .filterNot { it.ssid == network.ssid }
+                                .toMutableList()
+                        },
+                    ) {
+                        FormRow(
+                            onClick = {
                                 device.wifiSsid = network.ssid
                                 device.wifiPassword = network.password
-                            }
-                            .padding(start = 16.dp, top = 4.dp, bottom = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(network.ssid)
-                        Spacer(Modifier.weight(1f))
-                        if (wifiSsid == network.ssid && wifiPassword == network.password) {
-                            Icon(Icons.Default.Check, contentDescription = null, tint = Color.Blue)
-                        }
-                        IconButton(
-                            onClick = {
-                                database.savedWifiNetworks =
-                                    database.savedWifiNetworks
-                                        .filterNot {
-                                            it.ssid == network.ssid
-                                        }
-                                        .toMutableList()
                             },
                         ) {
-                            Icon(Icons.Default.Delete, contentDescription = null)
+                            Text(network.ssid)
+                            Spacer(Modifier.weight(1f))
+                            if (device.wifiSsid == network.ssid &&
+                                device.wifiPassword == network.password
+                            ) {
+                                SystemImage(
+                                    name = "checkmark",
+                                    fontSize = 17.sp,
+                                    tint = formPalette().accent,
+                                )
+                            }
                         }
                     }
                 }
-                SwipeLeftToDeleteHelpView(kind = localized("a network"))
             }
         }
     }
@@ -294,7 +211,6 @@ private fun DjiDeviceWiFiSettingsInnerView(
 
 private data class RtmpUrlAndImage(val url: String, val image: String)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ColumnScope.DjiDeviceRtmpSettingsView(
     model: Model,
@@ -311,13 +227,10 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
     val rtmpServerStreams = rtmpServer.streams
     val rtmpServerEnabled = rtmpServer.enabled
     val ipStatuses by status.ipStatuses.collectAsState()
-    var typeMenuExpanded by remember { mutableStateOf(false) }
-    var streamMenuExpanded by remember { mutableStateOf(false) }
-    var urlMenuExpanded by remember { mutableStateOf(false) }
 
     fun serverUrls(): List<RtmpUrlAndImage> {
-        val streamKey = rtmpServer.streams
-            .firstOrNull { it.id == device.serverRtmpStreamId }?.streamKey ?: return emptyList()
+        val streamKey = rtmpServerStreams.firstOrNull { it.id == serverRtmpStreamId }?.streamKey
+            ?: return emptyList()
         val serverUrls = mutableListOf<RtmpUrlAndImage>()
         for (ipStatus in ipStatuses.filter { it.ipType.toString() == "ipv4" }) {
             serverUrls.add(
@@ -354,14 +267,14 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
             )
         }
         if (serverRtmpUrl != null && serverUrls.none { it.url == serverRtmpUrl }) {
-            serverUrls.add(0, RtmpUrlAndImage(serverRtmpUrl, "questionmark"))
+            serverUrls.add(0, RtmpUrlAndImage(url = serverRtmpUrl, image = "questionmark"))
         }
         return serverUrls
     }
 
     fun automaticServerRtmpUrl(): String? {
-        val streamKey = rtmpServer.streams
-            .firstOrNull { it.id == device.serverRtmpStreamId }?.streamKey ?: return null
+        val streamKey = rtmpServerStreams.firstOrNull { it.id == serverRtmpStreamId }?.streamKey
+            ?: return null
         val ipStatus = ipStatuses.firstOrNull { it.ipType.toString() == "ipv4" } ?: return null
         return rtmpServerStreamUrl(
             ipStatus.ipType.formatAddress(ipStatus.ip),
@@ -372,183 +285,73 @@ private fun ColumnScope.DjiDeviceRtmpSettingsView(
 
     LaunchedEffect(Unit) {
         val streams = rtmpServer.streams
-        if (streams.isNotEmpty()) {
-            if (streams.none { it.id == device.serverRtmpStreamId }) {
-                device.serverRtmpStreamId = streams.first().id
-            }
+        if (streams.isNotEmpty() && streams.none { it.id == device.serverRtmpStreamId }) {
+            device.serverRtmpStreamId = streams.first().id
         }
-    }
-    LaunchedEffect(serverRtmpStreamId) {
-        device.serverRtmpUrl = null
     }
 
-    Text(
-        text = "RTMP",
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp),
-    )
-    ExposedDropdownMenuBox(
-        expanded = typeMenuExpanded,
-        onExpandedChange = { if (!isStarted) typeMenuExpanded = it },
+    Section(
+        header = "RTMP",
+        footer = "Select ${localized("Server")} if you want the DJI camera to stream to " +
+            "Moblin's RTMP server on this device. Select ${localized("Custom")} to make the " +
+            "DJI camera stream to any destination.",
     ) {
-        OutlinedTextField(
-            value = rtmpUrlType.toString(),
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Type") },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeMenuExpanded)
-            },
-            modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
+        Picker(
+            title = "Type",
+            selection = rtmpUrlType,
+            options = SettingsDjiDeviceUrlType.entries,
+            enabled = !isStarted,
+            text = { it.toString() },
+            onChange = { device.rtmpUrlType = it },
         )
-        ExposedDropdownMenu(
-            expanded = typeMenuExpanded,
-            onDismissRequest = { typeMenuExpanded = false },
-        ) {
-            SettingsDjiDeviceUrlType.entries.forEach { type ->
-                DropdownMenuItem(
-                    text = { Text(type.toString()) },
-                    onClick = {
-                        device.rtmpUrlType = type
-                        typeMenuExpanded = false
+        if (rtmpUrlType == SettingsDjiDeviceUrlType.server) {
+            if (rtmpServerStreams.isEmpty()) {
+                Text(localized("No RTMP server streams exists"))
+            } else {
+                Picker(
+                    title = "Stream",
+                    selection = serverRtmpStreamId,
+                    options = (listOf(serverRtmpStreamId) + rtmpServerStreams.map { it.id })
+                        .distinct(),
+                    enabled = !isStarted,
+                    text = { id -> rtmpServerStreams.firstOrNull { it.id == id }?.name ?: "" },
+                    onChange = { id ->
+                        device.serverRtmpStreamId = id
+                        device.serverRtmpUrl = null
                     },
                 )
+                Picker(
+                    title = "URL",
+                    selection = serverRtmpUrl,
+                    options = listOf<String?>(null) + serverUrls().map { it.url },
+                    enabled = !isStarted,
+                    text = { it ?: (automaticServerRtmpUrl() ?: "") },
+                    onChange = { device.serverRtmpUrl = it },
+                )
+                if (serverRtmpUrl == null && !status.isConnectedToIpv4WiFi()) {
+                    Text(localized("⚠️ Not connected to an IPv4 WiFi network."))
+                }
+                if (!rtmpServerEnabled) {
+                    Text(localized("⚠️ The RTMP server is not enabled"))
+                }
+            }
+        } else if (rtmpUrlType == SettingsDjiDeviceUrlType.custom) {
+            TextEditNavigationView(
+                title = localized("URL"),
+                value = customRtmpUrl,
+                onSubmit = { device.customRtmpUrl = it },
+                onNavigate = onNavigate,
+            )
+            if (customRtmpUrl.isEmpty()) {
+                Text(localized("⚠️ Enter the URL the DJI device should stream to."))
             }
         }
     }
-    if (rtmpUrlType == SettingsDjiDeviceUrlType.server) {
-        if (rtmpServerStreams.isEmpty()) {
-            Text(
-                text = "No RTMP server streams exists",
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
-            )
-        } else {
-            ExposedDropdownMenuBox(
-                expanded = streamMenuExpanded,
-                onExpandedChange = { if (!isStarted) streamMenuExpanded = it },
-            ) {
-                OutlinedTextField(
-                    value = rtmpServerStreams.firstOrNull { it.id == serverRtmpStreamId }?.name ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Stream") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = streamMenuExpanded)
-                    },
-                    modifier = Modifier
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                )
-                ExposedDropdownMenu(
-                    expanded = streamMenuExpanded,
-                    onDismissRequest = { streamMenuExpanded = false },
-                ) {
-                    rtmpServerStreams.forEach { stream ->
-                        DropdownMenuItem(
-                            text = { Text(stream.name) },
-                            onClick = {
-                                device.serverRtmpStreamId = stream.id
-                                streamMenuExpanded = false
-                            },
-                        )
-                    }
-                }
-            }
-            ExposedDropdownMenuBox(
-                expanded = urlMenuExpanded,
-                onExpandedChange = { if (!isStarted) urlMenuExpanded = it },
-            ) {
-                OutlinedTextField(
-                    value = serverRtmpUrl ?: automaticServerRtmpUrl() ?: "",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("URL") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = urlMenuExpanded)
-                    },
-                    modifier = Modifier
-                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
-                )
-                ExposedDropdownMenu(
-                    expanded = urlMenuExpanded,
-                    onDismissRequest = { urlMenuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Wifi, contentDescription = null)
-                                Spacer(Modifier.width(8.dp))
-                                Text(automaticServerRtmpUrl() ?: "")
-                            }
-                        },
-                        onClick = {
-                            device.serverRtmpUrl = null
-                            urlMenuExpanded = false
-                        },
-                    )
-                    serverUrls().forEach { item ->
-                        DropdownMenuItem(
-                            text = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(urlIcon(item.image), contentDescription = null)
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(item.url)
-                                }
-                            },
-                            onClick = {
-                                device.serverRtmpUrl = item.url
-                                urlMenuExpanded = false
-                            },
-                        )
-                    }
-                }
-            }
-            if (serverRtmpUrl == null && !status.isConnectedToIpv4WiFi()) {
-                Text(
-                    text = "⚠️ Not connected to an IPv4 WiFi network.",
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
-                )
-            }
-            if (!rtmpServerEnabled) {
-                Text(
-                    text = "⚠️ The RTMP server is not enabled",
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
-                )
-            }
-        }
-    } else if (rtmpUrlType == SettingsDjiDeviceUrlType.custom) {
-        TextEditNavigationView(
-            title = localized("URL"),
-            value = customRtmpUrl,
-            onSubmit = { device.customRtmpUrl = it },
-            onNavigate = onNavigate,
-        )
-        if (customRtmpUrl.isEmpty()) {
-            Text(
-                text = "⚠️ Enter the URL the DJI device should stream to.",
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 4.dp),
-            )
-        }
-    }
-    Text(
-        text = "Select ${localized("Server")} if you want the DJI camera to stream to Moblin's RTMP server on this device. Select ${localized("Custom")} to make the DJI camera stream to any destination.",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
-    )
     ShortcutSectionView {
         RtmpServerSettingsView(rtmpServer = rtmpServer)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ColumnScope.DjiDeviceSettingsSettingsView(device: SettingsDjiDevice) {
     val isStarted = device.isStarted
@@ -558,211 +361,67 @@ private fun ColumnScope.DjiDeviceSettingsSettingsView(device: SettingsDjiDevice)
     val fps = device.fps
     val videoCodec = device.videoCodec
     val model = device.model
-    var resolutionMenuExpanded by remember { mutableStateOf(false) }
-    var bitrateMenuExpanded by remember { mutableStateOf(false) }
-    var imageStabilizationMenuExpanded by remember { mutableStateOf(false) }
-    var fpsMenuExpanded by remember { mutableStateOf(false) }
-    var videoCodecMenuExpanded by remember { mutableStateOf(false) }
 
-    Text(
-        text = "Settings",
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 4.dp),
-    )
-    ExposedDropdownMenuBox(
-        expanded = resolutionMenuExpanded,
-        onExpandedChange = { if (!isStarted) resolutionMenuExpanded = it },
-    ) {
-        OutlinedTextField(
-            value = resolution.rawValue,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Resolution") },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = resolutionMenuExpanded)
-            },
-            modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
+    Section(header = "Settings", footer = "High bitrates may be unstable.") {
+        Picker(
+            title = "Resolution",
+            selection = resolution,
+            options = SettingsDjiDeviceResolution.entries,
+            enabled = !isStarted,
+            text = { it.rawValue },
+            onChange = { device.resolution = it },
         )
-        ExposedDropdownMenu(
-            expanded = resolutionMenuExpanded,
-            onDismissRequest = { resolutionMenuExpanded = false },
-        ) {
-            SettingsDjiDeviceResolution.entries.forEach { value ->
-                DropdownMenuItem(
-                    text = { Text(value.rawValue) },
-                    onClick = {
-                        device.resolution = value
-                        resolutionMenuExpanded = false
-                    },
-                )
-            }
-        }
-    }
-    ExposedDropdownMenuBox(
-        expanded = bitrateMenuExpanded,
-        onExpandedChange = { if (!isStarted) bitrateMenuExpanded = it },
-    ) {
-        OutlinedTextField(
-            value = formatBytesPerSecond(bitrate.toLong()),
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Bitrate") },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = bitrateMenuExpanded)
-            },
-            modifier = Modifier
-                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
+        Picker(
+            title = "Bitrate",
+            selection = bitrate,
+            options = djiDeviceBitrates,
+            enabled = !isStarted,
+            text = { formatBytesPerSecond(it.toLong()) },
+            onChange = { device.bitrate = it },
         )
-        ExposedDropdownMenu(
-            expanded = bitrateMenuExpanded,
-            onDismissRequest = { bitrateMenuExpanded = false },
-        ) {
-            djiDeviceBitrates.forEach { value ->
-                DropdownMenuItem(
-                    text = { Text(formatBytesPerSecond(value.toLong())) },
-                    onClick = {
-                        device.bitrate = value
-                        bitrateMenuExpanded = false
-                    },
-                )
-            }
-        }
-    }
-    if (model.hasImageStabilization()) {
-        ExposedDropdownMenuBox(
-            expanded = imageStabilizationMenuExpanded,
-            onExpandedChange = { if (!isStarted) imageStabilizationMenuExpanded = it },
-        ) {
-            OutlinedTextField(
-                value = imageStabilization.toString(),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Image stabilization") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(
-                        expanded = imageStabilizationMenuExpanded,
-                    )
-                },
-                modifier = Modifier
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+        if (model.hasImageStabilization()) {
+            Picker(
+                title = "Image stabilization",
+                selection = imageStabilization,
+                options = SettingsDjiDeviceImageStabilization.entries,
+                enabled = !isStarted,
+                text = { it.toString() },
+                onChange = { device.imageStabilization = it },
             )
-            ExposedDropdownMenu(
-                expanded = imageStabilizationMenuExpanded,
-                onDismissRequest = { imageStabilizationMenuExpanded = false },
-            ) {
-                SettingsDjiDeviceImageStabilization.entries.forEach { value ->
-                    DropdownMenuItem(
-                        text = { Text(value.toString()) },
-                        onClick = {
-                            device.imageStabilization = value
-                            imageStabilizationMenuExpanded = false
-                        },
-                    )
-                }
-            }
         }
-    }
-    if (model == SettingsDjiDeviceModel.osmoPocket3 || model == SettingsDjiDeviceModel.osmoPocket4) {
-        ExposedDropdownMenuBox(
-            expanded = fpsMenuExpanded,
-            onExpandedChange = { if (!isStarted) fpsMenuExpanded = it },
+        if (model == SettingsDjiDeviceModel.osmoPocket3 ||
+            model == SettingsDjiDeviceModel.osmoPocket4
         ) {
-            OutlinedTextField(
-                value = fps.toString(),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("FPS") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = fpsMenuExpanded)
-                },
-                modifier = Modifier
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
+            Picker(
+                title = "FPS",
+                selection = fps,
+                options = djiDeviceFpss,
+                enabled = !isStarted,
+                text = { it.toString() },
+                onChange = { device.fps = it },
             )
-            ExposedDropdownMenu(
-                expanded = fpsMenuExpanded,
-                onDismissRequest = { fpsMenuExpanded = false },
-            ) {
-                djiDeviceFpss.forEach { value ->
-                    DropdownMenuItem(
-                        text = { Text(value.toString()) },
-                        onClick = {
-                            device.fps = value
-                            fpsMenuExpanded = false
-                        },
-                    )
-                }
-            }
+        }
+        if (model.hasVideoCodec()) {
+            Picker(
+                title = "Video codec",
+                selection = videoCodec,
+                options = SettingsDjiDeviceVideoCodec.entries,
+                enabled = !isStarted,
+                text = { it.rawValue },
+                onChange = { device.videoCodec = it },
+            )
         }
     }
-    if (model.hasVideoCodec()) {
-        ExposedDropdownMenuBox(
-            expanded = videoCodecMenuExpanded,
-            onExpandedChange = { if (!isStarted) videoCodecMenuExpanded = it },
-        ) {
-            OutlinedTextField(
-                value = videoCodec.rawValue,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Video codec") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = videoCodecMenuExpanded)
-                },
-                modifier = Modifier
-                    .menuAnchor(MenuAnchorType.PrimaryNotEditable)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-            )
-            ExposedDropdownMenu(
-                expanded = videoCodecMenuExpanded,
-                onDismissRequest = { videoCodecMenuExpanded = false },
-            ) {
-                SettingsDjiDeviceVideoCodec.entries.forEach { value ->
-                    DropdownMenuItem(
-                        text = { Text(value.rawValue) },
-                        onClick = {
-                            device.videoCodec = value
-                            videoCodecMenuExpanded = false
-                        },
-                    )
-                }
-            }
-        }
-    }
-    Text(
-        text = "High bitrates may be unstable.",
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 16.dp),
-    )
 }
 
 @Composable
 private fun ColumnScope.DjiDeviceAutoRestartSettingsView(device: SettingsDjiDevice) {
-    val rtmpUrlType = device.rtmpUrlType
-    val autoRestartStream = device.autoRestartStream
-
-    if (rtmpUrlType == SettingsDjiDeviceUrlType.server) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("Auto-restart live stream when broken")
-            Spacer(Modifier.weight(1f))
-            Switch(
-                checked = autoRestartStream,
-                onCheckedChange = { device.autoRestartStream = it },
+    if (device.rtmpUrlType == SettingsDjiDeviceUrlType.server) {
+        Section {
+            Toggle(
+                title = "Auto-restart live stream when broken",
+                isOn = device.autoRestartStream,
+                onChange = { device.autoRestartStream = it },
             )
         }
     }
@@ -774,35 +433,25 @@ private fun ColumnScope.DjiDeviceStartStopButtonSettingsView(
     status: StatusOther,
     device: SettingsDjiDevice,
 ) {
-    val isStarted = device.isStarted
-
-    if (!isStarted) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        ) {
-            if (device.canStartLive(status.isConnectedToIpv4WiFi())) {
-                TextButtonView(title = "Start live stream") {
-                    Unit
-                }
+    if (!device.isStarted) {
+        Section {
+            FormButton(
+                title = "Start live stream",
+                centered = true,
+                enabled = device.canStartLive(status.isConnectedToIpv4WiFi()),
+            ) {
+                model.startDjiDeviceLiveStream(device)
             }
         }
     } else {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Blue)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        ) {
-            TextButtonView(title = "Stop live stream") {
-                Unit
+        Section {
+            FormButton(title = "Stop live stream", centered = true) {
+                model.stopDjiDeviceLiveStream(device)
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DjiDeviceSettingsView(
     model: Model = LocalModel.current,
@@ -820,56 +469,41 @@ fun DjiDeviceSettingsView(
     }
 
     LaunchedEffect(Unit) {
-        Unit
+        model.setCurrentDjiDevice(device)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("DJI device") })
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        ) {
+    Form(title = "DJI device") {
+        Section {
             NameEditView(
                 name = name,
                 onNameChange = { device.name = it },
                 existingNames = existingNames,
             )
-            DjiDeviceSelectDeviceSettingsView(device = device, onNavigate = onNavigate)
-            DjiDeviceWiFiSettingsView(
-                model = model,
-                device = device,
-                onNavigate = onNavigate,
-            )
-            DjiDeviceRtmpSettingsView(
-                model = model,
-                device = device,
-                status = model.statusOther,
-                rtmpServer = model.database.rtmpServer,
-                onNavigate = onNavigate,
-            )
-            DjiDeviceSettingsSettingsView(device = device)
-            DjiDeviceAutoRestartSettingsView(device = device)
+        }
+        DjiDeviceSelectDeviceSettingsView(device = device, onNavigate = onNavigate)
+        DjiDeviceWiFiSettingsView(
+            model = model,
+            device = device,
+            onNavigate = onNavigate,
+        )
+        DjiDeviceRtmpSettingsView(
+            model = model,
+            device = device,
+            status = model.statusOther,
+            rtmpServer = model.database.rtmpServer,
+            onNavigate = onNavigate,
+        )
+        DjiDeviceSettingsSettingsView(device = device)
+        DjiDeviceAutoRestartSettingsView(device = device)
+        Section {
             HCenter {
                 Text(state())
             }
-            DjiDeviceStartStopButtonSettingsView(
-                model = model,
-                status = model.statusOther,
-                device = device,
-            )
         }
-    }
-}
-
-private fun urlIcon(image: String): ImageVector {
-    return when (image) {
-        "personalhotspot" -> Icons.Default.Smartphone
-        "questionmark" -> Icons.Default.HelpOutline
-        else -> Icons.Default.Wifi
+        DjiDeviceStartStopButtonSettingsView(
+            model = model,
+            status = model.statusOther,
+            device = device,
+        )
     }
 }

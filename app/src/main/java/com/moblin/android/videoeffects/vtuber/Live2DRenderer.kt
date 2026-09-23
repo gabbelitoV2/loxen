@@ -1,6 +1,6 @@
 package com.moblin.android.videoeffects.vtuber
 
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 
 private val shaderSource = """
 #include <metal_stdlib>

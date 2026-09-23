@@ -7,7 +7,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PointF
 import android.graphics.RectF
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue

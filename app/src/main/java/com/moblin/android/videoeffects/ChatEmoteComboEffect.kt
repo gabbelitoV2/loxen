@@ -173,12 +173,12 @@ class ChatEmoteComboEffect(private val canvasSize: Size) : VideoEffect() {
         }
     }
 
-    override fun execute(image: android.media.Image, info: VideoEffectInfo): android.media.Image {
+    override fun execute(image: com.moblin.android.platform.video.CVPixelBuffer, info: VideoEffectInfo): com.moblin.android.platform.video.CVPixelBuffer {
         val comboImage = comboImage ?: return image
         TODO()
     }
 
-    override fun executeMetalPetal(image: android.media.Image, info: VideoEffectInfo): android.media.Image {
+    override fun executeMetalPetal(image: com.moblin.android.platform.video.CVPixelBuffer, info: VideoEffectInfo): com.moblin.android.platform.video.CVPixelBuffer {
         val comboImage = comboImage ?: return image
         TODO()
     }

@@ -1,0 +1,13 @@
+{
+  "task": "T3",
+  "hooks": [
+    {
+      "id": "G2",
+      "file": "*",
+      "op": "replace",
+      "old": "import com.moblin.android.various.utils.AVCaptureDevice",
+      "new": "import com.moblin.android.platform.avfoundation.AVCaptureDevice",
+      "occurrence": 1
+    }
+  ]
+}

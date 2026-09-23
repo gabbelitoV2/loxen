@@ -1,6 +1,6 @@
 package com.moblin.android.videoeffects.blur
 
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 
 class BlurFilter {
     var inputImage: Image? = null

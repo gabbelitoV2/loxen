@@ -2,16 +2,8 @@ package com.moblin.android.view.settings.scenes.widgets.widget.vtuber
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,13 +15,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.cameraIdToSettingsCameraId
+import com.moblin.android.various.model.getCameraId
+import com.moblin.android.various.model.getCameraPositionName
+import com.moblin.android.various.model.listCameras
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetVTuber
 import com.moblin.android.various.settings.SettingsWidgetVTuberType
 import com.moblin.android.view.settings.scenes.widgets.widget.pngtuber.WidgetSensitivityView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.InlinePickerItem
+import com.moblin.android.view.utils.InlinePickerView
 import com.moblin.android.view.utils.TextButtonView
 import java.io.File
 import java.util.UUID
@@ -37,8 +42,9 @@ import java.util.zip.ZipFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.getVTuberEffect
+import com.moblin.android.various.model.resetSelectedScene
+import com.moblin.android.various.model.sceneUpdated
 
 private fun unzipLive2DModel(from: String, to: File) {
     ZipFile(from).use { zip ->
@@ -75,7 +81,6 @@ private fun PickerView(model: Model = LocalModel.current) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetVTuberPickerView(
     model: Model = LocalModel.current,
@@ -120,25 +125,24 @@ fun WidgetVTuberPickerView(
         }
     }
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text("Model", style = MaterialTheme.typography.titleSmall)
-        TextButtonView(title = if (vTuber.modelName.isEmpty()) localized("Select model") else vTuber.modelName) {
+    Section(
+        header = localized("Model"),
+        footer = localized("Most VRM 0.0 files and zipped Live2D Cubism models are supported."),
+    ) {
+        TextButtonView(
+            title = if (vTuber.modelName.isEmpty()) localized("Select model") else vTuber.modelName,
+        ) {
             showPicker = true
             model.onDocumentPickerUrl = { url -> onUrl(url) }
         }
         if (showPicker) {
-            ModalBottomSheet(onDismissRequest = { showPicker = false }) {
-                PickerView()
+            Sheet(onDismissRequest = { showPicker = false }) {
+                PickerView(model = model)
             }
         }
-        Text(
-            "Most VRM 0.0 files and zipped Live2D Cubism models are supported.",
-            style = MaterialTheme.typography.bodySmall,
-        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetVTuberSettingsView(
     model: Model = LocalModel.current,
@@ -148,12 +152,20 @@ fun WidgetVTuberSettingsView(
     modifier: Modifier = Modifier,
 ) {
     fun onCameraChange(cameraId: String) {
-        vTuber.updateCameraId(settingsCameraId = TODO("model.cameraIdToSettingsCameraId is not available"))
-        Unit
+        vTuber.updateCameraId(
+            settingsCameraId = model.cameraIdToSettingsCameraId(cameraId = cameraId),
+        )
+        model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
     }
 
     fun setEffectSettings() {
-        Unit
+        model.getVTuberEffect(widget.id)?.setSettings(
+            cameraFieldOfView = vTuber.cameraFieldOfView,
+            cameraPositionY = vTuber.cameraPositionY,
+            mirror = vTuber.mirror,
+            sensitivity = vTuber.sensitivity,
+            armsAngle = vTuber.armsAngle,
+        )
     }
 
     var cameraPositionY by remember { mutableStateOf(vTuber.cameraPositionY) }
@@ -162,94 +174,98 @@ fun WidgetVTuberSettingsView(
     var sensitivity by remember { mutableStateOf(vTuber.sensitivity) }
     var armsAngle by remember { mutableStateOf(vTuber.armsAngle) }
 
-    Column(modifier = modifier.fillMaxWidth()) {
-        Text("Video source", style = MaterialTheme.typography.titleSmall)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("Video source") },
+    Section {
+        NavigationLink(
+            destination = {
+                InlinePickerView(
+                    title = localized("Video source"),
+                    onChange = { onCameraChange(it) },
+                    items = model.listCameras(excludeBuiltin = false).map {
+                        InlinePickerItem(id = it.id, text = it.name)
+                    },
+                    initialSelectedId = model.getCameraId(vTuberWidget = vTuber),
+                )
+            },
         ) {
-            Text("Video source")
+            Text(localized("Video source"))
             Spacer(Modifier.weight(1f))
-            GrayTextView(text = TODO("model.getCameraPositionName is not available"))
+            GrayTextView(text = model.getCameraPositionName(vTuberWidget = vTuber))
         }
+    }
 
-        WidgetVTuberPickerView(
-            model = model,
-            vTuber = vTuber,
-            onSelected = { TODO("model.resetSelectedScene is not available") },
-        )
+    WidgetVTuberPickerView(
+        model = model,
+        vTuber = vTuber,
+        onSelected = { model.resetSelectedScene(changeScene = false) },
+    )
 
-        if (vTuber.type == SettingsWidgetVTuberType.vrm) {
-            Text("Camera", style = MaterialTheme.typography.titleSmall)
-            Row {
-                Text("Vertical position")
-                Slider(
+    if (vTuber.type == SettingsWidgetVTuberType.vrm) {
+        Section(header = localized("Camera")) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(localized("Vertical position"))
+                FormSlider(
                     value = cameraPositionY.toFloat(),
                     onValueChange = {
                         cameraPositionY = it.toDouble()
                         vTuber.cameraPositionY = it.toDouble()
+                        setEffectSettings()
                     },
-                    valueRange = 1.0f..2.0f,
-                    steps = 99,
+                    modifier = Modifier.weight(1f),
+                    valueRange = 1f..2f,
                 )
             }
-            LaunchedEffect(cameraPositionY) { setEffectSettings() }
-            Row {
-                Text("Field of view")
-                Slider(
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(localized("Field of view"))
+                FormSlider(
                     value = cameraFieldOfView.toFloat(),
                     onValueChange = {
                         cameraFieldOfView = it.toDouble()
                         vTuber.cameraFieldOfView = it.toDouble()
+                        setEffectSettings()
                     },
-                    valueRange = 10.0f..30.0f,
-                    steps = 19,
+                    modifier = Modifier.weight(1f),
+                    valueRange = 10f..30f,
                 )
             }
-            LaunchedEffect(cameraFieldOfView) { setEffectSettings() }
         }
+    }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("Mirror")
-            Spacer(Modifier.weight(1f))
-            Switch(
-                checked = mirror,
-                onCheckedChange = {
-                    mirror = it
-                    vTuber.mirror = it
-                },
-            )
-        }
-        LaunchedEffect(mirror) { setEffectSettings() }
-
-        WidgetSensitivityView(
-            sensitivity = sensitivity,
+    Section {
+        Toggle(
+            title = localized("Mirror"),
+            isOn = mirror,
             onChange = {
-                sensitivity = it
-                vTuber.sensitivity = it
+                mirror = it
+                vTuber.mirror = it
+                setEffectSettings()
             },
         )
-        LaunchedEffect(sensitivity) { setEffectSettings() }
+    }
 
-        if (vTuber.type == SettingsWidgetVTuberType.vrm) {
-            Text("Angles", style = MaterialTheme.typography.titleSmall)
-            Row {
-                Text("Arms")
-                Slider(
+    WidgetSensitivityView(
+        sensitivity = sensitivity,
+        onChange = {
+            sensitivity = it
+            vTuber.sensitivity = it
+            setEffectSettings()
+        },
+    )
+
+    if (vTuber.type == SettingsWidgetVTuberType.vrm) {
+        Section(header = localized("Angles")) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(localized("Arms"))
+                FormSlider(
                     value = armsAngle.toFloat(),
                     onValueChange = {
                         armsAngle = it.toDouble()
                         vTuber.armsAngle = it.toDouble()
+                        setEffectSettings()
                     },
-                    valueRange = 20.0f..90.0f,
-                    steps = 69,
+                    modifier = Modifier.weight(1f),
+                    valueRange = 20f..90f,
                 )
             }
-            LaunchedEffect(armsAngle) { setEffectSettings() }
         }
     }
 }

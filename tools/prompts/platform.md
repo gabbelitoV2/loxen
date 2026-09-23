@@ -4,8 +4,8 @@ This file uses platform services that have Android counterparts. Use the counter
 
 - CoreBluetooth CBCentralManager and CBPeripheral -> android.bluetooth.BluetoothAdapter, BluetoothLeScanner, BluetoothGatt, BluetoothGattCallback. Characteristic UUIDs stay the same.
 - CoreLocation CLLocationManager -> android.location.LocationManager with requestLocationUpdates. Do not add Google Play Services dependencies.
-- Network.framework -> java.net sockets on Dispatchers.IO. NWPathMonitor -> android.net.ConnectivityManager.NetworkCallback.
+- Network.framework (NWConnection, NWListener, NWPathMonitor, NWPath, NWParameters, NWEndpoint, NWInterface, NWProtocolTLS, NWProtocolUDP) -> the same-named shims in com.moblin.android.platform.network (see Platform API and the shim sections). Keep the Swift handlers and calls; never use java.net sockets or Dispatchers.IO for them.
 - GameController -> android.view.InputDevice with KeyEvent and MotionEvent handling delegated to the Activity.
 - Speech SFSpeechRecognizer -> android.speech.SpeechRecognizer.
 - CoreHaptics -> android.os.Vibrator.
-- libsrt C API -> keep the same method names on a class that calls a SrtNative object with external fun declarations and a companion System.loadLibrary("srt").
+- libsrt C API -> import com.moblin.android.platform.srt.SrtNative and call its functions and constants by their C names (see Platform API and the shim sections); never declare SrtNative, external functions or System.loadLibrary.

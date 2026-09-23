@@ -1,7 +1,7 @@
 package com.moblin.android.view.utils
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import com.moblin.android.platform.swiftui.formPalette
 
 @Composable
 fun TextValueView(
@@ -13,6 +13,6 @@ fun TextValueView(
         name = name,
         value = value,
         sensitive = sensitive,
-        color = MaterialTheme.colorScheme.onSurface,
+        color = formPalette().label,
     )
 }

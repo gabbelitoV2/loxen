@@ -4,13 +4,14 @@ import android.media.MediaFormat
 import android.util.Log
 import com.moblin.android.media.haishinkit.util.ByteReader
 import java.nio.ByteBuffer
+import com.moblin.android.common.various.atoms
 
 class MpegTsVideoConfigAvc {
     companion object {
         private const val TAG = "MpegTsVideoConfigAvc"
 
         fun getAvcC(formatDescription: MediaFormat): ByteArray? {
-            return null
+            return formatDescription.atoms()?.get("avcC")
         }
 
         fun fromFormatDescription(formatDescription: MediaFormat): MpegTsVideoConfigAvc? {

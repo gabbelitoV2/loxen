@@ -1,50 +1,44 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.alerts
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormButton
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.AudioPlayer
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsAlertsMediaGallery
 import com.moblin.android.various.settings.SettingsAlertsMediaGalleryItem
 import com.moblin.android.various.settings.SettingsWidgetAlertsAlert
-import com.moblin.android.various.settings.SettingsWidgetAlertsAlertMediaType
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import java.io.File
 import java.util.UUID
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 
 private fun loadSound(model: Model, soundId: UUID): AudioPlayer? {
     val bundledSound = model.database.alertsMediaGallery.bundledSounds.firstOrNull { it.id == soundId }
@@ -59,7 +53,6 @@ private fun loadSound(model: Model, soundId: UUID): AudioPlayer? {
     }.getOrNull()
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomSoundView(
     model: Model = LocalModel.current,
@@ -75,50 +68,34 @@ fun CustomSoundView(
         model.updateAlertsSettings()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Sound") })
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            item {
-                TextEditNavigationView(
-                    title = localized("Name"),
-                    value = media.name,
-                    onSubmit = { media.name = it },
-                )
-            }
-            item {
-                val player = audioPlayer
-                if (player != null) {
-                    TextButtonView("Play") {
-                        player.play()
-                    }
+    Form(title = "Sound") {
+        Section {
+            TextEditNavigationView(
+                title = localized("Name"),
+                value = media.name,
+                onSubmit = { media.name = it },
+            )
+        }
+        Section {
+            val player = audioPlayer
+            if (player != null) {
+                TextButtonView("Play") {
+                    player.play()
                 }
             }
-            item {
-                TextButton(
-                    onClick = {
-                        showPicker = true
-                        model.onDocumentPickerUrl = { url -> onUrl(url) }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(
-                        if (audioPlayer != null) "Select another sound" else "Select sound",
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center,
-                    )
-                }
+        }
+        Section {
+            FormButton(
+                title = if (audioPlayer != null) "Select another sound" else "Select sound",
+                centered = true,
+            ) {
+                showPicker = true
+                model.onDocumentPickerUrl = { url -> onUrl(url) }
             }
         }
     }
     if (showPicker) {
-        ModalBottomSheet(onDismissRequest = { showPicker = false }) {
+        Sheet(onDismissRequest = { showPicker = false }) {
             AlertPickerView(type = "audio")
         }
     }
@@ -130,18 +107,19 @@ fun SoundGalleryItemView(
     sound: SettingsAlertsMediaGalleryItem,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Text(
-        sound.name,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable {
-                onNavigate("CustomSoundView/${sound.id}")
-            }
-            .padding(vertical = 8.dp),
-    )
+    NavigationLink(
+        destination = {
+            CustomSoundView(
+                model = model,
+                media = sound,
+                initialAudioPlayer = remember(sound.id) { loadSound(model, sound.id) },
+            )
+        },
+    ) {
+        Text(sound.name)
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SoundGalleryView(
     model: Model = LocalModel.current,
@@ -161,21 +139,13 @@ fun SoundGalleryView(
         onSoundIdChange(alert.soundId)
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("My sounds") })
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            item {
-                gallery.customSounds.forEach { sound ->
+    Form(title = "My sounds") {
+        Section(footerContent = { SwipeLeftToDeleteHelpView(localized("a sound")) }) {
+            gallery.customSounds.forEach { sound ->
+                key(sound.id) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Box(modifier = Modifier.weight(1f)) {
                             SoundGalleryItemView(
@@ -184,19 +154,22 @@ fun SoundGalleryView(
                                 onNavigate = onNavigate,
                             )
                         }
-                        IconButton(onClick = { deleteSound(sound) }) {
-                            Icon(Icons.Default.Delete, contentDescription = null)
-                        }
+                        SystemImage(
+                            name = "trash",
+                            fontSize = 17.sp,
+                            tint = formPalette().red,
+                            modifier = Modifier
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                ) { deleteSound(sound) }
+                                .padding(horizontal = 16.dp),
+                        )
                     }
                 }
             }
-            item {
-                TextButtonView("Add") {
-                    gallery.customSounds = gallery.customSounds + SettingsAlertsMediaGalleryItem(name = "My sound")
-                }
-            }
-            item {
-                SwipeLeftToDeleteHelpView(localized("a sound"))
+            TextButtonView("Add") {
+                gallery.customSounds = gallery.customSounds + SettingsAlertsMediaGalleryItem(name = "My sound")
             }
         }
     }
@@ -204,7 +177,6 @@ fun SoundGalleryView(
 
 private var player: AudioPlayer? = null
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertSoundSelectorView(
     model: Model = LocalModel.current,
@@ -214,51 +186,34 @@ fun AlertSoundSelectorView(
     onSoundIdChange: (UUID) -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Sound") })
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            item {
-                (gallery.bundledSounds + gallery.customSounds).forEach { sound ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSoundIdChange(sound.id) },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(
-                            selected = sound.id == soundId,
-                            onClick = { onSoundIdChange(sound.id) },
-                        )
-                        Text(sound.name)
-                        Spacer(modifier = Modifier.weight(1f))
-                        IconButton(
-                            onClick = {
-                                player = loadSound(model, sound.id)
-                                player?.play()
-                            },
-                        ) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = null)
-                        }
-                    }
-                }
-            }
-            item {
-                TextButton(onClick = { onNavigate("SoundGalleryView") }) {
-                    Text("My sounds")
-                }
+    val sounds = gallery.bundledSounds + gallery.customSounds
+
+    Form(title = "Sound") {
+        Section {
+            Picker(
+                title = "",
+                selection = soundId,
+                options = sounds.map { it.id },
+                text = { id -> sounds.firstOrNull { it.id == id }?.name ?: id.toString() },
+                onChange = { id ->
+                    onSoundIdChange(id)
+                    alert.soundId = id
+                    model.updateAlertsSettings()
+                },
+            )
+        }
+        Section {
+            NavigationLink(title = "My sounds") {
+                SoundGalleryView(
+                    model = model,
+                    gallery = gallery,
+                    alert = alert,
+                    soundId = soundId,
+                    onSoundIdChange = onSoundIdChange,
+                    onNavigate = onNavigate,
+                )
             }
         }
-    }
-    LaunchedEffect(soundId) {
-        alert.soundId = soundId
-        model.updateAlertsSettings()
     }
     DisposableEffect(Unit) {
         onDispose {

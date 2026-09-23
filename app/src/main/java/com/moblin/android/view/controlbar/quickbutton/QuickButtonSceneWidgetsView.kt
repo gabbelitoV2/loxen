@@ -1,11 +1,12 @@
 package com.moblin.android.view.controlbar.quickbutton
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.Switch
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import com.moblin.android.LocalModel
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.SceneSelector
 import com.moblin.android.various.settings.Database
@@ -21,7 +22,11 @@ import com.moblin.android.view.settings.scenes.widgets.widget.wheelofluck.Widget
 import com.moblin.android.view.utils.IconAndTextView
 import com.moblin.android.view.utils.ScenesShortcutView
 import com.moblin.android.view.utils.ShortcutSectionView
-import com.moblin.android.LocalModel
+import com.moblin.android.various.model.getBingoCardEffect
+import com.moblin.android.various.model.isCaptureDeviceWidget
+import com.moblin.android.various.model.reloadSpeechToText
+import com.moblin.android.various.model.sceneUpdated
+import com.moblin.android.various.model.widgetsInCurrentScene
 
 @Composable
 private fun WidgetView(
@@ -31,23 +36,30 @@ private fun WidgetView(
     sceneWidget: SettingsSceneWidget,
 ) {
     Column {
-        Row(
-            modifier = Modifier.clickable(onClick = {
-                Unit
-            }),
+        NavigationLink(
+            destination = {
+                SceneWidgetSettingsView(
+                    model = model,
+                    database = database,
+                    sceneWidget = sceneWidget,
+                    widget = widget,
+                )
+            },
         ) {
-            IconAndTextView(
-                image = widget.image(),
-                text = widget.name,
-                longDivider = true,
-            )
-            Switch(
-                checked = widget.enabled,
-                onCheckedChange = { enabled ->
+            Toggle(
+                isOn = widget.enabled,
+                onChange = { enabled ->
                     widget.enabled = enabled
-                    Unit
+                    model.reloadSpeechToText()
+                    model.sceneUpdated(attachCamera = model.isCaptureDeviceWidget(widget = widget))
                 },
-            )
+            ) {
+                IconAndTextView(
+                    image = widget.image(),
+                    text = widget.name,
+                    longDivider = true,
+                )
+            }
         }
         when (widget.type) {
             SettingsWidgetType.text ->
@@ -63,7 +75,7 @@ private fun WidgetView(
                 )
             SettingsWidgetType.bingoCard ->
                 WidgetBingoCardQuickButtonControlsView(bingoCard = widget.bingoCard) {
-                    Unit
+                    model.getBingoCardEffect(id = widget.id)?.setSettings(settings = widget.bingoCard)
                 }
             SettingsWidgetType.scoreboard ->
                 WidgetScoreboardQuickButtonControlsView(
@@ -83,8 +95,17 @@ fun QuickButtonSceneWidgetsView(
     model: Model = LocalModel.current,
     sceneSelector: SceneSelector,
 ) {
-    Column {
-        Unit
+    Form(title = "Scene widgets") {
+        Section {
+            model.widgetsInCurrentScene(onlyEnabled = false).forEach { widget ->
+                WidgetView(
+                    model = model,
+                    database = model.database,
+                    widget = widget.widget,
+                    sceneWidget = widget.sceneWidget,
+                )
+            }
+        }
         ShortcutSectionView {
             ScenesShortcutView(database = model.database)
         }

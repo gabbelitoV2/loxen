@@ -1,32 +1,24 @@
 package com.moblin.android.view.settings.blacksharkcoolers
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.key
+import com.moblin.android.LocalModel
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.bluetoothNotAllowedMessage
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.InlinePickerItem
-import com.moblin.android.LocalModel
 import kotlinx.coroutines.flow.MutableStateFlow
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlackSharkCoolerDeviceScannerSettingsView(
     model: Model = LocalModel.current,
@@ -38,45 +30,33 @@ fun BlackSharkCoolerDeviceScannerSettingsView(
     val bluetoothAllowed by model.bluetoothAllowed.collectAsState()
     val discoveredPeripherals by scanner.discoveredPeripherals.collectAsState()
 
-    LaunchedEffect(Unit) {
-        scanner.startScanningForDevices()
-    }
-
     DisposableEffect(Unit) {
+        scanner.startScanningForDevices()
         onDispose {
             scanner.stopScanningForDevices()
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("Device")) })
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-        ) {
+    Form(title = localized("Device")) {
+        Section {
             if (!bluetoothAllowed) {
                 Text(bluetoothNotAllowedMessage)
             } else if (discoveredPeripherals.isEmpty()) {
                 HCenter {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = formPalette().gray)
                 }
             } else {
-                val pickerItems = discoveredPeripherals
+                val items = discoveredPeripherals
                     .filter { it.name?.contains("black shark", ignoreCase = true) == true }
                     .map { peripheral ->
                         InlinePickerItem(
-                            id = peripheral.identifier.toString(),
+                            id = peripheral.identifier,
                             text = peripheral.name ?: localized("Unknown"),
                         )
                     }
-                LazyColumn {
-                    items(pickerItems) { item ->
-                        Button(
+                for (item in items) {
+                    key(item.id) {
+                        FormRow(
                             onClick = {
                                 onChange(item.id)
                                 onDismiss()

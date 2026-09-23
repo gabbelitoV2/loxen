@@ -1,27 +1,24 @@
 package com.moblin.android.view.settings.workoutdevices
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.integrations.workoutdevice.WorkoutDeviceState
 import com.moblin.android.integrations.workoutdevice.workoutDeviceScanner
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusTopRight
 import com.moblin.android.various.settings.SettingsWorkoutDevice
@@ -31,15 +28,18 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.TextEditNavigationView
 import java.util.UUID
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.disableWorkoutDevice
+import com.moblin.android.various.model.enableWorkoutDevice
+import com.moblin.android.various.model.isWorkoutDeviceEnabled
+import com.moblin.android.various.model.setCurrentWorkoutDevice
+import com.moblin.android.various.model.setWorkoutDeviceWheelCircumference
 
 private fun formatWorkoutDeviceState(state: WorkoutDeviceState?): String {
-    return when {
-        state == null || state == WorkoutDeviceState.disconnected -> localized("Disconnected")
-        state == WorkoutDeviceState.discovering -> localized("Discovering")
-        state == WorkoutDeviceState.connecting -> localized("Connecting")
-        state == WorkoutDeviceState.connected -> localized("Connected")
+    return when (state) {
+        null, WorkoutDeviceState.disconnected -> localized("Disconnected")
+        WorkoutDeviceState.discovering -> localized("Discovering")
+        WorkoutDeviceState.connecting -> localized("Connecting")
+        WorkoutDeviceState.connected -> localized("Connected")
         else -> localized("Unknown")
     }
 }
@@ -53,16 +53,20 @@ fun WorkoutDeviceSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
     modifier: Modifier = Modifier,
 ) {
-    val name = device.name
-    Text(
-        text = name,
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("WorkoutDeviceSettingsView") },
-    )
+    NavigationLink(
+        destination = {
+            WorkoutDeviceSettingsViewContent(
+                model = model,
+                workoutDevices = workoutDevices,
+                device = device,
+                status = status,
+            )
+        },
+    ) {
+        Text(text = device.name)
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutDeviceSettingsViewContent(
     model: Model = LocalModel.current,
@@ -72,24 +76,15 @@ fun WorkoutDeviceSettingsViewContent(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
     modifier: Modifier = Modifier,
 ) {
-    val deviceName = device.name
-    val deviceEnabled = device.enabled
-    val bluetoothPeripheralId = device.bluetoothPeripheralId
-    val bluetoothPeripheralName = device.bluetoothPeripheralName
-    val wheelCircumference = device.wheelCircumference
-    val workoutDeviceState = status.workoutDeviceState.collectAsState().value
-    val existingNames = workoutDevices.devices
+    val workoutDeviceState by status.workoutDeviceState.collectAsState()
+    var enabled by remember(device) { mutableStateOf(device.enabled) }
 
     fun state(): String {
         return formatWorkoutDeviceState(workoutDeviceState)
     }
 
     fun canEnable(): Boolean {
-        return bluetoothPeripheralId != null
-    }
-
-    fun isWorkoutDeviceEnabled(): Boolean {
-        return false
+        return device.bluetoothPeripheralId != null
     }
 
     fun isValidWheelCircumference(value: String): String? {
@@ -106,7 +101,7 @@ fun WorkoutDeviceSettingsViewContent(
     fun submitWheelCircumference(value: String) {
         val millimeters = value.toIntOrNull() ?: return
         device.wheelCircumference = millimeters
-        Unit
+        model.setWorkoutDeviceWheelCircumference(device = device)
     }
 
     fun onDeviceChange(value: String) {
@@ -118,72 +113,72 @@ fun WorkoutDeviceSettingsViewContent(
     }
 
     LaunchedEffect(Unit) {
-        Unit
+        model.setCurrentWorkoutDevice(device = device)
     }
 
-    Scaffold(
+    Form(
+        title = localized("Workout device"),
         modifier = modifier,
-        topBar = {
-            TopAppBar(title = { Text(localized("Workout device")) })
-        },
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
+    ) {
+        Section(
+            footer = localized("Add {heartRate:${device.name}} to a text widget to show heart rate on stream."),
         ) {
             NameEditView(
-                name = deviceName,
-                existingNames = existingNames,
+                name = device.name,
+                existingNames = workoutDevices.devices,
                 onNameChange = { device.name = it },
             )
-            Text(text = "Add {heartRate:$deviceName} to a text widget to show heart rate on stream.")
-
-            Text(
-                text = localized("Device"),
-                style = MaterialTheme.typography.titleSmall,
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(enabled = !isWorkoutDeviceEnabled()) {
-                        onNavigate("WorkoutDeviceScannerSettingsView")
-                    },
+        }
+        Section(
+            header = localized("Device"),
+        ) {
+            NavigationLink(
+                destination = {
+                    WorkoutDeviceScannerSettingsView(
+                        onChange = { onDeviceChange(it) },
+                        selectedId = device.bluetoothPeripheralId?.toString()
+                            ?: localized("Select device"),
+                        onSelectedIdChange = { onDeviceChange(it) },
+                        onDismiss = { },
+                    )
+                },
+                enabled = !model.isWorkoutDeviceEnabled(device = device),
             ) {
-                GrayTextView(text = bluetoothPeripheralName ?: localized("Select device"))
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = localized("Enabled"),
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(
-                    checked = deviceEnabled,
-                    onCheckedChange = { enabled ->
-                        device.enabled = enabled
-                        if (enabled) {
-                            Unit
-                        } else {
-                            Unit
-                        }
-                    },
-                    enabled = canEnable(),
+                GrayTextView(
+                    text = device.bluetoothPeripheralName ?: localized("Select device"),
                 )
             }
-
+        }
+        Section {
+            Toggle(
+                title = localized("Enabled"),
+                isOn = enabled,
+                enabled = canEnable(),
+                onChange = { newValue ->
+                    enabled = newValue
+                    device.enabled = newValue
+                    if (newValue) {
+                        model.enableWorkoutDevice(device = device)
+                    } else {
+                        model.disableWorkoutDevice(device = device)
+                    }
+                },
+            )
+        }
+        Section(
+            footer = localized("Used to calculate speed from wheel revolutions."),
+        ) {
             TextEditNavigationView(
                 title = localized("Wheel circumference"),
-                value = wheelCircumference.toString(),
+                value = device.wheelCircumference.toString(),
                 onChange = { isValidWheelCircumference(it) },
                 onSubmit = { submitWheelCircumference(it) },
                 keyboardType = KeyboardType.Number,
                 valueFormat = { "$it mm" },
             )
-            Text(text = localized("Used to calculate speed from wheel revolutions."))
-
-            if (deviceEnabled) {
+        }
+        if (enabled) {
+            Section {
                 HCenter {
                     Text(text = state())
                 }

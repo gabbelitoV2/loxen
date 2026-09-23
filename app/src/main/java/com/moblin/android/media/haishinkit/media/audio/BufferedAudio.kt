@@ -221,7 +221,7 @@ class BufferedAudio(
     }
 
     private fun initialize(sampleBuffer: MediaSample) {
-        frameLength = TODO("MediaSample does not expose the PCM frame count (CMSampleBuffer.numSamples)")
+        frameLength = sampleBuffer.numSamples.toDouble()
         sampleBuffer.format?.let { format ->
             sampleRate = if (format.containsKey(MediaFormat.KEY_SAMPLE_RATE)) {
                 format.getInteger(MediaFormat.KEY_SAMPLE_RATE).toDouble()

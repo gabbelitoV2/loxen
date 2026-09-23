@@ -1,39 +1,33 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.scoreboard
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.settings.SettingsWidgetGolfScoreboard
 import com.moblin.android.various.settings.SettingsWidgetGolfScoreboardPlayer
 import com.moblin.android.various.settings.SettingsWidgetScoreboard
-import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
@@ -49,165 +43,112 @@ fun WidgetScoreboardGolfGeneralSettingsView(
 
 @Composable
 private fun GolfPlayerView(player: SettingsWidgetGolfScoreboardPlayer, updated: () -> Unit) {
-    val name = player.name
-    TextEditNavigationView(title = localized("Name"), value = name, onSubmit = {
+    TextEditNavigationView(title = localized("Name"), value = player.name, onSubmit = {
         player.name = it
         updated()
     })
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetScoreboardGolfSettingsView(
     golf: SettingsWidgetGolfScoreboard,
     updated: () -> Unit,
     onNavigate: (String) -> Unit = {}
 ) {
-    Column {
-        Text("Round", style = MaterialTheme.typography.titleSmall)
-        val title = golf.title
-        TextEditNavigationView(title = localized("Title"), value = title, onSubmit = {
+    val palette = formPalette()
+    Section(header = localized("Round")) {
+        TextEditNavigationView(title = localized("Title"), value = golf.title, onSubmit = {
             golf.title = it
             updated()
         })
-        val numberOfHoles = golf.numberOfHoles
-        var holesExpanded by remember { mutableStateOf(false) }
-        ExposedDropdownMenuBox(
-            expanded = holesExpanded,
-            onExpandedChange = { holesExpanded = it }
-        ) {
-            OutlinedTextField(
-                value = numberOfHoles.toString(),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Holes") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = holesExpanded)
-                },
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth()
-            )
-            ExposedDropdownMenu(
-                expanded = holesExpanded,
-                onDismissRequest = { holesExpanded = false }
-            ) {
-                listOf(9, 18).forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option.toString()) },
-                        onClick = {
-                            golf.numberOfHoles = option
-                            holesExpanded = false
-                        }
-                    )
-                }
+        Picker(
+            title = localized("Holes"),
+            selection = golf.numberOfHoles,
+            options = listOf(9, 18),
+            onChange = { value ->
+                golf.numberOfHoles = value
+                golf.currentHole = 0
+                updated()
             }
-        }
-        LaunchedEffect(numberOfHoles) {
-            golf.currentHole = 0
-            updated()
-        }
-        val pars = golf.pars
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onNavigate("WidgetScoreboardGolfParsView") }
-                .padding(vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("Par")
+        )
+        NavigationLink(destination = {
+            WidgetScoreboardGolfParsView(golf = golf, updated = updated)
+        }) {
+            Text(localized("Par"))
             Spacer(Modifier.weight(1f))
             Text(
-                pars.take(numberOfHoles).sum().toString(),
-                color = Color.Gray
+                golf.pars.take(golf.numberOfHoles).sum().toString(),
+                color = palette.gray
             )
         }
-        Text("Players", style = MaterialTheme.typography.titleSmall)
-        val players = golf.players
-        players.forEach { player ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(Modifier.weight(1f)) {
-                    GolfPlayerView(player = player, updated = updated)
-                }
-                IconButton(
-                    onClick = {
-                        val offsets = players.indexOfFirst { it.id == player.id }
-                        if (offsets != -1) {
-                            golf.players = players.filterIndexed { index, _ ->
-                                index != offsets
-                            }
-                            updated()
-                        }
-                    }
+    }
+    Section(
+        header = localized("Players"),
+        footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a player")) }
+    ) {
+        golf.players.forEach { player ->
+            key(player.id) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = null)
+                    Box(Modifier.weight(1f)) {
+                        GolfPlayerView(player = player, updated = updated)
+                    }
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val pressed by interactionSource.collectIsPressedAsState()
+                    Box(
+                        modifier = Modifier
+                            .alpha(if (pressed) 0.2f else 1f)
+                            .clickable(
+                                interactionSource = interactionSource,
+                                indication = null
+                            ) {
+                                val index = golf.players.indexOfFirst { it.id == player.id }
+                                if (index != -1) {
+                                    golf.players = golf.players.filterIndexed { i, _ ->
+                                        i != index
+                                    }
+                                    updated()
+                                }
+                            }
+                            .padding(horizontal = 8.dp)
+                    ) {
+                        SystemImage(name = "trash", fontSize = 20.sp, tint = palette.red)
+                    }
                 }
             }
         }
-        if (players.size < 4) {
+        if (golf.players.size < 4) {
             CreateButtonView {
-                val n = players.size + 1
-                golf.players = players + SettingsWidgetGolfScoreboardPlayer(name = "Player $n")
+                val n = golf.players.size + 1
+                golf.players = golf.players + SettingsWidgetGolfScoreboardPlayer(name = "Player $n")
                 updated()
             }
         }
-        SwipeLeftToDeleteHelpView(kind = localized("a player"))
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetScoreboardGolfParsView(
     golf: SettingsWidgetGolfScoreboard,
     updated: () -> Unit
 ) {
-    Column {
-        val pars = golf.pars
-        val numberOfHoles = golf.numberOfHoles
-        for (i in 0 until numberOfHoles) {
-            var parExpanded by remember(i) { mutableStateOf(false) }
-            ExposedDropdownMenuBox(
-                expanded = parExpanded,
-                onExpandedChange = { parExpanded = it }
-            ) {
-                OutlinedTextField(
-                    value = (pars.getOrNull(i) ?: 0).toString(),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Hole ${i + 1}") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = parExpanded)
-                    },
-                    modifier = Modifier
-                        .menuAnchor()
-                        .fillMaxWidth()
-                )
-                ExposedDropdownMenu(
-                    expanded = parExpanded,
-                    onDismissRequest = { parExpanded = false }
-                ) {
-                    listOf(1, 2, 3, 4, 5, 6, 7, 8, 9).forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option.toString()) },
-                            onClick = {
-                                val updatedPars = golf.pars.toMutableList()
-                                if (i < updatedPars.size) {
-                                    updatedPars[i] = option
-                                    golf.pars = updatedPars
-                                }
-                                parExpanded = false
-                                updated()
-                            }
-                        )
+    Form(title = localized("Pars")) {
+        for (i in 0 until golf.numberOfHoles) {
+            Picker(
+                title = "Hole ${i + 1}",
+                selection = golf.pars.getOrNull(i) ?: 0,
+                options = listOf(1, 2, 3, 4, 5, 6, 7, 8, 9),
+                onChange = { value ->
+                    val pars = golf.pars.toMutableList()
+                    if (i < pars.size) {
+                        pars[i] = value
+                        golf.pars = pars
                     }
+                    updated()
                 }
-            }
-            LaunchedEffect(pars) {
-                updated()
-            }
+            )
         }
     }
 }

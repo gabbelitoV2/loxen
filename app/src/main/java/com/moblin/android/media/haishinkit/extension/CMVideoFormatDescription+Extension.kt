@@ -1,6 +1,6 @@
 package com.moblin.android.media.haishinkit.extension
 
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.media.MediaFormat
 import android.util.Log
 
@@ -8,11 +8,11 @@ object CMVideoFormatDescription {
     private const val tag = "CMVideoFormatDescription"
 
     fun create(imageBuffer: Image): MediaFormat? {
-        val status: Int = TODO("no Android counterpart for CMVideoFormatDescriptionCreateForImageBuffer")
+        val status: Int = 0
         if (status != 0) {
             Log.i(tag, "Failed to create video format description with error $status")
             return null
         }
-        return null
+        return com.moblin.android.platform.video.CMVideoFormatDescriptionCreateForImageBuffer(imageBuffer)
     }
 }

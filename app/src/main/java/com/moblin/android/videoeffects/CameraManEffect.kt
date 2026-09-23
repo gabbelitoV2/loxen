@@ -1,7 +1,7 @@
 package com.moblin.android.videoeffects
 
 import android.graphics.RectF
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.util.SizeF
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect

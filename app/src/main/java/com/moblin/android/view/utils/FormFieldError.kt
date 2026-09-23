@@ -1,11 +1,11 @@
 package com.moblin.android.view.utils
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun FormFieldError(error: String) {
@@ -13,9 +13,9 @@ fun FormFieldError(error: String) {
         Column {
             Text(
                 text = error,
-                color = Color.Red,
+                color = Color(0xFFFF3B30),
                 fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.bodyMedium
+                fontSize = 16.sp,
             )
             Text(text = "")
         }

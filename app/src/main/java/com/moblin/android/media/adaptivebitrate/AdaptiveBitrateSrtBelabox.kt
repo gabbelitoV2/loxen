@@ -21,9 +21,7 @@ val adaptiveBitrateBelaboxSettings = AdaptiveBitrateSettings(
     minimumBitrate = 250_000L,
 )
 
-class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDelegate) {
-    private val delegate: AdaptiveBitrateDelegate? = delegate
-    private val adaptiveBitrate = AdaptiveBitrate(delegate)
+class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDelegate) : AdaptiveBitrate(delegate) {
     private var targetBitrate: Long = targetBitrate.toLong()
     private var settings = adaptiveBitrateBelaboxSettings
     private var sendBufferSizeAverage: Double = 0.0
@@ -39,20 +37,20 @@ class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDel
     private var nextBitrateDecrTime: Long = System.nanoTime()
     private var currentBitrate: Long = adaptiveBitrateStart.toLong()
 
-    fun setTargetBitrate(bitrate: Int) {
+    override fun setTargetBitrate(bitrate: Int) {
         targetBitrate = bitrate.toLong()
     }
 
-    fun setSettings(settings: AdaptiveBitrateSettings) {
+    override fun setSettings(settings: AdaptiveBitrateSettings) {
         Log.i("AdaptiveBitrateSrtBelabox", "adaptive-bitrate: Using settings $settings")
         this.settings = settings
     }
 
-    fun getCurrentBitrate(): Int {
+    override fun getCurrentBitrate(): Int {
         return currentBitrate.toInt()
     }
 
-    fun getCurrentMaximumBitrateInKbps(): Long {
+    override fun getCurrentMaximumBitrateInKbps(): Long {
         return currentBitrate / 1000
     }
 
@@ -143,7 +141,7 @@ class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDel
         ) {
             bitrate = settings.minimumBitrate
             nextBitrateDecrTime = currentTime + bitrateDecrInterval
-            adaptiveBitrate.logAdaptiveAcion(
+            logAdaptiveAcion(
                 actionTaken =
                     "Set min: ${bitrate / 1000}, rtt: $rtt >= latency / 3: " +
                         "${srtLatency / 3} or bs: $sendBufferSize > bs_th3: " +
@@ -154,7 +152,7 @@ class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDel
         ) {
             bitrate -= (bitrateDecrMin + bitrate / bitrateDecrScale)
             nextBitrateDecrTime = currentTime + bitrateDecrFastInterval
-            adaptiveBitrate.logAdaptiveAcion(
+            logAdaptiveAcion(
                 actionTaken =
                     "Fast decr: ${(bitrateDecrMin + bitrate / bitrateDecrScale) / 1000}, " +
                         "rtt: $rtt > latency / 5: ${srtLatency / 5} or bs: " +
@@ -165,7 +163,7 @@ class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDel
         ) {
             bitrate -= bitrateDecrMin
             nextBitrateDecrTime = currentTime + bitrateDecrInterval
-            adaptiveBitrate.logAdaptiveAcion(
+            logAdaptiveAcion(
                 actionTaken =
                     "Decr: ${bitrateDecrMin / 1000}, rtt: $rtt > rtt_th_max: " +
                         "${formatTwoDecimals(rttThMax)} or bs: $sendBufferSize > bs_th1: " +
@@ -183,8 +181,8 @@ class AdaptiveBitrateSrtBelabox(targetBitrate: Int, delegate: AdaptiveBitrateDel
         }
     }
 
-    fun update(stats: StreamStats) {
+    override fun update(stats: StreamStats) {
         updateBitrate(stats)
-        adaptiveBitrate.update(stats)
+        super.update(stats)
     }
 }

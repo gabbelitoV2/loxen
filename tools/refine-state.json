@@ -1,0 +1,1574 @@
+{
+  "Moblin/View/Utils/BorderlessButtonView.swift": {
+    "status": "ok",
+    "seconds": 4.3,
+    "tokens_in": 3850,
+    "tokens_out": 885
+  },
+  "Moblin/View/Utils/SwipeLeftToRemoveHelpView.swift": {
+    "status": "ok",
+    "seconds": 4.8,
+    "tokens_in": 3840,
+    "tokens_out": 874
+  },
+  "Moblin/View/Utils/FormFieldError.swift": {
+    "status": "ok",
+    "seconds": 6.7,
+    "tokens_in": 3897,
+    "tokens_out": 1223
+  },
+  "Moblin/View/Utils/VideoSourceRotationView.swift": {
+    "status": "ok",
+    "seconds": 2.5,
+    "tokens_in": 762,
+    "tokens_out": 439
+  },
+  "Moblin/View/Utils/SwipeLeftToDeleteButtonView.swift": {
+    "status": "ok",
+    "seconds": 7.9,
+    "tokens_in": 4015,
+    "tokens_out": 1747
+  },
+  "Moblin/View/Utils/ContextMenuDuplicateButtonView.swift": {
+    "status": "ok",
+    "seconds": 14.1,
+    "tokens_in": 3968,
+    "tokens_out": 3149
+  },
+  "Moblin/View/Utils/SwipeLeftToDuplicateButtonView.swift": {
+    "status": "ok",
+    "seconds": 14.4,
+    "tokens_in": 4027,
+    "tokens_out": 3080
+  },
+  "Moblin/View/Utils/ShareSheetView.swift": {
+    "status": "ok",
+    "seconds": 14.5,
+    "tokens_in": 3823,
+    "tokens_out": 3414
+  },
+  "Moblin/View/Utils/StrokeModifier.swift": {
+    "status": "ok",
+    "seconds": 34.8,
+    "tokens_in": 4269,
+    "tokens_out": 7437
+  },
+  "Moblin/View/Settings/About/AboutAttributionsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 27.7,
+    "tokens_in": 3284,
+    "tokens_out": 7028
+  },
+  "Moblin/View/Utils/AddButtonView.swift": {
+    "status": "ok",
+    "seconds": 1.7,
+    "tokens_in": 392,
+    "tokens_out": 207
+  },
+  "Moblin/View/Utils/CreateButtonView.swift": {
+    "status": "ok",
+    "seconds": 2.1,
+    "tokens_in": 392,
+    "tokens_out": 303
+  },
+  "Moblin/View/Utils/DraggableItemPrefixView.swift": {
+    "status": "ok",
+    "seconds": 3.1,
+    "tokens_in": 608,
+    "tokens_out": 623
+  },
+  "Moblin/View/Settings/Watch/Display/LocalOverlays/WatchLocalOverlaysSettingsView.swift": {
+    "status": "ok",
+    "seconds": 4.7,
+    "tokens_in": 1668,
+    "tokens_out": 1081
+  },
+  "Moblin/View/Utils/PositionEditView.swift": {
+    "status": "ok",
+    "seconds": 3.7,
+    "tokens_in": 756,
+    "tokens_out": 768
+  },
+  "Moblin/View/Utils/CloseToolbarView.swift": {
+    "status": "ok",
+    "seconds": 9.9,
+    "tokens_in": 580,
+    "tokens_out": 2238
+  },
+  "Moblin/View/Settings/Watch/Display/WatchDisplaySettingsView.swift": {
+    "status": "ok",
+    "seconds": 10.1,
+    "tokens_in": 747,
+    "tokens_out": 2259
+  },
+  "Moblin/View/Utils/HCenter.swift": {
+    "status": "ok",
+    "seconds": 12.8,
+    "tokens_in": 655,
+    "tokens_out": 2769
+  },
+  "Moblin/View/Utils/CommandCopyView.swift": {
+    "status": "ok",
+    "seconds": 16.0,
+    "tokens_in": 482,
+    "tokens_out": 3687
+  },
+  "Moblin/View/Utils/SwipeLeftToDeleteHelpView.swift": {
+    "status": "ok",
+    "seconds": 6.7,
+    "tokens_in": 556,
+    "tokens_out": 1434
+  },
+  "Moblin/View/Utils/SizeEditView.swift": {
+    "status": "ok",
+    "seconds": 9.2,
+    "tokens_in": 717,
+    "tokens_out": 2051
+  },
+  "Moblin/View/Utils/TextValueView.swift": {
+    "status": "ok",
+    "seconds": 2.5,
+    "tokens_in": 423,
+    "tokens_out": 453
+  },
+  "Moblin/View/Utils/SwipeLeftToDuplicateOrDeleteHelpView.swift": {
+    "status": "ok",
+    "seconds": 5.6,
+    "tokens_in": 557,
+    "tokens_out": 1124
+  },
+  "Moblin/View/Utils/InlinePickerView.swift": {
+    "status": "ok",
+    "seconds": 32.9,
+    "tokens_in": 1491,
+    "tokens_out": 7609
+  },
+  "Moblin/View/Utils/EmotesPlayer.swift": {
+    "status": "ok",
+    "seconds": 41.7,
+    "tokens_in": 10275,
+    "tokens_out": 11916
+  },
+  "Moblin/View/Utils/TextEditView.swift": {
+    "status": "ok",
+    "seconds": 31.3,
+    "tokens_in": 1877,
+    "tokens_out": 7800
+  },
+  "Moblin/View/Utils/ContextMenuDeleteButtonView.swift": {
+    "status": "ok",
+    "seconds": 49.3,
+    "tokens_in": 884,
+    "tokens_out": 11327
+  },
+  "Moblin/View/Utils/RgbColorPickerView.swift": {
+    "status": "ok",
+    "seconds": 41.5,
+    "tokens_in": 1290,
+    "tokens_out": 10548
+  },
+  "Moblin/View/Settings/Streams/Stream/Mobcam/StreamMobcamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 5.7,
+    "tokens_in": 1177,
+    "tokens_out": 1289
+  },
+  "Moblin/View/Utils/NameEditView.swift": {
+    "status": "ok",
+    "seconds": 8.7,
+    "tokens_in": 1360,
+    "tokens_out": 1981
+  },
+  "Moblin/View/Settings/Tesla/TeslaVehicleScannerSettingsView.swift": {
+    "status": "ok",
+    "seconds": 13.1,
+    "tokens_in": 1753,
+    "tokens_out": 3242
+  },
+  "Moblin/View/Utils/TextEditNavigationView.swift": {
+    "status": "ok",
+    "seconds": 42.4,
+    "tokens_in": 2236,
+    "tokens_out": 10681
+  },
+  "Moblin/View/Utils/ChatLineView.swift": {
+    "status": "ok",
+    "seconds": 76.3,
+    "tokens_in": 9667,
+    "tokens_out": 20025
+  },
+  "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorWebBrowserSettingsView.swift": {
+    "status": "ok",
+    "seconds": 26.9,
+    "tokens_in": 886,
+    "tokens_out": 6105
+  },
+  "Moblin/View/Settings/HelpAndSupport/HelpAndSupportSettingsView.swift": {
+    "status": "ok",
+    "seconds": 3.8,
+    "tokens_in": 1014,
+    "tokens_out": 795
+  },
+  "Moblin/View/Settings/Camera/MirrorFrontCamera/MirrorFrontCameraView.swift": {
+    "status": "ok",
+    "seconds": 6.1,
+    "tokens_in": 1708,
+    "tokens_out": 1267
+  },
+  "Moblin/View/Settings/Camera/TapScreenToFocus/TapScreenToFocusSettingsView.swift": {
+    "status": "ok",
+    "seconds": 8.8,
+    "tokens_in": 1607,
+    "tokens_out": 1895
+  },
+  "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatLinkConfirmation.swift": {
+    "status": "ok",
+    "seconds": 9.0,
+    "tokens_in": 739,
+    "tokens_out": 2031
+  },
+  "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 10.5,
+    "tokens_in": 1935,
+    "tokens_out": 2631
+  },
+  "Moblin/View/Settings/Camera/FixedHorizon/FixedHorizonView.swift": {
+    "status": "ok",
+    "seconds": 11.0,
+    "tokens_in": 1568,
+    "tokens_out": 2452
+  },
+  "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDeviceScannerSettingsView.swift": {
+    "status": "ok",
+    "seconds": 19.9,
+    "tokens_in": 1951,
+    "tokens_out": 4747
+  },
+  "Moblin/View/Settings/Display/StreamButton/StreamButtonsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 12.1,
+    "tokens_in": 1519,
+    "tokens_out": 2758
+  },
+  "Moblin/View/Settings/DjiDevices/DjiDeviceScannerSettingsView.swift": {
+    "status": "ok",
+    "seconds": 16.4,
+    "tokens_in": 1963,
+    "tokens_out": 3777
+  },
+  "Moblin/View/Settings/CatPrinters/CatPrinterScannerSettingsView.swift": {
+    "status": "ok",
+    "seconds": 27.6,
+    "tokens_in": 1810,
+    "tokens_out": 6890
+  },
+  "Moblin/View/Settings/Display/NetworkInterfaceNames/LocalOverlaysNetworkInterfaceNamesSettingsView.swift": {
+    "status": "ok",
+    "seconds": 27.8,
+    "tokens_in": 2188,
+    "tokens_out": 6586
+  },
+  "Moblin/View/Settings/HttpProxy/HttpProxySettingsView.swift": {
+    "status": "ok",
+    "seconds": 24.0,
+    "tokens_in": 2540,
+    "tokens_out": 5928
+  },
+  "Moblin/View/Settings/GameControllers/GameControllersControllerThumbStickSettingsView.swift": {
+    "status": "ok",
+    "seconds": 16.1,
+    "tokens_in": 183,
+    "tokens_out": 3808
+  },
+  "Moblin/View/ControlBar/QuickButton/QuickButtonStreamSwitcherView.swift": {
+    "status": "ok",
+    "seconds": 38.8,
+    "tokens_in": 2055,
+    "tokens_out": 9323
+  },
+  "Moblin/View/Settings/Keyboard/KeyboardSettingsView.swift": {
+    "status": "ok",
+    "seconds": 14.2,
+    "tokens_in": 1670,
+    "tokens_out": 3558
+  },
+  "Moblin/View/Settings/ImportExport/ExportSettingsView.swift": {
+    "status": "ok",
+    "seconds": 22.0,
+    "tokens_in": 1077,
+    "tokens_out": 5301
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/AnamorphicLensEffectView.swift": {
+    "status": "ok",
+    "seconds": 11.1,
+    "tokens_in": 2050,
+    "tokens_out": 2758
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/ChatEmoteCombo/WidgetChatEmoteComboSettingsView.swift": {
+    "status": "ok",
+    "seconds": 13.6,
+    "tokens_in": 2360,
+    "tokens_out": 3318
+  },
+  "Moblin/View/Settings/Scenes/DisconnectProtection/DisconnectProtectionSettingsView.swift": {
+    "status": "ok",
+    "seconds": 23.7,
+    "tokens_in": 2062,
+    "tokens_out": 5593
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/RemoveBackgroundEffectView.swift": {
+    "status": "ok",
+    "seconds": 12.7,
+    "tokens_in": 1801,
+    "tokens_out": 3060
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/WidgetEffectWizardSettingsView.swift": {
+    "status": "ok",
+    "seconds": 12.2,
+    "tokens_in": 2371,
+    "tokens_out": 2811
+  },
+  "Moblin/View/Settings/Streams/Stream/Rtmp/StreamRtmpSettingsView.swift": {
+    "status": "ok",
+    "seconds": 4.4,
+    "tokens_in": 1572,
+    "tokens_out": 997
+  },
+  "Moblin/View/Settings/Streams/Stream/Rist/StreamRistSettingsView.swift": {
+    "status": "ok",
+    "seconds": 6.7,
+    "tokens_in": 1840,
+    "tokens_out": 1557
+  },
+  "Moblin/View/Settings/ImportExport/ImportSettingsView.swift": {
+    "status": "ok",
+    "seconds": 39.8,
+    "tokens_in": 2023,
+    "tokens_out": 9520
+  },
+  "Moblin/View/Settings/Streams/Stream/RealtimeIrl/StreamRealtimeIrlSettingsView.swift": {
+    "status": "ok",
+    "seconds": 10.9,
+    "tokens_in": 1971,
+    "tokens_out": 2372
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/OpacityEffectView.swift": {
+    "status": "ok",
+    "seconds": 23.9,
+    "tokens_in": 1630,
+    "tokens_out": 5727
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Crop/WidgetCropSettingsView.swift": {
+    "status": "ok",
+    "seconds": 31.0,
+    "tokens_in": 3187,
+    "tokens_out": 7397
+  },
+  "Moblin/View/Utils/IconAndTextView.swift": {
+    "status": "ok",
+    "seconds": 14.6,
+    "tokens_in": 2893,
+    "tokens_out": 3463
+  },
+  "Moblin/View/Utils/SliderView.swift": {
+    "status": "ok",
+    "seconds": 17.5,
+    "tokens_in": 1566,
+    "tokens_out": 4346
+  },
+  "Moblin/View/Utils/QrCodeImageView.swift": {
+    "status": "ok",
+    "seconds": 27.1,
+    "tokens_in": 1041,
+    "tokens_out": 6668
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardGolfSettingsView.swift": {
+    "status": "ok",
+    "seconds": 42.8,
+    "tokens_in": 3350,
+    "tokens_out": 10706
+  },
+  "Moblin/View/Settings/Watch/WatchSettingsView.swift": {
+    "status": "ok",
+    "seconds": 34.4,
+    "tokens_in": 1647,
+    "tokens_out": 8102
+  },
+  "Moblin/View/Utils/MultiLineTextFieldView.swift": {
+    "status": "ok",
+    "seconds": 41.4,
+    "tokens_in": 2266,
+    "tokens_out": 10452
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardModularSettingsView.swift": {
+    "status": "ok",
+    "seconds": 66.5,
+    "tokens_in": 4801,
+    "tokens_out": 17045
+  },
+  "Moblin/View/Settings/WorkoutDevices/WorkoutDeviceScannerSettingsView.swift": {
+    "status": "ok",
+    "seconds": 65.8,
+    "tokens_in": 1790,
+    "tokens_out": 14909
+  },
+  "Moblin/View/Utils/ValueEditView.swift": {
+    "status": "ok",
+    "seconds": 101.3,
+    "tokens_in": 2924,
+    "tokens_out": 25579
+  },
+  "Moblin/View/Settings/ImportExport/ImportExportSettingsView.swift": {
+    "status": "ok",
+    "seconds": 8.8,
+    "tokens_in": 1476,
+    "tokens_out": 2047
+  },
+  "Moblin/View/Utils/OpenAiSettingsView.swift": {
+    "status": "ok",
+    "seconds": 11.8,
+    "tokens_in": 1551,
+    "tokens_out": 2469
+  },
+  "Moblin/View/Settings/Audio/MicsDelaySettingsView.swift": {
+    "status": "ok",
+    "seconds": 53.3,
+    "tokens_in": 2512,
+    "tokens_out": 12326
+  },
+  "Moblin/View/Settings/Streams/Stream/GoLiveNotification/GoLiveNotificationSettingsView.swift": {
+    "status": "ok",
+    "seconds": 14.1,
+    "tokens_in": 3267,
+    "tokens_out": 3787
+  },
+  "Moblin/View/Settings/Camera/Zoom/ZoomPresetSettingsView.swift": {
+    "status": "ok",
+    "seconds": 14.5,
+    "tokens_in": 2863,
+    "tokens_out": 3292
+  },
+  "Moblin/View/Settings/Streams/Stream/ObsRemoteControl/StreamObsRemoteControlSettingsView.swift": {
+    "status": "ok",
+    "seconds": 15.9,
+    "tokens_in": 4474,
+    "tokens_out": 4157
+  },
+  "Moblin/View/Settings/Camera/Zoom/ZoomSwitchToSettingsView.swift": {
+    "status": "ok",
+    "seconds": 17.2,
+    "tokens_in": 2857,
+    "tokens_out": 4053
+  },
+  "Moblin/View/Settings/BitratePresets/BitratePresetsPresetSettingsView.swift": {
+    "status": "ok",
+    "seconds": 21.9,
+    "tokens_in": 2721,
+    "tokens_out": 5246
+  },
+  "Moblin/View/Settings/Watch/Chat/WatchChatSettingsView.swift": {
+    "status": "ok",
+    "seconds": 18.7,
+    "tokens_in": 3180,
+    "tokens_out": 4721
+  },
+  "Moblin/View/Utils/ChatLineStyle.swift": {
+    "status": "ok",
+    "seconds": 22.2,
+    "tokens_in": 4798,
+    "tokens_out": 5665
+  },
+  "Moblin/View/Settings/Streams/Stream/Srt/StreamSrtAdaptiveBitrateSettingsView.swift": {
+    "status": "ok",
+    "seconds": 38.4,
+    "tokens_in": 6306,
+    "tokens_out": 9993
+  },
+  "Moblin/View/Settings/Debug/DebugVideoSettingsView.swift": {
+    "status": "ok",
+    "seconds": 48.6,
+    "tokens_in": 2876,
+    "tokens_out": 11079
+  },
+  "Moblin/View/Settings/StreamingHistory/StreamingHistorySettingsView.swift": {
+    "status": "ok",
+    "seconds": 76.4,
+    "tokens_in": 3452,
+    "tokens_out": 18770
+  },
+  "Moblin/View/Settings/Streams/Stream/Chat/StreamEmotesSettingsView.swift": {
+    "status": "ok",
+    "seconds": 6.1,
+    "tokens_in": 1949,
+    "tokens_out": 1437
+  },
+  "Moblin/View/Settings/Streams/Stream/OpenStreamingPlatform/StreamOpenStreamingPlatformSettingsView.swift": {
+    "status": "ok",
+    "seconds": 6.5,
+    "tokens_in": 2069,
+    "tokens_out": 1552
+  },
+  "Moblin/View/Settings/Streams/Stream/Audio/StreamAudioSettingsView.swift": {
+    "status": "ok",
+    "seconds": 16.6,
+    "tokens_in": 3430,
+    "tokens_out": 4163
+  },
+  "Moblin/View/Settings/Streams/Stream/Recording/StreamRecordingAudioSettingsView.swift": {
+    "status": "ok",
+    "seconds": 24.5,
+    "tokens_in": 2875,
+    "tokens_out": 5931
+  },
+  "Moblin/View/Settings/Recordings/RecordingsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 39.5,
+    "tokens_in": 4333,
+    "tokens_out": 10051
+  },
+  "Moblin/View/Settings/Streams/Stream/Srt/StreamSrtConnectionPriority2View.swift": {
+    "status": "ok",
+    "seconds": 75.8,
+    "tokens_in": 3890,
+    "tokens_out": 18788
+  },
+  "Moblin/View/Settings/Chat/ChatSettingsLayoutView.swift": {
+    "status": "ok",
+    "seconds": 26.1,
+    "tokens_in": 2785,
+    "tokens_out": 6233
+  },
+  "Moblin/View/Settings/BitratePresets/BitratePresetsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 30.4,
+    "tokens_in": 2326,
+    "tokens_out": 7166
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsTextSettingsView.swift": {
+    "status": "ok",
+    "seconds": 24.2,
+    "tokens_in": 3148,
+    "tokens_out": 5930
+  },
+  "Moblin/View/Settings/Debug/DebugLogSettingsView.swift": {
+    "status": "ok",
+    "seconds": 52.6,
+    "tokens_in": 2423,
+    "tokens_out": 12809
+  },
+  "Moblin/View/Settings/Chat/ChatSettingsAppearanceView.swift": {
+    "status": "ok",
+    "seconds": 59.5,
+    "tokens_in": 5826,
+    "tokens_out": 15496
+  },
+  "Moblin/View/Settings/Streams/Stream/Soop/StreamSoopSettingsView.swift": {
+    "status": "ok",
+    "seconds": 6.5,
+    "tokens_in": 1943,
+    "tokens_out": 1514
+  },
+  "Moblin/View/Settings/Chat/ChatFiltersSettingsView.swift": {
+    "status": "ok",
+    "seconds": 67.5,
+    "tokens_in": 3839,
+    "tokens_out": 17350
+  },
+  "Moblin/View/Settings/Streams/Stream/Snapshot/StreamSnapshotSettingsView.swift": {
+    "status": "ok",
+    "seconds": 23.0,
+    "tokens_in": 252,
+    "tokens_out": 5605
+  },
+  "Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift": {
+    "status": "ok",
+    "seconds": 82.8,
+    "tokens_in": 2690,
+    "tokens_out": 19997
+  },
+  "Moblin/View/Settings/Store/StoreSettingsView.swift": {
+    "status": "ok",
+    "seconds": 61.0,
+    "tokens_in": 4585,
+    "tokens_out": 15596
+  },
+  "Moblin/View/Settings/Streams/Stream/Whip/StreamWhipSettingsView.swift": {
+    "status": "ok",
+    "seconds": 23.3,
+    "tokens_in": 2834,
+    "tokens_out": 5890
+  },
+  "Moblin/View/Settings/Streams/Stream/Srt/StreamSrtSettingsView.swift": {
+    "status": "ok",
+    "seconds": 34.3,
+    "tokens_in": 5171,
+    "tokens_out": 8802
+  },
+  "Moblin/View/Settings/WiFiAware/WiFiAwareSettingsView.swift": {
+    "status": "ok",
+    "seconds": 21.3,
+    "tokens_in": 3337,
+    "tokens_out": 5125
+  },
+  "Moblin/View/Settings/Moblink/MoblinkSettingsView.swift": {
+    "status": "ok",
+    "seconds": 107.5,
+    "tokens_in": 6363,
+    "tokens_out": 28243
+  },
+  "Moblin/View/Utils/WiFiSsidEditView.swift": {
+    "status": "ok",
+    "seconds": 56.6,
+    "tokens_in": 2564,
+    "tokens_out": 14139
+  },
+  "Moblin/View/Settings/Streams/Stream/Kick/StreamKickSettingsView.swift": {
+    "status": "ok",
+    "seconds": 120.5,
+    "tokens_in": 6924,
+    "tokens_out": 31873
+  },
+  "Moblin/View/Settings/Chat/ChatNicknamesSettingsView.swift": {
+    "status": "ok",
+    "seconds": 172.3,
+    "tokens_in": 3171,
+    "tokens_out": 42263
+  },
+  "Moblin/View/Utils/UrlsView.swift": {
+    "status": "ok",
+    "seconds": 90.1,
+    "tokens_in": 4566,
+    "tokens_out": 22090
+  },
+  "Moblin/View/Settings/Streams/Stream/Twitch/StreamTwitchSettingsView.swift": {
+    "status": "ok",
+    "seconds": 127.3,
+    "tokens_in": 6935,
+    "tokens_out": 32823
+  },
+  "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorQuickButtonsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 33.7,
+    "tokens_in": 2689,
+    "tokens_out": 8317
+  },
+  "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorSettingsView.swift": {
+    "status": "ok",
+    "seconds": 35.7,
+    "tokens_in": 5324,
+    "tokens_out": 9710
+  },
+  "Moblin/View/ControlBar/QuickButton/QuickButtonMicView.swift": {
+    "status": "ok",
+    "seconds": 37.7,
+    "tokens_in": 3024,
+    "tokens_out": 9876
+  },
+  "Moblin/View/Settings/Ingests/RtmpServer/RtmpServerStreamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 43.9,
+    "tokens_in": 3350,
+    "tokens_out": 11577
+  },
+  "Moblin/View/Settings/CatPrinters/CatPrintersSettingsView.swift": {
+    "status": "ok",
+    "seconds": 49.0,
+    "tokens_in": 3498,
+    "tokens_out": 12072
+  },
+  "Moblin/View/Settings/Ingests/RtspClient/RtspClientStreamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 55.4,
+    "tokens_in": 5112,
+    "tokens_out": 14570
+  },
+  "Moblin/View/Settings/CatPrinters/CatPrinterSettingsView.swift": {
+    "status": "ok",
+    "seconds": 70.2,
+    "tokens_in": 3566,
+    "tokens_out": 18438
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/Dewarp360EffectView.swift": {
+    "status": "ok",
+    "seconds": 34.9,
+    "tokens_in": 2478,
+    "tokens_out": 8685
+  },
+  "Moblin/View/Settings/MediaPlayer/MediaPlayerFileSettingsView.swift": {
+    "status": "ok",
+    "seconds": 81.2,
+    "tokens_in": 2772,
+    "tokens_out": 18661
+  },
+  "Moblin/View/Utils/VoicesView.swift": {
+    "status": "ok",
+    "seconds": 60.0,
+    "tokens_in": 9011,
+    "tokens_out": 16821
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/BingoCard/WidgetBingoCardSettingsView.swift": {
+    "status": "ok",
+    "seconds": 87.8,
+    "tokens_in": 4284,
+    "tokens_out": 22229
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/MaskEffectView.swift": {
+    "status": "ok",
+    "seconds": 104.9,
+    "tokens_in": 12249,
+    "tokens_out": 29018
+  },
+  "Moblin/View/Utils/ChatActionButtonsView.swift": {
+    "status": "ok",
+    "seconds": 153.2,
+    "tokens_in": 5628,
+    "tokens_out": 39269
+  },
+  "Moblin/View/Utils/BannersView.swift": {
+    "status": "ok",
+    "seconds": 163.8,
+    "tokens_in": 8042,
+    "tokens_out": 42043
+  },
+  "Moblin/View/Settings/Ingests/SrtClient/SrtClientStreamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 24.7,
+    "tokens_in": 2280,
+    "tokens_out": 6165
+  },
+  "Moblin/View/Settings/Ingests/WhipServer/WhipServerStreamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 45.7,
+    "tokens_in": 3057,
+    "tokens_out": 11284
+  },
+  "Moblin/View/Settings/Ingests/RtspClient/RtspClientSettingsView.swift": {
+    "status": "ok",
+    "seconds": 47.0,
+    "tokens_in": 3510,
+    "tokens_out": 11799
+  },
+  "Moblin/View/Settings/Ingests/SrtlaServer/SrtlaServerStreamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 52.2,
+    "tokens_in": 2883,
+    "tokens_out": 13223
+  },
+  "Moblin/View/Settings/Ingests/RistServer/RistServerStreamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 56.9,
+    "tokens_in": 2812,
+    "tokens_out": 13836
+  },
+  "Moblin/View/Settings/Streams/Stream/Url/StreamUrlSettingsView.swift": {
+    "status": "ok",
+    "seconds": 16.8,
+    "tokens_in": 3107,
+    "tokens_out": 4124
+  },
+  "Moblin/View/Settings/Ingests/RtmpServer/RtmpServerSettingsView.swift": {
+    "status": "ok",
+    "seconds": 67.5,
+    "tokens_in": 4180,
+    "tokens_out": 17054
+  },
+  "Moblin/View/Settings/Ingests/WhepClient/WhepClientStreamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 78.0,
+    "tokens_in": 2675,
+    "tokens_out": 19150
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift": {
+    "status": "ok",
+    "seconds": 57.0,
+    "tokens_in": 5882,
+    "tokens_out": 15121
+  },
+  "Moblin/View/Settings/Streams/Stream/PreviewStream/StreamPreviewStreamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 43.5,
+    "tokens_in": 2939,
+    "tokens_out": 10694
+  },
+  "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatView.swift": {
+    "status": "ok",
+    "seconds": 181.8,
+    "tokens_in": 14405,
+    "tokens_out": 49843
+  },
+  "Moblin/View/Settings/Ingests/SrtClient/SrtClientSettingsView.swift": {
+    "status": "ok",
+    "seconds": 65.0,
+    "tokens_in": 3567,
+    "tokens_out": 17065
+  },
+  "Moblin/View/Settings/Ingests/WhipServer/WhipServerSettingsView.swift": {
+    "status": "ok",
+    "seconds": 73.9,
+    "tokens_in": 4358,
+    "tokens_out": 18575
+  },
+  "Moblin/View/Settings/Ingests/SrtlaServer/SrtlaServerSettingsView.swift": {
+    "status": "ok",
+    "seconds": 75.5,
+    "tokens_in": 4692,
+    "tokens_out": 18378
+  },
+  "Moblin/View/Settings/Ingests/WhepClient/WhepClientSettingsView.swift": {
+    "status": "ok",
+    "seconds": 80.8,
+    "tokens_in": 3456,
+    "tokens_out": 18783
+  },
+  "Moblin/View/Settings/Ingests/RistServer/RistServerSettingsView.swift": {
+    "status": "ok",
+    "seconds": 112.1,
+    "tokens_in": 4206,
+    "tokens_out": 27831
+  },
+  "Moblin/View/Settings/Ingests/IngestsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 24.7,
+    "tokens_in": 2954,
+    "tokens_out": 6045
+  },
+  "Moblin/View/ControlBar/QuickButton/QuickButtonAutoSceneSwitcherView.swift": {
+    "status": "ok",
+    "seconds": 4.4,
+    "tokens_in": 1592,
+    "tokens_out": 1053
+  },
+  "Moblin/View/Settings/Camera/CameraControls/CameraControlsView.swift": {
+    "status": "ok",
+    "seconds": 11.2,
+    "tokens_in": 2303,
+    "tokens_out": 2578
+  },
+  "Moblin/View/Settings/Camera/VideoStabilization/VideoStabilizationSettingsView.swift": {
+    "status": "ok",
+    "seconds": 7.3,
+    "tokens_in": 2125,
+    "tokens_out": 1727
+  },
+  "Moblin/View/ControlBar/QuickButton/QuickButtonBitrateView.swift": {
+    "status": "ok",
+    "seconds": 25.2,
+    "tokens_in": 3735,
+    "tokens_out": 6159
+  },
+  "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDevicesSettingsView.swift": {
+    "status": "ok",
+    "seconds": 49.3,
+    "tokens_in": 2989,
+    "tokens_out": 11759
+  },
+  "Moblin/View/ControlBar/QuickButton/QuickButtonObsView.swift": {
+    "status": "ok",
+    "seconds": 59.0,
+    "tokens_in": 9091,
+    "tokens_out": 15803
+  },
+  "Moblin/View/Settings/GameControllers/GameControllersControllerSettingsView.swift": {
+    "status": "ok",
+    "seconds": 19.8,
+    "tokens_in": 1589,
+    "tokens_out": 4839
+  },
+  "Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDeviceSettingsView.swift": {
+    "status": "ok",
+    "seconds": 80.2,
+    "tokens_in": 4503,
+    "tokens_out": 20652
+  },
+  "Moblin/View/Settings/Debug/DebugSettingsView.swift": {
+    "status": "ok",
+    "seconds": 64.6,
+    "tokens_in": 6045,
+    "tokens_out": 16475
+  },
+  "Moblin/View/ControlBar/QuickButton/Chat/Moderation/QuickButtonChatModerationKickView.swift": {
+    "status": "ok",
+    "seconds": 99.0,
+    "tokens_in": 7414,
+    "tokens_out": 25809
+  },
+  "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatChatterInfoView.swift": {
+    "status": "ok",
+    "seconds": 105.3,
+    "tokens_in": 5159,
+    "tokens_out": 25811
+  },
+  "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift": {
+    "status": "ok",
+    "seconds": 92.7,
+    "tokens_in": 6624,
+    "tokens_out": 25266
+  },
+  "Moblin/View/Settings/Location/LocationSettingsView.swift": {
+    "status": "ok",
+    "seconds": 47.2,
+    "tokens_in": 5589,
+    "tokens_out": 12422
+  },
+  "Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift": {
+    "status": "ok",
+    "seconds": 49.4,
+    "tokens_in": 3333,
+    "tokens_out": 11983
+  },
+  "Moblin/View/ControlBar/QuickButton/Chat/Moderation/QuickButtonChatModerationTwitchView.swift": {
+    "status": "ok",
+    "seconds": 140.0,
+    "tokens_in": 12715,
+    "tokens_out": 39079
+  },
+  "Moblin/View/Settings/DjiDevices/DjiDevicesSettingsView.swift": {
+    "status": "ok",
+    "seconds": 100.8,
+    "tokens_in": 3366,
+    "tokens_out": 23613
+  },
+  "Moblin/View/Settings/Keyboard/KeyboardKeySettingsView.swift": {
+    "status": "ok",
+    "seconds": 77.0,
+    "tokens_in": 2768,
+    "tokens_out": 18258
+  },
+  "Moblin/View/Settings/Scenes/AutoSwitchers/AutoSwitchersSettingsView.swift": {
+    "status": "ok",
+    "seconds": 97.9,
+    "tokens_in": 7811,
+    "tokens_out": 24693
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsKickSettingsView.swift": {
+    "status": "ok",
+    "seconds": 77.4,
+    "tokens_in": 9113,
+    "tokens_out": 19819
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Browser/WidgetBrowserSettingsView.swift": {
+    "status": "ok",
+    "seconds": 57.1,
+    "tokens_in": 5478,
+    "tokens_out": 14580
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsTwitchSettingsView.swift": {
+    "status": "ok",
+    "seconds": 68.1,
+    "tokens_in": 10625,
+    "tokens_out": 17800
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/QrCode/WidgetQrCodeSettingsView.swift": {
+    "status": "ok",
+    "seconds": 8.5,
+    "tokens_in": 1638,
+    "tokens_out": 1791
+  },
+  "Moblin/View/Settings/RemoteControl/RemoteControlSettingsView.swift": {
+    "status": "ok",
+    "seconds": 122.8,
+    "tokens_in": 15179,
+    "tokens_out": 34286
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Chat/WidgetChatSettingsView.swift": {
+    "status": "ok",
+    "seconds": 75.9,
+    "tokens_in": 5405,
+    "tokens_out": 19331
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSpeechToTextSettingsView.swift": {
+    "status": "ok",
+    "seconds": 98.5,
+    "tokens_in": 3443,
+    "tokens_out": 23484
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Scene/WidgetSceneSettingsView.swift": {
+    "status": "ok",
+    "seconds": 23.4,
+    "tokens_in": 1953,
+    "tokens_out": 5391
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Image/WidgetImageSettingsView.swift": {
+    "status": "ok",
+    "seconds": 38.9,
+    "tokens_in": 2517,
+    "tokens_out": 9937
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Snapshot/WidgetSnapshotSettingsView.swift": {
+    "status": "ok",
+    "seconds": 13.3,
+    "tokens_in": 2097,
+    "tokens_out": 3038
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardGolfFullScorecardSettingsView.swift": {
+    "status": "ok",
+    "seconds": 37.0,
+    "tokens_in": 1797,
+    "tokens_out": 7974
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardObsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 2.8,
+    "tokens_in": 2377,
+    "tokens_out": 578
+  },
+  "Moblin/View/Settings/StreamingHistory/StreamingHistoryStreamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 28.5,
+    "tokens_in": 3318,
+    "tokens_out": 7133
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/ShapeEffectView.swift": {
+    "status": "ok",
+    "seconds": 76.3,
+    "tokens_in": 4320,
+    "tokens_out": 20403
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/PomodoroTimer/WidgetPomodoroTimerSettingsView.swift": {
+    "status": "ok",
+    "seconds": 76.1,
+    "tokens_in": 7920,
+    "tokens_out": 19817
+  },
+  "Moblin/View/Settings/WorkoutDevices/WorkoutDevicesSettingsView.swift": {
+    "status": "ok",
+    "seconds": 21.6,
+    "tokens_in": 3298,
+    "tokens_out": 5221
+  },
+  "Moblin/View/Settings/Streams/Stream/Recording/StreamRecordingSettingsView.swift": {
+    "status": "ok",
+    "seconds": 75.4,
+    "tokens_in": 7548,
+    "tokens_out": 20137
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsChatBotSettingsView.swift": {
+    "status": "ok",
+    "seconds": 204.9,
+    "tokens_in": 3830,
+    "tokens_out": 49402
+  },
+  "Moblin/View/Settings/Tesla/TeslaSettingsView.swift": {
+    "status": "ok",
+    "seconds": 65.7,
+    "tokens_in": 4776,
+    "tokens_out": 16763
+  },
+  "Moblin/View/Settings/WorkoutDevices/WorkoutDeviceSettingsView.swift": {
+    "status": "ok",
+    "seconds": 57.6,
+    "tokens_in": 3870,
+    "tokens_out": 14671
+  },
+  "Moblin/View/Settings/Streams/Stream/YouTube/StreamYouTubeSettingsView.swift": {
+    "status": "ok",
+    "seconds": 95.5,
+    "tokens_in": 12406,
+    "tokens_out": 26126
+  },
+  "Moblin/View/Settings/Streams/Stream/Video/StreamVideoSettingsView.swift": {
+    "status": "ok",
+    "seconds": 131.1,
+    "tokens_in": 9194,
+    "tokens_out": 33424
+  },
+  "Moblin/View/Settings/Streams/Stream/MultiStreaming/StreamMultiStreamingSettingsView.swift": {
+    "status": "ok",
+    "seconds": 142.7,
+    "tokens_in": 4450,
+    "tokens_out": 34401
+  },
+  "Moblin/View/Settings/Display/LocalOverlays/LocalOverlaysSettingsView.swift": {
+    "status": "ok",
+    "seconds": 40.9,
+    "tokens_in": 5972,
+    "tokens_out": 9980
+  },
+  "Moblin/View/Settings/Camera/Zoom/ZoomSettingsView.swift": {
+    "status": "ok",
+    "seconds": 89.8,
+    "tokens_in": 6026,
+    "tokens_out": 22431
+  },
+  "Moblin/View/Settings/GameControllers/GameControllersSettingsView.swift": {
+    "status": "ok",
+    "seconds": 104.2,
+    "tokens_in": 2407,
+    "tokens_out": 23853
+  },
+  "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatModerationView.swift": {
+    "status": "ok",
+    "seconds": 122.6,
+    "tokens_in": 10844,
+    "tokens_out": 33853
+  },
+  "Moblin/View/Settings/StreamDeck/StreamDeckLayoutSettingsView.swift": {
+    "status": "ok",
+    "seconds": 156.3,
+    "tokens_in": 8598,
+    "tokens_out": 42067
+  },
+  "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift": {
+    "status": "ok",
+    "seconds": 79.4,
+    "tokens_in": 2950,
+    "tokens_out": 18806
+  },
+  "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift": {
+    "status": "ok",
+    "seconds": 114.0,
+    "tokens_in": 135827,
+    "tokens_out": 32260
+  },
+  "Moblin/View/Settings/SelfieStick/SelfieStickSettingsView.swift": {
+    "status": "ok",
+    "seconds": 11.7,
+    "tokens_in": 3167,
+    "tokens_out": 2898
+  },
+  "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 48.4,
+    "tokens_in": 3486,
+    "tokens_out": 12171
+  },
+  "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 104.7,
+    "tokens_in": 9324,
+    "tokens_out": 27936
+  },
+  "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 142.9,
+    "tokens_in": 10171,
+    "tokens_out": 38084
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/PngTuber/WidgetPngTuberSettingsView.swift": {
+    "status": "ok",
+    "seconds": 51.1,
+    "tokens_in": 3874,
+    "tokens_out": 13108
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Text/WidgetTextSettingsView.swift": {
+    "status": "ok",
+    "seconds": 193.9,
+    "tokens_in": 30207,
+    "tokens_out": 54483
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
+    "status": "ok",
+    "seconds": 105.8,
+    "tokens_in": 5767,
+    "tokens_out": 27503
+  },
+  "Moblin/View/Settings/Chat/ChatBotSettingsView.swift": {
+    "status": "ok",
+    "seconds": 115.8,
+    "tokens_in": 12781,
+    "tokens_out": 31476
+  },
+  "Moblin/View/ControlBar/QuickButton/QuickButtonLiveView.swift": {
+    "status": "ok",
+    "seconds": 46.9,
+    "tokens_in": 5637,
+    "tokens_out": 12160
+  },
+  "Moblin/View/Settings/Display/QuickButtons/QuickButtonsButtonSettingsView.swift": {
+    "status": "ok",
+    "seconds": 66.7,
+    "tokens_in": 7241,
+    "tokens_out": 17671
+  },
+  "Moblin/View/Settings/Chat/ChatSettingsView.swift": {
+    "status": "ok",
+    "seconds": 68.4,
+    "tokens_in": 4427,
+    "tokens_out": 17605
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsImageSettingsView.swift": {
+    "status": "ok",
+    "seconds": 77.3,
+    "tokens_in": 5690,
+    "tokens_out": 18893
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardBingoCardSettingsView.swift": {
+    "status": "ok",
+    "seconds": 16.9,
+    "tokens_in": 3649,
+    "tokens_out": 4280
+  },
+  "Moblin/View/Settings/Scenes/Scene/SceneSettingsView.swift": {
+    "status": "ok",
+    "seconds": 110.4,
+    "tokens_in": 11641,
+    "tokens_out": 29198
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardBrowserSettingsView.swift": {
+    "status": "ok",
+    "seconds": 20.1,
+    "tokens_in": 3845,
+    "tokens_out": 4854
+  },
+  "Moblin/View/Settings/Macros/MacrosSettingsView.swift": {
+    "status": "ok",
+    "seconds": 126.6,
+    "tokens_in": 14801,
+    "tokens_out": 34178
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardImageSettingsView.swift": {
+    "status": "ok",
+    "seconds": 18.0,
+    "tokens_in": 3514,
+    "tokens_out": 4390
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardPngTuberSettingsView.swift": {
+    "status": "ok",
+    "seconds": 14.9,
+    "tokens_in": 3418,
+    "tokens_out": 3427
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardScoreboardSettingsView.swift": {
+    "status": "ok",
+    "seconds": 12.0,
+    "tokens_in": 3722,
+    "tokens_out": 3105
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardTextSettingsView.swift": {
+    "status": "ok",
+    "seconds": 14.3,
+    "tokens_in": 3586,
+    "tokens_out": 3584
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardVTuberSettingsView.swift": {
+    "status": "ok",
+    "seconds": 14.4,
+    "tokens_in": 3484,
+    "tokens_out": 3372
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardGenericSettingsView.swift": {
+    "status": "ok",
+    "seconds": 83.9,
+    "tokens_in": 6385,
+    "tokens_out": 21445
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardWheelOfLuckSettingsView.swift": {
+    "status": "ok",
+    "seconds": 17.8,
+    "tokens_in": 3605,
+    "tokens_out": 4175
+  },
+  "Moblin/View/Settings/Audio/AudioSettingsView.swift": {
+    "status": "ok",
+    "seconds": 162.5,
+    "tokens_in": 6572,
+    "tokens_out": 39843
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSoundSettingsView.swift": {
+    "status": "ok",
+    "seconds": 118.8,
+    "tokens_in": 5072,
+    "tokens_out": 29735
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardVideoSourceSettingsView.swift": {
+    "status": "ok",
+    "seconds": 32.3,
+    "tokens_in": 4221,
+    "tokens_out": 8287
+  },
+  "Moblin/View/Settings/Talkback/TalkbackSettingsView.swift": {
+    "status": "ok",
+    "seconds": 14.5,
+    "tokens_in": 2471,
+    "tokens_out": 3466
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/WidgetEffectsView.swift": {
+    "status": "ok",
+    "seconds": 119.1,
+    "tokens_in": 3618,
+    "tokens_out": 27737
+  },
+  "Moblin/View/Settings/DjiDevices/DjiDeviceSettingsView.swift": {
+    "status": "ok",
+    "seconds": 201.3,
+    "tokens_in": 14053,
+    "tokens_out": 50516
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift": {
+    "status": "ok",
+    "seconds": 70.8,
+    "tokens_in": 3230,
+    "tokens_out": 16672
+  },
+  "Moblin/View/Settings/Streams/Stream/Replay/StreamReplaySettingsView.swift": {
+    "status": "ok",
+    "seconds": 114.0,
+    "tokens_in": 8775,
+    "tokens_out": 30047
+  },
+  "Moblin/View/Settings/Streams/StreamsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 153.3,
+    "tokens_in": 5284,
+    "tokens_out": 36198
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/VideoSource/WidgetVideoSourceSettingsView.swift": {
+    "status": "ok",
+    "seconds": 60.5,
+    "tokens_in": 6345,
+    "tokens_out": 15210
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 206.7,
+    "tokens_in": 9193,
+    "tokens_out": 50881
+  },
+  "Moblin/View/ControlBar/QuickButton/QuickButtonDjiDevicesView.swift": {
+    "status": "ok",
+    "seconds": 32.8,
+    "tokens_in": 2391,
+    "tokens_out": 7874
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomRistSettingsView.swift": {
+    "status": "ok",
+    "seconds": 28.1,
+    "tokens_in": 4341,
+    "tokens_out": 7328
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardPadelSettingsView.swift": {
+    "status": "ok",
+    "seconds": 69.5,
+    "tokens_in": 5931,
+    "tokens_out": 16694
+  },
+  "Moblin/View/ControlBar/QuickButton/QuickButtonMacrosView.swift": {
+    "status": "ok",
+    "seconds": 72.5,
+    "tokens_in": 2159,
+    "tokens_out": 16838
+  },
+  "Moblin/View/Settings/Scenes/ScenesSettingsView.swift": {
+    "status": "ok",
+    "seconds": 76.4,
+    "tokens_in": 8320,
+    "tokens_out": 19782
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Map/WidgetMapSettingsView.swift": {
+    "status": "ok",
+    "seconds": 88.6,
+    "tokens_in": 2568,
+    "tokens_out": 19750
+  },
+  "Moblin/View/Settings/Camera/CameraSettingsView.swift": {
+    "status": "ok",
+    "seconds": 92.6,
+    "tokens_in": 9434,
+    "tokens_out": 24134
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomRtmpSettingsView.swift": {
+    "status": "ok",
+    "seconds": 43.1,
+    "tokens_in": 4878,
+    "tokens_out": 11042
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomWhipSettingsView.swift": {
+    "status": "ok",
+    "seconds": 32.1,
+    "tokens_in": 4455,
+    "tokens_out": 8310
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardMobcamSettingsView.swift": {
+    "status": "ok",
+    "seconds": 16.5,
+    "tokens_in": 3192,
+    "tokens_out": 3980
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomSrtSettingsView.swift": {
+    "status": "ok",
+    "seconds": 40.1,
+    "tokens_in": 4775,
+    "tokens_out": 10547
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupDirectSettingsView.swift": {
+    "status": "ok",
+    "seconds": 38.3,
+    "tokens_in": 6295,
+    "tokens_out": 10232
+  },
+  "Moblin/View/Settings/GoPro/GoProBleDeviceSettingsView.swift": {
+    "status": "ok",
+    "seconds": 137.2,
+    "tokens_in": 12182,
+    "tokens_out": 35868
+  },
+  "Moblin/View/Settings/Gimbal/GimbalSettingsView.swift": {
+    "status": "ok",
+    "seconds": 162.4,
+    "tokens_in": 6419,
+    "tokens_out": 42009
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardObsRemoteControlSettingsView.swift": {
+    "status": "ok",
+    "seconds": 81.7,
+    "tokens_in": 6159,
+    "tokens_out": 21063
+  },
+  "Moblin/View/ControlBar/QuickButton/QuickButtonLutsView.swift": {
+    "status": "ok",
+    "seconds": 21.3,
+    "tokens_in": 2179,
+    "tokens_out": 5103
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/MyServers/StreamWizardNetworkSetupMyServersSrtSettingsView.swift": {
+    "status": "ok",
+    "seconds": 25.0,
+    "tokens_in": 2458,
+    "tokens_out": 6178
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Effects/LutEffectView.swift": {
+    "status": "ok",
+    "seconds": 25.9,
+    "tokens_in": 3122,
+    "tokens_out": 6507
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/MyServers/StreamWizardNetworkSetupMyServersRtmpSettingsView.swift": {
+    "status": "ok",
+    "seconds": 38.0,
+    "tokens_in": 3921,
+    "tokens_out": 9576
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomSettingsView.swift": {
+    "status": "ok",
+    "seconds": 40.1,
+    "tokens_in": 3429,
+    "tokens_out": 9743
+  },
+  "Moblin/View/Utils/ShortcutView.swift": {
+    "status": "ok",
+    "seconds": 18.9,
+    "tokens_in": 4140,
+    "tokens_out": 4665
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardSettingsView.swift": {
+    "status": "ok",
+    "seconds": 59.8,
+    "tokens_in": 5007,
+    "tokens_out": 15293
+  },
+  "Moblin/View/Settings/GameControllers/GameControllersControllerButtonSettingsView.swift": {
+    "status": "ok",
+    "seconds": 66.4,
+    "tokens_in": 4296,
+    "tokens_out": 17091
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupBelaboxSettingsView.swift": {
+    "status": "ok",
+    "seconds": 48.9,
+    "tokens_in": 4088,
+    "tokens_out": 12735
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupObsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 60.4,
+    "tokens_in": 3686,
+    "tokens_out": 16035
+  },
+  "Moblin/View/Settings/GoPro/GoProSettingsView.swift": {
+    "status": "ok",
+    "seconds": 132.9,
+    "tokens_in": 11598,
+    "tokens_out": 34724
+  },
+  "Moblin/View/ControlBar/QuickButton/QuickButtonGoProView.swift": {
+    "status": "ok",
+    "seconds": 113.3,
+    "tokens_in": 6714,
+    "tokens_out": 29176
+  },
+  "Moblin/View/Settings/Scenes/Scene/SceneWidgetSettingsView.swift": {
+    "status": "ok",
+    "seconds": 8.8,
+    "tokens_in": 2653,
+    "tokens_out": 2202
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/MyServers/StreamWizardNetworkSetupMyServersSettingsView.swift": {
+    "status": "ok",
+    "seconds": 14.6,
+    "tokens_in": 2338,
+    "tokens_out": 3351
+  },
+  "Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift": {
+    "status": "ok",
+    "seconds": 66.1,
+    "tokens_in": 3447,
+    "tokens_out": 15847
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetSettingsView.swift": {
+    "status": "ok",
+    "seconds": 88.3,
+    "tokens_in": 8628,
+    "tokens_out": 22893
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Slideshow/WidgetSlideshowSettingsView.swift": {
+    "status": "ok",
+    "seconds": 105.5,
+    "tokens_in": 4355,
+    "tokens_out": 26320
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/StreamWizardNetworkSetupSettingsView.swift": {
+    "status": "ok",
+    "seconds": 14.7,
+    "tokens_in": 3286,
+    "tokens_out": 3502
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/Wizard/WidgetWizardSlideshowSettingsView.swift": {
+    "status": "ok",
+    "seconds": 53.5,
+    "tokens_in": 4881,
+    "tokens_out": 13992
+  },
+  "Moblin/View/Settings/Scenes/Widgets/WidgetsSettingsView.swift": {
+    "status": "ok",
+    "seconds": 66.0,
+    "tokens_in": 3888,
+    "tokens_out": 15951
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardKickSettingsView.swift": {
+    "status": "ok",
+    "seconds": 25.1,
+    "tokens_in": 4040,
+    "tokens_out": 6375
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardSoopSettingsView.swift": {
+    "status": "ok",
+    "seconds": 26.5,
+    "tokens_in": 3148,
+    "tokens_out": 6610
+  },
+  "Moblin/View/Settings/Scenes/Widgets/Widget/WidgetWizardSettingsView.swift": {
+    "status": "ok",
+    "seconds": 55.1,
+    "tokens_in": 7408,
+    "tokens_out": 15051
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardTwitchSettingsView.swift": {
+    "status": "ok",
+    "seconds": 62.7,
+    "tokens_in": 4602,
+    "tokens_out": 16013
+  },
+  "Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardYouTubeSettingsView.swift": {
+    "status": "ok",
+    "seconds": 88.1,
+    "tokens_in": 4430,
+    "tokens_out": 20598
+  },
+  "Moblin/View/Settings/Streams/Stream/StreamWizardSettingsView.swift": {
+    "status": "ok",
+    "seconds": 27.0,
+    "tokens_in": 3636,
+    "tokens_out": 7007
+  }
+}

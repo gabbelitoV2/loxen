@@ -1,25 +1,16 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.videosource
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -27,16 +18,29 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import com.moblin.android.LocalModel
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetVideoSource
-import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.settings.scenes.scene.startScreenCatptureHelp
 import com.moblin.android.view.settings.scenes.widgets.widget.effects.WidgetEffectsView
+import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.InlinePickerItem
 import com.moblin.android.view.utils.InlinePickerView
 import com.moblin.android.view.utils.VideoSourceRotationView
-import com.moblin.android.LocalModel
+import com.moblin.android.localized
+import com.moblin.android.various.model.cameraIdToSettingsCameraId
+import com.moblin.android.various.model.getCameraId
+import com.moblin.android.various.model.getCameraPositionName
+import com.moblin.android.various.model.getVideoSourceEffect
+import com.moblin.android.various.model.isScreenCaptureCamera
+import com.moblin.android.various.model.listCameras
+import com.moblin.android.various.model.sceneUpdated
 
 enum class AnchorPoint {
     topLeft,
@@ -194,7 +198,6 @@ fun calculatePositioningAnchorPoint(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetVideoSourceSettingsView(
     model: Model = LocalModel.current,
@@ -202,99 +205,91 @@ fun WidgetVideoSourceSettingsView(
     videoSource: SettingsWidgetVideoSource,
 ) {
     var presentingScreenCaptureAlert by remember { mutableStateOf(false) }
-    var showVideoSourcePicker by remember { mutableStateOf(false) }
 
     fun onCameraChange(cameraId: String) {
         videoSource.updateCameraId(
-            settingsCameraId = TODO("cameraIdToSettingsCameraId"),
+            settingsCameraId = model.cameraIdToSettingsCameraId(cameraId = cameraId),
         )
-        Unit
-        if (TODO("isScreenCaptureCamera")) {
+        model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
+        if (model.isScreenCaptureCamera(cameraId = cameraId)) {
             presentingScreenCaptureAlert = true
         }
     }
 
     fun setEffectSettings() {
-        Unit
+        model.getVideoSourceEffect(id = widget.id)
+            ?.setSettings(settings = videoSource.toEffectSettings())
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showVideoSourcePicker = true },
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text("Video source")
-            Spacer(modifier = Modifier.weight(1f))
-            GrayTextView(text = TODO("getCameraPositionName"))
-        }
-        if (presentingScreenCaptureAlert) {
-            AlertDialog(
-                onDismissRequest = { presentingScreenCaptureAlert = false },
-                title = { Text(startScreenCatptureHelp) },
-                confirmButton = {
-                    TextButton(onClick = { presentingScreenCaptureAlert = false }) {
-                        Text("Got it")
-                    }
+        Section {
+            NavigationLink(
+                destination = {
+                    InlinePickerView(
+                        title = "Video source",
+                        onChange = { cameraId -> onCameraChange(cameraId) },
+                        items = model.listCameras(excludeBuiltin = false).map {
+                            InlinePickerItem(id = it.id, text = it.name)
+                        },
+                        initialSelectedId = model.getCameraId(videoSourceWidget = videoSource),
+                    )
                 },
-            )
-        }
-        if (showVideoSourcePicker) {
-            ModalBottomSheet(onDismissRequest = { showVideoSourcePicker = false }) {
-                InlinePickerView(
-                    title = "Video source",
-                    onChange = { cameraId ->
-                        onCameraChange(cameraId)
-                        showVideoSourcePicker = false
+            ) {
+                Text(localized("Video source"))
+                Spacer(modifier = Modifier.weight(1f))
+                GrayTextView(
+                    text = model.getCameraPositionName(videoSourceWidget = videoSource),
+                )
+            }
+            if (presentingScreenCaptureAlert) {
+                AlertDialog(
+                    onDismissRequest = { presentingScreenCaptureAlert = false },
+                    title = { Text(startScreenCatptureHelp) },
+                    confirmButton = {
+                        TextButton(onClick = { presentingScreenCaptureAlert = false }) {
+                            Text(localized("Got it"))
+                        }
                     },
-                    items = TODO("listCameras"),
-                    initialSelectedId = TODO("getCameraId"),
                 )
             }
         }
-        VideoSourceRotationView(
-            selectedRotation = videoSource.rotation,
-            onSelectedRotationChange = { videoSource.rotation = it },
-        )
-        LaunchedEffect(videoSource.rotation) {
-            setEffectSettings()
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Mirror")
-            Spacer(modifier = Modifier.weight(1f))
-            Switch(
-                checked = videoSource.mirror,
-                onCheckedChange = { videoSource.mirror = it },
+        Section {
+            VideoSourceRotationView(
+                selectedRotation = videoSource.rotation,
+                onSelectedRotationChange = {
+                    videoSource.rotation = it
+                    setEffectSettings()
+                },
+            )
+            Toggle(
+                title = "Mirror",
+                isOn = videoSource.mirror,
+                onChange = {
+                    videoSource.mirror = it
+                    setEffectSettings()
+                },
             )
         }
-        LaunchedEffect(videoSource.mirror) {
-            setEffectSettings()
-        }
-        Text("Face tracking", style = MaterialTheme.typography.titleSmall)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Enabled")
-            Spacer(modifier = Modifier.weight(1f))
-            Switch(
-                checked = videoSource.trackFaceEnabled,
-                onCheckedChange = { videoSource.trackFaceEnabled = it },
+        Section(header = "Face tracking") {
+            Toggle(
+                title = "Enabled",
+                isOn = videoSource.trackFaceEnabled,
+                onChange = {
+                    videoSource.trackFaceEnabled = it
+                    setEffectSettings()
+                },
             )
-        }
-        LaunchedEffect(videoSource.trackFaceEnabled) {
-            setEffectSettings()
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Zoom")
-            Slider(
-                value = videoSource.trackFaceZoom.toFloat(),
-                onValueChange = { videoSource.trackFaceZoom = it.toDouble() },
-                valueRange = 0f..1f,
-                steps = 99,
-                modifier = Modifier.weight(1f),
-            )
-        }
-        LaunchedEffect(videoSource.trackFaceZoom) {
-            setEffectSettings()
+            FormRow {
+                Text(localized("Zoom"))
+                FormSlider(
+                    value = videoSource.trackFaceZoom.toFloat(),
+                    onValueChange = {
+                        videoSource.trackFaceZoom = it.toDouble()
+                        setEffectSettings()
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
         WidgetEffectsView(model = model, widget = widget)
     }

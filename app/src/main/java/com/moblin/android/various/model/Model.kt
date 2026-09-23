@@ -80,7 +80,7 @@ import android.os.BatteryManager
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.view.WindowManager
-import com.moblin.android.various.utils.AVCaptureDevice
+import com.moblin.android.platform.avfoundation.AVCaptureDevice
 import com.moblin.android.various.utils.getUIZoomRange
 import com.moblin.android.various.utils.getZoomFactorScale
 import com.moblin.android.various.utils.hasUltraWideBackCamera
@@ -843,7 +843,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun updateAdaptiveBitrateSrt(srt: SettingsStreamSrt) {
         when (srt.adaptiveBitrate.algorithm) {
             SettingsStreamSrtAdaptiveBitrateAlgorithm.fastIrl -> {
-                var settings = adaptiveBitrateFastSettings
+                var settings = adaptiveBitrateFastSettings.copy()
                 settings.packetsInFlight = srt.adaptiveBitrate.fastIrlSettings.packetsInFlight.toLong()
                 settings.minimumBitrate =
                     (srt.adaptiveBitrate.fastIrlSettings.minimumBitrate * 1000).toLong()
@@ -867,7 +867,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 )
             }
             SettingsStreamSrtAdaptiveBitrateAlgorithm.belabox -> {
-                var settings = adaptiveBitrateBelaboxSettings
+                var settings = adaptiveBitrateBelaboxSettings.copy()
                 settings.minimumBitrate =
                     (srt.adaptiveBitrate.belaboxSettings.minimumBitrate * 1000).toLong()
                 media.setAdaptiveBitrateSettings(settings = settings)
@@ -876,7 +876,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun updateAdaptiveBitrateRtmpIfEnabled() {
-        var settings = adaptiveBitrateFastSettings
+        var settings = adaptiveBitrateFastSettings.copy()
         settings.rttDiffHighAllowedSpike = 500.0
         media.setAdaptiveBitrateSettings(settings = settings)
     }
@@ -1474,12 +1474,13 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         stopNtpClient()
         if (isTimecodesEnabled()) {
             Log.d("Model", "Starting NTP client for pool ${stream.value.ntpPoolAddress}")
-            Unit
+            com.moblin.android.platform.ntp.TrueTimeClient.sharedInstance.start(pool = listOf(stream.value.ntpPoolAddress))
         }
     }
 
     fun stopNtpClient() {
         Log.d("Model", "Stopping NTP client")
+        com.moblin.android.platform.ntp.TrueTimeClient.sharedInstance.pause()
     }
 
     private fun isWeatherNeeded(): Boolean {
@@ -1844,11 +1845,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun updateOrientation() {
         updateIsPortrait()
         if (stream.value.portrait) {
-            media.setVideoOrientation(value = Surface.ROTATION_0)
+            media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.portrait)
         } else {
-            when (deviceRotation()) {
-                Surface.ROTATION_90 -> media.setVideoOrientation(value = Surface.ROTATION_90)
-                Surface.ROTATION_270 -> media.setVideoOrientation(value = Surface.ROTATION_270)
+            when (com.moblin.android.platform.uikit.UIDevice.current.orientation) {
+                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft -> media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)
+                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight -> media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeLeft)
                 else -> {}
             }
         }
@@ -2853,7 +2854,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         val params = VideoUnitAttachParams(
             devices = CaptureDevices(hasSceneDevice = false, devices = mutableListOf()),
             builtinDelay = 0.0,
-            cameraPreviewLayers = cameraPreviewView.previewLayers,
+            cameraPreviewLayers = cameraPreviewView.previewLayers.toMap(),
             attachCameraPreview = false,
             showCameraPreview = false,
             externalDisplayPreview = false,
@@ -2876,22 +2877,22 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     private fun updateCameraPreviewRotation() {
         if (useLandscapeStreamAndPortraitUi(null, isLandscapeStreamAndPortraitUi())) {
-            cameraPreviewView.setVideoOrientation(Surface.ROTATION_0)
+            cameraPreviewView.setVideoOrientation(com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.portrait)
         } else if (stream.value.portrait) {
-            cameraPreviewView.setVideoOrientation(Surface.ROTATION_0)
+            cameraPreviewView.setVideoOrientation(videoOrientation = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.portrait)
         } else {
-            when (deviceRotation()) {
-                Surface.ROTATION_90 ->
-                    cameraPreviewView.setVideoOrientation(Surface.ROTATION_90)
-                Surface.ROTATION_270 ->
-                    cameraPreviewView.setVideoOrientation(Surface.ROTATION_270)
-                else -> cameraPreviewView.setVideoOrientation(Surface.ROTATION_90)
+            when (com.moblin.android.platform.uikit.UIDevice.current.orientation) {
+                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft ->
+                    cameraPreviewView.setVideoOrientation(com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)
+                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight ->
+                    cameraPreviewView.setVideoOrientation(com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeLeft)
+                else -> cameraPreviewView.setVideoOrientation(com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)
             }
         }
     }
 
     fun getVideoMirroredOnStream(device: CaptureDevice): Boolean {
-        if (cameraPosition == CameraSelector.LENS_FACING_FRONT) {
+        if ((device.device as? com.moblin.android.platform.avfoundation.AVCaptureDevice)?.position == com.moblin.android.platform.avfoundation.AVCaptureDevice.Position.front) {
             return database.mirrorFrontCameraOnStream
         }
         return false
@@ -2952,7 +2953,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         val params = VideoUnitAttachParams(
             devices = devices,
             builtinDelay = database.debug.builtinAudioAndVideoDelay.value,
-            cameraPreviewLayers = cameraPreviewView.previewLayers,
+            cameraPreviewLayers = cameraPreviewView.previewLayers.toMap(),
             attachCameraPreview = attachCameraPreview,
             showCameraPreview = showCameraPreview,
             externalDisplayPreview = externalDisplayPreview,
@@ -3014,7 +3015,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         media.attachBufferedCamera(
             devices = getBuiltinCameraDevices(scene = scene, sceneDevice = null),
             builtinDelay = database.debug.builtinAudioAndVideoDelay.value,
-            cameraPreviewLayers = cameraPreviewView.previewLayers,
+            cameraPreviewLayers = cameraPreviewView.previewLayers.toMap(),
             attachCameraPreview = false,
             showCameraPreview = updateShowCameraPreview(),
             externalDisplayPreview = externalDisplayPreview,
@@ -3033,7 +3034,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun attachExternalCamera(scene: SettingsScene) {
-        attachCamera(scene = scene, position = CameraSelector.LENS_FACING_FRONT)
+        attachCamera(scene = scene, position = com.moblin.android.platform.avfoundation.AVCaptureDevice.Position.unspecified.ordinal)
     }
 
     private fun getVideoStabilizationMode(scene: SettingsScene): SettingsVideoStabilizationMode =
@@ -3124,7 +3125,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
                 else -> scene.videoSource.externalCameraId
             }
             return CaptureDevice(
-                device = deviceId,
+                device = AVCaptureDevice.withUniqueID(deviceId) ?: return null,
                 id = builtinCameraIds[deviceId] ?: UUID.randomUUID(),
                 isVideoMirrored = false,
             )

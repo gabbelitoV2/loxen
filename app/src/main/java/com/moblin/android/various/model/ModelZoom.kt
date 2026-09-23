@@ -4,7 +4,7 @@ import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.remotecontrol.RemoteControlZoomPreset
 import com.moblin.android.various.settings.SettingsSceneCameraPosition
 import com.moblin.android.various.settings.SettingsZoomPreset
-import com.moblin.android.various.utils.AVCaptureDevice
+import com.moblin.android.platform.avfoundation.AVCaptureDevice
 import com.moblin.android.various.utils.hasUltraWideBackCamera
 import com.moblin.android.various.utils.hasUltraWideFrontCamera
 import java.util.Locale

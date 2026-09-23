@@ -1,32 +1,29 @@
 package com.moblin.android.view.settings.tesla
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import com.moblin.android.R
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.integrations.tesla.TeslaVehicleScanner
 import com.moblin.android.integrations.tesla.TeslaVehicleState
 import com.moblin.android.integrations.tesla.teslaGeneratePrivateKey
 import com.moblin.android.localized
+import com.moblin.android.platform.Bundle
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormButton
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Tesla
 import com.moblin.android.various.model.mediaNextTrack
@@ -41,12 +38,9 @@ import com.moblin.android.various.model.teslaOpenTrunk
 import com.moblin.android.various.settings.SettingsTesla
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.HCenter
-import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
 import java.security.PrivateKey
 import java.util.UUID
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
 
 private fun formatTeslaVehicleState(state: TeslaVehicleState?): String {
     return when {
@@ -63,7 +57,6 @@ private fun PrivateKey.pemRepresentation(): String {
     return "-----BEGIN PRIVATE KEY-----\n$lines\n-----END PRIVATE KEY-----\n"
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeslaSettingsConfigurationView(
     model: Model = LocalModel.current,
@@ -72,11 +65,9 @@ fun TeslaSettingsConfigurationView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     val database = model.database
-    val bluetoothPeripheralName = settings.bluetoothPeripheralName
-    val vin = database.tesla.vin
-    val privateKey = database.tesla.privateKey
     val vehicleState by tesla.vehicleState.collectAsState()
-    val addKeyToVehicleEnabled = vin.isNotEmpty() && privateKey.isNotEmpty() &&
+    val addKeyToVehicleEnabled = database.tesla.vin.isNotEmpty() &&
+        database.tesla.privateKey.isNotEmpty() &&
         vehicleState == TeslaVehicleState.connected
 
     fun onSubmitVin(value: String) {
@@ -93,156 +84,163 @@ fun TeslaSettingsConfigurationView(
         model.reloadTeslaVehicle()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Configuration") })
-        },
-    ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
-            item {
-                Text("Vehicle", style = MaterialTheme.typography.titleSmall)
-            }
-            item {
-                Box(
-                    modifier = Modifier.clickable {
-                        onNavigate("TeslaVehicleScannerSettingsView")
-                    },
-                ) {
-                    GrayTextView(text = bluetoothPeripheralName ?: localized("Select vehicle"))
-                }
-            }
-            item {
-                TextEditNavigationView(
-                    title = localized("VIN"),
-                    value = vin,
-                    onSubmit = { onSubmitVin(it) },
+    Form(title = localized("Configuration")) {
+        Section(
+            header = localized("Vehicle"),
+            footer = localized("Scroll down in your Tesla app and copy it."),
+        ) {
+            NavigationLink(
+                destination = {
+                    TeslaVehicleScannerSettingsView(
+                        onChange = { onDeviceChange(it) },
+                        onDismiss = {},
+                    )
+                },
+            ) {
+                GrayTextView(
+                    text = settings.bluetoothPeripheralName ?: localized("Select vehicle"),
                 )
             }
-            item {
-                Text("Scroll down in your Tesla app and copy it.")
+            TextEditNavigationView(
+                title = localized("VIN"),
+                value = database.tesla.vin,
+                onSubmit = { onSubmitVin(it) },
+            )
+        }
+        Section(
+            footer = localized(
+                "Moblin identifies itself to the vehicle with this key. Tap the button below " +
+                    "to add it to your vehicle.",
+            ),
+        ) {
+            FormButton(title = "Generate new key") {
+                database.tesla.privateKey = teslaGeneratePrivateKey().pemRepresentation()
+                model.reloadTeslaVehicle()
             }
-            item {
-                TextButtonView(title = "Generate new key") {
-                    database.tesla.privateKey = teslaGeneratePrivateKey().pemRepresentation()
-                    model.reloadTeslaVehicle()
-                }
-            }
-            item {
-                Text(
-                    "Moblin identifies itself to the vehicle with this key. Tap the button below " +
-                        "to add it to your vehicle.",
-                )
-            }
-            item {
-                TextButtonView(title = "Add key to vehicle") {
-                    model.teslaAddKeyToVehicle()
-                }
-            }
-            item {
-                Text("Remove keys in Controls → Locks on your Tesla's center screen.")
+        }
+        Section(
+            footer = localized("Remove keys in Controls → Locks on your Tesla's center screen."),
+        ) {
+            FormButton(
+                title = "Add key to vehicle",
+                enabled = addKeyToVehicleEnabled,
+            ) {
+                model.teslaAddKeyToVehicle()
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TeslaSettingsView(model: Model = LocalModel.current, tesla: Tesla, onNavigate: (String) -> Unit = LocalOnNavigate.current) {
-    val database = model.database
-    val enabled = database.tesla.enabled
+fun TeslaSettingsView(
+    model: Model = LocalModel.current,
+    tesla: Tesla,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current,
+) {
     val vehicleState by tesla.vehicleState.collectAsState()
     val vehicleInfotainmentConnected by tesla.vehicleInfotainmentConnected.collectAsState()
     val vehicleVehicleSecurityConnected by tesla.vehicleVehicleSecurityConnected.collectAsState()
-    val context = LocalContext.current
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Tesla") })
-        },
-    ) { padding ->
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
-            item {
-                HCenter {
+    Form(title = localized("Tesla")) {
+        Section {
+            HCenter {
+                val bitmap = Bundle.image("Tesla")?.asImageBitmap()
+                if (bitmap != null) {
                     Image(
-                        painter = painterResource(
-                            id = context.resources.getIdentifier(
-                                "tesla",
-                                "drawable",
-                                context.packageName,
-                            ),
-                        ),
+                        bitmap = bitmap,
                         contentDescription = null,
                         modifier = Modifier.fillMaxWidth(),
                         contentScale = ContentScale.Fit,
                     )
                 }
             }
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Enabled", modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = enabled,
-                        onCheckedChange = {
-                            database.tesla.enabled = it
-                            model.reloadTeslaVehicle()
-                        },
-                    )
-                }
-            }
-            item {
-                Box(
-                    modifier = Modifier.clickable {
-                        onNavigate("TeslaSettingsConfigurationView")
+        }
+        Section {
+            Toggle(
+                title = localized("Enabled"),
+                isOn = binding(
+                    get = { model.database.tesla.enabled },
+                    set = {
+                        model.database.tesla.enabled = it
+                        model.reloadTeslaVehicle()
                     },
-                ) {
-                    Text("Configuration")
-                }
+                ),
+            )
+            NavigationLink(
+                destination = {
+                    TeslaSettingsConfigurationView(tesla = tesla, settings = model.database.tesla)
+                },
+            ) {
+                Text(
+                    text = localized("Configuration"),
+                    style = formBodyStyle,
+                    color = formPalette().label,
+                )
             }
-            item {
-                HCenter {
-                    Text(formatTeslaVehicleState(state = vehicleState))
-                }
+        }
+        Section {
+            HCenter {
+                Text(
+                    text = formatTeslaVehicleState(state = vehicleState),
+                    style = formBodyStyle,
+                    color = formPalette().label,
+                )
             }
-            item {
-                TextButtonView(
-                    title = "Flash lights",
-                ) {
-                    model.teslaFlashLights()
-                }
+        }
+        Section {
+            FormButton(
+                title = "Flash lights",
+                enabled = vehicleInfotainmentConnected,
+            ) {
+                model.teslaFlashLights()
             }
-            item {
-                TextButtonView(title = "Honk") {
-                    model.teslaHonk()
-                }
+        }
+        Section {
+            FormButton(
+                title = "Honk",
+                enabled = vehicleInfotainmentConnected,
+            ) {
+                model.teslaHonk()
             }
-            item {
-                TextButtonView(title = "Open trunk") {
-                    model.teslaOpenTrunk()
-                }
+        }
+        Section {
+            FormButton(
+                title = "Open trunk",
+                enabled = vehicleVehicleSecurityConnected,
+            ) {
+                model.teslaOpenTrunk()
             }
-            item {
-                TextButtonView(title = "Close trunk") {
-                    model.teslaCloseTrunk()
-                }
+        }
+        Section {
+            FormButton(
+                title = "Close trunk",
+                enabled = vehicleVehicleSecurityConnected,
+            ) {
+                model.teslaCloseTrunk()
             }
-            item {
-                TextButtonView(title = "Next media track") {
-                    model.mediaNextTrack()
-                }
+        }
+        Section {
+            FormButton(
+                title = "Next media track",
+                enabled = vehicleInfotainmentConnected,
+            ) {
+                model.mediaNextTrack()
             }
-            item {
-                TextButtonView(
-                    title = "Previous media track",
-                ) {
-                    model.mediaPreviousTrack()
-                }
+        }
+        Section {
+            FormButton(
+                title = "Previous media track",
+                enabled = vehicleInfotainmentConnected,
+            ) {
+                model.mediaPreviousTrack()
             }
-            item {
-                TextButtonView(
-                    title = "Toggle media playback",
-                ) {
-                    model.mediaTogglePlayback()
-                }
+        }
+        Section {
+            FormButton(
+                title = "Toggle media playback",
+                enabled = vehicleInfotainmentConnected,
+            ) {
+                model.mediaTogglePlayback()
             }
         }
     }

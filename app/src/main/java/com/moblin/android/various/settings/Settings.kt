@@ -1,6 +1,6 @@
 package com.moblin.android.various.settings
 
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.os.Build
 import android.util.Log
 import androidx.compose.ui.graphics.Color

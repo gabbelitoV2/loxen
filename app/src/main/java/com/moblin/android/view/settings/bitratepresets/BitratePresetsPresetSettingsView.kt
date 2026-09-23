@@ -1,18 +1,12 @@
 package com.moblin.android.view.settings.bitratepresets
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.moblin.android.common.various.bitrateFromMbps
 import com.moblin.android.common.various.bitrateToMbps
 import com.moblin.android.common.various.formatBytesPerSecond
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.various.settings.SettingsBitratePreset
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.TextEditView
@@ -28,23 +22,18 @@ data class BitratePresetsPresetSettingsView(
 
     @Composable
     fun Body() {
-        var editing by remember { mutableStateOf(false) }
-        Row(modifier = Modifier.clickable { editing = true }) {
-            DraggableItemPrefixView()
-            TextItemView(
-                name = formatBytesPerSecond(preset.bitrate.toLong()),
-                value = bitrateToMbps(preset.bitrate.toUInt()).toString(),
-            )
-        }
-        if (editing) {
+        NavigationLink(destination = {
             TextEditView(
                 title = localized("Bitrate"),
                 value = bitrateToMbps(preset.bitrate.toUInt()).toString(),
                 keyboardType = KeyboardType.Decimal,
-                onSubmit = {
-                    submit(it)
-                    editing = false
-                },
+                onSubmit = { submit(it) },
+            )
+        }) {
+            DraggableItemPrefixView()
+            TextItemView(
+                name = formatBytesPerSecond(preset.bitrate.toLong()),
+                value = bitrateToMbps(preset.bitrate.toUInt()).toString(),
             )
         }
     }

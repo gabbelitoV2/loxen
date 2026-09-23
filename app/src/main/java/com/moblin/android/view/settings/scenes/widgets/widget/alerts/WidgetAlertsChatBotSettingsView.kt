@@ -1,30 +1,34 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.alerts
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventTimeoutCancellationException
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
+import com.moblin.android.common.various.color
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidgetAlertsAlert
 import com.moblin.android.various.settings.SettingsWidgetAlertsChatBot
@@ -34,10 +38,8 @@ import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import kotlinx.coroutines.withTimeout
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ChatBotCommandView(
     model: Model = LocalModel.current,
@@ -49,15 +51,39 @@ private fun ChatBotCommandView(
     var showMenu by remember { mutableStateOf(false) }
 
     Box {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .combinedClickable(
-                    onClick = { onNavigate("command") },
-                    onLongClick = { showMenu = true },
-                ),
+        NavigationLink(
+            destination = {
+                ChatBotCommandDetailView(model = model, alert = alert, command = command)
+            },
         ) {
-            Text(command.name.replaceFirstChar { it.titlecase() })
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .pointerInput(command.id) {
+                        awaitEachGesture {
+                            awaitFirstDown(requireUnconsumed = false)
+                            var longPressed = false
+                            try {
+                                withTimeout(viewConfiguration.longPressTimeoutMillis) {
+                                    waitForUpOrCancellation()
+                                }
+                            } catch (_: PointerEventTimeoutCancellationException) {
+                                longPressed = true
+                            }
+                            if (longPressed) {
+                                showMenu = true
+                                var event = awaitPointerEvent()
+                                while (event.changes.any { it.pressed }) {
+                                    event.changes.forEach { it.consume() }
+                                    event = awaitPointerEvent()
+                                }
+                                event.changes.forEach { it.consume() }
+                            }
+                        }
+                    },
+            ) {
+                Text(command.name.replaceFirstChar { it.titlecase() })
+            }
         }
         DropdownMenu(
             expanded = showMenu,
@@ -74,7 +100,6 @@ private fun ChatBotCommandView(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatBotCommandDetailView(
     model: Model = LocalModel.current,
@@ -83,80 +108,46 @@ fun ChatBotCommandDetailView(
 ) {
     var name by remember { mutableStateOf(command.name) }
 
-    fun onSubmit(value: String) {
-        command.name = value.lowercase().filterNot { it.isWhitespace() }
-        name = command.name
-        model.updateAlertsSettings()
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("Command")) })
-        },
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(localized("Enabled"), modifier = Modifier.weight(1f))
-                    Switch(
-                        checked = alert.enabled,
-                        onCheckedChange = { value ->
-                            alert.enabled = value
-                            model.updateAlertsSettings()
-                        },
-                    )
-                }
+    Form(title = localized("Command")) {
+        Section {
+            Toggle(title = localized("Enabled"), isOn = alert.enabled) { value ->
+                alert.enabled = value
+                model.updateAlertsSettings()
             }
-            item {
-                TextEditNavigationView(
-                    title = localized("Name"),
-                    value = name,
-                    onSubmit = { onSubmit(it) },
-                )
-            }
-            item {
-                Text(localized("Trigger with chat message '!moblin alert $name'"))
-            }
-            item {
-                AlertMediaView(alert = alert)
-            }
-            item {
-                AlertPositionView(alert = alert)
-            }
-            item {
-                AlertColorsView(
-                    alert = alert,
-                    textColor = TODO("SettingsColor.color() has no translation declared in the port glossary"),
-                    accentColor = TODO("SettingsColor.color() has no translation declared in the port glossary"),
-                )
-            }
-            item {
-                AlertFontView(
-                    alert = alert,
-                    fontSize = alert.fontSize.toFloat(),
-                    fontDesign = alert.fontDesign,
-                    fontWeight = alert.fontWeight,
-                )
-            }
-            item {
-                AlertTextToSpeechView(alert = alert)
-            }
-            item {
-                TextButtonView("Test") {
-                    model.testAlert(
-                        TODO("AlertTest.chatBotCommand(name, alertTestNames.random()) is not declared in the port glossary"),
-                    )
-                }
+        }
+        Section(footer = localized("Trigger with chat message '!moblin alert $name'")) {
+            TextEditNavigationView(
+                title = localized("Name"),
+                value = name,
+                onSubmit = { value ->
+                    command.name = value.lowercase().filterNot { it.isWhitespace() }
+                    name = command.name
+                    model.updateAlertsSettings()
+                },
+            )
+        }
+        AlertMediaView(alert = alert)
+        AlertPositionView(model = model, alert = alert)
+        AlertColorsView(
+            alert = alert,
+            textColor = alert.textColor.color(),
+            accentColor = alert.accentColor.color(),
+        )
+        AlertFontView(
+            alert = alert,
+            fontSize = alert.fontSize.toFloat(),
+            fontDesign = alert.fontDesign,
+            fontWeight = alert.fontWeight,
+        )
+        AlertTextToSpeechView(alert = alert)
+        Section {
+            TextButtonView("Test") {
+                model.testAlert(TODO("AlertTest has no Android counterpart"))
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetAlertsChatBotSettingsView(
     model: Model = LocalModel.current,
@@ -170,44 +161,41 @@ fun WidgetAlertsChatBotSettingsView(
         model.updateAlertsSettings()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(localized("Chat bot")) })
-        },
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-        ) {
-            items(chatBot.commands, key = { it.id }) { command ->
-                ChatBotCommandView(
-                    model = model,
-                    alert = command.alert,
-                    command = command,
-                    onNavigate = onNavigate,
-                    onDelete = {
-                        val index = chatBot.commands.indexOfFirst { it.id == command.id }
-                        if (index >= 0) {
-                            deleteCommand(index)
-                        }
-                    },
-                )
-            }
-            item {
-                CreateButtonView {
-                    val command = SettingsWidgetAlertsChatBotCommand()
-                    chatBot.commands = chatBot.commands + command
-                    model.fixAlertMedias()
-                    model.updateAlertsSettings()
-                }
-            }
-            item {
-                Column(horizontalAlignment = Alignment.Start) {
+    Form(title = localized("Chat bot")) {
+        Section(
+            footerContent = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalAlignment = Alignment.Start,
+                ) {
                     Text(localized("Trigger alerts with chat bot commands."))
                     Text("")
                     SwipeLeftToDeleteHelpView(kind = localized("a command"))
                 }
+            },
+        ) {
+            chatBot.commands.forEach { command ->
+                key(command.id) {
+                    ChatBotCommandView(
+                        model = model,
+                        alert = command.alert,
+                        command = command,
+                        onNavigate = onNavigate,
+                        onDelete = {
+                            chatBot.commands.indexOfFirst { it.id == command.id }
+                                .takeIf { it >= 0 }?.let { index ->
+                                    deleteCommand(index)
+                                }
+                        },
+                    )
+                }
+            }
+            CreateButtonView {
+                val command = SettingsWidgetAlertsChatBotCommand()
+                chatBot.commands = chatBot.commands + command
+                model.fixAlertMedias()
+                model.updateAlertsSettings()
             }
         }
     }

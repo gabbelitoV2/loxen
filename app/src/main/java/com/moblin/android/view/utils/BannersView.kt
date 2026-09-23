@@ -2,6 +2,9 @@ package com.moblin.android.view.utils
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -14,17 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.DirectionsRun
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Train
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,9 +27,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
@@ -43,8 +38,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formFootnoteStyle
 import com.moblin.android.various.model.Banners
 import com.moblin.android.various.model.HypeTrain
 import com.moblin.android.various.model.Model
@@ -57,71 +56,91 @@ import com.moblin.android.various.model.TwitchPrediction
 import com.moblin.android.various.model.TwitchPredictionOutcome
 import com.moblin.android.various.model.TwitchPredictionState
 import com.moblin.android.view.controlbar.quickbutton.chat.ChannelImageView
-import com.moblin.android.LocalModel
+import com.moblin.android.various.model.cancelRaidTwitchChannel
 
-private val bannerBackgroundColor = Color(0xFF6441A5)
+private val bannerBackgroundColor = Color(red = 0x64, green = 0x41, blue = 0xA5)
+private val predictionPinkColor = Color(red = 0xF5, green = 0x00, blue = 0x9B)
+private val predictionBlueColor = Color(red = 0x38, green = 0x7A, blue = 0xFF)
+private val bannerTrackColor = Color.White.copy(alpha = 0.24f)
+private val bannerButtonBackgroundColor = Color.White.copy(alpha = 0.15f)
 
-private fun bannerIcon(name: String): ImageVector = when (name) {
-    "train.side.rear.car", "train.side.middle.car", "train.side.front.car" -> Icons.Default.Train
-    "figure.run" -> Icons.Default.DirectionsRun
-    "chart.bar" -> Icons.Default.BarChart
-    "sparkles" -> Icons.Default.AutoAwesome
-    else -> Icons.Default.Info
+@Composable
+private fun BannerButton(title: String, onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Box(
+        modifier = Modifier
+            .alpha(if (pressed) 0.5f else 1f)
+            .clip(RoundedCornerShape(6.dp))
+            .background(bannerButtonBackgroundColor)
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 5.dp),
+    ) {
+        Text(
+            text = title,
+            color = Color.White,
+            style = formBodyStyle,
+        )
+    }
 }
 
 @Composable
 private fun ProgressBarView(progress: ProgressBar) {
-    val fraction = if (progress.goal.value > 0) {
-        ((progress.goal.value - progress.progress.value).toDouble() / progress.goal.value.toDouble()).toFloat()
+    val goal by progress.goal.collectAsState()
+    val current by progress.progress.collectAsState()
+    val fraction = if (goal > 0) {
+        ((goal - current).toDouble() / goal.toDouble()).toFloat()
     } else {
         0.0f
     }
     LinearProgressIndicator(
-        progress = { fraction },
+        progress = { fraction.coerceIn(0.0f, 1.0f) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 10.dp, top = 10.dp, end = 10.dp, bottom = 20.dp)
             .height(16.dp),
         color = Color.White,
+        trackColor = bannerTrackColor,
     )
 }
 
 @Composable
 private fun HypeTrainProgressView(progress: ProgressBar, message: String) {
-    fun percentage(): Int {
-        if (progress.goal.value <= 0) {
-            return 0
-        }
-        return (100.0 * minOf(progress.progress.value.toDouble() / progress.goal.value.toDouble(), 1.0)).toInt()
+    val goal by progress.goal.collectAsState()
+    val current by progress.progress.collectAsState()
+    val percentage = if (goal > 0) {
+        (100.0 * minOf(current.toDouble() / goal.toDouble(), 1.0)).toInt()
+    } else {
+        0
     }
-
+    val fraction = if (goal > 0) {
+        (minOf(current, goal).toDouble() / goal.toDouble()).toFloat()
+    } else {
+        0.0f
+    }
     Column(
         modifier = Modifier.padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        val fraction = if (progress.goal.value > 0) {
-            (minOf(progress.progress.value.toDouble(), progress.goal.value.toDouble()) / progress.goal.value.toDouble()).toFloat()
-        } else {
-            0.0f
-        }
         LinearProgressIndicator(
-            progress = { fraction },
+            progress = { fraction.coerceIn(0.0f, 1.0f) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(16.dp),
             color = Color.White,
+            trackColor = bannerTrackColor,
         )
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "${percentage()}%",
+                text = "$percentage%",
                 color = Color.White,
-                style = MaterialTheme.typography.labelSmall,
+                style = formFootnoteStyle,
             )
             Spacer(Modifier.weight(1f))
             Text(
                 text = message,
                 color = Color.White,
-                style = MaterialTheme.typography.labelSmall,
+                style = formFootnoteStyle,
             )
         }
     }
@@ -133,27 +152,32 @@ private fun HypeTrainView(model: Model = LocalModel.current, hypeTrain: HypeTrai
     val progress by hypeTrain.progress.collectAsState()
     val message by hypeTrain.message.collectAsState()
 
-    Column(modifier = Modifier.background(bannerBackgroundColor)) {
+    Column(
+        modifier = Modifier.background(bannerBackgroundColor),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         level?.let { currentLevel ->
             Row(
                 modifier = Modifier.padding(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(bannerIcon("train.side.rear.car"), contentDescription = null, tint = Color.White)
-                Icon(bannerIcon("train.side.middle.car"), contentDescription = null, tint = Color.White)
-                Icon(bannerIcon("train.side.middle.car"), contentDescription = null, tint = Color.White)
-                Icon(bannerIcon("train.side.middle.car"), contentDescription = null, tint = Color.White)
-                Icon(bannerIcon("train.side.front.car"), contentDescription = null, tint = Color.White)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    SystemImage(name = "train.side.rear.car", fontSize = formBodyStyle.fontSize, tint = Color.White)
+                    SystemImage(name = "train.side.middle.car", fontSize = formBodyStyle.fontSize, tint = Color.White)
+                    SystemImage(name = "train.side.middle.car", fontSize = formBodyStyle.fontSize, tint = Color.White)
+                    SystemImage(name = "train.side.middle.car", fontSize = formBodyStyle.fontSize, tint = Color.White)
+                    SystemImage(name = "train.side.front.car", fontSize = formBodyStyle.fontSize, tint = Color.White)
+                }
                 Spacer(Modifier.weight(1f))
                 Text(
-                    text = "LEVEL $currentLevel",
+                    text = localized("LEVEL $currentLevel"),
                     color = Color.White,
+                    style = formBodyStyle,
                 )
-                TextButton(onClick = {
+                BannerButton(title = localized("Close")) {
                     hypeTrain.level.value = null
                     hypeTrain.progress.value = null
-                }) {
-                    Text("Close", color = Color.White)
                 }
             }
         }
@@ -178,7 +202,12 @@ private fun RaidView(model: Model = LocalModel.current, raid: Raid) {
             }
             RaidState.ongoing -> {
                 raid.message.value = localized("Cancelling raid")
-                Unit
+                model.cancelRaidTwitchChannel { result ->
+                    if (!result.toString().contains("success", ignoreCase = true)) {
+                        raid.message.value = localized("Failed to cancel the raid")
+                        raid.state.value = RaidState.completed
+                    }
+                }
                 raid.state.value = RaidState.cancelling
             }
             RaidState.cancelling -> {
@@ -190,32 +219,39 @@ private fun RaidView(model: Model = LocalModel.current, raid: Raid) {
     }
 
     if (state != RaidState.idle) {
-        Column(modifier = Modifier.background(bannerBackgroundColor)) {
+        Column(
+            modifier = Modifier.background(bannerBackgroundColor),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             Row(
                 modifier = Modifier.padding(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 ChannelImageView(image = channelImage)
-                Column(horizontalAlignment = Alignment.Start) {
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
                     Text(
                         text = message,
                         color = Color.White,
+                        style = formBodyStyle,
                     )
-                    val url = "https://twitch.tv/$channelLogin"
                     Text(
                         text = "twitch.tv/$channelLogin",
                         color = Color.White,
-                        style = MaterialTheme.typography.labelSmall,
-                        textDecoration = TextDecoration.Underline,
-                        modifier = Modifier.clickable { uriHandler.openUri(url) },
+                        style = formFootnoteStyle.copy(textDecoration = TextDecoration.Underline),
+                        modifier = Modifier.clickable {
+                            uriHandler.openUri("https://twitch.tv/$channelLogin")
+                        },
                     )
                 }
                 Spacer(Modifier.weight(1f))
-                TextButton(onClick = { close() }) {
-                    Text(
-                        text = if (state == RaidState.ongoing) "Cancel" else "Close",
-                        color = Color.White,
-                    )
+                BannerButton(
+                    title = if (state == RaidState.ongoing) localized("Cancel") else localized("Close"),
+                ) {
+                    close()
                 }
             }
             progress?.let { currentProgress ->
@@ -233,13 +269,17 @@ private fun OptionBarView(
     color: Color,
     bold: Boolean,
 ) {
+    val textWeight = if (bold) FontWeight.Bold else FontWeight.Normal
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Row {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
                 text = title,
                 color = Color.White,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
+                style = formFootnoteStyle,
+                fontWeight = textWeight,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f, fill = false),
@@ -248,8 +288,8 @@ private fun OptionBarView(
             Text(
                 text = detail,
                 color = Color.White,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = if (bold) FontWeight.Bold else FontWeight.Normal,
+                style = formFootnoteStyle,
+                fontWeight = textWeight,
             )
         }
         LinearProgressIndicator(
@@ -258,6 +298,7 @@ private fun OptionBarView(
                 .fillMaxWidth()
                 .height(8.dp),
             color = color,
+            trackColor = color.copy(alpha = 0.24f),
         )
     }
 }
@@ -277,26 +318,27 @@ private fun BannerView(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(bannerIcon(image), contentDescription = null, tint = Color.White)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SystemImage(name = image, fontSize = formBodyStyle.fontSize, tint = Color.White)
             Text(
                 text = title,
                 color = Color.White,
+                style = formBodyStyle,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(start = 6.dp),
             )
             Spacer(Modifier.weight(1f))
-            TextButton(onClick = onClose) {
-                Text("Close", color = Color.White)
-            }
+            BannerButton(title = localized("Close"), onClick = onClose)
         }
         content()
         Text(
             text = message,
             color = Color.White,
-            style = MaterialTheme.typography.labelSmall,
+            style = formFootnoteStyle,
         )
     }
 }
@@ -361,9 +403,9 @@ private fun TwitchPredictionView(model: Model = LocalModel.current, prediction: 
 
     fun color(outcome: TwitchPredictionOutcome): Color {
         return if (outcome.color == "pink") {
-            Color(0xFFF5009B)
+            predictionPinkColor
         } else {
-            Color(0xFF387AFF)
+            predictionBlueColor
         }
     }
 
@@ -410,24 +452,20 @@ private fun MinimizedView(
     val pollState by poll.state.collectAsState()
     val predictionState by prediction.state.collectAsState()
 
-    fun icons(): List<String> {
-        val icons = mutableListOf<String>()
-        if (hypeTrainLevel != null || hypeTrainProgress != null) {
-            icons.add("train.side.front.car")
-        }
-        if (raidState != RaidState.idle) {
-            icons.add("figure.run")
-        }
-        if (pollState != TwitchPollState.idle) {
-            icons.add("chart.bar")
-        }
-        if (predictionState != TwitchPredictionState.idle) {
-            icons.add("sparkles")
-        }
-        return icons
+    val icons = mutableListOf<String>()
+    if (hypeTrainLevel != null || hypeTrainProgress != null) {
+        icons.add("train.side.front.car")
+    }
+    if (raidState != RaidState.idle) {
+        icons.add("figure.run")
+    }
+    if (pollState != TwitchPollState.idle) {
+        icons.add("chart.bar")
+    }
+    if (predictionState != TwitchPredictionState.idle) {
+        icons.add("sparkles")
     }
 
-    val icons = icons()
     if (icons.isNotEmpty()) {
         Row(
             modifier = Modifier
@@ -435,9 +473,11 @@ private fun MinimizedView(
                 .clip(RoundedCornerShape(percent = 50))
                 .background(bannerBackgroundColor)
                 .padding(horizontal = 10.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             icons.forEach { icon ->
-                Icon(bannerIcon(icon), contentDescription = null, tint = Color.White)
+                SystemImage(name = icon, fontSize = formBodyStyle.fontSize, tint = Color.White)
             }
         }
     }
@@ -462,8 +502,10 @@ fun BannersView(model: Model = LocalModel.current, banners: Banners) {
                     .height(1.dp),
             )
             Box(
-                modifier = Modifier.clickable {
-                    banners.minimized.value = !minimized
+                modifier = Modifier.pointerInput(Unit) {
+                    detectTapGestures {
+                        banners.minimized.value = !banners.minimized.value
+                    }
                 },
             ) {
                 if (minimized) {
@@ -475,9 +517,9 @@ fun BannersView(model: Model = LocalModel.current, banners: Banners) {
                     )
                 } else {
                     val height = with(density) {
-                        minOf(contentHeight, maxHeight - 1).coerceAtLeast(0).toDp()
+                        minOf(contentHeight, (maxHeight - 1).coerceAtLeast(0)).toDp()
                     }
-                    Column(
+                    Box(
                         modifier = Modifier
                             .height(height)
                             .verticalScroll(rememberScrollState()),

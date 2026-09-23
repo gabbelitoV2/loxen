@@ -1,43 +1,45 @@
 package com.moblin.android.view.settings.applemusic
 
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FastForward
-import androidx.compose.material.icons.filled.FastRewind
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.moblin.android.various.model.Model
+import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.Label
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.various.model.Model
+import com.moblin.android.localized
+import com.moblin.android.various.model.addMusic
+import com.moblin.android.various.model.nextMusic
+import com.moblin.android.various.model.pauseMusic
+import com.moblin.android.various.model.playMusic
+import com.moblin.android.various.model.previousMusic
 
 private data class MusicPlayerState(val isPlaying: Boolean)
 
@@ -50,7 +52,6 @@ private data class MusicPlayerQueue(
 
 private data class MusicSubscriptionState(val canBecomeSubscriber: Boolean)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppleMusicSettingsView(model: Model = LocalModel.current) {
     var searchText by remember { mutableStateOf("") }
@@ -59,122 +60,84 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
     val playerState = rememberMusicPlayerState()
     val playerQueue = rememberMusicPlayerQueue()
 
-    LaunchedEffect(Unit) {
-        Unit
-    }
-
-    if (isShowingSubscriptionOffer) {
-        Unit
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Apple Music") })
-        },
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-        ) {
-            if (musicSubscription?.canBecomeSubscriber == true) {
-                item {
-                    TextButton(onClick = { isShowingSubscriptionOffer = true }) {
-                        Icon(Icons.Default.MusicNote, contentDescription = null)
-                        Text("Join", modifier = Modifier.padding(start = 8.dp))
-                    }
+    Form(title = "Apple Music") {
+        if (musicSubscription?.canBecomeSubscriber == true) {
+            Section {
+                FormRow(onClick = { isShowingSubscriptionOffer = true }) {
+                    Label("Join", systemImage = "applelogo")
                 }
             }
-            item {
-                val queueEnabled = playerQueue.entries.isNotEmpty()
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+        }
+        Section {
+            val queueEnabled = playerQueue.entries.isNotEmpty()
+            FormRow(enabled = queueEnabled, highlight = false) {
+                Spacer(Modifier.weight(1f))
+                MusicControlButton(
+                    name = "arrow.backward.to.line",
+                    enabled = queueEnabled,
                 ) {
-                    Spacer(Modifier.weight(1f))
-                    IconButton(
-                        onClick = { TODO("no Android counterpart for MusicKit") },
-                        enabled = queueEnabled,
-                    ) {
-                        Icon(
-                            Icons.Default.FastRewind,
-                            contentDescription = null,
-                            modifier = Modifier.size(32.dp),
-                        )
-                    }
-                    Spacer(Modifier.weight(1f))
-                    if (playerState.isPlaying) {
-                        IconButton(
-                            onClick = { TODO("no Android counterpart for MusicKit") },
-                            enabled = queueEnabled,
-                        ) {
-                            Icon(
-                                Icons.Default.Pause,
-                                contentDescription = null,
-                                modifier = Modifier.size(32.dp),
-                            )
-                        }
-                    } else {
-                        IconButton(
-                            onClick = { TODO("no Android counterpart for MusicKit") },
-                            enabled = queueEnabled,
-                        ) {
-                            Icon(
-                                Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                modifier = Modifier.size(32.dp),
-                            )
-                        }
-                    }
-                    Spacer(Modifier.weight(1f))
-                    IconButton(
-                        onClick = { TODO("no Android counterpart for MusicKit") },
-                        enabled = queueEnabled,
-                    ) {
-                        Icon(
-                            Icons.Default.FastForward,
-                            contentDescription = null,
-                            modifier = Modifier.size(32.dp),
-                        )
-                    }
-                    Spacer(Modifier.weight(1f))
+                    model.previousMusic(1)
                 }
+                Spacer(Modifier.weight(1f))
+                if (playerState.isPlaying) {
+                    MusicControlButton(name = "pause", enabled = queueEnabled) {
+                        model.pauseMusic()
+                    }
+                } else {
+                    MusicControlButton(name = "play", enabled = queueEnabled) {
+                        model.playMusic()
+                    }
+                }
+                Spacer(Modifier.weight(1f))
+                MusicControlButton(
+                    name = "arrow.forward.to.line",
+                    enabled = queueEnabled,
+                ) {
+                    model.nextMusic(1)
+                }
+                Spacer(Modifier.weight(1f))
             }
-            item {
-                OutlinedTextField(
+        }
+        Section {
+            FormRow(highlight = false) {
+                BasicTextField(
                     value = searchText,
                     onValueChange = { searchText = it },
-                    label = { Text("Add song") },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = formBodyStyle.copy(color = formPalette().label),
+                    singleLine = true,
+                    cursorBrush = SolidColor(formPalette().accent),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = {
-                        Unit
+                        model.addMusic(searchText) { }
                     }),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
+                    decorationBox = { content ->
+                        Box {
+                            if (searchText.isEmpty()) {
+                                Text(
+                                    localized("Add song"),
+                                    style = formBodyStyle,
+                                    color = formPalette().secondaryLabel,
+                                )
+                            }
+                            content()
+                        }
+                    },
                 )
             }
-            item {
-                Text(
-                    "Playlist",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(16.dp),
-                )
-            }
-            items(playerQueue.entries, key = { it.id }) { entry ->
-                if (entry.id == playerQueue.currentEntryId) {
-                    Text(
-                        "• ${entry.title}",
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                } else {
-                    Text(
-                        entry.title,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
+        }
+        Section(header = "Playlist") {
+            for (entry in playerQueue.entries) {
+                key(entry.id) {
+                    if (entry.id == playerQueue.currentEntryId) {
+                        Text(
+                            "• ${entry.title}",
+                            style = formBodyStyle,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    } else {
+                        Text(entry.title, style = formBodyStyle)
+                    }
                 }
             }
         }
@@ -182,8 +145,43 @@ fun AppleMusicSettingsView(model: Model = LocalModel.current) {
 }
 
 @Composable
+private fun MusicControlButton(
+    name: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Box(
+        modifier = Modifier
+            .size(44.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                enabled = enabled,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        SystemImage(
+            name = name,
+            fontSize = 28.sp,
+            modifier = Modifier.alpha(
+                when {
+                    pressed -> 0.2f
+                    !enabled -> 0.35f
+                    else -> 1f
+                },
+            ),
+            tint = formPalette().accent,
+        )
+    }
+}
+
+@Composable
 private fun rememberMusicPlayerState(): MusicPlayerState =
-    TODO()
+    remember { MusicPlayerState(isPlaying = false) }
+
 @Composable
 private fun rememberMusicPlayerQueue(): MusicPlayerQueue =
-    TODO()
+    remember { MusicPlayerQueue(entries = emptyList(), currentEntryId = null) }

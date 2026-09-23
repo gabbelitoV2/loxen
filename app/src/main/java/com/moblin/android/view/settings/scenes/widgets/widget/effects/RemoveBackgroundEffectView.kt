@@ -1,17 +1,14 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.effects
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import com.moblin.android.LocalModel
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsVideoEffect
 import com.moblin.android.various.settings.SettingsVideoEffectRemoveBackground
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.utils.RgbColorPickerView
-import com.moblin.android.LocalModel
+import com.moblin.android.various.model.getWidgetRemoveBackgroundEffect
 
 @Composable
 fun RemoveBackgroundEffectView(
@@ -20,21 +17,17 @@ fun RemoveBackgroundEffectView(
     effect: SettingsVideoEffect,
     removeBackground: SettingsVideoEffectRemoveBackground,
 ) {
-    val fromColor = removeBackground.fromColor
-    val toColor = removeBackground.toColor
-
     fun updateWidget() {
-        Unit
+        model.getWidgetRemoveBackgroundEffect(widget, effect)?.setColorRange(
+            removeBackground.from,
+            removeBackground.to,
+        )
     }
 
-    Column {
-        Text(
-            text = "Color range",
-            style = MaterialTheme.typography.titleSmall,
-        )
+    Section(header = "Color range") {
         RgbColorPickerView(
             title = "From",
-            color = fromColor,
+            color = removeBackground.fromColor,
             onColorChanged = { color ->
                 removeBackground.fromColor = color
             },
@@ -45,7 +38,7 @@ fun RemoveBackgroundEffectView(
         )
         RgbColorPickerView(
             title = "To",
-            color = toColor,
+            color = removeBackground.toColor,
             onColorChanged = { color ->
                 removeBackground.toColor = color
             },

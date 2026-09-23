@@ -1,37 +1,34 @@
 package com.moblin.android.view.settings.scenes.widgets.widget
 
 import android.util.Size
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowCircleDown
-import androidx.compose.material.icons.filled.ArrowCircleLeft
-import androidx.compose.material.icons.filled.ArrowCircleRight
-import androidx.compose.material.icons.filled.ArrowCircleUp
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.Square
-import androidx.compose.material.icons.outlined.Square
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormButton
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsAlignment
@@ -57,28 +54,27 @@ import com.moblin.android.view.settings.scenes.widgets.widget.text.WidgetTextSet
 import com.moblin.android.view.settings.scenes.widgets.widget.videosource.WidgetVideoSourceSettingsView
 import com.moblin.android.view.settings.scenes.widgets.widget.vtuber.WidgetVTuberSettingsView
 import com.moblin.android.view.settings.scenes.widgets.widget.wheelofluck.WidgetWheelOfLuckSettingsView
-import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.PositionEditView
 import com.moblin.android.view.utils.SizeEditView
-import com.moblin.android.LocalModel
+import com.moblin.android.various.model.sceneUpdated
 
 @Composable
 fun AlignmentOptionView(
     layout: MutableState<SettingsWidgetLayout>,
     alignment: SettingsAlignment
 ) {
-    IconButton(onClick = { layout.value.alignment = alignment }) {
-        Icon(
-            imageVector = if (layout.value.alignment == alignment) {
-                Icons.Filled.Square
-            } else {
-                Icons.Outlined.Square
-            },
-            contentDescription = null,
-            modifier = Modifier.size(28.dp)
-        )
-    }
+    val interactionSource = remember { MutableInteractionSource() }
+    SystemImage(
+        name = if (layout.value.alignment == alignment) "square.fill" else "square",
+        fontSize = 28.sp,
+        modifier = Modifier.clickable(
+            interactionSource = interactionSource,
+            indication = null
+        ) {
+            layout.value.alignment = alignment
+        }
+    )
 }
 
 @Composable
@@ -86,30 +82,21 @@ fun SaveLoadLayoutView(
     model: Model = LocalModel.current,
     layout: MutableState<SettingsWidgetLayout>
 ) {
-    Column(horizontalAlignment = Alignment.Start) {
-        Spacer(Modifier.weight(1f))
-        OutlinedButton(onClick = { model.layout.value = layout.value }) {
-            HCenter {
-                Text("Save layout")
-            }
+    Column(
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FormButton(title = "Save layout", centered = true) {
+            model.layout.value = layout.value
         }
-        Spacer(Modifier.weight(1f))
-        OutlinedButton(
-            onClick = {
-                layout.value = model.layout.value ?: layout.value
-                Unit
-            },
+        FormButton(
+            title = "Load layout",
+            centered = true,
             enabled = model.layout.value != null
         ) {
-            Row {
-                Text("")
-                Spacer(Modifier.weight(1f))
-                Text("Load layout")
-                Spacer(Modifier.weight(1f))
-                Text("")
-            }
+            layout.value = model.layout.value ?: layout.value
+            model.sceneUpdated()
         }
-        Spacer(Modifier.weight(1f))
     }
 }
 
@@ -147,13 +134,21 @@ private fun generalAndAlignmentPicker(
     layout: MutableState<SettingsWidgetLayout>,
     widget: SettingsWidget
 ) {
-    Row {
-        Row {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             SaveLoadLayoutView(model = model, layout = layout)
             Spacer(Modifier.weight(1f))
         }
         if (widget.hasAlignment()) {
-            VerticalDivider()
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(112.dp)
+                    .background(formPalette().separator)
+            )
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
                     AlignmentOptionView(layout, SettingsAlignment.topLeft)
@@ -171,8 +166,12 @@ private fun generalAndAlignmentPicker(
                     AlignmentOptionView(layout, SettingsAlignment.bottomRight)
                 }
             }
+            val previousAlignment = remember { mutableStateOf(layout.value.alignment) }
             LaunchedEffect(layout.value.alignment) {
-                Unit
+                if (previousAlignment.value != layout.value.alignment) {
+                    previousAlignment.value = layout.value.alignment
+                    model.sceneUpdated()
+                }
             }
         }
     }
@@ -185,7 +184,7 @@ private fun horizontalAndVerticalPositioning(
     numericInput: MutableState<Boolean>
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Column {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             PositionEditView(
                 number = layout.value.x,
                 value = layout.value.xString,
@@ -193,7 +192,7 @@ private fun horizontalAndVerticalPositioning(
                 onValueChange = { layout.value.xString = it },
                 onSubmit = {
                     setYBasedOnXIfLocked(layout, model)
-                    Unit
+                    model.sceneUpdated()
                 },
                 numericInput = numericInput.value,
                 onNumericInputChange = { numericInput.value = it },
@@ -210,7 +209,7 @@ private fun horizontalAndVerticalPositioning(
                 onValueChange = { layout.value.yString = it },
                 onSubmit = {
                     setXBasedOnYIfLocked(layout, model)
-                    Unit
+                    model.sceneUpdated()
                 },
                 numericInput = numericInput.value,
                 onNumericInputChange = { numericInput.value = it },
@@ -220,18 +219,22 @@ private fun horizontalAndVerticalPositioning(
                 increment = verticalIncrement(model)
             )
         }
-        IconButton(onClick = {
-            layout.value.positioningLock = !layout.value.positioningLock
-            setYBasedOnXIfLocked(layout, model)
-        }) {
-            Icon(
-                imageVector = if (layout.value.positioningLock) {
-                    Icons.Filled.Lock
-                } else {
-                    Icons.Filled.LockOpen
+        val interactionSource = remember { MutableInteractionSource() }
+        Box(
+            modifier = Modifier
+                .width(35.dp)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) {
+                    layout.value.positioningLock = !layout.value.positioningLock
+                    setYBasedOnXIfLocked(layout, model)
                 },
-                contentDescription = null,
-                modifier = Modifier.width(35.dp)
+            contentAlignment = Alignment.Center
+        ) {
+            SystemImage(
+                name = if (layout.value.positioningLock) "lock" else "lock.open",
+                fontSize = 28.sp
             )
         }
     }
@@ -249,7 +252,7 @@ private fun horizontalPositioning(
         onNumberChange = { layout.value.x = it },
         onValueChange = { layout.value.xString = it },
         onSubmit = {
-            Unit
+            model.sceneUpdated()
         },
         numericInput = numericInput.value,
         onNumericInputChange = { numericInput.value = it },
@@ -272,7 +275,7 @@ private fun verticalPositioning(
         onNumberChange = { layout.value.y = it },
         onValueChange = { layout.value.yString = it },
         onSubmit = {
-            Unit
+            model.sceneUpdated()
         },
         numericInput = numericInput.value,
         onNumericInputChange = { numericInput.value = it },
@@ -292,18 +295,34 @@ fun WidgetLayoutView(
     numericInput: MutableState<Boolean>
 ) {
     if (widget.hasAlignment() || widget.hasPosition() || widget.hasSize()) {
-        Column {
-            Text("Layout", style = MaterialTheme.typography.titleMedium)
+        Section(
+            header = "Layout",
+            footer = "Use save/load layout to position a widget in the same place in " +
+                "multiple scenes. Alternatively, use a Scene widget to easily show the " +
+                "same widgets in multiple scenes."
+        ) {
             generalAndAlignmentPicker(model = model, layout = layout, widget = widget)
             if (widget.hasPosition()) {
                 if (!layout.value.alignment.isHorizontalCenter() &&
                     !layout.value.alignment.isVerticalCenter()
                 ) {
-                    horizontalAndVerticalPositioning(model = model, layout = layout, numericInput = numericInput)
+                    horizontalAndVerticalPositioning(
+                        model = model,
+                        layout = layout,
+                        numericInput = numericInput
+                    )
                 } else if (!layout.value.alignment.isHorizontalCenter()) {
-                    horizontalPositioning(model = model, layout = layout, numericInput = numericInput)
+                    horizontalPositioning(
+                        model = model,
+                        layout = layout,
+                        numericInput = numericInput
+                    )
                 } else if (!layout.value.alignment.isVerticalCenter()) {
-                    verticalPositioning(model = model, layout = layout, numericInput = numericInput)
+                    verticalPositioning(
+                        model = model,
+                        layout = layout,
+                        numericInput = numericInput
+                    )
                 }
             }
             if (widget.hasSize()) {
@@ -313,23 +332,17 @@ fun WidgetLayoutView(
                     onNumberChange = { layout.value.size = it },
                     onValueChange = { layout.value.sizeString = it },
                     onSubmit = {
-                        Unit
+                        model.sceneUpdated()
                     },
                     numericInput = numericInput.value,
                     onNumericInputChange = { numericInput.value = it }
                 )
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Numeric input")
-                Switch(
-                    checked = database.sceneNumericInput,
-                    onCheckedChange = { database.sceneNumericInput = it }
-                )
-            }
-            Text(
-                "Use save/load layout to position a widget in the same place in multiple " +
-                    "scenes. Alternatively, use a Scene widget to easily show the same widgets " +
-                    "in multiple scenes."
+            Toggle(
+                "Numeric input",
+                isOn = binding({ database.sceneNumericInput }) {
+                    database.sceneNumericInput = it
+                }
             )
         }
     }
@@ -337,11 +350,11 @@ fun WidgetLayoutView(
 
 @Composable
 fun WidgetNameView(widget: SettingsWidget) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            imageVector = TODO("widget.image() returns a String with no Android counterpart"),
-            contentDescription = null
-        )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        SystemImage(name = widget.image(), fontSize = 28.sp)
         Text(widget.name)
     }
 }
@@ -352,12 +365,14 @@ fun WidgetSettingsView(
     database: Database,
     widget: SettingsWidget
 ) {
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        NameEditView(
-            name = widget.name,
-            existingNames = database.widgets,
-            onNameChange = { widget.name = it }
-        )
+    Form(title = "${widget.type} widget") {
+        Section {
+            NameEditView(
+                name = widget.name,
+                existingNames = database.widgets,
+                onNameChange = { widget.name = it }
+            )
+        }
         when (widget.type) {
             SettingsWidgetType.image -> WidgetImageSettingsView(model = model, widget = widget)
             SettingsWidgetType.browser -> WidgetBrowserSettingsView(widget = widget, browser = widget.browser)

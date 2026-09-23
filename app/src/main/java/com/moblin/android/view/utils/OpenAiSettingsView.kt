@@ -1,13 +1,9 @@
 package com.moblin.android.view.utils
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import com.moblin.android.common.various.isValidHttpUrl
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.settings.SettingsOpenAi
 
 @Composable
@@ -16,11 +12,7 @@ fun OpenAiSettingsView(ai: SettingsOpenAi) {
     val apiKey = ai.apiKey
     val model = ai.model
     val personality = ai.personality
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "OpenAI compatible service",
-            style = MaterialTheme.typography.titleSmall,
-        )
+    Section(header = localized("OpenAI compatible service")) {
         TextEditNavigationView(
             title = localized("Base URL"),
             value = baseUrl,

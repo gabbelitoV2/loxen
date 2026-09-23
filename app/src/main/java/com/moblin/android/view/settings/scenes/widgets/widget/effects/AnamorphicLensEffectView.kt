@@ -1,15 +1,15 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.effects
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import com.moblin.android.LocalModel
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsVideoEffect
 import com.moblin.android.various.settings.SettingsVideoEffectAnamorphicLens
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.view.utils.TextEditNavigationView
-import com.moblin.android.LocalModel
+import com.moblin.android.various.model.getWidgetAnamorphicLensEffect
 
 @Composable
 fun AnamorphicLensEffectView(
@@ -18,22 +18,23 @@ fun AnamorphicLensEffectView(
     effect: SettingsVideoEffect,
     anamorphicLens: SettingsVideoEffectAnamorphicLens
 ) {
-    val scale = anamorphicLens.scale
-    TextEditNavigationView(
-        title = localized("Desqueeze factor"),
-        value = scale.toString(),
-        onChange = ::changeScale,
-        onSubmit = { value ->
-            submitScale(
-                value = value,
-                model = model,
-                widget = widget,
-                effect = effect,
-                anamorphicLens = anamorphicLens
-            )
-        },
-        valueFormat = { "${it}x" }
-    )
+    Section {
+        TextEditNavigationView(
+            title = localized("Desqueeze factor"),
+            value = anamorphicLens.scale.toString(),
+            onChange = ::changeScale,
+            onSubmit = { value ->
+                submitScale(
+                    value = value,
+                    model = model,
+                    widget = widget,
+                    effect = effect,
+                    anamorphicLens = anamorphicLens
+                )
+            },
+            valueFormat = { "${it}x" }
+        )
+    }
 }
 
 private fun updateWidget(
@@ -42,7 +43,7 @@ private fun updateWidget(
     effect: SettingsVideoEffect,
     anamorphicLens: SettingsVideoEffectAnamorphicLens
 ) {
-    Unit
+    model.getWidgetAnamorphicLensEffect(widget, effect)?.setSettings(anamorphicLens.clone())
 }
 
 private fun changeScale(value: String): String? {

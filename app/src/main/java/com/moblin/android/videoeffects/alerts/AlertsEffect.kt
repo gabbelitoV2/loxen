@@ -1,6 +1,6 @@
 package com.moblin.android.videoeffects.alerts
 
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import androidx.compose.ui.geometry.Offset

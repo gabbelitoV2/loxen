@@ -1,6 +1,6 @@
 package com.moblin.android.videoeffects.replay
 
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.util.Size
 import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue

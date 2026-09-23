@@ -1,0 +1,109 @@
+{
+  "task": "T7",
+  "hooks": [
+    {
+      "id": "H7.1",
+      "file": "media/haishinkit/rtmp/RtmpConnection.kt",
+      "scope": "fun socketDataReceived",
+      "op": "replace",
+      "old": "        chunkReader.read(data) { message -> processMessage(message) }",
+      "new": "        return chunkReader.read(data) { message -> processMessage(message) }",
+      "occurrence": 1
+    },
+    {
+      "id": "H7.2",
+      "file": "media/haishinkit/rtmp/RtmpConnection.kt",
+      "scope": "fun socketDataReceived",
+      "op": "delete",
+      "old": "        return data",
+      "occurrence": 1
+    },
+    {
+      "id": "H7.3",
+      "file": "media/haishinkit/rtmp/RtmpConnection.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "            socket.connect(host, if (uri.port >= 0) uri.port else 443, SSLContext.getInstance(\"TLS\").apply { init(null, null, null) })",
+      "new": "            socket.connect(host, if (uri.port >= 0) uri.port else 443, com.moblin.android.platform.network.NWProtocolTLS.Options())",
+      "occurrence": 1
+    },
+    {
+      "id": "H7.4",
+      "file": "media/haishinkit/rtmp/RtmpChunkReader.kt",
+      "scope": "fun readChunk",
+      "op": "replace",
+      "old": "        val chunkStream = chunkStreams[basicHeader.chunkStreamId] ?: RtmpChunkStream()",
+      "new": "        val chunkStream = (chunkStreams[basicHeader.chunkStreamId] ?: RtmpChunkStream()).copy()",
+      "occurrence": 1
+    },
+    {
+      "id": "H7.5",
+      "file": "media/haishinkit/rtmp/RtmpStreamInfo.kt",
+      "scope": "fun clear",
+      "op": "replace",
+      "old": "        stats.mutate { RtmpStreamStats() }",
+      "new": "        stats.mutate { it.value = RtmpStreamStats() }",
+      "occurrence": 1
+    },
+    {
+      "id": "H7.6",
+      "file": "media/haishinkit/rtmp/RtmpStream.kt",
+      "scope": "fun calcVideoCompositionTime",
+      "op": "replace",
+      "old": "    return 0",
+      "new": "    return if (sampleBuffer.decodeTimeStampUs < 0) 0 else ((sampleBuffer.presentationTimeUs - sampleBuffer.decodeTimeStampUs) / 1000).toInt()",
+      "occurrence": 1
+    },
+    {
+      "id": "H7.7",
+      "file": "media/haishinkit/rtmp/RtmpStream.kt",
+      "scope": "fun videoEncoderOutputSampleBufferInternal",
+      "op": "replace",
+      "old": "        val decodeTimeStamp = sampleBuffer.presentationTimeUs / 1_000_000.0",
+      "new": "        val decodeTimeStamp = (if (sampleBuffer.decodeTimeStampUs >= 0) sampleBuffer.decodeTimeStampUs else sampleBuffer.presentationTimeUs) / 1_000_000.0",
+      "occurrence": 1
+    },
+    {
+      "id": "H7.8",
+      "file": "media/haishinkit/rtmp/RtmpStream.kt",
+      "scope": "fun send",
+      "op": "replace",
+      "old": "            chunkStreamId = RtmpChunk.ChunkStreamId.command.rawValue,",
+      "new": "            chunkStreamId = RtmpChunk.ChunkStreamId.`data`.rawValue,",
+      "occurrence": 1
+    },
+    {
+      "id": "H7.9",
+      "file": "media/haishinkit/rtmp/RtmpStream.kt",
+      "scope": "fun onInternal",
+      "op": "insert_after",
+      "anchor": "        val code = value.value",
+      "new": "        android.util.Log.i(\"RtmpStream\", \"rtmp: $name: Status $code\")"
+    },
+    {
+      "id": "H7.10",
+      "file": "media/haishinkit/rtmp/RtmpStream.kt",
+      "scope": "val queueScope",
+      "op": "replace",
+      "old": "    private val queueScope = CoroutineScope(queue)",
+      "new": "    private val queueScope = CoroutineScope(queue + kotlinx.coroutines.SupervisorJob())",
+      "occurrence": 1
+    },
+    {
+      "id": "H7.11",
+      "file": "media/haishinkit/rtmp/RtmpConnection.kt",
+      "scope": "val scope",
+      "op": "replace",
+      "old": "    private val scope = CoroutineScope(queue)",
+      "new": "    private val scope = CoroutineScope(queue + kotlinx.coroutines.SupervisorJob())",
+      "occurrence": 1
+    },
+    {
+      "id": "H7.12",
+      "file": "media/haishinkit/rtmp/RtmpConnection.kt",
+      "op": "delete",
+      "old": "import javax.net.ssl.SSLContext",
+      "occurrence": 1
+    }
+  ]
+}

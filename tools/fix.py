@@ -35,7 +35,27 @@ Rules
 - When a symbol comes from an iOS-only or missing library and cannot exist here, replace the use with TODO("...") in the smallest possible scope.
 - Keep public signatures unchanged unless an error is about the signature itself. When a call does not match a declaration listed under the dependencies, change the call, not the declaration.
 - @Composable functions may take `model: Model = LocalModel.current` and `onNavigate: (String) -> Unit = LocalOnNavigate.current`; keep those defaults, and add them when a composable needs the model or navigation and callers do not pass it.
-- Observable state on model classes is `val name = MutableStateFlow(...)`. Read it in composables with `val x by name.collectAsState()` and write it with `name.value = ...`. When the dependency declarations show a property as a plain val or var instead, access it directly without .value or collectAsState()."""
+- Observable state on model classes is `val name = MutableStateFlow(...)`. Read it in composables with `val x by name.collectAsState()` and write it with `name.value = ...`. When the dependency declarations show a property as a plain val or var instead, access it directly without .value or collectAsState().
+- Apple APIs that have a shim in com.moblin.android.platform (see the shim and Platform API sections) are never replaced by TODO() and never redeclared. Call the shim exactly as declared and import it from its package.
+- Lines that call com.moblin.android.platform are Android hooks; keep them byte-identical unless an error is on that line."""
+
+
+def fix_system_prompt(tier):
+    key = ("fix", tier)
+    if key not in port.PROMPT_CACHE:
+        sections = [FIX_SYSTEM, port.shim_glossary(), port.platform_api(ROOT, tier)]
+        port.PROMPT_CACHE[key] = "\n\n".join(section for section in sections if section)
+    return port.PROMPT_CACHE[key]
+
+
+def is_hand_written(path, by_kotlin):
+    try:
+        relative = path.resolve().relative_to(postprocess.KOTLIN_ROOT.resolve()).as_posix()
+    except ValueError:
+        relative = None
+    if relative is not None and (relative.startswith("platform/") or relative == "media/MediaSample.kt"):
+        return True
+    return path not in by_kotlin
 
 
 def find_java_home():
@@ -68,6 +88,8 @@ def parse_errors(output):
         match = ERROR_RE.match(line)
         if match:
             path = Path(match.group(1))
+            if not path.is_absolute():
+                path = Path("/" + match.group(1))
             current = (path, int(match.group(2)), match.group(4))
             errors.setdefault(path, []).append([current[1], current[2]])
         elif current and line.startswith("    ") and errors[current[0]]:
@@ -166,20 +188,25 @@ def fix_one(backend, kotlin_path, errors, by_kotlin, by_path, moblin_root):
     swift_source = None
     glossary = []
     dependencies = ""
+    tier = entry["tier"] if entry else "logic"
     if entry:
         swift_file = moblin_root / entry["path"]
         if swift_file.exists():
             swift_source = swift_file.read_text(encoding="utf-8", errors="replace")
         glossary = port.glossary_for(entry, by_path)
         dependencies = port.dependency_signatures(entry, by_path, ROOT)
+    platform = port.referenced_platform_api(ROOT, tier, kotlin_source + "\n" + (swift_source or ""))
+    if platform:
+        dependencies = "\n\n".join(part for part in (dependencies, platform) if part)
     prompt = build_prompt(kotlin_path, kotlin_source, errors, entry, swift_source, glossary, dependencies)
     started = time.time()
-    text, tokens_in, tokens_out = backend.complete(FIX_SYSTEM, prompt)
+    text, tokens_in, tokens_out = backend.complete(fix_system_prompt(tier), prompt)
     blocks = port.fenced_blocks(text)
     kotlin = next((body for language, body in blocks if language in ("kotlin", "kt")), None)
     if kotlin is None or not kotlin.lstrip().startswith("package "):
         raise port.PortError("the response had no kotlin block")
     kotlin, _ = postprocess.process_file(kotlin.rstrip() + "\n", set())
+    kotlin = postprocess.apply_hooks_to_file(kotlin_path, kotlin)
     kotlin_path.write_text(kotlin, encoding="utf-8", newline="\n")
     return round(time.time() - started, 1), tokens_in, tokens_out
 
@@ -197,6 +224,8 @@ def main():
     parser.add_argument("--max-files", type=int, default=0)
     parser.add_argument("--task", default="compileDebugKotlin")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--include-hand-written", action="store_true",
+                        help="also let the model rewrite platform/** and other files that are not generated")
     args = parser.parse_args()
     if args.model is None:
         args.model = port.PROVIDERS[args.provider]["model"]
@@ -238,6 +267,15 @@ def main():
             return entry["wave"] if entry else 1_000_000
 
         files = sorted(errors.items(), key=lambda item: (wave_of(item[0]), -len(item[1])))
+        if not args.include_hand_written:
+            hand_written = [item for item in files if is_hand_written(item[0], by_kotlin)]
+            for path, file_errors in hand_written:
+                print(f"  hand-written, fix by hand: {path.relative_to(ROOT).as_posix()} ({len(file_errors)} errors)")
+            files = [item for item in files if not is_hand_written(item[0], by_kotlin)]
+            if not files:
+                print("only hand-written files have errors, stopping")
+                (ROOT / "build-errors.log").write_text(output, encoding="utf-8", newline="\n")
+                return
         if args.max_files:
             files = files[: args.max_files]
         if args.dry_run:

@@ -1,0 +1,437 @@
+{
+  "task": "T11",
+  "hooks": [
+    {
+      "id": "H11.1",
+      "file": "various/model/Model.kt",
+      "scope": "fun preferredCamera",
+      "op": "replace",
+      "old": "                device = deviceId,",
+      "new": "                device = AVCaptureDevice.withUniqueID(deviceId) ?: return null,",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.2",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateOrientation",
+      "op": "replace",
+      "old": "            media.setVideoOrientation(value = Surface.ROTATION_0)",
+      "new": "            media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.portrait)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.3",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateOrientation",
+      "op": "replace",
+      "old": "            when (deviceRotation()) {",
+      "new": "            when (com.moblin.android.platform.uikit.UIDevice.current.orientation) {",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.4",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateOrientation",
+      "op": "replace",
+      "old": "                Surface.ROTATION_90 -> media.setVideoOrientation(value = Surface.ROTATION_90)",
+      "new": "                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft -> media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.5",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateOrientation",
+      "op": "replace",
+      "old": "                Surface.ROTATION_270 -> media.setVideoOrientation(value = Surface.ROTATION_270)",
+      "new": "                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight -> media.setVideoOrientation(value = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeLeft)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.6",
+      "file": "various/Media.kt",
+      "scope": "fun setNetStream",
+      "op": "replace",
+      "old": "        processor.setVideoOrientation(value = if (portrait) Surface.ROTATION_90 else Surface.ROTATION_0)",
+      "new": "        processor.setVideoOrientation(value = if (portrait) com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.portrait else com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.7",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun makeCaptureDevice",
+      "op": "replace",
+      "old": "        device = device,",
+      "new": "        device = device.device,",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.8",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun makeCaptureDevice",
+      "op": "replace",
+      "old": "        id = getBuiltinCameraId(deviceUniqueId = device.id.toString()),",
+      "new": "        id = getBuiltinCameraId(deviceUniqueId = (device.device as AVCaptureDevice).uniqueID),",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.9",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun listCameras",
+      "op": "replace",
+      "old": "    return emptyList()",
+      "new": "    return AVCaptureDevice.DiscoverySession(deviceTypes = AVCaptureDevice.DeviceType.entries.toList(), mediaType = com.moblin.android.platform.avfoundation.AVMediaType.video, position = position).devices.map { device -> Camera(id = device.uniqueID, name = device.name()) }",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.10",
+      "file": "various/model/ModelCamera.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.various.utils.name"
+    },
+    {
+      "id": "H11.11",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun getBuiltinCameraDevices(\n    videoSource",
+      "op": "replace",
+      "old": "    val device: CaptureDevice = TODO(\"no Android counterpart for AVCaptureDevice(uniqueID:)\")",
+      "new": "    val device: CaptureDevice = CaptureDevice(device = com.moblin.android.platform.avfoundation.AVCaptureDevice.withUniqueID(cameraId) ?: return, id = UUID.randomUUID(), isVideoMirrored = false)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.12",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun getBuiltinCameraDevices(\n    videoSource",
+      "op": "replace",
+      "old": "    if (devices.none { it.device == device }) {",
+      "new": "    if (devices.none { it.device == device.device }) {",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.13",
+      "file": "various/model/ModelStream.kt",
+      "scope": "fun setStreamCodec",
+      "op": "replace",
+      "old": "                    media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.AVCProfileBaseline.toString())",
+      "new": "                    media.setVideoProfile(profile = com.moblin.android.platform.videotoolbox.kVTProfileLevel_H264_Baseline_AutoLevel)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.14",
+      "file": "various/model/ModelStream.kt",
+      "scope": "fun setStreamCodec",
+      "op": "replace",
+      "old": "                    media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.AVCProfileMain.toString())",
+      "new": "                    media.setVideoProfile(profile = com.moblin.android.platform.videotoolbox.kVTProfileLevel_H264_Main_AutoLevel)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.15",
+      "file": "various/model/ModelStream.kt",
+      "scope": "fun setStreamCodec",
+      "op": "replace",
+      "old": "                    media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.AVCProfileHigh.toString())",
+      "new": "                    media.setVideoProfile(profile = com.moblin.android.platform.videotoolbox.kVTProfileLevel_H264_High_AutoLevel)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.16",
+      "file": "various/model/ModelStream.kt",
+      "scope": "fun setStreamCodec",
+      "op": "replace",
+      "old": "                media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.HEVCProfileMain10.toString())",
+      "new": "                media.setVideoProfile(profile = com.moblin.android.platform.videotoolbox.kVTProfileLevel_HEVC_Main10_AutoLevel)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.17",
+      "file": "various/model/ModelStream.kt",
+      "scope": "fun setStreamCodec",
+      "op": "replace",
+      "old": "                media.setVideoProfile(profile = MediaCodecInfo.CodecProfileLevel.HEVCProfileMain.toString())",
+      "new": "                media.setVideoProfile(profile = com.moblin.android.platform.videotoolbox.kVTProfileLevel_HEVC_Main_AutoLevel)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.18",
+      "file": "various/Media.kt",
+      "scope": "fun attachDefaultAudioDevice",
+      "op": "replace",
+      "old": "            device = null,",
+      "new": "            device = AVCaptureDevice.default(com.moblin.android.platform.avfoundation.AVMediaType.audio),",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.19",
+      "file": "various/Media.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.avfoundation.AVCaptureDevice"
+    },
+    {
+      "id": "H11.20",
+      "file": "various/model/ModelStream.kt",
+      "scope": "fun startStream",
+      "op": "replace",
+      "old": "    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.entries.first { it.rawValue == \"goLive\" }))",
+      "new": "    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.GO_LIVE))",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.21",
+      "file": "various/model/ModelStream.kt",
+      "scope": "fun stopStream",
+      "op": "replace",
+      "old": "    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.entries.first { it.rawValue == \"end\" }))",
+      "new": "    macrosEventOccurred(MacroEvent(event = SettingsMacrosEvent.END))",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.22",
+      "file": "various/model/ModelStream.kt",
+      "scope": "fun startNetStreamSrt",
+      "op": "insert_after",
+      "anchor": "    val srt = stream.value.srt",
+      "new": "    com.moblin.android.media.haishinkit.mpeg.payloadSize = srt.mpegtsPacketsPerPacket() * MpegTsPacket.size"
+    },
+    {
+      "id": "H11.23",
+      "file": "various/model/Model.kt",
+      "scope": "fun reloadNtpClient",
+      "op": "replace",
+      "old": "            Unit",
+      "new": "            com.moblin.android.platform.ntp.TrueTimeClient.sharedInstance.start(pool = listOf(stream.value.ntpPoolAddress))",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.24",
+      "file": "various/model/Model.kt",
+      "scope": "fun stopNtpClient",
+      "op": "insert_after",
+      "anchor": "        Log.d(\"Model\", \"Stopping NTP client\")",
+      "new": "        com.moblin.android.platform.ntp.TrueTimeClient.sharedInstance.pause()"
+    },
+    {
+      "id": "H11.26",
+      "file": "various/Media.kt",
+      "scope": "fun srtSetAdaptiveBitrateAlgorithm",
+      "op": "replace",
+      "old": "                adaptiveBitrate = AdaptiveBitrate(delegate = this)",
+      "new": "                adaptiveBitrate = AdaptiveBitrateSrtBelabox(targetBitrate = targetBitrate, delegate = this)",
+      "occurrence": 2
+    },
+    {
+      "id": "H11.25",
+      "file": "various/Media.kt",
+      "scope": "fun srtSetAdaptiveBitrateAlgorithm",
+      "op": "replace",
+      "old": "                adaptiveBitrate = AdaptiveBitrate(delegate = this)",
+      "new": "                adaptiveBitrate = AdaptiveBitrateSrtFight(targetBitrate = targetBitrate, delegate = this)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.27",
+      "file": "various/Media.kt",
+      "scope": "fun rtmpStartStream",
+      "op": "replace",
+      "old": "            adaptiveBitrate = AdaptiveBitrate(delegate = this)",
+      "new": "            adaptiveBitrate = AdaptiveBitrateSrtFight(targetBitrate = targetBitrate, delegate = this, rttMax = 500.0, pifMax = 100.0)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.28",
+      "file": "various/Media.kt",
+      "scope": "fun ristStartStream",
+      "op": "replace",
+      "old": "            adaptiveBitrate = AdaptiveBitrate(delegate = this)",
+      "new": "            adaptiveBitrate = AdaptiveBitrateRistExperiment(targetBitrate = targetBitrate, delegate = this)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.29",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateAdaptiveBitrateSrt",
+      "op": "replace",
+      "old": "                var settings = adaptiveBitrateFastSettings",
+      "new": "                var settings = adaptiveBitrateFastSettings.copy()",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.30",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateAdaptiveBitrateSrt",
+      "op": "replace",
+      "old": "                var settings = adaptiveBitrateBelaboxSettings",
+      "new": "                var settings = adaptiveBitrateBelaboxSettings.copy()",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.31",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateAdaptiveBitrateRtmpIfEnabled",
+      "op": "replace",
+      "old": "        var settings = adaptiveBitrateFastSettings",
+      "new": "        var settings = adaptiveBitrateFastSettings.copy()",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.32",
+      "file": "various/Media.kt",
+      "scope": "fun attachBufferedCamera",
+      "op": "replace",
+      "old": "        cameraPreviewLayers: Map<UUID, androidx.camera.view.PreviewView>,",
+      "new": "        cameraPreviewLayers: Map<UUID, Any>,",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.33",
+      "file": "view/stream/StreamView.kt",
+      "op": "replace",
+      "old": "import androidx.camera.view.PreviewView",
+      "new": "import com.moblin.android.media.haishinkit.media.video.PreviewView",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.34",
+      "file": "various/Media.kt",
+      "scope": "fun setCameraZoomLevel",
+      "op": "replace",
+      "old": "        return null",
+      "new": "        return com.moblin.android.platform.avfoundation.setCameraZoomLevel(device.device as AVCaptureDevice, level, rate)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.35",
+      "file": "various/Media.kt",
+      "scope": "fun stopCameraZoomLevel",
+      "op": "replace",
+      "old": "        return null",
+      "new": "        return com.moblin.android.platform.avfoundation.stopCameraZoomLevel(device.device as AVCaptureDevice)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.36",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateCameraPreviewRotation",
+      "op": "replace",
+      "old": "            cameraPreviewView.setVideoOrientation(Surface.ROTATION_0)",
+      "new": "            cameraPreviewView.setVideoOrientation(videoOrientation = com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.portrait)",
+      "occurrence": 2
+    },
+    {
+      "id": "H11.37",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateCameraPreviewRotation",
+      "op": "replace",
+      "old": "            cameraPreviewView.setVideoOrientation(Surface.ROTATION_0)",
+      "new": "            cameraPreviewView.setVideoOrientation(com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.portrait)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.38",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateCameraPreviewRotation",
+      "op": "replace",
+      "old": "            when (deviceRotation()) {",
+      "new": "            when (com.moblin.android.platform.uikit.UIDevice.current.orientation) {",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.39",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateCameraPreviewRotation",
+      "op": "replace",
+      "old": "                Surface.ROTATION_90 ->",
+      "new": "                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft ->",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.40",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateCameraPreviewRotation",
+      "op": "replace",
+      "old": "                    cameraPreviewView.setVideoOrientation(Surface.ROTATION_90)",
+      "new": "                    cameraPreviewView.setVideoOrientation(com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.41",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateCameraPreviewRotation",
+      "op": "replace",
+      "old": "                Surface.ROTATION_270 ->",
+      "new": "                com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight ->",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.42",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateCameraPreviewRotation",
+      "op": "replace",
+      "old": "                    cameraPreviewView.setVideoOrientation(Surface.ROTATION_270)",
+      "new": "                    cameraPreviewView.setVideoOrientation(com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeLeft)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.43",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateCameraPreviewRotation",
+      "op": "replace",
+      "old": "                else -> cameraPreviewView.setVideoOrientation(Surface.ROTATION_90)",
+      "new": "                else -> cameraPreviewView.setVideoOrientation(com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation.landscapeRight)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.44",
+      "file": "various/model/Model.kt",
+      "scope": "fun getVideoMirroredOnStream",
+      "op": "replace",
+      "old": "        if (cameraPosition == CameraSelector.LENS_FACING_FRONT) {",
+      "new": "        if ((device.device as? com.moblin.android.platform.avfoundation.AVCaptureDevice)?.position == com.moblin.android.platform.avfoundation.AVCaptureDevice.Position.front) {",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.45",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun listExternalCameras",
+      "op": "replace",
+      "old": "    return emptyList()",
+      "new": "    return AVCaptureDevice.DiscoverySession(deviceTypes = listOf(AVCaptureDevice.DeviceType.external), mediaType = com.moblin.android.platform.avfoundation.AVMediaType.video, position = AVCaptureDevice.Position.unspecified).devices.map { Camera(id = it.uniqueID, name = it.name()) }",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.46",
+      "file": "various/model/Model.kt",
+      "scope": "fun attachExternalCamera",
+      "op": "replace",
+      "old": "        attachCamera(scene = scene, position = CameraSelector.LENS_FACING_FRONT)",
+      "new": "        attachCamera(scene = scene, position = com.moblin.android.platform.avfoundation.AVCaptureDevice.Position.unspecified.ordinal)",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.47",
+      "file": "various/model/Model.kt",
+      "scope": "fun detachCamera",
+      "op": "replace",
+      "old": "            cameraPreviewLayers = cameraPreviewView.previewLayers,",
+      "new": "            cameraPreviewLayers = cameraPreviewView.previewLayers.toMap(),",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.48",
+      "file": "various/model/Model.kt",
+      "scope": "fun attachCameraFinalize",
+      "op": "replace",
+      "old": "            cameraPreviewLayers = cameraPreviewView.previewLayers,",
+      "new": "            cameraPreviewLayers = cameraPreviewView.previewLayers.toMap(),",
+      "occurrence": 1
+    },
+    {
+      "id": "H11.49",
+      "file": "various/model/Model.kt",
+      "scope": "fun attachBufferedCamera",
+      "op": "replace",
+      "old": "            cameraPreviewLayers = cameraPreviewView.previewLayers,",
+      "new": "            cameraPreviewLayers = cameraPreviewView.previewLayers.toMap(),",
+      "occurrence": 1
+    }
+  ]
+}

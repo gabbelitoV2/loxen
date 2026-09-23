@@ -1,9 +1,20 @@
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt:6:43 Unresolved reference 'AuthError'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt:7:43 Unresolved reference 'Error'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt:9:43 Unresolved reference 'Success'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt:700:9 'when' expression must be exhaustive. Add the 'AuthError', 'Error', 'is Success<*>' branches or an 'else' branch.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt:701:16 Unresolved reference 'Success'.
-e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/streamingplatforms/twitch/TwitchEventSub.kt:708:16 Unresolved reference 'AuthError'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/moderation/QuickButtonChatModerationKickView.kt:30:43 Unresolved reference 'Error'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/moderation/QuickButtonChatModerationKickView.kt:32:43 Unresolved reference 'Success'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/moderation/QuickButtonChatModerationKickView.kt:278:64 Unresolved reference 'Success'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/moderation/QuickButtonChatModerationKickView.kt:280:64 Argument type mismatch: actual type is 'Unit', but 'NetworkResponse<ByteArray>' was expected.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/moderation/QuickButtonChatModerationKickView.kt:280:64 Classifier 'class Error : Throwable' does not have a companion object, so it cannot be used as an expression.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/scoreboard/WidgetScoreboardPadelSettingsView.kt:33:41 Unresolved reference 'SettingsWidgetPadelScoreboardAction'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/scoreboard/WidgetScoreboardPadelSettingsView.kt:34:41 Unresolved reference 'SettingsWidgetPadelScoreboardActionType'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/scoreboard/WidgetScoreboardPadelSettingsView.kt:143:21 Unresolved reference 'SettingsWidgetPadelScoreboardAction'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/scoreboard/WidgetScoreboardPadelSettingsView.kt:145:34 Unresolved reference 'SettingsWidgetPadelScoreboardActionType'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/scoreboard/WidgetScoreboardPadelSettingsView.kt:151:21 Unresolved reference 'SettingsWidgetPadelScoreboardAction'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/scoreboard/WidgetScoreboardPadelSettingsView.kt:153:34 Unresolved reference 'SettingsWidgetPadelScoreboardActionType'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/scoreboard/WidgetScoreboardPadelSettingsView.kt:166:21 Unresolved reference 'SettingsWidgetPadelScoreboardAction'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/scoreboard/WidgetScoreboardPadelSettingsView.kt:168:34 Unresolved reference 'SettingsWidgetPadelScoreboardActionType'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/scoreboard/WidgetScoreboardPadelSettingsView.kt:174:21 Unresolved reference 'SettingsWidgetPadelScoreboardAction'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/scoreboard/WidgetScoreboardPadelSettingsView.kt:176:34 Unresolved reference 'SettingsWidgetPadelScoreboardActionType'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/streams/stream/kick/StreamKickSettingsView.kt:294:27 Unresolved reference 'title'.
+e: file:///<home>/Desktop/code/moblin-android/app/src/main/java/com/moblin/android/view/settings/streams/stream/kick/StreamKickSettingsView.kt:294:39 Unresolved reference 'categoryName'.
 
 FAILURE: Build failed with an exception.
 
@@ -18,4 +29,4 @@ Execution failed for task ':app:compileDebugKotlin'.
 > Run with --scan to get full insights from a Build Scan (powered by Develocity).
 > Get more help at https://help.gradle.org.
 
-BUILD FAILED in 48s
+BUILD FAILED in 20s

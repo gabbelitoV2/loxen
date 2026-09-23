@@ -3,25 +3,20 @@ package com.moblin.android.view.settings.streams.stream.replay
 import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,13 +25,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormButton
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
-import com.moblin.android.various.settings.SettingsAlignment
+import com.moblin.android.various.model.streamReplayEnabledUpdated
 import com.moblin.android.various.settings.Database
+import com.moblin.android.various.settings.SettingsAlignment
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamReplay
 import com.moblin.android.various.settings.SettingsStreamReplayStinger
@@ -46,12 +55,10 @@ import com.moblin.android.view.settings.scenes.widgets.widget.SaveLoadLayoutView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.CloseToolbar
 import com.moblin.android.view.utils.CommandCopyView
-import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.PositionEditView
 import com.moblin.android.view.utils.SizeEditView
 import com.moblin.android.view.utils.TextButtonView
 import java.io.File
-import com.moblin.android.LocalModel
 
 @Composable
 private fun VideoPickerView(model: Model = LocalModel.current, onDismiss: () -> Unit) {
@@ -83,23 +90,23 @@ private const val ffmpegCommand =
 
 @Composable
 private fun HelpView(presentingHelp: Boolean, onPresentingHelpChange: (Boolean) -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-    ) {
-        CloseToolbar(
-            presenting = presentingHelp,
-            onPresentingChange = onPresentingHelpChange,
-        )
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = localized("How to convert `.webm` (VP9) to `.mov` (HEVC) with alpha channel"),
-                style = MaterialTheme.typography.titleMedium,
+    Form(
+        title = "Help",
+        toolbar = {
+            CloseToolbar(
+                presenting = presentingHelp,
+                onPresentingChange = onPresentingHelpChange,
             )
-            Text(localized("NOTE: Only works on Mac as `hevc_videotoolbox` uses Apple’s encoder."))
-            Text("")
-            CommandCopyView(command = ffmpegCommand)
+        },
+    ) {
+        Section(
+            header = "How to convert `.webm` (VP9) to `.mov` (HEVC) with alpha channel",
+        ) {
+            Column(horizontalAlignment = Alignment.Start) {
+                Text(localized("NOTE: Only works on Mac as `hevc_videotoolbox` uses Apple’s encoder."))
+                Text("")
+                CommandCopyView(command = ffmpegCommand)
+            }
         }
     }
 }
@@ -112,7 +119,6 @@ private fun StingerView(
 ) {
     var showPicker by remember { mutableStateOf(false) }
     var presentingHelp by remember { mutableStateOf(false) }
-    var showDetail by remember { mutableStateOf(false) }
 
     fun onUrl(url: String) {
         stinger.name = url.substringAfterLast('/')
@@ -123,63 +129,48 @@ private fun StingerView(
         }
     }
 
-    if (showDetail) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
-        ) {
-            Text(
-                text = localized(title),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(16.dp),
-            )
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                TextButton(
-                    onClick = {
+    NavigationLink(
+        destination = {
+            Form(title = title) {
+                Section(
+                    footer = "Use the HEVC/H.265 codec with alpha channel for transparent background.",
+                ) {
+                    FormButton(
+                        title = if (stinger.name.isEmpty()) "Select video" else stinger.name,
+                        centered = true,
+                    ) {
                         showPicker = true
                         model.onDocumentPickerUrl = { url -> onUrl(url) }
-                    },
-                ) {
-                    HCenter {
-                        if (stinger.name.isEmpty()) {
-                            Text(localized("Select video"))
-                        } else {
-                            Text(stinger.name)
-                        }
                     }
                 }
-                if (showPicker) {
+                Section {
+                    TextButtonView(
+                        title = localized("Help"),
+                        action = { presentingHelp = true },
+                    )
+                }
+            }
+            if (showPicker) {
+                Sheet(onDismissRequest = { showPicker = false }) {
                     VideoPickerView(
                         model = model,
                         onDismiss = { showPicker = false },
                     )
                 }
-                Text(localized("Use the HEVC/H.265 codec with alpha channel for transparent background."))
-                TextButtonView(
-                    title = localized("Help"),
-                    action = { presentingHelp = true },
-                )
-                if (presentingHelp) {
+            }
+            if (presentingHelp) {
+                Sheet(onDismissRequest = { presentingHelp = false }) {
                     HelpView(
                         presentingHelp = presentingHelp,
                         onPresentingHelpChange = { presentingHelp = it },
                     )
                 }
             }
-        }
-    } else {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showDetail = true }
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(localized(title))
-            Spacer(modifier = Modifier.weight(1f))
-            GrayTextView(text = stinger.name)
-        }
+        },
+    ) {
+        Text(localized(title))
+        Spacer(modifier = Modifier.weight(1f))
+        GrayTextView(text = stinger.name)
     }
 }
 
@@ -189,7 +180,7 @@ private fun LayoutView(
     database: Database,
     replay: SettingsStreamReplay,
 ) {
-    val layout = remember { mutableStateOf(replay.layout) }
+    val layout = binding(get = { replay.layout }, set = { replay.layout = it })
 
     fun dimensions(): Size {
         return model.stream.value.resolution.dimensions(model.stream.value.portrait)
@@ -221,16 +212,30 @@ private fun LayoutView(
 
     @Composable
     fun generalAndAlignmentPicker() {
-        Row {
-            Row(modifier = Modifier.weight(1f)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.height(IntrinsicSize.Min),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f),
+            ) {
                 SaveLoadLayoutView(
                     layout = layout,
                 )
                 Spacer(modifier = Modifier.weight(1f))
             }
-            VerticalDivider()
-            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(1.dp)
+                    .background(formPalette().separator),
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
                     AlignmentOptionView(
                         layout = layout,
                         alignment = SettingsAlignment.topLeft,
@@ -244,7 +249,10 @@ private fun LayoutView(
                         alignment = SettingsAlignment.topRight,
                     )
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
                     AlignmentOptionView(
                         layout = layout,
                         alignment = SettingsAlignment.leftCenter,
@@ -258,7 +266,10 @@ private fun LayoutView(
                         alignment = SettingsAlignment.rightCenter,
                     )
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
                     AlignmentOptionView(
                         layout = layout,
                         alignment = SettingsAlignment.bottomLeft,
@@ -277,18 +288,12 @@ private fun LayoutView(
     }
 
     val alignment = replay.layout.alignment
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = localized("Layout"),
-            style = MaterialTheme.typography.titleSmall,
-            modifier = Modifier.padding(16.dp),
-        )
+    Section(header = "Layout") {
         generalAndAlignmentPicker()
         if (!alignment.isHorizontalCenter() && !alignment.isVerticalCenter()) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 16.dp),
-            ) {
+            val lockInteractionSource = remember { MutableInteractionSource() }
+            val lockPressed by lockInteractionSource.collectIsPressedAsState()
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Column {
                     PositionEditView(
                         number = replay.layout.x,
@@ -303,7 +308,7 @@ private fun LayoutView(
                         mirror = alignment.mirrorPositionHorizontally(),
                         increment = horizontalIncrement(),
                     )
-                    Spacer(modifier = Modifier.padding(bottom = 10.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
                     PositionEditView(
                         number = replay.layout.y,
                         value = replay.layout.yString,
@@ -318,14 +323,23 @@ private fun LayoutView(
                         increment = verticalIncrement(),
                     )
                 }
-                TextButton(
-                    onClick = {
-                        replay.layout.positioningLock = !replay.layout.positioningLock
-                        setYBasedOnXIfLocked()
-                    },
-                    modifier = Modifier.width(48.dp),
+                Box(
+                    modifier = Modifier
+                        .width(35.dp)
+                        .alpha(if (lockPressed) 0.2f else 1f)
+                        .clickable(
+                            interactionSource = lockInteractionSource,
+                            indication = null,
+                        ) {
+                            replay.layout.positioningLock = !replay.layout.positioningLock
+                            setYBasedOnXIfLocked()
+                        },
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Text(if (replay.layout.positioningLock) "🔒" else "🔓")
+                    SystemImage(
+                        name = if (replay.layout.positioningLock) "lock" else "lock.open",
+                        fontSize = 28.sp,
+                    )
                 }
             }
         } else if (!alignment.isHorizontalCenter()) {
@@ -366,21 +380,13 @@ private fun LayoutView(
             numericInput = database.sceneNumericInput,
             onNumericInputChange = { database.sceneNumericInput = it },
         )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        ) {
-            Text(
-                text = localized("Numeric input"),
-                modifier = Modifier.weight(1f),
-            )
-            Switch(
-                checked = database.sceneNumericInput,
-                onCheckedChange = { database.sceneNumericInput = it },
-            )
-        }
+        Toggle(
+            title = "Numeric input",
+            isOn = binding(
+                get = { database.sceneNumericInput },
+                set = { database.sceneNumericInput = it },
+            ),
+        )
     }
 
     LaunchedEffect(
@@ -391,10 +397,6 @@ private fun LayoutView(
     ) {
         model.replayEffect?.setLayout(layout = replay.layout)
     }
-
-    LaunchedEffect(layout.value) {
-        replay.layout = layout.value
-    }
 }
 
 @Composable
@@ -404,35 +406,15 @@ fun StreamReplaySettingsView(
     stream: SettingsStream,
     replay: SettingsStreamReplay,
 ) {
-    var transitionExpanded by remember { mutableStateOf(false) }
-    var postTriggerDelayExpanded by remember { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
-    ) {
-        Text(
-            text = localized("Replay"),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(16.dp),
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-        ) {
-            Text(
-                text = localized("Enabled"),
-                modifier = Modifier.weight(1f),
-            )
-            Switch(
-                checked = replay.enabled,
-                onCheckedChange = { enabled ->
+    Form(title = "Replay") {
+        Section {
+            Toggle(
+                title = "Enabled",
+                isOn = replay.enabled,
+                onChange = { enabled ->
                     replay.enabled = enabled
                     if (stream.enabled) {
-                        Unit
+                        model.streamReplayEnabledUpdated()
                     }
                 },
             )
@@ -443,29 +425,14 @@ fun StreamReplaySettingsView(
                 database = database,
                 replay = replay,
             )
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = localized("Transition"),
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                Box {
-                    TextButton(onClick = { transitionExpanded = true }) {
-                        Text(replay.transitionType.toString())
-                    }
-                    DropdownMenu(
-                        expanded = transitionExpanded,
-                        onDismissRequest = { transitionExpanded = false },
-                    ) {
-                        SettingsStreamReplayTransitionType.entries.forEach { transitionType ->
-                            DropdownMenuItem(
-                                text = { Text(transitionType.toString()) },
-                                onClick = {
-                                    replay.transitionType = transitionType
-                                    transitionExpanded = false
-                                },
-                            )
-                        }
-                    }
+            Section {
+                Picker(
+                    title = "Transition",
+                    selection = replay.transitionType,
+                    options = SettingsStreamReplayTransitionType.entries,
+                    text = { it.toString() },
+                ) { transitionType ->
+                    replay.transitionType = transitionType
                 }
                 when (replay.transitionType) {
                     SettingsStreamReplayTransitionType.fade -> Unit
@@ -484,31 +451,17 @@ fun StreamReplaySettingsView(
                     SettingsStreamReplayTransitionType.none -> Unit
                 }
             }
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = localized("Post trigger delay"),
-                    style = MaterialTheme.typography.titleSmall,
-                )
-                Box {
-                    TextButton(onClick = { postTriggerDelayExpanded = true }) {
-                        Text(formatShortDuration(seconds = replay.postTriggerDelay))
-                    }
-                    DropdownMenu(
-                        expanded = postTriggerDelayExpanded,
-                        onDismissRequest = { postTriggerDelayExpanded = false },
-                    ) {
-                        listOf(2, 3, 4, 5).forEach { delay ->
-                            DropdownMenuItem(
-                                text = { Text(formatShortDuration(seconds = delay)) },
-                                onClick = {
-                                    replay.postTriggerDelay = delay
-                                    postTriggerDelayExpanded = false
-                                },
-                            )
-                        }
-                    }
+            Section(
+                footer = "Seconds to record after the Instant replay/Save replay button is pressed.",
+            ) {
+                Picker(
+                    title = "Post trigger delay",
+                    selection = replay.postTriggerDelay,
+                    options = listOf(2, 3, 4, 5),
+                    text = { formatShortDuration(seconds = it) },
+                ) { delay ->
+                    replay.postTriggerDelay = delay
                 }
-                Text(localized("Seconds to record after the Instant replay/Save replay button is pressed."))
             }
         }
     }

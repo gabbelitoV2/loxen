@@ -1766,8 +1766,8 @@ private fun Model.getBuiltinCameraDevices(
     devices: MutableList<CaptureDevice>
 ) {
     val cameraId = videoSource.getCaptureDeviceCameraId() ?: return
-    val device: CaptureDevice = TODO("no Android counterpart for AVCaptureDevice(uniqueID:)")
-    if (devices.none { it.device == device }) {
+    val device: CaptureDevice = CaptureDevice(device = com.moblin.android.platform.avfoundation.AVCaptureDevice.withUniqueID(cameraId) ?: return, id = UUID.randomUUID(), isVideoMirrored = false)
+    if (devices.none { it.device == device.device }) {
         devices.add(makeCaptureDevice(device = device))
     }
 }

@@ -1,7 +1,7 @@
 package com.moblin.android.videoeffects
 
 import android.graphics.BitmapFactory
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.util.Base64
 import android.util.Log
 import android.util.SizeF

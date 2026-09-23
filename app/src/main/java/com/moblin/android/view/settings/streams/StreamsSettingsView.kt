@@ -1,50 +1,39 @@
 package com.moblin.android.view.settings.streams
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.reloadStreamIfEnabled
 import com.moblin.android.various.model.setCurrentStream
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsStream
-import com.moblin.android.various.utils.isMac
 import com.moblin.android.various.utils.makeUniqueName
+import com.moblin.android.view.settings.streams.stream.StreamSettingsView
 import com.moblin.android.view.settings.streams.stream.StreamWizardSettingsView
-import com.moblin.android.view.utils.ContextMenuDeleteButtonView
-import com.moblin.android.view.utils.ContextMenuDuplicateButtonView
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteButtonView
 import com.moblin.android.view.utils.SwipeLeftToDuplicateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDuplicateOrDeleteHelpView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.various.model.resetWizard
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun StreamItemView(
     model: Model = LocalModel.current,
@@ -54,7 +43,6 @@ private fun StreamItemView(
 ) {
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
-    var contextMenuExpanded by remember { mutableStateOf(false) }
 
     val duplicate: () -> Unit = {
         val clone = stream.clone()
@@ -67,46 +55,23 @@ private fun StreamItemView(
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Box {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .combinedClickable(
-                        onClick = { onNavigate("StreamSettingsView") },
-                        onLongClick = { contextMenuExpanded = true },
-                    ),
-            ) {
-                DraggableItemPrefixView()
-                Text(stream.name)
-                Spacer(Modifier.weight(1f))
-                Switch(
-                    checked = stream.enabled,
-                    onCheckedChange = { _ ->
-                        model.setCurrentStream(stream)
-                        model.reloadStreamIfEnabled(stream)
-                    },
-                    enabled = !(stream.enabled || isLive || isRecording),
-                )
-            }
-            DropdownMenu(
-                expanded = contextMenuExpanded,
-                onDismissRequest = { contextMenuExpanded = false },
-            ) {
-                if (isMac()) {
-                    ContextMenuDuplicateButtonView {
-                        contextMenuExpanded = false
-                        duplicate()
-                    }
-                    if (!stream.enabled) {
-                        ContextMenuDeleteButtonView {
-                            contextMenuExpanded = false
-                            delete()
-                        }
-                    }
-                }
-            }
+        NavigationLink(
+            destination = {
+                StreamSettingsView(database = database, stream = stream)
+            },
+        ) {
+            DraggableItemPrefixView()
+            Toggle(
+                title = stream.name,
+                isOn = stream.enabled,
+                enabled = !(stream.enabled || isLive || isRecording),
+                onChange = { _ ->
+                    model.setCurrentStream(stream)
+                    model.reloadStreamIfEnabled(stream)
+                },
+            )
         }
-        Row {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (!stream.enabled) {
                 SwipeLeftToDeleteButtonView(action = {
                     delete()
@@ -129,7 +94,6 @@ private fun moveStreams(streams: MutableList<SettingsStream>, froms: List<Int>, 
     streams.addAll(insertIndex, moved)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamsSettingsView(
     model: Model = LocalModel.current,
@@ -137,40 +101,36 @@ fun StreamsSettingsView(
     database: Database,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val presenting = createStreamWizard.presenting
     val isLive by model.isLive.collectAsState()
     val isRecording by model.isRecording.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Streams") })
-        },
-    ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding)) {
-            items(database.streams) { stream ->
-                StreamItemView(
-                    model = model,
-                    database = database,
-                    stream = stream,
-                    onNavigate = onNavigate,
-                )
-            }
-            item {
-                CreateButtonView {
-                    Unit
-                    createStreamWizard.presenting = true
+    Form(title = "Streams") {
+        Section(
+            footerContent = {
+                SwipeLeftToDuplicateOrDeleteHelpView(kind = localized("a stream"))
+            },
+        ) {
+            database.streams.forEach { stream ->
+                key(stream.id) {
+                    StreamItemView(
+                        model = model,
+                        database = database,
+                        stream = stream,
+                        onNavigate = onNavigate,
+                    )
                 }
             }
-            item {
-                SwipeLeftToDuplicateOrDeleteHelpView(kind = localized("a stream"))
+            CreateButtonView {
+                if (!isLive && !isRecording) {
+                    model.resetWizard()
+                    createStreamWizard.presenting = true
+                }
             }
         }
     }
 
-    if (presenting) {
-        ModalBottomSheet(
-            onDismissRequest = { createStreamWizard.presenting = false },
-        ) {
+    if (createStreamWizard.presenting) {
+        Sheet(onDismissRequest = { createStreamWizard.presenting = false }) {
             StreamWizardSettingsView(
                 model = model,
                 createStreamWizard = createStreamWizard,

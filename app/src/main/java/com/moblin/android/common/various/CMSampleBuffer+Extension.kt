@@ -1,7 +1,7 @@
 package com.moblin.android.common.various
 
 import android.media.AudioFormat
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.media.MediaFormat
 import com.moblin.android.media.MediaSample
 import java.nio.ByteBuffer
@@ -17,7 +17,7 @@ fun create(
     presentationTimeStamp: Long,
     decodeTimeStamp: Long
 ): MediaSample? {
-    TODO()
+    return MediaSample(data = ByteArray(0), presentationTimeUs = presentationTimeStamp, isKeyFrame = true, format = formatDescription, imageBuffer = imageBuffer, durationUs = duration, decodeTimeStampUs = decodeTimeStamp)
 }
 
 fun createSilent(

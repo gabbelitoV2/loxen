@@ -1,35 +1,29 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.alerts
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsFontDesign
 import com.moblin.android.various.settings.SettingsFontWeight
 import com.moblin.android.various.settings.SettingsWidgetAlertPositionType
 import com.moblin.android.various.settings.SettingsWidgetAlertsAlert
 import com.moblin.android.view.utils.RgbColorPickerView
-import com.moblin.android.LocalModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertFontView(
     model: Model = LocalModel.current,
@@ -41,104 +35,52 @@ fun AlertFontView(
     var fontSizeState by remember { mutableStateOf(fontSize) }
     var fontDesignState by remember { mutableStateOf(fontDesign) }
     var fontWeightState by remember { mutableStateOf(fontWeight) }
-    var designMenuExpanded by remember { mutableStateOf(false) }
-    var weightMenuExpanded by remember { mutableStateOf(false) }
 
     if (alert.positionType == SettingsWidgetAlertPositionType.scene) {
-        LaunchedEffect(fontSizeState) {
-            alert.fontSize = fontSizeState.toInt()
-            model.updateAlertsSettings()
-        }
-        LaunchedEffect(fontDesignState) {
-            alert.fontDesign = fontDesignState
-            model.updateAlertsSettings()
-        }
-        LaunchedEffect(fontWeightState) {
-            alert.fontWeight = fontWeightState
-            model.updateAlertsSettings()
-        }
-        Column {
-            Text(
-                text = "Font",
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Row {
+        Section(header = "Font") {
+            FormRow {
                 Text(text = "Size")
-                Slider(
+                FormSlider(
                     value = fontSizeState,
-                    onValueChange = { fontSizeState = it },
-                    valueRange = 10f..80f,
-                    steps = 13,
+                    onValueChange = { value ->
+                        fontSizeState = value
+                        alert.fontSize = value.toInt()
+                        model.updateAlertsSettings()
+                    },
                     modifier = Modifier.weight(1f),
+                    valueRange = 10f..80f,
                 )
-                Text(
-                    text = fontSizeState.toInt().toString(),
+                Box(
                     modifier = Modifier.width(35.dp),
-                )
-            }
-            ExposedDropdownMenuBox(
-                expanded = designMenuExpanded,
-                onExpandedChange = { designMenuExpanded = it },
-            ) {
-                OutlinedTextField(
-                    value = fontDesignState.toString(),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(text = "Design") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = designMenuExpanded)
-                    },
-                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                )
-                ExposedDropdownMenu(
-                    expanded = designMenuExpanded,
-                    onDismissRequest = { designMenuExpanded = false },
+                    contentAlignment = Alignment.Center,
                 ) {
-                    SettingsFontDesign.entries.forEach { design ->
-                        DropdownMenuItem(
-                            text = { Text(text = design.toString()) },
-                            onClick = {
-                                fontDesignState = design
-                                designMenuExpanded = false
-                            },
-                        )
-                    }
+                    Text(text = fontSizeState.toInt().toString())
                 }
             }
-            ExposedDropdownMenuBox(
-                expanded = weightMenuExpanded,
-                onExpandedChange = { weightMenuExpanded = it },
-            ) {
-                OutlinedTextField(
-                    value = fontWeightState.toString(),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text(text = "Weight") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = weightMenuExpanded)
-                    },
-                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                )
-                ExposedDropdownMenu(
-                    expanded = weightMenuExpanded,
-                    onDismissRequest = { weightMenuExpanded = false },
-                ) {
-                    SettingsFontWeight.entries.forEach { weight ->
-                        DropdownMenuItem(
-                            text = { Text(text = weight.toString()) },
-                            onClick = {
-                                fontWeightState = weight
-                                weightMenuExpanded = false
-                            },
-                        )
-                    }
-                }
-            }
+            Picker(
+                title = "Design",
+                selection = fontDesignState,
+                options = SettingsFontDesign.entries,
+                onChange = { value ->
+                    fontDesignState = value
+                    alert.fontDesign = value
+                    model.updateAlertsSettings()
+                },
+            )
+            Picker(
+                title = "Weight",
+                selection = fontWeightState,
+                options = SettingsFontWeight.entries,
+                onChange = { value ->
+                    fontWeightState = value
+                    alert.fontWeight = value
+                    model.updateAlertsSettings()
+                },
+            )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertColorsView(
     model: Model = LocalModel.current,
@@ -150,11 +92,7 @@ fun AlertColorsView(
     var accentColorState by remember { mutableStateOf(accentColor) }
 
     if (alert.positionType == SettingsWidgetAlertPositionType.scene) {
-        Column {
-            Text(
-                text = "Colors",
-                style = MaterialTheme.typography.titleMedium,
-            )
+        Section(header = "Colors") {
             RgbColorPickerView(
                 title = "Text",
                 color = textColorState,

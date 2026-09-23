@@ -1,6 +1,6 @@
 package com.moblin.android.videoeffects
 
-import android.media.Image
+import com.moblin.android.platform.video.CVPixelBuffer as Image
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue

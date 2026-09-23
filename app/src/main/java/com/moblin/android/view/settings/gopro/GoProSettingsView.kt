@@ -1,38 +1,31 @@
 package com.moblin.android.view.settings.gopro
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
+import com.moblin.android.LocalModel
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.personalHotspotLocalAddress
 import com.moblin.android.integrations.gopro.GoPro
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.various.model.GoProState
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
@@ -54,20 +47,20 @@ import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.QrCodeImageView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
+import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.view.utils.TextEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
-import com.moblin.android.LocalModel
-import com.moblin.android.LocalOnNavigate
+import com.moblin.android.view.utils.WiFiSsidEditView
+import com.moblin.android.various.model.getRtmpStream
 
 fun qrCodeHeight(metrics: Dp): Double = metrics.value * 0.5
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GoProLaunchLiveStreamSettingsView(
     goPro: SettingsGoPro,
     launchLiveStream: SettingsGoProLaunchLiveStream,
 ) {
     var qrCode by remember { mutableStateOf<Bitmap?>(null) }
-    var resolutionExpanded by remember { mutableStateOf(false) }
 
     val generate: () -> Unit = {
         qrCode = GoPro.generateLaunchLiveStream(
@@ -80,55 +73,38 @@ private fun GoProLaunchLiveStreamSettingsView(
 
     BoxWithConstraints {
         val metrics = maxWidth
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-            NameEditView(
-                name = launchLiveStream.name,
-                existingNames = goPro.launchLiveStream,
-                onNameChange = { launchLiveStream.name = it },
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("HERO 12/13")
-                Spacer(modifier = Modifier.weight(1f))
-                Switch(
-                    checked = launchLiveStream.isHero12Or13,
-                    onCheckedChange = { value ->
+        Form(title = "Launch live stream") {
+            Section {
+                NameEditView(
+                    name = launchLiveStream.name,
+                    existingNames = goPro.launchLiveStream,
+                    onNameChange = { launchLiveStream.name = it },
+                )
+            }
+            Section {
+                Toggle(
+                    title = "HERO 12/13",
+                    isOn = launchLiveStream.isHero12Or13,
+                    onChange = { value ->
                         launchLiveStream.isHero12Or13 = value
                         generate()
                     },
                 )
-            }
-            ExposedDropdownMenuBox(
-                expanded = resolutionExpanded,
-                onExpandedChange = { resolutionExpanded = it },
-            ) {
-                OutlinedTextField(
-                    value = launchLiveStream.resolution.rawValue,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Resolution") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = resolutionExpanded)
+                Picker(
+                    title = "Resolution",
+                    selection = launchLiveStream.resolution,
+                    options = SettingsGoProLaunchLiveStreamResolution.entries,
+                    text = { it.rawValue },
+                    onChange = { resolution ->
+                        launchLiveStream.resolution = resolution
+                        generate()
                     },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
                 )
-                ExposedDropdownMenu(
-                    expanded = resolutionExpanded,
-                    onDismissRequest = { resolutionExpanded = false },
-                ) {
-                    SettingsGoProLaunchLiveStreamResolution.entries.forEach { resolution ->
-                        DropdownMenuItem(
-                            text = { Text(resolution.rawValue) },
-                            onClick = {
-                                launchLiveStream.resolution = resolution
-                                resolutionExpanded = false
-                                generate()
-                            },
-                        )
-                    }
-                }
             }
             qrCode?.let { code ->
-                QrCodeImageView(image = code.asImageBitmap(), height = qrCodeHeight(metrics))
+                Section {
+                    QrCodeImageView(image = code.asImageBitmap(), height = qrCodeHeight(metrics))
+                }
             }
         }
     }
@@ -140,12 +116,18 @@ private fun GoProLaunchLiveStreamSettingsEntryView(
     launchLiveStream: SettingsGoProLaunchLiveStream,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Box(modifier = Modifier.clickable { onNavigate("goProLaunchLiveStreamSettings") }) {
+    NavigationLink(
+        destination = {
+            GoProLaunchLiveStreamSettingsView(
+                goPro = goPro,
+                launchLiveStream = launchLiveStream,
+            )
+        },
+    ) {
         DraggableItemTextView(name = launchLiveStream.name)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GoProWifiCredentialsSettingsView(
     goPro: SettingsGoPro,
@@ -165,24 +147,53 @@ private fun GoProWifiCredentialsSettingsView(
 
     BoxWithConstraints {
         val metrics = maxWidth
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-            NameEditView(
-                name = wifiCredentials.name,
-                existingNames = goPro.wifiCredentials,
-                onNameChange = { wifiCredentials.name = it },
-            )
-            Box(modifier = Modifier.clickable { onNavigate("wifiSsid") }) {
-                TextItemLocalizedView(name = "SSID", value = wifiCredentials.ssid)
-            }
-            Box(modifier = Modifier.clickable { onNavigate("wifiCredentialsPassword") }) {
-                TextItemLocalizedView(
-                    name = "Password",
-                    value = wifiCredentials.password,
-                    sensitive = true,
+        Form(title = "WiFi credentials") {
+            Section {
+                NameEditView(
+                    name = wifiCredentials.name,
+                    existingNames = goPro.wifiCredentials,
+                    onNameChange = { wifiCredentials.name = it },
                 )
             }
+            Section {
+                NavigationLink(
+                    destination = {
+                        WiFiSsidEditView(
+                            value = wifiCredentials.ssid,
+                            onValueChange = { wifiCredentials.ssid = it },
+                            onSubmit = {
+                                wifiCredentials.ssid = it
+                                generate()
+                            },
+                            onDismiss = {},
+                        )
+                    },
+                ) {
+                    TextItemLocalizedView(name = "SSID", value = wifiCredentials.ssid)
+                }
+                NavigationLink(
+                    destination = {
+                        TextEditView(
+                            title = localized("Password"),
+                            value = wifiCredentials.password,
+                            onSubmit = {
+                                wifiCredentials.password = it
+                                generate()
+                            },
+                        )
+                    },
+                ) {
+                    TextItemLocalizedView(
+                        name = "Password",
+                        value = wifiCredentials.password,
+                        sensitive = true,
+                    )
+                }
+            }
             qrCode?.let { code ->
-                QrCodeImageView(image = code.asImageBitmap(), height = qrCodeHeight(metrics))
+                Section {
+                    QrCodeImageView(image = code.asImageBitmap(), height = qrCodeHeight(metrics))
+                }
             }
         }
     }
@@ -194,12 +205,18 @@ private fun GoProWifiCredentialsSettingsEntryView(
     wifiCredentials: SettingsGoProWifiCredentials,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Box(modifier = Modifier.clickable { onNavigate("goProWifiCredentialsSettings") }) {
+    NavigationLink(
+        destination = {
+            GoProWifiCredentialsSettingsView(
+                goPro = goPro,
+                wifiCredentials = wifiCredentials,
+            )
+        },
+    ) {
         DraggableItemTextView(name = wifiCredentials.name)
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GoProRtmpUrlSettingsView(
     model: Model = LocalModel.current,
@@ -209,9 +226,6 @@ private fun GoProRtmpUrlSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var qrCode by remember { mutableStateOf<Bitmap?>(null) }
-    var typeExpanded by remember { mutableStateOf(false) }
-    var streamExpanded by remember { mutableStateOf(false) }
-    var urlExpanded by remember { mutableStateOf(false) }
 
     val generate: () -> Unit = {
         when (rtmpUrl.type) {
@@ -224,8 +238,35 @@ private fun GoProRtmpUrlSettingsView(
         }
     }
 
-    val serverUrls: () -> List<String> = {
-        TODO()
+    val serverUrls: () -> List<String> = ports@{
+        val stream = model.getRtmpStream(rtmpUrl.serverStreamId) ?: return@ports emptyList()
+        val urls = mutableListOf<String>()
+        status.ipStatuses.value.filter { it.ipType.toString().equals("ipv4", ignoreCase = true) }.forEach { ipStatus ->
+            urls.add(
+                rtmpServerStreamUrl(
+                    address = ipStatus.ipType.formatAddress(ipStatus.ip),
+                    port = model.database.rtmpServer.port,
+                    streamKey = stream.streamKey,
+                )
+            )
+        }
+        urls.add(
+            rtmpServerStreamUrl(
+                address = personalHotspotLocalAddress,
+                port = model.database.rtmpServer.port,
+                streamKey = stream.streamKey,
+            )
+        )
+        status.ipStatuses.value.filter { it.ipType.toString().equals("ipv6", ignoreCase = true) }.forEach { ipStatus ->
+            urls.add(
+                rtmpServerStreamUrl(
+                    address = ipStatus.ipType.formatAddress(ipStatus.ip),
+                    port = model.database.rtmpServer.port,
+                    streamKey = stream.streamKey,
+                )
+            )
+        }
+        urls
     }
 
     LaunchedEffect(Unit) {
@@ -238,11 +279,6 @@ private fun GoProRtmpUrlSettingsView(
                 rtmpUrl.serverUrl = serverUrls().firstOrNull() ?: ""
             }
         }
-        generate()
-    }
-
-    LaunchedEffect(rtmpUrl.serverStreamId) {
-        rtmpUrl.serverUrl = serverUrls().firstOrNull() ?: ""
     }
 
     LaunchedEffect(rtmpUrl.serverUrl, rtmpUrl.customUrl) {
@@ -251,129 +287,70 @@ private fun GoProRtmpUrlSettingsView(
 
     BoxWithConstraints {
         val metrics = maxWidth
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-            NameEditView(
-                name = rtmpUrl.name,
-                existingNames = goPro.rtmpUrls,
-                onNameChange = { rtmpUrl.name = it },
-            )
-            Text("RTMP", style = MaterialTheme.typography.titleSmall)
-            ExposedDropdownMenuBox(
-                expanded = typeExpanded,
-                onExpandedChange = { typeExpanded = it },
-            ) {
-                OutlinedTextField(
-                    value = rtmpUrl.type.toString(),
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Type") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded)
-                    },
-                    modifier = Modifier.menuAnchor().fillMaxWidth(),
+        Form(title = "RTMP URL") {
+            Section {
+                NameEditView(
+                    name = rtmpUrl.name,
+                    existingNames = goPro.rtmpUrls,
+                    onNameChange = { rtmpUrl.name = it },
                 )
-                ExposedDropdownMenu(
-                    expanded = typeExpanded,
-                    onDismissRequest = { typeExpanded = false },
-                ) {
-                    SettingsDjiDeviceUrlType.entries.forEach { type ->
-                        DropdownMenuItem(
-                            text = { Text(type.toString()) },
-                            onClick = {
-                                rtmpUrl.type = type
-                                typeExpanded = false
-                                generate()
-                            },
-                        )
-                    }
-                }
             }
-            if (rtmpUrl.type == SettingsDjiDeviceUrlType.server) {
-                if (model.database.rtmpServer.streams.isEmpty()) {
-                    Text("No RTMP server streams exists")
-                } else {
-                    ExposedDropdownMenuBox(
-                        expanded = streamExpanded,
-                        onExpandedChange = { streamExpanded = it },
-                    ) {
-                        val selectedStreamName = model.database.rtmpServer.streams
-                            .firstOrNull { it.id == rtmpUrl.serverStreamId }
-                            ?.name
-                            ?: ""
-                        OutlinedTextField(
-                            value = selectedStreamName,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Stream") },
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = streamExpanded)
-                            },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = streamExpanded,
-                            onDismissRequest = { streamExpanded = false },
-                        ) {
-                            model.database.rtmpServer.streams.forEach { stream ->
-                                DropdownMenuItem(
-                                    text = { Text(stream.name) },
-                                    onClick = {
-                                        rtmpUrl.serverStreamId = stream.id
-                                        streamExpanded = false
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    ExposedDropdownMenuBox(
-                        expanded = urlExpanded,
-                        onExpandedChange = { urlExpanded = it },
-                    ) {
-                        OutlinedTextField(
-                            value = rtmpUrl.serverUrl,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("URL") },
-                            trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(expanded = urlExpanded)
-                            },
-                            modifier = Modifier.menuAnchor().fillMaxWidth(),
-                        )
-                        ExposedDropdownMenu(
-                            expanded = urlExpanded,
-                            onDismissRequest = { urlExpanded = false },
-                        ) {
-                            serverUrls().forEach { url ->
-                                DropdownMenuItem(
-                                    text = { Text(url) },
-                                    onClick = {
-                                        rtmpUrl.serverUrl = url
-                                        urlExpanded = false
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    if (!model.database.rtmpServer.enabled) {
-                        Text("⚠️ The RTMP server is not enabled")
-                    }
-                }
-            } else if (rtmpUrl.type == SettingsDjiDeviceUrlType.custom) {
-                Box(modifier = Modifier.clickable { onNavigate("rtmpCustomUrl") }) {
-                    Text(rtmpUrl.customUrl)
-                }
-            }
-            Text(
-                "Select ${localized("Server")} if you want the GoPro camera to stream to " +
+            Section(
+                header = "RTMP",
+                footer = "Select ${localized("Server")} if you want the GoPro camera to stream to " +
                     "Moblin's RTMP server on this device. Select ${localized("Custom")} to " +
                     "make the GoPro camera stream to any destination.",
-                style = MaterialTheme.typography.bodySmall,
-            )
+            ) {
+                Picker(
+                    title = "Type",
+                    selection = rtmpUrl.type,
+                    options = SettingsDjiDeviceUrlType.entries,
+                    text = { it.toString() },
+                    onChange = { type ->
+                        rtmpUrl.type = type
+                        generate()
+                    },
+                )
+                if (rtmpUrl.type == SettingsDjiDeviceUrlType.server) {
+                    val streams = model.database.rtmpServer.streams
+                    if (streams.isEmpty()) {
+                        Text(localized("No RTMP server streams exists"))
+                    } else {
+                        Picker(
+                            title = "Stream",
+                            selection = rtmpUrl.serverStreamId,
+                            options = streams.map { it.id },
+                            text = { id -> streams.firstOrNull { it.id == id }?.name ?: "" },
+                            onChange = { id ->
+                                rtmpUrl.serverStreamId = id
+                                rtmpUrl.serverUrl = serverUrls().firstOrNull() ?: ""
+                            },
+                        )
+                        Picker(
+                            title = "URL",
+                            selection = rtmpUrl.serverUrl,
+                            options = serverUrls(),
+                            onChange = { url -> rtmpUrl.serverUrl = url },
+                        )
+                        if (!model.database.rtmpServer.enabled) {
+                            Text(localized("⚠️ The RTMP server is not enabled"))
+                        }
+                    }
+                } else if (rtmpUrl.type == SettingsDjiDeviceUrlType.custom) {
+                    TextEditNavigationView(
+                        title = localized("URL"),
+                        value = rtmpUrl.customUrl,
+                        onSubmit = { rtmpUrl.customUrl = it },
+                    )
+                }
+            }
             ShortcutSectionView {
                 RtmpServerSettingsView(rtmpServer = model.database.rtmpServer)
             }
             qrCode?.let { code ->
-                QrCodeImageView(image = code.asImageBitmap(), height = qrCodeHeight(metrics))
+                Section {
+                    QrCodeImageView(image = code.asImageBitmap(), height = qrCodeHeight(metrics))
+                }
             }
         }
     }
@@ -386,7 +363,15 @@ private fun GoProRtmpUrlSettingsEntryView(
     rtmpUrl: SettingsGoProRtmpUrl,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Box(modifier = Modifier.clickable { onNavigate("goProRtmpUrlSettings") }) {
+    NavigationLink(
+        destination = {
+            GoProRtmpUrlSettingsView(
+                goPro = goPro,
+                status = status,
+                rtmpUrl = rtmpUrl,
+            )
+        },
+    ) {
         DraggableItemTextView(name = rtmpUrl.name)
     }
 }
@@ -405,28 +390,32 @@ private fun GoProLaunchLiveStream(
         }
     }
 
-    Column {
-        Text("Launch live streams", style = MaterialTheme.typography.titleSmall)
+    Section(
+        header = "Launch live streams",
+        footerContent = { SwipeLeftToDeleteHelpView(kind = localized("an entry")) },
+    ) {
         goPro.launchLiveStream.forEach { launchLiveStream ->
-            Box(
-                modifier = Modifier.pointerInput(launchLiveStream.id) {
-                    detectTapGestures(
-                        onLongPress = {
-                            val index = goPro.launchLiveStream.indexOfFirst {
-                                it.id == launchLiveStream.id
-                            }
-                            if (index >= 0) {
-                                deleteLaunchLiveStream(listOf(index))
-                            }
-                        },
+            key(launchLiveStream.id) {
+                Box(
+                    modifier = Modifier.pointerInput(launchLiveStream.id) {
+                        detectTapGestures(
+                            onLongPress = {
+                                val offset =
+                                    goPro.launchLiveStream.indexOfFirst {
+                                        it.id == launchLiveStream.id
+                                    }.takeIf { it >= 0 }
+                                if (offset != null) {
+                                    deleteLaunchLiveStream(listOf(offset))
+                                }
+                            },
+                        )
+                    },
+                ) {
+                    GoProLaunchLiveStreamSettingsEntryView(
+                        goPro = goPro,
+                        launchLiveStream = launchLiveStream,
                     )
-                },
-            ) {
-                GoProLaunchLiveStreamSettingsEntryView(
-                    goPro = goPro,
-                    launchLiveStream = launchLiveStream,
-                    onNavigate = onNavigate,
-                )
+                }
             }
         }
         CreateButtonView {
@@ -441,7 +430,6 @@ private fun GoProLaunchLiveStream(
             }
             goPro.launchLiveStream.add(launchLiveStream)
         }
-        SwipeLeftToDeleteHelpView(kind = localized("an entry"))
     }
 }
 
@@ -459,28 +447,32 @@ private fun GoProWifiCredentials(
         }
     }
 
-    Column {
-        Text("WiFi credentials", style = MaterialTheme.typography.titleSmall)
+    Section(
+        header = "WiFi credentials",
+        footerContent = { SwipeLeftToDeleteHelpView(kind = localized("an entry")) },
+    ) {
         goPro.wifiCredentials.forEach { wifiCredentials ->
-            Box(
-                modifier = Modifier.pointerInput(wifiCredentials.id) {
-                    detectTapGestures(
-                        onLongPress = {
-                            val index = goPro.wifiCredentials.indexOfFirst {
-                                it.id == wifiCredentials.id
-                            }
-                            if (index >= 0) {
-                                deleteWifiCredentials(listOf(index))
-                            }
-                        },
+            key(wifiCredentials.id) {
+                Box(
+                    modifier = Modifier.pointerInput(wifiCredentials.id) {
+                        detectTapGestures(
+                            onLongPress = {
+                                val offset =
+                                    goPro.wifiCredentials.indexOfFirst {
+                                        it.id == wifiCredentials.id
+                                    }.takeIf { it >= 0 }
+                                if (offset != null) {
+                                    deleteWifiCredentials(listOf(offset))
+                                }
+                            },
+                        )
+                    },
+                ) {
+                    GoProWifiCredentialsSettingsEntryView(
+                        goPro = goPro,
+                        wifiCredentials = wifiCredentials,
                     )
-                },
-            ) {
-                GoProWifiCredentialsSettingsEntryView(
-                    goPro = goPro,
-                    wifiCredentials = wifiCredentials,
-                    onNavigate = onNavigate,
-                )
+                }
             }
         }
         CreateButtonView {
@@ -495,7 +487,6 @@ private fun GoProWifiCredentials(
             }
             goPro.wifiCredentials.add(wifiCredentials)
         }
-        SwipeLeftToDeleteHelpView(kind = localized("an entry"))
     }
 }
 
@@ -514,29 +505,31 @@ private fun GoProRtmpUrls(
         }
     }
 
-    Column {
-        Text("RTMP URLs", style = MaterialTheme.typography.titleSmall)
+    Section(
+        header = "RTMP URLs",
+        footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a URL")) },
+    ) {
         goPro.rtmpUrls.forEach { rtmpUrl ->
-            Box(
-                modifier = Modifier.pointerInput(rtmpUrl.id) {
-                    detectTapGestures(
-                        onLongPress = {
-                            val index = goPro.rtmpUrls.indexOfFirst {
-                                it.id == rtmpUrl.id
-                            }
-                            if (index >= 0) {
-                                deleteRtmpUrl(listOf(index))
-                            }
-                        },
+            key(rtmpUrl.id) {
+                Box(
+                    modifier = Modifier.pointerInput(rtmpUrl.id) {
+                        detectTapGestures(
+                            onLongPress = {
+                                val offset = goPro.rtmpUrls.indexOfFirst { it.id == rtmpUrl.id }
+                                    .takeIf { it >= 0 }
+                                if (offset != null) {
+                                    deleteRtmpUrl(listOf(offset))
+                                }
+                            },
+                        )
+                    },
+                ) {
+                    GoProRtmpUrlSettingsEntryView(
+                        goPro = goPro,
+                        status = status,
+                        rtmpUrl = rtmpUrl,
                     )
-                },
-            ) {
-                GoProRtmpUrlSettingsEntryView(
-                    goPro = goPro,
-                    status = status,
-                    rtmpUrl = rtmpUrl,
-                    onNavigate = onNavigate,
-                )
+                }
             }
         }
         CreateButtonView {
@@ -551,7 +544,6 @@ private fun GoProRtmpUrls(
             }
             goPro.rtmpUrls.add(rtmpUrl)
         }
-        SwipeLeftToDeleteHelpView(kind = localized("a URL"))
     }
 }
 
@@ -560,22 +552,19 @@ private fun GoProQrCodesSettingsView(
     model: Model = LocalModel.current,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+    Form(title = "QR codes") {
         GoProLaunchLiveStream(
             goPro = model.database.goPro,
             goProState = model.goPro,
-            onNavigate = onNavigate,
         )
         GoProWifiCredentials(
             goPro = model.database.goPro,
             goProState = model.goPro,
-            onNavigate = onNavigate,
         )
         GoProRtmpUrls(
             status = model.statusOther,
             goPro = model.database.goPro,
             goProState = model.goPro,
-            onNavigate = onNavigate,
         )
     }
 }
@@ -585,13 +574,21 @@ fun GoProSettingsView(
     model: Model = LocalModel.current,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        HCenter {
-            IntegrationImageView(imageName = "GoPro")
+    Form(title = "GoPro") {
+        Section {
+            HCenter {
+                IntegrationImageView(imageName = "GoPro")
+            }
         }
         GoProBleDevicesSettingsSection(goPro = model.database.goPro)
-        Box(modifier = Modifier.clickable { onNavigate("goProQrCodes") }) {
-            Text("QR codes")
+        Section {
+            NavigationLink(
+                destination = {
+                    GoProQrCodesSettingsView(model = model)
+                },
+            ) {
+                Text(localized("QR codes"))
+            }
         }
     }
 }

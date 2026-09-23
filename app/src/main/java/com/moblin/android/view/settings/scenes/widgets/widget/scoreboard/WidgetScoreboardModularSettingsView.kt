@@ -1,29 +1,26 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.scoreboard
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.settings.SettingsWidgetGenericScoreboardClockDirection
 import com.moblin.android.various.settings.SettingsWidgetModularScoreboard
 import com.moblin.android.various.settings.SettingsWidgetModularScoreboardTeam
@@ -31,7 +28,6 @@ import com.moblin.android.various.settings.SettingsWidgetScoreboardClock
 import com.moblin.android.various.settings.SettingsWidgetScoreboardLayout
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.TextEditNavigationView
-import com.moblin.android.LocalOnNavigate
 
 @Composable
 private fun TeamView(
@@ -40,14 +36,14 @@ private fun TeamView(
     updated: () -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate(side) },
+    NavigationLink(
+        destination = {
+            TeamViewDetail(side = side, team = team, updated = updated)
+        },
     ) {
         Text(side)
         Spacer(modifier = Modifier.weight(1f))
-        Text(team.name, color = Color.Gray)
+        Text(team.name, color = formPalette().gray)
     }
 }
 
@@ -57,35 +53,37 @@ fun TeamViewDetail(
     team: SettingsWidgetModularScoreboardTeam,
     updated: () -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        TextEditNavigationView(
-            title = localized("Name"),
-            value = team.name,
-            onChange = {
-                team.name = it
-                updated()
-                null
-            },
-            onSubmit = {},
-        )
-        RgbColorPickerView(
-            title = "Text",
-            color = team.textColorColor,
-            onColorChanged = {},
-            onChange = {
-                team.textColor = it
-                updated()
-            },
-        )
-        RgbColorPickerView(
-            title = "Background",
-            color = team.backgroundColorColor,
-            onColorChanged = {},
-            onChange = {
-                team.backgroundColor = it
-                updated()
-            },
-        )
+    Form(title = side) {
+        Section {
+            TextEditNavigationView(
+                title = localized("Name"),
+                value = team.name,
+                onChange = {
+                    team.name = it
+                    updated()
+                    null
+                },
+                onSubmit = {},
+            )
+            RgbColorPickerView(
+                title = localized("Text"),
+                color = team.textColorColor,
+                onColorChanged = {},
+                onChange = {
+                    team.textColor = it
+                    updated()
+                },
+            )
+            RgbColorPickerView(
+                title = localized("Background"),
+                color = team.backgroundColorColor,
+                onColorChanged = {},
+                onChange = {
+                    team.backgroundColor = it
+                    updated()
+                },
+            )
+        }
     }
 }
 
@@ -110,7 +108,6 @@ private fun formatMaximum(value: String): String {
     return formatShortDuration(60 * maximum)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetScoreboardModularSettingsView(
     modular: SettingsWidgetModularScoreboard,
@@ -118,8 +115,7 @@ fun WidgetScoreboardModularSettingsView(
     updated: () -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text("Teams")
+    Section(header = localized("Teams")) {
         TeamView(
             side = localized("Home"),
             team = modular.home,
@@ -132,8 +128,8 @@ fun WidgetScoreboardModularSettingsView(
             updated = updated,
             onNavigate = onNavigate,
         )
-
-        Text("Clock")
+    }
+    Section(header = localized("Clock")) {
         TextEditNavigationView(
             title = localized("Maximum"),
             value = clock.maximum.toString(),
@@ -145,40 +141,16 @@ fun WidgetScoreboardModularSettingsView(
             },
             valueFormat = { formatMaximum(it) },
         )
-        var directionExpanded by remember { mutableStateOf(false) }
-        ExposedDropdownMenuBox(
-            expanded = directionExpanded,
-            onExpandedChange = { directionExpanded = it },
-        ) {
-            OutlinedTextField(
-                value = clock.direction.toString(),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Direction") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = directionExpanded)
-                },
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth(),
-            )
-            ExposedDropdownMenu(
-                expanded = directionExpanded,
-                onDismissRequest = { directionExpanded = false },
-            ) {
-                SettingsWidgetGenericScoreboardClockDirection.entries.forEach { direction ->
-                    DropdownMenuItem(
-                        text = { Text(direction.toString()) },
-                        onClick = {
-                            clock.direction = direction
-                            clock.reset()
-                            updated()
-                            directionExpanded = false
-                        },
-                    )
-                }
-            }
-        }
+        Picker(
+            title = localized("Direction"),
+            selection = clock.direction,
+            options = SettingsWidgetGenericScoreboardClockDirection.entries,
+            onChange = {
+                clock.direction = it
+                clock.reset()
+                updated()
+            },
+        )
     }
 }
 
@@ -188,134 +160,114 @@ fun WidgetScoreboardModularGeneralSettingsView(
     updated: () -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Text(
-        text = "Layout",
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onNavigate("Layout") },
-    )
+    NavigationLink(
+        title = localized("Layout"),
+    ) {
+        WidgetScoreboardModularLayoutDetailView(modular = modular, updated = updated)
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WidgetScoreboardModularLayoutDetailView(
     modular: SettingsWidgetModularScoreboard,
     updated: () -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        var typeExpanded by remember { mutableStateOf(false) }
-        ExposedDropdownMenuBox(
-            expanded = typeExpanded,
-            onExpandedChange = { typeExpanded = it },
-        ) {
-            OutlinedTextField(
-                value = modular.layout.toString(),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Type") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = typeExpanded)
+    Form(title = localized("Layout")) {
+        Section {
+            Picker(
+                title = localized("Type"),
+                selection = modular.layout,
+                options = SettingsWidgetScoreboardLayout.entries,
+                onChange = {
+                    modular.layout = it
+                    updated()
                 },
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth(),
             )
-            ExposedDropdownMenu(
-                expanded = typeExpanded,
-                onDismissRequest = { typeExpanded = false },
+        }
+        Section {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                SettingsWidgetScoreboardLayout.entries.forEach { layout ->
-                    DropdownMenuItem(
-                        text = { Text(layout.toString()) },
-                        onClick = {
-                            modular.layout = layout
-                            updated()
-                            typeExpanded = false
-                        },
-                    )
+                Text(localized("Width"))
+                FormSlider(
+                    value = modular.width.toFloat(),
+                    onValueChange = {
+                        modular.width = it
+                        updated()
+                    },
+                    modifier = Modifier.weight(1f),
+                    valueRange = 100f..1000f,
+                )
+                Box(
+                    modifier = Modifier.width(35.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(modular.width.toInt().toString())
+                }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(localized("Height"))
+                FormSlider(
+                    value = modular.rowHeight.toFloat(),
+                    onValueChange = {
+                        modular.rowHeight = it
+                        updated()
+                    },
+                    modifier = Modifier.weight(1f),
+                    valueRange = 10f..150f,
+                )
+                Box(
+                    modifier = Modifier.width(35.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(modular.rowHeight.toInt().toString())
                 }
             }
         }
-
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Text("Width")
-            Slider(
-                value = modular.width.toFloat(),
-                onValueChange = {
-                    modular.width = it
-                    updated()
-                },
-                valueRange = 100f..1000f,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                text = modular.width.toInt().toString(),
-                modifier = Modifier.width(35.dp),
-            )
-        }
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Text("Height")
-            Slider(
-                value = modular.rowHeight.toFloat(),
-                onValueChange = {
-                    modular.rowHeight = it
-                    updated()
-                },
-                valueRange = 10f..150f,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                text = modular.rowHeight.toInt().toString(),
-                modifier = Modifier.width(35.dp),
-            )
-        }
-
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Text("Title")
-            Switch(
-                checked = modular.showTitle,
-                onCheckedChange = {
+        Section {
+            Toggle(
+                title = localized("Title"),
+                isOn = modular.showTitle,
+                onChange = {
                     modular.showTitle = it
                     updated()
                 },
             )
-        }
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Text("More stats")
-            Switch(
-                checked = modular.showMoreStats,
-                onCheckedChange = {
+            Toggle(
+                title = localized("More stats"),
+                isOn = modular.showMoreStats,
+                onChange = {
                     modular.showMoreStats = it
                     updated()
                 },
             )
-        }
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Text("Info box")
-            Switch(
-                checked = modular.showGlobalStatsBlock,
-                onCheckedChange = {
+            Toggle(
+                title = localized("Info box"),
+                isOn = modular.showGlobalStatsBlock,
+                onChange = {
                     modular.showGlobalStatsBlock = it
                     updated()
                 },
             )
-        }
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Text("Clock")
-            Switch(
-                checked = modular.showClock,
-                onCheckedChange = {
+            Toggle(
+                title = localized("Clock"),
+                isOn = modular.showClock,
+                enabled = modular.showGlobalStatsBlock,
+                onChange = {
                     modular.showClock = it
                     updated()
                 },
-                enabled = modular.showGlobalStatsBlock,
             )
-        }
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Text("Bold")
-            Switch(
-                checked = modular.isBold,
-                onCheckedChange = {
+            Toggle(
+                title = localized("Bold"),
+                isOn = modular.isBold,
+                onChange = {
                     modular.isBold = it
                     updated()
                 },

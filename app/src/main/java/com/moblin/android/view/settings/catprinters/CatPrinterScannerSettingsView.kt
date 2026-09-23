@@ -1,30 +1,35 @@
 package com.moblin.android.view.settings.catprinters
 
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormButton
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.bluetoothNotAllowedMessage
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.InlinePickerItem
-import com.moblin.android.LocalModel
 import kotlinx.coroutines.flow.MutableStateFlow
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CatPrinterScannerSettingsView(
     model: Model = LocalModel.current,
@@ -35,53 +40,52 @@ fun CatPrinterScannerSettingsView(
 ) {
     val bluetoothAllowed by model.bluetoothAllowed.collectAsState()
     val discoveredPeripherals by scanner.discoveredPeripherals.collectAsState()
+    val palette = formPalette()
 
-    LaunchedEffect(Unit) {
+    DisposableEffect(scanner) {
         scanner.startScanningForDevices()
-    }
-
-    DisposableEffect(Unit) {
         onDispose {
             scanner.stopScanningForDevices()
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Device") })
-        },
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-        ) {
+    Form(title = "Device") {
+        Section {
             if (!bluetoothAllowed) {
-                item {
+                FormRow {
                     Text(bluetoothNotAllowedMessage)
                 }
             } else if (discoveredPeripherals.isEmpty()) {
-                item {
+                FormRow {
                     HCenter {
-                        CircularProgressIndicator()
+                        val transition = rememberInfiniteTransition()
+                        val angle by transition.animateFloat(
+                            initialValue = 0f,
+                            targetValue = 360f,
+                            animationSpec = infiniteRepeatable(tween(1000, easing = LinearEasing)),
+                        )
+                        Canvas(modifier = Modifier.size(20.dp)) {
+                            drawArc(
+                                color = palette.accent,
+                                startAngle = angle,
+                                sweepAngle = 270f,
+                                useCenter = false,
+                                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round),
+                            )
+                        }
                     }
                 }
             } else {
-                items(
-                    items = discoveredPeripherals.map { peripheral ->
-                        InlinePickerItem(
-                            id = peripheral.identifier,
-                            text = peripheral.name ?: localized("Unknown"),
-                        )
-                    },
-                ) { item ->
-                    TextButton(
-                        onClick = {
+                discoveredPeripherals.forEach { peripheral ->
+                    val item = InlinePickerItem(
+                        id = peripheral.identifier,
+                        text = peripheral.name ?: localized("Unknown"),
+                    )
+                    key(item.id) {
+                        FormButton(title = item.text) {
                             onChange(item.id)
                             onDismiss()
-                        },
-                    ) {
-                        Text(item.text)
+                        }
                     }
                 }
             }
