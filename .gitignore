@@ -7,3 +7,4 @@ local.properties
 .env
 tools/__pycache__/
 tools/*.tmp
+.kotlin/
