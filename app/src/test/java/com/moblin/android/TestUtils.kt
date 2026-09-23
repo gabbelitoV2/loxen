@@ -49,7 +49,7 @@ class MessageQueue<Message> {
     }
 
     suspend fun get(): Message {
-        return channel.receive()
+        return kotlinx.coroutines.withTimeout(10_000) { channel.receive() }
     }
 }
 
