@@ -531,7 +531,7 @@ class SceneCodableSuite {
             { SettingsScene() },
             fromEmpty = {
                 val scene = SettingsScene()
-                scene.videoSource.cameraPosition = defaultBackCameraPosition
+                scene.videoSource = scene.videoSource.copy(cameraPosition = defaultBackCameraPosition)
                 scene
             },
         ),
@@ -673,11 +673,11 @@ class SceneCodableSuite {
     @Test
     fun cloneCopiesSwiftValueTypes() {
         val scene = SettingsScene()
-        scene.videoSource.cameraPosition = SettingsSceneCameraPosition.front
+        scene.videoSource = scene.videoSource.copy(cameraPosition = SettingsSceneCameraPosition.front)
         scene.widgets = mutableListOf(SettingsSceneWidget(widgetId = uuid(id1)))
         val clone = scene.clone()
-        clone.videoSource.cameraPosition = SettingsSceneCameraPosition.rtmp
-        clone.widgets[0].layout.x = 50.0
+        clone.videoSource = clone.videoSource.copy(cameraPosition = SettingsSceneCameraPosition.rtmp)
+        clone.widgets[0].layout = clone.widgets[0].layout.copy(x = 50.0)
         assertEquals(SettingsSceneCameraPosition.front, scene.videoSource.cameraPosition)
         assertEquals(0.0, scene.widgets[0].layout.x)
         assertEquals(uuid(id1), clone.widgets[0].widgetId)

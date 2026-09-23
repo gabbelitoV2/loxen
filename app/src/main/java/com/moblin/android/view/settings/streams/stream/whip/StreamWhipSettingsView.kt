@@ -37,7 +37,7 @@ private fun setBearerToken(
     val value = "Bearer $token"
     val index = whip.headers.indexOfFirst { it.name == "Authorization" }
     if (index != -1) {
-        whip.headers[index].value = value
+        whip.headers[index] = whip.headers[index].copy(value = value)
     } else {
         whip.headers.add(SettingsHttpHeader(name = "Authorization", value = value))
     }

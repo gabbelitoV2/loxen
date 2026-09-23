@@ -1195,10 +1195,12 @@ data class RemoteControlRemoteSceneSettingsSceneWidget(
 
     fun toSettings(): SettingsSceneWidget {
         val widget = SettingsSceneWidget(id)
-        widget.layout.x = layout.x
-        widget.layout.y = layout.y
-        widget.layout.size = layout.size
-        widget.layout.alignment = layout.alignment
+        widget.layout = widget.layout.copy(
+            x = layout.x,
+            y = layout.y,
+            size = layout.size,
+            alignment = layout.alignment,
+        )
         return widget
     }
 }

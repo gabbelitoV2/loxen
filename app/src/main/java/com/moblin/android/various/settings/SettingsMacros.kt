@@ -291,10 +291,10 @@ class MacroVariables {
 
 data class MacroEvent(
     val event: SettingsMacrosEvent,
-    var amount: Int = 0,
-    var text: String = "",
-    var sceneId: UUID? = null,
-    var variables: MutableMap<MacroVariable, String> = mutableMapOf(),
+    val amount: Int = 0,
+    val text: String = "",
+    val sceneId: UUID? = null,
+    val variables: Map<MacroVariable, String> = emptyMap(),
 )
 
 @Serializable(with = SettingsMacrosActionIfComparison.Serializer::class)

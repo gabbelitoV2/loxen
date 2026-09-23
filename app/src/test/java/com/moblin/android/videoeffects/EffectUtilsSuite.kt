@@ -17,11 +17,7 @@ class EffectUtilsSuite {
     private val size = Size(200f, 100f)
 
     private fun layout(alignment: SettingsAlignment): SettingsWidgetLayout {
-        val layout = SettingsWidgetLayout()
-        layout.x = 10.0
-        layout.y = 20.0
-        layout.alignment = alignment
-        return layout
+        return SettingsWidgetLayout(x = 10.0, y = 20.0, alignment = alignment)
     }
 
     private fun position(alignment: SettingsAlignment): Offset {

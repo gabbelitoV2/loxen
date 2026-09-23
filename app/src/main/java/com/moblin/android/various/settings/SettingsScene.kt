@@ -2214,23 +2214,21 @@ class SettingsWidgetVTuber(
             val vTuber = SettingsWidgetVTuber()
             vTuber.id = container.decode("id", UUID.randomUUID())
             vTuber.type = container.decode("type", SettingsWidgetVTuberType.vrm)
-            vTuber.videoSource.cameraPosition = decodeCameraPosition(
-                container,
-                "cameraPosition",
-                SettingsSceneCameraPosition.none
+            vTuber.videoSource = SettingsVideoSource(
+                cameraPosition = decodeCameraPosition(container, "cameraPosition", SettingsSceneCameraPosition.none),
+                backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId),
+                frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId),
+                rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID()),
+                srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID()),
+                srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID()),
+                ristCameraId = container.decode("ristCameraId", UUID.randomUUID()),
+                rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID()),
+                whipCameraId = container.decode("whipCameraId", UUID.randomUUID()),
+                whepCameraId = container.decode("whepCameraId", UUID.randomUUID()),
+                mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID()),
+                externalCameraId = container.decode("externalCameraId", ""),
+                externalCameraName = container.decode("externalCameraName", ""),
             )
-            vTuber.videoSource.backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId)
-            vTuber.videoSource.frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId)
-            vTuber.videoSource.rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID())
-            vTuber.videoSource.srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID())
-            vTuber.videoSource.srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID())
-            vTuber.videoSource.ristCameraId = container.decode("ristCameraId", UUID.randomUUID())
-            vTuber.videoSource.rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID())
-            vTuber.videoSource.whipCameraId = container.decode("whipCameraId", UUID.randomUUID())
-            vTuber.videoSource.whepCameraId = container.decode("whepCameraId", UUID.randomUUID())
-            vTuber.videoSource.mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID())
-            vTuber.videoSource.externalCameraId = container.decode("externalCameraId", "")
-            vTuber.videoSource.externalCameraName = container.decode("externalCameraName", "")
             vTuber.cameraPositionY = container.decode("cameraPositionY", 1.37)
             vTuber.cameraFieldOfView = container.decode("cameraFieldOfView", 18.0)
             vTuber.modelName = container.decode("modelName", "")
@@ -2250,9 +2248,7 @@ class SettingsWidgetVTuber(
     fun toCameraId(): SettingsCameraId = videoSource.toCameraId()
 
     fun updateCameraId(settingsCameraId: SettingsCameraId) {
-        val newVideoSource = videoSource.copy()
-        newVideoSource.updateCameraId(settingsCameraId)
-        videoSource = newVideoSource
+        videoSource = videoSource.updatingCameraId(settingsCameraId)
     }
 }
 
@@ -2293,23 +2289,21 @@ class SettingsWidgetPngTuber(
         fun decode(container: JsonObject): SettingsWidgetPngTuber {
             val pngTuber = SettingsWidgetPngTuber()
             pngTuber.id = container.decode("id", UUID.randomUUID())
-            pngTuber.videoSource.cameraPosition = decodeCameraPosition(
-                container,
-                "cameraPosition",
-                SettingsSceneCameraPosition.none
+            pngTuber.videoSource = SettingsVideoSource(
+                cameraPosition = decodeCameraPosition(container, "cameraPosition", SettingsSceneCameraPosition.none),
+                backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId),
+                frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId),
+                rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID()),
+                srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID()),
+                srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID()),
+                ristCameraId = container.decode("ristCameraId", UUID.randomUUID()),
+                rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID()),
+                whipCameraId = container.decode("whipCameraId", UUID.randomUUID()),
+                whepCameraId = container.decode("whepCameraId", UUID.randomUUID()),
+                mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID()),
+                externalCameraId = container.decode("externalCameraId", ""),
+                externalCameraName = container.decode("externalCameraName", ""),
             )
-            pngTuber.videoSource.backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId)
-            pngTuber.videoSource.frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId)
-            pngTuber.videoSource.rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID())
-            pngTuber.videoSource.srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID())
-            pngTuber.videoSource.srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID())
-            pngTuber.videoSource.ristCameraId = container.decode("ristCameraId", UUID.randomUUID())
-            pngTuber.videoSource.rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID())
-            pngTuber.videoSource.whipCameraId = container.decode("whipCameraId", UUID.randomUUID())
-            pngTuber.videoSource.whepCameraId = container.decode("whepCameraId", UUID.randomUUID())
-            pngTuber.videoSource.mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID())
-            pngTuber.videoSource.externalCameraId = container.decode("externalCameraId", "")
-            pngTuber.videoSource.externalCameraName = container.decode("externalCameraName", "")
             pngTuber.modelName = container.decode("modelName", "")
             pngTuber.mirror = container.decode("mirror", false)
             pngTuber.sensitivity = container.decode(
@@ -2330,9 +2324,7 @@ class SettingsWidgetPngTuber(
     fun toCameraId(): SettingsCameraId = videoSource.toCameraId()
 
     fun updateCameraId(settingsCameraId: SettingsCameraId) {
-        val newVideoSource = videoSource.copy()
-        newVideoSource.updateCameraId(settingsCameraId)
-        videoSource = newVideoSource
+        videoSource = videoSource.updatingCameraId(settingsCameraId)
     }
 }
 
@@ -3207,26 +3199,20 @@ class SettingsWidget(
 
 @Serializable
 data class SettingsWidgetLayout(
-    var x: Double = 0.0,
-    var xString: String = "0.0",
-    var y: Double = 0.0,
-    var yString: String = "0.0",
-    var size: Double = 100.0,
-    var sizeString: String = "100.0",
-    var alignment: SettingsAlignment = SettingsAlignment.topLeft,
-    var positioningLock: Boolean = false
+    val x: Double = 0.0,
+    val xString: String = "0.0",
+    val y: Double = 0.0,
+    val yString: String = "0.0",
+    val size: Double = 100.0,
+    val sizeString: String = "100.0",
+    val alignment: SettingsAlignment = SettingsAlignment.topLeft,
+    val positioningLock: Boolean = false
 ) {
-    fun updateXString() {
-        xString = x.toString()
-    }
+    fun updatingXString(): SettingsWidgetLayout = copy(xString = x.toString())
 
-    fun updateYString() {
-        yString = y.toString()
-    }
+    fun updatingYString(): SettingsWidgetLayout = copy(yString = y.toString())
 
-    fun updateSizeString() {
-        sizeString = size.toString()
-    }
+    fun updatingSizeString(): SettingsWidgetLayout = copy(sizeString = size.toString())
 
     fun extent(): RectF = RectF(x.toFloat(), y.toFloat(), (x + size).toFloat(), (y + size).toFloat())
 }
@@ -3269,21 +3255,22 @@ class SettingsSceneWidget(
             val sceneWidget = SettingsSceneWidget()
             sceneWidget.widgetId = container.decode("widgetId", UUID.randomUUID())
             sceneWidget.id = container.decode("id", UUID.randomUUID())
-            sceneWidget.layout.x = container.decode("x", 0.0)
-            sceneWidget.layout.updateXString()
-            sceneWidget.layout.y = container.decode("y", 0.0)
-            sceneWidget.layout.updateYString()
+            val x = container.decode("x", 0.0)
+            val y = container.decode("y", 0.0)
             sceneWidget.width2 = container.decode("width", 100.0)
             sceneWidget.height2 = container.decode("height", 100.0)
             val size = container.decode<Double?>("size", null)
-            if (size != null) {
-                sceneWidget.layout.size = size
-            } else {
-                sceneWidget.layout.size = container.decode("size", minOf(sceneWidget.width2, sceneWidget.height2))
-            }
-            sceneWidget.layout.updateSizeString()
-            sceneWidget.layout.alignment = container.decode("alignment", SettingsAlignment.topLeft)
-            sceneWidget.layout.positioningLock = container.decode("positioningLock", false)
+                ?: container.decode("size", minOf(sceneWidget.width2, sceneWidget.height2))
+            sceneWidget.layout = SettingsWidgetLayout(
+                x = x,
+                xString = x.toString(),
+                y = y,
+                yString = y.toString(),
+                size = size,
+                sizeString = size.toString(),
+                alignment = container.decode("alignment", SettingsAlignment.topLeft),
+                positioningLock = container.decode("positioningLock", false),
+            )
             sceneWidget.migrated = container.decode("migrated", false)
             sceneWidget.migrated2 = container.decode("migrated2", false)
             return sceneWidget
@@ -3348,19 +3335,19 @@ private val builtinCameraPositions: List<SettingsSceneCameraPosition> = listOf(
 
 @Serializable
 data class SettingsVideoSource(
-    var cameraPosition: SettingsSceneCameraPosition = SettingsSceneCameraPosition.none,
-    var backCameraId: CameraId = bestBackCameraId,
-    var frontCameraId: CameraId = bestFrontCameraId,
-    @Contextual var rtmpCameraId: UUID = UUID.randomUUID(),
-    @Contextual var srtlaCameraId: UUID = UUID.randomUUID(),
-    @Contextual var srtClientCameraId: UUID = UUID.randomUUID(),
-    @Contextual var ristCameraId: UUID = UUID.randomUUID(),
-    @Contextual var rtspCameraId: UUID = UUID.randomUUID(),
-    @Contextual var whipCameraId: UUID = UUID.randomUUID(),
-    @Contextual var whepCameraId: UUID = UUID.randomUUID(),
-    @Contextual var mediaPlayerCameraId: UUID = UUID.randomUUID(),
-    var externalCameraId: CameraId = "",
-    var externalCameraName: String = ""
+    val cameraPosition: SettingsSceneCameraPosition = SettingsSceneCameraPosition.none,
+    val backCameraId: CameraId = bestBackCameraId,
+    val frontCameraId: CameraId = bestFrontCameraId,
+    @Contextual val rtmpCameraId: UUID = UUID.randomUUID(),
+    @Contextual val srtlaCameraId: UUID = UUID.randomUUID(),
+    @Contextual val srtClientCameraId: UUID = UUID.randomUUID(),
+    @Contextual val ristCameraId: UUID = UUID.randomUUID(),
+    @Contextual val rtspCameraId: UUID = UUID.randomUUID(),
+    @Contextual val whipCameraId: UUID = UUID.randomUUID(),
+    @Contextual val whepCameraId: UUID = UUID.randomUUID(),
+    @Contextual val mediaPlayerCameraId: UUID = UUID.randomUUID(),
+    val externalCameraId: CameraId = "",
+    val externalCameraName: String = ""
 ) {
     fun toCameraId(): SettingsCameraId = when (cameraPosition) {
         SettingsSceneCameraPosition.back -> SettingsCameraId.Back(backCameraId)
@@ -3382,62 +3369,42 @@ data class SettingsVideoSource(
         SettingsSceneCameraPosition.none -> SettingsCameraId.None
     }
 
-    fun updateCameraId(settingsCameraId: SettingsCameraId) {
-        when (settingsCameraId) {
-            is SettingsCameraId.Back -> {
-                cameraPosition = SettingsSceneCameraPosition.back
-                backCameraId = settingsCameraId.id
-            }
-            is SettingsCameraId.Front -> {
-                cameraPosition = SettingsSceneCameraPosition.front
-                frontCameraId = settingsCameraId.id
-            }
-            is SettingsCameraId.Rtmp -> {
-                cameraPosition = SettingsSceneCameraPosition.rtmp
-                rtmpCameraId = settingsCameraId.id
-            }
-            is SettingsCameraId.Srtla -> {
-                cameraPosition = SettingsSceneCameraPosition.srtla
-                srtlaCameraId = settingsCameraId.id
-            }
-            is SettingsCameraId.Srt -> {
-                cameraPosition = SettingsSceneCameraPosition.srtClient
-                srtClientCameraId = settingsCameraId.id
-            }
-            is SettingsCameraId.Rist -> {
-                cameraPosition = SettingsSceneCameraPosition.rist
-                ristCameraId = settingsCameraId.id
-            }
-            is SettingsCameraId.Rtsp -> {
-                cameraPosition = SettingsSceneCameraPosition.rtsp
-                rtspCameraId = settingsCameraId.id
-            }
-            is SettingsCameraId.Whip -> {
-                cameraPosition = SettingsSceneCameraPosition.whip
-                whipCameraId = settingsCameraId.id
-            }
-            is SettingsCameraId.Whep -> {
-                cameraPosition = SettingsSceneCameraPosition.whep
-                whepCameraId = settingsCameraId.id
-            }
-            is SettingsCameraId.MediaPlayer -> {
-                cameraPosition = SettingsSceneCameraPosition.mediaPlayer
-                mediaPlayerCameraId = settingsCameraId.id
-            }
-            is SettingsCameraId.External -> {
-                cameraPosition = SettingsSceneCameraPosition.`external`
-                externalCameraId = settingsCameraId.id
-                externalCameraName = settingsCameraId.name
-            }
-            SettingsCameraId.ScreenCapture -> cameraPosition = SettingsSceneCameraPosition.screenCapture
-            SettingsCameraId.BackTripleLowEnergy ->
-                cameraPosition = SettingsSceneCameraPosition.backTripleLowEnergy
-            SettingsCameraId.BackDualLowEnergy ->
-                cameraPosition = SettingsSceneCameraPosition.backDualLowEnergy
-            SettingsCameraId.BackWideDualLowEnergy ->
-                cameraPosition = SettingsSceneCameraPosition.backWideDualLowEnergy
-            SettingsCameraId.None -> cameraPosition = SettingsSceneCameraPosition.none
-        }
+    fun updatingCameraId(settingsCameraId: SettingsCameraId): SettingsVideoSource = when (settingsCameraId) {
+        is SettingsCameraId.Back ->
+            copy(cameraPosition = SettingsSceneCameraPosition.back, backCameraId = settingsCameraId.id)
+        is SettingsCameraId.Front ->
+            copy(cameraPosition = SettingsSceneCameraPosition.front, frontCameraId = settingsCameraId.id)
+        is SettingsCameraId.Rtmp ->
+            copy(cameraPosition = SettingsSceneCameraPosition.rtmp, rtmpCameraId = settingsCameraId.id)
+        is SettingsCameraId.Srtla ->
+            copy(cameraPosition = SettingsSceneCameraPosition.srtla, srtlaCameraId = settingsCameraId.id)
+        is SettingsCameraId.Srt ->
+            copy(cameraPosition = SettingsSceneCameraPosition.srtClient, srtClientCameraId = settingsCameraId.id)
+        is SettingsCameraId.Rist ->
+            copy(cameraPosition = SettingsSceneCameraPosition.rist, ristCameraId = settingsCameraId.id)
+        is SettingsCameraId.Rtsp ->
+            copy(cameraPosition = SettingsSceneCameraPosition.rtsp, rtspCameraId = settingsCameraId.id)
+        is SettingsCameraId.Whip ->
+            copy(cameraPosition = SettingsSceneCameraPosition.whip, whipCameraId = settingsCameraId.id)
+        is SettingsCameraId.Whep ->
+            copy(cameraPosition = SettingsSceneCameraPosition.whep, whepCameraId = settingsCameraId.id)
+        is SettingsCameraId.MediaPlayer -> copy(
+            cameraPosition = SettingsSceneCameraPosition.mediaPlayer,
+            mediaPlayerCameraId = settingsCameraId.id,
+        )
+        is SettingsCameraId.External -> copy(
+            cameraPosition = SettingsSceneCameraPosition.`external`,
+            externalCameraId = settingsCameraId.id,
+            externalCameraName = settingsCameraId.name,
+        )
+        SettingsCameraId.ScreenCapture -> copy(cameraPosition = SettingsSceneCameraPosition.screenCapture)
+        SettingsCameraId.BackTripleLowEnergy ->
+            copy(cameraPosition = SettingsSceneCameraPosition.backTripleLowEnergy)
+        SettingsCameraId.BackDualLowEnergy ->
+            copy(cameraPosition = SettingsSceneCameraPosition.backDualLowEnergy)
+        SettingsCameraId.BackWideDualLowEnergy ->
+            copy(cameraPosition = SettingsSceneCameraPosition.backWideDualLowEnergy)
+        SettingsCameraId.None -> copy(cameraPosition = SettingsSceneCameraPosition.none)
     }
 
     fun isCaptureDevice(): Boolean = when (cameraPosition) {
@@ -3526,23 +3493,21 @@ class SettingsWidgetVideoSource(
         fun decode(container: JsonObject): SettingsWidgetVideoSource {
             val videoSource = SettingsWidgetVideoSource()
             videoSource.cornerRadius = container.decode("cornerRadius", 0f)
-            videoSource.videoSource.cameraPosition = decodeCameraPosition(
-                container,
-                "cameraPosition",
-                SettingsSceneCameraPosition.none
+            videoSource.videoSource = SettingsVideoSource(
+                cameraPosition = decodeCameraPosition(container, "cameraPosition", SettingsSceneCameraPosition.none),
+                backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId),
+                frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId),
+                rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID()),
+                srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID()),
+                srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID()),
+                ristCameraId = container.decode("ristCameraId", UUID.randomUUID()),
+                rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID()),
+                whipCameraId = container.decode("whipCameraId", UUID.randomUUID()),
+                whepCameraId = container.decode("whepCameraId", UUID.randomUUID()),
+                mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID()),
+                externalCameraId = container.decode("externalCameraId", ""),
+                externalCameraName = container.decode("externalCameraName", ""),
             )
-            videoSource.videoSource.backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId)
-            videoSource.videoSource.frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId)
-            videoSource.videoSource.rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID())
-            videoSource.videoSource.srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID())
-            videoSource.videoSource.srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID())
-            videoSource.videoSource.ristCameraId = container.decode("ristCameraId", UUID.randomUUID())
-            videoSource.videoSource.rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID())
-            videoSource.videoSource.whipCameraId = container.decode("whipCameraId", UUID.randomUUID())
-            videoSource.videoSource.whepCameraId = container.decode("whepCameraId", UUID.randomUUID())
-            videoSource.videoSource.mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID())
-            videoSource.videoSource.externalCameraId = container.decode("externalCameraId", "")
-            videoSource.videoSource.externalCameraName = container.decode("externalCameraName", "")
             videoSource.cropEnabled = container.decode("cropEnabled", false)
             videoSource.cropX = container.decode("cropX", 0.25)
             videoSource.cropY = container.decode("cropY", 0.0)
@@ -3575,9 +3540,7 @@ class SettingsWidgetVideoSource(
     fun toCameraId(): SettingsCameraId = videoSource.toCameraId()
 
     fun updateCameraId(settingsCameraId: SettingsCameraId) {
-        val newVideoSource = videoSource.copy()
-        newVideoSource.updateCameraId(settingsCameraId)
-        videoSource = newVideoSource
+        videoSource = videoSource.updatingCameraId(settingsCameraId)
     }
 }
 
@@ -4508,23 +4471,21 @@ class SettingsScene(
             scene.name = container.decode("name", baseName)
             scene.id = container.decode("id", UUID.randomUUID())
             scene.enabled = container.decode("enabled", true)
-            scene.videoSource.cameraPosition = decodeCameraPosition(
-                container,
-                "cameraPosition",
-                defaultBackCameraPosition
+            scene.videoSource = SettingsVideoSource(
+                cameraPosition = decodeCameraPosition(container, "cameraPosition", defaultBackCameraPosition),
+                backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId),
+                frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId),
+                rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID()),
+                srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID()),
+                srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID()),
+                ristCameraId = container.decode("ristCameraId", UUID.randomUUID()),
+                rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID()),
+                whipCameraId = container.decode("whipCameraId", UUID.randomUUID()),
+                whepCameraId = container.decode("whepCameraId", UUID.randomUUID()),
+                mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID()),
+                externalCameraId = container.decode("externalCameraId", ""),
+                externalCameraName = container.decode("externalCameraName", ""),
             )
-            scene.videoSource.backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId)
-            scene.videoSource.frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId)
-            scene.videoSource.rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID())
-            scene.videoSource.srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID())
-            scene.videoSource.srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID())
-            scene.videoSource.ristCameraId = container.decode("ristCameraId", UUID.randomUUID())
-            scene.videoSource.rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID())
-            scene.videoSource.whipCameraId = container.decode("whipCameraId", UUID.randomUUID())
-            scene.videoSource.whepCameraId = container.decode("whepCameraId", UUID.randomUUID())
-            scene.videoSource.mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID())
-            scene.videoSource.externalCameraId = container.decode("externalCameraId", "")
-            scene.videoSource.externalCameraName = container.decode("externalCameraName", "")
             scene.widgets = container.decode("widgets", ListSerializer(SettingsSceneWidget.serializer()), emptyList())
                 .toMutableList()
             scene.videoSourceRotation = container.decode("videoSourceRotation", 0.0)
@@ -4578,9 +4539,7 @@ class SettingsScene(
     fun toCameraId(): SettingsCameraId = videoSource.toCameraId()
 
     fun updateCameraId(settingsCameraId: SettingsCameraId) {
-        val newVideoSource = videoSource.copy()
-        newVideoSource.updateCameraId(settingsCameraId)
-        videoSource = newVideoSource
+        videoSource = videoSource.updatingCameraId(settingsCameraId)
     }
 }
 

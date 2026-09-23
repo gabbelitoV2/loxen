@@ -36,12 +36,14 @@ class SettingsKeyboardKey {
             key.id = container.decode("id", UUID.randomUUID())
             key.key = container.decode("key", "")
             key.function = container.decode("function", SettingsControllerFunction.UNUSED)
-            key.functionData.sceneId = container.decode<UUID?>("sceneId", null)
-            key.functionData.widgetId = container.decode<UUID?>("widgetId", null)
-            key.functionData.gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null)
-            key.functionData.gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW)
-            key.functionData.macroId = container.decode<UUID?>("macroId", null)
-            key.functionData.streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null)
+            key.functionData = SettingsControllerFunctionData(
+                sceneId = container.decode<UUID?>("sceneId", null),
+                widgetId = container.decode<UUID?>("widgetId", null),
+                gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null),
+                gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW),
+                macroId = container.decode<UUID?>("macroId", null),
+                streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null),
+            )
             return key
         }
     }

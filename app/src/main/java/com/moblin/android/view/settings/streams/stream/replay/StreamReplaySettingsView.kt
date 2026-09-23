@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -115,14 +116,14 @@ private fun HelpView(presentingHelp: Boolean, onPresentingHelpChange: (Boolean) 
 private fun StingerView(
     model: Model = LocalModel.current,
     title: String,
-    stinger: SettingsStreamReplayStinger,
+    stinger: MutableState<SettingsStreamReplayStinger>,
 ) {
     var showPicker by remember { mutableStateOf(false) }
     var presentingHelp by remember { mutableStateOf(false) }
 
     fun onUrl(url: String) {
-        stinger.name = url.substringAfterLast('/')
-        val filename = stinger.makeFilename()
+        stinger.value = stinger.value.copy(name = url.substringAfterLast('/'))
+        val filename = stinger.value.makeFilename()
         if (filename != null) {
             model.replayTransitionsStorage.remove(filename = filename)
             model.replayTransitionsStorage.add(filename = filename, url = File(url))
@@ -136,7 +137,7 @@ private fun StingerView(
                     footer = "Use the HEVC/H.265 codec with alpha channel for transparent background.",
                 ) {
                     FormButton(
-                        title = if (stinger.name.isEmpty()) "Select video" else stinger.name,
+                        title = if (stinger.value.name.isEmpty()) "Select video" else stinger.value.name,
                         centered = true,
                     ) {
                         showPicker = true
@@ -170,7 +171,7 @@ private fun StingerView(
     ) {
         Text(localized(title))
         Spacer(modifier = Modifier.weight(1f))
-        GrayTextView(text = stinger.name)
+        GrayTextView(text = stinger.value.name)
     }
 }
 
@@ -198,16 +199,16 @@ private fun LayoutView(
         if (!replay.layout.positioningLock) {
             return
         }
-        replay.layout.x = replay.layout.y * horizontalIncrement() / verticalIncrement()
-        replay.layout.xString = replay.layout.x.toString()
+        val x = replay.layout.y * horizontalIncrement() / verticalIncrement()
+        replay.layout = replay.layout.copy(x = x, xString = x.toString())
     }
 
     fun setYBasedOnXIfLocked() {
         if (!replay.layout.positioningLock) {
             return
         }
-        replay.layout.y = replay.layout.x * verticalIncrement() / horizontalIncrement()
-        replay.layout.yString = replay.layout.y.toString()
+        val y = replay.layout.x * verticalIncrement() / horizontalIncrement()
+        replay.layout = replay.layout.copy(y = y, yString = y.toString())
     }
 
     @Composable
@@ -298,8 +299,8 @@ private fun LayoutView(
                     PositionEditView(
                         number = replay.layout.x,
                         value = replay.layout.xString,
-                        onNumberChange = { replay.layout.x = it },
-                        onValueChange = { replay.layout.xString = it },
+                        onNumberChange = { replay.layout = replay.layout.copy(x = it) },
+                        onValueChange = { replay.layout = replay.layout.copy(xString = it) },
                         onSubmit = { setYBasedOnXIfLocked() },
                         numericInput = database.sceneNumericInput,
                         onNumericInputChange = { database.sceneNumericInput = it },
@@ -312,8 +313,8 @@ private fun LayoutView(
                     PositionEditView(
                         number = replay.layout.y,
                         value = replay.layout.yString,
-                        onNumberChange = { replay.layout.y = it },
-                        onValueChange = { replay.layout.yString = it },
+                        onNumberChange = { replay.layout = replay.layout.copy(y = it) },
+                        onValueChange = { replay.layout = replay.layout.copy(yString = it) },
                         onSubmit = { setXBasedOnYIfLocked() },
                         numericInput = database.sceneNumericInput,
                         onNumericInputChange = { database.sceneNumericInput = it },
@@ -331,7 +332,7 @@ private fun LayoutView(
                             interactionSource = lockInteractionSource,
                             indication = null,
                         ) {
-                            replay.layout.positioningLock = !replay.layout.positioningLock
+                            replay.layout = replay.layout.copy(positioningLock = !replay.layout.positioningLock)
                             setYBasedOnXIfLocked()
                         },
                     contentAlignment = Alignment.Center,
@@ -346,8 +347,8 @@ private fun LayoutView(
             PositionEditView(
                 number = replay.layout.x,
                 value = replay.layout.xString,
-                onNumberChange = { replay.layout.x = it },
-                onValueChange = { replay.layout.xString = it },
+                onNumberChange = { replay.layout = replay.layout.copy(x = it) },
+                onValueChange = { replay.layout = replay.layout.copy(xString = it) },
                 onSubmit = {},
                 numericInput = database.sceneNumericInput,
                 onNumericInputChange = { database.sceneNumericInput = it },
@@ -360,8 +361,8 @@ private fun LayoutView(
             PositionEditView(
                 number = replay.layout.y,
                 value = replay.layout.yString,
-                onNumberChange = { replay.layout.y = it },
-                onValueChange = { replay.layout.yString = it },
+                onNumberChange = { replay.layout = replay.layout.copy(y = it) },
+                onValueChange = { replay.layout = replay.layout.copy(yString = it) },
                 onSubmit = {},
                 numericInput = database.sceneNumericInput,
                 onNumericInputChange = { database.sceneNumericInput = it },
@@ -374,8 +375,8 @@ private fun LayoutView(
         SizeEditView(
             number = replay.layout.size,
             value = replay.layout.sizeString,
-            onNumberChange = { replay.layout.size = it },
-            onValueChange = { replay.layout.sizeString = it },
+            onNumberChange = { replay.layout = replay.layout.copy(size = it) },
+            onValueChange = { replay.layout = replay.layout.copy(sizeString = it) },
             onSubmit = {},
             numericInput = database.sceneNumericInput,
             onNumericInputChange = { database.sceneNumericInput = it },
@@ -440,12 +441,12 @@ fun StreamReplaySettingsView(
                         StingerView(
                             model = model,
                             title = "In video",
-                            stinger = replay.inStinger,
+                            stinger = binding(get = { replay.inStinger }, set = { replay.inStinger = it }),
                         )
                         StingerView(
                             model = model,
                             title = "Out video",
-                            stinger = replay.outStinger,
+                            stinger = binding(get = { replay.outStinger }, set = { replay.outStinger = it }),
                         )
                     }
                     SettingsStreamReplayTransitionType.none -> Unit

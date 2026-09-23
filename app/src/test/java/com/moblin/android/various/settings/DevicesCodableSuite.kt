@@ -111,7 +111,7 @@ class DevicesCodableSuite {
         assertRoundTrip(SettingsGoPro.serializer(), goPro)
         val gimbal = SettingsGimbal()
         gimbal.presets = listOf(SettingsGimbalPreset())
-        gimbal.functionDataFlip.sceneId = UUID.randomUUID()
+        gimbal.functionDataFlip = gimbal.functionDataFlip.copy(sceneId = UUID.randomUUID())
         assertRoundTrip(SettingsGimbal.serializer(), gimbal)
         val printers = SettingsCatPrinters()
         printers.devices.value = listOf(SettingsCatPrinter())

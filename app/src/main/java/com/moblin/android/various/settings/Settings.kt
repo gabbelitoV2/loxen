@@ -2023,7 +2023,7 @@ class Database(
                     for (scene in database.scenes) {
                         for (sceneWidget in scene.widgets) {
                             if (sceneWidget.widgetId == widget.id) {
-                                sceneWidget.layout.size = defaultScoreboardSize
+                                sceneWidget.layout = sceneWidget.layout.copy(size = defaultScoreboardSize)
                             }
                         }
                     }
@@ -2089,23 +2089,28 @@ class Database(
 private fun addDefaultScenes(database: Database) {
     if (isMac()) {
         var scene = SettingsScene(name = localized("Screen"))
-        scene.videoSource.cameraPosition =
-            TODO()
+        scene.videoSource = scene.videoSource.copy(cameraPosition = SettingsSceneCameraPosition.screenCapture)
         database.scenes.add(scene)
         if (bestFrontCameraId.isNotEmpty()) {
             scene = SettingsScene(name = localized("Front"))
-            scene.videoSource.cameraPosition = SettingsSceneCameraPosition.front
-            scene.videoSource.frontCameraId = bestFrontCameraId
+            scene.videoSource = scene.videoSource.copy(
+                cameraPosition = SettingsSceneCameraPosition.front,
+                frontCameraId = bestFrontCameraId,
+            )
             database.scenes.add(scene)
         }
     } else {
         var scene = SettingsScene(name = localized("Back"))
-        scene.videoSource.cameraPosition = defaultBackCameraPosition
-        scene.videoSource.backCameraId = bestBackCameraId
+        scene.videoSource = scene.videoSource.copy(
+            cameraPosition = defaultBackCameraPosition,
+            backCameraId = bestBackCameraId,
+        )
         database.scenes.add(scene)
         scene = SettingsScene(name = localized("Front"))
-        scene.videoSource.cameraPosition = SettingsSceneCameraPosition.front
-        scene.videoSource.frontCameraId = bestFrontCameraId
+        scene.videoSource = scene.videoSource.copy(
+            cameraPosition = SettingsSceneCameraPosition.front,
+            frontCameraId = bestFrontCameraId,
+        )
         database.scenes.add(scene)
     }
 }
@@ -2729,11 +2734,11 @@ private fun updateBundledAlertsMediaGallery(database: Database) {
 private fun addScenesToGameController(database: Database) {
     var button = database.gameControllers[0].buttons.value[0]
     button.function.value = SettingsControllerFunction.SWITCH_SCENE
-    button.functionData.value.sceneId = database.scenes[0].id
+    button.functionData.value = button.functionData.value.copy(sceneId = database.scenes[0].id)
     if (database.scenes.size > 1) {
         button = database.gameControllers[0].buttons.value[1]
         button.function.value = SettingsControllerFunction.SWITCH_SCENE
-        button.functionData.value.sceneId = database.scenes[1].id
+        button.functionData.value = button.functionData.value.copy(sceneId = database.scenes[1].id)
     }
 }
 
@@ -3004,23 +3009,25 @@ class Settings {
                 if (widget.text.verticalAlignment == SettingsVerticalAlignment.bottom &&
                     widget.text.horizontalAlignment == SettingsHorizontalAlignment.trailing
                 ) {
-                    sceneWidget.layout.alignment = SettingsAlignment.bottomRight
-                    sceneWidget.layout.x = 100 - sceneWidget.layout.x
-                    sceneWidget.layout.updateXString()
-                    sceneWidget.layout.y = 100 - sceneWidget.layout.y
-                    sceneWidget.layout.updateYString()
+                    sceneWidget.layout = sceneWidget.layout.copy(
+                        alignment = SettingsAlignment.bottomRight,
+                        x = 100 - sceneWidget.layout.x,
+                        y = 100 - sceneWidget.layout.y,
+                    ).updatingXString().updatingYString()
                 } else if (widget.text.verticalAlignment == SettingsVerticalAlignment.top &&
                     widget.text.horizontalAlignment == SettingsHorizontalAlignment.trailing
                 ) {
-                    sceneWidget.layout.alignment = SettingsAlignment.topRight
-                    sceneWidget.layout.x = 100 - sceneWidget.layout.x
-                    sceneWidget.layout.updateXString()
+                    sceneWidget.layout = sceneWidget.layout.copy(
+                        alignment = SettingsAlignment.topRight,
+                        x = 100 - sceneWidget.layout.x,
+                    ).updatingXString()
                 } else if (widget.text.verticalAlignment == SettingsVerticalAlignment.bottom &&
                     widget.text.horizontalAlignment == SettingsHorizontalAlignment.leading
                 ) {
-                    sceneWidget.layout.alignment = SettingsAlignment.bottomLeft
-                    sceneWidget.layout.y = 100 - sceneWidget.layout.y
-                    sceneWidget.layout.updateYString()
+                    sceneWidget.layout = sceneWidget.layout.copy(
+                        alignment = SettingsAlignment.bottomLeft,
+                        y = 100 - sceneWidget.layout.y,
+                    ).updatingYString()
                 }
             }
         }
@@ -3043,8 +3050,7 @@ class Settings {
                     .coerceIn(1.0, 100.0)
                 val height = (100.0 * widget.browser.height / resolution.height)
                     .coerceIn(1.0, 100.0)
-                sceneWidget.layout.size = maxOf(width, height)
-                sceneWidget.layout.updateSizeString()
+                sceneWidget.layout = sceneWidget.layout.copy(size = maxOf(width, height)).updatingSizeString()
             }
         }
     }

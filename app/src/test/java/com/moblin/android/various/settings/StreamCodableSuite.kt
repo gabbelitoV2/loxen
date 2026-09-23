@@ -1255,18 +1255,18 @@ class StreamCodableSuite {
     @Test
     fun clonesCopyValueTypesLikeSwift() {
         val replay = SettingsStreamReplay()
-        replay.layout.x = 5.0
-        replay.inStinger.name = "in.mov"
+        replay.layout = replay.layout.copy(x = 5.0)
+        replay.inStinger = replay.inStinger.copy(name = "in.mov")
         val replayCopy = replay.clone()
-        replayCopy.layout.x = 7.0
-        replayCopy.inStinger.name = "other.mov"
+        replayCopy.layout = replayCopy.layout.copy(x = 7.0)
+        replayCopy.inStinger = replayCopy.inStinger.copy(name = "other.mov")
         assertEquals(5.0, replay.layout.x)
         assertEquals("in.mov", replay.inStinger.name)
         assertEquals(7.0, replayCopy.layout.x)
         val whip = SettingsStreamWhip()
         whip.headers.add(SettingsHttpHeader("A", "B"))
         val whipCopy = whip.clone()
-        whipCopy.headers[0].value = "C"
+        whipCopy.headers[0] = whipCopy.headers[0].copy(value = "C")
         assertEquals("B", whip.headers[0].value)
         assertEquals("C", whipCopy.headers[0].value)
     }

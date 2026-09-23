@@ -800,8 +800,8 @@ class SettingsStreamRist(
 
 @Serializable(with = SettingsHttpHeader.Serializer::class)
 data class SettingsHttpHeader(
-    var name: String = "",
-    var value: String = "",
+    val name: String = "",
+    val value: String = "",
 ) {
     fun encode(): JsonObject = encodeContainer {
         encode("name", name)
@@ -810,12 +810,12 @@ data class SettingsHttpHeader(
 
     companion object {
         fun decode(container: JsonObject): SettingsHttpHeader {
-            val header = SettingsHttpHeader()
-            header.name = container.decodeIfPresent<String>("name")
-                ?: throw SerializationException("Missing key 'name'")
-            header.value = container.decodeIfPresent<String>("value")
-                ?: throw SerializationException("Missing key 'value'")
-            return header
+            return SettingsHttpHeader(
+                name = container.decodeIfPresent<String>("name")
+                    ?: throw SerializationException("Missing key 'name'"),
+                value = container.decodeIfPresent<String>("value")
+                    ?: throw SerializationException("Missing key 'value'"),
+            )
         }
     }
 
@@ -1129,9 +1129,9 @@ enum class SettingsStreamReplayTransitionType(val rawValue: String) {
 
 @Serializable(with = SettingsStreamReplayStinger.Serializer::class)
 data class SettingsStreamReplayStinger(
-    var id: UUID = UUID.randomUUID(),
-    var name: String = "",
-    var transitionPoint: Double = 0.5,
+    val id: UUID = UUID.randomUUID(),
+    val name: String = "",
+    val transitionPoint: Double = 0.5,
 ) {
     fun makeFilename(): String? {
         val path = runCatching { URI("file:///$name").path ?: "" }.getOrElse { return null }
@@ -1147,14 +1147,14 @@ data class SettingsStreamReplayStinger(
 
     companion object {
         fun decode(container: JsonObject): SettingsStreamReplayStinger {
-            val stinger = SettingsStreamReplayStinger()
-            stinger.id = container.decodeIfPresent<UUID>("id")
-                ?: throw SerializationException("Missing key 'id'")
-            stinger.name = container.decodeIfPresent<String>("name")
-                ?: throw SerializationException("Missing key 'name'")
-            stinger.transitionPoint = container.decodeIfPresent<Double>("transitionPoint")
-                ?: throw SerializationException("Missing key 'transitionPoint'")
-            return stinger
+            return SettingsStreamReplayStinger(
+                id = container.decodeIfPresent<UUID>("id")
+                    ?: throw SerializationException("Missing key 'id'"),
+                name = container.decodeIfPresent<String>("name")
+                    ?: throw SerializationException("Missing key 'name'"),
+                transitionPoint = container.decodeIfPresent<Double>("transitionPoint")
+                    ?: throw SerializationException("Missing key 'transitionPoint'"),
+            )
         }
     }
 
@@ -1195,14 +1195,16 @@ class SettingsStreamReplay(
                 SettingsStreamReplayTransitionType.none
             }
         }
-        layout.x = x
-        layout.updateXString()
-        layout.y = y
-        layout.updateYString()
-        layout.size = size
-        layout.updateSizeString()
-        layout.alignment = alignment
-        layout.positioningLock = positioningLock
+        layout = SettingsWidgetLayout(
+            x = x,
+            xString = x.toString(),
+            y = y,
+            yString = y.toString(),
+            size = size,
+            sizeString = size.toString(),
+            alignment = alignment,
+            positioningLock = positioningLock,
+        )
     }
 
     fun encode(): JsonObject = encodeContainer {
@@ -1270,14 +1272,19 @@ class SettingsStreamReplay(
                 SettingsStreamReplayStinger(),
             )
             replay.postTriggerDelay = container.decode("postTriggerDelay", 3)
-            replay.layout.x = container.decode("x", 0.0)
-            replay.layout.updateXString()
-            replay.layout.y = container.decode("y", 0.0)
-            replay.layout.updateYString()
-            replay.layout.size = container.decode("size", 100.0)
-            replay.layout.updateSizeString()
-            replay.layout.alignment = container.decode("alignment", SettingsAlignment.topLeft)
-            replay.layout.positioningLock = container.decode("positioningLock", false)
+            val x = container.decode("x", 0.0)
+            val y = container.decode("y", 0.0)
+            val size = container.decode("size", 100.0)
+            replay.layout = SettingsWidgetLayout(
+                x = x,
+                xString = x.toString(),
+                y = y,
+                yString = y.toString(),
+                size = size,
+                sizeString = size.toString(),
+                alignment = container.decode("alignment", SettingsAlignment.topLeft),
+                positioningLock = container.decode("positioningLock", false),
+            )
             replay.enterForegroundCountAtLatestUsage = container.decode<Int?>(
                 "enterForegroundCountAtLatestUsage",
                 null,

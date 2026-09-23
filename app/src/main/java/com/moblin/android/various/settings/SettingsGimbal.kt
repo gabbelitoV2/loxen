@@ -91,19 +91,23 @@ class SettingsGimbal {
             gimbal.naturalZoom = container.decode("naturalZoom", true)
             gimbal.tracking = container.decode("tracking", true)
             gimbal.functionShutter = container.decode("functionShutter", SettingsControllerFunction.RECORD)
-            gimbal.functionDataShutter.sceneId = container.decode<UUID?>("shutterSceneId", null)
-            gimbal.functionDataShutter.widgetId = container.decode<UUID?>("shutterWidgetId", null)
-            gimbal.functionDataShutter.gimbalPresetId = container.decode<UUID?>("shutterGimbalPresetId", null)
-            gimbal.functionDataShutter.gimbalMotion = container.decode("shutterMotion", SettingsGimbalMotion.KAPOW)
-            gimbal.functionDataShutter.macroId = container.decode<UUID?>("shutterMacroId", null)
-            gimbal.functionDataShutter.streamDeckLayoutId = container.decode<UUID?>("shutterStreamDeckLayoutId", null)
+            gimbal.functionDataShutter = SettingsControllerFunctionData(
+                sceneId = container.decode<UUID?>("shutterSceneId", null),
+                widgetId = container.decode<UUID?>("shutterWidgetId", null),
+                gimbalPresetId = container.decode<UUID?>("shutterGimbalPresetId", null),
+                gimbalMotion = container.decode("shutterMotion", SettingsGimbalMotion.KAPOW),
+                macroId = container.decode<UUID?>("shutterMacroId", null),
+                streamDeckLayoutId = container.decode<UUID?>("shutterStreamDeckLayoutId", null),
+            )
             gimbal.functionFlip = container.decode("functionFlip", SettingsControllerFunction.SWITCH_SCENE)
-            gimbal.functionDataFlip.sceneId = container.decode<UUID?>("flipSceneId", null)
-            gimbal.functionDataFlip.widgetId = container.decode<UUID?>("flipWidgetId", null)
-            gimbal.functionDataFlip.gimbalPresetId = container.decode<UUID?>("flipGimbalPresetId", null)
-            gimbal.functionDataFlip.gimbalMotion = container.decode("flipMotion", SettingsGimbalMotion.KAPOW)
-            gimbal.functionDataFlip.macroId = container.decode<UUID?>("flipMacroId", null)
-            gimbal.functionDataFlip.streamDeckLayoutId = container.decode<UUID?>("flipStreamDeckLayoutId", null)
+            gimbal.functionDataFlip = SettingsControllerFunctionData(
+                sceneId = container.decode<UUID?>("flipSceneId", null),
+                widgetId = container.decode<UUID?>("flipWidgetId", null),
+                gimbalPresetId = container.decode<UUID?>("flipGimbalPresetId", null),
+                gimbalMotion = container.decode("flipMotion", SettingsGimbalMotion.KAPOW),
+                macroId = container.decode<UUID?>("flipMacroId", null),
+                streamDeckLayoutId = container.decode<UUID?>("flipStreamDeckLayoutId", null),
+            )
             gimbal.presets = container.decode("presets", ListSerializer(SettingsGimbalPreset.serializer()), emptyList())
             return gimbal
         }

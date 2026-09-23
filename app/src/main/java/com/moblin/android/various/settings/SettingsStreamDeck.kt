@@ -87,12 +87,14 @@ class SettingsStreamDeckKey {
             key.color = container.decode("color", RgbColor.white)
             key._colorColor.value = key.color.color()
             key._function.value = container.decode("function", SettingsControllerFunction.UNUSED)
-            key._functionData.value.sceneId = container.decode<UUID?>("sceneId", null)
-            key._functionData.value.widgetId = container.decode<UUID?>("widgetId", null)
-            key._functionData.value.gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null)
-            key._functionData.value.gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW)
-            key._functionData.value.macroId = container.decode<UUID?>("macroId", null)
-            key._functionData.value.streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null)
+            key._functionData.value = SettingsControllerFunctionData(
+                sceneId = container.decode<UUID?>("sceneId", null),
+                widgetId = container.decode<UUID?>("widgetId", null),
+                gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null),
+                gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW),
+                macroId = container.decode<UUID?>("macroId", null),
+                streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null),
+            )
             return key
         }
     }
