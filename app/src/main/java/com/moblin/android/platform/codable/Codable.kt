@@ -204,7 +204,3 @@ fun <T : Any> JsonObject.decodeIfPresent(key: String, serializer: KSerializer<T>
 inline fun <reified T : Any> JsonObject.decodeIfPresent(key: String): T? {
     return decodeIfPresent(key, codableJson.serializersModule.serializer<T>())
 }
-
-fun JsonObject.contains(key: String): Boolean = containsKey(key)
-
-fun String.escapingSlashesLikeFoundation(): String = replace("/", "\\/")
