@@ -2,6 +2,7 @@ package com.moblin.android.view.webbrowser
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -15,27 +16,13 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.BookmarkBorder
-import androidx.compose.material.icons.filled.CloseFullscreen
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.OpenInFull
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,14 +33,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.Button
+import com.moblin.android.platform.swiftui.ForEach
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
+import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.moving
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.WebBrowserState
@@ -66,6 +66,7 @@ import com.moblin.android.various.settings.WebBrowserSettings
 import com.moblin.android.view.stream.overlay.right.segmentHeight
 import com.moblin.android.view.stream.overlay.right.segmentHeightBig
 import com.moblin.android.view.utils.CloseToolbar
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
@@ -79,15 +80,21 @@ fun WebView(model: Model = LocalModel.current) {
 }
 
 @Composable
-private fun UrlView(model: Model = LocalModel.current) {
+private fun UrlView(model: Model = LocalModel.current, modifier: Modifier = Modifier) {
+    val palette = formPalette()
     val url by model.webBrowserUrl.collectAsState()
-    OutlinedTextField(
+    BasicTextField(
         value = url,
         onValueChange = { model.webBrowserUrl.value = it },
-        placeholder = { Text("Search with Google or enter address") },
+        modifier = modifier
+            .border(1.dp, palette.secondaryLabel, RoundedCornerShape(5.dp))
+            .padding(5.dp),
+        textStyle = formBodyStyle.copy(color = palette.label),
         singleLine = true,
+        cursorBrush = SolidColor(palette.accent),
         keyboardOptions = KeyboardOptions(
             capitalization = KeyboardCapitalization.None,
+            autoCorrectEnabled = false,
             keyboardType = KeyboardType.Uri,
             imeAction = ImeAction.Go,
         ),
@@ -97,34 +104,45 @@ private fun UrlView(model: Model = LocalModel.current) {
                 model.loadWebBrowserUrl()
             },
         ),
-        modifier = Modifier
-            .padding(5.dp)
-            .border(1.dp, Color.Gray, RoundedCornerShape(5.dp)),
+        decorationBox = { innerTextField ->
+            Box {
+                if (url.isEmpty()) {
+                    Text(
+                        text = localized("Search with Google or enter address"),
+                        style = formBodyStyle,
+                        color = palette.tertiaryLabel,
+                        maxLines = 1,
+                    )
+                }
+                innerTextField()
+            }
+        },
     )
 }
 
 @Composable
+private fun ToolbarButtonView(systemImage: String, enabled: Boolean = true, action: () -> Unit) {
+    Button(action = action, enabled = enabled) {
+        SystemImage(
+            name = systemImage,
+            fontSize = 17.sp,
+            tint = LocalContentColor.current,
+            modifier = Modifier.padding(7.dp),
+        )
+    }
+}
+
+@Composable
 private fun NextPrevView(model: Model = LocalModel.current) {
-    Row {
-        IconButton(
-            onClick = { model.getWebBrowser().goBack() },
-            enabled = model.getWebBrowser().canGoBack(),
-        ) {
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowLeft,
-                contentDescription = null,
-                modifier = Modifier.padding(7.dp),
-            )
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ToolbarButtonView(systemImage = "chevron.left", enabled = model.getWebBrowser().canGoBack()) {
+            model.getWebBrowser().goBack()
         }
-        IconButton(
-            onClick = { model.getWebBrowser().goForward() },
-            enabled = model.getWebBrowser().canGoForward(),
-        ) {
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = null,
-                modifier = Modifier.padding(7.dp),
-            )
+        ToolbarButtonView(systemImage = "chevron.right", enabled = model.getWebBrowser().canGoForward()) {
+            model.getWebBrowser().goForward()
         }
     }
 }
@@ -137,32 +155,22 @@ private fun RefreshBookmarksView(
     isSmall: Boolean,
     onIsSmallChange: (Boolean) -> Unit,
 ) {
-    Row {
-        IconButton(onClick = { model.getWebBrowser().reload() }) {
-            Icon(
-                imageVector = Icons.Default.Refresh,
-                contentDescription = null,
-                modifier = Modifier.padding(7.dp),
-            )
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ToolbarButtonView(systemImage = "arrow.clockwise") {
+            model.getWebBrowser().reload()
         }
-        IconButton(onClick = { onShowingBookmarksChange(true) }) {
-            Icon(
-                imageVector = Icons.Default.BookmarkBorder,
-                contentDescription = null,
-                modifier = Modifier.padding(7.dp),
-            )
+        ToolbarButtonView(systemImage = "bookmark") {
+            onShowingBookmarksChange(true)
         }
-        IconButton(onClick = { onIsSmallChange(!isSmall) }) {
-            Icon(
-                imageVector = Icons.Default.CloseFullscreen,
-                contentDescription = null,
-                modifier = Modifier.padding(7.dp),
-            )
+        ToolbarButtonView(systemImage = "arrow.down.right.and.arrow.up.left") {
+            onIsSmallChange(!isSmall)
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BookmarksView(
     model: Model = LocalModel.current,
@@ -170,53 +178,55 @@ private fun BookmarksView(
     presentingBookmarks: Boolean,
     onPresentingBookmarksChange: (Boolean) -> Unit,
 ) {
-    val bookmarks = webBrowser.bookmarks
-    val onDelete: (List<Int>) -> Unit = { offsets ->
-        val newBookmarks = webBrowser.bookmarks.toMutableList()
-        offsets.sortedDescending().forEach { index -> newBookmarks.removeAt(index) }
-        webBrowser.bookmarks = newBookmarks
-    }
-    val onMove: (Int, Int) -> Unit = { froms, to ->
-        val newBookmarks = webBrowser.bookmarks.toMutableList()
-        val item = newBookmarks.removeAt(froms)
-        newBookmarks.add(to, item)
-        webBrowser.bookmarks = newBookmarks
-    }
-    Column(modifier = Modifier.fillMaxWidth()) {
-        TopAppBar(
-            title = { Text("Bookmarks") },
-            navigationIcon = {
-                CloseToolbar(
-                    presenting = presentingBookmarks,
-                    onPresentingChange = onPresentingBookmarksChange,
-                )
+    var bookmarks by binding({ webBrowser.bookmarks }) { webBrowser.bookmarks = it }
+    Form(
+        title = "Bookmarks",
+        toolbar = {
+            CloseToolbar(
+                presenting = presentingBookmarks,
+                onPresentingChange = onPresentingBookmarksChange,
+            )
+        },
+    ) {
+        Section(
+            footerContent = {
+                SwipeLeftToDeleteHelpView(kind = localized("a bookmark"))
             },
-        )
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(bookmarks, key = { it.id.toString() }) { bookmark ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+        ) {
+            ForEach(
+                bookmarks,
+                id = { it.id },
+                onDelete = { offsets ->
+                    bookmarks = bookmarks.removing(atOffsets = offsets)
+                },
+                onMove = { froms, to ->
+                    bookmarks = bookmarks.moving(fromOffsets = froms, toOffset = to)
+                },
+            ) { bookmark ->
+                ContextMenuDeleteButton(
+                    action = {
+                        bookmarks = bookmarks.filterNot { it.id == bookmark.id }
+                    },
                 ) {
-                    DraggableItemPrefixView()
-                    TextButton(
+                    FormRow(
                         onClick = {
                             model.loadWebBrowserPage(url = bookmark.url)
                             onPresentingBookmarksChange(false)
                         },
                     ) {
-                        Text(bookmark.url)
+                        DraggableItemPrefixView()
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = bookmark.url, color = formPalette().accent)
                     }
                 }
-                Unit
             }
         }
-        SwipeLeftToDeleteHelpView(kind = localized("a bookmark"))
-        HorizontalDivider()
-        TextButtonView("Create bookmark") {
-            val bookmark = WebBrowserBookmarkSettings()
-            bookmark.url = model.webBrowserUrl.value
-            webBrowser.bookmarks = webBrowser.bookmarks.toMutableList().apply { add(bookmark) }
+        Section {
+            TextButtonView("Create bookmark") {
+                val bookmark = WebBrowserBookmarkSettings()
+                bookmark.url = model.webBrowserUrl.value
+                bookmarks = bookmarks + bookmark
+            }
         }
     }
 }
@@ -264,20 +274,25 @@ private fun WebBrowserSmallView(
                 Spacer(modifier = Modifier.weight(1f))
                 Row(modifier = Modifier.fillMaxWidth()) {
                     Spacer(modifier = Modifier.weight(1f))
-                    IconButton(
-                        onClick = {
+                    Button(
+                        action = {
                             webBrowserState.setIsSmall(!webBrowserState.isSmall.value)
                         },
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.OpenInFull,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface,
+                        Box(
                             modifier = Modifier
                                 .padding(end = 10.dp, bottom = 10.dp)
-                                .padding(8.dp)
+                                .padding(16.dp)
                                 .size(12.dp),
-                        )
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            SystemImage(
+                                name = "arrow.up.left.and.arrow.down.right",
+                                fontSize = 17.sp,
+                                tint = formPalette().label,
+                                modifier = Modifier.wrapContentSize(unbounded = true),
+                            )
+                        }
                     }
                 }
             }
@@ -285,7 +300,6 @@ private fun WebBrowserSmallView(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun WebBrowserBigView(
     model: Model = LocalModel.current,
@@ -296,6 +310,7 @@ private fun WebBrowserBigView(
     val isPortrait by orientation.isPortrait.collectAsState()
     val isSmall by webBrowserState.isSmall.collectAsState()
     var presentingBookmarks by remember { mutableStateOf(false) }
+    val background = if (isSystemInDarkTheme()) Color.Black else Color.White
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(0.dp),
@@ -304,11 +319,15 @@ private fun WebBrowserBigView(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(background)
                     .padding(3.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                UrlView(model = model)
-                Row(modifier = Modifier.fillMaxWidth()) {
+                UrlView(model = model, modifier = Modifier.fillMaxWidth())
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     NextPrevView(model = model)
                     Spacer(modifier = Modifier.weight(1f))
                     RefreshBookmarksView(
@@ -324,11 +343,13 @@ private fun WebBrowserBigView(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(background)
                     .padding(3.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 NextPrevView(model = model)
-                UrlView(model = model)
+                UrlView(model = model, modifier = Modifier.weight(1f))
                 RefreshBookmarksView(
                     model = model,
                     showingBookmarks = presentingBookmarks,

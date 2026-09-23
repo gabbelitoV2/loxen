@@ -2,41 +2,37 @@ package com.moblin.android.view.stream.overlay.right
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.MenuAnchorType
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.IosSwitch
+import com.moblin.android.platform.swiftui.LocalTint
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
+import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.sceneUpdated
 import com.moblin.android.various.settings.SettingsBeauty
 import com.moblin.android.various.settings.SettingsBeautySettings
 import com.moblin.android.LocalModel
 
 @Composable
 private fun SmoothnessView(model: Model = LocalModel.current, beauty: SettingsBeauty) {
-    val smoothnessRadius = beauty.smoothnessRadius
-    val smoothnessStrength = beauty.smoothnessStrength
-
     fun setSettings() {
         model.beautyEffect.setSmoothnessSettings(
             radius = beauty.smoothnessRadius,
@@ -44,34 +40,40 @@ private fun SmoothnessView(model: Model = LocalModel.current, beauty: SettingsBe
         )
     }
 
-    Column {
+    var smoothnessRadius by binding({ beauty.smoothnessRadius }) { beauty.smoothnessRadius = it }
+    var smoothnessStrength by binding({ beauty.smoothnessStrength }) { beauty.smoothnessStrength = it }
+
+    Column(
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy(1.dp),
+    ) {
         EffectSlider(
             title = "RADIUS",
             range = 5f..20f,
             value = smoothnessRadius,
-            onValueChange = { beauty.smoothnessRadius = it },
+            onValueChange = {
+                if (it != smoothnessRadius) {
+                    smoothnessRadius = it
+                    setSettings()
+                }
+            },
         )
         EffectSlider(
             title = "STRENGTH",
             range = 0f..1f,
             value = smoothnessStrength,
-            onValueChange = { beauty.smoothnessStrength = it },
+            onValueChange = {
+                if (it != smoothnessStrength) {
+                    smoothnessStrength = it
+                    setSettings()
+                }
+            },
         )
-    }
-    LaunchedEffect(smoothnessRadius) {
-        setSettings()
-    }
-    LaunchedEffect(smoothnessStrength) {
-        setSettings()
     }
 }
 
 @Composable
 private fun ShapeView(model: Model = LocalModel.current, beauty: SettingsBeauty) {
-    val shapePosition = beauty.shapePosition
-    val shapeRadius = beauty.shapeRadius
-    val shapeStrength = beauty.shapeStrength
-
     fun setSettings() {
         model.beautyEffect.setShapeSettings(
             position = beauty.shapePosition,
@@ -80,99 +82,100 @@ private fun ShapeView(model: Model = LocalModel.current, beauty: SettingsBeauty)
         )
     }
 
-    Column {
+    var shapePosition by binding({ beauty.shapePosition }) { beauty.shapePosition = it }
+    var shapeRadius by binding({ beauty.shapeRadius }) { beauty.shapeRadius = it }
+    var shapeStrength by binding({ beauty.shapeStrength }) { beauty.shapeStrength = it }
+
+    Column(
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy(1.dp),
+    ) {
         EffectSlider(
             title = "POSITION",
             range = 0f..1f,
             value = shapePosition,
-            onValueChange = { beauty.shapePosition = it },
+            onValueChange = {
+                if (it != shapePosition) {
+                    shapePosition = it
+                    setSettings()
+                }
+            },
         )
         EffectSlider(
             title = "RADIUS",
             range = 0f..1f,
             value = shapeRadius,
-            onValueChange = { beauty.shapeRadius = it },
+            onValueChange = {
+                if (it != shapeRadius) {
+                    shapeRadius = it
+                    setSettings()
+                }
+            },
         )
         EffectSlider(
             title = "STRENGTH",
             range = 0f..1f,
             value = shapeStrength,
-            onValueChange = { beauty.shapeStrength = it },
+            onValueChange = {
+                if (it != shapeStrength) {
+                    shapeStrength = it
+                    setSettings()
+                }
+            },
         )
-    }
-    LaunchedEffect(shapePosition) {
-        setSettings()
-    }
-    LaunchedEffect(shapeRadius) {
-        setSettings()
-    }
-    LaunchedEffect(shapeStrength) {
-        setSettings()
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StreamOverlayRightBeautyView(model: Model = LocalModel.current, beauty: SettingsBeauty) {
-    val settings = beauty.settings
-    val enabled = beauty.enabled
-    var expanded by remember { mutableStateOf(false) }
+    var settings by binding({ beauty.settings }) { beauty.settings = it }
+    var enabled by binding({ beauty.enabled }) { beauty.enabled = it }
+    val shape = RoundedCornerShape(7.dp)
 
-    Column {
+    Column(
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy(1.dp),
+    ) {
         when (settings) {
             SettingsBeautySettings.smoothness -> SmoothnessView(model = model, beauty = beauty)
             SettingsBeautySettings.shape -> ShapeView(model = model, beauty = beauty)
         }
         Row(
             modifier = Modifier
-                .padding(end = 10.dp)
                 .height(segmentHeight.dp)
-                .clip(RoundedCornerShape(7.dp))
+                .clip(shape)
                 .background(pickerBackgroundColor)
-                .border(1.dp, pickerBorderColor, RoundedCornerShape(7.dp)),
+                .border(1.dp, pickerBorderColor, shape)
+                .padding(end = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = it },
-            ) {
-                OutlinedTextField(
-                    value = settings.toString(),
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-                    },
-                    modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
-                )
-                ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
+            CompositionLocalProvider(LocalTint provides Color.White) {
+                Picker(
+                    "",
+                    selection = settings,
+                    options = SettingsBeautySettings.entries,
+                    text = { it.toString() },
+                    pickerStyle = PickerStyle.menu,
                 ) {
-                    SettingsBeautySettings.entries.forEach { setting ->
-                        DropdownMenuItem(
-                            text = { Text(setting.toString()) },
-                            onClick = {
-                                beauty.settings = setting
-                                expanded = false
-                            },
-                        )
-                    }
+                    settings = it
                 }
             }
-            Switch(
+            Spacer(modifier = Modifier.width(8.dp))
+            IosSwitch(
                 checked = enabled,
-                onCheckedChange = { beauty.enabled = it },
-            )
-        }
-    }
-    LaunchedEffect(enabled) {
-        model.updateBeautyButtonState()
-        Unit
-        if (enabled) {
-            model.makeToast(
-                title = localized("Other widgets will not work with Beauty filters enabled"),
-                subTitle = localized("Too much work to fix it, sorry."),
+                onCheckedChange = {
+                    if (it != enabled) {
+                        enabled = it
+                        model.updateBeautyButtonState()
+                        model.sceneUpdated(updateRemoteScene = false)
+                        if (it) {
+                            model.makeToast(
+                                title = localized("Other widgets will not work with Beauty filters enabled"),
+                                subTitle = localized("Too much work to fix it, sorry."),
+                            )
+                        }
+                    }
+                },
             )
         }
     }

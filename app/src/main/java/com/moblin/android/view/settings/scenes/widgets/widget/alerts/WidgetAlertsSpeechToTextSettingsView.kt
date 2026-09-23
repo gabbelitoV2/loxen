@@ -1,29 +1,28 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.alerts
 
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidgetAlertsAlert
 import com.moblin.android.various.settings.SettingsWidgetAlertsSpeechToText
 import com.moblin.android.various.settings.SettingsWidgetAlertsSpeechToTextString
-import com.moblin.android.various.utils.makeOffsets
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
@@ -35,7 +34,6 @@ private fun SpeechToTextStringView(
     alert: SettingsWidgetAlertsAlert,
     string: SettingsWidgetAlertsSpeechToTextString,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
-    onDelete: () -> Unit,
 ) {
     var text by remember { mutableStateOf(string.string) }
 
@@ -49,12 +47,7 @@ private fun SpeechToTextStringView(
             )
         },
     ) {
-        Text(
-            text = text,
-            modifier = Modifier.pointerInput(string.id) {
-                detectTapGestures(onLongPress = { onDelete() })
-            },
-        )
+        Text(text = text)
     }
 }
 
@@ -112,8 +105,8 @@ fun WidgetAlertsSpeechToTextSettingsView(
     speechToText: SettingsWidgetAlertsSpeechToText,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    fun deleteString(indexes: Set<Int>) {
-        speechToText.strings = speechToText.strings.filterIndexed { index, _ -> index !in indexes }
+    fun deleteString(indexes: IndexSet) {
+        speechToText.strings = speechToText.strings.removing(atOffsets = indexes)
         model.updateAlertsSettings()
     }
 
@@ -127,19 +120,24 @@ fun WidgetAlertsSpeechToTextSettingsView(
                 }
             },
         ) {
-            speechToText.strings.forEach { string ->
-                key(string.id) {
+            ForEach(
+                speechToText.strings,
+                id = { it.id },
+                onDelete = { deleteString(it) },
+            ) { string ->
+                ContextMenuDeleteButton(
+                    action = {
+                        val index = speechToText.strings.indexOfFirst { it.id == string.id }
+                        if (index >= 0) {
+                            deleteString(setOf(index))
+                        }
+                    },
+                ) {
                     SpeechToTextStringView(
                         model = model,
                         alert = string.alert,
                         string = string,
                         onNavigate = onNavigate,
-                        onDelete = {
-                            val index = speechToText.strings.indexOfFirst { it.id == string.id }
-                            if (index >= 0) {
-                                deleteString(setOf(index))
-                            }
-                        },
                     )
                 }
             }

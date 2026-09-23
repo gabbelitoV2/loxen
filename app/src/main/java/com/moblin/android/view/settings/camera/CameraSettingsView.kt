@@ -5,9 +5,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,20 +19,17 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
-import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
-import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.Label
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.Toggle
-import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.addLutCube
 import com.moblin.android.various.model.addLutPng
@@ -61,6 +55,7 @@ import com.moblin.android.view.settings.camera.zoom.ZoomSettingsView
 import com.moblin.android.view.settings.scenes.widgets.widget.alerts.AlertPickerView
 import com.moblin.android.view.settings.selfiestick.SelfieStickDoesNotWorkView
 import com.moblin.android.view.settings.streams.stream.video.StreamVideoSettingsView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.ShortcutSectionView
@@ -153,26 +148,22 @@ private fun CameraSettingsCubeLutsView(
     var showPicker by remember { mutableStateOf(false) }
 
     Section(header = "My .cube LUTs") {
-        color.diskLutsCube.forEach { lut ->
-            key(lut.id) {
-                FormRow(highlight = false) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        CustomLutView(model = model, lut = lut, name = lut.name)
+        ForEach(
+            color.diskLutsCube,
+            id = { it.id },
+            onDelete = { offsets ->
+                model.removeLutCube(offsets.toList())
+            },
+        ) { lut ->
+            ContextMenuDeleteButton(
+                action = {
+                    val offset = color.diskLutsCube.indexOfFirst { it.id == lut.id }
+                    if (offset >= 0) {
+                        model.removeLutCube(listOf(offset))
                     }
-                    SystemImage(
-                        name = "trash",
-                        fontSize = 22.sp,
-                        tint = formPalette().red,
-                        modifier = Modifier
-                            .clickable {
-                                val offset = color.diskLutsCube.indexOfFirst { it.id == lut.id }
-                                if (offset >= 0) {
-                                    model.removeLutCube(listOf(offset))
-                                }
-                            }
-                            .padding(8.dp),
-                    )
-                }
+                },
+            ) {
+                CustomLutView(model = model, lut = lut, name = lut.name)
             }
         }
         TextButtonView(title = "Add") {
@@ -180,10 +171,8 @@ private fun CameraSettingsCubeLutsView(
             model.onDocumentPickerUrl = { url -> model.addLutCube(url) }
         }
     }
-    if (showPicker) {
-        Sheet(onDismissRequest = { showPicker = false }) {
-            AlertPickerView(type = "item")
-        }
+    Sheet(isPresented = showPicker, onDismissRequest = { showPicker = false }) {
+        AlertPickerView(type = "item")
     }
 }
 
@@ -204,26 +193,22 @@ private fun CameraSettingsPngLutsView(
     }
 
     Section(header = "My .png LUTs") {
-        color.diskLutsPng.forEach { lut ->
-            key(lut.id) {
-                FormRow(highlight = false) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        CustomLutView(model = model, lut = lut, name = lut.name)
+        ForEach(
+            color.diskLutsPng,
+            id = { it.id },
+            onDelete = { offsets ->
+                model.removeLutPng(offsets.toList())
+            },
+        ) { lut ->
+            ContextMenuDeleteButton(
+                action = {
+                    val offset = color.diskLutsPng.indexOfFirst { it.id == lut.id }
+                    if (offset >= 0) {
+                        model.removeLutPng(listOf(offset))
                     }
-                    SystemImage(
-                        name = "trash",
-                        fontSize = 22.sp,
-                        tint = formPalette().red,
-                        modifier = Modifier
-                            .clickable {
-                                val offset = color.diskLutsPng.indexOfFirst { it.id == lut.id }
-                                if (offset >= 0) {
-                                    model.removeLutPng(listOf(offset))
-                                }
-                            }
-                            .padding(8.dp),
-                    )
-                }
+                },
+            ) {
+                CustomLutView(model = model, lut = lut, name = lut.name)
             }
         }
         FormButton(title = "Add", centered = true) {

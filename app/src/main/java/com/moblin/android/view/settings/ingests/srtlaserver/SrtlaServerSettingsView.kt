@@ -1,14 +1,9 @@
 package com.moblin.android.view.settings.ingests.srtlaserver
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -16,6 +11,7 @@ import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.isValidPort
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
@@ -26,12 +22,14 @@ import com.moblin.android.various.settings.SettingsSrtlaServerStream
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.various.utils.randomHumanString
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.InfoBannerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.various.model.getSrtlaStream
 import com.moblin.android.various.model.reloadSrtlaServer
+import com.moblin.android.various.model.srtlaServerEnabled
 import com.moblin.android.various.model.updateMicsListAsync
 
 private fun submitSrtPort(srtlaServer: SettingsSrtlaServer, model: Model, value: String) {
@@ -83,7 +81,6 @@ fun SrtlaServerSettingsView(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SrtlaServerSettingsForm(
     model: Model = LocalModel.current,
@@ -137,29 +134,29 @@ fun SrtlaServerSettingsForm(
                 }
             },
         ) {
-            srtlaServer.streams.forEach { stream ->
-                key(stream.id) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .combinedClickable(
-                                onClick = {},
-                                onLongClick = {
-                                    if (!srtlaServer.enabled) {
-                                        val index = srtlaServer.streams.indexOfFirst { it.id == stream.id }
-                                        if (index != -1) {
-                                            deleteStream(srtlaServer, model, listOf(index))
-                                        }
-                                    }
-                                },
-                            ),
-                    ) {
-                        SrtlaServerStreamSettingsView(
-                            status = model.statusOther,
-                            srtlaServer = srtlaServer,
-                            stream = stream,
-                        )
-                    }
+            ForEach(
+                srtlaServer.streams,
+                id = { it.id },
+                onDelete = if (!model.srtlaServerEnabled()) {
+                    { offsets -> deleteStream(srtlaServer, model, offsets.toList()) }
+                } else {
+                    null
+                },
+            ) { stream ->
+                ContextMenuDeleteButton(
+                    disabled = model.srtlaServerEnabled(),
+                    action = {
+                        val index = srtlaServer.streams.indexOfFirst { it.id == stream.id }
+                        if (index != -1) {
+                            deleteStream(srtlaServer, model, listOf(index))
+                        }
+                    },
+                ) {
+                    SrtlaServerStreamSettingsView(
+                        status = model.statusOther,
+                        srtlaServer = srtlaServer,
+                        stream = stream,
+                    )
                 }
             }
             CreateButtonView {

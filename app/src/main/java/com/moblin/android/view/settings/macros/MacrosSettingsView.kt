@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,7 +33,9 @@ import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRowInfo
 import com.moblin.android.platform.swiftui.FormSlider
 import com.moblin.android.platform.swiftui.LocalTint
 import com.moblin.android.platform.swiftui.NavigationLink
@@ -40,7 +43,12 @@ import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.moving
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.remoteControlMacrosStateChanged
+import com.moblin.android.various.model.startMacro
+import com.moblin.android.various.model.stopMacro
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsMacros
 import com.moblin.android.various.settings.SettingsMacrosAction
@@ -58,6 +66,7 @@ import com.moblin.android.view.settings.scenes.widgets.widget.text.TextFormatWar
 import com.moblin.android.view.settings.scenes.widgets.widget.text.TextWidgetSuggestionsView
 import com.moblin.android.view.settings.scenes.widgets.widget.text.TextWidgetTextView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.NameEditView
@@ -141,14 +150,14 @@ private fun bar(bars: List<MacroActionIfBar>, level: Int) {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
+                .padding(bottom = if (bar?.isLast == true) 4.dp else 0.dp)
                 .background(
                     if (bar != null) {
                         macroActionIfColors[level % macroActionIfColors.size]
                     } else {
                         Color.Transparent
                     },
-                )
-                .padding(bottom = if (bar?.isLast == true) 4.dp else 0.dp),
+                ),
         )
     }
 }
@@ -229,134 +238,140 @@ private fun ActionView(
     ifBars: List<MacroActionIfBar>,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min),
-    ) {
-        ActionIfBarsView(bars = ifBars)
-        NavigationLink(
-            destination = {
-                ActionDestinationView(
-                    model = model,
-                    database = database,
-                    macros = macros,
-                    macro = macro,
-                    action = action,
-                    onNavigate = onNavigate,
-                )
-            },
+    val rowInfo = remember { FormRowInfo() }
+    ContextMenuDeleteButton(action = {
+        macro.actions = macro.actions.filterNot { it === action }
+    }) {
+        Box(
+            modifier = Modifier
+                .layoutId(rowInfo)
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
         ) {
-            DraggableItemPrefixView()
-            Text(action.function?.toString() ?: localized("-- None --"))
-            when (action.function) {
-                SettingsMacrosActionFunction.SCENE -> {
-                    val sceneName = getSceneName(database = database, id = action.sceneId)
-                    if (sceneName != null) {
-                        Spacer(modifier = Modifier.weight(1f))
-                        GrayTextView(text = sceneName)
-                    }
-                }
-                SettingsMacrosActionFunction.ENABLE_DISABLE_SCENES -> {
-                    Spacer(modifier = Modifier.weight(1f))
-                    GrayTextView(text = action.sceneIds.size.toString())
-                }
-                SettingsMacrosActionFunction.AUTO_SCENE_SWITCHER -> {
-                    val switcherName = database.autoSceneSwitchers.switchers
-                        .firstOrNull { it.id == action.autoSceneSwitcherId }
-                        ?.name
-                    if (switcherName != null) {
-                        Spacer(modifier = Modifier.weight(1f))
-                        GrayTextView(text = switcherName)
-                    }
-                }
-                SettingsMacrosActionFunction.ZOOM -> {
-                    Spacer(modifier = Modifier.weight(1f))
-                    GrayTextView(text = formatOneDecimal(action.zoomX))
-                }
-                SettingsMacrosActionFunction.GIMBAL_PRESET -> {
-                    val presetName = database.gimbal.presets
-                        .firstOrNull { it.id == action.gimbalPresetId }
-                        ?.name
-                    if (presetName != null) {
-                        Spacer(modifier = Modifier.weight(1f))
-                        GrayTextView(text = presetName)
-                    }
-                }
-                SettingsMacrosActionFunction.SEND_CHAT_MESSAGE -> {
-                    Spacer(modifier = Modifier.weight(1f))
-                    GrayTextView(text = action.chatMessage)
-                }
-                SettingsMacrosActionFunction.DELAY -> {
-                    Spacer(modifier = Modifier.weight(1f))
-                    GrayTextView(text = "${action.delay.toInt()}s")
-                }
-                SettingsMacrosActionFunction.DJI_DEVICES -> {
-                    Spacer(modifier = Modifier.weight(1f))
-                    GrayTextView(text = action.djiDevices.size.toString())
-                }
-                SettingsMacrosActionFunction.FILTERS -> {
-                    Spacer(modifier = Modifier.weight(1f))
-                    GrayTextView(text = action.filters.size.toString())
-                }
-                SettingsMacrosActionFunction.RECORD -> {
-                    Spacer(modifier = Modifier.weight(1f))
-                    GrayTextView(
-                        text = if (action.record) localized("Start") else localized("Stop"),
+            ActionIfBarsView(bars = ifBars)
+            NavigationLink(
+                destination = {
+                    ActionDestinationView(
+                        model = model,
+                        database = database,
+                        macros = macros,
+                        macro = macro,
+                        action = action,
+                        onNavigate = onNavigate,
                     )
-                }
-                SettingsMacrosActionFunction.MUTE -> {
-                    Spacer(modifier = Modifier.weight(1f))
-                    GrayTextView(
-                        text = if (action.mute) localized("On") else localized("Off"),
-                    )
-                }
-                SettingsMacrosActionFunction.TORCH -> {
-                    Spacer(modifier = Modifier.weight(1f))
-                    GrayTextView(
-                        text = if (action.torch) localized("On") else localized("Off"),
-                    )
-                }
-                SettingsMacrosActionFunction.SNAPSHOT,
-                SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT,
-                -> {}
-                SettingsMacrosActionFunction.REACTION -> {
-                    Spacer(modifier = Modifier.weight(1f))
-                    GrayTextView(text = action.reaction.toString())
-                }
-                SettingsMacrosActionFunction.WAIT_FOR_EVENT -> {
-                    Spacer(modifier = Modifier.weight(1f))
-                    val sceneName = if (action.event == SettingsMacrosEvent.SWITCH_SCENE) {
-                        getSceneName(database = database, id = action.eventSceneId)
-                    } else {
-                        null
-                    }
-                    when {
-                        sceneName != null -> {
-                            GrayTextView(text = "${action.event.toString()} ($sceneName)")
-                        }
-                        action.eventText.isNotEmpty() -> {
-                            GrayTextView(text = "${action.event.toString()} (${action.eventText})")
-                        }
-                        else -> {
-                            GrayTextView(text = action.event.toString())
+                },
+            ) {
+                DraggableItemPrefixView()
+                Text(action.function?.toString() ?: localized("-- None --"))
+                when (action.function) {
+                    SettingsMacrosActionFunction.SCENE -> {
+                        val sceneName = getSceneName(database = database, id = action.sceneId)
+                        if (sceneName != null) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            GrayTextView(text = sceneName)
                         }
                     }
-                }
-                SettingsMacrosActionFunction.IF_CONDITION -> {
-                    Spacer(modifier = Modifier.weight(1f))
-                    GrayTextView(
-                        text = "${action.ifValue} ${action.ifComparison.toString()} ${action.ifOtherValue}",
-                    )
-                }
-                SettingsMacrosActionFunction.MACRO -> {
-                    val macroName = macros.macros.firstOrNull { it.id == action.macroId }?.name
-                    if (macroName != null) {
+                    SettingsMacrosActionFunction.ENABLE_DISABLE_SCENES -> {
                         Spacer(modifier = Modifier.weight(1f))
-                        GrayTextView(text = macroName)
+                        GrayTextView(text = action.sceneIds.size.toString())
                     }
+                    SettingsMacrosActionFunction.AUTO_SCENE_SWITCHER -> {
+                        val switcherName = database.autoSceneSwitchers.switchers
+                            .firstOrNull { it.id == action.autoSceneSwitcherId }
+                            ?.name
+                        if (switcherName != null) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            GrayTextView(text = switcherName)
+                        }
+                    }
+                    SettingsMacrosActionFunction.ZOOM -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        GrayTextView(text = formatOneDecimal(action.zoomX))
+                    }
+                    SettingsMacrosActionFunction.GIMBAL_PRESET -> {
+                        val presetName = database.gimbal.presets
+                            .firstOrNull { it.id == action.gimbalPresetId }
+                            ?.name
+                        if (presetName != null) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            GrayTextView(text = presetName)
+                        }
+                    }
+                    SettingsMacrosActionFunction.SEND_CHAT_MESSAGE -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        GrayTextView(text = action.chatMessage)
+                    }
+                    SettingsMacrosActionFunction.DELAY -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        GrayTextView(text = "${action.delay.toInt()}s")
+                    }
+                    SettingsMacrosActionFunction.DJI_DEVICES -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        GrayTextView(text = action.djiDevices.size.toString())
+                    }
+                    SettingsMacrosActionFunction.FILTERS -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        GrayTextView(text = action.filters.size.toString())
+                    }
+                    SettingsMacrosActionFunction.RECORD -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        GrayTextView(
+                            text = if (action.record) localized("Start") else localized("Stop"),
+                        )
+                    }
+                    SettingsMacrosActionFunction.MUTE -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        GrayTextView(
+                            text = if (action.mute) localized("On") else localized("Off"),
+                        )
+                    }
+                    SettingsMacrosActionFunction.TORCH -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        GrayTextView(
+                            text = if (action.torch) localized("On") else localized("Off"),
+                        )
+                    }
+                    SettingsMacrosActionFunction.SNAPSHOT,
+                    SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT,
+                    -> {}
+                    SettingsMacrosActionFunction.REACTION -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        GrayTextView(text = action.reaction.toString())
+                    }
+                    SettingsMacrosActionFunction.WAIT_FOR_EVENT -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        val sceneName = if (action.event == SettingsMacrosEvent.SWITCH_SCENE) {
+                            getSceneName(database = database, id = action.eventSceneId)
+                        } else {
+                            null
+                        }
+                        when {
+                            sceneName != null -> {
+                                GrayTextView(text = "${action.event.toString()} ($sceneName)")
+                            }
+                            action.eventText.isNotEmpty() -> {
+                                GrayTextView(text = "${action.event.toString()} (${action.eventText})")
+                            }
+                            else -> {
+                                GrayTextView(text = action.event.toString())
+                            }
+                        }
+                    }
+                    SettingsMacrosActionFunction.IF_CONDITION -> {
+                        Spacer(modifier = Modifier.weight(1f))
+                        GrayTextView(
+                            text = "${action.ifValue} ${action.ifComparison.toString()} ${action.ifOtherValue}",
+                        )
+                    }
+                    SettingsMacrosActionFunction.MACRO -> {
+                        val macroName = macros.macros.firstOrNull { it.id == action.macroId }?.name
+                        if (macroName != null) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            GrayTextView(text = macroName)
+                        }
+                    }
+                    null -> {}
                 }
-                null -> {}
             }
         }
     }
@@ -718,18 +733,24 @@ private fun MacroView(
     macro: SettingsMacrosMacro,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    NavigationLink(
-        destination = {
-            MacroDestinationView(
-                model = model,
-                database = database,
-                macros = macros,
-                macro = macro,
-                onNavigate = onNavigate,
-            )
-        },
-    ) {
-        Text(macro.name)
+    ContextMenuDeleteButton(action = {
+        model.stopMacro(macro = macro)
+        macros.macros = macros.macros.filterNot { it === macro }
+        model.remoteControlMacrosStateChanged()
+    }) {
+        NavigationLink(
+            destination = {
+                MacroDestinationView(
+                    model = model,
+                    database = database,
+                    macros = macros,
+                    macro = macro,
+                    onNavigate = onNavigate,
+                )
+            },
+        ) {
+            Text(macro.name)
+        }
     }
 }
 
@@ -745,7 +766,10 @@ fun MacroDestinationView(
         Section {
             NameEditView(
                 name = macro.name,
-                onNameChange = { macro.name = it },
+                onNameChange = {
+                    macro.name = it
+                    model.remoteControlMacrosStateChanged()
+                },
                 existingNames = macros.macros,
             )
         }
@@ -756,18 +780,25 @@ fun MacroDestinationView(
             },
         ) {
             val ifBars = macroActionIfBars(actions = macro.actions)
-            macro.actions.forEachIndexed { index, action ->
-                key(action.id) {
-                    ActionView(
-                        model = model,
-                        database = database,
-                        macros = macros,
-                        macro = macro,
-                        action = action,
-                        ifBars = ifBars[index],
-                        onNavigate = onNavigate,
-                    )
-                }
+            ForEach(
+                macro.actions.withIndex().toList(),
+                id = { it.value.id },
+                onDelete = { offsets ->
+                    macro.actions = macro.actions.removing(atOffsets = offsets)
+                },
+                onMove = { froms, to ->
+                    macro.actions = macro.actions.moving(fromOffsets = froms, toOffset = to)
+                },
+            ) { (index, action) ->
+                ActionView(
+                    model = model,
+                    database = database,
+                    macros = macros,
+                    macro = macro,
+                    action = action,
+                    ifBars = ifBars[index],
+                    onNavigate = onNavigate,
+                )
             }
             CreateButtonView {
                 macro.actions = macro.actions + SettingsMacrosAction()
@@ -818,7 +849,9 @@ fun MacroDestinationView(
         Section {
             if (macro.running) {
                 CompositionLocalProvider(LocalTint provides formPalette().red) {
-                    TextButtonView(localized("Cancel")) {}
+                    TextButtonView(localized("Cancel")) {
+                        model.stopMacro(macro = macro)
+                    }
                 }
             } else if (macro.finished) {
                 Text(
@@ -828,7 +861,9 @@ fun MacroDestinationView(
                     textAlign = TextAlign.Center,
                 )
             } else {
-                TextButtonView(localized("Run")) {}
+                TextButtonView(localized("Run")) {
+                    model.startMacro(macro = macro)
+                }
             }
         }
     }
@@ -856,16 +891,28 @@ fun MacrosSettingsView(
                 SwipeLeftToDeleteHelpView(kind = localized("a macro"))
             },
         ) {
-            macros.macros.forEach { macro ->
-                key(macro.id) {
-                    MacroView(
-                        model = model,
-                        database = database,
-                        macros = macros,
-                        macro = macro,
-                        onNavigate = onNavigate,
-                    )
-                }
+            ForEach(
+                macros.macros,
+                id = { it.id },
+                onDelete = { offsets ->
+                    for (offset in offsets) {
+                        model.stopMacro(macro = macros.macros[offset])
+                    }
+                    macros.macros = macros.macros.removing(atOffsets = offsets)
+                    model.remoteControlMacrosStateChanged()
+                },
+                onMove = { froms, to ->
+                    macros.macros = macros.macros.moving(fromOffsets = froms, toOffset = to)
+                    model.remoteControlMacrosStateChanged()
+                },
+            ) { macro ->
+                MacroView(
+                    model = model,
+                    database = database,
+                    macros = macros,
+                    macro = macro,
+                    onNavigate = onNavigate,
+                )
             }
             CreateButtonView {
                 val macro = SettingsMacrosMacro()
@@ -874,6 +921,7 @@ fun MacrosSettingsView(
                     existingNames = macros.macros,
                 )
                 macros.macros = macros.macros + macro
+                model.remoteControlMacrosStateChanged()
             }
         }
     }

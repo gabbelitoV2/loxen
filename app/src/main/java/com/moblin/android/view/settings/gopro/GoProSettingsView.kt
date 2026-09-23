@@ -1,31 +1,29 @@
 package com.moblin.android.view.settings.gopro
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.personalHotspotLocalAddress
 import com.moblin.android.integrations.gopro.GoPro
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.move
 import com.moblin.android.various.model.GoProState
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
@@ -40,6 +38,7 @@ import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.catprinters.IntegrationImageView
 import com.moblin.android.view.settings.djidevices.rtmpServerStreamUrl
 import com.moblin.android.view.settings.ingests.rtmpserver.RtmpServerSettingsView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemTextView
 import com.moblin.android.view.utils.HCenter
@@ -394,28 +393,29 @@ private fun GoProLaunchLiveStream(
         header = "Launch live streams",
         footerContent = { SwipeLeftToDeleteHelpView(kind = localized("an entry")) },
     ) {
-        goPro.launchLiveStream.forEach { launchLiveStream ->
-            key(launchLiveStream.id) {
-                Box(
-                    modifier = Modifier.pointerInput(launchLiveStream.id) {
-                        detectTapGestures(
-                            onLongPress = {
-                                val offset =
-                                    goPro.launchLiveStream.indexOfFirst {
-                                        it.id == launchLiveStream.id
-                                    }.takeIf { it >= 0 }
-                                if (offset != null) {
-                                    deleteLaunchLiveStream(listOf(offset))
-                                }
-                            },
-                        )
-                    },
-                ) {
-                    GoProLaunchLiveStreamSettingsEntryView(
-                        goPro = goPro,
-                        launchLiveStream = launchLiveStream,
-                    )
-                }
+        ForEach(
+            goPro.launchLiveStream,
+            id = { it.id },
+            onDelete = { offsets ->
+                deleteLaunchLiveStream(offsets.toList())
+            },
+            onMove = { froms, to ->
+                goPro.launchLiveStream.move(fromOffsets = froms, toOffset = to)
+            },
+        ) { launchLiveStream ->
+            ContextMenuDeleteButton(
+                action = {
+                    val offset = goPro.launchLiveStream.indexOfFirst { it.id == launchLiveStream.id }
+                        .takeIf { it >= 0 }
+                    if (offset != null) {
+                        deleteLaunchLiveStream(listOf(offset))
+                    }
+                },
+            ) {
+                GoProLaunchLiveStreamSettingsEntryView(
+                    goPro = goPro,
+                    launchLiveStream = launchLiveStream,
+                )
             }
         }
         CreateButtonView {
@@ -451,28 +451,29 @@ private fun GoProWifiCredentials(
         header = "WiFi credentials",
         footerContent = { SwipeLeftToDeleteHelpView(kind = localized("an entry")) },
     ) {
-        goPro.wifiCredentials.forEach { wifiCredentials ->
-            key(wifiCredentials.id) {
-                Box(
-                    modifier = Modifier.pointerInput(wifiCredentials.id) {
-                        detectTapGestures(
-                            onLongPress = {
-                                val offset =
-                                    goPro.wifiCredentials.indexOfFirst {
-                                        it.id == wifiCredentials.id
-                                    }.takeIf { it >= 0 }
-                                if (offset != null) {
-                                    deleteWifiCredentials(listOf(offset))
-                                }
-                            },
-                        )
-                    },
-                ) {
-                    GoProWifiCredentialsSettingsEntryView(
-                        goPro = goPro,
-                        wifiCredentials = wifiCredentials,
-                    )
-                }
+        ForEach(
+            goPro.wifiCredentials,
+            id = { it.id },
+            onDelete = { offsets ->
+                deleteWifiCredentials(offsets.toList())
+            },
+            onMove = { froms, to ->
+                goPro.wifiCredentials.move(fromOffsets = froms, toOffset = to)
+            },
+        ) { wifiCredentials ->
+            ContextMenuDeleteButton(
+                action = {
+                    val offset = goPro.wifiCredentials.indexOfFirst { it.id == wifiCredentials.id }
+                        .takeIf { it >= 0 }
+                    if (offset != null) {
+                        deleteWifiCredentials(listOf(offset))
+                    }
+                },
+            ) {
+                GoProWifiCredentialsSettingsEntryView(
+                    goPro = goPro,
+                    wifiCredentials = wifiCredentials,
+                )
             }
         }
         CreateButtonView {
@@ -509,27 +510,30 @@ private fun GoProRtmpUrls(
         header = "RTMP URLs",
         footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a URL")) },
     ) {
-        goPro.rtmpUrls.forEach { rtmpUrl ->
-            key(rtmpUrl.id) {
-                Box(
-                    modifier = Modifier.pointerInput(rtmpUrl.id) {
-                        detectTapGestures(
-                            onLongPress = {
-                                val offset = goPro.rtmpUrls.indexOfFirst { it.id == rtmpUrl.id }
-                                    .takeIf { it >= 0 }
-                                if (offset != null) {
-                                    deleteRtmpUrl(listOf(offset))
-                                }
-                            },
-                        )
-                    },
-                ) {
-                    GoProRtmpUrlSettingsEntryView(
-                        goPro = goPro,
-                        status = status,
-                        rtmpUrl = rtmpUrl,
-                    )
-                }
+        ForEach(
+            goPro.rtmpUrls,
+            id = { it.id },
+            onDelete = { offsets ->
+                deleteRtmpUrl(offsets.toList())
+            },
+            onMove = { froms, to ->
+                goPro.rtmpUrls.move(fromOffsets = froms, toOffset = to)
+            },
+        ) { rtmpUrl ->
+            ContextMenuDeleteButton(
+                action = {
+                    val offset = goPro.rtmpUrls.indexOfFirst { it.id == rtmpUrl.id }
+                        .takeIf { it >= 0 }
+                    if (offset != null) {
+                        deleteRtmpUrl(listOf(offset))
+                    }
+                },
+            ) {
+                GoProRtmpUrlSettingsEntryView(
+                    goPro = goPro,
+                    status = status,
+                    rtmpUrl = rtmpUrl,
+                )
             }
         }
         CreateButtonView {

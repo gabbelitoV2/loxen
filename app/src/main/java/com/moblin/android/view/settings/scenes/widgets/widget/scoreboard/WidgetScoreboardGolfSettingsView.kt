@@ -1,33 +1,21 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.scoreboard
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.moblin.android.localized
-import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.settings.SettingsWidgetGolfScoreboard
 import com.moblin.android.various.settings.SettingsWidgetGolfScoreboardPlayer
 import com.moblin.android.various.settings.SettingsWidgetScoreboard
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
@@ -86,37 +74,24 @@ fun WidgetScoreboardGolfSettingsView(
         header = localized("Players"),
         footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a player")) }
     ) {
-        golf.players.forEach { player ->
-            key(player.id) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(Modifier.weight(1f)) {
-                        GolfPlayerView(player = player, updated = updated)
+        ForEach(
+            golf.players,
+            id = { it.id },
+            onDelete = { offsets ->
+                golf.players = golf.players.removing(atOffsets = offsets)
+                updated()
+            },
+        ) { player ->
+            ContextMenuDeleteButton(
+                action = {
+                    val index = golf.players.indexOfFirst { it.id == player.id }
+                    if (index != -1) {
+                        golf.players = golf.players.removing(atOffsets = setOf(index))
+                        updated()
                     }
-                    val interactionSource = remember { MutableInteractionSource() }
-                    val pressed by interactionSource.collectIsPressedAsState()
-                    Box(
-                        modifier = Modifier
-                            .alpha(if (pressed) 0.2f else 1f)
-                            .clickable(
-                                interactionSource = interactionSource,
-                                indication = null
-                            ) {
-                                val index = golf.players.indexOfFirst { it.id == player.id }
-                                if (index != -1) {
-                                    golf.players = golf.players.filterIndexed { i, _ ->
-                                        i != index
-                                    }
-                                    updated()
-                                }
-                            }
-                            .padding(horizontal = 8.dp)
-                    ) {
-                        SystemImage(name = "trash", fontSize = 20.sp, tint = palette.red)
-                    }
-                }
+                },
+            ) {
+                GolfPlayerView(player = player, updated = updated)
             }
         }
         if (golf.players.size < 4) {

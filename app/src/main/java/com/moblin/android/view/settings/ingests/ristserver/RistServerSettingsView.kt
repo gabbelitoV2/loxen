@@ -1,22 +1,19 @@
 package com.moblin.android.view.settings.ingests.ristserver
 
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.KeyboardType
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.isValidPort
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
@@ -28,6 +25,7 @@ import com.moblin.android.various.utils.Identifiable
 import com.moblin.android.various.utils.makeOffsets
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.InfoBannerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
@@ -103,34 +101,33 @@ fun RistServerSettingsDetailView(
                 }
             },
         ) {
-            for (stream in ristServer.streams) {
-                key(stream.id) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .pointerInput(ristServer.enabled) {
-                                detectTapGestures(
-                                    onLongPress = {
-                                        if (!ristServer.enabled) {
-                                            makeOffsets(
-                                                ristServer.streams.map {
-                                                    IdentifiedStream(it.id)
-                                                },
-                                                stream.id,
-                                            )?.let { offset ->
-                                                deleteStream(model, ristServer, setOf(offset))
-                                            }
-                                        }
-                                    },
-                                )
+            ForEach(
+                ristServer.streams,
+                id = { it.id },
+                onDelete = if (!ristServer.enabled) {
+                    { offsets -> deleteStream(model, ristServer, offsets) }
+                } else {
+                    null
+                },
+            ) { stream ->
+                ContextMenuDeleteButton(
+                    disabled = ristServer.enabled,
+                    action = {
+                        makeOffsets(
+                            ristServer.streams.map {
+                                IdentifiedStream(it.id)
                             },
-                    ) {
-                        RistServerStreamSettingsView(
-                            status = model.statusOther,
-                            ristServer = ristServer,
-                            stream = stream,
-                        )
-                    }
+                            stream.id,
+                        )?.let { offset ->
+                            deleteStream(model, ristServer, setOf(offset))
+                        }
+                    },
+                ) {
+                    RistServerStreamSettingsView(
+                        status = model.statusOther,
+                        ristServer = ristServer,
+                        stream = stream,
+                    )
                 }
             }
             Box(modifier = Modifier.alpha(if (model.ristServerEnabled()) 0.5f else 1f)) {

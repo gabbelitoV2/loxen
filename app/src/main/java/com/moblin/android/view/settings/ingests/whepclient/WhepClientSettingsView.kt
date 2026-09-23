@@ -7,7 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -22,6 +21,7 @@ import com.moblin.android.various.settings.SettingsWhepClient
 import com.moblin.android.various.settings.SettingsWhepClientStream
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.various.model.reloadWhepClient
@@ -92,8 +92,21 @@ fun WhepClientSettingsDestinationView(
                 SwipeLeftToDeleteHelpView(kind = localized("a stream"))
             },
         ) {
-            whepClient.streams.forEach { stream ->
-                key(stream.id) {
+            ForEach(
+                whepClient.streams,
+                id = { it.id },
+                onDelete = { offsets ->
+                    deleteStream(model, whepClient, offsets.toList())
+                },
+            ) { stream ->
+                ContextMenuDeleteButton(
+                    action = {
+                        val offset = whepClient.streams.indexOfFirst { it.id == stream.id }
+                        if (offset >= 0) {
+                            deleteStream(model, whepClient, listOf(offset))
+                        }
+                    },
+                ) {
                     WhepClientStreamSettingsView(
                         whepClient = whepClient,
                         stream = stream,

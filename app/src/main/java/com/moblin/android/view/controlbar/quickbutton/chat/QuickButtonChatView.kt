@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -31,7 +32,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,8 +54,8 @@ import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
 import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
-import com.moblin.android.platform.swiftui.LocalTint
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.NavigationTitle
 import com.moblin.android.platform.swiftui.Section
@@ -64,6 +64,8 @@ import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.move
+import com.moblin.android.platform.swiftui.remove
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.ChatHighlight
 import com.moblin.android.various.ChatHighlightKind
@@ -84,6 +86,7 @@ import com.moblin.android.view.utils.ChatActionButtonsView
 import com.moblin.android.view.utils.ChatLineStyle
 import com.moblin.android.view.utils.ChatLineView
 import com.moblin.android.view.utils.CloseToolbar
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.IconAndTextLocalizedView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
@@ -554,6 +557,7 @@ private fun TagButtonView(
 private fun PredefinedMessageView(
     model: Model = LocalModel.current,
     filter: SettingsChatPredefinedMessagesFilter,
+    filterEnabled: Boolean,
     predefinedMessage: SettingsChatPredefinedMessage,
     showingPredefinedMessages: Boolean,
     onShowingPredefinedMessagesChange: (Boolean) -> Unit,
@@ -606,8 +610,8 @@ private fun PredefinedMessageView(
             }
         },
     ) {
-        if (filter.isEnabled()) {
-            CompositionLocalProvider(LocalTint provides formPalette().gray) {
+        if (filterEnabled) {
+            CompositionLocalProvider(LocalContentColor provides formPalette().gray) {
                 DraggableItemPrefixView()
             }
         } else {
@@ -635,12 +639,20 @@ fun PredefinedMessagesView(
     messageToSend: UUID?,
     onMessageToSendChange: (UUID?) -> Unit,
 ) {
+    var blueTag by binding({ filter.blueTag }) { filter.blueTag = it }
+    var greenTag by binding({ filter.greenTag }) { filter.greenTag = it }
+    var yellowTag by binding({ filter.yellowTag }) { filter.yellowTag = it }
+    var orangeTag by binding({ filter.orangeTag }) { filter.orangeTag = it }
+    var redTag by binding({ filter.redTag }) { filter.redTag = it }
+    var predefinedMessages by binding({ chat.predefinedMessages }) { chat.predefinedMessages = it }
+    val filterEnabled = filter.isEnabled()
+
     fun filteredMessages(): List<SettingsChatPredefinedMessage> {
         if (!(filter.blueTag || filter.greenTag || filter.yellowTag || filter.orangeTag || filter.redTag)) {
-            return chat.predefinedMessages
+            return predefinedMessages
         }
         val messages = mutableListOf<SettingsChatPredefinedMessage>()
-        for (message in chat.predefinedMessages) {
+        for (message in predefinedMessages) {
             var shouldAdd = true
             if (filter.blueTag && !message.blueTag) shouldAdd = false
             if (filter.greenTag && !message.greenTag) shouldAdd = false
@@ -670,75 +682,74 @@ fun PredefinedMessagesView(
                 Spacer(modifier = Modifier.weight(1f))
                 TagButtonView(
                     tag = SettingsChatPredefinedMessage.tagBlue,
-                    enabled = filter.blueTag,
-                    onEnabledChange = { filter.blueTag = it },
+                    enabled = blueTag,
+                    onEnabledChange = { blueTag = it },
                 )
                 TagButtonView(
                     tag = SettingsChatPredefinedMessage.tagGreen,
-                    enabled = filter.greenTag,
-                    onEnabledChange = { filter.greenTag = it },
+                    enabled = greenTag,
+                    onEnabledChange = { greenTag = it },
                 )
                 TagButtonView(
                     tag = SettingsChatPredefinedMessage.tagYellow,
-                    enabled = filter.yellowTag,
-                    onEnabledChange = { filter.yellowTag = it },
+                    enabled = yellowTag,
+                    onEnabledChange = { yellowTag = it },
                 )
                 TagButtonView(
                     tag = SettingsChatPredefinedMessage.tagOrange,
-                    enabled = filter.orangeTag,
-                    onEnabledChange = { filter.orangeTag = it },
+                    enabled = orangeTag,
+                    onEnabledChange = { orangeTag = it },
                 )
                 TagButtonView(
                     tag = SettingsChatPredefinedMessage.tagRed,
-                    enabled = filter.redTag,
-                    onEnabledChange = { filter.redTag = it },
+                    enabled = redTag,
+                    onEnabledChange = { redTag = it },
                 )
             }
         }
         Section(
             footerContent = {
-                if (filter.isEnabled()) {
+                if (filterEnabled) {
                     Text(localized("Cannot move or delete predefined messages when filtering."))
                 } else {
                     SwipeLeftToDeleteHelpView(kind = localized("a predefined message"))
                 }
             },
         ) {
-            for (predefinedMessage in filteredMessages()) {
-                key(predefinedMessage.id) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            PredefinedMessageView(
-                                model = model,
-                                filter = filter,
-                                predefinedMessage = predefinedMessage,
-                                showingPredefinedMessages = presentingPredefinedMessages,
-                                onShowingPredefinedMessagesChange = onPresentingPredefinedMessagesChange,
-                                onNavigate = {},
-                            )
-                        }
-                        if (!filter.isEnabled()) {
-                            Box(
-                                modifier = Modifier
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null,
-                                    ) {
-                                        chat.predefinedMessages.removeAll {
-                                            it.id == predefinedMessage.id
-                                        }
-                                    }
-                                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                            ) {
-                                SystemImage("trash", 17.sp, Modifier, formPalette().red)
-                            }
-                        }
-                    }
+            ForEach(
+                filteredMessages(),
+                id = { it.id },
+                onDelete = if (!filterEnabled) {
+                    { offsets -> predefinedMessages.remove(atOffsets = offsets) }
+                } else {
+                    null
+                },
+                onMove = if (!filterEnabled) {
+                    { froms, to -> predefinedMessages.move(fromOffsets = froms, toOffset = to) }
+                } else {
+                    null
+                },
+            ) { predefinedMessage ->
+                ContextMenuDeleteButton(
+                    disabled = filterEnabled,
+                    action = {
+                        predefinedMessages.removeAll { it.id == predefinedMessage.id }
+                    },
+                ) {
+                    PredefinedMessageView(
+                        model = model,
+                        filter = filter,
+                        filterEnabled = filterEnabled,
+                        predefinedMessage = predefinedMessage,
+                        showingPredefinedMessages = presentingPredefinedMessages,
+                        onShowingPredefinedMessagesChange = onPresentingPredefinedMessagesChange,
+                        onNavigate = {},
+                    )
                 }
             }
             Section {
                 TextButtonView("Create") {
-                    chat.predefinedMessages.add(SettingsChatPredefinedMessage())
+                    predefinedMessages = (predefinedMessages + SettingsChatPredefinedMessage()).toMutableList()
                 }
             }
         }
@@ -784,9 +795,12 @@ private fun SendMessagesToSelectorView(
     presentingSelector: Boolean,
     onPresentingSelectorChange: (Boolean) -> Unit,
 ) {
-    fun isTwitchOnly(): Boolean = stream.twitchSendMessagesTo && !stream.kickSendMessagesTo
+    var twitchSendMessagesTo by binding({ stream.twitchSendMessagesTo }) { stream.twitchSendMessagesTo = it }
+    var kickSendMessagesTo by binding({ stream.kickSendMessagesTo }) { stream.kickSendMessagesTo = it }
 
-    fun isKickOnly(): Boolean = stream.kickSendMessagesTo && !stream.twitchSendMessagesTo
+    fun isTwitchOnly(): Boolean = twitchSendMessagesTo && !kickSendMessagesTo
+
+    fun isKickOnly(): Boolean = kickSendMessagesTo && !twitchSendMessagesTo
 
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
@@ -807,27 +821,25 @@ private fun SendMessagesToSelectorView(
             SystemImage("globe", 28.sp, Modifier, formPalette().accent)
         }
     }
-    if (presentingSelector) {
-        Sheet(onDismissRequest = { onPresentingSelectorChange(false) }) {
-            Column(
-                modifier = Modifier.padding(5.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(localized("Send messages to"), modifier = Modifier.padding(11.dp))
-                Box(modifier = Modifier.padding(11.dp)) {
-                    SendMessagesToView(
-                        platform = Platform.twitch,
-                        enabled = stream.twitchSendMessagesTo,
-                        onEnabledChange = { stream.twitchSendMessagesTo = it },
-                    )
-                }
-                Box(modifier = Modifier.padding(11.dp)) {
-                    SendMessagesToView(
-                        platform = Platform.kick,
-                        enabled = stream.kickSendMessagesTo,
-                        onEnabledChange = { stream.kickSendMessagesTo = it },
-                    )
-                }
+    Sheet(isPresented = presentingSelector, onDismissRequest = { onPresentingSelectorChange(false) }) {
+        Column(
+            modifier = Modifier.padding(5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(localized("Send messages to"), modifier = Modifier.padding(11.dp))
+            Box(modifier = Modifier.padding(11.dp)) {
+                SendMessagesToView(
+                    platform = Platform.twitch,
+                    enabled = twitchSendMessagesTo,
+                    onEnabledChange = { twitchSendMessagesTo = it },
+                )
+            }
+            Box(modifier = Modifier.padding(11.dp)) {
+                SendMessagesToView(
+                    platform = Platform.kick,
+                    enabled = kickSendMessagesTo,
+                    onEnabledChange = { kickSendMessagesTo = it },
+                )
             }
         }
     }
@@ -839,20 +851,22 @@ private fun MenuItemView(
     text: String,
     action: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-            ) {
-                action()
-            }
-            .padding(11.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconAndTextLocalizedView(image = image, text = text)
-        Spacer(modifier = Modifier.weight(1f))
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    CompositionLocalProvider(LocalContentColor provides formPalette().accent) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .graphicsLayer { alpha = if (pressed) 0.2f else 1f }
+                .clickable(interactionSource = interactionSource, indication = null) {
+                    action()
+                }
+                .padding(11.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconAndTextLocalizedView(image = image, text = text)
+            Spacer(modifier = Modifier.weight(1f))
+        }
     }
 }
 
@@ -879,20 +893,18 @@ private fun ControlMenuButtonView(
             formPalette().accent,
         )
     }
-    if (presentingMenu) {
-        Sheet(onDismissRequest = { onPresentingMenuChange(false) }) {
-            Column(
-                modifier = Modifier.padding(5.dp),
-                horizontalAlignment = Alignment.Start,
-            ) {
-                MenuItemView(image = "shield", text = "Moderation") {
-                    onPresentingMenuChange(false)
-                    model.presentingModeration.value = true
-                }
-                MenuItemView(image = "list.bullet", text = "Predefined messages") {
-                    onPresentingMenuChange(false)
-                    model.presentingPredefinedMessages.value = true
-                }
+    Sheet(isPresented = presentingMenu, onDismissRequest = { onPresentingMenuChange(false) }) {
+        Column(
+            modifier = Modifier.padding(5.dp),
+            horizontalAlignment = Alignment.Start,
+        ) {
+            MenuItemView(image = "shield", text = "Moderation") {
+                onPresentingMenuChange(false)
+                model.presentingModeration.value = true
+            }
+            MenuItemView(image = "list.bullet", text = "Predefined messages") {
+                onPresentingMenuChange(false)
+                model.presentingPredefinedMessages.value = true
             }
         }
     }

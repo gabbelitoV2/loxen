@@ -7,7 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -16,12 +15,16 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.move
+import com.moblin.android.platform.swiftui.remove
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.chatBotCustomCommandsTextChanged
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatBotAlias
 import com.moblin.android.various.settings.SettingsChatBotCustomCommand
@@ -32,6 +35,7 @@ import com.moblin.android.view.settings.scenes.widgets.widget.text.TextFormatWar
 import com.moblin.android.view.settings.scenes.widgets.widget.text.TextWidgetSuggestionsView
 import com.moblin.android.view.settings.scenes.widgets.widget.text.TextWidgetTextView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.OpenAiSettingsView
 import com.moblin.android.view.utils.TextEditView
@@ -818,8 +822,23 @@ private fun ChatBotCustomCommandsSettingsView(
                 }
             },
         ) {
-            chat.customCommands.forEach { customCommand ->
-                key(customCommand.id) {
+            ForEach(
+                chat.customCommands,
+                id = { it.id },
+                onDelete = { offsets ->
+                    chat.customCommands.remove(atOffsets = offsets)
+                    model.chatBotCustomCommandsTextChanged()
+                },
+                onMove = { froms, to ->
+                    chat.customCommands.move(fromOffsets = froms, toOffset = to)
+                },
+            ) { customCommand ->
+                ContextMenuDeleteButton(
+                    action = {
+                        chat.customCommands.removeAll { it.id == customCommand.id }
+                        model.chatBotCustomCommandsTextChanged()
+                    },
+                ) {
                     ChatBotCustomCommandSettingsView(
                         customCommand = customCommand,
                         onNavigate = onNavigate
@@ -840,8 +859,21 @@ private fun ChatBotAliasesSettingsView(
 ) {
     Form(title = "Aliases") {
         Section {
-            chat.aliases.forEach { alias ->
-                key(alias.id) {
+            ForEach(
+                chat.aliases,
+                id = { it.id },
+                onDelete = { offsets ->
+                    chat.aliases.remove(atOffsets = offsets)
+                },
+                onMove = { froms, to ->
+                    chat.aliases.move(fromOffsets = froms, toOffset = to)
+                },
+            ) { alias ->
+                ContextMenuDeleteButton(
+                    action = {
+                        chat.aliases.removeAll { it.id == alias.id }
+                    },
+                ) {
                     ChatBotAliasSettingsView(
                         alias = alias,
                         onNavigate = onNavigate

@@ -11,10 +11,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.move
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.DeepLinkCreatorQuickButton
 import com.moblin.android.various.settings.DeepLinkCreatorQuickButtons
@@ -33,6 +36,8 @@ private fun DeepLinkCreatorQuickButtonSettingsView(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         DraggableItemPrefixView()
+        val enabled = binding({ button.enabled }) { button.enabled = it }
+        val page = binding({ button.page }) { button.page = it }
         val quickButton = model.getQuickButton(button.type)
         if (quickButton != null) {
             Column(
@@ -41,8 +46,8 @@ private fun DeepLinkCreatorQuickButtonSettingsView(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Toggle(
-                    isOn = button.enabled,
-                    onChange = { button.enabled = it },
+                    isOn = enabled.value,
+                    onChange = { enabled.value = it },
                 ) {
                     IconAndTextView(
                         image = quickButton.imageOff,
@@ -58,9 +63,9 @@ private fun DeepLinkCreatorQuickButtonSettingsView(
                     Spacer(Modifier.weight(1f))
                     Picker(
                         title = "Page",
-                        selection = button.page,
+                        selection = page.value,
                         options = (1..controlBarPages).toList(),
-                        onChange = { button.page = it },
+                        onChange = { page.value = it },
                     )
                 }
             }
@@ -79,40 +84,27 @@ fun DeepLinkCreatorQuickButtonsSettingsView(
         Section(header = "Appearance") {
             Toggle(
                 title = "Scroll",
-                isOn = quickButtons.enableScroll,
-            ) {
-                quickButtons.enableScroll = it
-            }
+                isOn = binding({ quickButtons.enableScroll }) { quickButtons.enableScroll = it },
+            )
             Toggle(
                 title = "Two columns",
-                isOn = quickButtons.twoColumns,
-            ) {
-                quickButtons.twoColumns = it
-            }
+                isOn = binding({ quickButtons.twoColumns }) { quickButtons.twoColumns = it },
+            )
             Toggle(
                 title = "Show name",
-                isOn = quickButtons.showName,
-            ) {
-                quickButtons.showName = it
-            }
+                isOn = binding({ quickButtons.showName }) { quickButtons.showName = it },
+            )
         }
         Section {
-            quickButtons.buttons.forEach { button ->
+            ForEach(
+                quickButtons.buttons,
+                id = { it.id },
+                onMove = { froms, to ->
+                    quickButtons.buttons.move(fromOffsets = froms, toOffset = to)
+                },
+            ) { button ->
                 DeepLinkCreatorQuickButtonSettingsView(model = model, button = button)
             }
         }
     }
-}
-
-private fun moveButtons(
-    buttons: MutableList<DeepLinkCreatorQuickButton>,
-    froms: List<Int>,
-    toOffset: Int,
-) {
-    val moving = froms.map { buttons[it] }
-    val target = toOffset - froms.count { it < toOffset }
-    val remaining = buttons.filterIndexed { index, _ -> index !in froms }.toMutableList()
-    remaining.addAll(target, moving)
-    buttons.clear()
-    buttons.addAll(remaining)
 }

@@ -1,24 +1,24 @@
 package com.moblin.android.view.settings.workoutdevices
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.remove
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWorkoutDevice
 import com.moblin.android.various.settings.SettingsWorkoutDevices
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.catprinters.IntegrationImageView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
@@ -47,18 +47,23 @@ fun WorkoutDevicesSettingsView(
                 SwipeLeftToDeleteHelpView(kind = localized("a device"))
             },
         ) {
-            workoutDevices.devices.forEach { device ->
-                key(device.id) {
+            ForEach(
+                workoutDevices.devices,
+                id = { it.id },
+                onDelete = { offsets ->
+                    workoutDevices.devices.remove(atOffsets = offsets)
+                },
+            ) { device ->
+                ContextMenuDeleteButton(action = {
+                    workoutDevices.devices = workoutDevices.devices
+                        .filterNot { it.id == device.id }
+                        .toMutableList()
+                }) {
                     WorkoutDeviceSettingsView(
                         model = model,
                         workoutDevices = workoutDevices,
                         device = device,
                         status = model.statusTopRight,
-                        modifier = Modifier.contextMenuDeleteButton {
-                            workoutDevices.devices = workoutDevices.devices
-                                .filterNot { it.id == device.id }
-                                .toMutableList()
-                        },
                     )
                 }
             }
@@ -70,7 +75,3 @@ fun WorkoutDevicesSettingsView(
         }
     }
 }
-
-@OptIn(ExperimentalFoundationApi::class)
-private fun Modifier.contextMenuDeleteButton(onDelete: () -> Unit): Modifier =
-    this.combinedClickable(onClick = {}, onLongClick = onDelete)

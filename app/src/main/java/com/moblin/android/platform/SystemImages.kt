@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.AutoAwesomeMotion
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Battery0Bar
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Bookmark
@@ -35,6 +36,7 @@ import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeviceHub
+import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.DirectionsWalk
@@ -62,6 +64,7 @@ import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.LastPage
 import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LayersClear
+import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.LocationOn
@@ -218,6 +221,7 @@ private val symbols: Map<String, ImageVector> = mapOf(
     "minus.magnifyingglass" to Icons.Filled.ZoomOut,
     "magnifyingglass" to Icons.Filled.Search,
     "plus" to Icons.Filled.Add,
+    "plus.square.on.square" to Icons.Filled.LibraryAdd,
     "minus" to Icons.Filled.Remove,
     "plus.circle" to Icons.Filled.AddCircle,
     "minus.circle" to Icons.Filled.RemoveCircle,
@@ -296,6 +300,9 @@ private val symbols: Map<String, ImageVector> = mapOf(
     "camera.rotate" to Icons.Filled.FlipCameraAndroid,
     "camera.rotate.fill" to Icons.Filled.FlipCameraAndroid,
     "car.side" to Icons.Filled.DirectionsCar,
+    "car" to Icons.Filled.DirectionsCar,
+    "bicycle" to Icons.Filled.DirectionsBike,
+    "battery.0" to Icons.Filled.Battery0Bar,
     "chevron.up.chevron.down" to Icons.Filled.UnfoldMore,
     "circle" to Icons.Filled.RadioButtonUnchecked,
     "circle.fill" to Icons.Filled.Circle,

@@ -1,21 +1,11 @@
 package com.moblin.android.view.controlbar.quickbutton.chat.moderation
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,12 +13,34 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.NavigationLink
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.formBodyStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.streamingplatforms.kick.KickFollowedChannel
 import com.moblin.android.streamingplatforms.kick.KickLiveSearchChannel
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.createKickApi
+import com.moblin.android.various.model.createKickPoll
+import com.moblin.android.various.model.createKickPrediction
+import com.moblin.android.various.model.deleteKickPoll
+import com.moblin.android.various.model.disableKickFollowersMode
+import com.moblin.android.various.model.disableKickSlowMode
+import com.moblin.android.various.model.enableKickFollowersMode
+import com.moblin.android.various.model.enableKickSlowMode
+import com.moblin.android.various.model.hostKickChannel
+import com.moblin.android.various.model.searchKickChannels
+import com.moblin.android.various.model.setKickEmoteOnlyMode
+import com.moblin.android.various.model.setKickShowViewCount
+import com.moblin.android.various.model.setKickSubscribersOnlyMode
+import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.OperationResult
 import com.moblin.android.view.controlbar.quickbutton.chat.ActionRowView
 import com.moblin.android.view.controlbar.quickbutton.chat.EmotesOnlyView
@@ -53,25 +65,18 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreatePollView(model: Model = LocalModel.current) {
     var title by remember { mutableStateOf("") }
     var options by remember { mutableStateOf(listOf(PollOption(), PollOption())) }
     var duration by remember { mutableStateOf(30) }
     var resultDisplayDuration by remember { mutableStateOf(15) }
-    var durationExpanded by remember { mutableStateOf(false) }
-    var resultDisplayExpanded by remember { mutableStateOf(false) }
     val executor = remember { Executor() }
 
     NavigationLinkView(text = "Create poll", image = "chart.bar") {
-        Text("Title", style = MaterialTheme.typography.titleMedium)
-        OutlinedTextField(
-            value = title,
-            onValueChange = { title = it },
-            label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth(),
-        )
+        Section(header = "Title") {
+            IosTextField(placeholder = "Title", value = title, onValueChange = { title = it })
+        }
         PollOptionsSectionView(
             header = "Options",
             placeholder = "Option",
@@ -80,83 +85,53 @@ private fun CreatePollView(model: Model = LocalModel.current) {
             onOptionsChange = { options = it },
             maxCount = 6,
         )
-        ExposedDropdownMenuBox(
-            expanded = durationExpanded,
-            onExpandedChange = { durationExpanded = it },
-        ) {
-            OutlinedTextField(
-                value = formatShortDuration(seconds = duration),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Duration") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = durationExpanded)
-                },
-                modifier = Modifier.menuAnchor().fillMaxWidth(),
-            )
-            ExposedDropdownMenu(
-                expanded = durationExpanded,
-                onDismissRequest = { durationExpanded = false },
+        Section {
+            Picker(
+                title = "Duration",
+                selection = duration,
+                options = listOf(30, 120, 180, 240, 300),
+                text = { formatShortDuration(seconds = it) },
             ) {
-                listOf(30, 120, 180, 240, 300).forEach { value ->
-                    DropdownMenuItem(
-                        text = { Text(formatShortDuration(seconds = value)) },
-                        onClick = {
-                            duration = value
-                            durationExpanded = false
-                        },
-                    )
-                }
+                duration = it
             }
         }
-        ExposedDropdownMenuBox(
-            expanded = resultDisplayExpanded,
-            onExpandedChange = { resultDisplayExpanded = it },
-        ) {
-            OutlinedTextField(
-                value = formatShortDuration(seconds = resultDisplayDuration),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Result display duration") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = resultDisplayExpanded)
-                },
-                modifier = Modifier.menuAnchor().fillMaxWidth(),
-            )
-            ExposedDropdownMenu(
-                expanded = resultDisplayExpanded,
-                onDismissRequest = { resultDisplayExpanded = false },
+        Section {
+            Picker(
+                title = "Result display duration",
+                selection = resultDisplayDuration,
+                options = listOf(15, 30, 120, 180, 240, 300),
+                text = { formatShortDuration(seconds = it) },
             ) {
-                listOf(15, 30, 120, 180, 240, 300).forEach { value ->
-                    DropdownMenuItem(
-                        text = { Text(formatShortDuration(seconds = value)) },
-                        onClick = {
-                            resultDisplayDuration = value
-                            resultDisplayExpanded = false
-                        },
-                    )
-                }
+                resultDisplayDuration = it
             }
         }
-        HCenter {
-            ExecutorView(executor = executor) {
-                CreateButtonView(action = {
-                    executor.startProgress()
-                    Unit
-                })
+        Section {
+            HCenter {
+                ExecutorView(executor = executor) {
+                    CreateButtonView {
+                        if (canCreatePoll(title = title, options = options)) {
+                            executor.startProgress()
+                            model.createKickPoll(
+                                title = title.trim(),
+                                options = pollOptionTitles(options = options),
+                                duration = duration,
+                                resultDisplayDuration = resultDisplayDuration,
+                                onComplete = executor::completed,
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CreatePredictionView(model: Model = LocalModel.current) {
     var title by remember { mutableStateOf("") }
     var outcome1 by remember { mutableStateOf("") }
     var outcome2 by remember { mutableStateOf("") }
     var duration by remember { mutableStateOf(300) }
-    var durationExpanded by remember { mutableStateOf(false) }
     val executor = remember { Executor() }
 
     fun canExecute(): Boolean {
@@ -166,61 +141,38 @@ private fun CreatePredictionView(model: Model = LocalModel.current) {
     }
 
     NavigationLinkView(text = "Create prediction", image = "sparkles") {
-        Text("Title", style = MaterialTheme.typography.titleMedium)
-        OutlinedTextField(
-            value = title,
-            onValueChange = { title = it },
-            label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Text("Outcomes", style = MaterialTheme.typography.titleMedium)
-        OutlinedTextField(
-            value = outcome1,
-            onValueChange = { outcome1 = it },
-            label = { Text("Outcome") },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        OutlinedTextField(
-            value = outcome2,
-            onValueChange = { outcome2 = it },
-            label = { Text("Outcome") },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        ExposedDropdownMenuBox(
-            expanded = durationExpanded,
-            onExpandedChange = { durationExpanded = it },
-        ) {
-            OutlinedTextField(
-                value = formatShortDuration(seconds = duration),
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Duration") },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(expanded = durationExpanded)
-                },
-                modifier = Modifier.menuAnchor().fillMaxWidth(),
-            )
-            ExposedDropdownMenu(
-                expanded = durationExpanded,
-                onDismissRequest = { durationExpanded = false },
+        Section(header = "Title") {
+            IosTextField(placeholder = "Title", value = title, onValueChange = { title = it })
+        }
+        Section(header = "Outcomes") {
+            IosTextField(placeholder = "Outcome", value = outcome1, onValueChange = { outcome1 = it })
+            IosTextField(placeholder = "Outcome", value = outcome2, onValueChange = { outcome2 = it })
+        }
+        Section {
+            Picker(
+                title = "Duration",
+                selection = duration,
+                options = listOf(60, 300, 600, 1800),
+                text = { formatShortDuration(seconds = it) },
             ) {
-                listOf(60, 300, 600, 1800).forEach { value ->
-                    DropdownMenuItem(
-                        text = { Text(formatShortDuration(seconds = value)) },
-                        onClick = {
-                            duration = value
-                            durationExpanded = false
-                        },
-                    )
-                }
+                duration = it
             }
         }
-        HCenter {
-            ExecutorView(executor = executor) {
-                CreateButtonView(action = {
-                    executor.startProgress()
-                    Unit
-                })
+        Section {
+            HCenter {
+                ExecutorView(executor = executor) {
+                    CreateButtonView {
+                        if (canExecute()) {
+                            executor.startProgress()
+                            model.createKickPrediction(
+                                title = title.trim(),
+                                outcomes = listOf(outcome1.trim(), outcome2.trim()),
+                                duration = duration,
+                                onComplete = executor::completed,
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -232,22 +184,35 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
     var channels by remember { mutableStateOf<List<KickLiveSearchChannel>>(emptyList()) }
     val executor = remember { Executor() }
 
-    LaunchedEffect(searchText) {
-        if (searchText.isEmpty()) {
-            channels = emptyList()
-            return@LaunchedEffect
-        }
-        executor.startProgress()
-        Unit
-    }
-
-    Column {
-        OutlinedTextField(
+    Section {
+        IosTextField(
+            placeholder = "Search",
             value = searchText,
-            onValueChange = { searchText = it },
-            label = { Text("Search") },
-            modifier = Modifier.fillMaxWidth(),
+            onValueChange = { newValue ->
+                val changed = newValue != searchText
+                searchText = newValue
+                if (changed && newValue.isEmpty()) {
+                    channels = emptyList()
+                } else if (changed) {
+                    executor.startProgress()
+                    model.searchKickChannels(query = newValue) { results ->
+                        if (results != null) {
+                            val text = newValue.lowercase()
+                            channels = results.sortedBy { if (it.username.lowercase().startsWith(text)) 0 else 1 }
+                            executor.completedNoTimer(result = NetworkResponse.Success(ByteArray(0)))
+                        } else {
+                            executor.completedNoTimer(result = NetworkResponse.Error)
+                        }
+                    }
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                autoCorrectEnabled = false,
+            ),
         )
+    }
+    Section {
         ExecutorView(executor = executor, centerNonContent = true) {
             channels.forEach { channel ->
                 RaidChannelView(
@@ -259,7 +224,7 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
                     isLive = channel.is_live,
                     viewerCount = channel.viewers_count,
                 ) { onComplete ->
-                    Unit
+                    model.hostKickChannel(channel = channel.username, onComplete = onComplete)
                 }
             }
         }
@@ -277,42 +242,48 @@ private fun HostChannelView(model: Model = LocalModel.current) {
             return
         }
         isLoading = true
-        Unit
+        model.createKickApi(stream = model.stream.value).getFollowedChannels(cursor = cursor) { response ->
+            isLoading = false
+            if (response != null) {
+                channels = channels + response.channels
+                cursor = response.nextCursor
+            }
+        }
     }
 
     NavigationLinkView(text = "Raid channel", image = "play.tv") {
         RaidChannelSearchView(model = model)
-        Text("Followed channels", style = MaterialTheme.typography.titleMedium)
-        channels.filter { it.is_live }.forEach { channel ->
-            RaidChannelView(
-                buttonText = "Raid",
-                channel = channel.user_username,
-                category = channel.category_name ?: "",
-                title = channel.session_title ?: "",
-                image = channel.profile_picture,
-                isLive = true,
-                viewerCount = channel.viewer_count,
-            ) { onComplete ->
-                Unit
+        Section(header = "Followed channels") {
+            channels.filter { it.is_live }.forEach { channel ->
+                RaidChannelView(
+                    buttonText = "Raid",
+                    channel = channel.user_username,
+                    category = channel.category_name ?: "",
+                    title = channel.session_title ?: "",
+                    image = channel.profile_picture,
+                    isLive = true,
+                    viewerCount = channel.viewer_count,
+                ) { onComplete ->
+                    model.hostKickChannel(channel = channel.user_username, onComplete = onComplete)
+                }
             }
-        }
-        if (isLoading) {
-            HCenter {
-                CircularProgressIndicator()
-            }
-        } else if (cursor != null) {
-            HCenter {
-                BorderlessButtonView(text = "Load more") {
-                    loadMoreChannels()
+            if (isLoading) {
+                HCenter {
+                    CircularProgressIndicator()
+                }
+            } else if (cursor != null) {
+                HCenter {
+                    BorderlessButtonView(text = "Load more") {
+                        loadMoreChannels()
+                    }
                 }
             }
         }
-    }
-
-    LaunchedEffect(Unit) {
-        channels = emptyList()
-        cursor = null
-        loadMoreChannels()
+        LaunchedEffect(Unit) {
+            channels = emptyList()
+            cursor = null
+            loadMoreChannels()
+        }
     }
 }
 
@@ -321,7 +292,6 @@ private fun ShowViewCountView(action: (Boolean, (OperationResult) -> Unit) -> Un
     ToggleActionView(text = "Show view count on channel", image = "eye", action = action)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickButtonChatModerationKickView(
     model: Model = LocalModel.current,
@@ -329,64 +299,112 @@ fun QuickButtonChatModerationKickView(
     onPlatformChange: (Platform?) -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
+    NavigationLink(
+        destination = {
+            QuickButtonChatModerationKickForm(
+                model = model,
+                onPlatformChange = onPlatformChange,
+            )
+        },
+    ) {
+        KickLogoAndNameView()
+    }
+}
+
+@Composable
+private fun QuickButtonChatModerationKickForm(
+    model: Model = LocalModel.current,
+    onPlatformChange: (Platform?) -> Unit,
+) {
     fun slowModeAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
         if (duration != null) {
-            Unit
+            model.enableKickSlowMode(messageInterval = duration, onComplete = onComplete)
         } else {
-            Unit
+            model.disableKickSlowMode(onComplete = onComplete)
         }
     }
 
     fun followersOnlyAction(duration: Int?, onComplete: (OperationResult) -> Unit) {
         if (duration != null) {
-            Unit
+            model.enableKickFollowersMode(followingMinDuration = duration / 60, onComplete = onComplete)
         } else {
-            Unit
+            model.disableKickFollowersMode(onComplete = onComplete)
         }
     }
 
-    LaunchedEffect(Unit) {
-        onPlatformChange(Platform.kick)
+    Form(title = "Kick") {
+        LaunchedEffect(Unit) {
+            onPlatformChange(Platform.kick)
+        }
+        Section {
+            HostChannelView(model = model)
+            CreatePollView(model = model)
+            ActionRowView(text = "Delete poll", image = "chart.bar") { onComplete ->
+                model.deleteKickPoll(onComplete = onComplete)
+            }
+            CreatePredictionView(model = model)
+        }
+        Section {
+            SlowModeView(
+                durations = listOf(3, 5, 10, 30, 60, 120, 300),
+                action = { duration, onComplete ->
+                    slowModeAction(duration = duration, onComplete = onComplete)
+                },
+            )
+            FollowersOnlyView(
+                durations = listOf(60, 300, 600, 3600),
+                action = { duration, onComplete ->
+                    followersOnlyAction(duration = duration, onComplete = onComplete)
+                },
+            )
+            SubscribersOnlyView(
+                action = { enabled, onComplete ->
+                    model.setKickSubscribersOnlyMode(enabled = enabled, onComplete = onComplete)
+                },
+            )
+            EmotesOnlyView(
+                action = { enabled, onComplete ->
+                    model.setKickEmoteOnlyMode(enabled = enabled, onComplete = onComplete)
+                },
+            )
+            ShowViewCountView(
+                action = { enabled, onComplete ->
+                    model.setKickShowViewCount(enabled = enabled, onComplete = onComplete)
+                },
+            )
+        }
+        Section {
+            ModActionType.entries.forEach { action ->
+                UserModerationItemView(model = model, action = action, platform = Platform.kick)
+            }
+        }
     }
+}
 
-    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        TopAppBar(title = { Text("Kick") })
-        Box(modifier = Modifier.clickable { onNavigate("Kick") }) {
-            KickLogoAndNameView()
+@Composable
+private fun IosTextField(
+    placeholder: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+) {
+    val palette = formPalette()
+    Box(modifier = Modifier.fillMaxWidth()) {
+        if (value.isEmpty()) {
+            Text(
+                text = localized(placeholder),
+                style = formBodyStyle,
+                color = palette.tertiaryLabel,
+            )
         }
-        HostChannelView(model = model)
-        CreatePollView(model = model)
-        ActionRowView(text = "Delete poll", image = "chart.bar") { onComplete ->
-            Unit
-        }
-        CreatePredictionView(model = model)
-        HorizontalDivider()
-        SlowModeView(
-            durations = listOf(3, 5, 10, 30, 60, 120, 300),
-            action = ::slowModeAction,
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = formBodyStyle.copy(color = palette.label),
+            keyboardOptions = keyboardOptions,
+            singleLine = true,
+            cursorBrush = SolidColor(palette.accent),
         )
-        FollowersOnlyView(
-            durations = listOf(60, 300, 600, 3600),
-            action = ::followersOnlyAction,
-        )
-        SubscribersOnlyView(
-            action = { enabled, onComplete ->
-                Unit
-            },
-        )
-        EmotesOnlyView(
-            action = { enabled, onComplete ->
-                Unit
-            },
-        )
-        ShowViewCountView(
-            action = { enabled, onComplete ->
-                Unit
-            },
-        )
-        HorizontalDivider()
-        ModActionType.entries.forEach { action ->
-            UserModerationItemView(model = model, action = action, platform = Platform.kick)
-        }
     }
 }

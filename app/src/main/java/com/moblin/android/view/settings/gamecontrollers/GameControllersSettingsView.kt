@@ -1,25 +1,21 @@
 package com.moblin.android.view.settings.gamecontrollers
 
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.remove
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsGameController
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
-import kotlinx.coroutines.withTimeoutOrNull
 
 private fun gameControllerIndex(database: Database, gameController: SettingsGameController): Int {
     val index = database.gameControllers.indexOfFirst { gameController2 ->
@@ -34,7 +30,6 @@ fun GameControllersSettingsView(
     database: Database,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val gameControllers = database.gameControllers
     Form(title = "Game controllers") {
         Section {
             Text(localized("Use game controllers to zoom, set scene, and more, from a distance."))
@@ -44,8 +39,16 @@ fun GameControllersSettingsView(
                 SwipeLeftToDeleteHelpView(kind = localized("a controller"))
             },
         ) {
-            for (gameController in gameControllers) {
-                key(gameController.id) {
+            ForEach(
+                database.gameControllers,
+                id = { it.id },
+                onDelete = { indexSet ->
+                    database.gameControllers.remove(atOffsets = indexSet)
+                },
+            ) { gameController ->
+                ContextMenuDeleteButton(action = {
+                    database.gameControllers.removeAll { it.id == gameController.id }
+                }) {
                     NavigationLink(
                         destination = {
                             GameControllersControllerSettingsView(
@@ -54,25 +57,7 @@ fun GameControllersSettingsView(
                             )
                         },
                     ) {
-                        Text(
-                            text = "Controller ${gameControllerIndex(database, gameController)}",
-                            modifier = Modifier.pointerInput(gameController.id) {
-                                awaitEachGesture {
-                                    awaitFirstDown(requireUnconsumed = false)
-                                    val up = withTimeoutOrNull(
-                                        viewConfiguration.longPressTimeoutMillis,
-                                    ) {
-                                        waitForUpOrCancellation()
-                                    }
-                                    if (up == null) {
-                                        database.gameControllers = database.gameControllers
-                                            .filterNot { it.id == gameController.id }
-                                            .toMutableList()
-                                        waitForUpOrCancellation()?.consume()
-                                    }
-                                }
-                            },
-                        )
+                        Text(text = "Controller ${gameControllerIndex(database, gameController)}")
                     }
                 }
             }

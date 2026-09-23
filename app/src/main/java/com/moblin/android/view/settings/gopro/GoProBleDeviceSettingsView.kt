@@ -1,7 +1,9 @@
 package com.moblin.android.view.settings.gopro
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,8 +14,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -25,15 +27,18 @@ import com.moblin.android.integrations.gopro.GoProDeviceScanner
 import com.moblin.android.integrations.gopro.GoProDeviceState
 import com.moblin.android.integrations.gopro.GoProDiscoveredDevice
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.move
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.model.bluetoothNotAllowedMessage
+import com.moblin.android.various.model.removeGoProDevices
 import com.moblin.android.various.settings.SettingsDjiDeviceUrlType
 import com.moblin.android.various.settings.SettingsGoPro
 import com.moblin.android.various.settings.SettingsGoProDevice
@@ -46,6 +51,7 @@ import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.djidevices.rtmpServerStreamUrl
 import com.moblin.android.view.settings.ingests.rtmpserver.RtmpServerSettingsView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.HCenter
@@ -450,17 +456,39 @@ fun GoProBleDevicesSettingsSection(
             "Pair and control compatible GoPro devices over Bluetooth. HERO9 Black or newer is required.",
         ),
     ) {
-        for (device in goPro.devices) {
-            key(device.id) {
+        ForEach(
+            goPro.devices,
+            id = { it.id },
+            onDelete = { offsets ->
+                model.removeGoProDevices(offsets)
+            },
+            onMove = { from, to ->
+                goPro.devices.move(fromOffsets = from, toOffset = to)
+            },
+        ) { device ->
+            ContextMenuDeleteButton(
+                action = {
+                    val offset = goPro.devices.indexOfFirst { it.id == device.id }
+                    if (offset >= 0) {
+                        model.removeGoProDevices(setOf(offset))
+                    }
+                },
+            ) {
                 NavigationLink(
                     destination = {
                         GoProBleDeviceSettingsView(model = model, device = device)
                     },
                 ) {
-                    DraggableItemPrefixView()
-                    Text(device.name)
-                    Spacer(Modifier.weight(1f))
-                    GrayTextView(text = formatGoProDeviceState(device.state))
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        DraggableItemPrefixView()
+                        Text(device.name)
+                        Spacer(Modifier.weight(1f))
+                        GrayTextView(text = formatGoProDeviceState(device.state))
+                    }
                 }
             }
         }
