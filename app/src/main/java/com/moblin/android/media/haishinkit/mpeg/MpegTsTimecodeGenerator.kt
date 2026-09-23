@@ -37,7 +37,7 @@ class MpegTsTimecodeGenerator {
     fun makeTimecode(presentationTimeStamp: Long, decodeTimeStamp: Long): MpegTsTimecode? {
         val base = presentationTimeStampBase ?: return null
         val pts = presentationTimeStamp / 1_000_000.0
-        var dts = decodeTimeStamp / 1_000_000.0
+        var dts = if (decodeTimeStamp == Long.MIN_VALUE) Double.NaN else decodeTimeStamp / 1_000_000.0
         if (dts.isNaN()) {
             dts = pts
         }

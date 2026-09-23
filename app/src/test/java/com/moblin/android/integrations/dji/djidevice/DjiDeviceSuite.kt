@@ -1,6 +1,10 @@
 package com.moblin.android.integrations.dji.djidevice
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlin.test.assertEquals
 import org.junit.Test
 import com.moblin.android.various.settings.SettingsDjiDeviceResolution
@@ -8,6 +12,12 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
 private fun ByteArray.hexString(): String = joinToString("") { "%02x".format(it) }
+
+private fun JsonElement.asNsObject(): JsonElement = when (this) {
+    is JsonObject -> JsonObject(mapValues { it.value.asNsObject() })
+    is JsonPrimitive -> if (isString) this else booleanOrNull?.let { JsonPrimitive(if (it) 1 else 0) } ?: this
+    else -> this
+}
 
 @RunWith(RobolectricTestRunner::class)
 class DjiDeviceSuite {
@@ -42,8 +52,8 @@ class DjiDeviceSuite {
                     "watermark": 0
                 }
                 """.trimIndent(),
-            ),
-            json,
+            ).asNsObject(),
+            json.asNsObject(),
         )
     }
 
@@ -78,8 +88,8 @@ class DjiDeviceSuite {
                     "watermark": 0
                 }
                 """.trimIndent(),
-            ),
-            json,
+            ).asNsObject(),
+            json.asNsObject(),
         )
     }
 }

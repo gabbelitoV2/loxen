@@ -93,11 +93,31 @@ private fun lowResolutionGiphyUrl(url: String): String {
     if (host == null || !host.endsWith("giphy.com")) {
         return url
     }
-    val lastSlashIndex = url.lastIndexOf('/')
-    if (lastSlashIndex == -1) {
-        return url
+    val pathEndIndex = url.indexOfAny(charArrayOf('?', '#')).takeIf { it != -1 } ?: url.length
+    val pathStartIndex = url.indexOf('/', url.indexOf("//") + 2).takeIf { it != -1 && it < pathEndIndex }
+        ?: pathEndIndex
+    val path = url.substring(pathStartIndex, pathEndIndex)
+    var newPath = if (path.trimEnd('/').substringAfterLast('/') == "..") {
+        path
+    } else {
+        deletingLastPathComponent(path)
     }
-    return url.substring(0, lastSlashIndex + 1) + "100.gif"
+    if (!newPath.endsWith("/")) {
+        newPath += "/"
+    }
+    return url.substring(0, pathStartIndex) + newPath + "100.gif" + url.substring(pathEndIndex)
+}
+
+private fun deletingLastPathComponent(path: String): String {
+    val trimmedPath = path.trimEnd('/')
+    if (trimmedPath.isEmpty()) {
+        return if (path.isEmpty()) "" else "/"
+    }
+    val lastSlashIndex = trimmedPath.lastIndexOf('/')
+    if (lastSlashIndex == -1) {
+        return ""
+    }
+    return trimmedPath.substring(0, lastSlashIndex).trimEnd('/').ifEmpty { "/" }
 }
 
 private fun tagNameAndValue(from: String): Pair<String, String>? {

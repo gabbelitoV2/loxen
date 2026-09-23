@@ -201,13 +201,13 @@ class LutEffectSuite {
 
     @Test
     fun convertCubeFileErrors() {
-        assertFailsWith<Exception> {
+        assertFailsWith<SwiftCubeError> {
             lutEffectConvertCube("LUT_1D_SIZE 2\n0 0 0\n1 1 1\n".toByteArray())
         }
-        assertFailsWith<Exception> {
+        assertFailsWith<SwiftCubeError> {
             lutEffectConvertCube("LUT_3D_SIZE 2\n0 0 0\n".toByteArray())
         }
-        assertFailsWith<Exception> {
+        assertFailsWith<SwiftCubeError> {
             lutEffectConvertCube(byteArrayOf(0xFF.toByte(), 0xFE.toByte(), 0x00))
         }
     }
@@ -226,7 +226,8 @@ class LutEffectSuite {
             "1 2 3\n" +
             "4 5 6\n" +
             "7 8 9"
-        val lut = lutEffectConvertCube(text.toByteArray(Charsets.UTF_8))
+        val lut = SC3DLut(text.toByteArray(Charsets.UTF_8))
+        assertEquals("My LUT", lut.title)
         assertEquals(2, lut.size)
         assertEquals(8, lut.entries.size)
         assertTrue(isEqual(entry(lut.entries, lut.size, 0, 0, 0), SIMD3(0f, 0f, 0f)))
@@ -258,21 +259,21 @@ class LutEffectSuite {
     fun parseCubeFileSyntaxErrors() {
         val lines = listOf("1 2", "1 2 3 4", "1 2 x", "1e 2 3", "1.2.3 4 5", "- 2 3", "1 2 3;")
         for (line in lines) {
-            assertFailsWith<Exception> {
-                lutEffectConvertCube("LUT_3D_SIZE 1\n$line\n".toByteArray())
+            assertFailsWith<SwiftCubeError> {
+                SC3DLut("LUT_3D_SIZE 1\n$line\n".toByteArray())
             }
         }
-        assertFailsWith<Exception> {
-            lutEffectConvertCube("LUT_3D_SIZE 100\n".toByteArray())
+        assertFailsWith<SwiftCubeError> {
+            SC3DLut("LUT_3D_SIZE 100\n".toByteArray())
         }
-        assertFailsWith<Exception> {
-            lutEffectConvertCube("LUT_3D_SIZE 1\nDOMAIN_MIN 0 0 0\n1 1 1\n".toByteArray())
+        assertFailsWith<SwiftCubeError> {
+            SC3DLut("LUT_3D_SIZE 1\nDOMAIN_MIN 0 0 0\n1 1 1\n".toByteArray())
         }
-        assertFailsWith<Exception> {
-            lutEffectConvertCube("LUT_3D_SIZE 1\nFOO\n1 1 1\n".toByteArray())
+        assertFailsWith<SwiftCubeError> {
+            SC3DLut("LUT_3D_SIZE 1\nFOO\n1 1 1\n".toByteArray())
         }
-        assertFailsWith<Exception> {
-            lutEffectConvertCube("1 1 1\n".toByteArray())
+        assertFailsWith<SwiftCubeError> {
+            SC3DLut("1 1 1\n".toByteArray())
         }
     }
 
@@ -346,7 +347,7 @@ class LutEffectSuite {
     fun dither64() {
         val bytes = readTestFile(name = "dither64", suffix = "png")
         val image = assertNotNull(BitmapFactory.decodeByteArray(bytes, 0, bytes.size))
-        val exception = assertFailsWith<Exception> { lutEffectConvertLut(image) }
+        val exception = assertFailsWith<Exception> { lutEffectConvertLut(image, pngComponentsPerPixel(bytes)) }
         assertEquals(localized("LUT image is not 3 or 4 components per pixel"), exception.message)
     }
 }

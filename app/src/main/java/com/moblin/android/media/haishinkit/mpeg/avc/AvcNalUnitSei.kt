@@ -6,7 +6,7 @@ import com.moblin.android.media.haishinkit.mpeg.NalUnitWriter
 import com.moblin.android.media.haishinkit.mpeg.hevc.writeMoreDataInPayload
 import com.moblin.android.media.haishinkit.mpeg.hevc.writeRbspTrailingBits
 import java.time.Instant
-import java.time.ZoneId
+import java.time.ZoneOffset
 
 class AvcSeiPayloadPictureTiming(
     hours: UByte,
@@ -24,9 +24,9 @@ class AvcSeiPayloadPictureTiming(
         private set
 
     constructor(clock: Instant, frame: UInt) : this(
-        clock.atZone(ZoneId.systemDefault()).hour.toUByte(),
-        clock.atZone(ZoneId.systemDefault()).minute.toUByte(),
-        clock.atZone(ZoneId.systemDefault()).second.toUByte(),
+        clock.atZone(ZoneOffset.UTC).hour.toUByte(),
+        clock.atZone(ZoneOffset.UTC).minute.toUByte(),
+        clock.atZone(ZoneOffset.UTC).second.toUByte(),
         frame,
     )
 

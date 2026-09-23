@@ -1,72 +1,160 @@
 package com.moblin.android.various
 
+import android.icu.text.BreakIterator
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.settings.SettingsChatBotAlias
+import kotlin.math.abs
 
-private data class FuzzyMatchOptions(val threshold: Double, val distance: Int)
+private data class FuzzyMatchOptions(val threshold: Double, val distance: Double)
 
-private val fuzzyMatchOptions = FuzzyMatchOptions(threshold = 0.34, distance = 1000)
+private val fuzzyMatchOptions = FuzzyMatchOptions(threshold = 0.34, distance = 1000.0)
 
 internal fun fuzzyMatches(text: String, pattern: String): Boolean {
     return fuzzyMatchPattern(text + " ", pattern, fuzzyMatchOptions) != null
 }
 
-private fun fuzzyMatchPattern(text: String, pattern: String, options: FuzzyMatchOptions): Double? {
-    val needle = pattern.lowercase()
-    val haystack = text.lowercase()
-    if (needle.isEmpty()) {
-        return null
+private fun characters(text: String): List<String> {
+    val iterator = BreakIterator.getCharacterInstance()
+    iterator.setText(text)
+    val characters = mutableListOf<String>()
+    var start = iterator.first()
+    var end = iterator.next()
+    while (end != BreakIterator.DONE) {
+        characters.add(text.substring(start, end))
+        start = end
+        end = iterator.next()
     }
-    if (!isSubsequence(needle, haystack)) {
-        return null
-    }
-    val distance = levenshteinDistance(needle, haystack)
-    if (distance > options.distance) {
-        return null
-    }
-    val length = maxOf(needle.length, haystack.length)
-    if (length == 0) {
-        return null
-    }
-    val similarity = 1.0 - distance.toDouble() / length.toDouble()
-    if (similarity < options.threshold) {
-        return null
-    }
-    return similarity
+    return characters
 }
 
-private fun isSubsequence(needle: String, haystack: String): Boolean {
-    var index = 0
-    for (character in haystack) {
-        if (index < needle.length && character == needle[index]) {
-            index += 1
-        }
+private fun fuzzyMatchPattern(text: String, pattern: String, options: FuzzyMatchOptions): Int? {
+    if (text.isEmpty()) {
+        return null
     }
-    return index == needle.length
+    val location = 0
+    if (text.equals(pattern, ignoreCase = true)) {
+        return 0
+    }
+    if (pattern.isEmpty()) {
+        return null
+    }
+    val textCharacters = characters(text)
+    val patternCharacters = characters(pattern)
+    if (patternCharacters.size <= textCharacters.size &&
+        pattern.equals(textCharacters.subList(0, patternCharacters.size).joinToString(""), ignoreCase = true)
+    ) {
+        return location
+    }
+    return matchBitap(textCharacters, patternCharacters, location, options.threshold, options.distance)
 }
 
-private fun levenshteinDistance(a: String, b: String): Int {
-    val n = a.length
-    val m = b.length
-    if (n == 0) {
-        return m
-    }
-    if (m == 0) {
-        return n
-    }
-    var previous = IntArray(m + 1) { it }
-    var current = IntArray(m + 1)
-    for (i in 1..n) {
-        current[0] = i
-        for (j in 1..m) {
-            val substitution = previous[j - 1] + if (a[i - 1] == b[j - 1]) 0 else 1
-            current[j] = minOf(previous[j] + 1, current[j - 1] + 1, substitution)
+private fun matchBitap(
+    text: List<String>,
+    pattern: List<String>,
+    loc: Int,
+    threshold: Double,
+    distance: Double,
+): Int? {
+    val alphabet = matchAlphabet(pattern)
+    var scoreThreshold = threshold
+    var bestLoc = searchForSubstring(text, pattern, loc)
+    val matchMask = shiftLeft(1, pattern.size - 1)
+    var lastRd = LongArray(0)
+    for (index in pattern.indices) {
+        var binMin = 0
+        var binMax = pattern.size + text.size
+        var binMid = binMax
+        while (binMin < binMid) {
+            if (bitapScore(index, loc + binMid, loc, pattern, distance) <= scoreThreshold) {
+                binMin = binMid
+            } else {
+                binMax = binMid
+            }
+            binMid = (binMax - binMin) / 2 + binMin
         }
-        val swap = previous
-        previous = current
-        current = swap
+        val start = if (loc <= binMid) 1 else loc - binMid + 1
+        val finish = minOf(loc + binMid, text.size) + pattern.size
+        val rd = LongArray(finish + 2)
+        rd[finish + 1] = shiftLeft(1, index) - 1
+        for (j in finish downTo start) {
+            val charMatch = characterMatch(text, j, alphabet)
+            rd[j] = if (index == 0) {
+                ((rd[j + 1] shl 1) or 1) and charMatch
+            } else {
+                val lastMatch = ((lastRd[j + 1] or lastRd[j]) shl 1) or 1
+                (((rd[j + 1] shl 1) or 1) and charMatch) or lastMatch or lastRd[j + 1]
+            }
+            if ((rd[j] and matchMask) != 0L) {
+                val score = bitapScore(index, j - 1, loc, pattern, distance)
+                if (score <= scoreThreshold) {
+                    scoreThreshold = score
+                    bestLoc = j - 1
+                    if (j - 1 <= loc) {
+                        break
+                    }
+                }
+            }
+        }
+        if (bitapScore(index + 1, loc, loc, pattern, distance) > scoreThreshold) {
+            break
+        }
+        lastRd = rd
     }
-    return previous[m]
+    return bestLoc
+}
+
+private fun shiftLeft(value: Long, count: Int): Long {
+    return if (count >= Long.SIZE_BITS) 0 else value shl count
+}
+
+private fun characterMatch(text: List<String>, position: Int, alphabet: Map<String, Long>): Long {
+    if (position <= 0 || position >= text.size) {
+        return 0
+    }
+    return alphabet[text[position - 1]] ?: 0
+}
+
+private fun matchAlphabet(pattern: List<String>): Map<String, Long> {
+    val alphabet = mutableMapOf<String, Long>()
+    for ((index, character) in pattern.withIndex()) {
+        alphabet[character] = (alphabet[character] ?: 0) or shiftLeft(1, pattern.size - index - 1)
+    }
+    return alphabet
+}
+
+private fun bitapScore(errorCount: Int, x: Int, loc: Int, pattern: List<String>, distance: Double): Double {
+    val accuracy = errorCount.toDouble() / pattern.size.toDouble()
+    val proximity = abs(loc - x)
+    if (distance == 0.0) {
+        return accuracy
+    }
+    return accuracy + proximity.toDouble() / distance
+}
+
+private fun characterIndex(characters: List<String>, offset: Int): Int {
+    var end = 0
+    for ((index, character) in characters.withIndex()) {
+        end += character.length
+        if (end > offset) {
+            return index
+        }
+    }
+    return characters.size
+}
+
+private fun searchForSubstring(text: List<String>, pattern: List<String>, loc: Int): Int? {
+    val textString = text.joinToString("")
+    val patternString = pattern.joinToString("")
+    val forwardMatch = textString.indexOf(patternString)
+    if (forwardMatch == -1) {
+        return null
+    }
+    val backwardEnd = text.subList(0, minOf(loc + pattern.size, text.size)).sumOf { it.length }
+    val backwardMatch = textString.substring(0, backwardEnd).lastIndexOf(patternString)
+    if (backwardMatch == -1) {
+        return characterIndex(text, forwardMatch)
+    }
+    return characterIndex(text, backwardMatch)
 }
 
 internal inline fun <reified T> matchArgument(argument: String): T? where T : Enum<T>, T : ChatBotArgument {

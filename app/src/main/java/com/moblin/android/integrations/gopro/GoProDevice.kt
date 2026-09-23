@@ -462,16 +462,16 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processStartScanResponse(payload: ByteArray) {
-        val response: OpenGopro_ResponseStartScanning =
-            TODO()
+        val response = runCatching { OpenGopro_ResponseStartScanning(serializedBytes = payload) }.getOrNull()
+            ?: return
         if (response.result != OpenGopro_EnumResultGeneric.resultSuccess) {
             fail(GoProDeviceState.wifiSetupFailed)
         }
     }
 
     private fun processScanningNotification(payload: ByteArray) {
-        val notification: OpenGopro_NotifStartScanning =
-            TODO()
+        val notification = runCatching { OpenGopro_NotifStartScanning(serializedBytes = payload) }.getOrNull()
+            ?: return
         if (state != GoProDeviceState.settingUpWifi) {
             return
         }
@@ -500,8 +500,8 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processGetApEntriesResponse(payload: ByteArray) {
-        val response: OpenGopro_ResponseGetApEntries =
-            TODO()
+        val response = runCatching { OpenGopro_ResponseGetApEntries(serializedBytes = payload) }.getOrNull()
+            ?: return
         if (state != GoProDeviceState.settingUpWifi || scanId == null) {
             return
         }
@@ -521,8 +521,8 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processConnectResponse(payload: ByteArray) {
-        val response: OpenGopro_ResponseConnect =
-            TODO()
+        val response = runCatching { OpenGopro_ResponseConnect(serializedBytes = payload) }.getOrNull()
+            ?: return
         if (response.result != OpenGopro_EnumResultGeneric.resultSuccess) {
             fail(GoProDeviceState.wifiSetupFailed)
             return
@@ -539,8 +539,8 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processProvisioningNotification(payload: ByteArray) {
-        val notification: OpenGopro_NotifProvisioningState =
-            TODO()
+        val notification = runCatching { OpenGopro_NotifProvisioningState(serializedBytes = payload) }.getOrNull()
+            ?: return
         handleProvisioningState(notification.provisioningState)
     }
 
@@ -576,8 +576,8 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processSetLiveStreamModeResponse(payload: ByteArray) {
-        val response: OpenGopro_ResponseGeneric =
-            TODO()
+        val response = runCatching { OpenGopro_ResponseGeneric(serializedBytes = payload) }.getOrNull()
+            ?: return
         if (response.result != OpenGopro_EnumResultGeneric.resultSuccess) {
             fail()
         }
@@ -611,8 +611,8 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processLiveStreamStatus(payload: ByteArray, isResponse: Boolean) {
-        val status: OpenGopro_NotifyLiveStreamStatus =
-            TODO()
+        val status = runCatching { OpenGopro_NotifyLiveStreamStatus(serializedBytes = payload) }.getOrNull()
+            ?: return
         if (isResponse && supportedLenses == null) {
             supportedLenses =
                 if (status.liveStreamLensSupported) status.liveStreamLensSupportedArray
@@ -624,7 +624,7 @@ class GoProDevice(private val context: Context) {
     private fun processStatusResponse(payload: ByteArray) {
         if (payload.size < 3 ||
             payload[0].toUByte() != goProBatteryPercentageStatusId ||
-            payload[1].toInt() < 1
+            payload[1].toUByte() < 1u
         ) {
             return
         }

@@ -1,5 +1,10 @@
 package com.moblin.android.integrations.gopro.protobuf
 
+import com.moblin.android.platform.swiftprotobuf.BinaryDecoder
+import com.moblin.android.platform.swiftprotobuf.BinaryEncodingVisitor
+import com.moblin.android.platform.swiftprotobuf.Message
+import com.moblin.android.platform.swiftprotobuf.merge
+
 private const val _protobuf_package = "open_gopro"
 
 enum class OpenGopro_EnumLens(val rawValue: Int) {
@@ -144,7 +149,11 @@ enum class OpenGopro_EnumWindowSize(val rawValue: Int) {
     }
 }
 
-class OpenGopro_NotifyLiveStreamStatus {
+class OpenGopro_NotifyLiveStreamStatus() : Message {
+    constructor(serializedBytes: ByteArray) : this() {
+        merge(serializedBytes)
+    }
+
     private var _liveStreamStatus: OpenGopro_EnumLiveStreamStatus? = null
     var liveStreamStatus: OpenGopro_EnumLiveStreamStatus
         get() = _liveStreamStatus ?: OpenGopro_EnumLiveStreamStatus.liveStreamStateIdle
@@ -229,14 +238,52 @@ class OpenGopro_NotifyLiveStreamStatus {
         get() = _liveStreamProtuneSupported != null
     fun clearLiveStreamProtuneSupported() { _liveStreamProtuneSupported = null }
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
-    fun decodeMessage(decoder: Any) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeSingularEnumField { OpenGopro_EnumLiveStreamStatus.fromRawValue(it) }
+                    ?.let { _liveStreamStatus = it }
+                2 -> decoder.decodeSingularEnumField { OpenGopro_EnumLiveStreamError.fromRawValue(it) }
+                    ?.let { _liveStreamError = it }
+                3 -> decoder.decodeSingularBoolField()?.let { _liveStreamEncode = it }
+                4 -> decoder.decodeSingularInt32Field()?.let { _liveStreamBitrate = it }
+                5 -> decoder.decodeRepeatedEnumField(liveStreamWindowSizeSupportedArray) {
+                    OpenGopro_EnumWindowSize.fromRawValue(it)
+                }
+                6 -> decoder.decodeSingularBoolField()?.let { _liveStreamEncodeSupported = it }
+                7 -> decoder.decodeSingularBoolField()?.let { _liveStreamMaxLensUnsupported = it }
+                8 -> decoder.decodeSingularInt32Field()?.let { _liveStreamMinimumStreamBitrate = it }
+                9 -> decoder.decodeSingularInt32Field()?.let { _liveStreamMaximumStreamBitrate = it }
+                10 -> decoder.decodeSingularBoolField()?.let { _liveStreamLensSupported = it }
+                11 -> decoder.decodeRepeatedEnumField(liveStreamLensSupportedArray) {
+                    OpenGopro_EnumLens.fromRawValue(it)
+                }
+                13 -> decoder.decodeSingularBoolField()?.let { _liveStreamProtuneSupported = it }
+            }
+        }
     }
 
-    fun traverse(visitor: Any) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        _liveStreamStatus?.let { visitor.visitSingularEnumField(it.rawValue, 1) }
+        _liveStreamError?.let { visitor.visitSingularEnumField(it.rawValue, 2) }
+        _liveStreamEncode?.let { visitor.visitSingularBoolField(it, 3) }
+        _liveStreamBitrate?.let { visitor.visitSingularInt32Field(it, 4) }
+        if (liveStreamWindowSizeSupportedArray.isNotEmpty()) {
+            visitor.visitRepeatedEnumField(liveStreamWindowSizeSupportedArray.map { it.rawValue }, 5)
+        }
+        _liveStreamEncodeSupported?.let { visitor.visitSingularBoolField(it, 6) }
+        _liveStreamMaxLensUnsupported?.let { visitor.visitSingularBoolField(it, 7) }
+        _liveStreamMinimumStreamBitrate?.let { visitor.visitSingularInt32Field(it, 8) }
+        _liveStreamMaximumStreamBitrate?.let { visitor.visitSingularInt32Field(it, 9) }
+        _liveStreamLensSupported?.let { visitor.visitSingularBoolField(it, 10) }
+        if (liveStreamLensSupportedArray.isNotEmpty()) {
+            visitor.visitRepeatedEnumField(liveStreamLensSupportedArray.map { it.rawValue }, 11)
+        }
+        _liveStreamProtuneSupported?.let { visitor.visitSingularBoolField(it, 13) }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -325,19 +372,35 @@ class OpenGopro_NotifyLiveStreamStatus {
     }
 }
 
-class OpenGopro_RequestGetLiveStreamStatus {
+class OpenGopro_RequestGetLiveStreamStatus : Message {
     var registerLiveStreamStatus: MutableList<OpenGopro_EnumRegisterLiveStreamStatus> = mutableListOf()
 
     var unregisterLiveStreamStatus: MutableList<OpenGopro_EnumRegisterLiveStreamStatus> = mutableListOf()
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
-    fun decodeMessage(decoder: Any) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeRepeatedEnumField(registerLiveStreamStatus) {
+                    OpenGopro_EnumRegisterLiveStreamStatus.fromRawValue(it)
+                }
+                2 -> decoder.decodeRepeatedEnumField(unregisterLiveStreamStatus) {
+                    OpenGopro_EnumRegisterLiveStreamStatus.fromRawValue(it)
+                }
+            }
+        }
     }
 
-    fun traverse(visitor: Any) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        if (registerLiveStreamStatus.isNotEmpty()) {
+            visitor.visitRepeatedEnumField(registerLiveStreamStatus.map { it.rawValue }, 1)
+        }
+        if (unregisterLiveStreamStatus.isNotEmpty()) {
+            visitor.visitRepeatedEnumField(unregisterLiveStreamStatus.map { it.rawValue }, 2)
+        }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -376,7 +439,7 @@ class OpenGopro_RequestGetLiveStreamStatus {
     }
 }
 
-class OpenGopro_RequestSetLiveStreamMode {
+class OpenGopro_RequestSetLiveStreamMode : Message {
     private var _url: String? = null
     var url: String
         get() = _url ?: String()
@@ -441,14 +504,36 @@ class OpenGopro_RequestSetLiveStreamMode {
         get() = _lens != null
     fun clearLens() { _lens = null }
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
-    fun decodeMessage(decoder: Any) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeSingularStringField()?.let { _url = it }
+                2 -> decoder.decodeSingularBoolField()?.let { _encode = it }
+                3 -> decoder.decodeSingularEnumField { OpenGopro_EnumWindowSize.fromRawValue(it) }
+                    ?.let { _windowSize = it }
+                6 -> decoder.decodeSingularBytesField()?.let { _cert = it }
+                7 -> decoder.decodeSingularInt32Field()?.let { _minimumBitrate = it }
+                8 -> decoder.decodeSingularInt32Field()?.let { _maximumBitrate = it }
+                9 -> decoder.decodeSingularInt32Field()?.let { _startingBitrate = it }
+                10 -> decoder.decodeSingularEnumField { OpenGopro_EnumLens.fromRawValue(it) }
+                    ?.let { _lens = it }
+            }
+        }
     }
 
-    fun traverse(visitor: Any) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        _url?.let { visitor.visitSingularStringField(it, 1) }
+        _encode?.let { visitor.visitSingularBoolField(it, 2) }
+        _windowSize?.let { visitor.visitSingularEnumField(it.rawValue, 3) }
+        _cert?.let { visitor.visitSingularBytesField(it, 6) }
+        _minimumBitrate?.let { visitor.visitSingularInt32Field(it, 7) }
+        _maximumBitrate?.let { visitor.visitSingularInt32Field(it, 8) }
+        _startingBitrate?.let { visitor.visitSingularInt32Field(it, 9) }
+        _lens?.let { visitor.visitSingularEnumField(it.rawValue, 10) }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {

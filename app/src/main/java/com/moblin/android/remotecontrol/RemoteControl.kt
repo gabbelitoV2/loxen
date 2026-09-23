@@ -47,10 +47,14 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.addJsonObject
 import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.double
@@ -366,7 +370,7 @@ sealed class RemoteControlRequest {
     data class SetFilter(val filter: RemoteControlFilter, val on: Boolean) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("setFilter") {
-                put("filter", remoteControlJson.encodeToJsonElement(filter))
+                putJsonObject("filter") { putJsonObject(filter.wireName) {} }
                 put("on", on)
             }
         }
@@ -375,7 +379,7 @@ sealed class RemoteControlRequest {
     data class TriggerReaction(val reaction: RemoteControlReaction) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("triggerReaction") {
-                put("reaction", remoteControlJson.encodeToJsonElement(reaction))
+                putJsonObject("reaction") { putJsonObject(reaction.wireName) {} }
             }
         }
     }
@@ -404,7 +408,7 @@ sealed class RemoteControlRequest {
     data class AnimateGimbal(val motion: SettingsGimbalMotion) : RemoteControlRequest() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("animateGimbal") {
-                put("motion", remoteControlJson.encodeToJsonElement(motion))
+                putJsonObject("motion") { putJsonObject(motion.rawValue) {} }
             }
         }
     }
@@ -572,15 +576,11 @@ sealed class RemoteControlRequest {
                     body = Base64.decode(params.getValue("body").jsonPrimitive.content, Base64.NO_WRAP),
                 )
                 "setFilter" -> SetFilter(
-                    filter = remoteControlJson.decodeFromJsonElement<RemoteControlFilter>(
-                        params.getValue("filter"),
-                    ),
+                    filter = decodeRemoteControlCase(params.getValue("filter"), RemoteControlFilter::fromName),
                     on = params.getValue("on").jsonPrimitive.boolean,
                 )
                 "triggerReaction" -> TriggerReaction(
-                    reaction = remoteControlJson.decodeFromJsonElement<RemoteControlReaction>(
-                        params.getValue("reaction"),
-                    ),
+                    reaction = decodeRemoteControlCase(params.getValue("reaction"), RemoteControlReaction::fromName),
                 )
                 "moveToGimbalPreset" -> MoveToGimbalPreset(
                     id = UUID.fromString(params.getValue("id").jsonPrimitive.content),
@@ -591,9 +591,9 @@ sealed class RemoteControlRequest {
                     y = params.getValue("y").jsonPrimitive.float,
                 )
                 "animateGimbal" -> AnimateGimbal(
-                    motion = remoteControlJson.decodeFromJsonElement<SettingsGimbalMotion>(
-                        params.getValue("motion"),
-                    ),
+                    motion = decodeRemoteControlCase(params.getValue("motion")) { name ->
+                        SettingsGimbalMotion.entries.firstOrNull { it.rawValue == name }
+                    },
                 )
                 "saveGimbalPreset" -> SaveGimbalPreset
                 "getGolfScoreboard" -> GetGolfScoreboard
@@ -832,6 +832,80 @@ object RemoteControlDateSerializer : KSerializer<Instant> {
         val whole = kotlin.math.floor(seconds).toLong()
         val nanos = ((seconds - whole) * 1_000_000_000.0).toLong()
         return Instant.ofEpochSecond(whole, nanos)
+    }
+}
+
+@Serializable
+private data class RemoteControlMeasurementConverter(
+    val coefficient: Double,
+    val constant: Double,
+)
+
+@Serializable
+private data class RemoteControlMeasurementUnit(
+    val symbol: String,
+    val converter: RemoteControlMeasurementConverter,
+)
+
+@Serializable
+private data class RemoteControlMeasurement(
+    val value: Double,
+    val unit: RemoteControlMeasurementUnit,
+)
+
+private abstract class RemoteControlMeasurementSerializer(
+    private val symbol: String,
+    private val constant: Double,
+) : KSerializer<Double> {
+    override val descriptor: SerialDescriptor = RemoteControlMeasurement.serializer().descriptor
+
+    override fun serialize(encoder: Encoder, value: Double) {
+        val unit = RemoteControlMeasurementUnit(
+            symbol = symbol,
+            converter = RemoteControlMeasurementConverter(coefficient = 1.0, constant = constant),
+        )
+        encoder.encodeSerializableValue(
+            RemoteControlMeasurement.serializer(),
+            RemoteControlMeasurement(value = value, unit = unit),
+        )
+    }
+
+    override fun deserialize(decoder: Decoder): Double {
+        val measurement = decoder.decodeSerializableValue(RemoteControlMeasurement.serializer())
+        val converter = measurement.unit.converter
+        return measurement.value * converter.coefficient + converter.constant - constant
+    }
+}
+
+private object RemoteControlTemperatureSerializer : RemoteControlMeasurementSerializer("°C", 273.15)
+
+private object RemoteControlSpeedSerializer : RemoteControlMeasurementSerializer("m/s", 0.0)
+
+private fun <T> decodeRemoteControlCase(element: JsonElement, fromName: (String) -> T?): T =
+    element.jsonObject.keys.mapNotNull(fromName).singleOrNull()
+        ?: throw SerializationException("Expected exactly one known case in $element")
+
+private object RemoteControlFiltersSerializer : KSerializer<Map<RemoteControlFilter, Boolean>> {
+    override val descriptor: SerialDescriptor = JsonArray.serializer().descriptor
+
+    override fun serialize(encoder: Encoder, value: Map<RemoteControlFilter, Boolean>) {
+        val array = buildJsonArray {
+            for ((filter, on) in value) {
+                addJsonObject { putJsonObject(filter.wireName) {} }
+                add(on)
+            }
+        }
+        encoder.encodeSerializableValue(JsonArray.serializer(), array)
+    }
+
+    override fun deserialize(decoder: Decoder): Map<RemoteControlFilter, Boolean> {
+        val array = decoder.decodeSerializableValue(JsonArray.serializer())
+        if (array.size % 2 != 0) {
+            throw SerializationException("Expected collection of key-value pairs")
+        }
+        return array.chunked(2).associate { (filter, on) ->
+            decodeRemoteControlCase(filter, RemoteControlFilter::fromName) to on.jsonPrimitive.boolean
+        }
     }
 }
 
@@ -1406,10 +1480,10 @@ data class RemoteControlRemoteSceneDataVariables(
     val slope: String,
     val conditions: String? = null,
     val condition: String? = null,
-    val temperature: Double? = null,
-    val feelsLikeTemperature: Double? = null,
-    val windSpeed: Double? = null,
-    val windGust: Double? = null,
+    val temperature: @Serializable(with = RemoteControlTemperatureSerializer::class) Double? = null,
+    val feelsLikeTemperature: @Serializable(with = RemoteControlTemperatureSerializer::class) Double? = null,
+    val windSpeed: @Serializable(with = RemoteControlSpeedSerializer::class) Double? = null,
+    val windGust: @Serializable(with = RemoteControlSpeedSerializer::class) Double? = null,
     val country: String? = null,
     val countryFlag: String? = null,
     val state: String? = null,
@@ -1802,7 +1876,7 @@ data class RemoteControlAssistantStreamerState(
     var stealthMode: Boolean? = null,
     var torchOn: Boolean? = null,
     var batteryCharging: Boolean? = null,
-    var filters: Map<RemoteControlFilter, Boolean>? = null,
+    var filters: @Serializable(with = RemoteControlFiltersSerializer::class) Map<RemoteControlFilter, Boolean>? = null,
     var gimbalTracking: Boolean? = null,
     var gimbalPresets: List<RemoteControlSettingsGimbalPreset>? = null,
     var macros: List<RemoteControlMacro>? = null,

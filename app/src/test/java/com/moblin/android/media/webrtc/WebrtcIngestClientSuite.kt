@@ -6,27 +6,20 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 
 private val ntpUnixEpochSeconds: ULong = 2_208_988_800uL
 
-@RunWith(Parameterized::class)
-class WebrtcIngestClientSuite(private val value: ULong) {
-    companion object {
-        @JvmStatic
-        @Parameterized.Parameters(name = "{0}")
-        fun parameters(): List<ULong> = listOf(
+class WebrtcIngestClientSuite {
+    @Test
+    fun decodeNtpTimestampBeforeUnixEpoch() {
+        for (value in listOf(
             0uL,
             1uL shl 32,
             ntpUnixEpochSeconds,
             (ntpUnixEpochSeconds - 1uL) shl 32 or 0xFFFF_FFFFuL,
-        )
-    }
-
-    @Test
-    fun decodeNtpTimestampBeforeUnixEpoch() {
-        assertNull(decodeNtpTimestamp(v = value))
+        )) {
+            assertNull(decodeNtpTimestamp(v = value))
+        }
     }
 
     @Test

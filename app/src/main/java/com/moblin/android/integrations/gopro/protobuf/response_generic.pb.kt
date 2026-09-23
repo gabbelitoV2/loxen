@@ -1,5 +1,10 @@
 package com.moblin.android.integrations.gopro.protobuf
 
+import com.moblin.android.platform.swiftprotobuf.BinaryDecoder
+import com.moblin.android.platform.swiftprotobuf.BinaryEncodingVisitor
+import com.moblin.android.platform.swiftprotobuf.Message
+import com.moblin.android.platform.swiftprotobuf.merge
+
 private const val _protobuf_package = "open_gopro"
 
 interface ProtobufAPIVersionCheck
@@ -40,7 +45,11 @@ enum class OpenGopro_EnumResultGeneric(val rawValue: Int) {
     }
 }
 
-class OpenGopro_ResponseGeneric {
+class OpenGopro_ResponseGeneric() : Message {
+    constructor(serializedBytes: ByteArray) : this() {
+        merge(serializedBytes)
+    }
+
     var result: OpenGopro_EnumResultGeneric
         get() = _result ?: OpenGopro_EnumResultGeneric.resultUnknown
         set(value) {
@@ -54,19 +63,26 @@ class OpenGopro_ResponseGeneric {
         _result = null
     }
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
     private var _result: OpenGopro_EnumResultGeneric? = null
 
-    val isInitialized: Boolean
+    override val isInitialized: Boolean
         get() = _result != null
 
-    fun decodeMessage(decoder: Any) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeSingularEnumField { OpenGopro_EnumResultGeneric.fromRawValue(it) }
+                    ?.let { _result = it }
+            }
+        }
     }
 
-    fun traverse(visitor: Any) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        _result?.let { visitor.visitSingularEnumField(it.rawValue, 1) }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {

@@ -123,7 +123,7 @@ data class DjiStartStreamingMessagePayload2(
             rtmpAddress = rtmpUrl,
             orientation = "landscape",
         )
-        val data = runCatching { Json.encodeToString(payload) }
+        val data = runCatching { Json.encodeToString(payload).replace("/", "\\/") }
             .getOrNull()
             ?.encodeToByteArray()
             ?: ByteArray(0)

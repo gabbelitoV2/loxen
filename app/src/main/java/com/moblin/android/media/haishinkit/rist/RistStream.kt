@@ -501,7 +501,8 @@ fun makeRistMoblinkBondingUrl(url: String, endpoint: RistEndpoint): String? {
         return null
     }
     val builder = uri.buildUpon()
-    builder.authority("${endpoint.host}:${endpoint.port}")
+    val userInfo = uri.encodedUserInfo?.let { "$it@" } ?: ""
+    builder.encodedAuthority("$userInfo${endpoint.host}:${endpoint.port}")
     return makeRistBondingUrl(builder.build().toString())
 }
 

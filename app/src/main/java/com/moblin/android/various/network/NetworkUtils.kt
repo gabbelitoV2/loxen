@@ -3,9 +3,9 @@ package com.moblin.android.various.network
 import android.net.Network
 import android.webkit.WebView
 import java.io.IOException
+import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.URI
-import java.net.URLEncoder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -101,13 +101,9 @@ typealias OperationResult = NetworkResponse<ByteArray>
 
 fun makeUrl(path: String, parameters: List<Pair<String, String>>): String {
     val query = parameters.joinToString("&") { (name, value) ->
-        "${urlEncode(name)}=${urlEncode(value)}"
+        "${percentEncode(name, "!$'()*+,;:@/?")}=${percentEncode(value, "!$'()*+,;:@/?")}"
     }
-    return if (query.isEmpty()) {
-        path
-    } else {
-        "$path?$query"
-    }
+    return "${percentEncode(path, "!$&'()*+,;=:@/")}?$query"
 }
 
 fun makeMdnsHostname(deviceName: String): String {
@@ -169,7 +165,11 @@ fun URI.isLoopback(): Boolean {
         return false
     }
     val address = runCatching { InetAddress.getByName(host) }.getOrNull() ?: return false
-    return address.isLoopbackAddress
+    return if (host.contains(':')) {
+        address is Inet6Address && address.isLoopbackAddress
+    } else {
+        address.address.contentEquals(byteArrayOf(127, 0, 0, 1))
+    }
 }
 
 private fun looksLikeIpLiteral(host: String): Boolean {
@@ -183,6 +183,15 @@ private fun looksLikeIpLiteral(host: String): Boolean {
     }
 }
 
-private fun urlEncode(value: String): String {
-    return URLEncoder.encode(value, "UTF-8").replace("+", "%20")
+private fun percentEncode(value: String, allowed: String): String {
+    val result = StringBuilder()
+    for (byte in value.encodeToByteArray()) {
+        val char = (byte.toInt() and 0xFF).toChar()
+        if (char in 'a'..'z' || char in 'A'..'Z' || char in '0'..'9' || char in "-._~" || char in allowed) {
+            result.append(char)
+        } else {
+            result.append("%%%02X".format(byte.toInt() and 0xFF))
+        }
+    }
+    return result.toString()
 }

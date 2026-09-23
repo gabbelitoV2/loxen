@@ -21,7 +21,7 @@ open class MpegTsProgramSpecificInformation {
 
     constructor()
 
-    constructor(data: ByteArray) {
+    protected fun decode(data: ByteArray) {
         val reader = ByteReader(data)
         pointerField = reader.readUInt8()
         pointerSkippedBytes = reader.readBytes(pointerField.toInt())
@@ -97,7 +97,9 @@ class MpegTsProgramAssociation : MpegTsProgramSpecificInformation {
 
     constructor() : super()
 
-    constructor(data: ByteArray) : super(data)
+    constructor(data: ByteArray) : super() {
+        decode(data)
+    }
 
     override fun encodeSectionData(): ByteArray {
         val writer = ByteWriter()
@@ -126,7 +128,9 @@ class MpegTsProgramMapping : MpegTsProgramSpecificInformation {
         tableId = TableIdentifier.programMapping.rawValue
     }
 
-    constructor(data: ByteArray) : super(data)
+    constructor(data: ByteArray) : super() {
+        decode(data)
+    }
 
     override fun encodeSectionData(): ByteArray {
         var encoded = ByteArray(0)

@@ -9,12 +9,13 @@ import com.moblin.android.view.utils.ChatLineItem
 import com.moblin.android.view.utils.ChatLineTextStyle
 import com.moblin.android.view.utils.ChatLineUiView
 import java.io.ByteArrayOutputStream
-import kotlin.test.assertEquals
+import kotlin.test.assertContentEquals
 import kotlin.test.assertNotEquals
 import org.junit.Test
 import com.moblin.android.AppDelegate
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.GraphicsMode
 
 private fun makeView(): ChatLineUiView {
     val view = ChatLineUiView(context = AppDelegate.context)
@@ -47,6 +48,7 @@ private fun setSize(view: ChatLineUiView, availableWidth: Float) {
 }
 
 @RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 class ChatLineViewSuite {
     @Test
     fun renderingIsTheSameAfterWidthChangedBackWithoutRemeasuring() {
@@ -58,6 +60,6 @@ class ChatLineViewSuite {
         setSize(resized, availableWidth = 250f)
         assertNotEquals(wideSize, Size(resized.width, resized.height))
         resized.layout(0, 0, wideSize.width, wideSize.height)
-        assertEquals(render(reference), render(resized))
+        assertContentEquals(render(reference), render(resized))
     }
 }
