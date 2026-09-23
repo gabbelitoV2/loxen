@@ -11,6 +11,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.junit.Test
+import com.moblin.android.AppDelegate
 
 private fun twitchEmoteIds(segments: List<ChatPostSegment>): List<String?> {
     return segments.map { segment ->
@@ -365,7 +366,7 @@ class TwitchChatSuite {
         val chat = TwitchChat(delegate = delegate)
         chat.webSocketClientReceiveMessage(
             WebSocketClient(
-                context = TODO("no Android context in a JVM unit test"),
+                context = AppDelegate.context,
                 url = "wss://irc-ws.chat.twitch.tv",
             ),
             string = "@badge-info=subscriber/24;" +

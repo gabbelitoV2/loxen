@@ -245,8 +245,8 @@ private fun ControlRowView(content: @Composable () -> Unit) {
                 .padding(4.dp)
                 .padding(end = 4.dp)
                 .height(45.dp)
-                .background(backgroundColor)
-                .clip(RoundedCornerShape(5.dp)),
+                .clip(RoundedCornerShape(5.dp))
+                .background(backgroundColor),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             content()
@@ -343,9 +343,9 @@ private fun ReplayHistory(
     val heightDp = if (isPortrait) 120.dp else 70.dp
     LazyRow(
         modifier = Modifier
-            .padding(4.dp)
-            .background(backgroundColor)
             .clip(RoundedCornerShape(5.dp))
+            .background(backgroundColor)
+            .padding(4.dp)
             .height(heightDp),
     ) {
         if (replays.isEmpty()) {

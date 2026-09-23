@@ -3,6 +3,7 @@ package com.moblin.android.streamingplatforms.twitch
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import com.moblin.android.AppDelegate
 
 private class EventSubTestDelegate : TwitchEventSubDelegate {
     val follows = mutableListOf<TwitchEventSubNotificationChannelFollowEvent>()
@@ -216,7 +217,7 @@ private fun chatNotification(
 
 private fun makeEventSub(delegate: EventSubTestDelegate): TwitchEventSub {
     return TwitchEventSub(
-        context = TODO("no Android Context available in unit tests"),
+        context = AppDelegate.context,
         remoteControl = true,
         userId = "111",
         accessToken = "",

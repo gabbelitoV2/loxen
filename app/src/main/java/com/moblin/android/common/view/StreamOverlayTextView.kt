@@ -17,8 +17,8 @@ fun StreamOverlayTextView(text: String) {
         text = text,
         color = Color.White,
         modifier = Modifier
-            .padding(horizontal = 2.dp)
-            .background(backgroundColor)
             .clip(RoundedCornerShape(5.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 2.dp)
     )
 }

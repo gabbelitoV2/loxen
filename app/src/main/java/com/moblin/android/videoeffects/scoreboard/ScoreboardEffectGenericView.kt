@@ -46,8 +46,8 @@ fun ScoreboardEffectGenericView(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .padding((5 * scale).dp)
-                .background(secondaryBackgroundColor),
+                .background(secondaryBackgroundColor)
+                .padding((5 * scale).dp),
         ) {
             Text(
                 text = title,
@@ -66,8 +66,8 @@ fun ScoreboardEffectGenericView(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy((6 * scale).dp),
             modifier = Modifier
-                .padding(horizontal = (5 * scale).dp)
-                .background(primaryBackgroundColor),
+                .background(primaryBackgroundColor)
+                .padding(horizontal = (5 * scale).dp),
         ) {
             Column(
                 horizontalAlignment = Alignment.Start,

@@ -207,14 +207,14 @@ private fun bar(bars: List<MacroActionIfBar>, level: Int) {
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
-                .padding(bottom = if (bar?.isLast == true) 4.dp else 0.dp)
                 .background(
                     if (bar != null) {
                         macroActionIfColors[level % macroActionIfColors.size]
                     } else {
                         Color.Transparent
                     },
-                ),
+                )
+                .padding(bottom = if (bar?.isLast == true) 4.dp else 0.dp),
         )
     }
 }

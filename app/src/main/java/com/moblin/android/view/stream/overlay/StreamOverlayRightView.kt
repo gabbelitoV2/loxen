@@ -91,8 +91,8 @@ private fun CollapsedBondingView(bonding: Bonding, color: Color) {
         horizontalArrangement = Arrangement.spacedBy(1.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .background(backgroundColor)
-            .clip(RoundedCornerShape(5.dp)),
+            .clip(RoundedCornerShape(5.dp))
+            .background(backgroundColor),
     ) {
         Icon(
             imageVector = Icons.Default.Phone,
@@ -163,8 +163,8 @@ private fun CollapsedAdsRemainingTimerView(status: StatusTopRight) {
         horizontalArrangement = Arrangement.spacedBy(1.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .background(backgroundColor)
-            .clip(RoundedCornerShape(5.dp)),
+            .clip(RoundedCornerShape(5.dp))
+            .background(backgroundColor),
     ) {
         Icon(
             imageVector = Icons.Default.LocalCafe,
@@ -212,8 +212,8 @@ private fun CollapsedBitrateView(bitrate: Bitrate) {
         horizontalArrangement = Arrangement.spacedBy(1.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .background(backgroundColor)
-            .clip(RoundedCornerShape(5.dp)),
+            .clip(RoundedCornerShape(5.dp))
+            .background(backgroundColor),
     ) {
         Icon(
             imageVector = Icons.Default.Speed,
@@ -221,8 +221,8 @@ private fun CollapsedBitrateView(bitrate: Bitrate) {
             tint = statusColor,
             modifier = Modifier
                 .size(17.dp)
-                .padding(start = 2.dp)
-                .background(statusIconColor ?: Color.Transparent),
+                .background(statusIconColor ?: Color.Transparent)
+                .padding(start = 2.dp),
         )
         if (speedMbpsOneDecimal.isNotEmpty()) {
             Text(
@@ -306,8 +306,8 @@ private fun CpuStatusView(
                 horizontalArrangement = Arrangement.spacedBy(1.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .background(backgroundColor)
-                    .clip(RoundedCornerShape(5.dp)),
+                    .clip(RoundedCornerShape(5.dp))
+                    .background(backgroundColor),
             ) {
                 Icon(
                     imageVector = Icons.Default.Memory,

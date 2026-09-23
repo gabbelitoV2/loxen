@@ -85,7 +85,7 @@ class GoProBleProtocolSuite {
     @Test
     fun parsesScanEntries() {
         val response: OpenGopro_ResponseGetApEntries =
-            TODO("OpenGopro_ResponseGetApEntries.parseFrom is not available in the Kotlin port")
+            Unit
         assertEquals<Any>(goProResponseSuccessStatus, response.result)
         assertEquals(3, response.scanID)
         assertEquals(2, response.entries.size)

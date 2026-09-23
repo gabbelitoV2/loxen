@@ -35,10 +35,10 @@ fun CompactAudioLevelIconView(
         tint = foregroundColor,
         modifier = Modifier
             .size(17.dp)
-            .padding(horizontal = 2.dp)
-            .padding(bottom = 2.dp)
+            .clip(RoundedCornerShape(5.dp))
             .background(backgroundColor)
-            .clip(RoundedCornerShape(5.dp)),
+            .padding(horizontal = 2.dp)
+            .padding(bottom = 2.dp),
     )
 }
 

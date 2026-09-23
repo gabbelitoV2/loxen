@@ -113,15 +113,15 @@ private fun ViewersView(status: StatusTopLeft) {
             tint = numberOfViewersIconColor,
             modifier = Modifier
                 .size(17.dp)
-                .padding(horizontal = 2.dp)
-                .background(backgroundColor, RoundedCornerShape(5.dp)),
+                .background(backgroundColor, RoundedCornerShape(5.dp))
+                .padding(horizontal = 2.dp),
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier
-                .padding(horizontal = 2.dp)
-                .background(backgroundColor, RoundedCornerShape(5.dp)),
+                .background(backgroundColor, RoundedCornerShape(5.dp))
+                .padding(horizontal = 2.dp),
         ) {
             for (platformStatus in streamingPlatformStatuses) {
                 ViewersLogoView(platform = platformStatus.platform)
@@ -161,15 +161,15 @@ private fun ChatStatusView(status: StatusTopLeft, foregroundColor: Color) {
             tint = foregroundColor,
             modifier = Modifier
                 .size(17.dp)
-                .padding(horizontal = 2.dp)
-                .background(backgroundColor, RoundedCornerShape(5.dp)),
+                .background(backgroundColor, RoundedCornerShape(5.dp))
+                .padding(horizontal = 2.dp),
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier
-                .padding(horizontal = 2.dp)
-                .background(backgroundColor, RoundedCornerShape(5.dp)),
+                .background(backgroundColor, RoundedCornerShape(5.dp))
+                .padding(horizontal = 2.dp),
         ) {
             if (chatPlatformStatuses.isEmpty()) {
                 Text(

@@ -50,9 +50,9 @@ private fun StreamButtonText(database: Database, text: String) {
         color = Color.White,
         modifier = Modifier
             .widthIn(min = 60.dp)
-            .padding(5.dp)
+            .clip(RoundedCornerShape(10.dp))
             .background(database.streamButtonColorColor)
-            .clip(RoundedCornerShape(10.dp)),
+            .padding(5.dp),
     )
 }
 

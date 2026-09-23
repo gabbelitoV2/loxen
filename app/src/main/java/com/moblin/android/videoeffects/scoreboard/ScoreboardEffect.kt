@@ -63,8 +63,8 @@ fun PoweredByMoblinView(
 ) {
     Row(
         modifier = Modifier
-            .padding(horizontal = (8 * scale).dp, vertical = (3 * scale).dp)
             .background(backgroundColor)
+            .padding(horizontal = (8 * scale).dp, vertical = (3 * scale).dp)
     ) {
         Text(
             text = "Powered by Moblin",

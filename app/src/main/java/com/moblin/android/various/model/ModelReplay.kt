@@ -207,9 +207,9 @@ fun Model.replayPlay(): Boolean {
     replayCancel()
     val replayVideo = replayVideo ?: return false
     val replaySettings = replaySettings ?: return false
-    Unit
+    TODO()
     val transitionMode: ReplayEffectTransitionMode =
-        TODO("Map stream.replay.transitionType to a ReplayEffectTransitionMode")
+        TODO()
     replayEffect = ReplayEffect(
         video = replayVideo,
         start = replaySettings.startFromVideoStart(),

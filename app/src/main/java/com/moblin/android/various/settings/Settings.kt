@@ -61,6 +61,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
+import com.moblin.android.platform.Cameras
 
 val defaultStreamUrl = "srt://my_public_ip:4000"
 val defaultRtmpStreamUrl = "rtmp://my_public_ip:1935/live/foobar"
@@ -1138,7 +1139,7 @@ private fun addDefaultZoomPresets(database: Database) {
 }
 
 private fun backCameraVirtualDeviceSwitchOverVideoZoomFactors(): List<Float>? {
-    return emptyList()
+    return Cameras.backCameraSwitchOverZoomFactors()
 }
 
 private fun backCameraZoomFactorScale(hasUltraWideCamera: Boolean): Float {

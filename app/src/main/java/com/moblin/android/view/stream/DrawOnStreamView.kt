@@ -139,9 +139,9 @@ private fun DrawOnStreamControlsView(
             Spacer(modifier = Modifier.weight(1f))
             Row(
                 modifier = Modifier
-                    .padding(8.dp)
+                    .clip(RoundedCornerShape(5.dp))
                     .background(backgroundColor)
-                    .clip(RoundedCornerShape(5.dp)),
+                    .padding(8.dp),
             ) {
                 IconButton(
                     onClick = {

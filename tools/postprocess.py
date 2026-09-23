@@ -130,7 +130,17 @@ def context_todos(text):
 
 
 def statement_todos(text):
-    return STATEMENT_TODO_RE.subn(r"\1Unit", text)
+    lines = text.split("\n")
+    count = 0
+    for i, line in enumerate(lines):
+        if not STATEMENT_TODO_RE.match(line):
+            continue
+        previous = next((lines[j].rstrip() for j in range(i - 1, -1, -1) if lines[j].strip()), "")
+        if previous.endswith(("=", "(", ",", "->", "?:", "return", "else", "&&", "||")):
+            continue
+        lines[i] = STATEMENT_TODO_RE.sub(r"\1Unit", line)
+        count += 1
+    return "\n".join(lines), count
 
 
 def typed_defaults(text):
@@ -258,6 +268,45 @@ MAIN_ACTIVITY_RE = re.compile(
 APP_DELEGATE_RE = re.compile(r"(class AppDelegate\s*:\s*Application\(\)[^\n]*\{(?:.*?\n)*?\s*override fun onCreate\(\) \{\n\s*super\.onCreate\(\)\n)")
 
 
+CALL_ARGS = r"\(([^()]*(?:\([^()]*\)[^()]*)*)\)"
+PADDING_BACKGROUND_RE = re.compile(r"\.padding" + CALL_ARGS + r"(\s*)\.background" + CALL_ARGS)
+BACKGROUND_CLIP_RE = re.compile(
+    r"\.background" + CALL_ARGS + r"((?:\s*\.(?:padding|widthIn|heightIn|width|height|size)\([^()]*\))*\s*)\.clip" + CALL_ARGS
+)
+
+
+CLIP_PADDING_BACKGROUND_RE = re.compile(
+    r"\.clip" + CALL_ARGS + r"((?:\s*\.(?:padding|widthIn|heightIn|width|height|size)\([^()]*\))+)\s*\.background" + CALL_ARGS
+)
+
+
+def modifier_order(text):
+    count = 0
+
+    def swap_padding_background(match):
+        nonlocal count
+        count += 1
+        return ".background(" + match.group(3) + ")" + match.group(2) + ".padding(" + match.group(1) + ")"
+
+    def swap_background_clip(match):
+        nonlocal count
+        count += 1
+        return ".clip(" + match.group(3) + ").background(" + match.group(1) + ")" + match.group(2)
+
+    def fix_clip_padding_background(match):
+        nonlocal count
+        count += 1
+        return ".clip(" + match.group(1) + ").background(" + match.group(3) + ")" + match.group(2)
+
+    previous = None
+    while previous != text:
+        previous = text
+        text = PADDING_BACKGROUND_RE.sub(swap_padding_background, text)
+    text = BACKGROUND_CLIP_RE.sub(swap_background_clip, text)
+    text = CLIP_PADDING_BACKGROUND_RE.sub(fix_clip_padding_background, text)
+    return text, count
+
+
 def host_hooks(text):
     count = 0
     if "class MainActivity" in text and "AndroidHost.onActivityCreated(this)" not in text:
@@ -301,6 +350,9 @@ def process_file(text, renamed_names, sources=None):
     counts["statements"] = statements
     text, hooks = host_hooks(text)
     counts["hooks"] = hooks
+    if "@Composable" in text:
+        text, modifiers = modifier_order(text)
+        counts["modifiers"] = modifiers
     return text, counts
 
 
@@ -338,6 +390,7 @@ def run(dry_run):
     print(f"composables given LocalModel/LocalOnNavigate defaults: {totals.get('defaults', 0)}")
     print(f"context TODOs resolved: {totals.get('contexts', 0)}  delegate adapters generated: {totals.get('adapters', 0)}")
     print(f"typed TODOs defaulted: {totals.get('typed', 0)}  statement TODOs turned into no-ops: {totals.get('statements', 0)}")
+    print(f"host hooks: {totals.get('hooks', 0)}  modifier chains reordered: {totals.get('modifiers', 0)}")
 
 
 def main():

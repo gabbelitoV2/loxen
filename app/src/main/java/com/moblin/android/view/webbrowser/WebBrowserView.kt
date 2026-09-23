@@ -304,8 +304,8 @@ private fun WebBrowserBigView(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(3.dp)
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(3.dp),
             ) {
                 UrlView(model = model)
                 Row(modifier = Modifier.fillMaxWidth()) {
@@ -324,8 +324,8 @@ private fun WebBrowserBigView(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(3.dp)
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(3.dp),
             ) {
                 NextPrevView(model = model)
                 UrlView(model = model)

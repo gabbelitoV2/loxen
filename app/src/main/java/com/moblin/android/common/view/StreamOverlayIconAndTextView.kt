@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.moblin.android.common.various.backgroundColor
 import com.moblin.android.common.various.smallFont
+import com.moblin.android.platform.systemImage
 
 enum class StreamOverlayIconAndTextPlacement {
     BeforeIcon,
@@ -34,18 +35,13 @@ fun StreamOverlayIconAndTextView(
         horizontalArrangement = Arrangement.spacedBy(1.dp),
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .padding(20.dp)
-            .then(
-                TODO(
-                    "contentShape(Rectangle()) plus negative padding hit-area expansion has no Compose counterpart",
-                ),
-            ),
+            .padding(20.dp),
     ) {
         if (textPlacement == StreamOverlayIconAndTextPlacement.BeforeIcon) {
             StreamOverlayTextView(text = text)
         }
         Icon(
-            painter = TODO("no Android counterpart for SF Symbols icon lookup: $icon"),
+            imageVector = systemImage(icon),
             contentDescription = null,
             tint = color,
             modifier = Modifier

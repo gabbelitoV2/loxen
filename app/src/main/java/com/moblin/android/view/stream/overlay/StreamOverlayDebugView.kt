@@ -23,9 +23,9 @@ fun StreamOverlayDebugView(debugOverlay: DebugOverlayProvider) {
     if (debugLines.isNotEmpty()) {
         Column(
             modifier = Modifier
-                .padding(horizontal = 2.dp)
+                .clip(RoundedCornerShape(5.dp))
                 .background(Color(0f, 0f, 0f, 0.75f))
-                .clip(RoundedCornerShape(5.dp)),
+                .padding(horizontal = 2.dp),
             verticalArrangement = Arrangement.spacedBy(1.dp),
             horizontalAlignment = Alignment.Start,
         ) {

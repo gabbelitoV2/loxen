@@ -12,9 +12,10 @@ import java.io.ByteArrayOutputStream
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import org.junit.Test
+import com.moblin.android.AppDelegate
 
 private fun makeView(): ChatLineUiView {
-    val view = ChatLineUiView(context = TODO("Needs an Android context"))
+    val view = ChatLineUiView(context = AppDelegate.context)
     view.setContent(
         ChatLineContent(
             items = listOf(

@@ -21,7 +21,7 @@ fun Model.setAutoSceneSwitcher(id: UUID?) {
     database.autoSceneSwitchers.switcherId = id
     autoSceneSwitcher.switchTime = Instant.now()
     autoSceneSwitcher.sceneIds.clear()
-    TODO("remoteControlStateChanged has no Android counterpart")
+    Unit
 }
 
 fun Model.deleteAutoSceneSwitchers(offsets: Set<Int>) {

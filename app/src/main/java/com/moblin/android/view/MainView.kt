@@ -180,8 +180,8 @@ private fun PanelButtonsView(model: Model = LocalModel.current, backgroundColor:
         ) {
             Row(
                 modifier = Modifier
-                    .padding((-3).dp)
                     .background(backgroundColor, RoundedCornerShape(7.dp))
+                    .padding((-3).dp)
                     .padding(3.dp)
             ) {
                 HideShowButtonPanelView(model = model)
@@ -275,8 +275,8 @@ private fun InstantReplayCountdownView(replay: ReplayProvider) {
         Column(
             modifier = Modifier
                 .widthIn(max = 200.dp)
-                .padding(10.dp)
-                .background(Color.Black.copy(alpha = 0.75f), RoundedCornerShape(10.dp)),
+                .background(Color.Black.copy(alpha = 0.75f), RoundedCornerShape(10.dp))
+                .padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -301,8 +301,8 @@ private fun MutedView(audio: AudioProvider) {
             tint = Color.Red,
             modifier = Modifier
                 .size(80.dp)
-                .padding(10.dp)
                 .background(Color.Black.copy(alpha = 0.75f), RoundedCornerShape(10.dp))
+                .padding(10.dp)
         )
     }
 }
@@ -312,8 +312,8 @@ private fun PhotoShootView(enabled: Boolean) {
     if (enabled) {
         Column(
             modifier = Modifier
-                .padding(20.dp)
-                .background(Color.Black.copy(alpha = 0.75f), RoundedCornerShape(10.dp)),
+                .background(Color.Black.copy(alpha = 0.75f), RoundedCornerShape(10.dp))
+                .padding(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(

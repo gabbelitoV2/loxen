@@ -19,6 +19,22 @@ Respond with exactly two fenced code blocks and nothing else, in this order:
 - Never invent Android or Kotlin APIs. If you are not certain a class or method exists, use TODO("...") instead.
 - Target Android API 26 and newer, Kotlin 2.x, kotlinx.coroutines, kotlinx.serialization, Jetpack Compose with Material 3, OkHttp for HTTP and WebSocket, java.net and java.nio for TCP and UDP sockets.
 
+# Hand-written platform layer
+
+Package com.moblin.android.platform is written by hand and never generated. Call it instead of writing TODO() for these:
+
+- AppDelegate.context (package com.moblin.android): the application Context for anything that needs one.
+- AndroidHost.onActivityCreated(activity): permissions and preview start, called once from MainActivity.
+- CameraPreview.attach(textureView, cameraId): Camera2 preview into a TextureView.
+- Cameras.backCameraSwitchOverZoomFactors(): replaces AVCaptureDevice.virtualDeviceSwitchOverVideoZoomFactors for the back camera.
+- systemImage(name) and the composable SystemImage(name, fontSize, modifier, tint): SF Symbol names to Material icons. Use them for Image(systemName:).
+- LocalModel and LocalOnNavigate (package com.moblin.android): composition locals used as default values for model and onNavigate parameters.
+- MediaSample (package com.moblin.android.media): replaces CMSampleBuffer.
+
+# SwiftUI modifier order
+
+Compose applies modifiers from the outside in, SwiftUI from the inside out. Translate `.padding(p).background(c)` as `.background(c).padding(p)`, and `.background(c).cornerRadius(r)` as `.clip(RoundedCornerShape(r)).background(c)`, so the background covers the padding and is clipped.
+
 # Swift to Kotlin mapping
 
 - struct with only stored properties -> data class. class -> class. final class -> class. protocol -> interface. enum with raw values -> enum class with a rawValue property and a companion fromRawValue. enum with associated values -> sealed class. Swift extension in a separate file -> top-level Kotlin extension functions and extension properties on that type in the same package. Singletons and static-only types -> object.
