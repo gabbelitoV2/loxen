@@ -4,6 +4,8 @@ import com.moblin.android.localized
 import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
+import com.moblin.android.platform.swiftui.PublishedList
 import com.moblin.android.various.utils.Named
 import java.util.UUID
 import kotlinx.serialization.KSerializer
@@ -13,12 +15,12 @@ import kotlinx.serialization.json.JsonObject
 
 @Serializable(with = DeepLinkCreatorStreamVideo.Serializer::class)
 class DeepLinkCreatorStreamVideo {
-    var resolution: SettingsStreamResolution = SettingsStream.defaultResolution
-    var fps: Int = SettingsStream.defaultFps
-    var bitrate: Int = 5_000_000
-    var codec: SettingsStreamCodec = SettingsStreamCodec.h265hevc
-    var bFrames: Boolean = false
-    var maxKeyFrameInterval: Int = 2
+    var resolution: SettingsStreamResolution by Published(SettingsStream.defaultResolution)
+    var fps: Int by Published(SettingsStream.defaultFps)
+    var bitrate: Int by Published(5_000_000)
+    var codec: SettingsStreamCodec by Published(SettingsStreamCodec.h265hevc)
+    var bFrames: Boolean by Published(false)
+    var maxKeyFrameInterval: Int by Published(2)
 
     fun encode(): JsonObject = encodeContainer {
         encode("resolution", resolution)
@@ -51,7 +53,7 @@ class DeepLinkCreatorStreamVideo {
 
 @Serializable(with = DeepLinkCreatorStreamAudio.Serializer::class)
 class DeepLinkCreatorStreamAudio {
-    var bitrate: Int = 128_000
+    var bitrate: Int by Published(128_000)
 
     val bitrateFloat: Float
         get() = (bitrate / 1000).toFloat()
@@ -77,9 +79,9 @@ class DeepLinkCreatorStreamAudio {
 
 @Serializable(with = DeepLinkCreatorStreamSrt.Serializer::class)
 class DeepLinkCreatorStreamSrt {
-    var latency: Int = defaultSrtLatency
-    var adaptiveBitrateEnabled: Boolean = true
-    var dnsLookupStrategy: SettingsDnsLookupStrategy = SettingsDnsLookupStrategy.system
+    var latency: Int by Published(defaultSrtLatency)
+    var adaptiveBitrateEnabled: Boolean by Published(true)
+    var dnsLookupStrategy: SettingsDnsLookupStrategy by Published(SettingsDnsLookupStrategy.system)
 
     fun encode(): JsonObject = encodeContainer {
         encode("latency", latency)
@@ -106,8 +108,8 @@ class DeepLinkCreatorStreamSrt {
 
 @Serializable(with = DeepLinkCreatorStreamObs.Serializer::class)
 class DeepLinkCreatorStreamObs {
-    var webSocketUrl: String = ""
-    var webSocketPassword: String = ""
+    var webSocketUrl: String by Published("")
+    var webSocketPassword: String by Published("")
 
     fun encode(): JsonObject = encodeContainer {
         encode("webSocketUrl", webSocketUrl)
@@ -132,8 +134,8 @@ class DeepLinkCreatorStreamObs {
 
 @Serializable(with = DeepLinkCreatorStreamTwitch.Serializer::class)
 class DeepLinkCreatorStreamTwitch {
-    var channelName: String = ""
-    var channelId: String = ""
+    var channelName: String by Published("")
+    var channelId: String by Published("")
 
     fun encode(): JsonObject = encodeContainer {
         encode("channelName", channelName)
@@ -158,7 +160,7 @@ class DeepLinkCreatorStreamTwitch {
 
 @Serializable(with = DeepLinkCreatorStreamKick.Serializer::class)
 class DeepLinkCreatorStreamKick {
-    var channelName: String = ""
+    var channelName: String by Published("")
 
     fun encode(): JsonObject = encodeContainer {
         encode("channelName", channelName)
@@ -182,15 +184,15 @@ class DeepLinkCreatorStreamKick {
 @Serializable(with = DeepLinkCreatorStream.Serializer::class)
 class DeepLinkCreatorStream : Named {
     var id: UUID = UUID.randomUUID()
-    override var name: String = baseName
-    var url: String = defaultStreamUrl
-    var selected: Boolean = false
-    var video: DeepLinkCreatorStreamVideo = DeepLinkCreatorStreamVideo()
-    var audio: DeepLinkCreatorStreamAudio = DeepLinkCreatorStreamAudio()
-    var srt: DeepLinkCreatorStreamSrt = DeepLinkCreatorStreamSrt()
-    var obs: DeepLinkCreatorStreamObs = DeepLinkCreatorStreamObs()
-    var twitch: DeepLinkCreatorStreamTwitch = DeepLinkCreatorStreamTwitch()
-    var kick: DeepLinkCreatorStreamKick = DeepLinkCreatorStreamKick()
+    override var name: String by Published(baseName)
+    var url: String by Published(defaultStreamUrl)
+    var selected: Boolean by Published(false)
+    var video: DeepLinkCreatorStreamVideo by Published(DeepLinkCreatorStreamVideo())
+    var audio: DeepLinkCreatorStreamAudio by Published(DeepLinkCreatorStreamAudio())
+    var srt: DeepLinkCreatorStreamSrt by Published(DeepLinkCreatorStreamSrt())
+    var obs: DeepLinkCreatorStreamObs by Published(DeepLinkCreatorStreamObs())
+    var twitch: DeepLinkCreatorStreamTwitch by Published(DeepLinkCreatorStreamTwitch())
+    var kick: DeepLinkCreatorStreamKick by Published(DeepLinkCreatorStreamKick())
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -238,9 +240,9 @@ class DeepLinkCreatorStream : Named {
 @Serializable(with = DeepLinkCreatorQuickButton.Serializer::class)
 class DeepLinkCreatorQuickButton {
     var id: UUID = UUID.randomUUID()
-    var type: SettingsQuickButtonType = SettingsQuickButtonType.unknown
-    var enabled: Boolean = false
-    var page: Int = 1
+    var type: SettingsQuickButtonType by Published(SettingsQuickButtonType.unknown)
+    var enabled: Boolean by Published(false)
+    var page: Int by Published(1)
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -269,10 +271,10 @@ class DeepLinkCreatorQuickButton {
 
 @Serializable(with = DeepLinkCreatorQuickButtons.Serializer::class)
 class DeepLinkCreatorQuickButtons {
-    var twoColumns: Boolean = true
-    var showName: Boolean = true
-    var enableScroll: Boolean = true
-    var buttons: MutableList<DeepLinkCreatorQuickButton> = mutableListOf()
+    var twoColumns: Boolean by Published(true)
+    var showName: Boolean by Published(true)
+    var enableScroll: Boolean by Published(true)
+    var buttons: MutableList<DeepLinkCreatorQuickButton> by PublishedList()
 
     fun encode(): JsonObject = encodeContainer {
         encode("twoColumns", twoColumns)
@@ -305,7 +307,7 @@ class DeepLinkCreatorQuickButtons {
 
 @Serializable(with = DeepLinkCreatorWebBrowser.Serializer::class)
 class DeepLinkCreatorWebBrowser {
-    var home: String = ""
+    var home: String by Published("")
 
     fun encode(): JsonObject = encodeContainer {
         encode("home", home)
@@ -328,11 +330,11 @@ class DeepLinkCreatorWebBrowser {
 
 @Serializable(with = DeepLinkCreator.Serializer::class)
 class DeepLinkCreator {
-    var streams: MutableList<DeepLinkCreatorStream> = mutableListOf()
-    var quickButtonsEnabled: Boolean = false
-    var quickButtons: DeepLinkCreatorQuickButtons = DeepLinkCreatorQuickButtons()
-    var webBrowserEnabled: Boolean = false
-    var webBrowser: DeepLinkCreatorWebBrowser = DeepLinkCreatorWebBrowser()
+    var streams: MutableList<DeepLinkCreatorStream> by PublishedList()
+    var quickButtonsEnabled: Boolean by Published(false)
+    var quickButtons: DeepLinkCreatorQuickButtons by Published(DeepLinkCreatorQuickButtons())
+    var webBrowserEnabled: Boolean by Published(false)
+    var webBrowser: DeepLinkCreatorWebBrowser by Published(DeepLinkCreatorWebBrowser())
 
     fun encode(): JsonObject = encodeContainer {
         encode("streams", streams)

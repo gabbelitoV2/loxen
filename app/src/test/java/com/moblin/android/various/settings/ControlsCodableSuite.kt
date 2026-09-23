@@ -1,7 +1,9 @@
 package com.moblin.android.various.settings
 
+import androidx.compose.runtime.snapshots.Snapshot
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.platform.codable.codableJson
+import com.moblin.android.platform.swiftui.move
 import com.moblin.android.various.network.DefaultTcpPorts
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -55,6 +57,21 @@ private fun <T> assertEmptyDecodesTo(serializer: KSerializer<T>, expected: T) {
 }
 
 private fun upper(id: UUID): String = id.toString().uppercase()
+
+private fun assertObserved(name: String, read: () -> Any?, write: () -> Unit) {
+    val reads = mutableSetOf<Any>()
+    Snapshot.observe(readObserver = { reads.add(it) }) { read() }
+    assertTrue(reads.isNotEmpty(), "$name read was not observed")
+    val changes = mutableSetOf<Any>()
+    val handle = Snapshot.registerApplyObserver { changed, _ -> changes.addAll(changed) }
+    try {
+        write()
+        Snapshot.sendApplyNotifications()
+    } finally {
+        handle.dispose()
+    }
+    assertTrue(changes.any { it in reads }, "$name change was not observed")
+}
 
 private const val ID_1 = "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
 private const val ID_2 = "6f1c9b8e-2a4d-4e3f-9b1a-7c5d3e2f1a0b"
@@ -956,5 +973,127 @@ class ControlsCodableSuite {
             macros.map { it.id },
             fromJson(ListSerializer(SettingsMacrosMacro.serializer()), json).map { it.id },
         )
+    }
+
+    @Test
+    fun publishedPropertiesAreObserved() {
+        val macros = SettingsMacros()
+        val macro = SettingsMacrosMacro()
+        val action = SettingsMacrosAction()
+        val keyboard = SettingsKeyboard()
+        val keyboardKey = SettingsKeyboardKey()
+        val layout = SettingsStreamDeckLayout()
+        val remoteControl = SettingsRemoteControl()
+        val stream = DeepLinkCreatorStream()
+        val quickButtons = DeepLinkCreatorQuickButtons()
+        val deepLinkCreator = DeepLinkCreator()
+        assertObserved("SettingsMacros.macros", { macros.macros }) {
+            macros.macros = macros.macros + SettingsMacrosMacro()
+        }
+        assertObserved("SettingsMacrosMacro.name", { macro.name }) { macro.name = "Renamed" }
+        assertObserved("SettingsMacrosMacro.running", { macro.running }) { macro.running = true }
+        assertObserved("SettingsMacrosMacro.actions", { macro.actions }) {
+            macro.actions = macro.actions + SettingsMacrosAction()
+        }
+        assertObserved("SettingsMacrosAction.function", { action.function }) {
+            action.function = SettingsMacrosActionFunction.DELAY
+        }
+        assertObserved("SettingsMacrosAction.filters", { action.filters }) {
+            action.filters = setOf(SettingsQuickButtonType.movie)
+        }
+        assertObserved("SettingsKeyboard.keys", { keyboard.keys }) {
+            keyboard.keys = keyboard.keys + SettingsKeyboardKey()
+        }
+        assertObserved("SettingsKeyboardKey.functionData", { keyboardKey.functionData }) {
+            keyboardKey.functionData = keyboardKey.functionData.copy(macroId = UUID.fromString(ID_1))
+        }
+        assertObserved("SettingsStreamDeckLayout.name", { layout.name }) { layout.name = "Deck" }
+        assertObserved("SettingsRemoteControlAssistant.enabled", { remoteControl.assistant.enabled }) {
+            remoteControl.assistant.enabled = true
+        }
+        assertObserved("SettingsRemoteControlServerRelay.baseUrl", { remoteControl.assistant.relay.baseUrl }) {
+            remoteControl.assistant.relay.baseUrl = "wss://relay"
+        }
+        assertObserved("SettingsRemoteControlStreamer.savedUrls", { remoteControl.streamer.savedUrls }) {
+            remoteControl.streamer.savedUrls = remoteControl.streamer.savedUrls + SettingsRemoteControlStreamerUrl()
+        }
+        assertObserved("SettingsRemoteControlWeb.port", { remoteControl.web.port }) {
+            remoteControl.web.port = 8080
+        }
+        assertObserved("SettingsRemoteControl.selectedStreamer", { remoteControl.selectedStreamer }) {
+            remoteControl.selectedStreamer = UUID.fromString(ID_2)
+        }
+        assertObserved("DeepLinkCreatorStream.video", { stream.video }) {
+            stream.video = DeepLinkCreatorStreamVideo()
+        }
+        assertObserved("DeepLinkCreatorStreamVideo.bitrate", { stream.video.bitrate }) {
+            stream.video.bitrate = 1_000_000
+        }
+        assertObserved("DeepLinkCreatorStreamAudio.bitrateFloat", { stream.audio.bitrateFloat }) {
+            stream.audio.bitrate = 64_000
+        }
+        assertObserved("DeepLinkCreatorQuickButtons.twoColumns", { quickButtons.twoColumns }) {
+            quickButtons.twoColumns = false
+        }
+        assertObserved("DeepLinkCreator.webBrowserEnabled", { deepLinkCreator.webBrowserEnabled }) {
+            deepLinkCreator.webBrowserEnabled = true
+        }
+        val savedUrl = SettingsRemoteControlStreamerUrl(name = "Home", url = "ws://home")
+        assertEquals("Home", savedUrl.name)
+        assertEquals("ws://home", savedUrl.url)
+        assertObserved("SettingsRemoteControlStreamerUrl.url", { savedUrl.url }) { savedUrl.url = "ws://away" }
+        val streamer = SettingsRemoteControlStreamer(previewFps = 5f, savedUrls = listOf(savedUrl))
+        assertEquals(5f, streamer.previewFps)
+        assertEquals(listOf(savedUrl), streamer.savedUrls)
+        assertObserved("SettingsRemoteControlStreamer.previewFps", { streamer.previewFps }) {
+            streamer.previewFps = 2f
+        }
+        assertObserved("DeepLinkCreatorStreamSrt.dnsLookupStrategy", { stream.srt.dnsLookupStrategy }) {
+            stream.srt.dnsLookupStrategy = SettingsDnsLookupStrategy.ipv4
+        }
+        assertObserved("DeepLinkCreatorStreamObs.webSocketUrl", { stream.obs.webSocketUrl }) {
+            stream.obs.webSocketUrl = "ws://obs"
+        }
+        assertObserved("DeepLinkCreatorStreamTwitch.channelId", { stream.twitch.channelId }) {
+            stream.twitch.channelId = "123"
+        }
+        assertObserved("DeepLinkCreatorStreamKick.channelName", { stream.kick.channelName }) {
+            stream.kick.channelName = "kick"
+        }
+        val button = DeepLinkCreatorQuickButton()
+        assertObserved("DeepLinkCreatorQuickButton.enabled", { button.enabled }) { button.enabled = true }
+        assertObserved("DeepLinkCreatorWebBrowser.home", { deepLinkCreator.webBrowser.home }) {
+            deepLinkCreator.webBrowser.home = "https://home"
+        }
+    }
+
+    @Test
+    fun inPlaceListMutationIsObserved() {
+        val deepLinkCreator = DeepLinkCreator()
+        val first = DeepLinkCreatorStream()
+        val second = DeepLinkCreatorStream()
+        assertObserved("DeepLinkCreator.streams add", { deepLinkCreator.streams.size }) {
+            deepLinkCreator.streams.add(first)
+        }
+        assertObserved("DeepLinkCreator.streams append", { deepLinkCreator.streams.toList() }) {
+            deepLinkCreator.streams.add(second)
+        }
+        assertObserved("DeepLinkCreator.streams move", { deepLinkCreator.streams.toList() }) {
+            deepLinkCreator.streams.move(fromOffsets = listOf(1), toOffset = 0)
+        }
+        assertEquals(listOf(second, first), deepLinkCreator.streams.toList())
+        assertObserved("DeepLinkCreator.streams remove", { deepLinkCreator.streams.toList() }) {
+            deepLinkCreator.streams.removeAll { it === second }
+        }
+        assertEquals(listOf(first), deepLinkCreator.streams.toList())
+        val quickButtons = DeepLinkCreatorQuickButtons()
+        assertObserved("DeepLinkCreatorQuickButtons.buttons add", { quickButtons.buttons.toList() }) {
+            quickButtons.buttons.add(DeepLinkCreatorQuickButton())
+        }
+        val decoded = fromJson(DeepLinkCreator.serializer(), toJson(DeepLinkCreator.serializer(), deepLinkCreator))
+        assertObserved("decoded DeepLinkCreator.streams add", { decoded.streams.size }) {
+            decoded.streams.add(DeepLinkCreatorStream())
+        }
+        assertEquals(2, decoded.streams.size)
     }
 }

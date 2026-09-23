@@ -1,5 +1,6 @@
 package com.moblin.android.various.settings
 
+import androidx.compose.runtime.snapshots.Snapshot
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.platform.codable.codableJson
 import com.moblin.android.platform.codable.decode
@@ -673,13 +674,81 @@ class SceneCodableSuite {
     fun cloneCopiesSwiftValueTypes() {
         val scene = SettingsScene()
         scene.videoSource.cameraPosition = SettingsSceneCameraPosition.front
-        scene.widgets = listOf(SettingsSceneWidget(widgetId = uuid(id1)))
+        scene.widgets = mutableListOf(SettingsSceneWidget(widgetId = uuid(id1)))
         val clone = scene.clone()
         clone.videoSource.cameraPosition = SettingsSceneCameraPosition.rtmp
         clone.widgets[0].layout.x = 50.0
         assertEquals(SettingsSceneCameraPosition.front, scene.videoSource.cameraPosition)
         assertEquals(0.0, scene.widgets[0].layout.x)
         assertEquals(uuid(id1), clone.widgets[0].widgetId)
+    }
+
+    private fun observedReads(read: () -> Any?): Set<Any> {
+        val reads = mutableSetOf<Any>()
+        Snapshot.observe(readObserver = { reads.add(it) }) { read() }
+        return reads
+    }
+
+    private fun appliedWrites(write: () -> Unit): Set<Any> {
+        val writes = mutableSetOf<Any>()
+        val handle = Snapshot.registerApplyObserver { changed, _ -> writes.addAll(changed) }
+        try {
+            Snapshot.sendApplyNotifications()
+            writes.clear()
+            write()
+            Snapshot.sendApplyNotifications()
+        } finally {
+            handle.dispose()
+        }
+        return writes
+    }
+
+    @Test
+    fun publishedPropertiesAreObserved() {
+        val scene = SettingsScene()
+        val widget = SettingsWidget()
+        val text = SettingsWidgetText()
+        val browser = SettingsWidgetBrowser()
+        val alert = SettingsWidgetAlertsAlert()
+        val pomodoro = SettingsWidgetPomodoroTimer()
+        val modular = SettingsWidgetModularScoreboard()
+        val switcher = SettingsAutoSceneSwitcher()
+        val effect = SettingsVideoEffect()
+        val sceneWidget = SettingsSceneWidget()
+        val videoSource = SettingsWidgetVideoSource()
+        val reads: Map<String, () -> Any?> = mapOf(
+            "SettingsScene.name" to { scene.name },
+            "SettingsScene.enabled" to { scene.enabled },
+            "SettingsScene.widgets" to { scene.widgets.size },
+            "SettingsWidget.enabled" to { widget.enabled },
+            "SettingsWidget.effects" to { widget.effects },
+            "SettingsWidgetText.formatString" to { text.formatString },
+            "SettingsWidgetText.timers" to { text.timers },
+            "SettingsWidgetBrowser.url" to { browser.url },
+            "SettingsWidgetAlertsAlert.textToSpeechLanguageVoices" to { alert.textToSpeechLanguageVoices },
+            "SettingsWidgetPomodoroTimer.secondsRemaining" to { pomodoro.secondsRemaining },
+            "SettingsWidgetModularScoreboard.config" to { modular.config },
+            "SettingsAutoSceneSwitcher.scenes" to { switcher.scenes },
+            "SettingsVideoEffect.enabled" to { effect.enabled },
+            "SettingsSceneWidget.layout" to { sceneWidget.layout },
+            "SettingsWidgetVideoSource.videoSource" to { videoSource.videoSource },
+        )
+        for ((name, read) in reads) {
+            assertTrue(observedReads(read).isNotEmpty(), "$name read is not observed")
+        }
+        val widgetsReads = observedReads { scene.widgets.size }
+        val widgetsWrites = appliedWrites { scene.widgets.add(SettingsSceneWidget(widgetId = uuid(id1))) }
+        assertTrue(widgetsReads.any { it in widgetsWrites }, "in-place widgets mutation is not observed")
+        assertEquals(listOf(uuid(id1)), scene.widgets.map { it.widgetId })
+        val enabledReads = observedReads { scene.enabled }
+        assertTrue(enabledReads.any { it in appliedWrites { scene.enabled = false } }, "enabled write is not observed")
+        val timersReads = observedReads { text.timers }
+        val timersWrites = appliedWrites { text.timers = text.timers + SettingsWidgetTextTimer() }
+        assertTrue(timersReads.any { it in timersWrites }, "timers reassignment is not observed")
+        val videoSourceReads = observedReads { videoSource.videoSource.cameraPosition }
+        val videoSourceWrites = appliedWrites { videoSource.updateCameraId(SettingsCameraId.ScreenCapture) }
+        assertTrue(videoSourceReads.any { it in videoSourceWrites }, "camera change is not observed")
+        assertEquals(SettingsSceneCameraPosition.screenCapture, videoSource.videoSource.cameraPosition)
     }
 
     @Test

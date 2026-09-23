@@ -4,6 +4,7 @@ import com.moblin.android.localized
 import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
 import com.moblin.android.various.network.DefaultTcpPorts
 import com.moblin.android.various.utils.Named
 import com.moblin.android.various.utils.randomHumanString
@@ -16,11 +17,15 @@ import kotlinx.serialization.json.JsonObject
 @Serializable(with = SettingsRemoteControlAssistant.Serializer::class)
 class SettingsRemoteControlAssistant(
     var id: UUID = UUID.randomUUID(),
-    override var name: String = SettingsRemoteControlAssistant.baseName,
-    var enabled: Boolean = false,
-    var port: Int = 0,
+    name: String = SettingsRemoteControlAssistant.baseName,
+    enabled: Boolean = false,
+    port: Int = 0,
     var relay: SettingsRemoteControlServerRelay = SettingsRemoteControlServerRelay(),
 ) : Named {
+    override var name: String by Published(name)
+    var enabled: Boolean by Published(enabled)
+    var port: Int by Published(port)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("name", name)
@@ -57,9 +62,12 @@ class SettingsRemoteControlAssistant(
 @Serializable(with = SettingsRemoteControlStreamerUrl.Serializer::class)
 class SettingsRemoteControlStreamerUrl(
     var id: UUID = UUID.randomUUID(),
-    var name: String = "",
-    var url: String = "",
+    name: String = "",
+    url: String = "",
 ) {
+    var name: String by Published(name)
+    var url: String by Published(url)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("name", name)
@@ -85,13 +93,20 @@ class SettingsRemoteControlStreamerUrl(
 
 @Serializable(with = SettingsRemoteControlStreamer.Serializer::class)
 class SettingsRemoteControlStreamer(
-    var enabled: Boolean = false,
-    var name: String = "",
-    var url: String = "",
-    var previewFps: Float = 1.0f,
-    var reliableChatAndEvents: Boolean = false,
-    var savedUrls: List<SettingsRemoteControlStreamerUrl> = emptyList(),
+    enabled: Boolean = false,
+    name: String = "",
+    url: String = "",
+    previewFps: Float = 1.0f,
+    reliableChatAndEvents: Boolean = false,
+    savedUrls: List<SettingsRemoteControlStreamerUrl> = emptyList(),
 ) {
+    var enabled: Boolean by Published(enabled)
+    var name: String by Published(name)
+    var url: String by Published(url)
+    var previewFps: Float by Published(previewFps)
+    var reliableChatAndEvents: Boolean by Published(reliableChatAndEvents)
+    var savedUrls: List<SettingsRemoteControlStreamerUrl> by Published(savedUrls)
+
     fun encode(): JsonObject = encodeContainer {
         encode("enabled", enabled)
         encode("name", name)
@@ -127,10 +142,14 @@ class SettingsRemoteControlStreamer(
 
 @Serializable(with = SettingsRemoteControlServerRelay.Serializer::class)
 class SettingsRemoteControlServerRelay(
-    var enabled: Boolean = true,
-    var baseUrl: String = "wss://moblin.mys-lang.org/moblin-remote-control-relay",
-    var bridgeId: String = UUID.randomUUID().toString().lowercase(),
+    enabled: Boolean = true,
+    baseUrl: String = "wss://moblin.mys-lang.org/moblin-remote-control-relay",
+    bridgeId: String = UUID.randomUUID().toString().lowercase(),
 ) {
+    var enabled: Boolean by Published(enabled)
+    var baseUrl: String by Published(baseUrl)
+    var bridgeId: String by Published(bridgeId)
+
     fun encode(): JsonObject = encodeContainer {
         encode("enabled", enabled)
         encode("baseUrl", baseUrl)
@@ -159,10 +178,14 @@ class SettingsRemoteControlServerRelay(
 
 @Serializable(with = SettingsRemoteControlWeb.Serializer::class)
 class SettingsRemoteControlWeb(
-    var enabled: Boolean = false,
-    var port: Int = DefaultTcpPorts.remoteControlWeb,
-    var deviceName: String = "",
+    enabled: Boolean = false,
+    port: Int = DefaultTcpPorts.remoteControlWeb,
+    deviceName: String = "",
 ) {
+    var enabled: Boolean by Published(enabled)
+    var port: Int by Published(port)
+    var deviceName: String by Published(deviceName)
+
     fun encode(): JsonObject = encodeContainer {
         encode("enabled", enabled)
         encode("port", port)
@@ -192,10 +215,13 @@ class SettingsRemoteControl(
     var streamer: SettingsRemoteControlStreamer = SettingsRemoteControlStreamer(),
     var web: SettingsRemoteControlWeb = SettingsRemoteControlWeb(),
     var password: String = randomHumanString(),
-    var streamers: List<SettingsRemoteControlAssistant> = emptyList(),
-    var selectedStreamer: UUID? = null,
+    streamers: List<SettingsRemoteControlAssistant> = emptyList(),
+    selectedStreamer: UUID? = null,
     var hasMigratedAssistant: Boolean = true,
 ) {
+    var streamers: List<SettingsRemoteControlAssistant> by Published(streamers)
+    var selectedStreamer: UUID? by Published(selectedStreamer)
+
     fun encode(): JsonObject = encodeContainer {
         encode("client", assistant)
         encode("server", streamer)

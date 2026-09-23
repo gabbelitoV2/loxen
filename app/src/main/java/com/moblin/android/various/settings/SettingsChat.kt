@@ -9,6 +9,9 @@ import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.decodeIfPresent
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
+import com.moblin.android.platform.swiftui.PublishedList
+import com.moblin.android.platform.swiftui.PublishedMap
 import com.moblin.android.various.ChatPostSegment
 import java.util.UUID
 import kotlinx.serialization.KSerializer
@@ -27,15 +30,15 @@ import kotlinx.serialization.json.JsonObject
 @Serializable(with = SettingsChatFilter.Serializer::class)
 class SettingsChatFilter {
     var id: UUID = UUID.randomUUID()
-    var enabled: Boolean = false
-    var user: String = ""
+    var enabled: Boolean by Published(false)
+    var user: String by Published("")
     var messageStartWords: MutableList<String> = mutableListOf()
-    var messageStart: String = messageStartWords.joinToString(" ")
-    var showOnScreen: Boolean = false
-    var textToSpeech: Boolean = false
-    var chatBot: Boolean = false
-    var poll: Boolean = false
-    var print: Boolean = false
+    var messageStart: String by Published(messageStartWords.joinToString(" "))
+    var showOnScreen: Boolean by Published(false)
+    var textToSpeech: Boolean by Published(false)
+    var chatBot: Boolean by Published(false)
+    var poll: Boolean by Published(false)
+    var print: Boolean by Published(false)
 
     fun isMatching(user: String?, segments: List<ChatPostSegment>): Boolean {
         if (!enabled) {
@@ -129,13 +132,14 @@ class SettingsChatFilter {
 
 @Serializable(with = SettingsChatBotPermissionsCommand.Serializer::class)
 class SettingsChatBotPermissionsCommand(
-    var moderatorsEnabled: Boolean = true,
+    moderatorsEnabled: Boolean = true,
 ) {
-    var subscribersEnabled: Boolean = false
-    var minimumSubscriberTier: Int = 1
-    var othersEnabled: Boolean = false
-    var sendChatMessages: Boolean = false
-    var cooldown: Int? = null
+    var moderatorsEnabled: Boolean by Published(moderatorsEnabled)
+    var subscribersEnabled: Boolean by Published(false)
+    var minimumSubscriberTier: Int by Published(1)
+    var othersEnabled: Boolean by Published(false)
+    var sendChatMessages: Boolean by Published(false)
+    var cooldown: Int? by Published<Int?>(null)
     var latestExecutionTime: Long? = null
 
     fun encode(): JsonObject = encodeContainer {
@@ -269,8 +273,8 @@ class SettingsChatBotPermissions {
 @Serializable(with = SettingsChatBotAlias.Serializer::class)
 class SettingsChatBotAlias {
     var id: UUID = UUID.randomUUID()
-    var alias: String = "!myalias"
-    var replacement: String = "!moblin"
+    var alias: String by Published("!myalias")
+    var replacement: String by Published("!moblin")
 
     fun encode(): JsonObject = encodeContainer {
         encode("alias", alias)
@@ -296,8 +300,8 @@ class SettingsChatBotAlias {
 @Serializable(with = SettingsChatBotCustomCommand.Serializer::class)
 class SettingsChatBotCustomCommand {
     var id: UUID = UUID.randomUUID()
-    var name: String = "myCommand"
-    var formatString: String = ""
+    var name: String by Published("myCommand")
+    var formatString: String by Published("")
     var permissions: SettingsChatBotPermissionsCommand = SettingsChatBotPermissionsCommand()
     var needsWeather: Boolean = false
     var needsGeography: Boolean = false
@@ -355,12 +359,12 @@ class SettingsChatPredefinedMessage {
     }
 
     var id: UUID = UUID.randomUUID()
-    var text: String = ""
-    var blueTag: Boolean = false
-    var greenTag: Boolean = false
-    var yellowTag: Boolean = false
-    var orangeTag: Boolean = false
-    var redTag: Boolean = false
+    var text: String by Published("")
+    var blueTag: Boolean by Published(false)
+    var greenTag: Boolean by Published(false)
+    var yellowTag: Boolean by Published(false)
+    var orangeTag: Boolean by Published(false)
+    var redTag: Boolean by Published(false)
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -401,11 +405,11 @@ class SettingsChatPredefinedMessage {
 
 @Serializable(with = SettingsChatPredefinedMessagesFilter.Serializer::class)
 class SettingsChatPredefinedMessagesFilter {
-    var redTag: Boolean = false
-    var greenTag: Boolean = false
-    var blueTag: Boolean = false
-    var yellowTag: Boolean = false
-    var orangeTag: Boolean = false
+    var redTag: Boolean by Published(false)
+    var greenTag: Boolean by Published(false)
+    var blueTag: Boolean by Published(false)
+    var yellowTag: Boolean by Published(false)
+    var orangeTag: Boolean by Published(false)
 
     fun encode(): JsonObject = encodeContainer {
         encode("redTag", redTag)
@@ -441,8 +445,8 @@ class SettingsChatPredefinedMessagesFilter {
 @Serializable(with = SettingsChatNickname.Serializer::class)
 class SettingsChatNickname {
     var id: UUID = UUID.randomUUID()
-    var user: String = ""
-    var nickname: String = ""
+    var user: String by Published("")
+    var nickname: String by Published("")
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -469,7 +473,7 @@ class SettingsChatNickname {
 
 @Serializable(with = SettingsChatNicknames.Serializer::class)
 class SettingsChatNicknames {
-    var nicknames: MutableList<SettingsChatNickname> = mutableListOf()
+    var nicknames: MutableList<SettingsChatNickname> by PublishedList()
 
     fun encode(): JsonObject = encodeContainer {
         encode("nicknames", nicknames)
@@ -500,8 +504,10 @@ class SettingsChatNicknames {
 
 @Serializable(with = SettingsOpenAi.Serializer::class)
 class SettingsOpenAi(
-    var personality: String = defaultPersonality,
+    personality: String = defaultPersonality,
 ) {
+    var personality: String by Published(personality)
+
     companion object {
         private const val defaultPersonality = "You give fast and short answers."
         private const val defaultModel = "gemini-3.5-flash-lite"
@@ -519,9 +525,9 @@ class SettingsOpenAi(
         }
     }
 
-    var baseUrl: String = "https://generativelanguage.googleapis.com/v1beta/openai"
-    var apiKey: String = ""
-    var model: String = defaultModel
+    var baseUrl: String by Published("https://generativelanguage.googleapis.com/v1beta/openai")
+    var apiKey: String by Published("")
+    var model: String by Published(defaultModel)
 
     fun encode(): JsonObject = encodeContainer {
         encode("baseUrl", baseUrl)
@@ -814,70 +820,70 @@ class SettingsChat {
         }
     }
 
-    var fontSize: Float = 19.0f
+    var fontSize: Float by Published(19.0f)
     var usernameColor: RgbColor = RgbColor(red = 255, green = 163, blue = 0)
-    var usernameColorColor: Color =
-        Color(usernameColor.red, usernameColor.green, usernameColor.blue)
-    var sameUsernameColor: Boolean = false
+    var usernameColorColor: Color by Published(Color(usernameColor.red, usernameColor.green, usernameColor.blue))
+    var sameUsernameColor: Boolean by Published(false)
     var messageColor: RgbColor = RgbColor(red = 255, green = 255, blue = 255)
-    var messageColorColor: Color = Color(messageColor.red, messageColor.green, messageColor.blue)
+    var messageColorColor: Color by Published(Color(messageColor.red, messageColor.green, messageColor.blue))
     var backgroundColor: RgbColor = RgbColor(red = 0, green = 0, blue = 0)
-    var backgroundColorColor: Color =
-        Color(backgroundColor.red, backgroundColor.green, backgroundColor.blue)
-    var backgroundColorEnabled: Boolean = false
+    var backgroundColorColor: Color by Published(
+        Color(backgroundColor.red, backgroundColor.green, backgroundColor.blue),
+    )
+    var backgroundColorEnabled: Boolean by Published(false)
     var shadowColor: RgbColor = RgbColor(red = 0, green = 0, blue = 0)
-    var shadowColorColor: Color = Color(shadowColor.red, shadowColor.green, shadowColor.blue)
-    var shadowColorEnabled: Boolean = true
-    var boldUsername: Boolean = true
-    var boldMessage: Boolean = true
-    var animatedEmotes: Boolean = false
+    var shadowColorColor: Color by Published(Color(shadowColor.red, shadowColor.green, shadowColor.blue))
+    var shadowColorEnabled: Boolean by Published(true)
+    var boldUsername: Boolean by Published(true)
+    var boldMessage: Boolean by Published(true)
+    var animatedEmotes: Boolean by Published(false)
     var timestampColor: RgbColor = RgbColor(red = 180, green = 180, blue = 180)
-    var timestampColorColor: Color =
-        Color(timestampColor.red, timestampColor.green, timestampColor.blue)
-    var timestampColorEnabled: Boolean = false
-    var height: Double = 0.7
-    var width: Double = 1.0
-    var activityFeedHeight: Double = defaultActivityFeedHeight
-    var activityFeed: Boolean = true
-    var maximumAge: Int = 30
-    var maximumAgeEnabled: Boolean = false
-    var meInUsernameColor: Boolean = true
-    var enabled: Boolean = true
-    var filters: MutableList<SettingsChatFilter> = mutableListOf()
+    var timestampColorColor: Color by Published(Color(timestampColor.red, timestampColor.green, timestampColor.blue))
+    var timestampColorEnabled: Boolean by Published(false)
+    var height: Double by Published(0.7)
+    var width: Double by Published(1.0)
+    var activityFeedHeight: Double by Published(defaultActivityFeedHeight)
+    var activityFeed: Boolean by Published(true)
+    var maximumAge: Int by Published(30)
+    var maximumAgeEnabled: Boolean by Published(false)
+    var meInUsernameColor: Boolean by Published(true)
+    var enabled: Boolean by Published(true)
+    var filters: MutableList<SettingsChatFilter> by PublishedList()
     var textToSpeechEnabled: Boolean = false
-    var textToSpeechDefaultLanguage: String? = null
-    var textToSpeechDetectLanguagePerMessage: Boolean = false
-    var textToSpeechSayUsername: Boolean = true
-    var textToSpeechRate: Float = 0.4f
-    var textToSpeechSayVolume: Float = 0.6f
-    var textToSpeechLanguageVoices: MutableMap<String, SettingsVoice> = mutableMapOf()
-    var textToSpeechSubscribersOnly: Boolean = false
-    var textToSpeechFilter: Boolean = true
-    var textToSpeechFilterMentions: Boolean = true
-    var ttsMonster: SettingsTtsMonster = SettingsTtsMonster()
-    var mirrored: Boolean = false
-    var botEnabled: Boolean = false
+    var textToSpeechDefaultLanguage: String? by Published<String?>(null)
+    var textToSpeechDetectLanguagePerMessage: Boolean by Published(false)
+    var textToSpeechSayUsername: Boolean by Published(true)
+    var textToSpeechRate: Float by Published(0.4f)
+    var textToSpeechSayVolume: Float by Published(0.6f)
+    var textToSpeechLanguageVoices: MutableMap<String, SettingsVoice> by PublishedMap()
+    var textToSpeechSubscribersOnly: Boolean by Published(false)
+    var textToSpeechFilter: Boolean by Published(true)
+    var textToSpeechFilterMentions: Boolean by Published(true)
+    var ttsMonster: SettingsTtsMonster by Published(SettingsTtsMonster())
+    var mirrored: Boolean by Published(false)
+    var botEnabled: Boolean by Published(false)
     var botCommandPermissions: SettingsChatBotPermissions = SettingsChatBotPermissions()
     var botSendLowBatteryWarning: Boolean = false
     var botCommandAi: SettingsOpenAi = SettingsOpenAi()
-    var badges: Boolean = true
+    var badges: Boolean by Published(true)
     var showFirstTimeChatterMessage: Boolean = true
     var showNewFollowerMessage: Boolean = true
-    var bottomPoints: Double = 80.0
-    var newMessagesAtTop: Boolean = false
-    var textToSpeechPauseBetweenMessages: Double = 1.0
-    var showDeletedMessages: Boolean = false
-    var aliases: MutableList<SettingsChatBotAlias> = mutableListOf()
-    var customCommands: MutableList<SettingsChatBotCustomCommand> = mutableListOf()
-    var predefinedMessages: MutableList<SettingsChatPredefinedMessage> = mutableListOf()
-    var predefinedMessagesFilter: SettingsChatPredefinedMessagesFilter =
-        SettingsChatPredefinedMessagesFilter()
-    var nicknames: SettingsChatNicknames = SettingsChatNicknames()
-    var displayStyle: SettingsChatDisplayStyle = SettingsChatDisplayStyle.internationalNameAndUsername
-    var background: Boolean = false
-    var sharedChatIcons: Boolean = true
-    var bigGifScale: Float = defaultBigGifScale
-    var compactEvents: Boolean = true
+    var bottomPoints: Double by Published(80.0)
+    var newMessagesAtTop: Boolean by Published(false)
+    var textToSpeechPauseBetweenMessages: Double by Published(1.0)
+    var showDeletedMessages: Boolean by Published(false)
+    var aliases: MutableList<SettingsChatBotAlias> by PublishedList()
+    var customCommands: MutableList<SettingsChatBotCustomCommand> by PublishedList()
+    var predefinedMessages: MutableList<SettingsChatPredefinedMessage> by PublishedList()
+    var predefinedMessagesFilter: SettingsChatPredefinedMessagesFilter by Published(
+        SettingsChatPredefinedMessagesFilter(),
+    )
+    var nicknames: SettingsChatNicknames by Published(SettingsChatNicknames())
+    var displayStyle: SettingsChatDisplayStyle by Published(SettingsChatDisplayStyle.internationalNameAndUsername)
+    var background: Boolean by Published(false)
+    var sharedChatIcons: Boolean by Published(true)
+    var bigGifScale: Float by Published(defaultBigGifScale)
+    var compactEvents: Boolean by Published(true)
 
     fun encode(): JsonObject = encodeContainer {
         encode("fontSize", fontSize)

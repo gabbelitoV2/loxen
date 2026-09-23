@@ -6,6 +6,7 @@ import com.moblin.android.platform.codable.UUIDSerializer
 import com.moblin.android.platform.codable.codableJson
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -133,9 +134,12 @@ enum class SettingsLocationDistanceFilter {
 
 @Serializable(with = SettingsLocation.Serializer::class)
 class SettingsLocation {
-    var enabled: Boolean = false
+    private var enabledPublished: Boolean by Published(false)
+
+    var enabled: Boolean
+        get() = enabledPublished
         set(value) {
-            field = value
+            enabledPublished = value
             _enabled.value = value
         }
 
@@ -143,9 +147,12 @@ class SettingsLocation {
 
     val enabledFlow: StateFlow<Boolean> = _enabled.asStateFlow()
 
-    var privacyRegions: List<SettingsPrivacyRegion> = emptyList()
+    private var privacyRegionsPublished: List<SettingsPrivacyRegion> by Published(emptyList())
+
+    var privacyRegions: List<SettingsPrivacyRegion>
+        get() = privacyRegionsPublished
         set(value) {
-            field = value
+            privacyRegionsPublished = value
             _privacyRegions.value = value
         }
 
@@ -154,9 +161,12 @@ class SettingsLocation {
 
     val privacyRegionsFlow: StateFlow<List<SettingsPrivacyRegion>> = _privacyRegions.asStateFlow()
 
-    var distance: Double = 0.0
+    private var distancePublished: Double by Published(0.0)
+
+    var distance: Double
+        get() = distancePublished
         set(value) {
-            field = value
+            distancePublished = value
             _distance.value = value
         }
 
@@ -164,9 +174,12 @@ class SettingsLocation {
 
     val distanceFlow: StateFlow<Double> = _distance.asStateFlow()
 
-    var splitDistance: Double = 0.0
+    private var splitDistancePublished: Double by Published(0.0)
+
+    var splitDistance: Double
+        get() = splitDistancePublished
         set(value) {
-            field = value
+            splitDistancePublished = value
             _splitDistance.value = value
         }
 
@@ -174,9 +187,12 @@ class SettingsLocation {
 
     val splitDistanceFlow: StateFlow<Double> = _splitDistance.asStateFlow()
 
-    var altitudeAscent: Double = 0.0
+    private var altitudeAscentPublished: Double by Published(0.0)
+
+    var altitudeAscent: Double
+        get() = altitudeAscentPublished
         set(value) {
-            field = value
+            altitudeAscentPublished = value
             _altitudeAscent.value = value
         }
 
@@ -184,9 +200,12 @@ class SettingsLocation {
 
     val altitudeAscentFlow: StateFlow<Double> = _altitudeAscent.asStateFlow()
 
-    var altitudeDescent: Double = 0.0
+    private var altitudeDescentPublished: Double by Published(0.0)
+
+    var altitudeDescent: Double
+        get() = altitudeDescentPublished
         set(value) {
-            field = value
+            altitudeDescentPublished = value
             _altitudeDescent.value = value
         }
 
@@ -194,9 +213,12 @@ class SettingsLocation {
 
     val altitudeDescentFlow: StateFlow<Double> = _altitudeDescent.asStateFlow()
 
-    var splitAltitudeAscent: Double = 0.0
+    private var splitAltitudeAscentPublished: Double by Published(0.0)
+
+    var splitAltitudeAscent: Double
+        get() = splitAltitudeAscentPublished
         set(value) {
-            field = value
+            splitAltitudeAscentPublished = value
             _splitAltitudeAscent.value = value
         }
 
@@ -204,9 +226,12 @@ class SettingsLocation {
 
     val splitAltitudeAscentFlow: StateFlow<Double> = _splitAltitudeAscent.asStateFlow()
 
-    var splitAltitudeDescent: Double = 0.0
+    private var splitAltitudeDescentPublished: Double by Published(0.0)
+
+    var splitAltitudeDescent: Double
+        get() = splitAltitudeDescentPublished
         set(value) {
-            field = value
+            splitAltitudeDescentPublished = value
             _splitAltitudeDescent.value = value
         }
 
@@ -214,9 +239,12 @@ class SettingsLocation {
 
     val splitAltitudeDescentFlow: StateFlow<Double> = _splitAltitudeDescent.asStateFlow()
 
-    var resetWhenGoingLive: Boolean = false
+    private var resetWhenGoingLivePublished: Boolean by Published(false)
+
+    var resetWhenGoingLive: Boolean
+        get() = resetWhenGoingLivePublished
         set(value) {
-            field = value
+            resetWhenGoingLivePublished = value
             _resetWhenGoingLive.value = value
         }
 
@@ -224,9 +252,12 @@ class SettingsLocation {
 
     val resetWhenGoingLiveFlow: StateFlow<Boolean> = _resetWhenGoingLive.asStateFlow()
 
-    var desiredAccuracy: SettingsLocationDesiredAccuracy = SettingsLocationDesiredAccuracy.best
+    private var desiredAccuracyPublished: SettingsLocationDesiredAccuracy by Published(SettingsLocationDesiredAccuracy.best)
+
+    var desiredAccuracy: SettingsLocationDesiredAccuracy
+        get() = desiredAccuracyPublished
         set(value) {
-            field = value
+            desiredAccuracyPublished = value
             _desiredAccuracy.value = value
         }
 
@@ -235,9 +266,12 @@ class SettingsLocation {
 
     val desiredAccuracyFlow: StateFlow<SettingsLocationDesiredAccuracy> = _desiredAccuracy.asStateFlow()
 
-    var distanceFilter: SettingsLocationDistanceFilter = SettingsLocationDistanceFilter.none
+    private var distanceFilterPublished: SettingsLocationDistanceFilter by Published(SettingsLocationDistanceFilter.none)
+
+    var distanceFilter: SettingsLocationDistanceFilter
+        get() = distanceFilterPublished
         set(value) {
-            field = value
+            distanceFilterPublished = value
             _distanceFilter.value = value
         }
 

@@ -11,6 +11,8 @@ import com.moblin.android.localized
 import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
+import com.moblin.android.platform.swiftui.PublishedList
 import com.moblin.android.various.network.DefaultTcpPorts
 import com.moblin.android.various.network.DefaultUdpPorts
 import com.moblin.android.various.utils.Named
@@ -38,9 +40,9 @@ class SettingsRtmpServerStream : Named {
     }
 
     var id: UUID = UUID.randomUUID()
-    override var name: String = baseName
-    var streamKey: String = ""
-    var latency: Int = defaultRtmpLatency
+    override var name: String by Published(baseName)
+    var streamKey: String by Published("")
+    var latency: Int by Published(defaultRtmpLatency)
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -75,9 +77,9 @@ class SettingsRtmpServerStream : Named {
 
 @Serializable(with = SettingsRtmpServer.Serializer::class)
 class SettingsRtmpServer {
-    var enabled: Boolean = false
-    var port: Int = DefaultTcpPorts.rtmpServer.toInt()
-    var streams: MutableList<SettingsRtmpServerStream> = mutableListOf()
+    var enabled: Boolean by Published(false)
+    var port: Int by Published(DefaultTcpPorts.rtmpServer.toInt())
+    var streams: MutableList<SettingsRtmpServerStream> by PublishedList()
 
     fun encode(): JsonObject = encodeContainer {
         encode("enabled", enabled)
@@ -131,8 +133,8 @@ class SettingsSrtlaServerStream : Named {
     }
 
     var id: UUID = UUID.randomUUID()
-    override var name: String = baseName
-    var streamId: String = ""
+    override var name: String by Published(baseName)
+    var streamId: String by Published("")
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -161,10 +163,10 @@ class SettingsSrtlaServerStream : Named {
 
 @Serializable(with = SettingsSrtlaServer.Serializer::class)
 class SettingsSrtlaServer {
-    var enabled: Boolean = false
-    var srtPort: Int = DefaultUdpPorts.srtServer.toInt()
-    var srtlaPort: Int = DefaultUdpPorts.srtlaServer.toInt()
-    var streams: MutableList<SettingsSrtlaServerStream> = mutableListOf()
+    var enabled: Boolean by Published(false)
+    var srtPort: Int by Published(DefaultUdpPorts.srtServer.toInt())
+    var srtlaPort: Int by Published(DefaultUdpPorts.srtlaServer.toInt())
+    var streams: MutableList<SettingsSrtlaServerStream> by PublishedList()
 
     fun encode(): JsonObject = encodeContainer {
         encode("enabled", enabled)
@@ -226,9 +228,9 @@ class SettingsSrtClientStream : Named {
     }
 
     var id: UUID = UUID.randomUUID()
-    override var name: String = baseName
-    var url: String = ""
-    var enabled: Boolean = false
+    override var name: String by Published(baseName)
+    var url: String by Published("")
+    var enabled: Boolean by Published(false)
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -250,7 +252,7 @@ class SettingsSrtClientStream : Named {
 
 @Serializable(with = SettingsSrtClient.Serializer::class)
 class SettingsSrtClient {
-    var streams: MutableList<SettingsSrtClientStream> = mutableListOf()
+    var streams: MutableList<SettingsSrtClientStream> by PublishedList()
 
     fun encode(): JsonObject = encodeContainer {
         encode("streams", streams)
@@ -291,9 +293,9 @@ class SettingsRistServerStream : Named {
     }
 
     var id: UUID = UUID.randomUUID()
-    override var name: String = baseName
-    var virtualDestinationPort: Int = 1
-    var latency: Int = 2000
+    override var name: String by Published(baseName)
+    var virtualDestinationPort: Int by Published(1)
+    var latency: Int by Published(2000)
     var connected: Boolean = false
 
     fun encode(): JsonObject = encodeContainer {
@@ -329,9 +331,9 @@ class SettingsRistServerStream : Named {
 
 @Serializable(with = SettingsRistServer.Serializer::class)
 class SettingsRistServer {
-    var enabled: Boolean = false
-    var port: Int = DefaultUdpPorts.ristServer.toInt()
-    var streams: MutableList<SettingsRistServerStream> = mutableListOf()
+    var enabled: Boolean by Published(false)
+    var port: Int by Published(DefaultUdpPorts.ristServer.toInt())
+    var streams: MutableList<SettingsRistServerStream> by PublishedList()
 
     fun encode(): JsonObject = encodeContainer {
         encode("enabled", enabled)
@@ -405,11 +407,11 @@ class SettingsRtspClientStream : Named {
     }
 
     var id: UUID = UUID.randomUUID()
-    override var name: String = baseName
-    var url: String = ""
-    var enabled: Boolean = false
-    var latency: Int = 2000
-    var transport: SettingsRtspTransport = SettingsRtspTransport.rtpRtspTcp
+    override var name: String by Published(baseName)
+    var url: String by Published("")
+    var enabled: Boolean by Published(false)
+    var latency: Int by Published(2000)
+    var transport: SettingsRtspTransport by Published(SettingsRtspTransport.rtpRtspTcp)
 
     fun latencySeconds(): Double {
         return latency.toDouble() / 1000
@@ -437,7 +439,7 @@ class SettingsRtspClientStream : Named {
 
 @Serializable(with = SettingsRtspClient.Serializer::class)
 class SettingsRtspClient {
-    var streams: MutableList<SettingsRtspClientStream> = mutableListOf()
+    var streams: MutableList<SettingsRtspClientStream> by PublishedList()
 
     fun encode(): JsonObject = encodeContainer {
         encode("streams", streams)
@@ -479,10 +481,10 @@ class SettingsWhipServerStream : Named {
     }
 
     var id: UUID = UUID.randomUUID()
-    override var name: String = baseName
-    var streamKey: String = ""
-    var latency: Int = 100
-    var syncTimestamps: Boolean = true
+    override var name: String by Published(baseName)
+    var streamKey: String by Published("")
+    var latency: Int by Published(100)
+    var syncTimestamps: Boolean by Published(true)
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -519,9 +521,9 @@ class SettingsWhipServerStream : Named {
 
 @Serializable(with = SettingsWhipServer.Serializer::class)
 class SettingsWhipServer {
-    var enabled: Boolean = false
-    var port: Int = DefaultTcpPorts.whipServer.toInt()
-    var streams: MutableList<SettingsWhipServerStream> = mutableListOf()
+    var enabled: Boolean by Published(false)
+    var port: Int by Published(DefaultTcpPorts.whipServer.toInt())
+    var streams: MutableList<SettingsWhipServerStream> by PublishedList()
 
     fun encode(): JsonObject = encodeContainer {
         encode("enabled", enabled)
@@ -578,11 +580,11 @@ class SettingsWhepClientStream : Named {
     }
 
     var id: UUID = UUID.randomUUID()
-    override var name: String = baseName
-    var url: String = ""
-    var enabled: Boolean = false
-    var latency: Int = 100
-    var syncTimestamps: Boolean = true
+    override var name: String by Published(baseName)
+    var url: String by Published("")
+    var enabled: Boolean by Published(false)
+    var latency: Int by Published(100)
+    var syncTimestamps: Boolean by Published(true)
 
     fun latencySeconds(): Double {
         return latency.toDouble() / 1000
@@ -610,7 +612,7 @@ class SettingsWhepClientStream : Named {
 
 @Serializable(with = SettingsWhepClient.Serializer::class)
 class SettingsWhepClient {
-    var streams: MutableList<SettingsWhepClientStream> = mutableListOf()
+    var streams: MutableList<SettingsWhepClientStream> by PublishedList()
 
     fun encode(): JsonObject = encodeContainer {
         encode("streams", streams)
