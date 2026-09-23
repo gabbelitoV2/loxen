@@ -6,9 +6,12 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun bytes(vararg values: Int): ByteArray = ByteArray(values.size) { values[it].toByte() }
 
+@RunWith(RobolectricTestRunner::class)
 class AmfSuite {
     @Test
     fun number() {

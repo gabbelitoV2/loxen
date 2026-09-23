@@ -4,7 +4,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class CheermotesSuite {
     private fun makeCheermotes(prefixes: Map<String, List<Int>>): Cheermotes {
         val cheermotes = Cheermotes()

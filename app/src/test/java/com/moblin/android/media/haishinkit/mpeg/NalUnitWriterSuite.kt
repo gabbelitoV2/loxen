@@ -3,7 +3,10 @@ package com.moblin.android.media.haishinkit.mpeg
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class NalUnitWriterSuite {
     @Test
     fun writeBitMsbFirst() {

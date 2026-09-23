@@ -10,6 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun makeTwitchEmote(name: String, range: IntRange): ChatMessageEmote {
     return ChatMessageEmote(
@@ -49,6 +51,7 @@ private fun twitchEmoteIds(segments: List<ChatPostSegment>): List<String?> {
     }
 }
 
+@RunWith(RobolectricTestRunner::class)
 class TwitchChatSegmentsSuite {
     private fun createSegments(text: String,
                               emotes: List<ChatMessageEmote>,

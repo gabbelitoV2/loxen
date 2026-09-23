@@ -7,6 +7,8 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun packVideoFrame(presentationTimeStamp: ULong, isSync: Boolean, units: ByteArray): ByteArray {
     return packMobcamStreamVideoFrame(presentationTimeStamp, isSync, units)
@@ -25,6 +27,7 @@ private fun readAll(reader: MobcamStreamMessageReader): List<Pair<MobcamStreamMe
     return messages
 }
 
+@RunWith(RobolectricTestRunner::class)
 class MobcamStreamSuite {
     @Test
     fun hostHelloRoundTrip() {

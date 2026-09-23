@@ -4,7 +4,10 @@ import kotlinx.serialization.json.Json
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class SettingsMoblinkSuite {
     private val json = Json { ignoreUnknownKeys = true }
 

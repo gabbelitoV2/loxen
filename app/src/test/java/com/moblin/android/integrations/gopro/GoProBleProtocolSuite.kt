@@ -1,18 +1,21 @@
 package com.moblin.android.integrations.gopro
 
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_ResponseGetApEntries
-import com.moblin.android.settings.SettingsGoProLaunchLiveStreamResolution
-import com.moblin.android.settings.SettingsGoProLens
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.junit.Test
+import com.moblin.android.various.settings.SettingsGoProLaunchLiveStreamResolution
+import com.moblin.android.various.settings.SettingsGoProLens
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun ByteArray.hexString(): String =
     joinToString("") { byte -> (byte.toInt() and 0xff).toString(16).padStart(2, '0') }
 
+@RunWith(RobolectricTestRunner::class)
 class GoProBleProtocolSuite {
     @Test
     fun packetizesSinglePacketCommand() {
@@ -85,7 +88,7 @@ class GoProBleProtocolSuite {
     @Test
     fun parsesScanEntries() {
         val response: OpenGopro_ResponseGetApEntries =
-            Unit
+            TODO("OpenGopro_ResponseGetApEntries(serializedBytes:) is not available in the Kotlin port")
         assertEquals<Any>(goProResponseSuccessStatus, response.result)
         assertEquals(3, response.scanID)
         assertEquals(2, response.entries.size)

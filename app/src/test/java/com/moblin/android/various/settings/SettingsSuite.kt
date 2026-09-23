@@ -1,12 +1,15 @@
 package com.moblin.android.various.settings
 
-import com.moblin.android.chat.ChatPostSegment
 import com.moblin.android.various.network.DefaultTcpPorts
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import org.junit.Test
+import com.moblin.android.various.ChatPostSegment
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class SettingsSuite {
     @Test
     fun streamUrlSchemeSelectsProtocol() {

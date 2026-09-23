@@ -4,7 +4,10 @@ import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class WorkoutDeviceCrankCadenceSuite {
     @Test
     fun reportsNothingWithoutCrankData() {

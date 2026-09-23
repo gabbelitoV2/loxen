@@ -2,12 +2,15 @@ package com.moblin.android.view.stream
 
 import android.content.Context
 import android.view.View
+import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
@@ -23,6 +26,7 @@ class SharedUiViewContainerView(
         if (!isAttachedToWindow || sharedView.parent === this) {
             return
         }
+        (sharedView.parent as? ViewGroup)?.removeView(sharedView)
         addView(
             sharedView,
             LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT),
@@ -36,8 +40,12 @@ class SharedUiViewContainerView(
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        attachSharedView()
-        sharedView.layout(0, 0, width, height)
+        if (sharedView.parent == null) {
+            attachSharedView()
+        }
+        if (sharedView.parent === this) {
+            sharedView.layout(0, 0, width, height)
+        }
     }
 }
 
@@ -46,6 +54,7 @@ class StreamPreviewView(private val model: Model) {
     fun body() {
         AndroidView(
             factory = { context -> SharedUiViewContainerView(context, model.streamPreviewView) },
+            modifier = Modifier.fillMaxSize(),
             update = { it.attachSharedView() },
         )
     }
@@ -99,6 +108,7 @@ class CameraPreviewView(private val model: Model) {
     fun body() {
         AndroidView(
             factory = { context -> SharedUiViewContainerView(context, model.cameraPreviewView) },
+            modifier = Modifier.fillMaxSize(),
             update = { it.attachSharedView() },
         )
     }
@@ -111,12 +121,14 @@ class StreamView(
 ) {
     @Composable
     fun body() {
-        if (show.chatPhone.value) {
+        val chatPhone by show.chatPhone.collectAsState()
+        val cameraPreview by show.cameraPreview.collectAsState()
+        if (chatPhone) {
             Box(modifier = Modifier.fillMaxSize().background(Color.Black))
         } else {
             Box(modifier = Modifier.fillMaxSize()) {
                 streamPreviewView.body()
-                if (show.cameraPreview.value) {
+                if (cameraPreview) {
                     cameraPreviewView.body()
                 }
             }

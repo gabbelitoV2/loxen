@@ -2,7 +2,10 @@ package com.moblin.android.media
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class WrappingTimestampSuite {
     private fun seconds(value: Long): Long = value * 1_000_000L
 

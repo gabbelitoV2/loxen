@@ -3,7 +3,10 @@ package com.moblin.android.common.various
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class ValidateSuite {
     @Test
     fun whipUrlValidation() {

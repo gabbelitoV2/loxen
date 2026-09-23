@@ -10,6 +10,8 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private val Instant.timeIntervalSince1970: Double
     get() = epochSecond.toDouble() + nano.toDouble() / 1_000_000_000.0
@@ -48,6 +50,7 @@ private fun timeOfDay(timecode: MpegTsTimecode, fps: Int): Double {
     return seconds.toDouble() + timecode.frame.toDouble() / fps.toDouble()
 }
 
+@RunWith(RobolectricTestRunner::class)
 class MpegTsTimecodeGeneratorSuite {
     @Test
     fun noTimecodesBeforeReferenceIsSet() {

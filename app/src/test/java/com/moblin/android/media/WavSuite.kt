@@ -4,7 +4,10 @@ import com.moblin.android.media.haishinkit.util.ByteWriter
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class WavSuite {
     @Test
     fun mono() {

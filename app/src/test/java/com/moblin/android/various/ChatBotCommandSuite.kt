@@ -1,10 +1,13 @@
 package com.moblin.android.various
 
-import com.moblin.android.settings.Platform
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import org.junit.Test
+import com.moblin.android.streamingplatforms.Platform
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class ChatBotCommandSuite {
     @Test
     fun simplePopFirst() {

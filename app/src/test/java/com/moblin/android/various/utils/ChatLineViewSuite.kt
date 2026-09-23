@@ -13,6 +13,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import org.junit.Test
 import com.moblin.android.AppDelegate
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun makeView(): ChatLineUiView {
     val view = ChatLineUiView(context = AppDelegate.context)
@@ -44,6 +46,7 @@ private fun setSize(view: ChatLineUiView, availableWidth: Float) {
     view.layout(0, 0, size.width, size.height)
 }
 
+@RunWith(RobolectricTestRunner::class)
 class ChatLineViewSuite {
     @Test
     fun renderingIsTheSameAfterWidthChangedBackWithoutRemeasuring() {

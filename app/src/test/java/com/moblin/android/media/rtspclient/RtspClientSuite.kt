@@ -3,7 +3,10 @@ package com.moblin.android.media.rtspclient
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class RtspClientSuite {
     @Test
     fun tcpTransportAcceptsValidInterleavedChannels() {

@@ -2,10 +2,13 @@ package com.moblin.android.media.haishinkit.util
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun hexToByteArray(hex: String): ByteArray =
     hex.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
 
+@RunWith(RobolectricTestRunner::class)
 class Md5Suite {
     @Test
     fun appleLogToRec709() {

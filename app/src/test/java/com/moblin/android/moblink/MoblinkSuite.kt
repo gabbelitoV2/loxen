@@ -3,7 +3,10 @@ package com.moblin.android.moblink
 import kotlin.test.assertEquals
 import kotlin.test.fail
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class MoblinkSuite {
     @Test
     fun decodeStatusResponse() {

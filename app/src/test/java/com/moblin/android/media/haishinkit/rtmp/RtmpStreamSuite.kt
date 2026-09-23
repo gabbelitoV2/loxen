@@ -4,7 +4,6 @@ import android.util.Log
 import android.util.Size
 import com.moblin.android.MessageQueue
 import com.moblin.android.media.MediaSample
-import com.moblin.android.media.haishinkit.rtmp.message.AsValue
 import com.moblin.android.media.haishinkit.media.Processor
 import com.moblin.android.media.haishinkit.media.ProcessorDelegate
 import com.moblin.android.media.haishinkit.media.RecorderDataSegment
@@ -31,6 +30,9 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import com.moblin.android.media.haishinkit.rtmp.amf.AsValue
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private val rtmpQueue: CoroutineDispatcher = Dispatchers.IO
 
@@ -202,6 +204,7 @@ private class RtmpServerMock {
     }
 }
 
+@RunWith(RobolectricTestRunner::class)
 class RtmpStreamSuite {
     @Test
     fun basic() {

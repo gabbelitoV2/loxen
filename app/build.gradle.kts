@@ -21,6 +21,13 @@ android {
         compose = true
     }
 
+    sourceSets["test"].resources.srcDir("src/main/assets")
+
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+        unitTests.isIncludeAndroidResources = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -50,5 +57,7 @@ dependencies {
     implementation("androidx.camera:camera-view:1.4.1")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.14.1")
+    testImplementation("androidx.test:core:1.6.1")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 }

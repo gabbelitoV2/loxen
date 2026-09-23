@@ -1,6 +1,7 @@
 package com.moblin.android.view.stream
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -8,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.unit.dp
 import com.moblin.android.various.model.CameraLevel
 import kotlin.math.abs
 import kotlin.math.cos
@@ -16,13 +18,13 @@ import kotlin.math.sin
 @Composable
 fun CameraLevelView(cameraLevel: CameraLevel) {
     val angle by cameraLevel.angle.collectAsState()
-    Canvas(modifier = Modifier) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
         val a = angle ?: return@Canvas
         val y = size.height / 2f
         val xLeft = size.width / 3f
         val xRight = size.width * 2f / 3f
-        val halfGap = 2.5f
-        val shortLine = 25f
+        val halfGap = 2.5.dp.toPx()
+        val shortLine = 25.dp.toPx()
         val leftShortLineBegin = xLeft - shortLine - halfGap
         val rightShortLineEnd = xRight + shortLine + halfGap
         val path = Path()
@@ -43,6 +45,6 @@ fun CameraLevelView(cameraLevel: CameraLevel) {
             path.lineTo(size.width / 2f + xLine, y + yLine)
             color = Color.White
         }
-        drawPath(path = path, color = color, style = Stroke(width = 1f))
+        drawPath(path = path, color = color, style = Stroke(width = 1.dp.toPx()))
     }
 }

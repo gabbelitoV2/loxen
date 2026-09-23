@@ -6,7 +6,10 @@ import com.moblin.android.various.settings.maximumNumberOfTwitchRaidChannels
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class TwitchRaidHistorySuite {
     @Test
     fun appendNewestFirst() {

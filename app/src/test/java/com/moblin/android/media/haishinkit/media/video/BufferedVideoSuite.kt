@@ -5,7 +5,10 @@ import com.moblin.android.media.haishinkit.media.DriftTracker
 import java.util.UUID
 import kotlin.test.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class BufferedVideoSuite {
     @Test
     fun appendOutOfOrderEarlyFrame() {

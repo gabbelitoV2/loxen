@@ -7,7 +7,10 @@ import com.moblin.android.various.ChatPostSegment
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class KickChatSegmentsSuite {
     private fun createSegments(message: String, emotes: List<String> = emptyList()): List<ChatPostSegment> {
         val id = AtomicInteger(0)

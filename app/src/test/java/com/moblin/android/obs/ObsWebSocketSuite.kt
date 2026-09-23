@@ -11,6 +11,8 @@ import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private sealed interface CompletionResult<out Value> {
     class Success<out Value>(val value: Value) : CompletionResult<Value>
@@ -113,6 +115,7 @@ private class Connection(
     }
 }
 
+@RunWith(RobolectricTestRunner::class)
 class ObsWebSocketSuite {
     @Test
     fun connectWithoutAuthentication() = runBlocking<Unit> {

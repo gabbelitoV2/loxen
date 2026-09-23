@@ -1,34 +1,38 @@
 package com.moblin.android.view.stream.overlay
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocalCafe
-import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
 import com.moblin.android.common.various.backgroundColor
 import com.moblin.android.common.various.smallFont
 import com.moblin.android.common.view.StreamOverlayIconAndTextPlacement
 import com.moblin.android.common.view.StreamOverlayIconAndTextView
+import com.moblin.android.integrations.blacksharkcooler.BlackSharkCoolerDeviceState
 import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.various.BondingPercentage
 import com.moblin.android.various.model.Bitrate
 import com.moblin.android.various.model.Bonding
 import com.moblin.android.various.model.Ingests
@@ -41,13 +45,22 @@ import com.moblin.android.various.model.StreamState
 import com.moblin.android.various.model.StreamUptimeProvider
 import com.moblin.android.various.model.SystemMonitor
 import com.moblin.android.various.model.Zoom
+import com.moblin.android.various.model.areAllCatPrintersConnected
+import com.moblin.android.various.model.areAllWorkoutDevicesConnected
 import com.moblin.android.various.model.areMoblinkRelaysOk
+import com.moblin.android.various.model.isAnyCatPrinterConfigured
+import com.moblin.android.various.model.isAnyWorkoutDeviceConfigured
 import com.moblin.android.various.model.isMoblinkRelayConfigured
+import com.moblin.android.various.model.isShowingStatusGameController
+import com.moblin.android.various.model.isShowingStatusLocation
 import com.moblin.android.various.model.isShowingStatusRecording
+import com.moblin.android.various.model.isShowingStatusRemoteControl
+import com.moblin.android.various.model.isStreaming
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsAppMode
 import com.moblin.android.various.settings.SettingsAutoSceneSwitcher
 import com.moblin.android.various.settings.SettingsAutoSceneSwitchers
+import com.moblin.android.various.settings.SettingsLocation
 import com.moblin.android.various.settings.SettingsMoblinkRelay
 import com.moblin.android.various.settings.SettingsMoblinkStreamer
 import com.moblin.android.various.settings.SettingsRemoteControlAssistant
@@ -72,18 +85,44 @@ import com.moblin.android.view.stream.overlay.right.StreamOverlayRightVideoPrevi
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightWhirlpoolView
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightZoomPresetSelctorView
 import com.moblin.android.view.stream.overlay.right.StreamOverlayRightZoomPresetVSelctorView
-import com.moblin.android.LocalModel
-import com.moblin.android.various.model.isStreaming
-import com.moblin.android.various.model.isShowingStatusRemoteControl
-import com.moblin.android.various.model.isShowingStatusGameController
-import com.moblin.android.various.model.isShowingStatusLocation
-import com.moblin.android.various.model.isAnyCatPrinterConfigured
-import com.moblin.android.various.model.areAllCatPrintersConnected
-import com.moblin.android.various.model.isAnyWorkoutDeviceConfigured
-import com.moblin.android.various.model.areAllWorkoutDevicesConnected
+import kotlinx.coroutines.flow.StateFlow
 
 private val hidePlacement: StreamOverlayIconAndTextPlacement = StreamOverlayIconAndTextPlacement.Hide
 private val beforeIconPlacement: StreamOverlayIconAndTextPlacement = StreamOverlayIconAndTextPlacement.BeforeIcon
+
+@Composable
+private fun <T> StateFlow<T>.observe(): T = collectAsState().value
+
+@Composable
+private fun StatusIcon(name: String, color: Color, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.size(17.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        SystemImage(name = name, fontSize = smallFont.fontSize, tint = color)
+    }
+}
+
+@Composable
+private fun BondingPieChart(percentages: List<BondingPercentage>, modifier: Modifier) {
+    Canvas(modifier = modifier) {
+        val total = percentages.sumOf { it.percentage }.toFloat()
+        if (total > 0f) {
+            var startAngle = -90f
+            for (item in percentages) {
+                val sweepAngle = 360f * item.percentage / total
+                drawArc(
+                    color = item.color,
+                    startAngle = startAngle,
+                    sweepAngle = sweepAngle,
+                    useCenter = true,
+                )
+                startAngle += sweepAngle
+            }
+        }
+    }
+}
+
 @Composable
 private fun CollapsedBondingView(bonding: Bonding, color: Color) {
     val pieChartPercentages by bonding.pieChartPercentages.collectAsState()
@@ -94,16 +133,18 @@ private fun CollapsedBondingView(bonding: Bonding, color: Color) {
             .clip(RoundedCornerShape(5.dp))
             .background(backgroundColor),
     ) {
-        Icon(
-            imageVector = Icons.Default.Phone,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier
-                .size(17.dp)
-                .padding(horizontal = 2.dp),
+        StatusIcon(
+            name = "phone.connection",
+            color = color,
+            modifier = Modifier.padding(horizontal = 2.dp),
         )
         if (pieChartPercentages.isNotEmpty()) {
-            Unit
+            BondingPieChart(
+                percentages = pieChartPercentages.reversed(),
+                modifier = Modifier
+                    .padding(end = 2.dp)
+                    .size(14.dp),
+            )
         }
     }
 }
@@ -115,18 +156,19 @@ private fun BondingStatusView(
     bonding: Bonding,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
+    model.isLive.observe()
+    model.stream.observe()
     val statistics by bonding.statistics.collectAsState()
     val rtts by bonding.rtts.collectAsState()
     if (model.isShowingStatusBonding()) {
-        val color = netStreamColor(model)
         if (textPlacement == hidePlacement) {
-            CollapsedBondingView(bonding = bonding, color = color)
+            CollapsedBondingView(bonding = bonding, color = netStreamColor(model))
         } else {
             StreamOverlayIconAndTextView(
                 icon = "phone.connection",
                 text = statistics,
                 textPlacement = textPlacement,
-                color = color,
+                color = netStreamColor(model),
             )
         }
     }
@@ -147,6 +189,7 @@ private fun ReplayStatusView(
     replay: SettingsStreamReplay,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
+    model.stream.observe()
     if (model.isShowingStatusReplay()) {
         StreamOverlayIconAndTextView(
             icon = "play",
@@ -166,13 +209,10 @@ private fun CollapsedAdsRemainingTimerView(status: StatusTopRight) {
             .clip(RoundedCornerShape(5.dp))
             .background(backgroundColor),
     ) {
-        Icon(
-            imageVector = Icons.Default.LocalCafe,
-            contentDescription = null,
-            tint = Color.White,
-            modifier = Modifier
-                .size(17.dp)
-                .padding(horizontal = 2.dp),
+        StatusIcon(
+            name = "cup.and.saucer",
+            color = Color.White,
+            modifier = Modifier.padding(horizontal = 2.dp),
         )
         Text(
             text = adsRemainingTimerStatus,
@@ -215,12 +255,10 @@ private fun CollapsedBitrateView(bitrate: Bitrate) {
             .clip(RoundedCornerShape(5.dp))
             .background(backgroundColor),
     ) {
-        Icon(
-            imageVector = Icons.Default.Speed,
-            contentDescription = null,
-            tint = statusColor,
+        StatusIcon(
+            name = "speedometer",
+            color = statusColor,
             modifier = Modifier
-                .size(17.dp)
                 .background(statusIconColor ?: Color.Transparent)
                 .padding(start = 2.dp),
         )
@@ -260,15 +298,12 @@ private fun BitrateStatusView(
     }
 }
 
-@Composable
-private fun netStreamColor(model: Model = LocalModel.current): Color {
-    val streamState = model.streamState
+private fun netStreamColor(model: Model): Color {
     return if (model.isStreaming()) {
-        when (streamState) {
+        when (model.streamState) {
             StreamState.connecting -> Color.White
             StreamState.connected -> Color.White
             StreamState.disconnected -> Color.Red
-            else -> Color.White
         }
     } else {
         Color.White
@@ -282,6 +317,7 @@ private fun StreamUptimeStatusView(
     streamUptime: StreamUptimeProvider,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
+    model.isLive.observe()
     val uptime by streamUptime.uptime.collectAsState()
     if (model.isShowingStatusStreamUptime()) {
         StreamOverlayIconAndTextView(
@@ -300,6 +336,9 @@ private fun CpuStatusView(
     systemMonitor: SystemMonitor,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
+    systemMonitor.appCpu.observe()
+    systemMonitor.cpu.observe()
+    systemMonitor.ram.observe()
     if (model.isShowingStatusCpu()) {
         if (textPlacement == hidePlacement) {
             Row(
@@ -309,13 +348,10 @@ private fun CpuStatusView(
                     .clip(RoundedCornerShape(5.dp))
                     .background(backgroundColor),
             ) {
-                Icon(
-                    imageVector = Icons.Default.Memory,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier
-                        .size(17.dp)
-                        .padding(start = 2.dp),
+                StatusIcon(
+                    name = "cpu",
+                    color = Color.White,
+                    modifier = Modifier.padding(start = 2.dp),
                 )
                 Text(
                     text = systemMonitor.formatShort(),
@@ -454,7 +490,7 @@ private fun IngestsStatusView(
 private fun LocationStatusView(
     model: Model = LocalModel.current,
     show: SettingsShow,
-    location: com.moblin.android.various.settings.SettingsLocation,
+    location: SettingsLocation,
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
@@ -475,11 +511,11 @@ private fun RecordingStatusView(
     recording: RecordingProvider,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val length = recording.length
+    model.isRecording.observe()
     if (model.isShowingStatusRecording()) {
         StreamOverlayIconAndTextView(
             icon = "record.circle",
-            text = length,
+            text = recording.length,
             textPlacement = textPlacement,
         )
     }
@@ -492,6 +528,7 @@ private fun BrowserWidgetsStatusView(
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
+    status.browserWidgetsStatusChanged.observe()
     val browserWidgetsStatus by status.browserWidgetsStatus.collectAsState()
     if (model.isShowingStatusBrowserWidgets()) {
         StreamOverlayIconAndTextView(
@@ -509,6 +546,7 @@ private fun CatPrinterStatusView(
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
+    status.catPrinterState.observe()
     val catPrinterStatus by status.catPrinterStatus.collectAsState()
 
     fun catPrinterColor(): Color {
@@ -535,6 +573,7 @@ private fun WorkoutDeviceStatusView(
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
+    status.workoutDeviceState.observe()
     val workoutDeviceStatus by status.workoutDeviceStatus.collectAsState()
 
     fun workoutDeviceColor(): Color {
@@ -580,7 +619,7 @@ private fun BlackSharkCoolerDeviceStatusView(
     val blackSharkCoolerDeviceState by status.blackSharkCoolerDeviceState.collectAsState()
     val blackSharkCoolerPhoneTemp by status.blackSharkCoolerPhoneTemp.collectAsState()
     val blackSharkCoolerExhaustTemp by status.blackSharkCoolerExhaustTemp.collectAsState()
-    if (blackSharkCoolerDeviceState.toString() == "connected") {
+    if (blackSharkCoolerDeviceState == BlackSharkCoolerDeviceState.CONNECTED) {
         StreamOverlayIconAndTextView(
             icon = "fan",
             text = "${blackSharkCoolerPhoneTemp ?: 0} °C / ${blackSharkCoolerExhaustTemp ?: 0} °C",
@@ -594,10 +633,9 @@ private fun AutoSceneSwitcherStatusInnerView(
     autoSceneSwitcher: SettingsAutoSceneSwitcher,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val name = autoSceneSwitcher.name
     StreamOverlayIconAndTextView(
         icon = "autostartstop",
-        text = name,
+        text = autoSceneSwitcher.name,
         textPlacement = textPlacement,
     )
 }
@@ -607,9 +645,7 @@ private fun AutoSceneSwitcherStatusView(
     autoSceneSwitchers: SettingsAutoSceneSwitchers,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
-    val switchers = autoSceneSwitchers.switchers
-    val switcherId = autoSceneSwitchers.switcherId
-    val autoSceneSwitcher = switchers.firstOrNull { it.id == switcherId }
+    val autoSceneSwitcher = autoSceneSwitchers.switchers.firstOrNull { it.id == autoSceneSwitchers.switcherId }
     if (autoSceneSwitcher != null) {
         AutoSceneSwitcherStatusInnerView(
             autoSceneSwitcher = autoSceneSwitcher,
@@ -625,6 +661,7 @@ private fun StatusesView(
     status: StatusTopRight,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
+    val stream by model.stream.collectAsState()
     AdsRemainingTimerView(
         model = model,
         status = model.statusTopRight,
@@ -679,7 +716,7 @@ private fun StatusesView(
     )
     ReplayStatusView(
         show = model.database.show,
-        replay = model.stream.value.replay,
+        replay = stream.replay,
         textPlacement = textPlacement,
     )
     StreamUptimeStatusView(
@@ -745,15 +782,14 @@ private fun AudioView(
     database: Database,
     show: SettingsShow,
 ) {
-    val bigAudioLevelMeter = database.bigAudioLevelMeter
     if (model.isShowingStatusAudioLevel()) {
-        AudioLevelView(model = model, big = bigAudioLevelMeter)
+        AudioLevelView(model = model, big = database.bigAudioLevelMeter)
     }
 }
 
 @Composable
 fun RightOverlayTopView(model: Model = LocalModel.current, database: Database) {
-    val verboseStatuses = database.verboseStatuses
+    var verboseStatuses by remember(database) { mutableStateOf(database.verboseStatuses) }
     Column(
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(1.dp),
@@ -761,8 +797,13 @@ fun RightOverlayTopView(model: Model = LocalModel.current, database: Database) {
         Column(
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(1.dp),
-            modifier = Modifier.clickable {
-                model.toggleVerboseStatuses()
+            modifier = Modifier.pointerInput(model, database) {
+                detectTapGestures(
+                    onTap = {
+                        model.toggleVerboseStatuses()
+                        verboseStatuses = database.verboseStatuses
+                    },
+                )
             },
         ) {
             if (verboseStatuses) {
@@ -805,14 +846,19 @@ private fun RightOverlayBottomVerticalView(
     val showingCamera by streamOverlay.showingCamera.collectAsState()
     val isTorchOn by streamOverlay.isTorchOn.collectAsState()
     val isFrontCameraSelected by streamOverlay.isFrontCameraSelected.collectAsState()
-    val zoomPresets = show.zoomPresets
     val hasZoom by zoom.hasZoom.collectAsState()
-    Row(verticalAlignment = Alignment.Bottom) {
+    Row(
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Spacer(modifier = Modifier.weight(1f))
         if (showMediaPlayerControls) {
             StreamOverlayRightMediaPlayerControlsView(mediaPlayer = model.mediaPlayerPlayer)
         } else {
-            Column(horizontalAlignment = Alignment.End) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 StreamOverlayRightFaceView(model = model, face = database.face)
                 if (showingPixellate) {
                     StreamOverlayRightPixellateView(model = model, database = database)
@@ -834,7 +880,7 @@ private fun RightOverlayBottomVerticalView(
                     StreamOverlayRightTorchView(model = model, database = database)
                 }
             }
-            if (zoomPresets && hasZoom) {
+            if (show.zoomPresets && hasZoom) {
                 StreamOverlayRightZoomPresetVSelctorView(
                     model = model,
                     zoom = zoom,
@@ -866,7 +912,6 @@ private fun RightOverlayBottomHorizontalView(
     val showingCamera by streamOverlay.showingCamera.collectAsState()
     val isTorchOn by streamOverlay.isTorchOn.collectAsState()
     val isFrontCameraSelected by streamOverlay.isFrontCameraSelected.collectAsState()
-    val zoomPresets = show.zoomPresets
     val hasZoom by zoom.hasZoom.collectAsState()
     if (showMediaPlayerControls) {
         StreamOverlayRightMediaPlayerControlsView(mediaPlayer = model.mediaPlayerPlayer)
@@ -891,7 +936,7 @@ private fun RightOverlayBottomHorizontalView(
         if (isTorchOn && !isFrontCameraSelected) {
             StreamOverlayRightTorchView(model = model, database = database)
         }
-        if (zoomPresets && hasZoom) {
+        if (show.zoomPresets && hasZoom) {
             StreamOverlayRightZoomPresetSelctorView(
                 model = model,
                 zoom = zoom,
@@ -916,19 +961,16 @@ fun RightOverlayBottomView(
     width: Float,
 ) {
     val showDrawOnStream by model.showDrawOnStream.collectAsState()
-    val appMode = database.appMode
     val showingReplay by streamOverlay.showingReplay.collectAsState()
     val showingBeauty by streamOverlay.showingBeauty.collectAsState()
     val showingVideoPreview by streamOverlay.showingVideoPreview.collectAsState()
-    val zoomPresets = show.zoomPresets
     val hasZoom by zoom.hasZoom.collectAsState()
-    val verticalButtons = database.verticalButtons
     Column(
         horizontalAlignment = Alignment.End,
         verticalArrangement = Arrangement.spacedBy(1.dp),
     ) {
         Spacer(modifier = Modifier.weight(1f))
-        if (!showDrawOnStream && appMode == SettingsAppMode.streaming) {
+        if (!showDrawOnStream && database.appMode == SettingsAppMode.streaming) {
             if (showingReplay) {
                 StreamOverlayRightReplayView(
                     model = model,
@@ -938,14 +980,14 @@ fun RightOverlayBottomView(
             } else if (showingBeauty) {
                 StreamOverlayRightBeautyView(model = model, beauty = database.beauty)
             } else if (showingVideoPreview) {
-                if (zoomPresets && hasZoom) {
+                if (show.zoomPresets && hasZoom) {
                     StreamOverlayRightZoomPresetSelctorView(
                         model = model,
                         zoom = zoom,
                         width = width,
                     )
                 }
-                Column(modifier = Modifier.padding(bottom = 5.dp)) {
+                Box(modifier = Modifier.padding(bottom = 5.dp)) {
                     StreamOverlayRightSceneSelectorView(
                         database = database,
                         sceneSelector = model.sceneSelector,
@@ -958,7 +1000,7 @@ fun RightOverlayBottomView(
                     videoPreview = model.videoPreview,
                 )
             } else {
-                if (verticalButtons) {
+                if (database.verticalButtons) {
                     RightOverlayBottomVerticalView(
                         model = model,
                         database = database,

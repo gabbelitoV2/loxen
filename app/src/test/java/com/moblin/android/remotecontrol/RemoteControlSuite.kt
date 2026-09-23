@@ -1,7 +1,6 @@
 package com.moblin.android.remotecontrol
 
 import com.moblin.android.various.Variables
-import com.moblin.android.various.Variables.WorkoutDeviceRunningMetrics
 import com.moblin.android.various.managers.GForce
 import java.time.Instant
 import kotlinx.serialization.decodeFromString
@@ -14,7 +13,11 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.encodeToJsonElement
 import org.junit.Test
 import kotlin.test.assertEquals
+import com.moblin.android.integrations.workoutdevice.WorkoutDeviceRunningMetrics
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class RemoteControlSuite {
     private val json = Json {
         encodeDefaults = true
@@ -32,7 +35,7 @@ class RemoteControlSuite {
                      encode(RemoteControlRequest.SetGimbalMovement(x = 1f, y = -1f)))
         assertEquals("""{"animateGimbal":{"motion":{"kapow":{}}}}""",
                      encode(RemoteControlRequest.AnimateGimbal(
-                         motion = RemoteControlRequest.GimbalMotion.Kapow)))
+                         motion = TODO("GimbalMotion"))))
         assertEquals("""{"saveGimbalPreset":{}}""",
                      encode(RemoteControlRequest.SaveGimbalPreset))
     }
@@ -330,7 +333,7 @@ class RemoteControlSuite {
             cyclingPower = "250 W",
             cyclingCadence = "90",
             cyclingSpeed = 10.0,
-            runningMetrics = mapOf("Foot pod" to WorkoutDeviceRunningMetrics(speed = 3.5, cadence = 180.0, distance = 4200.0)),
+            runningMetrics = mapOf("Foot pod" to WorkoutDeviceRunningMetrics(speed = 3.5, cadence = 180, distance = 4200.0)),
             browserTitle = "Title",
             gForce = GForce(now = 1.5, recentMax = 2.5, max = 3.5),
             latestSubscriber = "Subscriber",

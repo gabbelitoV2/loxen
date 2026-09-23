@@ -3,7 +3,10 @@ package com.moblin.android.various.subtitles
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class SubtitlesSuite {
     @Test
     fun speechToTextOutput() {

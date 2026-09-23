@@ -21,6 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private const val audioSampleRate = 48000.0
 private const val audioFramesPerBuffer = 1024
@@ -239,6 +241,7 @@ private suspend fun loadToneTime(url: String): Double? = withContext(Dispatchers
     null
 }
 
+@RunWith(RobolectricTestRunner::class)
 class RecorderSuite {
     @Test
     fun recordsAudioAndVideo() {

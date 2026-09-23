@@ -8,6 +8,8 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun crankMeasurement(revolutions: UShort, eventTime: UShort): ByteArray {
     val buffer = ByteBuffer.allocate(5).order(ByteOrder.LITTLE_ENDIAN)
@@ -38,6 +40,7 @@ private fun wheelAndCrankMeasurement(wheelRevolutions: UInt,
     return buffer.array()
 }
 
+@RunWith(RobolectricTestRunner::class)
 class WorkoutDeviceCyclingSpeedCadenceSuite {
     @Test
     fun firstMeasurementOnlySeedsState() {

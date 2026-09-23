@@ -10,6 +10,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private class Mock : MpegTsReaderDelegate {
     val audioSampleBuffers: MutableList<MediaSample> = mutableListOf()
@@ -31,6 +33,7 @@ private fun hexStringToData(hexString: String): ByteArray {
     }
 }
 
+@RunWith(RobolectricTestRunner::class)
 class MpegTsReaderSuite {
     @Test
     fun ffmpegAudioOnlyPeriodicBeep() = runBlocking {

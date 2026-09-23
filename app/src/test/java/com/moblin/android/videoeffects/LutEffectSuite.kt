@@ -13,6 +13,8 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun makeLut(dimension: Int, function: (SIMD3) -> SIMD3): List<SIMD3> {
     val lut = MutableList(dimension * dimension * dimension) { SIMD3(0f, 0f, 0f) }
@@ -74,6 +76,7 @@ private fun entry(cubeData: ByteArray, dimension: Int, red: Int, green: Int, blu
     return SIMD3(cube.get(index), cube.get(index + 1), cube.get(index + 2))
 }
 
+@RunWith(RobolectricTestRunner::class)
 class LutEffectSuite {
     @Test
     fun interpolate3dAtGridPoints() {

@@ -321,6 +321,19 @@ def host_hooks(text):
     return text, count
 
 
+TEST_CLASS_RE = re.compile(r"^((?:@\w+(?:\([^)\n]*\))?\n)*)(class \w+Suite\b)", re.M)
+
+
+def robolectric_runner(text):
+    if "org.junit.Test" not in text or "@RunWith(" in text:
+        return text, 0
+    text, n = TEST_CLASS_RE.subn(r"\1@RunWith(RobolectricTestRunner::class)\n\2", text, count=1)
+    if n:
+        text, _ = add_import(text, "import org.junit.runner.RunWith")
+        text, _ = add_import(text, "import org.robolectric.RobolectricTestRunner")
+    return text, n
+
+
 def process_file(text, renamed_names, sources=None):
     counts = {}
     package = re.search(r"^package (\S+)$", text, re.M)
@@ -353,6 +366,8 @@ def process_file(text, renamed_names, sources=None):
     if "@Composable" in text:
         text, modifiers = modifier_order(text)
         counts["modifiers"] = modifiers
+    text, runners = robolectric_runner(text)
+    counts["runners"] = runners
     return text, counts
 
 

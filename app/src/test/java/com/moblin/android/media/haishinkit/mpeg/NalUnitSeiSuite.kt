@@ -19,6 +19,8 @@ import java.time.temporal.ChronoUnit
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.fail
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private val noon = Instant.ofEpochSecond(1_755_864_000L)
 
@@ -27,6 +29,7 @@ private fun clock(hours: Int, minutes: Int, seconds: Int): Instant {
     return startOfDay.plusSeconds((3600 * hours + 60 * minutes + seconds).toLong()).toInstant()
 }
 
+@RunWith(RobolectricTestRunner::class)
 class NalUnitSeiSuite {
 
     @Test

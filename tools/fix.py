@@ -75,6 +75,69 @@ def parse_errors(output):
     return errors
 
 
+TOP_LEVEL_RE = re.compile(
+    r"^(?:@\w+(?:\([^)\n]*\))?\s+)*(?:(?:public|internal|data|sealed|enum|abstract|open|inline|value|annotation|fun interface|const|suspend|operator|infix)\s+)*"
+    r"(?:class|interface|object|typealias|fun|val|var)\s+(?:<[^>]*>\s*)?(?:[\w.]+(?:<[^>]*>)?\.)?(\w+)",
+    re.M,
+)
+PACKAGE_RE = re.compile(r"^package ([\w.]+)", re.M)
+UNRESOLVED_RE = re.compile(r"Unresolved reference '(\w+)'")
+
+
+def symbol_index():
+    index = {}
+    for directory in [ROOT / "app/src/main/java"]:
+        for path in directory.rglob("*.kt"):
+            text = path.read_text(encoding="utf-8", errors="replace")
+            package = PACKAGE_RE.search(text)
+            if not package:
+                continue
+            for name in TOP_LEVEL_RE.findall(text):
+                index.setdefault(name, set()).add(package.group(1))
+    return index
+
+
+def fix_imports(errors, index):
+    fixed = 0
+    for path, file_errors in errors.items():
+        text = path.read_text(encoding="utf-8", errors="replace")
+        lines = text.split("\n")
+        package = PACKAGE_RE.search(text)
+        own_package = package.group(1) if package else ""
+        wanted = set()
+        dropped = set()
+        for line_number, message in file_errors:
+            match = UNRESOLVED_RE.search(message)
+            if not match:
+                continue
+            line = lines[line_number - 1] if 0 < line_number <= len(lines) else ""
+            if line.startswith("import "):
+                symbol = line.split()[1].split(".")[-1]
+                dropped.add(line_number - 1)
+                packages = index.get(symbol, set())
+                if len(packages) == 1:
+                    wanted.add(f"{packages.pop()}.{symbol}")
+                continue
+            symbol = match.group(1)
+            packages = index.get(symbol, set()) - {own_package}
+            if len(packages) == 1:
+                wanted.add(f"{next(iter(packages))}.{symbol}")
+        if not wanted and not dropped:
+            continue
+        lines = [line for i, line in enumerate(lines) if i not in dropped]
+        existing = {line[7:].strip() for line in lines if line.startswith("import ")}
+        additions = sorted(w for w in wanted if w not in existing)
+        if additions:
+            position = max((i for i, line in enumerate(lines) if line.startswith("import ")), default=None)
+            if position is None:
+                position = next(i for i, line in enumerate(lines) if line.startswith("package "))
+                lines[position + 1:position + 1] = [""]
+            lines[position + 1:position + 1] = ["import " + a for a in additions]
+        path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
+        fixed += len(additions) + len(dropped)
+    return fixed
+
+
 def load_inventory():
     inventory = json.loads((HERE / "inventory.json").read_text(encoding="utf-8"))
     by_kotlin = {ROOT / e["kotlin_path"]: e for e in inventory["files"]}
@@ -160,6 +223,16 @@ def main():
             (ROOT / "build-errors.log").write_text(output, encoding="utf-8", newline="\n")
             return
         previous_count = count
+        imports_fixed = fix_imports(errors, symbol_index())
+        if imports_fixed:
+            print(f"round {round_number}: fixed {imports_fixed} imports deterministically, compiling again...")
+            output = compile_kotlin(args.task)
+            errors = parse_errors(output)
+            count = sum(len(v) for v in errors.values())
+            print(f"round {round_number}: {count} errors in {len(errors)} files after import fixes")
+            if count == 0:
+                print("the project compiles")
+                return
         def wave_of(path):
             entry = by_kotlin.get(path)
             return entry["wave"] if entry else 1_000_000

@@ -5,6 +5,8 @@ import java.nio.ByteOrder
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun powerMeasurement(power: Short): ByteArray {
     val bytes = ByteArray(4)
@@ -27,6 +29,7 @@ private fun powerAndCrankMeasurement(power: Short, revolutions: UShort, eventTim
     return bytes
 }
 
+@RunWith(RobolectricTestRunner::class)
 class WorkoutDeviceCyclingPowerSuite {
     @Test
     fun powerOnlyDeviceReportsNoCadence() {

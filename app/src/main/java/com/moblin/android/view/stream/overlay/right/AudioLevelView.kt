@@ -9,18 +9,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.GraphicEq
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
 import com.moblin.android.common.various.CompactAudioLevelIconView
 import com.moblin.android.common.various.backgroundColor
 import com.moblin.android.common.various.clippingThresholdDb
@@ -31,10 +30,11 @@ import com.moblin.android.common.various.redThresholdDb
 import com.moblin.android.common.various.smallFont
 import com.moblin.android.common.various.yellowThresholdDb
 import com.moblin.android.common.various.zeroThresholdDb
+import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
 import com.moblin.android.various.model.AudioLevel
 import com.moblin.android.various.model.AudioProvider
 import com.moblin.android.various.model.Model
-import com.moblin.android.LocalModel
 
 private val barWidthPerDb: Float = 1.0f
 private val barHeight: Dp = 5.dp
@@ -79,14 +79,15 @@ private fun AudioBarView(audio: AudioProvider, level: AudioLevel, big: Boolean =
     val scale = if (big) bigBarScale else 1.0f
     if (muted) {
         Text(
-            text = "Muted",
+            text = localized("Muted"),
             color = Color.White,
-            style = smallFont
+            style = smallFont,
         )
     } else {
         Row(
             modifier = Modifier.padding(vertical = 2.dp),
-            horizontalArrangement = Arrangement.spacedBy(0.dp)
+            horizontalArrangement = Arrangement.spacedBy(0.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             val clippingWidth = clippingBar(levelValue, scale)
             if (clippingWidth != null) {
@@ -94,7 +95,7 @@ private fun AudioBarView(audio: AudioProvider, level: AudioLevel, big: Boolean =
                     modifier = Modifier
                         .width(clippingWidth.dp)
                         .height(barHeight * scale)
-                        .background(Color.Red)
+                        .background(Color.Red),
                 )
             } else {
                 val redWidth = redBar(levelValue, scale)
@@ -103,7 +104,7 @@ private fun AudioBarView(audio: AudioProvider, level: AudioLevel, big: Boolean =
                         modifier = Modifier
                             .width(redWidth.dp)
                             .height(barHeight * scale)
-                            .background(Color.Red)
+                            .background(Color.Red),
                     )
                 }
                 val yellowWidth = yellowBar(levelValue, scale)
@@ -112,7 +113,7 @@ private fun AudioBarView(audio: AudioProvider, level: AudioLevel, big: Boolean =
                         modifier = Modifier
                             .width(yellowWidth.dp)
                             .height(barHeight * scale)
-                            .background(Color.Yellow)
+                            .background(Color.Yellow),
                     )
                 }
                 val greenWidth = greenBar(levelValue, scale)
@@ -121,7 +122,7 @@ private fun AudioBarView(audio: AudioProvider, level: AudioLevel, big: Boolean =
                         modifier = Modifier
                             .width(greenWidth.dp)
                             .height(barHeight * scale)
-                            .background(Color.Green)
+                            .background(Color.Green),
                     )
                 }
             }
@@ -136,7 +137,7 @@ private fun ChannelsView(audio: AudioProvider) {
         Text(
             text = formatAudioLevelChannels(numberOfChannels),
             color = Color.White,
-            style = smallFont
+            style = smallFont,
         )
     }
 }
@@ -148,7 +149,7 @@ private fun SampleRateView(audio: AudioProvider) {
         Text(
             text = formatAudioLevelSampleRate(sampleRate),
             color = Color.White,
-            style = smallFont
+            style = smallFont,
         )
     }
 }
@@ -156,30 +157,31 @@ private fun SampleRateView(audio: AudioProvider) {
 @Composable
 fun AudioLevelView(model: Model = LocalModel.current, big: Boolean = false) {
     Row(
-        modifier = Modifier.padding(0.dp),
-        horizontalArrangement = Arrangement.spacedBy(1.dp)
+        horizontalArrangement = Arrangement.spacedBy(1.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 2.dp)
                 .clip(RoundedCornerShape(5.dp))
-                .background(backgroundColor),
-            horizontalArrangement = Arrangement.spacedBy(1.dp)
+                .background(backgroundColor)
+                .padding(horizontal = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(1.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             AudioBarView(audio = model.audio, level = model.audio.level, big = big)
             ChannelsView(audio = model.audio)
             SampleRateView(audio = model.audio)
         }
-        Icon(
-            imageVector = Icons.Default.GraphicEq,
-            contentDescription = null,
+        Box(
             modifier = Modifier
-                .size(17.dp)
-                .padding(horizontal = 2.dp)
                 .clip(RoundedCornerShape(5.dp))
-                .background(backgroundColor),
-            tint = Color.White
-        )
+                .background(backgroundColor)
+                .padding(horizontal = 2.dp)
+                .size(17.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            SystemImage(name = "waveform", fontSize = smallFont.fontSize, tint = Color.White)
+        }
     }
 }
 
@@ -191,14 +193,14 @@ fun CompactAudioBarView(audio: AudioProvider, level: AudioLevel) {
         CompactAudioLevelIconView(
             name = "microphone.slash",
             foregroundColor = Color.White,
-            backgroundColor = backgroundColor
+            backgroundColor = backgroundColor,
         )
     } else {
         val (foregroundColor, backgroundColor) = compactAudioLevelColors(levelValue)
         CompactAudioLevelIconView(
             name = "waveform",
             foregroundColor = foregroundColor,
-            backgroundColor = backgroundColor
+            backgroundColor = backgroundColor,
         )
     }
 }

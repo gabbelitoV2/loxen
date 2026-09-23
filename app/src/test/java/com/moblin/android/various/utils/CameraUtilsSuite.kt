@@ -2,11 +2,14 @@ package com.moblin.android.various.utils
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun cmTime(value: Int, timescale: Int): Long = value * 1_000_000L / timescale
 
 private val invalidExposure = Long.MIN_VALUE
 
+@RunWith(RobolectricTestRunner::class)
 class CameraUtilsSuite {
     private val exposures = listOf(1000, 500, 250, 125, 60).map { cmTime(value = 1, timescale = it) }
 

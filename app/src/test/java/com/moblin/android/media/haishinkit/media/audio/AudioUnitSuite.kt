@@ -2,7 +2,10 @@ package com.moblin.android.media.haishinkit.media.audio
 
 import kotlin.test.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class AudioUnitSuite {
     @Test
     fun calcAudioLevelPeakFloat32() {

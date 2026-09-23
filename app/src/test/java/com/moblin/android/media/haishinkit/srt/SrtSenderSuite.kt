@@ -4,6 +4,8 @@ import com.moblin.android.MessageQueue
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private class ModelMock : SrtSenderDelegate {
     private val connected = MessageQueue<Unit>()
@@ -45,6 +47,7 @@ private fun dataFromHexString(hexString: String): ByteArray {
     return data
 }
 
+@RunWith(RobolectricTestRunner::class)
 class SrtSenderSuite {
     @Test
     fun connectDisconnect() {

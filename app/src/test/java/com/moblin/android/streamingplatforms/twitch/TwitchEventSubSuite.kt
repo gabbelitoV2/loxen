@@ -4,6 +4,8 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import com.moblin.android.AppDelegate
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private class EventSubTestDelegate : TwitchEventSubDelegate {
     val follows = mutableListOf<TwitchEventSubNotificationChannelFollowEvent>()
@@ -225,6 +227,7 @@ private fun makeEventSub(delegate: EventSubTestDelegate): TwitchEventSub {
     )
 }
 
+@RunWith(RobolectricTestRunner::class)
 class TwitchEventSubSuite {
     @Test
     fun sub() {

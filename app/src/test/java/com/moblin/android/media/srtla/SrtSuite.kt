@@ -4,6 +4,8 @@ import com.moblin.android.media.haishinkit.util.ByteWriter
 import com.moblin.android.media.srtla.common.processSrtNak
 import kotlin.test.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun makeNakPacket(sns: List<UInt>): ByteArray {
     val writer = ByteWriter()
@@ -14,6 +16,7 @@ private fun makeNakPacket(sns: List<UInt>): ByteArray {
     return writer.data
 }
 
+@RunWith(RobolectricTestRunner::class)
 class SrtSuite {
     @Test
     fun processNakSingleAndRange() {

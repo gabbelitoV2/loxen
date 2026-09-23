@@ -2,7 +2,7 @@ package com.moblin.android.view.stream.overlay
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,33 +11,38 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Chat
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.moblin.android.LocalModel
 import com.moblin.android.common.various.backgroundColor
 import com.moblin.android.common.various.countFormatter
 import com.moblin.android.common.various.smallFont
 import com.moblin.android.common.view.StreamOverlayIconAndTextPlacement
 import com.moblin.android.common.view.StreamOverlayIconAndTextView
+import com.moblin.android.common.view.streamOverlayContentShape
+import com.moblin.android.localized
+import com.moblin.android.platform.Bundle
+import com.moblin.android.platform.systemImage
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.model.Mic
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.PlatformStatus
 import com.moblin.android.various.model.StatusTopLeft
-import com.moblin.android.various.model.StreamingPlatformStatus
 import com.moblin.android.various.model.Zoom
 import com.moblin.android.various.model.hasChatEmotes
 import com.moblin.android.various.model.isChatConfigured
@@ -52,7 +57,10 @@ import com.moblin.android.various.model.isShowingStatusStream
 import com.moblin.android.various.model.isShowingStatusZoom
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsShow
-import com.moblin.android.LocalModel
+
+private val systemOrange = Color(0xFFFF9500)
+
+private val systemRed = Color(0xFFFF3B30)
 
 @Composable
 private fun CollapsedViewersView(status: StatusTopLeft) {
@@ -61,15 +69,18 @@ private fun CollapsedViewersView(status: StatusTopLeft) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(1.dp),
-        modifier = Modifier.background(backgroundColor, RoundedCornerShape(5.dp)),
+        modifier = Modifier
+            .streamOverlayContentShape()
+            .clip(RoundedCornerShape(5.dp))
+            .background(backgroundColor),
     ) {
         Icon(
-            imageVector = Icons.Default.Visibility,
+            imageVector = systemImage("eye"),
             contentDescription = null,
             tint = numberOfViewersIconColor,
             modifier = Modifier
-                .size(17.dp)
-                .padding(start = 2.dp),
+                .padding(start = 2.dp)
+                .size(17.dp),
         )
         Text(
             text = numberOfViewersCompact,
@@ -82,19 +93,16 @@ private fun CollapsedViewersView(status: StatusTopLeft) {
 
 @Composable
 private fun ViewersLogoView(platform: Platform) {
-    val context = LocalContext.current
     val imageName = platform.imageName()
-    val resourceId = remember(imageName) {
-        context.resources.getIdentifier(imageName, "drawable", context.packageName)
-    }
-    if (resourceId != 0) {
+    val image = remember(imageName) { Bundle.image(imageName)?.asImageBitmap() }
+    if (image != null) {
         Image(
-            painter = painterResource(id = resourceId),
+            bitmap = image,
             contentDescription = null,
             contentScale = ContentScale.Fit,
             modifier = Modifier
-                .padding(vertical = 2.dp)
-                .height(18.dp),
+                .height(18.dp)
+                .padding(vertical = 2.dp),
         )
     }
 }
@@ -106,21 +114,24 @@ private fun ViewersView(status: StatusTopLeft) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(1.dp),
+        modifier = Modifier.streamOverlayContentShape(),
     ) {
         Icon(
-            imageVector = Icons.Default.Visibility,
+            imageVector = systemImage("eye"),
             contentDescription = null,
             tint = numberOfViewersIconColor,
             modifier = Modifier
-                .size(17.dp)
-                .background(backgroundColor, RoundedCornerShape(5.dp))
-                .padding(horizontal = 2.dp),
+                .clip(RoundedCornerShape(5.dp))
+                .background(backgroundColor)
+                .padding(horizontal = 2.dp)
+                .size(17.dp),
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier
-                .background(backgroundColor, RoundedCornerShape(5.dp))
+                .clip(RoundedCornerShape(5.dp))
+                .background(backgroundColor)
                 .padding(horizontal = 2.dp),
         ) {
             for (platformStatus in streamingPlatformStatuses) {
@@ -132,13 +143,13 @@ private fun ViewersView(status: StatusTopLeft) {
                         style = smallFont,
                     )
                     PlatformStatus.unknown -> Text(
-                        text = "Unknown",
-                        color = Color(0xFFFFA500),
+                        text = localized("Unknown"),
+                        color = systemOrange,
                         style = smallFont,
                     )
                     PlatformStatus.offline -> Text(
-                        text = "Offline",
-                        color = Color.Red,
+                        text = localized("Offline"),
+                        color = systemRed,
                         style = smallFont,
                     )
                 }
@@ -154,21 +165,24 @@ private fun ChatStatusView(status: StatusTopLeft, foregroundColor: Color) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(1.dp),
+        modifier = Modifier.streamOverlayContentShape(),
     ) {
         Icon(
-            imageVector = Icons.Default.Chat,
+            imageVector = systemImage("message"),
             contentDescription = null,
             tint = foregroundColor,
             modifier = Modifier
-                .size(17.dp)
-                .background(backgroundColor, RoundedCornerShape(5.dp))
-                .padding(horizontal = 2.dp),
+                .clip(RoundedCornerShape(5.dp))
+                .background(backgroundColor)
+                .padding(horizontal = 2.dp)
+                .size(17.dp),
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp),
             modifier = Modifier
-                .background(backgroundColor, RoundedCornerShape(5.dp))
+                .clip(RoundedCornerShape(5.dp))
+                .background(backgroundColor)
                 .padding(horizontal = 2.dp),
         ) {
             if (chatPlatformStatuses.isEmpty()) {
@@ -182,14 +196,14 @@ private fun ChatStatusView(status: StatusTopLeft, foregroundColor: Color) {
                     ViewersLogoView(platform = chatPlatformStatus.platform)
                     if (chatPlatformStatus.connected) {
                         Text(
-                            text = "Connected",
+                            text = localized("Connected"),
                             color = Color.White,
                             style = smallFont,
                         )
                     } else {
                         Text(
-                            text = "Disconnected",
-                            color = Color.Red,
+                            text = localized("Disconnected"),
+                            color = systemRed,
                             style = smallFont,
                         )
                     }
@@ -211,9 +225,10 @@ private fun StreamStatusView(status: StatusTopLeft, textPlacement: StreamOverlay
 
 @Composable
 private fun ZoomView(zoom: Zoom, textPlacement: StreamOverlayIconAndTextPlacement) {
+    val x by zoom.x.collectAsState()
     StreamOverlayIconAndTextView(
         icon = "magnifyingglass",
-        text = zoom.statusText(),
+        text = remember(x) { zoom.statusText() },
         textPlacement = textPlacement,
     )
 }
@@ -225,12 +240,12 @@ private fun eventsColor(model: Model): Color {
         if (model.isRemoteControlStreamerConnected()) {
             Color.White
         } else {
-            Color.Red
+            systemRed
         }
     } else if (model.isEventsConnected()) {
         Color.White
     } else {
-        Color.Red
+        systemRed
     }
 }
 
@@ -241,12 +256,12 @@ private fun chatColor(model: Model): Color {
         if (model.isRemoteControlStreamerConnected()) {
             Color.White
         } else {
-            Color.Red
+            systemRed
         }
     } else if (model.isChatConnected() && model.hasChatEmotes()) {
         Color.White
     } else {
-        Color.Red
+        systemRed
     }
 }
 
@@ -256,21 +271,9 @@ private fun obsStatusColor(model: Model): Color {
     } else if (model.isObsConnected()) {
         Color.White
     } else {
-        Color.Red
+        systemRed
     }
 }
-
-private val hidePlacement: StreamOverlayIconAndTextPlacement
-    get() = StreamOverlayIconAndTextPlacement.entries.firstOrNull { it.name.lowercase().contains("hide") }
-        ?: StreamOverlayIconAndTextPlacement.entries.last()
-
-private val StreamOverlayIconAndTextPlacement.isHide: Boolean
-    get() = this == hidePlacement
-
-private val afterIconPlacement: StreamOverlayIconAndTextPlacement
-    get() = StreamOverlayIconAndTextPlacement.entries.firstOrNull { it.name.lowercase().contains("after") }
-        ?: StreamOverlayIconAndTextPlacement.entries.firstOrNull { !it.isHide }
-        ?: StreamOverlayIconAndTextPlacement.entries.first()
 
 @Composable
 private fun StatusesView(
@@ -280,72 +283,77 @@ private fun StatusesView(
     mic: Mic,
     textPlacement: StreamOverlayIconAndTextPlacement,
 ) {
+    val stream by model.stream.collectAsState()
+    val isLive by model.isLive.collectAsState()
+    val hasZoom by model.zoom.hasZoom.collectAsState()
+    val streamingPlatformStatuses by status.streamingPlatformStatuses.collectAsState()
     val statusCameraText by status.statusCameraText.collectAsState()
     val statusObsText by status.statusObsText.collectAsState()
     val statusEventsText by status.statusEventsText.collectAsState()
     val statusChatText by status.statusChatText.collectAsState()
     val currentMic by mic.current.collectAsState()
-
-    if (model.isShowingStatusStream()) {
-        StreamStatusView(status = status, textPlacement = textPlacement)
-    }
-    if (model.isShowingStatusCamera()) {
-        StreamOverlayIconAndTextView(
-            icon = "camera",
-            text = statusCameraText,
-            textPlacement = textPlacement,
-        )
-    }
-    if (model.isShowingStatusMic()) {
-        StreamOverlayIconAndTextView(
-            icon = "music.mic",
-            text = currentMic.name,
-            textPlacement = textPlacement,
-        )
-    }
-    if (!textPlacement.isHide && model.isShowingStatusZoom()) {
-        ZoomView(zoom = model.zoom, textPlacement = textPlacement)
-    }
-    if (model.isShowingStatusObs()) {
-        StreamOverlayIconAndTextView(
-            icon = "xserve",
-            text = statusObsText,
-            textPlacement = textPlacement,
-            color = obsStatusColor(model),
-        )
-    }
-    if (model.isShowingStatusEvents()) {
-        StreamOverlayIconAndTextView(
-            icon = "megaphone",
-            text = statusEventsText,
-            textPlacement = textPlacement,
-            color = eventsColor(model),
-        )
-    }
-    if (model.isShowingStatusChat()) {
-        if (textPlacement.isHide) {
-            StreamOverlayIconAndTextView(
-                icon = "message",
-                text = statusChatText,
-                textPlacement = textPlacement,
-                color = chatColor(model),
-            )
-        } else {
-            ChatStatusView(status = status, foregroundColor = chatColor(model))
+    key(stream, isLive, hasZoom, streamingPlatformStatuses) {
+        if (model.isShowingStatusStream()) {
+            StreamStatusView(status = status, textPlacement = textPlacement)
         }
-    }
-    if (model.isShowingStatusViewers()) {
-        if (textPlacement.isHide) {
-            CollapsedViewersView(status = status)
-        } else {
-            ViewersView(status = status)
+        if (model.isShowingStatusCamera()) {
+            StreamOverlayIconAndTextView(
+                icon = "camera",
+                text = statusCameraText,
+                textPlacement = textPlacement,
+            )
+        }
+        if (model.isShowingStatusMic()) {
+            StreamOverlayIconAndTextView(
+                icon = "music.mic",
+                text = currentMic.name,
+                textPlacement = textPlacement,
+            )
+        }
+        if (textPlacement != StreamOverlayIconAndTextPlacement.Hide && model.isShowingStatusZoom()) {
+            ZoomView(zoom = model.zoom, textPlacement = textPlacement)
+        }
+        if (model.isShowingStatusObs()) {
+            StreamOverlayIconAndTextView(
+                icon = "xserve",
+                text = statusObsText,
+                textPlacement = textPlacement,
+                color = obsStatusColor(model),
+            )
+        }
+        if (model.isShowingStatusEvents()) {
+            StreamOverlayIconAndTextView(
+                icon = "megaphone",
+                text = statusEventsText,
+                textPlacement = textPlacement,
+                color = eventsColor(model),
+            )
+        }
+        if (model.isShowingStatusChat()) {
+            if (textPlacement == StreamOverlayIconAndTextPlacement.Hide) {
+                StreamOverlayIconAndTextView(
+                    icon = "message",
+                    text = statusChatText,
+                    textPlacement = textPlacement,
+                    color = chatColor(model),
+                )
+            } else {
+                ChatStatusView(status = status, foregroundColor = chatColor(model))
+            }
+        }
+        if (model.isShowingStatusViewers()) {
+            if (textPlacement == StreamOverlayIconAndTextPlacement.Hide) {
+                CollapsedViewersView(status = status)
+            } else {
+                ViewersView(status = status)
+            }
         }
     }
 }
 
 @Composable
 fun LeftOverlayView(model: Model = LocalModel.current, database: Database) {
-    val verboseStatuses = database.verboseStatuses
+    var verboseStatuses by remember(database) { mutableStateOf(database.verboseStatuses) }
     Column(
         horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(1.dp),
@@ -353,8 +361,11 @@ fun LeftOverlayView(model: Model = LocalModel.current, database: Database) {
         Column(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(1.dp),
-            modifier = Modifier.clickable {
-                model.toggleVerboseStatuses()
+            modifier = Modifier.pointerInput(model, database) {
+                detectTapGestures(onTap = {
+                    model.toggleVerboseStatuses()
+                    verboseStatuses = database.verboseStatuses
+                })
             },
         ) {
             if (verboseStatuses) {
@@ -363,16 +374,19 @@ fun LeftOverlayView(model: Model = LocalModel.current, database: Database) {
                     show = database.show,
                     status = model.statusTopLeft,
                     mic = model.mic,
-                    textPlacement = afterIconPlacement,
+                    textPlacement = StreamOverlayIconAndTextPlacement.AfterIcon,
                 )
             } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(1.dp)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(1.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     StatusesView(
                         model = model,
                         show = database.show,
                         status = model.statusTopLeft,
                         mic = model.mic,
-                        textPlacement = hidePlacement,
+                        textPlacement = StreamOverlayIconAndTextPlacement.Hide,
                     )
                 }
             }

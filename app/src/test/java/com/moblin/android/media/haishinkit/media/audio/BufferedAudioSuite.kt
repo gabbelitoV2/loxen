@@ -7,7 +7,10 @@ import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class BufferedAudioSuite {
     @Test
     fun processNormal() {

@@ -4,7 +4,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class CmTimeSuite {
     private fun cmTimeMicroseconds(value: Long, timescale: Long): Long {
         return value * 1_000_000L / timescale

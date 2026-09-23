@@ -8,7 +8,10 @@ import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class EmotesSuite {
     private fun createSegments(text: String, emotes: List<String> = emptyList()): List<ChatPostSegment> {
         return makeEmotes(emotes).createSegments(text, AtomicInteger(0))

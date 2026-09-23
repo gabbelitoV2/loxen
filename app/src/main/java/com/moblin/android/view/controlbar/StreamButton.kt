@@ -1,10 +1,11 @@
 package com.moblin.android.view.controlbar
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,19 +14,27 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
 import com.moblin.android.localized
 import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
@@ -39,20 +48,82 @@ import com.moblin.android.various.model.startStream
 import com.moblin.android.various.model.stopStream
 import com.moblin.android.various.settings.Database
 import com.moblin.android.view.settings.streams.stream.StreamWizardSettingsView
-import com.moblin.android.LocalModel
+import kotlinx.coroutines.delay
+
+@Composable
+private fun MinimumScaleText(
+    text: String,
+    fontSize: TextUnit,
+    minimumScaleFactor: Float,
+    maxLines: Int,
+    color: Color,
+    textAlign: TextAlign,
+    modifier: Modifier = Modifier,
+) {
+    var scale by remember(text, fontSize) { mutableFloatStateOf(1f) }
+    var ready by remember(text, fontSize) { mutableStateOf(false) }
+    Text(
+        text = text,
+        color = color,
+        fontSize = fontSize * scale,
+        maxLines = maxLines,
+        softWrap = maxLines > 1,
+        textAlign = textAlign,
+        onTextLayout = { result ->
+            if (result.hasVisualOverflow && scale > minimumScaleFactor) {
+                scale = maxOf(minimumScaleFactor, scale - 0.05f)
+            } else {
+                ready = true
+            }
+        },
+        modifier = modifier.drawWithContent {
+            if (ready) {
+                drawContent()
+            }
+        },
+    )
+}
+
+@Composable
+private fun ConfirmationDialog(
+    title: String?,
+    onDismiss: () -> Unit,
+    buttons: @Composable ColumnScope.() -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = if (title != null) {
+            { Text(title) }
+        } else {
+            null
+        },
+        confirmButton = {
+            Column(horizontalAlignment = Alignment.End) {
+                buttons()
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(localized("Cancel"))
+            }
+        },
+    )
+}
 
 @Composable
 private fun StreamButtonText(database: Database, text: String) {
-    Text(
+    MinimumScaleText(
         text = text,
+        fontSize = 17.sp,
+        minimumScaleFactor = 0.5f,
         maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
         color = Color.White,
+        textAlign = TextAlign.Center,
         modifier = Modifier
-            .widthIn(min = 60.dp)
             .clip(RoundedCornerShape(10.dp))
             .background(database.streamButtonColorColor)
-            .padding(5.dp),
+            .padding(5.dp)
+            .widthIn(min = 60.dp),
     )
 }
 
@@ -69,7 +140,7 @@ private fun EndButtonView(
 
     Box(
         modifier = Modifier
-            .border(BorderStroke(1.dp, Color.White), RoundedCornerShape(10.dp))
+            .border(1.dp, Color.White, RoundedCornerShape(10.dp))
             .then(
                 if (enabled) {
                     Modifier.pointerInput(Unit) {
@@ -94,70 +165,70 @@ private fun EndButtonView(
     }
 
     if (presentingGoLiveNotificationConfirm) {
-        AlertDialog(
-            onDismissRequest = {
+        ConfirmationDialog(
+            title = null,
+            onDismiss = {
                 onPresentingGoLiveNotificationConfirmChange(false)
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onPresentingGoLiveNotificationConfirmChange(false)
-                        model.sendGoLiveNotification()
-                    },
-                ) {
-                    Text(localized("Send Go live notification"))
-                }
-            },
-        )
+        ) {
+            TextButton(
+                onClick = {
+                    onPresentingGoLiveNotificationConfirmChange(false)
+                    model.sendGoLiveNotification()
+                },
+            ) {
+                Text(localized("Send Go live notification"))
+            }
+        }
     }
 
     if (presentingStopConfirm) {
-        AlertDialog(
-            onDismissRequest = {
+        ConfirmationDialog(
+            title = null,
+            onDismiss = {
                 presentingStopConfirm = false
             },
-            confirmButton = {
-                if (stream.obsAutoStopStream && stream.obsAutoStopRecording) {
-                    TextButton(
-                        onClick = {
-                            presentingStopConfirm = false
-                            model.stopStream(
-                                stopObsStreamIfEnabled = false,
-                                stopObsRecordingIfEnabled = false,
-                            )
-                        },
-                    ) {
-                        Text(localized("End but leave OBS streaming and recording"))
-                    }
-                } else if (stream.obsAutoStopStream) {
-                    TextButton(
-                        onClick = {
-                            presentingStopConfirm = false
-                            model.stopStream(stopObsStreamIfEnabled = false)
-                        },
-                    ) {
-                        Text(localized("End but leave OBS streaming"))
-                    }
-                } else if (stream.obsAutoStopRecording) {
-                    TextButton(
-                        onClick = {
-                            presentingStopConfirm = false
-                            model.stopStream(stopObsRecordingIfEnabled = false)
-                        },
-                    ) {
-                        Text(localized("End but leave OBS recording"))
-                    }
-                }
+        ) {
+            if (stream.obsAutoStopStream && stream.obsAutoStopRecording) {
                 TextButton(
                     onClick = {
                         presentingStopConfirm = false
-                        model.stopStream()
+                        model.stopStream(
+                            stopObsStreamIfEnabled = false,
+                            stopObsRecordingIfEnabled = false,
+                        )
                     },
                 ) {
-                    Text(localized("End"))
+                    Text(localized("End but leave OBS streaming and recording"))
                 }
-            },
-        )
+            } else if (stream.obsAutoStopStream) {
+                TextButton(
+                    onClick = {
+                        presentingStopConfirm = false
+                        model.stopStream(stopObsStreamIfEnabled = false)
+                    },
+                ) {
+                    Text(localized("End but leave OBS streaming"))
+                }
+            } else if (stream.obsAutoStopRecording) {
+                TextButton(
+                    onClick = {
+                        presentingStopConfirm = false
+                        model.stopStream(stopObsRecordingIfEnabled = false)
+                    },
+                ) {
+                    Text(localized("End but leave OBS recording"))
+                }
+            }
+            TextButton(
+                onClick = {
+                    presentingStopConfirm = false
+                    model.stopStream()
+                },
+            ) {
+                Text(localized("End"))
+            }
+        }
     }
 }
 
@@ -197,27 +268,24 @@ private fun GoLiveButtonView(
     }
 
     if (presentingGoLiveConfirm) {
-        AlertDialog(
-            onDismissRequest = {
+        ConfirmationDialog(
+            title = localized("You are about to go live to '${stream.name}'!"),
+            onDismiss = {
                 presentingGoLiveConfirm = false
             },
-            title = {
-                Text(localized("You are about to go live to '${stream.name}'!"))
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        presentingGoLiveConfirm = false
-                        model.startStream()
-                        if (model.isGoLiveNotificationConfigured()) {
-                            onPresentingGoLiveNotificationConfirmChange(true)
-                        }
-                    },
-                ) {
-                    Text(localized("Go Live"))
-                }
-            },
-        )
+        ) {
+            TextButton(
+                onClick = {
+                    presentingGoLiveConfirm = false
+                    model.startStream()
+                    if (model.isGoLiveNotificationConfigured()) {
+                        onPresentingGoLiveNotificationConfirmChange(true)
+                    }
+                },
+            ) {
+                Text(localized("Go Live"))
+            }
+        }
     }
 }
 
@@ -225,7 +293,16 @@ private fun GoLiveButtonView(
 @Composable
 private fun SetupButtonView(model: Model = LocalModel.current, createStreamWizard: CreateStreamWizard) {
     val database = model.database
-    val presentingSetup = createStreamWizard.presentingSetup
+    var presentingSetup by remember { mutableStateOf(createStreamWizard.presentingSetup) }
+
+    LaunchedEffect(presentingSetup) {
+        while (presentingSetup) {
+            delay(100)
+            if (!createStreamWizard.presentingSetup) {
+                presentingSetup = false
+            }
+        }
+    }
 
     Box(
         modifier = Modifier.pointerInput(Unit) {
@@ -233,6 +310,7 @@ private fun SetupButtonView(model: Model = LocalModel.current, createStreamWizar
                 onTap = {
                     model.resetWizard()
                     createStreamWizard.presentingSetup = true
+                    presentingSetup = true
                 },
                 onLongPress = {
                     model.toggleShowingPanel(
@@ -250,7 +328,9 @@ private fun SetupButtonView(model: Model = LocalModel.current, createStreamWizar
         ModalBottomSheet(
             onDismissRequest = {
                 createStreamWizard.presentingSetup = false
+                presentingSetup = false
             },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         ) {
             StreamWizardSettingsView(model = model, createStreamWizard = createStreamWizard)
         }
@@ -260,7 +340,9 @@ private fun SetupButtonView(model: Model = LocalModel.current, createStreamWizar
 @Composable
 fun StreamButton(model: Model = LocalModel.current, show: Show) {
     val isLive by model.isLive.collectAsState()
+    val stream by model.stream.collectAsState()
     val chatPhone by show.chatPhone.collectAsState()
+    val streamConfigured = remember(stream) { model.isStreamConfigured() }
     var presentingGoLiveNotificationConfirm by remember { mutableStateOf(false) }
 
     if (isLive) {
@@ -274,7 +356,7 @@ fun StreamButton(model: Model = LocalModel.current, show: Show) {
                 enabled = !chatPhone,
             )
         }
-    } else if (model.isStreamConfigured()) {
+    } else if (streamConfigured) {
         Box(modifier = Modifier.alpha(if (chatPhone) 0.5f else 1f)) {
             GoLiveButtonView(
                 model = model,

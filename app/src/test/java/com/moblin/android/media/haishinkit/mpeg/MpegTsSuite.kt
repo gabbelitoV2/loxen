@@ -2,7 +2,10 @@ package com.moblin.android.media.haishinkit.mpeg
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class MpegTsSuite {
     @Test
     fun firstPacketStuffing() {

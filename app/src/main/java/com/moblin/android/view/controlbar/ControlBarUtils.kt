@@ -1,5 +1,6 @@
 package com.moblin.android.view.controlbar
 
+import com.moblin.android.common.various.clamped
 import com.moblin.android.various.model.Model
 
 fun controlBarScrollTargetBehavior(model: Model, containerWidth: Double, targetPosition: Double): Double {
@@ -12,6 +13,6 @@ fun controlBarScrollTargetBehavior(model: Model, containerWidth: Double, targetP
         model.quickButtons.page -= 1
     }
     val pages = model.quickButtons.pairs.value.count { !it.isEmpty() }
-    model.quickButtons.page = model.quickButtons.page.coerceIn(1, pages)
+    model.quickButtons.page = model.quickButtons.page.clamped(to = 1..pages)
     return (model.quickButtons.page - 1).toDouble() * (containerWidth + spacing)
 }

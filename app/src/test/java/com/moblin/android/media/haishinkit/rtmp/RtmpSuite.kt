@@ -11,7 +11,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class RtmpSuite {
     @Test
     fun twitchUrl() {

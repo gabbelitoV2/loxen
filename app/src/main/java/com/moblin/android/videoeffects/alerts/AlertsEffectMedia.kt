@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.moblin.android.platform.Bundle
 
 sealed class AlertsEffectMediaItem {
     data class BundledName(val name: String) : AlertsEffectMediaItem()
@@ -110,8 +111,10 @@ class AlertsEffectMedia {
             var images = ArrayDeque<AlertsEffectGifImage>()
             when (image) {
                 is AlertsEffectMediaItem.BundledName -> {
-                    val url: String = TODO("no Android counterpart for Bundle.main resource lookup")
-                    images = loadGifImages(url, loopCount)
+                    val url = Bundle.url("Alerts.bundle/${image.name}", "gif")
+                    if (url != null) {
+                        images = loadGifImages(url, loopCount)
+                    }
                 }
 
                 is AlertsEffectMediaItem.CustomUrl -> {
@@ -139,7 +142,7 @@ class AlertsEffectMedia {
             ?: AlertsEffectMediaItem.CustomUrl(mediaStorage.makePath(alert.soundId).path)
         when (sound) {
             is AlertsEffectMediaItem.BundledName ->
-                soundUrl = TODO("no Android counterpart for Bundle.main resource lookup")
+                soundUrl = Bundle.url("Alerts.bundle/${sound.name}", "mp3")
 
             is AlertsEffectMediaItem.CustomUrl ->
                 soundUrl = if (File(sound.url).exists()) sound.url else null

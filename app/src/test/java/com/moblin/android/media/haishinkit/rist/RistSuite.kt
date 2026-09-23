@@ -2,7 +2,10 @@ package com.moblin.android.media.haishinkit.rist
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class RistSuite {
     @Test
     fun makeBondingUrl() {

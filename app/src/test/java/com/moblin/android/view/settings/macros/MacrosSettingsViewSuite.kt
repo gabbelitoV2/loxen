@@ -4,7 +4,10 @@ import com.moblin.android.various.settings.SettingsMacrosAction
 import com.moblin.android.various.settings.SettingsMacrosActionFunction
 import kotlin.test.assertEquals
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class MacrosSettingsViewSuite {
     @Test
     fun actionsRunByIfShareItsLevel() {

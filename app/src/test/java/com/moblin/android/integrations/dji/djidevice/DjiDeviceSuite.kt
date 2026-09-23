@@ -1,12 +1,15 @@
 package com.moblin.android.integrations.dji.djidevice
 
-import com.moblin.android.SettingsDjiDeviceResolution
 import kotlinx.serialization.json.Json
 import kotlin.test.assertEquals
 import org.junit.Test
+import com.moblin.android.various.settings.SettingsDjiDeviceResolution
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun ByteArray.hexString(): String = joinToString("") { "%02x".format(it) }
 
+@RunWith(RobolectricTestRunner::class)
 class DjiDeviceSuite {
     @Test
     fun startStreamingOmsoPocket4() {

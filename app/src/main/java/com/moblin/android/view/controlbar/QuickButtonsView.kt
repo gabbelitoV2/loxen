@@ -1,50 +1,134 @@
 package com.moblin.android.view.controlbar
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.moblin.android.LocalModel
 import com.moblin.android.common.various.color
 import com.moblin.android.common.various.controlBarButtonSize
 import com.moblin.android.localized
+import com.moblin.android.platform.Bundle
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.QuickButtons
 import com.moblin.android.various.model.ReplayProvider
 import com.moblin.android.various.model.ShowingPanel
+import com.moblin.android.various.model.WatchProtocolWorkoutType
+import com.moblin.android.various.model.createStreamMarker
+import com.moblin.android.various.model.disableInteractiveChat
 import com.moblin.android.various.model.instantReplay
 import com.moblin.android.various.model.makeReplayIsNotEnabledToast
+import com.moblin.android.various.model.sceneUpdated
+import com.moblin.android.various.model.startPhotoShoot
+import com.moblin.android.various.model.startRecording
+import com.moblin.android.various.model.startWorkout
+import com.moblin.android.various.model.stopPhotoShoot
+import com.moblin.android.various.model.stopRecording
+import com.moblin.android.various.model.stopWorkout
+import com.moblin.android.various.model.takeSnapshot
+import com.moblin.android.various.model.toggleCameraPreview
+import com.moblin.android.various.model.toggleDrawOnStream
+import com.moblin.android.various.model.toggleGimbalTracking
+import com.moblin.android.various.model.togglePhotoShoot
+import com.moblin.android.various.model.togglePreviewStream
+import com.moblin.android.various.model.toggleStealthMode
+import com.moblin.android.various.model.toggleTextToSpeechPaused
+import com.moblin.android.various.model.updateAutoSceneSwitcherButtonState
+import com.moblin.android.various.model.updateLutsButtonState
 import com.moblin.android.various.settings.SettingsQuickButton
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import com.moblin.android.various.settings.SettingsQuickButtons
-import com.moblin.android.LocalModel
+import com.moblin.android.view.utils.stroke
 
 val controlBarPages = 5
+
+@Composable
+private fun MinimumScaleText(
+    text: String,
+    fontSize: TextUnit,
+    minimumScaleFactor: Float,
+    maxLines: Int,
+    color: Color,
+    textAlign: TextAlign,
+    modifier: Modifier = Modifier,
+) {
+    var scale by remember(text, fontSize) { mutableFloatStateOf(1f) }
+    var ready by remember(text, fontSize) { mutableStateOf(false) }
+    Text(
+        text = text,
+        color = color,
+        fontSize = fontSize * scale,
+        maxLines = maxLines,
+        softWrap = maxLines > 1,
+        textAlign = textAlign,
+        onTextLayout = { result ->
+            if (result.hasVisualOverflow && scale > minimumScaleFactor) {
+                scale = maxOf(minimumScaleFactor, scale - 0.05f)
+            } else {
+                ready = true
+            }
+        },
+        modifier = modifier.drawWithContent {
+            if (ready) {
+                drawContent()
+            }
+        },
+    )
+}
+
+@Composable
+private fun ConfirmationDialog(
+    onDismiss: () -> Unit,
+    buttons: @Composable ColumnScope.() -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Column(horizontalAlignment = Alignment.End) {
+                buttons()
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(localized("Cancel"))
+            }
+        },
+    )
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -56,44 +140,63 @@ private fun QuickButtonImage(
     hideImage: Boolean = false,
     onTapGesture: () -> Unit,
 ) {
-    val image = if (button.isOn.value) {
-        button.imageOn
-    } else {
-        button.imageOff
+    val isOn by button.isOn.collectAsState()
+    val buttonColor by button.color.collectAsState()
+    val bigButtons by quickButtonsSettings.bigButtons.collectAsState()
+
+    fun getImage(): String {
+        return if (isOn) {
+            button.imageOn
+        } else {
+            button.imageOff
+        }
     }
-    val foregroundColor = if (hideImage) {
-        Color.Transparent
-    } else {
-        Color.White
+
+    fun foregroundColor(): Color {
+        return if (hideImage) {
+            Color.Transparent
+        } else {
+            Color.White
+        }
     }
-    val backgroundColor = button.backgroundColor.color()
-    val iconSize = if (quickButtonsSettings.bigButtons.value) {
-        20.sp
-    } else {
-        MaterialTheme.typography.bodyLarge.fontSize
+
+    val backgroundColor = remember(buttonColor) { button.backgroundColor.color() }
+
+    fun iconSize(): TextUnit {
+        return if (bigButtons) {
+            20.sp
+        } else {
+            17.sp
+        }
     }
+
     Box(
-        modifier = Modifier
-            .size(buttonSize.dp)
-            .clip(CircleShape)
-            .background(backgroundColor)
-            .combinedClickable(
-                onClick = { onTapGesture() },
-                onLongClick = { model.showQuickButtonSettings(type = button.type) },
-            ),
+        modifier = Modifier.combinedClickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClick = { onTapGesture() },
+            onLongClick = { model.showQuickButtonSettings(type = button.type) },
+        ),
+        contentAlignment = Alignment.Center,
     ) {
-        SystemImage(
-            name = image,
-            fontSize = iconSize,
-            modifier = Modifier.align(Alignment.Center),
-            tint = foregroundColor,
-        )
-        if (button.isOn.value) {
+        Box(
+            modifier = Modifier
+                .size(buttonSize.dp)
+                .clip(CircleShape)
+                .background(backgroundColor),
+            contentAlignment = Alignment.Center,
+        ) {
+            SystemImage(
+                name = getImage(),
+                fontSize = iconSize(),
+                tint = foregroundColor(),
+            )
+        }
+        if (isOn) {
             Box(
                 modifier = Modifier
-                    .size((buttonSize - 1).dp)
-                    .border(1.dp, Color.White, CircleShape)
-                    .align(Alignment.Center),
+                    .size(buttonSize.dp)
+                    .border(1.dp, Color.White, CircleShape),
             )
         }
     }
@@ -107,17 +210,19 @@ private fun InstantReplayView(
     button: SettingsQuickButton,
     size: Float,
 ) {
-    if (replay.isPlaying.value) {
-        Text(
-            text = replay.timeLeft.toString(),
-            fontSize = 25.sp,
-            color = Color.White,
-            textAlign = TextAlign.Center,
+    val isPlaying by replay.isPlaying.collectAsState()
+    val timeLeft by replay.timeLeft.collectAsState()
+    val buttonColor by button.color.collectAsState()
+    val backgroundColor = remember(buttonColor) { button.backgroundColor.color() }
+    if (isPlaying) {
+        Box(
             modifier = Modifier
                 .size(size.dp)
                 .clip(CircleShape)
-                .background(button.backgroundColor.color())
+                .background(backgroundColor)
                 .combinedClickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
                     onClick = {
                         if (model.stream.value.replay.enabled) {
                             model.instantReplay()
@@ -129,7 +234,15 @@ private fun InstantReplayView(
                         model.showQuickButtonSettings(type = SettingsQuickButtonType.instantReplay)
                     },
                 ),
-        )
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = timeLeft.toString(),
+                fontSize = 25.sp,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+            )
+        }
     } else {
         QuickButtonImage(
             model = model,
@@ -149,14 +262,15 @@ private fun InstantReplayView(
 @Composable
 fun QuickButtonPlaceholderImage(size: Float) {
     Box(
-        modifier = Modifier.padding(0.dp),
+        modifier = Modifier
+            .padding(0.dp)
+            .size(size.dp)
+            .alpha(0.0f),
+        contentAlignment = Alignment.Center,
     ) {
         SystemImage(
             name = "pawprint",
-            fontSize = MaterialTheme.typography.bodyLarge.fontSize,
-            modifier = Modifier
-                .size(size.dp)
-                .alpha(0.0f),
+            fontSize = 17.sp,
             tint = Color.Black,
         )
     }
@@ -164,16 +278,19 @@ fun QuickButtonPlaceholderImage(size: Float) {
 
 @Composable
 private fun ButtonTextOverlayView(text: String) {
-    Text(
-        text = text,
-        fontSize = 8.sp,
-        color = Color.White,
-        textAlign = TextAlign.Center,
-        modifier = Modifier
-            .rotate(-90.0f)
-            .offset(x = 10.dp, y = 0.dp)
-            .size(controlBarButtonSize.dp, controlBarButtonSize.dp),
-    )
+    Box(
+        modifier = Modifier.size(controlBarButtonSize.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            fontSize = 8.sp,
+            color = Color.White,
+            modifier = Modifier
+                .offset(x = 10.dp, y = 0.dp)
+                .rotate(-90.0f),
+        )
+    }
 }
 
 @Composable
@@ -187,10 +304,15 @@ fun QuickButtonsInnerView(
     nameSize: Float,
     nameWidth: Float,
 ) {
-    val presentingRecordConfirm = remember { mutableStateOf(false) }
-    val presentingPreviewStreamConfirm = remember { mutableStateOf(false) }
-    val presentingStartWorkoutTypePicker = remember { mutableStateOf(false) }
-    val presentingStopWorkoutConfirm = remember { mutableStateOf(false) }
+    val selectedButtonType by quickButtons.selectedButtonType.collectAsState()
+    val showName by quickButtonsSettings.showName.collectAsState()
+    val isPortrait by orientation.isPortrait.collectAsState()
+    val isOn by button.isOn.collectAsState()
+    val buttonColor by button.color.collectAsState()
+    var presentingRecordConfirm by remember { mutableStateOf(false) }
+    var presentingPreviewStreamConfirm by remember { mutableStateOf(false) }
+    var presentingStartWorkoutTypePicker by remember { mutableStateOf(false) }
+    var presentingStopWorkoutConfirm by remember { mutableStateOf(false) }
 
     fun torchAction() {
         button.isOn.value = !button.isOn.value
@@ -203,7 +325,7 @@ fun QuickButtonsInnerView(
     }
 
     fun stealthModeAction() {
-        Unit
+        model.toggleStealthMode()
     }
 
     fun lockScreenAction() {
@@ -217,9 +339,9 @@ fun QuickButtonsInnerView(
 
     fun recordAction() {
         if (!model.isRecording.value) {
-            Unit
+            model.startRecording()
         } else {
-            Unit
+            model.stopRecording()
         }
     }
 
@@ -278,14 +400,14 @@ fun QuickButtonsInnerView(
     fun gridAction() {
         button.isOn.value = !button.isOn.value
         model.showingGrid.value = !model.showingGrid.value
-        Unit
+        model.sceneUpdated(updateRemoteScene = false)
     }
 
     fun levelAction() {
         button.isOn.value = !button.isOn.value
         model.showingCameraLevel.value = !model.showingCameraLevel.value
         model.reloadCameraLevel()
-        Unit
+        model.sceneUpdated(updateRemoteScene = false)
     }
 
     fun obsAction() {
@@ -301,7 +423,7 @@ fun QuickButtonsInnerView(
     }
 
     fun drawAction() {
-        Unit
+        model.toggleDrawOnStream()
     }
 
     fun localOverlaysAction() {
@@ -327,11 +449,11 @@ fun QuickButtonsInnerView(
                 subTitle = localized("They will be visible on stream and in recordings"),
             )
         }
-        Unit
+        model.toggleCameraPreview()
     }
 
     fun snapshotAction() {
-        Unit
+        model.takeSnapshot()
     }
 
     fun widgetsAction() {
@@ -340,7 +462,7 @@ fun QuickButtonsInnerView(
 
     fun lutsAction() {
         model.toggleShowingPanel(type = SettingsQuickButtonType.luts, panel = ShowingPanel.luts)
-        Unit
+        model.updateLutsButtonState()
     }
 
     fun chatAction() {
@@ -352,7 +474,7 @@ fun QuickButtonsInnerView(
         model.chat.interactiveChat.value = button.isOn.value
         model.chatActivityFeed.interactiveChat.value = button.isOn.value
         if (!button.isOn.value) {
-            Unit
+            model.disableInteractiveChat()
         }
     }
 
@@ -369,11 +491,11 @@ fun QuickButtonsInnerView(
     }
 
     fun pauseTtsAction() {
-        Unit
+        model.toggleTextToSpeechPaused()
     }
 
     fun streamMarkerAction() {
-        Unit
+        model.createStreamMarker()
     }
 
     fun reloadBrowserWidgetsAction() {
@@ -414,7 +536,7 @@ fun QuickButtonsInnerView(
             type = SettingsQuickButtonType.autoSceneSwitcher,
             panel = ShowingPanel.autoSceneSwitcher,
         )
-        Unit
+        model.updateAutoSceneSwitcherButtonState()
     }
 
     fun blurFacesAction() {
@@ -459,28 +581,29 @@ fun QuickButtonsInnerView(
     }
 
     fun gimbalTrackingAction() {
-        Unit
+        model.toggleGimbalTracking()
     }
 
     fun previewStreamAction() {
-        Unit
+        model.togglePreviewStream()
     }
 
     fun photoShootAction() {
         model.toggleQuickButton(type = SettingsQuickButtonType.photoShoot)
         model.photoShootEnabled.value = button.isOn.value
         if (model.photoShootEnabled.value) {
-            Unit
+            model.startPhotoShoot()
         } else {
-            Unit
+            model.stopPhotoShoot()
         }
-        Unit
+        model.togglePhotoShoot()
     }
 
     Column(
         modifier = Modifier.rotate(180.0f),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box {
+        Box(contentAlignment = Alignment.Center) {
             val buttonView: @Composable () -> Unit = {
                 when (button.type) {
                     SettingsQuickButtonType.unknown -> {
@@ -529,29 +652,26 @@ fun QuickButtonsInnerView(
                     SettingsQuickButtonType.record -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
                             if (model.database.startStopRecordingConfirmations) {
-                                presentingRecordConfirm.value = true
+                                presentingRecordConfirm = true
                             } else {
                                 recordAction()
                             }
                         }
-                        if (presentingRecordConfirm.value) {
-                            AlertDialog(
-                                onDismissRequest = { presentingRecordConfirm.value = false },
-                                confirmButton = {
-                                    TextButton(onClick = {
-                                        presentingRecordConfirm.value = false
-                                        recordAction()
-                                    }) {
-                                        Text(
-                                            if (button.isOn.value) {
-                                                localized("Stop recording")
-                                            } else {
-                                                localized("Start recording")
-                                            },
-                                        )
-                                    }
-                                },
-                            )
+                        if (presentingRecordConfirm) {
+                            ConfirmationDialog(onDismiss = { presentingRecordConfirm = false }) {
+                                TextButton(onClick = {
+                                    presentingRecordConfirm = false
+                                    recordAction()
+                                }) {
+                                    Text(
+                                        if (isOn) {
+                                            localized("Stop recording")
+                                        } else {
+                                            localized("Start recording")
+                                        },
+                                    )
+                                }
+                            }
                         }
                     }
                     SettingsQuickButtonType.image -> {
@@ -595,18 +715,23 @@ fun QuickButtonsInnerView(
                         }
                     }
                     SettingsQuickButtonType.cameraMan -> {
-                        Box {
+                        Box(contentAlignment = Alignment.Center) {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 cameraManAction()
                             }
-                            SystemImage(
-                                name = "arrow.up.and.down.and.arrow.left.and.right",
-                                fontSize = 10.sp,
-                                modifier = Modifier
-                                    .offset(x = (-5).dp, y = 2.dp)
-                                    .size(size.dp),
-                                tint = Color.White,
-                            )
+                            Box(
+                                modifier = Modifier.size(size.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                SystemImage(
+                                    name = "arrow.up.and.down.and.arrow.left.and.right",
+                                    fontSize = 10.sp,
+                                    modifier = Modifier
+                                        .offset(x = (-5).dp, y = 2.dp)
+                                        .stroke(color = remember(buttonColor) { button.backgroundColor.color() }),
+                                    tint = Color.White,
+                                )
+                            }
                         }
                     }
                     SettingsQuickButtonType.pixellate -> {
@@ -680,53 +805,45 @@ fun QuickButtonsInnerView(
                         }
                     }
                     SettingsQuickButtonType.workout -> {
-                        if (button.isOn.value) {
+                        if (isOn) {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
-                                presentingStopWorkoutConfirm.value = true
+                                presentingStopWorkoutConfirm = true
                             }
-                            if (presentingStopWorkoutConfirm.value) {
-                                AlertDialog(
-                                    onDismissRequest = { presentingStopWorkoutConfirm.value = false },
-                                    confirmButton = {
-                                        TextButton(onClick = {
-                                            presentingStopWorkoutConfirm.value = false
-                                            Unit
-                                        }) {
-                                            Text(localized("End workout"))
-                                        }
-                                    },
-                                )
+                            if (presentingStopWorkoutConfirm) {
+                                ConfirmationDialog(onDismiss = { presentingStopWorkoutConfirm = false }) {
+                                    TextButton(onClick = {
+                                        presentingStopWorkoutConfirm = false
+                                        model.stopWorkout()
+                                    }) {
+                                        Text(localized("End workout"))
+                                    }
+                                }
                             }
                         } else {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
-                                presentingStartWorkoutTypePicker.value = true
+                                presentingStartWorkoutTypePicker = true
                             }
-                            if (presentingStartWorkoutTypePicker.value) {
-                                AlertDialog(
-                                    onDismissRequest = { presentingStartWorkoutTypePicker.value = false },
-                                    confirmButton = {
-                                        Column {
-                                            TextButton(onClick = {
-                                                presentingStartWorkoutTypePicker.value = false
-                                                Unit
-                                            }) {
-                                                Text(localized("Start walking workout"))
-                                            }
-                                            TextButton(onClick = {
-                                                presentingStartWorkoutTypePicker.value = false
-                                                Unit
-                                            }) {
-                                                Text(localized("Start running workout"))
-                                            }
-                                            TextButton(onClick = {
-                                                presentingStartWorkoutTypePicker.value = false
-                                                Unit
-                                            }) {
-                                                Text(localized("Start cycling workout"))
-                                            }
-                                        }
-                                    },
-                                )
+                            if (presentingStartWorkoutTypePicker) {
+                                ConfirmationDialog(onDismiss = { presentingStartWorkoutTypePicker = false }) {
+                                    TextButton(onClick = {
+                                        presentingStartWorkoutTypePicker = false
+                                        model.startWorkout(type = TODO("walking"))
+                                    }) {
+                                        Text(localized("Start walking workout"))
+                                    }
+                                    TextButton(onClick = {
+                                        presentingStartWorkoutTypePicker = false
+                                        model.startWorkout(type = WatchProtocolWorkoutType.running)
+                                    }) {
+                                        Text(localized("Start running workout"))
+                                    }
+                                    TextButton(onClick = {
+                                        presentingStartWorkoutTypePicker = false
+                                        model.startWorkout(type = WatchProtocolWorkoutType.cycling)
+                                    }) {
+                                        Text(localized("Start cycling workout"))
+                                    }
+                                }
                             }
                         }
                     }
@@ -756,7 +873,7 @@ fun QuickButtonsInnerView(
                         }
                     }
                     SettingsQuickButtonType.djiDevices -> {
-                        Box {
+                        Box(contentAlignment = Alignment.Center) {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 djiDevicesAction()
                             }
@@ -769,7 +886,7 @@ fun QuickButtonsInnerView(
                         }
                     }
                     SettingsQuickButtonType.goPro -> {
-                        Box {
+                        Box(contentAlignment = Alignment.Center) {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 goProAction()
                             }
@@ -830,7 +947,7 @@ fun QuickButtonsInnerView(
                         }
                     }
                     SettingsQuickButtonType.moblinInMouth -> {
-                        Box {
+                        Box(contentAlignment = Alignment.Center) {
                             QuickButtonImage(
                                 model,
                                 quickButtonsSettings,
@@ -843,8 +960,8 @@ fun QuickButtonsInnerView(
                             AssetImage(
                                 name = "MoblinInMouth",
                                 modifier = Modifier
-                                    .size(21.dp, 40.dp)
-                                    .offset(x = 0.dp, y = 3.dp),
+                                    .offset(x = 0.dp, y = 3.dp)
+                                    .size(21.dp, 40.dp),
                             )
                         }
                     }
@@ -859,19 +976,23 @@ fun QuickButtonsInnerView(
                         }
                     }
                     SettingsQuickButtonType.sparkle -> {
-                        Box {
+                        Box(contentAlignment = Alignment.Center) {
                             QuickButtonImage(model, quickButtonsSettings, button, size) {
                                 sparkleAction()
                             }
-                            SystemImage(
-                                name = "sparkle",
-                                fontSize = 18.sp,
-                                modifier = Modifier
-                                    .rotate(70.0f)
-                                    .offset(x = 11.dp, y = 0.dp)
-                                    .size(size.dp),
-                                tint = Color.White,
-                            )
+                            Box(
+                                modifier = Modifier.size(size.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                SystemImage(
+                                    name = "sparkle",
+                                    fontSize = 18.sp,
+                                    modifier = Modifier
+                                        .offset(x = 11.dp, y = 0.dp)
+                                        .rotate(70.0f),
+                                    tint = Color.White,
+                                )
+                            }
                         }
                     }
                     SettingsQuickButtonType.beauty -> {
@@ -901,26 +1022,23 @@ fun QuickButtonsInnerView(
                     }
                     SettingsQuickButtonType.previewStream -> {
                         QuickButtonImage(model, quickButtonsSettings, button, size) {
-                            presentingPreviewStreamConfirm.value = true
+                            presentingPreviewStreamConfirm = true
                         }
-                        if (presentingPreviewStreamConfirm.value) {
-                            AlertDialog(
-                                onDismissRequest = { presentingPreviewStreamConfirm.value = false },
-                                confirmButton = {
-                                    TextButton(onClick = {
-                                        presentingPreviewStreamConfirm.value = false
-                                        previewStreamAction()
-                                    }) {
-                                        Text(
-                                            if (button.isOn.value) {
-                                                localized("Stop preview stream")
-                                            } else {
-                                                localized("Start preview stream")
-                                            },
-                                        )
-                                    }
-                                },
-                            )
+                        if (presentingPreviewStreamConfirm) {
+                            ConfirmationDialog(onDismiss = { presentingPreviewStreamConfirm = false }) {
+                                TextButton(onClick = {
+                                    presentingPreviewStreamConfirm = false
+                                    previewStreamAction()
+                                }) {
+                                    Text(
+                                        if (isOn) {
+                                            localized("Stop preview stream")
+                                        } else {
+                                            localized("Start preview stream")
+                                        },
+                                    )
+                                }
+                            }
                         }
                     }
                     SettingsQuickButtonType.photoShoot -> {
@@ -930,31 +1048,30 @@ fun QuickButtonsInnerView(
                     }
                 }
             }
-            if (button.type == quickButtons.selectedButtonType.value) {
-                Box {
+            if (button.type == selectedButtonType) {
+                Box(contentAlignment = Alignment.Center) {
                     buttonView()
                     Box(
                         modifier = Modifier
-                            .size((size - 2).dp)
-                            .border(2.dp, Color.Yellow, CircleShape)
-                            .align(Alignment.Center),
+                            .size(size.dp)
+                            .border(2.dp, Color(0xFFFFCC00), CircleShape),
                     )
                 }
             } else {
                 buttonView()
             }
         }
-        if (quickButtonsSettings.showName.value && !orientation.isPortrait.value) {
-            Text(
+        if (showName && !isPortrait) {
+            MinimumScaleText(
                 text = button.name,
                 fontSize = nameSize.sp,
+                minimumScaleFactor = 0.5f,
+                maxLines = 2,
                 color = Color.White,
                 textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .width(nameWidth.dp)
-                    .padding(0.dp),
+                    .padding(0.dp)
+                    .width(nameWidth.dp),
             )
         }
     }
@@ -975,5 +1092,13 @@ private fun AssetImage(
     name: String,
     modifier: Modifier = Modifier,
 ) {
-    Unit
+    val image = remember(name) { Bundle.image(name)?.asImageBitmap() }
+    if (image != null) {
+        Image(
+            bitmap = image,
+            contentDescription = null,
+            modifier = modifier,
+            contentScale = ContentScale.Fit,
+        )
+    }
 }

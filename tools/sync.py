@@ -115,6 +115,7 @@ def main():
     git("checkout", "--quiet", "--detach", target)
 
     run([sys.executable, HERE / "inventory.py", "--moblin", UPSTREAM])
+    run([sys.executable, HERE / "resources.py", "--moblin", UPSTREAM])
     inventory = json.loads(INVENTORY.read_text(encoding="utf-8"))
     if args.dry_run:
         run([sys.executable, HERE / "port.py", "--tier", "all", "--provider", args.provider, "--dry-run"])

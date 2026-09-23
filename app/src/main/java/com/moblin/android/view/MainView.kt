@@ -1,12 +1,28 @@
 package com.moblin.android.view
 
+import android.content.Context
 import android.graphics.PointF
+import android.view.MotionEvent
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -14,6 +30,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,27 +38,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.MicOff
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +64,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -59,17 +75,32 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.moblin.android.LocalModel
+import com.moblin.android.localized
+import com.moblin.android.platform.SystemImage
 import com.moblin.android.streamingplatforms.twitch.TwitchLoginView
+import com.moblin.android.various.WebBrowserAlertDialog
 import com.moblin.android.various.WebBrowserController
 import com.moblin.android.various.model.AudioProvider
 import com.moblin.android.various.model.Browser
 import com.moblin.android.various.model.CameraState
 import com.moblin.android.various.model.CreateStreamWizard
+import com.moblin.android.various.model.KeyPress
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.ReplayProvider
@@ -121,33 +152,94 @@ import com.moblin.android.view.stream.CameraLevelView
 import com.moblin.android.view.stream.DrawOnStreamView
 import com.moblin.android.view.stream.StreamGridView
 import com.moblin.android.view.stream.StreamOverlayView
+import com.moblin.android.view.stream.StreamViewInsets
+import com.moblin.android.view.stream.StreamViewLayout
+import com.moblin.android.view.stream.StreamViewMetrics
 import com.moblin.android.view.stream.overlay.StreamOverlayNavigationView
 import com.moblin.android.view.webbrowser.WebBrowserView
-import com.moblin.android.LocalModel
 import java.util.UUID
+import kotlin.math.abs
+import kotlinx.coroutines.delay
 
-@Composable
-fun CloseButtonView(onClose: () -> Unit) {
-    IconButton(onClick = onClose) {
-        Box(
-            modifier = Modifier
-                .padding(7.dp)
-                .size(30.dp)
-                .border(1.dp, Color.Gray, CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = null,
-                tint = Color.Gray
-            )
+private fun Modifier.opacityAndHitTesting(enabled: Boolean): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+    layout(placeable.width, placeable.height) {
+        if (enabled) {
+            placeable.place(0, 0)
+        }
+    }
+}
+
+private fun Modifier.magnificationGesture(
+    onChanged: (Float) -> Unit,
+    onEnded: (Float) -> Unit,
+): Modifier = pointerInput(Unit) {
+    awaitEachGesture {
+        awaitFirstDown(requireUnconsumed = false)
+        var amount = 1f
+        var magnifying = false
+        do {
+            val event = awaitPointerEvent()
+            if (event.changes.count { it.pressed } >= 2) {
+                amount *= event.calculateZoom()
+                if (!magnifying && abs(amount - 1f) > 0.01f) {
+                    magnifying = true
+                }
+                if (magnifying) {
+                    onChanged(amount)
+                }
+            }
+            if (magnifying) {
+                event.changes.forEach {
+                    if (it.positionChanged()) {
+                        it.consume()
+                    }
+                }
+            }
+        } while (event.changes.any { it.pressed })
+        if (magnifying) {
+            onEnded(amount)
         }
     }
 }
 
 @Composable
+private fun PlainButton(onClick: () -> Unit, content: @Composable () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    Box(
+        modifier = Modifier
+            .alpha(if (pressed) 0.2f else 1f)
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun CircleButtonImage(name: String) {
+    Box(
+        modifier = Modifier
+            .padding(7.dp)
+            .size(30.dp)
+            .border(1.dp, Color.Gray, CircleShape),
+        contentAlignment = Alignment.Center
+    ) {
+        SystemImage(name = name, fontSize = 17.sp, tint = Color.Gray)
+    }
+}
+
+@Composable
+fun CloseButtonView(onClose: () -> Unit) {
+    PlainButton(onClick = onClose) {
+        CircleButtonImage(name = "xmark")
+    }
+}
+
+@Composable
 fun CloseButtonTopRightView(onClose: () -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth()) {
+    Row(modifier = Modifier.fillMaxSize()) {
         Spacer(modifier = Modifier.weight(1f))
         Column(modifier = Modifier.fillMaxHeight()) {
             Box(modifier = Modifier.padding(16.dp)) {
@@ -160,29 +252,34 @@ fun CloseButtonTopRightView(onClose: () -> Unit) {
 
 @Composable
 private fun HideShowButtonPanelView(model: Model = LocalModel.current) {
-    IconButton(onClick = { model.panelHidden.value = !model.panelHidden.value }) {
-        Icon(
-            imageVector = if (model.panelHidden.value) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(7.dp)
-        )
+    val panelHidden by model.panelHidden.collectAsState()
+    PlainButton(onClick = { model.panelHidden.value = !model.panelHidden.value }) {
+        CircleButtonImage(name = if (panelHidden) "eye" else "eye.slash")
     }
 }
 
 @Composable
-private fun PanelButtonsView(model: Model = LocalModel.current, backgroundColor: Color) {
-    Row(modifier = Modifier.fillMaxWidth()) {
+private fun PanelButtonsView(
+    model: Model = LocalModel.current,
+    backgroundColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Row(modifier = modifier.fillMaxSize()) {
         Spacer(modifier = Modifier.weight(1f))
         Column(
             modifier = Modifier.fillMaxHeight(),
             horizontalAlignment = Alignment.End
         ) {
             Row(
-                modifier = Modifier
-                    .background(backgroundColor, RoundedCornerShape(7.dp))
-                    .padding((-3).dp)
-                    .padding(3.dp)
+                modifier = Modifier.drawBehind {
+                    val inset = 3.dp.toPx()
+                    drawRoundRect(
+                        color = backgroundColor,
+                        topLeft = Offset(inset, inset),
+                        size = Size(size.width - 2 * inset, size.height - 2 * inset),
+                        cornerRadius = CornerRadius(7.dp.toPx(), 7.dp.toPx())
+                    )
+                }
             ) {
                 HideShowButtonPanelView(model = model)
                 CloseButtonView(onClose = { onClose(model = model) })
@@ -200,12 +297,16 @@ private fun onClose(model: Model) {
 
 @Composable
 private fun MenuView(model: Model = LocalModel.current) {
-    when (model.showingPanel.value) {
+    val showingPanel by model.showingPanel.collectAsState()
+    val stream by model.stream.collectAsState()
+    val quickButtonSettingsButton by model.quickButtonSettingsButton.collectAsState()
+    val sceneSettingsPanelSceneId by model.sceneSettingsPanelSceneId.collectAsState()
+    when (showingPanel) {
         ShowingPanel.settings -> SettingsView(database = model.database)
         ShowingPanel.bitrate -> QuickButtonBitrateView(
             model = model,
             database = model.database,
-            stream = model.stream.value
+            stream = stream
         )
         ShowingPanel.mic -> QuickButtonMicView(
             model = model,
@@ -215,7 +316,7 @@ private fun MenuView(model: Model = LocalModel.current) {
         ShowingPanel.streamSwitcher -> QuickButtonStreamSwitcherView(database = model.database)
         ShowingPanel.luts -> QuickButtonLutsView(model = model, color = model.database.color)
         ShowingPanel.obs -> QuickButtonObsView(
-            stream = model.stream.value,
+            stream = stream,
             obsQuickButton = model.obsQuickButton
         )
         ShowingPanel.sceneWidgets -> QuickButtonSceneWidgetsView(sceneSelector = model.sceneSelector)
@@ -229,7 +330,7 @@ private fun MenuView(model: Model = LocalModel.current) {
             model = model,
             djiDevices = model.database.djiDevices
         )
-        ShowingPanel.sceneSettings -> key(model.sceneSettingsPanelSceneId) {
+        ShowingPanel.sceneSettings -> key(sceneSettingsPanelSceneId) {
             SceneSettingsView(
                 database = model.database,
                 scene = model.sceneSettingsPanelScene
@@ -239,12 +340,12 @@ private fun MenuView(model: Model = LocalModel.current) {
             goProState = model.goPro,
             goPro = model.database.goPro
         )
-        ShowingPanel.connectionPriorities -> StreamSrtConnectionPriorityView(stream = model.stream.value)
+        ShowingPanel.connectionPriorities -> StreamSrtConnectionPriorityView(stream = stream)
         ShowingPanel.autoSceneSwitcher -> QuickButtonAutoSceneSwitcherView(
             autoSceneSwitcher = model.autoSceneSwitcher,
             autoSceneSwitchers = model.database.autoSceneSwitchers
         )
-        ShowingPanel.quickButtonSettings -> model.quickButtonSettingsButton.value?.let { button ->
+        ShowingPanel.quickButtonSettings -> quickButtonSettingsButton?.let { button ->
             QuickButtonsButtonSettingsView(
                 model = model,
                 orientation = model.orientation,
@@ -257,36 +358,67 @@ private fun MenuView(model: Model = LocalModel.current) {
         ShowingPanel.live -> QuickButtonLiveView(
             model = model,
             database = model.database,
-            stream = model.stream.value
+            stream = stream
         )
         ShowingPanel.macros -> QuickButtonMacrosView(model = model, macros = model.database.macros)
         ShowingPanel.none -> {}
     }
 }
 
+private class BrowserWidgetContainerView(context: Context) : FrameLayout(context) {
+    var allowsHitTesting = true
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        return allowsHitTesting && super.dispatchTouchEvent(event)
+    }
+}
+
 @Composable
-fun BrowserWidgetView(browser: Browser, modifier: Modifier = Modifier) {
-    Unit
+fun BrowserWidgetView(browser: Browser, modifier: Modifier = Modifier, allowsHitTesting: Boolean = true) {
+    AndroidView(
+        factory = { context ->
+            val webView = browser.browserEffect.webView
+            (webView.parent as? ViewGroup)?.removeView(webView)
+            val container = BrowserWidgetContainerView(context)
+            container.addView(
+                webView,
+                FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
+            )
+            browser.browserEffect.reload()
+            container
+        },
+        modifier = modifier,
+        onRelease = { it.removeAllViews() },
+        update = { it.allowsHitTesting = allowsHitTesting }
+    )
 }
 
 @Composable
 private fun InstantReplayCountdownView(replay: ReplayProvider) {
-    if (replay.instantReplayCountdown.value != 0) {
+    val instantReplayCountdown by replay.instantReplayCountdown.collectAsState()
+    if (instantReplayCountdown != 0) {
         Column(
             modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color.Black.copy(alpha = 0.75f))
+                .padding(10.dp)
                 .widthIn(max = 200.dp)
-                .background(Color.Black.copy(alpha = 0.75f), RoundedCornerShape(10.dp))
-                .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Playing instant replay in",
-                color = Color.White
+                text = localized("Playing instant replay in"),
+                color = Color.White,
+                fontSize = 17.sp
             )
             Text(
-                text = replay.instantReplayCountdown.value.toString(),
+                text = instantReplayCountdown.toString(),
                 color = Color.White,
-                style = MaterialTheme.typography.headlineSmall
+                fontSize = 28.sp
             )
         }
     }
@@ -294,16 +426,16 @@ private fun InstantReplayCountdownView(replay: ReplayProvider) {
 
 @Composable
 private fun MutedView(audio: AudioProvider) {
-    if (audio.muted.value) {
-        Icon(
-            imageVector = Icons.Default.MicOff,
-            contentDescription = null,
-            tint = Color.Red,
+    val muted by audio.muted.collectAsState()
+    if (muted) {
+        Box(
             modifier = Modifier
-                .size(80.dp)
-                .background(Color.Black.copy(alpha = 0.75f), RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color.Black.copy(alpha = 0.75f))
                 .padding(10.dp)
-        )
+        ) {
+            SystemImage(name = "microphone.slash", fontSize = 80.sp, tint = Color.Red)
+        }
     }
 }
 
@@ -312,24 +444,22 @@ private fun PhotoShootView(enabled: Boolean) {
     if (enabled) {
         Column(
             modifier = Modifier
-                .background(Color.Black.copy(alpha = 0.75f), RoundedCornerShape(10.dp))
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color.Black.copy(alpha = 0.75f))
                 .padding(20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.PhotoCamera,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(60.dp)
-            )
+            SystemImage(name = "person.crop.square.badge.camera", fontSize = 60.sp, tint = Color.White)
             Text(
-                text = "Photo shoot",
+                text = localized("Photo shoot"),
                 color = Color.White,
                 fontSize = 30.sp
             )
             Text(
-                text = "Taking photos periodically",
-                color = Color.White
+                text = localized("Taking photos periodically"),
+                color = Color.White,
+                fontSize = 17.sp
             )
         }
     }
@@ -337,19 +467,19 @@ private fun PhotoShootView(enabled: Boolean) {
 
 @Composable
 private fun WebBrowserAlertsView(model: Model = LocalModel.current) {
-    Unit
+    WebBrowserAlertDialog(controller = model.webBrowserController)
 }
 
 private fun DrawScope.drawFocus(size: Size, focusPoint: Offset) {
-    val sideLength = 70f
-    val x = size.width * focusPoint.x - sideLength / 2
-    val y = size.height * focusPoint.y - sideLength / 2
+    val sideLength = 70.dp.toPx()
+    val x = size.width.dp.toPx() * focusPoint.x - sideLength / 2
+    val y = size.height.dp.toPx() * focusPoint.y - sideLength / 2
     drawRoundRect(
         color = Color.Yellow,
         topLeft = Offset(x, y),
         size = Size(sideLength, sideLength),
-        cornerRadius = CornerRadius(2f, 2f),
-        style = Stroke(width = 1f)
+        cornerRadius = CornerRadius(2.dp.toPx(), 2.dp.toPx()),
+        style = Stroke(width = 1.dp.toPx())
     )
 }
 
@@ -362,14 +492,17 @@ private fun tapToFocusIndicator(size: Size, focusPoint: Offset) {
 
 @Composable
 private fun StreamOverlayTapGridView(model: Model = LocalModel.current, camera: CameraState, size: Size) {
-    val focusPoint = camera.manualFocusPoint.value
+    val manualFocusPoint by camera.manualFocusPoint.collectAsState()
+    val showingGrid by model.showingGrid.collectAsState()
+    val showingCameraLevel by model.showingCameraLevel.collectAsState()
+    val focusPoint = manualFocusPoint
     if (model.database.tapToFocus && focusPoint != null) {
         tapToFocusIndicator(size = size, focusPoint = Offset(focusPoint.x, focusPoint.y))
     }
-    if (model.showingGrid.value) {
+    if (showingGrid) {
         StreamGridView()
     }
-    if (model.showingCameraLevel.value) {
+    if (showingCameraLevel) {
         CameraLevelView(cameraLevel = model.cameraLevel)
     }
 }
@@ -411,8 +544,10 @@ private fun InteractiveBrowserView(
     browser: Browser,
     browserEffect: BrowserEffect,
     streamSize: Size,
+    allowsHitTesting: Boolean,
 ) {
-    val layout = browserEffect.layout.value ?: return
+    val browserLayout by browserEffect.layout.collectAsState()
+    val layout = browserLayout ?: return
     val browserSize = Size(browserEffect.width.toFloat(), browserEffect.height.toFloat())
     val scale = browserWidgetScale(
         layout = layout,
@@ -428,14 +563,141 @@ private fun InteractiveBrowserView(
         displaySize = displaySize,
         streamSize = streamSize
     )
-    BrowserWidgetView(
-        browser = browser,
+    Box(
         modifier = Modifier
             .offset(offset.x.dp, offset.y.dp)
-            .size(browserSize.width.dp, browserSize.height.dp)
-            .scale(scale)
-            .size(displaySize.width.dp, displaySize.height.dp)
+            .size(displaySize.width.dp, displaySize.height.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        BrowserWidgetView(
+            browser = browser,
+            modifier = Modifier
+                .requiredSize(browserSize.width.dp, browserSize.height.dp)
+                .scale(scale),
+            allowsHitTesting = allowsHitTesting
+        )
+    }
+}
+
+private class ConfirmationDialogButton(
+    val title: String,
+    val destructive: Boolean,
+    val action: () -> Unit,
+)
+
+@Composable
+private fun ConfirmationDialogView(
+    title: String,
+    buttons: List<ConfirmationDialogButton>,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = title,
+                color = Color.Gray,
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                for (button in buttons) {
+                    TextButton(
+                        onClick = {
+                            button.action()
+                            onDismiss()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = button.title,
+                            color = if (button.destructive) Color(0xFFFF3B30) else Color(0xFF007AFF),
+                            fontSize = 17.sp
+                        )
+                    }
+                }
+                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        text = localized("Cancel"),
+                        color = Color(0xFF007AFF),
+                        fontSize = 17.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SheetView(onDismiss: () -> Unit, content: @Composable () -> Unit) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun AlertToastView(toast: Toast) {
+    val showingToast by toast.showingToast.collectAsState()
+    val alertToast by toast.toast.collectAsState()
+    LaunchedEffect(showingToast, alertToast) {
+        if (showingToast) {
+            delay(5000)
+            toast.showingToast.value = false
+        }
+    }
+    val darkMode = isSystemInDarkTheme()
+    val textColor = if (darkMode) Color.White else Color.Black
+    AnimatedVisibility(
+        visible = showingToast,
+        enter = fadeIn() + scaleIn(initialScale = 0.8f),
+        exit = fadeOut() + scaleOut(targetScale = 0.8f)
+    ) {
+        Column(
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .background(if (darkMode) Color(0xE6252525) else Color(0xE6F2F2F7))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    toast.onTapped?.invoke()
+                    toast.showingToast.value = false
+                }
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = alertToast.title,
+                color = alertToast.titleColor ?: textColor,
+                fontSize = 17.sp,
+                fontWeight = if (alertToast.titleFont == null) FontWeight.Bold else FontWeight.Normal,
+                fontFamily = alertToast.titleFont,
+                textAlign = TextAlign.Center
+            )
+            alertToast.subTitle?.let { subTitle ->
+                Text(
+                    text = subTitle,
+                    color = textColor,
+                    fontSize = if (alertToast.subTitleFont == null) 13.sp else 17.sp,
+                    fontFamily = alertToast.subTitleFont,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.alpha(0.7f)
+                )
+            }
+        }
+    }
 }
 
 @Composable
@@ -448,151 +710,107 @@ fun MainView(
     orientation: Orientation,
     quickButtons: SettingsQuickButtons,
 ) {
+    val isPortrait by orientation.isPortrait.collectAsState()
+    val bigButtons by quickButtons.bigButtons.collectAsState()
+    val twoColumns by quickButtons.twoColumns.collectAsState()
+    val showStealthMode by model.showStealthMode.collectAsState()
+    val lockScreen by model.lockScreen.collectAsState()
+    val showingPanel by model.showingPanel.collectAsState()
+    val showBrowser by model.showBrowser.collectAsState()
+    val showTwitchAuth by model.showTwitchAuth.collectAsState()
+    val presentingModeration by model.presentingModeration.collectAsState()
+    val presentingPredefinedMessages by model.presentingPredefinedMessages.collectAsState()
+    val presentingSettingsImportConfirmation by model.presentingSettingsImportConfirmation.collectAsState()
+    val presentingStreamImportCollisionConfirmation by model.presentingStreamImportCollisionConfirmation
+        .collectAsState()
     val focusRequester = remember { FocusRequester() }
     var focused by remember { mutableStateOf(false) }
+    var appeared by remember { mutableStateOf(false) }
+    val safeAreaSides = edgesToIgnore(isPortrait = isPortrait, bigButtons = bigButtons, twoColumns = twoColumns)
+    val streamSafeAreaInsets = streamViewSafeAreaInsets(sides = safeAreaSides, isPortrait = isPortrait)
 
-    LaunchedEffect(model.showingPanel) {
-        focused = model.isKeyboardActive()
+    LaunchedEffect(
+        showingPanel,
+        showBrowser,
+        showTwitchAuth,
+        createStreamWizard.presenting,
+        createStreamWizard.presentingSetup,
+        createStreamWizard.showTwitchAuth
+    ) {
+        if (appeared) {
+            focused = model.isKeyboardActive()
+        }
     }
-    LaunchedEffect(model.showBrowser) {
-        focused = model.isKeyboardActive()
+    LaunchedEffect(Unit) {
+        model.setup()
+        focused = true
+        appeared = true
     }
-    LaunchedEffect(model.showTwitchAuth) {
-        focused = model.isKeyboardActive()
-    }
-    LaunchedEffect(createStreamWizard.presenting) {
-        focused = model.isKeyboardActive()
-    }
-    LaunchedEffect(createStreamWizard.presentingSetup) {
-        focused = model.isKeyboardActive()
-    }
-    LaunchedEffect(createStreamWizard.showTwitchAuth) {
-        focused = model.isKeyboardActive()
+    LaunchedEffect(focused) {
+        if (focused) {
+            focusRequester.requestFocus()
+        }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(safeAreaWindowInsets().only(safeAreaSides))
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
+                .background(Color.Black)
+                .onKeyEvent { event ->
+                    if (event.type != KeyEventType.KeyDown) {
+                        return@onKeyEvent false
+                    }
+                    val codePoint = event.utf16CodePoint
+                    if (codePoint == 0) {
+                        return@onKeyEvent false
+                    }
+                    val press = KeyPress(characters = String(Character.toChars(codePoint)))
+                    model.handleKeyPress(press = press) == KeyPress.Result.handled
+                }
                 .focusRequester(focusRequester)
-                .focusable()
-                .onKeyEvent {
-                    Unit
-                    true
-                }
-                .windowInsetsPadding(
-                    WindowInsets.systemBars.only(edgesToIgnore(orientation = orientation, quickButtons = quickButtons))
-                )
+                .focusable(),
+            contentAlignment = Alignment.Center
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                LaunchedEffect(Unit) {
-                    model.setup()
-                    focused = true
-                    focusRequester.requestFocus()
-                }
-                if (orientation.isPortrait.value) {
-                    portrait(
-                        model = model,
-                        streamView = streamView,
-                        orientation = orientation,
-                        quickButtons = quickButtons
-                    )
-                } else {
-                    landscape(
-                        model = model,
-                        streamView = streamView,
-                        orientation = orientation,
-                        quickButtons = quickButtons
-                    )
-                }
-                if (webBrowserController.showAlert.value) {
-                    WebBrowserAlertsView(model = model)
-                }
-                if (model.showStealthMode.value) {
-                    StealthModeView(
-                        model = model,
-                        quickButtons = quickButtons,
-                        chat = model.chat,
-                        chatAlerts = model.chatActivityFeed,
-                        stealthMode = model.stealthMode,
-                        orientation = orientation
-                    )
-                }
-                if (model.lockScreen.value) {
-                    LockScreenView(model = model)
-                }
-                SnapshotCountdownView(snapshot = model.snapshot)
-                InstantReplayCountdownView(replay = model.replay)
-
-                if (model.showTwitchAuth.value) {
-                    TwitchLoginView(
-                        model = model,
-                        presenting = model.showTwitchAuth.value,
-                        onPresentingChange = { model.showTwitchAuth.value = it }
-                    )
-                }
-                if (model.presentingModeration.value) {
-                    QuickButtonChatModerationView(
-                        model = model,
-                        presentingModeration = model.presentingModeration.value,
-                        onPresentingModerationChange = { model.presentingModeration.value = it }
-                    )
-                }
-                if (model.presentingPredefinedMessages.value) {
-                    var messageToSend by remember { mutableStateOf<UUID?>(null) }
-                    PredefinedMessagesView(
-                        model = model,
-                        chat = model.database.chat,
-                        filter = model.database.chat.predefinedMessagesFilter,
-                        presentingPredefinedMessages = model.presentingPredefinedMessages.value,
-                        onPresentingPredefinedMessagesChange = { model.presentingPredefinedMessages.value = it },
-                        messageToSend = messageToSend,
-                        onMessageToSendChange = { messageToSend = it }
-                    )
-                }
-                if (model.presentingSettingsImportConfirmation.value) {
-                    AlertDialog(
-                        onDismissRequest = { model.presentingSettingsImportConfirmation.value = false },
-                        title = {
-                            Text("Are you sure you want to import settings? This will replace your current settings.")
-                        },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                model.pendingSettingsImportAction?.invoke()
-                                model.pendingSettingsImportAction = null
-                            }) {
-                                Text("Import settings")
-                            }
-                        }
-                    )
-                }
-                if (model.presentingStreamImportCollisionConfirmation.value) {
-                    AlertDialog(
-                        onDismissRequest = { model.presentingStreamImportCollisionConfirmation.value = false },
-                        title = { Text(model.pendingStreamImportCollisionTitle) },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                model.pendingStreamImportCollisionAction?.invoke(true)
-                                model.pendingStreamImportCollisionAction = null
-                            }) {
-                                Text("Merge")
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = {
-                                model.pendingStreamImportCollisionAction?.invoke(false)
-                                model.pendingStreamImportCollisionAction = null
-                            }) {
-                                Text("Create new")
-                            }
-                        }
-                    )
-                }
-                if (toast.showingToast.value) {
-                    Unit
-                }
+            if (isPortrait) {
+                portrait(
+                    model = model,
+                    streamView = streamView,
+                    orientation = orientation,
+                    quickButtons = quickButtons,
+                    safeAreaInsets = streamSafeAreaInsets
+                )
+            } else {
+                landscape(
+                    model = model,
+                    streamView = streamView,
+                    orientation = orientation,
+                    quickButtons = quickButtons,
+                    safeAreaInsets = streamSafeAreaInsets
+                )
             }
+            WebBrowserAlertsView(model = model)
+            if (showStealthMode) {
+                StealthModeView(
+                    model = model,
+                    quickButtons = quickButtons,
+                    chat = model.chat,
+                    chatAlerts = model.chatActivityFeed,
+                    stealthMode = model.stealthMode,
+                    orientation = orientation
+                )
+            }
+            if (lockScreen) {
+                LockScreenView(model = model)
+            }
+            SnapshotCountdownView(snapshot = model.snapshot)
+            InstantReplayCountdownView(replay = model.replay)
+            AlertToastView(toast = toast)
         }
         if (isMac()) {
             Box(
@@ -602,6 +820,68 @@ fun MainView(
                     .background(Color.Black)
             )
         }
+    }
+    if (showTwitchAuth) {
+        SheetView(onDismiss = { model.showTwitchAuth.value = false }) {
+            TwitchLoginView(
+                model = model,
+                presenting = showTwitchAuth,
+                onPresentingChange = { model.showTwitchAuth.value = it }
+            )
+        }
+    }
+    if (presentingModeration) {
+        SheetView(onDismiss = { model.presentingModeration.value = false }) {
+            QuickButtonChatModerationView(
+                model = model,
+                presentingModeration = presentingModeration,
+                onPresentingModerationChange = { model.presentingModeration.value = it }
+            )
+        }
+    }
+    if (presentingPredefinedMessages) {
+        SheetView(onDismiss = { model.presentingPredefinedMessages.value = false }) {
+            var messageToSend by remember { mutableStateOf<UUID?>(null) }
+            PredefinedMessagesView(
+                model = model,
+                chat = model.database.chat,
+                filter = model.database.chat.predefinedMessagesFilter,
+                presentingPredefinedMessages = presentingPredefinedMessages,
+                onPresentingPredefinedMessagesChange = { model.presentingPredefinedMessages.value = it },
+                messageToSend = messageToSend,
+                onMessageToSendChange = { messageToSend = it }
+            )
+        }
+    }
+    if (presentingSettingsImportConfirmation) {
+        ConfirmationDialogView(
+            title = localized(
+                "Are you sure you want to import settings? This will replace your current settings."
+            ),
+            buttons = listOf(
+                ConfirmationDialogButton(title = localized("Import settings"), destructive = true) {
+                    model.pendingSettingsImportAction?.invoke()
+                    model.pendingSettingsImportAction = null
+                }
+            ),
+            onDismiss = { model.presentingSettingsImportConfirmation.value = false }
+        )
+    }
+    if (presentingStreamImportCollisionConfirmation) {
+        ConfirmationDialogView(
+            title = model.pendingStreamImportCollisionTitle,
+            buttons = listOf(
+                ConfirmationDialogButton(title = localized("Create new"), destructive = false) {
+                    model.pendingStreamImportCollisionAction?.invoke(false)
+                    model.pendingStreamImportCollisionAction = null
+                },
+                ConfirmationDialogButton(title = localized("Merge"), destructive = true) {
+                    model.pendingStreamImportCollisionAction?.invoke(true)
+                    model.pendingStreamImportCollisionAction = null
+                }
+            ),
+            onDismiss = { model.presentingStreamImportCollisionConfirmation.value = false }
+        )
     }
 }
 
@@ -623,38 +903,82 @@ private fun handleLeaveTapToFocus(model: Model) {
 
 @Composable
 private fun browserWidgets(model: Model = LocalModel.current, streamSize: Size) {
+    val browsers by model.browsers.collectAsState()
+    val interactiveBrowsers by model.interactiveBrowsers.collectAsState()
     Box(
         modifier = Modifier
             .size(streamSize.width.dp, streamSize.height.dp)
-            .alpha(if (model.interactiveBrowsers.value) 1f else 0f)
+            .alpha(if (interactiveBrowsers) 1f else 0f)
     ) {
-        model.browsers.value.forEach { browser ->
-            key(browser.name) {
+        for (browser in browsers) {
+            key(browser.id) {
                 InteractiveBrowserView(
                     browser = browser,
                     browserEffect = browser.browserEffect,
-                    streamSize = streamSize
+                    streamSize = streamSize,
+                    allowsHitTesting = interactiveBrowsers
                 )
             }
         }
     }
 }
 
-private data class StreamViewLayout(val size: Size, val offset: Offset)
-
-private fun Model.streamViewLayout(metrics: Size): StreamViewLayout {
-    return StreamViewLayout(size = metrics, offset = Offset.Zero)
+@Composable
+private fun safeAreaWindowInsets(): WindowInsets {
+    return WindowInsets.systemBars.union(WindowInsets.displayCutout)
 }
 
 @Composable
-private fun streamViewWithWidgets(model: Model = LocalModel.current, streamView: @Composable () -> Unit) {
+private fun streamViewSafeAreaInsets(sides: WindowInsetsSides, isPortrait: Boolean): StreamViewInsets {
+    val density = LocalDensity.current
+    val insets = safeAreaWindowInsets().only(sides)
+    val leading = insets.getLeft(density, LayoutDirection.Ltr) / density.density
+    val top = insets.getTop(density) / density.density
+    val trailing = insets.getRight(density, LayoutDirection.Ltr) / density.density
+    val bottom = insets.getBottom(density) / density.density
+    return if (isPortrait) {
+        StreamViewInsets(leading = leading, top = top, trailing = trailing, bottom = 0f)
+    } else {
+        StreamViewInsets(leading = leading, top = top, trailing = 0f, bottom = bottom)
+    }
+}
+
+@Composable
+private fun streamViewWithWidgets(
+    model: Model = LocalModel.current,
+    streamView: @Composable () -> Unit,
+    safeAreaInsets: StreamViewInsets,
+) {
+    val stream by model.stream.collectAsState()
+    val isPortrait by model.orientation.isPortrait.collectAsState()
+    val portraitVideoOffsetFromTop by model.portraitVideoOffsetFromTop.collectAsState()
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val metrics = Size(maxWidth.value, maxHeight.value)
-        val layout = model.streamViewLayout(metrics)
+        val dimensions = stream.dimensions()
+        val streamLayout = StreamViewLayout(
+            metrics = StreamViewMetrics(
+                size = Size(maxWidth.value, maxHeight.value),
+                safeAreaInsets = safeAreaInsets
+            ),
+            aspectRatio = dimensions.width.toFloat() / dimensions.height.toFloat(),
+            portraitOrientation = isPortrait,
+            portraitStream = stream.portrait,
+            portraitVideoOffset = if (stream.portrait) 0.0 else portraitVideoOffsetFromTop
+        )
         Box(
-            modifier = Modifier
-                .size(layout.size.width.dp, layout.size.height.dp)
-                .offset(layout.offset.x.dp, layout.offset.y.dp)
+            modifier = Modifier.layout { measurable, constraints ->
+                val placeable = measurable.measure(
+                    Constraints.fixed(
+                        streamLayout.size.width.dp.roundToPx(),
+                        streamLayout.size.height.dp.roundToPx()
+                    )
+                )
+                layout(constraints.maxWidth, constraints.maxHeight) {
+                    placeable.place(
+                        streamLayout.offset.width.dp.roundToPx(),
+                        streamLayout.offset.height.dp.roundToPx()
+                    )
+                }
+            }
         ) {
             Box(
                 modifier = Modifier
@@ -664,7 +988,7 @@ private fun streamViewWithWidgets(model: Model = LocalModel.current, streamView:
                             onTap = { location ->
                                 handleTapToFocus(
                                     model = model,
-                                    size = layout.size,
+                                    size = Size(size.width.toFloat(), size.height.toFloat()),
                                     location = location
                                 )
                             },
@@ -679,9 +1003,9 @@ private fun streamViewWithWidgets(model: Model = LocalModel.current, streamView:
             StreamOverlayTapGridView(
                 model = model,
                 camera = model.camera,
-                size = layout.size
+                size = streamLayout.size
             )
-            browserWidgets(model = model, streamSize = layout.size)
+            browserWidgets(model = model, streamSize = streamLayout.size)
         }
     }
 }
@@ -692,45 +1016,52 @@ private fun portrait(
     streamView: @Composable () -> Unit,
     orientation: Orientation,
     quickButtons: SettingsQuickButtons,
+    safeAreaInsets: StreamViewInsets,
 ) {
+    val isPortrait by orientation.isPortrait.collectAsState()
+    val showLocalOverlays by model.showLocalOverlays.collectAsState()
+    val showDrawOnStream by model.showDrawOnStream.collectAsState()
+    val stream by model.stream.collectAsState()
+    val photoShootEnabled by model.photoShootEnabled.collectAsState()
+    val showBrowser by model.showBrowser.collectAsState()
+    val showNavigation by model.showNavigation.collectAsState()
+    val showingRemoteControl by model.showingRemoteControl.collectAsState()
+    val showingPanel by model.showingPanel.collectAsState()
+    val panelHidden by model.panelHidden.collectAsState()
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .weight(1f)
-                .pointerInput(Unit) {
-                    while (true) {
-                        var totalZoom = 1f
-                        detectTransformGestures { _, _, zoom, _ ->
-                            totalZoom *= zoom
-                            model.changeZoomX(zoom)
-                        }
-                        model.commitZoomX(totalZoom)
-                    }
-                }
+                .magnificationGesture(
+                    onChanged = { amount -> model.changeZoomX(amount = amount) },
+                    onEnded = { amount -> model.commitZoomX(amount = amount) }
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            streamViewWithWidgets(model = model, streamView = streamView)
+            streamViewWithWidgets(model = model, streamView = streamView, safeAreaInsets = safeAreaInsets)
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                val maxWidthValue = maxWidth.value
+                val width = maxWidth.value
                 Box(
                     modifier = Modifier
-                        .padding(bottom = if (orientation.isPortrait.value) 5.dp else 0.dp)
-                        .alpha(if (model.showLocalOverlays.value) 1f else 0f)
+                        .fillMaxSize()
+                        .padding(bottom = if (isPortrait) 5.dp else 0.dp)
+                        .opacityAndHitTesting(showLocalOverlays)
                 ) {
                     StreamOverlayView(
                         streamOverlay = model.streamOverlay,
                         chatSettings = model.database.chat,
                         orientation = orientation,
-                        width = maxWidthValue
+                        width = width
                     )
                 }
             }
-            if (model.showDrawOnStream.value && model.stream.value.portrait) {
+            if (showDrawOnStream && stream.portrait) {
                 DrawOnStreamView(model = model)
             }
             MutedView(audio = model.audio)
-            PhotoShootView(enabled = model.photoShootEnabled.value)
-            if (model.showBrowser.value) {
+            PhotoShootView(enabled = photoShootEnabled)
+            if (showBrowser) {
                 WebBrowserView(
                     model = model,
                     database = model.database,
@@ -738,30 +1069,35 @@ private fun portrait(
                     webBrowserState = model.webBrowserState
                 )
             }
-            if (model.showNavigation.value) {
+            if (showNavigation) {
                 StreamOverlayNavigationView(
                     model = model,
                     database = model.database,
                     navigation = model.navigation()
                 )
             }
-            if (model.showingRemoteControl.value) {
+            if (showingRemoteControl) {
                 ControlBarRemoteControlAssistantView(
                     model = model,
                     remoteControlSettings = model.database.remoteControl
                 )
             }
-            if (model.showingPanel.value != ShowingPanel.none) {
-                Box(modifier = Modifier.alpha(if (model.panelHidden.value) 0f else 1f)) {
+            if (showingPanel != ShowingPanel.none) {
+                Box(modifier = Modifier.opacityAndHitTesting(!panelHidden)) {
                     MenuView(model = model)
                 }
-                val backgroundColor = if (model.panelHidden.value) {
-                    model.showingPanel.value.buttonsBackgroundColor()
+                val backgroundColor = if (panelHidden) {
+                    showingPanel.buttonsBackgroundColor()
                 } else {
                     Color.Transparent
                 }
-                PanelButtonsView(model = model, backgroundColor = backgroundColor)
-                    .let { }
+                PanelButtonsView(
+                    model = model,
+                    backgroundColor = backgroundColor,
+                    modifier = Modifier
+                        .padding(end = 10.dp)
+                        .offset(y = (-7).dp)
+                )
             }
         }
         ControlBarPortraitView(model = model, quickButtons = quickButtons)
@@ -774,41 +1110,49 @@ private fun landscape(
     streamView: @Composable () -> Unit,
     orientation: Orientation,
     quickButtons: SettingsQuickButtons,
+    safeAreaInsets: StreamViewInsets,
 ) {
+    val showLocalOverlays by model.showLocalOverlays.collectAsState()
+    val showDrawOnStream by model.showDrawOnStream.collectAsState()
+    val photoShootEnabled by model.photoShootEnabled.collectAsState()
+    val showBrowser by model.showBrowser.collectAsState()
+    val showNavigation by model.showNavigation.collectAsState()
+    val showingRemoteControl by model.showingRemoteControl.collectAsState()
+    val showingPanel by model.showingPanel.collectAsState()
+    val panelHidden by model.panelHidden.collectAsState()
     Row(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
-                .pointerInput(Unit) {
-                    while (true) {
-                        var totalZoom = 1f
-                        detectTransformGestures { _, _, zoom, _ ->
-                            totalZoom *= zoom
-                            model.changeZoomX(zoom)
-                        }
-                        model.commitZoomX(totalZoom)
-                    }
-                }
+                .magnificationGesture(
+                    onChanged = { amount -> model.changeZoomX(amount = amount) },
+                    onEnded = { amount -> model.commitZoomX(amount = amount) }
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            streamViewWithWidgets(model = model, streamView = streamView)
+            streamViewWithWidgets(model = model, streamView = streamView, safeAreaInsets = safeAreaInsets)
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                val maxWidthValue = maxWidth.value
-                Box(modifier = Modifier.alpha(if (model.showLocalOverlays.value) 1f else 0f)) {
+                val width = maxWidth.value
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .opacityAndHitTesting(showLocalOverlays)
+                ) {
                     StreamOverlayView(
                         streamOverlay = model.streamOverlay,
                         chatSettings = model.database.chat,
                         orientation = orientation,
-                        width = maxWidthValue
+                        width = width
                     )
                 }
             }
-            if (model.showDrawOnStream.value) {
+            if (showDrawOnStream) {
                 DrawOnStreamView(model = model)
             }
             MutedView(audio = model.audio)
-            PhotoShootView(enabled = model.photoShootEnabled.value)
-            if (model.showBrowser.value) {
+            PhotoShootView(enabled = photoShootEnabled)
+            if (showBrowser) {
                 WebBrowserView(
                     model = model,
                     database = model.database,
@@ -816,42 +1160,43 @@ private fun landscape(
                     webBrowserState = model.webBrowserState
                 )
             }
-            if (model.showNavigation.value) {
+            if (showNavigation) {
                 StreamOverlayNavigationView(
                     model = model,
                     database = model.database,
                     navigation = model.navigation()
                 )
             }
-            if (model.showingRemoteControl.value) {
+            if (showingRemoteControl) {
                 ControlBarRemoteControlAssistantView(
                     model = model,
                     remoteControlSettings = model.database.remoteControl
                 )
             }
-            if (model.showingPanel.value != ShowingPanel.none && model.panelHidden.value) {
+            if (showingPanel != ShowingPanel.none && panelHidden) {
                 PanelButtonsView(
                     model = model,
-                    backgroundColor = model.showingPanel.value.buttonsBackgroundColor()
+                    backgroundColor = showingPanel.buttonsBackgroundColor(),
+                    modifier = Modifier.offset(x = 1.dp)
                 )
             }
         }
-        if (model.showingPanel.value != ShowingPanel.none) {
+        if (showingPanel != ShowingPanel.none) {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(if (model.panelHidden.value) 1.dp else settingsHalfWidth.dp)
+                    .width(if (panelHidden) 1.dp else settingsHalfWidth.dp)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black)
                 ) {
-                    Box(modifier = Modifier.alpha(if (model.panelHidden.value) 0f else 1f)) {
+                    Box(modifier = Modifier.opacityAndHitTesting(!panelHidden)) {
                         MenuView(model = model)
                     }
                 }
-                if (!model.panelHidden.value) {
+                if (!panelHidden) {
                     PanelButtonsView(model = model, backgroundColor = Color.Transparent)
                 }
             }
@@ -861,17 +1206,18 @@ private fun landscape(
 }
 
 private fun edgesToIgnore(
-    orientation: Orientation,
-    quickButtons: SettingsQuickButtons,
+    isPortrait: Boolean,
+    bigButtons: Boolean,
+    twoColumns: Boolean,
 ): WindowInsetsSides {
     return if (isPhone()) {
-        if (orientation.isPortrait.value) {
-            if (quickButtons.bigButtons.value && quickButtons.twoColumns.value) {
+        if (isPortrait) {
+            if (bigButtons && twoColumns) {
                 WindowInsetsSides.Horizontal + WindowInsetsSides.Top
             } else {
                 WindowInsetsSides.Horizontal + WindowInsetsSides.Top + WindowInsetsSides.Bottom
             }
-        } else if (quickButtons.bigButtons.value && quickButtons.twoColumns.value) {
+        } else if (bigButtons && twoColumns) {
             WindowInsetsSides.Bottom + WindowInsetsSides.Start
         } else {
             WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom

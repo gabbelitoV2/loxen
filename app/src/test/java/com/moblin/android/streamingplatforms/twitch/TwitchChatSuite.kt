@@ -12,6 +12,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.junit.Test
 import com.moblin.android.AppDelegate
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private fun twitchEmoteIds(segments: List<ChatPostSegment>): List<String?> {
     return segments.map { segment ->
@@ -58,6 +60,7 @@ private class TwitchChatTestDelegate : TwitchChatDelegate {
     override fun twitchChatDeleteUser(userId: String) {}
 }
 
+@RunWith(RobolectricTestRunner::class)
 class TwitchChatSuite {
     @Test
     fun emptyMessage() {

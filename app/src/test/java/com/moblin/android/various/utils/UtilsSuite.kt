@@ -13,7 +13,10 @@ import java.util.UUID
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import kotlin.test.assertEquals
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class UtilsSuite {
     @Test
     fun fullDuration() {

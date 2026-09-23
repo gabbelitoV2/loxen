@@ -8,7 +8,10 @@ import kotlin.math.abs
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class EffectUtilsSuite {
     private val streamSize = Size(1920f, 1080f)
     private val size = Size(200f, 100f)
