@@ -94,4 +94,19 @@ class CodableSuite {
         assertEquals(CodableSuiteMode.first, container.decode("mode", CodableSuiteMode.first))
         assertEquals(3, codableJson.parseToJsonElement(container.toString()).jsonObject.size)
     }
+
+    @Test
+    fun quotedPrimitivesFallBackLikeSwift() {
+        val container = codableJson.parseToJsonElement(
+            "{\"a\":\"5\",\"b\":\"true\",\"c\":5,\"d\":\"1-1-1-1-1\",\"e\":7,\"f\":true}",
+        ).jsonObject
+        assertEquals(1, container.decode("a", 1))
+        assertEquals(false, container.decode("b", false))
+        assertEquals("x", container.decode("c", "x"))
+        val id = UUID.randomUUID()
+        assertEquals(id, container.decode("d", id))
+        assertEquals(7L, container.decode("e", 0L))
+        assertEquals(true, container.decode("f", false))
+        assertEquals(CodableSuiteMode.first, container.decode("e", CodableSuiteMode.first))
+    }
 }
