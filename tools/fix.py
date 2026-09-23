@@ -40,7 +40,7 @@ Rules
 
 def find_java_home():
     env = os.environ.get("JAVA_HOME")
-    if env and Path(env, "bin", "java.exe").exists():
+    if env and (Path(env, "bin", "java.exe").exists() or Path(env, "bin", "java").exists()):
         return env
     for candidate in JDK_CANDIDATES:
         if (candidate / "bin" / "java.exe").exists():

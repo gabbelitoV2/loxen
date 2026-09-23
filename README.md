@@ -24,25 +24,46 @@ effects and the libsrt binding have to be written by hand.
 - Android Studio to open the project. Pick a local Gradle installation the first time, or run
   `gradle wrapper` in this directory.
 
-## Usage
+## Keeping up with Moblin
+
+Erik only changes the Swift app. One command brings the Android port up to date:
 
 ```sh
-python tools/inventory.py                        # scan ../moblin, write tools/inventory.json
+python tools/sync.py --commit --push
+```
+
+It fetches eerimoq/moblin into `.upstream/`, finds the Swift files that changed since each Kotlin file was
+last ported, and sends the model the Swift diff together with the current Kotlin file. The model applies
+only that change, so hand-written Android fixes inside generated files survive. New Swift files are
+translated in full, deleted ones are removed. Then `tools/postprocess.py` applies the deterministic
+Android rules, `tools/fix.py` feeds compile errors back to the model until the app builds, and the result
+is committed.
+
+`python tools/sync.py --dry-run` shows the new upstream commits and the files that would be ported.
+
+The GitHub Actions workflow in `.github/workflows/android.yml` runs the same sync every night and on
+demand, then builds `app-debug.apk` and attaches it to the run. It needs the repository secret
+`DEEPSEEK_API_KEY`.
+
+## Hand-written Android code
+
+Everything in `app/src/main/java/com/moblin/android/platform/` is written by hand and never generated:
+camera, encoding, transports and other Android APIs. Generated files call into it through one-line hooks,
+which `tools/postprocess.py` restores after a re-translation. Put new Android-specific code there.
+
+## First port and manual runs
+
+```sh
+python tools/inventory.py --moblin .upstream      # scan the Swift code, write tools/inventory.json
 python tools/port.py --dry-run --tier all         # show the plan and cost, no LLM calls
-python tools/port.py --tier logic --limit 5       # port five files and look at the result
-python tools/port.py                              # logic, platform and test tiers
-python tools/port.py --tier ui                    # SwiftUI to Jetpack Compose
-python tools/port.py --tier media                 # media pipeline, hardware parts become TODO
+python tools/port.py --tier all                   # translate every file that is not done yet
+python tools/fix.py --rounds 3                    # compile and let the model fix errors
 python tools/port.py --report-only                # rebuild PORT-REPORT.md
 ```
 
-Runs can be interrupted and resumed. `tools/port-state.json` remembers the checksum of every ported
-file, so a changed Swift file is ported again on the next run and unchanged files are skipped.
-Useful flags: `--provider deepseek`, `--model claude-sonnet-5`, `--workers 8`,
-`--include Moblin/Moblink`, `--force`.
-
-Ported Kotlin files are overwritten when their Swift source changes. Keep hand-written code in
-separate files.
+Runs can be interrupted and resumed. `tools/port-state.json` remembers, for every Swift file, the checksum
+and upstream commit it was ported from. Useful flags: `--provider deepseek`, `--model claude-sonnet-5`,
+`--workers 8`, `--include Moblin/Moblink`, `--force`, `--incremental`.
 
 ## Tiers
 

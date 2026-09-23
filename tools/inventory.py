@@ -176,7 +176,9 @@ def summarize(entries):
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Inventory Moblin's Swift code before porting it to Kotlin.")
-    parser.add_argument("--moblin", type=Path, default=HERE.parent.parent / "moblin")
+    upstream = HERE.parent / ".upstream"
+    default_root = upstream if (upstream / "Moblin").is_dir() else HERE.parent.parent / "moblin"
+    parser.add_argument("--moblin", type=Path, default=default_root)
     parser.add_argument("--out", type=Path, default=HERE / "inventory.json")
     args = parser.parse_args()
     root = args.moblin.resolve()

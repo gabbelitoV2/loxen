@@ -8,3 +8,4 @@ local.properties
 tools/__pycache__/
 tools/*.tmp
 .kotlin/
+.upstream/

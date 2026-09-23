@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import difflib
 import json
 import os
 import re
@@ -132,6 +133,9 @@ def save_json(path, data):
     tmp = path.with_suffix(".tmp")
     tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8", newline="\n")
     tmp.replace(path)
+
+
+INCREMENTAL = (PROMPTS / "incremental.md").read_text(encoding="utf-8")
 
 
 def load_prompts():
@@ -267,21 +271,107 @@ def parse_response(text):
     return meta, kotlin
 
 
-def port_one(backend, entry, root, out_dir, by_path, system, tiers):
-    source = (root / entry["path"]).read_text(encoding="utf-8", errors="replace")
-    prompt_system = system + "\n\n" + tiers[entry["tier"]]
-    prompt_user = build_user_prompt(
-        entry, glossary_for(entry, by_path), source, dependency_signatures(entry, by_path, out_dir)
+def git_head(root):
+    result = subprocess.run(
+        ["git", "-C", str(root), "rev-parse", "HEAD"], capture_output=True, text=True, encoding="utf-8"
     )
-    started = time.time()
-    text, tokens_in, tokens_out = backend.complete(prompt_system, prompt_user)
-    meta, kotlin = parse_response(text)
+    return result.stdout.strip() if result.returncode == 0 else None
+
+
+def swift_at(root, commit, path):
+    if not commit:
+        return None
+    result = subprocess.run(
+        ["git", "-C", str(root), "show", f"{commit}:{path}"],
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+    )
+    return result.stdout if result.returncode == 0 else None
+
+
+def changed_lines(old, new):
+    count = 0
+    for line in difflib.unified_diff(old.splitlines(), new.splitlines(), lineterm="", n=0):
+        if line.startswith(("+", "-")) and not line.startswith(("+++", "---")):
+            count += 1
+    return count
+
+
+def build_incremental_prompt(entry, glossary, old_source, source, kotlin, dependencies):
+    swift_diff = "\n".join(
+        difflib.unified_diff(
+            old_source.splitlines(), source.splitlines(), f"a/{entry['path']}", f"b/{entry['path']}", lineterm=""
+        )
+    )
+    parts = [
+        f"Swift file: {entry['path']}",
+        f"Tier: {entry['tier']}",
+        f"Kotlin package: {entry['kotlin_package']}",
+        f"Kotlin file: {entry['kotlin_path']}",
+    ]
+    if glossary:
+        parts.append(
+            "Types, top-level functions and globals from other files, with the Kotlin package they live in. "
+            "Import them from there when used:\n" + "\n".join(glossary)
+        )
+    if dependencies:
+        parts.append(
+            "Current Kotlin declarations in the files this file depends on. Call them exactly as declared:\n"
+            + dependencies
+        )
+    parts.append("Swift change:\n```diff\n" + swift_diff + "\n```")
+    parts.append("New Swift file:\n```swift\n" + source + "\n```")
+    parts.append("Current Kotlin file:\n```kotlin\n" + kotlin + "\n```")
+    return "\n\n".join(parts)
+
+
+def port_one(backend, entry, root, out_dir, by_path, system, tiers, previous=None, incremental=False, commit=None):
+    source = (root / entry["path"]).read_text(encoding="utf-8", errors="replace")
     target = out_dir / entry["kotlin_path"]
+    glossary = glossary_for(entry, by_path)
+    dependencies = dependency_signatures(entry, by_path, out_dir)
+    old_source = None
+    if incremental and previous and previous.get("status") == "ok" and target.exists():
+        old_source = swift_at(root, previous.get("moblin_commit"), entry["path"])
+    started = time.time()
+    mode = "full"
+    warning = None
+    if old_source is not None:
+        mode = "incremental"
+        kotlin_before = target.read_text(encoding="utf-8", errors="replace")
+        swift_changed = changed_lines(old_source, source)
+        prompt_system = system + "\n\n" + tiers[entry["tier"]] + "\n\n" + INCREMENTAL
+        prompt_user = build_incremental_prompt(entry, glossary, old_source, source, kotlin_before, dependencies)
+        limit = max(60, 5 * swift_changed + 20)
+        text, tokens_in, tokens_out = backend.complete(prompt_system, prompt_user)
+        meta, kotlin = parse_response(text)
+        kotlin_changed = changed_lines(kotlin_before, kotlin)
+        if kotlin_changed > limit:
+            retry = (
+                prompt_user
+                + f"\n\nA previous answer changed {kotlin_changed} Kotlin lines although the Swift change only touches "
+                f"{swift_changed} lines. Change only the Kotlin lines that correspond to the Swift diff."
+            )
+            text2, more_in, more_out = backend.complete(prompt_system, retry)
+            tokens_in += more_in
+            tokens_out += more_out
+            meta2, kotlin2 = parse_response(text2)
+            changed2 = changed_lines(kotlin_before, kotlin2)
+            if changed2 < kotlin_changed:
+                meta, kotlin, kotlin_changed = meta2, kotlin2, changed2
+            if kotlin_changed > limit:
+                warning = f"changed {kotlin_changed} Kotlin lines for {swift_changed} changed Swift lines"
+    else:
+        prompt_system = system + "\n\n" + tiers[entry["tier"]]
+        prompt_user = build_user_prompt(entry, glossary, source, dependencies)
+        text, tokens_in, tokens_out = backend.complete(prompt_system, prompt_user)
+        meta, kotlin = parse_response(text)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(kotlin.rstrip() + "\n", encoding="utf-8", newline="\n")
-    return {
+    result = {
         "status": "ok",
         "sha256": entry["sha256"],
+        "moblin_commit": commit,
+        "mode": mode,
         "tier": entry["tier"],
         "kotlin_path": entry["kotlin_path"],
         "notes": list(meta.get("notes", []))[:8],
@@ -293,6 +383,9 @@ def port_one(backend, entry, root, out_dir, by_path, system, tiers):
         "seconds": round(time.time() - started, 1),
         "ported_at": now_iso(),
     }
+    if warning:
+        result["warning"] = warning
+    return result
 
 
 def dry_run(todo, root, args, system, tiers):
@@ -416,6 +509,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--report-only", action="store_true")
+    parser.add_argument("--incremental", action="store_true")
     args = parser.parse_args()
     if args.model is None:
         args.model = PROVIDERS[args.provider]["model"]
@@ -453,9 +547,15 @@ def main():
     lock = threading.Lock()
     finished = 0
 
+    commit = git_head(root)
+
     def work(entry):
         try:
-            return entry, port_one(backend, entry, root, out_dir, by_path, system, tiers), None
+            result = port_one(
+                backend, entry, root, out_dir, by_path, system, tiers,
+                previous=state.get(entry["path"]), incremental=args.incremental, commit=commit,
+            )
+            return entry, result, None
         except Exception as exc:
             return entry, None, str(exc)
 
@@ -478,9 +578,10 @@ def main():
                         print(f"[{finished}/{len(todo)}] FAIL {entry['path']}: {error}")
                     else:
                         state[entry["path"]] = result
+                        extra = f", WARNING {result['warning']}" if result.get("warning") else ""
                         print(
                             f"[{finished}/{len(todo)}] ok   {entry['path']} -> {entry['kotlin_path']} "
-                            f"({result['seconds']}s, {len(result['unsupported'])} TODO)"
+                            f"({result['mode']}, {result['seconds']}s, {len(result['unsupported'])} TODO{extra})"
                         )
                     save_json(state_path, state)
         except KeyboardInterrupt:
