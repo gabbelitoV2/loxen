@@ -1560,7 +1560,7 @@ data class RemoteControlRemoteSceneDataVariables(
     )
 
     fun toVariables(): Variables = Variables(
-        timestamp = System.currentTimeMillis(),
+        timestamp = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds,
         bitrate = bitrate,
         bitrateAndTotal = bitrateAndTotal,
         bonding = bonding,

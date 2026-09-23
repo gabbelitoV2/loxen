@@ -84,6 +84,24 @@
       "file": "various/utils/Utils.kt",
       "op": "add_import",
       "new": "import com.moblin.android.media.haishinkit.extension.dictionaryFromQuery"
+    },
+    {
+      "id": "R9.1",
+      "file": "various/utils/Utils.kt",
+      "scope": "fun loadStringResource",
+      "op": "replace",
+      "old": "    \"\"",
+      "new": "    com.moblin.android.platform.Bundle.readBytes(name, ext)?.toString(Charsets.UTF_8) ?: \"\"",
+      "occurrence": 1
+    },
+    {
+      "id": "R9.2",
+      "file": "various/utils/Utils.kt",
+      "scope": "fun loadResource",
+      "op": "replace",
+      "old": "    ByteArray(0)",
+      "new": "    com.moblin.android.platform.Bundle.readBytes(name, ext) ?: ByteArray(0)",
+      "occurrence": 1
     }
   ]
 }

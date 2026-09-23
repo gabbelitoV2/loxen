@@ -1,0 +1,14 @@
+{
+  "task": "E7",
+  "hooks": [
+    {
+      "id": "HE7.1",
+      "file": "videoeffects/MapEffect.kt",
+      "scope": "class MapEffect",
+      "op": "insert_after",
+      "anchor": "    private var location: MapLocation = MapLocation()",
+      "new": "    fun updateLocation(location: android.location.Location): Unit = updateLocation(location = MapLocation(coordinate = MapCoordinate(location.latitude, location.longitude), speed = location.speed.toDouble(), course = if (location.hasBearing()) location.bearing.toDouble() else -1.0, timestamp = Instant.ofEpochMilli(location.time)))",
+      "note": "Interim overload for the ME1 line of R11.1 (ModelScene passes an android.location.Location) until MapEffect.kt is regenerated. The anchor uses the placeholder MapLocation, which the re-translation does not declare, so the hook cannot touch the regenerated file. Retire at ME1."
+    }
+  ]
+}

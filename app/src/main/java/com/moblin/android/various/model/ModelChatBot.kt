@@ -746,7 +746,7 @@ private fun Model.handleChatBotMessageWidgetTimer(command: ChatBotCommand, widge
         ChatBotWidgetTimerArgument.add -> {
             val delta = command.popFirstDouble(-3600.0..3600.0) ?: return
             timer.add(delta = delta)
-            val endTime = (timer.textEffectEndTime() as? Long) ?: 0L
+            val endTime = timer.textEffectEndTime()
             for (effect in effects) {
                 effect.setEndTime(index = index, endTime = endTime)
             }
@@ -778,7 +778,7 @@ private fun Model.handleChatBotMessageAlert(command: ChatBotCommand) {
         onCompleted = {
             val alert = command.popFirst()
             if (alert != null) {
-                playAlert(alert = TODO("no Android counterpart for Alert"))
+                playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.ChatBotCommand(alert, command.user() ?: "Unknown"))
             }
         }
     )

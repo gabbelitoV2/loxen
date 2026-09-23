@@ -2,7 +2,7 @@ package com.moblin.android.videoeffects.scoreboard
 
 import android.graphics.Bitmap
 import com.moblin.android.platform.video.CVPixelBuffer as Image
-import android.util.Size
+import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -163,7 +163,7 @@ class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
                 scale = scale
             )
         }
-        setScoreboardImage(image = TODO("no Android counterpart for ImageRenderer"))
+        setScoreboardImage(image = null)
     }
 
     private fun updatePadel(
@@ -184,7 +184,7 @@ class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
                 scale = scale
             )
         }
-        setScoreboardImage(image = TODO("no Android counterpart for ImageRenderer"))
+        setScoreboardImage(image = null)
     }
 
     private fun updateModular(
@@ -199,7 +199,7 @@ class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
                 scale = scale
             )
         }
-        setScoreboardImage(image = TODO("no Android counterpart for ImageRenderer"))
+        setScoreboardImage(image = null)
     }
 
     private fun updateGolf(
@@ -218,7 +218,7 @@ class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
                 scale = scale
             )
         }
-        setScoreboardImage(image = TODO("no Android counterpart for ImageRenderer"))
+        setScoreboardImage(image = null)
     }
 
     private fun updateGolfFullScorecard(
@@ -237,6 +237,6 @@ class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
                 scale = scale
             )
         }
-        setScoreboardImage(image = TODO("no Android counterpart for ImageRenderer"))
+        setScoreboardImage(image = null)
     }
 }

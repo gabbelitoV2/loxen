@@ -378,7 +378,7 @@ private class BrowserWidgetContainerView(context: Context) : FrameLayout(context
 fun BrowserWidgetView(browser: Browser, modifier: Modifier = Modifier, allowsHitTesting: Boolean = true) {
     AndroidView(
         factory = { context ->
-            val webView = browser.browserEffect.webView
+            val webView = browser.browserEffect.webView.borrowView()
             (webView.parent as? ViewGroup)?.removeView(webView)
             val container = BrowserWidgetContainerView(context)
             container.addView(
@@ -392,7 +392,7 @@ fun BrowserWidgetView(browser: Browser, modifier: Modifier = Modifier, allowsHit
             container
         },
         modifier = modifier,
-        onRelease = { it.removeAllViews() },
+        onRelease = { it.removeAllViews(); browser.browserEffect.webView.returnView() },
         update = { it.allowsHitTesting = allowsHitTesting }
     )
 }

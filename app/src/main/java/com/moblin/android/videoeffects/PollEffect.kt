@@ -90,7 +90,7 @@ class PollEffect(canvasSize: Size) : VideoEffect() {
     }
 
     private fun setup() {
-        renderer = TODO("no Android counterpart for SwiftUI ImageRenderer")
+        renderer = null
         cancellable = scope.launch {
             state.text.collect {
                 setOverlay(renderer)

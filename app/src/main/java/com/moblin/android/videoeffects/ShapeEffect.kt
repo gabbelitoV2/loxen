@@ -37,7 +37,7 @@ private fun shapeCornerRadiusPixels(cornerRadius: Float, size: Size): Float {
 data class ShapeEffectSettings(
     var cornerRadius: Float = 0.0f,
     var borderWidth: Double = 1.0,
-    var borderColor: MTIColor = MTIColor.black,
+    var borderColor: com.moblin.android.platform.coreimage.CIColor = com.moblin.android.platform.coreimage.CIColor.black,
     var cropEnabled: Boolean = false,
     var cropX: Double = 0.25,
     var cropY: Double = 0.0,
@@ -181,10 +181,10 @@ class ShapeEffect : VideoEffect() {
         shape.cornerRadius = settings.cornerRadius
         shape.borderWidth = settings.borderWidth
         shape.borderColor = MTIColor(
-            red = settings.borderColor.red,
-            green = settings.borderColor.green,
-            blue = settings.borderColor.blue,
-            alpha = settings.borderColor.alpha,
+            red = settings.borderColor.red.toFloat(),
+            green = settings.borderColor.green.toFloat(),
+            blue = settings.borderColor.blue.toFloat(),
+            alpha = settings.borderColor.alpha.toFloat(),
         )
     }
 }

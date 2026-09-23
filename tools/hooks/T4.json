@@ -151,51 +151,6 @@
       "new": "import com.moblin.android.platform.video.layer"
     },
     {
-      "id": "H4.18",
-      "file": "media/haishinkit/media/video/VideoEffectsProcessor.kt",
-      "scope": "fun render",
-      "op": "replace",
-      "old": "            imageSize != canvasSize &&",
-      "new": "            imageSize == canvasSize &&",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.19",
-      "file": "media/haishinkit/media/video/VideoEffectsProcessor.kt",
-      "scope": "fun applyEffects",
-      "op": "replace",
-      "old": "            presentationTimeStamp = (sampleBuffer.presentationTimeUs / 1_000_000.0).toLong(),",
-      "new": "            presentationTimeStamp = sampleBuffer.presentationTimeUs,",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.20",
-      "file": "media/haishinkit/media/video/VideoEffectsProcessor.kt",
-      "scope": "fun renderSceneSwitchTransitionEnd",
-      "op": "replace",
-      "old": "    ): MediaSample = TODO(\"OpenGL ES port\")",
-      "new": "    ): MediaSample = com.moblin.android.platform.video.CoreImageFallback.renderSceneSwitchTransitionEnd(sampleBuffer, imageBuffer, outputImageBuffer)",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.21",
-      "file": "media/haishinkit/media/video/VideoEffectsProcessor.kt",
-      "scope": "fun applyEffectsCoreImage",
-      "op": "replace",
-      "old": "        return TODO(\"OpenGL ES port\")",
-      "new": "        return com.moblin.android.platform.video.CoreImageFallback.applyEffects(imageBuffer, sampleBuffer, enabledEffects, isSceneSwitchTransition, videoOrientation, info, canvasSize, fillFrame, rotation, mirror)",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.22",
-      "file": "media/haishinkit/media/video/VideoEffectsProcessor.kt",
-      "scope": "fun applyEffectsMetalPetal",
-      "op": "replace",
-      "old": "        return TODO(\"no Android counterpart for MetalPetal\")",
-      "new": "        return com.moblin.android.platform.video.CoreImageFallback.applyEffects(imageBuffer, sampleBuffer, enabledEffects, isSceneSwitchTransition, videoOrientation, info, canvasSize, fillFrame, rotation, mirror)",
-      "occurrence": 1
-    },
-    {
       "id": "H4.23",
       "file": "media/haishinkit/media/video/VideoLowFpsImage.kt",
       "scope": "fun createImage",
@@ -282,6 +237,115 @@
       "old": "                setScale(scaleX, 1.0f, width / 2f, height / 2f)",
       "new": "                this@PreviewView.scaleX = scaleX",
       "occurrence": 1
+    },
+    {
+      "id": "R4.14",
+      "file": "videoeffects/ChatEmoteComboEffect.kt",
+      "scope": "fun setup",
+      "op": "replace",
+      "old": "        renderer = TODO(\"no Android counterpart for SwiftUI ImageRenderer\")",
+      "new": "        renderer = null",
+      "occurrence": 1,
+      "note": "ME0 guard; retire with H4.26, H4.27 and R4.15 once the ME1 regeneration has replaced the file (R4.11, effects plan 2.3 step 7)"
+    },
+    {
+      "id": "R4.15",
+      "file": "videoeffects/ChatEmoteComboEffect.kt",
+      "scope": "fun setup",
+      "op": "replace",
+      "old": "                    val image: EffectImageCgImage? = TODO(\"no Android counterpart for SwiftUI ImageRenderer\")",
+      "new": "                    val image: EffectImageCgImage? = null",
+      "occurrence": 1,
+      "note": "ME0 guard; retire with H4.26, H4.27 and R4.14 once the ME1 regeneration has replaced the file (R4.11, effects plan 2.3 step 7)"
+    },
+    {
+      "id": "R4.2",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "class TextDetection",
+      "op": "replace",
+      "old": "    val boundingBox: RectF",
+      "new": "    val boundingBox: com.moblin.android.platform.coregraphics.CGRect",
+      "occurrence": 1
+    },
+    {
+      "id": "R4.1",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "class Detections",
+      "op": "replace",
+      "old": "    val face: List<Any>,",
+      "new": "    val face: List<com.moblin.android.platform.vision.VNFaceObservation>,",
+      "occurrence": 1,
+      "note": "ME1 boundary (effects plan 2.3 step 3); VNFaceObservation is declared by E9's platform/vision skeleton."
+    },
+    {
+      "id": "R4.3",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun getCiImage",
+      "op": "replace",
+      "old": "    fun getCiImage(videoSourceId: UUID, presentationTimeUs: Long): Image? {",
+      "new": "    fun getCiImage(videoSourceId: UUID, presentationTimeUs: Long): com.moblin.android.platform.coreimage.CIImage? {",
+      "occurrence": 1,
+      "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.6/HE1.7 bridge it."
+    },
+    {
+      "id": "R4.4",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun getCiImage",
+      "op": "replace",
+      "old": "        return sampleBuffer.imageBuffer",
+      "new": "        return sampleBuffer.imageBuffer?.let { com.moblin.android.platform.coreimage.CIImage(cvPixelBuffer = it) }",
+      "occurrence": 1,
+      "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.6/HE1.7 bridge it."
+    },
+    {
+      "id": "R4.5",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun getMetalPetalImage",
+      "op": "replace",
+      "old": "    fun getMetalPetalImage(videoSourceId: UUID, presentationTimeUs: Long): Image? {",
+      "new": "    fun getMetalPetalImage(videoSourceId: UUID, presentationTimeUs: Long): com.moblin.android.platform.metalpetal.MTIImage? {",
+      "occurrence": 1,
+      "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.8/HE1.9 bridge it."
+    },
+    {
+      "id": "R4.6",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun getMetalPetalImage",
+      "op": "replace",
+      "old": "        return sampleBuffer.imageBuffer",
+      "new": "        return sampleBuffer.imageBuffer?.let { com.moblin.android.platform.metalpetal.MTIImage(cvPixelBuffer = it, alphaType = com.moblin.android.platform.metalpetal.MTIAlphaType.alphaIsOne) }",
+      "occurrence": 1,
+      "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.8/HE1.9 bridge it."
+    },
+    {
+      "id": "R4.7",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "class VideoUnit",
+      "op": "replace",
+      "old": "            effectsProcessor.canvasSize = SizeF(value.width.toFloat(), value.height.toFloat())",
+      "new": "            effectsProcessor.canvasSize = com.moblin.android.platform.coregraphics.CGSize(width = value.width.toDouble(), height = value.height.toDouble())",
+      "occurrence": 1,
+      "note": "The plan's scope var canvasSize ends at the getter, before the setter line. ME1 boundary; until VideoEffectsProcessor.kt is regenerated, E1's interim HE1.10/HE1.11 bridge it (CoreImageFallback.applyEffects takes a CGSize)."
+    },
+    {
+      "id": "R4.8",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun createBlackImage",
+      "op": "replace",
+      "old": "fun createBlackImage(width: Double, height: Double): Bitmap {",
+      "new": "fun createBlackImage(width: Double, height: Double): com.moblin.android.platform.coreimage.CIImage {",
+      "occurrence": 1,
+      "note": "ME1 boundary; until VideoEffectsProcessor.kt is regenerated, E1's interim HE1.12/HE1.13 bridge it."
+    },
+    {
+      "id": "R4.9",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun createBlackImage",
+      "op": "replace",
+      "old": "    return bitmap",
+      "new": "    return com.moblin.android.platform.coreimage.CIImage.black.cropped(to = com.moblin.android.platform.coregraphics.CGRect(x = 0.0, y = 0.0, width = width, height = height))",
+      "occurrence": 1,
+      "note": "ME1 boundary; until VideoEffectsProcessor.kt is regenerated, E1's interim HE1.12/HE1.13 bridge it."
     }
   ]
 }

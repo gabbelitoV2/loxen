@@ -43,6 +43,7 @@ object AndroidHost {
     fun onActivityCreated(activity: ComponentActivity) {
         Log.i(TAG, "Activity created")
         SystemEvents.install(activity.application)
+        com.moblin.android.platform.offscreen.OffscreenDisplay.prewarm()
         val launcher = activity.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
             if (results[Manifest.permission.CAMERA] == true) {
                 onCameraPermissionGranted()

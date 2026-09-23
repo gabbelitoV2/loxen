@@ -29,20 +29,20 @@ data class VideoEffectInfo(
         return null
     }
 
-    fun getCiImage(videoSourceId: UUID): Image? {
+    fun getCiImage(videoSourceId: UUID): com.moblin.android.platform.coreimage.CIImage? {
         val imageBuffer = detectionJobs
             .firstOrNull { it.videoSourceId == videoSourceId }
             ?.imageBuffer
             ?: return videoUnit.getCiImage(videoSourceId, presentationTimeStamp)
-        return imageBuffer
+        return com.moblin.android.platform.coreimage.CIImage(cvPixelBuffer = imageBuffer)
     }
 
-    fun getMetalPetalImage(videoSourceId: UUID): Image? {
+    fun getMetalPetalImage(videoSourceId: UUID): com.moblin.android.platform.metalpetal.MTIImage? {
         val imageBuffer = detectionJobs
             .firstOrNull { it.videoSourceId == videoSourceId }
             ?.imageBuffer
             ?: return videoUnit.getMetalPetalImage(videoSourceId, presentationTimeStamp)
-        return imageBuffer
+        return com.moblin.android.platform.metalpetal.MTIImage(cvPixelBuffer = imageBuffer, alphaType = com.moblin.android.platform.metalpetal.MTIAlphaType.alphaIsOne)
     }
 }
 

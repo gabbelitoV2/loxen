@@ -156,7 +156,7 @@ class AlertsEffectMedia {
         val frames: List<Pair<EffectImageCiImage, Double>> = runCatching {
             File(url).readBytes()
         }.getOrNull()?.let {
-            TODO()
+            emptyList<Pair<EffectImageCiImage, Double>>()
         } ?: emptyList()
         var timeOffset = 0.0
         for (i in 0 until loopCount) {

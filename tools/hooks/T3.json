@@ -8,6 +8,15 @@
       "old": "import com.moblin.android.various.utils.AVCaptureDevice",
       "new": "import com.moblin.android.platform.avfoundation.AVCaptureDevice",
       "occurrence": 1
+    },
+    {
+      "id": "R3.1",
+      "file": "various/utils/CameraUtils.kt",
+      "op": "replace",
+      "old": "data class CMAcceleration(val x: Double, val y: Double, val z: Double)",
+      "new": "typealias CMAcceleration = com.moblin.android.platform.coremotion.CMAcceleration",
+      "occurrence": 1,
+      "note": "ME1 boundary (effects plan 2.3 step 3); CMAcceleration is declared by E8's platform/coremotion skeleton."
     }
   ]
 }

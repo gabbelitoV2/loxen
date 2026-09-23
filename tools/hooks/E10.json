@@ -1,0 +1,25 @@
+{
+  "task": "E10",
+  "hooks": [
+    {
+      "id": "HE10.1",
+      "file": "various/model/ModelReplay.kt",
+      "scope": "fun Model.replayPlay",
+      "op": "replace",
+      "old": "    TODO()",
+      "new": "    return false",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1 (ModelReplay.swift is regenerated in phase D)."
+    },
+    {
+      "id": "HE10.2",
+      "file": "various/MediaPlayer.kt",
+      "scope": "fun startReading",
+      "op": "replace",
+      "old": "        val started: Boolean = TODO(\"no Android counterpart for AVFoundation AVAssetReader\")",
+      "new": "        val started: Boolean = false",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1 (MediaPlayer.swift is regenerated in phase D)."
+    }
+  ]
+}

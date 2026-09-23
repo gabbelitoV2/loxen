@@ -30,7 +30,7 @@ data class MaskEffectSettings(
 
 private val checkerboardSquareCount: Float = 20.0f
 
-fun makeCatmullRomPath(points: List<PointF>, tension: Float): Path {
+fun makeCatmullRomPath(points: List<com.moblin.android.platform.coregraphics.CGPoint>, tension: Double): Path = makeCatmullRomPath(points.map { PointF(it.x.toFloat(), it.y.toFloat()) }, tension.toFloat()); fun makeCatmullRomPath(points: List<PointF>, tension: Float): Path {
     val numberOfPoints = points.size
     val path = Path()
     path.moveTo(points[0].x, points[0].y)

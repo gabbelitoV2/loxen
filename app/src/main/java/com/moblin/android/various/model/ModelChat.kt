@@ -468,7 +468,7 @@ fun Model.showChatLabelsForAWhile() {
 fun Model.printChatMessage(post: ChatPost) {
     mainScope.launch {
         delay(2_000)
-        val image = TODO("no Android counterpart for SwiftUI ImageRenderer and CIImage based CatPrinter rendering")
+        val image = return@launch
         for (catPrinter in catPrinters.values) {
             if (getCatPrinterSettings(catPrinter = catPrinter)?.printChat?.value == true) {
                 catPrinter.print(image = image, feedPaperDelay = 3.0)

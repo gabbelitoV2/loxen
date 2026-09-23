@@ -40,10 +40,10 @@ Rules
 - Lines that call com.moblin.android.platform are Android hooks; keep them byte-identical unless an error is on that line."""
 
 
-def fix_system_prompt(tier):
-    key = ("fix", tier)
+def fix_system_prompt(tier, swift_path=None):
+    key = ("fix", tier, port.shim_fragment_names(swift_path))
     if key not in port.PROMPT_CACHE:
-        sections = [FIX_SYSTEM, port.shim_glossary(), port.platform_api(ROOT, tier)]
+        sections = [FIX_SYSTEM, port.shim_glossary(swift_path), port.platform_api(ROOT, tier)]
         port.PROMPT_CACHE[key] = "\n\n".join(section for section in sections if section)
     return port.PROMPT_CACHE[key]
 
@@ -200,7 +200,7 @@ def fix_one(backend, kotlin_path, errors, by_kotlin, by_path, moblin_root):
         dependencies = "\n\n".join(part for part in (dependencies, platform) if part)
     prompt = build_prompt(kotlin_path, kotlin_source, errors, entry, swift_source, glossary, dependencies)
     started = time.time()
-    text, tokens_in, tokens_out = backend.complete(fix_system_prompt(tier), prompt)
+    text, tokens_in, tokens_out = backend.complete(fix_system_prompt(tier, entry["path"] if entry else None), prompt)
     blocks = port.fenced_blocks(text)
     kotlin = next((body for language, body in blocks if language in ("kotlin", "kt")), None)
     if kotlin is None or not kotlin.lstrip().startswith("package "):

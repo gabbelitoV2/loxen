@@ -1304,7 +1304,7 @@ class SettingsFace(
     var blurStrength: Float = 0.8f,
     var pixellateStrength: Float = 0.3f,
 ) {
-    fun toEffectSettings(backgroundImage: Image?, iconImage: Image?): FaceEffectSettings {
+    fun toEffectSettings(backgroundImage: com.moblin.android.platform.coreimage.CIImage?, iconImage: android.graphics.Bitmap?): FaceEffectSettings {
         val faceEffectPrivacyMode: FaceEffectPrivacyMode = when (privacyMode) {
             SettingsFacePrivacyMode.blur -> FaceEffectPrivacyMode.Blur(blurStrength)
             SettingsFacePrivacyMode.pixellate -> FaceEffectPrivacyMode.Pixellate(pixellateStrength)

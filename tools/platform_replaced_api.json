@@ -1,0 +1,44 @@
+{
+  "declarations": {
+    "Moblin/VideoEffects/Blur/BlurFilter.swift": [
+      "class BlurFilter: CIFilter",
+      "    var inputImage: CIImage?",
+      "    var radius: Float",
+      "    override var outputImage: CIImage?"
+    ],
+    "Moblin/VideoEffects/Blur/BlurKernel.swift": [
+      "final class BlurKernel: CIImageProcessorKernel",
+      "    override static func process(with inputs: [any CIImageProcessorInput]?, arguments: [String: Any]?, output: any CIImageProcessorOutput) throws"
+    ],
+    "Moblin/VideoEffects/VTuber/Live2DRenderer.swift": [
+      "final class Live2DRenderer",
+      "    init?(model: AyagamiModel)",
+      "    func render(model: AyagamiModel, into pixelBuffer: CVPixelBuffer)"
+    ]
+  },
+  "packages": {
+    "metalpetal": "8787ff999db2f3942541eaa480673d26cdfdbd10",
+    "vrmkit": "444d9403754d7cff3bdcd7283c2db8fb330ac619",
+    "ayagamiswift": "062288966bac881d3d7fbfee6322c40168343e26",
+    "swiftcube": "f82edcede9beb4b79ecb0f68aa0dde946e9a1c2a"
+  },
+  "functions": [
+    {
+      "file": "Moblin/Media/HaishinKit/Media/Video/VideoUnit.swift",
+      "function": "detectObjects(detectionJob:completion:)",
+      "sha256": "1b0f88c723bad0b0fac7542456ce792c475b923d28a918bf705008507a7235b1",
+      "replaced_by": "com.moblin.android.platform.vision.VisionDetector.detect",
+      "owner": "E9"
+    }
+  ],
+  "shaders": {
+    "Moblin/VideoEffects/VTuber/Live2DRenderer.swift": {
+      "covered_by": "platform/live2d/Live2DRenderer.kt (E11)",
+      "hashes": [
+        {
+          "sha256": "a366e66c6f29160606e1232db46fcb3bd3dfd39f6ab9b54cf920a4c827207011"
+        }
+      ]
+    }
+  }
+}

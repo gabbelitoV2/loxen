@@ -432,6 +432,89 @@
       "old": "            cameraPreviewLayers = cameraPreviewView.previewLayers,",
       "new": "            cameraPreviewLayers = cameraPreviewView.previewLayers.toMap(),",
       "occurrence": 1
+    },
+    {
+      "id": "R11.2",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.resetPngTuberVideoEffects",
+      "op": "replace",
+      "old": "            modelPath = TODO(\"no Android counterpart for pngTuberStorage.makePath\"),",
+      "new": "            com.moblin.android.various.storages.FileStorage(directory = com.moblin.android.various.storages.pngTuberStorageDirectory).makePath(id = widget.pngTuber.id).path,",
+      "occurrence": 1,
+      "note": "Swift pngTuberStorage.makePath(id:); the generated PngTuberStorage has no makePath, so the FileStorage it wraps is used directly. Positional, so it survives the parameter rename of the ME1 PngTuberEffect translation."
+    },
+    {
+      "id": "R11.8",
+      "file": "various/model/Model.kt",
+      "scope": "fun triggerQuickButtonEffect",
+      "op": "replace",
+      "old": "        effect?.play(alert = TODO(\"no Android counterpart for AlertsEffectAlert.quickButton\"))",
+      "new": "        effect?.play(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.QuickButton)",
+      "occurrence": 1
+    },
+    {
+      "id": "R11.3",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.resetScoreboardVideoEffects",
+      "op": "replace",
+      "old": "        scoreboardEffects[widget.id] = ScoreboardEffect(canvasSize = media.getCanvasSize())",
+      "new": "        scoreboardEffects[widget.id] = ScoreboardEffect(canvasSize = canvasSize(media.getCanvasSize()))",
+      "occurrence": 1
+    },
+    {
+      "id": "R11.4",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.createTextEffect",
+      "op": "replace",
+      "old": "            Instant.now().plusNanos((utcTimeDeltaFromNow(it.endTime) * 1_000_000_000.0).toLong()).toEpochMilli()",
+      "new": "            com.moblin.android.platform.core.ContinuousClock.now.advanced(bySeconds = utcTimeDeltaFromNow(it.endTime))",
+      "occurrence": 1
+    },
+    {
+      "id": "R11.5",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.updateTimers",
+      "op": "replace",
+      "old": "            Instant.now().plusNanos((utcTimeDeltaFromNow(it.endTime) * 1_000_000_000.0).toLong()).toEpochMilli()",
+      "new": "            com.moblin.android.platform.core.ContinuousClock.now.advanced(bySeconds = utcTimeDeltaFromNow(it.endTime))",
+      "occurrence": 1
+    },
+    {
+      "id": "R11.1",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.updateMapEffects",
+      "op": "replace",
+      "old": "        mapEffect.updateLocation(location = TODO(\"no Android counterpart for MapLocation conversion\"))",
+      "new": "        mapEffect.updateLocation(location = location)",
+      "occurrence": 1,
+      "note": "ME1 line; until MapEffect.kt is regenerated, E7's interim HE7.1/HE7.2 convert the Location."
+    },
+    {
+      "id": "R11.7",
+      "file": "various/model/Model.kt",
+      "scope": "var faceBackgroundImage",
+      "op": "replace",
+      "old": "    var faceBackgroundImage: Bitmap? = null",
+      "new": "    var faceBackgroundImage: com.moblin.android.platform.coreimage.CIImage? = null",
+      "occurrence": 1,
+      "note": "ME1 boundary; until ModelFaceBackgroundImage.kt is regenerated, E9's interim HE9.5 wraps the Bitmap in a CIImage."
+    },
+    {
+      "id": "R11.9",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.resetBrowserVideoEffects",
+      "op": "delete",
+      "old": "            context = AppDelegate.context",
+      "occurrence": 1
+    },
+    {
+      "id": "R11.10",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateBrowserWidgetStatus",
+      "op": "replace",
+      "old": "                    System.nanoTime() < browser.browserEffect.startLoadingTime + 5_000_000_000L",
+      "new": "                    com.moblin.android.platform.core.ContinuousClock.now < browser.browserEffect.startLoadingTime.advanced(bySeconds = 5.0)",
+      "occurrence": 1
     }
   ]
 }

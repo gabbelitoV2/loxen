@@ -1,0 +1,91 @@
+{
+  "task": "E4",
+  "hooks": [
+    {
+      "id": "HE4.1",
+      "file": "various/network/NetworkUtils.kt",
+      "op": "replace",
+      "old": "fun WebView.setHttpProxy(endpoint: NWEndpoint?) {",
+      "new": "fun com.moblin.android.platform.webkit.WKWebViewConfiguration.setHttpProxy(endpoint: com.moblin.android.platform.network.NWEndpoint?) {",
+      "occurrence": 1,
+      "note": "ME1. Swift declares setHttpProxy on WKWebViewConfiguration (NetworkUtils.swift:96-108) and BrowserEffect.swift:97 and :176 call it. The parameter is spelled out because NWEndpoint in this file is its own data class, not the platform NWEndpoint that ProxyConfiguration takes."
+    },
+    {
+      "id": "HE4.2",
+      "file": "various/network/NetworkUtils.kt",
+      "scope": "fun setHttpProxy",
+      "op": "replace",
+      "old": "    Unit",
+      "new": "    websiteDataStore.proxyConfigurations = if (endpoint != null) listOf(com.moblin.android.platform.webkit.ProxyConfiguration(httpCONNECTProxy = endpoint)) else emptyList()",
+      "occurrence": 1,
+      "note": "ME1. The proxy is process-wide (effects plan 1.15)."
+    },
+    {
+      "id": "HE4.3",
+      "file": "videoeffects/browser/BrowserEffect.kt",
+      "scope": "fun takeSnapshots",
+      "op": "replace",
+      "old": "            val image: EffectImageCgImage? = TODO(\"no Android counterpart for WKWebView.takeSnapshot\")",
+      "new": "            val image: EffectImageCgImage? = null",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1."
+    },
+    {
+      "id": "HE4.4",
+      "file": "videoeffects/browser/BrowserEffect.kt",
+      "op": "replace",
+      "old": "import android.webkit.WebView",
+      "new": "import com.moblin.android.platform.webkit.InterimBrowserWebView as WebView",
+      "occurrence": 1,
+      "note": "Interim for RU.1: gives webView borrowView() and returnView() until the ME1 re-translation makes it a WKWebView; retire at ME1 and delete platform/webkit/InterimBrowserWebView.kt."
+    },
+    {
+      "id": "HE4.5",
+      "file": "videoeffects/browser/BrowserEffect.kt",
+      "scope": "class BrowserEffect",
+      "op": "replace",
+      "old": "    context: Context,",
+      "new": "    context: Context = com.moblin.android.AppDelegate.context,",
+      "occurrence": 1,
+      "note": "Interim boundary for R11.9 (ModelScene stops passing context) until the ME1 re-translation; retire at ME1."
+    },
+    {
+      "id": "HE4.6",
+      "file": "videoeffects/browser/BrowserEffect.kt",
+      "scope": "class BrowserEffect",
+      "op": "replace",
+      "old": "    var startLoadingTime: Long = System.nanoTime()",
+      "new": "    var startLoadingTime: com.moblin.android.platform.core.ContinuousClock.Instant = com.moblin.android.platform.core.ContinuousClock.now",
+      "occurrence": 1,
+      "note": "Interim boundary for R11.10 until the ME1 re-translation; retire at ME1."
+    },
+    {
+      "id": "HE4.7",
+      "file": "videoeffects/browser/BrowserEffect.kt",
+      "scope": "fun setSceneWidgetEnabled",
+      "op": "replace",
+      "old": "            startLoadingTime = System.nanoTime()",
+      "new": "            startLoadingTime = com.moblin.android.platform.core.ContinuousClock.now",
+      "occurrence": 1,
+      "note": "Interim, with HE4.6; retire at ME1."
+    },
+    {
+      "id": "RU.1a",
+      "file": "view/MainView.kt",
+      "scope": "fun BrowserWidgetView",
+      "op": "replace",
+      "old": "            val webView = browser.browserEffect.webView",
+      "new": "            val webView = browser.browserEffect.webView.borrowView()",
+      "occurrence": 1
+    },
+    {
+      "id": "RU.1b",
+      "file": "view/MainView.kt",
+      "scope": "fun BrowserWidgetView",
+      "op": "replace",
+      "old": "        onRelease = { it.removeAllViews() },",
+      "new": "        onRelease = { it.removeAllViews(); browser.browserEffect.webView.returnView() },",
+      "occurrence": 1
+    }
+  ]
+}

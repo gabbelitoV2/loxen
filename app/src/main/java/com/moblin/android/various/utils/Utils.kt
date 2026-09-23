@@ -256,9 +256,9 @@ fun MediaMetadataRetriever.duration(): Double {
 }
 
 fun loadStringResource(name: String, ext: String): String =
-    ""
+    com.moblin.android.platform.Bundle.readBytes(name, ext)?.toString(Charsets.UTF_8) ?: ""
 fun loadResource(name: String, ext: String): ByteArray =
-    ByteArray(0)
+    com.moblin.android.platform.Bundle.readBytes(name, ext) ?: ByteArray(0)
 fun <T> MutableList<T>.truncate(length: Int, create: () -> T) {
     while (size < length) {
         add(create())

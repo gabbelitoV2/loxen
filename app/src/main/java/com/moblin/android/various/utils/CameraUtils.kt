@@ -347,7 +347,7 @@ fun AVCaptureDevice.WhiteBalanceGains.clamped(maxGain: Float): AVCaptureDevice.W
     )
 }
 
-data class CMAcceleration(val x: Double, val y: Double, val z: Double)
+typealias CMAcceleration = com.moblin.android.platform.coremotion.CMAcceleration
 
 fun calcCameraAngle(gravity: CMAcceleration, portrait: Boolean): Double {
     return if (portrait) {

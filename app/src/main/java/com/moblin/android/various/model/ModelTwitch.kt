@@ -976,7 +976,7 @@ fun Model.twitchEventSubChannelFollow(event: TwitchEventSubNotificationChannelFo
     if (stream.value.twitchToastAlerts.follows) {
         makeToast(title = "${event.user_name} $text")
     }
-    playAlert(TODO("no Android counterpart for Alert"))
+    playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchFollow(event))
     if (stream.value.twitchChatAlerts.follows) {
         appendTwitchChatAlertMessage(
             user = event.user_name,
@@ -1019,7 +1019,7 @@ fun Model.twitchEventSubChannelSubscribe(event: TwitchEventSubNotificationChanne
     if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchChatAlerts)) {
         return
     }
-    playAlert(TODO("no Android counterpart for Alert"))
+    playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchSubscribe(event))
     if (stream.value.twitchChatAlerts.subscriptions) {
         appendTwitchChatAlertMessage(
             user = event.user_name,
@@ -1065,7 +1065,7 @@ fun Model.twitchEventSubChannelSubscriptionGift(
     if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchChatAlerts)) {
         return
     }
-    playAlert(TODO("no Android counterpart for Alert"))
+    playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchSubscrptionGift(event))
     if (stream.value.twitchChatAlerts.giftSubscriptions) {
         appendTwitchChatAlertMessage(
             user = user,
@@ -1120,7 +1120,7 @@ fun Model.twitchEventSubChannelSubscriptionMessage(
     if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchChatAlerts)) {
         return
     }
-    playAlert(TODO("no Android counterpart for Alert"))
+    playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchResubscribe(event))
     if (stream.value.twitchChatAlerts.resubscriptions) {
         appendTwitchChatAlertMessage(
             user = event.user_name,
@@ -1166,7 +1166,7 @@ fun Model.twitchEventSubChannelSubscriptionUpgrade(
     if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchChatAlerts)) {
         return
     }
-    playAlert(TODO("no Android counterpart for Alert"))
+    playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchSubscriptionUpgrade(event))
     if (stream.value.twitchChatAlerts.subscriptions) {
         appendTwitchChatAlertMessage(
             user = event.user_name,
@@ -1239,7 +1239,7 @@ fun Model.twitchEventSubChannelPointsCustomRewardRedemptionAdd(
         makeToast(title = "${event.user_name} $text")
     }
     if (false) {
-        playAlert(TODO("no Android counterpart for Alert"))
+        playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchRedemption(event))
     }
     if (stream.value.twitchChatAlerts.rewards) {
         appendTwitchChatAlertMessage(
@@ -1284,7 +1284,7 @@ fun Model.twitchEventSubChannelRaid(event: TwitchEventSubChannelRaidEvent) {
         if (!isTwitchSharedChatAlertEnabled(event.sharedChat, stream.value.twitchChatAlerts)) {
             return
         }
-        playAlert(TODO("no Android counterpart for Alert"))
+        playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchRaid(event))
         if (stream.value.twitchChatAlerts.raids) {
             appendTwitchChatAlertMessage(
                 user = event.from_broadcaster_user_name,
@@ -1325,7 +1325,7 @@ fun Model.twitchEventSubChannelCheer(event: TwitchEventSubChannelCheerEvent) {
     if (stream.value.twitchToastAlerts.isBitsEnabled(event.bits)) {
         makeToast(title = "$user $text", subTitle = event.message)
     }
-    playAlert(TODO("no Android counterpart for Alert"))
+    playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchCheer(event))
     if (stream.value.twitchChatAlerts.isBitsEnabled(event.bits)) {
         appendTwitchChatAlertMessage(
             user = user,

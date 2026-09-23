@@ -39,7 +39,7 @@ fun Model.takeSnapshot(isChatBot: Boolean = false, message: String? = null, noDe
 
 private fun Model.appendSnapshotToSnapshotWidgets(image: Bitmap) {
     for (snapshotEffect in enabledSnapshotEffects) {
-        snapshotEffect.appendSnapshot(image = TODO("no Android counterpart for CIImage"))
+        snapshotEffect.appendSnapshot(image = com.moblin.android.platform.coreimage.CIImage(cgImage = image))
     }
 }
 

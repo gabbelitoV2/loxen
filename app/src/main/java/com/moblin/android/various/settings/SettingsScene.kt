@@ -65,6 +65,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer
+import com.moblin.android.various.model.getLogLutById
 
 private fun RgbColor.color(): Color = Color(
     red = red.toFloat() / 255.0f,
@@ -259,7 +260,7 @@ class SettingsVideoEffectShape(
     fun toSettings(): ShapeEffectSettings = ShapeEffectSettings(
         cornerRadius = cornerRadius,
         borderWidth = borderWidth,
-        borderColor = TODO("CIColor has no Android counterpart"),
+        borderColor = com.moblin.android.platform.coreimage.CIColor(red = borderColor.red / 255.0, green = borderColor.green / 255.0, blue = borderColor.blue / 255.0),
         cropEnabled = cropEnabled,
         cropX = cropX,
         cropY = cropY,
@@ -587,7 +588,7 @@ class SettingsVideoEffect(
             AnamorphicLensEffect(settings = anamorphicLens.clone())
         SettingsVideoEffectType.lut -> {
             val effect = LutEffect()
-            TODO()
+            model.getLogLutById(id = lut.lut)?.let { effect.setLut(lut = it.clone(), imageStorage = model.imageStorage) { title, subTitle -> model.makeErrorToast(title = title, subTitle = subTitle) } }; effect
         }
         SettingsVideoEffectType.opacity -> {
             val effect = OpacityEffect()
@@ -619,11 +620,11 @@ enum class SettingsFontDesign(val rawValue: String) {
     fun toSystem(): FontFamily = when (this) {
         `default` -> FontFamily.Default
         serif -> FontFamily.Serif
-        rounded -> TODO("Compose has no rounded system font family")
+        rounded -> FontFamily.Default
         monospaced -> FontFamily.Monospace
     }
 
-    fun toUiKit(): Any = TODO("no Android counterpart for UIFontDescriptor.SystemDesign")
+    fun toUiKit(): com.moblin.android.view.utils.FontDesign = com.moblin.android.view.utils.FontDesign.entries[ordinal]
 
     companion object {
         fun fromRawValue(rawValue: String): SettingsFontDesign? =
@@ -649,7 +650,7 @@ enum class SettingsFontWeight(val rawValue: String) {
         bold -> FontWeight.Bold
     }
 
-    fun toUiKit(): Any = TODO("no Android counterpart for UIFont.Weight")
+    fun toUiKit(): androidx.compose.ui.text.font.FontWeight = toSystem()
 
     companion object {
         fun fromRawValue(rawValue: String): SettingsFontWeight? =
@@ -775,7 +776,7 @@ class SettingsWidgetTextTimer(
         }
     }
 
-    fun textEffectEndTime(): Any = TODO("ContinuousClock.Instant has no Android counterpart")
+    fun textEffectEndTime(): com.moblin.android.platform.core.ContinuousClock.Instant = com.moblin.android.platform.core.ContinuousClock.now.advanced(bySeconds = kotlin.math.max(timeLeft(), 0.0))
 
     fun timeLeft(): Double = utcTimeDeltaFromNow(endTime)
 }

@@ -1,6 +1,6 @@
 {
   "root": "<home>\\Desktop\\code\\moblin-android\\.upstream",
-  "generated": "2026-09-23T11:18:38+00:00",
+  "generated": "2026-09-23T17:12:13+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -504,6 +504,71 @@
       "deps": [
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift"
       ],
+      "wave": -1
+    },
+    {
+      "path": "Moblin/VideoEffects/Blur/BlurFilter.swift",
+      "lines": 16,
+      "sha256": "1abdca15df42cbc7f4e4ed73eb935b180bd37c38eb754ca392c78c813a7873b3",
+      "imports": [
+        "CoreImage"
+      ],
+      "tier": "skip",
+      "declared_types": [
+        "BlurFilter"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.videoeffects.blur",
+      "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/blur/BlurFilter.kt",
+      "deps": [],
+      "wave": -1
+    },
+    {
+      "path": "Moblin/VideoEffects/Blur/BlurKernel.swift",
+      "lines": 25,
+      "sha256": "3d3c4b0f7e457720a7a3ee95dbf6b33958a9328d51f8a59210559522ff1a66f6",
+      "imports": [
+        "CoreImage",
+        "Metal",
+        "MetalPerformanceShaders"
+      ],
+      "tier": "skip",
+      "declared_types": [
+        "BlurKernel"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.videoeffects.blur",
+      "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/blur/BlurKernel.kt",
+      "deps": [],
+      "wave": -1
+    },
+    {
+      "path": "Moblin/VideoEffects/VTuber/Live2DRenderer.swift",
+      "lines": 413,
+      "sha256": "4058cfcc3c741f2029e107cb68425a70f1b8ad4f5290a5536a3b97ec51867996",
+      "imports": [
+        "Ayagami",
+        "CoreVideo",
+        "Metal",
+        "MetalKit"
+      ],
+      "tier": "skip",
+      "declared_types": [
+        "Live2DVertexUniforms",
+        "Live2DFragmentUniforms",
+        "Live2DVaryings",
+        "Live2DPipelineKey",
+        "Live2DArtMesh",
+        "Live2DClipSet",
+        "Live2DRenderer"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.videoeffects.vtuber",
+      "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/vtuber/Live2DRenderer.kt",
+      "deps": [],
       "wave": -1
     },
     {
@@ -1757,26 +1822,6 @@
       "wave": 0
     },
     {
-      "path": "Moblin/VideoEffects/Blur/BlurKernel.swift",
-      "lines": 25,
-      "sha256": "3d3c4b0f7e457720a7a3ee95dbf6b33958a9328d51f8a59210559522ff1a66f6",
-      "imports": [
-        "CoreImage",
-        "Metal",
-        "MetalPerformanceShaders"
-      ],
-      "tier": "media",
-      "declared_types": [
-        "BlurKernel"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.videoeffects.blur",
-      "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/blur/BlurKernel.kt",
-      "deps": [],
-      "wave": 0
-    },
-    {
       "path": "Moblin/VideoEffects/Crt/CrtBarrelDistortionFilter.swift",
       "lines": 36,
       "sha256": "3faefe99fed4dd352cf6a8dbbf5cad7f8bb0bdcac2a80ff402640831dfd65dce",
@@ -1812,33 +1857,6 @@
       ],
       "kotlin_package": "com.moblin.android.videoeffects.dewarp360",
       "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt",
-      "deps": [],
-      "wave": 0
-    },
-    {
-      "path": "Moblin/VideoEffects/VTuber/Live2DRenderer.swift",
-      "lines": 413,
-      "sha256": "4058cfcc3c741f2029e107cb68425a70f1b8ad4f5290a5536a3b97ec51867996",
-      "imports": [
-        "Ayagami",
-        "CoreVideo",
-        "Metal",
-        "MetalKit"
-      ],
-      "tier": "media",
-      "declared_types": [
-        "Live2DVertexUniforms",
-        "Live2DFragmentUniforms",
-        "Live2DVaryings",
-        "Live2DPipelineKey",
-        "Live2DArtMesh",
-        "Live2DClipSet",
-        "Live2DRenderer"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.videoeffects.vtuber",
-      "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/vtuber/Live2DRenderer.kt",
       "deps": [],
       "wave": 0
     },
@@ -2700,26 +2718,6 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/utils/LocationUtils.kt",
       "deps": [
         "Moblin/Various/Settings/SettingsLocation.swift"
-      ],
-      "wave": 1
-    },
-    {
-      "path": "Moblin/VideoEffects/Blur/BlurFilter.swift",
-      "lines": 16,
-      "sha256": "1abdca15df42cbc7f4e4ed73eb935b180bd37c38eb754ca392c78c813a7873b3",
-      "imports": [
-        "CoreImage"
-      ],
-      "tier": "media",
-      "declared_types": [
-        "BlurFilter"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.videoeffects.blur",
-      "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/blur/BlurFilter.kt",
-      "deps": [
-        "Moblin/VideoEffects/Blur/BlurKernel.swift"
       ],
       "wave": 1
     },
@@ -10979,7 +10977,6 @@
       "deps": [
         "Moblin/Media/HaishinKit/Media/Processor.swift",
         "Moblin/VideoEffects/EffectUtils.swift",
-        "Moblin/VideoEffects/VTuber/Live2DRenderer.swift",
         "Moblin/VideoEffects/VTuber/VTuberEffect.swift"
       ],
       "wave": 16

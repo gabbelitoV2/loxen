@@ -33,6 +33,11 @@ SKIP_DIRS = (
     "Moblin Watch/", "Moblin Widget/", "Moblin Live Activity/", "Moblin Mac/", "Moblin Screen Recording/",
 )
 EXCLUDE_DIRS = ("Moblin/Integrations/Tesla/Protobuf/",)
+PLATFORM_REPLACED = {
+    "Moblin/VideoEffects/VTuber/Live2DRenderer.swift",
+    "Moblin/VideoEffects/Blur/BlurKernel.swift",
+    "Moblin/VideoEffects/Blur/BlurFilter.swift",
+}
 KOTLIN_KEYWORDS = {
     "as", "break", "class", "continue", "do", "else", "false", "for", "fun", "if", "in", "interface",
     "is", "null", "object", "package", "return", "super", "this", "throw", "true", "try", "typealias",
@@ -56,6 +61,8 @@ IDENT_RE = re.compile(r"\b[A-Za-z_]\w*\b")
 
 
 def classify(rel, imports):
+    if rel in PLATFORM_REPLACED:
+        return "skip"
     if rel.startswith(SKIP_DIRS) and not rel.startswith("Moblin Watch/Shared/"):
         return "skip"
     if rel.startswith("MoblinTests/"):

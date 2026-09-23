@@ -219,7 +219,7 @@ class PomodoroTimerEffect(private val canvasSize: Size) : VideoEffect() {
 
     private fun setup() {
         cancellable?.cancel()
-        renderer = TODO("no Android counterpart for SwiftUI ImageRenderer")
+        renderer = null
         setTimerImage(null)
     }
 

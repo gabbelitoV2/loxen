@@ -1,7 +1,6 @@
 package com.moblin.android.platform.video
 
 import android.util.Log
-import android.util.SizeF
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
@@ -22,7 +21,7 @@ object CoreImageFallback {
         isSceneSwitchTransition: Boolean,
         videoOrientation: Int,
         info: VideoEffectInfo,
-        canvasSize: SizeF,
+        canvasSize: com.moblin.android.platform.coregraphics.CGSize,
         fillFrame: Boolean,
         rotation: Double,
         mirror: Boolean,

@@ -122,7 +122,7 @@ private class ChatRenderer(
         if (existing != null) {
             return existing
         }
-        val lineView = ChatLineUiView(TODO("no Android Context available"))
+        val lineView = ChatLineUiView(com.moblin.android.AppDelegate.context)
         lineView.onImageLoaded = {
             scheduleRender()
         }

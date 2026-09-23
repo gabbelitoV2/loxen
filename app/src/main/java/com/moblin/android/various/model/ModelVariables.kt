@@ -14,7 +14,7 @@ fun Model.createVariables(now: Instant, timestamp: TimeSource.Monotonic.ValueTim
     val weather = weatherManager.getLatestWeather()
     val placemark = geographyManager.getLatestPlacemark()
     return Variables(
-        timestamp = timestamp.elapsedNow().inWholeNanoseconds,
+        timestamp = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds,
         bitrate = bitrate.speedMbpsOneDecimal.value,
         bitrateAndTotal = bitrate.speedAndTotal.value,
         bonding = bonding.statistics.value,
@@ -76,7 +76,7 @@ fun Model.formatPlainText(formatString: String): String {
         ratings = emptyList(),
         lapTimes = emptyList()
     )
-    return formatter.format(variables, now.elapsedNow().inWholeNanoseconds).toPlainText()
+    return formatter.format(variables, com.moblin.android.platform.core.ContinuousClock.now).toPlainText()
 }
 
 private fun Model.getSystemMonitor(): String {

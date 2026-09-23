@@ -3,6 +3,9 @@ package com.moblin.android.videoeffects
 import android.graphics.BitmapFactory
 import com.moblin.android.isEqual
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftcube.LutEntry
+import com.moblin.android.platform.swiftcube.SC3DLut
+import com.moblin.android.platform.swiftcube.SwiftCubeError
 import com.moblin.android.readMainFile
 import com.moblin.android.readTestFile
 import java.nio.ByteBuffer

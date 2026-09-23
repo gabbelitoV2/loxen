@@ -10,6 +10,7 @@ import kotlin.math.cos
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.moblin.android.platform.live2d.Live2DRenderer
 
 private const val TAG = "VTuberLive2DEffect"
 

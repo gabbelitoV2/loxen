@@ -77,7 +77,7 @@ private class PngTuberImage(
             val imageDataBytes = Base64.decode(imageDataString, Base64.DEFAULT)
             val bitmap = BitmapFactory.decodeByteArray(imageDataBytes, 0, imageDataBytes.size)
                 ?: throw IllegalStateException("Failed to decode image data")
-            val imageData: EffectImageCgImage = TODO("EffectImageCgImage from decoded Bitmap")
+            val imageData: EffectImageCgImage = throw IllegalStateException("PNGTuber images need the effects port")
             val offset = PngCoordinate.fromString(json.requireString("offset"))
             val parentId = json["parentId"]?.jsonPrimitive?.intOrNull
             val pos = PngCoordinate.fromString(json.requireString("pos"))

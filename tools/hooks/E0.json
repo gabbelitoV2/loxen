@@ -1,0 +1,395 @@
+{
+  "task": "E0",
+  "hooks": [
+    {
+      "id": "HE0.1",
+      "file": "various/settings/SettingsScene.kt",
+      "scope": "class SettingsVideoEffectShape",
+      "op": "replace",
+      "old": "        borderColor = TODO(\"CIColor has no Android counterpart\"),",
+      "new": "        borderColor = com.moblin.android.platform.coreimage.CIColor(red = borderColor.red / 255.0, green = borderColor.green / 255.0, blue = borderColor.blue / 255.0),",
+      "occurrence": 1,
+      "note": "ME1 line. The ME0 line was: borderColor = com.moblin.android.videoeffects.MTIColor(red = borderColor.red / 255f, green = borderColor.green / 255f, blue = borderColor.blue / 255f),"
+    },
+    {
+      "id": "HE0.2",
+      "file": "various/settings/SettingsScene.kt",
+      "scope": "fun getEffect",
+      "op": "replace",
+      "old": "            TODO()",
+      "new": "            model.getLogLutById(id = lut.lut)?.let { effect.setLut(lut = it.clone(), imageStorage = model.imageStorage) { title, subTitle -> model.makeErrorToast(title = title, subTitle = subTitle) } }; effect",
+      "occurrence": 1,
+      "note": "SettingsScene.swift:478, the lut case."
+    },
+    {
+      "id": "HE0.3",
+      "file": "various/settings/SettingsScene.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.various.model.getLogLutById"
+    },
+    {
+      "id": "HE0.4",
+      "file": "various/settings/SettingsScene.kt",
+      "scope": "fun textEffectEndTime",
+      "op": "replace",
+      "old": "    fun textEffectEndTime(): Any = TODO(\"ContinuousClock.Instant has no Android counterpart\")",
+      "new": "    fun textEffectEndTime(): com.moblin.android.platform.core.ContinuousClock.Instant = com.moblin.android.platform.core.ContinuousClock.now.advanced(bySeconds = kotlin.math.max(timeLeft(), 0.0))",
+      "occurrence": 1,
+      "note": "ME1 line. The ME0 line was: fun textEffectEndTime(): Any = System.nanoTime() + (kotlin.math.max(timeLeft(), 0.0) * 1_000_000_000.0).toLong()"
+    },
+    {
+      "id": "HE0.5",
+      "file": "various/model/ModelChatBot.kt",
+      "scope": "fun Model.handleChatBotMessageWidgetTimer",
+      "op": "replace",
+      "old": "            val endTime = (timer.textEffectEndTime() as? Long) ?: 0L",
+      "new": "            val endTime = timer.textEffectEndTime()",
+      "occurrence": 1,
+      "note": "ME1."
+    },
+    {
+      "id": "HE0.6",
+      "file": "view/settings/scenes/widgets/widget/text/WidgetTextSettingsView.kt",
+      "scope": "fun updateTextEffect\nsetEndTime(",
+      "op": "replace",
+      "old": "            effect.setEndTime(index = index, endTime = timer.textEffectEndTime() as Long)",
+      "new": "            effect.setEndTime(index = index, endTime = timer.textEffectEndTime())",
+      "occurrence": 1,
+      "note": "ME1. Registered in the ME1 preparation, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.7",
+      "file": "various/model/ModelSnapshot.kt",
+      "scope": "fun Model.appendSnapshotToSnapshotWidgets",
+      "op": "replace",
+      "old": "        snapshotEffect.appendSnapshot(image = TODO(\"no Android counterpart for CIImage\"))",
+      "new": "        snapshotEffect.appendSnapshot(image = com.moblin.android.platform.coreimage.CIImage(cgImage = image))",
+      "occurrence": 1,
+      "note": "ME1 line. The ME0 line was: Unit"
+    },
+    {
+      "id": "HE0.8",
+      "file": "various/model/ModelChat.kt",
+      "scope": "fun Model.printChatMessage",
+      "op": "replace",
+      "old": "        val image = TODO(\"no Android counterpart for SwiftUI ImageRenderer and CIImage based CatPrinter rendering\")",
+      "new": "        val image = return@launch",
+      "occurrence": 1,
+      "note": "Cat printer rendering is out of the effects plan; stops the main-thread crash."
+    },
+    {
+      "id": "HE0.9",
+      "file": "various/settings/SettingsScene.kt",
+      "scope": "class SettingsFontDesign",
+      "op": "replace",
+      "old": "    fun toUiKit(): Any = TODO(\"no Android counterpart for UIFontDescriptor.SystemDesign\")",
+      "new": "    fun toUiKit(): com.moblin.android.view.utils.FontDesign = com.moblin.android.view.utils.FontDesign.entries[ordinal]",
+      "occurrence": 1,
+      "note": "SettingsFontDesign and FontDesign declare the same cases in the same order (FontDesignOrderTest)."
+    },
+    {
+      "id": "HE0.10",
+      "file": "various/settings/SettingsScene.kt",
+      "scope": "class SettingsFontWeight",
+      "op": "replace",
+      "old": "    fun toUiKit(): Any = TODO(\"no Android counterpart for UIFont.Weight\")",
+      "new": "    fun toUiKit(): androidx.compose.ui.text.font.FontWeight = toSystem()",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.11",
+      "file": "various/settings/SettingsScene.kt",
+      "scope": "class SettingsFontDesign",
+      "op": "replace",
+      "old": "        rounded -> TODO(\"Compose has no rounded system font family\")",
+      "new": "        rounded -> FontFamily.Default",
+      "occurrence": 1,
+      "note": "ME0 line. At ME2: rounded -> com.moblin.android.platform.swiftui.SwiftUIFonts.rounded"
+    },
+    {
+      "id": "HE0.12",
+      "file": "various/model/ModelTwitch.kt",
+      "scope": "fun Model.twitchEventSubChannelFollow",
+      "op": "replace",
+      "old": "    playAlert(TODO(\"no Android counterpart for Alert\"))",
+      "new": "    playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchFollow(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.13",
+      "file": "various/model/ModelTwitch.kt",
+      "scope": "fun Model.twitchEventSubChannelSubscribe",
+      "op": "replace",
+      "old": "    playAlert(TODO(\"no Android counterpart for Alert\"))",
+      "new": "    playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchSubscribe(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.14",
+      "file": "various/model/ModelTwitch.kt",
+      "scope": "fun Model.twitchEventSubChannelSubscriptionGift",
+      "op": "replace",
+      "old": "    playAlert(TODO(\"no Android counterpart for Alert\"))",
+      "new": "    playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchSubscrptionGift(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.15",
+      "file": "various/model/ModelTwitch.kt",
+      "scope": "fun Model.twitchEventSubChannelSubscriptionMessage",
+      "op": "replace",
+      "old": "    playAlert(TODO(\"no Android counterpart for Alert\"))",
+      "new": "    playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchResubscribe(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.16",
+      "file": "various/model/ModelTwitch.kt",
+      "scope": "fun Model.twitchEventSubChannelSubscriptionUpgrade",
+      "op": "replace",
+      "old": "    playAlert(TODO(\"no Android counterpart for Alert\"))",
+      "new": "    playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchSubscriptionUpgrade(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.17",
+      "file": "various/model/ModelTwitch.kt",
+      "scope": "fun Model.twitchEventSubChannelPointsCustomRewardRedemptionAdd",
+      "op": "replace",
+      "old": "        playAlert(TODO(\"no Android counterpart for Alert\"))",
+      "new": "        playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchRedemption(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.18",
+      "file": "various/model/ModelTwitch.kt",
+      "scope": "fun Model.twitchEventSubChannelRaid",
+      "op": "replace",
+      "old": "        playAlert(TODO(\"no Android counterpart for Alert\"))",
+      "new": "        playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchRaid(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.19",
+      "file": "various/model/ModelTwitch.kt",
+      "scope": "fun Model.twitchEventSubChannelCheer",
+      "op": "replace",
+      "old": "    playAlert(TODO(\"no Android counterpart for Alert\"))",
+      "new": "    playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchCheer(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.20",
+      "file": "various/model/ModelKick.kt",
+      "scope": "fun Model.kickPusherSubscription",
+      "op": "replace",
+      "old": "    playAlert(alert = TODO(\"no Android counterpart for Alert.kickSubscription\"))",
+      "new": "    playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickSubscription(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.21",
+      "file": "various/model/ModelKick.kt",
+      "scope": "fun Model.kickPusherGiftedSubscription",
+      "op": "replace",
+      "old": "    playAlert(alert = TODO(\"no Android counterpart for Alert.kickGiftedSubscriptions\"))",
+      "new": "    playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickGiftedSubscriptions(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.22",
+      "file": "various/model/ModelKick.kt",
+      "scope": "fun Model.kickPusherRewardRedeemed",
+      "op": "replace",
+      "old": "    playAlert(alert = TODO(\"no Android counterpart for Alert.kickReward\"))",
+      "new": "    playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickReward(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.23",
+      "file": "various/model/ModelKick.kt",
+      "scope": "fun Model.kickPusherStreamHost",
+      "op": "replace",
+      "old": "    playAlert(alert = TODO(\"no Android counterpart for Alert.kickHost\"))",
+      "new": "    playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickHost(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.24",
+      "file": "various/model/ModelKick.kt",
+      "scope": "fun Model.kickPusherKicksGifted",
+      "op": "replace",
+      "old": "    playAlert(alert = TODO(\"no Android counterpart for Alert.kickKicks\"))",
+      "new": "    playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickKicks(event))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.25",
+      "file": "various/model/ModelChatBot.kt",
+      "scope": "fun Model.handleChatBotMessageAlert",
+      "op": "replace",
+      "old": "                playAlert(alert = TODO(\"no Android counterpart for Alert\"))",
+      "new": "                playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.ChatBotCommand(alert, command.user() ?: \"Unknown\"))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.26",
+      "file": "various/model/ModelSpeechToText.kt",
+      "scope": "fun Model.speechToTextPartialResultAlertsWidget",
+      "op": "replace",
+      "old": "            playAlert(TODO(\"Alert.speechToTextString(string.id)\"))",
+      "new": "            playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.SpeechToTextString(string.id))",
+      "occurrence": 1
+    },
+    {
+      "id": "HE0.27",
+      "file": "view/settings/scenes/widgets/widget/alerts/WidgetAlertsTwitchSettingsView.kt",
+      "scope": "fun TwitchFollowsView",
+      "op": "replace",
+      "old": "                model.testAlert(TODO(\"testAlert with the twitchFollow alert case\"))",
+      "new": "                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchFollow(event))",
+      "occurrence": 1,
+      "note": "Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.28",
+      "file": "view/settings/scenes/widgets/widget/alerts/WidgetAlertsTwitchSettingsView.kt",
+      "scope": "fun TwitchSubscriptionsView",
+      "op": "replace",
+      "old": "                model.testAlert(TODO(\"testAlert with the twitchSubscribe alert case\"))",
+      "new": "                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchSubscribe(event))",
+      "occurrence": 1,
+      "note": "Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.29",
+      "file": "view/settings/scenes/widgets/widget/alerts/WidgetAlertsTwitchSettingsView.kt",
+      "scope": "fun TwitchRaidsView",
+      "op": "replace",
+      "old": "                model.testAlert(TODO(\"testAlert with the twitchRaid alert case\"))",
+      "new": "                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchRaid(event))",
+      "occurrence": 1,
+      "note": "Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.30",
+      "file": "view/settings/scenes/widgets/widget/alerts/WidgetAlertsTwitchSettingsView.kt",
+      "scope": "fun TwitchCheerView",
+      "op": "replace",
+      "old": "                model.testAlert(TODO(\"testAlert with the twitchCheer alert case\"))",
+      "new": "                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchCheer(event))",
+      "occurrence": 1,
+      "note": "Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.31",
+      "file": "view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt",
+      "scope": "fun KickSubscriptionsView",
+      "op": "replace",
+      "old": "                model.testAlert(TODO(\"Model test alert case for kickSubscription\"))",
+      "new": "                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickSubscription(event))",
+      "occurrence": 1,
+      "note": "Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.32",
+      "file": "view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt",
+      "scope": "fun KickGiftedSubscriptionsView",
+      "op": "replace",
+      "old": "                model.testAlert(TODO(\"Model test alert case for kickGiftedSubscriptions\"))",
+      "new": "                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickGiftedSubscriptions(event))",
+      "occurrence": 1,
+      "note": "Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.33",
+      "file": "view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt",
+      "scope": "fun KickHostsView",
+      "op": "replace",
+      "old": "                model.testAlert(TODO(\"Model test alert case for kickHost\"))",
+      "new": "                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickHost(event))",
+      "occurrence": 1,
+      "note": "Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.34",
+      "file": "view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt",
+      "scope": "fun KickRewardsView",
+      "op": "replace",
+      "old": "                model.testAlert(TODO(\"Model test alert case for kickReward\"))",
+      "new": "                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickReward(event))",
+      "occurrence": 1,
+      "note": "Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.35",
+      "file": "view/settings/scenes/widgets/widget/alerts/WidgetAlertsKickSettingsView.kt",
+      "scope": "fun KickGiftView",
+      "op": "replace",
+      "old": "                model.testAlert(TODO(\"Model test alert case for kickKicks\"))",
+      "new": "                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickKicks(event))",
+      "occurrence": 1,
+      "note": "Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.36",
+      "file": "view/settings/scenes/widgets/widget/alerts/WidgetAlertsChatBotSettingsView.kt",
+      "scope": "fun ChatBotCommandDetailView",
+      "op": "replace",
+      "old": "                model.testAlert(TODO(\"AlertTest has no Android counterpart\"))",
+      "new": "                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.ChatBotCommand(name, alertTestNames.random()))",
+      "occurrence": 1,
+      "note": "Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.37",
+      "file": "view/settings/scenes/widgets/widget/alerts/WidgetAlertsSpeechToTextSettingsView.kt",
+      "scope": "fun SpeechToTextStringDetailView",
+      "op": "replace",
+      "old": "                model.testAlert(TODO(\"speechToTextString(string.id)\"))",
+      "new": "                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.SpeechToTextString(string.id))",
+      "occurrence": 1,
+      "note": "Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.38",
+      "file": "view/settings/scenes/widgets/widget/WidgetSettingsView.kt",
+      "scope": "fun dimensions",
+      "op": "replace",
+      "old": "    return TODO(\"model.stream.resolution has no Android counterpart\")",
+      "new": "    return model.stream.value.resolution.dimensions(portrait = model.stream.value.portrait)",
+      "occurrence": 1,
+      "note": "The layout editor. Registered in the ME0 merge, applied by the build owner with postprocess (view files)."
+    },
+    {
+      "id": "HE0.39",
+      "file": "various/model/ModelVariables.kt",
+      "scope": "fun Model.createVariables",
+      "op": "replace",
+      "old": "        timestamp = timestamp.elapsedNow().inWholeNanoseconds,",
+      "new": "        timestamp = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds,",
+      "occurrence": 1,
+      "note": "ME1. Variables.timestamp holds ContinuousClock nanoseconds."
+    },
+    {
+      "id": "HE0.40",
+      "file": "various/model/ModelVariables.kt",
+      "scope": "fun Model.formatPlainText",
+      "op": "replace",
+      "old": "    return formatter.format(variables, now.elapsedNow().inWholeNanoseconds).toPlainText()",
+      "new": "    return formatter.format(variables, com.moblin.android.platform.core.ContinuousClock.now).toPlainText()",
+      "occurrence": 1,
+      "note": "ME1, with HE3.3."
+    },
+    {
+      "id": "HE0.41",
+      "file": "remotecontrol/RemoteControl.kt",
+      "scope": "fun toVariables",
+      "op": "replace",
+      "old": "        timestamp = System.currentTimeMillis(),",
+      "new": "        timestamp = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds,",
+      "occurrence": 1,
+      "note": "ME1. Variables.timestamp holds ContinuousClock nanoseconds."
+    }
+  ]
+}

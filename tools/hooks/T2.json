@@ -15,8 +15,9 @@
       "scope": "val processorPipelineQueue",
       "op": "replace",
       "old": "    Executors.newSingleThreadExecutor().asCoroutineDispatcher()",
-      "new": "    com.moblin.android.platform.core.PipelineThread.dispatcher",
-      "occurrence": 1
+      "new": "    com.moblin.android.platform.core.PipelineThread.dispatcher + kotlinx.coroutines.SupervisorJob()",
+      "occurrence": 1,
+      "note": "R2.1: SupervisorJob, so an exception in one effect setter does not cancel the pipeline scope"
     },
     {
       "id": "H2.2",

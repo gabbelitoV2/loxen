@@ -85,6 +85,24 @@ def gradle(task):
     return result.returncode == 0, errors
 
 
+EFFECT_CHECKS = ["check_kernels.py", "check_effects_api.py"]
+
+
+def warn_effect_checks():
+    for script in EFFECT_CHECKS:
+        if not (HERE / script).exists():
+            continue
+        result = run([sys.executable, HERE / script, "--moblin", UPSTREAM], check=False, capture=True)
+        output = (result.stdout + result.stderr).rstrip()
+        if result.returncode == 0:
+            print(f"{script}: no findings")
+            continue
+        print(f"warning: {script} reported findings (the sync goes on; add the shim member or an entry in "
+              "tools/effects_known_gaps.json before the next effects merge):")
+        for line in output.splitlines():
+            print("  " + line)
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Bring the Android port up to date with eerimoq/moblin.")
@@ -119,6 +137,7 @@ def main():
     inventory = json.loads(INVENTORY.read_text(encoding="utf-8"))
     if args.dry_run:
         run([sys.executable, HERE / "port.py", "--tier", "all", "--provider", args.provider, "--dry-run"])
+        warn_effect_checks()
         return
     removed = remove_deleted_files(state, inventory)
     for path in removed:
@@ -144,6 +163,7 @@ def main():
         print(f"assembleDebug: {'ok' if build_ok else 'FAILED'} ({len(errors)} compile errors)")
         for line in errors[:20]:
             print("  " + line)
+    warn_effect_checks()
 
     if not hooks_ok:
         print(hooks.stderr.rstrip())

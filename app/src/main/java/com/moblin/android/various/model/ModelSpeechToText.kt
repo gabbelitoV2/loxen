@@ -159,7 +159,7 @@ private fun Model.speechToTextPartialResultAlertsWidget(text: String) {
             if (offset > speechToTextAlertMatchOffset) {
                 speechToTextAlertMatchOffset = offset
             }
-            playAlert(TODO("Alert.speechToTextString(string.id)"))
+            playAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.SpeechToTextString(string.id))
         }
     }
 }

@@ -69,7 +69,7 @@ private fun conditionToEmoji(condition: String?): String = when (condition) {
 
 class TextEffectFormatter {
     var formatParts: List<TextFormatPart>
-    var timersEndTime: List<Long>
+    var timersEndTime: List<com.moblin.android.platform.core.ContinuousClock.Instant>
     var stopwatches: List<SettingsWidgetTextStopwatch>
     private var temperatureFormatter = MeasurementFormatter()
     private val speedFormatter = MeasurementFormatter()
@@ -91,7 +91,7 @@ class TextEffectFormatter {
 
     constructor(
         formatParts: List<TextFormatPart>,
-        timersEndTime: List<Long>,
+        timersEndTime: List<com.moblin.android.platform.core.ContinuousClock.Instant>,
         stopwatches: List<SettingsWidgetTextStopwatch>,
         checkboxes: List<Boolean>,
         ratings: List<Int>,
@@ -111,7 +111,7 @@ class TextEffectFormatter {
         lengthFormatter.numberFormatter.maximumFractionDigits = 0
     }
 
-    fun format(variables: Variables, now: Long): List<TextEffectLine> {
+    fun format(variables: Variables, now: com.moblin.android.platform.core.ContinuousClock.Instant): List<TextEffectLine> {
         timerIndex = 0
         stopwatchIndex = 0
         checkboxIndex = 0
@@ -320,22 +320,20 @@ class TextEffectFormatter {
         appendTextPart(value = variables.slope)
     }
 
-    private fun formatTimer(variables: Variables, now: Long) {
+    private fun formatTimer(variables: Variables, now: com.moblin.android.platform.core.ContinuousClock.Instant) {
         if (timerIndex < timersEndTime.size) {
-            val timeLeft = maxOf((timersEndTime[timerIndex] - now) / 1_000_000_000.0, 0.0)
+            val timeLeft = maxOf(now.duration(to = timersEndTime[timerIndex]).toDouble(kotlin.time.DurationUnit.SECONDS), 0.0)
             appendTextPart(value = uptimeFormatter.string(timeLeft) ?: "")
         }
         timerIndex += 1
     }
 
-    private fun formatStopwatch(variables: Variables, now: Long) {
+    private fun formatStopwatch(variables: Variables, now: com.moblin.android.platform.core.ContinuousClock.Instant) {
         if (stopwatchIndex < stopwatches.size) {
             val stopwatch = stopwatches[stopwatchIndex]
             var elapsed = stopwatch.totalElapsed
             if (stopwatch.running) {
-                val playPressedTime = stopwatch.playPressedTime.epochSecond * 1_000_000_000L +
-                    stopwatch.playPressedTime.nano
-                elapsed += (now - playPressedTime) / 1_000_000_000.0
+                elapsed += java.time.Duration.between(stopwatch.playPressedTime, java.time.Instant.now()).toNanos() / 1_000_000_000.0
             }
             appendTextPart(value = uptimeFormatter.string(elapsed) ?: "")
         }

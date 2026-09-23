@@ -1,0 +1,55 @@
+{
+  "task": "E9",
+  "hooks": [
+    {
+      "id": "HE9.1",
+      "file": "various/settings/Settings.kt",
+      "scope": "fun toEffectSettings",
+      "op": "replace",
+      "old": "    fun toEffectSettings(backgroundImage: Image?, iconImage: Image?): FaceEffectSettings {",
+      "new": "    fun toEffectSettings(backgroundImage: com.moblin.android.platform.coreimage.CIImage?, iconImage: android.graphics.Bitmap?): FaceEffectSettings {",
+      "occurrence": 1,
+      "note": "ME1 boundary (effects plan 1.20): Swift Settings.swift:1106 takes CIImage? and CGImage?; FaceEffectPrivacyMode.BackgroundImage(CIImage?) and Icon(Bitmap?) after the ME1 re-translation of FaceEffect.swift."
+    },
+    {
+      "id": "HE9.3",
+      "file": "videoeffects/FaceEffect.kt",
+      "scope": "fun setSettings",
+      "op": "replace",
+      "old": "            is FaceEffectPrivacyMode.BackgroundImage -> TODO(\"OpenGL ES port\")",
+      "new": "            is FaceEffectPrivacyMode.BackgroundImage -> null",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1."
+    },
+    {
+      "id": "HE9.4",
+      "file": "videoeffects/FaceEffect.kt",
+      "scope": "fun setSettings",
+      "op": "replace",
+      "old": "            is FaceEffectPrivacyMode.Icon -> TODO(\"OpenGL ES port\")",
+      "new": "            is FaceEffectPrivacyMode.Icon -> null",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1."
+    },
+    {
+      "id": "HE9.5",
+      "file": "various/model/ModelFaceBackgroundImage.kt",
+      "scope": "fun Model.readFaceBackgroundImage",
+      "op": "replace",
+      "old": "private fun Model.readFaceBackgroundImage(): Bitmap? {",
+      "new": "private fun Model.readFaceBackgroundImage(): com.moblin.android.platform.coreimage.CIImage? {",
+      "occurrence": 1,
+      "note": "Interim for R11.7 (Model.faceBackgroundImage is a CIImage?) until ModelFaceBackgroundImage.kt is regenerated. Old lines only the current translation has, so the hook cannot touch the regenerated file. Retire at ME1."
+    },
+    {
+      "id": "HE9.6",
+      "file": "various/model/ModelFaceBackgroundImage.kt",
+      "scope": "fun Model.readFaceBackgroundImage",
+      "op": "replace",
+      "old": "    return BitmapFactory.decodeByteArray(data, 0, data.size)",
+      "new": "    return BitmapFactory.decodeByteArray(data, 0, data.size)?.let { com.moblin.android.platform.coreimage.CIImage(cgImage = it) }",
+      "occurrence": 1,
+      "note": "Interim with HE9.5. Retire at ME1."
+    }
+  ]
+}

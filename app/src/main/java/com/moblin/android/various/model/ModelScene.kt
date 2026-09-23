@@ -571,7 +571,7 @@ fun Model.updateMapEffects() {
         location = latestKnownLocation
     }
     for (mapEffect in mapEffects.values) {
-        mapEffect.updateLocation(location = TODO("no Android counterpart for MapLocation conversion"))
+        mapEffect.updateLocation(location = location)
     }
 }
 
@@ -861,7 +861,7 @@ private fun Model.createTextEffect(widget: SettingsWidget): TextEffect {
         cornerRadius = widget.text.cornerRadius.toDouble(),
         delay = widget.text.delay,
         timersEndTime = widget.text.timers.map {
-            Instant.now().plusNanos((utcTimeDeltaFromNow(it.endTime) * 1_000_000_000.0).toLong()).toEpochMilli()
+            com.moblin.android.platform.core.ContinuousClock.now.advanced(bySeconds = utcTimeDeltaFromNow(it.endTime))
         }.toMutableList(),
         stopwatches = widget.text.stopwatches.map { it.clone() }.toMutableList(),
         checkboxes = widget.text.checkboxes.map { it.checked }.toMutableList(),
@@ -896,7 +896,6 @@ private fun Model.resetBrowserVideoEffects(widgets: List<SettingsWidget>) {
             widget = widget.browser,
             moblinAccess = widget.browser.moblinAccess,
             proxyServer = getHttpProxyServerEndpoint(),
-            context = AppDelegate.context
         )
         effect.effects = widget.getEffects(model = this).toMutableList()
         browserEffects[widget.id] = effect
@@ -945,7 +944,7 @@ private fun Model.resetScoreboardVideoEffects(widgets: List<SettingsWidget>) {
         if (widget.type != SettingsWidgetType.scoreboard) {
             continue
         }
-        scoreboardEffects[widget.id] = ScoreboardEffect(canvasSize = media.getCanvasSize())
+        scoreboardEffects[widget.id] = ScoreboardEffect(canvasSize = canvasSize(media.getCanvasSize()))
     }
 }
 
@@ -991,7 +990,7 @@ private fun Model.resetPngTuberVideoEffects(widgets: List<SettingsWidget>) {
             continue
         }
         pngTuberEffects[widget.id] = PngTuberEffect(
-            modelPath = TODO("no Android counterpart for pngTuberStorage.makePath"),
+            com.moblin.android.various.storages.FileStorage(directory = com.moblin.android.various.storages.pngTuberStorageDirectory).makePath(id = widget.pngTuber.id).path,
             costume = 1
         )
     }
@@ -1859,7 +1858,7 @@ private fun Model.updateTimers(
     }
     textEffect.setTimersEndTime(
         endTimes = text.timers.map {
-            Instant.now().plusNanos((utcTimeDeltaFromNow(it.endTime) * 1_000_000_000.0).toLong()).toEpochMilli()
+            com.moblin.android.platform.core.ContinuousClock.now.advanced(bySeconds = utcTimeDeltaFromNow(it.endTime))
         }.toMutableList()
     )
 }

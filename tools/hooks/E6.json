@@ -1,0 +1,104 @@
+{
+  "task": "E6",
+  "hooks": [
+    {
+      "id": "HE6.1",
+      "file": "videoeffects/PollEffect.kt",
+      "scope": "fun setup",
+      "op": "replace",
+      "old": "        renderer = TODO(\"no Android counterpart for SwiftUI ImageRenderer\")",
+      "new": "        renderer = null",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1."
+    },
+    {
+      "id": "HE6.2",
+      "file": "videoeffects/BingoCardEffect.kt",
+      "scope": "fun setup",
+      "op": "replace",
+      "old": "        renderer = TODO(\"no Android counterpart for SwiftUI ImageRenderer\")",
+      "new": "        renderer = null",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1."
+    },
+    {
+      "id": "HE6.3",
+      "file": "videoeffects/BingoCardEffect.kt",
+      "scope": "fun setup",
+      "op": "replace",
+      "old": "        setBingoImage(image = TODO(\"no Android counterpart for SwiftUI ImageRenderer.cgImage\"))",
+      "new": "        setBingoImage(image = null)",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1."
+    },
+    {
+      "id": "HE6.4",
+      "file": "videoeffects/PomodoroTimerEffect.kt",
+      "scope": "fun setup",
+      "op": "replace",
+      "old": "        renderer = TODO(\"no Android counterpart for SwiftUI ImageRenderer\")",
+      "new": "        renderer = null",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1."
+    },
+    {
+      "id": "HE6.5",
+      "file": "videoeffects/scoreboard/ScoreboardEffect.kt",
+      "scope": "fun updateGeneric",
+      "op": "replace",
+      "old": "        setScoreboardImage(image = TODO(\"no Android counterpart for ImageRenderer\"))",
+      "new": "        setScoreboardImage(image = null)",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1."
+    },
+    {
+      "id": "HE6.6",
+      "file": "videoeffects/scoreboard/ScoreboardEffect.kt",
+      "scope": "fun updatePadel",
+      "op": "replace",
+      "old": "        setScoreboardImage(image = TODO(\"no Android counterpart for ImageRenderer\"))",
+      "new": "        setScoreboardImage(image = null)",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1."
+    },
+    {
+      "id": "HE6.7",
+      "file": "videoeffects/scoreboard/ScoreboardEffect.kt",
+      "scope": "fun updateModular",
+      "op": "replace",
+      "old": "        setScoreboardImage(image = TODO(\"no Android counterpart for ImageRenderer\"))",
+      "new": "        setScoreboardImage(image = null)",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1."
+    },
+    {
+      "id": "HE6.8",
+      "file": "videoeffects/scoreboard/ScoreboardEffect.kt",
+      "scope": "fun updateGolf",
+      "op": "replace",
+      "old": "        setScoreboardImage(image = TODO(\"no Android counterpart for ImageRenderer\"))",
+      "new": "        setScoreboardImage(image = null)",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1."
+    },
+    {
+      "id": "HE6.9",
+      "file": "videoeffects/scoreboard/ScoreboardEffect.kt",
+      "scope": "fun updateGolfFullScorecard",
+      "op": "replace",
+      "old": "        setScoreboardImage(image = TODO(\"no Android counterpart for ImageRenderer\"))",
+      "new": "        setScoreboardImage(image = null)",
+      "occurrence": 1,
+      "note": "ME0 guard; retire at ME1."
+    },
+    {
+      "id": "HE6.10",
+      "file": "videoeffects/scoreboard/ScoreboardEffect.kt",
+      "op": "replace",
+      "old": "import android.util.Size",
+      "new": "import androidx.compose.ui.geometry.Size",
+      "occurrence": 1,
+      "note": "Interim boundary for R11.3 (canvasSize is a Compose Size, plan 1.20) until the ME1 re-translation; retire at ME1."
+    }
+  ]
+}

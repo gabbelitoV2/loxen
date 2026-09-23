@@ -54,7 +54,7 @@ private val mainScope = CoroutineScope(Dispatchers.Main)
 val processorControlQueue = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
 val processorPipelineQueue = CoroutineScope(
-    com.moblin.android.platform.core.PipelineThread.dispatcher
+    com.moblin.android.platform.core.PipelineThread.dispatcher + kotlinx.coroutines.SupervisorJob()
 )
 
 private class Stream(var delegate: AudioVideoEncoderDelegate? = null)

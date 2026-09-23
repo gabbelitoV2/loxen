@@ -38,11 +38,11 @@ class FaceEffect : VideoEffect() {
 
     fun setSettings(settings: FaceEffectSettings) {
         val backgroundImage: EffectImageCiImage? = when (settings.privacyMode) {
-            is FaceEffectPrivacyMode.BackgroundImage -> TODO("OpenGL ES port")
+            is FaceEffectPrivacyMode.BackgroundImage -> null
             else -> null
         }
         val iconImage: EffectImageCgImage? = when (settings.privacyMode) {
-            is FaceEffectPrivacyMode.Icon -> TODO("OpenGL ES port")
+            is FaceEffectPrivacyMode.Icon -> null
             else -> null
         }
         processorPipelineQueue.launch {

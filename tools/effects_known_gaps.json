@@ -1,0 +1,204 @@
+{
+  "gaps": [
+    {
+      "check": "kernels",
+      "name": "crtBarrelDistortion",
+      "owner": "E8",
+      "milestone": "ME7",
+      "note": "The CrtBarrelDistortionPort object lands at ME1 with glsl = null (effects plan 1.10); CRT keeps its input until the GLSL port."
+    },
+    {
+      "check": "kernels",
+      "name": "dewarp360",
+      "owner": "E11",
+      "milestone": "ME10",
+      "note": "The Dewarp360Port object lands at ME1 with glsl = null (effects plan 1.10); dewarp keeps its input until the GLSL port."
+    },
+    {
+      "check": "types",
+      "name": "WK*",
+      "files": [
+        "Moblin/StreamingPlatforms/Kick/KickAuth.swift",
+        "Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift",
+        "Moblin/Various/Model/ModelWebBrowser.swift",
+        "Moblin/Various/WebBrowserController.swift"
+      ],
+      "owner": "UI port",
+      "milestone": "none (effects plan 1.15 and 6)",
+      "note": "On-screen web views keep android.webkit.WebView; the WebKit shim is scoped to Moblin/VideoEffects/Browser/."
+    },
+    {
+      "check": "members",
+      "name": "WKWebView*",
+      "files": [
+        "Moblin/StreamingPlatforms/Kick/KickAuth.swift",
+        "Moblin/StreamingPlatforms/Twitch/TwitchAuth.swift",
+        "Moblin/Various/Model/ModelWebBrowser.swift",
+        "Moblin/Various/WebBrowserController.swift",
+        "Moblin/View/WebBrowser/WebBrowserView.swift",
+        "Moblin/Various/Model/Model.swift"
+      ],
+      "owner": "UI port",
+      "milestone": "none (effects plan 1.15 and 6)",
+      "note": "Members of the in-app browser and login web views, which keep android.webkit.WebView."
+    },
+    {
+      "check": "types",
+      "name": "MK*",
+      "files": [
+        "Moblin/Various/Model/ModelNavigation.swift",
+        "Moblin/Various/Utils/LocationUtils.swift",
+        "Moblin/View/Settings/Location/LocationSettingsView.swift",
+        "Moblin/View/Stream/Overlay/StreamOverlayNavigationView.swift"
+      ],
+      "owner": "UI port",
+      "milestone": "none (not in the effects plan)",
+      "note": "Navigation and location views use MapKit search, directions and regions; the MapKit shim only covers the map widget's snapshotter."
+    },
+    {
+      "check": "types",
+      "name": "CM*",
+      "files": [
+        "Moblin/Various/Managers/GForceManager.swift",
+        "Moblin/Various/Model/Model.swift"
+      ],
+      "owner": "E8",
+      "milestone": "none (not in the effects plan)",
+      "note": "Accelerometer and attitude users outside the effects keep their Android sensor code; the CoreMotion shim covers FixedHorizonEffect."
+    },
+    {
+      "check": "members",
+      "name": "CMMotionManager.*",
+      "files": [
+        "Moblin/Various/Managers/GForceManager.swift",
+        "Moblin/Various/Model/Model.swift"
+      ],
+      "owner": "E8",
+      "milestone": "none (not in the effects plan)",
+      "note": "Accelerometer and attitude members used outside the effects."
+    },
+    {
+      "check": "members",
+      "name": "AVSpeechSynthesizer.*",
+      "files": [
+        "Moblin/Various/ChatTextToSpeech.swift",
+        "Moblin/View/Utils/VoicesView.swift",
+        "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift"
+      ],
+      "owner": "E5",
+      "milestone": "none (effects plan 1.16 scope)",
+      "note": "Chat text-to-speech keeps android.speech.tts.TextToSpeech; the speech shim is scoped to Moblin/VideoEffects/."
+    },
+    {
+      "check": "members",
+      "name": "CIRadialGradient.composited",
+      "files": [
+        "Moblin/VideoEffects/FaceEffect.swift"
+      ],
+      "owner": "E9",
+      "milestone": "permanent (heuristic false positive)",
+      "note": "faceMask is rebound to a CIImage by guard let in createFacesMaskImage."
+    },
+    {
+      "check": "members",
+      "name": "CIImage.offset",
+      "files": [
+        "Moblin/VideoEffects/Replay/ReplayEffectStingerReader.swift"
+      ],
+      "owner": "E10",
+      "milestone": "permanent (heuristic false positive)",
+      "note": "The name image is also a ReplayImage in that file; ReplayImage.offset is Moblin's own field."
+    },
+    {
+      "check": "boundary",
+      "name": "TextEffect",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Intended: timersEndTime becomes List<ContinuousClock.Instant>; R11.4 updates createTextEffect."
+    },
+    {
+      "check": "boundary",
+      "name": "TextEffect.setEndTime",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Intended: endTime becomes ContinuousClock.Instant; HE0.5 and HE0.6 update the callers."
+    },
+    {
+      "check": "boundary",
+      "name": "TextEffect.setTimersEndTime",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Intended: ContinuousClock.Instant end times; R11.5 updates updateTimers."
+    },
+    {
+      "check": "boundary",
+      "name": "SnapshotEffect.appendSnapshot",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Intended: takes the Core Image shim's CIImage; HE0.7 updates the caller."
+    },
+    {
+      "check": "boundary",
+      "name": "ScoreboardEffect",
+      "owner": "E6",
+      "milestone": "ME1",
+      "note": "Intended: canvasSize becomes a Compose Size; R11.3 updates the caller."
+    },
+    {
+      "check": "boundary",
+      "name": "BrowserEffect",
+      "owner": "E4",
+      "milestone": "ME1",
+      "note": "Intended: the context parameter goes away; R11.9 deletes the argument."
+    },
+    {
+      "check": "boundary",
+      "name": "BrowserEffect.startLoadingTime",
+      "owner": "E4",
+      "milestone": "ME1",
+      "note": "Intended: ContinuousClock.Instant; R11.10 updates updateBrowserWidgetStatus."
+    },
+    {
+      "check": "boundary",
+      "name": "BrowserEffect.webView",
+      "owner": "E4",
+      "milestone": "ME1",
+      "note": "Intended: a WKWebView; RU.1 borrows and returns the Android view."
+    },
+    {
+      "check": "boundary",
+      "name": "FaceEffectPrivacyMode.*",
+      "owner": "E9",
+      "milestone": "ME1",
+      "note": "Intended: BackgroundImage(CIImage?) and Icon(Bitmap?); HE9.1 updates toEffectSettings."
+    },
+    {
+      "check": "boundary",
+      "name": "makeCatmullRomPath",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: List<CGPoint> and Double tension returning CGMutablePath; HE8.2 updates MaskEffectView."
+    },
+    {
+      "check": "boundary",
+      "name": "VideoEffectsProcessor.canvasSize",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: a CGSize; R4.7 updates VideoUnit."
+    },
+    {
+      "check": "boundary",
+      "name": "PngTuberEffect",
+      "owner": "E11",
+      "milestone": "ME1",
+      "note": "Intended: the first parameter keeps the String type but may take Swift's name; R11.2 passes it positionally."
+    },
+    {
+      "check": "boundary",
+      "name": "MapEffect.updateLocation",
+      "owner": "E7",
+      "milestone": "ME1",
+      "note": "Intended: only updateLocation(location: android.location.Location) remains; the snapshot also holds today's MapLocation version beside the interim overload HE7.1, which R11.1's ME1 line calls."
+    }
+  ]
+}

@@ -381,7 +381,7 @@ class TextEffectSuite {
             ratings = emptyList(),
             lapTimes = emptyList()
         )
-        return formatter.format(variables = variables, now = Instant.now().toEpochMilli() * 1_000_000L)
+        return formatter.format(variables = variables, now = com.moblin.android.platform.core.ContinuousClock.now)
     }
 
     private fun createVariables(

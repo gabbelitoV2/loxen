@@ -1,0 +1,25 @@
+{
+  "task": "E5",
+  "hooks": [
+    {
+      "id": "HE5.1",
+      "file": "videoeffects/alerts/AlertsEffectMedia.kt",
+      "scope": "fun loadGifImages",
+      "op": "replace",
+      "old": "            TODO()",
+      "new": "            emptyList<Pair<EffectImageCiImage, Double>>()",
+      "occurrence": 1,
+      "note": "ME0 guard: every alerts widget with a GIF threw here at startup; retire at ME1."
+    },
+    {
+      "id": "HE5.2",
+      "file": "videoeffects/ChatEffect.kt",
+      "scope": "fun lineView",
+      "op": "replace",
+      "old": "        val lineView = ChatLineUiView(TODO(\"no Android Context available\"))",
+      "new": "        val lineView = ChatLineUiView(com.moblin.android.AppDelegate.context)",
+      "occurrence": 1,
+      "note": "ME0 guard: a chat widget in the scene threw on the main thread at the first chat message; retire at ME1."
+    }
+  ]
+}

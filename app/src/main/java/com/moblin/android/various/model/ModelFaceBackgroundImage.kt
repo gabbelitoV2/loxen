@@ -19,7 +19,7 @@ fun Model.loadFaceBackgroundImage() {
     updateFaceFilterSettings()
 }
 
-private fun Model.readFaceBackgroundImage(): Bitmap? {
+private fun Model.readFaceBackgroundImage(): com.moblin.android.platform.coreimage.CIImage? {
     val data = runCatching { faceBackgroundImagePath.readBytes() }.getOrNull() ?: return null
-    return BitmapFactory.decodeByteArray(data, 0, data.size)
+    return BitmapFactory.decodeByteArray(data, 0, data.size)?.let { com.moblin.android.platform.coreimage.CIImage(cgImage = it) }
 }

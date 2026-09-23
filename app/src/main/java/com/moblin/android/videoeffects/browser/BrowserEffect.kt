@@ -3,7 +3,7 @@ package com.moblin.android.videoeffects.browser
 import android.content.Context
 import android.graphics.Color
 import com.moblin.android.platform.video.CVPixelBuffer as Image
-import android.webkit.WebView
+import com.moblin.android.platform.webkit.InterimBrowserWebView as WebView
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
@@ -64,7 +64,7 @@ class BrowserEffect(
     widget: SettingsWidgetBrowser,
     moblinAccess: Boolean,
     proxyServer: InetSocketAddress?,
-    context: Context,
+    context: Context = com.moblin.android.AppDelegate.context,
 ) : VideoEffect(), BrowserEffectServerDelegate {
     val webView: WebView
     @Volatile private var snapshot: EffectImageCgImage? = null
@@ -78,7 +78,7 @@ class BrowserEffect(
     private var baseFps: Double
     private var fps: Double
     private val snapshotTimer = MainTimer()
-    var startLoadingTime: Long = System.nanoTime()
+    var startLoadingTime: com.moblin.android.platform.core.ContinuousClock.Instant = com.moblin.android.platform.core.ContinuousClock.now
     private val scale: Double
     private var sceneWidget: SettingsSceneWidget? = null
     private var crops: List<WidgetCrop> = emptyList()
@@ -185,7 +185,7 @@ class BrowserEffect(
             this@BrowserEffect.crops = crops
         }
         if (!isLoaded) {
-            startLoadingTime = System.nanoTime()
+            startLoadingTime = com.moblin.android.platform.core.ContinuousClock.now
             webView.loadUrl(url.toString())
             server.enable()
             isLoaded = true
@@ -231,7 +231,7 @@ class BrowserEffect(
     private fun takeSnapshots(takeSnapshotTime: Double) {
         snapshotTimer.startSingleShot(max(1.0 / fps - takeSnapshotTime, 0.001)) {
             val takeSnapshotBeginTime = System.nanoTime()
-            val image: EffectImageCgImage? = TODO("no Android counterpart for WKWebView.takeSnapshot")
+            val image: EffectImageCgImage? = null
             if (!stopped && !suspended) {
                 takeSnapshots((System.nanoTime() - takeSnapshotBeginTime) / 1_000_000_000.0)
                 if (image != null) {

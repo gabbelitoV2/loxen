@@ -153,11 +153,11 @@ class ChatEmoteComboEffect(private val canvasSize: Size) : VideoEffect() {
 
     private fun setup() {
         cancellable?.cancel()
-        renderer = TODO("no Android counterpart for SwiftUI ImageRenderer")
+        renderer = null
         cancellable = mainScope.launch {
             combine(state.emoteUrl, state.count) { _, _ -> }
                 .collect {
-                    val image: EffectImageCgImage? = TODO("no Android counterpart for SwiftUI ImageRenderer")
+                    val image: EffectImageCgImage? = null
                     if (comboCount > 0) {
                         setComboImage(image)
                     }

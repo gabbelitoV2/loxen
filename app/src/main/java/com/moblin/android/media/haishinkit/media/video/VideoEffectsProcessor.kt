@@ -14,7 +14,7 @@ import java.util.UUID
 class VideoEffectsProcessor {
     val context: Any? = null
     private var metalPetalContext: Any? = null
-    var canvasSize = SizeF(1920f, 1080f)
+    var canvasSize = com.moblin.android.platform.coregraphics.CGSize(width = 1920.0, height = 1080.0)
     var fillFrame = true
     var sceneSwitchTransition: SceneSwitchTransition = SceneSwitchTransition.BLUR
     var latestSampleBufferTime: Long? = null
@@ -26,7 +26,7 @@ class VideoEffectsProcessor {
     private var pendingAfterAttachMirror: Boolean? = null
     private var isMetalPetalGraphicsForcedByEffects: Boolean = false
     private var isMetalPetalGraphics: Boolean = false
-    private var blackImage: Bitmap? = null
+    private var blackImage: com.moblin.android.platform.coreimage.CIImage? = null
     private var blackImageMetalPetal: Image? = null
     private var pool: Any? = null
     private var poolColorSpace: ColorSpace? = null
@@ -218,7 +218,7 @@ class VideoEffectsProcessor {
             usePendingAfterAttachEffects()
         }
         val enabledEffects = getEnabledEffects()
-        val imageSize = SizeF(imageBuffer.width.toFloat(), imageBuffer.height.toFloat())
+        val imageSize = com.moblin.android.platform.coregraphics.CGSize(width = imageBuffer.width, height = imageBuffer.height)
         if (enabledEffects.isEmpty() &&
             !completion.isSceneSwitchTransition &&
             imageSize == canvasSize &&
@@ -303,7 +303,7 @@ class VideoEffectsProcessor {
         return null
     }
 
-    private fun getBlackImage(width: Double, height: Double): Bitmap {
+    private fun getBlackImage(width: Double, height: Double): com.moblin.android.platform.coreimage.CIImage {
         val currentBlackImage = blackImage
         if (currentBlackImage == null) {
             val image = createBlackImage(width, height)

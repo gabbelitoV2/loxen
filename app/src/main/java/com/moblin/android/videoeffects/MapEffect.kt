@@ -37,6 +37,7 @@ class MapEffect(private var widget: SettingsWidgetMap) : VideoEffect() {
     private var mapSnapshot: EffectImageCiImage? = null
     private var sceneWidget: SettingsSceneWidget? = null
     private var location: MapLocation = MapLocation()
+    fun updateLocation(location: android.location.Location): Unit = updateLocation(location = MapLocation(coordinate = MapCoordinate(location.latitude, location.longitude), speed = location.speed.toDouble(), course = if (location.hasBearing()) location.bearing.toDouble() else -1.0, timestamp = Instant.ofEpochMilli(location.time)))
     private var size: Size = Size.Zero
     private var newLocations: ArrayDeque<MapLocation> = ArrayDeque(listOf(MapLocation()))
     private var mapSnapshotter: MapCamera? = null

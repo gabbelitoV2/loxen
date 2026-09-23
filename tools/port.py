@@ -156,16 +156,40 @@ SHIM_INTRO = (
 )
 
 
-def shim_glossary():
-    if not SHIMS.exists():
-        return ""
-    parts = []
-    for path in sorted(SHIMS.glob("*.md"), key=lambda p: postprocess.natural_key(p.name)):
-        if path.name.lower() == "readme.md":
-            continue
-        text = path.read_text(encoding="utf-8-sig").strip()
-        if text:
-            parts.append(text)
+SCOPE_LINE_RE = re.compile(r"^<!--\s*scope:(.*?)-->$")
+FRAGMENT_CACHE = {}
+
+
+def shim_fragments():
+    if "fragments" not in FRAGMENT_CACHE:
+        fragments = []
+        if SHIMS.exists():
+            for path in sorted(SHIMS.glob("*.md"), key=lambda p: postprocess.natural_key(p.name)):
+                if path.name.lower() == "readme.md":
+                    continue
+                text = path.read_text(encoding="utf-8-sig").strip()
+                first, _, rest = text.partition("\n")
+                match = SCOPE_LINE_RE.match(first.strip())
+                scopes = None
+                if match:
+                    scopes = tuple(part.strip() for part in match.group(1).split(",") if part.strip())
+                    text = rest.strip()
+                if text:
+                    fragments.append({"name": path.name, "scopes": scopes, "text": text})
+        FRAGMENT_CACHE["fragments"] = fragments
+    return FRAGMENT_CACHE["fragments"]
+
+
+def fragment_applies(fragment, swift_path):
+    return swift_path is None or fragment["scopes"] is None or swift_path.startswith(fragment["scopes"])
+
+
+def shim_fragment_names(swift_path=None):
+    return tuple(fragment["name"] for fragment in shim_fragments() if fragment_applies(fragment, swift_path))
+
+
+def shim_glossary(swift_path=None):
+    parts = [fragment["text"] for fragment in shim_fragments() if fragment_applies(fragment, swift_path)]
     if not parts:
         return ""
     return "# Apple API shims\n\n" + SHIM_INTRO + "\n\n" + "\n\n".join(parts)
@@ -470,10 +494,10 @@ def referenced_platform_api(out_dir, tier, source, limit=PLATFORM_API_LIMIT):
 PROMPT_CACHE = {}
 
 
-def system_prompt(system, tiers, tier, out_dir, incremental=False):
-    key = (tier, str(out_dir))
+def system_prompt(system, tiers, tier, out_dir, incremental=False, swift_path=None):
+    key = (tier, str(out_dir), shim_fragment_names(swift_path))
     if key not in PROMPT_CACHE:
-        sections = [system.rstrip(), shim_glossary(), platform_api(out_dir, tier), tiers[tier].rstrip()]
+        sections = [system.rstrip(), shim_glossary(swift_path), platform_api(out_dir, tier), tiers[tier].rstrip()]
         PROMPT_CACHE[key] = "\n\n".join(section for section in sections if section)
     prompt = PROMPT_CACHE[key]
     if incremental:
@@ -676,14 +700,14 @@ def build_prompts(entry, root, out_dir, by_path, system, tiers, previous=None, i
         kotlin_before = target.read_text(encoding="utf-8", errors="replace")
         return {
             "mode": "incremental",
-            "system": system_prompt(system, tiers, entry["tier"], out_dir, incremental=True),
+            "system": system_prompt(system, tiers, entry["tier"], out_dir, incremental=True, swift_path=entry["path"]),
             "user": build_incremental_prompt(entry, glossary, old_source, source, kotlin_before, dependencies),
             "kotlin_before": kotlin_before,
             "swift_changed": changed_lines(old_source, source),
         }
     return {
         "mode": "full",
-        "system": system_prompt(system, tiers, entry["tier"], out_dir),
+        "system": system_prompt(system, tiers, entry["tier"], out_dir, swift_path=entry["path"]),
         "user": build_user_prompt(entry, glossary, source, dependencies),
     }
 
@@ -768,6 +792,10 @@ def print_prompt(path, root, out_dir, by_path, state, system, tiers, incremental
     if entry["tier"] == "skip":
         sys.exit(f"{entry['path']} is in the skip tier and is never ported")
     prompts = build_prompts(entry, root, out_dir, by_path, system, tiers, state.get(entry["path"]), incremental)
+    included = shim_fragment_names(entry["path"])
+    excluded = [fragment["name"] for fragment in shim_fragments() if fragment["name"] not in included]
+    print(f"=== shim fragments: included {', '.join(included) or 'none'}; "
+          f"left out by scope {', '.join(excluded) or 'none'} ===")
     print(f"=== system prompt ({prompts['mode']}, {len(prompts['system']):,} characters, "
           f"about {estimate_tokens(prompts['system']):,} tokens) ===")
     print(prompts["system"])
@@ -782,7 +810,7 @@ def dry_run(todo, root, args, system, tiers, out_dir):
     for entry in todo:
         source = (root / entry["path"]).read_text(encoding="utf-8", errors="replace")
         source_tokens = estimate_tokens(source)
-        tokens_in += estimate_tokens(system_prompt(system, tiers, entry["tier"], out_dir)) + source_tokens
+        tokens_in += estimate_tokens(system_prompt(system, tiers, entry["tier"], out_dir, swift_path=entry["path"])) + source_tokens
         tokens_out += int(source_tokens * 1.1) + 200
         row = per_tier.setdefault(entry["tier"], [0, 0])
         row[0] += 1

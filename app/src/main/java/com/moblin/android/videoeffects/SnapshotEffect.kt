@@ -26,9 +26,9 @@ class SnapshotEffect(showtime: Int) : VideoEffect() {
         }
     }
 
-    fun appendSnapshot(image: CIImage) {
+    fun appendSnapshot(image: com.moblin.android.platform.coreimage.CIImage) {
         processorPipelineQueue.launch {
-            appendSnapshotInternal(image)
+            appendSnapshotInternal(image as? CIImage ?: return@launch)
         }
     }
 

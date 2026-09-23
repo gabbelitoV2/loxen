@@ -531,7 +531,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val debugOverlay = DebugOverlayProvider()
     val stealthMode = StealthMode()
     val controlBar = ControlBar()
-    var faceBackgroundImage: Bitmap? = null
+    var faceBackgroundImage: com.moblin.android.platform.coreimage.CIImage? = null
     val drawOnStream = DrawOnStream()
     val store = Store()
     val show = Show()
@@ -2530,7 +2530,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             if (browser.browserEffect.isLoaded) {
                 messages.add("${browser.browserEffect.host}: $progress%")
                 if (progress != 100 ||
-                    System.nanoTime() < browser.browserEffect.startLoadingTime + 5_000_000_000L
+                    com.moblin.android.platform.core.ContinuousClock.now < browser.browserEffect.startLoadingTime.advanced(bySeconds = 5.0)
                 ) {
                     if (!statusTopRight.browserWidgetsStatusChanged.value) {
                         statusTopRight.browserWidgetsStatusChanged.value = true
@@ -3323,7 +3323,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             return
         }
         setQuickButton(type = type, isOn = true)
-        effect?.play(alert = TODO("no Android counterpart for AlertsEffectAlert.quickButton"))
+        effect?.play(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.QuickButton)
         mainScope.launch {
             delay((duration * 1000).toLong())
             setQuickButton(type = type, isOn = false)

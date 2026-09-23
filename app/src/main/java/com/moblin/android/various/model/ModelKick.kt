@@ -473,7 +473,7 @@ fun Model.kickPusherSubscription(event: KickPusherSubscriptionEvent) {
             kind = TODO("no Android counterpart for ChatHighlightKind.other")
         )
     }
-    playAlert(alert = TODO("no Android counterpart for Alert.kickSubscription"))
+    playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickSubscription(event))
     printEventCatPrinters(
         event = TODO("no Android counterpart for EventCatPrinter.kickSubscription"),
         username = event.username,
@@ -504,7 +504,7 @@ fun Model.kickPusherGiftedSubscription(event: KickPusherGiftedSubscriptionsEvent
             kind = TODO("no Android counterpart for ChatHighlightKind.other")
         )
     }
-    playAlert(alert = TODO("no Android counterpart for Alert.kickGiftedSubscriptions"))
+    playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickGiftedSubscriptions(event))
     printEventCatPrinters(
         event = TODO("no Android counterpart for EventCatPrinter.kickGiftedSubscriptions"),
         username = user,
@@ -536,7 +536,7 @@ fun Model.kickPusherRewardRedeemed(event: KickPusherRewardRedeemedEvent) {
             kind = TODO("no Android counterpart for ChatHighlightKind.other")
         )
     }
-    playAlert(alert = TODO("no Android counterpart for Alert.kickReward"))
+    playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickReward(event))
     printEventCatPrinters(
         event = TODO("no Android counterpart for EventCatPrinter.kickReward"),
         username = user,
@@ -563,7 +563,7 @@ fun Model.kickPusherStreamHost(event: KickPusherStreamHostEvent) {
             kind = TODO("no Android counterpart for ChatHighlightKind.other")
         )
     }
-    playAlert(alert = TODO("no Android counterpart for Alert.kickHost"))
+    playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickHost(event))
     printEventCatPrinters(
         event = TODO("no Android counterpart for EventCatPrinter.kickHost"),
         username = user,
@@ -614,7 +614,7 @@ fun Model.kickPusherKicksGifted(event: KickPusherKicksGiftedEvent) {
             kind = TODO("no Android counterpart for ChatHighlightKind.other")
         )
     }
-    playAlert(alert = TODO("no Android counterpart for Alert.kickKicks"))
+    playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickKicks(event))
     printEventCatPrinters(
         event = TODO("no Android counterpart for EventCatPrinter.kickKicks"),
         username = user,

@@ -114,11 +114,11 @@ var allowVideoRangePixelFormat: Boolean = false
 private val detectionsQueue = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
 data class TextDetection(
-    val boundingBox: RectF
+    val boundingBox: com.moblin.android.platform.coregraphics.CGRect
 )
 
 data class Detections(
-    val face: List<Any>,
+    val face: List<com.moblin.android.platform.vision.VNFaceObservation>,
     val text: List<TextDetection>
 )
 
@@ -157,7 +157,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
             return Size(canvas.width.toInt(), canvas.height.toInt())
         }
         set(value) {
-            effectsProcessor.canvasSize = SizeF(value.width.toFloat(), value.height.toFloat())
+            effectsProcessor.canvasSize = com.moblin.android.platform.coregraphics.CGSize(width = value.width.toDouble(), height = value.height.toDouble())
         }
 
     val encoder = VideoEncoder(lockQueue = processorPipelineQueue)
@@ -462,14 +462,14 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         }
     }
 
-    fun getCiImage(videoSourceId: UUID, presentationTimeUs: Long): Image? {
+    fun getCiImage(videoSourceId: UUID, presentationTimeUs: Long): com.moblin.android.platform.coreimage.CIImage? {
         val sampleBuffer = bufferedVideos[videoSourceId]?.getSampleBuffer(presentationTimeUs) ?: return null
-        return sampleBuffer.imageBuffer
+        return sampleBuffer.imageBuffer?.let { com.moblin.android.platform.coreimage.CIImage(cvPixelBuffer = it) }
     }
 
-    fun getMetalPetalImage(videoSourceId: UUID, presentationTimeUs: Long): Image? {
+    fun getMetalPetalImage(videoSourceId: UUID, presentationTimeUs: Long): com.moblin.android.platform.metalpetal.MTIImage? {
         val sampleBuffer = bufferedVideos[videoSourceId]?.getSampleBuffer(presentationTimeUs) ?: return null
-        return sampleBuffer.imageBuffer
+        return sampleBuffer.imageBuffer?.let { com.moblin.android.platform.metalpetal.MTIImage(cvPixelBuffer = it, alphaType = com.moblin.android.platform.metalpetal.MTIAlphaType.alphaIsOne) }
     }
 
     @Throws(Exception::class)
@@ -969,10 +969,10 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     }
 }
 
-fun createBlackImage(width: Double, height: Double): Bitmap {
+fun createBlackImage(width: Double, height: Double): com.moblin.android.platform.coreimage.CIImage {
     val bitmap = Bitmap.createBitmap(width.toInt(), height.toInt(), Bitmap.Config.ARGB_8888)
     bitmap.eraseColor(Color.BLACK)
-    return bitmap
+    return com.moblin.android.platform.coreimage.CIImage.black.cropped(to = com.moblin.android.platform.coregraphics.CGRect(x = 0.0, y = 0.0, width = width, height = height))
 }
 
 private val MediaSample.imageBuffer: Image?

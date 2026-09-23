@@ -246,20 +246,6 @@ fun CMVideoFormatDescriptionCreateForImageBuffer(imageBuffer: CVPixelBuffer): Me
     }
 }
 
-object CIContext {
-    fun render(bitmap: Bitmap, to: CVPixelBuffer) {
-        if (!PipelineThread.isCurrent()) {
-            try {
-                PipelineThread.runSync(timeoutMs = 3000) { render(bitmap, to) }
-            } catch (error: Throwable) {
-                Log.w(TAG, "CIContext.render failed: $error")
-            }
-            return
-        }
-        PixelBufferGl.upload(bitmap, to)
-    }
-}
-
 internal object PixelBufferGl {
     fun allocate(width: Int, height: Int): PixelBufferBacking? {
         if (!EglCore.isReady) {

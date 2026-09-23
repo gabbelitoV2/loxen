@@ -192,7 +192,7 @@ class TextEffect(
     width: Int?,
     cornerRadius: Double,
     delay: Double,
-    timersEndTime: MutableList<Long>,
+    timersEndTime: MutableList<com.moblin.android.platform.core.ContinuousClock.Instant>,
     stopwatches: MutableList<SettingsWidgetTextStopwatch>,
     checkboxes: MutableList<Boolean>,
     ratings: MutableList<Int>,
@@ -200,7 +200,8 @@ class TextEffect(
 ) : VideoEffect() {
     private val variables = ArrayDeque<Variables>()
     private var overlay: EffectImageCgImage? = null
-    private var nextUpdateTime = System.nanoTime()
+    private var nextUpdateTime = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds
+    fun setEndTime(index: Int, endTime: Long) = setEndTime(index = index, endTime = com.moblin.android.platform.core.ContinuousClock.Instant(endTime))
     private var delay: Double
     private val formatter: TextEffectFormatter
     private var sceneWidget: SettingsSceneWidget
@@ -298,12 +299,12 @@ class TextEffect(
         state.cornerRadius.value = cornerRadius
     }
 
-    fun setTimersEndTime(endTimes: MutableList<Long>) {
+    fun setTimersEndTime(endTimes: MutableList<com.moblin.android.platform.core.ContinuousClock.Instant>) {
         formatter.timersEndTime = endTimes
         forceOverlayUpdate()
     }
 
-    fun setEndTime(index: Int, endTime: Long) {
+    fun setEndTime(index: Int, endTime: com.moblin.android.platform.core.ContinuousClock.Instant) {
         if (index >= formatter.timersEndTime.size) {
             return
         }
@@ -406,12 +407,12 @@ class TextEffect(
             .lastOrNull { it.timestamp + ((delay - 1) * 1_000_000_000.0).toLong() <= now }
             ?: this.variables.firstOrNull()
             ?: return emptyList()
-        return formatter.format(variables = variables, now = now)
+        return formatter.format(variables = variables, now = com.moblin.android.platform.core.ContinuousClock.Instant(now))
     }
 
     private fun updateOverlayIfNeeded(size: Size) {
         try {
-            val now = System.nanoTime()
+            val now = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds
             if (now < nextUpdateTime && !forceUpdate) {
                 return
             }

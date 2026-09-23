@@ -152,8 +152,8 @@ fun getHttpsUrl(text: String): URI? {
     return null
 }
 
-fun WebView.setHttpProxy(endpoint: NWEndpoint?) {
-    Unit
+fun com.moblin.android.platform.webkit.WKWebViewConfiguration.setHttpProxy(endpoint: com.moblin.android.platform.network.NWEndpoint?) {
+    websiteDataStore.proxyConfigurations = if (endpoint != null) listOf(com.moblin.android.platform.webkit.ProxyConfiguration(httpCONNECTProxy = endpoint)) else emptyList()
 }
 
 fun URI.isLoopback(): Boolean {

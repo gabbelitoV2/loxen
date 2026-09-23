@@ -61,6 +61,26 @@ def mirror_asset_catalog(catalog, target):
     return copied
 
 
+LOOSE_RESOURCE_SUFFIXES = (".js",)
+
+
+def mirror_loose_resources(app, target):
+    copied = {}
+    for path in sorted(app.rglob("*")):
+        if not path.is_file() or path.suffix not in LOOSE_RESOURCE_SUFFIXES:
+            continue
+        parts = path.relative_to(app).parts
+        if any(part.endswith((".bundle", ".xcassets")) or part == "node_modules" or part.startswith(".") for part in parts):
+            continue
+        if path.name in copied:
+            print(f"warning: {path.relative_to(app).as_posix()} has the same name as {copied[path.name]}, not copied")
+            continue
+        target.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(path, target / path.name)
+        copied[path.name] = path.relative_to(app).as_posix()
+    return copied
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Mirror Moblin's bundled resources into the Android assets.")
@@ -74,6 +94,8 @@ def main():
     if catalog.is_dir():
         count = mirror_asset_catalog(catalog, ASSETS / "Assets")
         print(f"Assets.xcassets: {count} images")
+    loose = mirror_loose_resources(app, ASSETS)
+    print(f"loose resources: {len(loose)} files ({', '.join(sorted(loose))})")
 
 
 if __name__ == "__main__":

@@ -2,20 +2,22 @@ package com.moblin.android.videoeffects
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.ColorSpace
-import android.icu.text.BreakIterator
 import com.moblin.android.platform.video.CVPixelBuffer as Image
 import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.coregraphics.CGColorSpaceCreateDeviceRGB
+import com.moblin.android.platform.coreimage.CIColorCubeWithColorSpace
+import com.moblin.android.platform.swiftcube.LutEntry
+import com.moblin.android.platform.swiftcube.SC3DLut
+import com.moblin.android.platform.swiftcube.SwiftCubeError
 import com.moblin.android.various.settings.SettingsColorLut
 import com.moblin.android.various.settings.SettingsColorLutType
 import com.moblin.android.various.storages.ImageStorage
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.charset.CharacterCodingException
 import kotlin.math.cbrt
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -35,240 +37,6 @@ data class SIMD3(val x: Float, val y: Float, val z: Float) {
     operator fun times(value: Float): SIMD3 {
         return SIMD3(x * value, y * value, z * value)
     }
-}
-
-data class LutEntry(val red: Float, val green: Float, val blue: Float)
-
-sealed class SwiftCubeError(message: String) : Exception(message) {
-    object CouldNotDecodeData : SwiftCubeError("Not a text file")
-
-    object SizeMissing : SwiftCubeError("Size missing")
-
-    class SizeTooBig(val size: Long) : SwiftCubeError("Size $size too big")
-
-    object OneDimensionalLutNotSupported : SwiftCubeError("One dimensional LUT not supported")
-
-    class UnsupportedKey(val key: String) : SwiftCubeError("Unsupported key $key")
-
-    object InvalidType : SwiftCubeError("Invalid type")
-
-    object TypeMissing : SwiftCubeError("Type missing")
-
-    class InvalidDataPoint(val point: String) : SwiftCubeError("Invalid data point $point")
-
-    class WrongNumberOfDataPoints(val count: Int) : SwiftCubeError("Wrong number of data points $count")
-
-    class InvalidSyntax(val text: String) : SwiftCubeError("Invalid syntax $text")
-}
-
-private val space = ' '.code.toByte()
-private val tab = '\t'.code.toByte()
-private val newline = '\n'.code.toByte()
-private val carriageReturn = '\r'.code.toByte()
-private val hash = '#'.code.toByte()
-private val decimalFloatRegex = Regex("[+-]?([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE][+-]?[0-9]+)?")
-private val hexFloatRegex =
-    Regex("([+-]?0[xX]([0-9a-fA-F]+\\.?[0-9a-fA-F]*|\\.[0-9a-fA-F]+))([pP][+-]?[0-9]+)?")
-private val infinityRegex = Regex("([+-]?)(inf|infinity)", RegexOption.IGNORE_CASE)
-private val nanRegex = Regex("[+-]?(nan(\\((0[xX])?[0-9a-fA-F]+\\))?|snan)", RegexOption.IGNORE_CASE)
-private val intRegex = Regex("[+-]?[0-9]+")
-
-private fun isSpace(byte: Byte): Boolean {
-    return byte == space || byte == tab
-}
-
-private fun parseFloat(text: String): Float? {
-    if (decimalFloatRegex.matches(text)) {
-        return text.toFloat()
-    }
-    hexFloatRegex.matchEntire(text)?.let { match ->
-        return (match.groupValues[1] + match.groupValues[3].ifEmpty { "p0" }).toFloat()
-    }
-    infinityRegex.matchEntire(text)?.let { match ->
-        return if (match.groupValues[1] == "-") Float.NEGATIVE_INFINITY else Float.POSITIVE_INFINITY
-    }
-    if (nanRegex.matches(text)) {
-        return Float.NaN
-    }
-    return null
-}
-
-private fun decodeUtf8(bytes: ByteArray): String? {
-    var start = 0
-    if (bytes.size >= 3 && bytes[0] == 0xEF.toByte() && bytes[1] == 0xBB.toByte() &&
-        bytes[2] == 0xBF.toByte()
-    ) {
-        start = 3
-    }
-    return try {
-        Charsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(bytes, start, bytes.size - start)).toString()
-    } catch (error: CharacterCodingException) {
-        null
-    }
-}
-
-private class CubeLineParser(val line: ByteArray) {
-    var index = 0
-
-    fun skipSpaces() {
-        while (index < line.size && isSpace(line[index])) {
-            index += 1
-        }
-    }
-
-    private fun parseNumber(): Float? {
-        var end = index
-        while (end < line.size && !isSpace(line[end])) {
-            end += 1
-        }
-        if (end <= index) {
-            return null
-        }
-        val value = parseFloat(String(line, index, end - index, Charsets.UTF_8)) ?: return null
-        index = end
-        return value
-    }
-
-    fun parseEntry(): LutEntry? {
-        val red = parseNumber() ?: return null
-        skipSpaces()
-        val green = parseNumber() ?: return null
-        skipSpaces()
-        val blue = parseNumber() ?: return null
-        skipSpaces()
-        if (index != line.size) {
-            return null
-        }
-        return LutEntry(red = red, green = green, blue = blue)
-    }
-}
-
-private fun makeInvalidSyntaxError(line: ByteArray): SwiftCubeError {
-    return SwiftCubeError.InvalidSyntax(decodeUtf8(line.copyOfRange(0, minOf(line.size, 50))) ?: "")
-}
-
-private fun characters(text: String): List<String> {
-    val iterator = BreakIterator.getCharacterInstance()
-    iterator.setText(text)
-    val characters = mutableListOf<String>()
-    var start = iterator.first()
-    var end = iterator.next()
-    while (end != BreakIterator.DONE) {
-        characters.add(text.substring(start, end))
-        start = end
-        end = iterator.next()
-    }
-    return characters
-}
-
-private fun splitOnSpaces(text: String): List<String> {
-    val parts = mutableListOf<String>()
-    var part = ""
-    for (character in characters(text)) {
-        if (character == " " || character == "\t") {
-            if (part.isNotEmpty()) {
-                parts.add(part)
-            }
-            part = ""
-        } else {
-            part += character
-        }
-    }
-    if (part.isNotEmpty()) {
-        parts.add(part)
-    }
-    return parts
-}
-
-enum class LutType {
-    oneDimensional,
-    threeDimensional,
-}
-
-class SC3DLut(fileData: ByteArray) {
-    var title: String? = null
-    var type: LutType? = null
-    var size: Int = 0
-    var entries: MutableList<LutEntry> = mutableListOf()
-    private var parsedSize: Long? = null
-
-    init {
-        var start = 0
-        while (start < fileData.size) {
-            var end = start
-            while (end < fileData.size && fileData[end] != newline && fileData[end] != carriageReturn) {
-                end += 1
-            }
-            val line = fileData.copyOfRange(start, end)
-            start = end + 1
-            parseLine(line)
-        }
-        val lutSize = parsedSize ?: throw SwiftCubeError.SizeMissing
-        size = lutSize.toInt()
-        when (type ?: throw SwiftCubeError.TypeMissing) {
-            LutType.oneDimensional -> if (entries.size.toLong() != lutSize) {
-                throw SwiftCubeError.WrongNumberOfDataPoints(entries.size)
-            }
-            LutType.threeDimensional -> if (entries.size.toLong() != lutSize * lutSize * lutSize) {
-                throw SwiftCubeError.WrongNumberOfDataPoints(entries.size)
-            }
-        }
-    }
-
-    private fun parseLine(line: ByteArray) {
-        val parser = CubeLineParser(line)
-        parser.skipSpaces()
-        if (parser.index >= line.size || line[parser.index] == hash) {
-            return
-        }
-        if (type == LutType.threeDimensional) {
-            val entry = parser.parseEntry()
-            if (entry != null) {
-                entries.add(entry)
-                return
-            }
-        }
-        val text = decodeUtf8(line) ?: throw SwiftCubeError.CouldNotDecodeData
-        val parts = splitOnSpaces(text)
-        when (parts.firstOrNull()) {
-            "TITLE" -> {
-                title = characters(parts.drop(1).joinToString(" ")).drop(1).dropLast(1).joinToString("")
-            }
-            "LUT_1D_SIZE" -> throw SwiftCubeError.OneDimensionalLutNotSupported
-            "LUT_3D_SIZE" -> {
-                type = LutType.threeDimensional
-                if (parts.size != 2 || !intRegex.matches(parts[1])) {
-                    throw makeInvalidSyntaxError(line)
-                }
-                val size = parts[1].toLongOrNull() ?: throw makeInvalidSyntaxError(line)
-                parsedSize = size
-                if (size >= 100) {
-                    throw SwiftCubeError.SizeTooBig(size)
-                }
-            }
-            "DOMAIN_MIN" -> throw SwiftCubeError.UnsupportedKey("DOMAIN_MIN")
-            "DOMAIN_MAX" -> throw SwiftCubeError.UnsupportedKey("DOMAIN_MAX")
-            else -> throw makeInvalidSyntaxError(line)
-        }
-    }
-
-    fun ciFilter(): ColorCubeFilter {
-        val filter = ColorCubeFilter(makeCubeData(entries), size.toFloat())
-        filter.colorSpace = ColorSpace.get(ColorSpace.Named.SRGB)
-        return filter
-    }
-}
-
-class ColorCubeFilter(
-    var cubeData: ByteArray,
-    var cubeDimension: Float,
-) {
-    var colorSpace: ColorSpace? = null
-
-    var inputImage: Image? = null
-
-    val outputImage: Image?
-        get() = null
 }
 
 class MTIColorLookupFilter {
@@ -326,12 +94,12 @@ fun convertLutTo64(bigLut: List<SIMD3>, bigDimension: Int): List<SIMD3> {
 }
 
 fun lutEffectConvertCube(data: ByteArray): SC3DLut {
-    val sc3dLut = SC3DLut(data)
+    val sc3dLut = SC3DLut(fileData = data)
     if (sc3dLut.size > 64) {
         val bigLut = sc3dLut.entries.map { entry -> SIMD3(entry.red, entry.green, entry.blue) }
         sc3dLut.entries = convertLutTo64(bigLut = bigLut, bigDimension = sc3dLut.size).map { entry ->
             LutEntry(red = entry.x, green = entry.y, blue = entry.z)
-        }.toMutableList()
+        }
         sc3dLut.size = 64
     }
     return sc3dLut
@@ -534,7 +302,7 @@ private fun floatArrayToByteArray(values: FloatArray): ByteArray {
 }
 
 class LutEffect : VideoEffect() {
-    private var filter: ColorCubeFilter? = null
+    private var filter: CIColorCubeWithColorSpace? = null
     private val filterMetalPetal = MTIColorLookupFilter()
 
     fun setLut(
@@ -547,18 +315,18 @@ class LutEffect : VideoEffect() {
                 loadLut(lut = lut, imageStorage = imageStorage)
             } catch (error: Exception) {
                 val subTitle = when (error) {
-                    SwiftCubeError.CouldNotDecodeData -> "Not a text file"
-                    SwiftCubeError.SizeMissing -> "Size missing"
-                    is SwiftCubeError.SizeTooBig -> "Size ${error.size} too big"
-                    SwiftCubeError.OneDimensionalLutNotSupported ->
+                    SwiftCubeError.couldNotDecodeData -> "Not a text file"
+                    SwiftCubeError.sizeMissing -> "Size missing"
+                    is SwiftCubeError.sizeTooBig -> "Size ${error.size} too big"
+                    SwiftCubeError.oneDimensionalLutNotSupported ->
                         "One dimensional LUT not supported"
-                    is SwiftCubeError.UnsupportedKey -> "Unsupported key ${error.key}"
-                    SwiftCubeError.InvalidType -> "Invalid type"
-                    SwiftCubeError.TypeMissing -> "Type missing"
-                    is SwiftCubeError.InvalidDataPoint -> "Invalid data point ${error.point}"
-                    is SwiftCubeError.WrongNumberOfDataPoints ->
+                    is SwiftCubeError.unsupportedKey -> "Unsupported key ${error.key}"
+                    SwiftCubeError.invalidType -> "Invalid type"
+                    SwiftCubeError.typeMissing -> "Type missing"
+                    is SwiftCubeError.invalidDataPoint -> "Invalid data point ${error.point}"
+                    is SwiftCubeError.wrongNumberOfDataPoints ->
                         "Wrong number of data points ${error.count}"
-                    is SwiftCubeError.InvalidSyntax -> "Invalid syntax ${error.text}"
+                    is SwiftCubeError.invalidSyntax -> "Invalid syntax ${error.text}"
                     else -> "$error"
                 }
                 val title = when (lut?.type) {
@@ -579,9 +347,7 @@ class LutEffect : VideoEffect() {
     }
 
     override fun execute(image: Image, info: VideoEffectInfo): Image {
-        val currentFilter = filter ?: return image
-        currentFilter.inputImage = image
-        return currentFilter.outputImage ?: image
+        return image
     }
 
     override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
@@ -638,8 +404,10 @@ class LutEffect : VideoEffect() {
 
     private fun loadImageLut(image: Bitmap, componentsPerPixel: Int) {
         val (dimension, data) = lutEffectConvertLut(image = image, imageComponentsPerPixel = componentsPerPixel)
-        val filter = ColorCubeFilter(cubeData = data, cubeDimension = dimension)
-        filter.colorSpace = ColorSpace.get(ColorSpace.Named.SRGB)
+        val filter = CIColorCubeWithColorSpace()
+        filter.cubeData = data
+        filter.cubeDimension = dimension
+        filter.colorSpace = CGColorSpaceCreateDeviceRGB()
         val lutImage = makeLutImage(dimension = dimension.toInt(), cubeData = data)
         processorPipelineQueue.launch {
             this@LutEffect.filter = filter
