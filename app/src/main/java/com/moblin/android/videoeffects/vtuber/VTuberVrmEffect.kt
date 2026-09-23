@@ -1,57 +1,69 @@
 package com.moblin.android.videoeffects.vtuber
 
 import android.util.Log
-import android.util.Size
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.scenekit.BlendShapeKey
+import com.moblin.android.platform.scenekit.BlendShapePreset
+import com.moblin.android.platform.scenekit.Humanoid
+import com.moblin.android.platform.scenekit.SCNAntialiasingMode
+import com.moblin.android.platform.scenekit.SCNCamera
+import com.moblin.android.platform.scenekit.SCNNode
+import com.moblin.android.platform.scenekit.SCNRenderer
+import com.moblin.android.platform.scenekit.SCNVector3
+import com.moblin.android.platform.scenekit.SCNVector4
+import com.moblin.android.platform.scenekit.VRMScene
+import com.moblin.android.platform.scenekit.VRMSceneLoader
+import com.moblin.android.platform.uikit.cgImage
 import com.moblin.android.videoeffects.EffectImage
-import kotlin.math.PI
-import kotlin.math.max
+import com.moblin.android.videoeffects.toEffectImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.math.PI
 
 class VTuberVrmEffect(
     vrm: String,
     cameraFieldOfView: Double,
     cameraPositionY: Double,
 ) : VTuberEffect() {
-    private var scene: Any? = null
+    private var scene: VRMScene? = null
     private var armsAngle: Double = PI / 2.5
-    private var renderer: Any? = null
-    private var cameraNode: Any? = null
+    private val renderer = SCNRenderer(device = null)
+    private var cameraNode: SCNNode? = null
 
     init {
-        CoroutineScope(Dispatchers.IO).launch {
-            val loadedScene: Any? = runCatching<Any?> {
-                TODO(
-                    "VRMSceneKit has no Android counterpart: load the VRM scene from the file " +
-                        "$vrm and return the scene"
-                )
-            }.getOrElse { error ->
+        CoroutineScope(Dispatchers.Default).launch {
+            val scene = try {
+                VRMSceneLoader(withURL = vrm).loadScene()
+            } catch (error: Throwable) {
                 Log.i("VTuberVrmEffect", "v-tuber: Failed to load VRM file with error: $error")
                 return@launch
             }
             processorPipelineQueue.launch {
-                scene = loadedScene
-                TODO(
-                    "SceneKit has no Android counterpart: create the camera node with " +
-                        "fieldOfView $cameraFieldOfView at y $cameraPositionY, add it to the VRM " +
-                        "scene, cache the humanoid nodes and assign scene and cameraNode"
-                )
+                val camera = SCNCamera()
+                camera.fieldOfView = cameraFieldOfView
+                val cameraNode = SCNNode()
+                cameraNode.camera = camera
+                cameraNode.position = SCNVector3(0, cameraPositionY, -1.8)
+                cameraNode.rotation = SCNVector4(0, 1, 0, PI.toFloat())
+                scene.rootNode.addChildNode(cameraNode)
+                renderer.scene = scene
+                val node = scene.vrmNode
+                node.humanoid.node(`for` = Humanoid.Bones.leftUpperArm)?.eulerAngles =
+                    SCNVector3(0, 0, 40 * PI / 180)
+                node.humanoid.node(`for` = Humanoid.Bones.rightUpperArm)?.eulerAngles =
+                    SCNVector3(0, 0, -40 * PI / 180)
+                this@VTuberVrmEffect.scene = scene
+                this@VTuberVrmEffect.cameraNode = cameraNode
             }
         }
     }
 
-    override fun setModelSettings(
-        cameraFieldOfView: Double,
-        cameraPositionY: Double,
-        armsAngle: Double,
-    ) {
-        this.armsAngle = armsAngle * PI / 180.0
-        TODO(
-            "SceneKit has no Android counterpart: set fieldOfView $cameraFieldOfView and " +
-                "position y $cameraPositionY on the VRM camera node"
-        )
+    override fun setModelSettings(cameraFieldOfView: Double, cameraPositionY: Double, armsAngle: Double) {
+        cameraNode?.camera?.fieldOfView = cameraFieldOfView
+        cameraNode?.position = SCNVector3(0, cameraPositionY, -1.8)
+        this.armsAngle = Math.toRadians(armsAngle)
     }
 
     override fun isModelLoaded(): Boolean {
@@ -59,37 +71,34 @@ class VTuberVrmEffect(
     }
 
     override fun updateModel(face: VTuberFace, time: Double, timeDelta: Double) {
-        if (scene == null) {
-            return
-        }
-        var angle = time % (PI * 2)
+        val node = scene?.vrmNode ?: return
+        node.setBlendShape(value = face.mouthOpen, `for` = BlendShapeKey.preset(BlendShapePreset.a))
+        node.setBlendShape(value = 1 - face.leftEyeOpen, `for` = BlendShapeKey.preset(BlendShapePreset.blink))
+        val neckYAngle = face.sideAngle * 0.8
+        val neckZAngle = face.rotationAngle * 0.8
+        node.humanoid.node(`for` = Humanoid.Bones.neck)?.eulerAngles = SCNVector3(0, -neckYAngle, -neckZAngle)
+        node.humanoid.node(`for` = Humanoid.Bones.spine)?.eulerAngles =
+            SCNVector3(0, -neckYAngle / 3, -neckZAngle / 3)
+        var angle = Math.IEEEremainder(time, PI * 2)
         if (angle < 0) {
             angle *= -1
         }
         angle -= PI / 2
         angle *= 0.5
         val armAngle = (angle * 0.1) + armsAngle
-        val mouthOpen = face.mouthOpen
-        val blink = 1.0 - face.leftEyeOpen.toDouble()
-        val neckYAngle = face.sideAngle.toDouble() * 0.8
-        val neckZAngle = face.rotationAngle.toDouble() * 0.8
-        TODO(
-            "SceneKit has no Android counterpart: apply the blend shapes ($mouthOpen, $blink) " +
-                "and the humanoid euler angles (neck $neckYAngle/$neckZAngle, upper arms " +
-                "${-armAngle}/$armAngle) to the VRM nodes"
-        )
+        node.humanoid.node(`for` = Humanoid.Bones.leftUpperArm)?.eulerAngles = SCNVector3(0, 0, armAngle)
+        node.humanoid.node(`for` = Humanoid.Bones.rightUpperArm)?.eulerAngles = SCNVector3(0, 0, -armAngle)
     }
 
-    override fun renderModel(time: Double, size: Size): EffectImage? {
-        if (scene == null) {
-            return null
-        }
-        val factor = max(size.width, size.height) / 1920.0
-        val width = (600 * factor).toInt()
-        val height = (600 * factor).toInt()
-        TODO(
-            "SceneKit has no Android counterpart: render the VRM scene at $time into a " +
-                "${width}x$height image and convert it to an EffectImage"
+    override fun renderModel(time: Double, size: CGSize): EffectImage? {
+        val node = scene?.vrmNode ?: return null
+        node.update(at = time)
+        val factor = (maxOf(size.width, size.height) / 1920)
+        val vTuberImage = renderer.snapshot(
+            atTime = time,
+            with = CGSize(width = 600 * factor, height = 600 * factor),
+            antialiasingMode = SCNAntialiasingMode.none,
         )
+        return vTuberImage.cgImage.toEffectImage()
     }
 }

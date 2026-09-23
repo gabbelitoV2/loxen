@@ -1,14 +1,23 @@
 package com.moblin.android.videoeffects.browser
 
-import android.content.Context
-import android.graphics.Color
-import com.moblin.android.platform.video.CVPixelBuffer as Image
-import com.moblin.android.platform.webkit.InterimBrowserWebView as WebView
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.core.ContinuousClock
+import com.moblin.android.platform.coregraphics.CGRect
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIImage
+import com.moblin.android.platform.network.NWEndpoint
+import com.moblin.android.platform.webkit.URLRequest
+import com.moblin.android.platform.webkit.WKSnapshotConfiguration
+import com.moblin.android.platform.webkit.WKUserContentController
+import com.moblin.android.platform.webkit.WKUserScript
+import com.moblin.android.platform.webkit.WKUserScriptInjectionTime
+import com.moblin.android.platform.webkit.WKWebView
+import com.moblin.android.platform.webkit.WKWebViewConfiguration
 import com.moblin.android.various.ChatPost
 import com.moblin.android.various.MainTimer
+import com.moblin.android.various.network.setHttpProxy
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidgetBrowser
 import com.moblin.android.various.settings.SettingsWidgetBrowserMode
@@ -17,60 +26,57 @@ import com.moblin.android.various.settings.SettingsWidgetLayout
 import com.moblin.android.various.utils.loadStringResource
 import com.moblin.android.various.utils.screenScale
 import com.moblin.android.videoeffects.EffectImageCgImage
-import java.net.InetSocketAddress
-import java.net.URI
+import com.moblin.android.videoeffects.MetalPetalWidgetShape
+import com.moblin.android.videoeffects.move
+import com.moblin.android.videoeffects.resizeMirror
+import com.moblin.android.videoeffects.resizeMirrorMoveComposited
+import com.moblin.android.videoeffects.toEffectImage
 import java.util.Base64
-import kotlin.math.max
+import kotlin.time.DurationUnit
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.moblin.android.platform.uikit.cgImage
+import com.moblin.android.videoeffects.translated
 
-data class WidgetCrop(
-    val crop: SettingsWidgetCrop,
-    val sceneWidget: SettingsSceneWidget,
-)
-
-private enum class UserScriptInjectionTime {
-    DOCUMENT_START,
-    DOCUMENT_END,
-}
+data class WidgetCrop(val crop: SettingsWidgetCrop, val sceneWidget: SettingsSceneWidget)
 
 private fun createStyleSheetSource(styleSheet: String): String? {
     if (styleSheet.isEmpty()) {
         return null
     }
     val styleSheetData = styleSheet.toByteArray(Charsets.UTF_8)
-    val styleSheetBase64 = Base64.getEncoder().encodeToString(styleSheetData)
     return """
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    style.innerHTML = window.atob('$styleSheetBase64');
-    document.head.appendChild(style);
-    """.trimIndent()
+        var style = document.createElement('style');
+        style.type = 'text/css';
+        style.innerHTML = window.atob('${Base64.getEncoder().encodeToString(styleSheetData)}');
+        document.head.appendChild(style);
+        """.trimIndent()
 }
 
-private fun videoScript(): String {
-    return loadStringResource("video", "js")
-}
+private fun videoScript(): String = loadStringResource(name = "video", ext = "js")
 
-private fun addScript(webView: WebView, script: String, injectionTime: UserScriptInjectionTime) {
-    Unit
+private fun addScript(
+    configuration: WKWebViewConfiguration,
+    script: String,
+    injectionTime: WKUserScriptInjectionTime,
+) {
+    configuration.userContentController.addUserScript(
+        WKUserScript(source = script, injectionTime = injectionTime, forMainFrameOnly = false)
+    )
 }
 
 class BrowserEffect(
-    url: URI,
+    url: java.net.URI,
     styleSheet: String,
     widget: SettingsWidgetBrowser,
     moblinAccess: Boolean,
-    proxyServer: InetSocketAddress?,
-    context: Context = com.moblin.android.AppDelegate.context,
+    proxyServer: java.net.InetSocketAddress?,
 ) : VideoEffect(), BrowserEffectServerDelegate {
-    val webView: WebView
-    @Volatile private var snapshot: EffectImageCgImage? = null
+    val webView: WKWebView
+    private var snapshot: EffectImageCgImage? = null
     val width: Double
     val height: Double
-    private val url: URI
+    private val url: java.net.URI
     var isLoaded: Boolean = false
         private set
     val layout = MutableStateFlow<SettingsWidgetLayout?>(null)
@@ -78,7 +84,7 @@ class BrowserEffect(
     private var baseFps: Double
     private var fps: Double
     private val snapshotTimer = MainTimer()
-    var startLoadingTime: com.moblin.android.platform.core.ContinuousClock.Instant = com.moblin.android.platform.core.ContinuousClock.now
+    var startLoadingTime: ContinuousClock.Instant = ContinuousClock.now
     private val scale: Double
     private var sceneWidget: SettingsSceneWidget? = null
     private var crops: List<WidgetCrop> = emptyList()
@@ -86,7 +92,8 @@ class BrowserEffect(
     private val speechToText: Boolean
     private var stopped = false
     private var suspended = false
-    private val snapshotConfiguration: Double
+    private val snapshotConfiguration: WKSnapshotConfiguration
+    private val userContentController: WKUserContentController
 
     init {
         scale = screenScale().toDouble()
@@ -102,23 +109,33 @@ class BrowserEffect(
         speechToText = widget.speechToText
         width = widget.width.toDouble()
         height = widget.height.toDouble()
-        snapshotConfiguration = width / scale
-        webView = WebView(context)
-        webView.setBackgroundColor(Color.TRANSPARENT)
-        webView.isVerticalScrollBarEnabled = false
-        webView.isHorizontalScrollBarEnabled = false
-        webView.settings.mediaPlaybackRequiresUserGesture = false
-        val styleSheetSource = createStyleSheetSource(styleSheet)
-        if (styleSheetSource != null) {
-            addScript(webView, styleSheetSource, UserScriptInjectionTime.DOCUMENT_END)
+        snapshotConfiguration = WKSnapshotConfiguration()
+        snapshotConfiguration.snapshotWidth = width / scale
+        val configuration = WKWebViewConfiguration()
+        configuration.allowsInlineMediaPlayback = true
+        configuration.allowsPictureInPictureMediaPlayback = false
+        configuration.mediaTypesRequiringUserActionForPlayback = emptySet()
+        val source = createStyleSheetSource(styleSheet)
+        if (source != null) {
+            addScript(configuration, source, WKUserScriptInjectionTime.atDocumentEnd)
         }
-        addScript(webView, videoScript(), UserScriptInjectionTime.DOCUMENT_START)
-        server = BrowserEffectServer(webView, moblinAccess)
+        addScript(configuration, videoScript(), WKUserScriptInjectionTime.atDocumentStart)
+        configuration.setHttpProxy(endpoint = proxyServer?.let {
+            NWEndpoint.hostPort(NWEndpoint.Host(it.hostString), NWEndpoint.Port(it.port))
+        })
+        userContentController = configuration.userContentController
+        server = BrowserEffectServer(configuration = configuration, moblinAccess = moblinAccess)
+        webView = WKWebView(
+            frame = CGRect(x = 0.0, y = 0.0, width = width, height = height),
+            configuration = configuration,
+        )
+        webView.isOpaque = false
+        webView.backgroundColor = android.graphics.Color.TRANSPARENT
+        webView.scrollView.backgroundColor = android.graphics.Color.TRANSPARENT
+        webView.scrollView.showsVerticalScrollIndicator = false
+        webView.scrollView.showsHorizontalScrollIndicator = false
+        server.webView = webView
         server.delegate = this
-    }
-
-    fun close() {
-        Unit
     }
 
     override fun isEnabled(): Boolean {
@@ -126,14 +143,14 @@ class BrowserEffect(
     }
 
     fun sendChatMessage(post: ChatPost) {
-        server.sendChatMessage(post)
+        server.sendChatMessage(post = post)
     }
 
     fun sendSpeechToText(position: Int, text: String) {
         if (!speechToText) {
             return
         }
-        server.sendSpeechToText(position, text)
+        server.sendSpeechToText(position = position, text = text)
     }
 
     fun sendSpeechToTextClear() {
@@ -147,7 +164,7 @@ class BrowserEffect(
         get() = url.host ?: "?"
 
     val progress: Int
-        get() = 0
+        get() = (100 * webView.estimatedProgress).toInt()
 
     fun stop() {
         stopTakeSnapshots()
@@ -161,22 +178,75 @@ class BrowserEffect(
         layout.value = sceneWidget?.layout
         stopTakeSnapshots()
         if (sceneWidget != null || crops.isNotEmpty()) {
-            setSceneWidgetEnabled(sceneWidget, crops)
+            setSceneWidgetEnabled(sceneWidget = sceneWidget, crops = crops)
         } else if (isLoaded) {
             setSceneWidgetLoaded()
         }
     }
 
-    fun setProxyServer(endpoint: InetSocketAddress?) {
-        Unit
+    fun setProxyServer(endpoint: java.net.InetSocketAddress?) {
+        webView.configuration.setHttpProxy(endpoint = endpoint?.let {
+            NWEndpoint.hostPort(NWEndpoint.Host(it.hostString), NWEndpoint.Port(it.port))
+        })
+        reload()
     }
 
-    override fun execute(image: Image, info: VideoEffectInfo): Image {
-        TODO()
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
+        val snapshot = snapshot?.getCiImage() ?: return image
+        var image = image
+        val sceneWidget = this.sceneWidget
+        if (sceneWidget != null) {
+            image = applyEffectsResizeMirrorMove(snapshot, sceneWidget, false, image.extent, info)
+                .composited(over = image)
+        }
+        for (crop in crops) {
+            val y = snapshot.extent.height.toInt() - crop.crop.y - crop.crop.height
+            image = snapshot
+                .cropped(
+                    to = CGRect(
+                        x = crop.crop.x,
+                        y = y,
+                        width = crop.crop.width,
+                        height = crop.crop.height,
+                    )
+                )
+                .translated(x = -crop.crop.x.toDouble(), y = y.toDouble())
+                .resizeMirror(crop.sceneWidget.layout, image.extent.size, false)
+                .move(crop.sceneWidget.layout, image.extent.size)
+                .cropped(to = image.extent)
+                .composited(over = image)
+        }
+        return image
     }
 
-    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
-        TODO()
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
+        val snapshot = snapshot?.getMetalPetalImage() ?: return image
+        var image = image
+        val sceneWidget = this.sceneWidget
+        if (sceneWidget != null) {
+            image = applyEffectsResizeMirrorMoveMetalPetal(
+                snapshot,
+                sceneWidget,
+                false,
+                image,
+                info,
+            )
+        }
+        for (crop in crops) {
+            val contentRegion = CGRect(
+                x = crop.crop.x,
+                y = crop.crop.y,
+                width = crop.crop.width,
+                height = crop.crop.height,
+            )
+            image = snapshot.resizeMirrorMoveComposited(
+                crop.sceneWidget.layout,
+                false,
+                image,
+                MetalPetalWidgetShape(contentRegion = contentRegion),
+            )
+        }
+        return image
     }
 
     private fun setSceneWidgetEnabled(sceneWidget: SettingsSceneWidget?, crops: List<WidgetCrop>) {
@@ -185,8 +255,8 @@ class BrowserEffect(
             this@BrowserEffect.crops = crops
         }
         if (!isLoaded) {
-            startLoadingTime = com.moblin.android.platform.core.ContinuousClock.now
-            webView.loadUrl(url.toString())
+            startLoadingTime = ContinuousClock.now
+            webView.load(URLRequest(url = url))
             server.enable()
             isLoaded = true
         }
@@ -198,7 +268,7 @@ class BrowserEffect(
         processorPipelineQueue.launch {
             this@BrowserEffect.snapshot = null
         }
-        webView.loadDataWithBaseURL(null, "<html></html>", "text/html", "utf-8", null)
+        webView.loadHTMLString("<html></html>", baseURL = null)
         server.disable()
         isLoaded = false
     }
@@ -229,15 +299,20 @@ class BrowserEffect(
     }
 
     private fun takeSnapshots(takeSnapshotTime: Double) {
-        snapshotTimer.startSingleShot(max(1.0 / fps - takeSnapshotTime, 0.001)) {
-            val takeSnapshotBeginTime = System.nanoTime()
-            val image: EffectImageCgImage? = null
-            if (!stopped && !suspended) {
-                takeSnapshots((System.nanoTime() - takeSnapshotBeginTime) / 1_000_000_000.0)
-                if (image != null) {
-                    processorPipelineQueue.launch {
-                        this@BrowserEffect.snapshot = image
-                    }
+        snapshotTimer.startSingleShot(maxOf(1 / fps - takeSnapshotTime, 0.001)) {
+            val takeSnapshotBeginTime = ContinuousClock.now
+            webView.takeSnapshot(with = snapshotConfiguration) { image, _ ->
+                if (stopped || suspended) {
+                    return@takeSnapshot
+                }
+                val takeSnapshotDuration = takeSnapshotBeginTime.duration(to = ContinuousClock.now)
+                takeSnapshots(takeSnapshotDuration.toDouble(DurationUnit.SECONDS))
+                if (image == null) {
+                    return@takeSnapshot
+                }
+                val snapshot = image.cgImage.toEffectImage()
+                processorPipelineQueue.launch {
+                    this@BrowserEffect.snapshot = snapshot
                 }
             }
         }

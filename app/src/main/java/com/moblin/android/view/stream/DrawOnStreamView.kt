@@ -96,7 +96,7 @@ private fun DrawOnStreamCanvasView(
                 val width = line.width
                 if (line.points.size > 1) {
                     drawPath(
-                        path = drawOnStreamCreatePath(line.points),
+                        path = drawOnStreamCreatePath(line.points.map { com.moblin.android.platform.coregraphics.CGPoint(it.x, it.y) }),
                         color = line.color,
                         style = Stroke(width = width),
                     )

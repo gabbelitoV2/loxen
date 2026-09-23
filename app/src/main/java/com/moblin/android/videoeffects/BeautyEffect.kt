@@ -1,13 +1,17 @@
 package com.moblin.android.videoeffects
 
-import com.moblin.android.platform.video.CVPixelBuffer as Image
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectDetectionsMode
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
-import kotlinx.coroutines.launch
+import com.moblin.android.platform.metalpetal.MTIBulgeDistortionFilter
+import com.moblin.android.platform.metalpetal.MTIHighPassSkinSmoothingFilter
+import com.moblin.android.platform.metalpetal.MTIImage
+import com.moblin.android.platform.simd.SIMD2
+import com.moblin.android.platform.vision.VNFaceObservation
 import kotlin.math.max
 import kotlin.math.min
+import kotlinx.coroutines.launch
 
 class BeautyEffect(fps: Float) : VideoEffect() {
     private var smoothnessRadius: Float = 10.0f
@@ -16,7 +20,7 @@ class BeautyEffect(fps: Float) : VideoEffect() {
     private var shapeRadius: Float = 0.5f
     private var shapeStrength: Float = 0.5f
     private var shapeScaleFactor: Float = 1.0f
-    private var lastFaceDetections: List<Any> = emptyList()
+    private var lastFaceDetections: List<VNFaceObservation> = emptyList()
     private var framesPerFade: Float = 30f
 
     init {
@@ -38,7 +42,7 @@ class BeautyEffect(fps: Float) : VideoEffect() {
         }
     }
 
-    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
         val detections = info.sceneFaceDetections()
         updateLastFaceDetectionsBefore(info.isFirstAfterAttach)
         updateScaleFactors(detections, info.isFirstAfterAttach)
@@ -61,7 +65,7 @@ class BeautyEffect(fps: Float) : VideoEffect() {
         return true
     }
 
-    override fun needsFaceDetections(pts: Double): VideoEffectDetectionsMode {
+    override fun needsFaceDetections(interval: Double): VideoEffectDetectionsMode {
         return if (shapeStrength > 0f) {
             VideoEffectDetectionsMode.Now(null)
         } else {
@@ -75,7 +79,7 @@ class BeautyEffect(fps: Float) : VideoEffect() {
         }
     }
 
-    private fun updateLastFaceDetectionsAfter(faceDetections: List<Any>?) {
+    private fun updateLastFaceDetectionsAfter(faceDetections: List<VNFaceObservation>?) {
         if (faceDetections != null && faceDetections.isNotEmpty()) {
             lastFaceDetections = faceDetections
         }
@@ -89,11 +93,11 @@ class BeautyEffect(fps: Float) : VideoEffect() {
         shapeScaleFactor = max(shapeScaleFactor - (1.0f / framesPerFade), 0f)
     }
 
-    private fun updateScaleFactors(detections: List<Any>?, isFirstAfterAttach: Boolean) {
+    private fun updateScaleFactors(detections: List<VNFaceObservation>?, isFirstAfterAttach: Boolean) {
         if (isFirstAfterAttach) {
             shapeScaleFactor = 1f
         } else {
-            if (detections.isNullOrEmpty()) {
+            if (detections == null || detections.isEmpty()) {
                 decreaseShapeScaleFactor()
             } else {
                 increaseShapeScaleFactor()
@@ -101,25 +105,48 @@ class BeautyEffect(fps: Float) : VideoEffect() {
         }
     }
 
-    private fun addBeautySmoothnessMetalPetal(image: Image?): Image? {
-        return null
+    private fun addBeautySmoothnessMetalPetal(image: MTIImage?): MTIImage? {
+        val filter = MTIHighPassSkinSmoothingFilter()
+        filter.amount = smoothnessStrength
+        filter.radius = smoothnessRadius
+        filter.inputImage = image
+        return filter.outputImage
     }
 
     private fun addBeautyShapeMetalPetal(
-        image: Image?,
-        detections: List<Any>?,
+        image: MTIImage?,
+        detections: List<VNFaceObservation>?,
         info: VideoEffectInfo,
-    ): Image? {
+    ): MTIImage? {
         if (image == null || detections == null) {
             return image
         }
-        var faceDetections = detections
+        var faceDetections: List<VNFaceObservation> = detections
         if (faceDetections.isEmpty()) {
             faceDetections = lastFaceDetections
         }
-        var outputImage: Image? = image
+        var outputImage: MTIImage? = image
         for (detection in faceDetections) {
-            Unit
+            val medianLine = detection.landmarks?.medianLine
+            if (medianLine != null) {
+                val points = medianLine.pointsInImage(imageSize = image.extent.size)
+                val firstPoint = points.firstOrNull()
+                val lastPoint = points.lastOrNull()
+                if (firstPoint == null || lastPoint == null) {
+                    continue
+                }
+                val maxY = firstPoint.y.toFloat()
+                val minY = lastPoint.y.toFloat()
+                val centerX = lastPoint.x.toFloat()
+                val filter = MTIBulgeDistortionFilter()
+                val y = image.size.height.toFloat() -
+                    (minY + (maxY - minY) * ((shapePosition - 0.5f) * 0.5f))
+                filter.inputImage = outputImage
+                filter.center = SIMD2(centerX, y)
+                filter.radius = (maxY - minY) * (0.7f + shapeRadius * 0.3f)
+                filter.scale = shapeScaleMetalPetal()
+                outputImage = filter.outputImage
+            }
         }
         return outputImage
     }

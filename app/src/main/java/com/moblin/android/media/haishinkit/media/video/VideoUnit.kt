@@ -637,7 +637,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         }
         var latestSampleBuffer = this.latestSampleBuffer ?: return
         val latestSampleBufferTime = effectsProcessor.latestSampleBufferTime ?: return
-        val delta = (SystemClock.elapsedRealtimeNanos() - latestSampleBufferTime).nanoseconds
+        val delta = latestSampleBufferTime.duration(to = com.moblin.android.platform.core.ContinuousClock.now)
         if (delta <= 0.05.seconds) {
             return
         }
@@ -879,7 +879,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
             return
         }
         latestSampleBuffer = sampleBuffer
-        effectsProcessor.latestSampleBufferTime = SystemClock.elapsedRealtimeNanos()
+        effectsProcessor.latestSampleBufferTime = com.moblin.android.platform.core.ContinuousClock.now
         sceneSwitchEndRendered = false
         if (appendSampleBuffer(
                 sampleBuffer,
@@ -970,8 +970,6 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
 }
 
 fun createBlackImage(width: Double, height: Double): com.moblin.android.platform.coreimage.CIImage {
-    val bitmap = Bitmap.createBitmap(width.toInt(), height.toInt(), Bitmap.Config.ARGB_8888)
-    bitmap.eraseColor(Color.BLACK)
     return com.moblin.android.platform.coreimage.CIImage.black.cropped(to = com.moblin.android.platform.coregraphics.CGRect(x = 0.0, y = 0.0, width = width, height = height))
 }
 

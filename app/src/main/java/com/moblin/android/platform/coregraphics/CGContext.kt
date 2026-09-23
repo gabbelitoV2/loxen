@@ -156,13 +156,13 @@ class CGContext private constructor(
                 return image
             }
             val pixels = IntArray(width * height)
-            val premultiplied = ByteBuffer.allocate(width * height * 4).order(ByteOrder.nativeOrder())
-            bitmap.copyPixelsToBuffer(premultiplied)
-            val bytes = premultiplied.array()
+            bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
             for (index in 0 until width * height) {
-                val red = bytes[index * 4].toInt() and 0xFF
-                val green = bytes[index * 4 + 1].toInt() and 0xFF
-                val blue = bytes[index * 4 + 2].toInt() and 0xFF
+                val pixel = pixels[index]
+                val alpha = (pixel ushr 24) and 0xFF
+                val red = (((pixel shr 16) and 0xFF) * alpha + 127) / 255
+                val green = (((pixel shr 8) and 0xFF) * alpha + 127) / 255
+                val blue = ((pixel and 0xFF) * alpha + 127) / 255
                 pixels[index] = (0xFF shl 24) or (red shl 16) or (green shl 8) or blue
             }
             val opaque = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
@@ -226,39 +226,41 @@ class CGContext private constructor(
                 return null
             }
             if (data != null && data.size >= rowBytes * (height - 1) + width * bytesPerPixel) {
-                val pixels = ByteBuffer.allocate(width * height * 4).order(ByteOrder.nativeOrder())
-                val out = pixels.array()
+                val first = alphaInfo == CGImageAlphaInfo.premultipliedFirst.rawValue ||
+                    alphaInfo == CGImageAlphaInfo.first.rawValue ||
+                    alphaInfo == CGImageAlphaInfo.noneSkipFirst.rawValue
+                val premultiplied = alphaInfo == CGImageAlphaInfo.premultipliedLast.rawValue ||
+                    alphaInfo == CGImageAlphaInfo.premultipliedFirst.rawValue
+                val offset = if (first) 1 else 0
+                val pixels = IntArray(width * height)
                 for (row in 0 until height) {
                     for (column in 0 until width) {
-                        val target = (row * width + column) * 4
+                        val target = row * width + column
                         if (isGray) {
-                            val gray = data[row * rowBytes + column]
-                            out[target] = gray
-                            out[target + 1] = gray
-                            out[target + 2] = gray
-                            out[target + 3] = 0xFF.toByte()
+                            val gray = data[row * rowBytes + column].toInt() and 0xFF
+                            pixels[target] = (0xFF shl 24) or (gray shl 16) or (gray shl 8) or gray
                         } else {
                             val source = row * rowBytes + column * 4
-                            val first = alphaInfo == CGImageAlphaInfo.premultipliedFirst.rawValue ||
-                                alphaInfo == CGImageAlphaInfo.first.rawValue ||
-                                alphaInfo == CGImageAlphaInfo.noneSkipFirst.rawValue
-                            val offset = if (first) 1 else 0
                             val alpha = if (!hasAlpha) {
-                                0xFF.toByte()
+                                0xFF
                             } else if (first) {
-                                data[source]
+                                data[source].toInt() and 0xFF
                             } else {
-                                data[source + 3]
+                                data[source + 3].toInt() and 0xFF
                             }
-                            out[target] = data[source + offset]
-                            out[target + 1] = data[source + offset + 1]
-                            out[target + 2] = data[source + offset + 2]
-                            out[target + 3] = alpha
+                            var red = data[source + offset].toInt() and 0xFF
+                            var green = data[source + offset + 1].toInt() and 0xFF
+                            var blue = data[source + offset + 2].toInt() and 0xFF
+                            if (premultiplied && alpha in 1..254) {
+                                red = min(255, (red * 255 + alpha / 2) / alpha)
+                                green = min(255, (green * 255 + alpha / 2) / alpha)
+                                blue = min(255, (blue * 255 + alpha / 2) / alpha)
+                            }
+                            pixels[target] = (alpha shl 24) or (red shl 16) or (green shl 8) or blue
                         }
                     }
                 }
-                pixels.rewind()
-                bitmap.copyPixelsFromBuffer(pixels)
+                bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
             }
             return CGContext(width, height, isGray, hasAlpha, bitmap)
         }

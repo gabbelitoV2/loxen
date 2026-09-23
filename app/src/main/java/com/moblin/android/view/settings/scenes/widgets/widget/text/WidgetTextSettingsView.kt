@@ -1903,7 +1903,7 @@ fun WidgetTextSettingsView(
                 onChange = { design ->
                     text.fontDesign = design
                     for (effect in model.getTextEffects(id = widget.id)) {
-                        effect.setFontDesign(design = design)
+                        effect.setFontDesign(design = design.toUiKit())
                     }
                     model.remoteSceneSettingsUpdated()
                 },
@@ -1916,7 +1916,7 @@ fun WidgetTextSettingsView(
                 onChange = { weight ->
                     text.fontWeight = weight
                     for (effect in model.getTextEffects(id = widget.id)) {
-                        effect.setFontWeight(weight = weight)
+                        effect.setFontWeight(weight = weight.toSystem())
                     }
                     model.remoteSceneSettingsUpdated()
                 },

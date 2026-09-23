@@ -1,19 +1,20 @@
 package com.moblin.android.videoeffects
 
-import com.moblin.android.platform.video.CVPixelBuffer as Image
-import android.util.Size
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.coreimage.CIFilter
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIImage
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidgetQrCode
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class QrCodeEffect(private val widget: SettingsWidgetQrCode) : VideoEffect() {
     private var newSceneWidget: SettingsSceneWidget? = null
     private var sceneWidget: SettingsSceneWidget? = null
-    private var size: Size = Size(0, 0)
+    private var size: CGSize = CGSize.zero
     private var qrCodeImage: EffectImageCiImage? = null
 
     fun setSceneWidget(sceneWidget: SettingsSceneWidget) {
@@ -22,21 +23,45 @@ class QrCodeEffect(private val widget: SettingsWidgetQrCode) : VideoEffect() {
         }
     }
 
-    override fun execute(image: Image, info: VideoEffectInfo): Image {
-        return TODO("OpenGL ES port")
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
+        val newSceneWidget = newSceneWidget ?: return image
+        update(newSceneWidget = newSceneWidget, size = image.extent.size)
+        val qrCodeImage = qrCodeImage ?: return image
+        return applyEffectsResizeMirrorMove(qrCodeImage.getCiImage(),
+                                            newSceneWidget,
+                                            false,
+                                            image.extent,
+                                            info)
+            .composited(over = image)
     }
 
-    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
-        return TODO("OpenGL ES port")
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
+        val newSceneWidget = newSceneWidget ?: return image
+        update(newSceneWidget = newSceneWidget, size = image.extent.size)
+        val qrCodeImage = qrCodeImage ?: return image
+        return applyEffectsResizeMirrorMoveMetalPetal(qrCodeImage.getMetalPetalImage(),
+                                                      newSceneWidget,
+                                                      false,
+                                                      image,
+                                                      info)
     }
 
-    private fun update(newSceneWidget: SettingsSceneWidget, size: Size) {
-        if (newSceneWidget.layout.extent() == sceneWidget?.layout?.extent() && size == this.size) {
+    private fun update(newSceneWidget: SettingsSceneWidget, size: CGSize) {
+        val oldExtent = sceneWidget?.layout?.extent()
+        val newExtent = newSceneWidget.layout.extent()
+        val sameExtent = newExtent.width() == oldExtent?.width() && newExtent.height() == oldExtent?.height()
+        val sameSize = size.width == this.size.width && size.height == this.size.height
+        if (sameExtent && sameSize) {
             return
         }
         val data = widget.message.toByteArray(Charsets.UTF_8)
+        val filter = CIFilter.qrCodeGenerator()
+        filter.message = data
+        filter.correctionLevel = "M"
         sceneWidget = newSceneWidget
         this.size = size
-        qrCodeImage = TODO("OpenGL ES port: encode data as a QR code (correction level M), scale it to 400 px width and wrap the result in an EffectImageCiImage")
+        val image = filter.outputImage ?: return
+        val scale = 400.0 / image.extent.size.width
+        qrCodeImage = image.scaled(x = scale, y = scale).toEffectImage(isOpaque = true)
     }
 }

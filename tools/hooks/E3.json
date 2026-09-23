@@ -88,6 +88,26 @@
    "old": "                elapsed += (now - playPressedTime) / 1_000_000_000.0",
    "occurrence": 1,
    "note": "ME1, kept file, with HE3.7."
+  },
+  {
+   "id": "HE3.10",
+   "file": "videoeffects/ImageEffect.kt",
+   "scope": "fun loadImage",
+   "op": "replace",
+   "old": "        CoroutineScope(Dispatchers.IO).launch {",
+   "new": "        CoroutineScope(Dispatchers.Default).launch {",
+   "occurrence": 1,
+   "note": "ME1 acceptance: Swift DispatchQueue.global().async loads and decodes on Dispatchers.Default (effects plan E3)."
+  },
+  {
+   "id": "HE3.11",
+   "file": "videoeffects/text/TextEffect.kt",
+   "scope": "fun TextView",
+   "op": "replace",
+   "old": "                                                color = Color.Yellow,",
+   "new": "                                                color = Color(0xFFFFCC00),",
+   "occurrence": 1,
+   "note": "ME1: SwiftUI .yellow is the iOS system yellow, not Compose Color.Yellow."
   }
  ]
 }

@@ -1,12 +1,23 @@
 package com.moblin.android.videoeffects
 
-import com.moblin.android.platform.video.CVPixelBuffer as Image
-import androidx.compose.ui.geometry.Size
+import android.location.Location
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.Bundle
+import com.moblin.android.platform.coregraphics.CGPoint
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.mapkit.MKMapCamera
+import com.moblin.android.platform.mapkit.MKMapSnapshotter
+import com.moblin.android.platform.metalpetal.MTIImage
+import com.moblin.android.platform.metalpetal.MTIMultilayerCompositingFilter
+import com.moblin.android.platform.metalpetal.MTILayer
+import com.moblin.android.platform.uikit.cgImage
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidgetMap
+import com.moblin.android.various.utils.CLLocationCoordinate2D
+import com.moblin.android.various.utils.translateMeters
 import java.time.Instant
 import kotlin.math.PI
 import kotlin.math.cos
@@ -15,46 +26,23 @@ import kotlin.math.sin
 import kotlin.math.tan
 import kotlinx.coroutines.launch
 
-data class MapCoordinate(val latitude: Double, val longitude: Double)
-
-data class MapLocation(
-    val coordinate: MapCoordinate = MapCoordinate(0.0, 0.0),
-    val speed: Double = -1.0,
-    val course: Double = -1.0,
-    val timestamp: Instant = Instant.EPOCH,
-)
-
-class MapCamera {
-    var heading: Double = 0.0
-    var centerCoordinate: MapCoordinate = MapCoordinate(0.0, 0.0)
-    var centerCoordinateDistance: Double = 0.0
-    var pitch: Double = 0.0
-}
-
-private fun MapCoordinate.translateMeters(x: Double, y: Double): MapCoordinate =
-    TODO()
-class MapEffect(private var widget: SettingsWidgetMap) : VideoEffect() {
+class MapEffect(widget: SettingsWidgetMap) : VideoEffect() {
     private var mapSnapshot: EffectImageCiImage? = null
+    private val widget: SettingsWidgetMap = widget.clone()
     private var sceneWidget: SettingsSceneWidget? = null
-    private var location: MapLocation = MapLocation()
-    fun updateLocation(location: android.location.Location): Unit = updateLocation(location = MapLocation(coordinate = MapCoordinate(location.latitude, location.longitude), speed = location.speed.toDouble(), course = if (location.hasBearing()) location.bearing.toDouble() else -1.0, timestamp = Instant.ofEpochMilli(location.time)))
-    private var size: Size = Size.Zero
-    private var newLocations: ArrayDeque<MapLocation> = ArrayDeque(listOf(MapLocation()))
-    private var mapSnapshotter: MapCamera? = null
-    private var dot: EffectImageCgImage? = null
+    private var location: Location = Location("")
+    private var size: CGSize = CGSize.zero
+    private var newLocations: ArrayDeque<Location> = ArrayDeque(listOf(Location("")))
+    private var mapSnapshotter: MKMapSnapshotter? = null
+    private val dot: EffectImageCgImage? = Bundle.image("MapDot")?.cgImage?.toEffectImage()
     private var dotOffsetRatio = 0.0
     private var zoomOutFactor: Int? = null
     private var isLocationUpdated: Boolean = true
 
-    init {
-        this.widget = widget.clone()
-        dot = null
-    }
-
     fun zoomOutTemporarily() {
         processorPipelineQueue.launch {
-            if (zoomOutFactor == null) {
-                zoomOutFactor = 2
+            if (this@MapEffect.zoomOutFactor == null) {
+                this@MapEffect.zoomOutFactor = 2
             }
         }
     }
@@ -65,85 +53,126 @@ class MapEffect(private var widget: SettingsWidgetMap) : VideoEffect() {
         }
     }
 
-    fun updateLocation(location: MapLocation) {
+    fun updateLocation(location: Location) {
         processorPipelineQueue.launch {
-            isLocationUpdated = true
-            newLocations.addLast(location)
-            if (newLocations.size > 10) {
-                newLocations.removeFirst()
+            this@MapEffect.isLocationUpdated = true
+            this@MapEffect.newLocations.addLast(location)
+            if (this@MapEffect.newLocations.size > 10) {
+                this@MapEffect.newLocations.removeFirst()
             }
         }
     }
 
-    override fun execute(image: Image, info: VideoEffectInfo): Image {
-        val size = Size(image.width.toFloat(), image.height.toFloat())
-        update(size)
-        val sceneWidget = this.sceneWidget
-        val dot = this.dot
-        val mapSnapshot = this.mapSnapshot
-        if (sceneWidget == null || dot == null || mapSnapshot == null) {
-            return image
-        }
-        val height = toPixels(sceneWidget.layout.size, size.height.toDouble())
-        val width = toPixels(sceneWidget.layout.size, size.width.toDouble())
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
+        val size = image.extent.size
+        update(size = size)
+        val sceneWidget = this.sceneWidget ?: return image
+        val dot = this.dot ?: return image
+        val mapSnapshot = this.mapSnapshot ?: return image
+        val dotImage = dot.getCiImage()
+        val mapImage = mapSnapshot.getCiImage()
+        val height = toPixels(sceneWidget.layout.size, size.height)
+        val width = toPixels(sceneWidget.layout.size, size.width)
         val side = maxOf(40.0, minOf(height, width))
-        return TODO("OpenGL ES port")
+        val mapWithDotImage = dotImage
+            .translated(x = (side - 30) / 2, y = (side - 30) / 2 - dotOffsetRatio * side / 2)
+            .composited(over = mapImage
+                .scaled(x = side / mapImage.extent.width,
+                    y = side / mapImage.extent.width))
+        return applyEffectsResizeMirrorMove(mapWithDotImage, sceneWidget, false, image.extent, info)
+            .composited(over = image)
     }
 
-    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
-        val size = Size(image.width.toFloat(), image.height.toFloat())
-        update(size)
-        val sceneWidget = this.sceneWidget
-        val dot = this.dot
-        val mapSnapshot = this.mapSnapshot
-        if (sceneWidget == null || dot == null || mapSnapshot == null) {
-            return image
-        }
-        return TODO("OpenGL ES port")
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
+        val size = image.extent.size
+        update(size = size)
+        val sceneWidget = this.sceneWidget ?: return image
+        val dot = this.dot ?: return image
+        val mapSnapshot = this.mapSnapshot ?: return image
+        val mapImage = mapSnapshot.getMetalPetalImage()
+        val dotImage = dot.getMetalPetalImage()
+        val mapWidth = mapImage.size.width
+        val mapHeight = mapImage.size.height
+        val height = toPixels(sceneWidget.layout.size, size.height)
+        val width = toPixels(sceneWidget.layout.size, size.width)
+        val side = maxOf(40.0, minOf(height, width))
+        val dotSide = 30 * mapWidth / side
+        val dotSize = CGSize(width = dotSide, height = dotSide)
+        val dotX = mapWidth / 2
+        val dotY = mapHeight / 2 + dotOffsetRatio * mapHeight / 2
+        val filter = MTIMultilayerCompositingFilter()
+        filter.inputBackgroundImage = mapImage
+        filter.layers = listOf(
+            MTILayer(content = dotImage, position = CGPoint(x = dotX, y = dotY), size = dotSize),
+        )
+        val mapWithDotImage = filter.outputImage ?: return image
+        return applyEffectsResizeMirrorMoveMetalPetal(mapWithDotImage,
+            sceneWidget,
+            false,
+            image,
+            info)
     }
 
-    private fun nextNewLocation(): MapLocation {
+    private fun nextNewLocation(): Location {
         val now = Instant.now()
         val delay = widget.delay
-        return newLocations.lastOrNull { it.timestamp.plusMillis((delay * 1000).toLong()) <= now }
-            ?: newLocations.first()
+        return newLocations.lastOrNull {
+            Instant.ofEpochMilli(it.time).plusMillis((delay * 1000.0).toLong()) <= now
+        } ?: newLocations.first()
     }
 
-    private fun update(size: Size) {
+    private fun update(size: CGSize) {
         val newLocation = nextNewLocation()
         val zoomOutFactor = this.zoomOutFactor
         val isLocationUpdated = this.isLocationUpdated
         this.isLocationUpdated = false
-        if (size == this.size
-            && newLocation.coordinate.latitude == location.coordinate.latitude
-            && newLocation.coordinate.longitude == location.coordinate.longitude
-            && newLocation.speed == location.speed
-            && !(zoomOutFactor != null && isLocationUpdated)
+        if (!(size.width != this.size.width
+                || size.height != this.size.height
+                || newLocation.latitude != location.latitude
+                || newLocation.longitude != location.longitude
+                || newLocation.speed != location.speed
+                || (zoomOutFactor != null && isLocationUpdated))
         ) {
             return
         }
-        val (mapSnapshotter, dotOffsetRatio) = createSnapshotter(newLocation, zoomOutFactor)
+        val (mapSnapshotter, dotOffsetRatio) = createSnapshotter(
+            newLocation = newLocation,
+            zoomOutFactor = zoomOutFactor
+        )
         this.mapSnapshotter = mapSnapshotter
-        startMapSnapshotter(mapSnapshotter, dotOffsetRatio)
+        this.mapSnapshotter?.start(with = null) { snapshot, error ->
+            if (snapshot == null || error != null) {
+                return@start
+            }
+            val image = snapshot.image.cgImage
+            val mapSnapshot = CIImage(cgImage = image).toEffectImage(isOpaque = true)
+            processorPipelineQueue.launch {
+                this@MapEffect.mapSnapshot = mapSnapshot
+                this@MapEffect.dotOffsetRatio = dotOffsetRatio
+            }
+        }
         this.size = size
         location = newLocation
     }
 
-    private fun createSnapshotter(newLocation: MapLocation, zoomOutFactor: Int?): Pair<MapCamera, Double> {
-        var zoomOut = zoomOutFactor
-        if (zoomOut == 10) {
-            zoomOut = null
+    private fun createSnapshotter(newLocation: Location,
+                                  zoomOutFactor: Int?): Pair<MKMapSnapshotter, Double>
+    {
+        var zoomOutFactor = zoomOutFactor
+        if (zoomOutFactor == 10) {
+            zoomOutFactor = null
             this.zoomOutFactor = null
         }
-        val camera = MapCamera()
+        val camera = MKMapCamera()
         if (!widget.northUp) {
-            camera.heading = newLocation.course
+            camera.heading = if (newLocation.hasBearing()) newLocation.bearing.toDouble() else -1.0
         }
-        camera.centerCoordinate = newLocation.coordinate
+        camera.centerCoordinate = CLLocationCoordinate2D(latitude = newLocation.latitude,
+            longitude = newLocation.longitude)
         camera.centerCoordinateDistance = widget.size
         var dotOffsetRatio = 0.0
-        if (newLocation.speed > 4 && zoomOut == null) {
-            camera.centerCoordinateDistance += 150 * (newLocation.speed - 4)
+        if (newLocation.speed > 4 && zoomOutFactor == null) {
+            camera.centerCoordinateDistance += 150.0 * (newLocation.speed - 4)
             if (!widget.northUp) {
                 val halfMapSideLength = tan(PI / 12) * camera.centerCoordinateDistance
                 val maxDotOffsetFromCenter = halfMapSideLength / 2
@@ -153,27 +182,29 @@ class MapEffect(private var widget: SettingsWidgetMap) : VideoEffect() {
                 if (dotOffsetInMeters > maxDotOffsetFromCenter) {
                     dotOffsetInMeters = maxDotOffsetFromCenter
                 }
-                val course = Math.toRadians(maxOf(newLocation.course, 0.0))
+                val course = Math.toRadians(
+                    maxOf(if (newLocation.hasBearing()) newLocation.bearing.toDouble() else -1.0, 0.0)
+                )
                 val latitudeOffsetInMeters = cos(course) * dotOffsetInMeters
                 val longitudeOffsetInMeters = sin(course) * dotOffsetInMeters
-                camera.centerCoordinate = newLocation.coordinate.translateMeters(
+                camera.centerCoordinate = CLLocationCoordinate2D(latitude = newLocation.latitude,
+                    longitude = newLocation.longitude).translateMeters(
                     x = longitudeOffsetInMeters,
-                    y = latitudeOffsetInMeters,
+                    y = latitudeOffsetInMeters
                 )
                 dotOffsetRatio = dotOffsetInMeters / halfMapSideLength
             }
         }
         camera.pitch = 0.0
-        zoomOut?.let { factor ->
+        val factor = zoomOutFactor
+        if (factor != null) {
             camera.centerCoordinateDistance *= 5.0.pow(factor.toDouble())
             if (factor <= 9) {
                 this.zoomOutFactor = factor + 1
             }
         }
-        return camera to dotOffsetRatio
-    }
-
-    private fun startMapSnapshotter(mapSnapshotter: MapCamera, dotOffsetRatio: Double) {
-        Unit
+        val options = MKMapSnapshotter.Options()
+        options.camera = camera
+        return Pair(MKMapSnapshotter(options = options), dotOffsetRatio)
     }
 }

@@ -5,23 +5,25 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.SwiftUIFonts
 import com.moblin.android.various.settings.SettingsWidgetGolfScoreboard
 
 private val nameCellWidth = 150.0
@@ -46,28 +48,53 @@ private fun scoreCellColor(strokes: Int, par: Int): Color {
 }
 
 @Composable
+private fun ScorecardShrinkText(
+    text: String,
+    fontSize: Float,
+    color: Color,
+    weight: FontWeight,
+    minimumScaleFactor: Float,
+    modifier: Modifier = Modifier,
+) {
+    var scaleFactor by remember(text, fontSize) { mutableStateOf(1f) }
+    Text(
+        text = text,
+        color = color,
+        style = SwiftUIFonts.system(size = fontSize * scaleFactor, weight = weight),
+        maxLines = 1,
+        softWrap = false,
+        overflow = TextOverflow.Clip,
+        onTextLayout = { result ->
+            if (result.hasVisualOverflow && scaleFactor > minimumScaleFactor) {
+                scaleFactor = maxOf(minimumScaleFactor, scaleFactor - 0.05f)
+            }
+        },
+        modifier = modifier,
+    )
+}
+
+@Composable
 private fun HeaderCellView(
     text: String,
     width: Double,
     leftAlign: Boolean = false,
     scale: Double,
+    color: Color,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
         modifier = Modifier
-            .width(width.dp)
-            .height((20 * scale).dp)
-            .border(width = 0.5.dp, color = Color.Gray.copy(alpha = 0.4f)),
+            .border(width = 0.5.dp, color = Color(0xFF8E8E93).copy(alpha = 0.4f))
+            .size(width = width.dp, height = (20 * scale).dp)
+            .padding(start = (if (leftAlign) leftAlignPadding * scale else 0.0).dp),
     ) {
-        Text(
+        ScorecardShrinkText(
             text = text,
-            color = LocalContentColor.current,
-            fontSize = ((scorecardFontSize - 1) * scale).sp,
-            maxLines = 1,
-            softWrap = false,
-            modifier = Modifier.padding(
-                start = if (leftAlign) (leftAlignPadding * scale).dp else 0.dp,
-            ),
+            fontSize = ((scorecardFontSize - 1) * scale).toFloat(),
+            color = color,
+            weight = FontWeight.Normal,
+            minimumScaleFactor = 0.5f,
         )
         if (leftAlign) {
             Spacer(modifier = Modifier.weight(1f))
@@ -83,24 +110,23 @@ private fun CellView(
     bold: Boolean = false,
     leftAlign: Boolean = false,
     scale: Double,
+    color: Color,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
         modifier = Modifier
-            .width(width.dp)
-            .height((22 * scale).dp)
+            .border(width = 0.5.dp, color = Color(0xFF8E8E93).copy(alpha = 0.4f))
             .background(background)
-            .border(width = 0.5.dp, color = Color.Gray.copy(alpha = 0.4f)),
+            .size(width = width.dp, height = (22 * scale).dp)
+            .padding(start = (if (leftAlign) leftAlignPadding * scale else 0.0).dp),
     ) {
-        Text(
+        ScorecardShrinkText(
             text = text,
-            color = LocalContentColor.current,
-            fontSize = (scorecardFontSize * scale).sp,
-            fontWeight = if (bold) FontWeight.Bold else null,
-            maxLines = 1,
-            modifier = Modifier.padding(
-                start = if (leftAlign) (leftAlignPadding * scale).dp else 0.dp,
-            ),
+            fontSize = (scorecardFontSize * scale).toFloat(),
+            color = color,
+            weight = if (bold) FontWeight.Bold else FontWeight.Normal,
+            minimumScaleFactor = 1.0f,
         )
         if (leftAlign) {
             Spacer(modifier = Modifier.weight(1f))
@@ -116,91 +142,104 @@ fun ScoreboardEffectGolfFullScorecardView(
     golf: SettingsWidgetGolfScoreboard,
     scale: Double,
 ) {
-    val numberOfHoles = golf.numberOfHoles
-    val showPars = golf.showPars
-    val pars = golf.pars
-    val players = golf.players
-
-    CompositionLocalProvider(LocalContentColor provides textColor) {
-        Column(
-            modifier = Modifier.clip(RoundedCornerShape((5 * scale).dp)),
+    Column(
+        horizontalAlignment = Alignment.Start,
+        modifier = Modifier.clip(RoundedCornerShape((5 * scale).dp)),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.background(secondaryBackgroundColor),
         ) {
+            HeaderCellView(
+                text = "",
+                width = nameCellWidth * scale,
+                leftAlign = false,
+                scale = scale,
+                color = textColor,
+            )
+            for (holeIndex in 0 until golf.numberOfHoles) {
+                HeaderCellView(
+                    text = "${holeIndex + 1}",
+                    width = numberCellWidth * scale,
+                    leftAlign = false,
+                    scale = scale,
+                    color = textColor,
+                )
+            }
+            HeaderCellView(
+                text = "",
+                width = totalCellWidth * scale,
+                leftAlign = false,
+                scale = scale,
+                color = textColor,
+            )
+        }
+        if (golf.showPars) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.background(secondaryBackgroundColor),
             ) {
-                HeaderCellView(text = "", width = nameCellWidth * scale, scale = scale)
-                for (holeIndex in 0 until numberOfHoles) {
-                    HeaderCellView(
-                        text = "${holeIndex + 1}",
+                CellView(
+                    text = localized("PAR"),
+                    width = nameCellWidth * scale,
+                    leftAlign = true,
+                    scale = scale,
+                    color = textColor,
+                )
+                for (holeIndex in 0 until golf.numberOfHoles) {
+                    val par = if (holeIndex < golf.pars.size) golf.pars[holeIndex] else 4
+                    CellView(
+                        text = "$par",
                         width = numberCellWidth * scale,
                         scale = scale,
+                        color = textColor,
                     )
                 }
-                HeaderCellView(text = "", width = totalCellWidth * scale, scale = scale)
+                val totalPar = golf.pars.take(golf.numberOfHoles).sum()
+                CellView(
+                    text = "$totalPar",
+                    width = totalCellWidth * scale,
+                    bold = true,
+                    scale = scale,
+                    color = textColor,
+                )
             }
-            if (showPars) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.background(secondaryBackgroundColor),
-                ) {
-                    CellView(
-                        text = "PAR",
-                        width = nameCellWidth * scale,
-                        leftAlign = true,
-                        scale = scale,
-                    )
-                    for (holeIndex in 0 until numberOfHoles) {
-                        val par = if (holeIndex < pars.size) pars[holeIndex] else 4
+        }
+        Column(modifier = Modifier.background(primaryBackgroundColor)) {
+            golf.players.forEach { player ->
+                key(player.id) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         CellView(
-                            text = "$par",
-                            width = numberCellWidth * scale,
+                            text = player.name.uppercase(),
+                            width = nameCellWidth * scale,
+                            leftAlign = true,
                             scale = scale,
+                            color = textColor,
+                        )
+                        for (holeIndex in 0 until golf.numberOfHoles) {
+                            val score = if (holeIndex < player.scores.size) player.scores[holeIndex] else -1
+                            val par = if (holeIndex < golf.pars.size) golf.pars[holeIndex] else 4
+                            CellView(
+                                text = if (score >= 0) "$score" else "",
+                                width = numberCellWidth * scale,
+                                background = scoreCellColor(strokes = score, par = par),
+                                scale = scale,
+                                color = textColor,
+                            )
+                        }
+                        val strokes = player.totalStrokes(numberOfHoles = golf.numberOfHoles)
+                        val relative = player.totalRelativeToPar(
+                            pars = golf.pars,
+                            numberOfHoles = golf.numberOfHoles,
+                        )
+                        CellView(
+                            text = "$strokes (${formatScore(relative)})",
+                            width = totalCellWidth * scale,
+                            bold = true,
+                            scale = scale,
+                            color = textColor,
                         )
                     }
-                    val totalPar = pars.take(numberOfHoles).sum()
-                    CellView(
-                        text = "$totalPar",
-                        width = totalCellWidth * scale,
-                        bold = true,
-                        scale = scale,
-                    )
-                }
-            }
-            for (player in players) {
-                val playerName = player.name
-                val playerScores = player.scores
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.background(primaryBackgroundColor),
-                ) {
-                    CellView(
-                        text = playerName.uppercase(),
-                        width = nameCellWidth * scale,
-                        leftAlign = true,
-                        scale = scale,
-                    )
-                    for (holeIndex in 0 until numberOfHoles) {
-                        val score = if (holeIndex < playerScores.size) playerScores[holeIndex] else -1
-                        val par = if (holeIndex < pars.size) pars[holeIndex] else 4
-                        CellView(
-                            text = if (score >= 0) "$score" else "",
-                            width = numberCellWidth * scale,
-                            background = scoreCellColor(strokes = score, par = par),
-                            scale = scale,
-                        )
-                    }
-                    val strokes = player.totalStrokes(numberOfHoles = numberOfHoles)
-                    val relative = player.totalRelativeToPar(
-                        pars = pars,
-                        numberOfHoles = numberOfHoles,
-                    )
-                    CellView(
-                        text = "$strokes (${formatScore(relative)})",
-                        width = totalCellWidth * scale,
-                        bold = true,
-                        scale = scale,
-                    )
                 }
             }
         }

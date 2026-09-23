@@ -1,17 +1,15 @@
 package com.moblin.android.various.model
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import java.io.File
 import com.moblin.android.AppDelegate
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.uikit.UIImage
+import com.moblin.android.platform.uikit.cgImage
+import java.io.File
 
-val faceBackgroundImagePath: File
-    get() = File(AppDelegate.context.filesDir, "faceBackgroundImage.img")
+val faceBackgroundImagePath: File = File(AppDelegate.context.filesDir, "faceBackgroundImage.img")
 
 fun Model.saveFaceBackgroundImage(data: ByteArray) {
-    runCatching {
-        faceBackgroundImagePath.writeBytes(data)
-    }
+    runCatching { faceBackgroundImagePath.writeBytes(data) }
 }
 
 fun Model.loadFaceBackgroundImage() {
@@ -19,7 +17,8 @@ fun Model.loadFaceBackgroundImage() {
     updateFaceFilterSettings()
 }
 
-private fun Model.readFaceBackgroundImage(): com.moblin.android.platform.coreimage.CIImage? {
+private fun Model.readFaceBackgroundImage(): CIImage? {
     val data = runCatching { faceBackgroundImagePath.readBytes() }.getOrNull() ?: return null
-    return BitmapFactory.decodeByteArray(data, 0, data.size)?.let { com.moblin.android.platform.coreimage.CIImage(cgImage = it) }
+    val cgImage = UIImage(data = data)?.cgImage ?: return null
+    return CIImage(cgImage = cgImage)
 }

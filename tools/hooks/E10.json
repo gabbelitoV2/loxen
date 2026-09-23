@@ -1,4 +1,74 @@
 {
  "task": "E10",
- "hooks": []
+ "hooks": [
+  {
+   "id": "HE10.3",
+   "file": "videoeffects/replay/ReplayEffect.kt",
+   "scope": "class ReplayEffect",
+   "op": "replace",
+   "old": "    private val delegate = WeakReference(delegate)",
+   "new": "    private val delegate = java.util.concurrent.atomic.AtomicReference(delegate)",
+   "occurrence": 1,
+   "note": "Swift's weak delegate is Model itself; Kotlin's Model passes a ModelReplayEffectDelegate adapter that nothing else references, so a WeakReference is collected at the next GC and replayEffectStatus/replayEffectCompleted never arrive. A strong reference keeps the adapter (ReplayEffect is short-lived). Retire it once a re-translation follows E10.md's delegate rule (a plain strong property)."
+  },
+  {
+   "id": "HE10.4",
+   "file": "various/model/ModelReplay.kt",
+   "scope": "fun Model.replayPlay",
+   "op": "replace",
+   "old": "    val transitionMode: ReplayEffectTransitionMode = when (replay.transitionType.toString().lowercase()) {",
+   "new": "    val transitionMode: ReplayEffectTransitionMode = when (replay.transitionType.rawValue) {",
+   "occurrence": 1,
+   "note": "SettingsStreamReplayTransitionType.toString() is the localized display name, so any non-English locale fell through to None; rawValue is none/fade/stingers (Swift switch replay.transitionType)."
+  },
+  {
+   "id": "HE10.5",
+   "file": "various/model/ModelMediaPlayer.kt",
+   "scope": "fun Model.addMediaPlayer",
+   "op": "replace",
+   "old": "    mediaPlayers[settings.id] = mediaPlayer",
+   "new": "    mediaPlayers.put(settings.id, mediaPlayer)?.close()",
+   "occurrence": 1,
+   "note": "Swift's replaced MediaPlayer runs deinit (stopOutputTimer) at once; MediaPlayer.close() is that deinit."
+  },
+  {
+   "id": "HE10.6",
+   "file": "various/model/ModelMediaPlayer.kt",
+   "scope": "fun Model.deleteMediaPlayer",
+   "op": "replace",
+   "old": "    mediaPlayers.remove(playerId)",
+   "new": "    mediaPlayers.remove(playerId)?.close()",
+   "occurrence": 1,
+   "note": "Swift's removed MediaPlayer runs deinit (stopOutputTimer) at once; MediaPlayer.close() is that deinit."
+  },
+  {
+   "id": "HE10.7",
+   "file": "various/model/ModelMediaPlayer.kt",
+   "scope": "fun Model.getCurrentMediaPlayer",
+   "op": "replace",
+   "old": "    if (scene.videoSource.cameraPosition !is SettingsCameraId.MediaPlayer) {",
+   "new": "    if (scene.videoSource.cameraPosition != com.moblin.android.various.settings.SettingsSceneCameraPosition.mediaPlayer) {",
+   "occurrence": 1,
+   "note": "cameraPosition is the SettingsSceneCameraPosition enum, never a SettingsCameraId, so the is-check was always true and play, pause, next, previous and seek found no player (Swift: cameraPosition == .mediaPlayer)."
+  },
+  {
+   "id": "HE10.8",
+   "file": "various/MediaPlayer.kt",
+   "scope": "fun startOutputTimer",
+   "op": "insert_after",
+   "anchor": "    private fun startOutputTimer() {",
+   "new": "        val (weakSelf, timer) = java.lang.ref.WeakReference(this) to outputTimer",
+   "note": "Swift's timer closure captures [weak self], so a dropped player's deinit stops the timer; the Kotlin closure must not root the player."
+  },
+  {
+   "id": "HE10.9",
+   "file": "various/MediaPlayer.kt",
+   "scope": "fun startOutputTimer",
+   "op": "replace",
+   "old": "            handleOutputTimer()",
+   "new": "            weakSelf.get()?.handleOutputTimer() ?: timer.stop()",
+   "occurrence": 1,
+   "note": "With HE10.8: the timer stops itself once the player is collected, as Swift's deinit does."
+  }
+ ]
 }

@@ -10,6 +10,36 @@
    "new": "    fun toEffectSettings(backgroundImage: com.moblin.android.platform.coreimage.CIImage?, iconImage: android.graphics.Bitmap?): FaceEffectSettings {",
    "occurrence": 1,
    "note": "ME1 boundary (effects plan 1.20): Swift Settings.swift:1106 takes CIImage? and CGImage?; FaceEffectPrivacyMode.BackgroundImage(CIImage?) and Icon(Bitmap?) after the ME1 re-translation of FaceEffect.swift."
+  },
+  {
+   "id": "HE9.6",
+   "file": "various/model/ModelFaceBackgroundImage.kt",
+   "scope": "val faceBackgroundImagePath",
+   "op": "replace",
+   "old": "val faceBackgroundImagePath: String = File(AppDelegate.context.filesDir, \"faceBackgroundImage.img\").path",
+   "new": "val faceBackgroundImagePath: File = File(AppDelegate.context.filesDir, \"faceBackgroundImage.img\")",
+   "occurrence": 1,
+   "note": "ME1 boundary (effects plan 1.20): faceBackgroundImagePath stays java.io.File, which Settings.kt's exportFiles lists; replaces the retired caller hook HE9.5."
+  },
+  {
+   "id": "HE9.7",
+   "file": "various/model/ModelFaceBackgroundImage.kt",
+   "scope": "fun Model.saveFaceBackgroundImage",
+   "op": "replace",
+   "old": "    runCatching { File(faceBackgroundImagePath).writeBytes(data) }",
+   "new": "    runCatching { faceBackgroundImagePath.writeBytes(data) }",
+   "occurrence": 1,
+   "note": "Follows HE9.6 (faceBackgroundImagePath is a File)."
+  },
+  {
+   "id": "HE9.8",
+   "file": "various/model/ModelFaceBackgroundImage.kt",
+   "scope": "fun Model.readFaceBackgroundImage",
+   "op": "replace",
+   "old": "    val data = runCatching { File(faceBackgroundImagePath).readBytes() }.getOrNull() ?: return null",
+   "new": "    val data = runCatching { faceBackgroundImagePath.readBytes() }.getOrNull() ?: return null",
+   "occurrence": 1,
+   "note": "Follows HE9.6 (faceBackgroundImagePath is a File)."
   }
  ]
 }

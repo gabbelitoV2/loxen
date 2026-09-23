@@ -1,4 +1,77 @@
 {
  "task": "E5",
- "hooks": []
+ "hooks": [
+  {
+   "id": "HE5.2",
+   "file": "videoeffects/ChatEffect.kt",
+   "scope": "fun scheduleRender",
+   "op": "replace",
+   "old": "        CoroutineScope(Dispatchers.Main.immediate).launch {",
+   "new": "        CoroutineScope(Dispatchers.Main).launch {",
+   "occurrence": 1,
+   "note": "ME1. Swift coalesces renders with DispatchQueue.main.async (ChatEffect.swift:89). Main.immediate runs inline on main, so every trigger rendered at once, three times in the renderer's init."
+  },
+  {
+   "id": "HE5.3",
+   "file": "videoeffects/alerts/AlertsEffect.kt",
+   "scope": "fun setMessage",
+   "op": "replace",
+   "old": "            fontWeight = settings.fontWeight.toFontWeight(),",
+   "new": "            fontWeight = settings.fontWeight.toUiKit(),",
+   "occurrence": 1,
+   "note": "ME1. AlertsEffect.swift:382; the translator called a private placeholder whose body was TODO, which threw on every alert."
+  },
+  {
+   "id": "HE5.4",
+   "file": "videoeffects/alerts/AlertsEffect.kt",
+   "scope": "fun setMessage",
+   "op": "replace",
+   "old": "            fontDesign = settings.fontDesign.toFontDesign(),",
+   "new": "            fontDesign = settings.fontDesign.toUiKit(),",
+   "occurrence": 1,
+   "note": "ME1. AlertsEffect.swift:383 (HE0.9)."
+  },
+  {
+   "id": "HE5.5",
+   "file": "videoeffects/alerts/AlertsEffect.kt",
+   "op": "delete",
+   "old": "private fun SettingsFontWeight.toFontWeight(): FontWeight = TODO(\"toFontWeight\")",
+   "occurrence": 1,
+   "note": "ME1. Private placeholder replaced by HE5.3."
+  },
+  {
+   "id": "HE5.6",
+   "file": "videoeffects/alerts/AlertsEffect.kt",
+   "op": "delete",
+   "old": "private fun SettingsFontDesign.toFontDesign(): FontDesign = TODO(\"toFontDesign\")",
+   "occurrence": 1,
+   "note": "ME1. Private placeholder replaced by HE5.4."
+  },
+  {
+   "id": "HE5.7",
+   "file": "videoeffects/alerts/AlertsEffect.kt",
+   "scope": "fun setMessage",
+   "op": "replace",
+   "old": "        val textColor = settings.textColor.color()",
+   "new": "        val textColor = settings.textColor.uiColor()",
+   "occurrence": 1,
+   "note": "ME1. Swift uses RgbColor.uiColor() (AlertsEffect.swift:384), which keeps the opacity; the file's private RgbColor.color() dropped it."
+  },
+  {
+   "id": "HE5.8",
+   "file": "videoeffects/alerts/AlertsEffect.kt",
+   "scope": "fun setMessage",
+   "op": "replace",
+   "old": "                color = settings.accentColor.color(),",
+   "new": "                color = settings.accentColor.uiColor(),",
+   "occurrence": 1,
+   "note": "ME1. AlertsEffect.swift:387."
+  },
+  {
+   "id": "HE5.9",
+   "file": "videoeffects/alerts/AlertsEffect.kt",
+   "op": "add_import",
+   "new": "import com.moblin.android.common.various.uiColor"
+  }
+ ]
 }

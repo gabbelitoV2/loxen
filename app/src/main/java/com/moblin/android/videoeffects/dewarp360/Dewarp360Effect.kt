@@ -1,9 +1,10 @@
 package com.moblin.android.videoeffects.dewarp360
 
-import com.moblin.android.platform.video.CVPixelBuffer as Image
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.coregraphics.toCGSize
+import com.moblin.android.platform.coreimage.CIImage
 import kotlin.math.PI
 import kotlinx.coroutines.launch
 
@@ -11,14 +12,14 @@ sealed class Dewarp360EffectSettings {
     data class Direct(
         val pan: Float = 0f,
         val tilt: Float = 0f,
-        val fieldOfView: Float = (PI / 2).toFloat()
+        val fieldOfView: Float = (PI / 2).toFloat(),
     ) : Dewarp360EffectSettings()
 
     data class Animate(
         val speed: Float = 1f,
         val pan: Float = 0f,
         val tilt: Float = 0f,
-        val fieldOfView: Float = (PI / 2).toFloat()
+        val fieldOfView: Float = (PI / 2).toFloat(),
     ) : Dewarp360EffectSettings()
 }
 
@@ -35,13 +36,10 @@ class Dewarp360Effect : VideoEffect() {
         }
     }
 
-    override fun executeEarly(image: Image, info: VideoEffectInfo): Image {
+    override fun executeEarly(image: CIImage, info: VideoEffectInfo): CIImage {
         updateParameters()
         filter.inputImage = image
-        filter.outputSize = SizeF(
-            info.videoUnit.canvasSize.width.toFloat(),
-            info.videoUnit.canvasSize.height.toFloat()
-        )
+        filter.outputSize = info.videoUnit.canvasSize.toCGSize()
         filter.pan = currentPan
         filter.tilt = currentTilt
         filter.fieldOfView = currentFieldOfView
@@ -50,24 +48,25 @@ class Dewarp360Effect : VideoEffect() {
 
     private fun applySettings(settings: Dewarp360EffectSettings) {
         this.settings = settings
-        when (settings) {
+        when (val s = settings) {
             is Dewarp360EffectSettings.Direct -> {
-                currentPan = settings.pan
-                currentTilt = settings.tilt
-                currentFieldOfView = settings.fieldOfView
+                currentPan = s.pan
+                currentTilt = s.tilt
+                currentFieldOfView = s.fieldOfView
             }
-            is Dewarp360EffectSettings.Animate -> Unit
+            is Dewarp360EffectSettings.Animate -> {
+            }
         }
     }
 
     private fun updateParameters() {
-        val settings = this.settings
-        when (settings) {
-            is Dewarp360EffectSettings.Direct -> Unit
+        when (val s = settings) {
+            is Dewarp360EffectSettings.Direct -> {
+            }
             is Dewarp360EffectSettings.Animate -> {
-                currentPan = settings.pan
-                currentTilt = settings.tilt
-                currentFieldOfView = settings.fieldOfView
+                currentPan = s.pan
+                currentTilt = s.tilt
+                currentFieldOfView = s.fieldOfView
             }
         }
     }

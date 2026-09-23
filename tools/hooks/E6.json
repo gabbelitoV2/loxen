@@ -1,4 +1,139 @@
 {
  "task": "E6",
- "hooks": []
+ "hooks": [
+  {
+   "id": "HE6.10",
+   "file": "videoeffects/PomodoroTimerEffect.kt",
+   "scope": "fun setup",
+   "op": "replace",
+   "old": "            weakSelf.get()?.setTimerImage(image = renderer?.cgImage)",
+   "new": "            weakSelf.get()?.let { self -> self.setTimerImage(image = self.renderer?.cgImage) }",
+   "occurrence": 1,
+   "note": "ME1: a bare renderer in the sink is this.renderer, which roots the effect through OffscreenSweep and leaks it with its renderer; read it through weakSelf as Swift's [weak self] does."
+  },
+  {
+   "id": "HE6.11",
+   "file": "videoeffects/WheelOfLuckEffect.kt",
+   "scope": "fun WheelView",
+   "op": "replace",
+   "old": "                    .offset(x = offset.dp)",
+   "new": "                    .width((150 * (size / wheelSize)).dp)",
+   "occurrence": 1,
+   "note": "ME1: SwiftUI .offset(x).rotationEffect(a).frame(width: w) is Modifier.width(w).rotate(a).offset(x); with offset outermost every label sat right of centre. Pairs with HE6.12."
+  },
+  {
+   "id": "HE6.12",
+   "file": "videoeffects/WheelOfLuckEffect.kt",
+   "scope": "fun WheelView",
+   "op": "replace",
+   "old": "                    .width((150 * (size / wheelSize)).dp),",
+   "new": "                    .offset(x = offset.dp),",
+   "occurrence": 1,
+   "note": "ME1, with HE6.11."
+  },
+  {
+   "id": "HE6.13",
+   "file": "videoeffects/WheelOfLuckEffect.kt",
+   "scope": "fun WheelView",
+   "op": "insert_after",
+   "anchor": "                maxLines = 1,",
+   "new": "                textAlign = androidx.compose.ui.text.style.TextAlign.Center,",
+   "note": "ME1: .frame(width:) centres the label; a Compose Text of fixed width starts at the left."
+  },
+  {
+   "id": "HE6.14",
+   "file": "videoeffects/WheelOfLuckEffect.kt",
+   "scope": "val optionColors",
+   "op": "replace",
+   "old": "    Color.Blue,",
+   "new": "    Color(0xFF007AFF),",
+   "occurrence": 1,
+   "note": "ME1: SwiftUI .blue is the iOS system blue."
+  },
+  {
+   "id": "HE6.15",
+   "file": "videoeffects/WheelOfLuckEffect.kt",
+   "scope": "val optionColors",
+   "op": "replace",
+   "old": "    Color.Red,",
+   "new": "    Color(0xFFFF3B30),",
+   "occurrence": 1,
+   "note": "ME1: SwiftUI .red is the iOS system red."
+  },
+  {
+   "id": "HE6.16",
+   "file": "videoeffects/WheelOfLuckEffect.kt",
+   "scope": "val optionColors",
+   "op": "replace",
+   "old": "    Color.Yellow,",
+   "new": "    Color(0xFFFFCC00),",
+   "occurrence": 1,
+   "note": "ME1: SwiftUI .yellow is the iOS system yellow."
+  },
+  {
+   "id": "HE6.17",
+   "file": "videoeffects/WheelOfLuckEffect.kt",
+   "scope": "val optionColors",
+   "op": "replace",
+   "old": "    Color.Green,",
+   "new": "    Color(0xFF34C759),",
+   "occurrence": 1,
+   "note": "ME1: SwiftUI .green is the iOS system green."
+  },
+  {
+   "id": "HE6.18",
+   "file": "videoeffects/WheelOfLuckEffect.kt",
+   "scope": "val optionColors",
+   "op": "replace",
+   "old": "    Color.Cyan,",
+   "new": "    Color(0xFF32ADE6),",
+   "occurrence": 1,
+   "note": "ME1: SwiftUI .cyan is the iOS system cyan."
+  },
+  {
+   "id": "HE6.19",
+   "file": "videoeffects/scoreboard/ScoreboardEffectGolfFullScorecardView.kt",
+   "scope": "fun HeaderCellView",
+   "op": "insert_after",
+   "anchor": "        verticalAlignment = Alignment.CenterVertically,",
+   "new": "        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,",
+   "note": "ME1: an HStack inside .frame(width:height:) is centred; a fixed-size Row starts at the left."
+  },
+  {
+   "id": "HE6.20",
+   "file": "videoeffects/scoreboard/ScoreboardEffectGolfFullScorecardView.kt",
+   "scope": "fun CellView",
+   "op": "insert_after",
+   "anchor": "        verticalAlignment = Alignment.CenterVertically,",
+   "new": "        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,",
+   "note": "ME1: as HE6.19."
+  },
+  {
+   "id": "HE6.21",
+   "file": "videoeffects/scoreboard/ScoreboardEffectGolfView.kt",
+   "op": "add_import",
+   "new": "import androidx.compose.foundation.layout.wrapContentSize",
+   "note": "ME1: for HE6.22 and HE6.23."
+  },
+  {
+   "id": "HE6.22",
+   "file": "videoeffects/scoreboard/ScoreboardEffectGolfView.kt",
+   "scope": "fun ThruView",
+   "op": "replace",
+   "old": "            .padding(end = (6 * scale).dp),",
+   "new": "            .padding(end = (6 * scale).dp).wrapContentSize(),",
+   "occurrence": 1,
+   "note": "ME1: .frame(width:height:) centres the text; a Compose Text of fixed size draws at the top left."
+  },
+  {
+   "id": "HE6.23",
+   "file": "videoeffects/scoreboard/ScoreboardEffectGolfView.kt",
+   "scope": "fun ScoreView",
+   "op": "replace",
+   "old": "            .padding(end = (8 * scale).dp),",
+   "new": "            .padding(end = (8 * scale).dp).wrapContentSize(),",
+   "occurrence": 1,
+   "note": "ME1: .frame(height:) centres the score vertically."
+  }
+ ]
 }

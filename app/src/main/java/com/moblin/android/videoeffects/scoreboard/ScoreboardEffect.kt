@@ -1,8 +1,6 @@
 package com.moblin.android.videoeffects.scoreboard
 
 import android.graphics.Bitmap
-import com.moblin.android.platform.video.CVPixelBuffer as Image
-import androidx.compose.ui.geometry.Size
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,16 +8,21 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.coregraphics.toCGSize
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIImage
+import com.moblin.android.platform.swiftui.ImageRenderer
+import com.moblin.android.platform.swiftui.SwiftUIFonts
 import com.moblin.android.remotecontrol.RemoteControlScoreboardMatchConfig
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidgetGenericScoreboard
@@ -30,7 +33,11 @@ import com.moblin.android.various.settings.SettingsWidgetScoreboard
 import com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer
 import com.moblin.android.various.settings.SettingsWidgetScoreboardSport
 import com.moblin.android.videoeffects.EffectImageCgImage
+import com.moblin.android.videoeffects.move
+import com.moblin.android.videoeffects.moveComposited
+import com.moblin.android.videoeffects.toEffectImage
 import com.moblin.android.videoeffects.toPixels
+import com.moblin.android.view.utils.FontDesign
 import java.util.UUID
 import kotlinx.coroutines.launch
 
@@ -49,34 +56,35 @@ fun formatScore(score: Int): String {
 
 @Composable
 fun TeamScoreView(score: Int) {
-    Column {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Spacer(modifier = Modifier.weight(1f))
-        Text(text = score.toString())
+        Text(score.toString())
         Spacer(modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
-fun PoweredByMoblinView(
-    backgroundColor: Color,
-    scale: Double
-) {
+fun PoweredByMoblinView(backgroundColor: Color, scale: Double) {
     Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .background(backgroundColor)
-            .padding(horizontal = (8 * scale).dp, vertical = (3 * scale).dp)
+            .padding(horizontal = (8 * scale).dp, vertical = (3 * scale).dp),
     ) {
         Text(
-            text = "Powered by Moblin",
-            fontFamily = FontFamily.Monospace,
-            fontSize = (15 * scale).sp,
-            fontWeight = FontWeight.Bold
+            text = localized("Powered by Moblin"),
+            style = SwiftUIFonts.system(
+                size = (15 * scale).toFloat(),
+                weight = FontWeight.Bold,
+                design = FontDesign.Monospaced,
+            ),
         )
         Spacer(modifier = Modifier.weight(1f))
     }
 }
 
-class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
+class ScoreboardEffect(canvasSize: Size) : VideoEffect() {
+    private val canvasSize = canvasSize.toCGSize()
     private var scoreboardImage: EffectImageCgImage? = null
     private var sceneWidget = SettingsSceneWidget(widgetId = UUID.randomUUID())
     private var sceneWidgetPipeline = SettingsSceneWidget(widgetId = UUID.randomUUID())
@@ -91,19 +99,16 @@ class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
     fun update(
         scoreboard: SettingsWidgetScoreboard,
         config: RemoteControlScoreboardMatchConfig,
-        players: List<SettingsWidgetScoreboardPlayer>
+        players: List<SettingsWidgetScoreboardPlayer>,
     ) {
-        val scale = toPixels(
-            sceneWidget.layout.size,
-            minOf(canvasSize.width, canvasSize.height).toDouble()
-        ) / 200
+        val scale = toPixels(sceneWidget.layout.size, canvasSize.minimum()) / 200
         when (scoreboard.sport) {
             SettingsWidgetScoreboardSport.generic -> updateGeneric(
                 textColor = scoreboard.textColorColor,
                 primaryBackgroundColor = scoreboard.primaryBackgroundColorColor,
                 secondaryBackgroundColor = scoreboard.secondaryBackgroundColorColor,
                 generic = scoreboard.generic,
-                scale = scale
+                scale = scale,
             )
             SettingsWidgetScoreboardSport.padel -> updatePadel(
                 textColor = scoreboard.textColorColor,
@@ -111,37 +116,40 @@ class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
                 secondaryBackgroundColor = scoreboard.secondaryBackgroundColorColor,
                 padel = scoreboard.padel,
                 players = players,
-                scale = scale
+                scale = scale,
             )
             SettingsWidgetScoreboardSport.golf -> updateGolf(
                 textColor = scoreboard.textColorColor,
                 primaryBackgroundColor = scoreboard.primaryBackgroundColorColor,
                 secondaryBackgroundColor = scoreboard.secondaryBackgroundColorColor,
                 golf = scoreboard.golf,
-                scale = scale
+                scale = scale,
             )
             SettingsWidgetScoreboardSport.golfFullScorecard -> updateGolfFullScorecard(
                 textColor = scoreboard.textColorColor,
                 primaryBackgroundColor = scoreboard.primaryBackgroundColorColor,
                 secondaryBackgroundColor = scoreboard.secondaryBackgroundColorColor,
                 golf = scoreboard.golf,
-                scale = scale
+                scale = scale,
             )
             else -> updateModular(modular = scoreboard.modular, config = config, scale = scale)
         }
     }
 
-    override fun execute(image: Image, info: VideoEffectInfo): Image {
-        return TODO("no Android counterpart for the CIImage move/crop/composite pipeline")
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
+        return scoreboardImage?.getCiImage()
+            ?.move(layout = sceneWidgetPipeline.layout, streamSize = image.extent.size)
+            ?.cropped(to = image.extent)
+            ?.composited(over = image) ?: image
     }
 
-    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
-        return TODO("no Android counterpart for MetalPetal")
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
+        return scoreboardImage?.getMetalPetalImage()
+            ?.moveComposited(layout = sceneWidgetPipeline.layout, backgroundImage = image) ?: image
     }
 
     private fun setScoreboardImage(image: Bitmap?) {
-        val scoreboardImage: EffectImageCgImage? =
-            image?.let { TODO("no Android counterpart for converting a Bitmap to an EffectImageCgImage") }
+        val scoreboardImage = image?.toEffectImage()
         processorPipelineQueue.launch {
             this@ScoreboardEffect.scoreboardImage = scoreboardImage
         }
@@ -152,18 +160,24 @@ class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
         primaryBackgroundColor: Color,
         secondaryBackgroundColor: Color,
         generic: SettingsWidgetGenericScoreboard,
-        scale: Double
+        scale: Double,
     ) {
-        val content: @Composable () -> Unit = {
-            ScoreboardEffectGenericView(
-                textColor = textColor,
-                primaryBackgroundColor = primaryBackgroundColor,
-                secondaryBackgroundColor = secondaryBackgroundColor,
-                generic = generic,
-                scale = scale
-            )
-        }
-        setScoreboardImage(image = null)
+        val textColor0 = textColor
+        val primaryBackgroundColor0 = primaryBackgroundColor
+        val secondaryBackgroundColor0 = secondaryBackgroundColor
+        val generic0 = generic
+        val scale0 = scale
+        setScoreboardImage(
+            image = ImageRenderer(content = {
+                ScoreboardEffectGenericView(
+                    textColor = textColor0,
+                    primaryBackgroundColor = primaryBackgroundColor0,
+                    secondaryBackgroundColor = secondaryBackgroundColor0,
+                    generic = generic0,
+                    scale = scale0,
+                )
+            }).cgImage,
+        )
     }
 
     private fun updatePadel(
@@ -172,34 +186,45 @@ class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
         secondaryBackgroundColor: Color,
         padel: SettingsWidgetPadelScoreboard,
         players: List<SettingsWidgetScoreboardPlayer>,
-        scale: Double
+        scale: Double,
     ) {
-        val content: @Composable () -> Unit = {
-            ScoreboardEffectPadelView(
-                textColor = textColor,
-                primaryBackgroundColor = primaryBackgroundColor,
-                secondaryBackgroundColor = secondaryBackgroundColor,
-                padel = padel,
-                players = players,
-                scale = scale
-            )
-        }
-        setScoreboardImage(image = null)
+        val textColor0 = textColor
+        val primaryBackgroundColor0 = primaryBackgroundColor
+        val secondaryBackgroundColor0 = secondaryBackgroundColor
+        val padel0 = padel
+        val players0 = players
+        val scale0 = scale
+        setScoreboardImage(
+            image = ImageRenderer(content = {
+                ScoreboardEffectPadelView(
+                    textColor = textColor0,
+                    primaryBackgroundColor = primaryBackgroundColor0,
+                    secondaryBackgroundColor = secondaryBackgroundColor0,
+                    padel = padel0,
+                    players = players0,
+                    scale = scale0,
+                )
+            }).cgImage,
+        )
     }
 
     private fun updateModular(
         modular: SettingsWidgetModularScoreboard,
         config: RemoteControlScoreboardMatchConfig,
-        scale: Double
+        scale: Double,
     ) {
-        val content: @Composable () -> Unit = {
-            ScoreboardEffectModularView(
-                modular = modular,
-                config = config,
-                scale = scale
-            )
-        }
-        setScoreboardImage(image = null)
+        val modular0 = modular
+        val config0 = config
+        val scale0 = scale
+        setScoreboardImage(
+            image = ImageRenderer(content = {
+                ScoreboardEffectModularView(
+                    modular = modular0,
+                    config = config0,
+                    scale = scale0,
+                )
+            }).cgImage,
+        )
     }
 
     private fun updateGolf(
@@ -207,18 +232,24 @@ class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
         primaryBackgroundColor: Color,
         secondaryBackgroundColor: Color,
         golf: SettingsWidgetGolfScoreboard,
-        scale: Double
+        scale: Double,
     ) {
-        val content: @Composable () -> Unit = {
-            ScoreboardEffectGolfView(
-                textColor = textColor,
-                primaryBackgroundColor = primaryBackgroundColor,
-                secondaryBackgroundColor = secondaryBackgroundColor,
-                golf = golf,
-                scale = scale
-            )
-        }
-        setScoreboardImage(image = null)
+        val textColor0 = textColor
+        val primaryBackgroundColor0 = primaryBackgroundColor
+        val secondaryBackgroundColor0 = secondaryBackgroundColor
+        val golf0 = golf
+        val scale0 = scale
+        setScoreboardImage(
+            image = ImageRenderer(content = {
+                ScoreboardEffectGolfView(
+                    textColor = textColor0,
+                    primaryBackgroundColor = primaryBackgroundColor0,
+                    secondaryBackgroundColor = secondaryBackgroundColor0,
+                    golf = golf0,
+                    scale = scale0,
+                )
+            }).cgImage,
+        )
     }
 
     private fun updateGolfFullScorecard(
@@ -226,17 +257,23 @@ class ScoreboardEffect(private val canvasSize: Size) : VideoEffect() {
         primaryBackgroundColor: Color,
         secondaryBackgroundColor: Color,
         golf: SettingsWidgetGolfScoreboard,
-        scale: Double
+        scale: Double,
     ) {
-        val content: @Composable () -> Unit = {
-            ScoreboardEffectGolfFullScorecardView(
-                textColor = textColor,
-                primaryBackgroundColor = primaryBackgroundColor,
-                secondaryBackgroundColor = secondaryBackgroundColor,
-                golf = golf,
-                scale = scale
-            )
-        }
-        setScoreboardImage(image = null)
+        val textColor0 = textColor
+        val primaryBackgroundColor0 = primaryBackgroundColor
+        val secondaryBackgroundColor0 = secondaryBackgroundColor
+        val golf0 = golf
+        val scale0 = scale
+        setScoreboardImage(
+            image = ImageRenderer(content = {
+                ScoreboardEffectGolfFullScorecardView(
+                    textColor = textColor0,
+                    primaryBackgroundColor = primaryBackgroundColor0,
+                    secondaryBackgroundColor = secondaryBackgroundColor0,
+                    golf = golf0,
+                    scale = scale0,
+                )
+            }).cgImage,
+        )
     }
 }

@@ -308,6 +308,44 @@
    "new": "    return com.moblin.android.platform.coreimage.CIImage.black.cropped(to = com.moblin.android.platform.coregraphics.CGRect(x = 0.0, y = 0.0, width = width, height = height))",
    "occurrence": 1,
    "note": "ME1 boundary; until VideoEffectsProcessor.kt is regenerated, E1's interim HE1.12/HE1.13 bridge it."
+  },
+  {
+   "id": "R4.17",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun handleGapFillerTimer",
+   "op": "replace",
+   "old": "        val delta = (SystemClock.elapsedRealtimeNanos() - latestSampleBufferTime).nanoseconds",
+   "new": "        val delta = latestSampleBufferTime.duration(to = com.moblin.android.platform.core.ContinuousClock.now)",
+   "occurrence": 1,
+   "note": "ME1 boundary: the regenerated VideoEffectsProcessor declares latestSampleBufferTime: ContinuousClock.Instant? as Swift does (VideoUnit.swift:616)."
+  },
+  {
+   "id": "R4.18",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun appendNewSampleBuffer",
+   "op": "replace",
+   "old": "        effectsProcessor.latestSampleBufferTime = SystemClock.elapsedRealtimeNanos()",
+   "new": "        effectsProcessor.latestSampleBufferTime = com.moblin.android.platform.core.ContinuousClock.now",
+   "occurrence": 1,
+   "note": "ME1 boundary: Swift VideoUnit.swift:978-986 stores ContinuousClock.now."
+  },
+  {
+   "id": "R4.19",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun createBlackImage",
+   "op": "delete",
+   "old": "    val bitmap = Bitmap.createBitmap(width.toInt(), height.toInt(), Bitmap.Config.ARGB_8888)",
+   "occurrence": 1,
+   "note": "ME1 after R4.9: Swift VideoUnit.swift:1080-1082 only crops CIImage.black; the full-size Bitmap was allocated and never used. Paired with R4.8 and R4.9 in the same scope."
+  },
+  {
+   "id": "R4.20",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun createBlackImage",
+   "op": "delete",
+   "old": "    bitmap.eraseColor(Color.BLACK)",
+   "occurrence": 1,
+   "note": "ME1 after R4.9: the unused Bitmap's fill (see R4.19). Paired with R4.8 and R4.9 in the same scope."
   }
  ]
 }

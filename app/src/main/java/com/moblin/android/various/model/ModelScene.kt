@@ -95,6 +95,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import com.moblin.android.AppDelegate
+import com.moblin.android.platform.coregraphics.toCGSize
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
@@ -255,8 +256,8 @@ fun Model.resetSelectedScene(changeScene: Boolean = true, attachCamera: Boolean 
     }
     resetVideoEffects(widgets = getLocalAndRemoteWidgets())
     drawOnStreamEffect.updateOverlay(
-        videoSize = canvasSize(media.getCanvasSize()),
-        size = drawOnStreamSize,
+        videoSize = media.getCanvasSize().toCGSize(),
+        size = drawOnStreamSize.toCGSize(),
         lines = drawOnStream.lines.value,
         mirror = streamOverlay.isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream
     )
@@ -725,7 +726,7 @@ private fun Model.registerGlobalVideoEffects(scene: SettingsScene): List<VideoEf
     glassesEffect?.let { effects.add(it) }
     val fixedHorizonStatus: String
     if (isFixedHorizonEnabled(scene = scene)) {
-        fixedHorizonEffect.start(portrait = database.portrait)
+        fixedHorizonEffect.start(portrait = stream.value.portrait)
         fixedHorizonStatus = "Enabled"
         effects.add(fixedHorizonEffect)
     } else {
@@ -853,8 +854,8 @@ private fun Model.createTextEffect(widget: SettingsWidget): TextEffect {
         fontSize = widget.text.fontSize.toFloat(),
         fontFamily = widget.text.fontFamily,
         fontStyle = widget.text.fontStyle,
-        fontDesign = widget.text.fontDesign,
-        fontWeight = widget.text.fontWeight,
+        fontDesign = widget.text.fontDesign.toUiKit(),
+        fontWeight = widget.text.fontWeight.toSystem(),
         fontMonospacedDigits = widget.text.fontMonospacedDigits,
         horizontalAlignment = widget.text.horizontalAlignment,
         width = if (widget.text.widthEnabled) widget.text.width else null,
@@ -1026,7 +1027,7 @@ private fun Model.resetChatEmoteComboVideoEffects(widgets: List<SettingsWidget>)
         if (widget.type != SettingsWidgetType.chatEmoteCombo) {
             continue
         }
-        val effect = ChatEmoteComboEffect(canvasSize = canvasSize(media.getCanvasSize()))
+        val effect = ChatEmoteComboEffect(canvasSize = media.getCanvasSize().toCGSize())
         effect.setSettings(settings = widget.chatEmoteCombo)
         chatEmoteComboEffects[widget.id] = effect
     }
@@ -1219,8 +1220,8 @@ private fun Model.sceneUpdatedOn(scene: SettingsScene, attachCamera: Boolean) {
     }
     if (drawOnStream.lines.value.isNotEmpty()) {
         drawOnStreamEffect.updateOverlay(
-            videoSize = canvasSize(media.getCanvasSize()),
-            size = drawOnStreamSize,
+            videoSize = media.getCanvasSize().toCGSize(),
+            size = drawOnStreamSize.toCGSize(),
             lines = drawOnStream.lines.value,
             mirror = streamOverlay.isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream
         )

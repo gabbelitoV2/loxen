@@ -1,18 +1,18 @@
 package com.moblin.android.videoeffects
 
-import com.moblin.android.platform.video.CVPixelBuffer as Image
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
@@ -23,61 +23,60 @@ import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.combine.AnyCancellable
+import com.moblin.android.platform.coregraphics.CGPoint
+import com.moblin.android.platform.coregraphics.CGRect
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.coregraphics.toCGSize
+import com.moblin.android.platform.coreimage.CIFilter
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIImage
+import com.moblin.android.platform.swiftui.ImageRenderer
+import com.moblin.android.platform.swiftui.SwiftUIFonts
+import java.lang.ref.WeakReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-private class PollState(val size: Size) {
+private class PollState(val size: CGSize) {
     val text = MutableStateFlow(localized("No votes yet"))
-
-    fun setText(text: String) {
-        this.text.value = text
-    }
 }
 
-private fun scaledFontSize(size: Size): Float {
-    return 30 * (maxOf(size.width, size.height) / 1920f)
+private fun scaledFontSize(size: CGSize): Float {
+    return (30 * (size.maximum() / 1920)).toFloat()
 }
 
 @Composable
-private fun PollView(state: PollState, modifier: Modifier = Modifier) {
+private fun PollView(state: PollState) {
     val text by state.text.collectAsState()
+    val fontSize = scaledFontSize(size = state.size)
     Row(
-        modifier = modifier
+        modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
             .background(Color.Black.copy(alpha = 0.75f))
             .padding(end = 7.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            imageVector = Icons.Default.List,
-            contentDescription = null,
-            tint = Color.White,
-        )
-        Text(
-            text = text,
-            color = Color.White,
-            style = MaterialTheme.typography.bodyLarge.copy(
-                fontSize = scaledFontSize(state.size).sp,
-            ),
-        )
+        CompositionLocalProvider(LocalTextStyle provides SwiftUIFonts.system(size = fontSize)) {
+            SystemImage(name = "chart.bar.xaxis", fontSize = fontSize.sp)
+            Text(text = text, color = Color.White)
+        }
     }
 }
 
 class PollEffect(canvasSize: Size) : VideoEffect() {
+    private val filter = CIFilter.sourceOverCompositing()
     private var overlay: EffectImageCgImage? = null
-    private var renderer: EffectImageCgImage? = null
-    private var cancellable: Job? = null
-    private val state = PollState(canvasSize)
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var renderer: ImageRenderer? = null
+    private var cancellable: AnyCancellable? = null
+    private val state: PollState
 
     init {
-        scope.launch {
+        state = PollState(size = canvasSize.toCGSize())
+        CoroutineScope(Dispatchers.Main.immediate).launch {
             setup()
         }
     }
@@ -86,40 +85,45 @@ class PollEffect(canvasSize: Size) : VideoEffect() {
         if (state.text.value == text) {
             return
         }
-        state.setText(text)
+        state.text.value = text
     }
 
     private fun setup() {
-        renderer = null
-        cancellable = scope.launch {
-            state.text.collect {
-                setOverlay(renderer)
-            }
+        val state0 = state
+        renderer = ImageRenderer(content = { PollView(state = state0) })
+        val weakSelf = WeakReference(this)
+        cancellable = renderer?.objectWillChange?.sink {
+            val self = weakSelf.get() ?: return@sink
+            self.setOverlay(image = self.renderer?.cgImage)
         }
-        setOverlay(renderer)
+        setOverlay(image = renderer?.cgImage)
     }
 
-    private fun setOverlay(image: EffectImageCgImage?) {
+    private fun setOverlay(image: Bitmap?) {
+        val overlay = image?.toEffectImage()
         processorPipelineQueue.launch {
-            overlay = image
+            this@PollEffect.overlay = overlay
         }
     }
 
-    private fun moveToTopRight(image: EffectImageCiImage, size: Size): EffectImageCiImage {
-        return TODO("no Android counterpart for CIImage translation and cropping")
+    private fun moveToTopRight(image: CIImage, size: CGSize): CIImage {
+        val x = size.width - image.extent.width
+        return image
+            .translated(x = x - 5, y = size.height - image.extent.height - 5)
+            .cropped(to = CGRect(x = 0.0, y = 0.0, width = size.width, height = size.height))
     }
 
-    override fun execute(image: Image, info: VideoEffectInfo): Image {
-        if (overlay == null) {
-            return image
-        }
-        return TODO("no Android counterpart for CIFilter source-over compositing")
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
+        val overlay = overlay ?: return image
+        filter.inputImage = moveToTopRight(image = overlay.getCiImage(), size = image.extent.size)
+        filter.backgroundImage = image
+        return filter.outputImage ?: image
     }
 
-    fun executeMetalPetal(image: EffectImage, info: VideoEffectInfo): EffectImage {
-        if (overlay == null) {
-            return image
-        }
-        return TODO("no Android counterpart for MetalPetal")
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
+        val overlay = overlay?.getMetalPetalImage() ?: return image
+        val size = overlay.extent.size
+        val position = CGPoint(x = image.extent.width - size.width / 2 - 5, y = size.height / 2 + 5)
+        return overlay.positionComposited(position = position, backgroundImage = image)
     }
 }

@@ -1,18 +1,27 @@
 package com.moblin.android.videoeffects
 
 import android.graphics.Bitmap
-import com.moblin.android.platform.video.CVPixelBuffer as Image
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.IntSize
-import com.moblin.android.common.various.*
-import com.moblin.android.media.haishinkit.media.*
+import com.moblin.android.AppDelegate
+import com.moblin.android.common.various.color
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
-import com.moblin.android.media.haishinkit.media.video.*
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.combine.AnyCancellable
+import com.moblin.android.platform.combine.dropFirst
+import com.moblin.android.platform.combine.sink
+import com.moblin.android.platform.coregraphics.CGColor
+import com.moblin.android.platform.coregraphics.CGRect
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIImage
+import com.moblin.android.platform.uikit.CALayer
+import com.moblin.android.platform.uikit.UIGraphicsImageRenderer
+import com.moblin.android.platform.uikit.UIGraphicsImageRendererFormat
+import com.moblin.android.platform.uikit.UIView
+import com.moblin.android.platform.uikit.cgImage
+import com.moblin.android.platform.uikit.frame
+import com.moblin.android.platform.uikit.removeFromSuperview
 import com.moblin.android.various.model.chat.ChatProvider
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidgetChat
@@ -20,12 +29,10 @@ import com.moblin.android.view.utils.ChatLineContent
 import com.moblin.android.view.utils.ChatLineStyle
 import com.moblin.android.view.utils.ChatLineUiView
 import com.moblin.android.view.utils.EmotesPlayer
+import java.lang.ref.WeakReference
 import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 
 private fun makeChatLineStyle(settings: SettingsWidgetChat): ChatLineStyle {
@@ -51,102 +58,97 @@ private fun makeChatLineStyle(settings: SettingsWidgetChat): ChatLineStyle {
     )
 }
 
-private data class ChatLineKey(val postId: Int, val highlight: Boolean)
-
-private class BarLayer {
-    var color: Color = Color.Transparent
-    var frame: Rect = Rect.Zero
-}
+private data class ChatLineKey(
+    val postId: Int,
+    val highlight: Boolean,
+)
 
 private class ChatRenderer(
     private val settings: SettingsWidgetChat,
     private val chat: ChatProvider,
     private val onImage: (Bitmap?) -> Unit,
 ) {
-    private val mainScope = CoroutineScope(Dispatchers.Main)
-    private val containerView: Any? = null
+    private val containerView = UIView()
     private val lineViews = mutableMapOf<ChatLineKey, ChatLineUiView>()
-    private val barLayers = mutableListOf<BarLayer>()
-    private var cancellables = mutableListOf<Job>()
-    private var stateCancellables = mutableListOf<Job>()
+    private val barLayers = mutableListOf<CALayer>()
+    private var cancellables = mutableListOf<AnyCancellable>()
+    private var stateCancellables = mutableListOf<AnyCancellable>()
     private var renderPending = false
 
-    private val width: Float
-        get() = 20f * settings.fontSize
+    private val width: Double
+        get() = 20.0 * settings.fontSize.toDouble()
 
     init {
-        cancellables.add(mainScope.launch {
-            chat.posts.collect {
-                scheduleRender()
-            }
-        })
-        cancellables.add(mainScope.launch {
-            chat.moreThanOneStreamingPlatform.collect {
-                scheduleRender()
-            }
-        })
-        cancellables.add(mainScope.launch {
-            Unit
-        })
-        cancellables.add(mainScope.launch {
-            EmotesPlayer.shared.sizesVersion.drop(1).collect {
-                scheduleRender()
-            }
-        })
+        containerView.backgroundColor = Color.Transparent
+        val weakSelf = WeakReference(this)
+        chat.posts
+            .sink { weakSelf.get()?.scheduleRender() }
+            .store(into = cancellables)
+        chat.moreThanOneStreamingPlatform
+            .sink { weakSelf.get()?.scheduleRender() }
+            .store(into = cancellables)
+        EmotesPlayer.shared.sizesVersion
+            .dropFirst()
+            .sink { weakSelf.get()?.scheduleRender() }
+            .store(into = cancellables)
         scheduleRender()
     }
 
     fun stop() {
-        cancellables.forEach { it.cancel() }
+        for (cancellable in cancellables) {
+            cancellable.cancel()
+        }
         cancellables.clear()
-        stateCancellables.forEach { it.cancel() }
+        for (cancellable in stateCancellables) {
+            cancellable.cancel()
+        }
         stateCancellables.clear()
         for (lineView in lineViews.values) {
             lineView.unregister()
         }
     }
 
-    private fun scheduleRender() {
+    fun scheduleRender() {
         if (renderPending) {
             return
         }
         renderPending = true
-        mainScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             renderPending = false
             render()
         }
     }
 
     private fun lineView(key: ChatLineKey): ChatLineUiView {
-        val existing = lineViews[key]
-        if (existing != null) {
-            return existing
-        }
-        val lineView = ChatLineUiView(com.moblin.android.AppDelegate.context)
-        lineView.onImageLoaded = {
-            scheduleRender()
-        }
-        Unit
+        lineViews[key]?.let { return it }
+        val lineView = ChatLineUiView(AppDelegate.context)
+        val weakSelf = WeakReference(this)
+        lineView.onImageLoaded = { weakSelf.get()?.scheduleRender() }
+        containerView.addSubview(lineView)
         lineViews[key] = lineView
         return lineView
     }
 
-    private fun barLayer(index: Int): BarLayer {
+    private fun barLayer(index: Int): CALayer {
         while (barLayers.size <= index) {
-            val barLayer = BarLayer()
+            val barLayer = CALayer()
+            barLayer.actions = mapOf<String, Any?>(
+                "bounds" to null,
+                "position" to null,
+                "backgroundColor" to null,
+            )
+            containerView.layer.addSublayer(barLayer)
             barLayers.add(barLayer)
         }
         return barLayers[index]
     }
 
-    private fun place(
-        lineView: ChatLineUiView,
-        content: ChatLineContent,
-        x: Float,
-        y: Float,
-    ): IntSize {
+    private fun place(lineView: ChatLineUiView, content: ChatLineContent, x: Double, y: Double): CGSize {
         lineView.setContent(content)
-        return lineView.size(availableWidth = width - x)
+        val size = lineView.size(availableWidth = (width - x).toFloat())
+        val cgSize = CGSize(width = size.width, height = size.height)
+        lineView.frame = CGRect(x = x, y = y, width = cgSize.width, height = cgSize.height)
+        return cgSize
     }
 
     private fun render() {
@@ -154,69 +156,82 @@ private class ChatRenderer(
             .take(settings.maximumNumberOfMessages)
             .reversed()
             .filter { !it.state.deleted.value }
-        stateCancellables.forEach { it.cancel() }
+        for (cancellable in stateCancellables) {
+            cancellable.cancel()
+        }
         stateCancellables = posts.map { post ->
-            mainScope.launch {
-                Unit
-            }
+            val weakSelf = WeakReference(this)
+            post.state.deleted.dropFirst().sink { weakSelf.get()?.scheduleRender() }
         }.toMutableList()
-        val style = makeChatLineStyle(settings)
+        val style = makeChatLineStyle(settings = settings)
         val keys = mutableSetOf<ChatLineKey>()
         var barIndex = 0
-        var y = 0f
+        var y = 0.0
         for ((index, post) in posts.withIndex()) {
             if (index > 0) {
-                y += 1f
+                y += 1
             }
             val startY = y
-            var x = 3f
+            var x = 3.0
             var highlightImageLineView: ChatLineUiView? = null
-            var highlightImageSize = IntSize.Zero
+            var highlightImageSize = CGSize.zero
             val highlight = post.highlight
             if (highlight != null && highlight.titleSegments != null) {
                 val highlightStyle = style.copy(backgroundColor = null)
-                val key = ChatLineKey(post.id, true)
+                val key = ChatLineKey(postId = post.id, highlight = true)
                 keys.add(key)
-                val lineView = lineView(key)
-                lineView.setContent(highlightStyle.makeHighlightImageContent(highlight))
-                highlightImageSize = lineView.size(availableWidth = width - x)
+                val lineView = lineView(key = key)
+                lineView.setContent(highlightStyle.makeHighlightImageContent(highlight = highlight))
+                val size = lineView.size(availableWidth = (width - x).toFloat())
+                highlightImageSize = CGSize(width = size.width, height = size.height)
                 highlightImageLineView = lineView
                 x += highlightImageSize.width
             }
             val content = style.makeContent(
-                post,
-                chat.moreThanOneStreamingPlatform.value,
-                false,
+                post = post,
+                platform = chat.moreThanOneStreamingPlatform.value,
+                deleted = false,
             )
-            val key = ChatLineKey(post.id, false)
+            val key = ChatLineKey(postId = post.id, highlight = false)
             keys.add(key)
-            val size = place(lineView(key), content, x, y)
+            val size = place(lineView = lineView(key = key), content = content, x = x, y = y)
+            highlightImageLineView?.frame = CGRect(
+                x = 3.0,
+                y = y + (size.height - highlightImageSize.height) / 2,
+                width = highlightImageSize.width,
+                height = highlightImageSize.height,
+            )
             y += size.height
-            val postHighlight = post.highlight
-            if (postHighlight != null) {
-                val barLayer = barLayer(barIndex)
-                barLayer.color = postHighlight.barColor
-                barLayer.frame = Rect(Offset(0f, startY), Size(3f, y - startY))
+            if (highlight != null) {
+                val barLayer = barLayer(index = barIndex)
+                barLayer.backgroundColor = CGColor(color = highlight.barColor)
+                barLayer.frame = CGRect(x = 0.0, y = startY, width = 3.0, height = y - startY)
                 barIndex += 1
             }
         }
         for ((key, lineView) in lineViews.toList()) {
-            if (!keys.contains(key)) {
+            if (key !in keys) {
                 lineView.unregister()
-                Unit
+                lineView.removeFromSuperview()
                 lineViews.remove(key)
             }
         }
         while (barLayers.size > barIndex) {
-            barLayers.removeAt(barLayers.lastIndex)
+            barLayers.removeAt(barLayers.size - 1).removeFromSuperlayer()
         }
-        if (y <= 0f) {
+        if (y <= 0.0) {
             onImage(null)
             return
         }
-        Unit
-        val bitmap = Bitmap.createBitmap(width.toInt(), y.toInt(), Bitmap.Config.ARGB_8888)
-        onImage(bitmap)
+        containerView.frame = CGRect(x = 0.0, y = 0.0, width = width, height = y)
+        val format = UIGraphicsImageRendererFormat()
+        format.scale = 1f
+        format.opaque = false
+        val image = UIGraphicsImageRenderer(size = containerView.bounds.size, format = format)
+            .image { context ->
+                containerView.draw(context.cgContext)
+            }
+        onImage(image.cgImage)
     }
 }
 
@@ -226,15 +241,14 @@ class ChatEffect(private val chat: ChatProvider) : VideoEffect() {
     private var renderer: ChatRenderer? = null
     private var settings = SettingsWidgetChat()
     private var height: Double = 1.0
-    private var started = false
-    private val mainScope = CoroutineScope(Dispatchers.Main)
+    private var started: Boolean = false
 
     fun start() {
         if (started) {
             return
         }
         started = true
-        mainScope.launch {
+        CoroutineScope(Dispatchers.Main.immediate).launch {
             startInternal()
         }
     }
@@ -244,7 +258,7 @@ class ChatEffect(private val chat: ChatProvider) : VideoEffect() {
             return
         }
         started = false
-        mainScope.launch {
+        CoroutineScope(Dispatchers.Main.immediate).launch {
             stopInternal()
         }
     }
@@ -261,11 +275,15 @@ class ChatEffect(private val chat: ChatProvider) : VideoEffect() {
         processorPipelineQueue.launch {
             this@ChatEffect.height = maximumHeight.toDouble()
         }
+        CoroutineScope(Dispatchers.Main.immediate).launch {
+            renderer?.scheduleRender()
+        }
     }
 
     private fun startInternal() {
-        renderer = ChatRenderer(settings, chat) { image ->
-            setChatImage(image)
+        val weakSelf = WeakReference(this)
+        renderer = ChatRenderer(settings = settings, chat = chat) { image ->
+            weakSelf.get()?.setChatImage(image = image)
         }
     }
 
@@ -281,34 +299,41 @@ class ChatEffect(private val chat: ChatProvider) : VideoEffect() {
         }
     }
 
-    override fun execute(image: Image, info: VideoEffectInfo): Image {
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
         var chatImage = chatImage?.getCiImage() ?: return image
-        val height = image.height * this.height
+        val height = image.extent.height * this.height
         if (chatImage.extent.height > height) {
-            chatImage = TODO("CIImage.cropped has no Android counterpart")
+            chatImage = chatImage.cropped(
+                to = CGRect(
+                    x = chatImage.extent.minX,
+                    y = chatImage.extent.minY,
+                    width = chatImage.extent.width,
+                    height = height,
+                ),
+            )
         }
         return chatImage
-            .move(sceneWidget.layout, Size(image.width.toFloat(), image.height.toFloat()))
-            .let { TODO("CIImage.cropped and CIImage.composited have no Android counterpart") }
+            .move(layout = sceneWidget.layout, streamSize = image.extent.size)
+            .cropped(to = image.extent)
+            .composited(over = image)
     }
 
-    override fun executeMetalPetal(
-        image: Image,
-        info: VideoEffectInfo,
-    ): Image {
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
         val chatImage = chatImage?.getMetalPetalImage() ?: return image
         var contentRegion = chatImage.extent
-        val height = image.height * this.height
+        val height = image.extent.height * this.height
         if (contentRegion.height > height) {
-            contentRegion = Rect(
-                Offset(contentRegion.left, contentRegion.bottom - height.toFloat()),
-                Size(contentRegion.width, height.toFloat()),
+            contentRegion = CGRect(
+                x = contentRegion.minX,
+                y = contentRegion.maxY - height,
+                width = contentRegion.width,
+                height = height,
             )
         }
         return chatImage.moveComposited(
-            sceneWidget.layout,
-            TODO("the video unit image cannot be used as an MTIImage"),
-            contentRegion,
-        ).let { TODO("MTIImage has no android.media.Image counterpart") }
+            layout = sceneWidget.layout,
+            backgroundImage = image,
+            contentRegion = contentRegion,
+        )
     }
 }

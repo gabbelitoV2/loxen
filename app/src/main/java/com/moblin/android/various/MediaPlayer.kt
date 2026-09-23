@@ -2,23 +2,37 @@ package com.moblin.android.various
 
 import android.util.Log
 import com.moblin.android.media.MediaSample
+import com.moblin.android.platform.avfoundation.AVAsset
+import com.moblin.android.platform.avfoundation.AVAssetReader
+import com.moblin.android.platform.avfoundation.AVAssetReaderTrackOutput
+import com.moblin.android.platform.avfoundation.AVAssetTrack
+import com.moblin.android.platform.avfoundation.AVFormatIDKey
+import com.moblin.android.platform.avfoundation.AVMediaType
+import com.moblin.android.platform.avfoundation.AVSampleRateKey
+import com.moblin.android.platform.avfoundation.kAudioFormatLinearPCM
+import com.moblin.android.platform.video.kCVPixelBufferIOSurfacePropertiesKey
+import com.moblin.android.platform.video.kCVPixelBufferMetalCompatibilityKey
+import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
+import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
 import com.moblin.android.various.settings.SettingsMediaPlayer
 import com.moblin.android.various.settings.SettingsMediaPlayerFile
 import com.moblin.android.various.storages.MediaPlayerStorage
 import com.moblin.android.various.utils.currentPresentationTimeStamp
+import java.util.Locale
 import java.util.UUID
 import java.util.concurrent.Executors
+import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 
+private const val TAG = "MediaPlayer"
+
 interface MediaPlayerDelegate {
     fun mediaPlayerFileLoaded(playerId: UUID, name: String)
-
     fun mediaPlayerFileUnloaded(playerId: UUID)
-
     fun mediaPlayerStateUpdate(
         playerId: UUID,
         name: String,
@@ -26,70 +40,66 @@ interface MediaPlayerDelegate {
         position: Double,
         time: String,
     )
-
     fun mediaPlayerVideoBuffer(playerId: UUID, sampleBuffer: MediaSample)
-
     fun mediaPlayerAudioBuffer(playerId: UUID, sampleBuffer: MediaSample)
 }
 
 private val mediaPlayerQueue: CoroutineDispatcher =
     Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
-private val mediaPlayerScope = CoroutineScope(mediaPlayerQueue)
+val mediaPlayerLatency: Double = 0.5
 
-const val mediaPlayerLatency = 0.5
-
-class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerStorage) {
-    private var asset: Any? = null
-    private var reader: Any? = null
-    private var videoTrackOutput: Any? = null
-    private var audioTrackOutput: Any? = null
+open class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerStorage) : AutoCloseable {
+    private var asset: AVAsset? = null
+    private var reader: AVAssetReader? = null
+    private var videoTrackOutput: AVAssetReaderTrackOutput? = null
+    private var audioTrackOutput: AVAssetReaderTrackOutput? = null
     private var settings: SettingsMediaPlayer = settings.clone()
     private var mediaStorage: MediaPlayerStorage = mediaStorage
     private var playing = false
     private var currentFileIndex = 0
     private var assetDuration = 0.0
     private var seeking = false
-    private var startVideoTime = 0L
-    private var latestVideoTime = 0L
-    private var startAudioTime = 0L
-    private var latestAudioTime = 0L
-    private var outputTimer = SimpleTimer(mediaPlayerQueue)
+    private var startVideoTime: Long = 0L
+    private var latestVideoTime: Long = 0L
+    private var startAudioTime: Long = 0L
+    private var latestAudioTime: Long = 0L
+    private var outputTimer: SimpleTimer = SimpleTimer(queue = mediaPlayerQueue)
     private var active = false
     private var filename = ""
-    var delegate: MediaPlayerDelegate? = null
+    open var delegate: MediaPlayerDelegate? = null
 
     init {
-        mediaPlayerScope.launch {
+        CoroutineScope(mediaPlayerQueue).launch {
             loadCurrentFile()
         }
     }
 
-    fun deinit() {
+    override fun close() {
         stopOutputTimer()
     }
 
-    fun activate() {
-        mediaPlayerScope.launch {
+    open fun activate() {
+        CoroutineScope(mediaPlayerQueue).launch {
             activateInternal()
         }
     }
 
-    fun deactivate() {
-        mediaPlayerScope.launch {
+    open fun deactivate() {
+        CoroutineScope(mediaPlayerQueue).launch {
             active = false
         }
     }
 
-    fun updateSettings(settings: SettingsMediaPlayer) {
-        val settings = settings.clone()
-        mediaPlayerScope.launch {
-            updateSettingsInternal(settings)
+    open fun updateSettings(settings: SettingsMediaPlayer) {
+        val clonedSettings = settings.clone()
+        CoroutineScope(mediaPlayerQueue).launch {
+            updateSettingsInternal(clonedSettings)
         }
     }
 
-    fun play() {
-        mediaPlayerScope.launch {
+    open fun play() {
+        CoroutineScope(mediaPlayerQueue).launch {
             playing = true
             val now = outputPresentationTimeStamp()
             startVideoTime = now - latestVideoTime
@@ -97,32 +107,32 @@ class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerStorag
         }
     }
 
-    fun pause() {
-        mediaPlayerScope.launch {
+    open fun pause() {
+        CoroutineScope(mediaPlayerQueue).launch {
             playing = false
         }
     }
 
-    fun next() {
-        mediaPlayerScope.launch {
+    open fun next() {
+        CoroutineScope(mediaPlayerQueue).launch {
             nextInternal()
         }
     }
 
-    fun previous() {
-        mediaPlayerScope.launch {
+    open fun previous() {
+        CoroutineScope(mediaPlayerQueue).launch {
             previousInternal()
         }
     }
 
-    fun seek(position: Double) {
-        mediaPlayerScope.launch {
+    open fun seek(position: Double) {
+        CoroutineScope(mediaPlayerQueue).launch {
             seekInternal(position)
         }
     }
 
-    fun setSeeking(on: Boolean) {
-        mediaPlayerScope.launch {
+    open fun setSeeking(on: Boolean) {
+        CoroutineScope(mediaPlayerQueue).launch {
             seeking = on
         }
     }
@@ -191,32 +201,77 @@ class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerStorag
         val currentFile = getCurrentFile() ?: return
         filename = currentFile.name
         val url = mediaStorage.makePath(id = currentFile.id)
-        Unit
-    }
-
-    private fun loadVideoTrackCompletion(tracks: List<Any?>?, error: Throwable?) {
-        if (error != null || tracks.isNullOrEmpty() || asset == null || reader == null) {
+        asset = AVAsset(url = url)
+        val asset = asset ?: run {
+            Log.i(TAG, "media-player: No asset $url")
             return
         }
-        Unit
+        try {
+            reader = AVAssetReader(asset = asset)
+        } catch (error: Throwable) {
+            Log.i(TAG, "media-player: Failed to create reader with error: $error")
+        }
+        assetDuration = max(asset.duration(), 1.0)
+        asset.loadTracks(withMediaType = AVMediaType.video) { tracks, error ->
+            CoroutineScope(mediaPlayerQueue).launch {
+                loadVideoTrackCompletion(tracks, error)
+            }
+        }
     }
 
-    private fun loadAudioTrackCompletion(tracks: List<Any?>?, error: Throwable?) {
-        if (tracks.isNullOrEmpty()) {
+    private fun loadVideoTrackCompletion(tracks: List<AVAssetTrack>?, error: Throwable?) {
+        if (error != null) {
+            return
+        }
+        val videoTrack = tracks?.firstOrNull() ?: return
+        val asset = this.asset ?: return
+        val reader = this.reader ?: return
+        val videoOutputSettings: Map<String, Any> = mapOf(
+            kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_32BGRA,
+            kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
+            kCVPixelBufferMetalCompatibilityKey to true,
+        )
+        val videoOutput = AVAssetReaderTrackOutput(
+            track = videoTrack,
+            outputSettings = videoOutputSettings,
+        )
+        videoTrackOutput = videoOutput
+        reader.add(output = videoOutput)
+        asset.loadTracks(withMediaType = AVMediaType.audio) { audioTracks, audioError ->
+            CoroutineScope(mediaPlayerQueue).launch {
+                loadAudioTrackCompletion(audioTracks, audioError)
+            }
+        }
+    }
+
+    private fun loadAudioTrackCompletion(tracks: List<AVAssetTrack>?, error: Throwable?) {
+        val audioTrack = tracks?.firstOrNull()
+        if (audioTrack == null) {
             Log.i(TAG, "media-player: No audio in file.")
             startReading()
             return
         }
-        if (error != null || reader == null) {
+        if (error != null) {
             Log.i(TAG, "media-player: Some error 2")
             return
         }
-        Unit
+        val reader = this.reader ?: return
+        val audioOutputSettings: Map<String, Any> = mapOf(
+            AVFormatIDKey to kAudioFormatLinearPCM,
+            AVSampleRateKey to 48000.0,
+        )
+        val audioOutput = AVAssetReaderTrackOutput(
+            track = audioTrack,
+            outputSettings = audioOutputSettings,
+        )
+        audioTrackOutput = audioOutput
+        reader.add(output = audioOutput)
+        startReading()
     }
 
     private fun startReading() {
-        val started: Boolean = false
-        if (reader == null || !started) {
+        val reader = this.reader
+        if (reader == null || !reader.startReading()) {
             Log.i(TAG, "media-player: Start reading failed")
             return
         }
@@ -231,30 +286,27 @@ class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerStorag
     }
 
     private fun outputVideoBuffer(): Long? {
-        if (videoTrackOutput == null) {
-            return null
-        }
-        val sampleBuffer: MediaSample = TODO("no Android counterpart for AVFoundation CMSampleBuffer")
+        val sampleBuffer = videoTrackOutput?.copyNextSampleBuffer() ?: return null
         latestVideoTime = sampleBuffer.presentationTimeUs
         val presentationTimeStamp = startVideoTime + sampleBuffer.presentationTimeUs
-        delegate?.mediaPlayerVideoBuffer(playerId = settings.id, sampleBuffer = sampleBuffer)
+        val newSampleBuffer = sampleBuffer.replacePresentationTimeStamp(presentationTimeStamp)
+        delegate?.mediaPlayerVideoBuffer(playerId = settings.id, sampleBuffer = newSampleBuffer)
         return presentationTimeStamp
     }
 
     private fun outputAudioBuffer(): Long? {
-        if (audioTrackOutput == null) {
-            return null
-        }
-        val sampleBuffer: MediaSample = TODO("no Android counterpart for AVFoundation CMSampleBuffer")
+        val sampleBuffer = audioTrackOutput?.copyNextSampleBuffer() ?: return null
         latestAudioTime = sampleBuffer.presentationTimeUs
         val presentationTimeStamp = startAudioTime + sampleBuffer.presentationTimeUs
-        delegate?.mediaPlayerAudioBuffer(playerId = settings.id, sampleBuffer = sampleBuffer)
+        val newSampleBuffer = sampleBuffer.replacePresentationTimeStamp(presentationTimeStamp)
+        delegate?.mediaPlayerAudioBuffer(playerId = settings.id, sampleBuffer = newSampleBuffer)
         return presentationTimeStamp
     }
 
     private fun startOutputTimer() {
+        val (weakSelf, timer) = java.lang.ref.WeakReference(this) to outputTimer
         outputTimer.startPeriodic(interval = 0.3, initial = 0.0) {
-            handleOutputTimer()
+            weakSelf.get()?.handleOutputTimer() ?: timer.stop()
         }
     }
 
@@ -296,7 +348,7 @@ class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerStorag
 
     private fun formatTime(time: Double): String {
         val time = time.roundToInt()
-        val seconds = "%02d".format(time % 60)
+        val seconds = String.format(Locale.US, "%02d", time % 60)
         val minutes = time / 60
         return "$minutes:$seconds"
     }
@@ -310,8 +362,5 @@ class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerStorag
     }
 }
 
-private const val TAG = "MediaPlayer"
-
-private fun outputPresentationTimeStamp(): Long {
-    return currentPresentationTimeStamp() + (mediaPlayerLatency * 1_000_000).toLong()
-}
+private fun outputPresentationTimeStamp(): Long =
+    currentPresentationTimeStamp() + (mediaPlayerLatency * 1_000_000.0).toLong()

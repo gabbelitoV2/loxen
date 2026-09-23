@@ -8,73 +8,22 @@ import com.moblin.android.platform.coregraphics.CGSize
 import com.moblin.android.platform.coreimage.internal.orientationTransform
 import com.moblin.android.various.settings.SettingsAlignment
 import com.moblin.android.various.settings.SettingsWidgetLayout
+import com.moblin.android.videoeffects.move
+import com.moblin.android.videoeffects.resizeMirror
+import com.moblin.android.videoeffects.scaled
+import com.moblin.android.videoeffects.translated
 import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.min
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNotSame
 import kotlin.test.assertTrue
 import org.junit.Test
 
 class CIImageExtentTest {
-    private fun toPixels(percentage: Double, total: Double): Double {
-        return (percentage * total) / 100
-    }
-
-    private fun CIImage.translated(x: Double, y: Double): CIImage {
-        return transformed(by = CGAffineTransform(translationX = x, y = y))
-    }
-
-    private fun CIImage.scaled(x: Double, y: Double): CIImage {
-        return transformed(by = CGAffineTransform(scaleX = x, y = y), highQualityDownsample = false)
-    }
-
-    private fun CIImage.move(layout: SettingsWidgetLayout, streamSize: CGSize): CIImage {
-        var x: Double
-        var y: Double
-        if (layout.alignment.isHorizontalCenter()) {
-            x = (streamSize.width - extent.width) / 2 - extent.minX
-        } else if (layout.alignment.isLeft()) {
-            x = toPixels(layout.x, streamSize.width) - extent.minX
-        } else {
-            x = streamSize.width - toPixels(layout.x, streamSize.width) - extent.width - extent.minX
-            if (x != 0.0) {
-                x += 1
-            }
-        }
-        if (layout.alignment.isVerticalCenter()) {
-            y = (streamSize.height - extent.height) / 2 - extent.minY
-        } else if (layout.alignment.isTop()) {
-            y = streamSize.height - toPixels(layout.y, streamSize.height) - extent.height - extent.minY
-            if (y != 0.0) {
-                y += 1
-            }
-        } else {
-            y = toPixels(layout.y, streamSize.height) - extent.minY
-        }
-        return translated(x = x, y = y)
-    }
-
-    private fun CIImage.resizeMirror(layout: SettingsWidgetLayout, streamSize: CGSize, mirror: Boolean): CIImage {
-        var scaleX = toPixels(layout.size, streamSize.width) / extent.size.width
-        val scaleY = toPixels(layout.size, streamSize.height) / extent.size.height
-        val scale = min(scaleX, scaleY)
-        scaleX = if (mirror) -scale else scale
-        val scaledImage = scaled(x = scaleX, y = scale)
-        return if (mirror) {
-            scaledImage.translated(x = scaledImage.extent.width, y = 0.0)
-        } else {
-            scaledImage
-        }
-    }
-
     private fun layout(alignment: SettingsAlignment, x: Double = 10.0, y: Double = 20.0): SettingsWidgetLayout {
-        val layout = SettingsWidgetLayout()
-        layout.x = x
-        layout.y = y
-        layout.alignment = alignment
-        return layout
+        return SettingsWidgetLayout(x = x, y = y, alignment = alignment)
     }
 
     private fun canvas(width: Double, height: Double): CIImage {
@@ -88,8 +37,13 @@ class CIImageExtentTest {
         val centerImage = image.cropped(to = CGRect(x = width, y = 0.0, width = width, height = height))
         val leftImage = centerImage.translated(x = -width, y = 0.0)
         val rightImage = centerImage.translated(x = width, y = 0.0)
-        val center = centerImage.composited(over = leftImage)
-        return rightImage.composited(over = center)
+        val centerFilter = CIFilter.sourceOverCompositing()
+        val rightFilter = CIFilter.sourceOverCompositing()
+        centerFilter.inputImage = centerImage
+        centerFilter.backgroundImage = leftImage
+        rightFilter.inputImage = rightImage
+        rightFilter.backgroundImage = centerFilter.outputImage
+        return assertNotNull(rightFilter.outputImage)
     }
 
     private fun twin(image: CIImage): CIImage {
@@ -99,7 +53,10 @@ class CIImageExtentTest {
         val centerImage = image.cropped(to = CGRect(x = width / 2, y = 0.0, width = width, height = height))
         val leftImage = centerImage.translated(x = -width / 2, y = 0.0)
         val rightImage = centerImage.scaled(x = -1.0, y = 1.0).translated(x = 5 * width / 2, y = 0.0)
-        return rightImage.composited(over = leftImage)
+        val filter = CIFilter.sourceOverCompositing()
+        filter.inputImage = rightImage
+        filter.backgroundImage = leftImage
+        return assertNotNull(filter.outputImage)
     }
 
     @Test
@@ -252,8 +209,7 @@ class CIImageExtentTest {
         val background = canvas(1920.0, 1080.0)
         val widget = canvas(400.0, 300.0)
         for (mirror in listOf(false, true)) {
-            val layout = layout(SettingsAlignment.topLeft, 0.0, 0.0)
-            layout.size = 50.0
+            val layout = layout(SettingsAlignment.topLeft, 0.0, 0.0).copy(size = 50.0)
             val resized = widget.resizeMirror(layout, streamSize, mirror)
             assertEquals(CGRect(0.0, 0.0, 720.0, 540.0), resized.extent)
             val placed = resized.move(layout, streamSize).cropped(to = background.extent)

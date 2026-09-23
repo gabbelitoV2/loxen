@@ -11,6 +11,9 @@ import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.videoeffects.MetalPetalWidgetShape
 import com.moblin.android.videoeffects.dewarp360.graphicsEpsilon
 import java.util.UUID
+import com.moblin.android.videoeffects.move
+import com.moblin.android.videoeffects.resizeMirror
+import com.moblin.android.videoeffects.resizeMirrorMoveComposited
 
 data class VideoEffectInfo(
     val sceneVideoSourceId: UUID,
@@ -118,7 +121,7 @@ open class VideoEffect {
         info: VideoEffectInfo,
         widgetShape: MetalPetalWidgetShape? = null,
     ): MTIImage {
-        val shape = widgetShape ?: MetalPetalWidgetShape(contentRegion = image.extent)
+        val shape = widgetShape?.copy() ?: MetalPetalWidgetShape(contentRegion = image.extent)
         val processedImage = applyEffectsMetalPetal(image, info)
         for (effect in effects) {
             effect.modifyMetalPetalWidgetShape(shape)

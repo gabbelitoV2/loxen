@@ -390,6 +390,36 @@
       "new": "        timestamp = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds,",
       "occurrence": 1,
       "note": "ME1. Variables.timestamp holds ContinuousClock nanoseconds."
+    },
+    {
+      "id": "HE0.42",
+      "file": "view/settings/scenes/widgets/widget/text/WidgetTextSettingsView.kt",
+      "scope": "fun WidgetTextSettingsView",
+      "op": "replace",
+      "old": "                        effect.setFontDesign(design = design)",
+      "new": "                        effect.setFontDesign(design = design.toUiKit())",
+      "occurrence": 1,
+      "note": "ME1 boundary: Swift WidgetTextSettingsView.swift:1755 passes fontDesign.toSystem(); the regenerated TextEffect.setFontDesign takes view.utils.FontDesign, which toUiKit() returns (HE0.9)."
+    },
+    {
+      "id": "HE0.43",
+      "file": "view/settings/scenes/widgets/widget/text/WidgetTextSettingsView.kt",
+      "scope": "fun WidgetTextSettingsView",
+      "op": "replace",
+      "old": "                        effect.setFontWeight(weight = weight)",
+      "new": "                        effect.setFontWeight(weight = weight.toSystem())",
+      "occurrence": 1,
+      "note": "ME1 boundary: Swift WidgetTextSettingsView.swift:1767 passes fontWeight.toSystem(); the regenerated TextEffect.setFontWeight takes a Compose FontWeight."
+    },
+    {
+      "id": "HE0.44",
+      "file": "view/stream/DrawOnStreamView.kt",
+      "scope": "fun DrawOnStreamCanvasView",
+      "op": "replace",
+      "old": "                        path = drawOnStreamCreatePath(line.points),",
+      "new": "                        path = drawOnStreamCreatePath(line.points.map { com.moblin.android.platform.coregraphics.CGPoint(it.x, it.y) }),",
+      "occurrence": 1,
+      "note": "ME1 boundary: the regenerated drawOnStreamCreatePath takes List<CGPoint> as Swift does; DrawOnStreamLine.points stays List<Offset> in the UI."
     }
   ]
 }

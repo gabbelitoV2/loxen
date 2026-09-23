@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-09-23T19:39:21+00:00
+Generated 2026-09-23T20:13:12+00:00
 
 ## Summary
 
@@ -84,10 +84,6 @@ Generated 2026-09-23T19:39:21+00:00
   - AVAudioFormat(streamDescription:) / AudioStreamBasicDescription (makeAudioFormat)
 - Moblin/Media/HaishinKit/Media/Video/PreviewView.swift
   - AVSampleBufferDisplayLayer (enqueue, flush, flushAndRemoveImage)
-- Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift
-  - CoreImage (CIContext, CIImage, CIFilter) - scaleImage, rotateCoreImage, mirrorCoreImage, applySceneSwitchTransition, applyEffectsCoreImage and renderSceneSwitchTransitionEnd replaced by TODO("OpenGL ES port")
-  - MetalPetal (MTIContext, MTIImage, MTIMultilayerCompositingFilter, MTIMPSGaussianBlurFilter, MTICropFilter) and Metal (MTLCreateSystemDefaultDevice, MTLDevice, MTLTexture) - applyEffectsMetalPetal, scaleImageMetalPetal, blurMetalPetal, applySceneSwitchTransitionMetalPetal, getBlackImageMetalPetal and the MTIContext in init replaced by TODO("no Android counterpart for MetalPetal")
-  - CoreVideo (CVPixelBufferPool, CVPixelBuffer, CMVideoFormatDescription, CMSampleBuffer.create) - getBufferPool and createPixelBuffer replaced by TODO("no Android counterpart for CVPixelBufferPool")
 - Moblin/Media/HaishinKit/Media/Video/VideoLowFpsImage.swift
   - Core Image render path (CIImage.scaled, CIContext.createCGImage, UIImage.jpegData) - createImage body replaced by TODO("OpenGL ES port")
 - Moblin/Media/HaishinKit/Media/Video/VideoSnapshots.swift
@@ -154,13 +150,6 @@ Generated 2026-09-23T19:39:21+00:00
 - Moblin/Various/Media.swift
   - AVCaptureDevice.lockForConfiguration/ramp(toVideoZoomFactor:withRate:)/videoZoomFactor (camera zoom control) replaced by TODO("CameraX zoom control port")
   - AVCaptureDevice.default(for: .audio) replaced by TODO("AVCaptureDevice.default(for: .audio) port")
-- Moblin/Various/MediaPlayer.swift
-  - AVFoundation AVAsset
-  - AVFoundation AVAssetReader
-  - AVFoundation AVAssetReaderTrackOutput
-  - AVFoundation AVAssetTrack
-  - CMSampleBuffer
-  - CMTime
 - Moblin/Various/Model/Model.swift
   - AlertsEffectAlert.quickButton
 - Moblin/Various/Model/ModelAppIntents.swift
@@ -183,8 +172,6 @@ Generated 2026-09-23T19:39:21+00:00
   - UIPasteboard (copyMessage)
 - Moblin/Various/Model/ModelChatBot.swift
   - AVCaptureReactionType / AVCaptureDevice.performEffect(for:) / availableReactionTypes (handleChatBotMessageReaction, triggerAppleReaction)
-- Moblin/Various/Model/ModelFaceBackgroundImage.swift
-  - URL.documentsDirectory
 - Moblin/Various/Model/ModelKeyboard.swift
   - SwiftUI KeyPress / KeyPress.Result (iOS 17 press handling) has no Android equivalent; a placeholder KeyPress type with nested Result was declared and key events must come from Compose key input.
 - Moblin/Various/Model/ModelLiveActivity.swift
@@ -298,158 +285,12 @@ Generated 2026-09-23T19:39:21+00:00
   - no Android counterpart for NetworkExtension
 - Moblin/Various/Variables.swift
   - WeatherKit WeatherCondition and Measurement<UnitTemperature>/<UnitSpeed> have no Android counterpart; they appear only in property declarations, so they were substituted with String? and Double? instead of a TODO() body
-- Moblin/VideoEffects/Alerts/AlertsEffect.swift
-  - Core Image rendering (CIImage/CGImage) -> TODO("OpenGL ES port")
-  - MetalPetal rendering (MTIImage/MTILayer/MTIMultilayerCompositingFilter) -> TODO("OpenGL ES port")
-  - Vision (VNFaceObservation and its landmarks) -> TODO("Vision has no Android counterpart")
-  - UIGraphicsImageRenderer -> TODO("No Android counterpart for UIGraphicsImageRenderer")
-  - AVSpeechSynthesisVoice.speechVoices() -> TODO("No Android counterpart for AVSpeechSynthesisVoice.speechVoices()")
-- Moblin/VideoEffects/Alerts/AlertsEffectMedia.swift
-  - SDWebImage animated GIF frame decoding (ImageDecoder/AnimatedImageDrawable frame access not certain)
-  - Bundle.main.url(forResource:withExtension:) bundled alert media lookup
-- Moblin/VideoEffects/Alerts/AlertsEffectVideoReader.swift
-  - AVAssetReader / AVAssetReaderTrackOutput video track reading (replaced by MediaExtractor + MediaCodec; frame decoding itself is TODO)
-  - CIImage(cvImageBuffer:).toEffectImage(isOpaque:) frame conversion to EffectImageCiImage
-- Moblin/VideoEffects/AnamorphicLensEffect.swift
-  - CIFilter.stretchCrop (Core Image) in executeEarly -> TODO("OpenGL ES port")
-- Moblin/VideoEffects/BeautyEffect.swift
-  - MetalPetal MTIImage (no Android image type; Any? placeholder used in render signatures)
-  - MTIHighPassSkinSmoothingFilter (TODO: OpenGL ES port)
-  - MTIBulgeDistortionFilter (TODO: OpenGL ES port)
-  - Vision VNFaceObservation / landmarks.medianLine.pointsInImage (no Android counterpart)
 - Moblin/VideoEffects/Blur/BlurFilter.swift
   - Core Image CIFilter / CIKernel rendering (BlurKernel.apply) - OpenGL ES port
 - Moblin/VideoEffects/Blur/BlurKernel.swift
   - CoreImage CIImageProcessorKernel (process(with:arguments:output:))
   - Metal MTLCommandBuffer and MTLTexture
   - MetalPerformanceShaders MPSImageGaussianBlur
-- Moblin/VideoEffects/CameraManEffect.swift
-  - CIImage, CIFilter and CGAffineTransform crop/transform rendering in execute(image:info:) -> TODO("OpenGL ES port")
-  - MTIImage and MTIMultilayerCompositingFilter (MetalPetal) compositing in executeMetalPetal(image:info:) -> TODO("OpenGL ES port")
-- Moblin/VideoEffects/ChatEffect.swift
-  - UIView
-  - CALayer
-  - UIGraphicsImageRenderer
-- Moblin/VideoEffects/ChatEmoteComboEffect.swift
-  - no Android counterpart for SwiftUI ImageRenderer
-  - no Android counterpart for MetalPetal
-- Moblin/VideoEffects/Crt/CrtBarrelDistortionFilter.swift
-  - CoreImage CIWarpKernel / Metal library (crtBarrelDistortion)
-  - CoreImage CIFilter / CIImage
-- Moblin/VideoEffects/Crt/CrtEffect.swift
-  - CIFilter.colorControls
-  - CIFilter.vignette
-  - CIFilter.stripesGenerator
-  - CIColor
-  - MTICrtFilter
-  - CIImage.cropped(to:)
-  - CIImage.composited(over:)
-  - CIImage.transformed(by:)
-  - CGAffineTransform
-- Moblin/VideoEffects/DrawOnStreamEffect.swift
-  - Core Image CIImage/CIFilter source-over compositing (execute)
-  - MetalPetal MTIImage compositing (executeMetalPetal)
-- Moblin/VideoEffects/FaceEffect.swift
-  - MetalPetal (MTIMask, MTIImage, MTILayer, MTI filters): TODO("OpenGL ES port")
-  - Core Image (CIImage, CIFilter.radialGradient/.pixellate/.blendWithMask): TODO("OpenGL ES port")
-  - Vision face landmarks (VNFaceObservation): TODO("Vision port")
-  - UIKit asset loading (UIImage(named:)): TODO("OpenGL ES port")
-- Moblin/VideoEffects/FixedHorizonEffect.swift
-  - Core Image rendering (CIImage, extent transforms) - no Android counterpart, TODO("OpenGL ES port")
-  - MetalPetal rendering (MTIImage, MTIMultilayerCompositingFilter) - no Android counterpart, TODO("OpenGL ES port")
-- Moblin/VideoEffects/FourThreeEffect.swift
-  - Core Image (CIImage.cropped(to:) and composited(over: CIImage.black))
-  - MetalPetal (MTIImage, MTIMultilayerCompositingFilter, MTILayer)
-- Moblin/VideoEffects/GrayScaleEffect.swift
-  - Core Image CIFilter.colorMonochrome (CIFilter, CIColor, CIImage) - replaced by TODO("OpenGL ES port")
-  - MetalPetal MTIColorMatrixFilter / MTIColorMatrix / MTIImage - replaced by TODO("no Android counterpart for MetalPetal")
-- Moblin/VideoEffects/ImageEffect.swift
-  - CIFilter.sourceOverCompositing (Core Image)
-  - CIImage(data:options:) decoding of the stored image bytes (Core Image)
-  - CIImage.toEffectImage(isOpaque:) conversion to an EffectImage (Core Image)
-  - CIFilter compositing render in execute (Core Image)
-  - MTIImage render in executeMetalPetal (MetalPetal)
-- Moblin/VideoEffects/MapEffect.swift
-  - Core Image / MetalPetal rendering (CIImage composited/scaled/translated and MTIMultilayerCompositingFilter) replaced by TODO("OpenGL ES port")
-  - MKMapSnapshotter and MKMapCamera (MapKit) replaced by TODO("no Android counterpart for MapKit")
-  - UIImage(named:) and UIImage.cgImage replaced by TODO("load the MapDot drawable and convert it to EffectImageCgImage")
-  - CLLocationCoordinate2D.translateMeters (CoreLocation extension) replaced by TODO("port of CLLocationCoordinate2D.translateMeters from the CoreLocation extension")
-- Moblin/VideoEffects/MaskEffect.swift
-  - MetalPetal render path (MTIBlendWithMaskFilter, MTIMask, MTIImage)
-  - Core Image render path (CIImage, CIFilter.blendWithMask, CIFilter.checkerboardGenerator)
-- Moblin/VideoEffects/MovieEffect.swift
-  - CoreImage (CIImage, CIImage.black, cropped(to:), composited(over:))
-  - MetalPetal (MTIImage, MTIMultilayerCompositingFilter, MTILayer)
-- Moblin/VideoEffects/OpacityEffect.swift
-  - MetalPetal MTIOpacityFilter render (outputImage) -> TODO("OpenGL ES port")
-  - CoreImage CIFilter.colorMatrix render in execute(_:_:) -> TODO("OpenGL ES port")
-- Moblin/VideoEffects/PinchEffect.swift
-  - CIFilter.pinchDistortion (Core Image)
-  - MTIPinchDistortionFilter (MetalPetal)
-- Moblin/VideoEffects/PixellateEffect.swift
-  - Core Image rendering path (CIFilter.pixellate output) replaced by TODO("OpenGL ES port")
-  - MetalPetal rendering path (MTIPixellateFilter output) replaced by TODO("OpenGL ES port")
-- Moblin/VideoEffects/PngTuberEffect.swift
-  - TODO("OpenGL ES port") in execute(image:info:) — Core Image rendering has no Android counterpart
-  - TODO("OpenGL ES port") in executeMetalPetal(image:info:) — MetalPetal rendering has no Android counterpart
-  - TODO("EffectImageCgImage from decoded Bitmap") in PngTuberImage.fromJson — no known Android API to build an EffectImageCgImage from a Bitmap
-- Moblin/VideoEffects/PollEffect.swift
-  - SwiftUI ImageRenderer (rendering a view into an image)
-  - CIFilter.sourceOverCompositing
-  - MetalPetal MTIImage
-  - CIImage translate/crop compositing
-- Moblin/VideoEffects/PomodoroTimerEffect.swift
-  - SwiftUI ImageRenderer
-  - Combine objectWillChange publisher / AnyCancellable subscription
-  - CIImage move/cropped/composited (CoreImage)
-  - MTIImage moveComposited (MetalPetal)
-  - CGImage.toEffectImage() conversion
-- Moblin/VideoEffects/QrCodeEffect.swift
-  - CIFilter.qrCodeGenerator / Core Image QR generation, CIImage scaling and toEffectImage(isOpaque:) in update() -> TODO("OpenGL ES port: encode QR code ...")
-  - Core Image / MetalPetal render path in execute() and executeMetalPetal() -> TODO("OpenGL ES port")
-- Moblin/VideoEffects/RemoveBackgroundEffect.swift
-  - CoreImage CIColorCubeWithColorSpace (makeFilter result and execute) - replaced by TODO()
-- Moblin/VideoEffects/Replay/ReplayEffect.swift
-  - Core Image composition (CIImage.resizeMirror/move/cropped/composited and CIFilter.dissolveTransition) -> TODO("OpenGL ES port") in applyLayoutToReplay, fade and the stinger branch of execute
-  - MetalPetal rendering (MTIImage, MTIBlendFilter) -> TODO("OpenGL ES port") in applyLayoutToReplayMetalPetal, fadeMetalPetal, blendMetalPetal and the stinger branch of executeMetalPetal
-- Moblin/VideoEffects/Replay/ReplayEffectReplayReader.swift
-  - AVAsset
-  - AVAssetReader
-  - AVAssetReaderTrackOutput
-  - CIImage (composition, scaling, centering, translation)
-  - SwiftUI ImageRenderer / Image(systemName:) / Text / Circle / HStack
-- Moblin/VideoEffects/Replay/ReplayEffectStingerReader.swift
-  - Core Image render pipeline (CIImage scaledTo/centered/composited and toEffectImage(isOpaque:)) replaced by TODO("OpenGL ES port") in renderEffectImage
-  - AVAssetReaderTrackOutput.copyNextSampleBuffer()/CVPixelBuffer frame pull replaced by TODO("MediaCodec output buffer dequeue and advance loop for the MediaSample wire format") in copyNextSampleBuffer
-- Moblin/VideoEffects/Scoreboard/ScoreboardEffect.swift
-  - ImageRenderer
-  - CIImage move/crop/composite pipeline
-  - MTIImage / MetalPetal compositing
-  - CGImage/bitmap to EffectImageCgImage conversion
-- Moblin/VideoEffects/Scoreboard/ScoreboardEffectGolfView.swift
-  - minimumScaleFactor
-- Moblin/VideoEffects/Scoreboard/ScoreboardEffectModularView.swift
-  - Image("VolleyballIndicator") asset (no Compose asset pipeline in this port) -> TODO("asset VolleyballIndicator")
-- Moblin/VideoEffects/SepiaEffect.swift
-  - Core Image CIFilter.sepiaTone (OpenGL ES port)
-  - MetalPetal MTIColorMatrixFilter (OpenGL ES port)
-- Moblin/VideoEffects/SnapshotEffect.swift
-  - MTIImage / MetalPetal rendering (executeMetalPetal)
-- Moblin/VideoEffects/Text/TextEffect.swift
-  - no Android counterpart for SwiftUI ImageRenderer
-  - no Android counterpart for UIImage(systemName:)
-  - no Compose counterpart for iOS custom font family
-  - no Compose counterpart for SettingsFontWeight
-  - no Android counterpart for CoreImage compositing
-  - no Android counterpart for MetalPetal
-  - no Android counterpart for CGImage to EffectImage conversion
-- Moblin/VideoEffects/TripleEffect.swift
-  - Core Image CIFilter.sourceOverCompositing and CIImage.cropped/translated
-  - MetalPetal MTIMultilayerCompositingFilter and MTIImage
-- Moblin/VideoEffects/TwinEffect.swift
-  - Core Image CIFilter.sourceOverCompositing
-  - CIImage cropped(to:)/translated(x:y:)/scaled(x:y:) geometric transforms
-  - MetalPetal MTIMultilayerCompositingFilter and MTIImage
 - Moblin/VideoEffects/VTuber/Live2DRenderer.swift
   - MTLCreateSystemDefaultDevice / MTLDevice
   - MTLCommandQueue and command buffers
@@ -459,32 +300,6 @@ Generated 2026-09-23T19:39:21+00:00
   - MTLRenderPipelineDescriptor, MTLRenderPipelineState and MTLFunctionConstantValues
   - MTLRenderPassDescriptor / MTLRenderCommandEncoder / MTLClearColor
   - MTLTexture, MTLTextureDescriptor and CVMetalTextureCache (CoreVideo Metal interop)
-- Moblin/VideoEffects/VTuber/VTuberEffect.swift
-  - Core Image (CIImage) compositing chain in execute()
-  - MetalPetal (MTIImage) rendering in executeMetalPetal()
-  - Vision face angle estimation (calcFaceAngle, calcFaceAngleSide)
-  - Vision mouth and eye openness estimation (isMouthOpen, isLeftEyeOpen, isRightEyeOpen)
-- Moblin/VideoEffects/VTuber/VTuberLive2DEffect.swift
-  - Ayagami
-- Moblin/VideoEffects/VTuber/VTuberVrmEffect.swift
-  - VRMSceneKit VRMSceneLoader/VRMScene loading of a .vrm file (TODO in init)
-  - SceneKit SCNCamera/SCNNode camera node creation and VRM humanoid node access (TODO in init)
-  - SceneKit camera fieldOfView/position updates (TODO in setModelSettings)
-  - SceneKit blend shape and humanoid euler angle updates (TODO in updateModel)
-  - SCNRenderer.snapshot(atTime:with:antialiasingMode:) offscreen rendering and CGImage to EffectImage conversion (TODO in renderModel)
-  - @unchecked Sendable concurrency annotation
-- Moblin/VideoEffects/VideoSourceEffect.swift
-  - Core Image CIImage rendering pipeline (execute) -> TODO("OpenGL ES port")
-  - MetalPetal MTIImage rendering pipeline (executeMetalPetal) -> TODO("OpenGL ES port")
-- Moblin/VideoEffects/WheelOfLuckEffect.swift
-  - SwiftUI ImageRenderer (renderWheel/renderArrow)
-  - Swift Charts Chart/SectorMark (WheelView)
-  - SF Symbol image location.north.fill (ArrowView)
-  - Core Image CIImage compositing/transforming/cropping (execute)
-  - MetalPetal MTIImage and MTIMultilayerCompositingFilter (executeMetalPetal)
-- Moblin/VideoEffects/WhirlpoolEffect.swift
-  - CoreImage CIFilter.twirlDistortion / CIImage (execute) -> TODO("OpenGL ES port")
-  - MetalPetal MTITwirlDistortionFilter / MTIImage (executeMetalPetal) -> TODO("OpenGL ES port")
 - Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatView.swift
   - NavigationLink
   - NavigationStack
@@ -668,12 +483,6 @@ Generated 2026-09-23T19:39:21+00:00
   - CMFormatDescription.audioStreamBasicDescription (AVFoundation)
 - MoblinTests/Moblin/Various/Utils/CmTimeSuite.swift
   - no Android counterpart for CMTime preferredTimescale quantization
-- MoblinTests/Moblin/VideoEffects/EffectUtilsSuite.swift
-  - CoreImage (CIImage.black, cropped(to:), move(_:), extent) in metalPetalLayerPositionMatchesCoreImage
-- MoblinTests/Moblin/VideoEffects/LutEffectSuite.swift
-  - MetalPetal (MTIColorLookupFilter, MTIImage, MTIContext), CoreGraphics (CGContext), Metal (MTLCreateSystemDefaultDevice) and CVPixelBuffer have no Android counterpart
-- MoblinTests/Moblin/VideoEffects/Text/TextEffectSuite.swift
-  - WeatherKit WeatherCondition (no Android counterpart, replaced by TODO in conditions() and plainText())
 
 ## Ported files
 
@@ -764,7 +573,7 @@ Generated 2026-09-23T19:39:21+00:00
 | Moblin/Media/HaishinKit/Media/Video/PreviewView.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/PreviewView.kt | deepseek-flash | 44.4 |
 | Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoCaptureSession.kt | deepseek-flash | 72.2 |
 | Moblin/Media/HaishinKit/Media/Video/VideoEffect.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt | deepseek-flash | 38.5 |
-| Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt | deepseek-flash | 112.6 |
+| Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt | deepseek-flash | 147.5 |
 | Moblin/Media/HaishinKit/Media/Video/VideoFpsEstimator.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoFpsEstimator.kt | deepseek-flash | 5.9 |
 | Moblin/Media/HaishinKit/Media/Video/VideoLowFpsImage.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoLowFpsImage.kt | deepseek-flash | 29.5 |
 | Moblin/Media/HaishinKit/Media/Video/VideoSnapshots.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoSnapshots.kt | deepseek-flash | 80.7 |
@@ -904,7 +713,7 @@ Generated 2026-09-23T19:39:21+00:00
 | Moblin/Various/Managers/Location.swift | app/src/main/java/com/moblin/android/various/managers/Location.kt | deepseek-flash | 65.7 |
 | Moblin/Various/Managers/WeatherManager.swift | app/src/main/java/com/moblin/android/various/managers/WeatherManager.kt | deepseek-flash | 19.5 |
 | Moblin/Various/Media.swift | app/src/main/java/com/moblin/android/various/Media.kt | deepseek-flash | 191.1 |
-| Moblin/Various/MediaPlayer.swift | app/src/main/java/com/moblin/android/various/MediaPlayer.kt | deepseek-flash | 57.2 |
+| Moblin/Various/MediaPlayer.swift | app/src/main/java/com/moblin/android/various/MediaPlayer.kt | deepseek-flash | 71.1 |
 | Moblin/Various/MoblinSettingsUrl.swift | app/src/main/java/com/moblin/android/various/MoblinSettingsUrl.kt | deepseek-flash | 66.4 |
 | Moblin/Various/Model/Chat/ChatProvider.swift | app/src/main/java/com/moblin/android/various/model/chat/ChatProvider.kt | deepseek-flash | 49.7 |
 | Moblin/Various/Model/Model.swift | app/src/main/java/com/moblin/android/various/model/Model.kt | deepseek-flash | 82.7 |
@@ -922,7 +731,7 @@ Generated 2026-09-23T19:39:21+00:00
 | Moblin/Various/Model/ModelControlBar.swift | app/src/main/java/com/moblin/android/various/model/ModelControlBar.kt | deepseek-flash | 37.0 |
 | Moblin/Various/Model/ModelDisconnectProtection.swift | app/src/main/java/com/moblin/android/various/model/ModelDisconnectProtection.kt | deepseek-flash | 10.7 |
 | Moblin/Various/Model/ModelDjiDevice.swift | app/src/main/java/com/moblin/android/various/model/ModelDjiDevice.kt | deepseek-flash | 55.9 |
-| Moblin/Various/Model/ModelFaceBackgroundImage.swift | app/src/main/java/com/moblin/android/various/model/ModelFaceBackgroundImage.kt | deepseek-flash | 11.0 |
+| Moblin/Various/Model/ModelFaceBackgroundImage.swift | app/src/main/java/com/moblin/android/various/model/ModelFaceBackgroundImage.kt | deepseek-flash | 10.6 |
 | Moblin/Various/Model/ModelGameController.swift | app/src/main/java/com/moblin/android/various/model/ModelGameController.kt | deepseek-flash | 75.9 |
 | Moblin/Various/Model/ModelGimbal.swift | app/src/main/java/com/moblin/android/various/model/ModelGimbal.kt | deepseek-flash | 45.4 |
 | Moblin/Various/Model/ModelGoProDevice.swift | app/src/main/java/com/moblin/android/various/model/ModelGoProDevice.kt | deepseek-flash | 48.3 |
@@ -934,7 +743,7 @@ Generated 2026-09-23T19:39:21+00:00
 | Moblin/Various/Model/ModelLog.swift | app/src/main/java/com/moblin/android/various/model/ModelLog.kt | deepseek-flash | 35.3 |
 | Moblin/Various/Model/ModelMacStatusItem.swift | app/src/main/java/com/moblin/android/various/model/ModelMacStatusItem.kt | deepseek-flash | 25.4 |
 | Moblin/Various/Model/ModelMacros.swift | app/src/main/java/com/moblin/android/various/model/ModelMacros.kt | deepseek-flash | 21.9 |
-| Moblin/Various/Model/ModelMediaPlayer.swift | app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt | deepseek-flash | 57.4 |
+| Moblin/Various/Model/ModelMediaPlayer.swift | app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt | deepseek-flash | 54.7 |
 | Moblin/Various/Model/ModelMoblinWebsite.swift | app/src/main/java/com/moblin/android/various/model/ModelMoblinWebsite.kt | deepseek-flash | 82.5 |
 | Moblin/Various/Model/ModelMoblink.swift | app/src/main/java/com/moblin/android/various/model/ModelMoblink.kt | deepseek-flash | 50.7 |
 | Moblin/Various/Model/ModelMusic.swift | app/src/main/java/com/moblin/android/various/model/ModelMusic.kt | deepseek-flash | 40.1 |
@@ -944,7 +753,7 @@ Generated 2026-09-23T19:39:21+00:00
 | Moblin/Various/Model/ModelPictureInPicture.swift | app/src/main/java/com/moblin/android/various/model/ModelPictureInPicture.kt | deepseek-flash | 36.4 |
 | Moblin/Various/Model/ModelRecording.swift | app/src/main/java/com/moblin/android/various/model/ModelRecording.kt | deepseek-flash | 56.5 |
 | Moblin/Various/Model/ModelRemoteControl.swift | app/src/main/java/com/moblin/android/various/model/ModelRemoteControl.kt | deepseek-flash | 169.6 |
-| Moblin/Various/Model/ModelReplay.swift | app/src/main/java/com/moblin/android/various/model/ModelReplay.kt | deepseek-flash | 63.7 |
+| Moblin/Various/Model/ModelReplay.swift | app/src/main/java/com/moblin/android/various/model/ModelReplay.kt | deepseek-flash | 119.7 |
 | Moblin/Various/Model/ModelRistServer.swift | app/src/main/java/com/moblin/android/various/model/ModelRistServer.kt | deepseek-flash | 25.3 |
 | Moblin/Various/Model/ModelRtmpServer.swift | app/src/main/java/com/moblin/android/various/model/ModelRtmpServer.kt | deepseek-flash | 35.3 |
 | Moblin/Various/Model/ModelRtspClient.swift | app/src/main/java/com/moblin/android/various/model/ModelRtspClient.kt | deepseek-flash | 36.4 |
@@ -1035,68 +844,68 @@ Generated 2026-09-23T19:39:21+00:00
 | Moblin/Various/Utils/WiFiUtils.swift | app/src/main/java/com/moblin/android/various/utils/WiFiUtils.kt | deepseek-flash | 5.1 |
 | Moblin/Various/Variables.swift | app/src/main/java/com/moblin/android/various/Variables.kt | deepseek-flash | 20.9 |
 | Moblin/Various/WebBrowserController.swift | app/src/main/java/com/moblin/android/various/WebBrowserController.kt | deepseek-flash | 41.9 |
-| Moblin/VideoEffects/Alerts/AlertsEffect.swift | app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt | deepseek-flash | 128.4 |
-| Moblin/VideoEffects/Alerts/AlertsEffectFace.swift | app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectFace.kt | deepseek-flash | 21.8 |
-| Moblin/VideoEffects/Alerts/AlertsEffectMedia.swift | app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectMedia.kt | deepseek-flash | 130.8 |
-| Moblin/VideoEffects/Alerts/AlertsEffectVideoReader.swift | app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectVideoReader.kt | deepseek-flash | 34.7 |
-| Moblin/VideoEffects/AnamorphicLensEffect.swift | app/src/main/java/com/moblin/android/videoeffects/AnamorphicLensEffect.kt | deepseek-flash | 13.9 |
-| Moblin/VideoEffects/BeautyEffect.swift | app/src/main/java/com/moblin/android/videoeffects/BeautyEffect.kt | deepseek-flash | 35.5 |
-| Moblin/VideoEffects/BingoCardEffect.swift | app/src/main/java/com/moblin/android/videoeffects/BingoCardEffect.kt | deepseek-flash | 52.5 |
+| Moblin/VideoEffects/Alerts/AlertsEffect.swift | app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt | deepseek-flash | 202.4 |
+| Moblin/VideoEffects/Alerts/AlertsEffectFace.swift | app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectFace.kt | deepseek-flash | 11.3 |
+| Moblin/VideoEffects/Alerts/AlertsEffectMedia.swift | app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectMedia.kt | deepseek-flash | 76.0 |
+| Moblin/VideoEffects/Alerts/AlertsEffectVideoReader.swift | app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectVideoReader.kt | deepseek-flash | 18.9 |
+| Moblin/VideoEffects/AnamorphicLensEffect.swift | app/src/main/java/com/moblin/android/videoeffects/AnamorphicLensEffect.kt | deepseek-flash | 7.7 |
+| Moblin/VideoEffects/BeautyEffect.swift | app/src/main/java/com/moblin/android/videoeffects/BeautyEffect.kt | deepseek-flash | 38.3 |
+| Moblin/VideoEffects/BingoCardEffect.swift | app/src/main/java/com/moblin/android/videoeffects/BingoCardEffect.kt | deepseek-flash | 103.0 |
 | Moblin/VideoEffects/Blur/BlurFilter.swift | app/src/main/java/com/moblin/android/videoeffects/blur/BlurFilter.kt | deepseek-flash | 5.1 |
 | Moblin/VideoEffects/Blur/BlurKernel.swift | app/src/main/java/com/moblin/android/videoeffects/blur/BlurKernel.kt | deepseek-flash | 6.3 |
-| Moblin/VideoEffects/Browser/BrowserEffect.swift | app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt | deepseek-flash | 107.6 |
-| Moblin/VideoEffects/Browser/BrowserEffectServer.swift | app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt | deepseek-flash | 90.9 |
-| Moblin/VideoEffects/CameraManEffect.swift | app/src/main/java/com/moblin/android/videoeffects/CameraManEffect.kt | deepseek-flash | 33.4 |
-| Moblin/VideoEffects/ChatEffect.swift | app/src/main/java/com/moblin/android/videoeffects/ChatEffect.kt | deepseek-flash | 123.3 |
-| Moblin/VideoEffects/ChatEmoteComboEffect.swift | app/src/main/java/com/moblin/android/videoeffects/ChatEmoteComboEffect.kt | deepseek-flash | 89.1 |
-| Moblin/VideoEffects/Crt/CrtBarrelDistortionFilter.swift | app/src/main/java/com/moblin/android/videoeffects/crt/CrtBarrelDistortionFilter.kt | deepseek-flash | 14.5 |
-| Moblin/VideoEffects/Crt/CrtEffect.swift | app/src/main/java/com/moblin/android/videoeffects/crt/CrtEffect.kt | deepseek-flash | 16.0 |
-| Moblin/VideoEffects/Dewarp360/Dewarp360Effect.swift | app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Effect.kt | deepseek-flash | 21.4 |
+| Moblin/VideoEffects/Browser/BrowserEffect.swift | app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt | deepseek-flash | 96.5 |
+| Moblin/VideoEffects/Browser/BrowserEffectServer.swift | app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt | deepseek-flash | 98.6 |
+| Moblin/VideoEffects/CameraManEffect.swift | app/src/main/java/com/moblin/android/videoeffects/CameraManEffect.kt | deepseek-flash | 21.3 |
+| Moblin/VideoEffects/ChatEffect.swift | app/src/main/java/com/moblin/android/videoeffects/ChatEffect.kt | deepseek-flash | 86.2 |
+| Moblin/VideoEffects/ChatEmoteComboEffect.swift | app/src/main/java/com/moblin/android/videoeffects/ChatEmoteComboEffect.kt | deepseek-flash | 95.9 |
+| Moblin/VideoEffects/Crt/CrtBarrelDistortionFilter.swift | app/src/main/java/com/moblin/android/videoeffects/crt/CrtBarrelDistortionFilter.kt | deepseek-flash | 13.4 |
+| Moblin/VideoEffects/Crt/CrtEffect.swift | app/src/main/java/com/moblin/android/videoeffects/crt/CrtEffect.kt | deepseek-flash | 16.1 |
+| Moblin/VideoEffects/Dewarp360/Dewarp360Effect.swift | app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Effect.kt | deepseek-flash | 19.1 |
 | Moblin/VideoEffects/Dewarp360/Dewarp360Filter.swift | app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt | deepseek-flash | 39.2 |
-| Moblin/VideoEffects/DrawOnStreamEffect.swift | app/src/main/java/com/moblin/android/videoeffects/DrawOnStreamEffect.kt | deepseek-flash | 81.1 |
+| Moblin/VideoEffects/DrawOnStreamEffect.swift | app/src/main/java/com/moblin/android/videoeffects/DrawOnStreamEffect.kt | deepseek-flash | 51.6 |
 | Moblin/VideoEffects/EffectUtils.swift | app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt | deepseek-flash | 34.9 |
-| Moblin/VideoEffects/FaceEffect.swift | app/src/main/java/com/moblin/android/videoeffects/FaceEffect.kt | deepseek-flash | 92.8 |
-| Moblin/VideoEffects/FixedHorizonEffect.swift | app/src/main/java/com/moblin/android/videoeffects/FixedHorizonEffect.kt | deepseek-flash | 121.9 |
-| Moblin/VideoEffects/FourThreeEffect.swift | app/src/main/java/com/moblin/android/videoeffects/FourThreeEffect.kt | deepseek-flash | 10.2 |
-| Moblin/VideoEffects/GrayScaleEffect.swift | app/src/main/java/com/moblin/android/videoeffects/GrayScaleEffect.kt | deepseek-flash | 19.0 |
-| Moblin/VideoEffects/ImageEffect.swift | app/src/main/java/com/moblin/android/videoeffects/ImageEffect.kt | deepseek-flash | 45.8 |
-| Moblin/VideoEffects/LutEffect.swift | app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt | deepseek-flash | 15.2 |
-| Moblin/VideoEffects/MapEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt | deepseek-flash | 149.3 |
-| Moblin/VideoEffects/MaskEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MaskEffect.kt | deepseek-flash | 131.3 |
-| Moblin/VideoEffects/MovieEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MovieEffect.kt | deepseek-flash | 8.9 |
-| Moblin/VideoEffects/OpacityEffect.swift | app/src/main/java/com/moblin/android/videoeffects/OpacityEffect.kt | deepseek-flash | 14.3 |
-| Moblin/VideoEffects/PinchEffect.swift | app/src/main/java/com/moblin/android/videoeffects/PinchEffect.kt | deepseek-flash | 15.1 |
-| Moblin/VideoEffects/PixellateEffect.swift | app/src/main/java/com/moblin/android/videoeffects/PixellateEffect.kt | deepseek-flash | 19.8 |
-| Moblin/VideoEffects/PngTuberEffect.swift | app/src/main/java/com/moblin/android/videoeffects/PngTuberEffect.kt | deepseek-flash | 128.4 |
-| Moblin/VideoEffects/PollEffect.swift | app/src/main/java/com/moblin/android/videoeffects/PollEffect.kt | deepseek-flash | 70.5 |
-| Moblin/VideoEffects/PomodoroTimerEffect.swift | app/src/main/java/com/moblin/android/videoeffects/PomodoroTimerEffect.kt | deepseek-flash | 83.6 |
-| Moblin/VideoEffects/QrCodeEffect.swift | app/src/main/java/com/moblin/android/videoeffects/QrCodeEffect.kt | deepseek-flash | 36.9 |
-| Moblin/VideoEffects/RemoveBackgroundEffect.swift | app/src/main/java/com/moblin/android/videoeffects/RemoveBackgroundEffect.kt | deepseek-flash | 67.1 |
-| Moblin/VideoEffects/Replay/ReplayEffect.swift | app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffect.kt | deepseek-flash | 101.6 |
-| Moblin/VideoEffects/Replay/ReplayEffectReplayReader.swift | app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffectReplayReader.kt | deepseek-flash | 82.6 |
-| Moblin/VideoEffects/Replay/ReplayEffectStingerReader.swift | app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffectStingerReader.kt | deepseek-flash | 90.9 |
-| Moblin/VideoEffects/Scoreboard/ScoreboardEffect.swift | app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffect.kt | deepseek-flash | 50.9 |
-| Moblin/VideoEffects/Scoreboard/ScoreboardEffectGenericView.swift | app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectGenericView.kt | deepseek-flash | 28.1 |
-| Moblin/VideoEffects/Scoreboard/ScoreboardEffectGolfFullScorecardView.swift | app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectGolfFullScorecardView.kt | deepseek-flash | 78.0 |
-| Moblin/VideoEffects/Scoreboard/ScoreboardEffectGolfView.swift | app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectGolfView.kt | deepseek-flash | 34.5 |
-| Moblin/VideoEffects/Scoreboard/ScoreboardEffectModularView.swift | app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectModularView.kt | deepseek-flash | 73.9 |
-| Moblin/VideoEffects/Scoreboard/ScoreboardEffectPadelView.swift | app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectPadelView.kt | deepseek-flash | 37.2 |
-| Moblin/VideoEffects/SepiaEffect.swift | app/src/main/java/com/moblin/android/videoeffects/SepiaEffect.kt | deepseek-flash | 31.5 |
+| Moblin/VideoEffects/FaceEffect.swift | app/src/main/java/com/moblin/android/videoeffects/FaceEffect.kt | deepseek-flash | 113.2 |
+| Moblin/VideoEffects/FixedHorizonEffect.swift | app/src/main/java/com/moblin/android/videoeffects/FixedHorizonEffect.kt | deepseek-flash | 37.6 |
+| Moblin/VideoEffects/FourThreeEffect.swift | app/src/main/java/com/moblin/android/videoeffects/FourThreeEffect.kt | deepseek-flash | 9.6 |
+| Moblin/VideoEffects/GrayScaleEffect.swift | app/src/main/java/com/moblin/android/videoeffects/GrayScaleEffect.kt | deepseek-flash | 9.5 |
+| Moblin/VideoEffects/ImageEffect.swift | app/src/main/java/com/moblin/android/videoeffects/ImageEffect.kt | deepseek-flash | 26.0 |
+| Moblin/VideoEffects/LutEffect.swift | app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt | deepseek-flash | 102.0 |
+| Moblin/VideoEffects/MapEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt | deepseek-flash | 76.9 |
+| Moblin/VideoEffects/MaskEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MaskEffect.kt | deepseek-flash | 77.6 |
+| Moblin/VideoEffects/MovieEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MovieEffect.kt | deepseek-flash | 7.7 |
+| Moblin/VideoEffects/OpacityEffect.swift | app/src/main/java/com/moblin/android/videoeffects/OpacityEffect.kt | deepseek-flash | 9.5 |
+| Moblin/VideoEffects/PinchEffect.swift | app/src/main/java/com/moblin/android/videoeffects/PinchEffect.kt | deepseek-flash | 9.0 |
+| Moblin/VideoEffects/PixellateEffect.swift | app/src/main/java/com/moblin/android/videoeffects/PixellateEffect.kt | deepseek-flash | 9.7 |
+| Moblin/VideoEffects/PngTuberEffect.swift | app/src/main/java/com/moblin/android/videoeffects/PngTuberEffect.kt | deepseek-flash | 103.4 |
+| Moblin/VideoEffects/PollEffect.swift | app/src/main/java/com/moblin/android/videoeffects/PollEffect.kt | deepseek-flash | 42.6 |
+| Moblin/VideoEffects/PomodoroTimerEffect.swift | app/src/main/java/com/moblin/android/videoeffects/PomodoroTimerEffect.kt | deepseek-flash | 83.0 |
+| Moblin/VideoEffects/QrCodeEffect.swift | app/src/main/java/com/moblin/android/videoeffects/QrCodeEffect.kt | deepseek-flash | 30.3 |
+| Moblin/VideoEffects/RemoveBackgroundEffect.swift | app/src/main/java/com/moblin/android/videoeffects/RemoveBackgroundEffect.kt | deepseek-flash | 53.0 |
+| Moblin/VideoEffects/Replay/ReplayEffect.swift | app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffect.kt | deepseek-flash | 94.3 |
+| Moblin/VideoEffects/Replay/ReplayEffectReplayReader.swift | app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffectReplayReader.kt | deepseek-flash | 104.0 |
+| Moblin/VideoEffects/Replay/ReplayEffectStingerReader.swift | app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffectStingerReader.kt | deepseek-flash | 110.6 |
+| Moblin/VideoEffects/Scoreboard/ScoreboardEffect.swift | app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffect.kt | deepseek-flash | 48.1 |
+| Moblin/VideoEffects/Scoreboard/ScoreboardEffectGenericView.swift | app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectGenericView.kt | deepseek-flash | 27.9 |
+| Moblin/VideoEffects/Scoreboard/ScoreboardEffectGolfFullScorecardView.swift | app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectGolfFullScorecardView.kt | deepseek-flash | 56.1 |
+| Moblin/VideoEffects/Scoreboard/ScoreboardEffectGolfView.swift | app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectGolfView.kt | deepseek-flash | 79.2 |
+| Moblin/VideoEffects/Scoreboard/ScoreboardEffectModularView.swift | app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectModularView.kt | deepseek-flash | 177.1 |
+| Moblin/VideoEffects/Scoreboard/ScoreboardEffectPadelView.swift | app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectPadelView.kt | deepseek-flash | 51.0 |
+| Moblin/VideoEffects/SepiaEffect.swift | app/src/main/java/com/moblin/android/videoeffects/SepiaEffect.kt | deepseek-flash | 11.3 |
 | Moblin/VideoEffects/ShapeEffect.swift | app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt | deepseek-flash | 58.2 |
-| Moblin/VideoEffects/SlideshowEffect.swift | app/src/main/java/com/moblin/android/videoeffects/SlideshowEffect.kt | deepseek-flash | 29.8 |
-| Moblin/VideoEffects/SnapshotEffect.swift | app/src/main/java/com/moblin/android/videoeffects/SnapshotEffect.kt | deepseek-flash | 49.2 |
-| Moblin/VideoEffects/Text/TextEffect.swift | app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt | deepseek-flash | 145.4 |
+| Moblin/VideoEffects/SlideshowEffect.swift | app/src/main/java/com/moblin/android/videoeffects/SlideshowEffect.kt | deepseek-flash | 11.2 |
+| Moblin/VideoEffects/SnapshotEffect.swift | app/src/main/java/com/moblin/android/videoeffects/SnapshotEffect.kt | deepseek-flash | 18.1 |
+| Moblin/VideoEffects/Text/TextEffect.swift | app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt | deepseek-flash | 122.7 |
 | Moblin/VideoEffects/Text/TextEffectFormatter.swift | app/src/main/java/com/moblin/android/videoeffects/text/TextEffectFormatter.kt | deepseek-flash | 212.4 |
 | Moblin/VideoEffects/Text/TextFormatStringLoader.swift | app/src/main/java/com/moblin/android/videoeffects/text/TextFormatStringLoader.kt | deepseek-flash | 73.3 |
-| Moblin/VideoEffects/TripleEffect.swift | app/src/main/java/com/moblin/android/videoeffects/TripleEffect.kt | deepseek-flash | 23.0 |
-| Moblin/VideoEffects/TwinEffect.swift | app/src/main/java/com/moblin/android/videoeffects/TwinEffect.kt | deepseek-flash | 19.1 |
+| Moblin/VideoEffects/TripleEffect.swift | app/src/main/java/com/moblin/android/videoeffects/TripleEffect.kt | deepseek-flash | 14.0 |
+| Moblin/VideoEffects/TwinEffect.swift | app/src/main/java/com/moblin/android/videoeffects/TwinEffect.kt | deepseek-flash | 12.7 |
 | Moblin/VideoEffects/VTuber/Live2DRenderer.swift | app/src/main/java/com/moblin/android/videoeffects/vtuber/Live2DRenderer.kt | deepseek-flash | 96.8 |
-| Moblin/VideoEffects/VTuber/VTuberEffect.swift | app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberEffect.kt | deepseek-flash | 65.7 |
-| Moblin/VideoEffects/VTuber/VTuberLive2DEffect.swift | app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberLive2DEffect.kt | deepseek-flash | 42.6 |
-| Moblin/VideoEffects/VTuber/VTuberVrmEffect.swift | app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberVrmEffect.kt | deepseek-flash | 68.9 |
-| Moblin/VideoEffects/VideoSourceEffect.swift | app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt | deepseek-flash | 93.7 |
-| Moblin/VideoEffects/WheelOfLuckEffect.swift | app/src/main/java/com/moblin/android/videoeffects/WheelOfLuckEffect.kt | deepseek-flash | 63.5 |
-| Moblin/VideoEffects/WhirlpoolEffect.swift | app/src/main/java/com/moblin/android/videoeffects/WhirlpoolEffect.kt | deepseek-flash | 18.1 |
+| Moblin/VideoEffects/VTuber/VTuberEffect.swift | app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberEffect.kt | deepseek-flash | 49.3 |
+| Moblin/VideoEffects/VTuber/VTuberLive2DEffect.swift | app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberLive2DEffect.kt | deepseek-flash | 50.0 |
+| Moblin/VideoEffects/VTuber/VTuberVrmEffect.swift | app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberVrmEffect.kt | deepseek-flash | 38.7 |
+| Moblin/VideoEffects/VideoSourceEffect.swift | app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt | deepseek-flash | 119.8 |
+| Moblin/VideoEffects/WheelOfLuckEffect.swift | app/src/main/java/com/moblin/android/videoeffects/WheelOfLuckEffect.kt | deepseek-flash | 67.4 |
+| Moblin/VideoEffects/WhirlpoolEffect.swift | app/src/main/java/com/moblin/android/videoeffects/WhirlpoolEffect.kt | deepseek-flash | 12.5 |
 | Moblin/View/ControlBar/BatteryView.swift | app/src/main/java/com/moblin/android/view/controlbar/BatteryView.kt | deepseek-flash | 20.0 |
 | Moblin/View/ControlBar/ControlBarBackgroundView.swift | app/src/main/java/com/moblin/android/view/controlbar/ControlBarBackgroundView.kt | deepseek-flash | 10.2 |
 | Moblin/View/ControlBar/ControlBarLandscapeView.swift | app/src/main/java/com/moblin/android/view/controlbar/ControlBarLandscapeView.kt | deepseek-flash | 97.8 |
@@ -1466,8 +1275,8 @@ Generated 2026-09-23T19:39:21+00:00
 | MoblinTests/Moblin/Various/Utils/ChatLineViewSuite.swift | app/src/test/java/com/moblin/android/various/utils/ChatLineViewSuite.kt | deepseek-flash | 41.2 |
 | MoblinTests/Moblin/Various/Utils/CmTimeSuite.swift | app/src/test/java/com/moblin/android/various/utils/CmTimeSuite.kt | deepseek-flash | 44.9 |
 | MoblinTests/Moblin/Various/Utils/UtilsSuite.swift | app/src/test/java/com/moblin/android/various/utils/UtilsSuite.kt | deepseek-flash | 45.1 |
-| MoblinTests/Moblin/VideoEffects/EffectUtilsSuite.swift | app/src/test/java/com/moblin/android/videoeffects/EffectUtilsSuite.kt | deepseek-flash | 35.6 |
-| MoblinTests/Moblin/VideoEffects/LutEffectSuite.swift | app/src/test/java/com/moblin/android/videoeffects/LutEffectSuite.kt | deepseek-flash | 43.6 |
-| MoblinTests/Moblin/VideoEffects/Text/TextEffectSuite.swift | app/src/test/java/com/moblin/android/videoeffects/text/TextEffectSuite.kt | deepseek-flash | 71.5 |
+| MoblinTests/Moblin/VideoEffects/EffectUtilsSuite.swift | app/src/test/java/com/moblin/android/videoeffects/EffectUtilsSuite.kt | deepseek-flash | 34.8 |
+| MoblinTests/Moblin/VideoEffects/LutEffectSuite.swift | app/src/test/java/com/moblin/android/videoeffects/LutEffectSuite.kt | deepseek-flash | 113.7 |
+| MoblinTests/Moblin/VideoEffects/Text/TextEffectSuite.swift | app/src/test/java/com/moblin/android/videoeffects/text/TextEffectSuite.kt | deepseek-flash | 157.7 |
 | MoblinTests/Moblin/View/Settings/Macros/MacrosSettingsViewSuite.swift | app/src/test/java/com/moblin/android/view/settings/macros/MacrosSettingsViewSuite.kt | deepseek-flash | 8.4 |
 | MoblinTests/TestUtils.swift | app/src/test/java/com/moblin/android/TestUtils.kt | deepseek-flash | 21.9 |

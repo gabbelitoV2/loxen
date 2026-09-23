@@ -1,34 +1,48 @@
 package com.moblin.android.videoeffects
 
-import com.moblin.android.platform.video.CVPixelBuffer as Image
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.coreimage.CIColor
+import com.moblin.android.platform.coreimage.CIFilter
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIColorMatrix
+import com.moblin.android.platform.metalpetal.MTIColorMatrixFilter
+import com.moblin.android.platform.metalpetal.MTIImage
+import com.moblin.android.platform.simd.SIMD4
+import com.moblin.android.platform.simd.simd_float4x4
 
-private class ColorMatrix(val matrix: FloatArray, val bias: FloatArray)
-
-private fun makeGrayScaleColorMatrix(): ColorMatrix {
-    val luminance = floatArrayOf(0.2126f, 0.7152f, 0.0722f, 0f)
-    for (index in luminance.indices) {
-        luminance[index] = luminance[index] * 0.75f
-    }
-    val matrix = FloatArray(16)
-    for (column in 0 until 3) {
-        for (row in 0 until 4) {
-            matrix[column * 4 + row] = luminance[row]
-        }
-    }
-    matrix[15] = 1f
-    return ColorMatrix(matrix = matrix, bias = floatArrayOf(0f, 0f, 0f, 0f))
+private fun makeGrayScaleColorMatrix(): MTIColorMatrix {
+    val luminance = SIMD4(0.2126, 0.7152, 0.0722, 0) * 0.75f
+    return MTIColorMatrix(
+        matrix = simd_float4x4(
+            columns = listOf(
+                luminance,
+                luminance,
+                luminance,
+                SIMD4(0, 0, 0, 1)
+            )
+        ),
+        bias = SIMD4(0, 0, 0, 0)
+    )
 }
 
 class GrayScaleEffect : VideoEffect() {
-    private val colorMatrix: ColorMatrix = makeGrayScaleColorMatrix()
+    private val filter = CIFilter.colorMonochrome()
+    private val filterMetalPetal = MTIColorMatrixFilter()
 
-    override fun execute(image: Image, info: VideoEffectInfo): Image {
-        TODO()
+    init {
+        filterMetalPetal.colorMatrix = makeGrayScaleColorMatrix()
     }
 
-    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
-        TODO()
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
+        filter.inputImage = image
+        filter.color = CIColor(0.75, 0.75, 0.75)
+        filter.intensity = 1.0f
+        return filter.outputImage ?: image
+    }
+
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
+        filterMetalPetal.inputImage = image
+        return filterMetalPetal.outputImage ?: image
     }
 }

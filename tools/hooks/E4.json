@@ -37,6 +37,25 @@
    "old": "        onRelease = { it.removeAllViews() },",
    "new": "        onRelease = { it.removeAllViews(); browser.browserEffect.webView.returnView() },",
    "occurrence": 1
+  },
+  {
+   "id": "HE4.4",
+   "file": "videoeffects/browser/BrowserEffectServer.kt",
+   "scope": "fun enable",
+   "op": "insert_after",
+   "anchor": "    open fun enable() {",
+   "new": "        val (weakSelf, timer) = java.lang.ref.WeakReference(this) to pingTimer",
+   "note": "ME1. Swift's ping timer handler captures [weak self] (BrowserEffectServer.swift:92) and its MainTimer stops in deinit. A strong capture roots the server, its delegate BrowserEffect and the WKWebView after resetBrowserVideoEffects drops them, so the page keeps running."
+  },
+  {
+   "id": "HE4.5",
+   "file": "videoeffects/browser/BrowserEffectServer.kt",
+   "scope": "fun enable",
+   "op": "replace",
+   "old": "            handlePingTimer()",
+   "new": "            weakSelf.get()?.handlePingTimer() ?: timer.stop()",
+   "occurrence": 1,
+   "note": "ME1. With HE4.4: weak capture, and the timer stops once the server is collected, as Swift's MainTimer deinit does."
   }
  ]
 }

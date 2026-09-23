@@ -114,7 +114,7 @@
       "name": "TextEffect",
       "owner": "E3",
       "milestone": "ME1",
-      "note": "Intended: timersEndTime becomes List<ContinuousClock.Instant>; R11.4 updates createTextEffect."
+      "note": "Intended: timersEndTime becomes List<ContinuousClock.Instant>; R11.4 updates createTextEffect. Fixed at the caller: fontDesign is view.utils.FontDesign and fontWeight a Compose FontWeight, as Swift passes toSystem() (effects plan 1.20 listed the settings enums); R11.23 and R11.24 pass toUiKit() and toSystem()."
     },
     {
       "check": "boundary",
@@ -198,7 +198,462 @@
       "name": "MapEffect.updateLocation",
       "owner": "E7",
       "milestone": "ME1",
-      "note": "Intended: only updateLocation(location: android.location.Location) remains; the snapshot also holds today's MapLocation version beside the interim overload HE7.1, which R11.1's ME1 line calls."
+      "note": "Intended: only updateLocation(location: android.location.Location) remains (effects plan 1.20); the snapshot also holds the MapLocation overload that the interim hooks HE7.1 and HE7.2 used, which are retired. R11.1's ME1 line calls the Location version."
+    },
+    {
+      "check": "boundary",
+      "name": "AlertsEffect",
+      "owner": "E5",
+      "milestone": "ME1",
+      "note": "Intended: delegate is a non-null parameter stored privately, as Swift's init(delegate: AlertsEffectDelegate); ModelScene passes the Model. Callers unchanged."
+    },
+    {
+      "check": "boundary",
+      "name": "AlertsEffectAlert.KickGiftedSubscriptions",
+      "owner": "E5",
+      "milestone": "ME1",
+      "note": "Intended: whitespace-only signature change; HE0.21 and HE0.32 callers unchanged."
+    },
+    {
+      "check": "boundary",
+      "name": "AlertsEffectAlert.QuickButton",
+      "owner": "E5",
+      "milestone": "ME1",
+      "note": "Intended: data object became a plain object (identity equality either way); R11.8 caller unchanged."
+    },
+    {
+      "check": "boundary",
+      "name": "AlertsEffectAlert.TwitchRedemption",
+      "owner": "E5",
+      "milestone": "ME1",
+      "note": "Intended: whitespace-only signature change; HE0.17 caller unchanged."
+    },
+    {
+      "check": "boundary",
+      "name": "AlertsEffectAlert.TwitchResubscribe",
+      "owner": "E5",
+      "milestone": "ME1",
+      "note": "Intended: whitespace-only signature change; HE0.15 caller unchanged."
+    },
+    {
+      "check": "boundary",
+      "name": "AlertsEffectAlert.TwitchSubscriptionUpgrade",
+      "owner": "E5",
+      "milestone": "ME1",
+      "note": "Intended: whitespace-only signature change; HE0.16 caller unchanged."
+    },
+    {
+      "check": "boundary",
+      "name": "AlertsEffectAlert.TwitchSubscrptionGift",
+      "owner": "E5",
+      "milestone": "ME1",
+      "note": "Intended: whitespace-only signature change; HE0.14 caller unchanged."
+    },
+    {
+      "check": "boundary",
+      "name": "AnamorphicLensEffect",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: settings becomes a private var property; the parameter type is unchanged."
+    },
+    {
+      "check": "boundary",
+      "name": "CIImage.move",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: EffectUtils now extends the Core Image shim's CIImage with a CGSize stream size (effects plan 1.1, 1.20); the only outside reference is CIImageExtentTest, which calls the regenerated function."
+    },
+    {
+      "check": "boundary",
+      "name": "CIImage.resizeMirror",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: EffectUtils now extends the Core Image shim's CIImage with a CGSize stream size; the only outside reference is CIImageExtentTest, which calls the regenerated function."
+    },
+    {
+      "check": "boundary",
+      "name": "CIImage.scaled",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: the old videoeffects.CIImage stand-in is gone; the only outside reference is CIImageExtentTest, which calls the regenerated function."
+    },
+    {
+      "check": "boundary",
+      "name": "CIImage.translated",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: the old videoeffects.CIImage stand-in is gone; the only outside reference is CIImageExtentTest, which calls the regenerated function."
+    },
+    {
+      "check": "boundary",
+      "name": "CameraManEffect",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: parameters become private var properties; Boolean, Double, Boolean as effects plan 1.20."
+    },
+    {
+      "check": "boundary",
+      "name": "ChatEmoteComboEffect",
+      "owner": "E5",
+      "milestone": "ME1",
+      "note": "Fixed at the caller: canvasSize is a CGSize as Swift's init(canvasSize: CGSize) (effects plan 1.20 listed a Compose Size); R11.25 passes media.getCanvasSize().toCGSize()."
+    },
+    {
+      "check": "boundary",
+      "name": "Dewarp360EffectSettings.Direct",
+      "owner": "E11",
+      "milestone": "ME1",
+      "note": "Intended: whitespace-only signature change; SettingsScene caller unchanged."
+    },
+    {
+      "check": "boundary",
+      "name": "DrawOnStreamEffect.updateOverlay",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Fixed at the caller: videoSize and size are CGSize as Swift (effects plan 1.20 listed Compose Size); R11.12-R11.17 and R11.19-R11.22 convert with toCGSize()."
+    },
+    {
+      "check": "boundary",
+      "name": "FaceEffectSettings",
+      "owner": "E9",
+      "milestone": "ME1",
+      "note": "Intended: fields become val (Swift struct); Settings.toEffectSettings only constructs it."
+    },
+    {
+      "check": "boundary",
+      "name": "MTIColor.Companion.black",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: the videoeffects.MTIColor stand-in is gone; MTIImage.kt uses the MetalPetal shim's own MTIColor.black."
+    },
+    {
+      "check": "boundary",
+      "name": "MTIColorLookupFilter.outputImage",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: the LutEffect stand-in is gone; the references are the MetalPetal shim's own filters in MTIFiltersE8.kt."
+    },
+    {
+      "check": "boundary",
+      "name": "MTILayer.FlipOptions",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: the ShapeEffect stand-in is gone; MTIFilterCore.kt uses the MetalPetal shim's own MTILayer.FlipOptions."
+    },
+    {
+      "check": "boundary",
+      "name": "MTILayer.FlipOptions.<entries>",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: the ShapeEffect stand-in is gone; MTIFilterCore.kt uses the MetalPetal shim's own MTILayer.FlipOptions."
+    },
+    {
+      "check": "boundary",
+      "name": "MapCamera.*",
+      "owner": "E7",
+      "milestone": "ME1",
+      "note": "Intended: the MapEffect stand-in MapCamera is gone; the references are the MapKit shim's own MKMapCamera members."
+    },
+    {
+      "check": "boundary",
+      "name": "MapEffect",
+      "owner": "E7",
+      "milestone": "ME1",
+      "note": "Intended: widget becomes a plain constructor parameter; the type is unchanged."
+    },
+    {
+      "check": "boundary",
+      "name": "MaskEffectPoint",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: fields become val (Swift struct); SettingsScene only constructs it."
+    },
+    {
+      "check": "boundary",
+      "name": "MaskEffectSettings",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: fields become val (Swift struct); SettingsScene only constructs it."
+    },
+    {
+      "check": "boundary",
+      "name": "MediaPlayer",
+      "owner": "E10",
+      "milestone": "ME1",
+      "note": "Intended: open class implementing AutoCloseable, whose close() is Swift's deinit (stopOutputTimer); KeepSpeakerAlive's MediaPlayer is android.media.MediaPlayer. Model.addMediaPlayer and deleteMediaPlayer close the player they drop (HE10.5, HE10.6), and the output timer holds the player weakly (HE10.8, HE10.9)."
+    },
+    {
+      "check": "boundary",
+      "name": "MediaPlayer.activate",
+      "owner": "E10",
+      "milestone": "ME1",
+      "note": "Intended: open modifier only."
+    },
+    {
+      "check": "boundary",
+      "name": "MediaPlayer.delegate",
+      "owner": "E10",
+      "milestone": "ME1",
+      "note": "Intended: open modifier only; the Model.kt reference is faxReceiver.delegate."
+    },
+    {
+      "check": "boundary",
+      "name": "MediaPlayer.pause",
+      "owner": "E10",
+      "milestone": "ME1",
+      "note": "Intended: open modifier only; the outside references are other types' pause()."
+    },
+    {
+      "check": "boundary",
+      "name": "MediaPlayer.play",
+      "owner": "E10",
+      "milestone": "ME1",
+      "note": "Intended: open modifier only; the outside references are other types' play()."
+    },
+    {
+      "check": "boundary",
+      "name": "MediaPlayerPlayer",
+      "owner": "E10",
+      "milestone": "ME1",
+      "note": "Intended: open modifier only; MediaPlayerControlsView reads the same StateFlows."
+    },
+    {
+      "check": "boundary",
+      "name": "MediaPlayerPlayer.*",
+      "owner": "E10",
+      "milestone": "ME1",
+      "note": "Intended: open modifier only; MediaPlayerControlsView reads the same StateFlows."
+    },
+    {
+      "check": "boundary",
+      "name": "Model.loadReplay",
+      "owner": "E10",
+      "milestone": "ME1",
+      "note": "Intended: completion is a suspend lambda as ReplayFrameExtractor takes it; ReplayView passes none."
+    },
+    {
+      "check": "boundary",
+      "name": "PngTuberEffect.Companion",
+      "owner": "E11",
+      "milestone": "ME1",
+      "note": "Intended: the removed companions belonged to PngCoordinate and BlinkTalkState, not PngTuberEffect; no outside caller used them."
+    },
+    {
+      "check": "boundary",
+      "name": "PomodoroTimerEffect",
+      "owner": "E6",
+      "milestone": "ME1",
+      "note": "Intended: canvasSize stays a Compose Size parameter, converted inside (effects plan 1.20)."
+    },
+    {
+      "check": "boundary",
+      "name": "ReplayEffect",
+      "owner": "E10",
+      "milestone": "ME1",
+      "note": "Intended: parameters are no longer stored as properties; Model only holds the type."
+    },
+    {
+      "check": "boundary",
+      "name": "SIMD3.times",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: the LutEffect SIMD3 stand-in is gone; the references are the simd shim's own operators."
+    },
+    {
+      "check": "boundary",
+      "name": "ScoreboardEffect.update",
+      "owner": "E6",
+      "milestone": "ME1",
+      "note": "Intended: whitespace-only signature change; the other outside references are other types' update()."
+    },
+    {
+      "check": "boundary",
+      "name": "ShapeEffectSettings",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: fields become val (Swift struct); SettingsScene only constructs it."
+    },
+    {
+      "check": "boundary",
+      "name": "SlideshowEffect.Companion",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Intended: the removed companion only held a private log tag."
+    },
+    {
+      "check": "boundary",
+      "name": "TextEffect.setCheckboxes",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Intended: List instead of MutableList; callers pass MutableLists."
+    },
+    {
+      "check": "boundary",
+      "name": "TextEffect.setFontDesign",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Fixed at the caller: takes view.utils.FontDesign as Swift passes Font.Design (effects plan 1.20 listed SettingsFontDesign); HE0.42 passes design.toUiKit()."
+    },
+    {
+      "check": "boundary",
+      "name": "TextEffect.setFontWeight",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Fixed at the caller: takes a Compose FontWeight as Swift passes Font.Weight (effects plan 1.20 listed SettingsFontWeight); HE0.43 passes weight.toSystem()."
+    },
+    {
+      "check": "boundary",
+      "name": "TextEffect.setLapTimes",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Intended: List instead of MutableList; callers pass MutableLists."
+    },
+    {
+      "check": "boundary",
+      "name": "TextEffect.setRatings",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Intended: List instead of MutableList; callers pass MutableLists."
+    },
+    {
+      "check": "boundary",
+      "name": "TextEffect.setStopwatches",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Intended: List instead of MutableList; callers pass MutableLists."
+    },
+    {
+      "check": "boundary",
+      "name": "VTuberEffect.setSceneWidget",
+      "owner": "E11",
+      "milestone": "ME1",
+      "note": "Intended: open modifier only (the VRM and Live2D subclasses); the other references are other effects' setSceneWidget."
+    },
+    {
+      "check": "boundary",
+      "name": "VTuberEffect.setSettings",
+      "owner": "E11",
+      "milestone": "ME1",
+      "note": "Intended: open modifier only; the other references are other effects' setSettings."
+    },
+    {
+      "check": "boundary",
+      "name": "VTuberEffect.setVideoSourceId",
+      "owner": "E11",
+      "milestone": "ME1",
+      "note": "Intended: open modifier only."
+    },
+    {
+      "check": "boundary",
+      "name": "VideoEffect.needsFaceDetections",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: parameter renamed (Swift's is unnamed); the VideoUnit reference is VideoEffectsProcessor.needsFaceDetections."
+    },
+    {
+      "check": "boundary",
+      "name": "VideoEffect.needsTextDetections",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: parameter renamed (Swift's is unnamed); the VideoUnit reference is VideoEffectsProcessor.needsTextDetections."
+    },
+    {
+      "check": "boundary",
+      "name": "VideoEffectsProcessor.context",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: a CIContext as Swift; the VideoUnit references are AppDelegate.context."
+    },
+    {
+      "check": "boundary",
+      "name": "VideoEffectsProcessor.latestSampleBufferTime",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Fixed at the caller: a ContinuousClock.Instant as Swift (effects plan 1.19 and 1.20 said Long); R4.17 and R4.18 update VideoUnit."
+    },
+    {
+      "check": "boundary",
+      "name": "VideoEffectsProcessor.render",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: CVImageBuffer is a typealias of CVPixelBuffer."
+    },
+    {
+      "check": "boundary",
+      "name": "VideoEffectsProcessor.renderSceneSwitchTransitionEnd",
+      "owner": "E1",
+      "milestone": "ME1",
+      "note": "Intended: CVImageBuffer is a typealias of CVPixelBuffer."
+    },
+    {
+      "check": "boundary",
+      "name": "WheelOfLuckEffect",
+      "owner": "E6",
+      "milestone": "ME1",
+      "note": "Intended: canvasSize stays a Compose Size parameter, converted inside (effects plan 1.20)."
+    },
+    {
+      "check": "boundary",
+      "name": "WhirlpoolEffect",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: angle stays a Float parameter (effects plan 1.20)."
+    },
+    {
+      "check": "boundary",
+      "name": "drawOnStreamCreatePath",
+      "owner": "E3",
+      "milestone": "ME1",
+      "note": "Fixed at the caller: takes List<CGPoint> as Swift (effects plan 1.20 listed List<Offset>); HE0.44 maps DrawOnStreamLine.points in DrawOnStreamView."
+    },
+    {
+      "check": "boundary",
+      "name": "MTIColor",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: false positive by package; app/src/androidTest/.../videoeffects/LutEffectRenderSuite.kt (E8, hand-written, renderBigPngLutWithMetalPetal moved out of the JVM suite) uses the MetalPetal shim's own MTIColor, not the removed LutEffect stand-in."
+    },
+    {
+      "check": "boundary",
+      "name": "MTIColor.Companion",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: false positive by package; app/src/androidTest/.../videoeffects/LutEffectRenderSuite.kt (E8, hand-written, renderBigPngLutWithMetalPetal moved out of the JVM suite) uses the MetalPetal shim's own MTIColor, not the removed LutEffect stand-in."
+    },
+    {
+      "check": "boundary",
+      "name": "MTIColorLookupFilter",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: false positive by package; app/src/androidTest/.../videoeffects/LutEffectRenderSuite.kt (E8, hand-written, renderBigPngLutWithMetalPetal moved out of the JVM suite) uses the MetalPetal shim's own MTIColorLookupFilter, not the removed LutEffect stand-in."
+    },
+    {
+      "check": "boundary",
+      "name": "MTIColorLookupFilter.inputColorLookupTable",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: false positive by package; app/src/androidTest/.../videoeffects/LutEffectRenderSuite.kt (E8, hand-written, renderBigPngLutWithMetalPetal moved out of the JVM suite) uses the MetalPetal shim's own MTIColorLookupFilter, not the removed LutEffect stand-in."
+    },
+    {
+      "check": "boundary",
+      "name": "MTIColorLookupFilter.inputImage",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: false positive by package; app/src/androidTest/.../videoeffects/LutEffectRenderSuite.kt (E8, hand-written, renderBigPngLutWithMetalPetal moved out of the JVM suite) uses the MetalPetal shim's own MTIColorLookupFilter, not the removed LutEffect stand-in."
+    },
+    {
+      "check": "boundary",
+      "name": "MTIImage",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: false positive by package; app/src/androidTest/.../videoeffects/LutEffectRenderSuite.kt (E8, hand-written, renderBigPngLutWithMetalPetal moved out of the JVM suite) uses the MetalPetal shim's own MTIImage, not the removed LutEffect stand-in."
+    },
+    {
+      "check": "boundary",
+      "name": "lutEffectConvertLut",
+      "owner": "E8",
+      "milestone": "ME1",
+      "note": "Intended: the image parameter keeps its Bitmap type and the hand-written imageComponentsPerPixel parameter is gone (the Swift signature; components come from bitsPerPixel/bitsPerComponent, effects plan 1.7). Its only outside caller is the E8 instrumented LutEffectRenderSuite, which passes the Bitmap alone."
     }
   ]
 }

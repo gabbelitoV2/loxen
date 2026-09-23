@@ -1,64 +1,64 @@
 package com.moblin.android.videoeffects.text
 
-import android.graphics.Bitmap
-import com.moblin.android.platform.video.CVPixelBuffer as Image
-import android.util.Size
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.common.various.RgbColor
+import com.moblin.android.common.various.color
+import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.combine.AnyCancellable
+import com.moblin.android.platform.core.ContinuousClock
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIImage
+import com.moblin.android.platform.swiftui.ImageRenderer
+import com.moblin.android.platform.swiftui.SwiftUIFonts
+import com.moblin.android.platform.swiftui.hasSystemImage
+import com.moblin.android.platform.swiftui.monospacedDigit
 import com.moblin.android.various.Variables
-import com.moblin.android.various.settings.SettingsFontDesign
-import com.moblin.android.various.settings.SettingsFontWeight
 import com.moblin.android.various.settings.SettingsHorizontalAlignment
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidgetTextStopwatch
 import com.moblin.android.various.subtitles.Subtitles
 import com.moblin.android.videoeffects.EffectImageCgImage
-import java.util.ArrayDeque
+import com.moblin.android.videoeffects.move
+import com.moblin.android.videoeffects.moveComposited
+import com.moblin.android.videoeffects.toEffectImage
+import com.moblin.android.view.utils.FontDesign
 import java.util.UUID
-import kotlin.math.max
-import kotlin.math.min
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-
-private val mainScope = CoroutineScope(Dispatchers.Main)
-
-private fun RgbColor.color(): Color = Color(
-    (red / 255.0).toFloat(),
-    (green / 255.0).toFloat(),
-    (blue / 255.0).toFloat(),
-)
 
 private class TextViewState(
     fontSize: Float,
     fontFamily: String?,
     fontStyle: String,
-    fontDesign: SettingsFontDesign,
-    fontWeight: SettingsFontWeight,
+    fontDesign: FontDesign,
+    fontWeight: FontWeight,
     fontMonospacedDigits: Boolean,
     horizontalAlignment: SettingsHorizontalAlignment,
     minWidth: Double,
@@ -78,103 +78,140 @@ private class TextViewState(
     val cornerRadius = MutableStateFlow(cornerRadius)
     val foregroundColor = MutableStateFlow(foregroundColor)
     val backgroundColor = MutableStateFlow(backgroundColor)
-    val size = MutableStateFlow<Size?>(null)
+    val size = MutableStateFlow<CGSize?>(null)
     val lines = MutableStateFlow(lines)
+}
+
+private fun scaledFontSize(fontSize: Float, size: CGSize): Float {
+    return fontSize * (size.maximum() / 1920.0).toFloat()
+}
+
+private fun font(
+    fontFamily: String?,
+    fontStyle: String,
+    fontDesign: FontDesign,
+    fontWeight: FontWeight,
+    size: Float,
+): TextStyle {
+    if (fontFamily != null) {
+        return if (fontStyle.isEmpty()) {
+            SwiftUIFonts.custom(fontFamily, size)
+        } else {
+            SwiftUIFonts.custom(fontStyle, size)
+        }
+    } else {
+        return SwiftUIFonts.system(size, fontWeight, fontDesign)
+    }
 }
 
 @Composable
 private fun TextView(state: TextViewState) {
-    val size = state.size.collectAsState().value ?: return
-    val fontSize = scaledFontSize(state = state, size = size)
-    val horizontalAlignment = state.horizontalAlignment.collectAsState().value
-    val minWidth = state.minWidth.collectAsState().value
-    val cornerRadius = state.cornerRadius.collectAsState().value
-    val foregroundColor = state.foregroundColor.collectAsState().value
-    val backgroundColor = state.backgroundColor.collectAsState().value
-    val fontFamily = state.fontFamily.collectAsState().value
-    val fontMonospacedDigits = state.fontMonospacedDigits.collectAsState().value
-    val lines = state.lines.collectAsState().value
-    val baseTextStyle = font(state = state, size = fontSize)
-    val textStyle = if (fontFamily == null && fontMonospacedDigits) {
-        baseTextStyle.copy(fontFeatureSettings = "tnum")
-    } else {
-        baseTextStyle
+    val size by state.size.collectAsState()
+    val fontSize by state.fontSize.collectAsState()
+    val fontFamily by state.fontFamily.collectAsState()
+    val fontStyle by state.fontStyle.collectAsState()
+    val fontDesign by state.fontDesign.collectAsState()
+    val fontWeight by state.fontWeight.collectAsState()
+    val fontMonospacedDigits by state.fontMonospacedDigits.collectAsState()
+    val horizontalAlignment by state.horizontalAlignment.collectAsState()
+    val minWidth by state.minWidth.collectAsState()
+    val cornerRadius by state.cornerRadius.collectAsState()
+    val foregroundColor by state.foregroundColor.collectAsState()
+    val backgroundColor by state.backgroundColor.collectAsState()
+    val lines by state.lines.collectAsState()
+    val currentSize = size ?: return
+    val scaledSize = scaledFontSize(fontSize = fontSize, size = currentSize)
+    var textStyle = font(
+        fontFamily = fontFamily,
+        fontStyle = fontStyle,
+        fontDesign = fontDesign,
+        fontWeight = fontWeight,
+        size = scaledSize,
+    )
+    if (fontFamily == null && fontMonospacedDigits) {
+        textStyle = textStyle.monospacedDigit()
     }
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = horizontalAlignment.toSystem(),
         verticalArrangement = Arrangement.spacedBy(2.dp),
+        horizontalAlignment = when (horizontalAlignment) {
+            SettingsHorizontalAlignment.leading -> Alignment.Start
+            SettingsHorizontalAlignment.center -> Alignment.CenterHorizontally
+            SettingsHorizontalAlignment.trailing -> Alignment.End
+            else -> Alignment.CenterHorizontally
+        },
     ) {
         lines.forEach { line ->
-            Row(
-                modifier = Modifier
-                    .padding(
-                        horizontal = (
-                            7 * fontSize / 30f +
-                                min((cornerRadius / 5).toFloat(), fontSize / 7.5f)
-                            ).dp
-                    )
-                    .widthIn(min = minWidth.dp)
-                    .clip(RoundedCornerShape(cornerRadius.dp))
-                    .background(backgroundColor),
-                horizontalArrangement = Arrangement.spacedBy(0.dp),
-            ) {
-                if (horizontalAlignment.toSystem() != Alignment.Start && minWidth != 0.0) {
-                    Spacer(Modifier.weight(1f))
-                }
-                line.parts.forEach { part ->
-                    when (val data = part.data) {
-                        is TextEffectPartData.Text -> {
-                            Text(text = data.text, style = textStyle, color = foregroundColor)
-                        }
-                        is TextEffectPartData.ImageSystemName -> {
-                            Icon(
-                                imageVector = TODO("no Android counterpart for UIImage(systemName:)"),
-                                contentDescription = null,
-                                tint = foregroundColor,
-                            )
-                        }
-                        is TextEffectPartData.ImageSystemNameTryFill -> {
-                            Icon(
-                                imageVector = TODO("no Android counterpart for UIImage(systemName:)"),
-                                contentDescription = null,
-                                tint = foregroundColor,
-                            )
-                        }
-                        is TextEffectPartData.Rating -> {
-                            for (index in 0 until 5) {
-                                if (index < data.rating) {
-                                    Text(text = "★", style = textStyle, color = Color.Yellow)
-                                } else {
-                                    Text(text = "☆", style = textStyle, color = foregroundColor)
+            key(line.id) {
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(cornerRadius.dp))
+                        .background(backgroundColor)
+                        .widthIn(min = minWidth.dp)
+                        .padding(
+                            horizontal = (
+                                7 * scaledSize / 30 +
+                                    minOf((cornerRadius / 5).toFloat(), scaledSize / 7.5f)
+                                ).dp,
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (horizontalAlignment != SettingsHorizontalAlignment.leading && minWidth != 0.0) {
+                        Spacer(Modifier.weight(1f))
+                    }
+                    line.parts.forEach { part ->
+                        key(part.id) {
+                            when (val data = part.data) {
+                                is TextEffectPartData.Text -> Text(
+                                    text = localized(data.text),
+                                    style = textStyle,
+                                    color = foregroundColor,
+                                )
+                                is TextEffectPartData.ImageSystemName -> SystemImage(
+                                    name = data.systemName,
+                                    fontSize = scaledSize.sp,
+                                    tint = foregroundColor,
+                                )
+                                is TextEffectPartData.ImageSystemNameTryFill -> {
+                                    if (hasSystemImage("${data.systemName}.fill")) {
+                                        SystemImage(
+                                            name = "${data.systemName}.fill",
+                                            fontSize = scaledSize.sp,
+                                            tint = Color.Unspecified,
+                                        )
+                                    } else {
+                                        SystemImage(
+                                            name = data.systemName,
+                                            fontSize = scaledSize.sp,
+                                            tint = foregroundColor,
+                                        )
+                                    }
+                                }
+                                is TextEffectPartData.Rating -> {
+                                    for (index in 0 until 5) {
+                                        if (index < data.rating) {
+                                            Text(
+                                                text = localized("★"),
+                                                style = textStyle,
+                                                color = Color(0xFFFFCC00),
+                                            )
+                                        } else {
+                                            Text(
+                                                text = localized("☆"),
+                                                style = textStyle,
+                                                color = foregroundColor,
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                if (horizontalAlignment.toSystem() != Alignment.End && minWidth != 0.0) {
-                    Spacer(Modifier.weight(1f))
+                    if (horizontalAlignment != SettingsHorizontalAlignment.trailing && minWidth != 0.0) {
+                        Spacer(Modifier.weight(1f))
+                    }
                 }
             }
         }
-    }
-}
-
-private fun scaledFontSize(state: TextViewState, size: Size): Float {
-    return state.fontSize.value * (max(size.width, size.height).toFloat() / 1920f)
-}
-
-private fun font(state: TextViewState, size: Float): TextStyle {
-    return if (state.fontFamily.value != null) {
-        TextStyle(
-            fontFamily = TODO("no Compose counterpart for iOS custom font family"),
-            fontSize = size.sp,
-        )
-    } else {
-        TextStyle(
-            fontWeight = TODO("no Compose counterpart for SettingsFontWeight"),
-            fontSize = size.sp,
-        )
     }
 }
 
@@ -185,59 +222,60 @@ class TextEffect(
     fontSize: Float,
     fontFamily: String?,
     fontStyle: String,
-    fontDesign: SettingsFontDesign,
-    fontWeight: SettingsFontWeight,
+    fontDesign: FontDesign,
+    fontWeight: FontWeight,
     fontMonospacedDigits: Boolean,
     horizontalAlignment: SettingsHorizontalAlignment,
     width: Int?,
     cornerRadius: Double,
-    delay: Double,
-    timersEndTime: MutableList<com.moblin.android.platform.core.ContinuousClock.Instant>,
-    stopwatches: MutableList<SettingsWidgetTextStopwatch>,
-    checkboxes: MutableList<Boolean>,
-    ratings: MutableList<Int>,
-    lapTimes: MutableList<MutableList<Double>>,
+    private val delay: Double,
+    timersEndTime: List<ContinuousClock.Instant>,
+    stopwatches: List<SettingsWidgetTextStopwatch>,
+    checkboxes: List<Boolean>,
+    ratings: List<Int>,
+    lapTimes: List<List<Double>>,
 ) : VideoEffect() {
-    private val variables = ArrayDeque<Variables>()
+    private var variables: ArrayDeque<Variables> = ArrayDeque()
     private var overlay: EffectImageCgImage? = null
-    private var nextUpdateTime = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds
-    fun setEndTime(index: Int, endTime: Long) = setEndTime(index = index, endTime = com.moblin.android.platform.core.ContinuousClock.Instant(endTime))
-    private var delay: Double
-    private val formatter: TextEffectFormatter
-    private var sceneWidget: SettingsSceneWidget
-    private val state: TextViewState
-    private var renderer: Any? = null
-    private var cancellable: Job? = null
+    private var nextUpdateTime: ContinuousClock.Instant = ContinuousClock.now
+    private val formatter: TextEffectFormatter = TextEffectFormatter(
+        formatParts = loadTextFormat(format = format),
+        timersEndTime = timersEndTime,
+        stopwatches = stopwatches,
+        checkboxes = checkboxes,
+        ratings = ratings,
+        lapTimes = lapTimes,
+    )
+    private var sceneWidget: SettingsSceneWidget = SettingsSceneWidget(widgetId = UUID.randomUUID())
+    private val state: TextViewState = TextViewState(
+        fontSize = fontSize,
+        fontFamily = fontFamily,
+        fontStyle = fontStyle,
+        fontDesign = fontDesign,
+        fontWeight = fontWeight,
+        fontMonospacedDigits = fontMonospacedDigits,
+        horizontalAlignment = horizontalAlignment,
+        minWidth = (width ?: 0).toDouble(),
+        cornerRadius = cornerRadius,
+        foregroundColor = foregroundColor.color(),
+        backgroundColor = backgroundColor.color(),
+        lines = emptyList(),
+    )
+    private var renderer: ImageRenderer? = null
+    private var cancellable: AnyCancellable? = null
     private var forceUpdate: Boolean = false
     private var previousLines: List<TextEffectLine>? = null
 
     init {
-        formatter = TextEffectFormatter(
-            formatParts = loadTextFormat(format = format),
-            timersEndTime = timersEndTime,
-            stopwatches = stopwatches,
-            checkboxes = checkboxes,
-            ratings = ratings,
-            lapTimes = lapTimes,
-        )
-        sceneWidget = SettingsSceneWidget(widgetId = UUID.randomUUID())
-        state = TextViewState(
-            fontSize = fontSize,
-            fontFamily = fontFamily,
-            fontStyle = fontStyle,
-            fontDesign = fontDesign,
-            fontWeight = fontWeight,
-            fontMonospacedDigits = fontMonospacedDigits,
-            horizontalAlignment = horizontalAlignment,
-            minWidth = (width ?: 0).toDouble(),
-            cornerRadius = cornerRadius,
-            foregroundColor = foregroundColor.color(),
-            backgroundColor = backgroundColor.color(),
-            lines = emptyList(),
-        )
-        this.delay = delay
-        mainScope.launch {
-            Unit
+        val self = this
+        CoroutineScope(Dispatchers.Main.immediate).launch {
+            val state0 = self.state
+            self.renderer = ImageRenderer(content = { TextView(state = state0) })
+            val weakSelf = java.lang.ref.WeakReference(self)
+            self.cancellable = self.renderer?.objectWillChange?.sink {
+                weakSelf.get()?.setOverlay(image = weakSelf.get()?.renderer?.cgImage)
+            }
+            self.setOverlay(image = self.renderer?.cgImage)
         }
     }
 
@@ -281,11 +319,11 @@ class TextEffect(
         state.fontStyle.value = style
     }
 
-    fun setFontDesign(design: SettingsFontDesign) {
+    fun setFontDesign(design: FontDesign) {
         state.fontDesign.value = design
     }
 
-    fun setFontWeight(weight: SettingsFontWeight) {
+    fun setFontWeight(weight: FontWeight) {
         state.fontWeight.value = weight
     }
 
@@ -299,12 +337,12 @@ class TextEffect(
         state.cornerRadius.value = cornerRadius
     }
 
-    fun setTimersEndTime(endTimes: MutableList<com.moblin.android.platform.core.ContinuousClock.Instant>) {
+    fun setTimersEndTime(endTimes: List<ContinuousClock.Instant>) {
         formatter.timersEndTime = endTimes
         forceOverlayUpdate()
     }
 
-    fun setEndTime(index: Int, endTime: com.moblin.android.platform.core.ContinuousClock.Instant) {
+    fun setEndTime(index: Int, endTime: ContinuousClock.Instant) {
         if (index >= formatter.timersEndTime.size) {
             return
         }
@@ -312,7 +350,7 @@ class TextEffect(
         forceOverlayUpdate()
     }
 
-    fun setStopwatches(stopwatches: MutableList<SettingsWidgetTextStopwatch>) {
+    fun setStopwatches(stopwatches: List<SettingsWidgetTextStopwatch>) {
         formatter.stopwatches = stopwatches
         forceOverlayUpdate()
     }
@@ -325,7 +363,7 @@ class TextEffect(
         forceOverlayUpdate()
     }
 
-    fun setCheckboxes(checkboxes: MutableList<Boolean>) {
+    fun setCheckboxes(checkboxes: List<Boolean>) {
         formatter.checkboxes = checkboxes
         forceOverlayUpdate()
     }
@@ -338,7 +376,7 @@ class TextEffect(
         forceOverlayUpdate()
     }
 
-    fun setRatings(ratings: MutableList<Int>) {
+    fun setRatings(ratings: List<Int>) {
         formatter.ratings = ratings
         forceOverlayUpdate()
     }
@@ -351,12 +389,12 @@ class TextEffect(
         forceOverlayUpdate()
     }
 
-    fun setLapTimes(lapTimes: MutableList<MutableList<Double>>) {
+    fun setLapTimes(lapTimes: List<List<Double>>) {
         formatter.lapTimes = lapTimes
         forceOverlayUpdate()
     }
 
-    fun setLapTimes(index: Int, lapTimes: MutableList<Double>) {
+    fun setLapTimes(index: Int, lapTimes: List<Double>) {
         if (index >= formatter.lapTimes.size) {
             return
         }
@@ -370,13 +408,13 @@ class TextEffect(
     }
 
     fun updateSubtitles(position: Int, text: String, languageIdentifier: String?) {
-        val subtitles = formatter.subtitles[languageIdentifier]
-        if (subtitles != null) {
-            subtitles.updateSubtitles(position = position, text = text)
+        val current = formatter.subtitles[languageIdentifier]
+        if (current != null) {
+            current.updateSubtitles(position = position, text = text)
         } else {
-            val newSubtitles = Subtitles(languageIdentifier)
-            newSubtitles.updateSubtitles(position = position, text = text)
-            formatter.subtitles[languageIdentifier] = newSubtitles
+            val subtitles = Subtitles(languageIdentifier = languageIdentifier)
+            subtitles.updateSubtitles(position = position, text = text)
+            formatter.subtitles[languageIdentifier] = subtitles
         }
         forceOverlayUpdate()
     }
@@ -388,48 +426,55 @@ class TextEffect(
         }
     }
 
-    override fun execute(image: Image, info: VideoEffectInfo): Image {
-        updateOverlayIfNeeded(size = Size(image.width, image.height))
-        return TODO("no Android counterpart for CoreImage compositing")
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
+        updateOverlayIfNeeded(size = image.extent.size)
+        return overlay?.getCiImage()
+            ?.move(layout = sceneWidget.layout, streamSize = image.extent.size)
+            ?.cropped(to = image.extent)
+            ?.composited(over = image)
+            ?: image
     }
 
-    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
-        updateOverlayIfNeeded(size = Size(image.width, image.height))
-        return TODO("no Android counterpart for MetalPetal")
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
+        updateOverlayIfNeeded(size = image.extent.size)
+        return overlay?.getMetalPetalImage()
+            ?.moveComposited(layout = sceneWidget.layout, backgroundImage = image)
+            ?: image
     }
 
-    override fun prepare(size: Size, info: VideoEffectInfo) {
+    override fun prepare(size: CGSize, info: VideoEffectInfo) {
         updateOverlayIfNeeded(size = size)
     }
 
-    private fun formatted(now: Long): List<TextEffectLine> {
-        val variables = this.variables
-            .lastOrNull { it.timestamp + ((delay - 1) * 1_000_000_000.0).toLong() <= now }
-            ?: this.variables.firstOrNull()
-            ?: return emptyList()
-        return formatter.format(variables = variables, now = com.moblin.android.platform.core.ContinuousClock.Instant(now))
+    private fun formatted(now: ContinuousClock.Instant): List<TextEffectLine> {
+        val variables = this.variables.lastOrNull {
+            ContinuousClock.Instant(it.timestamp).advanced(bySeconds = delay - 1) <= now
+        } ?: this.variables.firstOrNull() ?: return emptyList()
+        return formatter.format(variables = variables, now = now)
     }
 
-    private fun updateOverlayIfNeeded(size: Size) {
+    private fun updateOverlayIfNeeded(size: CGSize) {
         try {
-            val now = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds
-            if (now < nextUpdateTime && !forceUpdate) {
+            val now = ContinuousClock.now
+            if (!(now >= nextUpdateTime || forceUpdate)) {
                 return
             }
             if (!forceUpdate) {
-                nextUpdateTime += 1_000_000_000L
+                nextUpdateTime = nextUpdateTime.advanced(bySeconds = 1.0)
             }
-            mainScope.launch {
-                updateOverlayInternal(size = size, now = now)
+            CoroutineScope(Dispatchers.Main.immediate).launch {
+                this@TextEffect.updateOverlayInternal(size = size, now = now)
             }
         } finally {
             forceUpdate = false
         }
     }
 
-    private fun updateOverlayInternal(size: Size, now: Long) {
+    private fun updateOverlayInternal(size: CGSize, now: ContinuousClock.Instant) {
         val lines = formatted(now = now)
-        if (lines == previousLines && size == state.size.value) {
+        val stateSize = state.size.value
+        val sameSize = stateSize != null && size.width == stateSize.width && size.height == stateSize.height
+        if (lines == previousLines && sameSize) {
             return
         }
         previousLines = lines
@@ -437,12 +482,8 @@ class TextEffect(
         state.lines.value = lines
     }
 
-    private fun setOverlay(image: Bitmap?) {
-        val overlay = if (image == null) {
-            null
-        } else {
-            TODO()
-        }
+    private fun setOverlay(image: android.graphics.Bitmap?) {
+        val overlay = image?.toEffectImage()
         processorPipelineQueue.launch {
             this@TextEffect.overlay = overlay
         }

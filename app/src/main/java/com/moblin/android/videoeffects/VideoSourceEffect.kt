@@ -1,20 +1,22 @@
 package com.moblin.android.videoeffects
 
-import android.graphics.Bitmap
-import android.graphics.Matrix
-import android.graphics.RectF
-import android.util.SizeF
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectDetectionsMode
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.coregraphics.CGAffineTransform
+import com.moblin.android.platform.coregraphics.CGImagePropertyOrientation
+import com.moblin.android.platform.coregraphics.CGRect
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIImage
+import com.moblin.android.platform.vision.VNFaceObservation
 import com.moblin.android.various.settings.SettingsSceneWidget
 import java.util.UUID
 import kotlin.math.abs
 import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.min
 import kotlinx.coroutines.launch
+import com.moblin.android.various.stableBoundingBox
 
 data class VideoSourceEffectSettings(
     var rotation: Double = 0.0,
@@ -23,30 +25,26 @@ data class VideoSourceEffectSettings(
     var mirror: Boolean = false,
 )
 
-class PositionInterpolator {
-    private var currentValue: Double? = null
-
-    val current: Double?
-        get() = currentValue
-
+open class PositionInterpolator {
+    var current: Double? = null
+        private set
     private var delta = 0.0
+    open var target: Double? = null
 
-    var target: Double? = null
-
-    fun update(timeElapsed: Double): Double {
-        val current = currentValue
+    open fun update(timeElapsed: Double): Double {
+        val current = this.current
         val target = this.target
         if (current != null && target != null) {
             delta = 0.8 * delta + 0.2 * (target - current)
             if (abs(delta) > 5) {
-                currentValue = current + delta * 2 * timeElapsed
+                this.current = current + delta * 2 * timeElapsed
             }
         } else if (target != null) {
-            currentValue = target
+            this.current = target
         } else {
-            currentValue = 0.0
+            this.current = 0.0
         }
-        return currentValue!!
+        return this.current!!
     }
 }
 
@@ -60,7 +58,7 @@ class VideoSourceEffect : VideoEffect() {
     private val trackFaceBottom = PositionInterpolator()
     private var trackFacePresentationTimeStamp = 0.0
 
-    override fun needsFaceDetections(presentationTimeStamp: Double): VideoEffectDetectionsMode {
+    override fun needsFaceDetections(interval: Double): VideoEffectDetectionsMode {
         return if (settings.trackFaceEnabled) {
             VideoEffectDetectionsMode.Interval(videoSourceId, 0.5)
         } else {
@@ -87,13 +85,13 @@ class VideoSourceEffect : VideoEffect() {
     }
 
     private fun shouldUseFace(
-        boundingBox: RectF,
-        biggestBoundingBox: RectF,
-        videoSourceImageSize: SizeF,
+        boundingBox: CGRect,
+        biggestBoundingBox: CGRect,
+        videoSourceImageSize: CGSize,
     ): Boolean {
-        return if (boundingBox.height() < videoSourceImageSize.height / 10) {
+        return if (boundingBox.height < videoSourceImageSize.height / 10) {
             false
-        } else if (boundingBox.height() < biggestBoundingBox.height() / 2) {
+        } else if (boundingBox.height < biggestBoundingBox.height / 2) {
             false
         } else {
             true
@@ -101,117 +99,139 @@ class VideoSourceEffect : VideoEffect() {
     }
 
     private fun calcFaceCropRegion(
-        videoSourceImageSize: SizeF,
-        faceDetections: List<RectF>?,
+        videoSourceImageSize: CGSize,
+        faceDetections: List<VNFaceObservation>?,
         presentationTimeStamp: Double,
         zoom: Double,
-    ): RectF {
-        var left = videoSourceImageSize.width.toDouble()
+    ): CGRect {
+        var left = videoSourceImageSize.width
         var right = 0.0
         var top = 0.0
-        var bottom = videoSourceImageSize.height.toDouble()
-        if (faceDetections != null) {
-            val biggestBoundingBox = faceDetections.firstOrNull()
-            if (biggestBoundingBox != null) {
-                var anyFaceUsed = false
-                for (faceDetection in faceDetections) {
-                    val boundingBox = faceDetection
-                    if (!shouldUseFace(boundingBox, biggestBoundingBox, videoSourceImageSize)) {
-                        continue
-                    }
-                    left = min(left, boundingBox.left.toDouble())
-                    right = max(right, boundingBox.right.toDouble())
-                    top = max(top, boundingBox.top.toDouble())
-                    bottom = min(bottom, boundingBox.bottom.toDouble())
-                    anyFaceUsed = true
+        var bottom = videoSourceImageSize.height
+        val biggestBoundingBox = faceDetections?.firstOrNull()
+            ?.stableBoundingBox(imageSize = videoSourceImageSize)
+        if (faceDetections != null && biggestBoundingBox != null) {
+            var anyFaceUsed = false
+            for (faceDetection in faceDetections) {
+                val boundingBox = faceDetection.stableBoundingBox(imageSize = videoSourceImageSize)
+                    ?: continue
+                if (!shouldUseFace(boundingBox, biggestBoundingBox, videoSourceImageSize)) {
+                    continue
                 }
-                if (anyFaceUsed) {
-                    trackFaceLeft.target = left
-                    trackFaceRight.target = right
-                    trackFaceTop.target = top
-                    trackFaceBottom.target = bottom
-                }
+                left = minOf(left, boundingBox.minX)
+                right = maxOf(right, boundingBox.maxX)
+                top = maxOf(top, boundingBox.maxY)
+                bottom = minOf(bottom, boundingBox.minY)
+                anyFaceUsed = true
+            }
+            if (anyFaceUsed) {
+                trackFaceLeft.target = left
+                trackFaceRight.target = right
+                trackFaceTop.target = top
+                trackFaceBottom.target = bottom
             }
         }
         if (trackFaceLeft.target == null) {
-            trackFaceLeft.target = videoSourceImageSize.width.toDouble() * 0.33
-            trackFaceRight.target = videoSourceImageSize.width.toDouble() * 0.67
-            trackFaceTop.target = videoSourceImageSize.height.toDouble() * 0.67
-            trackFaceBottom.target = videoSourceImageSize.height.toDouble() * 0.33
+            trackFaceLeft.target = videoSourceImageSize.width * 0.33
+            trackFaceRight.target = videoSourceImageSize.width * 0.67
+            trackFaceTop.target = videoSourceImageSize.height * 0.67
+            trackFaceBottom.target = videoSourceImageSize.height * 0.33
         }
         val timeElapsed = presentationTimeStamp - trackFacePresentationTimeStamp
         trackFacePresentationTimeStamp = presentationTimeStamp
-        left = trackFaceLeft.update(timeElapsed)
-        right = trackFaceRight.update(timeElapsed)
-        top = trackFaceTop.update(timeElapsed)
-        bottom = trackFaceBottom.update(timeElapsed)
+        left = trackFaceLeft.update(timeElapsed = timeElapsed)
+        right = trackFaceRight.update(timeElapsed = timeElapsed)
+        top = trackFaceTop.update(timeElapsed = timeElapsed)
+        bottom = trackFaceBottom.update(timeElapsed = timeElapsed)
         val width = (right - left) * zoom
         val height = (top - bottom) * zoom
         val centerX = (right + left) / 2
         val centerY = (top + bottom) / 2 * 1.05
-        val side = max(width, height)
-        val cropWidth = min(side, videoSourceImageSize.width.toDouble())
-        val cropHeight = min(side, videoSourceImageSize.height.toDouble())
-        val cropSquareSize = floor(min(cropWidth, cropHeight))
-        var cropX = max(centerX - cropSquareSize / 2, 0.0)
-        var cropY = max(videoSourceImageSize.height.toDouble() - centerY - cropSquareSize / 2, 0.0)
-        cropX = min(cropX, videoSourceImageSize.width.toDouble() - cropSquareSize)
-        cropY = min(cropY, videoSourceImageSize.height.toDouble() - cropSquareSize)
-        return RectF(
-            cropX.toFloat(),
-            cropY.toFloat(),
-            (cropX + cropSquareSize).toFloat(),
-            (cropY + cropSquareSize).toFloat(),
-        )
+        val side = maxOf(width, height)
+        val cropWidth = minOf(side, videoSourceImageSize.width)
+        val cropHeight = minOf(side, videoSourceImageSize.height)
+        val cropSquareSize = floor(minOf(cropWidth, cropHeight))
+        var cropX = maxOf(centerX - cropSquareSize / 2, 0.0)
+        var cropY = maxOf(videoSourceImageSize.height - centerY - cropSquareSize / 2, 0.0)
+        cropX = minOf(cropX, videoSourceImageSize.width - cropSquareSize)
+        cropY = minOf(cropY, videoSourceImageSize.height - cropSquareSize)
+        return CGRect(x = cropX, y = cropY, width = cropSquareSize, height = cropSquareSize)
     }
 
     private fun cropFace(
-        videoSourceImage: Bitmap,
-        faceDetections: List<RectF>?,
+        videoSourceImage: CIImage,
+        faceDetections: List<VNFaceObservation>?,
         presentationTimeStamp: Double,
         zoom: Double,
-    ): Bitmap {
+    ): CIImage {
         val cropRegion = calcFaceCropRegion(
-            SizeF(videoSourceImage.width.toFloat(), videoSourceImage.height.toFloat()),
+            videoSourceImage.extent.size,
             faceDetections,
             presentationTimeStamp,
             zoom,
         )
-        val cropY = videoSourceImage.height - cropRegion.bottom
-        return Bitmap.createBitmap(
-            videoSourceImage,
-            cropRegion.left.toInt(),
-            cropY.toInt(),
-            cropRegion.width().toInt(),
-            cropRegion.height().toInt(),
-        )
+        val cropY = videoSourceImage.extent.height - cropRegion.maxY
+        return videoSourceImage
+            .cropped(
+                to = CGRect(
+                    x = cropRegion.minX,
+                    y = cropY,
+                    width = cropRegion.width,
+                    height = cropRegion.height,
+                ),
+            )
+            .transformed(by = CGAffineTransform(translationX = -cropRegion.minX, y = -cropY))
     }
 
-    private fun rotate(videoSourceImage: Bitmap, settings: VideoSourceEffectSettings): Bitmap {
-        val degrees = when (settings.rotation) {
-            90.0 -> 90f
-            180.0 -> 180f
-            270.0 -> 270f
-            else -> return videoSourceImage
+    private fun rotate(videoSourceImage: CIImage, settings: VideoSourceEffectSettings): CIImage {
+        return when (settings.rotation) {
+            90.0 -> videoSourceImage.oriented(CGImagePropertyOrientation.right)
+            180.0 -> videoSourceImage.oriented(CGImagePropertyOrientation.down)
+            270.0 -> videoSourceImage.oriented(CGImagePropertyOrientation.left)
+            else -> videoSourceImage
         }
-        val matrix = Matrix()
-        matrix.postRotate(degrees)
-        return Bitmap.createBitmap(
-            videoSourceImage,
-            0,
-            0,
-            videoSourceImage.width,
-            videoSourceImage.height,
-            matrix,
-            true,
+    }
+
+    override fun execute(backgroundImage: CIImage, info: VideoEffectInfo): CIImage {
+        val sceneWidget = this.sceneWidget ?: return backgroundImage
+        var widgetImage = info.getCiImage(videoSourceId) ?: return backgroundImage
+        if (settings.trackFaceEnabled) {
+            widgetImage = cropFace(
+                widgetImage,
+                info.faceDetections(videoSourceId),
+                info.presentationTimeStamp / 1_000_000.0,
+                settings.trackFaceZoom,
+            )
+        }
+        return applyEffectsResizeMirrorMove(
+            rotate(widgetImage, settings),
+            sceneWidget,
+            settings.mirror,
+            backgroundImage.extent,
+            info,
+        ).composited(over = backgroundImage)
+    }
+
+    override fun executeMetalPetal(backgroundImage: MTIImage, info: VideoEffectInfo): MTIImage {
+        val sceneWidget = this.sceneWidget ?: return backgroundImage
+        val widgetImage = info.getMetalPetalImage(videoSourceId) ?: return backgroundImage
+        var shape = MetalPetalWidgetShape(contentRegion = widgetImage.extent)
+        if (settings.trackFaceEnabled) {
+            shape.contentRegion = calcFaceCropRegion(
+                widgetImage.extent.size,
+                info.faceDetections(videoSourceId),
+                info.presentationTimeStamp / 1_000_000.0,
+                settings.trackFaceZoom,
+            )
+        }
+        shape.rotation = settings.rotation
+        return applyEffectsResizeMirrorMoveMetalPetal(
+            widgetImage,
+            sceneWidget,
+            settings.mirror,
+            backgroundImage,
+            info,
+            shape,
         )
-    }
-
-    fun execute(backgroundImage: Bitmap, info: VideoEffectInfo): Bitmap {
-        TODO()
-    }
-
-    fun executeMetalPetal(backgroundImage: Bitmap, info: VideoEffectInfo): Bitmap {
-        TODO()
     }
 }

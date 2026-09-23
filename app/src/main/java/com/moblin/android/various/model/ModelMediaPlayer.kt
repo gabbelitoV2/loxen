@@ -10,22 +10,14 @@ import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-private val mainScope = CoroutineScope(Dispatchers.Main)
-
-class MediaPlayerPlayer {
-    val playing = MutableStateFlow(false)
-
-    val position = MutableStateFlow(0f)
-
-    val time = MutableStateFlow("0:00")
-
-    val fileName = MutableStateFlow("Media name")
-
-    val seeking = MutableStateFlow(false)
+open class MediaPlayerPlayer {
+    open val playing = MutableStateFlow(false)
+    open val position = MutableStateFlow(0f)
+    open val time = MutableStateFlow("0:00")
+    open val fileName = MutableStateFlow("Media name")
+    open val seeking = MutableStateFlow(false)
 }
 
 fun Model.initMediaPlayers() {
@@ -51,13 +43,13 @@ private fun Model.removeUnusedMediaPlayerFiles() {
 
 fun Model.addMediaPlayer(settings: SettingsMediaPlayer) {
     val mediaPlayer = MediaPlayer(settings = settings, mediaStorage = mediaStorage)
-    mediaPlayer.delegate = MediaPlayerDelegateImpl(model = this)
-    mediaPlayers[settings.id] = mediaPlayer
+    mediaPlayer.delegate = MediaPlayerDelegateImpl(this)
+    mediaPlayers.put(settings.id, mediaPlayer)?.close()
     updateMicsListAsync()
 }
 
 fun Model.deleteMediaPlayer(playerId: UUID) {
-    mediaPlayers.remove(playerId)
+    mediaPlayers.remove(playerId)?.close()
     updateMicsListAsync()
 }
 
@@ -93,10 +85,11 @@ fun Model.mediaPlayerSetSeeking(on: Boolean) {
 
 fun Model.getCurrentMediaPlayer(): MediaPlayer? {
     val scene = getSelectedScene() ?: return null
-    if (scene.videoSource.cameraPosition !is SettingsCameraId.MediaPlayer) {
+    if (scene.videoSource.cameraPosition != com.moblin.android.various.settings.SettingsSceneCameraPosition.mediaPlayer) {
         return null
     }
-    val mediaPlayerSettings = getMediaPlayer(id = scene.videoSource.mediaPlayerCameraId) ?: return null
+    val mediaPlayerSettings = getMediaPlayer(id = scene.videoSource.mediaPlayerCameraId)
+        ?: return null
     return mediaPlayers[mediaPlayerSettings.id]
 }
 
@@ -106,25 +99,29 @@ fun Model.deactivateAllMediaPlayers() {
     }
 }
 
-fun Model.playerCameras(): List<Camera> =
-    database.mediaPlayers.players.map {
-        Camera(id = it.id.toString(), name = it.camera())
+fun Model.playerCameras(): List<Camera> {
+    return database.mediaPlayers.players.map {
+        Camera(id = it.id.toString().uppercase(), name = it.camera())
     }
+}
 
-fun Model.getMediaPlayer(idString: String): SettingsMediaPlayer? =
-    database.mediaPlayers.players.firstOrNull {
-        idString == it.id.toString()
+fun Model.getMediaPlayer(idString: String): SettingsMediaPlayer? {
+    return database.mediaPlayers.players.firstOrNull {
+        idString == it.id.toString().uppercase()
     }
+}
 
-fun Model.getMediaPlayer(id: UUID): SettingsMediaPlayer? =
-    database.mediaPlayers.players.firstOrNull {
+fun Model.getMediaPlayer(id: UUID): SettingsMediaPlayer? {
+    return database.mediaPlayers.players.firstOrNull {
         it.id == id
     }
+}
 
 fun Model.mediaPlayerFileLoaded(playerId: UUID, name: String) {
+    val bufferedName = "Media player: $name"
     val latency = mediaPlayerLatency
-    media.addBufferedVideo(cameraId = playerId, name = "Media player: $name", latency = latency)
-    media.addBufferedAudio(cameraId = playerId, name = "Media player: $name", latency = latency)
+    media.addBufferedVideo(cameraId = playerId, name = bufferedName, latency = latency)
+    media.addBufferedAudio(cameraId = playerId, name = bufferedName, latency = latency)
 }
 
 fun Model.mediaPlayerFileUnloaded(playerId: UUID) {
@@ -137,9 +134,9 @@ fun Model.mediaPlayerStateUpdate(
     name: String,
     playing: Boolean,
     position: Double,
-    time: String
+    time: String,
 ) {
-    mainScope.launch {
+    CoroutineScope(Dispatchers.Main.immediate).launch {
         mediaPlayerPlayer.playing.value = playing
         mediaPlayerPlayer.fileName.value = name
         if (!mediaPlayerPlayer.seeking.value) {

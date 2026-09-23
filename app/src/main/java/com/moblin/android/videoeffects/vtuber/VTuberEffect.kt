@@ -1,24 +1,35 @@
 package com.moblin.android.videoeffects.vtuber
 
-import com.moblin.android.platform.video.CVPixelBuffer as Image
-import android.util.Size
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectDetectionsMode
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.core.structCopy
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIImage
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsSensitivity
 import com.moblin.android.various.utils.TimeStampRebaser
 import com.moblin.android.videoeffects.EffectImage
-import java.util.UUID
+import com.moblin.android.videoeffects.MetalPetalWidgetShape
+import com.moblin.android.videoeffects.move
+import com.moblin.android.videoeffects.resizeMirror
+import com.moblin.android.videoeffects.resizeMirrorMoveComposited
 import kotlinx.coroutines.launch
+import java.util.UUID
+import com.moblin.android.various.calcFaceAngleSide
+import com.moblin.android.various.isRightEyeOpen
+import com.moblin.android.various.calcFaceAngle
+import com.moblin.android.various.isLeftEyeOpen
+import com.moblin.android.various.isMouthOpen
 
 data class VTuberFace(
     var sideAngle: Double = 0.0,
     var rotationAngle: Double = 0.0,
     var mouthOpen: Double = 0.0,
     var leftEyeOpen: Double = 1.0,
-    var rightEyeOpen: Double = 1.0
+    var rightEyeOpen: Double = 1.0,
 )
 
 open class VTuberEffect : VideoEffect() {
@@ -34,56 +45,78 @@ open class VTuberEffect : VideoEffect() {
     private var renderedImagePresentationTimeStamp = 0.0
     private var renderedImage: EffectImage? = null
 
-    fun setVideoSourceId(videoSourceId: UUID) {
+    open fun setVideoSourceId(videoSourceId: UUID) {
         processorPipelineQueue.launch {
             this@VTuberEffect.videoSourceId = videoSourceId
         }
     }
 
-    fun setSettings(cameraFieldOfView: Double,
-                    cameraPositionY: Double,
-                    mirror: Boolean,
-                    sensitivity: SettingsSensitivity,
-                    armsAngle: Double)
-    {
+    open fun setSettings(
+        cameraFieldOfView: Double,
+        cameraPositionY: Double,
+        mirror: Boolean,
+        sensitivity: SettingsSensitivity,
+        armsAngle: Double,
+    ) {
         processorPipelineQueue.launch {
             this@VTuberEffect.mirror = mirror
             this@VTuberEffect.sensitivity = sensitivity
-            setModelSettings(cameraFieldOfView = cameraFieldOfView,
-                             cameraPositionY = cameraPositionY,
-                             armsAngle = armsAngle)
+            this@VTuberEffect.setModelSettings(
+                cameraFieldOfView = cameraFieldOfView,
+                cameraPositionY = cameraPositionY,
+                armsAngle = armsAngle,
+            )
         }
     }
 
-    fun setSceneWidget(sceneWidget: SettingsSceneWidget) {
+    open fun setSceneWidget(sceneWidget: SettingsSceneWidget) {
         processorPipelineQueue.launch {
             this@VTuberEffect.sceneWidget = sceneWidget
         }
     }
 
-    open fun setModelSettings(cameraFieldOfView: Double, cameraPositionY: Double, armsAngle: Double) {}
+    open fun setModelSettings(cameraFieldOfView: Double, cameraPositionY: Double, armsAngle: Double) {
+    }
 
     open fun isModelLoaded(): Boolean {
         return false
     }
 
-    open fun updateModel(face: VTuberFace, time: Double, timeDelta: Double) {}
+    open fun updateModel(face: VTuberFace, time: Double, timeDelta: Double) {
+    }
 
-    open fun renderModel(time: Double, size: Size): EffectImage? {
+    open fun renderModel(time: Double, size: CGSize): EffectImage? {
         return null
     }
 
-    override fun execute(image: Image, info: VideoEffectInfo): Image {
-        val renderedImage = update(Size(image.width, image.height), info) ?: return image
-        val sceneWidget = this.sceneWidget ?: return image
-        return TODO("OpenGL ES port: Core Image resizeMirror/move/cropped/composited chain")
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
+        val renderedImage = update(size = image.extent.size, info = info)?.getCiImage()
+        val sceneWidget = sceneWidget
+        if (renderedImage == null || sceneWidget == null) {
+            return image
+        }
+        return renderedImage
+            .resizeMirror(sceneWidget.layout, image.extent.size, mirror)
+            .move(sceneWidget.layout, image.extent.size)
+            .cropped(to = image.extent)
+            .composited(over = image)
     }
 
-    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
-        return TODO("MetalPetal has no Android counterpart")
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
+        val renderedImage = update(size = image.extent.size, info = info)?.getMetalPetalImage()
+        val sceneWidget = sceneWidget
+        if (renderedImage == null || sceneWidget == null) {
+            return image
+        }
+        return renderedImage.resizeMirrorMoveComposited(
+            layout = sceneWidget.layout,
+            mirror = mirror,
+            backgroundImage = image,
+            shape = MetalPetalWidgetShape(contentRegion = renderedImage.extent),
+        )
     }
 
-    private fun update(size: Size, info: VideoEffectInfo): EffectImage? {
+    private fun update(size: CGSize, info: VideoEffectInfo): EffectImage? {
         val presentationTimeStamp = info.presentationTimeStamp / 1_000_000.0
         val time = timeStampRebaser.rebase(presentationTimeStamp) ?: return null
         if (!isModelLoaded()) {
@@ -92,7 +125,7 @@ open class VTuberEffect : VideoEffect() {
         val timeDelta = presentationTimeStamp - previousPresentationTimeStamp
         previousPresentationTimeStamp = presentationTimeStamp
         updateFace(size = size, info = info, timeDelta = timeDelta)
-        updateModel(face = face, time = time, timeDelta = timeDelta)
+        updateModel(face = structCopy(face), time = time, timeDelta = timeDelta)
         if (presentationTimeStamp - renderedImagePresentationTimeStamp > 0.025) {
             val image = renderModel(time = time, size = size)
             if (image != null) {
@@ -103,14 +136,23 @@ open class VTuberEffect : VideoEffect() {
         return renderedImage
     }
 
-    private fun updateFace(size: Size, info: VideoEffectInfo, timeDelta: Double) {
+    private fun updateFace(size: CGSize, info: VideoEffectInfo, timeDelta: Double) {
         val detection = info.faceDetections(videoSourceId)?.firstOrNull()
-        if (detection != null) {
-            val rotationAngle: Double = TODO("Vision framework: VNFaceObservation.calcFaceAngle")
-            val sideAngle: Double = TODO("Vision framework: VNFaceObservation.calcFaceAngleSide")
-            face.mouthOpen = TODO("Vision framework: VNFaceObservation.isMouthOpen")
-            face.leftEyeOpen = TODO("Vision framework: VNFaceObservation.isLeftEyeOpen")
-            face.rightEyeOpen = TODO("Vision framework: VNFaceObservation.isRightEyeOpen")
+        val rotationAngle = detection?.calcFaceAngle(imageSize = size)
+        val sideAngle = detection?.calcFaceAngleSide()
+        if (detection != null && rotationAngle != null && sideAngle != null) {
+            face.mouthOpen = detection.isMouthOpen(
+                rotationAngle = rotationAngle,
+                sensitivity = sensitivity.mouth,
+            )
+            face.leftEyeOpen = detection.isLeftEyeOpen(
+                rotationAngle = rotationAngle,
+                sensitivity = sensitivity.eyes,
+            )
+            face.rightEyeOpen = detection.isRightEyeOpen(
+                rotationAngle = rotationAngle,
+                sensitivity = sensitivity.eyes,
+            )
             latestSideAngle = sideAngle
             latestRotationAngle = rotationAngle
         }
@@ -120,7 +162,7 @@ open class VTuberEffect : VideoEffect() {
         face.rotationAngle = oldFactor * face.rotationAngle + newFactor * latestRotationAngle
     }
 
-    override fun needsFaceDetections(time: Double): VideoEffectDetectionsMode {
-        return VideoEffectDetectionsMode.Interval(videoSourceId, 0.1)
+    override fun needsFaceDetections(interval: Double): VideoEffectDetectionsMode {
+        return VideoEffectDetectionsMode.Interval(videoSourceId = videoSourceId, interval = 0.1)
     }
 }

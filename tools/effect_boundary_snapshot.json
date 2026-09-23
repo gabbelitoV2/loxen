@@ -1,75 +1,75 @@
 {
-  "generated": "2026-09-23T19:26:18+00:00",
+  "generated": "2026-09-23T21:39:12+00:00",
   "files": {
-    "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt": "7e5517d2083f45733f8615b7ce30aea30bbcc1fb03cd90fde10af4a7f743d12e",
-    "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt": "206b1d67e711b4c682b370ee0ed879fa95f4519c63181f6f9b77661fe94cbdd6",
-    "app/src/main/java/com/moblin/android/various/Detection.kt": "c566c4f4a79a417eb700c8cb048fffebbb4ca19748d9e7903b0d35cb8d435149",
-    "app/src/main/java/com/moblin/android/various/MediaPlayer.kt": "8e80dde6f3bccaa11d99fc69549e07cc7b222db7e899313661acc93626557507",
-    "app/src/main/java/com/moblin/android/various/model/ModelFaceBackgroundImage.kt": "b48d349e9f85c1b50a695f8fdd066f77075f7a30e5349ee462e6412e4780363d",
-    "app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt": "fd2753272ab4e9c3cb52d71031c6f6272358fe1aa975d77acb3f6f6e9aa4dfd3",
-    "app/src/main/java/com/moblin/android/various/model/ModelReplay.kt": "703daba4a74fcaddaf0631bdaf30a132ceba8f10dd771c6a7ca6d73a80476be6",
-    "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt": "49ded7a1078f8b3873b657905208a5d337a1be393251884d26df59427d62c9e7",
-    "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectFace.kt": "579099aa84dd4afe0ecd8739a1206da0e1a454f897de196107b7784b976e90f5",
-    "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectMedia.kt": "c40a3fbc9a972a15892a799051dc05798db67f6bc7fc9a6eaed0d5fde7e429b2",
-    "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectVideoReader.kt": "535ff312eb14dfcdf110490bcdfac96386476be168607866146caa8ca3714d6d",
-    "app/src/main/java/com/moblin/android/videoeffects/AnamorphicLensEffect.kt": "71687238028c725fb85fc413636bdee81f7b86eb71324da3669a39e9aea4130a",
-    "app/src/main/java/com/moblin/android/videoeffects/BeautyEffect.kt": "cc2ffcac64cdc763296a76b77330d7462fe048499c64f2cd7c0433e2c940e687",
-    "app/src/main/java/com/moblin/android/videoeffects/BingoCardEffect.kt": "7fbbde6abef261b5d95e4b7123dac66c15432e814de5fb35a0d26f3b733c3027",
-    "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt": "5b4af21cf4f0de01cf7a640e5144387cdd82f4cbbf815b76900c1c7be1adcae8",
-    "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt": "4b5814a8261dc84e8245d02d723a9ecef5da2d30ffa0cf573e141cf8faf9f635",
-    "app/src/main/java/com/moblin/android/videoeffects/CameraManEffect.kt": "ec55be36037a5f6326c983498561f66156b19708df8c87decdd74c8af2ee2d98",
-    "app/src/main/java/com/moblin/android/videoeffects/ChatEffect.kt": "e31f19daa77261579384b4e958b82173885e9f5437b04cc5dc12f7952fe61a37",
-    "app/src/main/java/com/moblin/android/videoeffects/ChatEmoteComboEffect.kt": "c6a111d05e5e3e9c95ac33c5ac564df170dedaff016588b30843120085550386",
-    "app/src/main/java/com/moblin/android/videoeffects/crt/CrtBarrelDistortionFilter.kt": "509617ea1f4a858c62dd3233c3eb0c8b63e798ee02d7f4447f1b6cc1b8aa775c",
-    "app/src/main/java/com/moblin/android/videoeffects/crt/CrtEffect.kt": "1d4d1c983f50f6ab0fe2c2232a16f676b88dcb5b4de497033ca436e2c57781fe",
-    "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Effect.kt": "cd8cd063aa826219a248987a4c745f0d87c9476fc346d16fffea596bafea346c",
-    "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt": "bdbd0853ca1818f1c1363ba378ccce1e348524cec7f4245d8d47e8a131a5fce4",
-    "app/src/main/java/com/moblin/android/videoeffects/DrawOnStreamEffect.kt": "ffa51de28a466131aaa1aa4940dbd52598e75d35ff9c38ad8174e3ff3ff13e33",
-    "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt": "f052139c4ed19e8751ffd697cbef64d4f5d7d5cc529dcc330a745852922d3935",
-    "app/src/main/java/com/moblin/android/videoeffects/FaceEffect.kt": "2cb91d0abe06616548141155acf8cf5f036b5ff4261c31f43591789804178ff6",
-    "app/src/main/java/com/moblin/android/videoeffects/FixedHorizonEffect.kt": "ac7eb00ec768dcbe7b64475344a7865f8da3fa7fec4f8600559330ffa5613dbb",
-    "app/src/main/java/com/moblin/android/videoeffects/FourThreeEffect.kt": "08f708c0b22196470e1877f8093309fa8d80e56c5f7ac7915948a0fe5bf85f50",
-    "app/src/main/java/com/moblin/android/videoeffects/GrayScaleEffect.kt": "9e8fd00525532a48b33c7c296423e35b59c4d8b4ddd69c7edbddcdae7125ea89",
-    "app/src/main/java/com/moblin/android/videoeffects/ImageEffect.kt": "eebcd2d5d39a57fcdc358ab12041b9549fbaca88a1d53e9b1ab0dc92c03ec839",
-    "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt": "6efd8f1e0d982db27d571411d8037259ec470eb9a740bf528b4024149a0883b1",
-    "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt": "6ccbec28caf2b0a5f86e18749bd1a31328a966c4fffadde706f588dbfaf5f305",
-    "app/src/main/java/com/moblin/android/videoeffects/MaskEffect.kt": "7f480e92c810b574568b404d800c1ca476dc5a43f4d9efa308ee323dcdd4f7f1",
-    "app/src/main/java/com/moblin/android/videoeffects/MovieEffect.kt": "4fa0ec1c0ab776677d53f9678ceb7fdc9afac98b340aca98863cceb0ecde9aea",
-    "app/src/main/java/com/moblin/android/videoeffects/OpacityEffect.kt": "6421abe6ea8a391b78804fd9ed83a3f8df309c249d7d30b8eff435dd31d6337d",
-    "app/src/main/java/com/moblin/android/videoeffects/PinchEffect.kt": "feaaf90ce77201a2276f02e81255b8fff73f1ce8e54a6cfb1397d3dc5c205138",
-    "app/src/main/java/com/moblin/android/videoeffects/PixellateEffect.kt": "1f3cad39012f63b26d6cfdaa8012904912251a2e22037197304756bf4c9f0e22",
-    "app/src/main/java/com/moblin/android/videoeffects/PngTuberEffect.kt": "64efd10c65a9ccc3fb9215acfd05e1562b22f6ebd0f33014188d1a3694af83b6",
-    "app/src/main/java/com/moblin/android/videoeffects/PollEffect.kt": "979ba952ec7f3c78b6bf9b5baece0208138769d4596bcfc731b1e2a9f0193a95",
-    "app/src/main/java/com/moblin/android/videoeffects/PomodoroTimerEffect.kt": "a0bf54021f982015724f1249c9eeb132db65ebd2eb3a6ce3a3a3db354619ccfc",
-    "app/src/main/java/com/moblin/android/videoeffects/QrCodeEffect.kt": "f8f4a122c22a9066c862af1848f888ba08166bd06613b8a749492ee58a677595",
-    "app/src/main/java/com/moblin/android/videoeffects/RemoveBackgroundEffect.kt": "2fb243e3b91de11701a92467a6893cfffbdcf614e091dbc2141e5b542afad297",
-    "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffect.kt": "fbaeb291945c444f21635487364d481382a1156a2203f85f3532955cf26a2717",
-    "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffectReplayReader.kt": "1aa4b90e71134366f166c42d5f64bf71bfae2c78e305a1b5df4bb1ff8b9772df",
-    "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffectStingerReader.kt": "2db1b9df2936240caf1b80f72950f66e32f18fda2500f920356bd9dbc355b132",
-    "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffect.kt": "ba3510a4961bf582a68d70882a40d23075d8bc43c8fad7d756169156b9d11752",
-    "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectGenericView.kt": "8fab1498bbd0e8e44bc9e65836efee1eb02d25eb90ca81168ceb1c238e92e560",
-    "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectGolfFullScorecardView.kt": "fb29e1d348b45a83942c0fac6e3cec62195cff01c66aefc1a39e0c7add7a7c38",
-    "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectGolfView.kt": "912e8e141a898922b1d855197628b649b8ebfa0c1e2fc452879baa610c41d95a",
-    "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectModularView.kt": "d862a289b7356fa86791ce095e95db442a0ef3f085dc3fe3307af2459f1f3343",
-    "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectPadelView.kt": "48fbcfa915224c531b7dc0b1a6345813a0d56dcca2be424a24e9ebfa7fc25cda",
-    "app/src/main/java/com/moblin/android/videoeffects/SepiaEffect.kt": "6a250f6f00d65eef9ef3702d36ee63af0f97c7389737ce7449dda3b4f6cfc286",
-    "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt": "8353563d81e060820d58a1337fda7e7ffd094d1dd328312ba9544ba90b63faac",
-    "app/src/main/java/com/moblin/android/videoeffects/SlideshowEffect.kt": "093c6b97aeeafdd954da8a81567f75ecb90f12327e52e270bf0c75f1ece4b42e",
-    "app/src/main/java/com/moblin/android/videoeffects/SnapshotEffect.kt": "afc391dd5b6fdaeb5a187a121c9db1f8ebb35228a75b3fe2f804fce1d457d1f7",
-    "app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt": "13e7444f8fee3e215011e67679b5a0954a1f9fb5331d986124f3b106426b9d3d",
+    "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt": "6c8d265919e7027ceea82793e5d64616f94b92b8ef160e24668d4cc6e2d2e5d4",
+    "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt": "120cf5a7bf8b80cc0e85573821bb462cf1e306fcf34431e588883818b605f15a",
+    "app/src/main/java/com/moblin/android/various/Detection.kt": "37591bb3e93f689627abffa4c94321a42d813baca627de28630ac876c513920f",
+    "app/src/main/java/com/moblin/android/various/MediaPlayer.kt": "4d2b37a915bd162de6199e1a56332f8fcd83c25993a3a2e370f590ae8cea142b",
+    "app/src/main/java/com/moblin/android/various/model/ModelFaceBackgroundImage.kt": "9cad6f134d82b69ef60af45b0fe517be3fa735ea07821bf5dac7e8bf99f67b4c",
+    "app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt": "eaf51bb37e2e08d71a26341e8a164d4439c32c759764effff25a794a292aa220",
+    "app/src/main/java/com/moblin/android/various/model/ModelReplay.kt": "59680ce0f2bb56d151bb106b54a88391d4e71c83846d6eb11e1fb6b71ae7b196",
+    "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt": "e86a8a484652be5149d66f824616de238bee25fb1aab3437367881f184c60f73",
+    "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectFace.kt": "919a3a58d276e3e172e0c326a654defafa17005791904ffde7d1c51741150c1c",
+    "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectMedia.kt": "c1e3f745df31aa42308a244c730401ef18ab1c056d5f98d33f53874c17585bc8",
+    "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectVideoReader.kt": "ed80b59c3bd45de8b410bd6b96186c43409618c2dcb8f4d2414d33f8f568cba7",
+    "app/src/main/java/com/moblin/android/videoeffects/AnamorphicLensEffect.kt": "c5c25feaad1ce9dce414c0e111d5563b8a5cdd8934d0b6e35666f0ee62dc9876",
+    "app/src/main/java/com/moblin/android/videoeffects/BeautyEffect.kt": "8f0093c5dc5c02964cb17ee59c7eb69984065ca3ed42ae490200288d29a9587a",
+    "app/src/main/java/com/moblin/android/videoeffects/BingoCardEffect.kt": "6f9133593b3b7830d72bc0d6dd74a17e5d7a5a3bd877eb9e9038817f580fd5f9",
+    "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt": "df316b7d7d43147b72afea71cd1b47220a97844fbf5d1ff9eb981ca3168cc72a",
+    "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt": "590b10ff7c79a2efe98aef21a971086b6d8b1fd3a76c4930e91d29c71ddc0337",
+    "app/src/main/java/com/moblin/android/videoeffects/CameraManEffect.kt": "171c4897e33581e7df319447c9ea58d3e65c96eb2a0055c2e10033c42a9d74cb",
+    "app/src/main/java/com/moblin/android/videoeffects/ChatEffect.kt": "803e27a02f7226c43826ef42881369b04a9f92b96adc403607cd4126e80825f1",
+    "app/src/main/java/com/moblin/android/videoeffects/ChatEmoteComboEffect.kt": "9013187667f02430f929079ad2e3bcd9508f7beb8a16b86eb2780b95cee2c353",
+    "app/src/main/java/com/moblin/android/videoeffects/crt/CrtBarrelDistortionFilter.kt": "d73155c99de615353a19f5f61f94621282dc7f5c050908b4c330f1b76f28b4f0",
+    "app/src/main/java/com/moblin/android/videoeffects/crt/CrtEffect.kt": "3a97cc025c0fffddba7f1ddb45acbcb021e6b3f8bc18553cd15c1a09f5383075",
+    "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Effect.kt": "7293ae58b31c5560e7f1f46499e4ba4293d031ea12e7635535fb880b81a21e32",
+    "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt": "9c63f20cb8f1d3aa9329b5670ab820835dd65eed4ad29dd31a2787370b87712e",
+    "app/src/main/java/com/moblin/android/videoeffects/DrawOnStreamEffect.kt": "f5f1b5988e109e115f298c7da96a63d80fa460241730aa76edffd3e9363ffe67",
+    "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt": "666fa5d57ea44c614676e3c21d52c323391849e958131e9b86242b3d0ef2b28a",
+    "app/src/main/java/com/moblin/android/videoeffects/FaceEffect.kt": "c04f839b6cfbeeb804db4fc71af478fbcb54c096475dc51b78e2a58190bf5f5b",
+    "app/src/main/java/com/moblin/android/videoeffects/FixedHorizonEffect.kt": "af7c49cba4892917dfd1be15bec76df796342def1119e6a558a77fe731ca9a7f",
+    "app/src/main/java/com/moblin/android/videoeffects/FourThreeEffect.kt": "f66f182d27595d61cb321ded0d1e2dced5be78450b6d9575f9b9aba4d107987a",
+    "app/src/main/java/com/moblin/android/videoeffects/GrayScaleEffect.kt": "387294ce4e443cf4c47ff4a7a8cc5c3773636de3a894b6e455e817a22193e0f3",
+    "app/src/main/java/com/moblin/android/videoeffects/ImageEffect.kt": "a2caf7261bd9bf2e45a15f02bc816acae79d216092d1b2841c9bc2ee9cdd6fc7",
+    "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt": "191e57e37550b5fe69b245657b02dc1b6ca1e9e877091b467434a9718a006a9b",
+    "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt": "c1a5fd2f4dea9e584c899440c03cb991316739220807d7deb593c1110f259dab",
+    "app/src/main/java/com/moblin/android/videoeffects/MaskEffect.kt": "2232e1debd369a09d74590501c7da5100128f85efa29970f93ab72848e04b023",
+    "app/src/main/java/com/moblin/android/videoeffects/MovieEffect.kt": "cb9dd55a72634d099c6f8e2d1ddf8153bfe9da749d89830f6dcb6b98216e065a",
+    "app/src/main/java/com/moblin/android/videoeffects/OpacityEffect.kt": "5bdd11f9781a673819219b7abc0a7ae5acf985834c00f9a439f73015ec39c374",
+    "app/src/main/java/com/moblin/android/videoeffects/PinchEffect.kt": "d702d42a38cd0157b373d5b107e24079a190a4b0dc2de5b2f51e06f3e6ec3c2d",
+    "app/src/main/java/com/moblin/android/videoeffects/PixellateEffect.kt": "f1288f478bcd99251274d91a009f5dff588180ef02ed4c68d3a37bf84ab86997",
+    "app/src/main/java/com/moblin/android/videoeffects/PngTuberEffect.kt": "61bce05cd36d508fcbcfe66f56428c64bfc823efc6ee7a243bad3ef06f519353",
+    "app/src/main/java/com/moblin/android/videoeffects/PollEffect.kt": "350733485c367b970858c02d892079ebfb2248f6585282b5f59d6e3d36a85d5b",
+    "app/src/main/java/com/moblin/android/videoeffects/PomodoroTimerEffect.kt": "0088dc545373b8a49ae2d40adde2a46756adf652ffe93f5776eb9979d05d325d",
+    "app/src/main/java/com/moblin/android/videoeffects/QrCodeEffect.kt": "42c9d61d7db0ce926df1126f36cacea779768603e7822535d523cbcb44d56f40",
+    "app/src/main/java/com/moblin/android/videoeffects/RemoveBackgroundEffect.kt": "a8de360f77bbf327962824010f7d264f38e8f341a9527f10449b00cb150f446f",
+    "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffect.kt": "68f6cc20a7be9cfd300e3eeb661516c840dbb4827330cadb07b95d34bb90b921",
+    "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffectReplayReader.kt": "2d1607862517dc0279a4906a9415e450f45a1f17b1b06cd7e226e711bcaf992b",
+    "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffectStingerReader.kt": "fa9897c18ff04ae315ca243076c599d9356829abf57c1d490423601c805ee12c",
+    "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffect.kt": "3d660c7c8a13e40de85dc1b1014bfba3184e5b316de8fff5c4b978d51d26fa72",
+    "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectGenericView.kt": "ffc55f5618a0161f0da40ca1fefbd7f0230980c713d6e2898a02db98c127616f",
+    "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectGolfFullScorecardView.kt": "af48bd54cef8a6490757d0552b7688404fd240f0d6d9e7e35131ca1ebc99af7b",
+    "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectGolfView.kt": "7b5ad52e49526d94aba65382cf6422da8df4d38299ec45b392622c6e48032337",
+    "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectModularView.kt": "c1ebf69a497990fa8f8f2b54e15c930a915dfcbae168ca669b0ad21a18aa968c",
+    "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffectPadelView.kt": "fbe6ed45b2217400bab0eb67fca93f12d0933716d791a968df4236a06c2d0981",
+    "app/src/main/java/com/moblin/android/videoeffects/SepiaEffect.kt": "f598b6fa9ad8a870c82c931e086abaee34cd9c848d7f61ee113092a564afac43",
+    "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt": "e80676023480425c018e9f5079d024790f84f89eab5034c51fc3a8b38f602f63",
+    "app/src/main/java/com/moblin/android/videoeffects/SlideshowEffect.kt": "20db80669cc5c335a912bd8ed5082b15490bb9f3ce93d631d6164776d555a0a4",
+    "app/src/main/java/com/moblin/android/videoeffects/SnapshotEffect.kt": "7abf11a1597cc170a662b5352e74541a5d9c402889fd55f3caa4ece6dd45622d",
+    "app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt": "9f5401c44d12b2b9ca9c855848d2bdbbe47744e6041db65c2498d7213eb299d2",
     "app/src/main/java/com/moblin/android/videoeffects/text/TextEffectFormatter.kt": "bdde8e960dc487c859c4d2962715615119c8cb8943163ffe18f9c3a77ffb6c95",
     "app/src/main/java/com/moblin/android/videoeffects/text/TextFormatStringLoader.kt": "653768fefbb97d65d2d01751a6973e3c93a15260451df8edaa44baf06ed3df05",
-    "app/src/main/java/com/moblin/android/videoeffects/TripleEffect.kt": "771e3f2e0e2b2044a28c9c8912ea862833a369491924ed52763779b5c4f5afe8",
-    "app/src/main/java/com/moblin/android/videoeffects/TwinEffect.kt": "fc7dfcf970d8abf6230e13546db12e8884f540d654cee293ed754675b68519cf",
-    "app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt": "e06674b1fce6dbc5991e2b9f4890ff0c627ab91aaff79cf879128958c08e2687",
-    "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberEffect.kt": "d665f4a62fe744862be1ccf74429924166f68b9aa46b94e89f57a2d429d152d9",
-    "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberLive2DEffect.kt": "c88be2030fc0dd6cc3320d611f7061f2c4012eac0d4626ec45116e88270764fa",
-    "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberVrmEffect.kt": "eac47628e298ab4be7e70f664248497a950715194f6d7670e019f083826707cc",
-    "app/src/main/java/com/moblin/android/videoeffects/WheelOfLuckEffect.kt": "076f3cef5f11e93a36f76844f004a3558ef6e3a3ba675f307035f91c38c5949f",
-    "app/src/main/java/com/moblin/android/videoeffects/WhirlpoolEffect.kt": "458c5431a24d9061fcea7779c10b66ca9a50c5a7e2452083147c8df2da066a0a",
-    "app/src/test/java/com/moblin/android/videoeffects/EffectUtilsSuite.kt": "68f3f251cfecff1cd7cf57c685c6dafaad99f2a0515c711c82005facc8ae69fd",
-    "app/src/test/java/com/moblin/android/videoeffects/LutEffectSuite.kt": "0880bcdc3b56a8bb29ee7a45d0057258f0fb75743eae49d58c809c170c9e686a",
-    "app/src/test/java/com/moblin/android/videoeffects/text/TextEffectSuite.kt": "9c8ad615eed38cfa6a01ec608676a876c02bcb15fe17b1a8f7aaa9114558a77c"
+    "app/src/main/java/com/moblin/android/videoeffects/TripleEffect.kt": "0fcdd61da47fc34e7cf339b471dda25a077b955e3eba62b089eb3960ea2839bf",
+    "app/src/main/java/com/moblin/android/videoeffects/TwinEffect.kt": "3dac50385246259d35030574b4a84d0118433801d5e0769d1e7f62307e15245d",
+    "app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt": "f1e8ce0789756f471287819f8524fc6a4eaca618e6e02be29a886fb383671236",
+    "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberEffect.kt": "a32bdb7eec6f08d8df7392fdcb6e4fcb1a9c834532ae6bb10e1c814447481521",
+    "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberLive2DEffect.kt": "1a0ba52c3fe4c212bb0951938d1eedd329616d2e42a908b6d82b11718a5430ff",
+    "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberVrmEffect.kt": "4f740cf329a37ddcb4ce2190a831abf541ef6c7fad2f22fc9b62d4d8025f8d3d",
+    "app/src/main/java/com/moblin/android/videoeffects/WheelOfLuckEffect.kt": "35b1ca139909d4176ff3cb13e6b8e11ab459c613063900ced78c7b7a3b877781",
+    "app/src/main/java/com/moblin/android/videoeffects/WhirlpoolEffect.kt": "a4cc3a0aba559e5084ed90a678e258e4349e4103b8232e09e47048cea673f7ef",
+    "app/src/test/java/com/moblin/android/videoeffects/EffectUtilsSuite.kt": "37d214192b31ae019157590d06ff5a89bd88cc98d4aedb5f378cc802792137d0",
+    "app/src/test/java/com/moblin/android/videoeffects/LutEffectSuite.kt": "63ce3e5599b0b09014649fc8d6c21f0f4a0ffb9ab3c594f3d4861d22163c9c54",
+    "app/src/test/java/com/moblin/android/videoeffects/text/TextEffectSuite.kt": "d7526c2973bed66fdf30850f013c497fe1bd3e9207f8a03e7afa3dd9497d1484"
   },
   "declarations": {
     "AlertsEffect": {
@@ -77,7 +77,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.alerts.AlertsEffect(private var settings: com.moblin.android.various.settings.SettingsWidgetAlerts, private val delegate: com.moblin.android.videoeffects.alerts.AlertsEffectDelegate?, private val mediaStorage: com.moblin.android.various.storages.AlertMediaStorage, private val bundledImages: List<com.moblin.android.various.settings.SettingsAlertsMediaGalleryItem>, private val bundledSounds: List<com.moblin.android.various.settings.SettingsAlertsMediaGalleryItem> ) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
+        "class com.moblin.android.videoeffects.alerts.AlertsEffect(private var settings: com.moblin.android.various.settings.SettingsWidgetAlerts, delegate: com.moblin.android.videoeffects.alerts.AlertsEffectDelegate, private val mediaStorage: com.moblin.android.various.storages.AlertMediaStorage, private val bundledImages: List<com.moblin.android.various.settings.SettingsAlertsMediaGalleryItem>, private val bundledSounds: List<com.moblin.android.various.settings.SettingsAlertsMediaGalleryItem>) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt"
@@ -154,7 +154,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "data class KickGiftedSubscriptions(val event: com.moblin.android.streamingplatforms.kick.KickPusherGiftedSubscriptionsEvent ) : com.moblin.android.videoeffects.alerts.AlertsEffectAlert()"
+        "data class KickGiftedSubscriptions(val event: com.moblin.android.streamingplatforms.kick.KickPusherGiftedSubscriptionsEvent) : com.moblin.android.videoeffects.alerts.AlertsEffectAlert()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt"
@@ -209,7 +209,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "data object QuickButton : com.moblin.android.videoeffects.alerts.AlertsEffectAlert()"
+        "object QuickButton : com.moblin.android.videoeffects.alerts.AlertsEffectAlert()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt"
@@ -264,7 +264,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "data class TwitchRedemption(val event: com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEvent ) : com.moblin.android.videoeffects.alerts.AlertsEffectAlert()"
+        "data class TwitchRedemption(val event: com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelPointsCustomRewardRedemptionAddEvent) : com.moblin.android.videoeffects.alerts.AlertsEffectAlert()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt"
@@ -275,7 +275,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "data class TwitchResubscribe(val event: com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelSubscriptionMessageEvent ) : com.moblin.android.videoeffects.alerts.AlertsEffectAlert()"
+        "data class TwitchResubscribe(val event: com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelSubscriptionMessageEvent) : com.moblin.android.videoeffects.alerts.AlertsEffectAlert()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt"
@@ -297,7 +297,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "data class TwitchSubscriptionUpgrade(val event: com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelSubscriptionUpgradeEvent ) : com.moblin.android.videoeffects.alerts.AlertsEffectAlert()"
+        "data class TwitchSubscriptionUpgrade(val event: com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelSubscriptionUpgradeEvent) : com.moblin.android.videoeffects.alerts.AlertsEffectAlert()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt"
@@ -308,7 +308,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "data class TwitchSubscrptionGift(val event: com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelSubscriptionGiftEvent ) : com.moblin.android.videoeffects.alerts.AlertsEffectAlert()"
+        "data class TwitchSubscrptionGift(val event: com.moblin.android.streamingplatforms.twitch.TwitchEventSubNotificationChannelSubscriptionGiftEvent) : com.moblin.android.videoeffects.alerts.AlertsEffectAlert()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt"
@@ -319,29 +319,29 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.alerts.AlertsEffectBackgroundLandmarkRectangle(topLeftX: Double, topLeftY: Double, bottomRightX: Double, bottomRightY: Double )"
+        "data class com.moblin.android.videoeffects.alerts.AlertsEffectBackgroundLandmarkRectangle private constructor(val topLeftX: Double, val topLeftY: Double, val bottomRightX: Double, val bottomRightY: Double)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectFace.kt"
       ]
     },
-    "AlertsEffectBackgroundLandmarkRectangle.bottomRightX": {
+    "AlertsEffectBackgroundLandmarkRectangle.Companion": {
       "packages": [
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "val bottomRightX: Double"
+        "companion object"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectFace.kt"
       ]
     },
-    "AlertsEffectBackgroundLandmarkRectangle.bottomRightY": {
+    "AlertsEffectBackgroundLandmarkRectangle.Companion.invoke": {
       "packages": [
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "val bottomRightY: Double"
+        "operator fun invoke(topLeftX: Double, topLeftY: Double, bottomRightX: Double, bottomRightY: Double): com.moblin.android.videoeffects.alerts.AlertsEffectBackgroundLandmarkRectangle"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectFace.kt"
@@ -353,28 +353,6 @@
       ],
       "signatures": [
         "fun height(): Double"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectFace.kt"
-      ]
-    },
-    "AlertsEffectBackgroundLandmarkRectangle.topLeftX": {
-      "packages": [
-        "com.moblin.android.videoeffects.alerts"
-      ],
-      "signatures": [
-        "val topLeftX: Double"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectFace.kt"
-      ]
-    },
-    "AlertsEffectBackgroundLandmarkRectangle.topLeftY": {
-      "packages": [
-        "com.moblin.android.videoeffects.alerts"
-      ],
-      "signatures": [
-        "val topLeftY: Double"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectFace.kt"
@@ -429,7 +407,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "fun alertsMakeTwitchSegments(text: String, fragments: List<com.moblin.android.streamingplatforms.twitch.TwitchEventSubMessageFragment>, bits: String? ): List<com.moblin.android.various.ChatPostSegment>"
+        "fun alertsMakeTwitchSegments(text: String, fragments: List<com.moblin.android.streamingplatforms.twitch.TwitchEventSubMessageFragment>, bits: String?): List<com.moblin.android.various.ChatPostSegment>"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffect.kt"
@@ -451,7 +429,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "FACE, LEFT_EYE, RIGHT_EYE, MOUTH;"
+        "face, leftEye, rightEye, mouth;"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectFace.kt"
@@ -473,7 +451,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.alerts.AlertsEffectGifImages : com.moblin.android.videoeffects.alerts.AlertsEffectImages"
+        "open class com.moblin.android.videoeffects.alerts.AlertsEffectGifImages : com.moblin.android.videoeffects.alerts.AlertsEffectImages"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectMedia.kt"
@@ -529,7 +507,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "data class com.moblin.android.videoeffects.alerts.AlertsEffectLandmarkSettings(val landmark: com.moblin.android.videoeffects.alerts.AlertsEffectFaceLandmark, val height: Double, val centerX: Double, val centerY: Double )"
+        "data class com.moblin.android.videoeffects.alerts.AlertsEffectLandmarkSettings(val landmark: com.moblin.android.videoeffects.alerts.AlertsEffectFaceLandmark, val height: Double, val centerX: Double, val centerY: Double)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectFace.kt"
@@ -540,7 +518,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.alerts.AlertsEffectMedia"
+        "open class com.moblin.android.videoeffects.alerts.AlertsEffectMedia"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectMedia.kt"
@@ -551,7 +529,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "fun getPlayer(): com.moblin.android.videoeffects.alerts.AlertsEffectPlayer"
+        "open fun getPlayer(): com.moblin.android.videoeffects.alerts.AlertsEffectPlayer"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectMedia.kt"
@@ -562,7 +540,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "fun update(alert: com.moblin.android.various.settings.SettingsWidgetAlertsAlert, mediaStorage: com.moblin.android.various.storages.AlertMediaStorage, bundledImages: List<com.moblin.android.various.settings.SettingsAlertsMediaGalleryItem>, bundledSounds: List<com.moblin.android.various.settings.SettingsAlertsMediaGalleryItem>)"
+        "open fun update(alert: com.moblin.android.various.settings.SettingsWidgetAlertsAlert, mediaStorage: com.moblin.android.various.storages.AlertMediaStorage, bundledImages: List<com.moblin.android.various.settings.SettingsAlertsMediaGalleryItem>, bundledSounds: List<com.moblin.android.various.settings.SettingsAlertsMediaGalleryItem>)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectMedia.kt"
@@ -606,7 +584,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "data class Image(val image: com.moblin.android.videoeffects.EffectImageCiImage) : com.moblin.android.videoeffects.alerts.AlertsEffectMediaItem()"
+        "data class Image(val image: com.moblin.android.platform.coreimage.CIImage) : com.moblin.android.videoeffects.alerts.AlertsEffectMediaItem()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectMedia.kt"
@@ -628,18 +606,7 @@
         "com.moblin.android.videoeffects.alerts"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.alerts.AlertsEffectVideoImages : com.moblin.android.videoeffects.alerts.AlertsEffectImages"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectMedia.kt"
-      ]
-    },
-    "AlertsEffectVideoImages.<init>": {
-      "packages": [
-        "com.moblin.android.videoeffects.alerts"
-      ],
-      "signatures": [
-        "constructor(videoUrl: String?)"
+        "open class com.moblin.android.videoeffects.alerts.AlertsEffectVideoImages(videoUrl: String?) : com.moblin.android.videoeffects.alerts.AlertsEffectImages"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/alerts/AlertsEffectMedia.kt"
@@ -683,7 +650,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.AnamorphicLensEffect(settings: com.moblin.android.various.settings.SettingsVideoEffectAnamorphicLens) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
+        "class com.moblin.android.videoeffects.AnamorphicLensEffect(private var settings: com.moblin.android.various.settings.SettingsVideoEffectAnamorphicLens) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/AnamorphicLensEffect.kt"
@@ -782,18 +749,7 @@
         "com.moblin.android.videoeffects.browser"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.browser.BrowserEffect(url: java.net.URI, styleSheet: String, widget: com.moblin.android.various.settings.SettingsWidgetBrowser, moblinAccess: Boolean, proxyServer: java.net.InetSocketAddress?, context: android.content.Context = com.moblin.android.AppDelegate.context) : com.moblin.android.media.haishinkit.media.video.VideoEffect(), com.moblin.android.videoeffects.browser.BrowserEffectServerDelegate"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt"
-      ]
-    },
-    "BrowserEffect.close": {
-      "packages": [
-        "com.moblin.android.videoeffects.browser"
-      ],
-      "signatures": [
-        "fun close()"
+        "class com.moblin.android.videoeffects.browser.BrowserEffect(url: java.net.URI, styleSheet: String, widget: com.moblin.android.various.settings.SettingsWidgetBrowser, moblinAccess: Boolean, proxyServer: java.net.InetSocketAddress?) : com.moblin.android.media.haishinkit.media.video.VideoEffect(), com.moblin.android.videoeffects.browser.BrowserEffectServerDelegate"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt"
@@ -947,7 +903,7 @@
         "com.moblin.android.videoeffects.browser"
       ],
       "signatures": [
-        "val webView: com.moblin.android.platform.webkit.InterimBrowserWebView"
+        "val webView: com.moblin.android.platform.webkit.WKWebView"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt"
@@ -969,7 +925,7 @@
         "com.moblin.android.videoeffects.browser"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.browser.BrowserEffectServer(configuration: android.webkit.WebView?, private val moblinAccess: Boolean)"
+        "open class com.moblin.android.videoeffects.browser.BrowserEffectServer(configuration: com.moblin.android.platform.webkit.WKWebViewConfiguration, private val moblinAccess: Boolean) : com.moblin.android.platform.webkit.WKScriptMessageHandler"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt"
@@ -980,7 +936,7 @@
         "com.moblin.android.videoeffects.browser"
       ],
       "signatures": [
-        "var delegate: com.moblin.android.videoeffects.browser.BrowserEffectServerDelegate?"
+        "open var delegate: com.moblin.android.videoeffects.browser.BrowserEffectServerDelegate?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt"
@@ -991,7 +947,7 @@
         "com.moblin.android.videoeffects.browser"
       ],
       "signatures": [
-        "fun disable()"
+        "open fun disable()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt"
@@ -1002,7 +958,7 @@
         "com.moblin.android.videoeffects.browser"
       ],
       "signatures": [
-        "fun enable()"
+        "open fun enable()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt"
@@ -1013,7 +969,7 @@
         "com.moblin.android.videoeffects.browser"
       ],
       "signatures": [
-        "fun sendChatMessage(post: com.moblin.android.various.ChatPost)"
+        "open fun sendChatMessage(post: com.moblin.android.various.ChatPost)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt"
@@ -1024,7 +980,7 @@
         "com.moblin.android.videoeffects.browser"
       ],
       "signatures": [
-        "fun sendSpeechToText(position: Int, text: String)"
+        "open fun sendSpeechToText(position: Int, text: String)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt"
@@ -1035,18 +991,7 @@
         "com.moblin.android.videoeffects.browser"
       ],
       "signatures": [
-        "fun sendSpeechToTextClear()"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt"
-      ]
-    },
-    "BrowserEffectServer.userContentController": {
-      "packages": [
-        "com.moblin.android.videoeffects.browser"
-      ],
-      "signatures": [
-        "fun userContentController(message: String)"
+        "open fun sendSpeechToTextClear()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt"
@@ -1057,7 +1002,7 @@
         "com.moblin.android.videoeffects.browser"
       ],
       "signatures": [
-        "var webView: android.webkit.WebView?"
+        "open var webView: com.moblin.android.platform.webkit.WKWebView?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt"
@@ -1096,23 +1041,12 @@
         "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffectServer.kt"
       ]
     },
-    "CIImage": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "class com.moblin.android.videoeffects.CIImage(val extent: androidx.compose.ui.geometry.Rect)"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
-      ]
-    },
     "CIImage.centered": {
       "packages": [
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun com.moblin.android.videoeffects.CIImage.centered(size: androidx.compose.ui.geometry.Size): com.moblin.android.videoeffects.CIImage"
+        "fun com.moblin.android.platform.coreimage.CIImage.centered(size: com.moblin.android.platform.coregraphics.CGSize): com.moblin.android.platform.coreimage.CIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -1123,7 +1057,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun com.moblin.android.videoeffects.CIImage.move(layout: com.moblin.android.various.settings.SettingsWidgetLayout, streamSize: androidx.compose.ui.geometry.Size): com.moblin.android.videoeffects.CIImage"
+        "fun com.moblin.android.platform.coreimage.CIImage.move(layout: com.moblin.android.various.settings.SettingsWidgetLayout, streamSize: com.moblin.android.platform.coregraphics.CGSize): com.moblin.android.platform.coreimage.CIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -1134,7 +1068,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun com.moblin.android.videoeffects.CIImage.resizeMirror(layout: com.moblin.android.various.settings.SettingsWidgetLayout, streamSize: androidx.compose.ui.geometry.Size, mirror: Boolean, resize: Boolean = true): com.moblin.android.videoeffects.CIImage"
+        "fun com.moblin.android.platform.coreimage.CIImage.resizeMirror(layout: com.moblin.android.various.settings.SettingsWidgetLayout, streamSize: com.moblin.android.platform.coregraphics.CGSize, mirror: Boolean, resize: Boolean = true): com.moblin.android.platform.coreimage.CIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -1145,7 +1079,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun com.moblin.android.videoeffects.CIImage.scaled(x: Double, y: Double): com.moblin.android.videoeffects.CIImage"
+        "fun com.moblin.android.platform.coreimage.CIImage.scaled(x: Double, y: Double): com.moblin.android.platform.coreimage.CIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -1156,7 +1090,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun com.moblin.android.videoeffects.CIImage.scaledTo(size: androidx.compose.ui.geometry.Size): com.moblin.android.videoeffects.CIImage"
+        "fun com.moblin.android.platform.coreimage.CIImage.scaledTo(size: com.moblin.android.platform.coregraphics.CGSize): com.moblin.android.platform.coreimage.CIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -1167,7 +1101,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun com.moblin.android.videoeffects.CIImage.scaledToFill(size: androidx.compose.ui.geometry.Size): com.moblin.android.videoeffects.CIImage"
+        "fun com.moblin.android.platform.coreimage.CIImage.scaledToFill(size: com.moblin.android.platform.coregraphics.CGSize): com.moblin.android.platform.coreimage.CIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -1178,7 +1112,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun com.moblin.android.videoeffects.CIImage.toEffectImage(isOpaque: Boolean): com.moblin.android.videoeffects.EffectImageCiImage"
+        "fun com.moblin.android.platform.coreimage.CIImage.toEffectImage(isOpaque: Boolean): com.moblin.android.videoeffects.EffectImageCiImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -1189,7 +1123,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun com.moblin.android.videoeffects.CIImage.translated(x: Double, y: Double): com.moblin.android.videoeffects.CIImage"
+        "fun com.moblin.android.platform.coreimage.CIImage.translated(x: Double, y: Double): com.moblin.android.platform.coreimage.CIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -1200,7 +1134,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.CameraManEffect(moveVertically: Boolean, speed: Double, alwaysMove: Boolean) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
+        "class com.moblin.android.videoeffects.CameraManEffect(private var moveVertically: Boolean, private var speed: Double, private var alwaysMove: Boolean) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/CameraManEffect.kt"
@@ -1277,7 +1211,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.ChatEmoteComboEffect(private val canvasSize: androidx.compose.ui.geometry.Size) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
+        "class com.moblin.android.videoeffects.ChatEmoteComboEffect(private val canvasSize: com.moblin.android.platform.coregraphics.CGSize) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/ChatEmoteComboEffect.kt"
@@ -1321,7 +1255,7 @@
         "com.moblin.android.videoeffects.crt"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.crt.CrtBarrelDistortionFilter"
+        "open class com.moblin.android.videoeffects.crt.CrtBarrelDistortionFilter : com.moblin.android.platform.coreimage.CIFilter()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/crt/CrtBarrelDistortionFilter.kt"
@@ -1332,18 +1266,7 @@
         "com.moblin.android.videoeffects.crt"
       ],
       "signatures": [
-        "var inputImage: Any?"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/crt/CrtBarrelDistortionFilter.kt"
-      ]
-    },
-    "CrtBarrelDistortionFilter.outputImage": {
-      "packages": [
-        "com.moblin.android.videoeffects.crt"
-      ],
-      "signatures": [
-        "val outputImage: Any?"
+        "open var inputImage: com.moblin.android.platform.coreimage.CIImage?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/crt/CrtBarrelDistortionFilter.kt"
@@ -1354,7 +1277,7 @@
         "com.moblin.android.videoeffects.crt"
       ],
       "signatures": [
-        "var strength: Float"
+        "open var strength: Float"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/crt/CrtBarrelDistortionFilter.kt"
@@ -1365,7 +1288,7 @@
         "com.moblin.android.videoeffects.crt"
       ],
       "signatures": [
-        "var width: Float"
+        "open var width: Double"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/crt/CrtBarrelDistortionFilter.kt"
@@ -1420,7 +1343,7 @@
         "com.moblin.android.videoeffects.dewarp360"
       ],
       "signatures": [
-        "data class Animate(val speed: Float = 1f, val pan: Float = 0f, val tilt: Float = 0f, val fieldOfView: Float = (kotlin.math.PI / 2).toFloat() ) : com.moblin.android.videoeffects.dewarp360.Dewarp360EffectSettings()"
+        "data class Animate(val speed: Float = 1f, val pan: Float = 0f, val tilt: Float = 0f, val fieldOfView: Float = (kotlin.math.PI / 2).toFloat()) : com.moblin.android.videoeffects.dewarp360.Dewarp360EffectSettings()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Effect.kt"
@@ -1431,7 +1354,7 @@
         "com.moblin.android.videoeffects.dewarp360"
       ],
       "signatures": [
-        "data class Direct(val pan: Float = 0f, val tilt: Float = 0f, val fieldOfView: Float = (kotlin.math.PI / 2).toFloat() ) : com.moblin.android.videoeffects.dewarp360.Dewarp360EffectSettings()"
+        "data class Direct(val pan: Float = 0f, val tilt: Float = 0f, val fieldOfView: Float = (kotlin.math.PI / 2).toFloat()) : com.moblin.android.videoeffects.dewarp360.Dewarp360EffectSettings()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Effect.kt"
@@ -1442,7 +1365,7 @@
         "com.moblin.android.videoeffects.dewarp360"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.dewarp360.Dewarp360Filter"
+        "open class com.moblin.android.videoeffects.dewarp360.Dewarp360Filter : com.moblin.android.platform.coreimage.CIFilter()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
@@ -1453,7 +1376,7 @@
         "com.moblin.android.videoeffects.dewarp360"
       ],
       "signatures": [
-        "var fieldOfView: Float"
+        "open var fieldOfView: Float"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
@@ -1464,18 +1387,7 @@
         "com.moblin.android.videoeffects.dewarp360"
       ],
       "signatures": [
-        "var inputImage: com.moblin.android.platform.video.CVPixelBuffer?"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
-      ]
-    },
-    "Dewarp360Filter.outputImage": {
-      "packages": [
-        "com.moblin.android.videoeffects.dewarp360"
-      ],
-      "signatures": [
-        "val outputImage: com.moblin.android.platform.video.CVPixelBuffer?"
+        "open var inputImage: com.moblin.android.platform.coreimage.CIImage?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
@@ -1486,7 +1398,7 @@
         "com.moblin.android.videoeffects.dewarp360"
       ],
       "signatures": [
-        "var outputSize: com.moblin.android.videoeffects.dewarp360.SizeF"
+        "open var outputSize: com.moblin.android.platform.coregraphics.CGSize"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
@@ -1497,7 +1409,7 @@
         "com.moblin.android.videoeffects.dewarp360"
       ],
       "signatures": [
-        "var pan: Float"
+        "open var pan: Float"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
@@ -1508,7 +1420,7 @@
         "com.moblin.android.videoeffects.dewarp360"
       ],
       "signatures": [
-        "var tilt: Float"
+        "open var tilt: Float"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
@@ -1530,7 +1442,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun updateOverlay(videoSize: androidx.compose.ui.geometry.Size, size: androidx.compose.ui.geometry.Size, lines: List<com.moblin.android.view.stream.DrawOnStreamLine>, mirror: Boolean)"
+        "fun updateOverlay(videoSize: com.moblin.android.platform.coregraphics.CGSize, size: com.moblin.android.platform.coregraphics.CGSize, lines: List<com.moblin.android.view.stream.DrawOnStreamLine>, mirror: Boolean)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/DrawOnStreamEffect.kt"
@@ -1552,7 +1464,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun getCiImage(): com.moblin.android.videoeffects.CIImage"
+        "fun getCiImage(): com.moblin.android.platform.coreimage.CIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -1563,7 +1475,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun getMetalPetalImage(): com.moblin.android.videoeffects.MTIImage"
+        "fun getMetalPetalImage(): com.moblin.android.platform.metalpetal.MTIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -1585,7 +1497,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.EffectImageCiImage(image: com.moblin.android.videoeffects.CIImage, private val isOpaque: Boolean) : com.moblin.android.videoeffects.EffectImage"
+        "class com.moblin.android.videoeffects.EffectImageCiImage(image: com.moblin.android.platform.coreimage.CIImage, private val isOpaque: Boolean) : com.moblin.android.videoeffects.EffectImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -1684,7 +1596,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "data class BackgroundImage(val image: Any?) : com.moblin.android.videoeffects.FaceEffectPrivacyMode()"
+        "data class BackgroundImage(val image: com.moblin.android.platform.coreimage.CIImage?) : com.moblin.android.videoeffects.FaceEffectPrivacyMode()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/FaceEffect.kt"
@@ -1706,7 +1618,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "data class Icon(val image: Any?) : com.moblin.android.videoeffects.FaceEffectPrivacyMode()"
+        "data class Icon(val image: android.graphics.Bitmap?) : com.moblin.android.videoeffects.FaceEffectPrivacyMode()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/FaceEffect.kt"
@@ -1728,7 +1640,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "data class com.moblin.android.videoeffects.FaceEffectSettings(var blurFaces: Boolean = true, var blurText: Boolean = true, var blurBackground: Boolean = true, var showMouth: Boolean = true, var privacyMode: com.moblin.android.videoeffects.FaceEffectPrivacyMode = com.moblin.android.videoeffects.FaceEffectPrivacyMode.Blur(1.0f))"
+        "data class com.moblin.android.videoeffects.FaceEffectSettings(val blurFaces: Boolean = true, val blurText: Boolean = true, val blurBackground: Boolean = true, val showMouth: Boolean = true, val privacyMode: com.moblin.android.videoeffects.FaceEffectPrivacyMode = com.moblin.android.videoeffects.FaceEffectPrivacyMode.Blur(strength = 1.0f) )"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/FaceEffect.kt"
@@ -1767,100 +1679,12 @@
         "app/src/main/java/com/moblin/android/videoeffects/FixedHorizonEffect.kt"
       ]
     },
-    "Float3": {
-      "packages": [
-        "com.moblin.android.videoeffects.dewarp360"
-      ],
-      "signatures": [
-        "data class com.moblin.android.videoeffects.dewarp360.Float3(val x: Float, val y: Float, val z: Float)"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
-      ]
-    },
-    "Float3.get": {
-      "packages": [
-        "com.moblin.android.videoeffects.dewarp360"
-      ],
-      "signatures": [
-        "operator fun get(index: Int): Float"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
-      ]
-    },
-    "Float3.toCiVector": {
-      "packages": [
-        "com.moblin.android.videoeffects.dewarp360"
-      ],
-      "signatures": [
-        "fun com.moblin.android.videoeffects.dewarp360.Float3.toCiVector(): FloatArray"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
-      ]
-    },
-    "Float3x3": {
-      "packages": [
-        "com.moblin.android.videoeffects.dewarp360"
-      ],
-      "signatures": [
-        "class com.moblin.android.videoeffects.dewarp360.Float3x3(private val rows: List<com.moblin.android.videoeffects.dewarp360.Float3>)"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
-      ]
-    },
-    "Float3x3.get": {
-      "packages": [
-        "com.moblin.android.videoeffects.dewarp360"
-      ],
-      "signatures": [
-        "operator fun get(index: Int): com.moblin.android.videoeffects.dewarp360.Float3"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
-      ]
-    },
-    "Float3x3.times": {
-      "packages": [
-        "com.moblin.android.videoeffects.dewarp360"
-      ],
-      "signatures": [
-        "operator fun times(other: com.moblin.android.videoeffects.dewarp360.Float3x3): com.moblin.android.videoeffects.dewarp360.Float3x3"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
-      ]
-    },
     "FourThreeEffect": {
       "packages": [
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
         "class com.moblin.android.videoeffects.FourThreeEffect : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/FourThreeEffect.kt"
-      ]
-    },
-    "FourThreeEffect.cropRect": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "fun cropRect(width: Float, height: Float): android.graphics.RectF"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/FourThreeEffect.kt"
-      ]
-    },
-    "FourThreeEffect.sideBarRects": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "fun sideBarRects(width: Float, height: Float): List<android.graphics.RectF>"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/FourThreeEffect.kt"
@@ -2174,111 +1998,12 @@
         "app/src/test/java/com/moblin/android/videoeffects/LutEffectSuite.kt"
       ]
     },
-    "LutEffectSuite.renderBigPngLutWithMetalPetal": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "fun renderBigPngLutWithMetalPetal()"
-      ],
-      "files": [
-        "app/src/test/java/com/moblin/android/videoeffects/LutEffectSuite.kt"
-      ]
-    },
-    "MTIColor": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "data class com.moblin.android.videoeffects.MTIColor(val red: Float, val green: Float, val blue: Float, val alpha: Float = 1.0f)"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
-      ]
-    },
-    "MTIColor.Companion": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "companion object"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
-      ]
-    },
-    "MTIColor.Companion.black": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "val black: com.moblin.android.videoeffects.MTIColor"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
-      ]
-    },
-    "MTIColorLookupFilter": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "class com.moblin.android.videoeffects.MTIColorLookupFilter"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt"
-      ]
-    },
-    "MTIColorLookupFilter.inputColorLookupTable": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "var inputColorLookupTable: android.graphics.Bitmap?"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt"
-      ]
-    },
-    "MTIColorLookupFilter.inputImage": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "var inputImage: com.moblin.android.platform.video.CVPixelBuffer?"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt"
-      ]
-    },
-    "MTIColorLookupFilter.outputImage": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "val outputImage: com.moblin.android.platform.video.CVPixelBuffer?"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt"
-      ]
-    },
-    "MTIImage": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "class com.moblin.android.videoeffects.MTIImage(val extent: androidx.compose.ui.geometry.Rect)"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
-      ]
-    },
     "MTIImage.moveComposited": {
       "packages": [
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun com.moblin.android.videoeffects.MTIImage.moveComposited(layout: com.moblin.android.various.settings.SettingsWidgetLayout, backgroundImage: com.moblin.android.videoeffects.MTIImage, contentRegion: androidx.compose.ui.geometry.Rect? = null): com.moblin.android.videoeffects.MTIImage"
+        "fun com.moblin.android.platform.metalpetal.MTIImage.moveComposited(layout: com.moblin.android.various.settings.SettingsWidgetLayout, backgroundImage: com.moblin.android.platform.metalpetal.MTIImage, contentRegion: com.moblin.android.platform.coregraphics.CGRect? = null): com.moblin.android.platform.metalpetal.MTIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -2289,7 +2014,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun com.moblin.android.videoeffects.MTIImage.positionComposited(position: androidx.compose.ui.geometry.Offset, backgroundImage: com.moblin.android.videoeffects.MTIImage, size: androidx.compose.ui.geometry.Size? = null): com.moblin.android.videoeffects.MTIImage"
+        "fun com.moblin.android.platform.metalpetal.MTIImage.positionComposited(position: com.moblin.android.platform.coregraphics.CGPoint, backgroundImage: com.moblin.android.platform.metalpetal.MTIImage, size: com.moblin.android.platform.coregraphics.CGSize? = null): com.moblin.android.platform.metalpetal.MTIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -2300,109 +2025,10 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun com.moblin.android.videoeffects.MTIImage.resizeMirrorMoveComposited(layout: com.moblin.android.various.settings.SettingsWidgetLayout, mirror: Boolean, backgroundImage: com.moblin.android.videoeffects.MTIImage, shape: com.moblin.android.videoeffects.MetalPetalWidgetShape): com.moblin.android.videoeffects.MTIImage"
+        "fun com.moblin.android.platform.metalpetal.MTIImage.resizeMirrorMoveComposited(layout: com.moblin.android.various.settings.SettingsWidgetLayout, mirror: Boolean, backgroundImage: com.moblin.android.platform.metalpetal.MTIImage, shape: com.moblin.android.videoeffects.MetalPetalWidgetShape): com.moblin.android.platform.metalpetal.MTIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
-      ]
-    },
-    "MTILayer": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "object com.moblin.android.videoeffects.MTILayer"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
-      ]
-    },
-    "MTILayer.FlipOptions": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "enum class FlipOptions"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
-      ]
-    },
-    "MTILayer.FlipOptions.<entries>": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "flipHorizontally, flipVertically;"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
-      ]
-    },
-    "MapCamera": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "class com.moblin.android.videoeffects.MapCamera"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt"
-      ]
-    },
-    "MapCamera.centerCoordinate": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "var centerCoordinate: com.moblin.android.videoeffects.MapCoordinate"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt"
-      ]
-    },
-    "MapCamera.centerCoordinateDistance": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "var centerCoordinateDistance: Double"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt"
-      ]
-    },
-    "MapCamera.heading": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "var heading: Double"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt"
-      ]
-    },
-    "MapCamera.pitch": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "var pitch: Double"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt"
-      ]
-    },
-    "MapCoordinate": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "data class com.moblin.android.videoeffects.MapCoordinate(val latitude: Double, val longitude: Double)"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt"
       ]
     },
     "MapEffect": {
@@ -2410,7 +2036,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.MapEffect(private var widget: com.moblin.android.various.settings.SettingsWidgetMap) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
+        "class com.moblin.android.videoeffects.MapEffect(widget: com.moblin.android.various.settings.SettingsWidgetMap) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt"
@@ -2432,8 +2058,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun updateLocation(location: android.location.Location): Unit",
-        "fun updateLocation(location: com.moblin.android.videoeffects.MapLocation)"
+        "fun updateLocation(location: android.location.Location)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt"
@@ -2445,17 +2070,6 @@
       ],
       "signatures": [
         "fun zoomOutTemporarily()"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt"
-      ]
-    },
-    "MapLocation": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "data class com.moblin.android.videoeffects.MapLocation(val coordinate: com.moblin.android.videoeffects.MapCoordinate = com.moblin.android.videoeffects.MapCoordinate(0.0, 0.0), val speed: Double = -1.0, val course: Double = -1.0, val timestamp: java.time.Instant = java.time.Instant.EPOCH)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt"
@@ -2488,7 +2102,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "data class com.moblin.android.videoeffects.MaskEffectPoint(var x: Double, var y: Double)"
+        "data class com.moblin.android.videoeffects.MaskEffectPoint(val x: Double, val y: Double)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/MaskEffect.kt"
@@ -2499,7 +2113,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "data class com.moblin.android.videoeffects.MaskEffectSettings(var points: List<com.moblin.android.videoeffects.MaskEffectPoint>, var inverted: Boolean, var tension: Double, var backgroundType: com.moblin.android.various.settings.SettingsMaskBackgroundType, var backgroundColor: com.moblin.android.common.various.RgbColor, var backgroundColor2: com.moblin.android.common.various.RgbColor)"
+        "data class com.moblin.android.videoeffects.MaskEffectSettings(val points: List<com.moblin.android.videoeffects.MaskEffectPoint>, val inverted: Boolean, val tension: Double, val backgroundType: com.moblin.android.various.settings.SettingsMaskBackgroundType, val backgroundColor: com.moblin.android.common.various.RgbColor, val backgroundColor2: com.moblin.android.common.various.RgbColor)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/MaskEffect.kt"
@@ -2510,7 +2124,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "class com.moblin.android.various.MediaPlayer(settings: com.moblin.android.various.settings.SettingsMediaPlayer, mediaStorage: com.moblin.android.various.storages.MediaPlayerStorage)"
+        "open class com.moblin.android.various.MediaPlayer(settings: com.moblin.android.various.settings.SettingsMediaPlayer, mediaStorage: com.moblin.android.various.storages.MediaPlayerStorage) : AutoCloseable"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
@@ -2521,7 +2135,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun activate()"
+        "open fun activate()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
@@ -2532,18 +2146,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun deactivate()"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
-      ]
-    },
-    "MediaPlayer.deinit": {
-      "packages": [
-        "com.moblin.android.various"
-      ],
-      "signatures": [
-        "fun deinit()"
+        "open fun deactivate()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
@@ -2554,7 +2157,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "var delegate: com.moblin.android.various.MediaPlayerDelegate?"
+        "open var delegate: com.moblin.android.various.MediaPlayerDelegate?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
@@ -2565,7 +2168,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun next()"
+        "open fun next()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
@@ -2576,7 +2179,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun pause()"
+        "open fun pause()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
@@ -2587,7 +2190,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun play()"
+        "open fun play()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
@@ -2598,7 +2201,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun previous()"
+        "open fun previous()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
@@ -2609,7 +2212,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun seek(position: Double)"
+        "open fun seek(position: Double)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
@@ -2620,7 +2223,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun setSeeking(on: Boolean)"
+        "open fun setSeeking(on: Boolean)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
@@ -2631,7 +2234,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun updateSettings(settings: com.moblin.android.various.settings.SettingsMediaPlayer)"
+        "open fun updateSettings(settings: com.moblin.android.various.settings.SettingsMediaPlayer)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
@@ -2708,7 +2311,7 @@
         "com.moblin.android.various.model"
       ],
       "signatures": [
-        "class com.moblin.android.various.model.MediaPlayerPlayer"
+        "open class com.moblin.android.various.model.MediaPlayerPlayer"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt"
@@ -2719,7 +2322,7 @@
         "com.moblin.android.various.model"
       ],
       "signatures": [
-        "val fileName = kotlinx.coroutines.flow.MutableStateFlow(\"Media name\")"
+        "open val fileName = kotlinx.coroutines.flow.MutableStateFlow(\"Media name\")"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt"
@@ -2730,7 +2333,7 @@
         "com.moblin.android.various.model"
       ],
       "signatures": [
-        "val playing = kotlinx.coroutines.flow.MutableStateFlow(false)"
+        "open val playing = kotlinx.coroutines.flow.MutableStateFlow(false)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt"
@@ -2741,7 +2344,7 @@
         "com.moblin.android.various.model"
       ],
       "signatures": [
-        "val position = kotlinx.coroutines.flow.MutableStateFlow(0f)"
+        "open val position = kotlinx.coroutines.flow.MutableStateFlow(0f)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt"
@@ -2752,7 +2355,7 @@
         "com.moblin.android.various.model"
       ],
       "signatures": [
-        "val seeking = kotlinx.coroutines.flow.MutableStateFlow(false)"
+        "open val seeking = kotlinx.coroutines.flow.MutableStateFlow(false)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt"
@@ -2763,7 +2366,7 @@
         "com.moblin.android.various.model"
       ],
       "signatures": [
-        "val time = kotlinx.coroutines.flow.MutableStateFlow(\"0:00\")"
+        "open val time = kotlinx.coroutines.flow.MutableStateFlow(\"0:00\")"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt"
@@ -2774,7 +2377,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "data class com.moblin.android.videoeffects.MetalPetalWidgetShape(var contentRegion: androidx.compose.ui.geometry.Rect, var cornerRadius: Float = 0.0f, var borderWidth: Double = 0.0, var borderColor: com.moblin.android.videoeffects.MTIColor = com.moblin.android.videoeffects.MTIColor.black, var rotation: Double = 0.0)"
+        "data class com.moblin.android.videoeffects.MetalPetalWidgetShape(var contentRegion: com.moblin.android.platform.coregraphics.CGRect, var cornerRadius: Float = 0f, var borderWidth: Double = 0.0, var borderColor: com.moblin.android.platform.metalpetal.MTIColor = com.moblin.android.platform.metalpetal.MTIColor.black, var rotation: Double = 0.0)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
@@ -2785,7 +2388,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun borderWidthPixels(size: androidx.compose.ui.geometry.Size): Double"
+        "fun borderWidthPixels(size: com.moblin.android.platform.coregraphics.CGSize): Double"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
@@ -2796,7 +2399,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun cornerRadius(size: androidx.compose.ui.geometry.Size): Float"
+        "fun cornerRadius(size: com.moblin.android.platform.coregraphics.CGSize): com.moblin.android.platform.metalpetal.MTICornerRadius"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
@@ -2807,7 +2410,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun mirrorFlipOptions(): com.moblin.android.videoeffects.MTILayer.FlipOptions"
+        "fun mirrorFlipOptions(): com.moblin.android.platform.metalpetal.MTILayer.FlipOptions"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
@@ -2818,7 +2421,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun rotated(size: androidx.compose.ui.geometry.Size): androidx.compose.ui.geometry.Size"
+        "fun rotated(size: com.moblin.android.platform.coregraphics.CGSize): com.moblin.android.platform.coregraphics.CGSize"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
@@ -2940,7 +2543,7 @@
         "com.moblin.android.various.model"
       ],
       "signatures": [
-        "fun com.moblin.android.various.model.Model.loadReplay(video: com.moblin.android.various.storages.ReplaySettings, completion: (() -> Unit)? = null)"
+        "fun com.moblin.android.various.model.Model.loadReplay(video: com.moblin.android.various.storages.ReplaySettings, completion: (suspend () -> Unit)? = null)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/model/ModelReplay.kt"
@@ -3050,7 +2653,7 @@
         "com.moblin.android.various.model"
       ],
       "signatures": [
-        "fun com.moblin.android.various.model.Model.mediaPlayerStateUpdate(playerId: java.util.UUID, name: String, playing: Boolean, position: Double, time: String )"
+        "fun com.moblin.android.various.model.Model.mediaPlayerStateUpdate(playerId: java.util.UUID, name: String, playing: Boolean, position: Double, time: String)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/model/ModelMediaPlayer.kt"
@@ -3292,18 +2895,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.PngTuberEffect(modelPath: String, costume: Int) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/PngTuberEffect.kt"
-      ]
-    },
-    "PngTuberEffect.Companion": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "companion object"
+        "class com.moblin.android.videoeffects.PngTuberEffect(model: String, costume: Int) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/PngTuberEffect.kt"
@@ -3353,17 +2945,6 @@
         "app/src/main/java/com/moblin/android/videoeffects/PollEffect.kt"
       ]
     },
-    "PollEffect.executeMetalPetal": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "fun executeMetalPetal(image: com.moblin.android.videoeffects.EffectImage, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo): com.moblin.android.videoeffects.EffectImage"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/PollEffect.kt"
-      ]
-    },
     "PollEffect.updateText": {
       "packages": [
         "com.moblin.android.videoeffects"
@@ -3380,7 +2961,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.PomodoroTimerEffect(private val canvasSize: androidx.compose.ui.geometry.Size) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
+        "class com.moblin.android.videoeffects.PomodoroTimerEffect(canvasSize: androidx.compose.ui.geometry.Size) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/PomodoroTimerEffect.kt"
@@ -3413,7 +2994,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.PositionInterpolator"
+        "open class com.moblin.android.videoeffects.PositionInterpolator"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt"
@@ -3424,7 +3005,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "val current: Double?"
+        "var current: Double?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt"
@@ -3435,7 +3016,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "var target: Double?"
+        "open var target: Double?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt"
@@ -3446,7 +3027,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun update(timeElapsed: Double): Double"
+        "open fun update(timeElapsed: Double): Double"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt"
@@ -3457,7 +3038,7 @@
         "com.moblin.android.videoeffects.scoreboard"
       ],
       "signatures": [
-        "@androidx.compose.runtime.Composable fun PoweredByMoblinView(backgroundColor: androidx.compose.ui.graphics.Color, scale: Double )"
+        "@androidx.compose.runtime.Composable fun PoweredByMoblinView(backgroundColor: androidx.compose.ui.graphics.Color, scale: Double)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffect.kt"
@@ -3512,7 +3093,7 @@
         "com.moblin.android.videoeffects.replay"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.replay.ReplayEffect internal constructor(video: com.moblin.android.various.ReplayBufferFile, start: Double, stop: Double, private val speed: Double, size: android.util.Size, private var layout: com.moblin.android.various.settings.SettingsWidgetLayout, private val transitionMode: com.moblin.android.videoeffects.replay.ReplayEffectTransitionMode, private val delegate: com.moblin.android.videoeffects.replay.ReplayEffectDelegate ) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
+        "class com.moblin.android.videoeffects.replay.ReplayEffect internal constructor(video: com.moblin.android.various.ReplayBufferFile, start: Double, stop: Double, speed: Double, size: android.util.Size, layout: com.moblin.android.various.settings.SettingsWidgetLayout, transitionMode: com.moblin.android.videoeffects.replay.ReplayEffectTransitionMode, delegate: com.moblin.android.videoeffects.replay.ReplayEffectDelegate) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffect.kt"
@@ -3584,34 +3165,12 @@
         "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffect.kt"
       ]
     },
-    "ReplayEffectReplayReader": {
-      "packages": [
-        "com.moblin.android.videoeffects.replay"
-      ],
-      "signatures": [
-        "class com.moblin.android.videoeffects.replay.ReplayEffectReplayReader internal constructor(video: com.moblin.android.various.ReplayBufferFile, start: Double, duration: Double, size: android.util.Size)"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffectReplayReader.kt"
-      ]
-    },
-    "ReplayEffectReplayReader.getImage": {
-      "packages": [
-        "com.moblin.android.videoeffects.replay"
-      ],
-      "signatures": [
-        "fun getImage(offset: Double): com.moblin.android.videoeffects.replay.ReplayImage"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffectReplayReader.kt"
-      ]
-    },
     "ReplayEffectStingerReader": {
       "packages": [
         "com.moblin.android.videoeffects.replay"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.replay.ReplayEffectStingerReader(path: String, size: android.util.Size)"
+        "open class com.moblin.android.videoeffects.replay.ReplayEffectStingerReader(path: String, size: android.util.Size)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffectStingerReader.kt"
@@ -3633,7 +3192,7 @@
         "com.moblin.android.videoeffects.replay"
       ],
       "signatures": [
-        "fun getImage(offset: Double): com.moblin.android.videoeffects.replay.ReplayImage?"
+        "open fun getImage(offset: Double): com.moblin.android.videoeffects.replay.ReplayImage?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffectStingerReader.kt"
@@ -3710,7 +3269,7 @@
         "com.moblin.android.videoeffects.replay"
       ],
       "signatures": [
-        "data class Stingers(val inPath: String, val inTransitionPoint: Double, val outPath: String, val outTransitionPoint: Double ) : com.moblin.android.videoeffects.replay.ReplayEffectTransitionMode()"
+        "data class Stingers(val inPath: String, val inTransitionPoint: Double, val outPath: String, val outTransitionPoint: Double) : com.moblin.android.videoeffects.replay.ReplayEffectTransitionMode()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffect.kt"
@@ -3826,37 +3385,15 @@
         "app/src/main/java/com/moblin/android/various/model/ModelReplay.kt"
       ]
     },
-    "SIMD3": {
+    "SIMD3.toCiVector": {
       "packages": [
-        "com.moblin.android.videoeffects"
+        "com.moblin.android.videoeffects.dewarp360"
       ],
       "signatures": [
-        "data class com.moblin.android.videoeffects.SIMD3(val x: Float, val y: Float, val z: Float)"
+        "fun com.moblin.android.platform.simd.SIMD3.toCiVector(): com.moblin.android.platform.coreimage.CIVector"
       ],
       "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt"
-      ]
-    },
-    "SIMD3.plus": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "operator fun plus(other: com.moblin.android.videoeffects.SIMD3): com.moblin.android.videoeffects.SIMD3"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt"
-      ]
-    },
-    "SIMD3.times": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "operator fun times(value: Float): com.moblin.android.videoeffects.SIMD3"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt"
+        "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
       ]
     },
     "ScoreboardEffect": {
@@ -3864,7 +3401,7 @@
         "com.moblin.android.videoeffects.scoreboard"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.scoreboard.ScoreboardEffect(private val canvasSize: androidx.compose.ui.geometry.Size) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
+        "class com.moblin.android.videoeffects.scoreboard.ScoreboardEffect(canvasSize: androidx.compose.ui.geometry.Size) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffect.kt"
@@ -3886,7 +3423,7 @@
         "com.moblin.android.videoeffects.scoreboard"
       ],
       "signatures": [
-        "fun update(scoreboard: com.moblin.android.various.settings.SettingsWidgetScoreboard, config: com.moblin.android.remotecontrol.RemoteControlScoreboardMatchConfig, players: List<com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer> )"
+        "fun update(scoreboard: com.moblin.android.various.settings.SettingsWidgetScoreboard, config: com.moblin.android.remotecontrol.RemoteControlScoreboardMatchConfig, players: List<com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer>)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/scoreboard/ScoreboardEffect.kt"
@@ -3985,7 +3522,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "data class com.moblin.android.videoeffects.ShapeEffectSettings(var cornerRadius: Float = 0.0f, var borderWidth: Double = 1.0, var borderColor: com.moblin.android.platform.coreimage.CIColor = com.moblin.android.platform.coreimage.CIColor.black, var cropEnabled: Boolean = false, var cropX: Double = 0.25, var cropY: Double = 0.0, var cropWidth: Double = 0.5, var cropHeight: Double = 1.0)"
+        "data class com.moblin.android.videoeffects.ShapeEffectSettings(val cornerRadius: Float = 0f, val borderWidth: Double = 1.0, val borderColor: com.moblin.android.platform.coreimage.CIColor = com.moblin.android.platform.coreimage.CIColor.black, val cropEnabled: Boolean = false, val cropX: Double = 0.25, val cropY: Double = 0.0, val cropWidth: Double = 0.5, val cropHeight: Double = 1.0)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
@@ -3996,21 +3533,10 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun borderWidthAndScale(image: androidx.compose.ui.geometry.Rect): Triple<Double, Double, Double>"
+        "fun borderWidthAndScale(image: com.moblin.android.platform.coregraphics.CGRect): Triple<Double, Double, Double>"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt"
-      ]
-    },
-    "SizeF": {
-      "packages": [
-        "com.moblin.android.videoeffects.dewarp360"
-      ],
-      "signatures": [
-        "data class com.moblin.android.videoeffects.dewarp360.SizeF(val width: Float, val height: Float)"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
       ]
     },
     "SlideshowEffect": {
@@ -4019,17 +3545,6 @@
       ],
       "signatures": [
         "class com.moblin.android.videoeffects.SlideshowEffect(val slides: List<com.moblin.android.videoeffects.SlideshowEffectSlide>) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/SlideshowEffect.kt"
-      ]
-    },
-    "SlideshowEffect.Companion": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "companion object"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/SlideshowEffect.kt"
@@ -4117,7 +3632,7 @@
         "com.moblin.android.videoeffects.text"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.text.TextEffect(format: String, backgroundColor: com.moblin.android.common.various.RgbColor, foregroundColor: com.moblin.android.common.various.RgbColor, fontSize: Float, fontFamily: String?, fontStyle: String, fontDesign: com.moblin.android.various.settings.SettingsFontDesign, fontWeight: com.moblin.android.various.settings.SettingsFontWeight, fontMonospacedDigits: Boolean, horizontalAlignment: com.moblin.android.various.settings.SettingsHorizontalAlignment, width: Int?, cornerRadius: Double, delay: Double, timersEndTime: MutableList<com.moblin.android.platform.core.ContinuousClock.Instant>, stopwatches: MutableList<com.moblin.android.various.settings.SettingsWidgetTextStopwatch>, checkboxes: MutableList<Boolean>, ratings: MutableList<Int>, lapTimes: MutableList<MutableList<Double>>) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
+        "class com.moblin.android.videoeffects.text.TextEffect(format: String, backgroundColor: com.moblin.android.common.various.RgbColor, foregroundColor: com.moblin.android.common.various.RgbColor, fontSize: Float, fontFamily: String?, fontStyle: String, fontDesign: com.moblin.android.view.utils.FontDesign, fontWeight: androidx.compose.ui.text.font.FontWeight, fontMonospacedDigits: Boolean, horizontalAlignment: com.moblin.android.various.settings.SettingsHorizontalAlignment, width: Int?, cornerRadius: Double, private val delay: Double, timersEndTime: List<com.moblin.android.platform.core.ContinuousClock.Instant>, stopwatches: List<com.moblin.android.various.settings.SettingsWidgetTextStopwatch>, checkboxes: List<Boolean>, ratings: List<Int>, lapTimes: List<List<Double>>) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt"
@@ -4172,7 +3687,7 @@
         "com.moblin.android.videoeffects.text"
       ],
       "signatures": [
-        "fun setCheckboxes(checkboxes: MutableList<Boolean>)"
+        "fun setCheckboxes(checkboxes: List<Boolean>)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt"
@@ -4183,7 +3698,6 @@
         "com.moblin.android.videoeffects.text"
       ],
       "signatures": [
-        "fun setEndTime(index: Int, endTime: Long)",
         "fun setEndTime(index: Int, endTime: com.moblin.android.platform.core.ContinuousClock.Instant)"
       ],
       "files": [
@@ -4195,7 +3709,7 @@
         "com.moblin.android.videoeffects.text"
       ],
       "signatures": [
-        "fun setFontDesign(design: com.moblin.android.various.settings.SettingsFontDesign)"
+        "fun setFontDesign(design: com.moblin.android.view.utils.FontDesign)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt"
@@ -4250,7 +3764,7 @@
         "com.moblin.android.videoeffects.text"
       ],
       "signatures": [
-        "fun setFontWeight(weight: com.moblin.android.various.settings.SettingsFontWeight)"
+        "fun setFontWeight(weight: androidx.compose.ui.text.font.FontWeight)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt"
@@ -4283,8 +3797,8 @@
         "com.moblin.android.videoeffects.text"
       ],
       "signatures": [
-        "fun setLapTimes(index: Int, lapTimes: MutableList<Double>)",
-        "fun setLapTimes(lapTimes: MutableList<MutableList<Double>>)"
+        "fun setLapTimes(index: Int, lapTimes: List<Double>)",
+        "fun setLapTimes(lapTimes: List<List<Double>>)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt"
@@ -4317,7 +3831,7 @@
         "com.moblin.android.videoeffects.text"
       ],
       "signatures": [
-        "fun setRatings(ratings: MutableList<Int>)"
+        "fun setRatings(ratings: List<Int>)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt"
@@ -4350,7 +3864,7 @@
         "com.moblin.android.videoeffects.text"
       ],
       "signatures": [
-        "fun setStopwatches(stopwatches: MutableList<com.moblin.android.various.settings.SettingsWidgetTextStopwatch>)"
+        "fun setStopwatches(stopwatches: List<com.moblin.android.various.settings.SettingsWidgetTextStopwatch>)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt"
@@ -4361,7 +3875,7 @@
         "com.moblin.android.videoeffects.text"
       ],
       "signatures": [
-        "fun setTimersEndTime(endTimes: MutableList<com.moblin.android.platform.core.ContinuousClock.Instant>)"
+        "fun setTimersEndTime(endTimes: List<com.moblin.android.platform.core.ContinuousClock.Instant>)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt"
@@ -4890,6 +4404,17 @@
       ],
       "signatures": [
         "fun plainText()"
+      ],
+      "files": [
+        "app/src/test/java/com/moblin/android/videoeffects/text/TextEffectSuite.kt"
+      ]
+    },
+    "TextEffectSuite.setUp": {
+      "packages": [
+        "com.moblin.android.videoeffects.text"
+      ],
+      "signatures": [
+        "fun setUp()"
       ],
       "files": [
         "app/src/test/java/com/moblin/android/videoeffects/text/TextEffectSuite.kt"
@@ -5973,56 +5498,12 @@
         "app/src/main/java/com/moblin/android/videoeffects/text/TextFormatStringLoader.kt"
       ]
     },
-    "VNFaceLandmarkRegion2D": {
-      "packages": [
-        "com.moblin.android.various"
-      ],
-      "signatures": [
-        "class com.moblin.android.various.VNFaceLandmarkRegion2D(val normalizedPoints: List<androidx.compose.ui.geometry.Offset> = emptyList())"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/various/Detection.kt"
-      ]
-    },
-    "VNFaceLandmarkRegion2D.pointsInImage": {
-      "packages": [
-        "com.moblin.android.various"
-      ],
-      "signatures": [
-        "fun pointsInImage(imageSize: androidx.compose.ui.geometry.Size): List<androidx.compose.ui.geometry.Offset>"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/various/Detection.kt"
-      ]
-    },
-    "VNFaceLandmarks2D": {
-      "packages": [
-        "com.moblin.android.various"
-      ],
-      "signatures": [
-        "class com.moblin.android.various.VNFaceLandmarks2D(val medianLine: com.moblin.android.various.VNFaceLandmarkRegion2D? = null, val faceContour: com.moblin.android.various.VNFaceLandmarkRegion2D? = null, val innerLips: com.moblin.android.various.VNFaceLandmarkRegion2D? = null, val leftEye: com.moblin.android.various.VNFaceLandmarkRegion2D? = null, val rightEye: com.moblin.android.various.VNFaceLandmarkRegion2D? = null, val leftEyebrow: com.moblin.android.various.VNFaceLandmarkRegion2D? = null, val rightEyebrow: com.moblin.android.various.VNFaceLandmarkRegion2D? = null)"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/various/Detection.kt"
-      ]
-    },
-    "VNFaceObservation": {
-      "packages": [
-        "com.moblin.android.various"
-      ],
-      "signatures": [
-        "class com.moblin.android.various.VNFaceObservation(val landmarks: com.moblin.android.various.VNFaceLandmarks2D? = null)"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/various/Detection.kt"
-      ]
-    },
     "VNFaceObservation.calcFaceAngle": {
       "packages": [
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun com.moblin.android.various.VNFaceObservation.calcFaceAngle(imageSize: androidx.compose.ui.geometry.Size): Float?"
+        "fun com.moblin.android.platform.vision.VNFaceObservation.calcFaceAngle(imageSize: com.moblin.android.platform.coregraphics.CGSize): Double?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/Detection.kt"
@@ -6033,7 +5514,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun com.moblin.android.various.VNFaceObservation.calcFaceAngleSide(): Float?"
+        "fun com.moblin.android.platform.vision.VNFaceObservation.calcFaceAngleSide(): Double?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/Detection.kt"
@@ -6044,7 +5525,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun com.moblin.android.various.VNFaceObservation.isLeftEyeOpen(rotationAngle: Double, sensitivity: Double): Double"
+        "fun com.moblin.android.platform.vision.VNFaceObservation.isLeftEyeOpen(rotationAngle: Double, sensitivity: Double): Double"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/Detection.kt"
@@ -6055,7 +5536,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun com.moblin.android.various.VNFaceObservation.isMouthOpen(rotationAngle: Double, sensitivity: Double): Double"
+        "fun com.moblin.android.platform.vision.VNFaceObservation.isMouthOpen(rotationAngle: Double, sensitivity: Double): Double"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/Detection.kt"
@@ -6066,7 +5547,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun com.moblin.android.various.VNFaceObservation.isRightEyeOpen(rotationAngle: Double, sensitivity: Double): Double"
+        "fun com.moblin.android.platform.vision.VNFaceObservation.isRightEyeOpen(rotationAngle: Double, sensitivity: Double): Double"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/Detection.kt"
@@ -6077,7 +5558,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun com.moblin.android.various.VNFaceObservation.stableBoundingBox(imageSize: androidx.compose.ui.geometry.Size, rotationAngle: Double = 0.0): androidx.compose.ui.geometry.Rect?"
+        "fun com.moblin.android.platform.vision.VNFaceObservation.stableBoundingBox(imageSize: com.moblin.android.platform.coregraphics.CGSize, rotationAngle: Double = 0.0): com.moblin.android.platform.coregraphics.CGRect?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/Detection.kt"
@@ -6110,7 +5591,7 @@
         "com.moblin.android.videoeffects.vtuber"
       ],
       "signatures": [
-        "open fun renderModel(time: Double, size: android.util.Size): com.moblin.android.videoeffects.EffectImage?"
+        "open fun renderModel(time: Double, size: com.moblin.android.platform.coregraphics.CGSize): com.moblin.android.videoeffects.EffectImage?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberEffect.kt"
@@ -6132,7 +5613,7 @@
         "com.moblin.android.videoeffects.vtuber"
       ],
       "signatures": [
-        "fun setSceneWidget(sceneWidget: com.moblin.android.various.settings.SettingsSceneWidget)"
+        "open fun setSceneWidget(sceneWidget: com.moblin.android.various.settings.SettingsSceneWidget)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberEffect.kt"
@@ -6143,7 +5624,7 @@
         "com.moblin.android.videoeffects.vtuber"
       ],
       "signatures": [
-        "fun setSettings(cameraFieldOfView: Double, cameraPositionY: Double, mirror: Boolean, sensitivity: com.moblin.android.various.settings.SettingsSensitivity, armsAngle: Double)"
+        "open fun setSettings(cameraFieldOfView: Double, cameraPositionY: Double, mirror: Boolean, sensitivity: com.moblin.android.various.settings.SettingsSensitivity, armsAngle: Double)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberEffect.kt"
@@ -6154,7 +5635,7 @@
         "com.moblin.android.videoeffects.vtuber"
       ],
       "signatures": [
-        "fun setVideoSourceId(videoSourceId: java.util.UUID)"
+        "open fun setVideoSourceId(videoSourceId: java.util.UUID)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberEffect.kt"
@@ -6176,7 +5657,7 @@
         "com.moblin.android.videoeffects.vtuber"
       ],
       "signatures": [
-        "data class com.moblin.android.videoeffects.vtuber.VTuberFace(var sideAngle: Double = 0.0, var rotationAngle: Double = 0.0, var mouthOpen: Double = 0.0, var leftEyeOpen: Double = 1.0, var rightEyeOpen: Double = 1.0 )"
+        "data class com.moblin.android.videoeffects.vtuber.VTuberFace(var sideAngle: Double = 0.0, var rotationAngle: Double = 0.0, var mouthOpen: Double = 0.0, var leftEyeOpen: Double = 1.0, var rightEyeOpen: Double = 1.0)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberEffect.kt"
@@ -6188,6 +5669,17 @@
       ],
       "signatures": [
         "class com.moblin.android.videoeffects.vtuber.VTuberLive2DEffect(directory: java.io.File) : com.moblin.android.videoeffects.vtuber.VTuberEffect()"
+      ],
+      "files": [
+        "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberLive2DEffect.kt"
+      ]
+    },
+    "VTuberLive2DEffect.Companion": {
+      "packages": [
+        "com.moblin.android.videoeffects.vtuber"
+      ],
+      "signatures": [
+        "companion object"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/vtuber/VTuberLive2DEffect.kt"
@@ -6220,7 +5712,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "open fun applyEffectsResizeMirrorMove(image: com.moblin.android.platform.video.CVPixelBuffer, sceneWidget: com.moblin.android.various.settings.SettingsSceneWidget, mirror: Boolean, backgroundImageExtent: android.graphics.RectF, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo): com.moblin.android.platform.video.CVPixelBuffer"
+        "open fun applyEffectsResizeMirrorMove(image: com.moblin.android.platform.coreimage.CIImage, sceneWidget: com.moblin.android.various.settings.SettingsSceneWidget, mirror: Boolean, backgroundImageExtent: com.moblin.android.platform.coregraphics.CGRect, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo): com.moblin.android.platform.coreimage.CIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt"
@@ -6231,7 +5723,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "open fun applyEffectsResizeMirrorMoveMetalPetal(image: com.moblin.android.platform.video.CVPixelBuffer, sceneWidget: com.moblin.android.various.settings.SettingsSceneWidget, mirror: Boolean, backgroundImage: com.moblin.android.platform.video.CVPixelBuffer, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo, widgetShape: com.moblin.android.videoeffects.MetalPetalWidgetShape? = null): com.moblin.android.platform.video.CVPixelBuffer"
+        "open fun applyEffectsResizeMirrorMoveMetalPetal(image: com.moblin.android.platform.metalpetal.MTIImage, sceneWidget: com.moblin.android.various.settings.SettingsSceneWidget, mirror: Boolean, backgroundImage: com.moblin.android.platform.metalpetal.MTIImage, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo, widgetShape: com.moblin.android.videoeffects.MetalPetalWidgetShape? = null): com.moblin.android.platform.metalpetal.MTIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt"
@@ -6253,7 +5745,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "open fun execute(image: com.moblin.android.platform.video.CVPixelBuffer, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo): com.moblin.android.platform.video.CVPixelBuffer"
+        "open fun execute(image: com.moblin.android.platform.coreimage.CIImage, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo): com.moblin.android.platform.coreimage.CIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt"
@@ -6264,7 +5756,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "open fun executeEarly(image: com.moblin.android.platform.video.CVPixelBuffer, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo): com.moblin.android.platform.video.CVPixelBuffer"
+        "open fun executeEarly(image: com.moblin.android.platform.coreimage.CIImage, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo): com.moblin.android.platform.coreimage.CIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt"
@@ -6275,7 +5767,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "open fun executeMetalPetal(image: com.moblin.android.platform.video.CVPixelBuffer, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo): com.moblin.android.platform.video.CVPixelBuffer"
+        "open fun executeMetalPetal(image: com.moblin.android.platform.metalpetal.MTIImage, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo): com.moblin.android.platform.metalpetal.MTIImage"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt"
@@ -6319,7 +5811,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "open fun needsFaceDetections(time: Double): com.moblin.android.media.haishinkit.media.video.VideoEffectDetectionsMode"
+        "open fun needsFaceDetections(interval: Double): com.moblin.android.media.haishinkit.media.video.VideoEffectDetectionsMode"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt"
@@ -6330,7 +5822,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "open fun needsTextDetections(time: Double): com.moblin.android.media.haishinkit.media.video.VideoEffectDetectionsMode"
+        "open fun needsTextDetections(interval: Double): com.moblin.android.media.haishinkit.media.video.VideoEffectDetectionsMode"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt"
@@ -6341,7 +5833,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "open fun prepare(size: android.util.Size, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo)"
+        "open fun prepare(size: com.moblin.android.platform.coregraphics.CGSize, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt"
@@ -6429,7 +5921,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "fun faceDetections(videoSourceId: java.util.UUID): List<Any>?"
+        "fun faceDetections(videoSourceId: java.util.UUID): List<com.moblin.android.platform.vision.VNFaceObservation>?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt"
@@ -6473,7 +5965,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "fun sceneFaceDetections(): List<Any>?"
+        "fun sceneFaceDetections(): List<com.moblin.android.platform.vision.VNFaceObservation>?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt"
@@ -6495,7 +5987,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "var canvasSize = com.moblin.android.platform.coregraphics.CGSize(width = 1920.0, height = 1080.0)"
+        "var canvasSize = com.moblin.android.platform.coregraphics.CGSize(1920.0, 1080.0)"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt"
@@ -6506,7 +5998,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "val context: Any?"
+        "val context = com.moblin.android.platform.coreimage.CIContext()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt"
@@ -6539,7 +6031,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "var latestSampleBufferTime: Long?"
+        "var latestSampleBufferTime: com.moblin.android.platform.core.ContinuousClock.Instant?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt"
@@ -6605,7 +6097,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "fun render(imageBuffer: com.moblin.android.platform.video.CVPixelBuffer, completion: com.moblin.android.media.haishinkit.media.video.DetectionsCompletion, videoUnit: com.moblin.android.media.haishinkit.media.video.VideoUnit, videoOrientation: Int ): Pair<com.moblin.android.platform.video.CVPixelBuffer, com.moblin.android.media.MediaSample>"
+        "fun render(imageBuffer: com.moblin.android.platform.video.CVImageBuffer, completion: com.moblin.android.media.haishinkit.media.video.DetectionsCompletion, videoUnit: com.moblin.android.media.haishinkit.media.video.VideoUnit, videoOrientation: Int ): Pair<com.moblin.android.platform.video.CVImageBuffer, com.moblin.android.media.MediaSample>"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt"
@@ -6616,7 +6108,7 @@
         "com.moblin.android.media.haishinkit.media.video"
       ],
       "signatures": [
-        "fun renderSceneSwitchTransitionEnd(sampleBuffer: com.moblin.android.media.MediaSample, imageBuffer: com.moblin.android.platform.video.CVPixelBuffer, outputImageBuffer: com.moblin.android.platform.video.CVPixelBuffer ): com.moblin.android.media.MediaSample"
+        "fun renderSceneSwitchTransitionEnd(sampleBuffer: com.moblin.android.media.MediaSample, imageBuffer: com.moblin.android.platform.video.CVImageBuffer, outputImageBuffer: com.moblin.android.platform.video.CVPixelBuffer ): com.moblin.android.media.MediaSample"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt"
@@ -6710,28 +6202,6 @@
         "app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt"
       ]
     },
-    "VideoSourceEffect.execute": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "fun execute(backgroundImage: android.graphics.Bitmap, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo): android.graphics.Bitmap"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt"
-      ]
-    },
-    "VideoSourceEffect.executeMetalPetal": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "fun executeMetalPetal(backgroundImage: android.graphics.Bitmap, info: com.moblin.android.media.haishinkit.media.video.VideoEffectInfo): android.graphics.Bitmap"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/VideoSourceEffect.kt"
-      ]
-    },
     "VideoSourceEffect.setSceneWidget": {
       "packages": [
         "com.moblin.android.videoeffects"
@@ -6781,7 +6251,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.WheelOfLuckEffect(private val canvasSize: androidx.compose.ui.geometry.Size) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
+        "class com.moblin.android.videoeffects.WheelOfLuckEffect(canvasSize: androidx.compose.ui.geometry.Size) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/WheelOfLuckEffect.kt"
@@ -6836,7 +6306,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "class com.moblin.android.videoeffects.WhirlpoolEffect(private var angle: Float) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
+        "class com.moblin.android.videoeffects.WhirlpoolEffect(angle: Float) : com.moblin.android.media.haishinkit.media.video.VideoEffect()"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/WhirlpoolEffect.kt"
@@ -6913,7 +6383,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun calcBoundingBox(points: List<androidx.compose.ui.geometry.Offset>): androidx.compose.ui.geometry.Rect?"
+        "fun calcBoundingBox(points: List<com.moblin.android.platform.coregraphics.CGPoint>): com.moblin.android.platform.coregraphics.CGRect?"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/Detection.kt"
@@ -6924,7 +6394,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun convertLutTo64(bigLut: List<com.moblin.android.videoeffects.SIMD3>, bigDimension: Int): List<com.moblin.android.videoeffects.SIMD3>"
+        "fun convertLutTo64(bigLut: List<com.moblin.android.platform.simd.SIMD3>, bigDimension: Int): List<com.moblin.android.platform.simd.SIMD3>"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt"
@@ -6935,7 +6405,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun drawOnStreamCreatePath(points: List<androidx.compose.ui.geometry.Offset>): androidx.compose.ui.graphics.Path"
+        "fun drawOnStreamCreatePath(points: List<com.moblin.android.platform.coregraphics.CGPoint>): androidx.compose.ui.graphics.Path"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/DrawOnStreamEffect.kt"
@@ -6968,7 +6438,7 @@
         "com.moblin.android.videoeffects.dewarp360"
       ],
       "signatures": [
-        "val graphicsEpsilon: Float"
+        "const val graphicsEpsilon = 0.00001"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt"
@@ -6990,7 +6460,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun interpolate3d(point: com.moblin.android.videoeffects.SIMD3, lut: List<com.moblin.android.videoeffects.SIMD3>, dimension: Int): com.moblin.android.videoeffects.SIMD3"
+        "fun interpolate3d(at: com.moblin.android.platform.simd.SIMD3, lut: List<com.moblin.android.platform.simd.SIMD3>, dimension: Int): com.moblin.android.platform.simd.SIMD3"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt"
@@ -7001,7 +6471,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun layoutPosition(layout: com.moblin.android.various.settings.SettingsWidgetLayout, size: androidx.compose.ui.geometry.Size, streamSize: androidx.compose.ui.geometry.Size): androidx.compose.ui.geometry.Offset"
+        "fun layoutPosition(layout: com.moblin.android.various.settings.SettingsWidgetLayout, size: com.moblin.android.platform.coregraphics.CGSize, streamSize: com.moblin.android.platform.coregraphics.CGSize): com.moblin.android.platform.coregraphics.CGPoint"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -7034,7 +6504,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun lutEffectConvertLut(image: android.graphics.Bitmap, imageComponentsPerPixel: Int = 4): Pair<Float, ByteArray>"
+        "fun lutEffectConvertLut(image: android.graphics.Bitmap): Pair<Float, ByteArray>"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt"
@@ -7045,8 +6515,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun makeCatmullRomPath(points: List<android.graphics.PointF>, tension: Float): android.graphics.Path",
-        "fun makeCatmullRomPath(points: List<com.moblin.android.platform.coregraphics.CGPoint>, tension: Double): android.graphics.Path"
+        "fun makeCatmullRomPath(points: List<com.moblin.android.platform.coregraphics.CGPoint>, tension: Double): com.moblin.android.platform.coregraphics.CGMutablePath"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/MaskEffect.kt"
@@ -7079,7 +6548,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "const val mediaPlayerLatency = 0.5"
+        "val mediaPlayerLatency: Double"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/MediaPlayer.kt"
@@ -7090,7 +6559,7 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun metalPetalLayerPosition(layout: com.moblin.android.various.settings.SettingsWidgetLayout, size: androidx.compose.ui.geometry.Size, streamSize: androidx.compose.ui.geometry.Size): androidx.compose.ui.geometry.Offset"
+        "fun metalPetalLayerPosition(layout: com.moblin.android.various.settings.SettingsWidgetLayout, size: com.moblin.android.platform.coregraphics.CGSize, streamSize: com.moblin.android.platform.coregraphics.CGSize): com.moblin.android.platform.coregraphics.CGPoint"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt"
@@ -7101,21 +6570,10 @@
         "com.moblin.android.videoeffects"
       ],
       "signatures": [
-        "fun pixellateCalcScale(size: android.util.SizeF, strength: Float): Float"
+        "fun pixellateCalcScale(size: com.moblin.android.platform.coregraphics.CGSize, strength: Float): Float"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/PixellateEffect.kt"
-      ]
-    },
-    "pngComponentsPerPixel": {
-      "packages": [
-        "com.moblin.android.videoeffects"
-      ],
-      "signatures": [
-        "fun pngComponentsPerPixel(data: ByteArray): Int"
-      ],
-      "files": [
-        "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt"
       ]
     },
     "replayEffectQueue": {
@@ -7123,7 +6581,7 @@
         "com.moblin.android.videoeffects.replay"
       ],
       "signatures": [
-        "val replayEffectQueue = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default)"
+        "val replayEffectQueue = kotlinx.coroutines.CoroutineScope(java.util.concurrent.Executors.newSingleThreadExecutor().asCoroutineDispatcher())"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffect.kt"
@@ -7134,7 +6592,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun rotateFace(allPoints: List<androidx.compose.ui.geometry.Offset>, rotationAngle: Float): List<androidx.compose.ui.geometry.Offset>"
+        "fun rotateFace(allPoints: List<com.moblin.android.platform.coregraphics.CGPoint>, rotationAngle: Double): List<com.moblin.android.platform.coregraphics.CGPoint>"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/Detection.kt"
@@ -7145,7 +6603,7 @@
         "com.moblin.android.various"
       ],
       "signatures": [
-        "fun rotatePoint(point: androidx.compose.ui.geometry.Offset, alpha: Float): androidx.compose.ui.geometry.Offset"
+        "fun rotatePoint(point: com.moblin.android.platform.coregraphics.CGPoint, alpha: Double): com.moblin.android.platform.coregraphics.CGPoint"
       ],
       "files": [
         "app/src/main/java/com/moblin/android/various/Detection.kt"

@@ -1,23 +1,33 @@
 package com.moblin.android.videoeffects.vtuber
 
 import android.util.Log
-import android.util.Size
+import androidx.compose.ui.geometry.Size
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.live2d.AyagamiModel
+import com.moblin.android.platform.live2d.Live2DRenderer
+import com.moblin.android.platform.video.CVPixelBufferPool
+import com.moblin.android.platform.video.CVPixelBufferPoolCreate
+import com.moblin.android.platform.video.CVPixelBufferPoolCreatePixelBuffer
+import com.moblin.android.platform.video.kCVPixelBufferHeightKey
+import com.moblin.android.platform.video.kCVPixelBufferIOSurfacePropertiesKey
+import com.moblin.android.platform.video.kCVPixelBufferMetalCompatibilityKey
+import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
+import com.moblin.android.platform.video.kCVPixelBufferWidthKey
+import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
 import com.moblin.android.videoeffects.EffectImage
+import com.moblin.android.videoeffects.EffectImagePixelBuffer
 import java.io.File
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import com.moblin.android.platform.live2d.Live2DRenderer
-
-private const val TAG = "VTuberLive2DEffect"
 
 private data class Live2DLoaded(
-    val model: Any,
+    val model: AyagamiModel,
     val renderer: Live2DRenderer,
-    val pool: Any,
+    val pool: CVPixelBufferPool,
 )
 
 class VTuberLive2DEffect(directory: File) : VTuberEffect() {
@@ -25,25 +35,52 @@ class VTuberLive2DEffect(directory: File) : VTuberEffect() {
 
     init {
         CoroutineScope(Dispatchers.Default).launch {
-            val result = load(directory) ?: return@launch
+            val newLoaded = load(directory) ?: return@launch
             processorPipelineQueue.launch {
-                loaded = result
+                loaded = newLoaded
             }
         }
     }
 
-    private companion object {
-        fun load(directory: File): Live2DLoaded? {
-            val model3File = findModel3(directory)
-            if (model3File == null) {
-                Log.i(TAG, "v-tuber: No model3.json found")
+    companion object {
+        private fun load(directory: File): Live2DLoaded? {
+            val model3Url = findModel3(directory)
+            if (model3Url == null) {
+                Log.i("VTuberLive2DEffect", "v-tuber: No model3.json found")
                 return null
             }
-            TODO()
+            val model = try {
+                AyagamiModel(model3Url = model3Url)
+            } catch (error: Throwable) {
+                Log.i("VTuberLive2DEffect", "v-tuber: Failed to load Live2D model with error: $error")
+                return null
+            }
+            val renderer = Live2DRenderer(model = model) ?: return null
+            val dimensions = model.canvas.dimensions
+            if (dimensions.x <= 0F || dimensions.y <= 0F) {
+                Log.i("VTuberLive2DEffect", "v-tuber: Bad Live2D canvas dimensions $dimensions")
+                return null
+            }
+            val height = 800
+            val width = 2 * (height.toDouble() * (dimensions.x / dimensions.y).toDouble() / 2.0).toInt()
+            val attributes: Map<String, Any> = mapOf(
+                kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_32BGRA,
+                kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
+                kCVPixelBufferMetalCompatibilityKey to true,
+                kCVPixelBufferWidthKey to width,
+                kCVPixelBufferHeightKey to height,
+            )
+            val pool = CVPixelBufferPoolCreate(attributes) ?: return null
+            return Live2DLoaded(model = model, renderer = renderer, pool = pool)
         }
 
-        fun findModel3(directory: File): File? = directory.walkTopDown().firstOrNull {
-            it.name.endsWith(".model3.json") && !it.path.contains("__MACOSX")
+        private fun findModel3(directory: File): File? {
+            for (url in directory.walk()) {
+                if (url.name.endsWith(".model3.json") && !url.path.contains("__MACOSX")) {
+                    return url
+                }
+            }
+            return null
         }
     }
 
@@ -54,20 +91,20 @@ class VTuberLive2DEffect(directory: File) : VTuberEffect() {
     override fun updateModel(face: VTuberFace, time: Double, timeDelta: Double) {
         val model = loaded?.model ?: return
         val angleX = face.sideAngle * 30
-        val parameters = mapOf(
-            "ParamAngleX" to angleX.toFloat(),
-            "ParamAngleZ" to (-(face.rotationAngle * 180.0 / PI)).toFloat(),
-            "ParamBodyAngleX" to (angleX / 3).toFloat(),
-            "ParamMouthOpenY" to face.mouthOpen.toFloat(),
-            "ParamEyeLOpen" to face.leftEyeOpen.toFloat(),
-            "ParamEyeROpen" to face.rightEyeOpen.toFloat(),
-            "ParamBreath" to (0.5 - cos(time / 2 * PI) / 2).toFloat(),
-        )
-        Unit
+        model.setParameter("ParamAngleX", angleX.toFloat())
+        model.setParameter("ParamAngleZ", (-Math.toDegrees(face.rotationAngle)).toFloat())
+        model.setParameter("ParamBodyAngleX", (angleX / 3).toFloat())
+        model.setParameter("ParamMouthOpenY", face.mouthOpen.toFloat())
+        model.setParameter("ParamEyeLOpen", face.leftEyeOpen.toFloat())
+        model.setParameter("ParamEyeROpen", face.rightEyeOpen.toFloat())
+        model.setParameter("ParamBreath", (0.5 - cos(time / 2 * PI) / 2).toFloat())
+        model.update(deltaTime = timeDelta.toFloat())
     }
 
-    override fun renderModel(time: Double, size: Size): EffectImage? {
-        val loaded = loaded ?: return null
-        return null
+    override fun renderModel(time: Double, size: CGSize): EffectImage? {
+        val currentLoaded = loaded ?: return null
+        val pixelBuffer = CVPixelBufferPoolCreatePixelBuffer(currentLoaded.pool) ?: return null
+        currentLoaded.renderer.render(model = currentLoaded.model, into = pixelBuffer)
+        return EffectImagePixelBuffer(pixelBuffer = pixelBuffer)
     }
 }

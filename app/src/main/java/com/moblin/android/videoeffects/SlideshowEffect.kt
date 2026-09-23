@@ -1,11 +1,10 @@
 package com.moblin.android.videoeffects
 
-import android.graphics.Bitmap
-import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.util.Log
-import android.util.Size
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIImage
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.videoeffects.text.TextEffect
 import java.util.UUID
@@ -24,29 +23,25 @@ class SlideshowEffect(val slides: List<SlideshowEffectSlide>) : VideoEffect() {
     fun setSceneWidget(sceneWidget: SettingsSceneWidget) {
         for (slide in slides) {
             val effect = slide.effect
-            when (effect) {
-                is TextEffect -> {
-                    effect.setSceneWidget(sceneWidget)
-                }
-                is ImageEffect -> {
-                    effect.setSceneWidget(sceneWidget)
-                }
-                else -> {
-                    Log.i(TAG, "slideshow-effect: Unsupported effect.")
-                }
+            if (effect is TextEffect) {
+                effect.setSceneWidget(sceneWidget = sceneWidget)
+            } else if (effect is ImageEffect) {
+                effect.setSceneWidget(sceneWidget = sceneWidget)
+            } else {
+                Log.i("SlideshowEffect", "slideshow-effect: Unsupported effect.")
             }
         }
     }
 
-    override fun execute(image: Image, info: VideoEffectInfo): Image {
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
         val (effect, prepareEffect) = getEffects(info.presentationTimeStamp / 1_000_000.0)
-        prepareEffect?.prepare(Size(image.width, image.height), info)
+        prepareEffect?.prepare(image.extent.size, info)
         return effect?.execute(image, info) ?: image
     }
 
-    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
         val (effect, prepareEffect) = getEffects(info.presentationTimeStamp / 1_000_000.0)
-        prepareEffect?.prepare(Size(image.width, image.height), info)
+        prepareEffect?.prepare(image.extent.size, info)
         return effect?.executeMetalPetal(image, info) ?: image
     }
 
@@ -79,9 +74,5 @@ class SlideshowEffect(val slides: List<SlideshowEffectSlide>) : VideoEffect() {
             this.currentSlideEndTime = presentationTimeStamp + slide.time
             return Pair(slide.effect, null)
         }
-    }
-
-    companion object {
-        private const val TAG = "SlideshowEffect"
     }
 }

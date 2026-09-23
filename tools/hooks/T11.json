@@ -515,6 +515,160 @@
       "old": "                    System.nanoTime() < browser.browserEffect.startLoadingTime + 5_000_000_000L",
       "new": "                    com.moblin.android.platform.core.ContinuousClock.now < browser.browserEffect.startLoadingTime.advanced(bySeconds = 5.0)",
       "occurrence": 1
+    },
+    {
+      "id": "R11.11",
+      "file": "various/model/Model.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.coregraphics.toCGSize",
+      "note": "ME1 boundary: android.util.Size and Compose Size to CGSize for the regenerated effects."
+    },
+    {
+      "id": "R11.12",
+      "file": "various/model/Model.kt",
+      "scope": "fun Model.drawOnStreamLineComplete",
+      "op": "replace",
+      "old": "        videoSize = toComposeSize(media.getCanvasSize()),",
+      "new": "        videoSize = media.getCanvasSize().toCGSize(),",
+      "occurrence": 1,
+      "note": "ME1 boundary: the regenerated DrawOnStreamEffect.updateOverlay takes CGSize, CGSize as Swift does (Model.swift:3387)."
+    },
+    {
+      "id": "R11.13",
+      "file": "various/model/Model.kt",
+      "scope": "fun Model.drawOnStreamLineComplete",
+      "op": "replace",
+      "old": "        size = drawOnStreamSize,",
+      "new": "        size = drawOnStreamSize.toCGSize(),",
+      "occurrence": 1,
+      "note": "ME1 boundary: the regenerated DrawOnStreamEffect.updateOverlay takes CGSize, CGSize as Swift does (Model.swift:3387)."
+    },
+    {
+      "id": "R11.14",
+      "file": "various/model/Model.kt",
+      "scope": "fun Model.drawOnStreamWipe",
+      "op": "replace",
+      "old": "        videoSize = toComposeSize(media.getCanvasSize()),",
+      "new": "        videoSize = media.getCanvasSize().toCGSize(),",
+      "occurrence": 1,
+      "note": "ME1 boundary: the regenerated DrawOnStreamEffect.updateOverlay takes CGSize, CGSize as Swift does (Model.swift:3387)."
+    },
+    {
+      "id": "R11.15",
+      "file": "various/model/Model.kt",
+      "scope": "fun Model.drawOnStreamWipe",
+      "op": "replace",
+      "old": "        size = drawOnStreamSize,",
+      "new": "        size = drawOnStreamSize.toCGSize(),",
+      "occurrence": 1,
+      "note": "ME1 boundary: the regenerated DrawOnStreamEffect.updateOverlay takes CGSize, CGSize as Swift does (Model.swift:3387)."
+    },
+    {
+      "id": "R11.16",
+      "file": "various/model/Model.kt",
+      "scope": "fun Model.drawOnStreamUndo",
+      "op": "replace",
+      "old": "        videoSize = toComposeSize(media.getCanvasSize()),",
+      "new": "        videoSize = media.getCanvasSize().toCGSize(),",
+      "occurrence": 1,
+      "note": "ME1 boundary: the regenerated DrawOnStreamEffect.updateOverlay takes CGSize, CGSize as Swift does (Model.swift:3387)."
+    },
+    {
+      "id": "R11.17",
+      "file": "various/model/Model.kt",
+      "scope": "fun Model.drawOnStreamUndo",
+      "op": "replace",
+      "old": "        size = drawOnStreamSize,",
+      "new": "        size = drawOnStreamSize.toCGSize(),",
+      "occurrence": 1,
+      "note": "ME1 boundary: the regenerated DrawOnStreamEffect.updateOverlay takes CGSize, CGSize as Swift does (Model.swift:3387)."
+    },
+    {
+      "id": "R11.18",
+      "file": "various/model/ModelScene.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.coregraphics.toCGSize",
+      "note": "ME1 boundary: android.util.Size and Compose Size to CGSize for the regenerated effects."
+    },
+    {
+      "id": "R11.19",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.resetSelectedScene",
+      "op": "replace",
+      "old": "        videoSize = canvasSize(media.getCanvasSize()),",
+      "new": "        videoSize = media.getCanvasSize().toCGSize(),",
+      "occurrence": 1,
+      "note": "ME1 boundary: ModelScene.swift:160 passes media.getCanvasSize(), a CGSize."
+    },
+    {
+      "id": "R11.20",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.resetSelectedScene",
+      "op": "replace",
+      "old": "        size = drawOnStreamSize,",
+      "new": "        size = drawOnStreamSize.toCGSize(),",
+      "occurrence": 1,
+      "note": "ME1 boundary: Model.drawOnStreamSize is a CGSize in Swift (Model.swift:670)."
+    },
+    {
+      "id": "R11.21",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.sceneUpdatedOn",
+      "op": "replace",
+      "old": "            videoSize = canvasSize(media.getCanvasSize()),",
+      "new": "            videoSize = media.getCanvasSize().toCGSize(),",
+      "occurrence": 1,
+      "note": "ME1 boundary: ModelScene.swift:1063 passes media.getCanvasSize(), a CGSize."
+    },
+    {
+      "id": "R11.22",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.sceneUpdatedOn",
+      "op": "replace",
+      "old": "            size = drawOnStreamSize,",
+      "new": "            size = drawOnStreamSize.toCGSize(),",
+      "occurrence": 1,
+      "note": "ME1 boundary: Model.drawOnStreamSize is a CGSize in Swift (Model.swift:670)."
+    },
+    {
+      "id": "R11.23",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.createTextEffect",
+      "op": "replace",
+      "old": "        fontDesign = widget.text.fontDesign,",
+      "new": "        fontDesign = widget.text.fontDesign.toUiKit(),",
+      "occurrence": 1,
+      "note": "ME1 boundary: the regenerated TextEffect takes view.utils.FontDesign (Swift ModelScene.swift:745 passes fontDesign.toSystem(), a Font.Design; Kotlin toSystem() is a FontFamily, toUiKit() is the FontDesign)."
+    },
+    {
+      "id": "R11.24",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.createTextEffect",
+      "op": "replace",
+      "old": "        fontWeight = widget.text.fontWeight,",
+      "new": "        fontWeight = widget.text.fontWeight.toSystem(),",
+      "occurrence": 1,
+      "note": "ME1 boundary: Swift ModelScene.swift:746 passes fontWeight.toSystem(); the regenerated TextEffect takes a Compose FontWeight."
+    },
+    {
+      "id": "R11.25",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.resetChatEmoteComboVideoEffects",
+      "op": "replace",
+      "old": "        val effect = ChatEmoteComboEffect(canvasSize = canvasSize(media.getCanvasSize()))",
+      "new": "        val effect = ChatEmoteComboEffect(canvasSize = media.getCanvasSize().toCGSize())",
+      "occurrence": 1,
+      "note": "ME1 boundary: the regenerated ChatEmoteComboEffect takes CGSize (ChatEmoteComboEffect.swift:57, ModelScene.swift:885)."
+    },
+    {
+      "id": "R11.26",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.registerGlobalVideoEffects",
+      "op": "replace",
+      "old": "        fixedHorizonEffect.start(portrait = database.portrait)",
+      "new": "        fixedHorizonEffect.start(portrait = stream.value.portrait)",
+      "occurrence": 1,
+      "note": "ME1: Swift ModelScene.swift:618 passes stream.portrait (the stream's orientation), not the UI's database.portrait."
     }
   ]
 }

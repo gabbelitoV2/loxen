@@ -1,48 +1,45 @@
 package com.moblin.android.videoeffects.alerts
 
-import android.media.MediaCodec
-import android.media.MediaExtractor
-import android.media.MediaFormat
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
+import com.moblin.android.platform.avfoundation.AVAsset
+import com.moblin.android.platform.avfoundation.AVAssetReader
+import com.moblin.android.platform.avfoundation.AVAssetReaderTrackOutput
+import com.moblin.android.platform.avfoundation.AVAssetTrack
+import com.moblin.android.platform.avfoundation.AVMediaType
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.video.kCVPixelBufferIOSurfacePropertiesKey
+import com.moblin.android.platform.video.kCVPixelBufferMetalCompatibilityKey
+import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
+import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
 import com.moblin.android.videoeffects.EffectImageCiImage
+import com.moblin.android.videoeffects.toEffectImage
+import java.util.concurrent.Executors
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 
 private data class VideoImage(val image: EffectImageCiImage, val offset: Double)
 
-@OptIn(ExperimentalCoroutinesApi::class)
-private val lockScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
+private val lockQueue: CoroutineDispatcher =
+    Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
 class AlertsEffectVideoReader(path: String) {
-    private var images: ArrayDeque<VideoImage> = ArrayDeque()
-    private var reader: MediaExtractor? = null
-    private var trackOutput: MediaCodec? = null
+    private val images: ArrayDeque<VideoImage> = ArrayDeque()
+    private var reader: AVAssetReader? = null
+    private var trackOutput: AVAssetReaderTrackOutput? = null
     private var fillEnded: Boolean = false
     private var basePresentationTimeStamp: Double? = null
 
     init {
-        lockScope.launch {
-            val extractor = MediaExtractor()
-            val loaded = runCatching {
-                extractor.setDataSource(path)
-            }.isSuccess
-            if (!loaded) {
-                markFillEnded()
-                return@launch
-            }
-            reader = extractor
-            var videoTrackIndex: Int? = null
-            for (index in 0 until extractor.trackCount) {
-                val format = extractor.getTrackFormat(index)
-                val mime = format.getString(MediaFormat.KEY_MIME) ?: continue
-                if (mime.startsWith("video/")) {
-                    videoTrackIndex = index
-                    break
+        CoroutineScope(lockQueue).launch {
+            val asset = AVAsset(url = path)
+            reader = runCatching { AVAssetReader(asset = asset) }.getOrNull()
+            asset.loadTracks(withMediaType = AVMediaType.video) { tracks, error ->
+                CoroutineScope(lockQueue).launch {
+                    loadVideoTrackCompletion(track = tracks?.firstOrNull(), error = error)
                 }
             }
-            loadVideoTrackCompletion(videoTrackIndex, null)
         }
     }
 
@@ -63,8 +60,8 @@ class AlertsEffectVideoReader(path: String) {
     }
 
     private fun findImage(offset: Double): EffectImageCiImage? {
-        while (images.isNotEmpty()) {
-            val image = images.first()
+        while (true) {
+            val image = images.firstOrNull() ?: break
             if (offset <= image.offset) {
                 return image.image
             }
@@ -74,20 +71,26 @@ class AlertsEffectVideoReader(path: String) {
     }
 
     private fun fill() {
-        lockScope.launch {
+        CoroutineScope(lockQueue).launch {
             fillInternal()
         }
     }
 
     private fun fillInternal() {
-        if (trackOutput == null) {
-            return
-        }
+        val trackOutput = this.trackOutput ?: return
         val newImages = mutableListOf<VideoImage>()
-        for (i in 0..10) {
-            val image = nextVideoImage()
-            if (image != null) {
-                newImages.add(image)
+        for (index in 0..10) {
+            val sampleBuffer = trackOutput.copyNextSampleBuffer()
+            if (sampleBuffer != null) {
+                val imageBuffer = sampleBuffer.imageBuffer
+                if (imageBuffer != null) {
+                    newImages.add(
+                        VideoImage(
+                            image = CIImage(cvPixelBuffer = imageBuffer).toEffectImage(isOpaque = true),
+                            offset = sampleBuffer.presentationTimeUs / 1_000_000.0,
+                        ),
+                    )
+                }
             }
         }
         processorPipelineQueue.launch {
@@ -96,33 +99,24 @@ class AlertsEffectVideoReader(path: String) {
         }
     }
 
-    private fun nextVideoImage(): VideoImage? {
-        return null
-    }
-
-    private fun loadVideoTrackCompletion(track: Int?, error: Exception?) {
+    private fun loadVideoTrackCompletion(track: AVAssetTrack?, error: Throwable?) {
         if (error != null || track == null) {
             markFillEnded()
             return
         }
-        val format = reader?.getTrackFormat(track) ?: run {
+        val videoOutputSettings: Map<String, Any> = mapOf(
+            kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_32BGRA,
+            kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
+            kCVPixelBufferMetalCompatibilityKey to true,
+        )
+        trackOutput = AVAssetReaderTrackOutput(track = track, outputSettings = videoOutputSettings)
+        val output = trackOutput
+        if (output == null) {
             markFillEnded()
             return
         }
-        val mime = format.getString(MediaFormat.KEY_MIME) ?: run {
-            markFillEnded()
-            return
-        }
-        val decoder = runCatching {
-            MediaCodec.createDecoderByType(mime)
-        }.getOrNull() ?: run {
-            markFillEnded()
-            return
-        }
-        reader?.selectTrack(track)
-        decoder.configure(format, null, null, 0)
-        decoder.start()
-        trackOutput = decoder
+        reader?.add(output = output)
+        reader?.startReading()
         fillInternal()
     }
 

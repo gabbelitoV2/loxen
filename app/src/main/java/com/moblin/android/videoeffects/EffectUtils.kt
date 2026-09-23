@@ -11,6 +11,7 @@ import com.moblin.android.platform.metalpetal.MTILayer
 import com.moblin.android.platform.metalpetal.MTIMultilayerCompositingFilter
 import com.moblin.android.platform.video.CVPixelBuffer
 import com.moblin.android.various.settings.SettingsWidgetLayout
+import com.moblin.android.platform.coregraphics.CGRect
 
 @Volatile
 var highQualityDownsampling = false

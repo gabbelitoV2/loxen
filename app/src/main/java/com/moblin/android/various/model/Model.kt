@@ -84,6 +84,7 @@ import com.moblin.android.platform.avfoundation.AVCaptureDevice
 import com.moblin.android.various.utils.getUIZoomRange
 import com.moblin.android.various.utils.getZoomFactorScale
 import com.moblin.android.various.utils.hasUltraWideBackCamera
+import com.moblin.android.platform.coregraphics.toCGSize
 
 private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -3409,8 +3410,8 @@ fun Model.toggleDrawOnStream() {
 
 fun Model.drawOnStreamLineComplete() {
     drawOnStreamEffect.updateOverlay(
-        videoSize = toComposeSize(media.getCanvasSize()),
-        size = drawOnStreamSize,
+        videoSize = media.getCanvasSize().toCGSize(),
+        size = drawOnStreamSize.toCGSize(),
         lines = drawOnStream.lines.value,
         mirror = streamOverlay.isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream,
     )
@@ -3421,8 +3422,8 @@ fun Model.drawOnStreamLineComplete() {
 fun Model.drawOnStreamWipe() {
     drawOnStream.lines.value = emptyList()
     drawOnStreamEffect.updateOverlay(
-        videoSize = toComposeSize(media.getCanvasSize()),
-        size = drawOnStreamSize,
+        videoSize = media.getCanvasSize().toCGSize(),
+        size = drawOnStreamSize.toCGSize(),
         lines = drawOnStream.lines.value,
         mirror = streamOverlay.isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream,
     )
@@ -3436,8 +3437,8 @@ fun Model.drawOnStreamUndo() {
     }
     drawOnStream.lines.value = drawOnStream.lines.value.dropLast(1)
     drawOnStreamEffect.updateOverlay(
-        videoSize = toComposeSize(media.getCanvasSize()),
-        size = drawOnStreamSize,
+        videoSize = media.getCanvasSize().toCGSize(),
+        size = drawOnStreamSize.toCGSize(),
         lines = drawOnStream.lines.value,
         mirror = streamOverlay.isFrontCameraSelected.value && !database.mirrorFrontCameraOnStream,
     )

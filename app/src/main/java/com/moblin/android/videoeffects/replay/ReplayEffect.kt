@@ -1,22 +1,32 @@
 package com.moblin.android.videoeffects.replay
 
-import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.util.Size
 import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.coreimage.CIFilter
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIBlendFilter
+import com.moblin.android.platform.metalpetal.MTIBlendMode
+import com.moblin.android.platform.metalpetal.MTIImage
 import com.moblin.android.various.ReplayBufferFile
 import com.moblin.android.various.settings.SettingsWidgetLayout
 import com.moblin.android.videoeffects.EffectImageCiImage
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.moblin.android.videoeffects.move
+import com.moblin.android.videoeffects.resizeMirror
+import com.moblin.android.videoeffects.resizeMirrorMoveComposited
+import java.lang.ref.WeakReference
+import java.util.concurrent.Executors
 import kotlin.math.ceil
-import kotlin.math.max
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
+import com.moblin.android.videoeffects.MetalPetalWidgetShape
 
 private const val fadeTransitionLength = 0.5
-val replayEffectQueue = CoroutineScope(Dispatchers.Default)
+
+val replayEffectQueue = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
 sealed class ReplayEffectTransitionMode {
     object Fade : ReplayEffectTransitionMode()
@@ -25,7 +35,7 @@ sealed class ReplayEffectTransitionMode {
         val inPath: String,
         val inTransitionPoint: Double,
         val outPath: String,
-        val outTransitionPoint: Double
+        val outTransitionPoint: Double,
     ) : ReplayEffectTransitionMode()
 
     object None : ReplayEffectTransitionMode()
@@ -41,55 +51,70 @@ private enum class StingersState {
     setup,
     begin,
     middle,
-    end
+    end,
 }
 
 private sealed class ReplayEffectOutput {
     object Background : ReplayEffectOutput()
+
     data class Replay(val image: EffectImageCiImage) : ReplayEffectOutput()
+
     data class FadeToReplay(val image: EffectImageCiImage, val ratio: Double) : ReplayEffectOutput()
+
     data class FadeToBackground(val image: EffectImageCiImage, val ratio: Double) : ReplayEffectOutput()
-    data class Stinger(val stinger: EffectImageCiImage, val replay: EffectImageCiImage?) : ReplayEffectOutput()
+
+    data class Stinger(
+        val stingerImage: EffectImageCiImage,
+        val backgroundImage: EffectImageCiImage?,
+    ) : ReplayEffectOutput()
 }
 
 class ReplayEffect internal constructor(
     video: ReplayBufferFile,
     start: Double,
     stop: Double,
-    private val speed: Double,
+    speed: Double,
     size: Size,
-    private var layout: SettingsWidgetLayout,
-    private val transitionMode: ReplayEffectTransitionMode,
-    private val delegate: ReplayEffectDelegate
+    layout: SettingsWidgetLayout,
+    transitionMode: ReplayEffectTransitionMode,
+    delegate: ReplayEffectDelegate,
 ) : VideoEffect() {
     private var playbackCompleted = false
-    private val reader: ReplayEffectReplayReader
+    private val speed = speed
+    private val reader = ReplayEffectReplayReader(
+        video = video,
+        start = start,
+        duration = stop - start,
+        size = size,
+    )
     private var startPresentationTimeStamp: Double? = null
+    private val delegate = java.util.concurrent.atomic.AtomicReference(delegate)
     private var lastImageOffset: Double? = null
     private var latestImage: EffectImageCiImage? = null
     private var cancelled = false
     private var cancelledOffset: Double? = null
-    private val duration: Double = stop - start
+    private val transitionMode = transitionMode
+    private val duration = stop - start
+    private var layout = layout
     private var latestTimeLeft = Int.MAX_VALUE
     private var stingersState = StingersState.setup
     private var stingersInReader: ReplayEffectStingerReader? = null
     private var stingersOutReader: ReplayEffectStingerReader? = null
-    private var stingersInTransitionPoint: Double = 0.0
-    private var stingersOutTransitionPoint: Double = 0.0
-    private var stingersInTransitionPointPresentationTimeStamp: Double = 0.0
-    private var stingersOutTransitionStartPresentationTimeStamp: Double = 0.0
-    private var stingersOutTransitionPointPresentationTimeStamp: Double = 0.0
+    private var stingersInTransitionPoint = 0.0
+    private var stingersOutTransitionPoint = 0.0
+    private var stingersInTransitionPointPresentationTimeStamp = 0.0
+    private var stingersOutTransitionStartPresentationTimeStamp = 0.0
+    private var stingersOutTransitionPointPresentationTimeStamp = 0.0
 
     init {
-        reader = ReplayEffectReplayReader(video, start, duration, size)
-        val mode = transitionMode
-        if (mode is ReplayEffectTransitionMode.Stingers) {
-            stingersInReader = ReplayEffectStingerReader(mode.inPath, size)
-            stingersInTransitionPoint = mode.inTransitionPoint
-            stingersOutReader = ReplayEffectStingerReader(mode.outPath, size)
-            stingersOutTransitionPoint = mode.outTransitionPoint
+        val stingers = transitionMode as? ReplayEffectTransitionMode.Stingers
+        if (stingers != null) {
+            stingersInReader = ReplayEffectStingerReader(path = stingers.inPath, size = size)
+            stingersInTransitionPoint = stingers.inTransitionPoint
+            stingersOutReader = ReplayEffectStingerReader(path = stingers.outPath, size = size)
+            stingersOutTransitionPoint = stingers.outTransitionPoint
         }
-        updateStatus(0.0)
+        updateStatus(offset = 0.0)
     }
 
     fun setLayout(layout: SettingsWidgetLayout) {
@@ -100,38 +125,44 @@ class ReplayEffect internal constructor(
 
     fun cancel() {
         processorPipelineQueue.launch {
-            cancelled = true
+            this@ReplayEffect.cancelled = true
         }
     }
 
-    override fun execute(image: Image, info: VideoEffectInfo): Image {
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
         val output = update(info.presentationTimeStamp / 1_000_000.0)
         return when (output) {
             is ReplayEffectOutput.Background -> image
             is ReplayEffectOutput.Replay -> applyLayoutToReplay(output.image, image)
-            is ReplayEffectOutput.FadeToReplay ->
+            is ReplayEffectOutput.FadeToReplay -> {
                 fade(image, applyLayoutToReplay(output.image, image), output.ratio) ?: image
-            is ReplayEffectOutput.FadeToBackground ->
+            }
+            is ReplayEffectOutput.FadeToBackground -> {
                 fade(applyLayoutToReplay(output.image, image), image, output.ratio) ?: image
+            }
             is ReplayEffectOutput.Stinger -> {
-                val backgroundImage = output.replay?.let { applyLayoutToReplay(it, image) } ?: image
-                TODO()
+                val backgroundImage = output.backgroundImage
+                    ?.let { applyLayoutToReplay(it, image) } ?: image
+                output.stingerImage.getCiImage().composited(over = backgroundImage)
             }
         }
     }
 
-    override fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
+    override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
         val output = update(info.presentationTimeStamp / 1_000_000.0)
         return when (output) {
             is ReplayEffectOutput.Background -> image
             is ReplayEffectOutput.Replay -> applyLayoutToReplayMetalPetal(output.image, image)
-            is ReplayEffectOutput.FadeToReplay ->
+            is ReplayEffectOutput.FadeToReplay -> {
                 fadeMetalPetal(image, applyLayoutToReplayMetalPetal(output.image, image), output.ratio)
-            is ReplayEffectOutput.FadeToBackground ->
+            }
+            is ReplayEffectOutput.FadeToBackground -> {
                 fadeMetalPetal(applyLayoutToReplayMetalPetal(output.image, image), image, output.ratio)
+            }
             is ReplayEffectOutput.Stinger -> {
-                val backgroundImage = output.replay?.let { applyLayoutToReplayMetalPetal(it, image) } ?: image
-                blendMetalPetal(output.stinger, backgroundImage, 1f)
+                val backgroundImage = output.backgroundImage
+                    ?.let { applyLayoutToReplayMetalPetal(it, image) } ?: image
+                blendMetalPetal(output.stingerImage.getMetalPetalImage(), backgroundImage, 1f)
             }
         }
     }
@@ -142,54 +173,73 @@ class ReplayEffect internal constructor(
 
     private fun update(presentationTimeStamp: Double): ReplayEffectOutput {
         return when (transitionMode) {
-            ReplayEffectTransitionMode.None, ReplayEffectTransitionMode.Fade ->
-                updateNoneAndFade(presentationTimeStamp)
+            ReplayEffectTransitionMode.None,
+            ReplayEffectTransitionMode.Fade,
+            -> updateNoneAndFade(presentationTimeStamp)
             is ReplayEffectTransitionMode.Stingers -> updateStingers(presentationTimeStamp)
         }
     }
 
-    private fun applyLayoutToReplay(replayImage: EffectImageCiImage, image: Image): Image {
-        TODO()
+    private fun applyLayoutToReplay(replayImage: EffectImageCiImage, image: CIImage): CIImage {
+        return replayImage.getCiImage()
+            .resizeMirror(layout, image.extent.size, false)
+            .move(layout, image.extent.size)
+            .cropped(to = image.extent)
+            .composited(over = image)
     }
 
-    private fun applyLayoutToReplayMetalPetal(replayImage: EffectImageCiImage,
-                                              image: Image): Image {
-        TODO()
+    private fun applyLayoutToReplayMetalPetal(
+        replayImage: EffectImageCiImage,
+        image: MTIImage,
+    ): MTIImage {
+        val replayMetalPetalImage = replayImage.getMetalPetalImage()
+        return replayMetalPetalImage.resizeMirrorMoveComposited(
+            layout,
+            false,
+            image,
+            MetalPetalWidgetShape(contentRegion = replayMetalPetalImage.extent),
+        )
     }
 
-    private fun fade(input: Image,
-                     target: Image,
-                     ratio: Double): Image? {
-        TODO()
+    private fun fade(input: CIImage, target: CIImage, ratio: Double): CIImage? {
+        val filter = CIFilter.dissolveTransition()
+        filter.inputImage = input
+        filter.targetImage = target
+        filter.time = ratio.toFloat()
+        return filter.outputImage
     }
 
-    private fun fadeMetalPetal(input: Image,
-                               target: Image,
-                               ratio: Double): Image {
+    private fun fadeMetalPetal(input: MTIImage, target: MTIImage, ratio: Double): MTIImage {
         return blendMetalPetal(target, input, ratio.toFloat())
     }
 
-    private fun blendMetalPetal(image: Any,
-                                backgroundImage: Image,
-                                intensity: Float): Image {
-        TODO()
+    private fun blendMetalPetal(
+        image: MTIImage,
+        backgroundImage: MTIImage,
+        intensity: Float,
+    ): MTIImage {
+        val filter = MTIBlendFilter(blendMode = MTIBlendMode.normal)
+        filter.inputBackgroundImage = backgroundImage
+        filter.inputImage = image
+        filter.intensity = intensity
+        return filter.outputImage ?: backgroundImage
     }
 
     private fun updateStatus(offset: Double) {
         if (cancelled) {
             return
         }
-        val timeLeft = max(ceil(duration / speed - offset).toInt(), 0)
+        val timeLeft = maxOf(ceil(duration / speed - offset).toInt(), 0)
         if (timeLeft != latestTimeLeft) {
             latestTimeLeft = timeLeft
-            delegate.replayEffectStatus(timeLeft)
+            delegate.get()?.replayEffectStatus(timeLeft = timeLeft)
         }
     }
 
     private fun replayCompleted() {
         playbackCompleted = true
         if (!cancelled) {
-            delegate.replayEffectCompleted()
+            delegate.get()?.replayEffectCompleted()
         }
     }
 
@@ -198,7 +248,7 @@ class ReplayEffect internal constructor(
             startPresentationTimeStamp = presentationTimeStamp
         }
         val offset = presentationTimeStamp - startPresentationTimeStamp!!
-        updateStatus(offset)
+        updateStatus(offset = offset)
         if (cancelled) {
             if (cancelledOffset == null) {
                 cancelledOffset = offset
@@ -212,28 +262,28 @@ class ReplayEffect internal constructor(
     }
 
     private fun updateBeginAndMiddleNoneAndFade(offset: Double): ReplayEffectOutput {
-        val replayImage = reader.getImage(offset * speed)
+        val replayImage = reader.getImage(offset = offset * speed)
         latestImage = replayImage.image ?: latestImage
         if (replayImage.isLast) {
             lastImageOffset = offset
         } else if (replayImage.image == null) {
             startPresentationTimeStamp = null
         }
-        val image = latestImage ?: return ReplayEffectOutput.Background
-        return if (transitionMode is ReplayEffectTransitionMode.Fade && offset <= fadeTransitionLength) {
-            ReplayEffectOutput.FadeToReplay(image, offset / fadeTransitionLength)
+        val latestImage = this.latestImage ?: return ReplayEffectOutput.Background
+        if (transitionMode is ReplayEffectTransitionMode.Fade && offset <= fadeTransitionLength) {
+            return ReplayEffectOutput.FadeToReplay(latestImage, offset / fadeTransitionLength)
         } else {
-            ReplayEffectOutput.Replay(image)
+            return ReplayEffectOutput.Replay(latestImage)
         }
     }
 
     private fun updateEndNoneAndFade(offset: Double): ReplayEffectOutput {
-        return if (transitionMode is ReplayEffectTransitionMode.Fade && offset <= fadeTransitionLength) {
-            val image = latestImage ?: return ReplayEffectOutput.Background
-            ReplayEffectOutput.FadeToBackground(image, offset / fadeTransitionLength)
+        if (transitionMode is ReplayEffectTransitionMode.Fade && offset <= fadeTransitionLength) {
+            val latestImage = this.latestImage ?: return ReplayEffectOutput.Background
+            return ReplayEffectOutput.FadeToBackground(latestImage, offset / fadeTransitionLength)
         } else {
             replayCompleted()
-            ReplayEffectOutput.Background
+            return ReplayEffectOutput.Background
         }
     }
 
@@ -247,23 +297,24 @@ class ReplayEffect internal constructor(
     }
 
     private fun updateStingersSetup(presentationTimeStamp: Double): ReplayEffectOutput {
-        val inReader = stingersInReader ?: return ReplayEffectOutput.Background
-        val outReader = stingersOutReader ?: return ReplayEffectOutput.Background
-        if (inReader.setupState == ReplayEffectStingerReaderSetupState.ok &&
-            outReader.setupState == ReplayEffectStingerReaderSetupState.ok)
-        {
+        val stingersInReader = this.stingersInReader ?: return ReplayEffectOutput.Background
+        val stingersOutReader = this.stingersOutReader ?: return ReplayEffectOutput.Background
+        if (stingersInReader.setupState == ReplayEffectStingerReaderSetupState.ok &&
+            stingersOutReader.setupState == ReplayEffectStingerReaderSetupState.ok
+        ) {
             startPresentationTimeStamp = presentationTimeStamp
             stingersInTransitionPointPresentationTimeStamp = presentationTimeStamp +
-                inReader.duration * stingersInTransitionPoint
-            stingersOutTransitionPointPresentationTimeStamp = stingersInTransitionPointPresentationTimeStamp +
-                duration / speed
-            stingersOutTransitionStartPresentationTimeStamp = stingersOutTransitionPointPresentationTimeStamp -
-                outReader.duration * stingersOutTransitionPoint
+                stingersInReader.duration * stingersInTransitionPoint
+            stingersOutTransitionPointPresentationTimeStamp =
+                stingersInTransitionPointPresentationTimeStamp + duration / speed
+            stingersOutTransitionStartPresentationTimeStamp =
+                stingersOutTransitionPointPresentationTimeStamp -
+                    stingersOutReader.duration * stingersOutTransitionPoint
             stingersState = StingersState.begin
-        } else if (inReader.setupState == ReplayEffectStingerReaderSetupState.failed) {
+        } else if (stingersInReader.setupState == ReplayEffectStingerReaderSetupState.failed) {
             reportBadStingerVideo()
             replayCompleted()
-        } else if (outReader.setupState == ReplayEffectStingerReaderSetupState.failed) {
+        } else if (stingersOutReader.setupState == ReplayEffectStingerReaderSetupState.failed) {
             reportBadStingerVideo()
             replayCompleted()
         }
@@ -274,12 +325,12 @@ class ReplayEffect internal constructor(
         updateCancelled(presentationTimeStamp)
         val backgroundImage = getStingersBackgroundImage(presentationTimeStamp)
         val offset = presentationTimeStamp - startPresentationTimeStamp!!
-        val stingerImage = stingersInReader?.getImage(offset)?.image
-        return if (stingerImage != null) {
-            ReplayEffectOutput.Stinger(stingerImage, backgroundImage)
+        val stingerImage = stingersInReader?.getImage(offset = offset)?.image
+        if (stingerImage != null) {
+            return ReplayEffectOutput.Stinger(stingerImage, backgroundImage)
         } else {
             stingersState = StingersState.middle
-            makeBackgroundOutput(backgroundImage)
+            return makeBackgroundOutput(backgroundImage)
         }
     }
 
@@ -294,12 +345,12 @@ class ReplayEffect internal constructor(
     private fun updateStingersEnd(presentationTimeStamp: Double): ReplayEffectOutput {
         val backgroundImage = getStingersBackgroundImage(presentationTimeStamp)
         val offset = presentationTimeStamp - stingersOutTransitionStartPresentationTimeStamp
-        val stingerImage = stingersOutReader?.getImage(offset)?.image
-        return if (stingerImage != null) {
-            ReplayEffectOutput.Stinger(stingerImage, backgroundImage)
+        val stingerImage = stingersOutReader?.getImage(offset = offset)?.image
+        if (stingerImage != null) {
+            return ReplayEffectOutput.Stinger(stingerImage, backgroundImage)
         } else {
             replayCompleted()
-            makeBackgroundOutput(backgroundImage)
+            return makeBackgroundOutput(backgroundImage)
         }
     }
 
@@ -310,11 +361,13 @@ class ReplayEffect internal constructor(
         return ReplayEffectOutput.Replay(replayImage)
     }
 
-    private fun getStingersBackgroundImage(presentationTimeStamp: Double): EffectImageCiImage? {
+    private fun getStingersBackgroundImage(
+        presentationTimeStamp: Double,
+    ): EffectImageCiImage? {
         return if (presentationTimeStamp < stingersInTransitionPointPresentationTimeStamp) {
             null
         } else if (presentationTimeStamp > stingersOutTransitionPointPresentationTimeStamp) {
-            updateStatus(duration / speed)
+            updateStatus(offset = duration / speed)
             null
         } else {
             getReplayImage(presentationTimeStamp)
@@ -323,22 +376,22 @@ class ReplayEffect internal constructor(
 
     private fun getReplayImage(presentationTimeStamp: Double): EffectImageCiImage? {
         val offset = presentationTimeStamp - stingersInTransitionPointPresentationTimeStamp
-        updateStatus(offset)
-        return reader.getImage(offset * speed).image
+        updateStatus(offset = offset)
+        return reader.getImage(offset = offset * speed).image
     }
 
     private fun updateCancelled(presentationTimeStamp: Double) {
-        if (!cancelled) {
+        val stingersOutReader = this.stingersOutReader
+        if (!cancelled || stingersOutReader == null) {
             return
         }
-        val outReader = stingersOutReader ?: return
         stingersState = StingersState.end
         stingersOutTransitionStartPresentationTimeStamp = presentationTimeStamp
         stingersOutTransitionPointPresentationTimeStamp = presentationTimeStamp +
-            outReader.duration * stingersOutTransitionPoint
+            stingersOutReader.duration * stingersOutTransitionPoint
     }
 
     private fun reportBadStingerVideo() {
-        delegate.replayEffectError(localized("Bad replay stinger video"))
+        delegate.get()?.replayEffectError(message = localized("Bad replay stinger video"))
     }
 }
