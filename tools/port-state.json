@@ -6636,28 +6636,27 @@
   "Moblin/Various/Detection.swift": {
     "status": "ok",
     "sha256": "87b77579404e0ba2a9fe8b75045933d20b408ec9f3692eb7a770b8aa150c0a68",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "full",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/Detection.kt",
     "notes": [
-      "Vision has no Android counterpart, so VNFaceObservation, VNFaceLandmarks2D and VNFaceLandmarkRegion2D are declared here as minimal local data holders so the pure landmark math stays compilable and readable.",
-      "VNFaceLandmarkRegion2D.pointsInImage(imageSize:) is the only Vision call that cannot be reproduced, so its body is TODO(); every caller around it is translated in full.",
-      "CGPoint, CGSize and CGRect are Float-based, so they map to androidx.compose.ui.geometry.Offset, Size and Rect.",
-      "CGFloat becomes Float and Double stays Double, matching the Swift signatures.",
-      "The Swift extension on VNFaceObservation becomes top-level extension functions with a VNFaceObservation receiver in the same package.",
-      "The private helper isEyeOpen stays a private top-level extension function.",
-      "CGRect(x:y:width:height:) becomes Rect(left, top, right, bottom) with left/right and top/bottom computed from the original x/y/width/height values.",
-      "calcBoundingBox keeps the Swift convention of using maxY as the top edge, since Vision landmark coordinates are y-flipped."
+      "VNFaceObservation extension methods become top-level extension functions on VNFaceObservation in com.moblin.android.various, since Kotlin cannot reopen a class.",
+      "CGFloat parameters and results map to Double; CoreGraphics shim types CGPoint/CGSize/CGRect are used unchanged.",
+      "Swift guard-let chains become early returns with firstOrNull()/lastOrNull() and the elvis operator.",
+      "private func isEyeOpen/getFacePoints become private top-level extension functions in this same file, matching Swift's file-scoped visibility.",
+      "The ASCII landmark-index diagram comment in isEyeOpen is dropped because generated Kotlin carries no comments.",
+      "Eye/mouth openness helpers keep their exact numeric thresholds (0.015, factor 6) and clamp behaviour.",
+      "rotateFace/rotatePoint/calcBoundingBox stay top-level functions with the same names and parameter labels as the Swift globals.",
+      "No iOS-only API without a shim is used: Vision, CoreGraphics and math all map onto the hand-written platform layer."
     ],
-    "unsupported": [
-      "Vision VNFaceLandmarkRegion2D.pointsInImage -> TODO(\"no Android counterpart for Vision VNFaceLandmarkRegion2D.pointsInImage\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2990,
-    "tokens_out": 10513,
-    "seconds": 41.0,
-    "ported_at": "2026-09-22T13:16:47+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 28508,
+    "tokens_out": 5936,
+    "seconds": 21.6,
+    "ported_at": "2026-09-23T19:32:52+00:00"
   },
   "Moblin/View/Stream/StreamGridView.swift": {
     "status": "ok",
@@ -6954,29 +6953,25 @@
   "Moblin/VideoEffects/Dewarp360/Dewarp360Filter.swift": {
     "status": "ok",
     "sha256": "6cd9ccdae3e128f82a3a5cdacd45b150f786023756764bc68ce1e3a14e84821c",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "full",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/dewarp360/Dewarp360Filter.kt",
     "notes": [
-      "outputImage, the whole CIWarpKernel render path, is TODO(\"OpenGL ES port\") as required for Core Image based effects.",
-      "The lazily loaded Metal metallib kernel (CIWarpKernel) became a private lazy placeholder holding TODO(); it is never evaluated because outputImage is not implemented.",
-      "CIWarpKernel, CIFilter, CIImage and CIVector have no Android equivalent: the class keeps its name and public parameters (inputImage, outputSize, fieldOfView, pan, tilt) but is no longer a filter subclass.",
-      "CIImage input is modelled as android.media.Image, matching the CVPixelBuffer -> android.media.Image mapping used by the media tier.",
-      "CGSize is replaced by a local Float-based data class SizeF so the float timestamp/size arithmetic stays identical.",
-      "CIVector(values:count:) is replaced by a FloatArray of three floats inside the (opaque) kernel argument list.",
-      "simd SIMD3<Float> and float3x3 are ported as local Float3 / Float3x3 types with the complete 3x3 multiplication implemented; the SIMD3 extension toCiVector() is kept as a top-level extension function.",
-      "Swift's Float overloads of sin/cos/tan are expressed with kotlin.math Double functions plus toFloat(); graphicsEpsilon is declared as Float so it can be used directly in size arithmetic."
+      "Top-level `graphicsEpsilon` and the lazily built `kernel` mirror Swift's file globals; the warp kernel is loaded from the app's default.metallib asset through the CIWarpKernel shim.",
+      "`Bundle.main.url(forResource:withExtension:)` plus `Data(contentsOf:)` become `Bundle.url(...)` plus `File(url).readBytes()`, and both `try?` become `runCatching{}.getOrNull()`, so the kernel is null when the metallib is missing.",
+      "`outputImage` is an override computed property that returns null when `inputImage` or the kernel is missing, matching the Swift `guard`; the two guards are read into local vals so the mutable properties can be used.",
+      "`extension SIMD3<Float> { toCiVector() }` stays a top-level extension function on the SIMD3 shim in this package; `CIVector(values:count:)` takes a List<Double>.",
+      "`float3x3(rows:)` uses the platform simd typealias and `rotation[i]` selects column i, exactly as in Swift.",
+      "`cos`, `sin` and `tan` come from kotlin.math and stay Float, matching Darwin's Float overloads, and the integer literals in the matrix rows are written as `0f`/`1f` for Kotlin's Float parameter types."
     ],
-    "unsupported": [
-      "CIFilter.outputImage / CIWarpKernel.apply render pipeline replaced by TODO(\"OpenGL ES port\")",
-      "CIWarpKernel.fromMetalLibraryData with the 'dewarp360' metallib and the Bundle.main resource lookup replaced by TODO()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2484,
-    "tokens_out": 9331,
-    "seconds": 37.2,
-    "ported_at": "2026-09-22T13:17:07+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 36026,
+    "tokens_out": 10943,
+    "seconds": 39.2,
+    "ported_at": "2026-09-23T19:33:32+00:00"
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoSnapshots.swift": {
     "status": "ok",
@@ -10498,30 +10493,27 @@
   "Moblin/VideoEffects/EffectUtils.swift": {
     "status": "ok",
     "sha256": "bb580267eaa43354b0fd45b21f5db074d97ed0722848f52ddcf0e3050b73d20e",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "full",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/EffectUtils.kt",
     "notes": [
-      "Geometry uses androidx.compose.ui.geometry Size/Offset/Rect for CGSize/CGPoint/CGRect; every layout calculation is kept complete and in Double precision.",
-      "CIImage and MTIImage have no Android counterpart, so two placeholder classes holding only extent are declared at the end of this file; all pixel/graph work is TODO(\"OpenGL ES port\").",
-      "CGImage maps to android.graphics.Bitmap and CVPixelBuffer maps to android.media.Image, matching the media tier mapping.",
-      "moveComposited builds MetalPetalWidgetShape(contentRegion = region), assuming the ported shape type keeps the Swift memberwise initializer with defaulted parameters; adjust if it takes ShapeEffectSettings instead.",
-      "SettingsWidgetLayout.x, .y and .size are read as Double percentages and SettingsAlignment keeps isLeft()/isTop()/isHorizontalCenter()/isVerticalCenter().",
-      "highQualityDownsampling stays a mutable top-level var and is referenced from the TODO in CIImage.scaled().",
-      "The lazy caching in the three EffectImage classes is preserved; only the image construction itself is a TODO.",
-      "The extra +1 pixel corrections for right/bottom alignment inside CIImage.move() are copied verbatim."
+      "The top-level mutable global highQualityDownsampling becomes a @Volatile Kotlin top-level var; CIImage.scaled passes it to transformed(by, highQualityDownsample).",
+      "Swift `CGImage` and `UIImage` are `android.graphics.Bitmap` here, so the three EffectImage wrappers store a Bitmap, a CIImage or a CVPixelBuffer respectively and keep their lazy caches.",
+      "`protocol EffectImage` becomes `interface EffectImage`; the three conformers are plain classes (Swift `final class`).",
+      "All Swift extensions on CIImage, CGImage and MTIImage become top-level extension functions in this package because CIImage, Bitmap and MTIImage are platform types that cannot host members.",
+      "CIImage/MTIImage are reference types in this port, so `if let image { return image }` style caches keep their identity semantics and no copy is needed.",
+      "`MTILayer` FlipOptions `[]` is written as `MTILayer.FlipOptions.donotFlip`; the border is still drawn as a white MTILayer behind the content, with no borderWidth parameter on MTILayer.",
+      "layoutPosition, metalPetalLayerPosition and the composited helpers read SettingsWidgetLayout, its SettingsAlignment predicates and layout.size/x/y exactly as on iOS, including the extra-pixel correction in CIImage.move.",
+      "toPixels keeps Swift's positional shape (percentage, total); it is called positionally from ShapeEffect.kt in the same package."
     ],
-    "unsupported": [
-      "Core Image (CIImage): construction from Bitmap/Image and the CGAffineTransform based translated()/scaled() replaced by TODO(\"OpenGL ES port\")",
-      "MetalPetal (MTIImage, MTILayer, MTIMultilayerCompositingFilter): layer compositing in positionComposited() and composited() replaced by TODO(\"OpenGL ES port\")",
-      "Vision framework import: unused in this file, no Android counterpart"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5759,
-    "tokens_out": 22145,
-    "seconds": 82.9,
-    "ported_at": "2026-09-22T13:28:54+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 43387,
+    "tokens_out": 10481,
+    "seconds": 34.9,
+    "ported_at": "2026-09-23T19:37:44+00:00"
   },
   "Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamsSettingsView.swift": {
     "status": "ok",
@@ -11777,28 +11769,27 @@
   "Moblin/VideoEffects/ShapeEffect.swift": {
     "status": "ok",
     "sha256": "4634cd072052b11a03c774dde9856be59b62254f1391b604455bc20e1c8c44e3",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "full",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/ShapeEffect.kt",
     "notes": [
-      "Core Image rendering (roundedRectangleGenerator, blendWithMask, image crop/scale/translate/composite) has no Android counterpart, so those bodies are TODO(\"OpenGL ES port\"); the settings cache logic in makeMaskImage is kept.",
-      "CGRect -> androidx.compose.ui.geometry.Rect, CGSize -> androidx.compose.ui.geometry.Size; Rect.width/height/size are not used, widths are computed from left/top/right/bottom to stay on guaranteed members.",
-      "MetalPetal has no Android equivalent: MTIColor and MTILayer.FlipOptions are declared at the top of this file as port stand-ins, and MTICornerRadius (returned by cornerRadius(size)) is replaced by Float pixels.",
-      "MaskImage is a Kotlin class rather than a Swift struct with mutating methods, so the Swift inout cache parameters of makeMaskImage work by reference instead.",
-      "CIColor (settings.borderColor) and MTIColor are both ported as MTIColor, so the component copy inside modifyMetalPetalWidgetShape is a straight copy of red/green/blue/alpha.",
-      "VideoEffect is assumed to be an open class whose hooks are executeEarly/execute(image: EffectImage, info: VideoEffectInfo): EffectImage and modifyMetalPetalWidgetShape(shape: MetalPetalWidgetShape) - the Swift inout parameter becomes a mutable data class argument.",
-      "processorPipelineQueue is assumed to be a CoroutineScope, so setSettings launches on it where the Swift code did processorPipelineQueue.async.",
-      "All numeric math (border width pixels, corner radius pixels, border scale factors, crop rect, quarter-turn rotation) is translated as-is with Double where Swift used CGFloat/Double."
+      "MetalPetalWidgetShape and MaskImage are data classes with var properties, so the Swift inout mutation sites (modifyMetalPetalWidgetShape and the makeMaskImage cache) keep working in place.",
+      "CGRect is not a value type in the platform layer, so the mask cache compares extents component-wise in the file-private shapeSameExtent helper.",
+      "setSettings hops onto processorPipelineQueue with launch, matching Swift's async block (the block captures this strongly, as in Swift).",
+      "CIImage/CIFilter/CIColor and MTIColor/MTICornerRadius/MTILayer come from the hand-written Core Image and MetalPetal shims; toPixels, scaled and translated come from EffectUtils in this same package.",
+      "shapeBorderWidthPixels and shapeCornerRadiusPixels stay file-private top-level functions; shapeCornerRadiusPixels converts to Float and divides by the Int literal 2 exactly like Swift.",
+      "The consecutive writes to maskExtent.origin/size were folded into one CGRect.copy call.",
+      "ShapeEffectSettings keeps val fields as a settings value type and borderWidthAndScale returns a Triple destructured at the call sites.",
+      "executeEarly/execute keep the unnamed VideoEffectInfo parameter under the base class name info."
     ],
-    "unsupported": [
-      "Core Image (CIImage, CIFilter.roundedRectangleGenerator, CIFilter.blendWithMask, CIImage.cropped/scaled/translated/composited) - replaced by TODO(\"OpenGL ES port\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3971,
-    "tokens_out": 22610,
-    "seconds": 87.1,
-    "ported_at": "2026-09-22T13:33:04+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 43525,
+    "tokens_out": 16618,
+    "seconds": 58.2,
+    "ported_at": "2026-09-23T19:38:42+00:00"
   },
   "Moblin/Integrations/Emotes/Emotes.swift": {
     "status": "ok",
@@ -11827,28 +11818,26 @@
   "Moblin/Media/HaishinKit/Media/Video/VideoEffect.swift": {
     "status": "ok",
     "sha256": "c9808007d171c69e782621a9b36e220814f141be9dfab3770f1d8a104d5aa004",
+    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "mode": "full",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt",
     "notes": [
-      "Core Image (CIImage) and MetalPetal (MTIImage) have no Android counterpart, so both pipelines are represented by android.media.Image; the CIImage(cvPixelBuffer:) and MTIImage(cvPixelBuffer:) wrappers become identity expressions because CVPixelBuffer already maps to android.media.Image.",
-      "VideoEffectInfo is a struct -> data class; CMTime presentationTimeStamp -> Long microseconds (us).",
-      "The Vision framework has no Android equivalent, so sceneFaceDetections() and faceDetections(_:) keep their signatures but their bodies are TODO(\"no Android counterpart for Vision framework\"); VNFaceObservation degrades to List<Any>.",
-      "Swift's unnamed parameters (_: Double, _: CGSize, etc.) had to be given Kotlin names (time, size, info) because Kotlin requires parameter names.",
-      "CGRect -> android.graphics.RectF and CGSize -> android.util.Size; image.extent is computed from Image.width/Image.height since android.media.Image has no extent.",
-      "modifyMetalPetalWidgetShape uses Swift inout, which Kotlin cannot express: the shape is passed as the (mutable) MetalPetalWidgetShape object, so an effect can mutate but not rebind the reference.",
-      "Swift locals that shadow a parameter (var image = image, let image = ...) were renamed to result/processed because Kotlin forbids same-scope shadowing.",
-      "The extension functions resizeMirror, move, cropped and resizeMirrorMoveComposited are assumed to exist in this package for the ported image types."
+      "VideoEffectInfo is a data class; presentationTimeStamp is Long microseconds (CMTime) and DetectionJob.imageBuffer is used as a CVPixelBuffer.",
+      "VideoEffectDetectionsMode's associated values become the sealed cases Off, Now and Interval (Swift's `.now(id)` / `.interval(id, d)`).",
+      "VideoEffect is an open class, so every member is `open`; effects is a MutableList<VideoEffect> because Swift mutates it in place.",
+      "The Swift `inout MetalPetalWidgetShape` mutates the shared data class object, so the widgetShape argument is passed through, never copied.",
+      "CIImage.resizeMirror / CIImage.move and MTIImage.resizeMirrorMoveComposited have no port listed in the request glossary; they are called on the image exactly as Swift does and must resolve from the file that declares them.",
+      "graphicsEpsilon used by applyEffects comes from com.moblin.android.videoeffects.dewarp360.",
+      "Swift's unlabeled `_` parameters are given descriptive Kotlin names (image, info, mirror, ...); call sites pass them positionally."
     ],
-    "unsupported": [
-      "VNFaceObservation / Vision framework face observations (sceneFaceDetections, faceDetections)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4695,
-    "tokens_out": 11752,
-    "seconds": 47.1,
-    "ported_at": "2026-09-22T13:33:32+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 41256,
+    "tokens_out": 10363,
+    "seconds": 38.5,
+    "ported_at": "2026-09-23T19:39:21+00:00"
   },
   "Moblin/Media/MobcamStream/MobcamStream.swift": {
     "status": "ok",

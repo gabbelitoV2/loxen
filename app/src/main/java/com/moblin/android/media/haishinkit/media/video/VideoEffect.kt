@@ -1,9 +1,12 @@
 package com.moblin.android.media.haishinkit.media.video
 
-import android.graphics.RectF
-import com.moblin.android.platform.video.CVPixelBuffer as Image
-import android.util.Size
-import androidx.compose.ui.geometry.Rect
+import com.moblin.android.platform.coregraphics.CGRect
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIAlphaType
+import com.moblin.android.platform.metalpetal.MTIImage
+import com.moblin.android.platform.video.CVPixelBuffer
+import com.moblin.android.platform.vision.VNFaceObservation
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.videoeffects.MetalPetalWidgetShape
 import com.moblin.android.videoeffects.dewarp360.graphicsEpsilon
@@ -21,45 +24,47 @@ data class VideoEffectInfo(
         return detections[sceneVideoSourceId]
     }
 
-    fun sceneFaceDetections(): List<Any>? {
-        return null
+    fun sceneFaceDetections(): List<VNFaceObservation>? {
+        return detections[sceneVideoSourceId]?.face
     }
 
-    fun faceDetections(videoSourceId: UUID): List<Any>? {
-        return null
+    fun faceDetections(videoSourceId: UUID): List<VNFaceObservation>? {
+        return detections[videoSourceId]?.face
     }
 
-    fun getCiImage(videoSourceId: UUID): com.moblin.android.platform.coreimage.CIImage? {
+    fun getCiImage(videoSourceId: UUID): CIImage? {
         val imageBuffer = detectionJobs
             .firstOrNull { it.videoSourceId == videoSourceId }
             ?.imageBuffer
             ?: return videoUnit.getCiImage(videoSourceId, presentationTimeStamp)
-        return com.moblin.android.platform.coreimage.CIImage(cvPixelBuffer = imageBuffer)
+        return CIImage(cvPixelBuffer = imageBuffer)
     }
 
-    fun getMetalPetalImage(videoSourceId: UUID): com.moblin.android.platform.metalpetal.MTIImage? {
+    fun getMetalPetalImage(videoSourceId: UUID): MTIImage? {
         val imageBuffer = detectionJobs
             .firstOrNull { it.videoSourceId == videoSourceId }
             ?.imageBuffer
             ?: return videoUnit.getMetalPetalImage(videoSourceId, presentationTimeStamp)
-        return com.moblin.android.platform.metalpetal.MTIImage(cvPixelBuffer = imageBuffer, alphaType = com.moblin.android.platform.metalpetal.MTIAlphaType.alphaIsOne)
+        return MTIImage(cvPixelBuffer = imageBuffer, alphaType = MTIAlphaType.alphaIsOne)
     }
 }
 
 sealed class VideoEffectDetectionsMode {
     object Off : VideoEffectDetectionsMode()
+
     data class Now(val videoSourceId: UUID?) : VideoEffectDetectionsMode()
+
     data class Interval(val videoSourceId: UUID?, val interval: Double) : VideoEffectDetectionsMode()
 }
 
 open class VideoEffect {
     var effects: MutableList<VideoEffect> = mutableListOf()
 
-    open fun needsFaceDetections(time: Double): VideoEffectDetectionsMode {
+    open fun needsFaceDetections(interval: Double): VideoEffectDetectionsMode {
         return VideoEffectDetectionsMode.Off
     }
 
-    open fun needsTextDetections(time: Double): VideoEffectDetectionsMode {
+    open fun needsTextDetections(interval: Double): VideoEffectDetectionsMode {
         return VideoEffectDetectionsMode.Off
     }
 
@@ -67,15 +72,15 @@ open class VideoEffect {
         return true
     }
 
-    open fun executeEarly(image: Image, info: VideoEffectInfo): Image {
+    open fun executeEarly(image: CIImage, info: VideoEffectInfo): CIImage {
         return image
     }
 
-    open fun execute(image: Image, info: VideoEffectInfo): Image {
+    open fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
         return image
     }
 
-    open fun executeMetalPetal(image: Image, info: VideoEffectInfo): Image {
+    open fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
         return image
     }
 
@@ -83,52 +88,47 @@ open class VideoEffect {
         return false
     }
 
-    open fun prepare(size: Size, info: VideoEffectInfo) {
-    }
+    open fun prepare(size: CGSize, info: VideoEffectInfo) {}
 
-    open fun removed() {
-    }
+    open fun removed() {}
 
     open fun shouldRemove(): Boolean {
         return false
     }
 
     open fun applyEffectsResizeMirrorMove(
-        image: Image,
+        image: CIImage,
         sceneWidget: SettingsSceneWidget,
         mirror: Boolean,
-        backgroundImageExtent: RectF,
+        backgroundImageExtent: CGRect,
         info: VideoEffectInfo,
-    ): Image {
-        val backgroundSize = Size(
-            backgroundImageExtent.width().toInt(),
-            backgroundImageExtent.height().toInt(),
-        )
+    ): CIImage {
         val resizedImage = applyEarlyEffects(image, info)
-        return TODO("CIImage resizeMirror/move/cropped has no Android counterpart")
+            .resizeMirror(sceneWidget.layout, backgroundImageExtent.size, mirror)
+        return applyEffects(resizedImage, info)
+            .move(sceneWidget.layout, backgroundImageExtent.size)
+            .cropped(to = backgroundImageExtent)
     }
 
     open fun applyEffectsResizeMirrorMoveMetalPetal(
-        image: Image,
+        image: MTIImage,
         sceneWidget: SettingsSceneWidget,
         mirror: Boolean,
-        backgroundImage: Image,
+        backgroundImage: MTIImage,
         info: VideoEffectInfo,
         widgetShape: MetalPetalWidgetShape? = null,
-    ): Image {
-        val shape = widgetShape
-            ?: MetalPetalWidgetShape(Rect(0.0f, 0.0f, image.width.toFloat(), image.height.toFloat()))
-        val processed = applyEffectsMetalPetal(image, info)
+    ): MTIImage {
+        val shape = widgetShape ?: MetalPetalWidgetShape(contentRegion = image.extent)
+        val processedImage = applyEffectsMetalPetal(image, info)
         for (effect in effects) {
             effect.modifyMetalPetalWidgetShape(shape)
         }
-        return TODO("MTIImage resizeMirrorMoveComposited has no Android counterpart")
+        return processedImage.resizeMirrorMoveComposited(sceneWidget.layout, mirror, backgroundImage, shape)
     }
 
-    open fun modifyMetalPetalWidgetShape(shape: MetalPetalWidgetShape) {
-    }
+    open fun modifyMetalPetalWidgetShape(shape: MetalPetalWidgetShape) {}
 
-    private fun applyEarlyEffects(image: Image, info: VideoEffectInfo): Image {
+    private fun applyEarlyEffects(image: CIImage, info: VideoEffectInfo): CIImage {
         var result = image
         for (effect in effects) {
             result = effect.executeEarly(result, info)
@@ -136,17 +136,15 @@ open class VideoEffect {
         return result
     }
 
-    private fun applyEffects(image: Image, info: VideoEffectInfo): Image {
+    private fun applyEffects(image: CIImage, info: VideoEffectInfo): CIImage {
         var result = image
         for (effect in effects) {
             result = effect.execute(result, info)
         }
-        val extent = RectF(0f, 0f, result.width.toFloat(), result.height.toFloat())
-        extent.inset(graphicsEpsilon.toFloat(), graphicsEpsilon.toFloat())
-        return TODO("CIImage cropped(to:) has no Android counterpart")
+        return result.cropped(to = result.extent.insetBy(dx = graphicsEpsilon, dy = graphicsEpsilon))
     }
 
-    private fun applyEffectsMetalPetal(image: Image, info: VideoEffectInfo): Image {
+    private fun applyEffectsMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
         var result = image
         for (effect in effects) {
             result = effect.executeMetalPetal(result, info)

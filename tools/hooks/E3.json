@@ -1,182 +1,93 @@
 {
-  "task": "E3",
-  "hooks": [
-    {
-      "id": "HE3.1",
-      "file": "videoeffects/text/TextEffectFormatter.kt",
-      "scope": "class TextEffectFormatter",
-      "op": "replace",
-      "old": "    var timersEndTime: List<Long>",
-      "new": "    var timersEndTime: List<com.moblin.android.platform.core.ContinuousClock.Instant>",
-      "occurrence": 1,
-      "note": "ME1, kept file. Timer end times are on the ContinuousClock timeline."
-    },
-    {
-      "id": "HE3.2",
-      "file": "videoeffects/text/TextEffectFormatter.kt",
-      "scope": "class TextEffectFormatter",
-      "op": "replace",
-      "old": "        timersEndTime: List<Long>,",
-      "new": "        timersEndTime: List<com.moblin.android.platform.core.ContinuousClock.Instant>,",
-      "occurrence": 1,
-      "note": "ME1, kept file."
-    },
-    {
-      "id": "HE3.3",
-      "file": "videoeffects/text/TextEffectFormatter.kt",
-      "scope": "class TextEffectFormatter",
-      "op": "replace",
-      "old": "    fun format(variables: Variables, now: Long): List<TextEffectLine> {",
-      "new": "    fun format(variables: Variables, now: com.moblin.android.platform.core.ContinuousClock.Instant): List<TextEffectLine> {",
-      "occurrence": 1,
-      "note": "ME1, kept file, with HE0.40."
-    },
-    {
-      "id": "HE3.4",
-      "file": "videoeffects/text/TextEffectFormatter.kt",
-      "scope": "class TextEffectFormatter",
-      "op": "replace",
-      "old": "    private fun formatTimer(variables: Variables, now: Long) {",
-      "new": "    private fun formatTimer(variables: Variables, now: com.moblin.android.platform.core.ContinuousClock.Instant) {",
-      "occurrence": 1,
-      "note": "ME1, kept file."
-    },
-    {
-      "id": "HE3.5",
-      "file": "videoeffects/text/TextEffectFormatter.kt",
-      "scope": "class TextEffectFormatter",
-      "op": "replace",
-      "old": "    private fun formatStopwatch(variables: Variables, now: Long) {",
-      "new": "    private fun formatStopwatch(variables: Variables, now: com.moblin.android.platform.core.ContinuousClock.Instant) {",
-      "occurrence": 1,
-      "note": "ME1, kept file."
-    },
-    {
-      "id": "HE3.6",
-      "file": "videoeffects/text/TextEffectFormatter.kt",
-      "scope": "fun formatTimer",
-      "op": "replace",
-      "old": "            val timeLeft = maxOf((timersEndTime[timerIndex] - now) / 1_000_000_000.0, 0.0)",
-      "new": "            val timeLeft = maxOf(now.duration(to = timersEndTime[timerIndex]).toDouble(kotlin.time.DurationUnit.SECONDS), 0.0)",
-      "occurrence": 1,
-      "note": "ME1, kept file."
-    },
-    {
-      "id": "HE3.7",
-      "file": "videoeffects/text/TextEffectFormatter.kt",
-      "scope": "fun formatStopwatch",
-      "op": "replace",
-      "old": "                val playPressedTime = stopwatch.playPressedTime.epochSecond * 1_000_000_000L +",
-      "new": "                elapsed += java.time.Duration.between(stopwatch.playPressedTime, java.time.Instant.now()).toNanos() / 1_000_000_000.0",
-      "occurrence": 1,
-      "note": "ME1, kept file. playPressedTime is a wall-clock java.time.Instant. Paired with the deletes HE3.8 and HE3.9."
-    },
-    {
-      "id": "HE3.8",
-      "file": "videoeffects/text/TextEffectFormatter.kt",
-      "scope": "fun formatStopwatch",
-      "op": "delete",
-      "old": "                    stopwatch.playPressedTime.nano",
-      "occurrence": 1,
-      "note": "ME1, kept file, with HE3.7."
-    },
-    {
-      "id": "HE3.9",
-      "file": "videoeffects/text/TextEffectFormatter.kt",
-      "scope": "fun formatStopwatch",
-      "op": "delete",
-      "old": "                elapsed += (now - playPressedTime) / 1_000_000_000.0",
-      "occurrence": 1,
-      "note": "ME1, kept file, with HE3.7."
-    },
-    {
-      "id": "HE3.10",
-      "file": "videoeffects/text/TextEffect.kt",
-      "scope": "class TextEffect",
-      "op": "replace",
-      "old": "    timersEndTime: MutableList<Long>,",
-      "new": "    timersEndTime: MutableList<com.moblin.android.platform.core.ContinuousClock.Instant>,",
-      "occurrence": 1,
-      "note": "Interim boundary for R11.4 until the ME1 re-translation; retire at ME1."
-    },
-    {
-      "id": "HE3.11",
-      "file": "videoeffects/text/TextEffect.kt",
-      "scope": "class TextEffect",
-      "op": "replace",
-      "old": "    fun setTimersEndTime(endTimes: MutableList<Long>) {",
-      "new": "    fun setTimersEndTime(endTimes: MutableList<com.moblin.android.platform.core.ContinuousClock.Instant>) {",
-      "occurrence": 1,
-      "note": "Interim boundary for R11.5 until the ME1 re-translation; retire at ME1."
-    },
-    {
-      "id": "HE3.12",
-      "file": "videoeffects/text/TextEffect.kt",
-      "scope": "class TextEffect",
-      "op": "replace",
-      "old": "    fun setEndTime(index: Int, endTime: Long) {",
-      "new": "    fun setEndTime(index: Int, endTime: com.moblin.android.platform.core.ContinuousClock.Instant) {",
-      "occurrence": 1,
-      "note": "Interim boundary for HE0.5 and HE0.6 until the ME1 re-translation; retire at ME1."
-    },
-    {
-      "id": "HE3.14",
-      "file": "videoeffects/text/TextEffect.kt",
-      "scope": "fun formatted\nnow: Long",
-      "op": "replace",
-      "old": "        return formatter.format(variables = variables, now = now)",
-      "new": "        return formatter.format(variables = variables, now = com.moblin.android.platform.core.ContinuousClock.Instant(now))",
-      "occurrence": 1,
-      "note": "Interim, with HE3.3; retire at ME1. The scope only matches today's formatted(now: Long), so the hook never touches the re-translated formatted(now: ContinuousClock.Instant), whose return line is the same as the old line."
-    },
-    {
-      "id": "HE3.15",
-      "file": "videoeffects/text/TextEffect.kt",
-      "scope": "fun updateOverlayIfNeeded",
-      "op": "replace",
-      "old": "            val now = System.nanoTime()",
-      "new": "            val now = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds",
-      "occurrence": 1,
-      "note": "Interim: now is compared with Variables.timestamp (ContinuousClock nanoseconds, HE0.39); retire at ME1."
-    },
-    {
-      "id": "HE3.16",
-      "file": "videoeffects/text/TextEffect.kt",
-      "scope": "class TextEffect",
-      "op": "replace",
-      "old": "    private var nextUpdateTime = System.nanoTime()",
-      "new": "    private var nextUpdateTime = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds",
-      "occurrence": 1,
-      "note": "Interim, with HE3.15; retire at ME1."
-    },
-    {
-      "id": "HE3.13",
-      "file": "videoeffects/text/TextEffect.kt",
-      "scope": "class TextEffect",
-      "op": "insert_after",
-      "anchor": "    private var nextUpdateTime = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds",
-      "new": "    fun setEndTime(index: Int, endTime: Long) = setEndTime(index = index, endTime = com.moblin.android.platform.core.ContinuousClock.Instant(endTime))",
-      "note": "Interim overload that keeps WidgetTextSettingsView.kt compiling until the build owner applies HE0.6; retire at ME1. Anchored on HE3.16's new line, which the re-translation does not produce, so the overload is never inserted into the regenerated file; listed after HE3.16."
-    },
-    {
-      "id": "HE3.17",
-      "file": "videoeffects/SnapshotEffect.kt",
-      "scope": "class SnapshotEffect",
-      "op": "replace",
-      "old": "    fun appendSnapshot(image: CIImage) {",
-      "new": "    fun appendSnapshot(image: com.moblin.android.platform.coreimage.CIImage) {",
-      "occurrence": 1,
-      "note": "Interim boundary for HE0.7's ME1 line until the ME1 re-translation; retire at ME1."
-    },
-    {
-      "id": "HE3.18",
-      "file": "videoeffects/SnapshotEffect.kt",
-      "scope": "fun appendSnapshot",
-      "op": "replace",
-      "old": "            appendSnapshotInternal(image)",
-      "new": "            appendSnapshotInternal(image as? CIImage ?: return@launch)",
-      "occurrence": 1,
-      "note": "Interim with HE3.17; retire at ME1. Today CIImage in this file is the videoeffects placeholder, so the cast fails and the snapshot is dropped, as with HE0.7's ME0 line. If the hook reaches the re-translated file (same old line), CIImage is the platform class and the snapshot is appended."
-    }
-  ]
+ "task": "E3",
+ "hooks": [
+  {
+   "id": "HE3.1",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "class TextEffectFormatter",
+   "op": "replace",
+   "old": "    var timersEndTime: List<Long>",
+   "new": "    var timersEndTime: List<com.moblin.android.platform.core.ContinuousClock.Instant>",
+   "occurrence": 1,
+   "note": "ME1, kept file. Timer end times are on the ContinuousClock timeline."
+  },
+  {
+   "id": "HE3.2",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "class TextEffectFormatter",
+   "op": "replace",
+   "old": "        timersEndTime: List<Long>,",
+   "new": "        timersEndTime: List<com.moblin.android.platform.core.ContinuousClock.Instant>,",
+   "occurrence": 1,
+   "note": "ME1, kept file."
+  },
+  {
+   "id": "HE3.3",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "class TextEffectFormatter",
+   "op": "replace",
+   "old": "    fun format(variables: Variables, now: Long): List<TextEffectLine> {",
+   "new": "    fun format(variables: Variables, now: com.moblin.android.platform.core.ContinuousClock.Instant): List<TextEffectLine> {",
+   "occurrence": 1,
+   "note": "ME1, kept file, with HE0.40."
+  },
+  {
+   "id": "HE3.4",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "class TextEffectFormatter",
+   "op": "replace",
+   "old": "    private fun formatTimer(variables: Variables, now: Long) {",
+   "new": "    private fun formatTimer(variables: Variables, now: com.moblin.android.platform.core.ContinuousClock.Instant) {",
+   "occurrence": 1,
+   "note": "ME1, kept file."
+  },
+  {
+   "id": "HE3.5",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "class TextEffectFormatter",
+   "op": "replace",
+   "old": "    private fun formatStopwatch(variables: Variables, now: Long) {",
+   "new": "    private fun formatStopwatch(variables: Variables, now: com.moblin.android.platform.core.ContinuousClock.Instant) {",
+   "occurrence": 1,
+   "note": "ME1, kept file."
+  },
+  {
+   "id": "HE3.6",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatTimer",
+   "op": "replace",
+   "old": "            val timeLeft = maxOf((timersEndTime[timerIndex] - now) / 1_000_000_000.0, 0.0)",
+   "new": "            val timeLeft = maxOf(now.duration(to = timersEndTime[timerIndex]).toDouble(kotlin.time.DurationUnit.SECONDS), 0.0)",
+   "occurrence": 1,
+   "note": "ME1, kept file."
+  },
+  {
+   "id": "HE3.7",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatStopwatch",
+   "op": "replace",
+   "old": "                val playPressedTime = stopwatch.playPressedTime.epochSecond * 1_000_000_000L +",
+   "new": "                elapsed += java.time.Duration.between(stopwatch.playPressedTime, java.time.Instant.now()).toNanos() / 1_000_000_000.0",
+   "occurrence": 1,
+   "note": "ME1, kept file. playPressedTime is a wall-clock java.time.Instant. Paired with the deletes HE3.8 and HE3.9."
+  },
+  {
+   "id": "HE3.8",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatStopwatch",
+   "op": "delete",
+   "old": "                    stopwatch.playPressedTime.nano",
+   "occurrence": 1,
+   "note": "ME1, kept file, with HE3.7."
+  },
+  {
+   "id": "HE3.9",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatStopwatch",
+   "op": "delete",
+   "old": "                elapsed += (now - playPressedTime) / 1_000_000_000.0",
+   "occurrence": 1,
+   "note": "ME1, kept file, with HE3.7."
+  }
+ ]
 }

@@ -1,34 +1,25 @@
 {
-  "task": "E8",
-  "hooks": [
-    {
-      "id": "HE8.1",
-      "file": "view/settings/scenes/widgets/widget/effects/MaskEffectView.kt",
-      "scope": "fun MaskEffectView",
-      "op": "replace",
-      "old": "            isPortrait = TODO(\"Model.stream.portrait has no Android counterpart\"),",
-      "new": "            isPortrait = model.stream.value.portrait,",
-      "occurrence": 1,
-      "note": "ME0 guard, final. Registered in the ME1 preparation, applied by the build owner with postprocess (view files)."
-    },
-    {
-      "id": "HE8.2",
-      "file": "view/settings/scenes/widgets/widget/effects/MaskEffectView.kt",
-      "scope": "fun drawPolygon",
-      "op": "replace",
-      "old": "        val path = makeCatmullRomPath(pts.map { PointF(it.x, it.y) }, tension.toFloat()).asComposePath()",
-      "new": "        val path = makeCatmullRomPath(pts.map { com.moblin.android.platform.coregraphics.CGPoint(it.x, it.y) }, tension = tension.toDouble()).asComposePath()",
-      "occurrence": 1,
-      "note": "ME1 (effects plan 3 E8). Deferred: view file, applied by the build owner's postprocess. Compiles before the re-translation of MaskEffect.kt through the interim overload HE8.3, and after it against the regenerated makeCatmullRomPath(List<CGPoint>, tension: Double): CGMutablePath."
-    },
-    {
-      "id": "HE8.3",
-      "file": "videoeffects/MaskEffect.kt",
-      "op": "replace",
-      "old": "fun makeCatmullRomPath(points: List<PointF>, tension: Float): Path {",
-      "new": "fun makeCatmullRomPath(points: List<com.moblin.android.platform.coregraphics.CGPoint>, tension: Double): Path = makeCatmullRomPath(points.map { PointF(it.x.toFloat(), it.y.toFloat()) }, tension.toFloat()); fun makeCatmullRomPath(points: List<PointF>, tension: Float): Path {",
-      "occurrence": 1,
-      "note": "Interim overload (CGPoint, Double) in front of today's PointF version, so that the deferred view hook HE8.2 compiles whenever postprocess applies it, before MaskEffect.kt is re-translated. The old line is today's PointF signature, which the re-translation does not produce. Retire at ME1."
-    }
-  ]
+ "task": "E8",
+ "hooks": [
+  {
+   "id": "HE8.1",
+   "file": "view/settings/scenes/widgets/widget/effects/MaskEffectView.kt",
+   "scope": "fun MaskEffectView",
+   "op": "replace",
+   "old": "            isPortrait = TODO(\"Model.stream.portrait has no Android counterpart\"),",
+   "new": "            isPortrait = model.stream.value.portrait,",
+   "occurrence": 1,
+   "note": "ME0 guard, final. Registered in the ME1 preparation, applied by the build owner with postprocess (view files)."
+  },
+  {
+   "id": "HE8.2",
+   "file": "view/settings/scenes/widgets/widget/effects/MaskEffectView.kt",
+   "scope": "fun drawPolygon",
+   "op": "replace",
+   "old": "        val path = makeCatmullRomPath(pts.map { PointF(it.x, it.y) }, tension.toFloat()).asComposePath()",
+   "new": "        val path = makeCatmullRomPath(pts.map { com.moblin.android.platform.coregraphics.CGPoint(it.x, it.y) }, tension = tension.toDouble()).asComposePath()",
+   "occurrence": 1,
+   "note": "ME1 (effects plan 3 E8). Deferred: view file, applied by the build owner's postprocess. Compiles before the re-translation of MaskEffect.kt through the interim overload HE8.3, and after it against the regenerated makeCatmullRomPath(List<CGPoint>, tension: Double): CGMutablePath."
+  }
+ ]
 }

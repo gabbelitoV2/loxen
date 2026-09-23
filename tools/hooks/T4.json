@@ -1,351 +1,313 @@
 {
-  "task": "T4",
-  "hooks": [
-    {
-      "id": "H4.1",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun attachDefault",
-      "op": "replace",
-      "old": "                    name = TODO(\"no Android counterpart for AVCaptureDevice.localizedName\"),",
-      "new": "                    name = (device.device as com.moblin.android.platform.avfoundation.AVCaptureDevice).localizedName,",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.2",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun attachDefault",
-      "op": "replace",
-      "old": "                bufferedVideos[device.id] = bufferedVideo",
-      "new": "                bufferedVideos.put(device.id, bufferedVideo)?.close()",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.3",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun startPreviewEncoding",
-      "op": "replace",
-      "old": "        encoder.settings.mutate { settings }",
-      "new": "        encoder.settings.mutate { it.value = settings }",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.4",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun makePresentationTimeStamp",
-      "op": "replace",
-      "old": "        return (outputCounter * 1_000_000 / captureSession.getFps()).toLong() + startPresentationTimeStamp",
-      "new": "        return (outputCounter * 1_000_000 / captureSession.getFps().toInt()) + startPresentationTimeStamp",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.5",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun getBufferedBufferPool",
-      "op": "replace",
-      "old": "        return null",
-      "new": "        return com.moblin.android.platform.video.CVPixelBufferPool.matching(bufferedPool, sampleBuffer).also { bufferedPool = it }",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.6",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun createBufferedPixelBuffer",
-      "op": "replace",
-      "old": "        return null",
-      "new": "        return (getBufferedBufferPool(sampleBuffer) as? com.moblin.android.platform.video.CVPixelBufferPool)?.createPixelBuffer()",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.7",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun removeBufferedVideoInternal",
-      "op": "replace",
-      "old": "        bufferedVideos.remove(cameraId)",
-      "new": "        bufferedVideos.remove(cameraId)?.close()",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.8",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun makeBlackSampleBuffer",
-      "op": "replace",
-      "old": "        val buffer = blackImageBuffer",
-      "new": "        val buffer = blackImageBuffer ?: com.moblin.android.platform.video.makeBlackPixelBuffer(canvasSize.width, canvasSize.height)?.also { blackImageBuffer = it; blackFormatDescription = com.moblin.android.platform.video.CMVideoFormatDescriptionCreateForImageBuffer(it) }",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.9",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun detectObjects",
-      "op": "replace",
-      "old": "        Unit",
-      "new": "        processorPipelineQueue.launch { completion.detections[detectionJob.videoSourceId] = Detections(face = emptyList(), text = emptyList()); detectObjectsComplete(completion) }",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.10",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun makeCopy",
-      "op": "replace",
-      "old": "        return null",
-      "new": "        return com.moblin.android.platform.video.makeCopy(sampleBuffer, imageBufferCopy)",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.11",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun createMediaSample",
-      "op": "replace",
-      "old": "): MediaSample? = TODO(\"no Android counterpart for CMSampleBuffer.create; build a MediaSample from the codec output\")",
-      "new": "): MediaSample? = format?.let { com.moblin.android.common.various.create(imageBuffer, it, durationUs, presentationTimeUs, decodeTimeStampUs) }",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.12",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun videoCaptureSessionDidOutput",
-      "op": "replace",
-      "old": "    override fun videoCaptureSessionDidOutput(device: Any, cameraId: UUID?, sampleBuffer: MediaSample) {",
-      "new": "    override fun videoCaptureSessionDidOutput(device: com.moblin.android.platform.avfoundation.AVCaptureDevice, cameraId: UUID?, sampleBuffer: MediaSample) {",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.13",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "class VideoUnitAttachParams",
-      "op": "replace",
-      "old": "    val cameraPreviewLayers: Map<UUID, androidx.camera.view.PreviewView>,",
-      "new": "    val cameraPreviewLayers: Map<UUID, Any>,",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.14",
-      "file": "media/haishinkit/media/video/PreviewView.kt",
-      "scope": "fun setup",
-      "op": "insert_after",
-      "anchor": "    private fun setup() {",
-      "new": "        layer.setup()"
-    },
-    {
-      "id": "H4.15",
-      "file": "media/haishinkit/media/video/PreviewView.kt",
-      "scope": "fun flushAndRemoveImage",
-      "op": "replace",
-      "old": "        Unit",
-      "new": "        layer.flushAndRemoveImage()",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.16",
-      "file": "media/haishinkit/media/video/PreviewView.kt",
-      "scope": "fun render",
-      "op": "replace",
-      "old": "        Unit",
-      "new": "        layer.enqueue(sample)",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.17",
-      "file": "media/haishinkit/media/video/PreviewView.kt",
-      "op": "add_import",
-      "new": "import com.moblin.android.platform.video.layer"
-    },
-    {
-      "id": "H4.23",
-      "file": "media/haishinkit/media/video/VideoLowFpsImage.kt",
-      "scope": "fun createImage",
-      "op": "replace",
-      "old": "        val jpeg: ByteArray = TODO(\"OpenGL ES port\")",
-      "new": "        val jpeg: ByteArray = imageBuffer.jpegData(longSide = 400, compressionQuality = 0.3f) ?: return",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.24",
-      "file": "media/haishinkit/media/video/VideoSnapshots.kt",
-      "scope": "fun imageBufferOf",
-      "op": "replace",
-      "old": "        null",
-      "new": "        sampleBuffer.imageBuffer",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.25",
-      "file": "media/haishinkit/media/video/VideoSnapshots.kt",
-      "scope": "fun createBitmap",
-      "op": "replace",
-      "old": "        null",
-      "new": "        imageBuffer.toBitmap()",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.26",
-      "file": "videoeffects/ChatEmoteComboEffect.kt",
-      "scope": "fun execute",
-      "op": "replace",
-      "old": "    override fun execute(image: android.media.Image, info: VideoEffectInfo): android.media.Image {",
-      "new": "    override fun execute(image: com.moblin.android.platform.video.CVPixelBuffer, info: VideoEffectInfo): com.moblin.android.platform.video.CVPixelBuffer {",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.27",
-      "file": "videoeffects/ChatEmoteComboEffect.kt",
-      "scope": "fun executeMetalPetal",
-      "op": "replace",
-      "old": "    override fun executeMetalPetal(image: android.media.Image, info: VideoEffectInfo): android.media.Image {",
-      "new": "    override fun executeMetalPetal(image: com.moblin.android.platform.video.CVPixelBuffer, info: VideoEffectInfo): com.moblin.android.platform.video.CVPixelBuffer {",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.28",
-      "file": "media/haishinkit/media/video/PreviewView.kt",
-      "scope": "fun enqueue",
-      "op": "insert_after",
-      "anchor": "        mainScope.launch {",
-      "new": "            if (layer.status == com.moblin.android.platform.video.AVSampleBufferDisplayLayer.Status.failed) layer.flush()"
-    },
-    {
-      "id": "H4.29",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun appendSampleBufferWithDetections",
-      "op": "insert_after",
-      "anchor": "        val isFirstAfterAttach = completion.isFirstAfterAttach",
-      "new": "        com.moblin.android.platform.core.PipelineStats.increment(\"vuOut\")"
-    },
-    {
-      "id": "H4.30",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun takeSnapshot",
-      "op": "replace",
-      "old": "                processorPipelineQueue.launch {",
-      "new": "                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main.immediate).launch {",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.31",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun takeVideoSourceSnapshot",
-      "op": "replace",
-      "old": "                processorPipelineQueue.launch {",
-      "new": "                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main.immediate).launch {",
-      "occurrence": 1
-    },
-    {
-      "id": "H4.32",
-      "file": "media/haishinkit/media/video/PreviewView.kt",
-      "scope": "fun applyIsMirrored",
-      "op": "replace",
-      "old": "                setScale(scaleX, 1.0f, width / 2f, height / 2f)",
-      "new": "                this@PreviewView.scaleX = scaleX",
-      "occurrence": 1
-    },
-    {
-      "id": "R4.14",
-      "file": "videoeffects/ChatEmoteComboEffect.kt",
-      "scope": "fun setup",
-      "op": "replace",
-      "old": "        renderer = TODO(\"no Android counterpart for SwiftUI ImageRenderer\")",
-      "new": "        renderer = null",
-      "occurrence": 1,
-      "note": "ME0 guard; retire with H4.26, H4.27 and R4.15 once the ME1 regeneration has replaced the file (R4.11, effects plan 2.3 step 7)"
-    },
-    {
-      "id": "R4.15",
-      "file": "videoeffects/ChatEmoteComboEffect.kt",
-      "scope": "fun setup",
-      "op": "replace",
-      "old": "                    val image: EffectImageCgImage? = TODO(\"no Android counterpart for SwiftUI ImageRenderer\")",
-      "new": "                    val image: EffectImageCgImage? = null",
-      "occurrence": 1,
-      "note": "ME0 guard; retire with H4.26, H4.27 and R4.14 once the ME1 regeneration has replaced the file (R4.11, effects plan 2.3 step 7)"
-    },
-    {
-      "id": "R4.2",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "class TextDetection",
-      "op": "replace",
-      "old": "    val boundingBox: RectF",
-      "new": "    val boundingBox: com.moblin.android.platform.coregraphics.CGRect",
-      "occurrence": 1
-    },
-    {
-      "id": "R4.1",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "class Detections",
-      "op": "replace",
-      "old": "    val face: List<Any>,",
-      "new": "    val face: List<com.moblin.android.platform.vision.VNFaceObservation>,",
-      "occurrence": 1,
-      "note": "ME1 boundary (effects plan 2.3 step 3); VNFaceObservation is declared by E9's platform/vision skeleton."
-    },
-    {
-      "id": "R4.3",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun getCiImage",
-      "op": "replace",
-      "old": "    fun getCiImage(videoSourceId: UUID, presentationTimeUs: Long): Image? {",
-      "new": "    fun getCiImage(videoSourceId: UUID, presentationTimeUs: Long): com.moblin.android.platform.coreimage.CIImage? {",
-      "occurrence": 1,
-      "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.6/HE1.7 bridge it."
-    },
-    {
-      "id": "R4.4",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun getCiImage",
-      "op": "replace",
-      "old": "        return sampleBuffer.imageBuffer",
-      "new": "        return sampleBuffer.imageBuffer?.let { com.moblin.android.platform.coreimage.CIImage(cvPixelBuffer = it) }",
-      "occurrence": 1,
-      "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.6/HE1.7 bridge it."
-    },
-    {
-      "id": "R4.5",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun getMetalPetalImage",
-      "op": "replace",
-      "old": "    fun getMetalPetalImage(videoSourceId: UUID, presentationTimeUs: Long): Image? {",
-      "new": "    fun getMetalPetalImage(videoSourceId: UUID, presentationTimeUs: Long): com.moblin.android.platform.metalpetal.MTIImage? {",
-      "occurrence": 1,
-      "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.8/HE1.9 bridge it."
-    },
-    {
-      "id": "R4.6",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun getMetalPetalImage",
-      "op": "replace",
-      "old": "        return sampleBuffer.imageBuffer",
-      "new": "        return sampleBuffer.imageBuffer?.let { com.moblin.android.platform.metalpetal.MTIImage(cvPixelBuffer = it, alphaType = com.moblin.android.platform.metalpetal.MTIAlphaType.alphaIsOne) }",
-      "occurrence": 1,
-      "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.8/HE1.9 bridge it."
-    },
-    {
-      "id": "R4.7",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "class VideoUnit",
-      "op": "replace",
-      "old": "            effectsProcessor.canvasSize = SizeF(value.width.toFloat(), value.height.toFloat())",
-      "new": "            effectsProcessor.canvasSize = com.moblin.android.platform.coregraphics.CGSize(width = value.width.toDouble(), height = value.height.toDouble())",
-      "occurrence": 1,
-      "note": "The plan's scope var canvasSize ends at the getter, before the setter line. ME1 boundary; until VideoEffectsProcessor.kt is regenerated, E1's interim HE1.10/HE1.11 bridge it (CoreImageFallback.applyEffects takes a CGSize)."
-    },
-    {
-      "id": "R4.8",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun createBlackImage",
-      "op": "replace",
-      "old": "fun createBlackImage(width: Double, height: Double): Bitmap {",
-      "new": "fun createBlackImage(width: Double, height: Double): com.moblin.android.platform.coreimage.CIImage {",
-      "occurrence": 1,
-      "note": "ME1 boundary; until VideoEffectsProcessor.kt is regenerated, E1's interim HE1.12/HE1.13 bridge it."
-    },
-    {
-      "id": "R4.9",
-      "file": "media/haishinkit/media/video/VideoUnit.kt",
-      "scope": "fun createBlackImage",
-      "op": "replace",
-      "old": "    return bitmap",
-      "new": "    return com.moblin.android.platform.coreimage.CIImage.black.cropped(to = com.moblin.android.platform.coregraphics.CGRect(x = 0.0, y = 0.0, width = width, height = height))",
-      "occurrence": 1,
-      "note": "ME1 boundary; until VideoEffectsProcessor.kt is regenerated, E1's interim HE1.12/HE1.13 bridge it."
-    }
-  ]
+ "task": "T4",
+ "hooks": [
+  {
+   "id": "H4.1",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun attachDefault",
+   "op": "replace",
+   "old": "                    name = TODO(\"no Android counterpart for AVCaptureDevice.localizedName\"),",
+   "new": "                    name = (device.device as com.moblin.android.platform.avfoundation.AVCaptureDevice).localizedName,",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.2",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun attachDefault",
+   "op": "replace",
+   "old": "                bufferedVideos[device.id] = bufferedVideo",
+   "new": "                bufferedVideos.put(device.id, bufferedVideo)?.close()",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.3",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun startPreviewEncoding",
+   "op": "replace",
+   "old": "        encoder.settings.mutate { settings }",
+   "new": "        encoder.settings.mutate { it.value = settings }",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.4",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun makePresentationTimeStamp",
+   "op": "replace",
+   "old": "        return (outputCounter * 1_000_000 / captureSession.getFps()).toLong() + startPresentationTimeStamp",
+   "new": "        return (outputCounter * 1_000_000 / captureSession.getFps().toInt()) + startPresentationTimeStamp",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.5",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun getBufferedBufferPool",
+   "op": "replace",
+   "old": "        return null",
+   "new": "        return com.moblin.android.platform.video.CVPixelBufferPool.matching(bufferedPool, sampleBuffer).also { bufferedPool = it }",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.6",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun createBufferedPixelBuffer",
+   "op": "replace",
+   "old": "        return null",
+   "new": "        return (getBufferedBufferPool(sampleBuffer) as? com.moblin.android.platform.video.CVPixelBufferPool)?.createPixelBuffer()",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.7",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun removeBufferedVideoInternal",
+   "op": "replace",
+   "old": "        bufferedVideos.remove(cameraId)",
+   "new": "        bufferedVideos.remove(cameraId)?.close()",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.8",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun makeBlackSampleBuffer",
+   "op": "replace",
+   "old": "        val buffer = blackImageBuffer",
+   "new": "        val buffer = blackImageBuffer ?: com.moblin.android.platform.video.makeBlackPixelBuffer(canvasSize.width, canvasSize.height)?.also { blackImageBuffer = it; blackFormatDescription = com.moblin.android.platform.video.CMVideoFormatDescriptionCreateForImageBuffer(it) }",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.9",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun detectObjects",
+   "op": "replace",
+   "old": "        Unit",
+   "new": "        processorPipelineQueue.launch { completion.detections[detectionJob.videoSourceId] = Detections(face = emptyList(), text = emptyList()); detectObjectsComplete(completion) }",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.10",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun makeCopy",
+   "op": "replace",
+   "old": "        return null",
+   "new": "        return com.moblin.android.platform.video.makeCopy(sampleBuffer, imageBufferCopy)",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.11",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun createMediaSample",
+   "op": "replace",
+   "old": "): MediaSample? = TODO(\"no Android counterpart for CMSampleBuffer.create; build a MediaSample from the codec output\")",
+   "new": "): MediaSample? = format?.let { com.moblin.android.common.various.create(imageBuffer, it, durationUs, presentationTimeUs, decodeTimeStampUs) }",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.12",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun videoCaptureSessionDidOutput",
+   "op": "replace",
+   "old": "    override fun videoCaptureSessionDidOutput(device: Any, cameraId: UUID?, sampleBuffer: MediaSample) {",
+   "new": "    override fun videoCaptureSessionDidOutput(device: com.moblin.android.platform.avfoundation.AVCaptureDevice, cameraId: UUID?, sampleBuffer: MediaSample) {",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.13",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "class VideoUnitAttachParams",
+   "op": "replace",
+   "old": "    val cameraPreviewLayers: Map<UUID, androidx.camera.view.PreviewView>,",
+   "new": "    val cameraPreviewLayers: Map<UUID, Any>,",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.14",
+   "file": "media/haishinkit/media/video/PreviewView.kt",
+   "scope": "fun setup",
+   "op": "insert_after",
+   "anchor": "    private fun setup() {",
+   "new": "        layer.setup()"
+  },
+  {
+   "id": "H4.15",
+   "file": "media/haishinkit/media/video/PreviewView.kt",
+   "scope": "fun flushAndRemoveImage",
+   "op": "replace",
+   "old": "        Unit",
+   "new": "        layer.flushAndRemoveImage()",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.16",
+   "file": "media/haishinkit/media/video/PreviewView.kt",
+   "scope": "fun render",
+   "op": "replace",
+   "old": "        Unit",
+   "new": "        layer.enqueue(sample)",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.17",
+   "file": "media/haishinkit/media/video/PreviewView.kt",
+   "op": "add_import",
+   "new": "import com.moblin.android.platform.video.layer"
+  },
+  {
+   "id": "H4.23",
+   "file": "media/haishinkit/media/video/VideoLowFpsImage.kt",
+   "scope": "fun createImage",
+   "op": "replace",
+   "old": "        val jpeg: ByteArray = TODO(\"OpenGL ES port\")",
+   "new": "        val jpeg: ByteArray = imageBuffer.jpegData(longSide = 400, compressionQuality = 0.3f) ?: return",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.24",
+   "file": "media/haishinkit/media/video/VideoSnapshots.kt",
+   "scope": "fun imageBufferOf",
+   "op": "replace",
+   "old": "        null",
+   "new": "        sampleBuffer.imageBuffer",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.25",
+   "file": "media/haishinkit/media/video/VideoSnapshots.kt",
+   "scope": "fun createBitmap",
+   "op": "replace",
+   "old": "        null",
+   "new": "        imageBuffer.toBitmap()",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.28",
+   "file": "media/haishinkit/media/video/PreviewView.kt",
+   "scope": "fun enqueue",
+   "op": "insert_after",
+   "anchor": "        mainScope.launch {",
+   "new": "            if (layer.status == com.moblin.android.platform.video.AVSampleBufferDisplayLayer.Status.failed) layer.flush()"
+  },
+  {
+   "id": "H4.29",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun appendSampleBufferWithDetections",
+   "op": "insert_after",
+   "anchor": "        val isFirstAfterAttach = completion.isFirstAfterAttach",
+   "new": "        com.moblin.android.platform.core.PipelineStats.increment(\"vuOut\")"
+  },
+  {
+   "id": "H4.30",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun takeSnapshot",
+   "op": "replace",
+   "old": "                processorPipelineQueue.launch {",
+   "new": "                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main.immediate).launch {",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.31",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun takeVideoSourceSnapshot",
+   "op": "replace",
+   "old": "                processorPipelineQueue.launch {",
+   "new": "                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main.immediate).launch {",
+   "occurrence": 1
+  },
+  {
+   "id": "H4.32",
+   "file": "media/haishinkit/media/video/PreviewView.kt",
+   "scope": "fun applyIsMirrored",
+   "op": "replace",
+   "old": "                setScale(scaleX, 1.0f, width / 2f, height / 2f)",
+   "new": "                this@PreviewView.scaleX = scaleX",
+   "occurrence": 1
+  },
+  {
+   "id": "R4.2",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "class TextDetection",
+   "op": "replace",
+   "old": "    val boundingBox: RectF",
+   "new": "    val boundingBox: com.moblin.android.platform.coregraphics.CGRect",
+   "occurrence": 1
+  },
+  {
+   "id": "R4.1",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "class Detections",
+   "op": "replace",
+   "old": "    val face: List<Any>,",
+   "new": "    val face: List<com.moblin.android.platform.vision.VNFaceObservation>,",
+   "occurrence": 1,
+   "note": "ME1 boundary (effects plan 2.3 step 3); VNFaceObservation is declared by E9's platform/vision skeleton."
+  },
+  {
+   "id": "R4.3",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun getCiImage",
+   "op": "replace",
+   "old": "    fun getCiImage(videoSourceId: UUID, presentationTimeUs: Long): Image? {",
+   "new": "    fun getCiImage(videoSourceId: UUID, presentationTimeUs: Long): com.moblin.android.platform.coreimage.CIImage? {",
+   "occurrence": 1,
+   "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.6/HE1.7 bridge it."
+  },
+  {
+   "id": "R4.4",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun getCiImage",
+   "op": "replace",
+   "old": "        return sampleBuffer.imageBuffer",
+   "new": "        return sampleBuffer.imageBuffer?.let { com.moblin.android.platform.coreimage.CIImage(cvPixelBuffer = it) }",
+   "occurrence": 1,
+   "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.6/HE1.7 bridge it."
+  },
+  {
+   "id": "R4.5",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun getMetalPetalImage",
+   "op": "replace",
+   "old": "    fun getMetalPetalImage(videoSourceId: UUID, presentationTimeUs: Long): Image? {",
+   "new": "    fun getMetalPetalImage(videoSourceId: UUID, presentationTimeUs: Long): com.moblin.android.platform.metalpetal.MTIImage? {",
+   "occurrence": 1,
+   "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.8/HE1.9 bridge it."
+  },
+  {
+   "id": "R4.6",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun getMetalPetalImage",
+   "op": "replace",
+   "old": "        return sampleBuffer.imageBuffer",
+   "new": "        return sampleBuffer.imageBuffer?.let { com.moblin.android.platform.metalpetal.MTIImage(cvPixelBuffer = it, alphaType = com.moblin.android.platform.metalpetal.MTIAlphaType.alphaIsOne) }",
+   "occurrence": 1,
+   "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.8/HE1.9 bridge it."
+  },
+  {
+   "id": "R4.7",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "class VideoUnit",
+   "op": "replace",
+   "old": "            effectsProcessor.canvasSize = SizeF(value.width.toFloat(), value.height.toFloat())",
+   "new": "            effectsProcessor.canvasSize = com.moblin.android.platform.coregraphics.CGSize(width = value.width.toDouble(), height = value.height.toDouble())",
+   "occurrence": 1,
+   "note": "The plan's scope var canvasSize ends at the getter, before the setter line. ME1 boundary; until VideoEffectsProcessor.kt is regenerated, E1's interim HE1.10/HE1.11 bridge it (CoreImageFallback.applyEffects takes a CGSize)."
+  },
+  {
+   "id": "R4.8",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun createBlackImage",
+   "op": "replace",
+   "old": "fun createBlackImage(width: Double, height: Double): Bitmap {",
+   "new": "fun createBlackImage(width: Double, height: Double): com.moblin.android.platform.coreimage.CIImage {",
+   "occurrence": 1,
+   "note": "ME1 boundary; until VideoEffectsProcessor.kt is regenerated, E1's interim HE1.12/HE1.13 bridge it."
+  },
+  {
+   "id": "R4.9",
+   "file": "media/haishinkit/media/video/VideoUnit.kt",
+   "scope": "fun createBlackImage",
+   "op": "replace",
+   "old": "    return bitmap",
+   "new": "    return com.moblin.android.platform.coreimage.CIImage.black.cropped(to = com.moblin.android.platform.coregraphics.CGRect(x = 0.0, y = 0.0, width = width, height = height))",
+   "occurrence": 1,
+   "note": "ME1 boundary; until VideoEffectsProcessor.kt is regenerated, E1's interim HE1.12/HE1.13 bridge it."
+  }
+ ]
 }

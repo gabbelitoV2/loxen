@@ -1,22 +1,4 @@
 {
-  "task": "E11",
-  "hooks": [
-    {
-      "id": "HE11.1",
-      "file": "videoeffects/PngTuberEffect.kt",
-      "scope": "fun fromJson",
-      "op": "replace",
-      "old": "            val imageData: EffectImageCgImage = TODO(\"EffectImageCgImage from decoded Bitmap\")",
-      "new": "            val imageData: EffectImageCgImage = throw IllegalStateException(\"PNGTuber images need the effects port\")",
-      "occurrence": 1,
-      "note": "ME0 guard; retire at ME1. The loader's catch (e: Exception) catches it; NotImplementedError is not an Exception."
-    },
-    {
-      "id": "HE11.2",
-      "file": "videoeffects/vtuber/VTuberLive2DEffect.kt",
-      "op": "add_import",
-      "new": "import com.moblin.android.platform.live2d.Live2DRenderer",
-      "note": "Live2DRenderer.swift is platform-replaced (skip tier) and videoeffects/vtuber/Live2DRenderer.kt is deleted; platform/live2d/Live2DRenderer.kt replaces it. Retire at ME1 once the re-translation imports it through E11.md."
-    }
-  ]
+ "task": "E11",
+ "hooks": []
 }

@@ -1,83 +1,77 @@
 package com.moblin.android.videoeffects
 
-import com.moblin.android.platform.video.CVPixelBuffer as Image
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
+import com.moblin.android.platform.coregraphics.CGRect
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.coreimage.CIColor
+import com.moblin.android.platform.coreimage.CIFilter
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.metalpetal.MTIColor
+import com.moblin.android.platform.metalpetal.MTICornerRadius
+import com.moblin.android.platform.metalpetal.MTILayer
 import kotlinx.coroutines.launch
+import kotlin.math.PI
 
-data class MTIColor(
-    val red: Float,
-    val green: Float,
-    val blue: Float,
-    val alpha: Float = 1.0f,
-) {
-    companion object {
-        val black: MTIColor = MTIColor(0.0f, 0.0f, 0.0f, 1.0f)
-    }
+private fun shapeBorderWidthPixels(borderWidth: Double, size: CGSize): Double {
+    return 0.025 * borderWidth * minOf(size.height, size.width)
 }
 
-object MTILayer {
-    enum class FlipOptions {
-        flipHorizontally,
-        flipVertically,
-    }
+private fun shapeCornerRadiusPixels(cornerRadius: Float, size: CGSize): Float {
+    return minOf(size.height, size.width).toFloat() / 2 * cornerRadius
 }
 
-private fun shapeBorderWidthPixels(borderWidth: Double, size: Size): Double {
-    return 0.025 * borderWidth * minOf(size.width, size.height).toDouble()
-}
-
-private fun shapeCornerRadiusPixels(cornerRadius: Float, size: Size): Float {
-    return minOf(size.width, size.height) / 2 * cornerRadius
+private fun shapeSameExtent(a: CGRect, b: CGRect): Boolean {
+    return a.origin.x == b.origin.x &&
+        a.origin.y == b.origin.y &&
+        a.size.width == b.size.width &&
+        a.size.height == b.size.height
 }
 
 data class ShapeEffectSettings(
-    var cornerRadius: Float = 0.0f,
-    var borderWidth: Double = 1.0,
-    var borderColor: com.moblin.android.platform.coreimage.CIColor = com.moblin.android.platform.coreimage.CIColor.black,
-    var cropEnabled: Boolean = false,
-    var cropX: Double = 0.25,
-    var cropY: Double = 0.0,
-    var cropWidth: Double = 0.5,
-    var cropHeight: Double = 1.0,
+    val cornerRadius: Float = 0f,
+    val borderWidth: Double = 1.0,
+    val borderColor: CIColor = CIColor.black,
+    val cropEnabled: Boolean = false,
+    val cropX: Double = 0.25,
+    val cropY: Double = 0.0,
+    val cropWidth: Double = 0.5,
+    val cropHeight: Double = 1.0,
 ) {
-    fun borderWidthAndScale(image: Rect): Triple<Double, Double, Double> {
-        val size = Size(image.right - image.left, image.bottom - image.top)
-        val borderWidth = shapeBorderWidthPixels(this.borderWidth, size)
-        val scaleX = (size.width + 2 * borderWidth) / size.width
-        val scaleY = (size.height + 2 * borderWidth) / size.height
+    fun borderWidthAndScale(image: CGRect): Triple<Double, Double, Double> {
+        val borderWidth = shapeBorderWidthPixels(this.borderWidth, image.size)
+        val scaleX = (image.width + 2 * borderWidth) / image.width
+        val scaleY = (image.height + 2 * borderWidth) / image.height
         return Triple(borderWidth, scaleX, scaleY)
     }
 }
 
 data class MetalPetalWidgetShape(
-    var contentRegion: Rect,
-    var cornerRadius: Float = 0.0f,
+    var contentRegion: CGRect,
+    var cornerRadius: Float = 0f,
     var borderWidth: Double = 0.0,
     var borderColor: MTIColor = MTIColor.black,
     var rotation: Double = 0.0,
 ) {
-    fun borderWidthPixels(size: Size): Double {
+    fun borderWidthPixels(size: CGSize): Double {
         return shapeBorderWidthPixels(borderWidth, size)
     }
 
-    fun cornerRadius(size: Size): Float {
-        return shapeCornerRadiusPixels(cornerRadius, size)
+    fun cornerRadius(size: CGSize): MTICornerRadius {
+        return MTICornerRadius(shapeCornerRadiusPixels(cornerRadius, size))
     }
 
-    fun rotated(size: Size): Size {
+    fun rotated(size: CGSize): CGSize {
         return if (isQuarterTurn()) {
-            Size(size.height, size.width)
+            CGSize(width = size.height, height = size.width)
         } else {
             size
         }
     }
 
     fun rotationRadians(): Float {
-        return (rotation * Math.PI / 180).toFloat()
+        return (rotation * PI / 180.0).toFloat()
     }
 
     fun mirrorFlipOptions(): MTILayer.FlipOptions {
@@ -93,22 +87,23 @@ data class MetalPetalWidgetShape(
     }
 }
 
-private class MaskImage {
-    var extent: Rect? = null
-    var cornerRadius: Float? = null
-    var image: EffectImage? = null
-
-    fun get(extent: Rect, settings: ShapeEffectSettings): EffectImage? {
-        if (extent != this.extent) {
+private data class MaskImage(
+    var extent: CGRect? = null,
+    var cornerRadius: Float? = null,
+    var image: CIImage? = null,
+) {
+    fun get(extent: CGRect, settings: ShapeEffectSettings): CIImage? {
+        val cachedExtent = this.extent
+        if (cachedExtent == null || !shapeSameExtent(cachedExtent, extent)) {
             return null
         }
-        if (settings.cornerRadius != cornerRadius) {
+        if (cornerRadius != settings.cornerRadius) {
             return null
         }
         return image
     }
 
-    fun set(extent: Rect, settings: ShapeEffectSettings, image: EffectImage?) {
+    fun set(extent: CGRect, settings: ShapeEffectSettings, image: CIImage?) {
         this.extent = extent
         cornerRadius = settings.cornerRadius
         this.image = image
@@ -126,32 +121,84 @@ class ShapeEffect : VideoEffect() {
         }
     }
 
-    private fun makeMaskImage(extent: Rect,
-                              settings: ShapeEffectSettings,
-                              cache: MaskImage): EffectImage?
-    {
-        cache.get(extent, settings)?.let { image ->
-            return image
-        }
-        TODO()
+    private fun makeMaskImage(
+        extent: CGRect,
+        settings: ShapeEffectSettings,
+        cache: MaskImage,
+    ): CIImage? {
+        cache.get(extent = extent, settings = settings)?.let { return it }
+        val roundedRectangleGenerator = CIFilter.roundedRectangleGenerator()
+        roundedRectangleGenerator.color = CIColor.green
+        val maskExtent = extent.copy(
+            x = extent.origin.x + 1,
+            y = extent.origin.y + 1,
+            width = extent.size.width - 2,
+            height = extent.size.height - 2,
+        )
+        roundedRectangleGenerator.extent = maskExtent
+        var radiusPixels = minOf(extent.height, extent.width).toFloat()
+        radiusPixels /= 2
+        radiusPixels *= settings.cornerRadius
+        roundedRectangleGenerator.radius = radiusPixels
+        cache.set(extent = extent, settings = settings, image = roundedRectangleGenerator.outputImage)
+        return cache.get(extent = extent, settings = settings)
     }
 
-    private fun makeSharpCornersImage(image: Image, settings: ShapeEffectSettings): Image {
+    private fun makeSharpCornersImage(image: CIImage, settings: ShapeEffectSettings): CIImage {
         if (settings.borderWidth == 0.0) {
             return image
+        } else {
+            val (borderWidth, scaleX, scaleY) = settings.borderWidthAndScale(image.extent)
+            val borderImage = CIImage(color = settings.borderColor)
+                .cropped(to = image.extent)
+                .scaled(x = scaleX, y = scaleY)
+                .translated(x = -borderWidth, y = -borderWidth)
+            return image.composited(over = borderImage)
         }
-        TODO()
     }
 
-    private fun makeRoundedCornersImage(image: Image, settings: ShapeEffectSettings): Image {
-        TODO()
+    private fun makeRoundedCornersImage(image: CIImage, settings: ShapeEffectSettings): CIImage {
+        if (settings.borderWidth == 0.0) {
+            val roundedCornersBlender = CIFilter.blendWithMask()
+            roundedCornersBlender.inputImage = image
+            roundedCornersBlender.maskImage = makeMaskImage(image.extent, settings, cachedMask)
+            return roundedCornersBlender.outputImage ?: image
+        } else {
+            val (borderWidth, scaleX, scaleY) = settings.borderWidthAndScale(image.extent)
+            val borderImage = CIImage(color = settings.borderColor)
+                .cropped(to = image.extent)
+                .scaled(x = scaleX, y = scaleY)
+                .translated(x = -borderWidth, y = -borderWidth)
+            val roundedCornersBlender = CIFilter.blendWithMask()
+            roundedCornersBlender.inputImage = borderImage
+            roundedCornersBlender.maskImage =
+                makeMaskImage(borderImage.extent, settings, cachedBorderMask)
+            val roundedBorderImage = roundedCornersBlender.outputImage ?: return image
+            roundedCornersBlender.inputImage = image
+            roundedCornersBlender.maskImage = makeMaskImage(image.extent, settings, cachedMask)
+            val widgetImage = roundedCornersBlender.outputImage ?: return image
+            return widgetImage.composited(over = roundedBorderImage)
+        }
     }
 
-    private fun crop(image: Image): Image {
-        TODO()
+    private fun crop(image: CIImage): CIImage {
+        val cropX = toPixels(100 * settings.cropX, image.extent.width)
+        val cropY = toPixels(100 * settings.cropY, image.extent.height)
+        val cropWidth = toPixels(100 * settings.cropWidth, image.extent.width)
+        val cropHeight = toPixels(100 * settings.cropHeight, image.extent.height)
+        return image
+            .cropped(
+                to = CGRect(
+                    x = cropX,
+                    y = image.extent.height - cropY - cropHeight,
+                    width = cropWidth,
+                    height = cropHeight,
+                )
+            )
+            .translated(x = -cropX, y = -(image.extent.height - cropY - cropHeight))
     }
 
-    override fun executeEarly(image: Image, info: VideoEffectInfo): Image {
+    override fun executeEarly(image: CIImage, info: VideoEffectInfo): CIImage {
         return if (settings.cropEnabled) {
             crop(image)
         } else {
@@ -159,8 +206,8 @@ class ShapeEffect : VideoEffect() {
         }
     }
 
-    override fun execute(image: Image, info: VideoEffectInfo): Image {
-        return if (settings.cornerRadius == 0.0f) {
+    override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
+        return if (settings.cornerRadius == 0f) {
             makeSharpCornersImage(image, settings)
         } else {
             makeRoundedCornersImage(image, settings)
@@ -170,13 +217,12 @@ class ShapeEffect : VideoEffect() {
     override fun modifyMetalPetalWidgetShape(shape: MetalPetalWidgetShape) {
         if (settings.cropEnabled) {
             val region = shape.contentRegion
-            val regionWidth = region.right - region.left
-            val regionHeight = region.bottom - region.top
-            val x = region.left + (settings.cropX * regionWidth).toFloat()
-            val y = region.top + (settings.cropY * regionHeight).toFloat()
-            val width = (settings.cropWidth * regionWidth).toFloat()
-            val height = (settings.cropHeight * regionHeight).toFloat()
-            shape.contentRegion = Rect(x, y, x + width, y + height)
+            shape.contentRegion = CGRect(
+                x = region.minX + settings.cropX * region.width,
+                y = region.minY + settings.cropY * region.height,
+                width = settings.cropWidth * region.width,
+                height = settings.cropHeight * region.height,
+            )
         }
         shape.cornerRadius = settings.cornerRadius
         shape.borderWidth = settings.borderWidth
