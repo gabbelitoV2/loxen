@@ -1,17 +1,15 @@
 package com.moblin.android.various.settings
 
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.various.network.DefaultTcpPorts
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonObject
 
-@Serializable(with = SettingsHttpProxySerializer::class)
+@Serializable(with = SettingsHttpProxy.Serializer::class)
 class SettingsHttpProxy(
     initialEnabled: Boolean = false,
     initialLocalNetwork: Boolean = false,
@@ -22,37 +20,26 @@ class SettingsHttpProxy(
     val localNetwork = MutableStateFlow(initialLocalNetwork)
 
     val port = MutableStateFlow(initialPort)
-}
 
-@Serializable
-private class SettingsHttpProxyWire(
-    @SerialName("enabled") val enabled: Boolean = false,
-    @SerialName("localNetwork") val localNetwork: Boolean = false,
-    @SerialName("port") val port: Int = DefaultTcpPorts.httpProxy,
-)
-
-object SettingsHttpProxySerializer : KSerializer<SettingsHttpProxy> {
-    private val wireSerializer = SettingsHttpProxyWire.serializer()
-
-    override val descriptor: SerialDescriptor = wireSerializer.descriptor
-
-    override fun serialize(encoder: Encoder, value: SettingsHttpProxy) {
-        encoder.encodeSerializableValue(
-            wireSerializer,
-            SettingsHttpProxyWire(
-                enabled = value.enabled.value,
-                localNetwork = value.localNetwork.value,
-                port = value.port.value,
-            ),
-        )
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("localNetwork", localNetwork)
+        encode("port", port)
     }
 
-    override fun deserialize(decoder: Decoder): SettingsHttpProxy {
-        val wire = decoder.decodeSerializableValue(wireSerializer)
-        return SettingsHttpProxy(
-            initialEnabled = wire.enabled,
-            initialLocalNetwork = wire.localNetwork,
-            initialPort = wire.port,
-        )
+    companion object {
+        fun decode(container: JsonObject): SettingsHttpProxy {
+            val httpProxy = SettingsHttpProxy()
+            httpProxy.enabled.value = container.decode("enabled", false)
+            httpProxy.localNetwork.value = container.decode("localNetwork", false)
+            httpProxy.port.value = container.decode("port", DefaultTcpPorts.httpProxy) { it in 0..65535 }
+            return httpProxy
+        }
     }
+
+    object Serializer : KSerializer<SettingsHttpProxy> by JsonObjectSerializer(
+        "SettingsHttpProxy",
+        { it.encode() },
+        { decode(it) },
+    )
 }

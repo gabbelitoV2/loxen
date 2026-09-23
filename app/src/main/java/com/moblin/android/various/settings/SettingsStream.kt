@@ -5,6 +5,11 @@ import com.moblin.android.common.various.formatBytesPerSecond
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderSettings
+import com.moblin.android.platform.codable.DataSerializer
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.decodeIfPresent
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.streamingplatforms.kick.storeKickAccessTokenInKeychain
 import com.moblin.android.streamingplatforms.twitch.storeTwitchAccessTokenInKeychain
 import com.moblin.android.streamingplatforms.youtube.YouTubeApiLiveBroadcaseVisibility
@@ -16,17 +21,42 @@ import java.net.URI
 import java.time.Instant
 import java.util.Base64
 import java.util.UUID
-import kotlinx.serialization.Contextual
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.nullable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonObject
 
-@Serializable
+private fun <T> settingsStreamRawValueSerializer(
+    serialName: String,
+    values: List<T>,
+    rawValue: (T) -> String,
+    fallback: T,
+): KSerializer<T> {
+    return object : KSerializer<T> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+
+        override fun serialize(encoder: Encoder, value: T) {
+            encoder.encodeString(rawValue(value))
+        }
+
+        override fun deserialize(decoder: Decoder): T {
+            val text = decoder.decodeString()
+            return values.firstOrNull { rawValue(it) == text } ?: fallback
+        }
+    }
+}
+
+@Serializable(with = SettingsStreamCodec.Serializer::class)
 enum class SettingsStreamCodec(val rawValue: String) {
-    @SerialName("H.265/HEVC")
     h265hevc("H.265/HEVC"),
-
-    @SerialName("H.264/AVC")
     h264avc("H.264/AVC");
 
     fun shortString(): String {
@@ -42,6 +72,13 @@ enum class SettingsStreamCodec(val rawValue: String) {
                 ?: SettingsStreamCodec.h264avc
         }
     }
+
+    object Serializer : KSerializer<SettingsStreamCodec> by settingsStreamRawValueSerializer(
+        "com.moblin.android.various.settings.SettingsStreamCodec",
+        SettingsStreamCodec.entries,
+        { it.rawValue },
+        SettingsStreamCodec.h264avc,
+    )
 }
 
 @Serializable
@@ -248,21 +285,12 @@ enum class SettingsStreamAudioCodec(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsStreamProtocol.Serializer::class)
 enum class SettingsStreamProtocol(val rawValue: String) {
-    @SerialName("RTMP")
     rtmp("RTMP"),
-
-    @SerialName("SRT")
     srt("SRT"),
-
-    @SerialName("RIST")
     rist("RIST"),
-
-    @SerialName("WHIP")
     whip("WHIP"),
-
-    @SerialName("Mobcam")
     mobcam("Mobcam");
 
     companion object {
@@ -271,6 +299,13 @@ enum class SettingsStreamProtocol(val rawValue: String) {
                 ?: SettingsStreamProtocol.rtmp
         }
     }
+
+    object Serializer : KSerializer<SettingsStreamProtocol> by settingsStreamRawValueSerializer(
+        "com.moblin.android.various.settings.SettingsStreamProtocol",
+        SettingsStreamProtocol.entries,
+        { it.rawValue },
+        SettingsStreamProtocol.rtmp,
+    )
 }
 
 enum class SettingsStreamDetailedProtocol {
@@ -284,24 +319,22 @@ enum class SettingsStreamDetailedProtocol {
     mobcam,
 }
 
-@Serializable
+@Serializable(with = SettingsStreamSrtConnectionPriority.Serializer::class)
 class SettingsStreamSrtConnectionPriority(
-    @SerialName("name")
     var name: String = "",
 ) {
-    @SerialName("id")
-    @Contextual
     var id: UUID = UUID.randomUUID()
-
-    @SerialName("priority")
     var priority: Int = 1
-
-    @SerialName("enabled")
     var enabled: Boolean = true
-
-    @SerialName("relayId")
-    @Contextual
     var relayId: UUID? = null
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("priority", priority)
+        encode("enabled", enabled)
+        encode("relayId", relayId)
+    }
 
     fun clone(): SettingsStreamSrtConnectionPriority {
         val new = SettingsStreamSrtConnectionPriority(name)
@@ -310,19 +343,39 @@ class SettingsStreamSrtConnectionPriority(
         new.relayId = relayId
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamSrtConnectionPriority {
+            val connectionPriority = SettingsStreamSrtConnectionPriority()
+            connectionPriority.id = container.decode("id", UUID.randomUUID())
+            connectionPriority.name = container.decode("name", "")
+            connectionPriority.priority = container.decode("priority", 1)
+            connectionPriority.enabled = container.decode("enabled", true)
+            connectionPriority.relayId = container.decode<UUID?>("relayId", null)
+            return connectionPriority
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamSrtConnectionPriority> by JsonObjectSerializer(
+        "SettingsStreamSrtConnectionPriority",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamSrtConnectionPriorities.Serializer::class)
 class SettingsStreamSrtConnectionPriorities(
-    @SerialName("enabled")
     var enabled: Boolean = false,
-
-    @SerialName("priorities")
     var priorities: MutableList<SettingsStreamSrtConnectionPriority> = mutableListOf(
         SettingsStreamSrtConnectionPriority("Cellular"),
         SettingsStreamSrtConnectionPriority("WiFi")
     ),
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("priorities", priorities)
+    }
+
     fun clone(): SettingsStreamSrtConnectionPriorities {
         val new = SettingsStreamSrtConnectionPriorities()
         new.enabled = enabled
@@ -332,9 +385,30 @@ class SettingsStreamSrtConnectionPriorities(
         }
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamSrtConnectionPriorities {
+            val connectionPriorities = SettingsStreamSrtConnectionPriorities()
+            connectionPriorities.enabled = container.decodeIfPresent<Boolean>("enabled")
+                ?: throw SerializationException("Missing key 'enabled'")
+            connectionPriorities.priorities = (
+                container.decodeIfPresent(
+                    "priorities",
+                    ListSerializer(SettingsStreamSrtConnectionPriority.serializer()),
+                ) ?: throw SerializationException("Missing key 'priorities'")
+                ).toMutableList()
+            return connectionPriorities
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamSrtConnectionPriorities> by JsonObjectSerializer(
+        "SettingsStreamSrtConnectionPriorities",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamSrtAdaptiveBitrateAlgorithm.Serializer::class)
 enum class SettingsStreamSrtAdaptiveBitrateAlgorithm {
     belabox,
     fastIrl,
@@ -350,50 +424,87 @@ enum class SettingsStreamSrtAdaptiveBitrateAlgorithm {
         }
     }
 
+    fun encode(): JsonObject = JsonObject(mapOf(name to JsonObject(emptyMap())))
+
     companion object {
         fun fromRawValue(value: String): SettingsStreamSrtAdaptiveBitrateAlgorithm {
             return SettingsStreamSrtAdaptiveBitrateAlgorithm.entries.firstOrNull { it.name == value }
                 ?: SettingsStreamSrtAdaptiveBitrateAlgorithm.belabox
         }
+
+        fun decode(container: JsonObject): SettingsStreamSrtAdaptiveBitrateAlgorithm {
+            return if (container.containsKey("belabox")) {
+                SettingsStreamSrtAdaptiveBitrateAlgorithm.belabox
+            } else if (container.containsKey("fastIrl")) {
+                SettingsStreamSrtAdaptiveBitrateAlgorithm.fastIrl
+            } else if (container.containsKey("slowIrl")) {
+                SettingsStreamSrtAdaptiveBitrateAlgorithm.slowIrl
+            } else if (container.containsKey("customIrl")) {
+                SettingsStreamSrtAdaptiveBitrateAlgorithm.customIrl
+            } else {
+                SettingsStreamSrtAdaptiveBitrateAlgorithm.belabox
+            }
+        }
     }
+
+    object Serializer : KSerializer<SettingsStreamSrtAdaptiveBitrateAlgorithm> by JsonObjectSerializer(
+        "SettingsStreamSrtAdaptiveBitrateAlgorithm",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamSrtAdaptiveBitrateFastIrlSettings.Serializer::class)
 class SettingsStreamSrtAdaptiveBitrateFastIrlSettings(
-    @SerialName("packetsInFlight")
     var packetsInFlight: Int = 200,
-
-    @SerialName("minimumBitrate")
     var minimumBitrate: Float = 250f,
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("packetsInFlight", packetsInFlight)
+        encode("minimumBitrate", minimumBitrate)
+    }
+
     fun clone(): SettingsStreamSrtAdaptiveBitrateFastIrlSettings {
         val new = SettingsStreamSrtAdaptiveBitrateFastIrlSettings()
         new.packetsInFlight = packetsInFlight
         new.minimumBitrate = minimumBitrate
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamSrtAdaptiveBitrateFastIrlSettings {
+            val settings = SettingsStreamSrtAdaptiveBitrateFastIrlSettings()
+            settings.packetsInFlight = container.decode("packetsInFlight", 200)
+            settings.minimumBitrate = container.decode("minimumBitrate", 250f)
+            return settings
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamSrtAdaptiveBitrateFastIrlSettings> by JsonObjectSerializer(
+        "SettingsStreamSrtAdaptiveBitrateFastIrlSettings",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamSrtAdaptiveBitrateCustomSettings.Serializer::class)
 class SettingsStreamSrtAdaptiveBitrateCustomSettings(
-    @SerialName("packetsInFlight")
     var packetsInFlight: Int = 200,
-
-    @SerialName("pifDiffIncreaseFactor")
     var pifDiffIncreaseFactor: Float = 100f,
-
-    @SerialName("rttDiffHighDecreaseFactor")
     var rttDiffHighDecreaseFactor: Float = 0.9f,
-
-    @SerialName("rttDiffHighAllowedSpike")
     var rttDiffHighAllowedSpike: Float = 50f,
-
-    @SerialName("rttDiffHighMinimumDecrease")
     var rttDiffHighMinimumDecrease: Float = 250f,
-
-    @SerialName("minimumBitrate")
     var minimumBitrate: Float = 250f,
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("packetsInFlight", packetsInFlight)
+        encode("pifDiffIncreaseFactor", pifDiffIncreaseFactor)
+        encode("rttDiffHighDecreaseFactor", rttDiffHighDecreaseFactor)
+        encode("rttDiffHighAllowedSpike", rttDiffHighAllowedSpike)
+        encode("rttDiffHighMinimumDecrease", rttDiffHighMinimumDecrease)
+        encode("minimumBitrate", minimumBitrate)
+    }
+
     fun clone(): SettingsStreamSrtAdaptiveBitrateCustomSettings {
         val new = SettingsStreamSrtAdaptiveBitrateCustomSettings()
         new.packetsInFlight = packetsInFlight
@@ -404,38 +515,74 @@ class SettingsStreamSrtAdaptiveBitrateCustomSettings(
         new.minimumBitrate = minimumBitrate
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamSrtAdaptiveBitrateCustomSettings {
+            val settings = SettingsStreamSrtAdaptiveBitrateCustomSettings()
+            settings.packetsInFlight = container.decode("packetsInFlight", 200)
+            settings.pifDiffIncreaseFactor = container.decode("pifDiffIncreaseFactor", 100f)
+            settings.rttDiffHighDecreaseFactor = container.decode("rttDiffHighDecreaseFactor", 0.9f)
+            settings.rttDiffHighAllowedSpike = container.decode("rttDiffHighAllowedSpike", 50f)
+            settings.rttDiffHighMinimumDecrease = container.decode("rttDiffHighMinimumDecrease", 250f)
+            settings.minimumBitrate = container.decode("minimumBitrate", 250f)
+            return settings
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamSrtAdaptiveBitrateCustomSettings> by JsonObjectSerializer(
+        "SettingsStreamSrtAdaptiveBitrateCustomSettings",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamSrtAdaptiveBitrateBelaboxSettings.Serializer::class)
 class SettingsStreamSrtAdaptiveBitrateBelaboxSettings(
-    @SerialName("minimumBitrate")
     var minimumBitrate: Float = 250f,
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("minimumBitrate", minimumBitrate)
+    }
+
     fun clone(): SettingsStreamSrtAdaptiveBitrateBelaboxSettings {
         val new = SettingsStreamSrtAdaptiveBitrateBelaboxSettings()
         new.minimumBitrate = minimumBitrate
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamSrtAdaptiveBitrateBelaboxSettings {
+            val settings = SettingsStreamSrtAdaptiveBitrateBelaboxSettings()
+            settings.minimumBitrate = container.decode("minimumBitrate", 250f)
+            return settings
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamSrtAdaptiveBitrateBelaboxSettings> by JsonObjectSerializer(
+        "SettingsStreamSrtAdaptiveBitrateBelaboxSettings",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamSrtAdaptiveBitrate.Serializer::class)
 class SettingsStreamSrtAdaptiveBitrate(
-    @SerialName("algorithm")
     var algorithm: SettingsStreamSrtAdaptiveBitrateAlgorithm =
         SettingsStreamSrtAdaptiveBitrateAlgorithm.belabox,
-
-    @SerialName("fastIrlSettings")
     var fastIrlSettings: SettingsStreamSrtAdaptiveBitrateFastIrlSettings =
         SettingsStreamSrtAdaptiveBitrateFastIrlSettings(),
-
-    @SerialName("customSettings")
     var customSettings: SettingsStreamSrtAdaptiveBitrateCustomSettings =
         SettingsStreamSrtAdaptiveBitrateCustomSettings(),
-
-    @SerialName("belaboxSettings")
     var belaboxSettings: SettingsStreamSrtAdaptiveBitrateBelaboxSettings =
         SettingsStreamSrtAdaptiveBitrateBelaboxSettings(),
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("algorithm", algorithm)
+        encode("fastIrlSettings", fastIrlSettings)
+        encode("customSettings", customSettings)
+        encode("belaboxSettings", belaboxSettings)
+    }
+
     fun clone(): SettingsStreamSrtAdaptiveBitrate {
         val new = SettingsStreamSrtAdaptiveBitrate()
         new.algorithm = algorithm
@@ -444,58 +591,66 @@ class SettingsStreamSrtAdaptiveBitrate(
         new.belaboxSettings = belaboxSettings.clone()
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamSrtAdaptiveBitrate {
+            val adaptiveBitrate = SettingsStreamSrtAdaptiveBitrate()
+            adaptiveBitrate.algorithm = container.decode("algorithm", SettingsStreamSrtAdaptiveBitrateAlgorithm.belabox)
+            adaptiveBitrate.fastIrlSettings = container.decode(
+                "fastIrlSettings",
+                SettingsStreamSrtAdaptiveBitrateFastIrlSettings.serializer(),
+                SettingsStreamSrtAdaptiveBitrateFastIrlSettings(),
+            )
+            adaptiveBitrate.customSettings = container.decode(
+                "customSettings",
+                SettingsStreamSrtAdaptiveBitrateCustomSettings.serializer(),
+                SettingsStreamSrtAdaptiveBitrateCustomSettings(),
+            )
+            adaptiveBitrate.belaboxSettings = container.decode(
+                "belaboxSettings",
+                SettingsStreamSrtAdaptiveBitrateBelaboxSettings.serializer(),
+                SettingsStreamSrtAdaptiveBitrateBelaboxSettings(),
+            )
+            return adaptiveBitrate
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamSrtAdaptiveBitrate> by JsonObjectSerializer(
+        "SettingsStreamSrtAdaptiveBitrate",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamSrt.Serializer::class)
 class SettingsStreamSrt(
-    @SerialName("latency")
     var latency: Int = defaultSrtLatency,
-
-    @SerialName("maximumBandwidthFollowInput")
     var maximumBandwidthFollowInput: Boolean = true,
-
-    @SerialName("overheadBandwidth")
     var overheadBandwidth: Int = 25,
-
-    @SerialName("adaptiveBitrateEnabled")
     var adaptiveBitrateEnabled: Boolean = true,
-
-    @SerialName("adaptiveBitrate")
     var adaptiveBitrate: SettingsStreamSrtAdaptiveBitrate = SettingsStreamSrtAdaptiveBitrate(),
-
-    @SerialName("connectionPriorities")
     var connectionPriorities: SettingsStreamSrtConnectionPriorities =
         SettingsStreamSrtConnectionPriorities(),
-
-    @SerialName("mpegtsPacketsPerPacket")
     var mpegtsPacketsPerPacketRemove: Int = 7,
-
-    @SerialName("dnsLookupStrategy")
     var dnsLookupStrategy: SettingsDnsLookupStrategy = SettingsDnsLookupStrategy.system,
-
-    @SerialName("implementation")
     var implementation: SettingsStreamSrtImplementation = SettingsStreamSrtImplementation.moblin,
-
-    @SerialName("bigPackets")
     var bigPackets: Boolean = true,
-
-    @SerialName("bigPacketsMigrated")
     var bigPacketsMigrated: Boolean = false,
-
-    @SerialName("implemenationMigrated")
     var implemenationMigrated: Boolean = false,
 ) {
-    init {
-        if (!bigPacketsMigrated) {
-            bigPackets = mpegtsPacketsPerPacketRemove == 7
-            bigPacketsMigrated = true
-        }
-        if (!implemenationMigrated) {
-            if (latency < 1000) {
-                implementation = SettingsStreamSrtImplementation.official
-            }
-            implemenationMigrated = true
-        }
+    fun encode(): JsonObject = encodeContainer {
+        encode("latency", latency)
+        encode("maximumBandwidthFollowInput", maximumBandwidthFollowInput)
+        encode("overheadBandwidth", overheadBandwidth)
+        encode("adaptiveBitrateEnabled", adaptiveBitrateEnabled)
+        encode("adaptiveBitrate", adaptiveBitrate)
+        encode("connectionPriorities", connectionPriorities)
+        encode("mpegtsPacketsPerPacket", mpegtsPacketsPerPacketRemove)
+        encode("dnsLookupStrategy", dnsLookupStrategy)
+        encode("implementation", implementation)
+        encode("bigPackets", bigPackets)
+        encode("bigPacketsMigrated", bigPacketsMigrated)
+        encode("implemenationMigrated", implemenationMigrated)
     }
 
     fun mpegtsPacketsPerPacket(): Int {
@@ -522,46 +677,145 @@ class SettingsStreamSrt(
         new.implemenationMigrated = implemenationMigrated
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamSrt {
+            val srt = SettingsStreamSrt()
+            srt.latency = container.decode("latency", defaultSrtLatency)
+            srt.maximumBandwidthFollowInput = container.decode("maximumBandwidthFollowInput", true)
+            srt.overheadBandwidth = container.decode("overheadBandwidth", 25)
+            srt.adaptiveBitrateEnabled = container.decode("adaptiveBitrateEnabled", true)
+            srt.adaptiveBitrate = container.decode(
+                "adaptiveBitrate",
+                SettingsStreamSrtAdaptiveBitrate.serializer(),
+                SettingsStreamSrtAdaptiveBitrate(),
+            )
+            srt.connectionPriorities = container.decode(
+                "connectionPriorities",
+                SettingsStreamSrtConnectionPriorities.serializer(),
+                SettingsStreamSrtConnectionPriorities(),
+            )
+            srt.mpegtsPacketsPerPacketRemove = container.decode("mpegtsPacketsPerPacket", 7)
+            srt.dnsLookupStrategy = container.decode("dnsLookupStrategy", SettingsDnsLookupStrategy.system)
+            srt.implementation = container.decode("implementation", SettingsStreamSrtImplementation.moblin)
+            srt.bigPackets = container.decode("bigPackets", true)
+            srt.bigPacketsMigrated = container.decode("bigPacketsMigrated", false)
+            if (!srt.bigPacketsMigrated) {
+                srt.bigPackets = srt.mpegtsPacketsPerPacketRemove == 7
+                srt.bigPacketsMigrated = true
+            }
+            srt.implemenationMigrated = container.decode("implemenationMigrated", false)
+            if (!srt.implemenationMigrated) {
+                if (srt.latency < 1000) {
+                    srt.implementation = SettingsStreamSrtImplementation.official
+                }
+                srt.implemenationMigrated = true
+            }
+            return srt
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamSrt> by JsonObjectSerializer(
+        "SettingsStreamSrt",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamRtmp.Serializer::class)
 class SettingsStreamRtmp(
-    @SerialName("adaptiveBitrateEnabled")
     var adaptiveBitrateEnabled: Boolean = true,
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("adaptiveBitrateEnabled", adaptiveBitrateEnabled)
+    }
+
     fun clone(): SettingsStreamRtmp {
         val new = SettingsStreamRtmp()
         new.adaptiveBitrateEnabled = adaptiveBitrateEnabled
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamRtmp {
+            val rtmp = SettingsStreamRtmp()
+            rtmp.adaptiveBitrateEnabled = container.decodeIfPresent<Boolean>("adaptiveBitrateEnabled")
+                ?: throw SerializationException("Missing key 'adaptiveBitrateEnabled'")
+            return rtmp
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamRtmp> by JsonObjectSerializer(
+        "SettingsStreamRtmp",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamRist.Serializer::class)
 class SettingsStreamRist(
-    @SerialName("adaptiveBitrateEnabled")
     var adaptiveBitrateEnabled: Boolean = true,
-
-    @SerialName("bonding")
     var bonding: Boolean = true,
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("adaptiveBitrateEnabled", adaptiveBitrateEnabled)
+        encode("bonding", bonding)
+    }
+
     fun clone(): SettingsStreamRist {
         val new = SettingsStreamRist()
         new.adaptiveBitrateEnabled = adaptiveBitrateEnabled
         new.bonding = bonding
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamRist {
+            val rist = SettingsStreamRist()
+            rist.adaptiveBitrateEnabled = container.decodeIfPresent<Boolean>("adaptiveBitrateEnabled")
+                ?: throw SerializationException("Missing key 'adaptiveBitrateEnabled'")
+            rist.bonding = container.decodeIfPresent<Boolean>("bonding")
+                ?: throw SerializationException("Missing key 'bonding'")
+            return rist
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamRist> by JsonObjectSerializer(
+        "SettingsStreamRist",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsHttpHeader.Serializer::class)
 data class SettingsHttpHeader(
-    @SerialName("name")
     var name: String = "",
-
-    @SerialName("value")
     var value: String = "",
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("name", name)
+        encode("value", value)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsHttpHeader {
+            val header = SettingsHttpHeader()
+            header.name = container.decodeIfPresent<String>("name")
+                ?: throw SerializationException("Missing key 'name'")
+            header.value = container.decodeIfPresent<String>("value")
+                ?: throw SerializationException("Missing key 'value'")
+            return header
+        }
+    }
+
+    object Serializer : KSerializer<SettingsHttpHeader> by JsonObjectSerializer(
+        "SettingsHttpHeader",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsStreamWhipHttpTransport.Serializer::class)
 enum class SettingsStreamWhipHttpTransport {
     standard,
     remoteControl;
@@ -572,35 +826,81 @@ enum class SettingsStreamWhipHttpTransport {
             SettingsStreamWhipHttpTransport.remoteControl -> localized("Remote control")
         }
     }
+
+    fun encode(): JsonObject = JsonObject(mapOf(name to JsonObject(emptyMap())))
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamWhipHttpTransport {
+            val cases = container.keys.mapNotNull { key ->
+                SettingsStreamWhipHttpTransport.entries.firstOrNull { it.name == key }
+            }
+            if (cases.size != 1) {
+                throw SerializationException("Expected exactly one case")
+            }
+            val case = cases[0]
+            if (container[case.name] !is JsonObject) {
+                throw SerializationException("Expected an object for case '${case.name}'")
+            }
+            return case
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamWhipHttpTransport> by JsonObjectSerializer(
+        "SettingsStreamWhipHttpTransport",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamWhip.Serializer::class)
 class SettingsStreamWhip(
-    @SerialName("headers")
     var headers: MutableList<SettingsHttpHeader> = mutableListOf(),
-
-    @SerialName("httpTransport")
     var httpTransport: SettingsStreamWhipHttpTransport = SettingsStreamWhipHttpTransport.standard,
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("headers", headers)
+        encode("httpTransport", httpTransport)
+    }
+
     fun clone(): SettingsStreamWhip {
         val new = SettingsStreamWhip()
-        new.headers = headers.toMutableList()
+        new.headers = headers.map { it.copy() }.toMutableList()
         new.httpTransport = httpTransport
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamWhip {
+            val whip = SettingsStreamWhip()
+            whip.headers = container.decode(
+                "headers",
+                ListSerializer(SettingsHttpHeader.serializer()),
+                emptyList(),
+            ).toMutableList()
+            whip.httpTransport = container.decode("httpTransport", SettingsStreamWhipHttpTransport.standard)
+            return whip
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamWhip> by JsonObjectSerializer(
+        "SettingsStreamWhip",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamChat.Serializer::class)
 class SettingsStreamChat(
-    @SerialName("bttvEmotes")
     var bttvEmotes: Boolean = false,
-
-    @SerialName("ffzEmotes")
     var ffzEmotes: Boolean = false,
-
-    @SerialName("seventvEmotes")
     var seventvEmotes: Boolean = false,
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("bttvEmotes", bttvEmotes)
+        encode("ffzEmotes", ffzEmotes)
+        encode("seventvEmotes", seventvEmotes)
+    }
+
     fun clone(): SettingsStreamChat {
         val new = SettingsStreamChat()
         new.bttvEmotes = bttvEmotes
@@ -608,46 +908,57 @@ class SettingsStreamChat(
         new.seventvEmotes = seventvEmotes
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamChat {
+            val chat = SettingsStreamChat()
+            chat.bttvEmotes = container.decodeIfPresent<Boolean>("bttvEmotes")
+                ?: throw SerializationException("Missing key 'bttvEmotes'")
+            chat.ffzEmotes = container.decodeIfPresent<Boolean>("ffzEmotes")
+                ?: throw SerializationException("Missing key 'ffzEmotes'")
+            chat.seventvEmotes = container.decodeIfPresent<Boolean>("seventvEmotes")
+                ?: throw SerializationException("Missing key 'seventvEmotes'")
+            return chat
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamChat> by JsonObjectSerializer(
+        "SettingsStreamChat",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamRecording.Serializer::class)
 class SettingsStreamRecording(
-    @SerialName("overrideStream")
     var overrideStream: Boolean = false,
-
-    @SerialName("resolution")
     var resolution: SettingsStreamResolution = SettingsStream.defaultResolution,
-
-    @SerialName("fps")
     var fps: Int = SettingsStream.defaultFps,
-
-    @SerialName("videoCodec")
     var videoCodec: SettingsStreamCodec = SettingsStreamCodec.h265hevc,
-
-    @SerialName("videoBitrate")
     var videoBitrate: Int = 0,
-
-    @SerialName("maxKeyFrameInterval")
     var maxKeyFrameInterval: Int = 0,
-
-    @SerialName("audioBitrate")
     var audioBitrate: Int = 128_000,
-
-    @SerialName("autoStartRecording")
     var autoStartRecording: Boolean = false,
-
-    @SerialName("autoStopRecording")
     var autoStopRecording: Boolean = false,
-
-    @SerialName("cleanRecordings")
     var cleanRecordings: Boolean = false,
-
-    @SerialName("cleanSnapshots")
     var cleanSnapshots: Boolean = false,
-
-    @SerialName("recordingPath")
     var recordingPath: ByteArray? = null,
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("overrideStream", overrideStream)
+        encode("resolution", resolution)
+        encode("fps", fps)
+        encode("videoCodec", videoCodec)
+        encode("videoBitrate", videoBitrate.toUInt())
+        encode("maxKeyFrameInterval", maxKeyFrameInterval)
+        encode("audioBitrate", audioBitrate.toUInt())
+        encode("autoStartRecording", autoStartRecording)
+        encode("autoStopRecording", autoStopRecording)
+        encode("cleanRecordings", cleanRecordings)
+        encode("cleanSnapshots", cleanSnapshots)
+        encode("recordingPath", recordingPath, DataSerializer.nullable)
+    }
+
     fun clone(): SettingsStreamRecording {
         val new = SettingsStreamRecording()
         new.overrideStream = overrideStream
@@ -692,19 +1003,45 @@ class SettingsStreamRecording(
     fun isDefaultRecordingPath(): Boolean {
         return recordingPath == null
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamRecording {
+            val recording = SettingsStreamRecording()
+            recording.overrideStream = container.decode("overrideStream", false)
+            recording.resolution = container.decode("resolution", SettingsStream.defaultResolution)
+            recording.fps = container.decode("fps", SettingsStream.defaultFps)
+            recording.videoCodec = container.decode("videoCodec", SettingsStreamCodec.h265hevc)
+            recording.videoBitrate = container.decode<UInt>("videoBitrate", 0u).toInt()
+            recording.maxKeyFrameInterval = container.decode("maxKeyFrameInterval", 0)
+            recording.audioBitrate = container.decode<UInt>("audioBitrate", 128_000u).toInt()
+            recording.autoStartRecording = container.decode("autoStartRecording", false)
+            recording.autoStopRecording = container.decode("autoStopRecording", false)
+            recording.cleanRecordings = container.decode("cleanRecordings", false)
+            recording.cleanSnapshots = container.decode("cleanSnapshots", false)
+            recording.recordingPath = container.decode("recordingPath", DataSerializer.nullable, null)
+            return recording
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamRecording> by JsonObjectSerializer(
+        "SettingsStreamRecording",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamPreviewStream.Serializer::class)
 class SettingsStreamPreviewStream(
-    @SerialName("url")
     var url: String = "",
-
-    @SerialName("resolution")
     var resolution: SettingsStreamResolution = SettingsStreamResolution.r640x360,
-
-    @SerialName("bitrate")
     var bitrate: Int = 500_000,
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("url", url)
+        encode("resolution", resolution)
+        encode("bitrate", bitrate.toUInt())
+    }
+
     fun clone(): SettingsStreamPreviewStream {
         val new = SettingsStreamPreviewStream()
         new.url = url
@@ -712,17 +1049,28 @@ class SettingsStreamPreviewStream(
         new.bitrate = bitrate
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamPreviewStream {
+            val previewStream = SettingsStreamPreviewStream()
+            previewStream.url = container.decode("url", "")
+            previewStream.resolution = container.decode("resolution", SettingsStreamResolution.r640x360)
+            previewStream.bitrate = container.decode<UInt>("bitrate", 500_000u).toInt()
+            return previewStream
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamPreviewStream> by JsonObjectSerializer(
+        "SettingsStreamPreviewStream",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamReplayTransitionType.Serializer::class)
 enum class SettingsStreamReplayTransitionType(val rawValue: String) {
-    @SerialName("fade")
     fade("fade"),
-
-    @SerialName("stingers")
     stingers("stingers"),
-
-    @SerialName("none")
     none("none");
 
     override fun toString(): String {
@@ -739,18 +1087,19 @@ enum class SettingsStreamReplayTransitionType(val rawValue: String) {
                 ?: SettingsStreamReplayTransitionType.fade
         }
     }
+
+    object Serializer : KSerializer<SettingsStreamReplayTransitionType> by settingsStreamRawValueSerializer(
+        "com.moblin.android.various.settings.SettingsStreamReplayTransitionType",
+        SettingsStreamReplayTransitionType.entries,
+        { it.rawValue },
+        SettingsStreamReplayTransitionType.fade,
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamReplayStinger.Serializer::class)
 data class SettingsStreamReplayStinger(
-    @SerialName("id")
-    @Contextual
     var id: UUID = UUID.randomUUID(),
-
-    @SerialName("name")
     var name: String = "",
-
-    @SerialName("transitionPoint")
     var transitionPoint: Double = 0.5,
 ) {
     fun makeFilename(): String? {
@@ -758,47 +1107,48 @@ data class SettingsStreamReplayStinger(
         val fileExtension = path.substringAfterLast('.', "")
         return "$id.$fileExtension"
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("transitionPoint", transitionPoint)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamReplayStinger {
+            val stinger = SettingsStreamReplayStinger()
+            stinger.id = container.decodeIfPresent<UUID>("id")
+                ?: throw SerializationException("Missing key 'id'")
+            stinger.name = container.decodeIfPresent<String>("name")
+                ?: throw SerializationException("Missing key 'name'")
+            stinger.transitionPoint = container.decodeIfPresent<Double>("transitionPoint")
+                ?: throw SerializationException("Missing key 'transitionPoint'")
+            return stinger
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamReplayStinger> by JsonObjectSerializer(
+        "SettingsStreamReplayStinger",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamReplay.Serializer::class)
 class SettingsStreamReplay(
-    @SerialName("enabled")
     var enabled: Boolean = false,
-
-    @SerialName("transitionType")
     var transitionType: SettingsStreamReplayTransitionType = SettingsStreamReplayTransitionType.fade,
-
-    @SerialName("inStinger")
     var inStinger: SettingsStreamReplayStinger = SettingsStreamReplayStinger(),
-
-    @SerialName("outStinger")
     var outStinger: SettingsStreamReplayStinger = SettingsStreamReplayStinger(),
-
-    @SerialName("postTriggerDelay")
     var postTriggerDelay: Int = 3,
-
-    @SerialName("x")
     var x: Double = 0.0,
-
-    @SerialName("y")
     var y: Double = 0.0,
-
-    @SerialName("size")
     var size: Double = 100.0,
-
-    @SerialName("alignment")
     var alignment: SettingsAlignment = SettingsAlignment.topLeft,
-
-    @SerialName("positioningLock")
     var positioningLock: Boolean = false,
-
-    @SerialName("enterForegroundCountAtLatestUsage")
     var enterForegroundCountAtLatestUsage: Int? = null,
-
-    @SerialName("fade")
     var fade: Boolean? = null,
 ) {
-    @Transient
     var layout: SettingsWidgetLayout = SettingsWidgetLayout()
 
     init {
@@ -819,6 +1169,20 @@ class SettingsStreamReplay(
         layout.positioningLock = positioningLock
     }
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("transitionType", transitionType)
+        encode("inStinger", inStinger)
+        encode("outStinger", outStinger)
+        encode("postTriggerDelay", postTriggerDelay)
+        encode("x", layout.x)
+        encode("y", layout.y)
+        encode("size", layout.size)
+        encode("alignment", layout.alignment)
+        encode("positioningLock", layout.positioningLock)
+        encode("enterForegroundCountAtLatestUsage", enterForegroundCountAtLatestUsage)
+    }
+
     fun clone(): SettingsStreamReplay {
         val new = SettingsStreamReplay()
         new.enabled = enabled
@@ -826,7 +1190,16 @@ class SettingsStreamReplay(
         new.inStinger = inStinger.copy()
         new.outStinger = outStinger.copy()
         new.postTriggerDelay = postTriggerDelay
-        new.layout = layout
+        new.layout = SettingsWidgetLayout(
+            x = layout.x,
+            xString = layout.xString,
+            y = layout.y,
+            yString = layout.yString,
+            size = layout.size,
+            sizeString = layout.sizeString,
+            alignment = layout.alignment,
+            positioningLock = layout.positioningLock,
+        )
         new.x = x
         new.y = y
         new.size = size
@@ -835,46 +1208,129 @@ class SettingsStreamReplay(
         new.enterForegroundCountAtLatestUsage = enterForegroundCountAtLatestUsage
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamReplay {
+            val replay = SettingsStreamReplay()
+            replay.enabled = container.decode("enabled", false)
+            val fade = container.decodeIfPresent<Boolean>("fade")
+            if (fade != null) {
+                if (fade) {
+                    replay.transitionType = SettingsStreamReplayTransitionType.fade
+                } else {
+                    replay.transitionType = SettingsStreamReplayTransitionType.none
+                }
+            } else {
+                replay.transitionType = container.decode("transitionType", SettingsStreamReplayTransitionType.fade)
+            }
+            replay.inStinger = container.decode(
+                "inStinger",
+                SettingsStreamReplayStinger.serializer(),
+                SettingsStreamReplayStinger(),
+            )
+            replay.outStinger = container.decode(
+                "outStinger",
+                SettingsStreamReplayStinger.serializer(),
+                SettingsStreamReplayStinger(),
+            )
+            replay.postTriggerDelay = container.decode("postTriggerDelay", 3)
+            replay.layout.x = container.decode("x", 0.0)
+            replay.layout.updateXString()
+            replay.layout.y = container.decode("y", 0.0)
+            replay.layout.updateYString()
+            replay.layout.size = container.decode("size", 100.0)
+            replay.layout.updateSizeString()
+            replay.layout.alignment = container.decode("alignment", SettingsAlignment.topLeft)
+            replay.layout.positioningLock = container.decode("positioningLock", false)
+            replay.enterForegroundCountAtLatestUsage = container.decode<Int?>(
+                "enterForegroundCountAtLatestUsage",
+                null,
+            )
+            return replay
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamReplay> by JsonObjectSerializer(
+        "SettingsStreamReplay",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamTwitchReward.Serializer::class)
 class SettingsStreamTwitchReward(
-    @SerialName("id")
-    @Contextual
     var id: UUID = UUID.randomUUID(),
-
-    @SerialName("rewardId")
     var rewardId: String = "",
-
-    @SerialName("title")
     var title: String = "",
-
-    @SerialName("alert")
     var alert: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("rewardId", rewardId)
+        encode("title", title)
+        encode("alert", alert)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamTwitchReward {
+            val reward = SettingsStreamTwitchReward()
+            reward.id = container.decodeIfPresent<UUID>("id")
+                ?: throw SerializationException("Missing key 'id'")
+            reward.rewardId = container.decodeIfPresent<String>("rewardId")
+                ?: throw SerializationException("Missing key 'rewardId'")
+            reward.title = container.decodeIfPresent<String>("title")
+                ?: throw SerializationException("Missing key 'title'")
+            reward.alert = container.decodeIfPresent("alert", SettingsWidgetAlertsAlert.serializer())
+                ?: throw SerializationException("Missing key 'alert'")
+            return reward
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamTwitchReward> by JsonObjectSerializer(
+        "SettingsStreamTwitchReward",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 const val maximumNumberOfTwitchRaidChannels = 10
 
-@Serializable
+@Serializable(with = SettingsStreamTwitchRaidChannel.Serializer::class)
 class SettingsStreamTwitchRaidChannel(
-    @SerialName("channelId")
     var channelId: String = "",
-
-    @SerialName("channelName")
     var channelName: String = "",
-
-    @SerialName("timestamp")
-    @Contextual
     var timestamp: Instant = Instant.now(),
 ) {
     val id: String
         get() = channelId
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("channelId", channelId)
+        encode("channelName", channelName)
+        encode("timestamp", timestamp)
+    }
 
     fun clone(): SettingsStreamTwitchRaidChannel {
         val new = SettingsStreamTwitchRaidChannel(channelId, channelName)
         new.timestamp = timestamp
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamTwitchRaidChannel {
+            val channel = SettingsStreamTwitchRaidChannel()
+            channel.channelId = container.decode("channelId", "")
+            channel.channelName = container.decode("channelName", "")
+            channel.timestamp = container.decode("timestamp", Instant.now())
+            return channel
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamTwitchRaidChannel> by JsonObjectSerializer(
+        "SettingsStreamTwitchRaidChannel",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
 fun appendTwitchRaidChannel(
@@ -887,22 +1343,30 @@ fun appendTwitchRaidChannel(
     return result.take(maximumNumberOfTwitchRaidChannels)
 }
 
-@Serializable
+@Serializable(with = SettingsStreamMultiStreamingDestination.Serializer::class)
 class SettingsStreamMultiStreamingDestination(
-    @SerialName("name")
     override var name: String = SettingsStreamMultiStreamingDestination.baseName,
-
-    @SerialName("url")
     var url: String = defaultRtmpStreamUrl,
-
-    @SerialName("enabled")
     var enabled: Boolean = false,
 ) : Named {
-    @Transient
     var id: UUID = UUID.randomUUID()
 
     companion object {
         val baseName: String = localized("My destination")
+
+        fun decode(container: JsonObject): SettingsStreamMultiStreamingDestination {
+            val destination = SettingsStreamMultiStreamingDestination()
+            destination.name = container.decode("name", baseName)
+            destination.url = container.decode("url", defaultRtmpStreamUrl)
+            destination.enabled = container.decode("enabled", false)
+            return destination
+        }
+    }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("name", name)
+        encode("url", url)
+        encode("enabled", enabled)
     }
 
     fun clone(): SettingsStreamMultiStreamingDestination {
@@ -912,13 +1376,22 @@ class SettingsStreamMultiStreamingDestination(
         new.enabled = enabled
         return new
     }
+
+    object Serializer : KSerializer<SettingsStreamMultiStreamingDestination> by JsonObjectSerializer(
+        "SettingsStreamMultiStreamingDestination",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsStreamMultiStreaming.Serializer::class)
 class SettingsStreamMultiStreaming(
-    @SerialName("destinations")
     var destinations: MutableList<SettingsStreamMultiStreamingDestination> = mutableListOf(),
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("destinations", destinations)
+    }
+
     fun clone(): SettingsStreamMultiStreaming {
         val new = SettingsStreamMultiStreaming()
         for (destination in destinations) {
@@ -926,43 +1399,54 @@ class SettingsStreamMultiStreaming(
         }
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamMultiStreaming {
+            val multiStreaming = SettingsStreamMultiStreaming()
+            multiStreaming.destinations = container.decode(
+                "destinations",
+                ListSerializer(SettingsStreamMultiStreamingDestination.serializer()),
+                emptyList(),
+            ).toMutableList()
+            return multiStreaming
+        }
+    }
+
+    object Serializer : KSerializer<SettingsStreamMultiStreaming> by JsonObjectSerializer(
+        "SettingsStreamMultiStreaming",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsTwitchAlerts.Serializer::class)
 class SettingsTwitchAlerts(
-    @SerialName("follows")
     var follows: Boolean = true,
-
-    @SerialName("subscriptions")
     var subscriptions: Boolean = true,
-
-    @SerialName("giftSubscriptions")
     var giftSubscriptions: Boolean = true,
-
-    @SerialName("resubscriptions")
     var resubscriptions: Boolean = true,
-
-    @SerialName("rewards")
     var rewards: Boolean = true,
-
-    @SerialName("raids")
     var raids: Boolean = true,
-
-    @SerialName("cheers")
     var cheers: Boolean = true,
-
-    @SerialName("minimumCheerBits")
     var minimumCheerBits: Int = 0,
-
-    @SerialName("watchStreaks")
     var watchStreaks: Boolean = true,
-
-    @SerialName("minimumWatchStreak")
     var minimumWatchStreak: Int = 5,
-
-    @SerialName("sharedChat")
     var sharedChat: Boolean = false,
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("follows", follows)
+        encode("subscriptions", subscriptions)
+        encode("giftSubscriptions", giftSubscriptions)
+        encode("resubscriptions", resubscriptions)
+        encode("rewards", rewards)
+        encode("raids", raids)
+        encode("cheers", cheers)
+        encode("minimumCheerBits", minimumCheerBits)
+        encode("watchStreaks", watchStreaks)
+        encode("minimumWatchStreak", minimumWatchStreak)
+        encode("sharedChat", sharedChat)
+    }
+
     fun clone(): SettingsTwitchAlerts {
         val new = SettingsTwitchAlerts()
         new.follows = follows
@@ -986,31 +1470,52 @@ class SettingsTwitchAlerts(
     fun isWatchStreakEnabled(count: Int): Boolean {
         return watchStreaks && count >= minimumWatchStreak
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsTwitchAlerts {
+            val alerts = SettingsTwitchAlerts()
+            alerts.follows = container.decode("follows", true)
+            alerts.subscriptions = container.decode("subscriptions", true)
+            alerts.giftSubscriptions = container.decode("giftSubscriptions", true)
+            alerts.resubscriptions = container.decode("resubscriptions", true)
+            alerts.rewards = container.decode("rewards", true)
+            alerts.raids = container.decode("raids", true)
+            alerts.cheers = container.decode("cheers", true)
+            alerts.minimumCheerBits = container.decode("minimumCheerBits", 0)
+            alerts.watchStreaks = container.decode("watchStreaks", true)
+            alerts.minimumWatchStreak = container.decode("minimumWatchStreak", 5)
+            alerts.sharedChat = container.decode("sharedChat", false)
+            return alerts
+        }
+    }
+
+    object Serializer : KSerializer<SettingsTwitchAlerts> by JsonObjectSerializer(
+        "SettingsTwitchAlerts",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsKickAlerts.Serializer::class)
 class SettingsKickAlerts(
-    @SerialName("subscriptions")
     var subscriptions: Boolean = true,
-
-    @SerialName("giftedSubscriptions")
     var giftedSubscriptions: Boolean = true,
-
-    @SerialName("rewards")
     var rewards: Boolean = true,
-
-    @SerialName("hosts")
     var hosts: Boolean = true,
-
-    @SerialName("bans")
     var bans: Boolean = true,
-
-    @SerialName("kicks")
     var kicks: Boolean = true,
-
-    @SerialName("minimumKicks")
     var minimumKicks: Int = 0,
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("subscriptions", subscriptions)
+        encode("giftedSubscriptions", giftedSubscriptions)
+        encode("rewards", rewards)
+        encode("hosts", hosts)
+        encode("bans", bans)
+        encode("kicks", kicks)
+        encode("minimumKicks", minimumKicks)
+    }
+
     fun clone(): SettingsKickAlerts {
         val new = SettingsKickAlerts()
         new.subscriptions = subscriptions
@@ -1026,310 +1531,395 @@ class SettingsKickAlerts(
     fun isKicksEnabled(amount: Int): Boolean {
         return kicks && amount >= minimumKicks
     }
-}
 
-@Serializable
-class SettingsStream(
-    @SerialName("name")
-    override var name: String = "My stream",
-
-    @SerialName("id")
-    @Contextual
-    var id: UUID = UUID.randomUUID(),
-
-    @SerialName("enabled")
-    var enabled: Boolean = false,
-
-    @SerialName("url")
-    var url: String = defaultStreamUrl,
-
-    @SerialName("twitchChannelName")
-    var twitchChannelName: String = "",
-
-    @SerialName("twitchChannelId")
-    var twitchChannelId: String = "",
-
-    @SerialName("twitchShowFollows")
-    var twitchShowFollows: Boolean? = null,
-
-    @SerialName("twitchChatAlerts")
-    var twitchChatAlerts: SettingsTwitchAlerts = SettingsTwitchAlerts(),
-
-    @SerialName("twitchToastAlerts")
-    var twitchToastAlerts: SettingsTwitchAlerts = SettingsTwitchAlerts(),
-
-    @SerialName("twitchAccessToken")
-    var twitchAccessToken: String = "",
-
-    @SerialName("twitchLoggedIn")
-    var twitchLoggedIn: Boolean = false,
-
-    @SerialName("twitchWantsToBeLoggedIn")
-    var twitchWantsToBeLoggedIn: Boolean = false,
-
-    @SerialName("twitchNotLoggedInCount")
-    var twitchNotLoggedInCount: Int = 0,
-
-    @SerialName("twitchRewards")
-    var twitchRewards: MutableList<SettingsStreamTwitchReward> = mutableListOf(),
-
-    @SerialName("twitchRaidsSent")
-    var twitchRaidsSent: MutableList<SettingsStreamTwitchRaidChannel> = mutableListOf(),
-
-    @SerialName("twitchRaidsReceived")
-    var twitchRaidsReceived: MutableList<SettingsStreamTwitchRaidChannel> = mutableListOf(),
-
-    @SerialName("twitchSendMessagesTo")
-    var twitchSendMessagesTo: Boolean = true,
-
-    @SerialName("kickChannelName")
-    var kickChannelName: String = "",
-
-    @SerialName("kickChannelId")
-    var kickChannelId: String? = null,
-
-    @SerialName("kickChatroomChannelId")
-    var kickChatroomChannelId: String? = null,
-
-    @SerialName("kickSlug")
-    var kickSlug: String? = null,
-
-    @SerialName("kickAccessToken")
-    var kickAccessToken: String = "",
-
-    @SerialName("kickLoggedIn")
-    var kickLoggedIn: Boolean = false,
-
-    @SerialName("kickWantsToBeLoggedIn")
-    var kickWantsToBeLoggedIn: Boolean = false,
-
-    @SerialName("kickNotLoggedInCount")
-    var kickNotLoggedInCount: Int = 0,
-
-    @SerialName("kickSendMessagesTo")
-    var kickSendMessagesTo: Boolean = true,
-
-    @SerialName("kickChatAlerts")
-    var kickChatAlerts: SettingsKickAlerts = SettingsKickAlerts(),
-
-    @SerialName("kickToastAlerts")
-    var kickToastAlerts: SettingsKickAlerts = SettingsKickAlerts(),
-
-    @SerialName("youTubeAuthState")
-    @Contextual
-    var youTubeAuthState: Any? = null,
-
-    @SerialName("youTubeWantsToBeLoggedIn")
-    var youTubeWantsToBeLoggedIn: Boolean = false,
-
-    @SerialName("youTubeNotLoggedInCount")
-    var youTubeNotLoggedInCount: Int = 0,
-
-    @SerialName("youTubeVideoId")
-    var youTubeVideoIds: String = "",
-
-    @SerialName("youTubeHandle")
-    var youTubeHandle: String = "",
-
-    @SerialName("youTubeScheduleStreamTitle")
-    var youTubeScheduleStreamTitle: String = "",
-
-    @SerialName("youTubeScheduleStreamVisibility")
-    var youTubeScheduleStreamVisibility: YouTubeApiLiveBroadcaseVisibility =
-        YouTubeApiLiveBroadcaseVisibility.public,
-
-    @SerialName("youTubeScheduleStreamAutoStop")
-    var youTubeScheduleStreamAutoStop: Boolean = true,
-
-    @SerialName("afreecaTvChannelName")
-    var soopChannelName: String = "",
-
-    @SerialName("afreecaTvStreamId")
-    var soopStreamId: String = "",
-
-    @SerialName("openStreamingPlatformUrl")
-    var openStreamingPlatformUrl: String = "",
-
-    @SerialName("openStreamingPlatformChannelId")
-    var openStreamingPlatformChannelId: String = "",
-
-    @SerialName("obsWebSocketEnabled")
-    var obsWebSocketEnabled: Boolean = false,
-
-    @SerialName("obsWebSocketUrl")
-    var obsWebSocketUrl: String = "",
-
-    @SerialName("obsWebSocketPassword")
-    var obsWebSocketPassword: String = "",
-
-    @SerialName("obsSourceName")
-    var obsSourceName: String = "",
-
-    @SerialName("obsMainScene")
-    var obsMainScene: String = "",
-
-    @SerialName("obsBrbScene")
-    var obsBrbScene: String = "",
-
-    @SerialName("obsBrbSceneVideoSourceBroken")
-    var obsBrbSceneVideoSourceBroken: Boolean = false,
-
-    @SerialName("obsAutoStartStream")
-    var obsAutoStartStream: Boolean = false,
-
-    @SerialName("obsAutoStopStream")
-    var obsAutoStopStream: Boolean = false,
-
-    @SerialName("obsAutoStartRecording")
-    var obsAutoStartRecording: Boolean = false,
-
-    @SerialName("obsAutoStopRecording")
-    var obsAutoStopRecording: Boolean = false,
-
-    @SerialName("streamingDirectlyToObs")
-    var streamingDirectlyToObs: Boolean = false,
-
-    @SerialName("discordSnapshotWebhook")
-    var discordSnapshotWebhook: String = "",
-
-    @SerialName("discordChatBotSnapshotWebhook")
-    var discordChatBotSnapshotWebhook: String = "",
-
-    @SerialName("discordSnapshotWebhookOnlyWhenLive")
-    var discordSnapshotWebhookOnlyWhenLive: Boolean = true,
-
-    @SerialName("resolution")
-    var resolution: SettingsStreamResolution = SettingsStream.defaultResolution,
-
-    @SerialName("fps")
-    var fps: Int = SettingsStream.defaultFps,
-
-    @SerialName("autoFps")
-    var lowLightBoost: Boolean = false,
-
-    @SerialName("bitrate")
-    var bitrate: Int = 5_000_000,
-
-    @SerialName("bitrateRateControl")
-    var rateControl: SettingsStreamRateControl = SettingsStreamRateControl.abr,
-
-    @SerialName("codec")
-    var codec: SettingsStreamCodec = SettingsStreamCodec.h265hevc,
-
-    @SerialName("h264Profile")
-    var h264Profile: SettingsStreamH264Profile = SettingsStreamH264Profile.main,
-
-    @SerialName("bFrames")
-    var bFrames: Boolean = false,
-
-    @SerialName("adaptiveEncoderResolution")
-    var adaptiveEncoderResolution: Boolean = false,
-
-    @SerialName("adaptiveEncoderResolutionThreashold")
-    var adaptiveEncoderResolutionThreashold: Double = 1.0,
-
-    @SerialName("adaptiveBitrate")
-    var adaptiveBitrate: Boolean = true,
-
-    @SerialName("srt")
-    var srt: SettingsStreamSrt = SettingsStreamSrt(),
-
-    @SerialName("rtmp")
-    var rtmp: SettingsStreamRtmp = SettingsStreamRtmp(),
-
-    @SerialName("rist")
-    var rist: SettingsStreamRist = SettingsStreamRist(),
-
-    @SerialName("whip")
-    var whip: SettingsStreamWhip = SettingsStreamWhip(),
-
-    @SerialName("maxKeyFrameInterval")
-    var maxKeyFrameInterval: Int = 2,
-
-    @SerialName("audioCodec")
-    var audioCodec: SettingsStreamAudioCodec = SettingsStreamAudioCodec.aac,
-
-    @SerialName("audioBitrate")
-    var audioBitrate: Int = 128_000,
-
-    @SerialName("chat")
-    var chat: SettingsStreamChat = SettingsStreamChat(),
-
-    @SerialName("recording")
-    var recording: SettingsStreamRecording = SettingsStreamRecording(),
-
-    @SerialName("realtimeIrlEnabled")
-    var realtimeIrlEnabled: Boolean = false,
-
-    @SerialName("realtimeIrlBaseUrl")
-    var realtimeIrlBaseUrl: String = SettingsStream.defaultRealtimeIrlBaseUrl,
-
-    @SerialName("realtimeIrlPushKey")
-    var realtimeIrlPushKey: String = "",
-
-    @SerialName("portrait")
-    var portrait: Boolean = false,
-
-    @SerialName("backgroundStreaming")
-    var backgroundStreaming: Boolean = false,
-
-    @SerialName("backgroundStreamingPiP")
-    var backgroundStreamingPiP: Boolean = true,
-
-    @SerialName("estimatedViewerDelay")
-    var estimatedViewerDelay: Float = 8.0f,
-
-    @SerialName("ntpPoolAddress")
-    var ntpPoolAddress: String = "time.apple.com",
-
-    @SerialName("timecodesEnabled")
-    var timecodesEnabled: Boolean = false,
-
-    @SerialName("replay")
-    var replay: SettingsStreamReplay = SettingsStreamReplay(),
-
-    @SerialName("goLiveNotificationDiscordMessage")
-    var goLiveNotificationDiscordMessage: String = "",
-
-    @SerialName("goLiveNotificationDiscordWebhookUrl")
-    var goLiveNotificationDiscordWebhookUrl: String = "",
-
-    @SerialName("goLiveNotificationMoblinWebsite")
-    var goLiveNotificationMoblinWebsite: Boolean = false,
-
-    @SerialName("multiStreaming")
-    var multiStreaming: SettingsStreamMultiStreaming = SettingsStreamMultiStreaming(),
-
-    @SerialName("previewStream")
-    var previewStream: SettingsStreamPreviewStream = SettingsStreamPreviewStream(),
-
-    @SerialName("autoGoLive")
-    var autoGoLive: Boolean = false,
-) : Named {
-    init {
-        val showFollows = twitchShowFollows
-        if (showFollows != null) {
-            twitchChatAlerts.follows = showFollows
-            twitchToastAlerts.follows = showFollows
-        }
-        twitchShowFollows = null
-        if (kickAccessToken.isNotEmpty()) {
-            storeKickAccessTokenInKeychain(id, kickAccessToken)
-            kickAccessToken = ""
-        }
-        val encoded = loadYouTubeAuthStateFromKeychain(id)
-        if (encoded != null) {
-            val decoded = runCatching { Base64.getDecoder().decode(encoded) }.getOrNull()
-            if (decoded != null) {
-                youTubeAuthState = decodeYouTubeAuthState(decoded)
-            }
+    companion object {
+        fun decode(container: JsonObject): SettingsKickAlerts {
+            val alerts = SettingsKickAlerts()
+            alerts.subscriptions = container.decode("subscriptions", true)
+            alerts.giftedSubscriptions = container.decode("giftedSubscriptions", true)
+            alerts.rewards = container.decode("rewards", true)
+            alerts.hosts = container.decode("hosts", true)
+            alerts.bans = container.decode("bans", true)
+            alerts.kicks = container.decode("kicks", true)
+            alerts.minimumKicks = container.decode("minimumKicks", 0)
+            return alerts
         }
     }
 
+    object Serializer : KSerializer<SettingsKickAlerts> by JsonObjectSerializer(
+        "SettingsKickAlerts",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsStream.Serializer::class)
+class SettingsStream(
+    override var name: String = "My stream",
+    var id: UUID = UUID.randomUUID(),
+    var enabled: Boolean = false,
+    var url: String = defaultStreamUrl,
+    var twitchChannelName: String = "",
+    var twitchChannelId: String = "",
+    var twitchShowFollows: Boolean? = null,
+    var twitchChatAlerts: SettingsTwitchAlerts = SettingsTwitchAlerts(),
+    var twitchToastAlerts: SettingsTwitchAlerts = SettingsTwitchAlerts(),
+    var twitchAccessToken: String = "",
+    var twitchLoggedIn: Boolean = false,
+    var twitchWantsToBeLoggedIn: Boolean = false,
+    var twitchNotLoggedInCount: Int = 0,
+    var twitchRewards: MutableList<SettingsStreamTwitchReward> = mutableListOf(),
+    var twitchRaidsSent: MutableList<SettingsStreamTwitchRaidChannel> = mutableListOf(),
+    var twitchRaidsReceived: MutableList<SettingsStreamTwitchRaidChannel> = mutableListOf(),
+    var twitchSendMessagesTo: Boolean = true,
+    var kickChannelName: String = "",
+    var kickChannelId: String? = null,
+    var kickChatroomChannelId: String? = null,
+    var kickSlug: String? = null,
+    var kickAccessToken: String = "",
+    var kickLoggedIn: Boolean = false,
+    var kickWantsToBeLoggedIn: Boolean = false,
+    var kickNotLoggedInCount: Int = 0,
+    var kickSendMessagesTo: Boolean = true,
+    var kickChatAlerts: SettingsKickAlerts = SettingsKickAlerts(),
+    var kickToastAlerts: SettingsKickAlerts = SettingsKickAlerts(),
+    var youTubeAuthState: Any? = null,
+    var youTubeWantsToBeLoggedIn: Boolean = false,
+    var youTubeNotLoggedInCount: Int = 0,
+    var youTubeVideoIds: String = "",
+    var youTubeHandle: String = "",
+    var youTubeScheduleStreamTitle: String = "",
+    var youTubeScheduleStreamVisibility: YouTubeApiLiveBroadcaseVisibility =
+        YouTubeApiLiveBroadcaseVisibility.public,
+    var youTubeScheduleStreamAutoStop: Boolean = true,
+    var soopChannelName: String = "",
+    var soopStreamId: String = "",
+    var openStreamingPlatformUrl: String = "",
+    var openStreamingPlatformChannelId: String = "",
+    var obsWebSocketEnabled: Boolean = false,
+    var obsWebSocketUrl: String = "",
+    var obsWebSocketPassword: String = "",
+    var obsSourceName: String = "",
+    var obsMainScene: String = "",
+    var obsBrbScene: String = "",
+    var obsBrbSceneVideoSourceBroken: Boolean = false,
+    var obsAutoStartStream: Boolean = false,
+    var obsAutoStopStream: Boolean = false,
+    var obsAutoStartRecording: Boolean = false,
+    var obsAutoStopRecording: Boolean = false,
+    var streamingDirectlyToObs: Boolean = false,
+    var discordSnapshotWebhook: String = "",
+    var discordChatBotSnapshotWebhook: String = "",
+    var discordSnapshotWebhookOnlyWhenLive: Boolean = true,
+    var resolution: SettingsStreamResolution = SettingsStream.defaultResolution,
+    var fps: Int = SettingsStream.defaultFps,
+    var lowLightBoost: Boolean = false,
+    var bitrate: Int = 5_000_000,
+    var rateControl: SettingsStreamRateControl = SettingsStreamRateControl.abr,
+    var codec: SettingsStreamCodec = SettingsStreamCodec.h265hevc,
+    var h264Profile: SettingsStreamH264Profile = SettingsStreamH264Profile.main,
+    var bFrames: Boolean = false,
+    var adaptiveEncoderResolution: Boolean = false,
+    var adaptiveEncoderResolutionThreashold: Double = 1.0,
+    var adaptiveBitrate: Boolean = true,
+    var srt: SettingsStreamSrt = SettingsStreamSrt(),
+    var rtmp: SettingsStreamRtmp = SettingsStreamRtmp(),
+    var rist: SettingsStreamRist = SettingsStreamRist(),
+    var whip: SettingsStreamWhip = SettingsStreamWhip(),
+    var maxKeyFrameInterval: Int = 2,
+    var audioCodec: SettingsStreamAudioCodec = SettingsStreamAudioCodec.aac,
+    var audioBitrate: Int = 128_000,
+    var chat: SettingsStreamChat = SettingsStreamChat(),
+    var recording: SettingsStreamRecording = SettingsStreamRecording(),
+    var realtimeIrlEnabled: Boolean = false,
+    var realtimeIrlBaseUrl: String = SettingsStream.defaultRealtimeIrlBaseUrl,
+    var realtimeIrlPushKey: String = "",
+    var portrait: Boolean = false,
+    var backgroundStreaming: Boolean = false,
+    var backgroundStreamingPiP: Boolean = true,
+    var estimatedViewerDelay: Float = 8.0f,
+    var ntpPoolAddress: String = "time.apple.com",
+    var timecodesEnabled: Boolean = false,
+    var replay: SettingsStreamReplay = SettingsStreamReplay(),
+    var goLiveNotificationDiscordMessage: String = "",
+    var goLiveNotificationDiscordWebhookUrl: String = "",
+    var goLiveNotificationMoblinWebsite: Boolean = false,
+    var multiStreaming: SettingsStreamMultiStreaming = SettingsStreamMultiStreaming(),
+    var previewStream: SettingsStreamPreviewStream = SettingsStreamPreviewStream(),
+    var autoGoLive: Boolean = false,
+) : Named {
     companion object {
         val defaultRealtimeIrlBaseUrl: String = "https://rtirl.com/api"
         val defaultResolution: SettingsStreamResolution = SettingsStreamResolution.r1920x1080
         val defaultFps: Int = 30
+
+        fun decode(container: JsonObject): SettingsStream {
+            val stream = SettingsStream()
+            stream.name = container.decode("name", "My stream")
+            stream.id = container.decode("id", UUID.randomUUID())
+            stream.enabled = container.decode("enabled", false)
+            stream.url = container.decode("url", defaultStreamUrl)
+            stream.twitchChannelName = container.decode("twitchChannelName", "")
+            stream.twitchChannelId = container.decode("twitchChannelId", "")
+            stream.twitchShowFollows = container.decode<Boolean?>("twitchShowFollows", null)
+            stream.twitchAccessToken = container.decode("twitchAccessToken", "")
+            stream.twitchLoggedIn = container.decode("twitchLoggedIn", false)
+            stream.twitchWantsToBeLoggedIn = container.decode("twitchWantsToBeLoggedIn", stream.twitchLoggedIn)
+            stream.twitchNotLoggedInCount = container.decode("twitchNotLoggedInCount", 0)
+            stream.twitchRewards = container.decode(
+                "twitchRewards",
+                ListSerializer(SettingsStreamTwitchReward.serializer()),
+                emptyList(),
+            ).toMutableList()
+            stream.twitchRaidsSent = container.decode(
+                "twitchRaidsSent",
+                ListSerializer(SettingsStreamTwitchRaidChannel.serializer()),
+                emptyList(),
+            ).toMutableList()
+            stream.twitchRaidsReceived = container.decode(
+                "twitchRaidsReceived",
+                ListSerializer(SettingsStreamTwitchRaidChannel.serializer()),
+                emptyList(),
+            ).toMutableList()
+            stream.twitchSendMessagesTo = container.decode("twitchSendMessagesTo", true)
+            stream.twitchChatAlerts = container.decode(
+                "twitchChatAlerts",
+                SettingsTwitchAlerts.serializer(),
+                SettingsTwitchAlerts(),
+            )
+            stream.twitchToastAlerts = container.decode(
+                "twitchToastAlerts",
+                SettingsTwitchAlerts.serializer(),
+                SettingsTwitchAlerts(),
+            )
+            val twitchShowFollows = stream.twitchShowFollows
+            if (twitchShowFollows != null) {
+                stream.twitchChatAlerts.follows = twitchShowFollows
+                stream.twitchToastAlerts.follows = twitchShowFollows
+            }
+            stream.twitchShowFollows = null
+            stream.kickChannelName = container.decode("kickChannelName", "")
+            stream.kickChannelId = container.decode<String?>("kickChannelId", null)
+            stream.kickChatroomChannelId = container.decode<String?>("kickChatroomChannelId", null)
+            stream.kickSlug = container.decode<String?>("kickSlug", null)
+            stream.kickAccessToken = container.decode("kickAccessToken", "")
+            if (stream.kickAccessToken.isNotEmpty()) {
+                storeKickAccessTokenInKeychain(stream.id, stream.kickAccessToken)
+                stream.kickAccessToken = ""
+            }
+            stream.kickLoggedIn = container.decode("kickLoggedIn", false)
+            stream.kickWantsToBeLoggedIn = container.decode("kickWantsToBeLoggedIn", stream.kickLoggedIn)
+            stream.kickNotLoggedInCount = container.decode("kickNotLoggedInCount", 0)
+            stream.kickSendMessagesTo = container.decode("kickSendMessagesTo", true)
+            stream.kickChatAlerts = container.decode(
+                "kickChatAlerts",
+                SettingsKickAlerts.serializer(),
+                SettingsKickAlerts(),
+            )
+            stream.kickToastAlerts = container.decode(
+                "kickToastAlerts",
+                SettingsKickAlerts.serializer(),
+                SettingsKickAlerts(),
+            )
+            val encoded = loadYouTubeAuthStateFromKeychain(stream.id)
+            if (encoded != null) {
+                stream.youTubeAuthState = stream.decodeYouTubeAuthState(
+                    runCatching { Base64.getDecoder().decode(encoded) }.getOrNull()
+                )
+            }
+            stream.youTubeVideoIds = container.decode("youTubeVideoId", "")
+            stream.youTubeWantsToBeLoggedIn = container.decode(
+                "youTubeWantsToBeLoggedIn",
+                stream.youTubeAuthState != null,
+            )
+            stream.youTubeNotLoggedInCount = container.decode("youTubeNotLoggedInCount", 0)
+            stream.youTubeHandle = container.decode("youTubeHandle", "")
+            stream.youTubeScheduleStreamTitle = container.decode("youTubeScheduleStreamTitle", "")
+            stream.youTubeScheduleStreamVisibility = container.decode(
+                "youTubeScheduleStreamVisibility",
+                YouTubeApiLiveBroadcaseVisibility.public,
+            )
+            stream.youTubeScheduleStreamAutoStop = container.decode("youTubeScheduleStreamAutoStop", true)
+            stream.soopChannelName = container.decode("afreecaTvChannelName", "")
+            stream.soopStreamId = container.decode("afreecaTvStreamId", "")
+            stream.openStreamingPlatformUrl = container.decode("openStreamingPlatformUrl", "")
+            stream.openStreamingPlatformChannelId = container.decode("openStreamingPlatformChannelId", "")
+            stream.obsWebSocketEnabled = container.decode("obsWebSocketEnabled", false)
+            stream.obsWebSocketUrl = container.decode("obsWebSocketUrl", "")
+            stream.obsWebSocketPassword = container.decode("obsWebSocketPassword", "")
+            stream.obsSourceName = container.decode("obsSourceName", "")
+            stream.obsMainScene = container.decode("obsMainScene", "")
+            stream.obsBrbScene = container.decode("obsBrbScene", "")
+            stream.obsBrbSceneVideoSourceBroken = container.decode("obsBrbSceneVideoSourceBroken", false)
+            stream.obsAutoStartStream = container.decode("obsAutoStartStream", false)
+            stream.obsAutoStopStream = container.decode("obsAutoStopStream", false)
+            stream.obsAutoStartRecording = container.decode("obsAutoStartRecording", false)
+            stream.obsAutoStopRecording = container.decode("obsAutoStopRecording", false)
+            stream.streamingDirectlyToObs = container.decode("streamingDirectlyToObs", false)
+            stream.discordSnapshotWebhook = container.decode("discordSnapshotWebhook", "")
+            stream.discordChatBotSnapshotWebhook = container.decode("discordChatBotSnapshotWebhook", "")
+            stream.discordSnapshotWebhookOnlyWhenLive = container.decode(
+                "discordSnapshotWebhookOnlyWhenLive",
+                true,
+            )
+            stream.resolution = container.decode("resolution", defaultResolution)
+            stream.fps = container.decode("fps", defaultFps)
+            stream.lowLightBoost = container.decode("autoFps", false)
+            stream.bitrate = container.decode<UInt>("bitrate", 5_000_000u).toInt()
+            stream.rateControl = SettingsStreamRateControl.makeValid(
+                container.decode("bitrateRateControl", SettingsStreamRateControl.abr)
+            )
+            stream.codec = container.decode("codec", SettingsStreamCodec.h265hevc)
+            stream.h264Profile = container.decode("h264Profile", SettingsStreamH264Profile.main)
+            stream.bFrames = container.decode("bFrames", false)
+            stream.adaptiveEncoderResolution = container.decode("adaptiveEncoderResolution", false)
+            stream.adaptiveEncoderResolutionThreashold = container.decode(
+                "adaptiveEncoderResolutionThreashold",
+                1.0,
+            )
+            stream.adaptiveBitrate = container.decode("adaptiveBitrate", true)
+            stream.srt = container.decode("srt", SettingsStreamSrt.serializer(), SettingsStreamSrt())
+            stream.rtmp = container.decode("rtmp", SettingsStreamRtmp.serializer(), SettingsStreamRtmp())
+            stream.rist = container.decode("rist", SettingsStreamRist.serializer(), SettingsStreamRist())
+            stream.whip = container.decode("whip", SettingsStreamWhip.serializer(), SettingsStreamWhip())
+            stream.maxKeyFrameInterval = container.decode("maxKeyFrameInterval", 2)
+            stream.audioCodec = container.decode("audioCodec", SettingsStreamAudioCodec.aac)
+            stream.audioBitrate = container.decode("audioBitrate", 128_000)
+            stream.chat = container.decode("chat", SettingsStreamChat.serializer(), SettingsStreamChat())
+            stream.recording = container.decode(
+                "recording",
+                SettingsStreamRecording.serializer(),
+                SettingsStreamRecording(),
+            )
+            stream.realtimeIrlEnabled = container.decode("realtimeIrlEnabled", false)
+            stream.realtimeIrlBaseUrl = container.decode("realtimeIrlBaseUrl", defaultRealtimeIrlBaseUrl)
+            stream.realtimeIrlPushKey = container.decode("realtimeIrlPushKey", "")
+            stream.portrait = container.decode("portrait", false)
+            stream.backgroundStreaming = container.decode("backgroundStreaming", false)
+            stream.backgroundStreamingPiP = container.decode("backgroundStreamingPiP", true)
+            stream.estimatedViewerDelay = container.decode("estimatedViewerDelay", 8.0f)
+            stream.ntpPoolAddress = container.decode("ntpPoolAddress", "time.apple.com")
+            stream.timecodesEnabled = container.decode("timecodesEnabled", false)
+            stream.replay = container.decode("replay", SettingsStreamReplay.serializer(), SettingsStreamReplay())
+            stream.goLiveNotificationDiscordMessage = container.decode(
+                "goLiveNotificationDiscordMessage",
+                "",
+            )
+            stream.goLiveNotificationDiscordWebhookUrl = container.decode(
+                "goLiveNotificationDiscordWebhookUrl",
+                "",
+            )
+            stream.goLiveNotificationMoblinWebsite = container.decode("goLiveNotificationMoblinWebsite", false)
+            stream.multiStreaming = container.decode(
+                "multiStreaming",
+                SettingsStreamMultiStreaming.serializer(),
+                SettingsStreamMultiStreaming(),
+            )
+            stream.previewStream = container.decode(
+                "previewStream",
+                SettingsStreamPreviewStream.serializer(),
+                SettingsStreamPreviewStream(),
+            )
+            stream.autoGoLive = container.decode("autoGoLive", false)
+            return stream
+        }
+    }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("name", name)
+        encode("id", id)
+        encode("enabled", enabled)
+        encode("url", url)
+        encode("twitchChannelName", twitchChannelName)
+        encode("twitchChannelId", twitchChannelId)
+        encode("twitchShowFollows", twitchShowFollows)
+        encode("twitchAccessToken", twitchAccessToken)
+        encode("twitchLoggedIn", twitchLoggedIn)
+        encode("twitchWantsToBeLoggedIn", twitchWantsToBeLoggedIn)
+        encode("twitchNotLoggedInCount", twitchNotLoggedInCount)
+        encode("twitchRewards", twitchRewards)
+        encode("twitchRaidsSent", twitchRaidsSent)
+        encode("twitchRaidsReceived", twitchRaidsReceived)
+        encode("twitchSendMessagesTo", twitchSendMessagesTo)
+        encode("twitchChatAlerts", twitchChatAlerts)
+        encode("twitchToastAlerts", twitchToastAlerts)
+        encode("kickChannelName", kickChannelName)
+        encode("kickChannelId", kickChannelId)
+        encode("kickChatroomChannelId", kickChatroomChannelId)
+        encode("kickSlug", kickSlug)
+        encode("kickAccessToken", kickAccessToken)
+        encode("kickLoggedIn", kickLoggedIn)
+        encode("kickWantsToBeLoggedIn", kickWantsToBeLoggedIn)
+        encode("kickNotLoggedInCount", kickNotLoggedInCount)
+        encode("kickSendMessagesTo", kickSendMessagesTo)
+        encode("kickChatAlerts", kickChatAlerts)
+        encode("kickToastAlerts", kickToastAlerts)
+        val encoded = encodeYouTubeAuthState()
+        if (encoded != null) {
+            storeYouTubeAuthStateInKeychain(id, Base64.getEncoder().encodeToString(encoded))
+        }
+        encode("youTubeVideoId", youTubeVideoIds)
+        encode("youTubeWantsToBeLoggedIn", youTubeWantsToBeLoggedIn)
+        encode("youTubeNotLoggedInCount", youTubeNotLoggedInCount)
+        encode("youTubeHandle", youTubeHandle)
+        encode("youTubeScheduleStreamTitle", youTubeScheduleStreamTitle)
+        encode("youTubeScheduleStreamVisibility", youTubeScheduleStreamVisibility)
+        encode("youTubeScheduleStreamAutoStop", youTubeScheduleStreamAutoStop)
+        encode("afreecaTvChannelName", soopChannelName)
+        encode("afreecaTvStreamId", soopStreamId)
+        encode("openStreamingPlatformUrl", openStreamingPlatformUrl)
+        encode("openStreamingPlatformChannelId", openStreamingPlatformChannelId)
+        encode("obsWebSocketEnabled", obsWebSocketEnabled)
+        encode("obsWebSocketUrl", obsWebSocketUrl)
+        encode("obsWebSocketPassword", obsWebSocketPassword)
+        encode("obsSourceName", obsSourceName)
+        encode("obsMainScene", obsMainScene)
+        encode("obsBrbScene", obsBrbScene)
+        encode("obsBrbSceneVideoSourceBroken", obsBrbSceneVideoSourceBroken)
+        encode("obsAutoStartStream", obsAutoStartStream)
+        encode("obsAutoStopStream", obsAutoStopStream)
+        encode("obsAutoStartRecording", obsAutoStartRecording)
+        encode("obsAutoStopRecording", obsAutoStopRecording)
+        encode("streamingDirectlyToObs", streamingDirectlyToObs)
+        encode("discordSnapshotWebhook", discordSnapshotWebhook)
+        encode("discordChatBotSnapshotWebhook", discordChatBotSnapshotWebhook)
+        encode("discordSnapshotWebhookOnlyWhenLive", discordSnapshotWebhookOnlyWhenLive)
+        encode("resolution", resolution)
+        encode("fps", fps)
+        encode("autoFps", lowLightBoost)
+        encode("bitrate", bitrate.toUInt())
+        encode("bitrateRateControl", rateControl)
+        encode("codec", codec)
+        encode("h264Profile", h264Profile)
+        encode("bFrames", bFrames)
+        encode("adaptiveEncoderResolution", adaptiveEncoderResolution)
+        encode("adaptiveEncoderResolutionThreashold", adaptiveEncoderResolutionThreashold)
+        encode("adaptiveBitrate", adaptiveBitrate)
+        encode("srt", srt)
+        encode("rtmp", rtmp)
+        encode("rist", rist)
+        encode("whip", whip)
+        encode("maxKeyFrameInterval", maxKeyFrameInterval)
+        encode("audioCodec", audioCodec)
+        encode("audioBitrate", audioBitrate)
+        encode("chat", chat)
+        encode("recording", recording)
+        encode("realtimeIrlEnabled", realtimeIrlEnabled)
+        encode("realtimeIrlBaseUrl", realtimeIrlBaseUrl)
+        encode("realtimeIrlPushKey", realtimeIrlPushKey)
+        encode("portrait", portrait)
+        encode("backgroundStreaming", backgroundStreaming)
+        encode("backgroundStreamingPiP", backgroundStreamingPiP)
+        encode("estimatedViewerDelay", estimatedViewerDelay)
+        encode("ntpPoolAddress", ntpPoolAddress)
+        encode("timecodesEnabled", timecodesEnabled)
+        encode("replay", replay)
+        encode("goLiveNotificationDiscordMessage", goLiveNotificationDiscordMessage)
+        encode("goLiveNotificationDiscordWebhookUrl", goLiveNotificationDiscordWebhookUrl)
+        encode("goLiveNotificationMoblinWebsite", goLiveNotificationMoblinWebsite)
+        encode("multiStreaming", multiStreaming)
+        encode("previewStream", previewStream)
+        encode("autoGoLive", autoGoLive)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -1557,8 +2147,6 @@ class SettingsStream(
     }
 
     private fun encodeYouTubeAuthState(): ByteArray? {
-        val authState = youTubeAuthState ?: return null
-        storeYouTubeAuthStateInKeychain(id, authState.toString())
         return null
     }
 
@@ -1568,4 +2156,10 @@ class SettingsStream(
         }
         return null
     }
+
+    object Serializer : KSerializer<SettingsStream> by JsonObjectSerializer(
+        "SettingsStream",
+        { it.encode() },
+        { decode(it) },
+    )
 }

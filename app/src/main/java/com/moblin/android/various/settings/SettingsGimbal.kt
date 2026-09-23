@@ -1,136 +1,59 @@
 package com.moblin.android.various.settings
 
 import com.moblin.android.localized
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.various.utils.Named
 import java.util.UUID
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.JsonObject
 
-private object UuidStringSerializer : KSerializer<UUID> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("com.moblin.android.various.settings.UUID", PrimitiveKind.STRING)
-
-    override fun serialize(encoder: Encoder, value: UUID) {
-        encoder.encodeString(value.toString())
-    }
-
-    override fun deserialize(decoder: Decoder): UUID {
-        return UUID.fromString(decoder.decodeString())
-    }
-}
-
-@Serializable
+@Serializable(with = SettingsGimbalPreset.Serializer::class)
 class SettingsGimbalPreset : Named {
-    companion object {
-        val baseName: String = localized("My preset")
-    }
-
-    @SerialName("id")
-    @Serializable(with = UuidStringSerializer::class)
     var id: UUID = UUID.randomUUID()
 
-    @SerialName("name")
     override var name: String = baseName
 
-    @SerialName("x")
     var x: Float = 0f
 
-    @SerialName("y")
     var y: Float = 0f
 
-    @SerialName("zoomX")
     var zoomX: Float = 1f
-}
 
-@Serializable
-private data class SettingsGimbalData(
-    @SerialName("zoomSpeed") val zoomSpeed: Float? = null,
-    @SerialName("naturalZoom") val naturalZoom: Boolean? = null,
-    @SerialName("tracking") val tracking: Boolean? = null,
-    @SerialName("functionShutter") val functionShutter: SettingsControllerFunction? = null,
-    @SerialName("shutterSceneId") val shutterSceneId: String? = null,
-    @SerialName("shutterWidgetId") val shutterWidgetId: String? = null,
-    @SerialName("shutterGimbalPresetId") val shutterGimbalPresetId: String? = null,
-    @SerialName("shutterMotion") val shutterMotion: SettingsGimbalMotion? = null,
-    @SerialName("shutterMacroId") val shutterMacroId: String? = null,
-    @SerialName("shutterStreamDeckLayoutId") val shutterStreamDeckLayoutId: String? = null,
-    @SerialName("functionFlip") val functionFlip: SettingsControllerFunction? = null,
-    @SerialName("flipSceneId") val flipSceneId: String? = null,
-    @SerialName("flipWidgetId") val flipWidgetId: String? = null,
-    @SerialName("flipGimbalPresetId") val flipGimbalPresetId: String? = null,
-    @SerialName("flipMotion") val flipMotion: SettingsGimbalMotion? = null,
-    @SerialName("flipMacroId") val flipMacroId: String? = null,
-    @SerialName("flipStreamDeckLayoutId") val flipStreamDeckLayoutId: String? = null,
-    @SerialName("presets") val presets: List<SettingsGimbalPreset>? = null,
-)
-
-object SettingsGimbalSerializer : KSerializer<SettingsGimbal> {
-    override val descriptor: SerialDescriptor = SettingsGimbalData.serializer().descriptor
-
-    override fun serialize(encoder: Encoder, value: SettingsGimbal) {
-        val data = SettingsGimbalData(
-            zoomSpeed = value.zoomSpeed,
-            naturalZoom = value.naturalZoom,
-            tracking = value.tracking,
-            functionShutter = value.functionShutter,
-            shutterSceneId = value.functionDataShutter.sceneId?.toString(),
-            shutterWidgetId = value.functionDataShutter.widgetId?.toString(),
-            shutterGimbalPresetId = value.functionDataShutter.gimbalPresetId?.toString(),
-            shutterMotion = value.functionDataShutter.gimbalMotion,
-            shutterMacroId = value.functionDataShutter.macroId?.toString(),
-            shutterStreamDeckLayoutId = value.functionDataShutter.streamDeckLayoutId?.toString(),
-            functionFlip = value.functionFlip,
-            flipSceneId = value.functionDataFlip.sceneId?.toString(),
-            flipWidgetId = value.functionDataFlip.widgetId?.toString(),
-            flipGimbalPresetId = value.functionDataFlip.gimbalPresetId?.toString(),
-            flipMotion = value.functionDataFlip.gimbalMotion,
-            flipMacroId = value.functionDataFlip.macroId?.toString(),
-            flipStreamDeckLayoutId = value.functionDataFlip.streamDeckLayoutId?.toString(),
-            presets = value.presets,
-        )
-        encoder.encodeSerializableValue(SettingsGimbalData.serializer(), data)
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("x", x)
+        encode("y", y)
+        encode("zoomX", zoomX)
     }
 
-    override fun deserialize(decoder: Decoder): SettingsGimbal {
-        val data = decoder.decodeSerializableValue(SettingsGimbalData.serializer())
-        val settings = SettingsGimbal()
-        settings.zoomSpeed = data.zoomSpeed ?: SettingsGimbal.zoomSpeedDefault
-        settings.naturalZoom = data.naturalZoom ?: true
-        settings.tracking = data.tracking ?: true
-        settings.functionShutter = data.functionShutter ?: SettingsControllerFunction.RECORD
-        settings.functionDataShutter.sceneId = data.shutterSceneId?.let { UUID.fromString(it) }
-        settings.functionDataShutter.widgetId = data.shutterWidgetId?.let { UUID.fromString(it) }
-        settings.functionDataShutter.gimbalPresetId =
-            data.shutterGimbalPresetId?.let { UUID.fromString(it) }
-        settings.functionDataShutter.gimbalMotion = data.shutterMotion ?: SettingsGimbalMotion.KAPOW
-        settings.functionDataShutter.macroId = data.shutterMacroId?.let { UUID.fromString(it) }
-        settings.functionDataShutter.streamDeckLayoutId =
-            data.shutterStreamDeckLayoutId?.let { UUID.fromString(it) }
-        settings.functionFlip = data.functionFlip ?: SettingsControllerFunction.SWITCH_SCENE
-        settings.functionDataFlip.sceneId = data.flipSceneId?.let { UUID.fromString(it) }
-        settings.functionDataFlip.widgetId = data.flipWidgetId?.let { UUID.fromString(it) }
-        settings.functionDataFlip.gimbalPresetId = data.flipGimbalPresetId?.let { UUID.fromString(it) }
-        settings.functionDataFlip.gimbalMotion = data.flipMotion ?: SettingsGimbalMotion.KAPOW
-        settings.functionDataFlip.macroId = data.flipMacroId?.let { UUID.fromString(it) }
-        settings.functionDataFlip.streamDeckLayoutId =
-            data.flipStreamDeckLayoutId?.let { UUID.fromString(it) }
-        settings.presets = data.presets ?: emptyList()
-        return settings
-    }
-}
-
-@Serializable(with = SettingsGimbalSerializer::class)
-class SettingsGimbal {
     companion object {
-        const val zoomSpeedDefault: Float = 50f
+        val baseName: String = localized("My preset")
+
+        fun decode(container: JsonObject): SettingsGimbalPreset {
+            val preset = SettingsGimbalPreset()
+            preset.id = container.decode("id", UUID.randomUUID())
+            preset.name = container.decode("name", SettingsGimbalPreset.baseName)
+            preset.x = container.decode("x", 0.0f)
+            preset.y = container.decode("y", 0.0f)
+            preset.zoomX = container.decode("zoomX", 1f)
+            return preset
+        }
     }
 
+    object Serializer : KSerializer<SettingsGimbalPreset> by JsonObjectSerializer(
+        "SettingsGimbalPreset",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsGimbal.Serializer::class)
+class SettingsGimbal {
     var zoomSpeed: Float = zoomSpeedDefault
 
     var naturalZoom: Boolean = true
@@ -146,4 +69,58 @@ class SettingsGimbal {
     var functionDataFlip: SettingsControllerFunctionData = SettingsControllerFunctionData()
 
     var presets: List<SettingsGimbalPreset> = emptyList()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("zoomSpeed", zoomSpeed)
+        encode("naturalZoom", naturalZoom)
+        encode("tracking", tracking)
+        encode("functionShutter", functionShutter)
+        encode("shutterSceneId", functionDataShutter.sceneId)
+        encode("shutterWidgetId", functionDataShutter.widgetId)
+        encode("shutterGimbalPresetId", functionDataShutter.gimbalPresetId)
+        encode("shutterMotion", functionDataShutter.gimbalMotion)
+        encode("shutterMacroId", functionDataShutter.macroId)
+        encode("shutterStreamDeckLayoutId", functionDataShutter.streamDeckLayoutId)
+        encode("functionFlip", functionFlip)
+        encode("flipSceneId", functionDataFlip.sceneId)
+        encode("flipWidgetId", functionDataFlip.widgetId)
+        encode("flipGimbalPresetId", functionDataFlip.gimbalPresetId)
+        encode("flipMotion", functionDataFlip.gimbalMotion)
+        encode("flipMacroId", functionDataFlip.macroId)
+        encode("flipStreamDeckLayoutId", functionDataFlip.streamDeckLayoutId)
+        encode("presets", presets, ListSerializer(SettingsGimbalPreset.serializer()))
+    }
+
+    companion object {
+        const val zoomSpeedDefault: Float = 50f
+
+        fun decode(container: JsonObject): SettingsGimbal {
+            val gimbal = SettingsGimbal()
+            gimbal.zoomSpeed = container.decode("zoomSpeed", zoomSpeedDefault)
+            gimbal.naturalZoom = container.decode("naturalZoom", true)
+            gimbal.tracking = container.decode("tracking", true)
+            gimbal.functionShutter = container.decode("functionShutter", SettingsControllerFunction.RECORD)
+            gimbal.functionDataShutter.sceneId = container.decode<UUID?>("shutterSceneId", null)
+            gimbal.functionDataShutter.widgetId = container.decode<UUID?>("shutterWidgetId", null)
+            gimbal.functionDataShutter.gimbalPresetId = container.decode<UUID?>("shutterGimbalPresetId", null)
+            gimbal.functionDataShutter.gimbalMotion = container.decode("shutterMotion", SettingsGimbalMotion.KAPOW)
+            gimbal.functionDataShutter.macroId = container.decode<UUID?>("shutterMacroId", null)
+            gimbal.functionDataShutter.streamDeckLayoutId = container.decode<UUID?>("shutterStreamDeckLayoutId", null)
+            gimbal.functionFlip = container.decode("functionFlip", SettingsControllerFunction.SWITCH_SCENE)
+            gimbal.functionDataFlip.sceneId = container.decode<UUID?>("flipSceneId", null)
+            gimbal.functionDataFlip.widgetId = container.decode<UUID?>("flipWidgetId", null)
+            gimbal.functionDataFlip.gimbalPresetId = container.decode<UUID?>("flipGimbalPresetId", null)
+            gimbal.functionDataFlip.gimbalMotion = container.decode("flipMotion", SettingsGimbalMotion.KAPOW)
+            gimbal.functionDataFlip.macroId = container.decode<UUID?>("flipMacroId", null)
+            gimbal.functionDataFlip.streamDeckLayoutId = container.decode<UUID?>("flipStreamDeckLayoutId", null)
+            gimbal.presets = container.decode("presets", ListSerializer(SettingsGimbalPreset.serializer()), emptyList())
+            return gimbal
+        }
+    }
+
+    object Serializer : KSerializer<SettingsGimbal> by JsonObjectSerializer(
+        "SettingsGimbal",
+        { it.encode() },
+        { decode(it) },
+    )
 }

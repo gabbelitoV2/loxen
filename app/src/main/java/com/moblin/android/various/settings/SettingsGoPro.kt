@@ -2,40 +2,91 @@ package com.moblin.android.various.settings
 
 import com.moblin.android.integrations.gopro.GoProDeviceState
 import com.moblin.android.localized
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.decodeIfPresent
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.utils.Named
 import java.util.UUID
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.JsonObject
 
-@Serializable
+@Serializable(with = SettingsGoProWifiCredentials.Serializer::class)
 class SettingsGoProWifiCredentials : Named {
-    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var id: UUID = UUID.randomUUID()
     override var name: String = baseName
     var ssid: String = ""
     var password: String = ""
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("ssid", ssid)
+        encode("password", password)
+    }
+
     companion object {
         val baseName: String = localized("My SSID")
+
+        fun decode(container: JsonObject): SettingsGoProWifiCredentials {
+            val credentials = SettingsGoProWifiCredentials()
+            credentials.id = container.decode("id", UUID.randomUUID())
+            credentials.name = container.decode("name", baseName)
+            credentials.ssid = container.decode("ssid", "")
+            credentials.password = container.decode("password", "")
+            return credentials
+        }
     }
+
+    object Serializer : KSerializer<SettingsGoProWifiCredentials> by JsonObjectSerializer(
+        "SettingsGoProWifiCredentials",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsGoProRtmpUrl.Serializer::class)
 class SettingsGoProRtmpUrl : Named {
-    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var id: UUID = UUID.randomUUID()
     override var name: String = baseName
     var type: SettingsDjiDeviceUrlType = SettingsDjiDeviceUrlType.server
-    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var serverStreamId: UUID = UUID.randomUUID()
     var serverUrl: String = ""
     var customUrl: String = ""
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("type", type)
+        encode("serverStreamId", serverStreamId)
+        encode("serverUrl", serverUrl)
+        encode("customUrl", customUrl)
+    }
+
     companion object {
         val baseName: String = localized("My URL")
+
+        fun decode(container: JsonObject): SettingsGoProRtmpUrl {
+            val rtmpUrl = SettingsGoProRtmpUrl()
+            rtmpUrl.id = container.decode("id", UUID.randomUUID())
+            rtmpUrl.name = container.decode("name", baseName)
+            rtmpUrl.type = container.decode("type", SettingsDjiDeviceUrlType.server)
+            rtmpUrl.serverStreamId = container.decode("serverStreamId", UUID.randomUUID())
+            rtmpUrl.serverUrl = container.decode("serverUrl", "")
+            rtmpUrl.customUrl = container.decode("customUrl", "")
+            return rtmpUrl
+        }
     }
+
+    object Serializer : KSerializer<SettingsGoProRtmpUrl> by JsonObjectSerializer(
+        "SettingsGoProRtmpUrl",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
 @Serializable
@@ -91,18 +142,15 @@ val goProDeviceBitrates: List<Int> = listOf(
     800_000,
 )
 
-@Serializable
+@Serializable(with = SettingsGoProDevice.Serializer::class)
 class SettingsGoProDevice : Named {
-    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var id: UUID = UUID.randomUUID()
     override var name: String = baseName
     var bluetoothPeripheralName: String? = null
-    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var bluetoothPeripheralId: UUID? = null
     var wifiSsid: String = ""
     var wifiPassword: String = ""
     var rtmpUrlType: SettingsDjiDeviceUrlType = SettingsDjiDeviceUrlType.server
-    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var serverRtmpStreamId: UUID = UUID.randomUUID()
     var serverRtmpUrl: String? = null
     var customRtmpUrl: String = ""
@@ -111,16 +159,56 @@ class SettingsGoProDevice : Named {
     var lens: SettingsGoProLens = SettingsGoProLens.auto
     var autoRestartStream: Boolean = false
     var isStarted: Boolean = false
-
-    @Transient
     var state: GoProDeviceState? = null
-
-    @Transient
     val autoRestartStreamTimer = MainTimer()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("bluetoothPeripheralName", bluetoothPeripheralName)
+        encode("bluetoothPeripheralId", bluetoothPeripheralId)
+        encode("wifiSsid", wifiSsid)
+        encode("wifiPassword", wifiPassword)
+        encode("rtmpUrlType", rtmpUrlType)
+        encode("serverRtmpStreamId", serverRtmpStreamId)
+        encode("serverRtmpUrl", serverRtmpUrl)
+        encode("customRtmpUrl", customRtmpUrl)
+        encode("resolution", resolution)
+        encode("bitrate", bitrate.toUInt())
+        encode("lens", lens)
+        encode("autoRestartStream", autoRestartStream)
+        encode("isStarted", isStarted)
+    }
 
     companion object {
         val baseName: String = localized("My GoPro")
+
+        fun decode(container: JsonObject): SettingsGoProDevice {
+            val device = SettingsGoProDevice()
+            device.id = container.decode("id", UUID.randomUUID())
+            device.name = container.decode("name", baseName)
+            device.bluetoothPeripheralName = container.decodeIfPresent<String>("bluetoothPeripheralName")
+            device.bluetoothPeripheralId = container.decodeIfPresent<UUID>("bluetoothPeripheralId")
+            device.wifiSsid = container.decode("wifiSsid", "")
+            device.wifiPassword = container.decode("wifiPassword", "")
+            device.rtmpUrlType = container.decode("rtmpUrlType", SettingsDjiDeviceUrlType.server)
+            device.serverRtmpStreamId = container.decode("serverRtmpStreamId", UUID.randomUUID())
+            device.serverRtmpUrl = container.decode<String?>("serverRtmpUrl", null)
+            device.customRtmpUrl = container.decode("customRtmpUrl", "")
+            device.resolution = container.decode("resolution", SettingsGoProLaunchLiveStreamResolution.r1080p)
+            device.bitrate = container.decode("bitrate", 6_000_000u).toInt()
+            device.lens = container.decode("lens", SettingsGoProLens.auto)
+            device.autoRestartStream = container.decode("autoRestartStream", false)
+            device.isStarted = container.decode("isStarted", false)
+            return device
+        }
     }
+
+    object Serializer : KSerializer<SettingsGoProDevice> by JsonObjectSerializer(
+        "SettingsGoProDevice",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun canStartLive(isConnectedToIpv4WiFi: Boolean): Boolean {
         if (bluetoothPeripheralId == null || wifiSsid.isEmpty()) {
@@ -141,29 +229,96 @@ class SettingsGoProDevice : Named {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsGoProLaunchLiveStream.Serializer::class)
 class SettingsGoProLaunchLiveStream : Named {
-    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var id: UUID = UUID.randomUUID()
     override var name: String = baseName
     var isHero12Or13: Boolean = true
     var resolution: SettingsGoProLaunchLiveStreamResolution = SettingsGoProLaunchLiveStreamResolution.r1080p
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("isHero12Or13", isHero12Or13)
+        encode("resolution", resolution)
+    }
+
     companion object {
         val baseName: String = localized("My live")
+
+        fun decode(container: JsonObject): SettingsGoProLaunchLiveStream {
+            val launchLiveStream = SettingsGoProLaunchLiveStream()
+            launchLiveStream.id = container.decode("id", UUID.randomUUID())
+            launchLiveStream.name = container.decode("name", baseName)
+            launchLiveStream.isHero12Or13 = container.decode("isHero12Or13", true)
+            launchLiveStream.resolution = container.decode(
+                "resolution",
+                SettingsGoProLaunchLiveStreamResolution.r1080p,
+            )
+            return launchLiveStream
+        }
     }
+
+    object Serializer : KSerializer<SettingsGoProLaunchLiveStream> by JsonObjectSerializer(
+        "SettingsGoProLaunchLiveStream",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsGoPro.Serializer::class)
 class SettingsGoPro {
     var devices: MutableList<SettingsGoProDevice> = mutableListOf()
     var launchLiveStream: MutableList<SettingsGoProLaunchLiveStream> = mutableListOf()
-    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var selectedLaunchLiveStream: UUID? = null
     var wifiCredentials: MutableList<SettingsGoProWifiCredentials> = mutableListOf()
-    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var selectedWifiCredentials: UUID? = null
     var rtmpUrls: MutableList<SettingsGoProRtmpUrl> = mutableListOf()
-    @Serializable(with = SettingsDjiDeviceUuidSerializer::class)
     var selectedRtmpUrl: UUID? = null
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("devices", devices, ListSerializer(SettingsGoProDevice.serializer()))
+        encode("launchLiveStream", launchLiveStream, ListSerializer(SettingsGoProLaunchLiveStream.serializer()))
+        encode("selectedLaunchLiveStream", selectedLaunchLiveStream)
+        encode("wifiCredentials", wifiCredentials, ListSerializer(SettingsGoProWifiCredentials.serializer()))
+        encode("selectedWifiCredentials", selectedWifiCredentials)
+        encode("rtmpUrls", rtmpUrls, ListSerializer(SettingsGoProRtmpUrl.serializer()))
+        encode("selectedRtmpUrl", selectedRtmpUrl)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsGoPro {
+            val goPro = SettingsGoPro()
+            goPro.devices = container.decode(
+                "devices",
+                ListSerializer(SettingsGoProDevice.serializer()),
+                emptyList(),
+            ).toMutableList()
+            goPro.launchLiveStream = container.decode(
+                "launchLiveStream",
+                ListSerializer(SettingsGoProLaunchLiveStream.serializer()),
+                emptyList(),
+            ).toMutableList()
+            goPro.selectedLaunchLiveStream = container.decodeIfPresent<UUID>("selectedLaunchLiveStream")
+            goPro.wifiCredentials = container.decode(
+                "wifiCredentials",
+                ListSerializer(SettingsGoProWifiCredentials.serializer()),
+                emptyList(),
+            ).toMutableList()
+            goPro.selectedWifiCredentials = container.decodeIfPresent<UUID>("selectedWifiCredentials")
+            goPro.rtmpUrls = container.decode(
+                "rtmpUrls",
+                ListSerializer(SettingsGoProRtmpUrl.serializer()),
+                emptyList(),
+            ).toMutableList()
+            goPro.selectedRtmpUrl = container.decodeIfPresent<UUID>("selectedRtmpUrl")
+            return goPro
+        }
+    }
+
+    object Serializer : KSerializer<SettingsGoPro> by JsonObjectSerializer(
+        "SettingsGoPro",
+        { it.encode() },
+        { decode(it) },
+    )
 }

@@ -755,6 +755,7 @@ data class RgbColor(
     val red: Int,
     val green: Int,
     val blue: Int,
+    @kotlinx.serialization.EncodeDefault(kotlinx.serialization.EncodeDefault.Mode.NEVER)
     val opacity: Double? = null,
 ) {
     companion object {

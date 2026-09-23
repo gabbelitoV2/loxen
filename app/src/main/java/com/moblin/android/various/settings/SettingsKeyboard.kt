@@ -1,15 +1,16 @@
 package com.moblin.android.various.settings
 
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.JsonObject
 
-@Serializable(with = SettingsKeyboardKeySerializer::class)
+@Serializable(with = SettingsKeyboardKey.Serializer::class)
 class SettingsKeyboardKey {
     var id: UUID = UUID.randomUUID()
 
@@ -36,38 +37,43 @@ class SettingsKeyboardKey {
         set(value) {
             _functionData.value = value
         }
-}
 
-object SettingsKeyboardKeySerializer : KSerializer<SettingsKeyboardKey> {
-    private val surrogate = SettingsKeyboardKeyData.serializer()
-
-    override val descriptor: SerialDescriptor = surrogate.descriptor
-
-    override fun serialize(encoder: Encoder, value: SettingsKeyboardKey) {
-        encoder.encodeSerializableValue(surrogate, value.toSettingsKeyboardKeyData())
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("key", key)
+        encode("function", function)
+        encode("sceneId", functionData.sceneId)
+        encode("widgetId", functionData.widgetId)
+        encode("gimbalPresetId", functionData.gimbalPresetId)
+        encode("gimbalMotion", functionData.gimbalMotion)
+        encode("macroId", functionData.macroId)
+        encode("streamDeckLayoutId", functionData.streamDeckLayoutId)
     }
 
-    override fun deserialize(decoder: Decoder): SettingsKeyboardKey {
-        return decoder.decodeSerializableValue(surrogate).toSettingsKeyboardKey()
+    companion object {
+        fun decode(container: JsonObject): SettingsKeyboardKey {
+            val key = SettingsKeyboardKey()
+            key.id = container.decode("id", UUID.randomUUID())
+            key.key = container.decode("key", "")
+            key.function = container.decode("function", SettingsControllerFunction.UNUSED)
+            key.functionData.sceneId = container.decode<UUID?>("sceneId", null)
+            key.functionData.widgetId = container.decode<UUID?>("widgetId", null)
+            key.functionData.gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null)
+            key.functionData.gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW)
+            key.functionData.macroId = container.decode<UUID?>("macroId", null)
+            key.functionData.streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null)
+            return key
+        }
     }
+
+    object Serializer : KSerializer<SettingsKeyboardKey> by JsonObjectSerializer(
+        "SettingsKeyboardKey",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
-private class SettingsKeyboardKeyData(
-    @SerialName("id") val id: String = UUID.randomUUID().toString(),
-    @SerialName("key") val key: String = "",
-    @SerialName("function") val function: String =
-        encodeControllerFunctionRawValue(SettingsControllerFunction.UNUSED),
-    @SerialName("sceneId") val sceneId: String? = null,
-    @SerialName("widgetId") val widgetId: String? = null,
-    @SerialName("gimbalPresetId") val gimbalPresetId: String? = null,
-    @SerialName("gimbalMotion") val gimbalMotion: String =
-        encodeGimbalMotionRawValue(SettingsGimbalMotion.KAPOW),
-    @SerialName("macroId") val macroId: String? = null,
-    @SerialName("streamDeckLayoutId") val streamDeckLayoutId: String? = null
-)
-
-@Serializable(with = SettingsKeyboardSerializer::class)
+@Serializable(with = SettingsKeyboard.Serializer::class)
 class SettingsKeyboard {
     private val _keys = MutableStateFlow<List<SettingsKeyboardKey>>(emptyList())
 
@@ -76,78 +82,22 @@ class SettingsKeyboard {
         set(value) {
             _keys.value = value
         }
-}
 
-object SettingsKeyboardSerializer : KSerializer<SettingsKeyboard> {
-    private val surrogate = SettingsKeyboardData.serializer()
-
-    override val descriptor: SerialDescriptor = surrogate.descriptor
-
-    override fun serialize(encoder: Encoder, value: SettingsKeyboard) {
-        encoder.encodeSerializableValue(
-            surrogate,
-            SettingsKeyboardData(keys = value.keys.map { it.toSettingsKeyboardKeyData() })
-        )
+    fun encode(): JsonObject = encodeContainer {
+        encode("keys", keys)
     }
 
-    override fun deserialize(decoder: Decoder): SettingsKeyboard {
-        val data = decoder.decodeSerializableValue(surrogate)
-        val result = SettingsKeyboard()
-        result.keys = data.keys.map { it.toSettingsKeyboardKey() }
-        return result
+    companion object {
+        fun decode(container: JsonObject): SettingsKeyboard {
+            val keyboard = SettingsKeyboard()
+            keyboard.keys = container.decode("keys", ListSerializer(SettingsKeyboardKey.serializer()), emptyList())
+            return keyboard
+        }
     }
-}
 
-@Serializable
-private class SettingsKeyboardData(
-    @SerialName("keys") val keys: List<SettingsKeyboardKeyData> = emptyList()
-)
-
-private fun SettingsKeyboardKey.toSettingsKeyboardKeyData(): SettingsKeyboardKeyData {
-    val functionData = functionData
-    return SettingsKeyboardKeyData(
-        id = id.toString(),
-        key = key,
-        function = encodeControllerFunctionRawValue(function),
-        sceneId = functionData.sceneId?.toString(),
-        widgetId = functionData.widgetId?.toString(),
-        gimbalPresetId = functionData.gimbalPresetId?.toString(),
-        gimbalMotion = encodeGimbalMotionRawValue(functionData.gimbalMotion),
-        macroId = functionData.macroId?.toString(),
-        streamDeckLayoutId = functionData.streamDeckLayoutId?.toString()
+    object Serializer : KSerializer<SettingsKeyboard> by JsonObjectSerializer(
+        "SettingsKeyboard",
+        { it.encode() },
+        { decode(it) },
     )
-}
-
-private fun SettingsKeyboardKeyData.toSettingsKeyboardKey(): SettingsKeyboardKey {
-    val result = SettingsKeyboardKey()
-    result.id = UUID.fromString(id)
-    result.key = key
-    result.function = decodeControllerFunctionRawValue(function)
-    val functionData = SettingsControllerFunctionData()
-    functionData.sceneId = sceneId?.let { UUID.fromString(it) }
-    functionData.widgetId = widgetId?.let { UUID.fromString(it) }
-    functionData.gimbalPresetId = gimbalPresetId?.let { UUID.fromString(it) }
-    functionData.gimbalMotion = decodeGimbalMotionRawValue(gimbalMotion)
-    functionData.macroId = macroId?.let { UUID.fromString(it) }
-    functionData.streamDeckLayoutId = streamDeckLayoutId?.let { UUID.fromString(it) }
-    result.functionData = functionData
-    return result
-}
-
-private fun encodeControllerFunctionRawValue(value: SettingsControllerFunction): String {
-    return value.rawValue.toString()
-}
-
-private fun decodeControllerFunctionRawValue(value: String): SettingsControllerFunction {
-    return SettingsControllerFunction.entries.firstOrNull { it.rawValue.toString() == value }
-        ?: SettingsControllerFunction.UNUSED
-}
-
-private fun encodeGimbalMotionRawValue(value: SettingsGimbalMotion): String {
-    return value.rawValue.toString()
-}
-
-private fun decodeGimbalMotionRawValue(value: String): SettingsGimbalMotion {
-    return SettingsGimbalMotion.entries.firstOrNull { it.rawValue.toString() == value }
-        ?: SettingsGimbalMotion.KAPOW
 }

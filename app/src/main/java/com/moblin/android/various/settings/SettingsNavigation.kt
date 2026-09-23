@@ -1,20 +1,15 @@
 package com.moblin.android.various.settings
 
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.element
-import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.encoding.decodeStructure
-import kotlinx.serialization.encoding.encodeStructure
+import kotlinx.serialization.json.JsonObject
 
-@Serializable(with = SettingsNavigationSerializer::class)
+@Serializable(with = SettingsNavigation.Serializer::class)
 class SettingsNavigation internal constructor(
     followUser: Boolean,
     followHeading: Boolean,
@@ -31,34 +26,24 @@ class SettingsNavigation internal constructor(
     val followHeading: StateFlow<Boolean> = _followHeading
 
     constructor() : this(false, false)
-}
 
-object SettingsNavigationSerializer : KSerializer<SettingsNavigation> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("SettingsNavigation") {
-        element<Boolean>(SettingsNavigation.CodingKeys.followUser.stringValue)
-        element<Boolean>(SettingsNavigation.CodingKeys.followHeading.stringValue)
+    fun encode(): JsonObject = encodeContainer {
+        encode("followUser", followUser.value)
+        encode("followHeading", followHeading.value)
     }
 
-    override fun serialize(encoder: Encoder, value: SettingsNavigation) {
-        encoder.encodeStructure(descriptor) {
-            encodeBooleanElement(descriptor, 0, value.followUser.value)
-            encodeBooleanElement(descriptor, 1, value.followHeading.value)
+    companion object {
+        fun decode(container: JsonObject): SettingsNavigation {
+            val navigation = SettingsNavigation()
+            navigation._followUser.value = container.decode("followUser", false)
+            navigation._followHeading.value = container.decode("followHeading", false)
+            return navigation
         }
     }
 
-    override fun deserialize(decoder: Decoder): SettingsNavigation {
-        var followUser = false
-        var followHeading = false
-        decoder.decodeStructure(descriptor) {
-            while (true) {
-                when (val index = decodeElementIndex(descriptor)) {
-                    CompositeDecoder.DECODE_DONE -> break
-                    0 -> followUser = decodeBooleanElement(descriptor, 0)
-                    1 -> followHeading = decodeBooleanElement(descriptor, 1)
-                    else -> throw SerializationException("Unexpected index: $index")
-                }
-            }
-        }
-        return SettingsNavigation(followUser, followHeading)
-    }
+    object Serializer : KSerializer<SettingsNavigation> by JsonObjectSerializer(
+        "SettingsNavigation",
+        { it.encode() },
+        { decode(it) },
+    )
 }

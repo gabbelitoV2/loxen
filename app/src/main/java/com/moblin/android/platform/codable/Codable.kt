@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
@@ -18,9 +19,12 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.serializer
+
+private val uuidPattern = Regex("^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$")
 
 object UUIDSerializer : KSerializer<UUID> {
     override val descriptor: SerialDescriptor =
@@ -32,6 +36,9 @@ object UUIDSerializer : KSerializer<UUID> {
 
     override fun deserialize(decoder: Decoder): UUID {
         val text = decoder.decodeString()
+        if (!uuidPattern.matches(text)) {
+            throw SerializationException("Invalid UUID '$text'")
+        }
         return try {
             UUID.fromString(text)
         } catch (error: IllegalArgumentException) {
@@ -158,9 +165,33 @@ fun encodeContainer(json: Json = codableJson, block: KeyedEncodingContainer.() -
     return JsonObject(container.content)
 }
 
+private val numericKinds = setOf<SerialKind>(
+    PrimitiveKind.BYTE,
+    PrimitiveKind.SHORT,
+    PrimitiveKind.INT,
+    PrimitiveKind.LONG,
+    PrimitiveKind.FLOAT,
+    PrimitiveKind.DOUBLE,
+)
+
+private fun hasSwiftType(element: JsonElement, kind: SerialKind): Boolean {
+    if (element !is JsonPrimitive) {
+        return true
+    }
+    return when (kind) {
+        in numericKinds -> !element.isString && element.content != "true" && element.content != "false"
+        PrimitiveKind.BOOLEAN -> !element.isString && (element.content == "true" || element.content == "false")
+        PrimitiveKind.STRING, PrimitiveKind.CHAR, SerialKind.ENUM -> element.isString
+        else -> true
+    }
+}
+
 fun <T> JsonObject.decode(key: String, serializer: KSerializer<T>, default: T, json: Json = codableJson): T {
     val element = this[key] ?: return default
     if (element is JsonNull) {
+        return default
+    }
+    if (!hasSwiftType(element, serializer.descriptor.kind)) {
         return default
     }
     return try {
@@ -192,6 +223,9 @@ inline fun <reified T> JsonObject.decode(key: String, default: T, noinline isVal
 fun <T : Any> JsonObject.decodeIfPresent(key: String, serializer: KSerializer<T>, json: Json = codableJson): T? {
     val element = this[key] ?: return null
     if (element is JsonNull) {
+        return null
+    }
+    if (!hasSwiftType(element, serializer.descriptor.kind)) {
         return null
     }
     return try {

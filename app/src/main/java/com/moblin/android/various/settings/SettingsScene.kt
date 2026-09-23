@@ -6,8 +6,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import com.moblin.android.common.various.RgbColor
+import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.video.SceneSwitchTransition
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
+import com.moblin.android.platform.avfoundation.AVCaptureDevice
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.codableJson
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.decodeIfPresent
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.remotecontrol.RemoteControlScoreboardMatchConfig
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.model.CameraId
@@ -23,8 +30,6 @@ import com.moblin.android.various.utils.hasWideDualBackCamera
 import com.moblin.android.various.utils.utcTimeDeltaFromNow
 import com.moblin.android.various.utils.zoomToFieldOfView
 import com.moblin.android.videoeffects.AnamorphicLensEffect
-import com.moblin.android.videoeffects.dewarp360.Dewarp360Effect
-import com.moblin.android.videoeffects.dewarp360.Dewarp360EffectSettings
 import com.moblin.android.videoeffects.GrayScaleEffect
 import com.moblin.android.videoeffects.LutEffect
 import com.moblin.android.videoeffects.MaskEffect
@@ -38,18 +43,28 @@ import com.moblin.android.videoeffects.ShapeEffect
 import com.moblin.android.videoeffects.ShapeEffectSettings
 import com.moblin.android.videoeffects.VideoSourceEffectSettings
 import com.moblin.android.videoeffects.WhirlpoolEffect
+import com.moblin.android.videoeffects.dewarp360.Dewarp360Effect
+import com.moblin.android.videoeffects.dewarp360.Dewarp360EffectSettings
 import com.moblin.android.view.settings.scenes.widgets.widget.text.fontStyleName
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
 import kotlinx.serialization.Contextual
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.contentOrNull
-import kotlinx.serialization.json.jsonPrimitive
-import com.moblin.android.localized
+import kotlinx.serialization.serializer
 
 private fun RgbColor.color(): Color = Color(
     red = red.toFloat() / 255.0f,
@@ -58,8 +73,57 @@ private fun RgbColor.color(): Color = Color(
     alpha = (opacity ?: 1.0).toFloat()
 )
 
+private fun <T> JsonObject.decodeSynthesized(key: String, serializer: KSerializer<T>): T {
+    val element = this[key] ?: throw SerializationException("Key '$key' not found")
+    return codableJson.decodeFromJsonElement(serializer, element)
+}
+
+private inline fun <reified T> JsonObject.decodeSynthesized(key: String): T =
+    decodeSynthesized(key, codableJson.serializersModule.serializer<T>())
+
+private fun <T : Any> JsonObject.decodeSynthesizedIfPresent(key: String, serializer: KSerializer<T>): T? {
+    val element = this[key]
+    if (element == null || element is JsonNull) {
+        return null
+    }
+    return codableJson.decodeFromJsonElement(serializer, element)
+}
+
+private fun <T : Enum<T>> synthesizedEnumSerializer(serialName: String, cases: List<T>): KSerializer<T> =
+    JsonObjectSerializer(
+        serialName,
+        { JsonObject(mapOf(it.name to JsonObject(emptyMap()))) },
+        { container ->
+            val keys = container.keys.filter { key -> cases.any { it.name == key } }
+            if (keys.size != 1) {
+                throw SerializationException("$serialName expects exactly one case")
+            }
+            if (container[keys[0]] !is JsonObject) {
+                throw SerializationException("$serialName expects an object for case '${keys[0]}'")
+            }
+            cases.first { it.name == keys[0] }
+        },
+    )
+
+private fun <T> rawValueSerializer(
+    serialName: String,
+    rawValue: (T) -> String,
+    fromRawValue: (String) -> T,
+): KSerializer<T> = object : KSerializer<T> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: T) {
+        encoder.encodeString(rawValue(value))
+    }
+
+    override fun deserialize(decoder: Decoder): T = fromRawValue(decoder.decodeString())
+}
+
 private fun decodeCameraId(container: JsonObject, key: String, defaultValue: CameraId): CameraId {
-    val cameraId = container[key]?.jsonPrimitive?.contentOrNull ?: return defaultValue
+    var cameraId = container.decode(key, defaultValue)
+    if (AVCaptureDevice.withUniqueID(cameraId) == null) {
+        cameraId = defaultValue
+    }
     return cameraId
 }
 
@@ -68,9 +132,7 @@ private fun decodeCameraPosition(
     key: String,
     defaultValue: SettingsSceneCameraPosition
 ): SettingsSceneCameraPosition {
-    var position = SettingsSceneCameraPosition.fromRawValue(
-        container[key]?.jsonPrimitive?.contentOrNull ?: ""
-    ) ?: defaultValue
+    var position = container.decode(key, SettingsSceneCameraPosition.serializer(), defaultValue)
     if ((position == SettingsSceneCameraPosition.backTripleLowEnergy && !hasTripleBackCamera) ||
         (position == SettingsSceneCameraPosition.backDualLowEnergy && !hasDualBackCamera) ||
         (position == SettingsSceneCameraPosition.backWideDualLowEnergy && !hasWideDualBackCamera)
@@ -117,16 +179,38 @@ enum class SettingsVideoEffectType(val rawValue: String) {
 private val defaultFromColor = RgbColor(red = 220, green = 235, blue = 92)
 private val defaultToColor = RgbColor(red = 82, green = 180, blue = 203)
 
-@Serializable
+@Serializable(with = SettingsVideoEffectRemoveBackground.Serializer::class)
 class SettingsVideoEffectRemoveBackground(
     var from: RgbColor = defaultFromColor,
     var to: RgbColor = defaultToColor
 ) {
-    @Transient var fromColor: Color = from.color()
-    @Transient var toColor: Color = to.color()
+    var fromColor: Color = from.color()
+    var toColor: Color = to.color()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("from", from)
+        encode("to", to)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsVideoEffectRemoveBackground {
+            val removeBackground = SettingsVideoEffectRemoveBackground()
+            removeBackground.from = container.decode("from", defaultFromColor)
+            removeBackground.fromColor = removeBackground.from.color()
+            removeBackground.to = container.decode("to", defaultToColor)
+            removeBackground.toColor = removeBackground.to.color()
+            return removeBackground
+        }
+    }
+
+    object Serializer : KSerializer<SettingsVideoEffectRemoveBackground> by JsonObjectSerializer(
+        "SettingsVideoEffectRemoveBackground",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsVideoEffectShape.Serializer::class)
 class SettingsVideoEffectShape(
     var cornerRadius: Float = 0.1f,
     var borderWidth: Double = 0.0,
@@ -137,7 +221,40 @@ class SettingsVideoEffectShape(
     var cropWidth: Double = 0.5,
     var cropHeight: Double = 1.0
 ) {
-    @Transient var borderColorColor: Color = borderColor.color()
+    var borderColorColor: Color = borderColor.color()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("cornerRadius", cornerRadius)
+        encode("borderWidth", borderWidth)
+        encode("borderColor", borderColor)
+        encode("cropEnabled", cropEnabled)
+        encode("cropX", cropX)
+        encode("cropY", cropY)
+        encode("cropWidth", cropWidth)
+        encode("cropHeight", cropHeight)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsVideoEffectShape {
+            val shape = SettingsVideoEffectShape()
+            shape.cornerRadius = container.decode("cornerRadius", 0.1f)
+            shape.borderWidth = container.decode("borderWidth", 0.0)
+            shape.borderColor = container.decode("borderColor", RgbColor(red = 0, green = 0, blue = 0))
+            shape.borderColorColor = shape.borderColor.color()
+            shape.cropEnabled = container.decode("cropEnabled", false)
+            shape.cropX = container.decode("cropX", 0.25)
+            shape.cropY = container.decode("cropY", 0.0)
+            shape.cropWidth = container.decode("cropWidth", 0.5)
+            shape.cropHeight = container.decode("cropHeight", 1.0)
+            return shape
+        }
+    }
+
+    object Serializer : KSerializer<SettingsVideoEffectShape> by JsonObjectSerializer(
+        "SettingsVideoEffectShape",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun toSettings(): ShapeEffectSettings = ShapeEffectSettings(
         cornerRadius = cornerRadius,
@@ -151,14 +268,38 @@ class SettingsVideoEffectShape(
     )
 }
 
-@Serializable
+@Serializable(with = SettingsVideoEffectDewarp360.Serializer::class)
 class SettingsVideoEffectDewarp360(
     var pan: Float = 0f,
     var tilt: Float = 0f,
     var zoom: Float = 1f
 ) {
-    @Transient var inverseFieldOfView: Float =
+    var inverseFieldOfView: Float =
         (180.0 - Math.toDegrees(zoomToFieldOfView(zoom).toDouble())).toFloat()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("pan", pan)
+        encode("tilt", tilt)
+        encode("zoom", zoom)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsVideoEffectDewarp360 {
+            val dewarp360 = SettingsVideoEffectDewarp360()
+            dewarp360.pan = container.decode("pan", 0f)
+            dewarp360.tilt = container.decode("tilt", 0f)
+            dewarp360.zoom = container.decode("zoom", 1f)
+            dewarp360.inverseFieldOfView =
+                (180.0 - Math.toDegrees(zoomToFieldOfView(dewarp360.zoom).toDouble())).toFloat()
+            return dewarp360
+        }
+    }
+
+    object Serializer : KSerializer<SettingsVideoEffectDewarp360> by JsonObjectSerializer(
+        "SettingsVideoEffectDewarp360",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun updateZoomFromInverseFieldOfView() {
         zoom = fieldOfViewToZoom(Math.toRadians((180f - inverseFieldOfView).toDouble()).toFloat())
@@ -171,10 +312,28 @@ class SettingsVideoEffectDewarp360(
     )
 }
 
-@Serializable
+@Serializable(with = SettingsVideoEffectAnamorphicLens.Serializer::class)
 class SettingsVideoEffectAnamorphicLens(
     var scale: Double = 1.33
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("scale", scale)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsVideoEffectAnamorphicLens {
+            val anamorphicLens = SettingsVideoEffectAnamorphicLens()
+            anamorphicLens.scale = container.decode("scale", 1.33)
+            return anamorphicLens
+        }
+    }
+
+    object Serializer : KSerializer<SettingsVideoEffectAnamorphicLens> by JsonObjectSerializer(
+        "SettingsVideoEffectAnamorphicLens",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsVideoEffectAnamorphicLens {
         val new = SettingsVideoEffectAnamorphicLens()
         new.scale = scale
@@ -182,15 +341,51 @@ class SettingsVideoEffectAnamorphicLens(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsVideoEffectLut.Serializer::class)
 class SettingsVideoEffectLut(
-    @Contextual var lut: UUID? = UUID.randomUUID()
-)
+    var lut: UUID? = null
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("lut", lut)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsVideoEffectLut {
+            val lut = SettingsVideoEffectLut()
+            lut.lut = if (container["lut"] is JsonNull) null else container.decode<UUID?>("lut", UUID.randomUUID())
+            return lut
+        }
+    }
+
+    object Serializer : KSerializer<SettingsVideoEffectLut> by JsonObjectSerializer(
+        "SettingsVideoEffectLut",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsVideoEffectOpacity.Serializer::class)
 class SettingsVideoEffectOpacity(
     var opacity: Double = 0.5
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("opacity", opacity)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsVideoEffectOpacity {
+            val opacity = SettingsVideoEffectOpacity()
+            opacity.opacity = container.decode("opacity", 0.5)
+            return opacity
+        }
+    }
+
+    object Serializer : KSerializer<SettingsVideoEffectOpacity> by JsonObjectSerializer(
+        "SettingsVideoEffectOpacity",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 @Serializable
 enum class SettingsMaskBackgroundType(val rawValue: String) {
@@ -210,15 +405,34 @@ enum class SettingsMaskBackgroundType(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsVideoEffectMaskEffectPoint.Serializer::class)
 data class SettingsVideoEffectMaskEffectPoint(
     val x: Double = 50.0,
     val y: Double = 50.0
 ) {
-    @Transient val id: UUID = UUID.randomUUID()
+    val id: UUID = UUID.randomUUID()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("x", x)
+        encode("y", y)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsVideoEffectMaskEffectPoint {
+            val x = container.decode("x", 50.0)
+            val y = container.decode("y", 50.0)
+            return SettingsVideoEffectMaskEffectPoint(x = x, y = y)
+        }
+    }
+
+    object Serializer : KSerializer<SettingsVideoEffectMaskEffectPoint> by JsonObjectSerializer(
+        "SettingsVideoEffectMaskEffectPoint",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsVideoEffectMask.Serializer::class)
 class SettingsVideoEffectMask(
     var points: List<SettingsVideoEffectMaskEffectPoint> = defaultPoints,
     var inverted: Boolean = false,
@@ -227,6 +441,18 @@ class SettingsVideoEffectMask(
     var backgroundColor: RgbColor = defaultBackgroundColor,
     var backgroundColor2: RgbColor = defaultBackgroundColor2
 ) {
+    var backgroundColorColor: Color = backgroundColor.color()
+    var backgroundColorColor2: Color = backgroundColor2.color()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("points", points, ListSerializer(SettingsVideoEffectMaskEffectPoint.serializer()))
+        encode("inverted", inverted)
+        encode("tension", tension)
+        encode("backgroundType", backgroundType)
+        encode("backgroundColor", backgroundColor)
+        encode("backgroundColor2", backgroundColor2)
+    }
+
     companion object {
         private val defaultPoints = listOf(
             SettingsVideoEffectMaskEffectPoint(x = 25.0, y = 50.0),
@@ -237,10 +463,30 @@ class SettingsVideoEffectMask(
         private val defaultTension = 1.0 / 6.0
         private val defaultBackgroundColor = RgbColor(red = 0, green = 0, blue = 0)
         private val defaultBackgroundColor2 = RgbColor(red = 255, green = 255, blue = 255)
+
+        fun decode(container: JsonObject): SettingsVideoEffectMask {
+            val mask = SettingsVideoEffectMask()
+            mask.points = container.decode(
+                "points",
+                ListSerializer(SettingsVideoEffectMaskEffectPoint.serializer()),
+                defaultPoints
+            )
+            mask.inverted = container.decode("inverted", false)
+            mask.tension = container.decode("tension", defaultTension)
+            mask.backgroundType = container.decode("backgroundType", SettingsMaskBackgroundType.transparent)
+            mask.backgroundColor = container.decode("backgroundColor", defaultBackgroundColor)
+            mask.backgroundColor2 = container.decode("backgroundColor2", defaultBackgroundColor2)
+            mask.backgroundColorColor = mask.backgroundColor.color()
+            mask.backgroundColorColor2 = mask.backgroundColor2.color()
+            return mask
+        }
     }
 
-    @Transient var backgroundColorColor: Color = backgroundColor.color()
-    @Transient var backgroundColorColor2: Color = backgroundColor2.color()
+    object Serializer : KSerializer<SettingsVideoEffectMask> by JsonObjectSerializer(
+        "SettingsVideoEffectMask",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun toEffectSettings(): MaskEffectSettings = MaskEffectSettings(
         points = points.map { MaskEffectPoint(x = it.x / 100, y = it.y / 100) },
@@ -252,9 +498,9 @@ class SettingsVideoEffectMask(
     )
 }
 
-@Serializable
+@Serializable(with = SettingsVideoEffect.Serializer::class)
 class SettingsVideoEffect(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var enabled: Boolean = true,
     var type: SettingsVideoEffectType = SettingsVideoEffectType.shape,
     var removeBackground: SettingsVideoEffectRemoveBackground = SettingsVideoEffectRemoveBackground(),
@@ -265,6 +511,58 @@ class SettingsVideoEffect(
     var opacity: SettingsVideoEffectOpacity = SettingsVideoEffectOpacity(),
     var mask: SettingsVideoEffectMask = SettingsVideoEffectMask()
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("enabled", enabled)
+        encode("type", type)
+        encode("removeBackground", removeBackground, SettingsVideoEffectRemoveBackground.serializer())
+        encode("shape", shape, SettingsVideoEffectShape.serializer())
+        encode("dewarp360", dewarp360, SettingsVideoEffectDewarp360.serializer())
+        encode("anamorphicLens", anamorphicLens, SettingsVideoEffectAnamorphicLens.serializer())
+        encode("lut", lut, SettingsVideoEffectLut.serializer())
+        encode("opacity", opacity, SettingsVideoEffectOpacity.serializer())
+        encode("mask", mask, SettingsVideoEffectMask.serializer())
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsVideoEffect {
+            val effect = SettingsVideoEffect()
+            effect.id = container.decode("id", UUID.randomUUID())
+            effect.enabled = container.decode("enabled", true)
+            effect.type = container.decode("type", SettingsVideoEffectType.shape)
+            effect.removeBackground = container.decode(
+                "removeBackground",
+                SettingsVideoEffectRemoveBackground.serializer(),
+                SettingsVideoEffectRemoveBackground()
+            )
+            effect.shape = container.decode("shape", SettingsVideoEffectShape.serializer(), SettingsVideoEffectShape())
+            effect.dewarp360 = container.decode(
+                "dewarp360",
+                SettingsVideoEffectDewarp360.serializer(),
+                SettingsVideoEffectDewarp360()
+            )
+            effect.anamorphicLens = container.decode(
+                "anamorphicLens",
+                SettingsVideoEffectAnamorphicLens.serializer(),
+                SettingsVideoEffectAnamorphicLens()
+            )
+            effect.lut = container.decode("lut", SettingsVideoEffectLut.serializer(), SettingsVideoEffectLut())
+            effect.opacity = container.decode(
+                "opacity",
+                SettingsVideoEffectOpacity.serializer(),
+                SettingsVideoEffectOpacity()
+            )
+            effect.mask = container.decode("mask", SettingsVideoEffectMask.serializer(), SettingsVideoEffectMask())
+            return effect
+        }
+    }
+
+    object Serializer : KSerializer<SettingsVideoEffect> by JsonObjectSerializer(
+        "SettingsVideoEffect",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun getEffect(model: Model): VideoEffect = when (type) {
         SettingsVideoEffectType.grayScale -> GrayScaleEffect()
         SettingsVideoEffectType.sepia -> SepiaEffect()
@@ -426,12 +724,34 @@ enum class SettingsAlignment(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetTextTimer.Serializer::class)
 class SettingsWidgetTextTimer(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var delta: Int = 5,
     var endTime: Double = 0.0
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("delta", delta)
+        encode("endTime", endTime)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetTextTimer {
+            val timer = SettingsWidgetTextTimer()
+            timer.id = container.decode("id", UUID.randomUUID())
+            timer.delta = container.decode("delta", 5)
+            timer.endTime = container.decode("endTime", 0.0)
+            return timer
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetTextTimer> by JsonObjectSerializer(
+        "SettingsWidgetTextTimer",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun add(delta: Double) {
         if (timeLeft() < 0) {
             endTime = Instant.now().toEpochMilli() / 1000.0
@@ -460,13 +780,35 @@ class SettingsWidgetTextTimer(
     fun timeLeft(): Double = utcTimeDeltaFromNow(endTime)
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetTextStopwatch.Serializer::class)
 class SettingsWidgetTextStopwatch(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var totalElapsed: Double = 0.0,
     var running: Boolean = false
 ) {
-    @Transient var playPressedTime: Instant = Instant.now()
+    var playPressedTime: Instant = Instant.now()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("totalElapsed", totalElapsed)
+        encode("running", running)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetTextStopwatch {
+            val stopwatch = SettingsWidgetTextStopwatch()
+            stopwatch.id = container.decode("id", UUID.randomUUID())
+            stopwatch.totalElapsed = container.decode("totalElapsed", 0.0)
+            stopwatch.running = container.decode("running", false)
+            return stopwatch
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetTextStopwatch> by JsonObjectSerializer(
+        "SettingsWidgetTextStopwatch",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun clone(): SettingsWidgetTextStopwatch {
         val new = SettingsWidgetTextStopwatch()
@@ -484,31 +826,112 @@ class SettingsWidgetTextStopwatch(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetTextSubtitles.Serializer::class)
 class SettingsWidgetTextSubtitles(
     var identifier: String? = null
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encodeIfPresent("identifier", identifier)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetTextSubtitles {
+            val subtitles = SettingsWidgetTextSubtitles()
+            subtitles.identifier = container.decodeSynthesizedIfPresent("identifier", String.serializer())
+            return subtitles
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetTextSubtitles> by JsonObjectSerializer(
+        "SettingsWidgetTextSubtitles",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsWidgetTextCheckbox.Serializer::class)
 class SettingsWidgetTextCheckbox(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var checked: Boolean = false
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("checked", checked)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetTextCheckbox {
+            val checkbox = SettingsWidgetTextCheckbox()
+            checkbox.id = container.decodeSynthesized("id")
+            checkbox.checked = container.decodeSynthesized("checked")
+            return checkbox
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetTextCheckbox> by JsonObjectSerializer(
+        "SettingsWidgetTextCheckbox",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsWidgetTextRating.Serializer::class)
 class SettingsWidgetTextRating(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var rating: Int = 0
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("rating", rating)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetTextRating {
+            val rating = SettingsWidgetTextRating()
+            rating.id = container.decodeSynthesized("id")
+            rating.rating = container.decodeSynthesized("rating")
+            return rating
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetTextRating> by JsonObjectSerializer(
+        "SettingsWidgetTextRating",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsWidgetTextLapTimes.Serializer::class)
 class SettingsWidgetTextLapTimes(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var currentLapStartTime: Double? = null,
     var lapTimes: List<Double> = emptyList()
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encodeIfPresent("currentLapStartTime", currentLapStartTime)
+        encode("lapTimes", lapTimes)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetTextLapTimes {
+            val lapTimes = SettingsWidgetTextLapTimes()
+            lapTimes.id = container.decodeSynthesized("id")
+            lapTimes.currentLapStartTime =
+                container.decodeSynthesizedIfPresent("currentLapStartTime", Double.serializer())
+            lapTimes.lapTimes = container.decodeSynthesized("lapTimes")
+            return lapTimes
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetTextLapTimes> by JsonObjectSerializer(
+        "SettingsWidgetTextLapTimes",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsWidgetText.Serializer::class)
 class SettingsWidgetText(
     var formatString: String = "{shortTime}",
     var backgroundColor: RgbColor = RgbColor(red = 0, green = 0, blue = 0, opacity = 0.75),
@@ -539,14 +962,116 @@ class SettingsWidgetText(
     var width: Int = defaultWidth,
     var cornerRadius: Int = defaultCornerRadius
 ) {
+    var backgroundColorColor: Color = backgroundColor.color()
+    var foregroundColorColor: Color = foregroundColor.color()
+    var fontSizeFloat: Float = fontSize.toFloat()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("formatString", formatString)
+        encode("backgroundColor", backgroundColor)
+        encode("clearBackgroundColor", clearBackgroundColor)
+        encode("foregroundColor", foregroundColor)
+        encode("clearForegroundColor", clearForegroundColor)
+        encode("fontSize", fontSize)
+        encode("fontFamily", fontFamily)
+        encode("fontStyle", fontStyle)
+        encode("fontDesign", fontDesign)
+        encode("fontWeight", fontWeight)
+        encode("fontMonospacedDigits", fontMonospacedDigits)
+        encode("alignment", alignment)
+        encode("horizontalAlignment", horizontalAlignment)
+        encode("verticalAlignment", verticalAlignment)
+        encode("delay", delay)
+        encode("timers", timers, ListSerializer(SettingsWidgetTextTimer.serializer()))
+        encode("stopwatches", stopwatches, ListSerializer(SettingsWidgetTextStopwatch.serializer()))
+        encode("needsWeather", needsWeather)
+        encode("needsGeography", needsGeography)
+        encode("needsSubtitles", needsSubtitles)
+        encode("subtitles", subtitles, ListSerializer(SettingsWidgetTextSubtitles.serializer()))
+        encode("checkboxes", checkboxes, ListSerializer(SettingsWidgetTextCheckbox.serializer()))
+        encode("ratings", ratings, ListSerializer(SettingsWidgetTextRating.serializer()))
+        encode("lapTimes", lapTimes, ListSerializer(SettingsWidgetTextLapTimes.serializer()))
+        encode("needsGForce", needsGForce)
+        encode("widthEnabled", widthEnabled)
+        encode("width", width)
+        encode("cornerRadius", cornerRadius)
+    }
+
     companion object {
         private const val defaultWidth = 300
         private const val defaultCornerRadius = 10
+
+        fun decode(container: JsonObject): SettingsWidgetText {
+            val text = SettingsWidgetText()
+            text.formatString = container.decode("formatString", "{shortTime}")
+            text.backgroundColor = container.decode(
+                "backgroundColor",
+                RgbColor(red = 0, green = 0, blue = 0, opacity = 0.75)
+            )
+            text.backgroundColorColor = text.backgroundColor.color()
+            text.clearBackgroundColor = container.decode("clearBackgroundColor", false)
+            text.foregroundColor = container.decode(
+                "foregroundColor",
+                RgbColor(red = 255, green = 255, blue = 255)
+            )
+            text.foregroundColorColor = text.foregroundColor.color()
+            text.clearForegroundColor = container.decode("clearForegroundColor", false)
+            text.fontSize = container.decode("fontSize", 30)
+            text.fontSizeFloat = text.fontSize.toFloat()
+            text.fontFamily = container.decode<String?>("fontFamily", null)
+            text.fontStyle = container.decode("fontStyle", "")
+            text.fontDesign = container.decode("fontDesign", SettingsFontDesign.`default`)
+            text.fontWeight = container.decode("fontWeight", SettingsFontWeight.regular)
+            text.fontMonospacedDigits = container.decode("fontMonospacedDigits", false)
+            text.alignment = container.decode("alignment", SettingsHorizontalAlignment.leading)
+            text.horizontalAlignment = container.decode(
+                "horizontalAlignment",
+                SettingsHorizontalAlignment.leading
+            )
+            text.verticalAlignment = container.decode("verticalAlignment", SettingsVerticalAlignment.top)
+            text.delay = container.decode("delay", 0.0)
+            text.timers = container.decode("timers", ListSerializer(SettingsWidgetTextTimer.serializer()), emptyList())
+            text.stopwatches = container.decode(
+                "stopwatches",
+                ListSerializer(SettingsWidgetTextStopwatch.serializer()),
+                emptyList()
+            )
+            text.needsWeather = container.decode("needsWeather", false)
+            text.needsGeography = container.decode("needsGeography", false)
+            text.needsSubtitles = container.decode("needsSubtitles", false)
+            text.subtitles = container.decode(
+                "subtitles",
+                ListSerializer(SettingsWidgetTextSubtitles.serializer()),
+                emptyList()
+            )
+            text.checkboxes = container.decode(
+                "checkboxes",
+                ListSerializer(SettingsWidgetTextCheckbox.serializer()),
+                emptyList()
+            )
+            text.ratings = container.decode(
+                "ratings",
+                ListSerializer(SettingsWidgetTextRating.serializer()),
+                emptyList()
+            )
+            text.lapTimes = container.decode(
+                "lapTimes",
+                ListSerializer(SettingsWidgetTextLapTimes.serializer()),
+                emptyList()
+            )
+            text.needsGForce = container.decode("needsGForce", false)
+            text.widthEnabled = container.decode("widthEnabled", false)
+            text.width = container.decode("width", defaultWidth)
+            text.cornerRadius = container.decode("cornerRadius", defaultCornerRadius)
+            return text
+        }
     }
 
-    @Transient var backgroundColorColor: Color = backgroundColor.color()
-    @Transient var foregroundColorColor: Color = foregroundColor.color()
-    @Transient var fontSizeFloat: Float = fontSize.toFloat()
+    object Serializer : KSerializer<SettingsWidgetText> by JsonObjectSerializer(
+        "SettingsWidgetText",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun fontFamilyString(): String = fontFamily ?: localized("System")
 
@@ -560,14 +1085,40 @@ class SettingsWidgetText(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetCrop.Serializer::class)
 class SettingsWidgetCrop(
-    @Contextual var sourceWidgetId: UUID = UUID.randomUUID(),
+    var sourceWidgetId: UUID = UUID.randomUUID(),
     var x: Int = 0,
     var y: Int = 0,
     var width: Int = 200,
     var height: Int = 200
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("sourceWidgetId", sourceWidgetId)
+        encode("x", x)
+        encode("y", y)
+        encode("width", width)
+        encode("height", height)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetCrop {
+            val crop = SettingsWidgetCrop()
+            crop.sourceWidgetId = container.decodeSynthesized("sourceWidgetId")
+            crop.x = container.decodeSynthesized("x")
+            crop.y = container.decodeSynthesized("y")
+            crop.width = container.decodeSynthesized("width")
+            crop.height = container.decodeSynthesized("height")
+            return crop
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetCrop> by JsonObjectSerializer(
+        "SettingsWidgetCrop",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsWidgetCrop {
         val new = SettingsWidgetCrop()
         new.sourceWidgetId = sourceWidgetId
@@ -597,25 +1148,91 @@ enum class SettingsWidgetBrowserMode {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetBrowser.Serializer::class)
 class SettingsWidgetBrowser(
     var url: String = "",
     var width: Int = 500,
     var height: Int = 500,
     var mode: SettingsWidgetBrowserMode = SettingsWidgetBrowserMode.periodicAudioAndVideo,
-    @SerialName("fps") var baseFps: Float = 5.0f,
+    var baseFps: Float = 5.0f,
     var styleSheet: String = "",
     var moblinAccess: Boolean = false,
     var speechToText: Boolean = false,
     var localOnly: Boolean = false
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("url", url)
+        encode("width", width)
+        encode("height", height)
+        encode("mode", mode)
+        encode("fps", baseFps)
+        encode("styleSheet", styleSheet)
+        encode("moblinAccess", moblinAccess)
+        encode("speechToText", speechToText)
+        encode("localOnly", localOnly)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetBrowser {
+            val browser = SettingsWidgetBrowser()
+            browser.url = container.decode("url", "")
+            browser.width = container.decode("width", 500)
+            browser.height = container.decode("height", 500)
+            val decodedMode = container.decodeIfPresent("mode", SettingsWidgetBrowserMode.serializer())
+            if (decodedMode != null) {
+                browser.mode = decodedMode
+            } else {
+                val audioOnly = container.decode("audioOnly", false)
+                browser.mode = if (audioOnly) {
+                    SettingsWidgetBrowserMode.audioAndVideoOnly
+                } else {
+                    SettingsWidgetBrowserMode.periodicAudioAndVideo
+                }
+            }
+            browser.baseFps = container.decode("fps", 5.0f)
+            browser.styleSheet = container.decode("styleSheet", "")
+            browser.moblinAccess = container.decode("moblinAccess", false)
+            browser.speechToText = container.decode("speechToText", false)
+            browser.localOnly = container.decode("localOnly", false)
+            return browser
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetBrowser> by JsonObjectSerializer(
+        "SettingsWidgetBrowser",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsWidgetMap.Serializer::class)
 class SettingsWidgetMap(
     var northUp: Boolean = false,
     var delay: Double = 0.0,
-    @SerialName("scale") var size: Double = 1000.0
+    var size: Double = 1000.0
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("northUp", northUp)
+        encode("delay", delay)
+        encode("scale", size)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetMap {
+            val map = SettingsWidgetMap()
+            map.northUp = container.decode("northUp", false)
+            map.delay = container.decode("delay", 0.0)
+            map.size = container.decode("scale", 1000.0)
+            return map
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetMap> by JsonObjectSerializer(
+        "SettingsWidgetMap",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsWidgetMap {
         val new = SettingsWidgetMap()
         new.northUp = northUp
@@ -625,15 +1242,51 @@ class SettingsWidgetMap(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetScene.Serializer::class)
 class SettingsWidgetScene(
-    @Contextual var sceneId: UUID = UUID.randomUUID()
-)
+    var sceneId: UUID = UUID.randomUUID()
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("sceneId", sceneId)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetScene {
+            val scene = SettingsWidgetScene()
+            scene.sceneId = container.decodeSynthesized("sceneId")
+            return scene
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetScene> by JsonObjectSerializer(
+        "SettingsWidgetScene",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsWidgetQrCode.Serializer::class)
 class SettingsWidgetQrCode(
     var message: String = ""
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("message", message)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetQrCode {
+            val qrCode = SettingsWidgetQrCode()
+            qrCode.message = container.decodeSynthesized("message")
+            return qrCode
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetQrCode> by JsonObjectSerializer(
+        "SettingsWidgetQrCode",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsWidgetQrCode {
         val new = SettingsWidgetQrCode()
         new.message = message
@@ -657,13 +1310,37 @@ enum class SettingsWidgetAlertPositionType(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetAlertFacePosition.Serializer::class)
 class SettingsWidgetAlertFacePosition(
     var x: Double = 0.25,
     var y: Double = 0.25,
     var width: Double = 0.5,
     var height: Double = 0.5
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("x", x)
+        encode("y", y)
+        encode("width", width)
+        encode("height", height)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetAlertFacePosition {
+            val facePosition = SettingsWidgetAlertFacePosition()
+            facePosition.x = container.decodeSynthesized("x")
+            facePosition.y = container.decodeSynthesized("y")
+            facePosition.width = container.decodeSynthesized("width")
+            facePosition.height = container.decodeSynthesized("height")
+            return facePosition
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetAlertFacePosition> by JsonObjectSerializer(
+        "SettingsWidgetAlertFacePosition",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsWidgetAlertFacePosition {
         val new = SettingsWidgetAlertFacePosition()
         new.x = x
@@ -690,14 +1367,14 @@ enum class SettingsWidgetAlertsAlertMediaType {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetAlertsAlert.Serializer::class)
 class SettingsWidgetAlertsAlert(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var enabled: Boolean = true,
     var mediaType: SettingsWidgetAlertsAlertMediaType = SettingsWidgetAlertsAlertMediaType.gifAndSound,
-    @Contextual var imageId: UUID = UUID.randomUUID(),
+    var imageId: UUID = UUID.randomUUID(),
     var imageLoopCount: Int = 1,
-    @Contextual var soundId: UUID = UUID.randomUUID(),
+    var soundId: UUID = UUID.randomUUID(),
     var videoName: String = "",
     var textColor: RgbColor = RgbColor(red = 255, green = 255, blue = 255),
     var accentColor: RgbColor = RgbColor(red = 0xFD, green = 0xFB, blue = 0x67),
@@ -710,6 +1387,77 @@ class SettingsWidgetAlertsAlert(
     var positionType: SettingsWidgetAlertPositionType = SettingsWidgetAlertPositionType.scene,
     var facePosition: SettingsWidgetAlertFacePosition = SettingsWidgetAlertFacePosition()
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("enabled", enabled)
+        encode("mediaType", mediaType)
+        encode("imageId", imageId)
+        encode("imageLoopCount", imageLoopCount)
+        encode("soundId", soundId)
+        encode("videoName", videoName)
+        encode("textColor", textColor)
+        encode("accentColor", accentColor)
+        encode("fontSize", fontSize)
+        encode("fontDesign", fontDesign)
+        encode("fontWeight", fontWeight)
+        encode("textToSpeechEnabled", textToSpeechEnabled)
+        encode("textToSpeechDelay", textToSpeechDelay)
+        encode(
+            "textToSpeechLanguageVoices",
+            textToSpeechLanguageVoices,
+            MapSerializer(String.serializer(), SettingsVoice.serializer())
+        )
+        encode("positionType", positionType)
+        encode("facePosition", facePosition, SettingsWidgetAlertFacePosition.serializer())
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetAlertsAlert {
+            val alert = SettingsWidgetAlertsAlert()
+            alert.id = container.decode("id", UUID.randomUUID())
+            alert.enabled = container.decode("enabled", true)
+            alert.mediaType = container.decode("mediaType", SettingsWidgetAlertsAlertMediaType.gifAndSound)
+            alert.imageId = container.decode("imageId", UUID.randomUUID())
+            alert.imageLoopCount = container.decode("imageLoopCount", 1)
+            alert.soundId = container.decode("soundId", UUID.randomUUID())
+            alert.videoName = container.decode("videoName", "")
+            alert.textColor = container.decode("textColor", RgbColor(red = 255, green = 255, blue = 255))
+            alert.accentColor = container.decode("accentColor", RgbColor(red = 0xFD, green = 0xFB, blue = 0x67))
+            alert.fontSize = container.decode("fontSize", 45)
+            alert.fontDesign = container.decode("fontDesign", SettingsFontDesign.monospaced)
+            alert.fontWeight = container.decode("fontWeight", SettingsFontWeight.bold)
+            alert.textToSpeechEnabled = container.decode("textToSpeechEnabled", true)
+            alert.textToSpeechDelay = container.decode("textToSpeechDelay", 1.5)
+            alert.textToSpeechLanguageVoices = container.decode(
+                "textToSpeechLanguageVoices",
+                MapSerializer(String.serializer(), SettingsVoice.serializer()),
+                emptyMap()
+            )
+            for ((languageCode, voice) in container.decode(
+                "textToSpeechLanguageVoices",
+                MapSerializer(String.serializer(), String.serializer()),
+                emptyMap()
+            )) {
+                val settingsVoice = SettingsVoice()
+                settingsVoice.apple.voice = voice
+                alert.textToSpeechLanguageVoices = alert.textToSpeechLanguageVoices + (languageCode to settingsVoice)
+            }
+            alert.positionType = container.decode("positionType", SettingsWidgetAlertPositionType.scene)
+            alert.facePosition = container.decode(
+                "facePosition",
+                SettingsWidgetAlertFacePosition.serializer(),
+                SettingsWidgetAlertFacePosition()
+            )
+            return alert
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetAlertsAlert> by JsonObjectSerializer(
+        "SettingsWidgetAlertsAlert",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun isTextToSpeechEnabled(): Boolean = enabled && textToSpeechEnabled
 
     fun makeVideoFilename(): String? {
@@ -743,28 +1491,61 @@ class SettingsWidgetAlertsAlert(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetAlertsCheerBitsAlertOperator.Serializer::class)
 enum class SettingsWidgetAlertsCheerBitsAlertOperator(val rawValue: String) {
-    @SerialName("=") equal("="),
-    @SerialName(">=") greaterEqual(">=");
+    equal("="),
+    greaterEqual(">=");
 
     companion object {
         fun fromRawValue(rawValue: String): SettingsWidgetAlertsCheerBitsAlertOperator =
             entries.firstOrNull { it.rawValue == rawValue } ?: equal
     }
+
+    object Serializer : KSerializer<SettingsWidgetAlertsCheerBitsAlertOperator> by rawValueSerializer(
+        "com.moblin.android.various.settings.SettingsWidgetAlertsCheerBitsAlertOperator",
+        { it.rawValue },
+        { fromRawValue(it) },
+    )
 }
 
 val cheerBitsAlertOperators: List<String> =
     SettingsWidgetAlertsCheerBitsAlertOperator.entries.map { it.rawValue }
 
-@Serializable
+@Serializable(with = SettingsWidgetAlertsCheerBitsAlert.Serializer::class)
 class SettingsWidgetAlertsCheerBitsAlert(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var bits: Int = 1,
     var comparisonOperator: SettingsWidgetAlertsCheerBitsAlertOperator =
         SettingsWidgetAlertsCheerBitsAlertOperator.greaterEqual,
     var alert: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert()
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("bits", bits)
+        encode("comparisonOperator", comparisonOperator, SettingsWidgetAlertsCheerBitsAlertOperator.serializer())
+        encode("alert", alert, SettingsWidgetAlertsAlert.serializer())
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetAlertsCheerBitsAlert {
+            val cheerBits = SettingsWidgetAlertsCheerBitsAlert()
+            cheerBits.id = container.decodeSynthesized("id")
+            cheerBits.bits = container.decodeSynthesized("bits")
+            cheerBits.comparisonOperator = container.decodeSynthesized(
+                "comparisonOperator",
+                SettingsWidgetAlertsCheerBitsAlertOperator.serializer()
+            )
+            cheerBits.alert = container.decodeSynthesized("alert", SettingsWidgetAlertsAlert.serializer())
+            return cheerBits
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetAlertsCheerBitsAlert> by JsonObjectSerializer(
+        "SettingsWidgetAlertsCheerBitsAlert",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsWidgetAlertsCheerBitsAlert {
         val new = SettingsWidgetAlertsCheerBitsAlert()
         new.bits = bits
@@ -774,14 +1555,41 @@ class SettingsWidgetAlertsCheerBitsAlert(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetAlertsKickGiftsAlert.Serializer::class)
 class SettingsWidgetAlertsKickGiftsAlert(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var amount: Int = 1,
     var comparisonOperator: SettingsWidgetAlertsCheerBitsAlertOperator =
         SettingsWidgetAlertsCheerBitsAlertOperator.greaterEqual,
     var alert: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert()
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("amount", amount)
+        encode("comparisonOperator", comparisonOperator, SettingsWidgetAlertsCheerBitsAlertOperator.serializer())
+        encode("alert", alert, SettingsWidgetAlertsAlert.serializer())
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetAlertsKickGiftsAlert {
+            val gift = SettingsWidgetAlertsKickGiftsAlert()
+            gift.id = container.decodeSynthesized("id")
+            gift.amount = container.decodeSynthesized("amount")
+            gift.comparisonOperator = container.decodeSynthesized(
+                "comparisonOperator",
+                SettingsWidgetAlertsCheerBitsAlertOperator.serializer()
+            )
+            gift.alert = container.decodeSynthesized("alert", SettingsWidgetAlertsAlert.serializer())
+            return gift
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetAlertsKickGiftsAlert> by JsonObjectSerializer(
+        "SettingsWidgetAlertsKickGiftsAlert",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsWidgetAlertsKickGiftsAlert {
         val new = SettingsWidgetAlertsKickGiftsAlert()
         new.amount = amount
@@ -813,7 +1621,7 @@ private fun createDefaultKickGifts(): List<SettingsWidgetAlertsKickGiftsAlert> {
     return kickGifts
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetAlertsTwitch.Serializer::class)
 class SettingsWidgetAlertsTwitch(
     var follows: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
     var subscriptions: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
@@ -821,7 +1629,41 @@ class SettingsWidgetAlertsTwitch(
     var cheers: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
     var cheerBits: List<SettingsWidgetAlertsCheerBitsAlert> = createDefaultCheerBits()
 ) {
-    @Transient var redemptions: List<SettingsWidgetAlertsAlert> = emptyList()
+    var redemptions: List<SettingsWidgetAlertsAlert> = emptyList()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("follows", follows, SettingsWidgetAlertsAlert.serializer())
+        encode("subscriptions", subscriptions, SettingsWidgetAlertsAlert.serializer())
+        encode("raids", raids, SettingsWidgetAlertsAlert.serializer())
+        encode("cheers", cheers, SettingsWidgetAlertsAlert.serializer())
+        encode("cheerBits", cheerBits, ListSerializer(SettingsWidgetAlertsCheerBitsAlert.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetAlertsTwitch {
+            val twitch = SettingsWidgetAlertsTwitch()
+            twitch.follows = container.decode("follows", SettingsWidgetAlertsAlert.serializer(), SettingsWidgetAlertsAlert())
+            twitch.subscriptions = container.decode(
+                "subscriptions",
+                SettingsWidgetAlertsAlert.serializer(),
+                SettingsWidgetAlertsAlert()
+            )
+            twitch.raids = container.decode("raids", SettingsWidgetAlertsAlert.serializer(), SettingsWidgetAlertsAlert())
+            twitch.cheers = container.decode("cheers", SettingsWidgetAlertsAlert.serializer(), SettingsWidgetAlertsAlert())
+            twitch.cheerBits = container.decode(
+                "cheerBits",
+                ListSerializer(SettingsWidgetAlertsCheerBitsAlert.serializer()),
+                createDefaultCheerBits()
+            )
+            return twitch
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetAlertsTwitch> by JsonObjectSerializer(
+        "SettingsWidgetAlertsTwitch",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun clone(): SettingsWidgetAlertsTwitch {
         val new = SettingsWidgetAlertsTwitch()
@@ -844,7 +1686,7 @@ class SettingsWidgetAlertsTwitch(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetAlertsKick.Serializer::class)
 class SettingsWidgetAlertsKick(
     var subscriptions: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
     var giftedSubscriptions: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
@@ -852,6 +1694,44 @@ class SettingsWidgetAlertsKick(
     var rewards: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
     var kickGifts: List<SettingsWidgetAlertsKickGiftsAlert> = createDefaultKickGifts()
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("subscriptions", subscriptions, SettingsWidgetAlertsAlert.serializer())
+        encode("giftedSubscriptions", giftedSubscriptions, SettingsWidgetAlertsAlert.serializer())
+        encode("hosts", hosts, SettingsWidgetAlertsAlert.serializer())
+        encode("rewards", rewards, SettingsWidgetAlertsAlert.serializer())
+        encode("kickGifts", kickGifts, ListSerializer(SettingsWidgetAlertsKickGiftsAlert.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetAlertsKick {
+            val kick = SettingsWidgetAlertsKick()
+            kick.subscriptions = container.decode(
+                "subscriptions",
+                SettingsWidgetAlertsAlert.serializer(),
+                SettingsWidgetAlertsAlert()
+            )
+            kick.giftedSubscriptions = container.decode(
+                "giftedSubscriptions",
+                SettingsWidgetAlertsAlert.serializer(),
+                SettingsWidgetAlertsAlert()
+            )
+            kick.hosts = container.decode("hosts", SettingsWidgetAlertsAlert.serializer(), SettingsWidgetAlertsAlert())
+            kick.rewards = container.decode("rewards", SettingsWidgetAlertsAlert.serializer(), SettingsWidgetAlertsAlert())
+            kick.kickGifts = container.decode(
+                "kickGifts",
+                ListSerializer(SettingsWidgetAlertsKickGiftsAlert.serializer()),
+                createDefaultKickGifts()
+            )
+            return kick
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetAlertsKick> by JsonObjectSerializer(
+        "SettingsWidgetAlertsKick",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsWidgetAlertsKick {
         val new = SettingsWidgetAlertsKick()
         new.subscriptions = subscriptions.clone()
@@ -883,14 +1763,38 @@ enum class SettingsWidgetAlertsChatBotCommandImageType(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetAlertsChatBotCommand.Serializer::class)
 class SettingsWidgetAlertsChatBotCommand(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var name: String = "myname",
     var alert: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
     var imageType: SettingsWidgetAlertsChatBotCommandImageType =
         SettingsWidgetAlertsChatBotCommandImageType.file
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("alert", alert, SettingsWidgetAlertsAlert.serializer())
+        encode("imageType", imageType)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetAlertsChatBotCommand {
+            val command = SettingsWidgetAlertsChatBotCommand()
+            command.id = container.decode("id", UUID.randomUUID())
+            command.name = container.decode("name", "myname")
+            command.alert = container.decode("alert", SettingsWidgetAlertsAlert.serializer(), SettingsWidgetAlertsAlert())
+            command.imageType = container.decode("imageType", SettingsWidgetAlertsChatBotCommandImageType.file)
+            return command
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetAlertsChatBotCommand> by JsonObjectSerializer(
+        "SettingsWidgetAlertsChatBotCommand",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsWidgetAlertsChatBotCommand {
         val new = SettingsWidgetAlertsChatBotCommand()
         new.name = name
@@ -900,10 +1804,32 @@ class SettingsWidgetAlertsChatBotCommand(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetAlertsChatBot.Serializer::class)
 class SettingsWidgetAlertsChatBot(
     var commands: List<SettingsWidgetAlertsChatBotCommand> = emptyList()
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("commands", commands, ListSerializer(SettingsWidgetAlertsChatBotCommand.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetAlertsChatBot {
+            val chatBot = SettingsWidgetAlertsChatBot()
+            chatBot.commands = container.decode(
+                "commands",
+                ListSerializer(SettingsWidgetAlertsChatBotCommand.serializer()),
+                emptyList()
+            )
+            return chatBot
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetAlertsChatBot> by JsonObjectSerializer(
+        "SettingsWidgetAlertsChatBot",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsWidgetAlertsChatBot {
         val new = SettingsWidgetAlertsChatBot()
         for (command in commands) {
@@ -919,12 +1845,34 @@ class SettingsWidgetAlertsChatBot(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetAlertsSpeechToTextString.Serializer::class)
 class SettingsWidgetAlertsSpeechToTextString(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var string: String = "",
     var alert: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert()
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("string", string)
+        encode("alert", alert, SettingsWidgetAlertsAlert.serializer())
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetAlertsSpeechToTextString {
+            val string = SettingsWidgetAlertsSpeechToTextString()
+            string.id = container.decodeSynthesized("id")
+            string.string = container.decodeSynthesized("string")
+            string.alert = container.decodeSynthesized("alert", SettingsWidgetAlertsAlert.serializer())
+            return string
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetAlertsSpeechToTextString> by JsonObjectSerializer(
+        "SettingsWidgetAlertsSpeechToTextString",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsWidgetAlertsSpeechToTextString {
         val new = SettingsWidgetAlertsSpeechToTextString()
         new.id = id
@@ -934,10 +1882,32 @@ class SettingsWidgetAlertsSpeechToTextString(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetAlertsSpeechToText.Serializer::class)
 class SettingsWidgetAlertsSpeechToText(
     var strings: List<SettingsWidgetAlertsSpeechToTextString> = emptyList()
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("strings", strings, ListSerializer(SettingsWidgetAlertsSpeechToTextString.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetAlertsSpeechToText {
+            val speechToText = SettingsWidgetAlertsSpeechToText()
+            speechToText.strings = container.decode(
+                "strings",
+                ListSerializer(SettingsWidgetAlertsSpeechToTextString.serializer()),
+                emptyList()
+            )
+            return speechToText
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetAlertsSpeechToText> by JsonObjectSerializer(
+        "SettingsWidgetAlertsSpeechToText",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsWidgetAlertsSpeechToText {
         val new = SettingsWidgetAlertsSpeechToText()
         for (string in strings) {
@@ -953,10 +1923,28 @@ class SettingsWidgetAlertsSpeechToText(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsTtsMonster.Serializer::class)
 class SettingsTtsMonster(
     var apiToken: String = ""
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("apiToken", apiToken)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsTtsMonster {
+            val ttsMonster = SettingsTtsMonster()
+            ttsMonster.apiToken = container.decode("apiToken", "")
+            return ttsMonster
+        }
+    }
+
+    object Serializer : KSerializer<SettingsTtsMonster> by JsonObjectSerializer(
+        "SettingsTtsMonster",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsTtsMonster {
         val new = SettingsTtsMonster()
         new.apiToken = apiToken
@@ -964,7 +1952,7 @@ class SettingsTtsMonster(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetAlerts.Serializer::class)
 class SettingsWidgetAlerts(
     var twitch: SettingsWidgetAlertsTwitch = SettingsWidgetAlertsTwitch(),
     var kick: SettingsWidgetAlertsKick = SettingsWidgetAlertsKick(),
@@ -975,12 +1963,54 @@ class SettingsWidgetAlerts(
     var aiEnabled: Boolean = false,
     var ttsMonster: SettingsTtsMonster = SettingsTtsMonster()
 ) {
+    var quickButton: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("twitch", twitch, SettingsWidgetAlertsTwitch.serializer())
+        encode("kick", kick, SettingsWidgetAlertsKick.serializer())
+        encode("chatBot", chatBot, SettingsWidgetAlertsChatBot.serializer())
+        encode("speechToText", speechToText, SettingsWidgetAlertsSpeechToText.serializer())
+        encode("needsSubtitles", needsSubtitles)
+        encode("ai", ai, SettingsOpenAi.serializer())
+        encode("aiEnabled", aiEnabled)
+        encode("ttsMonster", ttsMonster, SettingsTtsMonster.serializer())
+    }
+
     companion object {
         private const val aiPersonality =
             "You are rude and gives insulting answers. Answer in a few sentences."
+
+        fun decode(container: JsonObject): SettingsWidgetAlerts {
+            val alerts = SettingsWidgetAlerts()
+            alerts.twitch = container.decode("twitch", SettingsWidgetAlertsTwitch.serializer(), SettingsWidgetAlertsTwitch())
+            alerts.kick = container.decode("kick", SettingsWidgetAlertsKick.serializer(), SettingsWidgetAlertsKick())
+            alerts.chatBot = container.decode(
+                "chatBot",
+                SettingsWidgetAlertsChatBot.serializer(),
+                SettingsWidgetAlertsChatBot()
+            )
+            alerts.speechToText = container.decode(
+                "speechToText",
+                SettingsWidgetAlertsSpeechToText.serializer(),
+                SettingsWidgetAlertsSpeechToText()
+            )
+            alerts.needsSubtitles = container.decode("needsSubtitles", false)
+            alerts.ai = container.decode(
+                "ai",
+                SettingsOpenAi.serializer(),
+                SettingsOpenAi(personality = aiPersonality)
+            )
+            alerts.aiEnabled = container.decode("aiEnabled", false)
+            alerts.ttsMonster = container.decode("ttsMonster", SettingsTtsMonster.serializer(), SettingsTtsMonster())
+            return alerts
+        }
     }
 
-    @Transient var quickButton: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert()
+    object Serializer : KSerializer<SettingsWidgetAlerts> by JsonObjectSerializer(
+        "SettingsWidgetAlerts",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun clone(): SettingsWidgetAlerts {
         val new = SettingsWidgetAlerts()
@@ -1027,11 +2057,30 @@ enum class SettingsSceneSwitchTransition(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsSensitivity.Serializer::class)
 data class SettingsSensitivity(
     val mouth: Double = 1.0,
     val eyes: Double = 1.0
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("mouth", mouth)
+        encode("eyes", eyes)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsSensitivity {
+            val mouth: Double = container.decodeSynthesized("mouth")
+            val eyes: Double = container.decodeSynthesized("eyes")
+            return SettingsSensitivity(mouth = mouth, eyes = eyes)
+        }
+    }
+
+    object Serializer : KSerializer<SettingsSensitivity> by JsonObjectSerializer(
+        "SettingsSensitivity",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 @Serializable
 enum class SettingsWidgetVTuberType(val rawValue: String) {
@@ -1044,9 +2093,9 @@ enum class SettingsWidgetVTuberType(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetVTuber.Serializer::class)
 class SettingsWidgetVTuber(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var type: SettingsWidgetVTuberType = SettingsWidgetVTuberType.vrm,
     var videoSource: SettingsVideoSource = SettingsVideoSource(),
     var cameraPositionY: Double = 1.37,
@@ -1056,6 +2105,68 @@ class SettingsWidgetVTuber(
     var sensitivity: SettingsSensitivity = SettingsSensitivity(),
     var armsAngle: Double = 72.0
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("type", type)
+        encode("cameraPosition", videoSource.cameraPosition, SettingsSceneCameraPosition.serializer())
+        encode("backCameraId", videoSource.backCameraId)
+        encode("frontCameraId", videoSource.frontCameraId)
+        encode("rtmpCameraId", videoSource.rtmpCameraId)
+        encode("srtlaCameraId", videoSource.srtlaCameraId)
+        encode("srtClientCameraId", videoSource.srtClientCameraId)
+        encode("ristCameraId", videoSource.ristCameraId)
+        encode("rtspCameraId", videoSource.rtspCameraId)
+        encode("whipCameraId", videoSource.whipCameraId)
+        encode("whepCameraId", videoSource.whepCameraId)
+        encode("mediaPlayerCameraId", videoSource.mediaPlayerCameraId)
+        encode("externalCameraId", videoSource.externalCameraId)
+        encode("externalCameraName", videoSource.externalCameraName)
+        encode("cameraPositionY", cameraPositionY)
+        encode("cameraFieldOfView", cameraFieldOfView)
+        encode("modelName", modelName)
+        encode("mirror", mirror)
+        encode("sensitivity", sensitivity, SettingsSensitivity.serializer())
+        encode("armsAngle", armsAngle)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetVTuber {
+            val vTuber = SettingsWidgetVTuber()
+            vTuber.id = container.decode("id", UUID.randomUUID())
+            vTuber.type = container.decode("type", SettingsWidgetVTuberType.vrm)
+            vTuber.videoSource.cameraPosition = decodeCameraPosition(
+                container,
+                "cameraPosition",
+                SettingsSceneCameraPosition.none
+            )
+            vTuber.videoSource.backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId)
+            vTuber.videoSource.frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId)
+            vTuber.videoSource.rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID())
+            vTuber.videoSource.srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID())
+            vTuber.videoSource.srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID())
+            vTuber.videoSource.ristCameraId = container.decode("ristCameraId", UUID.randomUUID())
+            vTuber.videoSource.rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID())
+            vTuber.videoSource.whipCameraId = container.decode("whipCameraId", UUID.randomUUID())
+            vTuber.videoSource.whepCameraId = container.decode("whepCameraId", UUID.randomUUID())
+            vTuber.videoSource.mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID())
+            vTuber.videoSource.externalCameraId = container.decode("externalCameraId", "")
+            vTuber.videoSource.externalCameraName = container.decode("externalCameraName", "")
+            vTuber.cameraPositionY = container.decode("cameraPositionY", 1.37)
+            vTuber.cameraFieldOfView = container.decode("cameraFieldOfView", 18.0)
+            vTuber.modelName = container.decode("modelName", "")
+            vTuber.mirror = container.decode("mirror", false)
+            vTuber.sensitivity = container.decode("sensitivity", SettingsSensitivity.serializer(), SettingsSensitivity())
+            vTuber.armsAngle = container.decode("armsAngle", 72.0)
+            return vTuber
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetVTuber> by JsonObjectSerializer(
+        "SettingsWidgetVTuber",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun toCameraId(): SettingsCameraId = videoSource.toCameraId()
 
     fun updateCameraId(settingsCameraId: SettingsCameraId) {
@@ -1063,14 +2174,72 @@ class SettingsWidgetVTuber(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetPngTuber.Serializer::class)
 class SettingsWidgetPngTuber(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var videoSource: SettingsVideoSource = SettingsVideoSource(),
     var modelName: String = "",
     var mirror: Boolean = false,
     var sensitivity: SettingsSensitivity = SettingsSensitivity()
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("cameraPosition", videoSource.cameraPosition, SettingsSceneCameraPosition.serializer())
+        encode("backCameraId", videoSource.backCameraId)
+        encode("frontCameraId", videoSource.frontCameraId)
+        encode("rtmpCameraId", videoSource.rtmpCameraId)
+        encode("srtlaCameraId", videoSource.srtlaCameraId)
+        encode("srtClientCameraId", videoSource.srtClientCameraId)
+        encode("ristCameraId", videoSource.ristCameraId)
+        encode("rtspCameraId", videoSource.rtspCameraId)
+        encode("whipCameraId", videoSource.whipCameraId)
+        encode("whepCameraId", videoSource.whepCameraId)
+        encode("mediaPlayerCameraId", videoSource.mediaPlayerCameraId)
+        encode("externalCameraId", videoSource.externalCameraId)
+        encode("externalCameraName", videoSource.externalCameraName)
+        encode("modelName", modelName)
+        encode("mirror", mirror)
+        encode("sensitivity", sensitivity, SettingsSensitivity.serializer())
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetPngTuber {
+            val pngTuber = SettingsWidgetPngTuber()
+            pngTuber.id = container.decode("id", UUID.randomUUID())
+            pngTuber.videoSource.cameraPosition = decodeCameraPosition(
+                container,
+                "cameraPosition",
+                SettingsSceneCameraPosition.none
+            )
+            pngTuber.videoSource.backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId)
+            pngTuber.videoSource.frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId)
+            pngTuber.videoSource.rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID())
+            pngTuber.videoSource.srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID())
+            pngTuber.videoSource.srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID())
+            pngTuber.videoSource.ristCameraId = container.decode("ristCameraId", UUID.randomUUID())
+            pngTuber.videoSource.rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID())
+            pngTuber.videoSource.whipCameraId = container.decode("whipCameraId", UUID.randomUUID())
+            pngTuber.videoSource.whepCameraId = container.decode("whepCameraId", UUID.randomUUID())
+            pngTuber.videoSource.mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID())
+            pngTuber.videoSource.externalCameraId = container.decode("externalCameraId", "")
+            pngTuber.videoSource.externalCameraName = container.decode("externalCameraName", "")
+            pngTuber.modelName = container.decode("modelName", "")
+            pngTuber.mirror = container.decode("mirror", false)
+            pngTuber.sensitivity = container.decode(
+                "sensitivity",
+                SettingsSensitivity.serializer(),
+                SettingsSensitivity()
+            )
+            return pngTuber
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetPngTuber> by JsonObjectSerializer(
+        "SettingsWidgetPngTuber",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun toCameraId(): SettingsCameraId = videoSource.toCameraId()
 
     fun updateCameraId(settingsCameraId: SettingsCameraId) {
@@ -1078,15 +2247,35 @@ class SettingsWidgetPngTuber(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetSnapshot.Serializer::class)
 class SettingsWidgetSnapshot(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var showtime: Int = 5
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("showtime", showtime)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetSnapshot {
+            val snapshot = SettingsWidgetSnapshot()
+            snapshot.id = container.decode("id", UUID.randomUUID())
+            snapshot.showtime = container.decode("showtime", 5)
+            return snapshot
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetSnapshot> by JsonObjectSerializer(
+        "SettingsWidgetSnapshot",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsWidgetChat.Serializer::class)
 class SettingsWidgetChat(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var fontSize: Float = 19.0f,
     var usernameColor: RgbColor = RgbColor(red = 255, green = 163, blue = 0),
     var messageColor: RgbColor = RgbColor(red = 255, green = 255, blue = 255),
@@ -1102,11 +2291,61 @@ class SettingsWidgetChat(
     var height: Float = 1f,
     var maximumNumberOfMessages: Int = 5
 ) {
-    @Transient var usernameColorColor: Color = usernameColor.color()
-    @Transient var messageColorColor: Color = messageColor.color()
-    @Transient var backgroundColorColor: Color = backgroundColor.color()
-    @Transient var shadowColorColor: Color = shadowColor.color()
-    @Transient val nicknames: SettingsChatNicknames = SettingsChatNicknames()
+    var usernameColorColor: Color = usernameColor.color()
+    var messageColorColor: Color = messageColor.color()
+    var backgroundColorColor: Color = backgroundColor.color()
+    var shadowColorColor: Color = shadowColor.color()
+    val nicknames: SettingsChatNicknames = SettingsChatNicknames()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("fontSize", fontSize)
+        encode("usernameColor", usernameColor)
+        encode("messageColor", messageColor)
+        encode("backgroundColor", backgroundColor)
+        encode("backgroundColorEnabled", backgroundColorEnabled)
+        encode("shadowColor", shadowColor)
+        encode("shadowColorEnabled", shadowColorEnabled)
+        encode("boldUsername", boldUsername)
+        encode("boldMessage", boldMessage)
+        encode("badges", badges)
+        encode("displayStyle", displayStyle)
+        encode("sharedChatIcons", sharedChatIcons)
+        encode("height", height)
+        encode("maximumNumberOfMessages", maximumNumberOfMessages)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetChat {
+            val chat = SettingsWidgetChat()
+            chat.id = container.decode("id", UUID.randomUUID())
+            chat.fontSize = container.decode("fontSize", 19.0f)
+            chat.usernameColor = container.decode("usernameColor", RgbColor(red = 255, green = 163, blue = 0))
+            chat.usernameColorColor = chat.usernameColor.color()
+            chat.messageColor = container.decode("messageColor", RgbColor(red = 255, green = 255, blue = 255))
+            chat.messageColorColor = chat.messageColor.color()
+            chat.backgroundColor = container.decode("backgroundColor", RgbColor(red = 0, green = 0, blue = 0))
+            chat.backgroundColorColor = chat.backgroundColor.color()
+            chat.backgroundColorEnabled = container.decode("backgroundColorEnabled", false)
+            chat.shadowColor = container.decode("shadowColor", RgbColor(red = 0, green = 0, blue = 0))
+            chat.shadowColorColor = chat.shadowColor.color()
+            chat.shadowColorEnabled = container.decode("shadowColorEnabled", true)
+            chat.boldUsername = container.decode("boldUsername", true)
+            chat.boldMessage = container.decode("boldMessage", true)
+            chat.badges = container.decode("badges", true)
+            chat.displayStyle = container.decode("displayStyle", SettingsChatDisplayStyle.internationalName)
+            chat.sharedChatIcons = container.decode("sharedChatIcons", false)
+            chat.height = container.decode("height", 1f)
+            chat.maximumNumberOfMessages = container.decode("maximumNumberOfMessages", 5)
+            return chat
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetChat> by JsonObjectSerializer(
+        "SettingsWidgetChat",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun update(other: SettingsWidgetChat) {
         fontSize = other.fontSize
@@ -1130,22 +2369,68 @@ class SettingsWidgetChat(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetSlideshowSlide.Serializer::class)
 class SettingsWidgetSlideshowSlide(
-    @Contextual var id: UUID = UUID.randomUUID(),
-    @Contextual var widgetId: UUID? = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
+    var widgetId: UUID? = null,
     var time: Int = 15
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("widgetId", widgetId)
+        encode("time", time)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetSlideshowSlide {
+            val slide = SettingsWidgetSlideshowSlide()
+            slide.id = container.decode("id", UUID.randomUUID())
+            slide.widgetId = container.decode<UUID>("widgetId", UUID.randomUUID())
+            slide.time = container.decode("time", 0)
+            return slide
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetSlideshowSlide> by JsonObjectSerializer(
+        "SettingsWidgetSlideshowSlide",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsWidgetSlideshow.Serializer::class)
 class SettingsWidgetSlideshow(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var slides: List<SettingsWidgetSlideshowSlide> = emptyList()
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("slides", slides, ListSerializer(SettingsWidgetSlideshowSlide.serializer()))
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetSlideshow {
+            val slideshow = SettingsWidgetSlideshow()
+            slideshow.id = container.decode("id", UUID.randomUUID())
+            slideshow.slides = container.decode(
+                "slides",
+                ListSerializer(SettingsWidgetSlideshowSlide.serializer()),
+                emptyList()
+            )
+            return slideshow
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetSlideshow> by JsonObjectSerializer(
+        "SettingsWidgetSlideshow",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsWidgetWheelOfLuckOption.Serializer::class)
 class SettingsWidgetWheelOfLuckOption(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var text: String = "",
     var weight: Int = 1
 ) {
@@ -1153,20 +2438,68 @@ class SettingsWidgetWheelOfLuckOption(
         other is SettingsWidgetWheelOfLuckOption && id == other.id
 
     override fun hashCode(): Int = id.hashCode()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("text", text)
+        encode("weight", weight)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetWheelOfLuckOption {
+            val option = SettingsWidgetWheelOfLuckOption()
+            option.id = container.decode("id", UUID.randomUUID())
+            option.text = container.decode("text", "")
+            option.weight = container.decode("weight", 1)
+            return option
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetWheelOfLuckOption> by JsonObjectSerializer(
+        "SettingsWidgetWheelOfLuckOption",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetWheelOfLuck.Serializer::class)
 class SettingsWidgetWheelOfLuck(
     var advanced: Boolean = false,
     var options: List<SettingsWidgetWheelOfLuckOption> = emptyList()
 ) {
-    @Transient var totalWeight: Int = 1
-    @Transient var text: String = ""
+    var totalWeight: Int = 1
+    var text: String = ""
 
     init {
         updateTotalWeight()
         updateText()
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("advanced", advanced)
+        encode("options", options, ListSerializer(SettingsWidgetWheelOfLuckOption.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetWheelOfLuck {
+            val wheelOfLuck = SettingsWidgetWheelOfLuck()
+            wheelOfLuck.advanced = container.decode("advanced", false)
+            wheelOfLuck.options = container.decode(
+                "options",
+                ListSerializer(SettingsWidgetWheelOfLuckOption.serializer()),
+                emptyList()
+            )
+            wheelOfLuck.updateText()
+            wheelOfLuck.updateTotalWeight()
+            return wheelOfLuck
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetWheelOfLuck> by JsonObjectSerializer(
+        "SettingsWidgetWheelOfLuck",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun updateTotalWeight() {
         totalWeight = maxOf(options.sumOf { it.weight }, 1)
@@ -1198,28 +2531,78 @@ class SettingsWidgetWheelOfLuck(
     private fun optionsToText(): String = options.map { it.text }.joinToString("\n")
 }
 
-@Serializable
+@Serializable(with = SettingsBingoCardSquare.Serializer::class)
 data class SettingsBingoCardSquare(
     val text: String,
     val checked: Boolean
 ) {
-    @Transient val id: UUID = UUID.randomUUID()
+    var id: UUID = UUID.randomUUID()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("text", text)
+        encode("checked", checked)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsBingoCardSquare {
+            val id: UUID = container.decodeSynthesized("id")
+            val text: String = container.decodeSynthesized("text")
+            val checked: Boolean = container.decodeSynthesized("checked")
+            val square = SettingsBingoCardSquare(text = text, checked = checked)
+            square.id = id
+            return square
+        }
+    }
+
+    object Serializer : KSerializer<SettingsBingoCardSquare> by JsonObjectSerializer(
+        "SettingsBingoCardSquare",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetBingoCard.Serializer::class)
 class SettingsWidgetBingoCard(
     var backgroundColor: RgbColor = baseBackgroundColor,
     var foregroundColor: RgbColor = baseForegroundColor,
     var squares: List<SettingsBingoCardSquare> = emptyList()
 ) {
+    var backgroundColorColor: Color = baseBackgroundColor.color()
+    var foregroundColorColor: Color = baseForegroundColor.color()
+    var squaresText: String = ""
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("backgroundColor", backgroundColor)
+        encode("foregroundColor", foregroundColor)
+        encode("squares", squares, ListSerializer(SettingsBingoCardSquare.serializer()))
+    }
+
     companion object {
         val baseBackgroundColor: RgbColor = RgbColor.black.withOpacity(0.75)
         val baseForegroundColor: RgbColor = RgbColor.white
+
+        fun decode(container: JsonObject): SettingsWidgetBingoCard {
+            val bingoCard = SettingsWidgetBingoCard()
+            bingoCard.backgroundColor = container.decode("backgroundColor", baseBackgroundColor)
+            bingoCard.backgroundColorColor = bingoCard.backgroundColor.color()
+            bingoCard.foregroundColor = container.decode("foregroundColor", baseForegroundColor)
+            bingoCard.foregroundColorColor = bingoCard.foregroundColor.color()
+            bingoCard.squares = container.decode(
+                "squares",
+                ListSerializer(SettingsBingoCardSquare.serializer()),
+                emptyList()
+            )
+            bingoCard.squaresText = bingoCard.squares.map { it.text }.joinToString("\n")
+            return bingoCard
+        }
     }
 
-    @Transient var backgroundColorColor: Color = baseBackgroundColor.color()
-    @Transient var foregroundColorColor: Color = baseForegroundColor.color()
-    @Transient var squaresText: String = ""
+    object Serializer : KSerializer<SettingsWidgetBingoCard> by JsonObjectSerializer(
+        "SettingsWidgetBingoCard",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun squaresTextChanged() {
         val lines = squaresText.split("\n")
@@ -1312,7 +2695,7 @@ enum class PomodoroBreakIcon(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetPomodoroTimer.Serializer::class)
 class SettingsWidgetPomodoroTimer(
     var focusDuration: Int = 30,
     var breakDuration: Int = 5,
@@ -1325,27 +2708,76 @@ class SettingsWidgetPomodoroTimer(
     var foregroundColor: RgbColor = baseForegroundColor,
     var focusColor: RgbColor = baseFocusColor,
     var breakColor: RgbColor = baseBreakColor,
-    @Contextual var focusToBreakSoundId: UUID? = null,
-    @Contextual var breakToFocusSoundId: UUID? = null,
+    var focusToBreakSoundId: UUID? = null,
+    var breakToFocusSoundId: UUID? = null,
     var focusToBreakChatMessage: String = "",
     var breakToFocusChatMessage: String = ""
 ) {
+    var backgroundColorColor: Color = baseBackgroundColor.color()
+    var foregroundColorColor: Color = baseForegroundColor.color()
+    var focusColorColor: Color = baseFocusColor.color()
+    var breakColorColor: Color = baseBreakColor.color()
+    var isRunning: Boolean = false
+    var phase: PomodoroPhase = PomodoroPhase.focus
+    var secondsRemaining: Int = 30 * 60
+    var onPhaseChanged: ((PomodoroPhase) -> Unit)? = null
+    private var timer = MainTimer()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("focusDuration", focusDuration)
+        encode("breakDuration", breakDuration)
+        encode("width", width)
+        encode("focusName", focusName)
+        encode("breakName", breakName)
+        encode("focusIcon", focusIcon)
+        encode("breakIcon", breakIcon)
+        encode("backgroundColor", backgroundColor)
+        encode("foregroundColor", foregroundColor)
+        encode("focusColor", focusColor)
+        encode("breakColor", breakColor)
+        encode("focusToBreakSoundId", focusToBreakSoundId)
+        encode("breakToFocusSoundId", breakToFocusSoundId)
+        encode("focusToBreakChatMessage", focusToBreakChatMessage)
+        encode("breakToFocusChatMessage", breakToFocusChatMessage)
+    }
+
     companion object {
         val baseBackgroundColor: RgbColor = RgbColor.black.withOpacity(0.75)
         val baseForegroundColor: RgbColor = RgbColor.white
         val baseFocusColor: RgbColor = RgbColor(red = 122, green = 181, blue = 255)
         val baseBreakColor: RgbColor = RgbColor(red = 103, green = 208, blue = 69)
+
+        fun decode(container: JsonObject): SettingsWidgetPomodoroTimer {
+            val pomodoroTimer = SettingsWidgetPomodoroTimer()
+            pomodoroTimer.focusDuration = container.decode("focusDuration", 30)
+            pomodoroTimer.breakDuration = container.decode("breakDuration", 5)
+            pomodoroTimer.width = container.decode("width", 1.6)
+            pomodoroTimer.focusName = container.decode("focusName", "Focus")
+            pomodoroTimer.breakName = container.decode("breakName", "Break")
+            pomodoroTimer.focusIcon = container.decode("focusIcon", PomodoroFocusIcon.sun)
+            pomodoroTimer.breakIcon = container.decode("breakIcon", PomodoroBreakIcon.cup)
+            pomodoroTimer.backgroundColor = container.decode("backgroundColor", baseBackgroundColor)
+            pomodoroTimer.backgroundColorColor = pomodoroTimer.backgroundColor.color()
+            pomodoroTimer.foregroundColor = container.decode("foregroundColor", baseForegroundColor)
+            pomodoroTimer.foregroundColorColor = pomodoroTimer.foregroundColor.color()
+            pomodoroTimer.focusColor = container.decode("focusColor", baseFocusColor)
+            pomodoroTimer.focusColorColor = pomodoroTimer.focusColor.color()
+            pomodoroTimer.breakColor = container.decode("breakColor", baseBreakColor)
+            pomodoroTimer.breakColorColor = pomodoroTimer.breakColor.color()
+            pomodoroTimer.focusToBreakSoundId = container.decode<UUID?>("focusToBreakSoundId", null)
+            pomodoroTimer.breakToFocusSoundId = container.decode<UUID?>("breakToFocusSoundId", null)
+            pomodoroTimer.focusToBreakChatMessage = container.decode("focusToBreakChatMessage", "")
+            pomodoroTimer.breakToFocusChatMessage = container.decode("breakToFocusChatMessage", "")
+            pomodoroTimer.secondsRemaining = pomodoroTimer.focusDuration * 60
+            return pomodoroTimer
+        }
     }
 
-    @Transient var backgroundColorColor: Color = baseBackgroundColor.color()
-    @Transient var foregroundColorColor: Color = baseForegroundColor.color()
-    @Transient var focusColorColor: Color = baseFocusColor.color()
-    @Transient var breakColorColor: Color = baseBreakColor.color()
-    @Transient var isRunning: Boolean = false
-    @Transient var phase: PomodoroPhase = PomodoroPhase.focus
-    @Transient var secondsRemaining: Int = 30 * 60
-    @Transient var onPhaseChanged: ((PomodoroPhase) -> Unit)? = null
-    @Transient private var timer = MainTimer()
+    object Serializer : KSerializer<SettingsWidgetPomodoroTimer> by JsonObjectSerializer(
+        "SettingsWidgetPomodoroTimer",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun start() {
         if (isRunning) {
@@ -1394,16 +2826,36 @@ class SettingsWidgetPomodoroTimer(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetChatEmoteCombo.Serializer::class)
 class SettingsWidgetChatEmoteCombo(
     var minimumCombo: Int = 3,
     var resetAfter: Int = 5
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("minimumCombo", minimumCombo)
+        encode("resetAfter", resetAfter)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetChatEmoteCombo {
+            val chatEmoteCombo = SettingsWidgetChatEmoteCombo()
+            chatEmoteCombo.minimumCombo = container.decode("minimumCombo", 3)
+            chatEmoteCombo.resetAfter = container.decode("resetAfter", 5)
+            return chatEmoteCombo
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetChatEmoteCombo> by JsonObjectSerializer(
+        "SettingsWidgetChatEmoteCombo",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsWidget.Serializer::class)
 class SettingsWidget(
     override var name: String = baseName,
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var type: SettingsWidgetType = SettingsWidgetType.text,
     var text: SettingsWidgetText = SettingsWidgetText(),
     var browser: SettingsWidgetBrowser = SettingsWidgetBrowser(),
@@ -1426,13 +2878,102 @@ class SettingsWidget(
     var enabled: Boolean = true,
     var effects: List<SettingsVideoEffect> = emptyList()
 ) : Named {
-    companion object {
-        val baseName: String = localized("My widget")
-    }
-
     override fun equals(other: Any?): Boolean = other is SettingsWidget && id == other.id
 
     override fun hashCode(): Int = id.hashCode()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("name", name)
+        encode("id", id)
+        encode("type", type)
+        encode("text", text, SettingsWidgetText.serializer())
+        encode("browser", browser, SettingsWidgetBrowser.serializer())
+        encode("crop", crop, SettingsWidgetCrop.serializer())
+        encode("map", map, SettingsWidgetMap.serializer())
+        encode("scene", scene, SettingsWidgetScene.serializer())
+        encode("qrCode", qrCode, SettingsWidgetQrCode.serializer())
+        encode("alerts", alerts, SettingsWidgetAlerts.serializer())
+        encode("videoSource", videoSource, SettingsWidgetVideoSource.serializer())
+        encode("scoreboard", scoreboard, SettingsWidgetScoreboard.serializer())
+        encode("vTuber", vTuber, SettingsWidgetVTuber.serializer())
+        encode("pngTuber", pngTuber, SettingsWidgetPngTuber.serializer())
+        encode("snapshot", snapshot, SettingsWidgetSnapshot.serializer())
+        encode("chat", chat, SettingsWidgetChat.serializer())
+        encode("chatEmoteCombo", chatEmoteCombo, SettingsWidgetChatEmoteCombo.serializer())
+        encode("slideshow", slideshow, SettingsWidgetSlideshow.serializer())
+        encode("wheelOfLuck", wheelOfLuck, SettingsWidgetWheelOfLuck.serializer())
+        encode("bingoCard", bingoCard, SettingsWidgetBingoCard.serializer())
+        encode("pomodoroTimer", pomodoroTimer, SettingsWidgetPomodoroTimer.serializer())
+        encode("enabled", enabled)
+        encode("effects", effects, ListSerializer(SettingsVideoEffect.serializer()))
+    }
+
+    companion object {
+        val baseName: String = localized("My widget")
+
+        fun decode(container: JsonObject): SettingsWidget {
+            val widget = SettingsWidget()
+            widget.name = container.decode("name", baseName)
+            widget.id = container.decode("id", UUID.randomUUID())
+            widget.type = container.decode("type", SettingsWidgetType.text)
+            widget.text = container.decode("text", SettingsWidgetText.serializer(), SettingsWidgetText())
+            widget.browser = container.decode("browser", SettingsWidgetBrowser.serializer(), SettingsWidgetBrowser())
+            widget.crop = container.decode("crop", SettingsWidgetCrop.serializer(), SettingsWidgetCrop())
+            widget.map = container.decode("map", SettingsWidgetMap.serializer(), SettingsWidgetMap())
+            widget.scene = container.decode("scene", SettingsWidgetScene.serializer(), SettingsWidgetScene())
+            widget.qrCode = container.decode("qrCode", SettingsWidgetQrCode.serializer(), SettingsWidgetQrCode())
+            widget.alerts = container.decode("alerts", SettingsWidgetAlerts.serializer(), SettingsWidgetAlerts())
+            widget.videoSource = container.decode(
+                "videoSource",
+                SettingsWidgetVideoSource.serializer(),
+                SettingsWidgetVideoSource()
+            )
+            widget.scoreboard = container.decode(
+                "scoreboard",
+                SettingsWidgetScoreboard.serializer(),
+                SettingsWidgetScoreboard()
+            )
+            widget.vTuber = container.decode("vTuber", SettingsWidgetVTuber.serializer(), SettingsWidgetVTuber())
+            widget.pngTuber = container.decode("pngTuber", SettingsWidgetPngTuber.serializer(), SettingsWidgetPngTuber())
+            widget.snapshot = container.decode("snapshot", SettingsWidgetSnapshot.serializer(), SettingsWidgetSnapshot())
+            widget.chat = container.decode("chat", SettingsWidgetChat.serializer(), SettingsWidgetChat())
+            widget.chatEmoteCombo = container.decode(
+                "chatEmoteCombo",
+                SettingsWidgetChatEmoteCombo.serializer(),
+                SettingsWidgetChatEmoteCombo()
+            )
+            widget.slideshow = container.decode(
+                "slideshow",
+                SettingsWidgetSlideshow.serializer(),
+                SettingsWidgetSlideshow()
+            )
+            widget.wheelOfLuck = container.decode(
+                "wheelOfLuck",
+                SettingsWidgetWheelOfLuck.serializer(),
+                SettingsWidgetWheelOfLuck()
+            )
+            widget.bingoCard = container.decode(
+                "bingoCard",
+                SettingsWidgetBingoCard.serializer(),
+                SettingsWidgetBingoCard()
+            )
+            widget.pomodoroTimer = container.decode(
+                "pomodoroTimer",
+                SettingsWidgetPomodoroTimer.serializer(),
+                SettingsWidgetPomodoroTimer()
+            )
+            widget.enabled = container.decode("enabled", true)
+            widget.effects = container.decode("effects", ListSerializer(SettingsVideoEffect.serializer()), emptyList())
+            widget.migrateFromOlderVersions()
+            return widget
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidget> by JsonObjectSerializer(
+        "SettingsWidget",
+        { it.encode() },
+        { decode(it) },
+    )
 
     private fun migrateFromOlderVersions() {
         if (type == SettingsWidgetType.videoSource &&
@@ -1441,9 +2982,6 @@ class SettingsWidget(
             val shape = SettingsVideoEffectShape()
             shape.cornerRadius = 0f
             var updated = false
-            if (videoSource.videoSource.cameraPosition != SettingsSceneCameraPosition.none) {
-                updated = updated
-            }
             if (videoSource.cornerRadius != 0f || videoSource.borderWidth != 0.0) {
                 shape.cornerRadius = videoSource.cornerRadius
                 shape.borderWidth = videoSource.borderWidth
@@ -1537,7 +3075,7 @@ class SettingsWidget(
 }
 
 @Serializable
-class SettingsWidgetLayout(
+data class SettingsWidgetLayout(
     var x: Double = 0.0,
     var xString: String = "0.0",
     var y: Double = 0.0,
@@ -1562,47 +3100,93 @@ class SettingsWidgetLayout(
     fun extent(): RectF = RectF(x.toFloat(), y.toFloat(), (x + size).toFloat(), (y + size).toFloat())
 }
 
-@Serializable
+@Serializable(with = SettingsSceneWidget.Serializer::class)
 class SettingsSceneWidget(
-    @Contextual var widgetId: UUID = UUID.randomUUID(),
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var widgetId: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var layout: SettingsWidgetLayout = SettingsWidgetLayout(),
-    @SerialName("width") var width2: Double = 100.0,
-    @SerialName("height") var height2: Double = 100.0,
-    var migrated: Boolean = false,
-    var migrated2: Boolean = false
+    var width2: Double = 100.0,
+    var height2: Double = 100.0,
+    var migrated: Boolean = true,
+    var migrated2: Boolean = true
 ) {
     override fun equals(other: Any?): Boolean = other is SettingsSceneWidget && id == other.id
 
     override fun hashCode(): Int = id.hashCode()
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("widgetId", widgetId)
+        encode("id", id)
+        encode("x", layout.x)
+        encode("y", layout.y)
+        encode("width", width2)
+        encode("height", height2)
+        encode("size", layout.size)
+        encode("alignment", layout.alignment)
+        encode("positioningLock", layout.positioningLock)
+        encode("migrated", migrated)
+        encode("migrated2", migrated2)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsSceneWidget {
+            val sceneWidget = SettingsSceneWidget()
+            sceneWidget.widgetId = container.decode("widgetId", UUID.randomUUID())
+            sceneWidget.id = container.decode("id", UUID.randomUUID())
+            sceneWidget.layout.x = container.decode("x", 0.0)
+            sceneWidget.layout.updateXString()
+            sceneWidget.layout.y = container.decode("y", 0.0)
+            sceneWidget.layout.updateYString()
+            sceneWidget.width2 = container.decode("width", 100.0)
+            sceneWidget.height2 = container.decode("height", 100.0)
+            val size = container.decode<Double?>("size", null)
+            if (size != null) {
+                sceneWidget.layout.size = size
+            } else {
+                sceneWidget.layout.size = container.decode("size", minOf(sceneWidget.width2, sceneWidget.height2))
+            }
+            sceneWidget.layout.updateSizeString()
+            sceneWidget.layout.alignment = container.decode("alignment", SettingsAlignment.topLeft)
+            sceneWidget.layout.positioningLock = container.decode("positioningLock", false)
+            sceneWidget.migrated = container.decode("migrated", false)
+            sceneWidget.migrated2 = container.decode("migrated2", false)
+            return sceneWidget
+        }
+    }
+
+    object Serializer : KSerializer<SettingsSceneWidget> by JsonObjectSerializer(
+        "SettingsSceneWidget",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsSceneWidget {
         val new = SettingsSceneWidget(widgetId = widgetId)
-        new.layout = layout
+        new.layout = layout.copy()
         new.migrated = migrated
         new.migrated2 = migrated2
         return new
     }
 }
 
-@Serializable
+@Serializable(with = SettingsSceneCameraPosition.Serializer::class)
 enum class SettingsSceneCameraPosition(val rawValue: String) {
-    @SerialName("Back") back("Back"),
-    @SerialName("Front") front("Front"),
-    @SerialName("RTMP") rtmp("RTMP"),
-    @SerialName("External") `external`("External"),
-    @SerialName("SRT(LA)") srtla("SRT(LA)"),
-    @SerialName("SRT client") srtClient("SRT client"),
-    @SerialName("RIST") rist("RIST"),
-    @SerialName("RTSP") rtsp("RTSP"),
-    @SerialName("WHIP") whip("WHIP"),
-    @SerialName("WHEP") whep("WHEP"),
-    @SerialName("Media player") mediaPlayer("Media player"),
-    @SerialName("Screen capture") screenCapture("Screen capture"),
-    @SerialName("Back triple") backTripleLowEnergy("Back triple"),
-    @SerialName("Back dual") backDualLowEnergy("Back dual"),
-    @SerialName("Back wide dual") backWideDualLowEnergy("Back wide dual"),
-    @SerialName("None") none("None");
+    back("Back"),
+    front("Front"),
+    rtmp("RTMP"),
+    `external`("External"),
+    srtla("SRT(LA)"),
+    srtClient("SRT client"),
+    rist("RIST"),
+    rtsp("RTSP"),
+    whip("WHIP"),
+    whep("WHEP"),
+    mediaPlayer("Media player"),
+    screenCapture("Screen capture"),
+    backTripleLowEnergy("Back triple"),
+    backDualLowEnergy("Back dual"),
+    backWideDualLowEnergy("Back wide dual"),
+    none("None");
 
     fun isBuiltin(): Boolean = this in builtinCameraPositions
 
@@ -1610,6 +3194,12 @@ enum class SettingsSceneCameraPosition(val rawValue: String) {
         fun fromRawValue(rawValue: String): SettingsSceneCameraPosition =
             entries.firstOrNull { it.rawValue == rawValue } ?: back
     }
+
+    object Serializer : KSerializer<SettingsSceneCameraPosition> by rawValueSerializer(
+        "com.moblin.android.various.settings.SettingsSceneCameraPosition",
+        { it.rawValue },
+        { fromRawValue(it) },
+    )
 }
 
 private val builtinCameraPositions: List<SettingsSceneCameraPosition> = listOf(
@@ -1743,7 +3333,7 @@ data class SettingsVideoSource(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetVideoSource.Serializer::class)
 class SettingsWidgetVideoSource(
     var cornerRadius: Float = 0f,
     var videoSource: SettingsVideoSource = SettingsVideoSource(),
@@ -1759,7 +3349,78 @@ class SettingsWidgetVideoSource(
     var borderWidth: Double = 0.0,
     var borderColor: RgbColor = RgbColor(red = 0, green = 0, blue = 0)
 ) {
-    @Transient var borderColorColor: Color = borderColor.color()
+    var borderColorColor: Color = borderColor.color()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("cornerRadius", cornerRadius)
+        encode("cameraPosition", videoSource.cameraPosition, SettingsSceneCameraPosition.serializer())
+        encode("backCameraId", videoSource.backCameraId)
+        encode("frontCameraId", videoSource.frontCameraId)
+        encode("rtmpCameraId", videoSource.rtmpCameraId)
+        encode("srtlaCameraId", videoSource.srtlaCameraId)
+        encode("srtClientCameraId", videoSource.srtClientCameraId)
+        encode("ristCameraId", videoSource.ristCameraId)
+        encode("rtspCameraId", videoSource.rtspCameraId)
+        encode("whipCameraId", videoSource.whipCameraId)
+        encode("whepCameraId", videoSource.whepCameraId)
+        encode("mediaPlayerCameraId", videoSource.mediaPlayerCameraId)
+        encode("externalCameraId", videoSource.externalCameraId)
+        encode("externalCameraName", videoSource.externalCameraName)
+        encode("cropEnabled", cropEnabled)
+        encode("cropX", cropX)
+        encode("cropY", cropY)
+        encode("cropWidth", cropWidth)
+        encode("cropHeight", cropHeight)
+        encode("rotation", rotation)
+        encode("trackFaceEnabled", trackFaceEnabled)
+        encode("trackFaceZoom", trackFaceZoom)
+        encode("mirror", mirror)
+        encode("borderWidth", borderWidth)
+        encode("borderColor", borderColor)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetVideoSource {
+            val videoSource = SettingsWidgetVideoSource()
+            videoSource.cornerRadius = container.decode("cornerRadius", 0f)
+            videoSource.videoSource.cameraPosition = decodeCameraPosition(
+                container,
+                "cameraPosition",
+                SettingsSceneCameraPosition.none
+            )
+            videoSource.videoSource.backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId)
+            videoSource.videoSource.frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId)
+            videoSource.videoSource.rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID())
+            videoSource.videoSource.srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID())
+            videoSource.videoSource.srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID())
+            videoSource.videoSource.ristCameraId = container.decode("ristCameraId", UUID.randomUUID())
+            videoSource.videoSource.rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID())
+            videoSource.videoSource.whipCameraId = container.decode("whipCameraId", UUID.randomUUID())
+            videoSource.videoSource.whepCameraId = container.decode("whepCameraId", UUID.randomUUID())
+            videoSource.videoSource.mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID())
+            videoSource.videoSource.externalCameraId = container.decode("externalCameraId", "")
+            videoSource.videoSource.externalCameraName = container.decode("externalCameraName", "")
+            videoSource.cropEnabled = container.decode("cropEnabled", false)
+            videoSource.cropX = container.decode("cropX", 0.25)
+            videoSource.cropY = container.decode("cropY", 0.0)
+            videoSource.cropWidth = container.decode("cropWidth", 0.5)
+            videoSource.cropHeight = container.decode("cropHeight", 1.0)
+            videoSource.rotation = container.decode("rotation", 0.0)
+            videoSource.trackFaceEnabled = container.decode("trackFaceEnabled", false)
+            videoSource.trackFaceZoom = container.decode("trackFaceZoom", 0.75)
+            videoSource.mirror = container.decode("mirror", false)
+            videoSource.borderWidth = container.decode("borderWidth", 0.0)
+            videoSource.borderColor = container.decode("borderColor", RgbColor(red = 0, green = 0, blue = 0))
+            videoSource.borderColorColor = videoSource.borderColor.color()
+            return videoSource
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetVideoSource> by JsonObjectSerializer(
+        "SettingsWidgetVideoSource",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun toEffectSettings(): VideoSourceEffectSettings = VideoSourceEffectSettings(
         rotation = rotation,
@@ -1809,7 +3470,7 @@ enum class SettingsWidgetScoreboardSport {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetScoreboardLayout.Serializer::class)
 enum class SettingsWidgetScoreboardLayout {
     stacked,
     stackedInline,
@@ -1827,23 +3488,66 @@ enum class SettingsWidgetScoreboardLayout {
         fun fromRawValue(rawValue: String): SettingsWidgetScoreboardLayout? =
             entries.firstOrNull { it.name == rawValue }
     }
+
+    object Serializer : KSerializer<SettingsWidgetScoreboardLayout> by synthesizedEnumSerializer(
+        "SettingsWidgetScoreboardLayout",
+        SettingsWidgetScoreboardLayout.entries,
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetScoreboardPlayer.Serializer::class)
 class SettingsWidgetScoreboardPlayer(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     override var name: String = baseName
 ) : Named {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+    }
+
     companion object {
         val baseName: String = localized("🇸🇪 Moblin")
+
+        fun decode(container: JsonObject): SettingsWidgetScoreboardPlayer {
+            val player = SettingsWidgetScoreboardPlayer()
+            player.id = container.decode("id", UUID.randomUUID())
+            player.name = container.decode("name", baseName)
+            return player
+        }
     }
+
+    object Serializer : KSerializer<SettingsWidgetScoreboardPlayer> by JsonObjectSerializer(
+        "SettingsWidgetScoreboardPlayer",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetScoreboardScore.Serializer::class)
 class SettingsWidgetScoreboardScore(
     var home: Int = 0,
     var away: Int = 0
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("home", home)
+        encode("away", away)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetScoreboardScore {
+            val score = SettingsWidgetScoreboardScore()
+            score.home = container.decodeSynthesized("home")
+            score.away = container.decodeSynthesized("away")
+            return score
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetScoreboardScore> by JsonObjectSerializer(
+        "SettingsWidgetScoreboardScore",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 @Serializable
 enum class SettingsWidgetPadelScoreboardGameType(val rawValue: String) {
@@ -1872,28 +3576,82 @@ enum class SettingsWidgetScoreboardScoreIncrement {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetPadelScoreboard.Serializer::class)
 class SettingsWidgetPadelScoreboard(
     var type: SettingsWidgetPadelScoreboardGameType = SettingsWidgetPadelScoreboardGameType.doubles,
-    @Contextual var homePlayer1: UUID = UUID.randomUUID(),
-    @Contextual var homePlayer2: UUID = UUID.randomUUID(),
-    @Contextual var awayPlayer1: UUID = UUID.randomUUID(),
-    @Contextual var awayPlayer2: UUID = UUID.randomUUID(),
+    var homePlayer1: UUID = UUID.randomUUID(),
+    var homePlayer2: UUID = UUID.randomUUID(),
+    var awayPlayer1: UUID = UUID.randomUUID(),
+    var awayPlayer2: UUID = UUID.randomUUID(),
     var score: List<SettingsWidgetScoreboardScore> = listOf(SettingsWidgetScoreboardScore())
 ) {
-    @Transient var scoreChanges: List<SettingsWidgetScoreboardScoreIncrement> = emptyList()
+    var scoreChanges: List<SettingsWidgetScoreboardScoreIncrement> = emptyList()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("type", type)
+        encode("homePlayer1", homePlayer1)
+        encode("homePlayer2", homePlayer2)
+        encode("awayPlayer1", awayPlayer1)
+        encode("awayPlayer2", awayPlayer2)
+        encode("score", score, ListSerializer(SettingsWidgetScoreboardScore.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetPadelScoreboard {
+            val padel = SettingsWidgetPadelScoreboard()
+            padel.type = container.decode("type", SettingsWidgetPadelScoreboardGameType.doubles)
+            padel.homePlayer1 = container.decode("homePlayer1", UUID.randomUUID())
+            padel.homePlayer2 = container.decode("homePlayer2", UUID.randomUUID())
+            padel.awayPlayer1 = container.decode("awayPlayer1", UUID.randomUUID())
+            padel.awayPlayer2 = container.decode("awayPlayer2", UUID.randomUUID())
+            padel.score = container.decode(
+                "score",
+                ListSerializer(SettingsWidgetScoreboardScore.serializer()),
+                listOf(SettingsWidgetScoreboardScore())
+            )
+            return padel
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetPadelScoreboard> by JsonObjectSerializer(
+        "SettingsWidgetPadelScoreboard",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetGolfScoreboardPlayer.Serializer::class)
 class SettingsWidgetGolfScoreboardPlayer(
     override var name: String = "Player",
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var scores: List<Int> = defaultScores,
     var color: RgbColor = RgbColor.white
 ) : Named {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("scores", scores)
+        encode("color", color)
+    }
+
     companion object {
         val defaultScores: List<Int> = List(18) { -1 }
+
+        fun decode(container: JsonObject): SettingsWidgetGolfScoreboardPlayer {
+            val player = SettingsWidgetGolfScoreboardPlayer()
+            player.id = container.decode("id", UUID.randomUUID())
+            player.name = container.decode("name", "Player")
+            player.scores = container.decode("scores", defaultScores)
+            player.color = container.decode("color", RgbColor.white)
+            return player
+        }
     }
+
+    object Serializer : KSerializer<SettingsWidgetGolfScoreboardPlayer> by JsonObjectSerializer(
+        "SettingsWidgetGolfScoreboardPlayer",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun totalRelativeToPar(pars: List<Int>, numberOfHoles: Int): Int {
         var total = 0
@@ -1920,9 +3678,9 @@ class SettingsWidgetGolfScoreboardPlayer(
     fun holesPlayed(numHoles: Int): Int = scores.take(numHoles).count { it != -1 }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetGolfScoreboard.Serializer::class)
 class SettingsWidgetGolfScoreboard(
-    @SerialName("eventName") var title: String = defaultTitle,
+    var title: String = defaultTitle,
     var numberOfHoles: Int = 18,
     var currentHole: Int = 0,
     var pars: List<Int> = defaultPars,
@@ -1930,6 +3688,16 @@ class SettingsWidgetGolfScoreboard(
     var playerColors: Boolean = false,
     var showPars: Boolean = true
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("eventName", title)
+        encode("numberOfHoles", numberOfHoles)
+        encode("currentHole", currentHole)
+        encode("pars", pars)
+        encode("players", players, ListSerializer(SettingsWidgetGolfScoreboardPlayer.serializer()))
+        encode("playerColors", playerColors)
+        encode("showPars", showPars)
+    }
+
     companion object {
         const val defaultTitle = "⛳ Masters 2026"
         val defaultPars: List<Int> = listOf(4, 4, 3, 4, 5, 4, 3, 4, 4, 4, 4, 3, 5, 4, 4, 3, 4, 5)
@@ -1937,7 +3705,29 @@ class SettingsWidgetGolfScoreboard(
             SettingsWidgetGolfScoreboardPlayer(name = "Player 1"),
             SettingsWidgetGolfScoreboardPlayer(name = "Player 2")
         )
+
+        fun decode(container: JsonObject): SettingsWidgetGolfScoreboard {
+            val golf = SettingsWidgetGolfScoreboard()
+            golf.title = container.decode("eventName", defaultTitle)
+            golf.numberOfHoles = container.decode("numberOfHoles", 18)
+            golf.currentHole = container.decode("currentHole", 0)
+            golf.updatePars(container.decode("pars", defaultPars))
+            golf.players = container.decode(
+                "players",
+                ListSerializer(SettingsWidgetGolfScoreboardPlayer.serializer()),
+                defaultPlayers
+            )
+            golf.playerColors = container.decode("playerColors", false)
+            golf.showPars = container.decode("showPars", true)
+            return golf
+        }
     }
+
+    object Serializer : KSerializer<SettingsWidgetGolfScoreboard> by JsonObjectSerializer(
+        "SettingsWidgetGolfScoreboard",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun updatePars(pars: List<Int>) {
         val newPars = pars.toMutableList()
@@ -1948,7 +3738,7 @@ class SettingsWidgetGolfScoreboard(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetGenericScoreboardClockDirection.Serializer::class)
 enum class SettingsWidgetGenericScoreboardClockDirection {
     up,
     down;
@@ -1962,9 +3752,14 @@ enum class SettingsWidgetGenericScoreboardClockDirection {
         fun fromRawValue(rawValue: String): SettingsWidgetGenericScoreboardClockDirection? =
             entries.firstOrNull { it.name == rawValue }
     }
+
+    object Serializer : KSerializer<SettingsWidgetGenericScoreboardClockDirection> by synthesizedEnumSerializer(
+        "SettingsWidgetGenericScoreboardClockDirection",
+        SettingsWidgetGenericScoreboardClockDirection.entries,
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetGenericScoreboard.Serializer::class)
 class SettingsWidgetGenericScoreboard(
     var home: String = baseName,
     var away: String = baseName,
@@ -1972,27 +3767,78 @@ class SettingsWidgetGenericScoreboard(
     var period: String = "1",
     var clock: SettingsWidgetScoreboardClock = SettingsWidgetScoreboardClock()
 ) {
+    var score: SettingsWidgetScoreboardScore = SettingsWidgetScoreboardScore()
+    var scoreChanges: List<SettingsWidgetScoreboardScoreIncrement> = emptyList()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("home", home)
+        encode("away", away)
+        encode("title", title)
+        encode("period", period)
+        encode("clock", clock, SettingsWidgetScoreboardClock.serializer())
+    }
+
     companion object {
         val baseName: String = localized("🇸🇪 Moblin")
         const val baseTitle = "⚽️"
+
+        fun decode(container: JsonObject): SettingsWidgetGenericScoreboard {
+            val generic = SettingsWidgetGenericScoreboard()
+            generic.home = container.decode("home", baseName)
+            generic.away = container.decode("away", baseName)
+            generic.title = container.decode("title", baseTitle)
+            generic.period = container.decode("period", "1")
+            generic.clock = container.decode(
+                "clock",
+                SettingsWidgetScoreboardClock.serializer(),
+                SettingsWidgetScoreboardClock()
+            )
+            return generic
+        }
     }
 
-    @Transient var score: SettingsWidgetScoreboardScore = SettingsWidgetScoreboardScore()
-    @Transient var scoreChanges: List<SettingsWidgetScoreboardScoreIncrement> = emptyList()
+    object Serializer : KSerializer<SettingsWidgetGenericScoreboard> by JsonObjectSerializer(
+        "SettingsWidgetGenericScoreboard",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetModularScoreboardTeam.Serializer::class)
 class SettingsWidgetModularScoreboardTeam(
     var name: String = "",
     var textColor: RgbColor = RgbColor.black,
     var backgroundColor: RgbColor = RgbColor.black
 ) {
-    @Transient var textColorColor: Color = Color.Transparent
-    @Transient var backgroundColorColor: Color = Color.Transparent
+    var textColorColor: Color = Color.Transparent
+    var backgroundColorColor: Color = Color.Transparent
 
     init {
         loadColors()
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("name", name)
+        encode("textColor", textColor)
+        encode("backgroundColor", backgroundColor)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetModularScoreboardTeam {
+            val team = SettingsWidgetModularScoreboardTeam()
+            team.name = container.decode("name", "")
+            team.textColor = container.decode("textColor", RgbColor.black)
+            team.backgroundColor = container.decode("backgroundColor", RgbColor.black)
+            team.loadColors()
+            return team
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetModularScoreboardTeam> by JsonObjectSerializer(
+        "SettingsWidgetModularScoreboardTeam",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun setHexColors(textColor: String, backgroundColor: String) {
         RgbColor.fromHex(textColor)?.let { this.textColor = it }
@@ -2006,19 +3852,44 @@ class SettingsWidgetModularScoreboardTeam(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetScoreboardClock.Serializer::class)
 class SettingsWidgetScoreboardClock(
     var maximum: Int = 45,
     var direction: SettingsWidgetGenericScoreboardClockDirection =
         SettingsWidgetGenericScoreboardClockDirection.up
 ) {
-    @Transient var minutes: Int = 0
-    @Transient var seconds: Int = 0
-    @Transient var isStopped: Boolean = true
+    var minutes: Int = 0
+    var seconds: Int = 0
+    var isStopped: Boolean = true
 
     init {
         reset()
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("maximum", maximum)
+        encode("direction", direction, SettingsWidgetGenericScoreboardClockDirection.serializer())
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWidgetScoreboardClock {
+            val clock = SettingsWidgetScoreboardClock()
+            clock.maximum = container.decode("maximum", 45)
+            clock.direction = container.decode(
+                "direction",
+                SettingsWidgetGenericScoreboardClockDirection.serializer(),
+                SettingsWidgetGenericScoreboardClockDirection.up
+            )
+            clock.reset()
+            return clock
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetScoreboardClock> by JsonObjectSerializer(
+        "SettingsWidgetScoreboardClock",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun format(): String = if (seconds < 10) "$minutes:0$seconds" else "$minutes:$seconds"
 
@@ -2061,7 +3932,7 @@ class SettingsWidgetScoreboardClock(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetModularScoreboard.Serializer::class)
 class SettingsWidgetModularScoreboard(
     var home: SettingsWidgetModularScoreboardTeam = createHomeTeam(),
     var away: SettingsWidgetModularScoreboardTeam = createAwayTeam(),
@@ -2078,6 +3949,27 @@ class SettingsWidgetModularScoreboard(
     var showGlobalStatsBlock: Boolean = false,
     var showClock: Boolean = true
 ) {
+    var score: SettingsWidgetScoreboardScore = SettingsWidgetScoreboardScore()
+    var scoreChanges: List<SettingsWidgetScoreboardScoreIncrement> = emptyList()
+    var config: RemoteControlScoreboardMatchConfig? = null
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("home", home, SettingsWidgetModularScoreboardTeam.serializer())
+        encode("away", away, SettingsWidgetModularScoreboardTeam.serializer())
+        encode("title", title)
+        encode("period", period)
+        encode("infoBoxText", infoBoxText)
+        encode("clock", clock, SettingsWidgetScoreboardClock.serializer())
+        encode("layout", layout, SettingsWidgetScoreboardLayout.serializer())
+        encode("width", width)
+        encode("rowHeight", rowHeight)
+        encode("isBold", isBold)
+        encode("showTitle", showTitle)
+        encode("showMoreStats", showMoreStats)
+        encode("showGlobalStatsBlock", showGlobalStatsBlock)
+        encode("showClock", showClock)
+    }
+
     companion object {
         val baseName: String = localized("🇸🇪 Moblin")
         const val baseTitle = "⚽️"
@@ -2099,11 +3991,40 @@ class SettingsWidgetModularScoreboard(
                 textColor = baseAwayTextColor,
                 backgroundColor = baseAwayBackgroundColor
             )
+
+        fun decode(container: JsonObject): SettingsWidgetModularScoreboard {
+            val modular = SettingsWidgetModularScoreboard()
+            modular.home = container.decode("home", SettingsWidgetModularScoreboardTeam.serializer(), createHomeTeam())
+            modular.away = container.decode("away", SettingsWidgetModularScoreboardTeam.serializer(), createAwayTeam())
+            modular.title = container.decode("title", baseTitle)
+            modular.period = container.decode("period", "1")
+            modular.infoBoxText = container.decode("infoBoxText", "")
+            modular.clock = container.decode(
+                "clock",
+                SettingsWidgetScoreboardClock.serializer(),
+                SettingsWidgetScoreboardClock()
+            )
+            modular.layout = container.decode(
+                "layout",
+                SettingsWidgetScoreboardLayout.serializer(),
+                SettingsWidgetScoreboardLayout.stacked
+            )
+            modular.width = container.decode("width", 350f)
+            modular.rowHeight = container.decode("rowHeight", 45f)
+            modular.isBold = container.decode("isBold", true)
+            modular.showTitle = container.decode("showTitle", false)
+            modular.showMoreStats = container.decode("showMoreStats", false)
+            modular.showGlobalStatsBlock = container.decode("showGlobalStatsBlock", false)
+            modular.showClock = container.decode("showClock", true)
+            return modular
+        }
     }
 
-    @Transient var score: SettingsWidgetScoreboardScore = SettingsWidgetScoreboardScore()
-    @Transient var scoreChanges: List<SettingsWidgetScoreboardScoreIncrement> = emptyList()
-    @Transient var config: RemoteControlScoreboardMatchConfig? = null
+    object Serializer : KSerializer<SettingsWidgetModularScoreboard> by JsonObjectSerializer(
+        "SettingsWidgetModularScoreboard",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun fontSize(): Double = rowHeight * 0.8
 
@@ -2117,9 +4038,9 @@ class SettingsWidgetModularScoreboard(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsWidgetScoreboard.Serializer::class)
 class SettingsWidgetScoreboard(
-    @SerialName("type") var sport: SettingsWidgetScoreboardSport = SettingsWidgetScoreboardSport.generic,
+    var sport: SettingsWidgetScoreboardSport = SettingsWidgetScoreboardSport.generic,
     var textColor: RgbColor = baseTextColor,
     var primaryBackgroundColor: RgbColor = basePrimaryBackgroundColor,
     var secondaryBackgroundColor: RgbColor = baseSecondaryBackgroundColor,
@@ -2128,19 +4049,69 @@ class SettingsWidgetScoreboard(
     var generic: SettingsWidgetGenericScoreboard = SettingsWidgetGenericScoreboard(),
     var modular: SettingsWidgetModularScoreboard = SettingsWidgetModularScoreboard()
 ) {
-    companion object {
-        val baseTextColor: RgbColor = RgbColor.white
-        val basePrimaryBackgroundColor: RgbColor = RgbColor(red = 0x0B, green = 0x10, blue = 0xAC)
-        val baseSecondaryBackgroundColor: RgbColor = RgbColor(red = 0, green = 3, blue = 0x5B)
-    }
-
-    @Transient var textColorColor: Color = textColor.color()
-    @Transient var primaryBackgroundColorColor: Color = primaryBackgroundColor.color()
-    @Transient var secondaryBackgroundColorColor: Color = secondaryBackgroundColor.color()
+    var textColorColor: Color = textColor.color()
+    var primaryBackgroundColorColor: Color = primaryBackgroundColor.color()
+    var secondaryBackgroundColorColor: Color = secondaryBackgroundColor.color()
 
     init {
         loadColors()
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("type", sport)
+        encode("textColor", textColor)
+        encode("primaryBackgroundColor", primaryBackgroundColor)
+        encode("secondaryBackgroundColor", secondaryBackgroundColor)
+        encode("padel", padel, SettingsWidgetPadelScoreboard.serializer())
+        encode("golf", golf, SettingsWidgetGolfScoreboard.serializer())
+        encode("generic", generic, SettingsWidgetGenericScoreboard.serializer())
+        encode("modular", modular, SettingsWidgetModularScoreboard.serializer())
+    }
+
+    companion object {
+        val baseTextColor: RgbColor = RgbColor.white
+        val basePrimaryBackgroundColor: RgbColor = RgbColor(red = 0x0B, green = 0x10, blue = 0xAC)
+        val baseSecondaryBackgroundColor: RgbColor = RgbColor(red = 0, green = 3, blue = 0x5B)
+
+        fun decode(container: JsonObject): SettingsWidgetScoreboard {
+            val scoreboard = SettingsWidgetScoreboard()
+            scoreboard.sport = container.decode("type", SettingsWidgetScoreboardSport.generic)
+            scoreboard.textColor = container.decode("textColor", baseTextColor)
+            scoreboard.primaryBackgroundColor = container.decode("primaryBackgroundColor", basePrimaryBackgroundColor)
+            scoreboard.secondaryBackgroundColor = container.decode(
+                "secondaryBackgroundColor",
+                baseSecondaryBackgroundColor
+            )
+            scoreboard.padel = container.decode(
+                "padel",
+                SettingsWidgetPadelScoreboard.serializer(),
+                SettingsWidgetPadelScoreboard()
+            )
+            scoreboard.golf = container.decode(
+                "golf",
+                SettingsWidgetGolfScoreboard.serializer(),
+                SettingsWidgetGolfScoreboard()
+            )
+            scoreboard.generic = container.decode(
+                "generic",
+                SettingsWidgetGenericScoreboard.serializer(),
+                SettingsWidgetGenericScoreboard()
+            )
+            scoreboard.modular = container.decode(
+                "modular",
+                SettingsWidgetModularScoreboard.serializer(),
+                SettingsWidgetModularScoreboard()
+            )
+            scoreboard.loadColors()
+            return scoreboard
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWidgetScoreboard> by JsonObjectSerializer(
+        "SettingsWidgetScoreboard",
+        { it.encode() },
+        { decode(it) },
+    )
 
     fun resetColors() {
         textColor = baseTextColor
@@ -2282,10 +4253,10 @@ enum class SettingsWidgetType(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsScene.Serializer::class)
 class SettingsScene(
     override var name: String = baseName,
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var enabled: Boolean = true,
     var videoSource: SettingsVideoSource = SettingsVideoSource(),
     var widgets: List<SettingsSceneWidget> = emptyList(),
@@ -2299,20 +4270,97 @@ class SettingsScene(
     var mirror: Boolean = false,
     var backgroundColor: RgbColor = defaultSegmentedPickerSelectedColor
 ) : Named {
-    companion object {
-        val baseName: String = localized("My scene")
-    }
-
-    @Transient var backgroundColorColor: Color = defaultSegmentedPickerSelectedColor.color()
+    var backgroundColorColor: Color = defaultSegmentedPickerSelectedColor.color()
 
     override fun equals(other: Any?): Boolean = other is SettingsScene && id == other.id
 
     override fun hashCode(): Int = id.hashCode()
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("name", name)
+        encode("id", id)
+        encode("enabled", enabled)
+        encode("cameraPosition", videoSource.cameraPosition, SettingsSceneCameraPosition.serializer())
+        encode("backCameraId", videoSource.backCameraId)
+        encode("frontCameraId", videoSource.frontCameraId)
+        encode("rtmpCameraId", videoSource.rtmpCameraId)
+        encode("srtlaCameraId", videoSource.srtlaCameraId)
+        encode("srtClientCameraId", videoSource.srtClientCameraId)
+        encode("ristCameraId", videoSource.ristCameraId)
+        encode("rtspCameraId", videoSource.rtspCameraId)
+        encode("whipCameraId", videoSource.whipCameraId)
+        encode("whepCameraId", videoSource.whepCameraId)
+        encode("mediaPlayerCameraId", videoSource.mediaPlayerCameraId)
+        encode("externalCameraId", videoSource.externalCameraId)
+        encode("externalCameraName", videoSource.externalCameraName)
+        encode("widgets", widgets, ListSerializer(SettingsSceneWidget.serializer()))
+        encode("videoSourceRotation", videoSourceRotation)
+        encode("videoStabilizationMode", videoStabilizationMode)
+        encode("overrideVideoStabilizationMode", overrideVideoStabilizationMode)
+        encode("fillFrame", fillFrame)
+        encode("overrideMic", overrideMic)
+        encode("micId", micId)
+        encode("quickSwitchGroup", quickSwitchGroup)
+        encode("mirror", mirror)
+        encode("backgroundColor", backgroundColor)
+    }
+
+    companion object {
+        val baseName: String = localized("My scene")
+
+        fun decode(container: JsonObject): SettingsScene {
+            val scene = SettingsScene()
+            scene.name = container.decode("name", baseName)
+            scene.id = container.decode("id", UUID.randomUUID())
+            scene.enabled = container.decode("enabled", true)
+            scene.videoSource.cameraPosition = decodeCameraPosition(
+                container,
+                "cameraPosition",
+                defaultBackCameraPosition
+            )
+            scene.videoSource.backCameraId = decodeCameraId(container, "backCameraId", bestBackCameraId)
+            scene.videoSource.frontCameraId = decodeCameraId(container, "frontCameraId", bestFrontCameraId)
+            scene.videoSource.rtmpCameraId = container.decode("rtmpCameraId", UUID.randomUUID())
+            scene.videoSource.srtlaCameraId = container.decode("srtlaCameraId", UUID.randomUUID())
+            scene.videoSource.srtClientCameraId = container.decode("srtClientCameraId", UUID.randomUUID())
+            scene.videoSource.ristCameraId = container.decode("ristCameraId", UUID.randomUUID())
+            scene.videoSource.rtspCameraId = container.decode("rtspCameraId", UUID.randomUUID())
+            scene.videoSource.whipCameraId = container.decode("whipCameraId", UUID.randomUUID())
+            scene.videoSource.whepCameraId = container.decode("whepCameraId", UUID.randomUUID())
+            scene.videoSource.mediaPlayerCameraId = container.decode("mediaPlayerCameraId", UUID.randomUUID())
+            scene.videoSource.externalCameraId = container.decode("externalCameraId", "")
+            scene.videoSource.externalCameraName = container.decode("externalCameraName", "")
+            scene.widgets = container.decode("widgets", ListSerializer(SettingsSceneWidget.serializer()), emptyList())
+            scene.videoSourceRotation = container.decode("videoSourceRotation", 0.0)
+            scene.videoStabilizationMode = container.decode(
+                "videoStabilizationMode",
+                SettingsVideoStabilizationMode.off
+            )
+            scene.overrideVideoStabilizationMode = container.decode("overrideVideoStabilizationMode", false)
+            scene.fillFrame = container.decode("fillFrame", false)
+            scene.overrideMic = container.decode("overrideMic", false)
+            scene.micId = container.decode("micId", "")
+            scene.quickSwitchGroup = container.decode<Int?>("quickSwitchGroup", null)
+            scene.mirror = container.decode("mirror", false)
+            scene.backgroundColor = container.decode(
+                "backgroundColor",
+                defaultSegmentedPickerSelectedColor
+            )
+            scene.backgroundColorColor = scene.backgroundColor.color()
+            return scene
+        }
+    }
+
+    object Serializer : KSerializer<SettingsScene> by JsonObjectSerializer(
+        "SettingsScene",
+        { it.encode() },
+        { decode(it) },
+    )
+
     fun clone(): SettingsScene {
         val new = SettingsScene(name = name)
         new.enabled = enabled
-        new.videoSource = videoSource
+        new.videoSource = videoSource.copy()
         val newWidgets = mutableListOf<SettingsSceneWidget>()
         for (widget in widgets) {
             newWidgets.add(widget.clone())
@@ -2338,30 +4386,102 @@ class SettingsScene(
     }
 }
 
-@Serializable
+@Serializable(with = SettingsAutoSceneSwitcherScene.Serializer::class)
 class SettingsAutoSceneSwitcherScene(
-    @Contextual var id: UUID = UUID.randomUUID(),
-    @Contextual var sceneId: UUID? = null,
+    var id: UUID = UUID.randomUUID(),
+    var sceneId: UUID? = null,
     var time: Int = 15
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("sceneId", sceneId)
+        encode("time", time)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsAutoSceneSwitcherScene {
+            val scene = SettingsAutoSceneSwitcherScene()
+            scene.id = container.decode("id", UUID.randomUUID())
+            scene.sceneId = container.decode<UUID?>("sceneId", null)
+            scene.time = container.decode("time", 15)
+            return scene
+        }
+    }
+
+    object Serializer : KSerializer<SettingsAutoSceneSwitcherScene> by JsonObjectSerializer(
+        "SettingsAutoSceneSwitcherScene",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsAutoSceneSwitcher.Serializer::class)
 class SettingsAutoSceneSwitcher(
-    @Contextual var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     override var name: String = baseName,
     var shuffle: Boolean = false,
     var scenes: List<SettingsAutoSceneSwitcherScene> = emptyList()
 ) : Named {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("shuffle", shuffle)
+        encode("scenes", scenes, ListSerializer(SettingsAutoSceneSwitcherScene.serializer()))
+    }
+
     companion object {
         val baseName: String = localized("My switcher")
+
+        fun decode(container: JsonObject): SettingsAutoSceneSwitcher {
+            val switcher = SettingsAutoSceneSwitcher()
+            switcher.id = container.decode("id", UUID.randomUUID())
+            switcher.name = container.decode("name", baseName)
+            switcher.shuffle = container.decode("shuffle", false)
+            switcher.scenes = container.decode(
+                "scenes",
+                ListSerializer(SettingsAutoSceneSwitcherScene.serializer()),
+                emptyList()
+            )
+            return switcher
+        }
     }
+
+    object Serializer : KSerializer<SettingsAutoSceneSwitcher> by JsonObjectSerializer(
+        "SettingsAutoSceneSwitcher",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsAutoSceneSwitchers.Serializer::class)
 class SettingsAutoSceneSwitchers(
-    @Contextual var switcherId: UUID? = null,
+    var switcherId: UUID? = null,
     var switchers: List<SettingsAutoSceneSwitcher> = emptyList()
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("switcherId", switcherId)
+        encode("switchers", switchers, ListSerializer(SettingsAutoSceneSwitcher.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsAutoSceneSwitchers {
+            val switchers = SettingsAutoSceneSwitchers()
+            switchers.switcherId = container.decodeIfPresent<UUID>("switcherId")
+            switchers.switchers = container.decode(
+                "switchers",
+                ListSerializer(SettingsAutoSceneSwitcher.serializer()),
+                emptyList()
+            )
+            return switchers
+        }
+    }
+
+    object Serializer : KSerializer<SettingsAutoSceneSwitchers> by JsonObjectSerializer(
+        "SettingsAutoSceneSwitchers",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 @Serializable
 enum class SettingsGraphicsImplementation {

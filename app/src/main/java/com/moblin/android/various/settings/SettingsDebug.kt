@@ -1,19 +1,13 @@
 package com.moblin.android.various.settings
 
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.encoding.decodeStructure
-import kotlinx.serialization.encoding.encodeStructure
+import kotlinx.serialization.json.JsonObject
 
 @Serializable
 enum class SettingsLogLevel(val rawValue: String) {
@@ -44,13 +38,8 @@ val pixelFormatTypes: List<Int> = listOf(
     0x34323076,
 )
 
+@Serializable(with = SettingsDebug.Serializer::class)
 class SettingsDebug {
-    companion object {
-        const val builtinAudioAndVideoDelayDefault: Double = 0.07
-
-        fun serializer(): KSerializer<SettingsDebug> = SettingsDebugSerializer
-    }
-
     var logLevel: SettingsLogLevel = SettingsLogLevel.error
 
     val logFilter = MutableStateFlow("")
@@ -111,148 +100,103 @@ class SettingsDebug {
 
     val packetPadding = MutableStateFlow(false)
 
-    object SettingsDebugSerializer : KSerializer<SettingsDebug> {
-        override val descriptor: SerialDescriptor = buildClassSerialDescriptor("SettingsDebug") {
-            element("logLevel", SettingsLogLevel.serializer().descriptor)
-            element("logFilter", String.serializer().descriptor)
-            element("debugLogging", Boolean.serializer().descriptor)
-            element("debugLoggingMigrated", Boolean.serializer().descriptor)
-            element("srtOverlay", Boolean.serializer().descriptor)
-            element("cameraSwitchRemoveBlackish", Float.serializer().descriptor)
-            element("bluetoothOutputOnly", Boolean.serializer().descriptor)
-            element("maximumLogLines", Int.serializer().descriptor)
-            element("pixelFormat", String.serializer().descriptor)
-            element("beautyFilterSettings", SettingsFace.serializer().descriptor)
-            element("allowVideoRangePixelFormat", Boolean.serializer().descriptor)
-            element("blurSceneSwitch", Boolean.serializer().descriptor)
-            element("preferStereoMic", Boolean.serializer().descriptor)
-            element("twitchRewards", Boolean.serializer().descriptor)
-            element("tesla", SettingsTesla.serializer().descriptor)
-            element("dnsLookupStrategy", SettingsDnsLookupStrategy.serializer().descriptor)
-            element("dataRateLimitFactor", Float.serializer().descriptor)
-            element("bitrateDropFix", Boolean.serializer().descriptor)
-            element("relaxedBitrate", Boolean.serializer().descriptor)
-            element("externalDisplayChat", Boolean.serializer().descriptor)
-            element("videoSourceWidgetTrackFace", Boolean.serializer().descriptor)
-            element("replay", Boolean.serializer().descriptor)
-            element("recordSegmentLength", Double.serializer().descriptor)
-            element("builtinAudioAndVideoDelay", Double.serializer().descriptor)
-            element("builtinAudioAndVideoDelay70msMigrated", Boolean.serializer().descriptor)
-            element("cameraManMoveVertically", Boolean.serializer().descriptor)
-            element("cameraManSpeed", Double.serializer().descriptor)
-            element("cameraManAlwaysMove", Boolean.serializer().descriptor)
-            element("enhancedMoblinSrt", Boolean.serializer().descriptor)
-            element("videoBitrateChangeEnabled", Boolean.serializer().descriptor)
-            element("highQualityDownsampling", Boolean.serializer().descriptor)
-            element("httpProxy3", Boolean.serializer().descriptor)
-            element("packetPadding", Boolean.serializer().descriptor)
-            element("nativeLowLightBoost", Boolean.serializer().descriptor)
-        }
+    fun encode(): JsonObject = encodeContainer {
+        encode("logLevel", logLevel)
+        encode("logFilter", logFilter)
+        encode("debugLogging", debugLogging)
+        encode("debugLoggingMigrated", debugLoggingMigrated)
+        encode("srtOverlay", debugOverlay)
+        encode("cameraSwitchRemoveBlackish", cameraSwitchRemoveBlackish)
+        encode("bluetoothOutputOnly", bluetoothOutputOnly)
+        encode("maximumLogLines", maximumLogLines)
+        encode("pixelFormat", pixelFormat)
+        encode("beautyFilterSettings", faceToBeRemoved, SettingsFace.serializer())
+        encode("allowVideoRangePixelFormat", allowVideoRangePixelFormat)
+        encode("nativeLowLightBoost", nativeLowLightBoost)
+        encode("blurSceneSwitch", blurSceneSwitch)
+        encode("preferStereoMic", preferStereoMicToBeRemoved)
+        encode("twitchRewards", twitchRewards)
+        encode("tesla", tesla, SettingsTesla.serializer())
+        encode("dnsLookupStrategy", dnsLookupStrategy)
+        encode("dataRateLimitFactor", dataRateLimitFactor)
+        encode("bitrateDropFix", bitrateDropFix)
+        encode("relaxedBitrate", relaxedBitrate)
+        encode("externalDisplayChat", externalDisplayChat)
+        encode("videoSourceWidgetTrackFace", videoSourceWidgetTrackFace)
+        encode("replay", replay)
+        encode("recordSegmentLength", recordSegmentLength)
+        encode("builtinAudioAndVideoDelay", builtinAudioAndVideoDelay)
+        encode("builtinAudioAndVideoDelay70msMigrated", builtinAudioAndVideoDelay70msMigrated)
+        encode("cameraManMoveVertically", cameraManMoveVertically)
+        encode("cameraManSpeed", cameraManSpeed)
+        encode("cameraManAlwaysMove", cameraManAlwaysMove)
+        encode("enhancedMoblinSrt", enhancedMoblinSrt)
+        encode("videoBitrateChangeEnabled", videoBitrateChange)
+        encode("highQualityDownsampling", highQualityDownsamplingToBeRemoved)
+        encode("httpProxy3", httpProxyToBeRemoved)
+        encode("packetPadding", packetPadding)
+    }
 
-        override fun serialize(encoder: Encoder, value: SettingsDebug) {
-            encoder.encodeStructure(descriptor) {
-                encodeSerializableElement(descriptor, 0, SettingsLogLevel.serializer(), value.logLevel)
-                encodeStringElement(descriptor, 1, value.logFilter.value)
-                encodeBooleanElement(descriptor, 2, value.debugLogging.value)
-                encodeBooleanElement(descriptor, 3, value.debugLoggingMigrated)
-                encodeBooleanElement(descriptor, 4, value.debugOverlay.value)
-                encodeFloatElement(descriptor, 5, value.cameraSwitchRemoveBlackish.value)
-                encodeBooleanElement(descriptor, 6, value.bluetoothOutputOnly.value)
-                encodeIntElement(descriptor, 7, value.maximumLogLines)
-                encodeStringElement(descriptor, 8, value.pixelFormat)
-                encodeSerializableElement(descriptor, 9, SettingsFace.serializer(), value.faceToBeRemoved)
-                encodeBooleanElement(descriptor, 10, value.allowVideoRangePixelFormat.value)
-                encodeBooleanElement(descriptor, 11, value.blurSceneSwitch)
-                encodeBooleanElement(descriptor, 12, value.preferStereoMicToBeRemoved)
-                encodeBooleanElement(descriptor, 13, value.twitchRewards.value)
-                encodeSerializableElement(descriptor, 14, SettingsTesla.serializer(), value.tesla)
-                encodeSerializableElement(descriptor,
-                    15,
-                    SettingsDnsLookupStrategy.serializer(),
-                    value.dnsLookupStrategy)
-                encodeFloatElement(descriptor, 16, value.dataRateLimitFactor.value)
-                encodeBooleanElement(descriptor, 17, value.bitrateDropFix.value)
-                encodeBooleanElement(descriptor, 18, value.relaxedBitrate.value)
-                encodeBooleanElement(descriptor, 19, value.externalDisplayChat)
-                encodeBooleanElement(descriptor, 20, value.videoSourceWidgetTrackFace)
-                encodeBooleanElement(descriptor, 21, value.replay)
-                encodeDoubleElement(descriptor, 22, value.recordSegmentLength)
-                encodeDoubleElement(descriptor, 23, value.builtinAudioAndVideoDelay.value)
-                encodeBooleanElement(descriptor, 24, value.builtinAudioAndVideoDelay70msMigrated)
-                encodeBooleanElement(descriptor, 25, value.cameraManMoveVertically.value)
-                encodeDoubleElement(descriptor, 26, value.cameraManSpeed.value)
-                encodeBooleanElement(descriptor, 27, value.cameraManAlwaysMove.value)
-                encodeBooleanElement(descriptor, 28, value.enhancedMoblinSrt.value)
-                encodeBooleanElement(descriptor, 29, value.videoBitrateChange.value)
-                encodeBooleanElement(descriptor, 30, value.highQualityDownsamplingToBeRemoved)
-                encodeBooleanElement(descriptor, 31, value.httpProxyToBeRemoved)
-                encodeBooleanElement(descriptor, 32, value.packetPadding.value)
-                encodeBooleanElement(descriptor, 33, value.nativeLowLightBoost.value)
-            }
-        }
+    companion object {
+        const val builtinAudioAndVideoDelayDefault: Double = 0.07
 
-        override fun deserialize(decoder: Decoder): SettingsDebug {
-            val result = SettingsDebug()
-            decoder.decodeStructure(descriptor) {
-                while (true) {
-                    when (decodeElementIndex(descriptor)) {
-                        CompositeDecoder.DECODE_DONE -> break
-                        0 -> result.logLevel = decodeSerializableElement(descriptor,
-                            0,
-                            SettingsLogLevel.serializer())
-                        1 -> result.logFilter.value = decodeStringElement(descriptor, 1)
-                        2 -> result.debugLogging.value = decodeBooleanElement(descriptor, 2)
-                        3 -> result.debugLoggingMigrated = decodeBooleanElement(descriptor, 3)
-                        4 -> result.debugOverlay.value = decodeBooleanElement(descriptor, 4)
-                        5 -> result.cameraSwitchRemoveBlackish.value = decodeFloatElement(descriptor, 5)
-                        6 -> result.bluetoothOutputOnly.value = decodeBooleanElement(descriptor, 6)
-                        7 -> result.maximumLogLines = decodeIntElement(descriptor, 7)
-                        8 -> result.pixelFormat = decodeStringElement(descriptor, 8)
-                        9 -> result.faceToBeRemoved = decodeSerializableElement(descriptor,
-                            9,
-                            SettingsFace.serializer())
-                        10 -> result.allowVideoRangePixelFormat.value = decodeBooleanElement(descriptor, 10)
-                        11 -> result.blurSceneSwitch = decodeBooleanElement(descriptor, 11)
-                        12 -> result.preferStereoMicToBeRemoved = decodeBooleanElement(descriptor, 12)
-                        13 -> result.twitchRewards.value = decodeBooleanElement(descriptor, 13)
-                        14 -> result.tesla = decodeSerializableElement(descriptor,
-                            14,
-                            SettingsTesla.serializer())
-                        15 -> result.dnsLookupStrategy = decodeSerializableElement(descriptor,
-                            15,
-                            SettingsDnsLookupStrategy.serializer())
-                        16 -> result.dataRateLimitFactor.value = decodeFloatElement(descriptor, 16)
-                        17 -> result.bitrateDropFix.value = decodeBooleanElement(descriptor, 17)
-                        18 -> result.relaxedBitrate.value = decodeBooleanElement(descriptor, 18)
-                        19 -> result.externalDisplayChat = decodeBooleanElement(descriptor, 19)
-                        20 -> result.videoSourceWidgetTrackFace = decodeBooleanElement(descriptor, 20)
-                        21 -> result.replay = decodeBooleanElement(descriptor, 21)
-                        22 -> result.recordSegmentLength = decodeDoubleElement(descriptor, 22)
-                        23 -> result.builtinAudioAndVideoDelay.value = decodeDoubleElement(descriptor, 23)
-                        24 -> result.builtinAudioAndVideoDelay70msMigrated = decodeBooleanElement(descriptor, 24)
-                        25 -> result.cameraManMoveVertically.value = decodeBooleanElement(descriptor, 25)
-                        26 -> result.cameraManSpeed.value = decodeDoubleElement(descriptor, 26)
-                        27 -> result.cameraManAlwaysMove.value = decodeBooleanElement(descriptor, 27)
-                        28 -> result.enhancedMoblinSrt.value = decodeBooleanElement(descriptor, 28)
-                        29 -> result.videoBitrateChange.value = decodeBooleanElement(descriptor, 29)
-                        30 -> result.highQualityDownsamplingToBeRemoved = decodeBooleanElement(descriptor, 30)
-                        31 -> result.httpProxyToBeRemoved = decodeBooleanElement(descriptor, 31)
-                        32 -> result.packetPadding.value = decodeBooleanElement(descriptor, 32)
-                        33 -> result.nativeLowLightBoost.value = decodeBooleanElement(descriptor, 33)
-                    }
-                }
+        fun decode(container: JsonObject): SettingsDebug {
+            val debug = SettingsDebug()
+            debug.logLevel = container.decode("logLevel", SettingsLogLevel.error)
+            debug.logFilter.value = container.decode("logFilter", "")
+            debug.debugLogging.value = container.decode("debugLogging", false)
+            debug.debugLoggingMigrated = container.decode("debugLoggingMigrated", false)
+            if (!debug.debugLoggingMigrated) {
+                debug.debugLogging.value = debug.logLevel == SettingsLogLevel.debug
+                debug.debugLoggingMigrated = true
             }
-            if (!result.debugLoggingMigrated) {
-                result.debugLogging.value = result.logLevel == SettingsLogLevel.debug
-                result.debugLoggingMigrated = true
+            debug.debugOverlay.value = container.decode("srtOverlay", false)
+            debug.cameraSwitchRemoveBlackish.value = container.decode("cameraSwitchRemoveBlackish", 0.3f)
+            debug.bluetoothOutputOnly.value = container.decode("bluetoothOutputOnly", true)
+            debug.maximumLogLines = container.decode("maximumLogLines", 500)
+            debug.pixelFormat = container.decode("pixelFormat", pixelFormats[1])
+            debug.faceToBeRemoved = container.decode("beautyFilterSettings", SettingsFace.serializer(), SettingsFace())
+            debug.allowVideoRangePixelFormat.value = container.decode("allowVideoRangePixelFormat", false)
+            debug.nativeLowLightBoost.value = container.decode("nativeLowLightBoost", false)
+            debug.blurSceneSwitch = container.decode("blurSceneSwitch", true)
+            debug.preferStereoMicToBeRemoved = container.decode("preferStereoMic", false)
+            debug.twitchRewards.value = container.decode("twitchRewards", false)
+            debug.tesla = container.decode("tesla", SettingsTesla.serializer(), SettingsTesla())
+            debug.dnsLookupStrategy = container.decode("dnsLookupStrategy", SettingsDnsLookupStrategy.system)
+            debug.dataRateLimitFactor.value = container.decode("dataRateLimitFactor", 2.0f)
+            debug.bitrateDropFix.value = container.decode("bitrateDropFix", false)
+            debug.relaxedBitrate.value = container.decode("relaxedBitrate", false)
+            debug.externalDisplayChat = container.decode("externalDisplayChat", false)
+            debug.videoSourceWidgetTrackFace = container.decode("videoSourceWidgetTrackFace", false)
+            debug.replay = container.decode("replay", false)
+            debug.recordSegmentLength = container.decode("recordSegmentLength", 5.0)
+            debug.builtinAudioAndVideoDelay.value = container.decode(
+                "builtinAudioAndVideoDelay",
+                builtinAudioAndVideoDelayDefault,
+            )
+            debug.builtinAudioAndVideoDelay70msMigrated = container.decode(
+                "builtinAudioAndVideoDelay70msMigrated",
+                false,
+            )
+            if (!debug.builtinAudioAndVideoDelay70msMigrated && debug.builtinAudioAndVideoDelay.value == 0.0) {
+                debug.builtinAudioAndVideoDelay.value = builtinAudioAndVideoDelayDefault
             }
-            if (!result.builtinAudioAndVideoDelay70msMigrated &&
-                result.builtinAudioAndVideoDelay.value == 0.0
-            ) {
-                result.builtinAudioAndVideoDelay.value = SettingsDebug.builtinAudioAndVideoDelayDefault
-            }
-            result.builtinAudioAndVideoDelay70msMigrated = true
-            return result
+            debug.builtinAudioAndVideoDelay70msMigrated = true
+            debug.cameraManMoveVertically.value = container.decode("cameraManMoveVertically", false)
+            debug.cameraManSpeed.value = container.decode("cameraManSpeed", 1.0)
+            debug.cameraManAlwaysMove.value = container.decode("cameraManAlwaysMove", false)
+            debug.enhancedMoblinSrt.value = container.decode("enhancedMoblinSrt", false)
+            debug.videoBitrateChange.value = container.decode("videoBitrateChangeEnabled", false)
+            debug.highQualityDownsamplingToBeRemoved = container.decode("highQualityDownsampling", false)
+            debug.httpProxyToBeRemoved = container.decode("httpProxy3", false)
+            debug.packetPadding.value = container.decode("packetPadding", false)
+            return debug
         }
     }
+
+    object Serializer : KSerializer<SettingsDebug> by JsonObjectSerializer(
+        "SettingsDebug",
+        { it.encode() },
+        { decode(it) },
+    )
 }
