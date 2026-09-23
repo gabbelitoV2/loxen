@@ -61,6 +61,22 @@ class Device:
     def clear_crash_log(self):
         self.run("logcat", "-c", "-b", "crash")
 
+    def screenshot(self, path):
+        with open(path, "wb") as file:
+            subprocess.run([self.adb, "-s", self.serial, "exec-out", "screencap", "-p"], stdout=file, timeout=30)
+
+    def keyboard_shown(self):
+        out = self.run("shell", "dumpsys", "input_method")
+        return "mInputShown=true" in out
+
+    def hide_keyboard(self):
+        if self.keyboard_shown():
+            self.key(111)
+            time.sleep(0.5)
+            if self.keyboard_shown():
+                self.key(4)
+                time.sleep(0.8)
+
     def launch(self):
         self.run("shell", "am", "start", "-n", f"{PACKAGE}/.MainActivity")
 
@@ -78,6 +94,8 @@ def nodes(root):
                 "clickable": node.get("clickable") == "true",
                 "checkable": node.get("checkable") == "true",
                 "package": node.get("package"),
+                "class": node.get("class") or "",
+                "editable": (node.get("class") or "").endswith("EditText"),
                 "bounds": (x1, y1, x2, y2),
                 "node": node,
             }
@@ -137,7 +155,9 @@ class Crawler:
     def targets(self, root):
         result = []
         for n in nodes(root):
-            if not n["clickable"] or n["checkable"]:
+            if not n["clickable"] or n["checkable"] or n["editable"] or n["package"] != PACKAGE:
+                continue
+            if any((child.get("class") or "").endswith("EditText") for child in n["node"].iter("node")):
                 continue
             x1, y1, x2, y2 = n["bounds"]
             if x1 < self.panel_left or x2 > self.panel_right + 5 or y1 < self.top or y2 > self.bottom:
@@ -214,6 +234,7 @@ class Crawler:
         self.device.clear_crash_log()
 
     def crawl(self, path, depth):
+        self.device.hide_keyboard()
         root = self.device.dump()
         if root is None:
             self.log(f"dump failed at {' > '.join(path)}")
@@ -225,11 +246,17 @@ class Crawler:
         self.visited.add(key)
         self.screens += 1
         self.log(f"[{self.screens}] {key or 'Settings'} (title {title!r})")
+        shots = self.out.parent / (self.out.stem + "-shots")
+        shots.mkdir(exist_ok=True)
+        self.device.screenshot(shots / f"{self.screens:04d}.png")
+        with open(shots / "index.txt", "a", encoding="utf-8") as file:
+            file.write("\t".join([f"{self.screens:04d}.png", key or "Settings", title]) + "\n")
         if depth >= self.max_depth:
             return
         done = set()
         stale_rounds = 0
         while stale_rounds < 2:
+            self.device.hide_keyboard()
             root = self.device.dump()
             if root is None:
                 break
@@ -243,6 +270,7 @@ class Crawler:
             done.add(label)
             self.device.tap(x, y)
             time.sleep(1.5)
+            self.device.hide_keyboard()
             if not self.alive():
                 self.record_crash(path, label)
                 if not self.recover(path):
