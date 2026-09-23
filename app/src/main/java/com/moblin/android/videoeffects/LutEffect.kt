@@ -3,6 +3,7 @@ package com.moblin.android.videoeffects
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ColorSpace
+import android.icu.text.BreakIterator
 import com.moblin.android.platform.video.CVPixelBuffer as Image
 import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
@@ -14,6 +15,7 @@ import com.moblin.android.various.storages.ImageStorage
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.nio.charset.CharacterCodingException
 import kotlin.math.cbrt
 import kotlin.math.floor
 import kotlin.math.roundToInt
@@ -42,7 +44,7 @@ sealed class SwiftCubeError(message: String) : Exception(message) {
 
     object SizeMissing : SwiftCubeError("Size missing")
 
-    class SizeTooBig(val size: Int) : SwiftCubeError("Size $size too big")
+    class SizeTooBig(val size: Long) : SwiftCubeError("Size $size too big")
 
     object OneDimensionalLutNotSupported : SwiftCubeError("One dimensional LUT not supported")
 
@@ -59,16 +61,201 @@ sealed class SwiftCubeError(message: String) : Exception(message) {
     class InvalidSyntax(val text: String) : SwiftCubeError("Invalid syntax $text")
 }
 
-class SC3DLut(data: ByteArray) {
+private val space = ' '.code.toByte()
+private val tab = '\t'.code.toByte()
+private val newline = '\n'.code.toByte()
+private val carriageReturn = '\r'.code.toByte()
+private val hash = '#'.code.toByte()
+private val decimalFloatRegex = Regex("[+-]?([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE][+-]?[0-9]+)?")
+private val hexFloatRegex =
+    Regex("([+-]?0[xX]([0-9a-fA-F]+\\.?[0-9a-fA-F]*|\\.[0-9a-fA-F]+))([pP][+-]?[0-9]+)?")
+private val infinityRegex = Regex("([+-]?)(inf|infinity)", RegexOption.IGNORE_CASE)
+private val nanRegex = Regex("[+-]?(nan(\\((0[xX])?[0-9a-fA-F]+\\))?|snan)", RegexOption.IGNORE_CASE)
+private val intRegex = Regex("[+-]?[0-9]+")
+
+private fun isSpace(byte: Byte): Boolean {
+    return byte == space || byte == tab
+}
+
+private fun parseFloat(text: String): Float? {
+    if (decimalFloatRegex.matches(text)) {
+        return text.toFloat()
+    }
+    hexFloatRegex.matchEntire(text)?.let { match ->
+        return (match.groupValues[1] + match.groupValues[3].ifEmpty { "p0" }).toFloat()
+    }
+    infinityRegex.matchEntire(text)?.let { match ->
+        return if (match.groupValues[1] == "-") Float.NEGATIVE_INFINITY else Float.POSITIVE_INFINITY
+    }
+    if (nanRegex.matches(text)) {
+        return Float.NaN
+    }
+    return null
+}
+
+private fun decodeUtf8(bytes: ByteArray): String? {
+    var start = 0
+    if (bytes.size >= 3 && bytes[0] == 0xEF.toByte() && bytes[1] == 0xBB.toByte() &&
+        bytes[2] == 0xBF.toByte()
+    ) {
+        start = 3
+    }
+    return try {
+        Charsets.UTF_8.newDecoder().decode(ByteBuffer.wrap(bytes, start, bytes.size - start)).toString()
+    } catch (error: CharacterCodingException) {
+        null
+    }
+}
+
+private class CubeLineParser(val line: ByteArray) {
+    var index = 0
+
+    fun skipSpaces() {
+        while (index < line.size && isSpace(line[index])) {
+            index += 1
+        }
+    }
+
+    private fun parseNumber(): Float? {
+        var end = index
+        while (end < line.size && !isSpace(line[end])) {
+            end += 1
+        }
+        if (end <= index) {
+            return null
+        }
+        val value = parseFloat(String(line, index, end - index, Charsets.UTF_8)) ?: return null
+        index = end
+        return value
+    }
+
+    fun parseEntry(): LutEntry? {
+        val red = parseNumber() ?: return null
+        skipSpaces()
+        val green = parseNumber() ?: return null
+        skipSpaces()
+        val blue = parseNumber() ?: return null
+        skipSpaces()
+        if (index != line.size) {
+            return null
+        }
+        return LutEntry(red = red, green = green, blue = blue)
+    }
+}
+
+private fun makeInvalidSyntaxError(line: ByteArray): SwiftCubeError {
+    return SwiftCubeError.InvalidSyntax(decodeUtf8(line.copyOfRange(0, minOf(line.size, 50))) ?: "")
+}
+
+private fun characters(text: String): List<String> {
+    val iterator = BreakIterator.getCharacterInstance()
+    iterator.setText(text)
+    val characters = mutableListOf<String>()
+    var start = iterator.first()
+    var end = iterator.next()
+    while (end != BreakIterator.DONE) {
+        characters.add(text.substring(start, end))
+        start = end
+        end = iterator.next()
+    }
+    return characters
+}
+
+private fun splitOnSpaces(text: String): List<String> {
+    val parts = mutableListOf<String>()
+    var part = ""
+    for (character in characters(text)) {
+        if (character == " " || character == "\t") {
+            if (part.isNotEmpty()) {
+                parts.add(part)
+            }
+            part = ""
+        } else {
+            part += character
+        }
+    }
+    if (part.isNotEmpty()) {
+        parts.add(part)
+    }
+    return parts
+}
+
+enum class LutType {
+    oneDimensional,
+    threeDimensional,
+}
+
+class SC3DLut(fileData: ByteArray) {
+    var title: String? = null
+    var type: LutType? = null
     var size: Int = 0
     var entries: MutableList<LutEntry> = mutableListOf()
+    private var parsedSize: Long? = null
 
     init {
-        size = 0
+        var start = 0
+        while (start < fileData.size) {
+            var end = start
+            while (end < fileData.size && fileData[end] != newline && fileData[end] != carriageReturn) {
+                end += 1
+            }
+            val line = fileData.copyOfRange(start, end)
+            start = end + 1
+            parseLine(line)
+        }
+        val lutSize = parsedSize ?: throw SwiftCubeError.SizeMissing
+        size = lutSize.toInt()
+        when (type ?: throw SwiftCubeError.TypeMissing) {
+            LutType.oneDimensional -> if (entries.size.toLong() != lutSize) {
+                throw SwiftCubeError.WrongNumberOfDataPoints(entries.size)
+            }
+            LutType.threeDimensional -> if (entries.size.toLong() != lutSize * lutSize * lutSize) {
+                throw SwiftCubeError.WrongNumberOfDataPoints(entries.size)
+            }
+        }
+    }
+
+    private fun parseLine(line: ByteArray) {
+        val parser = CubeLineParser(line)
+        parser.skipSpaces()
+        if (parser.index >= line.size || line[parser.index] == hash) {
+            return
+        }
+        if (type == LutType.threeDimensional) {
+            val entry = parser.parseEntry()
+            if (entry != null) {
+                entries.add(entry)
+                return
+            }
+        }
+        val text = decodeUtf8(line) ?: throw SwiftCubeError.CouldNotDecodeData
+        val parts = splitOnSpaces(text)
+        when (parts.firstOrNull()) {
+            "TITLE" -> {
+                title = characters(parts.drop(1).joinToString(" ")).drop(1).dropLast(1).joinToString("")
+            }
+            "LUT_1D_SIZE" -> throw SwiftCubeError.OneDimensionalLutNotSupported
+            "LUT_3D_SIZE" -> {
+                type = LutType.threeDimensional
+                if (parts.size != 2 || !intRegex.matches(parts[1])) {
+                    throw makeInvalidSyntaxError(line)
+                }
+                val size = parts[1].toLongOrNull() ?: throw makeInvalidSyntaxError(line)
+                parsedSize = size
+                if (size >= 100) {
+                    throw SwiftCubeError.SizeTooBig(size)
+                }
+            }
+            "DOMAIN_MIN" -> throw SwiftCubeError.UnsupportedKey("DOMAIN_MIN")
+            "DOMAIN_MAX" -> throw SwiftCubeError.UnsupportedKey("DOMAIN_MAX")
+            else -> throw makeInvalidSyntaxError(line)
+        }
     }
 
     fun ciFilter(): ColorCubeFilter {
-        return ColorCubeFilter(makeCubeData(entries), size.toFloat())
+        val filter = ColorCubeFilter(makeCubeData(entries), size.toFloat())
+        filter.colorSpace = ColorSpace.get(ColorSpace.Named.SRGB)
+        return filter
     }
 }
 
@@ -175,7 +362,38 @@ private fun halfToFloat(bits: Int): Float {
     }
 }
 
-fun lutEffectConvertLut(image: Bitmap): Pair<Float, ByteArray> {
+private val pngSignature = byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)
+
+private fun pngHasTransparency(data: ByteArray): Boolean {
+    var offset = 8
+    while (offset + 8 <= data.size) {
+        val length = ByteBuffer.wrap(data, offset, 4).int
+        val type = String(data, offset + 4, 4, Charsets.ISO_8859_1)
+        if (type == "tRNS") {
+            return true
+        }
+        if (type == "IDAT" || length < 0 || length > data.size - offset - 12) {
+            return false
+        }
+        offset += 12 + length
+    }
+    return false
+}
+
+fun pngComponentsPerPixel(data: ByteArray): Int {
+    if (data.size < 26 || !data.copyOfRange(0, 8).contentEquals(pngSignature)) {
+        return 4
+    }
+    return when (data[25].toInt()) {
+        0 -> 1
+        2 -> 3
+        3 -> if (pngHasTransparency(data)) 4 else 1
+        4 -> 2
+        else -> 4
+    }
+}
+
+fun lutEffectConvertLut(image: Bitmap, imageComponentsPerPixel: Int = 4): Pair<Float, ByteArray> {
     val width = image.width
     val height = image.height
     val dimension = cbrt((width * height).toDouble()).toInt()
@@ -213,6 +431,9 @@ fun lutEffectConvertLut(image: Bitmap): Pair<Float, ByteArray> {
             result
         }
         else -> throw Exception(localized("LUT image is not 8 or 16 bits per pixel component"))
+    }
+    if (imageComponentsPerPixel != 3 && imageComponentsPerPixel != 4) {
+        throw Exception(localized("LUT image is not 3 or 4 components per pixel"))
     }
     val hasAlpha = componentsPerPixel == 4
     val numberOfPixels = width * height
@@ -264,19 +485,18 @@ fun makeLutCgImage(dimension: Int, cubeData: ByteArray): Bitmap? {
     if (cubeData.size != pixelsCount * 4 * 4) {
         return null
     }
-    val pixels = ByteArray(pixelsCount * 4)
+    val pixels = IntArray(pixelsCount)
     val cube = ByteBuffer.wrap(cubeData).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
     for (blue in 0 until dimension) {
         for (green in 0 until dimension) {
             for (red in 0 until dimension) {
                 val cubeIndex = 4 * ((blue * dimension + green) * dimension + red)
-                val pixelIndex = 4 * (green * dimension * dimension + blue * dimension + red)
-                for (component in 0 until 4) {
-                    pixels[pixelIndex + component] = minOf(
-                        maxOf((cube[cubeIndex + component] * 255f).roundToInt(), 0),
-                        255,
-                    ).toByte()
+                val pixelIndex = green * dimension * dimension + blue * dimension + red
+                val components = IntArray(4) { component ->
+                    minOf(maxOf((cube[cubeIndex + component] * 255f).roundToInt(), 0), 255)
                 }
+                pixels[pixelIndex] = (components[3] shl 24) or (components[0] shl 16) or
+                    (components[1] shl 8) or components[2]
             }
         }
     }
@@ -285,7 +505,8 @@ fun makeLutCgImage(dimension: Int, cubeData: ByteArray): Bitmap? {
         dimension,
         Bitmap.Config.ARGB_8888,
     )
-    bitmap.copyPixelsFromBuffer(ByteBuffer.wrap(pixels))
+    bitmap.isPremultiplied = false
+    bitmap.setPixels(pixels, 0, dimension * dimension, 0, 0, dimension * dimension, dimension)
     return bitmap
 }
 
@@ -397,7 +618,7 @@ class LutEffect : VideoEffect() {
         val data = imageStorage.makePath(id = lut.id).readBytes()
         val image = BitmapFactory.decodeByteArray(data, 0, data.size)
             ?: throw Exception(localized("Failed to create LUT image"))
-        loadImageLut(image = image)
+        loadImageLut(image = image, componentsPerPixel = pngComponentsPerPixel(data))
     }
 
     private fun loadDiskCubeLut(lut: SettingsColorLut, imageStorage: ImageStorage) {
@@ -415,8 +636,8 @@ class LutEffect : VideoEffect() {
         }
     }
 
-    private fun loadImageLut(image: Bitmap) {
-        val (dimension, data) = lutEffectConvertLut(image = image)
+    private fun loadImageLut(image: Bitmap, componentsPerPixel: Int) {
+        val (dimension, data) = lutEffectConvertLut(image = image, imageComponentsPerPixel = componentsPerPixel)
         val filter = ColorCubeFilter(cubeData = data, cubeDimension = dimension)
         filter.colorSpace = ColorSpace.get(ColorSpace.Named.SRGB)
         val lutImage = makeLutImage(dimension = dimension.toInt(), cubeData = data)

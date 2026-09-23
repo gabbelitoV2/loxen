@@ -25,7 +25,7 @@ private val json = Json {
     encodeDefaults = true
 }
 
-private object UUIDSerializer : KSerializer<UUID> {
+private object ReplaysStorageUuidSerializer : KSerializer<UUID> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("java.util.UUID", PrimitiveKind.STRING)
 
@@ -44,7 +44,7 @@ private fun getReplaysDirectory(): File {
 
 @Serializable
 class ReplaySettings(
-    @Serializable(with = UUIDSerializer::class) var id: UUID = UUID.randomUUID(),
+    @Serializable(with = ReplaysStorageUuidSerializer::class) var id: UUID = UUID.randomUUID(),
     var duration: Double = 0.0,
     var start: Double = 20.0,
     var stop: Double = SettingsReplay.stop,

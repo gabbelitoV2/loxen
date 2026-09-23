@@ -1,9 +1,9 @@
 package com.moblin.android.integrations.gopro
 
+import com.moblin.android.integrations.gopro.protobuf.OpenGopro_EnumResultGeneric
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_ResponseGetApEntries
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.junit.Test
@@ -87,18 +87,24 @@ class GoProBleProtocolSuite {
 
     @Test
     fun parsesScanEntries() {
-        val response: OpenGopro_ResponseGetApEntries =
-            TODO("OpenGopro_ResponseGetApEntries(serializedBytes:) is not available in the Kotlin port")
-        assertEquals<Any>(goProResponseSuccessStatus, response.result)
+        val response = OpenGopro_ResponseGetApEntries(
+            serializedBytes = byteArrayOf(
+                0x08, 0x01, 0x10, 0x03, 0x1A, 0x0E, 0x0A, 0x05, 0x4F, 0x74,
+                0x68, 0x65, 0x72, 0x10, 0x02, 0x20, 0xBC.toByte(), 0x28, 0x28, 0x01,
+                0x1A, 0x0F, 0x0A, 0x06, 0x4D, 0x6F, 0x62, 0x6C, 0x69, 0x6E,
+                0x10, 0x03, 0x20, 0x85.toByte(), 0x13, 0x28, 0x03,
+            ),
+        )
+        assertEquals(OpenGopro_EnumResultGeneric.resultSuccess, response.result)
         assertEquals(3, response.scanID)
         assertEquals(2, response.entries.size)
-        assertEquals("Other", TODO("ScanEntry.ssid is not available in the Kotlin port"))
-        assertEquals(2, TODO("ScanEntry.signalStrengthBars is not available in the Kotlin port"))
-        assertEquals(5180, TODO("ScanEntry.signalFrequencyMhz is not available in the Kotlin port"))
-        assertFalse(response.entries.first().isConfigured())
-        assertEquals("Moblin", TODO("ScanEntry.ssid is not available in the Kotlin port"))
-        assertEquals(2437, TODO("ScanEntry.signalFrequencyMhz is not available in the Kotlin port"))
-        assertTrue(response.entries.last().isConfigured())
-        assertFalse(response.entries.last().isUnsupportedType())
+        assertEquals("Other", response.entries.firstOrNull()?.ssid)
+        assertEquals(2, response.entries.firstOrNull()?.signalStrengthBars)
+        assertEquals(5180, response.entries.firstOrNull()?.signalFrequencyMhz)
+        assertEquals(false, response.entries.firstOrNull()?.isConfigured())
+        assertEquals("Moblin", response.entries.lastOrNull()?.ssid)
+        assertEquals(2437, response.entries.lastOrNull()?.signalFrequencyMhz)
+        assertEquals(true, response.entries.lastOrNull()?.isConfigured())
+        assertEquals(false, response.entries.lastOrNull()?.isUnsupportedType())
     }
 }

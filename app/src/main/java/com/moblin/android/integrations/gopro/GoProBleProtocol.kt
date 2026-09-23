@@ -13,6 +13,8 @@ import com.moblin.android.integrations.gopro.protobuf.OpenGopro_RequestPairingFi
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_RequestSetLiveStreamMode
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_RequestStartScan
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_ResponseGetApEntries
+import com.moblin.android.platform.swiftprotobuf.Message
+import com.moblin.android.platform.swiftprotobuf.serializedData
 import com.moblin.android.various.settings.SettingsGoProLaunchLiveStreamResolution
 import com.moblin.android.various.settings.SettingsGoProLens
 import java.util.UUID
@@ -230,7 +232,7 @@ fun OpenGopro_ResponseGetApEntries.ScanEntry.isConfigured(): Boolean =
 fun OpenGopro_ResponseGetApEntries.ScanEntry.isUnsupportedType(): Boolean =
     (scanEntryFlags and OpenGopro_EnumScanEntryFlags.scanFlagUnsupportedType.rawValue) != 0
 
-private fun Any.encoded(): ByteArray = ByteArray(0)
+private fun Message.encoded(): ByteArray = runCatching { serializedData() }.getOrDefault(ByteArray(0))
 
 private fun SettingsGoProLaunchLiveStreamResolution.toProtobuf(): OpenGopro_EnumWindowSize = when (this) {
     SettingsGoProLaunchLiveStreamResolution.r480p -> OpenGopro_EnumWindowSize.windowSize480

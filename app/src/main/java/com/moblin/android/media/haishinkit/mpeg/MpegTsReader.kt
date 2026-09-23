@@ -4,6 +4,8 @@ import android.media.AudioFormat
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Log
+import com.moblin.android.common.various.createSilent
+import com.moblin.android.common.various.makeSampleBuffer
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.WrappingTimestamp
 import com.moblin.android.media.haishinkit.codec.video.VideoDecoder
@@ -12,8 +14,6 @@ import com.moblin.android.media.haishinkit.util.ByteReader
 import com.moblin.android.various.utils.currentPresentationTimeStamp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import kotlin.math.roundToInt
 
 private const val logTag = "MpegTsReader"
@@ -112,7 +112,12 @@ class MpegTsReader(
             return
         }
         outputSilenceIfGap(sampleBuffer.presentationTimeUs, pcmAudioFormat)
-        delegate?.mpegTsReaderAudioBuffer(makePcmAudioSampleBuffer(pcmAudioBuffer, sampleBuffer.presentationTimeUs))
+        val pcmSampleBuffer = pcmAudioBuffer.makeSampleBuffer(
+            sampleBuffer.presentationTimeUs,
+            pcmAudioFormat.sampleRate,
+            pcmAudioFormat.channelCount,
+        ) ?: return
+        delegate?.mpegTsReaderAudioBuffer(pcmSampleBuffer)
     }
 
     private fun createAudioDecoder(formatDescription: MediaFormat): MediaCodec =
@@ -123,12 +128,6 @@ class MpegTsReader(
         length: Int,
         output: ShortArray,
     ): Boolean = TODO("MediaCodec audio/mp4a-latm decode port")
-
-    private fun makePcmAudioSampleBuffer(pcmAudioBuffer: ShortArray, presentationTimeStamp: Long): MediaSample {
-        val buffer = ByteBuffer.allocate(pcmAudioBuffer.size * 2).order(ByteOrder.LITTLE_ENDIAN)
-        buffer.asShortBuffer().put(pcmAudioBuffer)
-        return MediaSample(buffer.array(), presentationTimeStamp, false, null)
-    }
 
     private fun outputSilenceIfGap(presentationTimeStamp: Long, pcmAudioFormat: AudioFormat) {
         try {
@@ -153,26 +152,18 @@ class MpegTsReader(
                     "mpeg-ts-reader: Filling audio gap " +
                         "$latest..$presentationTimeStamp with $newPresentationTimeStamp",
                 )
-                delegate?.mpegTsReaderAudioBuffer(
-                    createSilentSampleBuffer(pcmAudioFormat, newPresentationTimeStamp, samplesPerBuffer),
-                )
+                createSilent(
+                    pcmAudioFormat.sampleRate,
+                    pcmAudioFormat.channelCount,
+                    newPresentationTimeStamp,
+                    samplesPerBuffer,
+                )?.let {
+                    delegate?.mpegTsReaderAudioBuffer(it)
+                }
             }
         } finally {
             latestAudioBufferPresentationTimeStamp = presentationTimeStamp
         }
-    }
-
-    private fun createSilentSampleBuffer(
-        pcmAudioFormat: AudioFormat,
-        presentationTimeStamp: Long,
-        frameLength: Int,
-    ): MediaSample {
-        return MediaSample(
-            ByteArray(frameLength * pcmAudioFormat.channelCount * 2),
-            presentationTimeStamp,
-            false,
-            null,
-        )
     }
 
     private fun calcNumberOfGapBuffers(
@@ -362,8 +353,8 @@ class MpegTsReader(
             val sampleSizes = mutableListOf(dataLength)
             val sampleBuffer = makeSampleBuffer(
                 packetId,
-                optionalHeader.getPresentationTimeStamp() + delta,
-                optionalHeader.getDecodeTimeStamp() + delta,
+                addTime(optionalHeader.getPresentationTimeStamp(), delta),
+                addTime(optionalHeader.getDecodeTimeStamp(), delta),
                 formatDescription,
                 blockBuffer,
                 sampleSizes,
@@ -462,8 +453,8 @@ class MpegTsReader(
         isKeyFrame: Boolean = false,
     ): MediaSample? {
         val basePresentationTimeStamp = getBasePresentationTimeStamp()
-        val receivedPresentationTimeStamp = wrappingTimestamp.update(presentationTimeStamp)
-        val receivedDecodeTimeStamp = wrappingTimestamp.update(decodeTimeStamp)
+        val receivedPresentationTimeStamp = updateWrappingTimestamp(presentationTimeStamp)
+        val receivedDecodeTimeStamp = updateWrappingTimestamp(decodeTimeStamp)
         val timingPresentationTimeStamp: Long
         val timingDecodeTimeStamp: Long
         val timingDuration: Long
@@ -495,6 +486,20 @@ class MpegTsReader(
         this.firstReceivedPresentationTimeStamp = firstReceivedPresentationTimeStamp
         previousReceivedPresentationTimeStamps[packetId] = timingPresentationTimeStamp
         return sampleBuffer
+    }
+
+    private fun addTime(time: Long, delta: Long): Long {
+        if (time == invalidPresentationTimeUs) {
+            return time
+        }
+        return time + delta
+    }
+
+    private fun updateWrappingTimestamp(timestamp: Long): Long {
+        if (timestamp == invalidPresentationTimeUs) {
+            return timestamp
+        }
+        return wrappingTimestamp.update(timestamp)
     }
 
     private fun getBasePresentationTimeStamp(): Long {

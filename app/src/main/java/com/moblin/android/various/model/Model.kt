@@ -2309,7 +2309,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun setQuickButton(type: SettingsQuickButtonType, isOn: Boolean) {
         val button = getQuickButton(type = type) ?: return
         button.isOn.value = isOn
-        val filter = runCatching { RemoteControlFilter.valueOf(type.toString()) }.getOrNull()
+        val filter = RemoteControlFilter.fromType(type)
         if (filter != null) {
             remoteControlStateChanged(
                 state = RemoteControlAssistantStreamerState(filters = mapOf(filter to button.isOn.value)),

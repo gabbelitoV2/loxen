@@ -1,17 +1,73 @@
 package com.moblin.android.streamingplatforms.twitch
 
 import android.content.Context
+import android.util.JsonReader
+import android.util.JsonToken
 import android.util.Log
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.OperationResult
 import com.moblin.android.various.network.WebSocketClient
 import com.moblin.android.various.network.WebSocketClientDelegate
+import java.io.StringReader
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonUnquotedLiteral
+import kotlinx.serialization.json.decodeFromJsonElement
 
 private val json = Json { ignoreUnknownKeys = true }
+
+@OptIn(ExperimentalSerializationApi::class)
+private fun readJsonElement(reader: JsonReader): JsonElement {
+    return when (reader.peek()) {
+        JsonToken.BEGIN_OBJECT -> {
+            val content = mutableMapOf<String, JsonElement>()
+            reader.beginObject()
+            while (reader.hasNext()) {
+                val name = reader.nextName()
+                val value = readJsonElement(reader)
+                if (name !in content) {
+                    content[name] = value
+                }
+            }
+            reader.endObject()
+            JsonObject(content)
+        }
+        JsonToken.BEGIN_ARRAY -> {
+            val content = mutableListOf<JsonElement>()
+            reader.beginArray()
+            while (reader.hasNext()) {
+                content.add(readJsonElement(reader))
+            }
+            reader.endArray()
+            JsonArray(content)
+        }
+        JsonToken.STRING -> JsonPrimitive(reader.nextString())
+        JsonToken.NUMBER -> JsonUnquotedLiteral(reader.nextString())
+        JsonToken.BOOLEAN -> JsonPrimitive(reader.nextBoolean())
+        JsonToken.NULL -> {
+            reader.nextNull()
+            JsonNull
+        }
+        else -> throw SerializationException("Unexpected JSON token ${reader.peek()}")
+    }
+}
+
+private inline fun <reified T> decodeJson(data: ByteArray): T {
+    val reader = JsonReader(StringReader(data.decodeToString()))
+    val element = readJsonElement(reader)
+    if (reader.peek() != JsonToken.END_DOCUMENT) {
+        throw SerializationException("Unexpected data after JSON document")
+    }
+    return json.decodeFromJsonElement(element)
+}
 
 private const val tag = "TwitchEventSub"
 
@@ -614,7 +670,7 @@ class TwitchEventSub(
     fun handleMessage(messageText: String) {
         val messageData = messageText.toByteArray()
         val message = runCatching {
-            json.decodeFromString<BasicMessage>(messageData.decodeToString())
+            decodeJson<BasicMessage>(messageData)
         }.getOrNull() ?: return
         when (message.metadata.message_type) {
             "session_welcome" -> handleSessionWelcome(messageData)
@@ -638,7 +694,7 @@ class TwitchEventSub(
 
     private fun handleSessionWelcome(messageData: ByteArray) {
         val message = runCatching {
-            json.decodeFromString<WelcomeMessage>(messageData.decodeToString())
+            decodeJson<WelcomeMessage>(messageData)
         }.getOrNull()
         if (message == null) {
             Log.i(tag, "twitch: event-sub: Failed to decode welcome message")
@@ -782,14 +838,12 @@ class TwitchEventSub(
     }
 
     private fun handleNotificationChannelFollow(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelFollowMessage>(messageData.decodeToString())
+        val message = decodeJson<NotificationChannelFollowMessage>(messageData)
         delegate.twitchEventSubChannelFollow(message.payload.event)
     }
 
     private fun handleNotificationChannelChatNotification(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelChatNotificationMessage>(
-            messageData.decodeToString(),
-        )
+        val message = decodeJson<NotificationChannelChatNotificationMessage>(messageData)
         val event = message.payload.event
         when (event.notice_type) {
             "sub", "shared_chat_sub" -> handleChatNotificationSub(event)
@@ -926,104 +980,82 @@ class TwitchEventSub(
     }
 
     private fun handleChannelPointsCustomRewardRedemptionAdd(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelPointsCustomRewardRedemptionAddMessage>(
-            messageData.decodeToString(),
-        )
+        val message = decodeJson<NotificationChannelPointsCustomRewardRedemptionAddMessage>(messageData)
         delegate.twitchEventSubChannelPointsCustomRewardRedemptionAdd(message.payload.event)
     }
 
     private fun handleChannelRaid(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelRaidMessage>(messageData.decodeToString())
+        val message = decodeJson<NotificationChannelRaidMessage>(messageData)
         delegate.twitchEventSubChannelRaid(message.payload.event)
     }
 
     private fun handleChannelCheer(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelCheerMessage>(messageData.decodeToString())
+        val message = decodeJson<NotificationChannelCheerMessage>(messageData)
         delegate.twitchEventSubChannelCheer(message.payload.event)
     }
 
     private fun handleChannelHypeTrainBegin(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelHypeTrainBeginMessage>(
-            messageData.decodeToString(),
-        )
+        val message = decodeJson<NotificationChannelHypeTrainBeginMessage>(messageData)
         delegate.twitchEventSubChannelHypeTrainBegin(message.payload.event)
     }
 
     private fun handleChannelHypeTrainProgress(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelHypeTrainProgressMessage>(
-            messageData.decodeToString(),
-        )
+        val message = decodeJson<NotificationChannelHypeTrainProgressMessage>(messageData)
         delegate.twitchEventSubChannelHypeTrainProgress(message.payload.event)
     }
 
     private fun handleChannelHypeTrainEnd(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelHypeTrainEndMessage>(
-            messageData.decodeToString(),
-        )
+        val message = decodeJson<NotificationChannelHypeTrainEndMessage>(messageData)
         delegate.twitchEventSubChannelHypeTrainEnd(message.payload.event)
     }
 
     private fun handleChannelAdBreakBegin(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelAdBreakBeginMessage>(
-            messageData.decodeToString(),
-        )
+        val message = decodeJson<NotificationChannelAdBreakBeginMessage>(messageData)
         delegate.twitchEventSubChannelAdBreakBegin(message.payload.event)
     }
 
     private fun handleChannelPollBegin(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelPollMessage>(messageData.decodeToString())
+        val message = decodeJson<NotificationChannelPollMessage>(messageData)
         delegate.twitchEventSubChannelPollBegin(message.payload.event)
     }
 
     private fun handleChannelPollProgress(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelPollMessage>(messageData.decodeToString())
+        val message = decodeJson<NotificationChannelPollMessage>(messageData)
         delegate.twitchEventSubChannelPollProgress(message.payload.event)
     }
 
     private fun handleChannelPollEnd(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelPollMessage>(messageData.decodeToString())
+        val message = decodeJson<NotificationChannelPollMessage>(messageData)
         delegate.twitchEventSubChannelPollEnd(message.payload.event)
     }
 
     private fun handleChannelPredictionBegin(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelPredictionMessage>(
-            messageData.decodeToString(),
-        )
+        val message = decodeJson<NotificationChannelPredictionMessage>(messageData)
         delegate.twitchEventSubChannelPredictionBegin(message.payload.event)
     }
 
     private fun handleChannelPredictionProgress(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelPredictionMessage>(
-            messageData.decodeToString(),
-        )
+        val message = decodeJson<NotificationChannelPredictionMessage>(messageData)
         delegate.twitchEventSubChannelPredictionProgress(message.payload.event)
     }
 
     private fun handleChannelPredictionLock(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelPredictionMessage>(
-            messageData.decodeToString(),
-        )
+        val message = decodeJson<NotificationChannelPredictionMessage>(messageData)
         delegate.twitchEventSubChannelPredictionLock(message.payload.event)
     }
 
     private fun handleChannelPredictionEnd(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelPredictionMessage>(
-            messageData.decodeToString(),
-        )
+        val message = decodeJson<NotificationChannelPredictionMessage>(messageData)
         delegate.twitchEventSubChannelPredictionEnd(message.payload.event)
     }
 
     private fun handleChannelModerate(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelModerateMessage>(
-            messageData.decodeToString(),
-        )
+        val message = decodeJson<NotificationChannelModerateMessage>(messageData)
         delegate.twitchEventSubChannelModerate(message.payload.event)
     }
 
     private fun handleChannelShoutoutCreate(messageData: ByteArray) {
-        val message = json.decodeFromString<NotificationChannelShoutoutCreateMessage>(
-            messageData.decodeToString(),
-        )
+        val message = decodeJson<NotificationChannelShoutoutCreateMessage>(messageData)
         delegate.twitchEventSubChannelShoutoutCreate(message.payload.event)
     }
 

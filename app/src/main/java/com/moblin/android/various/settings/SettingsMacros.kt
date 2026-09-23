@@ -20,7 +20,7 @@ import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-private object UUIDSerializer : KSerializer<UUID> {
+private object SettingsMacrosUuidSerializer : KSerializer<UUID> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("java.util.UUID", PrimitiveKind.STRING)
 
@@ -52,7 +52,7 @@ private class RawValueSerializer<T>(
     }
 }
 
-private val uuidSetSerializer: KSerializer<Set<UUID>> = SetSerializer(UUIDSerializer)
+private val uuidSetSerializer: KSerializer<Set<UUID>> = SetSerializer(SettingsMacrosUuidSerializer)
 private val settingsReactionSerializer: KSerializer<SettingsReaction> = RawValueSerializer(
     "SettingsReaction",
     { it.rawValue },
@@ -397,16 +397,16 @@ object SettingsMacrosActionSerializer : KSerializer<SettingsMacrosAction> {
 
     override val descriptor: SerialDescriptor =
         buildClassSerialDescriptor("SettingsMacrosAction") {
-            element("id", UUIDSerializer.descriptor)
+            element("id", SettingsMacrosUuidSerializer.descriptor)
             element("function", settingsMacrosActionFunctionSerializer.nullable.descriptor)
-            element("sceneId", UUIDSerializer.nullable.descriptor)
+            element("sceneId", SettingsMacrosUuidSerializer.nullable.descriptor)
             element("sceneIds", uuidSetSerializer.descriptor)
-            element("autoSceneSwitcherId", UUIDSerializer.nullable.descriptor)
+            element("autoSceneSwitcherId", SettingsMacrosUuidSerializer.nullable.descriptor)
             element("zoomX", PrimitiveSerialDescriptor("Float", PrimitiveKind.FLOAT))
-            element("gimbalPresetId", UUIDSerializer.nullable.descriptor)
+            element("gimbalPresetId", SettingsMacrosUuidSerializer.nullable.descriptor)
             element("chatMessage", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
             element("delay", PrimitiveSerialDescriptor("Double", PrimitiveKind.DOUBLE))
-            element("macroId", UUIDSerializer.nullable.descriptor)
+            element("macroId", SettingsMacrosUuidSerializer.nullable.descriptor)
             element("djiDevices", uuidSetSerializer.descriptor)
             element("filters", quickButtonTypeSetSerializer.descriptor)
             element("record", PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN))
@@ -420,36 +420,36 @@ object SettingsMacrosActionSerializer : KSerializer<SettingsMacrosAction> {
             element("event", settingsMacrosEventSerializer.descriptor)
             element("eventMinimumAmount", PrimitiveSerialDescriptor("Int", PrimitiveKind.INT))
             element("eventText", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
-            element("eventSceneId", UUIDSerializer.nullable.descriptor)
+            element("eventSceneId", SettingsMacrosUuidSerializer.nullable.descriptor)
         }
 
     override fun serialize(encoder: Encoder, value: SettingsMacrosAction) {
         val composite = encoder.beginStructure(descriptor)
-        composite.encodeSerializableElement(descriptor, ID, UUIDSerializer, value.id)
+        composite.encodeSerializableElement(descriptor, ID, SettingsMacrosUuidSerializer, value.id)
         composite.encodeSerializableElement(
             descriptor,
             FUNCTION,
             settingsMacrosActionFunctionSerializer.nullable,
             value.function,
         )
-        composite.encodeSerializableElement(descriptor, SCENE_ID, UUIDSerializer.nullable, value.sceneId)
+        composite.encodeSerializableElement(descriptor, SCENE_ID, SettingsMacrosUuidSerializer.nullable, value.sceneId)
         composite.encodeSerializableElement(descriptor, SCENE_IDS, uuidSetSerializer, value.sceneIds)
         composite.encodeSerializableElement(
             descriptor,
             AUTO_SCENE_SWITCHER_ID,
-            UUIDSerializer.nullable,
+            SettingsMacrosUuidSerializer.nullable,
             value.autoSceneSwitcherId,
         )
         composite.encodeFloatElement(descriptor, ZOOM_X, value.zoomX)
         composite.encodeSerializableElement(
             descriptor,
             GIMBAL_PRESET_ID,
-            UUIDSerializer.nullable,
+            SettingsMacrosUuidSerializer.nullable,
             value.gimbalPresetId,
         )
         composite.encodeStringElement(descriptor, CHAT_MESSAGE, value.chatMessage)
         composite.encodeDoubleElement(descriptor, DELAY, value.delay)
-        composite.encodeSerializableElement(descriptor, MACRO_ID, UUIDSerializer.nullable, value.macroId)
+        composite.encodeSerializableElement(descriptor, MACRO_ID, SettingsMacrosUuidSerializer.nullable, value.macroId)
         composite.encodeSerializableElement(descriptor, DJI_DEVICES, uuidSetSerializer, value.djiDevices)
         composite.encodeSerializableElement(
             descriptor,
@@ -481,7 +481,7 @@ object SettingsMacrosActionSerializer : KSerializer<SettingsMacrosAction> {
         composite.encodeSerializableElement(
             descriptor,
             EVENT_SCENE_ID,
-            UUIDSerializer.nullable,
+            SettingsMacrosUuidSerializer.nullable,
             value.eventSceneId,
         )
         composite.endStructure(descriptor)
@@ -492,7 +492,7 @@ object SettingsMacrosActionSerializer : KSerializer<SettingsMacrosAction> {
         val value = SettingsMacrosAction()
         while (true) {
             when (val index = composite.decodeElementIndex(descriptor)) {
-                ID -> value.id = composite.decodeSerializableElement(descriptor, ID, UUIDSerializer)
+                ID -> value.id = composite.decodeSerializableElement(descriptor, ID, SettingsMacrosUuidSerializer)
                 FUNCTION -> value.function = composite.decodeSerializableElement(
                     descriptor,
                     FUNCTION,
@@ -502,7 +502,7 @@ object SettingsMacrosActionSerializer : KSerializer<SettingsMacrosAction> {
                 SCENE_ID -> value.sceneId = composite.decodeSerializableElement(
                     descriptor,
                     SCENE_ID,
-                    UUIDSerializer.nullable,
+                    SettingsMacrosUuidSerializer.nullable,
                     value.sceneId,
                 )
                 SCENE_IDS -> value.sceneIds =
@@ -510,14 +510,14 @@ object SettingsMacrosActionSerializer : KSerializer<SettingsMacrosAction> {
                 AUTO_SCENE_SWITCHER_ID -> value.autoSceneSwitcherId = composite.decodeSerializableElement(
                     descriptor,
                     AUTO_SCENE_SWITCHER_ID,
-                    UUIDSerializer.nullable,
+                    SettingsMacrosUuidSerializer.nullable,
                     value.autoSceneSwitcherId,
                 )
                 ZOOM_X -> value.zoomX = composite.decodeFloatElement(descriptor, ZOOM_X)
                 GIMBAL_PRESET_ID -> value.gimbalPresetId = composite.decodeSerializableElement(
                     descriptor,
                     GIMBAL_PRESET_ID,
-                    UUIDSerializer.nullable,
+                    SettingsMacrosUuidSerializer.nullable,
                     value.gimbalPresetId,
                 )
                 CHAT_MESSAGE -> value.chatMessage =
@@ -526,7 +526,7 @@ object SettingsMacrosActionSerializer : KSerializer<SettingsMacrosAction> {
                 MACRO_ID -> value.macroId = composite.decodeSerializableElement(
                     descriptor,
                     MACRO_ID,
-                    UUIDSerializer.nullable,
+                    SettingsMacrosUuidSerializer.nullable,
                     value.macroId,
                 )
                 DJI_DEVICES -> value.djiDevices =
@@ -565,7 +565,7 @@ object SettingsMacrosActionSerializer : KSerializer<SettingsMacrosAction> {
                 EVENT_SCENE_ID -> value.eventSceneId = composite.decodeSerializableElement(
                     descriptor,
                     EVENT_SCENE_ID,
-                    UUIDSerializer.nullable,
+                    SettingsMacrosUuidSerializer.nullable,
                     value.eventSceneId,
                 )
                 CompositeDecoder.DECODE_DONE -> break
@@ -790,7 +790,7 @@ object SettingsMacrosMacroSerializer : KSerializer<SettingsMacrosMacro> {
 
     override val descriptor: SerialDescriptor =
         buildClassSerialDescriptor("SettingsMacrosMacro") {
-            element("id", UUIDSerializer.descriptor)
+            element("id", SettingsMacrosUuidSerializer.descriptor)
             element("name", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
             element("actions", ListSerializer(SettingsMacrosActionSerializer).descriptor)
             element("repeatMode", settingsMacrosMacroRepeatModeSerializer.descriptor)
@@ -801,7 +801,7 @@ object SettingsMacrosMacroSerializer : KSerializer<SettingsMacrosMacro> {
 
     override fun serialize(encoder: Encoder, value: SettingsMacrosMacro) {
         val composite = encoder.beginStructure(descriptor)
-        composite.encodeSerializableElement(descriptor, ID, UUIDSerializer, value.id)
+        composite.encodeSerializableElement(descriptor, ID, SettingsMacrosUuidSerializer, value.id)
         composite.encodeStringElement(descriptor, NAME, value.name)
         composite.encodeSerializableElement(
             descriptor,
@@ -826,7 +826,7 @@ object SettingsMacrosMacroSerializer : KSerializer<SettingsMacrosMacro> {
         val value = SettingsMacrosMacro()
         while (true) {
             when (val index = composite.decodeElementIndex(descriptor)) {
-                ID -> value.id = composite.decodeSerializableElement(descriptor, ID, UUIDSerializer)
+                ID -> value.id = composite.decodeSerializableElement(descriptor, ID, SettingsMacrosUuidSerializer)
                 NAME -> value.name = composite.decodeStringElement(descriptor, NAME)
                 ACTIONS -> value.actions = composite.decodeSerializableElement(
                     descriptor,

@@ -2,6 +2,7 @@ package com.moblin.android.media.haishinkit.mpeg
 
 import com.moblin.android.media.haishinkit.util.ByteReader
 import com.moblin.android.media.haishinkit.util.ByteWriter
+import kotlin.math.roundToLong
 
 class OptionalHeader {
 
@@ -59,11 +60,11 @@ class OptionalHeader {
             ptsDtsIndicator = (ptsDtsIndicator.toInt() or 0x01).toUByte()
         }
         if ((ptsDtsIndicator.toInt() and 0x02) == 0x02) {
-            val value = (presentationTimeStamp / 1_000_000.0 * TSTimestamp.resolution).toLong()
+            val value = (presentationTimeStamp / 1_000_000.0 * TSTimestamp.resolution).roundToLong()
             optionalFields += TSTimestamp.encode(value, (ptsDtsIndicator.toInt() shl 4).toUByte())
         }
         if ((ptsDtsIndicator.toInt() and 0x01) == 0x01) {
-            val value = (decodeTimeStamp / 1_000_000.0 * TSTimestamp.resolution).toLong()
+            val value = (decodeTimeStamp / 1_000_000.0 * TSTimestamp.resolution).roundToLong()
             optionalFields += TSTimestamp.encode(value, (0x01 shl 4).toUByte())
         }
         pesHeaderLength = optionalFields.size.toUByte()
@@ -98,7 +99,7 @@ class OptionalHeader {
             return invalidTimestamp
         }
         val value = TSTimestamp.decode(optionalFields, 0) ?: return invalidTimestamp
-        return (value / TSTimestamp.resolution * 1_000_000.0).toLong()
+        return value * 1_000_000 / TSTimestamp.resolution.toLong()
     }
 
     fun getDecodeTimeStamp(): Long {
@@ -106,7 +107,7 @@ class OptionalHeader {
             return invalidTimestamp
         }
         val value = TSTimestamp.decode(optionalFields, TSTimestamp.dataSize) ?: return invalidTimestamp
-        return (value / TSTimestamp.resolution * 1_000_000.0).toLong()
+        return value * 1_000_000 / TSTimestamp.resolution.toLong()
     }
 }
 

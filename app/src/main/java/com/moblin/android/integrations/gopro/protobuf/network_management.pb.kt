@@ -1,5 +1,10 @@
 package com.moblin.android.integrations.gopro.protobuf
 
+import com.moblin.android.platform.swiftprotobuf.BinaryDecoder
+import com.moblin.android.platform.swiftprotobuf.BinaryEncodingVisitor
+import com.moblin.android.platform.swiftprotobuf.Message
+import com.moblin.android.platform.swiftprotobuf.merge
+
 enum class OpenGopro_EnumProvisioning(val rawValue: Int) {
     provisioningUnknown(0),
     provisioningNeverStarted(1),
@@ -100,7 +105,11 @@ enum class OpenGopro_EnumPairingFinishState(val rawValue: Int) {
     }
 }
 
-class OpenGopro_NotifProvisioningState {
+class OpenGopro_NotifProvisioningState() : Message {
+    constructor(serializedBytes: ByteArray) : this() {
+        merge(serializedBytes)
+    }
+
     var provisioningState: OpenGopro_EnumProvisioning
         get() = _provisioningState ?: OpenGopro_EnumProvisioning.provisioningUnknown
         set(value) {
@@ -114,19 +123,26 @@ class OpenGopro_NotifProvisioningState {
         _provisioningState = null
     }
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
     private var _provisioningState: OpenGopro_EnumProvisioning? = null
 
-    val isInitialized: Boolean
+    override val isInitialized: Boolean
         get() = _provisioningState != null
 
-    fun <D> decodeMessage(decoder: D) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeSingularEnumField { OpenGopro_EnumProvisioning.fromRawValue(it) }
+                    ?.let { _provisioningState = it }
+            }
+        }
     }
 
-    fun <V> traverse(visitor: V) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        _provisioningState?.let { visitor.visitSingularEnumField(it.rawValue, 1) }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -160,7 +176,11 @@ class OpenGopro_NotifProvisioningState {
     }
 }
 
-class OpenGopro_NotifStartScanning {
+class OpenGopro_NotifStartScanning() : Message {
+    constructor(serializedBytes: ByteArray) : this() {
+        merge(serializedBytes)
+    }
+
     var scanningState: OpenGopro_EnumScanning
         get() = _scanningState ?: OpenGopro_EnumScanning.scanningUnknown
         set(value) {
@@ -213,14 +233,14 @@ class OpenGopro_NotifStartScanning {
         _totalConfiguredSsid = null
     }
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
     private var _scanningState: OpenGopro_EnumScanning? = null
     private var _scanID: Int? = null
     private var _totalEntries: Int? = null
     private var _totalConfiguredSsid: Int? = null
 
-    val isInitialized: Boolean
+    override val isInitialized: Boolean
         get() {
             if (_scanningState == null) {
                 return false
@@ -231,12 +251,25 @@ class OpenGopro_NotifStartScanning {
             return true
         }
 
-    fun <D> decodeMessage(decoder: D) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeSingularEnumField { OpenGopro_EnumScanning.fromRawValue(it) }
+                    ?.let { _scanningState = it }
+                2 -> decoder.decodeSingularInt32Field()?.let { _scanID = it }
+                3 -> decoder.decodeSingularInt32Field()?.let { _totalEntries = it }
+                4 -> decoder.decodeSingularInt32Field()?.let { _totalConfiguredSsid = it }
+            }
+        }
     }
 
-    fun <V> traverse(visitor: V) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        _scanningState?.let { visitor.visitSingularEnumField(it.rawValue, 1) }
+        _scanID?.let { visitor.visitSingularInt32Field(it, 2) }
+        _totalEntries?.let { visitor.visitSingularInt32Field(it, 3) }
+        _totalConfiguredSsid?.let { visitor.visitSingularInt32Field(it, 4) }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -285,7 +318,7 @@ class OpenGopro_NotifStartScanning {
     }
 }
 
-class OpenGopro_RequestConnect {
+class OpenGopro_RequestConnect : Message {
     var ssid: String
         get() = _ssid ?: ""
         set(value) {
@@ -299,19 +332,25 @@ class OpenGopro_RequestConnect {
         _ssid = null
     }
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
     private var _ssid: String? = null
 
-    val isInitialized: Boolean
+    override val isInitialized: Boolean
         get() = _ssid != null
 
-    fun <D> decodeMessage(decoder: D) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeSingularStringField()?.let { _ssid = it }
+            }
+        }
     }
 
-    fun <V> traverse(visitor: V) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        _ssid?.let { visitor.visitSingularStringField(it, 1) }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -345,7 +384,7 @@ class OpenGopro_RequestConnect {
     }
 }
 
-class OpenGopro_RequestConnectNew {
+class OpenGopro_RequestConnectNew : Message {
     var ssid: String
         get() = _ssid ?: ""
         set(value) {
@@ -450,7 +489,7 @@ class OpenGopro_RequestConnectNew {
         _bypassEulaCheck = null
     }
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
     private var _ssid: String? = null
     private var _password: String? = null
@@ -461,7 +500,7 @@ class OpenGopro_RequestConnectNew {
     private var _dnsSecondary: ByteArray? = null
     private var _bypassEulaCheck: Boolean? = null
 
-    val isInitialized: Boolean
+    override val isInitialized: Boolean
         get() {
             if (_ssid == null) {
                 return false
@@ -472,12 +511,32 @@ class OpenGopro_RequestConnectNew {
             return true
         }
 
-    fun <D> decodeMessage(decoder: D) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeSingularStringField()?.let { _ssid = it }
+                2 -> decoder.decodeSingularStringField()?.let { _password = it }
+                3 -> decoder.decodeSingularBytesField()?.let { _staticIp = it }
+                4 -> decoder.decodeSingularBytesField()?.let { _gateway = it }
+                5 -> decoder.decodeSingularBytesField()?.let { _subnet = it }
+                6 -> decoder.decodeSingularBytesField()?.let { _dnsPrimary = it }
+                7 -> decoder.decodeSingularBytesField()?.let { _dnsSecondary = it }
+                10 -> decoder.decodeSingularBoolField()?.let { _bypassEulaCheck = it }
+            }
+        }
     }
 
-    fun <V> traverse(visitor: V) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        _ssid?.let { visitor.visitSingularStringField(it, 1) }
+        _password?.let { visitor.visitSingularStringField(it, 2) }
+        _staticIp?.let { visitor.visitSingularBytesField(it, 3) }
+        _gateway?.let { visitor.visitSingularBytesField(it, 4) }
+        _subnet?.let { visitor.visitSingularBytesField(it, 5) }
+        _dnsPrimary?.let { visitor.visitSingularBytesField(it, 6) }
+        _dnsSecondary?.let { visitor.visitSingularBytesField(it, 7) }
+        _bypassEulaCheck?.let { visitor.visitSingularBoolField(it, 10) }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -546,7 +605,7 @@ class OpenGopro_RequestConnectNew {
     }
 }
 
-class OpenGopro_RequestGetApEntries {
+class OpenGopro_RequestGetApEntries : Message {
     var startIndex: Int
         get() = _startIndex ?: 0
         set(value) {
@@ -586,13 +645,13 @@ class OpenGopro_RequestGetApEntries {
         _scanID = null
     }
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
     private var _startIndex: Int? = null
     private var _maxEntries: Int? = null
     private var _scanID: Int? = null
 
-    val isInitialized: Boolean
+    override val isInitialized: Boolean
         get() {
             if (_startIndex == null) {
                 return false
@@ -606,12 +665,22 @@ class OpenGopro_RequestGetApEntries {
             return true
         }
 
-    fun <D> decodeMessage(decoder: D) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeSingularInt32Field()?.let { _startIndex = it }
+                2 -> decoder.decodeSingularInt32Field()?.let { _maxEntries = it }
+                3 -> decoder.decodeSingularInt32Field()?.let { _scanID = it }
+            }
+        }
     }
 
-    fun <V> traverse(visitor: V) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        _startIndex?.let { visitor.visitSingularInt32Field(it, 1) }
+        _maxEntries?.let { visitor.visitSingularInt32Field(it, 2) }
+        _scanID?.let { visitor.visitSingularInt32Field(it, 3) }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -693,18 +762,20 @@ class OpenGopro_RequestReleaseNetwork {
     }
 }
 
-class OpenGopro_RequestStartScan {
-    var unknownFields: ByteArray = ByteArray(0)
+class OpenGopro_RequestStartScan : Message {
+    override var unknownFields: ByteArray = ByteArray(0)
 
-    val isInitialized: Boolean
+    override val isInitialized: Boolean
         get() = true
 
-    fun <D> decodeMessage(decoder: D) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (decoder.nextFieldNumber() != null) {
+            Unit
+        }
     }
 
-    fun <V> traverse(visitor: V) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -731,7 +802,11 @@ class OpenGopro_RequestStartScan {
     }
 }
 
-class OpenGopro_ResponseConnect {
+class OpenGopro_ResponseConnect() : Message {
+    constructor(serializedBytes: ByteArray) : this() {
+        merge(serializedBytes)
+    }
+
     var result: OpenGopro_EnumResultGeneric
         get() = _result ?: OpenGopro_EnumResultGeneric.resultUnknown
         set(value) {
@@ -771,13 +846,13 @@ class OpenGopro_ResponseConnect {
         _timeoutSeconds = null
     }
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
     private var _result: OpenGopro_EnumResultGeneric? = null
     private var _provisioningState: OpenGopro_EnumProvisioning? = null
     private var _timeoutSeconds: Int? = null
 
-    val isInitialized: Boolean
+    override val isInitialized: Boolean
         get() {
             if (_result == null) {
                 return false
@@ -791,12 +866,24 @@ class OpenGopro_ResponseConnect {
             return true
         }
 
-    fun <D> decodeMessage(decoder: D) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeSingularEnumField { OpenGopro_EnumResultGeneric.fromRawValue(it) }
+                    ?.let { _result = it }
+                2 -> decoder.decodeSingularEnumField { OpenGopro_EnumProvisioning.fromRawValue(it) }
+                    ?.let { _provisioningState = it }
+                3 -> decoder.decodeSingularInt32Field()?.let { _timeoutSeconds = it }
+            }
+        }
     }
 
-    fun <V> traverse(visitor: V) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        _result?.let { visitor.visitSingularEnumField(it.rawValue, 1) }
+        _provisioningState?.let { visitor.visitSingularEnumField(it.rawValue, 2) }
+        _timeoutSeconds?.let { visitor.visitSingularInt32Field(it, 3) }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -949,7 +1036,11 @@ class OpenGopro_ResponseConnectNew {
     }
 }
 
-class OpenGopro_ResponseGetApEntries {
+class OpenGopro_ResponseGetApEntries() : Message {
+    constructor(serializedBytes: ByteArray) : this() {
+        merge(serializedBytes)
+    }
+
     var result: OpenGopro_EnumResultGeneric
         get() = _result ?: OpenGopro_EnumResultGeneric.resultUnknown
         set(value) {
@@ -978,9 +1069,9 @@ class OpenGopro_ResponseGetApEntries {
 
     var entries: MutableList<ScanEntry> = mutableListOf()
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
-    class ScanEntry {
+    class ScanEntry : Message {
         var ssid: String
             get() = _ssid ?: ""
             set(value) {
@@ -1033,14 +1124,14 @@ class OpenGopro_ResponseGetApEntries {
             _scanEntryFlags = null
         }
 
-        var unknownFields: ByteArray = ByteArray(0)
+        override var unknownFields: ByteArray = ByteArray(0)
 
         private var _ssid: String? = null
         private var _signalStrengthBars: Int? = null
         private var _signalFrequencyMhz: Int? = null
         private var _scanEntryFlags: Int? = null
 
-        val isInitialized: Boolean
+        override val isInitialized: Boolean
             get() {
                 if (_ssid == null) {
                     return false
@@ -1057,12 +1148,24 @@ class OpenGopro_ResponseGetApEntries {
                 return true
             }
 
-        fun <D> decodeMessage(decoder: D) {
-            Unit
+        override fun decodeMessage(decoder: BinaryDecoder) {
+            while (true) {
+                val fieldNumber = decoder.nextFieldNumber() ?: break
+                when (fieldNumber) {
+                    1 -> decoder.decodeSingularStringField()?.let { _ssid = it }
+                    2 -> decoder.decodeSingularInt32Field()?.let { _signalStrengthBars = it }
+                    4 -> decoder.decodeSingularInt32Field()?.let { _signalFrequencyMhz = it }
+                    5 -> decoder.decodeSingularInt32Field()?.let { _scanEntryFlags = it }
+                }
+            }
         }
 
-        fun <V> traverse(visitor: V) {
-            Unit
+        override fun traverse(visitor: BinaryEncodingVisitor) {
+            _ssid?.let { visitor.visitSingularStringField(it, 1) }
+            _signalStrengthBars?.let { visitor.visitSingularInt32Field(it, 2) }
+            _signalFrequencyMhz?.let { visitor.visitSingularInt32Field(it, 4) }
+            _scanEntryFlags?.let { visitor.visitSingularInt32Field(it, 5) }
+            visitor.visitUnknown(unknownFields)
         }
 
         override fun equals(other: Any?): Boolean {
@@ -1115,7 +1218,7 @@ class OpenGopro_ResponseGetApEntries {
     private var _result: OpenGopro_EnumResultGeneric? = null
     private var _scanID: Int? = null
 
-    val isInitialized: Boolean
+    override val isInitialized: Boolean
         get() {
             if (_result == null) {
                 return false
@@ -1129,12 +1232,25 @@ class OpenGopro_ResponseGetApEntries {
             return true
         }
 
-    fun <D> decodeMessage(decoder: D) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeSingularEnumField { OpenGopro_EnumResultGeneric.fromRawValue(it) }
+                    ?.let { _result = it }
+                2 -> decoder.decodeSingularInt32Field()?.let { _scanID = it }
+                3 -> decoder.decodeRepeatedMessageField(entries) { ScanEntry() }
+            }
+        }
     }
 
-    fun <V> traverse(visitor: V) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        _result?.let { visitor.visitSingularEnumField(it.rawValue, 1) }
+        _scanID?.let { visitor.visitSingularInt32Field(it, 2) }
+        if (entries.isNotEmpty()) {
+            visitor.visitRepeatedMessageField(entries, 3)
+        }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -1178,7 +1294,11 @@ class OpenGopro_ResponseGetApEntries {
     }
 }
 
-class OpenGopro_ResponseStartScanning {
+class OpenGopro_ResponseStartScanning() : Message {
+    constructor(serializedBytes: ByteArray) : this() {
+        merge(serializedBytes)
+    }
+
     var result: OpenGopro_EnumResultGeneric
         get() = _result ?: OpenGopro_EnumResultGeneric.resultUnknown
         set(value) {
@@ -1205,12 +1325,12 @@ class OpenGopro_ResponseStartScanning {
         _scanningState = null
     }
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
     private var _result: OpenGopro_EnumResultGeneric? = null
     private var _scanningState: OpenGopro_EnumScanning? = null
 
-    val isInitialized: Boolean
+    override val isInitialized: Boolean
         get() {
             if (_result == null) {
                 return false
@@ -1221,12 +1341,22 @@ class OpenGopro_ResponseStartScanning {
             return true
         }
 
-    fun <D> decodeMessage(decoder: D) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeSingularEnumField { OpenGopro_EnumResultGeneric.fromRawValue(it) }
+                    ?.let { _result = it }
+                2 -> decoder.decodeSingularEnumField { OpenGopro_EnumScanning.fromRawValue(it) }
+                    ?.let { _scanningState = it }
+            }
+        }
     }
 
-    fun <V> traverse(visitor: V) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        _result?.let { visitor.visitSingularEnumField(it.rawValue, 1) }
+        _scanningState?.let { visitor.visitSingularEnumField(it.rawValue, 2) }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -1265,7 +1395,7 @@ class OpenGopro_ResponseStartScanning {
     }
 }
 
-class OpenGopro_RequestPairingFinish {
+class OpenGopro_RequestPairingFinish : Message {
     var result: OpenGopro_EnumPairingFinishState
         get() = _result ?: OpenGopro_EnumPairingFinishState.success
         set(value) {
@@ -1292,12 +1422,12 @@ class OpenGopro_RequestPairingFinish {
         _phoneName = null
     }
 
-    var unknownFields: ByteArray = ByteArray(0)
+    override var unknownFields: ByteArray = ByteArray(0)
 
     private var _result: OpenGopro_EnumPairingFinishState? = null
     private var _phoneName: String? = null
 
-    val isInitialized: Boolean
+    override val isInitialized: Boolean
         get() {
             if (_result == null) {
                 return false
@@ -1308,12 +1438,21 @@ class OpenGopro_RequestPairingFinish {
             return true
         }
 
-    fun <D> decodeMessage(decoder: D) {
-        Unit
+    override fun decodeMessage(decoder: BinaryDecoder) {
+        while (true) {
+            val fieldNumber = decoder.nextFieldNumber() ?: break
+            when (fieldNumber) {
+                1 -> decoder.decodeSingularEnumField { OpenGopro_EnumPairingFinishState.fromRawValue(it) }
+                    ?.let { _result = it }
+                2 -> decoder.decodeSingularStringField()?.let { _phoneName = it }
+            }
+        }
     }
 
-    fun <V> traverse(visitor: V) {
-        Unit
+    override fun traverse(visitor: BinaryEncodingVisitor) {
+        _result?.let { visitor.visitSingularEnumField(it.rawValue, 1) }
+        _phoneName?.let { visitor.visitSingularStringField(it, 2) }
+        visitor.visitUnknown(unknownFields)
     }
 
     override fun equals(other: Any?): Boolean {

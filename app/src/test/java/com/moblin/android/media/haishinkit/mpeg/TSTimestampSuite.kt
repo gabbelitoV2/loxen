@@ -1,5 +1,6 @@
 package com.moblin.android.media.haishinkit.mpeg
 
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import org.junit.Test
@@ -10,7 +11,7 @@ import org.robolectric.RobolectricTestRunner
 class TSTimestampSuite {
     @Test
     fun encodeKnownValue() {
-        assertEquals(
+        assertContentEquals(
             byteArrayOf(0x29, 0x8D.toByte(), 0x15, 0xCF.toByte(), 0x13),
             TSTimestamp.encode(0x1_2345_6789L, 0x20u),
         )
@@ -18,7 +19,7 @@ class TSTimestampSuite {
 
     @Test
     fun encodeMaximumValue() {
-        assertEquals(
+        assertContentEquals(
             byteArrayOf(0x3F, 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()),
             TSTimestamp.encode(0x1_FFFF_FFFFL, 0x30u),
         )
@@ -26,7 +27,7 @@ class TSTimestampSuite {
 
     @Test
     fun encodeZero() {
-        assertEquals(
+        assertContentEquals(
             byteArrayOf(0x11, 0x00, 0x01, 0x00, 0x01),
             TSTimestamp.encode(0L, 0x10u),
         )
@@ -43,7 +44,7 @@ class TSTimestampSuite {
     @Test
     fun encodeNegativeValue() {
         val encoded = TSTimestamp.encode(-1L, 0x20u)
-        assertEquals(
+        assertContentEquals(
             byteArrayOf(0x2F, 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte()),
             encoded,
         )

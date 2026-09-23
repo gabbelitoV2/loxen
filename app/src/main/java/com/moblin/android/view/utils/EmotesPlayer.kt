@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import com.moblin.android.AppDelegate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -321,23 +322,7 @@ private class AnimatedEmote(
 
 class EmotesPlayer private constructor(private val context: Context) {
     companion object {
-        @Volatile
-        private var instance: EmotesPlayer? = null
-
-        val shared: EmotesPlayer
-            get() = instance ?: throw IllegalStateException(
-                "EmotesPlayer.initialize(context) must be called first",
-            )
-
-        fun initialize(context: Context): EmotesPlayer {
-            val existing = instance
-            if (existing != null) {
-                return existing
-            }
-            val player = EmotesPlayer(context.applicationContext)
-            instance = player
-            return player
-        }
+        val shared: EmotesPlayer by lazy { EmotesPlayer(AppDelegate.context) }
     }
 
     val sizesVersion = MutableStateFlow(0)

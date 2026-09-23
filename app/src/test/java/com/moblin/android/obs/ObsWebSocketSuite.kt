@@ -1,7 +1,12 @@
 package com.moblin.android.obs
 
+import android.os.Looper
 import com.moblin.android.MessageQueue
 import com.moblin.android.areEqual
+import java.time.Duration
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import kotlin.test.assertContentEquals
@@ -13,6 +18,20 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
+
+private fun runMainTest(block: suspend CoroutineScope.() -> Unit) {
+    val looper = shadowOf(Looper.getMainLooper())
+    val test = CoroutineScope(Dispatchers.Main).async(block = block)
+    var last = System.nanoTime()
+    while (!test.isCompleted) {
+        Thread.sleep(1)
+        val now = System.nanoTime()
+        looper.idleFor(Duration.ofNanos(now - last))
+        last = now
+    }
+    runBlocking { test.await() }
+}
 
 private sealed interface CompletionResult<out Value> {
     class Success<out Value>(val value: Value) : CompletionResult<Value>
@@ -118,7 +137,7 @@ private class Connection(
 @RunWith(RobolectricTestRunner::class)
 class ObsWebSocketSuite {
     @Test
-    fun connectWithoutAuthentication() = runBlocking<Unit> {
+    fun connectWithoutAuthentication() = runMainTest {
         val connection = Connection.make()
         assertFalse(connection.obs.isConnected())
         connection.server.acceptConnection()
@@ -135,7 +154,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun connectWithAuthentication() = runBlocking<Unit> {
+    fun connectWithAuthentication() = runMainTest {
         val connection = Connection.make(serverPassword = "secret", clientPassword = "secret")
         connection.server.acceptConnection()
         connection.server.sendHello()
@@ -149,7 +168,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun wrongPassword() = runBlocking<Unit> {
+    fun wrongPassword() = runMainTest {
         val connection = Connection.make(serverPassword = "secret", clientPassword = "wrong")
         connection.server.acceptConnection()
         connection.server.sendHello()
@@ -164,7 +183,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun reconnectAfterServerDisconnect() = runBlocking<Unit> {
+    fun reconnectAfterServerDisconnect() = runMainTest {
         val connection = Connection.makeConnected()
         connection.server.disconnect()
         connection.server.connect()
@@ -175,7 +194,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun restart() = runBlocking<Unit> {
+    fun restart() = runMainTest {
         val connection = Connection.makeConnected()
         connection.obs.stop()
         connection.obs.start()
@@ -186,7 +205,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun requestWhenNotConnected() = runBlocking<Unit> {
+    fun requestWhenNotConnected() = runMainTest {
         val connection = Connection.make()
         val completion = Completion<ObsSceneList>()
         connection.obs.getSceneList(onSuccess = completion::onSuccess, onError = completion::onError)
@@ -195,7 +214,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun getSceneList() = runBlocking<Unit> {
+    fun getSceneList() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<ObsSceneList>()
         connection.obs.getSceneList(onSuccess = completion::onSuccess, onError = completion::onError)
@@ -212,7 +231,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun requestIdsIncrement() = runBlocking<Unit> {
+    fun requestIdsIncrement() = runMainTest {
         val connection = Connection.makeConnected()
         val first = Completion<ObsSceneList>()
         val second = Completion<ObsSceneList>()
@@ -230,7 +249,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun requestErrorWithComment() = runBlocking<Unit> {
+    fun requestErrorWithComment() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<ObsSceneList>()
         connection.obs.getSceneList(onSuccess = completion::onSuccess, onError = completion::onError)
@@ -241,7 +260,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun requestErrorWithoutComment() = runBlocking<Unit> {
+    fun requestErrorWithoutComment() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<ObsSceneList>()
         connection.obs.getSceneList(onSuccess = completion::onSuccess, onError = completion::onError)
@@ -252,7 +271,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun requestErrorWithUnknownCode() = runBlocking<Unit> {
+    fun requestErrorWithUnknownCode() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<ObsSceneList>()
         connection.obs.getSceneList(onSuccess = completion::onSuccess, onError = completion::onError)
@@ -263,7 +282,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun responseDataMissing() = runBlocking<Unit> {
+    fun responseDataMissing() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<ObsSceneList>()
         connection.obs.getSceneList(onSuccess = completion::onSuccess, onError = completion::onError)
@@ -274,7 +293,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun responseDataMalformed() = runBlocking<Unit> {
+    fun responseDataMalformed() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<ObsSceneList>()
         connection.obs.getSceneList(onSuccess = completion::onSuccess, onError = completion::onError)
@@ -285,7 +304,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun getSceneItemList() = runBlocking<Unit> {
+    fun getSceneItemList() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<List<GetSceneItemListItem>>()
         connection.obs.getSceneItemList(
@@ -313,7 +332,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun getSpecialInputs() = runBlocking<Unit> {
+    fun getSpecialInputs() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<GetSpecialInputsResponse>()
         connection.obs.getSpecialInputs(onSuccess = completion::onSuccess, onError = completion::onError)
@@ -327,7 +346,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun getInputList() = runBlocking<Unit> {
+    fun getInputList() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<List<String>>()
         connection.obs.getInputList(onSuccess = completion::onSuccess, onError = completion::onError)
@@ -341,7 +360,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun setCurrentProgramScene() = runBlocking<Unit> {
+    fun setCurrentProgramScene() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.setCurrentProgramScene(
@@ -359,7 +378,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun setMediaSourceSettings() = runBlocking<Unit> {
+    fun setMediaSourceSettings() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.setMediaSourceSettings(
@@ -378,7 +397,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun setInputSettings() = runBlocking<Unit> {
+    fun setInputSettings() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.setInputSettings(
@@ -396,7 +415,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun getStreamStatus() = runBlocking<Unit> {
+    fun getStreamStatus() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<ObsStreamStatus>()
         connection.obs.getStreamStatus(onSuccess = completion::onSuccess, onError = completion::onError)
@@ -410,7 +429,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun getRecordStatus() = runBlocking<Unit> {
+    fun getRecordStatus() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<ObsRecordStatus>()
         connection.obs.getRecordStatus(onSuccess = completion::onSuccess, onError = completion::onError)
@@ -424,7 +443,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun startStream() = runBlocking<Unit> {
+    fun startStream() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.startStream(onSuccess = { completion.onSuccess() }, onError = completion::onError)
@@ -435,7 +454,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun startStreamAlreadyStreaming() = runBlocking<Unit> {
+    fun startStreamAlreadyStreaming() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.startStream(onSuccess = { completion.onSuccess() }, onError = completion::onError)
@@ -446,7 +465,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun startStreamOtherError() = runBlocking<Unit> {
+    fun startStreamOtherError() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.startStream(onSuccess = { completion.onSuccess() }, onError = completion::onError)
@@ -457,7 +476,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun stopStream() = runBlocking<Unit> {
+    fun stopStream() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.stopStream(onSuccess = { completion.onSuccess() }, onError = completion::onError)
@@ -468,7 +487,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun stopStreamNotStreaming() = runBlocking<Unit> {
+    fun stopStreamNotStreaming() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.stopStream(onSuccess = { completion.onSuccess() }, onError = completion::onError)
@@ -479,7 +498,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun startRecord() = runBlocking<Unit> {
+    fun startRecord() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.startRecord(onSuccess = { completion.onSuccess() }, onError = completion::onError)
@@ -490,7 +509,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun startRecordAlreadyRecording() = runBlocking<Unit> {
+    fun startRecordAlreadyRecording() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.startRecord(onSuccess = { completion.onSuccess() }, onError = completion::onError)
@@ -501,7 +520,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun stopRecord() = runBlocking<Unit> {
+    fun stopRecord() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.stopRecord(onSuccess = { completion.onSuccess() }, onError = completion::onError)
@@ -512,7 +531,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun stopRecordNotRecording() = runBlocking<Unit> {
+    fun stopRecordNotRecording() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.stopRecord(onSuccess = { completion.onSuccess() }, onError = completion::onError)
@@ -523,7 +542,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun getSourceScreenshot() = runBlocking<Unit> {
+    fun getSourceScreenshot() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<ByteArray>()
         connection.obs.getSourceScreenshot(
@@ -541,7 +560,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun getSourceScreenshotBadBase64() = runBlocking<Unit> {
+    fun getSourceScreenshotBadBase64() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<ByteArray>()
         connection.obs.getSourceScreenshot(
@@ -556,7 +575,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun setInputAudioSyncOffset() = runBlocking<Unit> {
+    fun setInputAudioSyncOffset() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.setInputAudioSyncOffset(
@@ -575,7 +594,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun getInputAudioSyncOffset() = runBlocking<Unit> {
+    fun getInputAudioSyncOffset() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Int>()
         connection.obs.getInputAudioSyncOffset(
@@ -593,7 +612,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun setInputMute() = runBlocking<Unit> {
+    fun setInputMute() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<Unit>()
         connection.obs.setInputMute(
@@ -612,7 +631,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun getInputMuteBatch() = runBlocking<Unit> {
+    fun getInputMuteBatch() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<List<Boolean?>>()
         connection.obs.getInputMuteBatch(
@@ -645,7 +664,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun getInputMuteBatchMalformedResult() = runBlocking<Unit> {
+    fun getInputMuteBatchMalformedResult() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<List<Boolean?>>()
         connection.obs.getInputMuteBatch(
@@ -660,7 +679,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun getMediaSourcesSettingsBatch() = runBlocking<Unit> {
+    fun getMediaSourcesSettingsBatch() = runMainTest {
         val connection = Connection.makeConnected()
         val completion = Completion<List<Pair<String, Boolean>?>>()
         connection.obs.getMediaSourcesSettingsBatch(
@@ -706,7 +725,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun audioVolumeSubscription() = runBlocking<Unit> {
+    fun audioVolumeSubscription() = runMainTest {
         val connection = Connection.makeConnected()
         connection.obs.startAudioVolume()
         assertEquals(0x107FF, connection.server.receiveReidentify().toInt())
@@ -716,7 +735,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun sceneChangedEvent() = runBlocking<Unit> {
+    fun sceneChangedEvent() = runMainTest {
         val connection = Connection.makeConnected()
         connection.server.sendEvent(
             type = "CurrentProgramSceneChanged",
@@ -728,7 +747,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun streamStateChangedEvents() = runBlocking<Unit> {
+    fun streamStateChangedEvents() = runMainTest {
         val connection = Connection.makeConnected()
         for ((outputActive, outputState, expected) in listOf(
             Triple(false, "OBS_WEBSOCKET_OUTPUT_STARTING", ObsOutputState.starting),
@@ -751,7 +770,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun recordStateChangedEvents() = runBlocking<Unit> {
+    fun recordStateChangedEvents() = runMainTest {
         val connection = Connection.makeConnected()
         for ((outputActive, outputState, expected) in listOf(
             Triple(false, "OBS_WEBSOCKET_OUTPUT_STARTING", ObsOutputState.starting),
@@ -774,7 +793,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun inputMuteStateChangedEvent() = runBlocking<Unit> {
+    fun inputMuteStateChangedEvent() = runMainTest {
         val connection = Connection.makeConnected()
         connection.server.sendEvent(
             type = "InputMuteStateChanged",
@@ -788,7 +807,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun inputVolumeMetersEvent() = runBlocking<Unit> {
+    fun inputVolumeMetersEvent() = runMainTest {
         val connection = Connection.makeConnected()
         connection.server.sendEvent(
             type = "InputVolumeMeters",
@@ -807,7 +826,7 @@ class ObsWebSocketSuite {
     }
 
     @Test
-    fun ignoresUnexpectedMessages() = runBlocking<Unit> {
+    fun ignoresUnexpectedMessages() = runMainTest {
         val connection = Connection.makeConnected()
         connection.server.send(text = "not json")
         connection.server.send(text = "[1, 2, 3]")

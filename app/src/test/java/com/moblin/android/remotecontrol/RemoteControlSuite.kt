@@ -2,6 +2,8 @@ package com.moblin.android.remotecontrol
 
 import com.moblin.android.various.Variables
 import com.moblin.android.various.managers.GForce
+import com.moblin.android.various.settings.SettingsGimbalMotion
+import java.math.BigDecimal
 import java.time.Instant
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -24,7 +26,10 @@ class RemoteControlSuite {
         explicitNulls = false
     }
 
-    private inline fun <reified T> encode(value: T, prettyPrint: Boolean = false): String =
+    private fun encode(request: RemoteControlRequest): String =
+        formatJson(request.toJsonElement(), prettyPrint = false)
+
+    private inline fun <reified T> encode(value: T, prettyPrint: Boolean): String =
         formatJson(json.encodeToJsonElement(value), prettyPrint)
 
     @Test
@@ -34,8 +39,7 @@ class RemoteControlSuite {
         assertEquals("""{"setGimbalMovement":{"x":1,"y":-1}}""",
                      encode(RemoteControlRequest.SetGimbalMovement(x = 1f, y = -1f)))
         assertEquals("""{"animateGimbal":{"motion":{"kapow":{}}}}""",
-                     encode(RemoteControlRequest.AnimateGimbal(
-                         motion = TODO("GimbalMotion"))))
+                     encode(RemoteControlRequest.AnimateGimbal(motion = SettingsGimbalMotion.KAPOW)))
         assertEquals("""{"saveGimbalPreset":{}}""",
                      encode(RemoteControlRequest.SaveGimbalPreset))
     }
@@ -371,8 +375,15 @@ class RemoteControlSuite {
                 element.joinToString(",", "[", "]") { value -> formatJson(value, false, indent) }
             }
         }
-        is JsonPrimitive -> if (element.isString) quoteJson(element.content) else element.content
+        is JsonPrimitive -> if (element.isString) quoteJson(element.content) else formatNumber(element.content)
         else -> throw IllegalStateException("Unsupported JSON element")
+    }
+
+    private fun formatNumber(content: String): String {
+        if (content.toDoubleOrNull() == null || content.none { it == '.' || it == 'e' || it == 'E' }) {
+            return content
+        }
+        return BigDecimal(content).stripTrailingZeros().toPlainString()
     }
 
     private fun quoteJson(value: String): String {

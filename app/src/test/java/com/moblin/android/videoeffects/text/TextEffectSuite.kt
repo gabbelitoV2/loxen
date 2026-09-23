@@ -9,8 +9,10 @@ import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
+@Config(qualifiers = "en-rSE")
 class TextEffectSuite {
     @Test
     fun time() {
@@ -34,7 +36,7 @@ class TextEffectSuite {
             format = "{conditions}",
             variables = createVariables(
                 conditions = "sun.max",
-                condition = TODO("no Android counterpart for WeatherKit")
+                condition = "Clear"
             )
         )
         assertEquals(
@@ -185,13 +187,13 @@ class TextEffectSuite {
     @Test
     fun distance() {
         var lines = format(format = "{distance:m}", variables = createVariables())
-        assertEquals(createLine(data = TextEffectPartData.Text("1 700 m")), lines)
+        assertEquals(createLine(data = TextEffectPartData.Text("1 700 m")), lines)
         lines = format(format = "{distance:km}", variables = createVariables())
         assertEquals(createLine(data = TextEffectPartData.Text("2 km")), lines)
         lines = format(format = "{distance:yd}", variables = createVariables())
-        assertEquals(createLine(data = TextEffectPartData.Text("1 859 yd")), lines)
+        assertEquals(createLine(data = TextEffectPartData.Text("1 859 yd")), lines)
         lines = format(format = "{distance:ft}", variables = createVariables())
-        assertEquals(createLine(data = TextEffectPartData.Text("5 577 ft")), lines)
+        assertEquals(createLine(data = TextEffectPartData.Text("5 577 ft")), lines)
         lines = format(format = "{distance:mi}", variables = createVariables())
         assertEquals(createLine(data = TextEffectPartData.Text("1 mi")), lines)
         lines = format(format = "{distance:nmi}", variables = createVariables())
@@ -202,19 +204,19 @@ class TextEffectSuite {
         lines = format(format = "{distance:mi} {distance} {distance:m}", variables = createVariables())
         assertEquals(createLine(data = TextEffectPartData.Text("1 mi"))[0].parts[0], lines[0].parts[0])
         assertEquals(systemPart[0].parts[0].data, lines[0].parts[2].data)
-        assertEquals(createLine(data = TextEffectPartData.Text("1 700 m"))[0].parts[0].data, lines[0].parts[4].data)
+        assertEquals(createLine(data = TextEffectPartData.Text("1 700 m"))[0].parts[0].data, lines[0].parts[4].data)
     }
 
     @Test
     fun splitDistance() {
         var lines = format(format = "{splitDistance:m}", variables = createVariables())
-        assertEquals(createLine(data = TextEffectPartData.Text("5 400 m")), lines)
+        assertEquals(createLine(data = TextEffectPartData.Text("5 400 m")), lines)
         lines = format(format = "{splitDistance:km}", variables = createVariables())
         assertEquals(createLine(data = TextEffectPartData.Text("5 km")), lines)
         lines = format(format = "{splitDistance:yd}", variables = createVariables())
-        assertEquals(createLine(data = TextEffectPartData.Text("5 906 yd")), lines)
+        assertEquals(createLine(data = TextEffectPartData.Text("5 906 yd")), lines)
         lines = format(format = "{splitDistance:ft}", variables = createVariables())
-        assertEquals(createLine(data = TextEffectPartData.Text("17 717 ft")), lines)
+        assertEquals(createLine(data = TextEffectPartData.Text("17 717 ft")), lines)
         lines = format(format = "{splitDistance:mi}", variables = createVariables())
         assertEquals(createLine(data = TextEffectPartData.Text("3 mi")), lines)
         lines = format(format = "{splitDistance:nmi}", variables = createVariables())
@@ -228,7 +230,7 @@ class TextEffectSuite {
         )
         assertEquals(createLine(data = TextEffectPartData.Text("3 mi"))[0].parts[0], lines[0].parts[0])
         assertEquals(systemPart[0].parts[0].data, lines[0].parts[2].data)
-        assertEquals(createLine(data = TextEffectPartData.Text("5 400 m"))[0].parts[0].data, lines[0].parts[4].data)
+        assertEquals(createLine(data = TextEffectPartData.Text("5 400 m"))[0].parts[0].data, lines[0].parts[4].data)
     }
 
     @Test
@@ -260,13 +262,13 @@ class TextEffectSuite {
     fun loadFormatSpeed() {
         val loader = TextFormatLoader()
         var parts = loader.load(inputFormat = "{speed}")
-        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.fromString("")!!)), parts)
+        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.system)), parts)
         parts = loader.load(inputFormat = "{speed:m/s}")
-        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.fromString("m/s")!!)), parts)
+        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.metersPerSecond)), parts)
         parts = loader.load(inputFormat = "{speed:km/h}")
-        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.fromString("km/h")!!)), parts)
+        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.kilometersPerHour)), parts)
         parts = loader.load(inputFormat = "{speed:mph}")
-        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.fromString("mph")!!)), parts)
+        assertEquals(listOf(TextFormatPart.Speed(TextFormatSpeedUnit.milesPerHour)), parts)
         parts = loader.load(inputFormat = "{speed:foo}")
         assertEquals(listOf(TextFormatPart.Text("{speed:foo}")), parts)
     }
@@ -275,13 +277,13 @@ class TextEffectSuite {
     fun loadFormatAverageSpeed() {
         val loader = TextFormatLoader()
         var parts = loader.load(inputFormat = "{averagespeed}")
-        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.fromString("")!!)), parts)
+        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.system)), parts)
         parts = loader.load(inputFormat = "{averagespeed:m/s}")
-        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.fromString("m/s")!!)), parts)
+        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.metersPerSecond)), parts)
         parts = loader.load(inputFormat = "{averagespeed:km/h}")
-        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.fromString("km/h")!!)), parts)
+        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.kilometersPerHour)), parts)
         parts = loader.load(inputFormat = "{averagespeed:mph}")
-        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.fromString("mph")!!)), parts)
+        assertEquals(listOf(TextFormatPart.AverageSpeed(TextFormatSpeedUnit.milesPerHour)), parts)
         parts = loader.load(inputFormat = "{averagespeed:foo}")
         assertEquals(listOf(TextFormatPart.Text("{averagespeed:foo}")), parts)
     }
@@ -356,7 +358,7 @@ class TextEffectSuite {
             format = "{conditions} {speed:m/s}",
             variables = createVariables(
                 conditions = "sun.max",
-                condition = TODO("no Android counterpart for WeatherKit")
+                condition = "Clear"
             )
         )
         assertEquals("☀️ 5 m/s", lines.toPlainText())
@@ -364,7 +366,7 @@ class TextEffectSuite {
             format = "Speed {speed:m/s} {conditions} today",
             variables = createVariables(
                 conditions = "cloud.rain",
-                condition = TODO("no Android counterpart for WeatherKit")
+                condition = "Rain"
             )
         )
         assertEquals("Speed 5 m/s 🌧️ today", lines.toPlainText())
