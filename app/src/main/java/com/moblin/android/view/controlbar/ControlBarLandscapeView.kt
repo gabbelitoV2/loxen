@@ -110,7 +110,7 @@ private fun QuickButtonsView(
     }
 
     Column {
-        model.getQuickButtonPairs(page = page + 1).forEach { pair ->
+        quickButtons.pairs.collectAsState().value.getOrElse(page) { emptyList() }.forEach { pair ->
             if (twoColumns) {
                 Row(verticalAlignment = Alignment.Bottom) {
                     val second = pair.second

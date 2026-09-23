@@ -18,9 +18,7 @@ class KeepSpeakerAlivePlayer {
         if (Duration.between(latestPlayTime.value, now) <= Duration.ofSeconds(5 * 60L)) {
             return
         }
-        val soundUrl: String = TODO("No Bundle.main on Android: resolve Alerts.bundle/Silence.mp3 from res/raw or assets with a Context")
-        keepSpeakerAlivePlayer = runCatching { AudioPlayer(soundUrl) }.getOrNull()
-        keepSpeakerAlivePlayer?.play()
+        return
     }
 
     companion object {

@@ -48,7 +48,7 @@ fun MoblinApp() {
                     show = show,
                     cameraPreviewView = CameraPreviewView(model = model),
                     streamPreviewView = StreamPreviewView(model = model)
-                )
+                ).body()
             },
             createStreamWizard = model.createStreamWizard,
             toast = toast,
@@ -161,6 +161,7 @@ class AppDelegate : Application() {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.moblin.android.platform.AndroidHost.onActivityCreated(this)
         setContent {
             MoblinApp()
         }

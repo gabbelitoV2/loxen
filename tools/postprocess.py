@@ -252,6 +252,26 @@ def delegate_adapters(text, sources):
     return DELEGATE_TODO_RE.sub(replace, text), count
 
 
+MAIN_ACTIVITY_RE = re.compile(
+    r"(class MainActivity[^\n]*\{\s*\n\s*override fun onCreate\(savedInstanceState: Bundle\?\) \{\n\s*super\.onCreate\(savedInstanceState\)\n)"
+)
+APP_DELEGATE_RE = re.compile(r"(class AppDelegate\s*:\s*Application\(\)[^\n]*\{(?:.*?\n)*?\s*override fun onCreate\(\) \{\n\s*super\.onCreate\(\)\n)")
+
+
+def host_hooks(text):
+    count = 0
+    if "class MainActivity" in text and "AndroidHost.onActivityCreated(this)" not in text:
+        text, n = MAIN_ACTIVITY_RE.subn(r"\1        com.moblin.android.platform.AndroidHost.onActivityCreated(this)\n", text, count=1)
+        count += n
+    if "class AppDelegate" in text and "context = applicationContext" not in text:
+        text, n = APP_DELEGATE_RE.subn(r"\1        context = applicationContext\n", text, count=1)
+        count += n
+        if n and "lateinit var context: Context" not in text:
+            text = text.replace("    companion object {\n", "    companion object {\n        lateinit var context: Context\n", 1)
+            text, _ = add_import(text, "import android.content.Context")
+    return text, count
+
+
 def process_file(text, renamed_names, sources=None):
     counts = {}
     package = re.search(r"^package (\S+)$", text, re.M)
@@ -279,6 +299,8 @@ def process_file(text, renamed_names, sources=None):
     counts["typed"] = typed
     text, statements = statement_todos(text)
     counts["statements"] = statements
+    text, hooks = host_hooks(text)
+    counts["hooks"] = hooks
     return text, counts
 
 

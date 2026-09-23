@@ -70,7 +70,7 @@ private fun QuickButtonsView(
     val twoColumns by quickButtonsSettings.twoColumns.collectAsState()
     val size = buttonSize(bigButtons)
     Row {
-        model.getQuickButtonPairs(page + 1).forEach { pair ->
+        quickButtons.pairs.collectAsState().value.getOrElse(page) { emptyList() }.forEach { pair ->
             if (twoColumns) {
                 Column(horizontalAlignment = Alignment.Start) {
                     val second = pair.second

@@ -967,7 +967,7 @@ private fun SystemImage(
     modifier: Modifier = Modifier,
     tint: Color = Color.White,
 ) {
-    Unit
+    com.moblin.android.platform.SystemImage(name = name, fontSize = fontSize, modifier = modifier, tint = tint)
 }
 
 @Composable
