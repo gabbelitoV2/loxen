@@ -7,6 +7,7 @@ import com.moblin.android.localized
 import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
 import com.moblin.android.various.utils.Named
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -127,7 +128,7 @@ enum class SettingsStreamDeckModel(val rawValue: String) {
 class SettingsStreamDeckLayout : Named {
     var id: UUID
         private set
-    override var name: String
+    override var name: String by Published(baseName)
     private val _model: MutableStateFlow<SettingsStreamDeckModel>
     val model: StateFlow<SettingsStreamDeckModel>
     private val _keys: MutableStateFlow<List<SettingsStreamDeckKey>>
@@ -135,7 +136,6 @@ class SettingsStreamDeckLayout : Named {
 
     constructor() {
         id = UUID.randomUUID()
-        name = baseName
         _model = MutableStateFlow(SettingsStreamDeckModel.classic)
         model = _model.asStateFlow()
         val initialKeys = MutableList(36) { SettingsStreamDeckKey() }

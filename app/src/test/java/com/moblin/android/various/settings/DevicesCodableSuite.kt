@@ -1,5 +1,6 @@
 package com.moblin.android.various.settings
 
+import androidx.compose.runtime.snapshots.Snapshot
 import com.moblin.android.platform.codable.codableJson
 import com.moblin.android.various.network.DefaultTcpPorts
 import com.moblin.android.various.storages.ReplaySettings
@@ -128,6 +129,86 @@ class DevicesCodableSuite {
         val replays = ReplaysDatabase()
         replays.setReplays(listOf(ReplaySettings(duration = 12.5)))
         assertRoundTrip(ReplaysDatabase.serializer(), replays)
+    }
+
+    @Test
+    fun publishedPropertiesAreObservable() {
+        val djiDevices = SettingsDjiDevices()
+        val djiDevice = SettingsDjiDevice()
+        val credentials = SettingsGoProWifiCredentials()
+        val rtmpUrl = SettingsGoProRtmpUrl()
+        val goProDevice = SettingsGoProDevice()
+        val launchLiveStream = SettingsGoProLaunchLiveStream()
+        val goPro = SettingsGoPro()
+        val preset = SettingsGimbalPreset()
+        val gimbal = SettingsGimbal()
+        val printer = SettingsCatPrinter()
+        val location = SettingsLocation()
+        goPro.rtmpUrls.add(rtmpUrl)
+        val reads: List<() -> Any?> = listOf(
+            { djiDevice.name },
+            { djiDevice.bitrate },
+            { djiDevice.state },
+            { djiDevices.devices.size },
+            { credentials.ssid },
+            { rtmpUrl.customUrl },
+            { goProDevice.lens },
+            { goProDevice.bluetoothPeripheralId },
+            { launchLiveStream.isHero12Or13 },
+            { goPro.devices.size },
+            { goPro.rtmpUrls.size },
+            { goPro.selectedRtmpUrl },
+            { preset.zoomX },
+            { gimbal.tracking },
+            { gimbal.functionDataFlip },
+            { gimbal.presets.size },
+            { printer.name },
+            { location.enabled },
+            { location.distance },
+            { location.privacyRegions.size },
+            { location.distanceFilter },
+        )
+        reads.forEachIndexed { index, read ->
+            assertTrue(observedReads(read).isNotEmpty(), "Read $index was not observed")
+        }
+        assertObservedChange({ goPro.devices.size }) { goPro.devices.add(goProDevice) }
+        assertObservedChange({ goPro.rtmpUrls.size }) { goPro.rtmpUrls.removeAt(0) }
+        assertObservedChange({ goPro.launchLiveStream.size }) { goPro.launchLiveStream.add(launchLiveStream) }
+        assertObservedChange({ djiDevices.devices.size }) { djiDevices.devices = djiDevices.devices + djiDevice }
+        assertObservedChange({ gimbal.presets.size }) { gimbal.presets = gimbal.presets + preset }
+        assertObservedChange({ djiDevice.isStarted }) { djiDevice.isStarted = true }
+        assertObservedChange({ goProDevice.wifiSsid }) { goProDevice.wifiSsid = "Home" }
+        assertObservedChange({ printer.name }) { printer.name = "Printer" }
+        assertObservedChange({ location.enabled }) { location.enabled = true }
+        assertEquals(listOf(goProDevice), goPro.devices.toList())
+        assertTrue(goPro.rtmpUrls.isEmpty())
+        assertEquals(listOf(djiDevice), djiDevices.devices)
+        assertTrue(djiDevice.isStarted)
+        assertTrue(location.enabled)
+        assertTrue(location.enabledFlow.value)
+        location.desiredAccuracy = SettingsLocationDesiredAccuracy.hundredMeters
+        assertEquals(SettingsLocationDesiredAccuracy.hundredMeters, location.desiredAccuracyFlow.value)
+    }
+
+    private fun observedReads(read: () -> Any?): List<Any> {
+        val observed = mutableListOf<Any>()
+        Snapshot.observe(readObserver = { observed.add(it) }) {
+            read()
+        }
+        return observed
+    }
+
+    private fun assertObservedChange(read: () -> Any?, write: () -> Unit) {
+        val observed = observedReads(read)
+        val changed = mutableListOf<Any>()
+        val handle = Snapshot.registerApplyObserver { modified, _ -> changed.addAll(modified) }
+        try {
+            write()
+            Snapshot.sendApplyNotifications()
+        } finally {
+            handle.dispose()
+        }
+        assertTrue(observed.any { state -> changed.any { it === state } })
     }
 
     @Test

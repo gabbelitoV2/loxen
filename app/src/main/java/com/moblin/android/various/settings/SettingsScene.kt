@@ -15,6 +15,8 @@ import com.moblin.android.platform.codable.codableJson
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.decodeIfPresent
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
+import com.moblin.android.platform.swiftui.PublishedList
 import com.moblin.android.remotecontrol.RemoteControlScoreboardMatchConfig
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.model.CameraId
@@ -184,8 +186,8 @@ class SettingsVideoEffectRemoveBackground(
     var from: RgbColor = defaultFromColor,
     var to: RgbColor = defaultToColor
 ) {
-    var fromColor: Color = from.color()
-    var toColor: Color = to.color()
+    var fromColor: Color by Published(from.color())
+    var toColor: Color by Published(to.color())
 
     fun encode(): JsonObject = encodeContainer {
         encode("from", from)
@@ -212,16 +214,19 @@ class SettingsVideoEffectRemoveBackground(
 
 @Serializable(with = SettingsVideoEffectShape.Serializer::class)
 class SettingsVideoEffectShape(
-    var cornerRadius: Float = 0.1f,
-    var borderWidth: Double = 0.0,
+    cornerRadius: Float = 0.1f,
+    borderWidth: Double = 0.0,
     var borderColor: RgbColor = RgbColor(red = 0, green = 0, blue = 0),
-    var cropEnabled: Boolean = false,
+    cropEnabled: Boolean = false,
     var cropX: Double = 0.25,
     var cropY: Double = 0.0,
     var cropWidth: Double = 0.5,
     var cropHeight: Double = 1.0
 ) {
-    var borderColorColor: Color = borderColor.color()
+    var cornerRadius: Float by Published(cornerRadius)
+    var borderWidth: Double by Published(borderWidth)
+    var borderColorColor: Color by Published(borderColor.color())
+    var cropEnabled: Boolean by Published(cropEnabled)
 
     fun encode(): JsonObject = encodeContainer {
         encode("cornerRadius", cornerRadius)
@@ -270,12 +275,15 @@ class SettingsVideoEffectShape(
 
 @Serializable(with = SettingsVideoEffectDewarp360.Serializer::class)
 class SettingsVideoEffectDewarp360(
-    var pan: Float = 0f,
-    var tilt: Float = 0f,
+    pan: Float = 0f,
+    tilt: Float = 0f,
     var zoom: Float = 1f
 ) {
-    var inverseFieldOfView: Float =
+    var pan: Float by Published(pan)
+    var tilt: Float by Published(tilt)
+    var inverseFieldOfView: Float by Published(
         (180.0 - Math.toDegrees(zoomToFieldOfView(zoom).toDouble())).toFloat()
+    )
 
     fun encode(): JsonObject = encodeContainer {
         encode("pan", pan)
@@ -314,8 +322,10 @@ class SettingsVideoEffectDewarp360(
 
 @Serializable(with = SettingsVideoEffectAnamorphicLens.Serializer::class)
 class SettingsVideoEffectAnamorphicLens(
-    var scale: Double = 1.33
+    scale: Double = 1.33
 ) {
+    var scale: Double by Published(scale)
+
     fun encode(): JsonObject = encodeContainer {
         encode("scale", scale)
     }
@@ -343,8 +353,10 @@ class SettingsVideoEffectAnamorphicLens(
 
 @Serializable(with = SettingsVideoEffectLut.Serializer::class)
 class SettingsVideoEffectLut(
-    var lut: UUID? = null
+    lut: UUID? = null
 ) {
+    var lut: UUID? by Published(lut)
+
     fun encode(): JsonObject = encodeContainer {
         encode("lut", lut)
     }
@@ -366,8 +378,10 @@ class SettingsVideoEffectLut(
 
 @Serializable(with = SettingsVideoEffectOpacity.Serializer::class)
 class SettingsVideoEffectOpacity(
-    var opacity: Double = 0.5
+    opacity: Double = 0.5
 ) {
+    var opacity: Double by Published(opacity)
+
     fun encode(): JsonObject = encodeContainer {
         encode("opacity", opacity)
     }
@@ -434,15 +448,19 @@ data class SettingsVideoEffectMaskEffectPoint(
 
 @Serializable(with = SettingsVideoEffectMask.Serializer::class)
 class SettingsVideoEffectMask(
-    var points: List<SettingsVideoEffectMaskEffectPoint> = defaultPoints,
-    var inverted: Boolean = false,
-    var tension: Double = defaultTension,
-    var backgroundType: SettingsMaskBackgroundType = SettingsMaskBackgroundType.transparent,
+    points: List<SettingsVideoEffectMaskEffectPoint> = defaultPoints,
+    inverted: Boolean = false,
+    tension: Double = defaultTension,
+    backgroundType: SettingsMaskBackgroundType = SettingsMaskBackgroundType.transparent,
     var backgroundColor: RgbColor = defaultBackgroundColor,
     var backgroundColor2: RgbColor = defaultBackgroundColor2
 ) {
-    var backgroundColorColor: Color = backgroundColor.color()
-    var backgroundColorColor2: Color = backgroundColor2.color()
+    var points: List<SettingsVideoEffectMaskEffectPoint> by Published(points)
+    var inverted: Boolean by Published(inverted)
+    var tension: Double by Published(tension)
+    var backgroundType: SettingsMaskBackgroundType by Published(backgroundType)
+    var backgroundColorColor: Color by Published(backgroundColor.color())
+    var backgroundColorColor2: Color by Published(backgroundColor2.color())
 
     fun encode(): JsonObject = encodeContainer {
         encode("points", points, ListSerializer(SettingsVideoEffectMaskEffectPoint.serializer()))
@@ -501,8 +519,8 @@ class SettingsVideoEffectMask(
 @Serializable(with = SettingsVideoEffect.Serializer::class)
 class SettingsVideoEffect(
     var id: UUID = UUID.randomUUID(),
-    var enabled: Boolean = true,
-    var type: SettingsVideoEffectType = SettingsVideoEffectType.shape,
+    enabled: Boolean = true,
+    type: SettingsVideoEffectType = SettingsVideoEffectType.shape,
     var removeBackground: SettingsVideoEffectRemoveBackground = SettingsVideoEffectRemoveBackground(),
     var shape: SettingsVideoEffectShape = SettingsVideoEffectShape(),
     var dewarp360: SettingsVideoEffectDewarp360 = SettingsVideoEffectDewarp360(),
@@ -511,6 +529,9 @@ class SettingsVideoEffect(
     var opacity: SettingsVideoEffectOpacity = SettingsVideoEffectOpacity(),
     var mask: SettingsVideoEffectMask = SettingsVideoEffectMask()
 ) {
+    var enabled: Boolean by Published(enabled)
+    var type: SettingsVideoEffectType by Published(type)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("enabled", enabled)
@@ -727,9 +748,12 @@ enum class SettingsAlignment(val rawValue: String) {
 @Serializable(with = SettingsWidgetTextTimer.Serializer::class)
 class SettingsWidgetTextTimer(
     var id: UUID = UUID.randomUUID(),
-    var delta: Int = 5,
-    var endTime: Double = 0.0
+    delta: Int = 5,
+    endTime: Double = 0.0
 ) {
+    var delta: Int by Published(delta)
+    var endTime: Double by Published(endTime)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("delta", delta)
@@ -784,9 +808,10 @@ class SettingsWidgetTextTimer(
 class SettingsWidgetTextStopwatch(
     var id: UUID = UUID.randomUUID(),
     var totalElapsed: Double = 0.0,
-    var running: Boolean = false
+    running: Boolean = false
 ) {
     var playPressedTime: Instant = Instant.now()
+    var running: Boolean by Published(running)
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -933,38 +958,56 @@ class SettingsWidgetTextLapTimes(
 
 @Serializable(with = SettingsWidgetText.Serializer::class)
 class SettingsWidgetText(
-    var formatString: String = "{shortTime}",
+    formatString: String = "{shortTime}",
     var backgroundColor: RgbColor = RgbColor(red = 0, green = 0, blue = 0, opacity = 0.75),
     var clearBackgroundColor: Boolean = false,
     var foregroundColor: RgbColor = RgbColor(red = 255, green = 255, blue = 255),
     var clearForegroundColor: Boolean = false,
     var fontSize: Int = 30,
-    var fontFamily: String? = null,
-    var fontStyle: String = "",
-    var fontDesign: SettingsFontDesign = SettingsFontDesign.`default`,
-    var fontWeight: SettingsFontWeight = SettingsFontWeight.regular,
-    var fontMonospacedDigits: Boolean = false,
-    var alignment: SettingsHorizontalAlignment = SettingsHorizontalAlignment.leading,
-    var horizontalAlignment: SettingsHorizontalAlignment = SettingsHorizontalAlignment.leading,
-    var verticalAlignment: SettingsVerticalAlignment = SettingsVerticalAlignment.top,
-    var delay: Double = 0.0,
-    var timers: List<SettingsWidgetTextTimer> = emptyList(),
-    var stopwatches: List<SettingsWidgetTextStopwatch> = emptyList(),
+    fontFamily: String? = null,
+    fontStyle: String = "",
+    fontDesign: SettingsFontDesign = SettingsFontDesign.`default`,
+    fontWeight: SettingsFontWeight = SettingsFontWeight.regular,
+    fontMonospacedDigits: Boolean = false,
+    alignment: SettingsHorizontalAlignment = SettingsHorizontalAlignment.leading,
+    horizontalAlignment: SettingsHorizontalAlignment = SettingsHorizontalAlignment.leading,
+    verticalAlignment: SettingsVerticalAlignment = SettingsVerticalAlignment.top,
+    delay: Double = 0.0,
+    timers: List<SettingsWidgetTextTimer> = emptyList(),
+    stopwatches: List<SettingsWidgetTextStopwatch> = emptyList(),
     var needsWeather: Boolean = false,
     var needsGeography: Boolean = false,
     var needsSubtitles: Boolean = false,
     var subtitles: List<SettingsWidgetTextSubtitles> = emptyList(),
-    var checkboxes: List<SettingsWidgetTextCheckbox> = emptyList(),
-    var ratings: List<SettingsWidgetTextRating> = emptyList(),
-    var lapTimes: List<SettingsWidgetTextLapTimes> = emptyList(),
+    checkboxes: List<SettingsWidgetTextCheckbox> = emptyList(),
+    ratings: List<SettingsWidgetTextRating> = emptyList(),
+    lapTimes: List<SettingsWidgetTextLapTimes> = emptyList(),
     var needsGForce: Boolean = false,
-    var widthEnabled: Boolean = false,
-    var width: Int = defaultWidth,
-    var cornerRadius: Int = defaultCornerRadius
+    widthEnabled: Boolean = false,
+    width: Int = defaultWidth,
+    cornerRadius: Int = defaultCornerRadius
 ) {
-    var backgroundColorColor: Color = backgroundColor.color()
-    var foregroundColorColor: Color = foregroundColor.color()
-    var fontSizeFloat: Float = fontSize.toFloat()
+    var formatString: String by Published(formatString)
+    var backgroundColorColor: Color by Published(backgroundColor.color())
+    var foregroundColorColor: Color by Published(foregroundColor.color())
+    var fontSizeFloat: Float by Published(fontSize.toFloat())
+    var fontFamily: String? by Published(fontFamily)
+    var fontStyle: String by Published(fontStyle)
+    var fontDesign: SettingsFontDesign by Published(fontDesign)
+    var fontWeight: SettingsFontWeight by Published(fontWeight)
+    var fontMonospacedDigits: Boolean by Published(fontMonospacedDigits)
+    var alignment: SettingsHorizontalAlignment by Published(alignment)
+    var horizontalAlignment: SettingsHorizontalAlignment by Published(horizontalAlignment)
+    var verticalAlignment: SettingsVerticalAlignment by Published(verticalAlignment)
+    var delay: Double by Published(delay)
+    var timers: List<SettingsWidgetTextTimer> by Published(timers)
+    var stopwatches: List<SettingsWidgetTextStopwatch> by Published(stopwatches)
+    var checkboxes: List<SettingsWidgetTextCheckbox> by Published(checkboxes)
+    var ratings: List<SettingsWidgetTextRating> by Published(ratings)
+    var lapTimes: List<SettingsWidgetTextLapTimes> by Published(lapTimes)
+    var widthEnabled: Boolean by Published(widthEnabled)
+    var width: Int by Published(width)
+    var cornerRadius: Int by Published(cornerRadius)
 
     fun encode(): JsonObject = encodeContainer {
         encode("formatString", formatString)
@@ -1150,16 +1193,26 @@ enum class SettingsWidgetBrowserMode {
 
 @Serializable(with = SettingsWidgetBrowser.Serializer::class)
 class SettingsWidgetBrowser(
-    var url: String = "",
-    var width: Int = 500,
-    var height: Int = 500,
-    var mode: SettingsWidgetBrowserMode = SettingsWidgetBrowserMode.periodicAudioAndVideo,
-    var baseFps: Float = 5.0f,
-    var styleSheet: String = "",
-    var moblinAccess: Boolean = false,
-    var speechToText: Boolean = false,
-    var localOnly: Boolean = false
+    url: String = "",
+    width: Int = 500,
+    height: Int = 500,
+    mode: SettingsWidgetBrowserMode = SettingsWidgetBrowserMode.periodicAudioAndVideo,
+    baseFps: Float = 5.0f,
+    styleSheet: String = "",
+    moblinAccess: Boolean = false,
+    speechToText: Boolean = false,
+    localOnly: Boolean = false
 ) {
+    var url: String by Published(url)
+    var width: Int by Published(width)
+    var height: Int by Published(height)
+    var mode: SettingsWidgetBrowserMode by Published(mode)
+    var baseFps: Float by Published(baseFps)
+    var styleSheet: String by Published(styleSheet)
+    var moblinAccess: Boolean by Published(moblinAccess)
+    var speechToText: Boolean by Published(speechToText)
+    var localOnly: Boolean by Published(localOnly)
+
     fun encode(): JsonObject = encodeContainer {
         encode("url", url)
         encode("width", width)
@@ -1371,11 +1424,11 @@ enum class SettingsWidgetAlertsAlertMediaType {
 class SettingsWidgetAlertsAlert(
     var id: UUID = UUID.randomUUID(),
     var enabled: Boolean = true,
-    var mediaType: SettingsWidgetAlertsAlertMediaType = SettingsWidgetAlertsAlertMediaType.gifAndSound,
-    var imageId: UUID = UUID.randomUUID(),
-    var imageLoopCount: Int = 1,
-    var soundId: UUID = UUID.randomUUID(),
-    var videoName: String = "",
+    mediaType: SettingsWidgetAlertsAlertMediaType = SettingsWidgetAlertsAlertMediaType.gifAndSound,
+    imageId: UUID = UUID.randomUUID(),
+    imageLoopCount: Int = 1,
+    soundId: UUID = UUID.randomUUID(),
+    videoName: String = "",
     var textColor: RgbColor = RgbColor(red = 255, green = 255, blue = 255),
     var accentColor: RgbColor = RgbColor(red = 0xFD, green = 0xFB, blue = 0x67),
     var fontSize: Int = 45,
@@ -1383,10 +1436,18 @@ class SettingsWidgetAlertsAlert(
     var fontWeight: SettingsFontWeight = SettingsFontWeight.bold,
     var textToSpeechEnabled: Boolean = true,
     var textToSpeechDelay: Double = 1.5,
-    var textToSpeechLanguageVoices: Map<String, SettingsVoice> = emptyMap(),
-    var positionType: SettingsWidgetAlertPositionType = SettingsWidgetAlertPositionType.scene,
+    textToSpeechLanguageVoices: Map<String, SettingsVoice> = emptyMap(),
+    positionType: SettingsWidgetAlertPositionType = SettingsWidgetAlertPositionType.scene,
     var facePosition: SettingsWidgetAlertFacePosition = SettingsWidgetAlertFacePosition()
 ) {
+    var mediaType: SettingsWidgetAlertsAlertMediaType by Published(mediaType)
+    var imageId: UUID by Published(imageId)
+    var imageLoopCount: Int by Published(imageLoopCount)
+    var soundId: UUID by Published(soundId)
+    var videoName: String by Published(videoName)
+    var textToSpeechLanguageVoices: Map<String, SettingsVoice> by Published(textToSpeechLanguageVoices)
+    var positionType: SettingsWidgetAlertPositionType by Published(positionType)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("enabled", enabled)
@@ -1627,8 +1688,9 @@ class SettingsWidgetAlertsTwitch(
     var subscriptions: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
     var raids: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
     var cheers: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
-    var cheerBits: List<SettingsWidgetAlertsCheerBitsAlert> = createDefaultCheerBits()
+    cheerBits: List<SettingsWidgetAlertsCheerBitsAlert> = createDefaultCheerBits()
 ) {
+    var cheerBits: List<SettingsWidgetAlertsCheerBitsAlert> by Published(cheerBits)
     var redemptions: List<SettingsWidgetAlertsAlert> = emptyList()
 
     fun encode(): JsonObject = encodeContainer {
@@ -1692,8 +1754,10 @@ class SettingsWidgetAlertsKick(
     var giftedSubscriptions: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
     var hosts: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
     var rewards: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert(),
-    var kickGifts: List<SettingsWidgetAlertsKickGiftsAlert> = createDefaultKickGifts()
+    kickGifts: List<SettingsWidgetAlertsKickGiftsAlert> = createDefaultKickGifts()
 ) {
+    var kickGifts: List<SettingsWidgetAlertsKickGiftsAlert> by Published(kickGifts)
+
     fun encode(): JsonObject = encodeContainer {
         encode("subscriptions", subscriptions, SettingsWidgetAlertsAlert.serializer())
         encode("giftedSubscriptions", giftedSubscriptions, SettingsWidgetAlertsAlert.serializer())
@@ -1806,8 +1870,10 @@ class SettingsWidgetAlertsChatBotCommand(
 
 @Serializable(with = SettingsWidgetAlertsChatBot.Serializer::class)
 class SettingsWidgetAlertsChatBot(
-    var commands: List<SettingsWidgetAlertsChatBotCommand> = emptyList()
+    commands: List<SettingsWidgetAlertsChatBotCommand> = emptyList()
 ) {
+    var commands: List<SettingsWidgetAlertsChatBotCommand> by Published(commands)
+
     fun encode(): JsonObject = encodeContainer {
         encode("commands", commands, ListSerializer(SettingsWidgetAlertsChatBotCommand.serializer()))
     }
@@ -1884,8 +1950,10 @@ class SettingsWidgetAlertsSpeechToTextString(
 
 @Serializable(with = SettingsWidgetAlertsSpeechToText.Serializer::class)
 class SettingsWidgetAlertsSpeechToText(
-    var strings: List<SettingsWidgetAlertsSpeechToTextString> = emptyList()
+    strings: List<SettingsWidgetAlertsSpeechToTextString> = emptyList()
 ) {
+    var strings: List<SettingsWidgetAlertsSpeechToTextString> by Published(strings)
+
     fun encode(): JsonObject = encodeContainer {
         encode("strings", strings, ListSerializer(SettingsWidgetAlertsSpeechToTextString.serializer()))
     }
@@ -1925,8 +1993,10 @@ class SettingsWidgetAlertsSpeechToText(
 
 @Serializable(with = SettingsTtsMonster.Serializer::class)
 class SettingsTtsMonster(
-    var apiToken: String = ""
+    apiToken: String = ""
 ) {
+    var apiToken: String by Published(apiToken)
+
     fun encode(): JsonObject = encodeContainer {
         encode("apiToken", apiToken)
     }
@@ -1960,10 +2030,11 @@ class SettingsWidgetAlerts(
     var speechToText: SettingsWidgetAlertsSpeechToText = SettingsWidgetAlertsSpeechToText(),
     var needsSubtitles: Boolean = false,
     var ai: SettingsOpenAi = SettingsOpenAi(personality = aiPersonality),
-    var aiEnabled: Boolean = false,
+    aiEnabled: Boolean = false,
     var ttsMonster: SettingsTtsMonster = SettingsTtsMonster()
 ) {
     var quickButton: SettingsWidgetAlertsAlert = SettingsWidgetAlertsAlert()
+    var aiEnabled: Boolean by Published(aiEnabled)
 
     fun encode(): JsonObject = encodeContainer {
         encode("twitch", twitch, SettingsWidgetAlertsTwitch.serializer())
@@ -2096,15 +2167,24 @@ enum class SettingsWidgetVTuberType(val rawValue: String) {
 @Serializable(with = SettingsWidgetVTuber.Serializer::class)
 class SettingsWidgetVTuber(
     var id: UUID = UUID.randomUUID(),
-    var type: SettingsWidgetVTuberType = SettingsWidgetVTuberType.vrm,
-    var videoSource: SettingsVideoSource = SettingsVideoSource(),
-    var cameraPositionY: Double = 1.37,
-    var cameraFieldOfView: Double = 18.0,
-    var modelName: String = "",
-    var mirror: Boolean = false,
-    var sensitivity: SettingsSensitivity = SettingsSensitivity(),
-    var armsAngle: Double = 72.0
+    type: SettingsWidgetVTuberType = SettingsWidgetVTuberType.vrm,
+    videoSource: SettingsVideoSource = SettingsVideoSource(),
+    cameraPositionY: Double = 1.37,
+    cameraFieldOfView: Double = 18.0,
+    modelName: String = "",
+    mirror: Boolean = false,
+    sensitivity: SettingsSensitivity = SettingsSensitivity(),
+    armsAngle: Double = 72.0
 ) {
+    var type: SettingsWidgetVTuberType by Published(type)
+    var videoSource: SettingsVideoSource by Published(videoSource)
+    var cameraPositionY: Double by Published(cameraPositionY)
+    var cameraFieldOfView: Double by Published(cameraFieldOfView)
+    var modelName: String by Published(modelName)
+    var mirror: Boolean by Published(mirror)
+    var sensitivity: SettingsSensitivity by Published(sensitivity)
+    var armsAngle: Double by Published(armsAngle)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("type", type)
@@ -2170,18 +2250,25 @@ class SettingsWidgetVTuber(
     fun toCameraId(): SettingsCameraId = videoSource.toCameraId()
 
     fun updateCameraId(settingsCameraId: SettingsCameraId) {
-        videoSource.updateCameraId(settingsCameraId)
+        val newVideoSource = videoSource.copy()
+        newVideoSource.updateCameraId(settingsCameraId)
+        videoSource = newVideoSource
     }
 }
 
 @Serializable(with = SettingsWidgetPngTuber.Serializer::class)
 class SettingsWidgetPngTuber(
     var id: UUID = UUID.randomUUID(),
-    var videoSource: SettingsVideoSource = SettingsVideoSource(),
-    var modelName: String = "",
-    var mirror: Boolean = false,
-    var sensitivity: SettingsSensitivity = SettingsSensitivity()
+    videoSource: SettingsVideoSource = SettingsVideoSource(),
+    modelName: String = "",
+    mirror: Boolean = false,
+    sensitivity: SettingsSensitivity = SettingsSensitivity()
 ) {
+    var videoSource: SettingsVideoSource by Published(videoSource)
+    var modelName: String by Published(modelName)
+    var mirror: Boolean by Published(mirror)
+    var sensitivity: SettingsSensitivity by Published(sensitivity)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("cameraPosition", videoSource.cameraPosition, SettingsSceneCameraPosition.serializer())
@@ -2243,15 +2330,19 @@ class SettingsWidgetPngTuber(
     fun toCameraId(): SettingsCameraId = videoSource.toCameraId()
 
     fun updateCameraId(settingsCameraId: SettingsCameraId) {
-        videoSource.updateCameraId(settingsCameraId)
+        val newVideoSource = videoSource.copy()
+        newVideoSource.updateCameraId(settingsCameraId)
+        videoSource = newVideoSource
     }
 }
 
 @Serializable(with = SettingsWidgetSnapshot.Serializer::class)
 class SettingsWidgetSnapshot(
     var id: UUID = UUID.randomUUID(),
-    var showtime: Int = 5
+    showtime: Int = 5
 ) {
+    var showtime: Int by Published(showtime)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("showtime", showtime)
@@ -2276,26 +2367,36 @@ class SettingsWidgetSnapshot(
 @Serializable(with = SettingsWidgetChat.Serializer::class)
 class SettingsWidgetChat(
     var id: UUID = UUID.randomUUID(),
-    var fontSize: Float = 19.0f,
+    fontSize: Float = 19.0f,
     var usernameColor: RgbColor = RgbColor(red = 255, green = 163, blue = 0),
     var messageColor: RgbColor = RgbColor(red = 255, green = 255, blue = 255),
     var backgroundColor: RgbColor = RgbColor(red = 0, green = 0, blue = 0),
-    var backgroundColorEnabled: Boolean = false,
+    backgroundColorEnabled: Boolean = false,
     var shadowColor: RgbColor = RgbColor(red = 0, green = 0, blue = 0),
-    var shadowColorEnabled: Boolean = true,
-    var boldUsername: Boolean = true,
-    var boldMessage: Boolean = true,
-    var badges: Boolean = true,
-    var displayStyle: SettingsChatDisplayStyle = SettingsChatDisplayStyle.internationalNameAndUsername,
-    var sharedChatIcons: Boolean = false,
-    var height: Float = 1f,
-    var maximumNumberOfMessages: Int = 5
+    shadowColorEnabled: Boolean = true,
+    boldUsername: Boolean = true,
+    boldMessage: Boolean = true,
+    badges: Boolean = true,
+    displayStyle: SettingsChatDisplayStyle = SettingsChatDisplayStyle.internationalNameAndUsername,
+    sharedChatIcons: Boolean = false,
+    height: Float = 1f,
+    maximumNumberOfMessages: Int = 5
 ) {
-    var usernameColorColor: Color = usernameColor.color()
-    var messageColorColor: Color = messageColor.color()
-    var backgroundColorColor: Color = backgroundColor.color()
-    var shadowColorColor: Color = shadowColor.color()
+    var fontSize: Float by Published(fontSize)
+    var usernameColorColor: Color by Published(usernameColor.color())
+    var messageColorColor: Color by Published(messageColor.color())
+    var backgroundColorColor: Color by Published(backgroundColor.color())
+    var backgroundColorEnabled: Boolean by Published(backgroundColorEnabled)
+    var shadowColorColor: Color by Published(shadowColor.color())
+    var shadowColorEnabled: Boolean by Published(shadowColorEnabled)
+    var boldUsername: Boolean by Published(boldUsername)
+    var boldMessage: Boolean by Published(boldMessage)
+    var badges: Boolean by Published(badges)
     val nicknames: SettingsChatNicknames = SettingsChatNicknames()
+    var displayStyle: SettingsChatDisplayStyle by Published(displayStyle)
+    var sharedChatIcons: Boolean by Published(sharedChatIcons)
+    var height: Float by Published(height)
+    var maximumNumberOfMessages: Int by Published(maximumNumberOfMessages)
 
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
@@ -2372,9 +2473,12 @@ class SettingsWidgetChat(
 @Serializable(with = SettingsWidgetSlideshowSlide.Serializer::class)
 class SettingsWidgetSlideshowSlide(
     var id: UUID = UUID.randomUUID(),
-    var widgetId: UUID? = null,
-    var time: Int = 15
+    widgetId: UUID? = null,
+    time: Int = 15
 ) {
+    var widgetId: UUID? by Published(widgetId)
+    var time: Int by Published(time)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("widgetId", widgetId)
@@ -2401,8 +2505,10 @@ class SettingsWidgetSlideshowSlide(
 @Serializable(with = SettingsWidgetSlideshow.Serializer::class)
 class SettingsWidgetSlideshow(
     var id: UUID = UUID.randomUUID(),
-    var slides: List<SettingsWidgetSlideshowSlide> = emptyList()
+    slides: List<SettingsWidgetSlideshowSlide> = emptyList()
 ) {
+    var slides: List<SettingsWidgetSlideshowSlide> by Published(slides)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("slides", slides, ListSerializer(SettingsWidgetSlideshowSlide.serializer()))
@@ -2431,9 +2537,12 @@ class SettingsWidgetSlideshow(
 @Serializable(with = SettingsWidgetWheelOfLuckOption.Serializer::class)
 class SettingsWidgetWheelOfLuckOption(
     var id: UUID = UUID.randomUUID(),
-    var text: String = "",
-    var weight: Int = 1
+    text: String = "",
+    weight: Int = 1
 ) {
+    var text: String by Published(text)
+    var weight: Int by Published(weight)
+
     override fun equals(other: Any?): Boolean =
         other is SettingsWidgetWheelOfLuckOption && id == other.id
 
@@ -2464,11 +2573,13 @@ class SettingsWidgetWheelOfLuckOption(
 
 @Serializable(with = SettingsWidgetWheelOfLuck.Serializer::class)
 class SettingsWidgetWheelOfLuck(
-    var advanced: Boolean = false,
-    var options: List<SettingsWidgetWheelOfLuckOption> = emptyList()
+    advanced: Boolean = false,
+    options: List<SettingsWidgetWheelOfLuckOption> = emptyList()
 ) {
-    var totalWeight: Int = 1
-    var text: String = ""
+    var advanced: Boolean by Published(advanced)
+    var totalWeight: Int by Published(1)
+    var options: List<SettingsWidgetWheelOfLuckOption> by Published(options)
+    var text: String by Published("")
 
     init {
         updateTotalWeight()
@@ -2566,11 +2677,12 @@ data class SettingsBingoCardSquare(
 class SettingsWidgetBingoCard(
     var backgroundColor: RgbColor = baseBackgroundColor,
     var foregroundColor: RgbColor = baseForegroundColor,
-    var squares: List<SettingsBingoCardSquare> = emptyList()
+    squares: List<SettingsBingoCardSquare> = emptyList()
 ) {
-    var backgroundColorColor: Color = baseBackgroundColor.color()
-    var foregroundColorColor: Color = baseForegroundColor.color()
-    var squaresText: String = ""
+    var backgroundColorColor: Color by Published(baseBackgroundColor.color())
+    var foregroundColorColor: Color by Published(baseForegroundColor.color())
+    var squares: List<SettingsBingoCardSquare> by Published(squares)
+    var squaresText: String by Published("")
 
     fun encode(): JsonObject = encodeContainer {
         encode("backgroundColor", backgroundColor)
@@ -2697,29 +2809,40 @@ enum class PomodoroBreakIcon(val rawValue: String) {
 
 @Serializable(with = SettingsWidgetPomodoroTimer.Serializer::class)
 class SettingsWidgetPomodoroTimer(
-    var focusDuration: Int = 30,
-    var breakDuration: Int = 5,
-    var width: Double = 1.6,
-    var focusName: String = "Focus",
-    var breakName: String = "Break",
-    var focusIcon: PomodoroFocusIcon = PomodoroFocusIcon.sun,
-    var breakIcon: PomodoroBreakIcon = PomodoroBreakIcon.cup,
+    focusDuration: Int = 30,
+    breakDuration: Int = 5,
+    width: Double = 1.6,
+    focusName: String = "Focus",
+    breakName: String = "Break",
+    focusIcon: PomodoroFocusIcon = PomodoroFocusIcon.sun,
+    breakIcon: PomodoroBreakIcon = PomodoroBreakIcon.cup,
     var backgroundColor: RgbColor = baseBackgroundColor,
     var foregroundColor: RgbColor = baseForegroundColor,
     var focusColor: RgbColor = baseFocusColor,
     var breakColor: RgbColor = baseBreakColor,
-    var focusToBreakSoundId: UUID? = null,
-    var breakToFocusSoundId: UUID? = null,
-    var focusToBreakChatMessage: String = "",
-    var breakToFocusChatMessage: String = ""
+    focusToBreakSoundId: UUID? = null,
+    breakToFocusSoundId: UUID? = null,
+    focusToBreakChatMessage: String = "",
+    breakToFocusChatMessage: String = ""
 ) {
-    var backgroundColorColor: Color = baseBackgroundColor.color()
-    var foregroundColorColor: Color = baseForegroundColor.color()
-    var focusColorColor: Color = baseFocusColor.color()
-    var breakColorColor: Color = baseBreakColor.color()
-    var isRunning: Boolean = false
-    var phase: PomodoroPhase = PomodoroPhase.focus
-    var secondsRemaining: Int = 30 * 60
+    var focusDuration: Int by Published(focusDuration)
+    var breakDuration: Int by Published(breakDuration)
+    var width: Double by Published(width)
+    var focusName: String by Published(focusName)
+    var breakName: String by Published(breakName)
+    var focusIcon: PomodoroFocusIcon by Published(focusIcon)
+    var breakIcon: PomodoroBreakIcon by Published(breakIcon)
+    var backgroundColorColor: Color by Published(baseBackgroundColor.color())
+    var foregroundColorColor: Color by Published(baseForegroundColor.color())
+    var focusColorColor: Color by Published(baseFocusColor.color())
+    var breakColorColor: Color by Published(baseBreakColor.color())
+    var isRunning: Boolean by Published(false)
+    var phase: PomodoroPhase by Published(PomodoroPhase.focus)
+    var secondsRemaining: Int by Published(30 * 60)
+    var focusToBreakSoundId: UUID? by Published(focusToBreakSoundId)
+    var breakToFocusSoundId: UUID? by Published(breakToFocusSoundId)
+    var focusToBreakChatMessage: String by Published(focusToBreakChatMessage)
+    var breakToFocusChatMessage: String by Published(breakToFocusChatMessage)
     var onPhaseChanged: ((PomodoroPhase) -> Unit)? = null
     private var timer = MainTimer()
 
@@ -2828,9 +2951,12 @@ class SettingsWidgetPomodoroTimer(
 
 @Serializable(with = SettingsWidgetChatEmoteCombo.Serializer::class)
 class SettingsWidgetChatEmoteCombo(
-    var minimumCombo: Int = 3,
-    var resetAfter: Int = 5
+    minimumCombo: Int = 3,
+    resetAfter: Int = 5
 ) {
+    var minimumCombo: Int by Published(minimumCombo)
+    var resetAfter: Int by Published(resetAfter)
+
     fun encode(): JsonObject = encodeContainer {
         encode("minimumCombo", minimumCombo)
         encode("resetAfter", resetAfter)
@@ -2854,9 +2980,9 @@ class SettingsWidgetChatEmoteCombo(
 
 @Serializable(with = SettingsWidget.Serializer::class)
 class SettingsWidget(
-    override var name: String = baseName,
+    name: String = baseName,
     var id: UUID = UUID.randomUUID(),
-    var type: SettingsWidgetType = SettingsWidgetType.text,
+    type: SettingsWidgetType = SettingsWidgetType.text,
     var text: SettingsWidgetText = SettingsWidgetText(),
     var browser: SettingsWidgetBrowser = SettingsWidgetBrowser(),
     var crop: SettingsWidgetCrop = SettingsWidgetCrop(),
@@ -2875,9 +3001,14 @@ class SettingsWidget(
     var wheelOfLuck: SettingsWidgetWheelOfLuck = SettingsWidgetWheelOfLuck(),
     var bingoCard: SettingsWidgetBingoCard = SettingsWidgetBingoCard(),
     var pomodoroTimer: SettingsWidgetPomodoroTimer = SettingsWidgetPomodoroTimer(),
-    var enabled: Boolean = true,
-    var effects: List<SettingsVideoEffect> = emptyList()
+    enabled: Boolean = true,
+    effects: List<SettingsVideoEffect> = emptyList()
 ) : Named {
+    override var name: String by Published(name)
+    var type: SettingsWidgetType by Published(type)
+    var enabled: Boolean by Published(enabled)
+    var effects: List<SettingsVideoEffect> by Published(effects)
+
     override fun equals(other: Any?): Boolean = other is SettingsWidget && id == other.id
 
     override fun hashCode(): Int = id.hashCode()
@@ -3102,14 +3233,19 @@ data class SettingsWidgetLayout(
 
 @Serializable(with = SettingsSceneWidget.Serializer::class)
 class SettingsSceneWidget(
-    var widgetId: UUID = UUID.randomUUID(),
+    widgetId: UUID = UUID.randomUUID(),
     var id: UUID = UUID.randomUUID(),
-    var layout: SettingsWidgetLayout = SettingsWidgetLayout(),
-    var width2: Double = 100.0,
-    var height2: Double = 100.0,
+    layout: SettingsWidgetLayout = SettingsWidgetLayout(),
+    width2: Double = 100.0,
+    height2: Double = 100.0,
     var migrated: Boolean = true,
     var migrated2: Boolean = true
 ) {
+    var widgetId: UUID by Published(widgetId)
+    var layout: SettingsWidgetLayout by Published(layout)
+    var width2: Double by Published(width2)
+    var height2: Double by Published(height2)
+
     override fun equals(other: Any?): Boolean = other is SettingsSceneWidget && id == other.id
 
     override fun hashCode(): Int = id.hashCode()
@@ -3335,21 +3471,28 @@ data class SettingsVideoSource(
 
 @Serializable(with = SettingsWidgetVideoSource.Serializer::class)
 class SettingsWidgetVideoSource(
-    var cornerRadius: Float = 0f,
-    var videoSource: SettingsVideoSource = SettingsVideoSource(),
+    cornerRadius: Float = 0f,
+    videoSource: SettingsVideoSource = SettingsVideoSource(),
     var cropEnabled: Boolean = false,
     var cropX: Double = 0.25,
     var cropY: Double = 0.0,
     var cropWidth: Double = 0.5,
     var cropHeight: Double = 1.0,
-    var rotation: Double = 0.0,
-    var trackFaceEnabled: Boolean = false,
-    var trackFaceZoom: Double = 0.75,
-    var mirror: Boolean = false,
-    var borderWidth: Double = 0.0,
+    rotation: Double = 0.0,
+    trackFaceEnabled: Boolean = false,
+    trackFaceZoom: Double = 0.75,
+    mirror: Boolean = false,
+    borderWidth: Double = 0.0,
     var borderColor: RgbColor = RgbColor(red = 0, green = 0, blue = 0)
 ) {
-    var borderColorColor: Color = borderColor.color()
+    var cornerRadius: Float by Published(cornerRadius)
+    var videoSource: SettingsVideoSource by Published(videoSource)
+    var rotation: Double by Published(rotation)
+    var trackFaceEnabled: Boolean by Published(trackFaceEnabled)
+    var trackFaceZoom: Double by Published(trackFaceZoom)
+    var mirror: Boolean by Published(mirror)
+    var borderWidth: Double by Published(borderWidth)
+    var borderColorColor: Color by Published(borderColor.color())
 
     fun encode(): JsonObject = encodeContainer {
         encode("cornerRadius", cornerRadius)
@@ -3432,7 +3575,9 @@ class SettingsWidgetVideoSource(
     fun toCameraId(): SettingsCameraId = videoSource.toCameraId()
 
     fun updateCameraId(settingsCameraId: SettingsCameraId) {
-        videoSource.updateCameraId(settingsCameraId)
+        val newVideoSource = videoSource.copy()
+        newVideoSource.updateCameraId(settingsCameraId)
+        videoSource = newVideoSource
     }
 }
 
@@ -3498,8 +3643,10 @@ enum class SettingsWidgetScoreboardLayout {
 @Serializable(with = SettingsWidgetScoreboardPlayer.Serializer::class)
 class SettingsWidgetScoreboardPlayer(
     var id: UUID = UUID.randomUUID(),
-    override var name: String = baseName
+    name: String = baseName
 ) : Named {
+    override var name: String by Published(name)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("name", name)
@@ -3578,13 +3725,18 @@ enum class SettingsWidgetScoreboardScoreIncrement {
 
 @Serializable(with = SettingsWidgetPadelScoreboard.Serializer::class)
 class SettingsWidgetPadelScoreboard(
-    var type: SettingsWidgetPadelScoreboardGameType = SettingsWidgetPadelScoreboardGameType.doubles,
-    var homePlayer1: UUID = UUID.randomUUID(),
-    var homePlayer2: UUID = UUID.randomUUID(),
-    var awayPlayer1: UUID = UUID.randomUUID(),
-    var awayPlayer2: UUID = UUID.randomUUID(),
+    type: SettingsWidgetPadelScoreboardGameType = SettingsWidgetPadelScoreboardGameType.doubles,
+    homePlayer1: UUID = UUID.randomUUID(),
+    homePlayer2: UUID = UUID.randomUUID(),
+    awayPlayer1: UUID = UUID.randomUUID(),
+    awayPlayer2: UUID = UUID.randomUUID(),
     var score: List<SettingsWidgetScoreboardScore> = listOf(SettingsWidgetScoreboardScore())
 ) {
+    var type: SettingsWidgetPadelScoreboardGameType by Published(type)
+    var homePlayer1: UUID by Published(homePlayer1)
+    var homePlayer2: UUID by Published(homePlayer2)
+    var awayPlayer1: UUID by Published(awayPlayer1)
+    var awayPlayer2: UUID by Published(awayPlayer2)
     var scoreChanges: List<SettingsWidgetScoreboardScoreIncrement> = emptyList()
 
     fun encode(): JsonObject = encodeContainer {
@@ -3622,11 +3774,13 @@ class SettingsWidgetPadelScoreboard(
 
 @Serializable(with = SettingsWidgetGolfScoreboardPlayer.Serializer::class)
 class SettingsWidgetGolfScoreboardPlayer(
-    override var name: String = "Player",
+    name: String = "Player",
     var id: UUID = UUID.randomUUID(),
     var scores: List<Int> = defaultScores,
     var color: RgbColor = RgbColor.white
 ) : Named {
+    override var name: String by Published(name)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("name", name)
@@ -3680,14 +3834,22 @@ class SettingsWidgetGolfScoreboardPlayer(
 
 @Serializable(with = SettingsWidgetGolfScoreboard.Serializer::class)
 class SettingsWidgetGolfScoreboard(
-    var title: String = defaultTitle,
-    var numberOfHoles: Int = 18,
-    var currentHole: Int = 0,
-    var pars: List<Int> = defaultPars,
-    var players: List<SettingsWidgetGolfScoreboardPlayer> = defaultPlayers,
-    var playerColors: Boolean = false,
-    var showPars: Boolean = true
+    title: String = defaultTitle,
+    numberOfHoles: Int = 18,
+    currentHole: Int = 0,
+    pars: List<Int> = defaultPars,
+    players: List<SettingsWidgetGolfScoreboardPlayer> = defaultPlayers,
+    playerColors: Boolean = false,
+    showPars: Boolean = true
 ) {
+    var title: String by Published(title)
+    var numberOfHoles: Int by Published(numberOfHoles)
+    var currentHole: Int by Published(currentHole)
+    var pars: List<Int> by Published(pars)
+    var players: List<SettingsWidgetGolfScoreboardPlayer> by Published(players)
+    var playerColors: Boolean by Published(playerColors)
+    var showPars: Boolean by Published(showPars)
+
     fun encode(): JsonObject = encodeContainer {
         encode("eventName", title)
         encode("numberOfHoles", numberOfHoles)
@@ -3761,12 +3923,16 @@ enum class SettingsWidgetGenericScoreboardClockDirection {
 
 @Serializable(with = SettingsWidgetGenericScoreboard.Serializer::class)
 class SettingsWidgetGenericScoreboard(
-    var home: String = baseName,
-    var away: String = baseName,
-    var title: String = baseTitle,
-    var period: String = "1",
+    home: String = baseName,
+    away: String = baseName,
+    title: String = baseTitle,
+    period: String = "1",
     var clock: SettingsWidgetScoreboardClock = SettingsWidgetScoreboardClock()
 ) {
+    var home: String by Published(home)
+    var away: String by Published(away)
+    var title: String by Published(title)
+    var period: String by Published(period)
     var score: SettingsWidgetScoreboardScore = SettingsWidgetScoreboardScore()
     var scoreChanges: List<SettingsWidgetScoreboardScoreIncrement> = emptyList()
 
@@ -3806,12 +3972,13 @@ class SettingsWidgetGenericScoreboard(
 
 @Serializable(with = SettingsWidgetModularScoreboardTeam.Serializer::class)
 class SettingsWidgetModularScoreboardTeam(
-    var name: String = "",
+    name: String = "",
     var textColor: RgbColor = RgbColor.black,
     var backgroundColor: RgbColor = RgbColor.black
 ) {
-    var textColorColor: Color = Color.Transparent
-    var backgroundColorColor: Color = Color.Transparent
+    var name: String by Published(name)
+    var textColorColor: Color by Published(Color.Transparent)
+    var backgroundColorColor: Color by Published(Color.Transparent)
 
     init {
         loadColors()
@@ -3854,13 +4021,15 @@ class SettingsWidgetModularScoreboardTeam(
 
 @Serializable(with = SettingsWidgetScoreboardClock.Serializer::class)
 class SettingsWidgetScoreboardClock(
-    var maximum: Int = 45,
-    var direction: SettingsWidgetGenericScoreboardClockDirection =
+    maximum: Int = 45,
+    direction: SettingsWidgetGenericScoreboardClockDirection =
         SettingsWidgetGenericScoreboardClockDirection.up
 ) {
+    var maximum: Int by Published(maximum)
+    var direction: SettingsWidgetGenericScoreboardClockDirection by Published(direction)
     var minutes: Int = 0
     var seconds: Int = 0
-    var isStopped: Boolean = true
+    var isStopped: Boolean by Published(true)
 
     init {
         reset()
@@ -3934,24 +4103,37 @@ class SettingsWidgetScoreboardClock(
 
 @Serializable(with = SettingsWidgetModularScoreboard.Serializer::class)
 class SettingsWidgetModularScoreboard(
-    var home: SettingsWidgetModularScoreboardTeam = createHomeTeam(),
-    var away: SettingsWidgetModularScoreboardTeam = createAwayTeam(),
-    var title: String = baseTitle,
-    var period: String = "1",
-    var infoBoxText: String = "",
+    home: SettingsWidgetModularScoreboardTeam = createHomeTeam(),
+    away: SettingsWidgetModularScoreboardTeam = createAwayTeam(),
+    title: String = baseTitle,
+    period: String = "1",
+    infoBoxText: String = "",
     var clock: SettingsWidgetScoreboardClock = SettingsWidgetScoreboardClock(),
-    var layout: SettingsWidgetScoreboardLayout = SettingsWidgetScoreboardLayout.stacked,
-    var width: Float = 350f,
-    var rowHeight: Float = 45f,
-    var isBold: Boolean = true,
-    var showTitle: Boolean = false,
-    var showMoreStats: Boolean = false,
-    var showGlobalStatsBlock: Boolean = false,
-    var showClock: Boolean = true
+    layout: SettingsWidgetScoreboardLayout = SettingsWidgetScoreboardLayout.stacked,
+    width: Float = 350f,
+    rowHeight: Float = 45f,
+    isBold: Boolean = true,
+    showTitle: Boolean = false,
+    showMoreStats: Boolean = false,
+    showGlobalStatsBlock: Boolean = false,
+    showClock: Boolean = true
 ) {
+    var home: SettingsWidgetModularScoreboardTeam by Published(home)
+    var away: SettingsWidgetModularScoreboardTeam by Published(away)
+    var title: String by Published(title)
+    var period: String by Published(period)
+    var infoBoxText: String by Published(infoBoxText)
     var score: SettingsWidgetScoreboardScore = SettingsWidgetScoreboardScore()
     var scoreChanges: List<SettingsWidgetScoreboardScoreIncrement> = emptyList()
-    var config: RemoteControlScoreboardMatchConfig? = null
+    var layout: SettingsWidgetScoreboardLayout by Published(layout)
+    var config: RemoteControlScoreboardMatchConfig? by Published(null)
+    var width: Float by Published(width)
+    var rowHeight: Float by Published(rowHeight)
+    var isBold: Boolean by Published(isBold)
+    var showTitle: Boolean by Published(showTitle)
+    var showMoreStats: Boolean by Published(showMoreStats)
+    var showGlobalStatsBlock: Boolean by Published(showGlobalStatsBlock)
+    var showClock: Boolean by Published(showClock)
 
     fun encode(): JsonObject = encodeContainer {
         encode("home", home, SettingsWidgetModularScoreboardTeam.serializer())
@@ -4040,7 +4222,7 @@ class SettingsWidgetModularScoreboard(
 
 @Serializable(with = SettingsWidgetScoreboard.Serializer::class)
 class SettingsWidgetScoreboard(
-    var sport: SettingsWidgetScoreboardSport = SettingsWidgetScoreboardSport.generic,
+    sport: SettingsWidgetScoreboardSport = SettingsWidgetScoreboardSport.generic,
     var textColor: RgbColor = baseTextColor,
     var primaryBackgroundColor: RgbColor = basePrimaryBackgroundColor,
     var secondaryBackgroundColor: RgbColor = baseSecondaryBackgroundColor,
@@ -4049,9 +4231,10 @@ class SettingsWidgetScoreboard(
     var generic: SettingsWidgetGenericScoreboard = SettingsWidgetGenericScoreboard(),
     var modular: SettingsWidgetModularScoreboard = SettingsWidgetModularScoreboard()
 ) {
-    var textColorColor: Color = textColor.color()
-    var primaryBackgroundColorColor: Color = primaryBackgroundColor.color()
-    var secondaryBackgroundColorColor: Color = secondaryBackgroundColor.color()
+    var sport: SettingsWidgetScoreboardSport by Published(sport)
+    var textColorColor: Color by Published(textColor.color())
+    var primaryBackgroundColorColor: Color by Published(primaryBackgroundColor.color())
+    var secondaryBackgroundColorColor: Color by Published(secondaryBackgroundColor.color())
 
     init {
         loadColors()
@@ -4255,22 +4438,34 @@ enum class SettingsWidgetType(val rawValue: String) {
 
 @Serializable(with = SettingsScene.Serializer::class)
 class SettingsScene(
-    override var name: String = baseName,
+    name: String = baseName,
     var id: UUID = UUID.randomUUID(),
-    var enabled: Boolean = true,
-    var videoSource: SettingsVideoSource = SettingsVideoSource(),
-    var widgets: List<SettingsSceneWidget> = emptyList(),
-    var videoSourceRotation: Double = 0.0,
-    var videoStabilizationMode: SettingsVideoStabilizationMode = SettingsVideoStabilizationMode.off,
-    var overrideVideoStabilizationMode: Boolean = false,
-    var fillFrame: Boolean = false,
-    var overrideMic: Boolean = false,
-    var micId: String = "",
-    var quickSwitchGroup: Int? = null,
-    var mirror: Boolean = false,
+    enabled: Boolean = true,
+    videoSource: SettingsVideoSource = SettingsVideoSource(),
+    widgets: List<SettingsSceneWidget> = emptyList(),
+    videoSourceRotation: Double = 0.0,
+    videoStabilizationMode: SettingsVideoStabilizationMode = SettingsVideoStabilizationMode.off,
+    overrideVideoStabilizationMode: Boolean = false,
+    fillFrame: Boolean = false,
+    overrideMic: Boolean = false,
+    micId: String = "",
+    quickSwitchGroup: Int? = null,
+    mirror: Boolean = false,
     var backgroundColor: RgbColor = defaultSegmentedPickerSelectedColor
 ) : Named {
-    var backgroundColorColor: Color = defaultSegmentedPickerSelectedColor.color()
+    override var name: String by Published(name)
+    var enabled: Boolean by Published(enabled)
+    var videoSource: SettingsVideoSource by Published(videoSource)
+    var widgets: MutableList<SettingsSceneWidget> by PublishedList(widgets)
+    var videoSourceRotation: Double by Published(videoSourceRotation)
+    var videoStabilizationMode: SettingsVideoStabilizationMode by Published(videoStabilizationMode)
+    var overrideVideoStabilizationMode: Boolean by Published(overrideVideoStabilizationMode)
+    var fillFrame: Boolean by Published(fillFrame)
+    var overrideMic: Boolean by Published(overrideMic)
+    var micId: String by Published(micId)
+    var quickSwitchGroup: Int? by Published(quickSwitchGroup)
+    var mirror: Boolean by Published(mirror)
+    var backgroundColorColor: Color by Published(defaultSegmentedPickerSelectedColor.color())
 
     override fun equals(other: Any?): Boolean = other is SettingsScene && id == other.id
 
@@ -4331,6 +4526,7 @@ class SettingsScene(
             scene.videoSource.externalCameraId = container.decode("externalCameraId", "")
             scene.videoSource.externalCameraName = container.decode("externalCameraName", "")
             scene.widgets = container.decode("widgets", ListSerializer(SettingsSceneWidget.serializer()), emptyList())
+                .toMutableList()
             scene.videoSourceRotation = container.decode("videoSourceRotation", 0.0)
             scene.videoStabilizationMode = container.decode(
                 "videoStabilizationMode",
@@ -4382,16 +4578,21 @@ class SettingsScene(
     fun toCameraId(): SettingsCameraId = videoSource.toCameraId()
 
     fun updateCameraId(settingsCameraId: SettingsCameraId) {
-        videoSource.updateCameraId(settingsCameraId)
+        val newVideoSource = videoSource.copy()
+        newVideoSource.updateCameraId(settingsCameraId)
+        videoSource = newVideoSource
     }
 }
 
 @Serializable(with = SettingsAutoSceneSwitcherScene.Serializer::class)
 class SettingsAutoSceneSwitcherScene(
     var id: UUID = UUID.randomUUID(),
-    var sceneId: UUID? = null,
-    var time: Int = 15
+    sceneId: UUID? = null,
+    time: Int = 15
 ) {
+    var sceneId: UUID? by Published(sceneId)
+    var time: Int by Published(time)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("sceneId", sceneId)
@@ -4418,10 +4619,14 @@ class SettingsAutoSceneSwitcherScene(
 @Serializable(with = SettingsAutoSceneSwitcher.Serializer::class)
 class SettingsAutoSceneSwitcher(
     var id: UUID = UUID.randomUUID(),
-    override var name: String = baseName,
-    var shuffle: Boolean = false,
-    var scenes: List<SettingsAutoSceneSwitcherScene> = emptyList()
+    name: String = baseName,
+    shuffle: Boolean = false,
+    scenes: List<SettingsAutoSceneSwitcherScene> = emptyList()
 ) : Named {
+    override var name: String by Published(name)
+    var shuffle: Boolean by Published(shuffle)
+    var scenes: List<SettingsAutoSceneSwitcherScene> by Published(scenes)
+
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("name", name)
@@ -4455,9 +4660,12 @@ class SettingsAutoSceneSwitcher(
 
 @Serializable(with = SettingsAutoSceneSwitchers.Serializer::class)
 class SettingsAutoSceneSwitchers(
-    var switcherId: UUID? = null,
-    var switchers: List<SettingsAutoSceneSwitcher> = emptyList()
+    switcherId: UUID? = null,
+    switchers: List<SettingsAutoSceneSwitcher> = emptyList()
 ) {
+    var switcherId: UUID? by Published(switcherId)
+    var switchers: List<SettingsAutoSceneSwitcher> by Published(switchers)
+
     fun encode(): JsonObject = encodeContainer {
         encode("switcherId", switcherId)
         encode("switchers", switchers, ListSerializer(SettingsAutoSceneSwitcher.serializer()))

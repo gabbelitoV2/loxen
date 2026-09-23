@@ -6,10 +6,10 @@ import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.decodeIfPresent
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.utils.Named
 import java.util.UUID
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
@@ -182,131 +182,24 @@ val djiDeviceFpss: List<Int> = listOf(25, 30)
 class SettingsDjiDevice : Named {
     var id: UUID = UUID.randomUUID()
 
-    private val _name = MutableStateFlow(baseName)
-    override var name: String
-        get() = _name.value
-        set(value) {
-            _name.value = value
-        }
-
-    private val _bluetoothPeripheralName = MutableStateFlow<String?>(null)
-    var bluetoothPeripheralName: String?
-        get() = _bluetoothPeripheralName.value
-        set(value) {
-            _bluetoothPeripheralName.value = value
-        }
-
-    private val _bluetoothPeripheralId = MutableStateFlow<UUID?>(null)
-    var bluetoothPeripheralId: UUID?
-        get() = _bluetoothPeripheralId.value
-        set(value) {
-            _bluetoothPeripheralId.value = value
-        }
-
-    private val _wifiSsid = MutableStateFlow("")
-    var wifiSsid: String
-        get() = _wifiSsid.value
-        set(value) {
-            _wifiSsid.value = value
-        }
-
-    private val _wifiPassword = MutableStateFlow("")
-    var wifiPassword: String
-        get() = _wifiPassword.value
-        set(value) {
-            _wifiPassword.value = value
-        }
-
-    private val _rtmpUrlType = MutableStateFlow(SettingsDjiDeviceUrlType.server)
-    var rtmpUrlType: SettingsDjiDeviceUrlType
-        get() = _rtmpUrlType.value
-        set(value) {
-            _rtmpUrlType.value = value
-        }
-
-    private val _serverRtmpStreamId = MutableStateFlow(UUID.randomUUID())
-    var serverRtmpStreamId: UUID
-        get() = _serverRtmpStreamId.value
-        set(value) {
-            _serverRtmpStreamId.value = value
-        }
-
-    private val _serverRtmpUrl = MutableStateFlow<String?>(null)
-    var serverRtmpUrl: String?
-        get() = _serverRtmpUrl.value
-        set(value) {
-            _serverRtmpUrl.value = value
-        }
-
-    private val _customRtmpUrl = MutableStateFlow("")
-    var customRtmpUrl: String
-        get() = _customRtmpUrl.value
-        set(value) {
-            _customRtmpUrl.value = value
-        }
-
-    private val _autoRestartStream = MutableStateFlow(false)
-    var autoRestartStream: Boolean
-        get() = _autoRestartStream.value
-        set(value) {
-            _autoRestartStream.value = value
-        }
-
-    private val _imageStabilization = MutableStateFlow(SettingsDjiDeviceImageStabilization.off)
-    var imageStabilization: SettingsDjiDeviceImageStabilization
-        get() = _imageStabilization.value
-        set(value) {
-            _imageStabilization.value = value
-        }
-
-    private val _resolution = MutableStateFlow(SettingsDjiDeviceResolution.r1080p)
-    var resolution: SettingsDjiDeviceResolution
-        get() = _resolution.value
-        set(value) {
-            _resolution.value = value
-        }
-
-    private val _fps = MutableStateFlow(30)
-    var fps: Int
-        get() = _fps.value
-        set(value) {
-            _fps.value = value
-        }
-
-    private val _bitrate = MutableStateFlow<UInt>(6_000_000u)
-    var bitrate: UInt
-        get() = _bitrate.value
-        set(value) {
-            _bitrate.value = value
-        }
-
-    private val _videoCodec = MutableStateFlow(SettingsDjiDeviceVideoCodec.h265hevc)
-    var videoCodec: SettingsDjiDeviceVideoCodec
-        get() = _videoCodec.value
-        set(value) {
-            _videoCodec.value = value
-        }
-
-    private val _isStarted = MutableStateFlow(false)
-    var isStarted: Boolean
-        get() = _isStarted.value
-        set(value) {
-            _isStarted.value = value
-        }
-
-    private val _model = MutableStateFlow(SettingsDjiDeviceModel.unknown)
-    var model: SettingsDjiDeviceModel
-        get() = _model.value
-        set(value) {
-            _model.value = value
-        }
-
-    private val _state = MutableStateFlow<DjiDeviceState?>(null)
-    var state: DjiDeviceState?
-        get() = _state.value
-        set(value) {
-            _state.value = value
-        }
+    override var name: String by Published(baseName)
+    var bluetoothPeripheralName: String? by Published(null)
+    var bluetoothPeripheralId: UUID? by Published(null)
+    var wifiSsid: String by Published("")
+    var wifiPassword: String by Published("")
+    var rtmpUrlType: SettingsDjiDeviceUrlType by Published(SettingsDjiDeviceUrlType.server)
+    var serverRtmpStreamId: UUID by Published(UUID.randomUUID())
+    var serverRtmpUrl: String? by Published(null)
+    var customRtmpUrl: String by Published("")
+    var autoRestartStream: Boolean by Published(false)
+    var imageStabilization: SettingsDjiDeviceImageStabilization by Published(SettingsDjiDeviceImageStabilization.off)
+    var resolution: SettingsDjiDeviceResolution by Published(SettingsDjiDeviceResolution.r1080p)
+    var fps: Int by Published(30)
+    var bitrate: UInt by Published(6_000_000u)
+    var videoCodec: SettingsDjiDeviceVideoCodec by Published(SettingsDjiDeviceVideoCodec.h265hevc)
+    var isStarted: Boolean by Published(false)
+    var model: SettingsDjiDeviceModel by Published(SettingsDjiDeviceModel.unknown)
+    var state: DjiDeviceState? by Published(null)
 
     val autoRestartStreamTimer = MainTimer()
 
@@ -396,12 +289,7 @@ class SettingsDjiDevice : Named {
 
 @Serializable(with = SettingsDjiDevices.Serializer::class)
 class SettingsDjiDevices {
-    private val _devices = MutableStateFlow<List<SettingsDjiDevice>>(emptyList())
-    var devices: List<SettingsDjiDevice>
-        get() = _devices.value
-        set(value) {
-            _devices.value = value
-        }
+    var devices: List<SettingsDjiDevice> by Published(emptyList())
 
     init {
     }

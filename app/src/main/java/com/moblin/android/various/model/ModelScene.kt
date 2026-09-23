@@ -492,7 +492,7 @@ fun Model.switchToNextSceneRoundRobin() {
 }
 
 fun Model.appendWidgetToScene(scene: SettingsScene, widget: SettingsWidget) {
-    scene.widgets = scene.widgets + createSceneWidget(widget = widget)
+    scene.widgets.add(createSceneWidget(widget = widget))
     var attachCamera = false
     if (scene.id == getSelectedScene()?.id) {
         attachCamera = isCaptureDeviceWidget(widget = widget)
@@ -1178,7 +1178,7 @@ private fun Model.sceneUpdatedOn(scene: SettingsScene, attachCamera: Boolean) {
     val remoteSceneWidget = remoteSceneWidgets.firstOrNull()
     if (remoteSceneWidget != null) {
         effectiveScene = scene.clone()
-        effectiveScene.widgets = effectiveScene.widgets + SettingsSceneWidget(widgetId = remoteSceneWidget.id)
+        effectiveScene.widgets.add(SettingsSceneWidget(widgetId = remoteSceneWidget.id))
     }
     addSceneEffects(effectiveScene, effects, addedScenes, needsSpeechToText)
     if (drawOnStream.lines.value.isNotEmpty()) {

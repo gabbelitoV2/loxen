@@ -1,5 +1,6 @@
 package com.moblin.android.various.settings
 
+import androidx.compose.runtime.snapshots.Snapshot
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.color
 import com.moblin.android.platform.codable.codableJson
@@ -159,6 +160,126 @@ class StreamCodableSuite {
         assertRoundTrip(SettingsWhipServer.serializer(), SettingsWhipServer())
         assertRoundTrip(SettingsWhepClientStream.serializer(), SettingsWhepClientStream())
         assertRoundTrip(SettingsWhepClient.serializer(), SettingsWhepClient())
+    }
+
+    @Test
+    fun publishedPropertiesAreObservable() {
+        val stream = SettingsStream(name = "Main")
+        val srt = stream.srt
+        val adaptiveBitrate = srt.adaptiveBitrate
+        val whip = stream.whip
+        val recording = stream.recording
+        val previewStream = stream.previewStream
+        val replay = stream.replay
+        val twitchAlerts = stream.twitchChatAlerts
+        val kickAlerts = stream.kickToastAlerts
+        val multiStreaming = stream.multiStreaming
+        val destination = SettingsStreamMultiStreamingDestination(name = "Backup")
+        val chat = SettingsChat()
+        val filter = SettingsChatFilter()
+        val nicknames = chat.nicknames
+        val predefinedMessagesFilter = chat.predefinedMessagesFilter
+        val command = SettingsChatBotPermissionsCommand(moderatorsEnabled = false)
+        val openAi = SettingsOpenAi(personality = "Short")
+        val rtmpServer = SettingsRtmpServer()
+        val srtlaServer = SettingsSrtlaServer()
+        val ristStream = SettingsRistServerStream()
+        val rtspClient = SettingsRtspClient()
+        val rtspStream = SettingsRtspClientStream()
+        val whipStream = SettingsWhipServerStream()
+        val whepClient = SettingsWhepClient()
+        assertEquals("Main", stream.name)
+        assertEquals("Backup", destination.name)
+        assertFalse(command.moderatorsEnabled)
+        assertEquals("Short", openAi.personality)
+        multiStreaming.destinations.add(destination)
+        rtspClient.streams.add(rtspStream)
+        val cases: List<Pair<() -> Any?, () -> Unit>> = listOf(
+            { stream.name } to { stream.name = "Other" },
+            { stream.bitrate } to { stream.bitrate = 1_000_000 },
+            { stream.kickChannelId } to { stream.kickChannelId = "1" },
+            { stream.multiStreaming } to { stream.multiStreaming = SettingsStreamMultiStreaming() },
+            { stream.twitchRaidsSent.size } to {
+                stream.twitchRaidsSent.add(SettingsStreamTwitchRaidChannel("1", "a"))
+            },
+            { stream.twitchRaidsReceived.size } to {
+                stream.twitchRaidsReceived = mutableListOf(SettingsStreamTwitchRaidChannel("2", "b"))
+            },
+            { adaptiveBitrate.algorithm } to {
+                adaptiveBitrate.algorithm = SettingsStreamSrtAdaptiveBitrateAlgorithm.fastIrl
+            },
+            { srt.latency } to { srt.latency = 500 },
+            { whip.headers.size } to { whip.headers.add(SettingsHttpHeader("Authorization", "Bearer x")) },
+            { recording.autoStartRecording } to { recording.autoStartRecording = true },
+            { previewStream.url } to { previewStream.url = "rtmp://x" },
+            { replay.transitionType } to { replay.transitionType = SettingsStreamReplayTransitionType.none },
+            { replay.layout } to { replay.layout = SettingsWidgetLayout(x = 5.0) },
+            { twitchAlerts.follows } to { twitchAlerts.follows = false },
+            { kickAlerts.minimumKicks } to { kickAlerts.minimumKicks = 10 },
+            { multiStreaming.destinations.size } to { multiStreaming.destinations.removeAt(0) },
+            { destination.name } to { destination.name = "Renamed" },
+            { filter.enabled } to { filter.enabled = true },
+            { chat.filters.size } to { chat.filters.add(filter) },
+            { chat.textToSpeechLanguageVoices.size } to { chat.textToSpeechLanguageVoices["en"] = SettingsVoice() },
+            { nicknames.nicknames.size } to { nicknames.nicknames.add(SettingsChatNickname()) },
+            { predefinedMessagesFilter.redTag } to { predefinedMessagesFilter.redTag = true },
+            { chat.fontSize } to { chat.fontSize = 25f },
+            { chat.aliases.size } to { chat.aliases = mutableListOf(SettingsChatBotAlias()) },
+            { command.moderatorsEnabled } to { command.moderatorsEnabled = true },
+            { command.cooldown } to { command.cooldown = 30 },
+            { openAi.personality } to { openAi.personality = "Long" },
+            { rtmpServer.streams.size } to { rtmpServer.streams.add(SettingsRtmpServerStream()) },
+            { rtmpServer.streams.first().name } to { rtmpServer.streams[0] = SettingsRtmpServerStream() },
+            { srtlaServer.srtlaPort } to { srtlaServer.srtlaPort = 5123 },
+            { ristStream.virtualDestinationPort } to { ristStream.virtualDestinationPort = 7 },
+            { rtspClient.streams.size } to { rtspClient.streams.remove(rtspStream) },
+            { rtspStream.transport } to { rtspStream.transport = SettingsRtspTransport.rtpUdp },
+            { whipStream.latency } to { whipStream.latency = 200 },
+            { whepClient.streams.isEmpty() } to { whepClient.streams.add(0, SettingsWhepClientStream()) },
+        )
+        cases.forEachIndexed { index, (read, write) ->
+            assertObservedChange(index, read, write)
+        }
+        assertObservedUnchanged({ stream.bitrate }) { stream.fps = 60 }
+        assertEquals(1, chat.filters.size)
+        assertEquals(1, rtmpServer.streams.size)
+        assertTrue(rtspClient.streams.isEmpty())
+        assertEquals(1, whepClient.streams.size)
+        assertEquals(SettingsStreamSrtAdaptiveBitrateAlgorithm.fastIrl, stream.srt.adaptiveBitrate.algorithm)
+    }
+
+    private fun observedReads(read: () -> Any?): List<Any> {
+        val observed = mutableListOf<Any>()
+        Snapshot.observe(readObserver = { observed.add(it) }) {
+            read()
+        }
+        return observed
+    }
+
+    private fun changedStates(write: () -> Unit): List<Any> {
+        Snapshot.sendApplyNotifications()
+        val changed = mutableListOf<Any>()
+        val handle = Snapshot.registerApplyObserver { modified, _ -> changed.addAll(modified) }
+        try {
+            write()
+            Snapshot.sendApplyNotifications()
+        } finally {
+            handle.dispose()
+        }
+        return changed
+    }
+
+    private fun assertObservedChange(index: Int, read: () -> Any?, write: () -> Unit) {
+        val observed = observedReads(read)
+        assertTrue(observed.isNotEmpty(), "Read $index was not observed")
+        val changed = changedStates(write)
+        assertTrue(observed.any { state -> changed.any { it === state } }, "Write $index was not observed")
+    }
+
+    private fun assertObservedUnchanged(read: () -> Any?, write: () -> Unit) {
+        val observed = observedReads(read)
+        val changed = changedStates(write)
+        assertFalse(observed.any { state -> changed.any { it === state } })
     }
 
     @Test

@@ -5,6 +5,7 @@ import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.decode
 import com.moblin.android.platform.codable.decodeIfPresent
 import com.moblin.android.platform.codable.encodeContainer
+import com.moblin.android.platform.swiftui.Published
 import com.moblin.android.various.utils.Named
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +18,7 @@ import kotlinx.serialization.json.JsonObject
 class SettingsCatPrinter : Named {
     var id: UUID = UUID.randomUUID()
 
-    override var name: String = ""
+    override var name: String by Published("")
 
     val enabled = MutableStateFlow(false)
 

@@ -318,7 +318,7 @@ private fun WidgetsView(
                 }
             }
         }
-        scene.widgets = scene.widgets.removing(atOffsets = offsets)
+        scene.widgets.remove(atOffsets = offsets)
         model.sceneUpdated(attachCamera = attachCamera)
         model.sceneSettingsPanelSceneId.value += 1
     }
@@ -339,7 +339,7 @@ private fun WidgetsView(
             id = { it.id },
             onDelete = { deleteSceneWidget(it) },
             onMove = { froms, to ->
-                scene.widgets = scene.widgets.moving(fromOffsets = froms, toOffset = to)
+                scene.widgets.move(fromOffsets = froms, toOffset = to)
                 model.sceneUpdated()
                 model.sceneSettingsPanelSceneId.value += 1
             },
