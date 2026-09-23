@@ -338,7 +338,7 @@ def robolectric_runner(text):
     return text, n
 
 
-def process_file(text, renamed_names, sources=None):
+def process_file(text, renamed_names, sources=None, fresh=False):
     counts = {}
     package = re.search(r"^package (\S+)$", text, re.M)
     package_name = package.group(1) if package else ""
@@ -367,7 +367,7 @@ def process_file(text, renamed_names, sources=None):
     counts["statements"] = statements
     text, hooks = host_hooks(text)
     counts["hooks"] = hooks
-    if "@Composable" in text:
+    if fresh and "@Composable" in text:
         text, modifiers = modifier_order(text)
         counts["modifiers"] = modifiers
     text, runners = robolectric_runner(text)
@@ -1024,7 +1024,7 @@ def run(dry_run, only=None, hooks=True, verbose=False):
     contents = {path: (sources[path], sources[path]) for path in files}
     for path in selected:
         original = sources[path]
-        text, counts = process_file(original, renamed, sources)
+        text, counts = process_file(original, renamed, sources, fresh=only is not None)
         contents[path] = (original, text)
         for key, value in counts.items():
             totals[key] = totals.get(key, 0) + value

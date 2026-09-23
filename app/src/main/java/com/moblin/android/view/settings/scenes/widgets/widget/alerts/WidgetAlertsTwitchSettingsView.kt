@@ -83,7 +83,7 @@ private fun TwitchFollowsView(
                 val event = TwitchEventSubNotificationChannelFollowEvent(
                     user_name = alertTestNames.random(),
                 )
-                model.testAlert(TODO("testAlert with the twitchFollow alert case"))
+                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchFollow(event))
             }
         }
     }
@@ -130,7 +130,7 @@ private fun TwitchSubscriptionsView(
                     is_gift = false,
                     is_prime = false,
                 )
-                model.testAlert(TODO("testAlert with the twitchSubscribe alert case"))
+                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchSubscribe(event))
             }
         }
     }
@@ -176,7 +176,7 @@ private fun TwitchRaidsView(
                     from_broadcaster_user_name = alertTestNames.random(),
                     viewers = (1 until 1000).random(),
                 )
-                model.testAlert(TODO("testAlert with the twitchRaid alert case"))
+                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchRaid(event))
             }
         }
     }
@@ -273,7 +273,7 @@ private fun TwitchCheerView(
                     message = "A test message!",
                     bits = cheerBit.bits,
                 )
-                model.testAlert(TODO("testAlert with the twitchCheer alert case"))
+                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.TwitchCheer(event))
             }
         }
     }

@@ -101,7 +101,7 @@ fun SaveLoadLayoutView(
 }
 
 private fun dimensions(model: Model): Size {
-    return TODO("model.stream.resolution has no Android counterpart")
+    return model.stream.value.resolution.dimensions(portrait = model.stream.value.portrait)
 }
 
 private fun horizontalIncrement(model: Model): Double {

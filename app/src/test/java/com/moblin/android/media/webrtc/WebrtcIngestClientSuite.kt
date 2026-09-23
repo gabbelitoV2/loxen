@@ -6,9 +6,12 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private val ntpUnixEpochSeconds: ULong = 2_208_988_800uL
 
+@RunWith(RobolectricTestRunner::class)
 class WebrtcIngestClientSuite {
     @Test
     fun decodeNtpTimestampBeforeUnixEpoch() {

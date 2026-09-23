@@ -91,7 +91,7 @@ fun ChatBotCommandDetailView(
         AlertTextToSpeechView(alert = alert)
         Section {
             TextButtonView("Test") {
-                model.testAlert(TODO("AlertTest has no Android counterpart"))
+                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.ChatBotCommand(name, alertTestNames.random()))
             }
         }
     }

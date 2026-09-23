@@ -74,7 +74,7 @@ private fun KickSubscriptionsView(model: Model = LocalModel.current, alert: Sett
                     username = alertTestNames.random(),
                     months = (1..12).random()
                 )
-                model.testAlert(TODO("Model test alert case for kickSubscription"))
+                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickSubscription(event))
             }
         }
     }
@@ -114,7 +114,7 @@ private fun KickGiftedSubscriptionsView(model: Model = LocalModel.current, alert
                     gifter_username = alertTestNames.random(),
                     gifter_total = (1..50).random()
                 )
-                model.testAlert(TODO("Model test alert case for kickGiftedSubscriptions"))
+                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickGiftedSubscriptions(event))
             }
         }
     }
@@ -153,7 +153,7 @@ private fun KickHostsView(model: Model = LocalModel.current, alert: SettingsWidg
                     host_username = alertTestNames.random(),
                     number_viewers = (1..1000).random()
                 )
-                model.testAlert(TODO("Model test alert case for kickHost"))
+                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickHost(event))
             }
         }
     }
@@ -193,7 +193,7 @@ private fun KickRewardsView(model: Model = LocalModel.current, alert: SettingsWi
                     username = alertTestNames.random(),
                     user_input = ""
                 )
-                model.testAlert(TODO("Model test alert case for kickReward"))
+                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickReward(event))
             }
         }
     }
@@ -285,7 +285,7 @@ private fun KickGiftView(
                     ),
                     gift = KickPusherKickGift(name = "Kicks", amount = kickGift.amount)
                 )
-                model.testAlert(TODO("Model test alert case for kickKicks"))
+                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickKicks(event))
             }
         }
     }

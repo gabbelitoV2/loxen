@@ -10,6 +10,8 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private enum class CodableSuiteMode { first, second }
 
@@ -39,6 +41,7 @@ private class CodableSuiteChild {
     )
 }
 
+@RunWith(RobolectricTestRunner::class)
 class CodableSuite {
     @Test
     fun uuidIsUppercase() {

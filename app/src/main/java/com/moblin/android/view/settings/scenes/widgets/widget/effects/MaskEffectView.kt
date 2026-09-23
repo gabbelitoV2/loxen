@@ -173,7 +173,7 @@ private fun MaskCanvasView(
 
     fun drawPolygon(scope: DrawScope, size: Size) {
         val pts = points.map { canvasPoint(it, size) }
-        val path = makeCatmullRomPath(pts.map { PointF(it.x, it.y) }, tension.toFloat()).asComposePath()
+        val path = makeCatmullRomPath(pts.map { com.moblin.android.platform.coregraphics.CGPoint(it.x, it.y) }, tension = tension.toDouble()).asComposePath()
         scope.drawPath(path, color = Color.White.copy(alpha = 0.25f))
         scope.drawPath(path, color = Color.White, style = Stroke(width = 1.5f))
     }
@@ -586,7 +586,7 @@ fun MaskEffectView(
             updateWidget = { updateWidget() },
             refreshPreviewImage = { refreshPreviewImage() },
             previewImage = previewImage,
-            isPortrait = TODO("Model.stream.portrait has no Android counterpart"),
+            isPortrait = model.stream.value.portrait,
             selectedPointIndex = selectedPointIndex,
             onSelectedPointIndexChange = { selectedPointIndex = it },
             selectedEdgeIndex = selectedEdgeIndex,

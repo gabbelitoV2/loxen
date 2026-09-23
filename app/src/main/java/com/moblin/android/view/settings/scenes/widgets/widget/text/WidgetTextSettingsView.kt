@@ -472,7 +472,7 @@ private fun TimerWidgetView(
 
     fun updateTextEffect() {
         for (effect in textEffects) {
-            effect.setEndTime(index = index, endTime = timer.textEffectEndTime() as Long)
+            effect.setEndTime(index = index, endTime = timer.textEffectEndTime())
         }
     }
 

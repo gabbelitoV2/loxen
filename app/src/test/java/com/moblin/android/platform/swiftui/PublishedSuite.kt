@@ -4,6 +4,8 @@ import androidx.compose.runtime.snapshots.Snapshot
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
 private class PublishedSuiteSettings(name: String = "") {
     var name: String by Published(name)
@@ -11,6 +13,7 @@ private class PublishedSuiteSettings(name: String = "") {
     var values: MutableMap<String, Int> by PublishedMap()
 }
 
+@RunWith(RobolectricTestRunner::class)
 class PublishedSuite {
     @Test
     fun readsAreObserved() {

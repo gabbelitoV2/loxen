@@ -93,7 +93,7 @@ fun SpeechToTextStringDetailView(
         AlertPositionView(model = model, alert = alert)
         Section {
             TextButtonView(title = "Test") {
-                model.testAlert(TODO("speechToTextString(string.id)"))
+                model.testAlert(com.moblin.android.videoeffects.alerts.AlertsEffectAlert.SpeechToTextString(string.id))
             }
         }
     }
