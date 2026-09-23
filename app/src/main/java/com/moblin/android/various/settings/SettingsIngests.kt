@@ -8,35 +8,46 @@ import com.moblin.android.common.various.srtlaCamera
 import com.moblin.android.common.various.whepCamera
 import com.moblin.android.common.various.whipCamera
 import com.moblin.android.localized
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.various.network.DefaultTcpPorts
 import com.moblin.android.various.network.DefaultUdpPorts
 import com.moblin.android.various.utils.Named
 import java.util.UUID
-import kotlinx.serialization.Contextual
-import kotlinx.serialization.SerialName
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.JsonObject
 
 private const val defaultRtmpLatency: Int = 2000
 
-@Serializable
+@Serializable(with = SettingsRtmpServerStream.Serializer::class)
 class SettingsRtmpServerStream : Named {
     companion object {
         val baseName: String = localized("My stream")
+
+        fun decode(container: JsonObject): SettingsRtmpServerStream {
+            val stream = SettingsRtmpServerStream()
+            stream.id = container.decode("id", UUID.randomUUID())
+            stream.name = container.decode("name", baseName)
+            stream.streamKey = container.decode("streamKey", "")
+            stream.latency = container.decode("latency", defaultRtmpLatency)
+            return stream
+        }
     }
 
-    @Contextual
-    @SerialName("id")
     var id: UUID = UUID.randomUUID()
-
-    @SerialName("name")
     override var name: String = baseName
-
-    @SerialName("streamKey")
     var streamKey: String = ""
-
-    @SerialName("latency")
     var latency: Int = defaultRtmpLatency
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("streamKey", streamKey)
+        encode("latency", latency)
+    }
 
     fun camera(): String {
         return rtmpCamera(name)
@@ -54,18 +65,25 @@ class SettingsRtmpServerStream : Named {
         new.latency = latency
         return new
     }
+
+    object Serializer : KSerializer<SettingsRtmpServerStream> by JsonObjectSerializer(
+        "SettingsRtmpServerStream",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsRtmpServer.Serializer::class)
 class SettingsRtmpServer {
-    @SerialName("enabled")
     var enabled: Boolean = false
-
-    @SerialName("port")
     var port: Int = DefaultTcpPorts.rtmpServer.toInt()
-
-    @SerialName("streams")
     var streams: MutableList<SettingsRtmpServerStream> = mutableListOf()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("port", port)
+        encode("streams", streams)
+    }
 
     fun clone(): SettingsRtmpServer {
         val new = SettingsRtmpServer()
@@ -76,23 +94,51 @@ class SettingsRtmpServer {
         }
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsRtmpServer {
+            val server = SettingsRtmpServer()
+            server.enabled = container.decode("enabled", false)
+            server.port = container.decode<UShort>("port", DefaultTcpPorts.rtmpServer.toUShort()).toInt()
+            server.streams = container.decode(
+                "streams",
+                ListSerializer(SettingsRtmpServerStream.serializer()),
+                emptyList(),
+            ).toMutableList()
+            return server
+        }
+    }
+
+    object Serializer : KSerializer<SettingsRtmpServer> by JsonObjectSerializer(
+        "SettingsRtmpServer",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsSrtlaServerStream.Serializer::class)
 class SettingsSrtlaServerStream : Named {
     companion object {
         val baseName: String = localized("My stream")
+
+        fun decode(container: JsonObject): SettingsSrtlaServerStream {
+            val stream = SettingsSrtlaServerStream()
+            stream.id = container.decode("id", UUID.randomUUID())
+            stream.name = container.decode("name", baseName)
+            stream.streamId = container.decode("streamId", "")
+            return stream
+        }
     }
 
-    @Contextual
-    @SerialName("id")
     var id: UUID = UUID.randomUUID()
-
-    @SerialName("name")
     override var name: String = baseName
-
-    @SerialName("streamId")
     var streamId: String = ""
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("streamId", streamId)
+    }
 
     fun camera(): String {
         return srtlaCamera(name)
@@ -105,21 +151,27 @@ class SettingsSrtlaServerStream : Named {
         new.streamId = streamId
         return new
     }
+
+    object Serializer : KSerializer<SettingsSrtlaServerStream> by JsonObjectSerializer(
+        "SettingsSrtlaServerStream",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsSrtlaServer.Serializer::class)
 class SettingsSrtlaServer {
-    @SerialName("enabled")
     var enabled: Boolean = false
-
-    @SerialName("srtPort")
     var srtPort: Int = DefaultUdpPorts.srtServer.toInt()
-
-    @SerialName("srtlaPort")
     var srtlaPort: Int = DefaultUdpPorts.srtlaServer.toInt()
-
-    @SerialName("streams")
     var streams: MutableList<SettingsSrtlaServerStream> = mutableListOf()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("srtPort", srtPort)
+        encode("srtlaPort", srtlaPort)
+        encode("streams", streams)
+    }
 
     fun clone(): SettingsSrtlaServer {
         val new = SettingsSrtlaServer()
@@ -135,59 +187,121 @@ class SettingsSrtlaServer {
     fun srtlaSrtPort(): Int {
         return srtlaPort + 1
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsSrtlaServer {
+            val server = SettingsSrtlaServer()
+            server.enabled = container.decode("enabled", false)
+            server.srtPort = container.decode<UShort>("srtPort", DefaultUdpPorts.srtServer.toUShort()).toInt()
+            server.srtlaPort = container.decode<UShort>("srtlaPort", DefaultUdpPorts.srtlaServer.toUShort()).toInt()
+            server.streams = container.decode(
+                "streams",
+                ListSerializer(SettingsSrtlaServerStream.serializer()),
+                emptyList(),
+            ).toMutableList()
+            return server
+        }
+    }
+
+    object Serializer : KSerializer<SettingsSrtlaServer> by JsonObjectSerializer(
+        "SettingsSrtlaServer",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsSrtClientStream.Serializer::class)
 class SettingsSrtClientStream : Named {
     companion object {
         val baseName: String = localized("My stream")
+
+        fun decode(container: JsonObject): SettingsSrtClientStream {
+            val stream = SettingsSrtClientStream()
+            stream.id = container.decode("id", UUID.randomUUID())
+            stream.name = container.decode("name", baseName)
+            stream.url = container.decode("url", "")
+            stream.enabled = container.decode("enabled", false)
+            return stream
+        }
     }
 
-    @Contextual
-    @SerialName("id")
     var id: UUID = UUID.randomUUID()
-
-    @SerialName("name")
     override var name: String = baseName
-
-    @SerialName("url")
     var url: String = ""
-
-    @SerialName("enabled")
     var enabled: Boolean = false
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("url", url)
+        encode("enabled", enabled)
+    }
 
     fun camera(): String {
         return srtClientCamera(name)
     }
+
+    object Serializer : KSerializer<SettingsSrtClientStream> by JsonObjectSerializer(
+        "SettingsSrtClientStream",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsSrtClient.Serializer::class)
 class SettingsSrtClient {
-    @SerialName("streams")
     var streams: MutableList<SettingsSrtClientStream> = mutableListOf()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("streams", streams)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsSrtClient {
+            val client = SettingsSrtClient()
+            client.streams = container.decode(
+                "streams",
+                ListSerializer(SettingsSrtClientStream.serializer()),
+                emptyList(),
+            ).toMutableList()
+            return client
+        }
+    }
+
+    object Serializer : KSerializer<SettingsSrtClient> by JsonObjectSerializer(
+        "SettingsSrtClient",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsRistServerStream.Serializer::class)
 class SettingsRistServerStream : Named {
     companion object {
         val baseName: String = localized("My stream")
+
+        fun decode(container: JsonObject): SettingsRistServerStream {
+            val stream = SettingsRistServerStream()
+            stream.id = container.decode("id", UUID.randomUUID())
+            stream.name = container.decode("name", baseName)
+            stream.virtualDestinationPort = container.decode<UShort>("virtualDestinationPort", 1u).toInt()
+            stream.latency = container.decode("latency", 2000)
+            return stream
+        }
     }
 
-    @Contextual
-    @SerialName("id")
     var id: UUID = UUID.randomUUID()
-
-    @SerialName("name")
     override var name: String = baseName
-
-    @SerialName("virtualDestinationPort")
     var virtualDestinationPort: Int = 1
-
-    @SerialName("latency")
     var latency: Int = 2000
-
-    @Transient
     var connected: Boolean = false
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("virtualDestinationPort", virtualDestinationPort)
+        encode("latency", latency)
+    }
 
     fun latencySeconds(): Double {
         return latency.toDouble() / 1000
@@ -205,18 +319,25 @@ class SettingsRistServerStream : Named {
     fun camera(): String {
         return ristCamera(name)
     }
+
+    object Serializer : KSerializer<SettingsRistServerStream> by JsonObjectSerializer(
+        "SettingsRistServerStream",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsRistServer.Serializer::class)
 class SettingsRistServer {
-    @SerialName("enabled")
     var enabled: Boolean = false
-
-    @SerialName("port")
     var port: Int = DefaultUdpPorts.ristServer.toInt()
-
-    @SerialName("streams")
     var streams: MutableList<SettingsRistServerStream> = mutableListOf()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("port", port)
+        encode("streams", streams)
+    }
 
     fun makeUniqueVirtualDestinationPort(): Int {
         var port: Int = 1
@@ -225,6 +346,26 @@ class SettingsRistServer {
         }
         return port
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsRistServer {
+            val server = SettingsRistServer()
+            server.enabled = container.decode("enabled", false)
+            server.port = container.decode<UShort>("port", DefaultUdpPorts.ristServer.toUShort()).toInt()
+            server.streams = container.decode(
+                "streams",
+                ListSerializer(SettingsRistServerStream.serializer()),
+                emptyList(),
+            ).toMutableList()
+            return server
+        }
+    }
+
+    object Serializer : KSerializer<SettingsRistServer> by JsonObjectSerializer(
+        "SettingsRistServer",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
 @Serializable
@@ -246,67 +387,110 @@ enum class SettingsRtspTransport(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsRtspClientStream.Serializer::class)
 class SettingsRtspClientStream : Named {
     companion object {
         val baseName: String = localized("My stream")
+
+        fun decode(container: JsonObject): SettingsRtspClientStream {
+            val stream = SettingsRtspClientStream()
+            stream.id = container.decode("id", UUID.randomUUID())
+            stream.name = container.decode("name", baseName)
+            stream.url = container.decode("url", "")
+            stream.enabled = container.decode("enabled", false)
+            stream.latency = container.decode("latency", 2000)
+            stream.transport = container.decode("transport", SettingsRtspTransport.rtpRtspTcp)
+            return stream
+        }
     }
 
-    @Contextual
-    @SerialName("id")
     var id: UUID = UUID.randomUUID()
-
-    @SerialName("name")
     override var name: String = baseName
-
-    @SerialName("url")
     var url: String = ""
-
-    @SerialName("enabled")
     var enabled: Boolean = false
-
-    @SerialName("latency")
     var latency: Int = 2000
-
-    @SerialName("transport")
     var transport: SettingsRtspTransport = SettingsRtspTransport.rtpRtspTcp
 
     fun latencySeconds(): Double {
         return latency.toDouble() / 1000
     }
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("url", url)
+        encode("enabled", enabled)
+        encode("latency", latency)
+        encode("transport", transport)
+    }
+
     fun camera(): String {
         return rtspCamera(name)
     }
+
+    object Serializer : KSerializer<SettingsRtspClientStream> by JsonObjectSerializer(
+        "SettingsRtspClientStream",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsRtspClient.Serializer::class)
 class SettingsRtspClient {
-    @SerialName("streams")
     var streams: MutableList<SettingsRtspClientStream> = mutableListOf()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("streams", streams)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsRtspClient {
+            val client = SettingsRtspClient()
+            client.streams = container.decode(
+                "streams",
+                ListSerializer(SettingsRtspClientStream.serializer()),
+                emptyList(),
+            ).toMutableList()
+            return client
+        }
+    }
+
+    object Serializer : KSerializer<SettingsRtspClient> by JsonObjectSerializer(
+        "SettingsRtspClient",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWhipServerStream.Serializer::class)
 class SettingsWhipServerStream : Named {
     companion object {
         val baseName: String = localized("My stream")
+
+        fun decode(container: JsonObject): SettingsWhipServerStream {
+            val stream = SettingsWhipServerStream()
+            stream.id = container.decode("id", UUID.randomUUID())
+            stream.name = container.decode("name", baseName)
+            stream.streamKey = container.decode("streamKey", "")
+            stream.latency = container.decode("latency", 100)
+            stream.syncTimestamps = container.decode("syncTimestamps", true)
+            return stream
+        }
     }
 
-    @Contextual
-    @SerialName("id")
     var id: UUID = UUID.randomUUID()
-
-    @SerialName("name")
     override var name: String = baseName
-
-    @SerialName("streamKey")
     var streamKey: String = ""
-
-    @SerialName("latency")
     var latency: Int = 100
-
-    @SerialName("syncTimestamps")
     var syncTimestamps: Boolean = true
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("streamKey", streamKey)
+        encode("latency", latency)
+        encode("syncTimestamps", syncTimestamps)
+    }
 
     fun camera(): String {
         return whipCamera(name)
@@ -325,18 +509,25 @@ class SettingsWhipServerStream : Named {
         new.syncTimestamps = syncTimestamps
         return new
     }
+
+    object Serializer : KSerializer<SettingsWhipServerStream> by JsonObjectSerializer(
+        "SettingsWhipServerStream",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWhipServer.Serializer::class)
 class SettingsWhipServer {
-    @SerialName("enabled")
     var enabled: Boolean = false
-
-    @SerialName("port")
     var port: Int = DefaultTcpPorts.whipServer.toInt()
-
-    @SerialName("streams")
     var streams: MutableList<SettingsWhipServerStream> = mutableListOf()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("port", port)
+        encode("streams", streams)
+    }
 
     fun clone(): SettingsWhipServer {
         val new = SettingsWhipServer()
@@ -347,44 +538,99 @@ class SettingsWhipServer {
         }
         return new
     }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWhipServer {
+            val server = SettingsWhipServer()
+            server.enabled = container.decode("enabled", false)
+            server.port = container.decode<UShort>("port", DefaultTcpPorts.whipServer.toUShort()).toInt()
+            server.streams = container.decode(
+                "streams",
+                ListSerializer(SettingsWhipServerStream.serializer()),
+                emptyList(),
+            ).toMutableList()
+            return server
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWhipServer> by JsonObjectSerializer(
+        "SettingsWhipServer",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWhepClientStream.Serializer::class)
 class SettingsWhepClientStream : Named {
     companion object {
         val baseName: String = localized("My stream")
+
+        fun decode(container: JsonObject): SettingsWhepClientStream {
+            val stream = SettingsWhepClientStream()
+            stream.id = container.decode("id", UUID.randomUUID())
+            stream.name = container.decode("name", baseName)
+            stream.url = container.decode("url", "")
+            stream.enabled = container.decode("enabled", false)
+            stream.latency = container.decode("latency", 100)
+            stream.syncTimestamps = container.decode("syncTimestamps", true)
+            return stream
+        }
     }
 
-    @Contextual
-    @SerialName("id")
     var id: UUID = UUID.randomUUID()
-
-    @SerialName("name")
     override var name: String = baseName
-
-    @SerialName("url")
     var url: String = ""
-
-    @SerialName("enabled")
     var enabled: Boolean = false
-
-    @SerialName("latency")
     var latency: Int = 100
-
-    @SerialName("syncTimestamps")
     var syncTimestamps: Boolean = true
 
     fun latencySeconds(): Double {
         return latency.toDouble() / 1000
     }
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("url", url)
+        encode("enabled", enabled)
+        encode("latency", latency)
+        encode("syncTimestamps", syncTimestamps)
+    }
+
     fun camera(): String {
         return whepCamera(name)
     }
+
+    object Serializer : KSerializer<SettingsWhepClientStream> by JsonObjectSerializer(
+        "SettingsWhepClientStream",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWhepClient.Serializer::class)
 class SettingsWhepClient {
-    @SerialName("streams")
     var streams: MutableList<SettingsWhepClientStream> = mutableListOf()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("streams", streams)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWhepClient {
+            val client = SettingsWhepClient()
+            client.streams = container.decode(
+                "streams",
+                ListSerializer(SettingsWhepClientStream.serializer()),
+                emptyList(),
+            ).toMutableList()
+            return client
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWhepClient> by JsonObjectSerializer(
+        "SettingsWhepClient",
+        { it.encode() },
+        { decode(it) },
+    )
 }

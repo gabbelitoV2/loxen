@@ -1,18 +1,19 @@
 package com.moblin.android.various.settings
 
 import com.moblin.android.localized
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.decodeIfPresent
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.various.utils.Named
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.JsonObject
 
-@Serializable(with = SettingsCatPrinter.Companion::class)
+@Serializable(with = SettingsCatPrinter.Serializer::class)
 class SettingsCatPrinter : Named {
     var id: UUID = UUID.randomUUID()
 
@@ -34,91 +35,76 @@ class SettingsCatPrinter : Named {
 
     val printKick = MutableStateFlow(SettingsKickAlerts())
 
-    companion object : KSerializer<SettingsCatPrinter> {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("enabled", enabled)
+        encode("bluetoothPeripheralName", bluetoothPeripheralName)
+        encode("bluetoothPeripheralId", bluetoothPeripheralId)
+        encode("printChat", printChat)
+        encode("faxMeowSound", faxMeowSound)
+        encode("printSnapshots", printSnapshots)
+        encode("printTwitch", printTwitch, SettingsTwitchAlerts.serializer())
+        encode("printKick", printKick, SettingsKickAlerts.serializer())
+    }
+
+    companion object {
         val baseName: String = localized("My printer")
 
-        @Serializable
-        private data class Surrogate(
-            val id: String? = null,
-            val name: String = "",
-            val enabled: Boolean = false,
-            val bluetoothPeripheralName: String? = null,
-            val bluetoothPeripheralId: String? = null,
-            val printChat: Boolean = false,
-            val faxMeowSound: Boolean = true,
-            val printSnapshots: Boolean = true,
-            val printTwitch: SettingsTwitchAlerts = SettingsTwitchAlerts(),
-            val printKick: SettingsKickAlerts = SettingsKickAlerts(),
-        )
-
-        override val descriptor: SerialDescriptor = Surrogate.serializer().descriptor
-
-        override fun serialize(encoder: Encoder, value: SettingsCatPrinter) {
-            val surrogate = Surrogate(
-                id = value.id.toString(),
-                name = value.name,
-                enabled = value.enabled.value,
-                bluetoothPeripheralName = value.bluetoothPeripheralName.value,
-                bluetoothPeripheralId = value.bluetoothPeripheralId.value?.toString(),
-                printChat = value.printChat.value,
-                faxMeowSound = value.faxMeowSound.value,
-                printSnapshots = value.printSnapshots.value,
-                printTwitch = value.printTwitch.value,
-                printKick = value.printKick.value,
+        fun decode(container: JsonObject): SettingsCatPrinter {
+            val printer = SettingsCatPrinter()
+            printer.id = container.decode("id", UUID.randomUUID())
+            printer.name = container.decode("name", "")
+            printer.enabled.value = container.decode("enabled", false)
+            printer.bluetoothPeripheralName.value = container.decodeIfPresent<String>("bluetoothPeripheralName")
+            printer.bluetoothPeripheralId.value = container.decodeIfPresent<UUID>("bluetoothPeripheralId")
+            printer.printChat.value = container.decode("printChat", false)
+            printer.faxMeowSound.value = container.decode("faxMeowSound", true)
+            printer.printSnapshots.value = container.decode("printSnapshots", true)
+            printer.printTwitch.value = container.decode(
+                "printTwitch",
+                SettingsTwitchAlerts.serializer(),
+                SettingsTwitchAlerts(),
             )
-            encoder.encodeSerializableValue(Surrogate.serializer(), surrogate)
-        }
-
-        override fun deserialize(decoder: Decoder): SettingsCatPrinter {
-            val surrogate = decoder.decodeSerializableValue(Surrogate.serializer())
-            val settings = SettingsCatPrinter()
-            settings.id = surrogate.id
-                ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-                ?: UUID.randomUUID()
-            settings.name = surrogate.name
-            settings.enabled.value = surrogate.enabled
-            settings.bluetoothPeripheralName.value = surrogate.bluetoothPeripheralName
-            settings.bluetoothPeripheralId.value = surrogate.bluetoothPeripheralId
-                ?.let { runCatching { UUID.fromString(it) }.getOrNull() }
-            settings.printChat.value = surrogate.printChat
-            settings.faxMeowSound.value = surrogate.faxMeowSound
-            settings.printSnapshots.value = surrogate.printSnapshots
-            settings.printTwitch.value = surrogate.printTwitch
-            settings.printKick.value = surrogate.printKick
-            return settings
+            printer.printKick.value = container.decode("printKick", SettingsKickAlerts.serializer(), SettingsKickAlerts())
+            return printer
         }
     }
+
+    object Serializer : KSerializer<SettingsCatPrinter> by JsonObjectSerializer(
+        "SettingsCatPrinter",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable(with = SettingsCatPrinters.Companion::class)
+@Serializable(with = SettingsCatPrinters.Serializer::class)
 class SettingsCatPrinters {
     val devices = MutableStateFlow<List<SettingsCatPrinter>>(emptyList())
 
     val backgroundPrinting = MutableStateFlow(false)
 
-    companion object : KSerializer<SettingsCatPrinters> {
-        @Serializable
-        private data class Surrogate(
-            val devices: List<SettingsCatPrinter> = emptyList(),
-            val backgroundPrinting: Boolean = false,
-        )
+    fun encode(): JsonObject = encodeContainer {
+        encode("devices", devices, ListSerializer(SettingsCatPrinter.serializer()))
+        encode("backgroundPrinting", backgroundPrinting)
+    }
 
-        override val descriptor: SerialDescriptor = Surrogate.serializer().descriptor
-
-        override fun serialize(encoder: Encoder, value: SettingsCatPrinters) {
-            val surrogate = Surrogate(
-                devices = value.devices.value,
-                backgroundPrinting = value.backgroundPrinting.value,
+    companion object {
+        fun decode(container: JsonObject): SettingsCatPrinters {
+            val printers = SettingsCatPrinters()
+            printers.devices.value = container.decode(
+                "devices",
+                ListSerializer(SettingsCatPrinter.serializer()),
+                emptyList(),
             )
-            encoder.encodeSerializableValue(Surrogate.serializer(), surrogate)
-        }
-
-        override fun deserialize(decoder: Decoder): SettingsCatPrinters {
-            val surrogate = decoder.decodeSerializableValue(Surrogate.serializer())
-            val settings = SettingsCatPrinters()
-            settings.devices.value = surrogate.devices
-            settings.backgroundPrinting.value = surrogate.backgroundPrinting
-            return settings
+            printers.backgroundPrinting.value = container.decode("backgroundPrinting", false)
+            return printers
         }
     }
+
+    object Serializer : KSerializer<SettingsCatPrinters> by JsonObjectSerializer(
+        "SettingsCatPrinters",
+        { it.encode() },
+        { decode(it) },
+    )
 }

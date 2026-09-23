@@ -3,21 +3,36 @@ package com.moblin.android.various.storages
 import android.os.PowerManager
 import android.util.Log
 import com.moblin.android.common.various.formatBytesPerSecond
+import com.moblin.android.moblink.MoblinkThermalState
+import com.moblin.android.platform.codable.AppleDateSerializer
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.UUIDSerializer
+import com.moblin.android.platform.codable.codableJson
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.various.settings.SettingsStream
+import java.math.BigInteger
+import java.time.Instant
+import java.util.UUID
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.nanoseconds
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.Json
-import java.time.Instant
-import java.util.UUID
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
-import com.moblin.android.moblink.MoblinkThermalState
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonDecoder
+import kotlinx.serialization.json.JsonEncoder
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 
 private const val TAG = "StreamingHistory"
 
@@ -66,44 +81,69 @@ object ThermalStateSerializer : KSerializer<ThermalState> {
     }
 
     override fun deserialize(decoder: Decoder): ThermalState {
-        return ThermalState.fromRawValue(decoder.decodeInt())
+        val rawValue = decoder.decodeInt()
+        return ThermalState.entries.firstOrNull { it.rawValue == rawValue }
+            ?: throw SerializationException("Invalid ThermalState raw value $rawValue")
     }
 }
 
-object UuidSerializer : KSerializer<UUID> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("java.util.UUID", PrimitiveKind.STRING)
+private object SwiftDurationSerializer : KSerializer<Duration> {
+    private val attosecondsPerNanosecond = BigInteger.valueOf(1_000_000_000L)
+    private val lowMask = BigInteger.ONE.shiftLeft(64).subtract(BigInteger.ONE)
 
-    override fun serialize(encoder: Encoder, value: UUID) {
-        encoder.encodeString(value.toString())
+    override val descriptor: SerialDescriptor = ListSerializer(Long.serializer()).descriptor
+
+    override fun serialize(encoder: Encoder, value: Duration) {
+        val jsonEncoder = encoder as? JsonEncoder ?: throw SerializationException("Duration supports only JSON")
+        val attoseconds = BigInteger.valueOf(value.inWholeNanoseconds).multiply(attosecondsPerNanosecond)
+        val high = attoseconds.shiftRight(64).toLong()
+        val low = attoseconds.and(lowMask).toLong().toULong()
+        jsonEncoder.encodeJsonElement(
+            JsonArray(
+                listOf(
+                    jsonEncoder.json.encodeToJsonElement(Long.serializer(), high),
+                    jsonEncoder.json.encodeToJsonElement(ULong.serializer(), low),
+                ),
+            ),
+        )
     }
 
-    override fun deserialize(decoder: Decoder): UUID {
-        return UUID.fromString(decoder.decodeString())
+    override fun deserialize(decoder: Decoder): Duration {
+        val jsonDecoder = decoder as? JsonDecoder ?: throw SerializationException("Duration supports only JSON")
+        val array = jsonDecoder.decodeJsonElement() as? JsonArray
+            ?: throw SerializationException("Duration expects an array")
+        if (array.size < 2) {
+            throw SerializationException("Duration expects two numbers")
+        }
+        val high = jsonDecoder.json.decodeFromJsonElement(Long.serializer(), array[0])
+        val low = jsonDecoder.json.decodeFromJsonElement(ULong.serializer(), array[1])
+        val attoseconds = BigInteger.valueOf(high).shiftLeft(64).add(BigInteger(low.toString()))
+        val nanoseconds = attoseconds.divide(attosecondsPerNanosecond)
+        if (nanoseconds.bitLength() > 63) {
+            throw SerializationException("Duration out of range")
+        }
+        return nanoseconds.toLong().nanoseconds
     }
 }
 
-object InstantSerializer : KSerializer<Instant> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("java.time.Instant", PrimitiveKind.STRING)
-
-    override fun serialize(encoder: Encoder, value: Instant) {
-        encoder.encodeString(value.toString())
-    }
-
-    override fun deserialize(decoder: Decoder): Instant {
-        return Instant.parse(decoder.decodeString())
-    }
+private fun <T> JsonObject.decodeRequired(key: String, serializer: KSerializer<T>): T {
+    val element = this[key] ?: throw SerializationException("Missing key '$key'")
+    return codableJson.decodeFromJsonElement(serializer, element)
 }
 
-@Serializable
+private fun <T : Any> JsonObject.decodeOptional(key: String, serializer: KSerializer<T>): T? {
+    val element = this[key] ?: return null
+    if (element is JsonNull) {
+        return null
+    }
+    return codableJson.decodeFromJsonElement(serializer, element)
+}
+
+@Serializable(with = StreamingHistoryStream.Serializer::class)
 class StreamingHistoryStream(
-    @Serializable(with = UuidSerializer::class)
     var id: UUID = UUID.randomUUID(),
     var settings: SettingsStream,
-    @Serializable(with = InstantSerializer::class)
     var startTime: Instant = Instant.now(),
-    @Serializable(with = InstantSerializer::class)
     var stopTime: Instant = Instant.now(),
     var totalBytes: Long = 0,
     var highestThermalState: ThermalState? = ThermalState.NOMINAL,
@@ -144,63 +184,82 @@ class StreamingHistoryStream(
     fun duration(): Duration {
         return (stopTime.toEpochMilli() - startTime.toEpochMilli()).milliseconds
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id, UUIDSerializer)
+        encode("settings", settings, SettingsStream.serializer())
+        encode("startTime", startTime, AppleDateSerializer)
+        encode("stopTime", stopTime, AppleDateSerializer)
+        encode("totalBytes", totalBytes.toULong())
+        encodeIfPresent("highestThermalState", highestThermalState, ThermalState.serializer())
+        encodeIfPresent("lowestBatteryLevel", lowestBatteryLevel)
+        encodeIfPresent("highestBitrate", highestBitrate)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): StreamingHistoryStream {
+            return StreamingHistoryStream(
+                id = container.decodeRequired("id", UUIDSerializer),
+                settings = container.decodeRequired("settings", SettingsStream.serializer()),
+                startTime = container.decodeRequired("startTime", AppleDateSerializer),
+                stopTime = container.decodeRequired("stopTime", AppleDateSerializer),
+                totalBytes = container.decodeRequired("totalBytes", ULong.serializer()).toLong(),
+                highestThermalState = container.decodeOptional("highestThermalState", ThermalState.serializer()),
+                lowestBatteryLevel = container.decodeOptional("lowestBatteryLevel", Double.serializer()),
+                highestBitrate = container.decodeOptional("highestBitrate", Long.serializer()),
+            )
+        }
+    }
+
+    object Serializer : KSerializer<StreamingHistoryStream> by JsonObjectSerializer(
+        "StreamingHistoryStream",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-private val json = Json {
-    encodeDefaults = true
-    ignoreUnknownKeys = true
-}
-
-@Serializable(with = StreamingHistoryDatabaseSerializer::class)
+@Serializable(with = StreamingHistoryDatabase.Serializer::class)
 class StreamingHistoryDatabase {
     var totalTime: MutableStateFlow<Duration> = MutableStateFlow(Duration.ZERO)
     var totalBytes: MutableStateFlow<Long> = MutableStateFlow(0L)
     var totalStreams: MutableStateFlow<Long> = MutableStateFlow(0L)
     var streams: MutableStateFlow<List<StreamingHistoryStream>> = MutableStateFlow(emptyList())
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("totalTime", totalTime, SwiftDurationSerializer)
+        encode("totalBytes", totalBytes.value.toULong())
+        encode("totalStreams", totalStreams.value.toULong())
+        encode("streams", streams, ListSerializer(StreamingHistoryStream.serializer()))
+    }
+
     companion object {
+        fun decode(container: JsonObject): StreamingHistoryDatabase {
+            val database = StreamingHistoryDatabase()
+            database.totalTime.value = container.decode("totalTime", SwiftDurationSerializer, Duration.ZERO)
+            database.totalBytes.value = container.decode("totalBytes", 0uL).toLong()
+            database.totalStreams.value = container.decode("totalStreams", 0uL).toLong()
+            database.streams.value = container.decode(
+                "streams",
+                ListSerializer(StreamingHistoryStream.serializer()),
+                emptyList(),
+            )
+            return database
+        }
+
         fun fromString(settings: String): StreamingHistoryDatabase {
-            return json.decodeFromString(StreamingHistoryDatabaseSerializer, settings)
+            return codableJson.decodeFromString(Serializer, settings)
         }
     }
 
     override fun toString(): String {
-        return json.encodeToString(StreamingHistoryDatabaseSerializer, this)
-    }
-}
-
-@Serializable
-private class StreamingHistoryDatabaseSnapshot(
-    val totalTime: Long = 0,
-    val totalBytes: Long = 0,
-    val totalStreams: Long = 0,
-    val streams: List<StreamingHistoryStream> = emptyList(),
-)
-
-object StreamingHistoryDatabaseSerializer : KSerializer<StreamingHistoryDatabase> {
-    private val snapshotSerializer = StreamingHistoryDatabaseSnapshot.serializer()
-
-    override val descriptor: SerialDescriptor = snapshotSerializer.descriptor
-
-    override fun serialize(encoder: Encoder, value: StreamingHistoryDatabase) {
-        val snapshot = StreamingHistoryDatabaseSnapshot(
-            totalTime = value.totalTime.value.inWholeMilliseconds,
-            totalBytes = value.totalBytes.value,
-            totalStreams = value.totalStreams.value,
-            streams = value.streams.value,
-        )
-        encoder.encodeSerializableValue(snapshotSerializer, snapshot)
+        return codableJson.encodeToString(Serializer, this)
     }
 
-    override fun deserialize(decoder: Decoder): StreamingHistoryDatabase {
-        val snapshot = decoder.decodeSerializableValue(snapshotSerializer)
-        return StreamingHistoryDatabase().apply {
-            totalTime.value = snapshot.totalTime.milliseconds
-            totalBytes.value = snapshot.totalBytes
-            totalStreams.value = snapshot.totalStreams
-            streams.value = snapshot.streams
-        }
-    }
+    object Serializer : KSerializer<StreamingHistoryDatabase> by JsonObjectSerializer(
+        "StreamingHistoryDatabase",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
 private val storage = SimpleStringStorage("streamingHistory")

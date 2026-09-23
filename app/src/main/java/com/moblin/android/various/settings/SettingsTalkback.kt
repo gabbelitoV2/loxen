@@ -1,16 +1,14 @@
 package com.moblin.android.various.settings
 
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonObject
 
-@Serializable(with = SettingsTalkbackSerializer::class)
+@Serializable(with = SettingsTalkback.Serializer::class)
 class SettingsTalkback {
     val enabled = MutableStateFlow(false)
 
@@ -33,35 +31,24 @@ class SettingsTalkback {
     fun setMicId(value: String) {
         micId.value = value
     }
-}
 
-object SettingsTalkbackSerializer : KSerializer<SettingsTalkback> {
-    private val encodedSerializer = EncodedSettings.serializer()
-
-    override val descriptor: SerialDescriptor = encodedSerializer.descriptor
-
-    override fun serialize(encoder: Encoder, value: SettingsTalkback) {
-        encoder.encodeSerializableValue(
-            encodedSerializer,
-            EncodedSettings(
-                enabled = value.enabled.value,
-                micId = value.micId.value
-            )
-        )
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("micId", micId)
     }
 
-    override fun deserialize(decoder: Decoder): SettingsTalkback {
-        val decoded = decoder.decodeSerializableValue(encodedSerializer)
-        return SettingsTalkback().apply {
-            setEnabled(decoded.enabled)
-            setMicId(decoded.micId)
+    companion object {
+        fun decode(container: JsonObject): SettingsTalkback {
+            val talkback = SettingsTalkback()
+            talkback.enabled.value = container.decode("enabled", false)
+            talkback.micId.value = container.decode("micId", "")
+            return talkback
         }
     }
-}
 
-@Serializable
-@SerialName("SettingsTalkback")
-private data class EncodedSettings(
-    @SerialName("enabled") val enabled: Boolean = false,
-    @SerialName("micId") val micId: String = ""
-)
+    object Serializer : KSerializer<SettingsTalkback> by JsonObjectSerializer(
+        "SettingsTalkback",
+        { it.encode() },
+        { decode(it) },
+    )
+}

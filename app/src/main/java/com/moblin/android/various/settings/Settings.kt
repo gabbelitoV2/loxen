@@ -8,6 +8,12 @@ import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.common.various.mediaPlayerCamera
 import com.moblin.android.localized
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.UUIDSerializer
+import com.moblin.android.platform.codable.codableJson
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.decodeIfPresent
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.streamingplatforms.kick.loadKickAccessTokenFromKeychain
 import com.moblin.android.streamingplatforms.twitch.loadTwitchAccessTokenFromKeychain
 import com.moblin.android.various.model.CameraId
@@ -47,20 +53,14 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.jsonObject
 import com.moblin.android.platform.Cameras
 
 val defaultStreamUrl = "srt://my_public_ip:4000"
@@ -71,18 +71,6 @@ val defaultSegmentedPickerSelectedColor =
     RgbColor(red = 142, green = 142, blue = 147, opacity = 0.6)
 val defaultSrtLatency: Int = 3000
 val minZoomX: Float = 0.5f
-
-private object UuidSerializer : KSerializer<UUID> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UUID", PrimitiveKind.STRING)
-
-    override fun serialize(encoder: Encoder, value: UUID) {
-        encoder.encodeString(value.toString())
-    }
-
-    override fun deserialize(decoder: Decoder): UUID {
-        return UUID.fromString(decoder.decodeString())
-    }
-}
 
 sealed class SettingsCameraId {
     data class Back(val id: CameraId) : SettingsCameraId()
@@ -116,16 +104,11 @@ enum class SettingsColorLutType(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsColorLut.Serializer::class)
 class SettingsColorLut(
-    @SerialName("id")
-    @Serializable(with = UuidSerializer::class)
     var id: UUID = UUID.randomUUID(),
-    @SerialName("type")
     var type: SettingsColorLutType = SettingsColorLutType.bundled,
-    @SerialName("name")
     var name: String = "",
-    @SerialName("enabled")
     var enabled: Boolean = false,
 ) {
     fun clone(): SettingsColorLut {
@@ -134,6 +117,30 @@ class SettingsColorLut(
         new.enabled = enabled
         return new
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("type", type)
+        encode("name", name)
+        encode("enabled", enabled)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsColorLut {
+            val lut = SettingsColorLut()
+            lut.id = container.decode("id", UUID.randomUUID())
+            lut.type = container.decode("type", SettingsColorLutType.bundled)
+            lut.name = container.decode("name", "")
+            lut.enabled = container.decode("enabled", false)
+            return lut
+        }
+    }
+
+    object Serializer : KSerializer<SettingsColorLut> by JsonObjectSerializer(
+        "SettingsColorLut",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
 @Serializable
@@ -162,91 +169,154 @@ private val allBundledLuts = listOf(
     SettingsColorLut(type = SettingsColorLutType.bundled, name = "Moblin Meme"),
 )
 
-@Serializable
+@Serializable(with = SettingsColor.Serializer::class)
 class SettingsColor(
-    @SerialName("space")
     var space: SettingsColorSpace = SettingsColorSpace.srgb,
-    @SerialName("lutEnabled")
     var lutEnabled: Boolean = true,
-    @SerialName("lut")
-    @Serializable(with = UuidSerializer::class)
     var lut: UUID = UUID.randomUUID(),
-    @SerialName("bundledLuts")
     var bundledLuts: List<SettingsColorLut> = allBundledLuts,
-    @SerialName("diskLuts")
     var diskLuts: List<SettingsColorLut> = emptyList(),
-    @SerialName("diskLutsPng")
     var diskLutsPng: List<SettingsColorLut> = emptyList(),
-    @SerialName("diskLutsCube")
     var diskLutsCube: List<SettingsColorLut> = emptyList(),
 ) {
     fun allLuts(): List<SettingsColorLut> {
         return bundledLuts + diskLutsCube + diskLutsPng
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("space", space)
+        encode("lutEnabled", lutEnabled)
+        encode("lut", lut)
+        encode("bundledLuts", bundledLuts, ListSerializer(SettingsColorLut.serializer()))
+        encode("diskLuts", diskLuts, ListSerializer(SettingsColorLut.serializer()))
+        encode("diskLutsPng", diskLutsPng, ListSerializer(SettingsColorLut.serializer()))
+        encode("diskLutsCube", diskLutsCube, ListSerializer(SettingsColorLut.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsColor {
+            val color = SettingsColor()
+            color.space = container.decode("space", SettingsColorSpace.srgb)
+            color.lutEnabled = container.decode("lutEnabled", true)
+            color.lut = container.decode("lut", UUID.randomUUID())
+            color.bundledLuts = container.decode("bundledLuts", ListSerializer(SettingsColorLut.serializer()), emptyList())
+            color.diskLuts = container.decode("diskLuts", ListSerializer(SettingsColorLut.serializer()), emptyList())
+            color.diskLutsPng = container.decode("diskLutsPng", ListSerializer(SettingsColorLut.serializer()), emptyList())
+            color.diskLutsCube = container.decode(
+                "diskLutsCube",
+                ListSerializer(SettingsColorLut.serializer()),
+                emptyList(),
+            )
+            return color
+        }
+    }
+
+    object Serializer : KSerializer<SettingsColor> by JsonObjectSerializer(
+        "SettingsColor",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsShow.Serializer::class)
 class SettingsShow(
-    @SerialName("chat")
     var chat: Boolean = true,
-    @SerialName("viewers")
     var viewers: Boolean = true,
-    @SerialName("uptime")
     var uptime: Boolean = true,
-    @SerialName("stream")
     var stream: Boolean = false,
-    @SerialName("speed")
     var speed: Boolean = true,
-    @SerialName("audioLevel")
     var audioLevel: Boolean = true,
-    @SerialName("zoom")
     var zoom: Boolean = false,
-    @SerialName("zoomPresets")
     var zoomPresets: Boolean = true,
-    @SerialName("microphone")
     var microphone: Boolean = false,
-    @SerialName("audioBar")
     var audioBar: Boolean = true,
-    @SerialName("cameras")
     var cameras: Boolean = false,
-    @SerialName("obsStatus")
     var obsStatus: Boolean = true,
-    @SerialName("rtmpSpeed")
     var ingests: Boolean = true,
-    @SerialName("gameController")
     var gameController: Boolean = true,
-    @SerialName("location")
     var location: Boolean = false,
-    @SerialName("remoteControl")
     var remoteControl: Boolean = true,
-    @SerialName("browserWidgets")
     var browserWidgets: Boolean = true,
-    @SerialName("bonding")
     var bonding: Boolean = true,
-    @SerialName("events")
     var events: Boolean = true,
-    @SerialName("djiDevices")
     var djiDevices: Boolean = true,
-    @SerialName("bondingRtts")
     var bondingRtts: Boolean = false,
-    @SerialName("moblink")
     var moblink: Boolean = true,
-    @SerialName("catPrinter")
     var catPrinter: Boolean = true,
-    @SerialName("heartRateDevice")
     var workoutDevice: Boolean = true,
-    @SerialName("cpu")
     var systemMonitor: Boolean = false,
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("chat", chat)
+        encode("viewers", viewers)
+        encode("uptime", uptime)
+        encode("stream", stream)
+        encode("speed", speed)
+        encode("audioLevel", audioLevel)
+        encode("zoom", zoom)
+        encode("zoomPresets", zoomPresets)
+        encode("microphone", microphone)
+        encode("audioBar", audioBar)
+        encode("cameras", cameras)
+        encode("obsStatus", obsStatus)
+        encode("rtmpSpeed", ingests)
+        encode("gameController", gameController)
+        encode("location", location)
+        encode("remoteControl", remoteControl)
+        encode("browserWidgets", browserWidgets)
+        encode("bonding", bonding)
+        encode("events", events)
+        encode("djiDevices", djiDevices)
+        encode("bondingRtts", bondingRtts)
+        encode("moblink", moblink)
+        encode("catPrinter", catPrinter)
+        encode("heartRateDevice", workoutDevice)
+        encode("cpu", systemMonitor)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsShow {
+            val show = SettingsShow()
+            show.chat = container.decode("chat", true)
+            show.viewers = container.decode("viewers", true)
+            show.uptime = container.decode("uptime", true)
+            show.stream = container.decode("stream", false)
+            show.speed = container.decode("speed", true)
+            show.audioLevel = container.decode("audioLevel", true)
+            show.zoom = container.decode("zoom", false)
+            show.zoomPresets = container.decode("zoomPresets", true)
+            show.microphone = container.decode("microphone", false)
+            show.audioBar = container.decode("audioBar", true)
+            show.cameras = container.decode("cameras", false)
+            show.obsStatus = container.decode("obsStatus", true)
+            show.ingests = container.decode("rtmpSpeed", true)
+            show.gameController = container.decode("gameController", true)
+            show.location = container.decode("location", false)
+            show.remoteControl = container.decode("remoteControl", true)
+            show.browserWidgets = container.decode("browserWidgets", true)
+            show.bonding = container.decode("bonding", true)
+            show.events = container.decode("events", true)
+            show.djiDevices = container.decode("djiDevices", true)
+            show.bondingRtts = container.decode("bondingRtts", false)
+            show.moblink = container.decode("moblink", true)
+            show.catPrinter = container.decode("catPrinter", true)
+            show.workoutDevice = container.decode("heartRateDevice", true)
+            show.systemMonitor = container.decode("cpu", false)
+            return show
+        }
+    }
+
+    object Serializer : KSerializer<SettingsShow> by JsonObjectSerializer(
+        "SettingsShow",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsZoomPreset.Serializer::class)
 class SettingsZoomPreset(
-    @SerialName("id")
-    @Serializable(with = UuidSerializer::class)
     var id: UUID = UUID.randomUUID(),
-    @SerialName("name")
     var name: String = "",
-    @SerialName("x")
     var x: Float = 1.0f,
 ) {
     override fun equals(other: Any?): Boolean {
@@ -256,45 +326,138 @@ class SettingsZoomPreset(
     override fun hashCode(): Int {
         return id.hashCode()
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("x", x)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsZoomPreset {
+            val preset = SettingsZoomPreset()
+            preset.id = container.decode("id", UUID.randomUUID())
+            preset.name = container.decode("name", "")
+            preset.x = container.decode("x", 1.0f)
+            return preset
+        }
+    }
+
+    object Serializer : KSerializer<SettingsZoomPreset> by JsonObjectSerializer(
+        "SettingsZoomPreset",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsZoomSwitchTo.Serializer::class)
 class SettingsZoomSwitchTo(
-    @SerialName("level")
     var level: Float = 1.0f,
-    @SerialName("x")
     var x: Float = 1.0f,
-    @SerialName("enabled")
     var enabled: Boolean = false,
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("level", level)
+        encode("x", x)
+        encode("enabled", enabled)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsZoomSwitchTo {
+            val switchTo = SettingsZoomSwitchTo()
+            switchTo.level = container.decode("level", 1.0f)
+            switchTo.x = container.decode("x", 1.0f)
+            switchTo.enabled = container.decode("enabled", false)
+            return switchTo
+        }
+    }
+
+    object Serializer : KSerializer<SettingsZoomSwitchTo> by JsonObjectSerializer(
+        "SettingsZoomSwitchTo",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsZoom.Serializer::class)
 class SettingsZoom(
-    @SerialName("back")
     var back: MutableList<SettingsZoomPreset> = mutableListOf(),
-    @SerialName("front")
     var front: MutableList<SettingsZoomPreset> = mutableListOf(),
-    @SerialName("switchToBack")
     var switchToBack: SettingsZoomSwitchTo = SettingsZoomSwitchTo(),
-    @SerialName("switchToFront")
     var switchToFront: SettingsZoomSwitchTo = SettingsZoomSwitchTo(),
-    @SerialName("speed")
     var speed: Float = 5.0f,
-    @SerialName("backgroundColor")
     var backgroundColor: RgbColor = defaultSegmentedPickerSelectedColor,
 ) {
-    @Transient
     var backgroundColorColor: Color = backgroundColor.color()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("back", back, ListSerializer(SettingsZoomPreset.serializer()))
+        encode("front", front, ListSerializer(SettingsZoomPreset.serializer()))
+        encode("switchToBack", switchToBack, SettingsZoomSwitchTo.serializer())
+        encode("switchToFront", switchToFront, SettingsZoomSwitchTo.serializer())
+        encode("speed", speed)
+        encode("backgroundColor", backgroundColor)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsZoom {
+            val zoom = SettingsZoom()
+            zoom.back = container.decode("back", ListSerializer(SettingsZoomPreset.serializer()), emptyList())
+                .toMutableList()
+            zoom.front = container.decode("front", ListSerializer(SettingsZoomPreset.serializer()), emptyList())
+                .toMutableList()
+            zoom.switchToBack = container.decode(
+                "switchToBack",
+                SettingsZoomSwitchTo.serializer(),
+                SettingsZoomSwitchTo(),
+            )
+            zoom.switchToFront = container.decode(
+                "switchToFront",
+                SettingsZoomSwitchTo.serializer(),
+                SettingsZoomSwitchTo(),
+            )
+            zoom.speed = container.decode("speed", 5.0f)
+            zoom.backgroundColor = container.decode(
+                "backgroundColor",
+                defaultSegmentedPickerSelectedColor,
+            )
+            zoom.backgroundColorColor = zoom.backgroundColor.color()
+            return zoom
+        }
+    }
+
+    object Serializer : KSerializer<SettingsZoom> by JsonObjectSerializer(
+        "SettingsZoom",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsBitratePreset.Serializer::class)
 class SettingsBitratePreset(
-    @SerialName("id")
-    @Serializable(with = UuidSerializer::class)
     var id: UUID = UUID.randomUUID(),
-    @SerialName("bitrate")
     var bitrate: Int = 5_000_000,
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("bitrate", bitrate)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsBitratePreset {
+            val preset = SettingsBitratePreset()
+            preset.id = container.decode("id", UUID.randomUUID())
+            preset.bitrate = container.decode("bitrate", 5_000_000) { it >= 0 }
+            return preset
+        }
+    }
+
+    object Serializer : KSerializer<SettingsBitratePreset> by JsonObjectSerializer(
+        "SettingsBitratePreset",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 @Serializable
 enum class SettingsVideoStabilizationMode(val rawValue: String) {
@@ -328,20 +491,40 @@ enum class SettingsVideoStabilizationMode(val rawValue: String) {
 
 val videoStabilizationModes = SettingsVideoStabilizationMode.entries.toList()
 
-@Serializable
+@Serializable(with = SettingsTesla.Serializer::class)
 class SettingsTesla(
-    @SerialName("vin")
     var vin: String = "",
-    @SerialName("privateKey")
     var privateKey: String = "",
-    @SerialName("enabled")
     var enabled: Boolean = true,
-    @SerialName("bluetoothPeripheralName")
     var bluetoothPeripheralName: String? = null,
-    @SerialName("bluetoothPeripheralId")
-    @Serializable(with = UuidSerializer::class)
     var bluetoothPeripheralId: UUID? = null,
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("vin", vin)
+        encode("privateKey", privateKey)
+        encode("enabled", enabled)
+        encode("bluetoothPeripheralName", bluetoothPeripheralName)
+        encode("bluetoothPeripheralId", bluetoothPeripheralId)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsTesla {
+            val tesla = SettingsTesla()
+            tesla.vin = container.decode("vin", "")
+            tesla.privateKey = container.decode("privateKey", "")
+            tesla.enabled = container.decode("enabled", true)
+            tesla.bluetoothPeripheralName = container.decode<String?>("bluetoothPeripheralName", null)
+            tesla.bluetoothPeripheralId = container.decode<UUID?>("bluetoothPeripheralId", null)
+            return tesla
+        }
+    }
+
+    object Serializer : KSerializer<SettingsTesla> by JsonObjectSerializer(
+        "SettingsTesla",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 @Serializable
 enum class SettingsDnsLookupStrategy(val rawValue: String) {
@@ -364,12 +547,9 @@ enum class SettingsDnsLookupStrategy(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsMediaPlayerFile.Serializer::class)
 class SettingsMediaPlayerFile(
-    @SerialName("id")
-    @Serializable(with = UuidSerializer::class)
     var id: UUID = UUID.randomUUID(),
-    @SerialName("name")
     var name: String = "My video",
 ) {
     fun clone(): SettingsMediaPlayerFile {
@@ -378,20 +558,34 @@ class SettingsMediaPlayerFile(
         new.name = name
         return new
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsMediaPlayerFile {
+            val file = SettingsMediaPlayerFile()
+            file.id = container.decode("id", UUID.randomUUID())
+            file.name = container.decode("name", "My video")
+            return file
+        }
+    }
+
+    object Serializer : KSerializer<SettingsMediaPlayerFile> by JsonObjectSerializer(
+        "SettingsMediaPlayerFile",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsMediaPlayer.Serializer::class)
 class SettingsMediaPlayer(
-    @SerialName("id")
-    @Serializable(with = UuidSerializer::class)
     var id: UUID = UUID.randomUUID(),
-    @SerialName("name")
     override var name: String = baseName,
-    @SerialName("playerId")
     var playerId: String = "",
-    @SerialName("autoSelectMic")
     var autoSelectMic: Boolean = true,
-    @SerialName("playlist")
     var playlist: MutableList<SettingsMediaPlayerFile> = mutableListOf(),
 ) : Named {
     fun camera(): String {
@@ -410,16 +604,65 @@ class SettingsMediaPlayer(
         return new
     }
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("playerId", playerId)
+        encode("autoSelectMic", autoSelectMic)
+        encode("playlist", playlist, ListSerializer(SettingsMediaPlayerFile.serializer()))
+    }
+
     companion object {
         val baseName: String = localized("My player")
+
+        fun decode(container: JsonObject): SettingsMediaPlayer {
+            val player = SettingsMediaPlayer()
+            player.id = container.decode("id", UUID.randomUUID())
+            player.name = container.decode("name", baseName)
+            player.playerId = container.decode("playerId", "")
+            player.autoSelectMic = container.decode("autoSelectMic", true)
+            player.playlist = container.decode(
+                "playlist",
+                ListSerializer(SettingsMediaPlayerFile.serializer()),
+                emptyList(),
+            ).toMutableList()
+            return player
+        }
     }
+
+    object Serializer : KSerializer<SettingsMediaPlayer> by JsonObjectSerializer(
+        "SettingsMediaPlayer",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsMediaPlayers.Serializer::class)
 class SettingsMediaPlayers(
-    @SerialName("players")
     var players: List<SettingsMediaPlayer> = emptyList(),
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("players", players, ListSerializer(SettingsMediaPlayer.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsMediaPlayers {
+            val mediaPlayers = SettingsMediaPlayers()
+            mediaPlayers.players = container.decode(
+                "players",
+                ListSerializer(SettingsMediaPlayer.serializer()),
+                emptyList(),
+            )
+            return mediaPlayers
+        }
+    }
+
+    object Serializer : KSerializer<SettingsMediaPlayers> by JsonObjectSerializer(
+        "SettingsMediaPlayers",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 @Serializable
 enum class SettingsReplaySpeed(val rawValue: String) {
@@ -443,123 +686,279 @@ enum class SettingsReplaySpeed(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsReplay.Serializer::class)
 class SettingsReplay(
-    @SerialName("start")
     var start: Double = 20.0,
-    @SerialName("stop")
     var stop: Double = SettingsReplay.stop,
-    @SerialName("speed")
     var speed: SettingsReplaySpeed = SettingsReplaySpeed.one,
 ) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("start", start)
+        encode("stop", stop)
+        encode("speed", speed)
+    }
+
     companion object {
         const val stop: Double = 30.0
+
+        fun decode(container: JsonObject): SettingsReplay {
+            val replay = SettingsReplay()
+            replay.start = container.decode("start", 20.0)
+            replay.stop = container.decode("stop", SettingsReplay.stop)
+            replay.speed = container.decode("speed", SettingsReplaySpeed.one)
+            return replay
+        }
     }
+
+    object Serializer : KSerializer<SettingsReplay> by JsonObjectSerializer(
+        "SettingsReplay",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsCyclingPowerDevice.Serializer::class)
 class SettingsCyclingPowerDevice(
-    @SerialName("id")
-    @Serializable(with = UuidSerializer::class)
     var id: UUID = UUID.randomUUID(),
-    @SerialName("name")
-    override var name: String = baseName,
-    @SerialName("enabled")
+    override var name: String = "",
     var enabled: Boolean = false,
-    @SerialName("bluetoothPeripheralName")
     var bluetoothPeripheralName: String? = null,
-    @SerialName("bluetoothPeripheralId")
-    @Serializable(with = UuidSerializer::class)
     var bluetoothPeripheralId: UUID? = null,
 ) : Named {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("enabled", enabled)
+        encode("bluetoothPeripheralName", bluetoothPeripheralName)
+        encode("bluetoothPeripheralId", bluetoothPeripheralId)
+    }
+
     companion object {
         val baseName: String = localized("My device")
+
+        fun decode(container: JsonObject): SettingsCyclingPowerDevice {
+            val device = SettingsCyclingPowerDevice()
+            device.id = container.decode("id", UUID.randomUUID())
+            device.name = container.decode("name", baseName)
+            device.enabled = container.decode("enabled", false)
+            device.bluetoothPeripheralName = container.decodeIfPresent<String>("bluetoothPeripheralName")
+            device.bluetoothPeripheralId = container.decodeIfPresent<UUID>("bluetoothPeripheralId")
+            return device
+        }
     }
+
+    object Serializer : KSerializer<SettingsCyclingPowerDevice> by JsonObjectSerializer(
+        "SettingsCyclingPowerDevice",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsCyclingPowerDevices.Serializer::class)
 class SettingsCyclingPowerDevices(
-    @SerialName("devices")
     var devices: MutableList<SettingsCyclingPowerDevice> = mutableListOf(),
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("devices", devices, ListSerializer(SettingsCyclingPowerDevice.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsCyclingPowerDevices {
+            val devices = SettingsCyclingPowerDevices()
+            devices.devices = container.decode(
+                "devices",
+                ListSerializer(SettingsCyclingPowerDevice.serializer()),
+                emptyList(),
+            ).toMutableList()
+            return devices
+        }
+    }
+
+    object Serializer : KSerializer<SettingsCyclingPowerDevices> by JsonObjectSerializer(
+        "SettingsCyclingPowerDevices",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 val defaultWheelCircumference = 2105
 
-@Serializable
+@Serializable(with = SettingsWorkoutDevice.Serializer::class)
 class SettingsWorkoutDevice(
-    @SerialName("id")
-    @Serializable(with = UuidSerializer::class)
     var id: UUID = UUID.randomUUID(),
-    @SerialName("name")
     override var name: String = baseName,
-    @SerialName("enabled")
     var enabled: Boolean = false,
-    @SerialName("bluetoothPeripheralName")
     var bluetoothPeripheralName: String? = null,
-    @SerialName("bluetoothPeripheralId")
-    @Serializable(with = UuidSerializer::class)
     var bluetoothPeripheralId: UUID? = null,
-    @SerialName("wheelCircumference")
     var wheelCircumference: Int = defaultWheelCircumference,
 ) : Named {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("enabled", enabled)
+        encode("bluetoothPeripheralName", bluetoothPeripheralName)
+        encode("bluetoothPeripheralId", bluetoothPeripheralId)
+        encode("wheelCircumference", wheelCircumference)
+    }
+
     companion object {
         val baseName: String = localized("My device")
+
+        fun decode(container: JsonObject): SettingsWorkoutDevice {
+            val device = SettingsWorkoutDevice()
+            device.id = container.decode("id", UUID.randomUUID())
+            device.name = container.decode("name", baseName)
+            device.enabled = container.decode("enabled", false)
+            device.bluetoothPeripheralName = container.decodeIfPresent<String>("bluetoothPeripheralName")
+            device.bluetoothPeripheralId = container.decodeIfPresent<UUID>("bluetoothPeripheralId")
+            device.wheelCircumference = container.decode("wheelCircumference", defaultWheelCircumference)
+            return device
+        }
     }
+
+    object Serializer : KSerializer<SettingsWorkoutDevice> by JsonObjectSerializer(
+        "SettingsWorkoutDevice",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWorkoutDevices.Serializer::class)
 class SettingsWorkoutDevices(
-    @SerialName("devices")
     var devices: MutableList<SettingsWorkoutDevice> = mutableListOf(),
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("devices", devices, ListSerializer(SettingsWorkoutDevice.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWorkoutDevices {
+            val devices = SettingsWorkoutDevices()
+            devices.devices = container.decode(
+                "devices",
+                ListSerializer(SettingsWorkoutDevice.serializer()),
+                emptyList(),
+            ).toMutableList()
+            return devices
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWorkoutDevices> by JsonObjectSerializer(
+        "SettingsWorkoutDevices",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 private val defaultRgbLightColor = RgbColor(red = 0, green = 255, blue = 0)
 
-@Serializable
+@Serializable(with = SettingsBlackSharkCoolerDevice.Serializer::class)
 class SettingsBlackSharkCoolerDevice(
-    @SerialName("id")
-    @Serializable(with = UuidSerializer::class)
     var id: UUID = UUID.randomUUID(),
-    @SerialName("name")
     override var name: String = baseName,
-    @SerialName("enabled")
     var enabled: Boolean = false,
-    @SerialName("bluetoothPeripheralName")
     var bluetoothPeripheralName: String? = null,
-    @SerialName("bluetoothPeripheralId")
-    @Serializable(with = UuidSerializer::class)
     var bluetoothPeripheralId: UUID? = null,
-    @SerialName("rgbLightEnabled")
     var rgbLightEnabled: Boolean = false,
-    @SerialName("rgbLightColor")
     var rgbLightColor: RgbColor = defaultRgbLightColor,
-    @SerialName("rgbLightBrightness")
     var rgbLightBrightness: Double = 100.0,
 ) : Named {
-    @Transient
     var rgbLightColorColor: Color = rgbLightColor.color()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("enabled", enabled)
+        encode("bluetoothPeripheralName", bluetoothPeripheralName)
+        encode("bluetoothPeripheralId", bluetoothPeripheralId)
+        encode("rgbLightEnabled", rgbLightEnabled)
+        encode("rgbLightColor", rgbLightColor)
+        encode("rgbLightBrightness", rgbLightBrightness)
+    }
 
     companion object {
         val baseName: String = localized("My cooler")
+
+        fun decode(container: JsonObject): SettingsBlackSharkCoolerDevice {
+            val device = SettingsBlackSharkCoolerDevice()
+            device.id = container.decode("id", UUID.randomUUID())
+            device.name = container.decode("name", baseName)
+            device.enabled = container.decode("enabled", false)
+            device.bluetoothPeripheralName = container.decodeIfPresent<String>("bluetoothPeripheralName")
+            device.bluetoothPeripheralId = container.decodeIfPresent<UUID>("bluetoothPeripheralId")
+            device.rgbLightEnabled = container.decode("rgbLightEnabled", false)
+            device.rgbLightColor = container.decode("rgbLightColor", defaultRgbLightColor)
+            device.rgbLightColorColor = device.rgbLightColor.color()
+            device.rgbLightBrightness = container.decode("rgbLightBrightness", 100.0)
+            return device
+        }
     }
+
+    object Serializer : KSerializer<SettingsBlackSharkCoolerDevice> by JsonObjectSerializer(
+        "SettingsBlackSharkCoolerDevice",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsBlackSharkCoolerDevices.Serializer::class)
 class SettingsBlackSharkCoolerDevices(
-    @SerialName("devices")
     var devices: List<SettingsBlackSharkCoolerDevice> = emptyList(),
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("devices", devices, ListSerializer(SettingsBlackSharkCoolerDevice.serializer()))
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsBlackSharkCoolerDevices {
+            val devices = SettingsBlackSharkCoolerDevices()
+            devices.devices = container.decode(
+                "devices",
+                ListSerializer(SettingsBlackSharkCoolerDevice.serializer()),
+                emptyList(),
+            )
+            return devices
+        }
+    }
+
+    object Serializer : KSerializer<SettingsBlackSharkCoolerDevices> by JsonObjectSerializer(
+        "SettingsBlackSharkCoolerDevices",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsNetworkInterfaceName.Serializer::class)
 class SettingsNetworkInterfaceName(
-    @SerialName("id")
-    @Serializable(with = UuidSerializer::class)
     var id: UUID = UUID.randomUUID(),
-    @SerialName("interfaceName")
     var interfaceName: String = "",
-    @SerialName("name")
     var name: String = "",
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("interfaceName", interfaceName)
+        encode("name", name)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsNetworkInterfaceName {
+            val networkInterfaceName = SettingsNetworkInterfaceName()
+            networkInterfaceName.id = codableJson.decodeFromJsonElement(UUIDSerializer, container.getValue("id"))
+            networkInterfaceName.interfaceName = codableJson.decodeFromJsonElement(
+                String.serializer(),
+                container.getValue("interfaceName"),
+            )
+            networkInterfaceName.name = codableJson.decodeFromJsonElement(String.serializer(), container.getValue("name"))
+            return networkInterfaceName
+        }
+    }
+
+    object Serializer : KSerializer<SettingsNetworkInterfaceName> by JsonObjectSerializer(
+        "SettingsNetworkInterfaceName",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 @Serializable
 enum class SettingsExternalDisplayContent(val rawValue: String) {
@@ -610,31 +1009,86 @@ enum class SettingsAppMode(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = WebBrowserBookmarkSettings.Serializer::class)
 class WebBrowserBookmarkSettings(
-    @SerialName("url")
     var url: String = "https://google.com",
 ) {
-    @Transient
     var id: UUID = UUID.randomUUID()
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("url", url)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): WebBrowserBookmarkSettings {
+            val bookmark = WebBrowserBookmarkSettings()
+            bookmark.url = container.decode("url", "https://google.com")
+            return bookmark
+        }
+    }
+
+    object Serializer : KSerializer<WebBrowserBookmarkSettings> by JsonObjectSerializer(
+        "WebBrowserBookmarkSettings",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = WebBrowserSettings.Serializer::class)
 class WebBrowserSettings(
-    @SerialName("home")
     var home: String = "https://google.com",
-    @SerialName("bookmarks")
     var bookmarks: List<WebBrowserBookmarkSettings> = emptyList(),
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("home", home)
+        encode("bookmarks", bookmarks, ListSerializer(WebBrowserBookmarkSettings.serializer()))
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): WebBrowserSettings {
+            val webBrowser = WebBrowserSettings()
+            webBrowser.home = container.decode("home", "https://google.com")
+            webBrowser.bookmarks = container.decode(
+                "bookmarks",
+                ListSerializer(WebBrowserBookmarkSettings.serializer()),
+                emptyList(),
+            )
+            return webBrowser
+        }
+    }
+
+    object Serializer : KSerializer<WebBrowserSettings> by JsonObjectSerializer(
+        "WebBrowserSettings",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsAlertsMediaGalleryItem.Serializer::class)
 class SettingsAlertsMediaGalleryItem(
-    @SerialName("id")
-    @Serializable(with = UuidSerializer::class)
     var id: UUID = UUID.randomUUID(),
-    @SerialName("name")
     var name: String = "",
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsAlertsMediaGalleryItem {
+            val item = SettingsAlertsMediaGalleryItem()
+            item.id = container.decode("id", UUID.randomUUID())
+            item.name = container.decode("name", "")
+            return item
+        }
+    }
+
+    object Serializer : KSerializer<SettingsAlertsMediaGalleryItem> by JsonObjectSerializer(
+        "SettingsAlertsMediaGalleryItem",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 private val allBundledAlertsMediaGalleryImages = listOf(
     SettingsAlertsMediaGalleryItem(name = "Moblin pixels"),
@@ -664,15 +1118,11 @@ private val allBundledAlertsMediaGallerySounds = listOf(
     SettingsAlertsMediaGalleryItem(name = "Silence"),
 )
 
-@Serializable
+@Serializable(with = SettingsAlertsMediaGallery.Serializer::class)
 class SettingsAlertsMediaGallery(
-    @SerialName("bundledImages")
     var bundledImages: List<SettingsAlertsMediaGalleryItem> = allBundledAlertsMediaGalleryImages,
-    @SerialName("customImages")
     var customImages: List<SettingsAlertsMediaGalleryItem> = emptyList(),
-    @SerialName("bundledSounds")
     var bundledSounds: List<SettingsAlertsMediaGalleryItem> = allBundledAlertsMediaGallerySounds,
-    @SerialName("customSounds")
     var customSounds: List<SettingsAlertsMediaGalleryItem> = emptyList(),
 ) {
     fun getWhiteStarImageId(): UUID {
@@ -682,19 +1132,83 @@ class SettingsAlertsMediaGallery(
     fun getGlassesImageId(): UUID {
         return bundledImages[5].id
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("bundledImages", bundledImages, ListSerializer(SettingsAlertsMediaGalleryItem.serializer()))
+        encode("customImages", customImages, ListSerializer(SettingsAlertsMediaGalleryItem.serializer()))
+        encode("bundledSounds", bundledSounds, ListSerializer(SettingsAlertsMediaGalleryItem.serializer()))
+        encode("customSounds", customSounds, ListSerializer(SettingsAlertsMediaGalleryItem.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsAlertsMediaGallery {
+            val gallery = SettingsAlertsMediaGallery()
+            gallery.bundledImages = container.decode(
+                "bundledImages",
+                ListSerializer(SettingsAlertsMediaGalleryItem.serializer()),
+                allBundledAlertsMediaGalleryImages,
+            )
+            gallery.customImages = container.decode(
+                "customImages",
+                ListSerializer(SettingsAlertsMediaGalleryItem.serializer()),
+                emptyList(),
+            )
+            gallery.bundledSounds = container.decode(
+                "bundledSounds",
+                ListSerializer(SettingsAlertsMediaGalleryItem.serializer()),
+                allBundledAlertsMediaGallerySounds,
+            )
+            gallery.customSounds = container.decode(
+                "customSounds",
+                ListSerializer(SettingsAlertsMediaGalleryItem.serializer()),
+                emptyList(),
+            )
+            return gallery
+        }
+    }
+
+    object Serializer : KSerializer<SettingsAlertsMediaGallery> by JsonObjectSerializer(
+        "SettingsAlertsMediaGallery",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsDisconnectProtection.Serializer::class)
 class SettingsDisconnectProtection(
-    @SerialName("liveSceneId")
-    @Serializable(with = UuidSerializer::class)
     var liveSceneId: UUID? = null,
-    @SerialName("fallbackSceneId")
-    @Serializable(with = UuidSerializer::class)
     var fallbackSceneId: UUID? = null,
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("liveSceneId", liveSceneId)
+        encode("fallbackSceneId", fallbackSceneId)
+    }
 
-@Serializable
+    companion object {
+        fun decode(container: JsonObject): SettingsDisconnectProtection {
+            val protection = SettingsDisconnectProtection()
+            protection.liveSceneId = if (container["liveSceneId"] is JsonNull) {
+                null
+            } else {
+                container.decode<UUID?>("liveSceneId", UUID.randomUUID())
+            }
+            protection.fallbackSceneId = if (container["fallbackSceneId"] is JsonNull) {
+                null
+            } else {
+                container.decode<UUID?>("fallbackSceneId", UUID.randomUUID())
+            }
+            return protection
+        }
+    }
+
+    object Serializer : KSerializer<SettingsDisconnectProtection> by JsonObjectSerializer(
+        "SettingsDisconnectProtection",
+        { it.encode() },
+        { decode(it) },
+    )
+}
+
+@Serializable(with = SettingsWiFiAwareRole.Serializer::class)
 enum class SettingsWiFiAwareRole {
     sender,
     receiver;
@@ -705,15 +1219,57 @@ enum class SettingsWiFiAwareRole {
             receiver -> "Receiver"
         }
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode(name, JsonObject(emptyMap()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWiFiAwareRole {
+            val roles = container.keys.mapNotNull { key -> entries.firstOrNull { it.name == key } }
+            if (roles.size != 1) {
+                throw SerializationException("Invalid number of keys found, expected one")
+            }
+            val role = roles[0]
+            if (container[role.name] !is JsonObject) {
+                throw SerializationException("Expected an object for case '${role.name}'")
+            }
+            return role
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWiFiAwareRole> by JsonObjectSerializer(
+        "SettingsWiFiAwareRole",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWiFiAware.Serializer::class)
 class SettingsWiFiAware(
-    @SerialName("enabled")
     var enabled: Boolean = false,
-    @SerialName("role")
     var role: SettingsWiFiAwareRole = SettingsWiFiAwareRole.sender,
-)
+) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("role", role)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWiFiAware {
+            val wiFiAware = SettingsWiFiAware()
+            wiFiAware.enabled = container.decode("enabled", false)
+            wiFiAware.role = container.decode("role", SettingsWiFiAwareRole.sender)
+            return wiFiAware
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWiFiAware> by JsonObjectSerializer(
+        "SettingsWiFiAware",
+        { it.encode() },
+        { decode(it) },
+    )
+}
 
 @Serializable
 enum class SettingsFacePrivacyMode(val rawValue: String) {
@@ -738,21 +1294,14 @@ enum class SettingsFacePrivacyMode(val rawValue: String) {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsFace.Serializer::class)
 class SettingsFace(
-    @Transient
     var blurFaces: Boolean = false,
-    @Transient
     var blurText: Boolean = false,
-    @Transient
     var blurBackground: Boolean = false,
-    @Transient
     var showMoblin: Boolean = false,
-    @SerialName("privacyMode")
     var privacyMode: SettingsFacePrivacyMode = SettingsFacePrivacyMode.blur,
-    @SerialName("blurStrength")
     var blurStrength: Float = 0.8f,
-    @SerialName("pixellateStrength")
     var pixellateStrength: Float = 0.3f,
 ) {
     fun toEffectSettings(backgroundImage: Image?, iconImage: Image?): FaceEffectSettings {
@@ -771,6 +1320,32 @@ class SettingsFace(
             privacyMode = faceEffectPrivacyMode,
         )
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("privacyMode", privacyMode)
+        encode("blurStrength", blurStrength)
+        encode("pixellateStrength", pixellateStrength)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsFace {
+            val face = SettingsFace()
+            face.blurFaces = false
+            face.blurText = false
+            face.blurBackground = false
+            face.showMoblin = false
+            face.privacyMode = container.decode("privacyMode", SettingsFacePrivacyMode.blur)
+            face.blurStrength = container.decode("blurStrength", 0.8f)
+            face.pixellateStrength = container.decode("pixellateStrength", 0.3f)
+            return face
+        }
+    }
+
+    object Serializer : KSerializer<SettingsFace> by JsonObjectSerializer(
+        "SettingsFace",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
 enum class SettingsBeautySettings {
@@ -785,227 +1360,193 @@ enum class SettingsBeautySettings {
     }
 }
 
-@Serializable
+@Serializable(with = SettingsBeauty.Serializer::class)
 class SettingsBeauty(
-    @SerialName("enabled")
     var enabled: Boolean = false,
-    @SerialName("smoothRadius")
     var smoothnessRadius: Float = 10.0f,
-    @SerialName("smoothStrength")
     var smoothnessStrength: Float = 0.65f,
-    @SerialName("shapePosition")
     var shapePosition: Float = 0.5f,
-    @SerialName("shapeRadius")
     var shapeRadius: Float = 0.5f,
-    @SerialName("shapeStrength")
     var shapeStrength: Float = 0.5f,
 ) {
-    @Transient
     var settings: SettingsBeautySettings = SettingsBeautySettings.smoothness
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("smoothRadius", smoothnessRadius)
+        encode("smoothStrength", smoothnessStrength)
+        encode("shapePosition", shapePosition)
+        encode("shapeRadius", shapeRadius)
+        encode("shapeStrength", shapeStrength)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsBeauty {
+            val beauty = SettingsBeauty()
+            beauty.enabled = container.decode("enabled", false)
+            beauty.smoothnessRadius = container.decode("smoothRadius", 10.0f)
+            beauty.smoothnessStrength = container.decode("smoothStrength", 0.65f)
+            beauty.shapePosition = container.decode("shapePosition", 0.5f)
+            beauty.shapeRadius = container.decode("shapeRadius", 0.5f)
+            beauty.shapeStrength = container.decode("shapeStrength", 0.5f)
+            return beauty
+        }
+    }
+
+    object Serializer : KSerializer<SettingsBeauty> by JsonObjectSerializer(
+        "SettingsBeauty",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsWiFi.Serializer::class)
 class SettingsWiFi(
-    @SerialName("ssid")
     var ssid: String = "",
-    @SerialName("password")
     var password: String = "",
 ) {
-    @Transient
     val id: String
         get() = ssid
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("ssid", ssid)
+        encode("password", password)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsWiFi {
+            val wiFi = SettingsWiFi()
+            wiFi.ssid = container.decode("ssid", "")
+            wiFi.password = container.decode("password", "")
+            return wiFi
+        }
+    }
+
+    object Serializer : KSerializer<SettingsWiFi> by JsonObjectSerializer(
+        "SettingsWiFi",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+private fun normalizeWatchSettingsChat(container: JsonObject): JsonObject = encodeContainer {
+    encode("fontSize", container.decode("fontSize", 17.0f))
+    encode("timestampEnabled", container.decode("timestampEnabled", true))
+    encode("notificationOnMessage", container.decode("notificationOnMessage", false))
+    encode("notificationRate", container.decode("notificationRate", 30))
+    encode("badges", container.decode("badges", true))
+}
+
+private fun normalizeWatchSettingsShow(container: JsonObject): JsonObject = encodeContainer {
+    encode("thermalState", container.decode("thermalState", true))
+    encode("audioLevel", container.decode("audioLevel", true))
+    encode("speed", container.decode("speed", true))
+}
+
+private fun normalizeWatchSettings(container: JsonObject): JsonObject = encodeContainer {
+    encode("chat", normalizeWatchSettingsChat(container.decode("chat", JsonObject(emptyMap()))))
+    encode("show", normalizeWatchSettingsShow(container.decode("show", JsonObject(emptyMap()))))
+    encode("viaRemoteControl", container.decode("viaRemoteControl", false))
+}
+
+@Serializable(with = Database.Serializer::class)
 class Database(
-    @SerialName("streams")
     var streams: MutableList<SettingsStream> = mutableListOf(),
-    @SerialName("scenes")
     var scenes: MutableList<SettingsScene> = mutableListOf(),
-    @SerialName("widgets")
     var widgets: MutableList<SettingsWidget> = mutableListOf(),
-    @SerialName("show")
     var show: SettingsShow = SettingsShow(),
-    @SerialName("zoom")
     var zoom: SettingsZoom = SettingsZoom(),
-    @SerialName("tapToFocus")
     var tapToFocus: Boolean = false,
-    @SerialName("bitratePresets")
     var bitratePresets: MutableList<SettingsBitratePreset> = mutableListOf(),
-    @SerialName("iconImage")
     var iconImage: String = plainIcon.image(),
-    @SerialName("videoStabilizationMode")
     var videoStabilizationMode: SettingsVideoStabilizationMode =
         SettingsVideoStabilizationMode.off,
-    @SerialName("chat")
     var chat: SettingsChat = SettingsChat(),
-    @SerialName("mic")
     var mic: SettingsMic = getDefaultMic(),
-    @SerialName("mics")
     var mics: SettingsMics = SettingsMics(),
-    @SerialName("debug")
-    @Contextual
     var debug: SettingsDebug = SettingsDebug(),
-    @SerialName("quickButtons")
     var quickButtonsGeneral: SettingsQuickButtons = SettingsQuickButtons(),
-    @SerialName("globalButtons")
     var quickButtons: MutableList<SettingsQuickButton> = mutableListOf(),
-    @SerialName("rtmpServer")
     var rtmpServer: SettingsRtmpServer = SettingsRtmpServer(),
-    @SerialName("networkInterfaceNames")
     var networkInterfaceNames: MutableList<SettingsNetworkInterfaceName> = mutableListOf(),
-    @SerialName("lowBitrateWarning")
     var lowBitrateWarning: Boolean = true,
-    @SerialName("vibrate")
     var vibrate: Boolean = false,
-    @SerialName("gameControllers")
     var gameControllers: MutableList<SettingsGameController> =
         mutableListOf(SettingsGameController()),
-    @SerialName("remoteControl")
     var remoteControl: SettingsRemoteControl = SettingsRemoteControl(),
-    @SerialName("startStopRecordingConfirmations")
     var startStopRecordingConfirmations: Boolean = true,
-    @SerialName("color")
     var color: SettingsColor = SettingsColor(),
-    @SerialName("mirrorFrontCameraOnStream")
     var mirrorFrontCameraOnStream: Boolean = true,
-    @SerialName("streamButtonColor")
     var streamButtonColor: RgbColor = defaultStreamButtonColor,
-    @SerialName("location")
     var location: SettingsLocation = SettingsLocation(),
-    @SerialName("watch")
     var watch: JsonObject = JsonObject(emptyMap()),
-    @SerialName("audio")
     var audio: SettingsAudio = SettingsAudio(),
-    @SerialName("macros")
     var macros: SettingsMacros = SettingsMacros(),
-    @SerialName("webBrowser")
     var webBrowser: WebBrowserSettings = WebBrowserSettings(),
-    @SerialName("deepLinkCreator")
     var deepLinkCreator: DeepLinkCreator = DeepLinkCreator(),
-    @SerialName("srtlaServer")
     var srtlaServer: SettingsSrtlaServer = SettingsSrtlaServer(),
-    @SerialName("mediaPlayers")
     var mediaPlayers: SettingsMediaPlayers = SettingsMediaPlayers(),
-    @SerialName("showAllSettings")
     var showAllSettings: Boolean = false,
-    @SerialName("portrait")
     var portrait: Boolean = false,
-    @SerialName("djiDevices")
     var djiDevices: SettingsDjiDevices = SettingsDjiDevices(),
-    @SerialName("alertsMediaGallery")
     var alertsMediaGallery: SettingsAlertsMediaGallery = SettingsAlertsMediaGallery(),
-    @SerialName("catPrinters")
     var catPrinters: SettingsCatPrinters = SettingsCatPrinters(),
-    @SerialName("verboseStatuses")
     var verboseStatuses: Boolean = false,
-    @SerialName("scoreboardPlayers")
     var scoreboardPlayers: MutableList<SettingsWidgetScoreboardPlayer> = mutableListOf(),
-    @SerialName("keyboard")
     var keyboard: SettingsKeyboard = SettingsKeyboard(),
-    @SerialName("tesla")
     var tesla: SettingsTesla = SettingsTesla(),
-    @SerialName("srtlaRelay")
     var srtlaRelay: SettingsMoblink = SettingsMoblink(),
-    @SerialName("pixellateStrength")
     var pixellateStrength: Float = 0.3f,
-    @SerialName("moblink")
     var moblink: SettingsMoblink = SettingsMoblink(),
-    @SerialName("sceneSwitchTransition")
     var sceneSwitchTransition: SettingsSceneSwitchTransition =
         SettingsSceneSwitchTransition.blur,
-    @SerialName("forceSceneSwitchTransition")
     var forceSceneSwitchTransition: Boolean = false,
-    @SerialName("alwaysAttachCameraPreview")
     var alwaysAttachCameraPreview: Boolean = false,
-    @SerialName("alwaysAttachPhotoShoot")
     var alwaysAttachPhotoShoot: Boolean = false,
-    @SerialName("cameraControlsEnabled")
     var cameraControlsEnabled: Boolean = false,
-    @SerialName("externalDisplayContent")
     var externalDisplayContent: SettingsExternalDisplayContent =
         SettingsExternalDisplayContent.stream,
-    @SerialName("cyclingPowerDevices")
     var cyclingPowerDevices: SettingsCyclingPowerDevices = SettingsCyclingPowerDevices(),
-    @SerialName("cyclingPowerDevicesMigrated")
     var cyclingPowerDevicesMigrated: Boolean = false,
-    @SerialName("heartRateDevices")
     var workoutDevices: SettingsWorkoutDevices = SettingsWorkoutDevices(),
-    @SerialName("phoneCoolerDevices")
     var blackSharkCoolerDevices: SettingsBlackSharkCoolerDevices =
         SettingsBlackSharkCoolerDevices(),
-    @SerialName("remoteSceneId")
-    @Serializable(with = UuidSerializer::class)
     var remoteSceneId: UUID? = null,
-    @SerialName("sceneNumericInput")
     var sceneNumericInput: Boolean = false,
-    @SerialName("savedWifiNetworks")
     var savedWifiNetworks: List<SettingsWiFi> = emptyList(),
-    @SerialName("goPro")
     var goPro: SettingsGoPro = SettingsGoPro(),
-    @SerialName("replay")
     var replay: SettingsReplay = SettingsReplay(),
-    @SerialName("portraitVideoOffsetFromTop")
     var portraitVideoOffsetFromTop: Double = 0.0,
-    @SerialName("autoSceneSwitchers")
     var autoSceneSwitchers: SettingsAutoSceneSwitchers = SettingsAutoSceneSwitchers(),
-    @SerialName("fixedHorizon")
     var fixedHorizon: Boolean = false,
-    @SerialName("whirlpoolAngle")
     var whirlpoolAngle: Float = (PI / 2).toFloat(),
-    @SerialName("pinchScale")
     var pinchScale: Float = 0.5f,
-    @SerialName("selfieStick")
     var selfieStick: SettingsSelfieStick = SettingsSelfieStick(),
-    @SerialName("bigButtons")
     var bigButtons: Boolean = false,
-    @SerialName("verticalButtons")
     var verticalButtons: Boolean = false,
-    @SerialName("bigAudioLevelMeter")
     var bigAudioLevelMeter: Boolean = false,
-    @SerialName("ristServer")
     var ristServer: SettingsRistServer = SettingsRistServer(),
-    @SerialName("disconnectProtection")
     var disconnectProtection: SettingsDisconnectProtection = SettingsDisconnectProtection(),
-    @SerialName("rtspClient")
     var rtspClient: SettingsRtspClient = SettingsRtspClient(),
-    @SerialName("srtClient")
     var srtClient: SettingsSrtClient = SettingsSrtClient(),
-    @SerialName("whipServer")
     var whipServer: SettingsWhipServer = SettingsWhipServer(),
-    @SerialName("whepClient")
     var whepClient: SettingsWhepClient = SettingsWhepClient(),
-    @SerialName("navigation")
     var navigation: SettingsNavigation = SettingsNavigation(),
-    @SerialName("wiFiAware")
     var wiFiAware: SettingsWiFiAware = SettingsWiFiAware(),
-    @SerialName("face")
     var face: SettingsFace = SettingsFace(),
-    @SerialName("beauty")
     var beauty: SettingsBeauty = SettingsBeauty(),
-    @SerialName("talkBack")
     var talkback: SettingsTalkback = SettingsTalkback(),
-    @SerialName("gimbal")
     var gimbal: SettingsGimbal = SettingsGimbal(),
-    @SerialName("scoreboardSizeMigrated")
     var scoreboardSizeMigrated: Boolean = false,
-    @SerialName("streamDecks")
     var streamDecks: SettingsStreamDecks = SettingsStreamDecks(),
-    @SerialName("graphicsImplementation")
     var graphicsImplementation: SettingsGraphicsImplementation =
         SettingsGraphicsImplementation.coreImage,
-    @SerialName("graphicsHighQualityDownsampling")
     var graphicsHighQualityDownsampling: Boolean = false,
-    @SerialName("ingestsSoftwareVideoDecoding")
     var ingestsSoftwareVideoDecoding: Boolean = false,
-    @SerialName("torchLevel")
     var torchLevel: Float = 1.0f,
-    @SerialName("appMode")
     var appMode: SettingsAppMode = SettingsAppMode.streaming,
-    @SerialName("httpProxy")
     var httpProxy: SettingsHttpProxy = SettingsHttpProxy(),
 ) {
-    @Transient
     var streamButtonColorColor: Color = defaultStreamButtonColor.color()
 
     fun getSavedWiFiNetwork(ssid: String): SettingsWiFi? {
@@ -1017,71 +1558,345 @@ class Database(
     }
 
     fun toJsonString(): String {
-        return json.encodeToString(this)
+        return codableJson.encodeToString(Serializer, this)
     }
 
-    private fun applyDecodeMigrations(root: JsonObject) {
-        if (debug.preferStereoMicToBeRemoved) {
-            audio._preferStereoMic.value = true
-            debug.preferStereoMicToBeRemoved = false
-        }
-        if (!root.containsKey("moblink")) {
-            moblink = srtlaRelay
-        }
-        if (!cyclingPowerDevicesMigrated) {
-            for (cyclingPowerDevice in cyclingPowerDevices.devices) {
-                val alreadyThere = workoutDevices.devices.any {
-                    it.bluetoothPeripheralId == cyclingPowerDevice.bluetoothPeripheralId
-                }
-                if (!alreadyThere) {
+    fun encode(): JsonObject = encodeContainer {
+        encode("streams", streams, ListSerializer(SettingsStream.serializer()))
+        encode("scenes", scenes, ListSerializer(SettingsScene.serializer()))
+        encode("widgets", widgets, ListSerializer(SettingsWidget.serializer()))
+        encode("show", show, SettingsShow.serializer())
+        encode("zoom", zoom, SettingsZoom.serializer())
+        encode("tapToFocus", tapToFocus)
+        encode("bitratePresets", bitratePresets, ListSerializer(SettingsBitratePreset.serializer()))
+        encode("iconImage", iconImage)
+        encode("videoStabilizationMode", videoStabilizationMode)
+        encode("chat", chat, SettingsChat.serializer())
+        encode("mic", mic)
+        encode("mics", mics, SettingsMics.serializer())
+        encode("debug", debug, SettingsDebug.serializer())
+        encode("quickButtons", quickButtonsGeneral, SettingsQuickButtons.serializer())
+        encode("globalButtons", quickButtons, ListSerializer(SettingsQuickButton.serializer()))
+        encode("rtmpServer", rtmpServer, SettingsRtmpServer.serializer())
+        encode(
+            "networkInterfaceNames",
+            networkInterfaceNames,
+            ListSerializer(SettingsNetworkInterfaceName.serializer()),
+        )
+        encode("lowBitrateWarning", lowBitrateWarning)
+        encode("vibrate", vibrate)
+        encode("gameControllers", gameControllers, ListSerializer(SettingsGameController.serializer()))
+        encode("remoteControl", remoteControl, SettingsRemoteControl.serializer())
+        encode("startStopRecordingConfirmations", startStopRecordingConfirmations)
+        encode("color", color, SettingsColor.serializer())
+        encode("mirrorFrontCameraOnStream", mirrorFrontCameraOnStream)
+        encode("streamButtonColor", streamButtonColor)
+        encode("location", location, SettingsLocation.serializer())
+        encode("watch", normalizeWatchSettings(watch))
+        encode("audio", audio, SettingsAudio.serializer())
+        encode("macros", macros, SettingsMacros.serializer())
+        encode("webBrowser", webBrowser, WebBrowserSettings.serializer())
+        encode("deepLinkCreator", deepLinkCreator, DeepLinkCreator.serializer())
+        encode("srtlaServer", srtlaServer, SettingsSrtlaServer.serializer())
+        encode("mediaPlayers", mediaPlayers, SettingsMediaPlayers.serializer())
+        encode("showAllSettings", showAllSettings)
+        encode("portrait", portrait)
+        encode("djiDevices", djiDevices, SettingsDjiDevices.serializer())
+        encode("alertsMediaGallery", alertsMediaGallery, SettingsAlertsMediaGallery.serializer())
+        encode("catPrinters", catPrinters, SettingsCatPrinters.serializer())
+        encode("verboseStatuses", verboseStatuses)
+        encode("scoreboardPlayers", scoreboardPlayers, ListSerializer(SettingsWidgetScoreboardPlayer.serializer()))
+        encode("keyboard", keyboard, SettingsKeyboard.serializer())
+        encode("tesla", tesla, SettingsTesla.serializer())
+        encode("srtlaRelay", srtlaRelay, SettingsMoblink.serializer())
+        encode("pixellateStrength", pixellateStrength)
+        encode("moblink", moblink, SettingsMoblink.serializer())
+        encode("sceneSwitchTransition", sceneSwitchTransition)
+        encode("forceSceneSwitchTransition", forceSceneSwitchTransition)
+        encode("alwaysAttachCameraPreview", alwaysAttachCameraPreview)
+        encode("alwaysAttachPhotoShoot", alwaysAttachPhotoShoot)
+        encode("cameraControlsEnabled", cameraControlsEnabled)
+        encode("externalDisplayContent", externalDisplayContent)
+        encode("cyclingPowerDevices", cyclingPowerDevices, SettingsCyclingPowerDevices.serializer())
+        encode("cyclingPowerDevicesMigrated", cyclingPowerDevicesMigrated)
+        encode("heartRateDevices", workoutDevices, SettingsWorkoutDevices.serializer())
+        encode("phoneCoolerDevices", blackSharkCoolerDevices, SettingsBlackSharkCoolerDevices.serializer())
+        encode("remoteSceneId", remoteSceneId)
+        encode("sceneNumericInput", sceneNumericInput)
+        encode("goPro", goPro, SettingsGoPro.serializer())
+        encode("replay", replay, SettingsReplay.serializer())
+        encode("portraitVideoOffsetFromTop", portraitVideoOffsetFromTop)
+        encode("autoSceneSwitchers", autoSceneSwitchers, SettingsAutoSceneSwitchers.serializer())
+        encode("fixedHorizon", fixedHorizon)
+        encode("whirlpoolAngle", whirlpoolAngle)
+        encode("pinchScale", pinchScale)
+        encode("selfieStick", selfieStick, SettingsSelfieStick.serializer())
+        encode("bigButtons", bigButtons)
+        encode("verticalButtons", verticalButtons)
+        encode("bigAudioLevelMeter", bigAudioLevelMeter)
+        encode("ristServer", ristServer, SettingsRistServer.serializer())
+        encode("disconnectProtection", disconnectProtection, SettingsDisconnectProtection.serializer())
+        encode("rtspClient", rtspClient, SettingsRtspClient.serializer())
+        encode("srtClient", srtClient, SettingsSrtClient.serializer())
+        encode("whipServer", whipServer, SettingsWhipServer.serializer())
+        encode("whepClient", whepClient, SettingsWhepClient.serializer())
+        encode("navigation", navigation, SettingsNavigation.serializer())
+        encode("wiFiAware", wiFiAware, SettingsWiFiAware.serializer())
+        encode("face", face, SettingsFace.serializer())
+        encode("beauty", beauty, SettingsBeauty.serializer())
+        encode("talkBack", talkback, SettingsTalkback.serializer())
+        encode("gimbal", gimbal, SettingsGimbal.serializer())
+        encode("scoreboardSizeMigrated", scoreboardSizeMigrated)
+        encode("savedWifiNetworks", savedWifiNetworks, ListSerializer(SettingsWiFi.serializer()))
+        encode("streamDecks", streamDecks, SettingsStreamDecks.serializer())
+        encode("graphicsImplementation", graphicsImplementation)
+        encode("graphicsHighQualityDownsampling", graphicsHighQualityDownsampling)
+        encode("ingestsSoftwareVideoDecoding", ingestsSoftwareVideoDecoding)
+        encode("torchLevel", torchLevel)
+        encode("appMode", appMode)
+        encode("httpProxy", httpProxy, SettingsHttpProxy.serializer())
+    }
+
+    companion object {
+        fun decode(container: JsonObject): Database {
+            val database = Database()
+            database.streams = container.decode("streams", ListSerializer(SettingsStream.serializer()), emptyList())
+                .toMutableList()
+            database.scenes = container.decode("scenes", ListSerializer(SettingsScene.serializer()), emptyList())
+                .toMutableList()
+            database.widgets = container.decode("widgets", ListSerializer(SettingsWidget.serializer()), emptyList())
+                .toMutableList()
+            database.show = container.decode("show", SettingsShow.serializer(), SettingsShow())
+            database.zoom = container.decode("zoom", SettingsZoom.serializer(), SettingsZoom())
+            database.tapToFocus = container.decode("tapToFocus", false)
+            database.bitratePresets = container.decode(
+                "bitratePresets",
+                ListSerializer(SettingsBitratePreset.serializer()),
+                emptyList(),
+            ).toMutableList()
+            database.iconImage = container.decode("iconImage", plainIcon.image())
+            database.videoStabilizationMode = container.decode(
+                "videoStabilizationMode",
+                SettingsVideoStabilizationMode.off,
+            )
+            database.chat = container.decode("chat", SettingsChat.serializer(), SettingsChat())
+            database.mic = container.decode("mic", getDefaultMic())
+            database.mics = container.decode("mics", SettingsMics.serializer(), SettingsMics())
+            database.debug = container.decode("debug", SettingsDebug.serializer(), SettingsDebug())
+            database.quickButtonsGeneral = container.decode(
+                "quickButtons",
+                SettingsQuickButtons.serializer(),
+                SettingsQuickButtons(),
+            )
+            database.quickButtons = container.decode(
+                "globalButtons",
+                ListSerializer(SettingsQuickButton.serializer()),
+                emptyList(),
+            ).toMutableList()
+            database.rtmpServer = container.decode("rtmpServer", SettingsRtmpServer.serializer(), SettingsRtmpServer())
+            database.networkInterfaceNames = container.decode(
+                "networkInterfaceNames",
+                ListSerializer(SettingsNetworkInterfaceName.serializer()),
+                emptyList(),
+            ).toMutableList()
+            database.lowBitrateWarning = container.decode("lowBitrateWarning", true)
+            database.vibrate = container.decode("vibrate", false)
+            database.gameControllers = container.decode(
+                "gameControllers",
+                ListSerializer(SettingsGameController.serializer()),
+                listOf(SettingsGameController()),
+            ).toMutableList()
+            database.remoteControl = container.decode(
+                "remoteControl",
+                SettingsRemoteControl.serializer(),
+                SettingsRemoteControl(),
+            )
+            database.startStopRecordingConfirmations = container.decode("startStopRecordingConfirmations", true)
+            database.color = container.decode("color", SettingsColor.serializer(), SettingsColor())
+            database.mirrorFrontCameraOnStream = container.decode("mirrorFrontCameraOnStream", true)
+            database.streamButtonColor = container.decode("streamButtonColor", defaultStreamButtonColor)
+            database.streamButtonColorColor = database.streamButtonColor.color()
+            database.location = container.decode("location", SettingsLocation.serializer(), SettingsLocation())
+            database.watch = normalizeWatchSettings(container.decode("watch", JsonObject(emptyMap())))
+            database.audio = container.decode("audio", SettingsAudio.serializer(), SettingsAudio())
+            if (database.debug.preferStereoMicToBeRemoved) {
+                database.audio._preferStereoMic.value = true
+                database.debug.preferStereoMicToBeRemoved = false
+            }
+            database.macros = container.decode("macros", SettingsMacros.serializer(), SettingsMacros())
+            database.webBrowser = container.decode("webBrowser", WebBrowserSettings.serializer(), WebBrowserSettings())
+            database.deepLinkCreator = container.decode(
+                "deepLinkCreator",
+                DeepLinkCreator.serializer(),
+                DeepLinkCreator(),
+            )
+            database.srtlaServer = container.decode(
+                "srtlaServer",
+                SettingsSrtlaServer.serializer(),
+                SettingsSrtlaServer(),
+            )
+            database.mediaPlayers = container.decode(
+                "mediaPlayers",
+                SettingsMediaPlayers.serializer(),
+                SettingsMediaPlayers(),
+            )
+            database.showAllSettings = container.decode("showAllSettings", false)
+            database.portrait = container.decode("portrait", false)
+            database.djiDevices = container.decode("djiDevices", SettingsDjiDevices.serializer(), SettingsDjiDevices())
+            database.alertsMediaGallery = container.decode(
+                "alertsMediaGallery",
+                SettingsAlertsMediaGallery.serializer(),
+                SettingsAlertsMediaGallery(),
+            )
+            database.catPrinters = container.decode(
+                "catPrinters",
+                SettingsCatPrinters.serializer(),
+                SettingsCatPrinters(),
+            )
+            database.verboseStatuses = container.decode("verboseStatuses", false)
+            database.scoreboardPlayers = container.decode(
+                "scoreboardPlayers",
+                ListSerializer(SettingsWidgetScoreboardPlayer.serializer()),
+                emptyList(),
+            ).toMutableList()
+            database.keyboard = container.decode("keyboard", SettingsKeyboard.serializer(), SettingsKeyboard())
+            database.tesla = container.decode("tesla", SettingsTesla.serializer(), SettingsTesla())
+            database.srtlaRelay = container.decode("srtlaRelay", SettingsMoblink.serializer(), SettingsMoblink())
+            database.pixellateStrength = container.decode("pixellateStrength", 0.3f)
+            database.moblink = container.decode("moblink", SettingsMoblink.serializer(), database.srtlaRelay)
+            database.sceneSwitchTransition = container.decode(
+                "sceneSwitchTransition",
+                SettingsSceneSwitchTransition.blur,
+            )
+            database.forceSceneSwitchTransition = container.decode("forceSceneSwitchTransition", false)
+            database.alwaysAttachCameraPreview = container.decode("alwaysAttachCameraPreview", false)
+            database.alwaysAttachPhotoShoot = container.decode("alwaysAttachPhotoShoot", false)
+            database.cameraControlsEnabled = container.decode("cameraControlsEnabled", false)
+            database.externalDisplayContent = container.decode(
+                "externalDisplayContent",
+                SettingsExternalDisplayContent.stream,
+            )
+            database.cyclingPowerDevices = container.decode(
+                "cyclingPowerDevices",
+                SettingsCyclingPowerDevices.serializer(),
+                SettingsCyclingPowerDevices(),
+            )
+            database.cyclingPowerDevicesMigrated = container.decode("cyclingPowerDevicesMigrated", false)
+            database.workoutDevices = container.decode(
+                "heartRateDevices",
+                SettingsWorkoutDevices.serializer(),
+                SettingsWorkoutDevices(),
+            )
+            if (!database.cyclingPowerDevicesMigrated) {
+                for (cyclingPowerDevice in database.cyclingPowerDevices.devices) {
+                    val alreadyThere = database.workoutDevices.devices.any {
+                        it.bluetoothPeripheralId == cyclingPowerDevice.bluetoothPeripheralId
+                    }
+                    if (alreadyThere) {
+                        continue
+                    }
                     val workoutDevice = SettingsWorkoutDevice()
                     workoutDevice.id = cyclingPowerDevice.id
                     workoutDevice.name = cyclingPowerDevice.name
                     workoutDevice.enabled = cyclingPowerDevice.enabled
                     workoutDevice.bluetoothPeripheralName = cyclingPowerDevice.bluetoothPeripheralName
                     workoutDevice.bluetoothPeripheralId = cyclingPowerDevice.bluetoothPeripheralId
-                    workoutDevices.devices.add(workoutDevice)
+                    database.workoutDevices.devices.add(workoutDevice)
                 }
+                database.cyclingPowerDevicesMigrated = true
             }
-            cyclingPowerDevicesMigrated = true
-        }
-        if (!root.containsKey("face")) {
-            face = debug.faceToBeRemoved
-        }
-        if (!root.containsKey("graphicsHighQualityDownsampling")) {
-            graphicsHighQualityDownsampling = debug.highQualityDownsamplingToBeRemoved
-        }
-        if (!root.containsKey("httpProxy") && debug.httpProxyToBeRemoved) {
-            httpProxy.enabled.value = true
-        }
-        if (!scoreboardSizeMigrated) {
-            for (widget in widgets) {
-                if (widget.type != SettingsWidgetType.scoreboard) {
-                    continue
-                }
-                for (scene in scenes) {
-                    for (sceneWidget in scene.widgets) {
-                        if (sceneWidget.widgetId == widget.id) {
-                            sceneWidget.layout.size = defaultScoreboardSize
+            database.blackSharkCoolerDevices = container.decode(
+                "phoneCoolerDevices",
+                SettingsBlackSharkCoolerDevices.serializer(),
+                SettingsBlackSharkCoolerDevices(),
+            )
+            database.remoteSceneId = container.decodeIfPresent<UUID>("remoteSceneId")
+            database.sceneNumericInput = container.decode("sceneNumericInput", false)
+            database.goPro = container.decode("goPro", SettingsGoPro.serializer(), SettingsGoPro())
+            database.replay = container.decode("replay", SettingsReplay.serializer(), SettingsReplay())
+            database.portraitVideoOffsetFromTop = container.decode("portraitVideoOffsetFromTop", 0.0)
+            database.autoSceneSwitchers = container.decode(
+                "autoSceneSwitchers",
+                SettingsAutoSceneSwitchers.serializer(),
+                SettingsAutoSceneSwitchers(),
+            )
+            database.fixedHorizon = container.decode("fixedHorizon", false)
+            database.whirlpoolAngle = container.decode("whirlpoolAngle", (PI / 2).toFloat())
+            database.pinchScale = container.decode("pinchScale", 0.5f)
+            database.selfieStick = container.decode(
+                "selfieStick",
+                SettingsSelfieStick.serializer(),
+                SettingsSelfieStick(),
+            )
+            database.bigButtons = container.decode("bigButtons", false)
+            database.verticalButtons = container.decode("verticalButtons", false)
+            database.bigAudioLevelMeter = container.decode("bigAudioLevelMeter", false)
+            database.ristServer = container.decode("ristServer", SettingsRistServer.serializer(), SettingsRistServer())
+            database.disconnectProtection = container.decode(
+                "disconnectProtection",
+                SettingsDisconnectProtection.serializer(),
+                SettingsDisconnectProtection(),
+            )
+            database.rtspClient = container.decode("rtspClient", SettingsRtspClient.serializer(), SettingsRtspClient())
+            database.srtClient = container.decode("srtClient", SettingsSrtClient.serializer(), SettingsSrtClient())
+            database.whipServer = container.decode("whipServer", SettingsWhipServer.serializer(), SettingsWhipServer())
+            database.whepClient = container.decode("whepClient", SettingsWhepClient.serializer(), SettingsWhepClient())
+            database.navigation = container.decode(
+                "navigation",
+                SettingsNavigation.serializer(),
+                SettingsNavigation(),
+            )
+            database.wiFiAware = container.decode("wiFiAware", SettingsWiFiAware.serializer(), SettingsWiFiAware())
+            database.face = container.decodeIfPresent("face", SettingsFace.serializer())
+                ?: database.debug.faceToBeRemoved
+            database.beauty = container.decode("beauty", SettingsBeauty.serializer(), SettingsBeauty())
+            database.talkback = container.decode("talkBack", SettingsTalkback.serializer(), SettingsTalkback())
+            database.gimbal = container.decode("gimbal", SettingsGimbal.serializer(), SettingsGimbal())
+            database.scoreboardSizeMigrated = container.decode("scoreboardSizeMigrated", false)
+            database.savedWifiNetworks = container.decode(
+                "savedWifiNetworks",
+                ListSerializer(SettingsWiFi.serializer()),
+                emptyList(),
+            )
+            if (!database.scoreboardSizeMigrated) {
+                for (widget in database.widgets) {
+                    if (widget.type != SettingsWidgetType.scoreboard) {
+                        continue
+                    }
+                    for (scene in database.scenes) {
+                        for (sceneWidget in scene.widgets) {
+                            if (sceneWidget.widgetId == widget.id) {
+                                sceneWidget.layout.size = defaultScoreboardSize
+                            }
                         }
                     }
                 }
+                database.scoreboardSizeMigrated = true
             }
-            scoreboardSizeMigrated = true
-        }
-    }
-
-    companion object {
-        private val json = Json {
-            ignoreUnknownKeys = true
-            encodeDefaults = true
-            coerceInputValues = true
+            database.streamDecks = container.decode(
+                "streamDecks",
+                SettingsStreamDecks.serializer(),
+                SettingsStreamDecks(),
+            )
+            database.graphicsImplementation = container.decode(
+                "graphicsImplementation",
+                SettingsGraphicsImplementation.coreImage,
+            )
+            database.graphicsHighQualityDownsampling = container.decode(
+                "graphicsHighQualityDownsampling",
+                database.debug.highQualityDownsamplingToBeRemoved,
+            )
+            database.ingestsSoftwareVideoDecoding = container.decode("ingestsSoftwareVideoDecoding", false)
+            database.torchLevel = container.decode("torchLevel", 1.0f)
+            database.appMode = container.decode("appMode", SettingsAppMode.streaming)
+            val httpProxyDefault = SettingsHttpProxy()
+            httpProxyDefault.enabled.value = database.debug.httpProxyToBeRemoved
+            database.httpProxy = container.decode("httpProxy", SettingsHttpProxy.serializer(), httpProxyDefault)
+            return database
         }
 
         fun fromString(settings: String): Database {
-            val root = json.parseToJsonElement(settings).jsonObject
-            val database = json.decodeFromJsonElement<Database>(root)
-            database.applyDecodeMigrations(root)
+            val database = codableJson.decodeFromString(Serializer, settings)
             if (database.zoom.back.isEmpty()) {
                 addDefaultBackZoomPresets(database)
             }
@@ -1106,6 +1921,12 @@ class Database(
             return database
         }
     }
+
+    object Serializer : KSerializer<Database> by JsonObjectSerializer(
+        "Database",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
 private fun addDefaultScenes(database: Database) {

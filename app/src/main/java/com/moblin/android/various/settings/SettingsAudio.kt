@@ -8,16 +8,22 @@ import com.moblin.android.common.various.isSrtClientCameraOrMic
 import com.moblin.android.common.various.isSrtlaCameraOrMic
 import com.moblin.android.common.various.isWhepCameraOrMic
 import com.moblin.android.common.various.isWhipCameraOrMic
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.codableJson
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.*
-import kotlinx.serialization.encoding.*
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonObject
 
 @Serializable(with = SettingsMicSerializer::class)
 enum class SettingsMic(val rawValue: String) {
@@ -45,7 +51,7 @@ object SettingsMicSerializer : KSerializer<SettingsMic> {
     }
 }
 
-@Serializable(with = SettingsMicsMicSerializer::class)
+@Serializable(with = SettingsMicsMic.Serializer::class)
 class SettingsMicsMic {
     val id: String
         get() = "$inputUid ${dataSourceId ?: 0}"
@@ -147,152 +153,126 @@ class SettingsMicsMic {
     override fun hashCode(): Int {
         return 31 * inputUid.hashCode() + (dataSourceId ?: 0)
     }
-}
 
-object SettingsMicsMicSerializer : KSerializer<SettingsMicsMic> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("SettingsMicsMic") {
-        element("name", String.serializer().descriptor)
-        element("inputUid", String.serializer().descriptor)
-        element("dataSourceID", Int.serializer().nullable.descriptor)
-        element("builtInOrientation", SettingsMicSerializer.nullable.descriptor)
-        element("delay", Double.serializer().descriptor)
+    fun encode(): JsonObject = encodeContainer {
+        encode("name", name)
+        encode("inputUid", inputUid)
+        encode("dataSourceID", dataSourceId)
+        encode("builtInOrientation", builtInOrientation)
+        encode("delay", delay.value)
     }
 
-    override fun serialize(encoder: Encoder, value: SettingsMicsMic) {
-        val output = encoder.beginStructure(descriptor)
-        output.encodeStringElement(descriptor, 0, value.name)
-        output.encodeStringElement(descriptor, 1, value.inputUid)
-        output.encodeNullableSerializableElement(descriptor, 2, Int.serializer(), value.dataSourceId)
-        output.encodeNullableSerializableElement(descriptor, 3, SettingsMicSerializer, value.builtInOrientation)
-        output.encodeDoubleElement(descriptor, 4, value.delay.value)
-        output.endStructure(descriptor)
-    }
-
-    override fun deserialize(decoder: Decoder): SettingsMicsMic {
-        val input = decoder.beginStructure(descriptor)
-        val mic = SettingsMicsMic()
-        while (true) {
-            when (val index = input.decodeElementIndex(descriptor)) {
-                0 -> mic.name = input.decodeStringElement(descriptor, 0)
-                1 -> mic.inputUid = input.decodeStringElement(descriptor, 1)
-                2 -> mic.dataSourceId =
-                    input.decodeNullableSerializableElement(descriptor, 2, Int.serializer(), mic.dataSourceId)
-                3 -> mic.builtInOrientation =
-                    input.decodeNullableSerializableElement(descriptor, 3, SettingsMicSerializer, mic.builtInOrientation)
-                4 -> mic._delay.value = input.decodeDoubleElement(descriptor, 4)
-                CompositeDecoder.DECODE_DONE -> break
-                else -> throw SerializationException("Unexpected index $index")
-            }
+    companion object {
+        fun decode(container: JsonObject): SettingsMicsMic {
+            val mic = SettingsMicsMic()
+            mic.name = container.decode("name", "")
+            mic.inputUid = container.decode("inputUid", "")
+            mic.dataSourceId = container.decode<Int?>("dataSourceID", null)
+            mic.builtInOrientation = container.decode<SettingsMic?>("builtInOrientation", null)
+            mic._delay.value = container.decode("delay", 0.0)
+            return mic
         }
-        input.endStructure(descriptor)
-        return mic
     }
+
+    object Serializer : KSerializer<SettingsMicsMic> by JsonObjectSerializer(
+        "SettingsMicsMic",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable(with = SettingsMicsSerializer::class)
+@Serializable(with = SettingsMics.Serializer::class)
 class SettingsMics {
     internal val _mics = MutableStateFlow<List<SettingsMicsMic>>(emptyList())
     val mics: StateFlow<List<SettingsMicsMic>> get() = _mics
     internal val _autoSwitch = MutableStateFlow(true)
     val autoSwitch: StateFlow<Boolean> get() = _autoSwitch
     var defaultMic: String = ""
-}
 
-object SettingsMicsSerializer : KSerializer<SettingsMics> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("SettingsMics") {
-        element("all", ListSerializer(SettingsMicsMicSerializer).descriptor)
-        element("autoSwitch", Boolean.serializer().descriptor)
-        element("defaultMic", String.serializer().descriptor)
+    fun encode(): JsonObject = encodeContainer {
+        encode("all", mics.value, ListSerializer(SettingsMicsMic.serializer()))
+        encode("autoSwitch", autoSwitch.value)
+        encode("defaultMic", defaultMic)
     }
 
-    override fun serialize(encoder: Encoder, value: SettingsMics) {
-        val output = encoder.beginStructure(descriptor)
-        output.encodeSerializableElement(
-            descriptor,
-            0,
-            ListSerializer(SettingsMicsMicSerializer),
-            value.mics.value
-        )
-        output.encodeBooleanElement(descriptor, 1, value.autoSwitch.value)
-        output.encodeStringElement(descriptor, 2, value.defaultMic)
-        output.endStructure(descriptor)
-    }
-
-    override fun deserialize(decoder: Decoder): SettingsMics {
-        val input = decoder.beginStructure(descriptor)
-        val settings = SettingsMics()
-        while (true) {
-            when (val index = input.decodeElementIndex(descriptor)) {
-                0 -> settings._mics.value = input.decodeSerializableElement(
-                    descriptor,
-                    0,
-                    ListSerializer(SettingsMicsMicSerializer),
-                    settings._mics.value
-                )
-                1 -> settings._autoSwitch.value = input.decodeBooleanElement(descriptor, 1)
-                2 -> settings.defaultMic = input.decodeStringElement(descriptor, 2)
-                CompositeDecoder.DECODE_DONE -> break
-                else -> throw SerializationException("Unexpected index $index")
-            }
+    companion object {
+        fun decode(container: JsonObject): SettingsMics {
+            val mics = SettingsMics()
+            mics._mics.value = container.decode("all", ListSerializer(SettingsMicsMic.serializer()), emptyList())
+            mics._autoSwitch.value = container.decode("autoSwitch", true)
+            mics.defaultMic = container.decode("defaultMic", "")
+            return mics
         }
-        input.endStructure(descriptor)
-        return settings
     }
+
+    object Serializer : KSerializer<SettingsMics> by JsonObjectSerializer(
+        "SettingsMics",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsAudioOutputToInputChannelsMap.Serializer::class)
 class SettingsAudioOutputToInputChannelsMap {
     var channel1: Int = 0
     var channel2: Int = 1
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("channel1", channel1)
+        encode("channel2", channel2)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsAudioOutputToInputChannelsMap {
+            val map = SettingsAudioOutputToInputChannelsMap()
+            map.channel1 = codableJson.decodeFromJsonElement(Int.serializer(), container.getValue("channel1"))
+            map.channel2 = codableJson.decodeFromJsonElement(Int.serializer(), container.getValue("channel2"))
+            return map
+        }
+    }
+
+    object Serializer : KSerializer<SettingsAudioOutputToInputChannelsMap> by JsonObjectSerializer(
+        "SettingsAudioOutputToInputChannelsMap",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable(with = SettingsAudioSerializer::class)
+@Serializable(with = SettingsAudio.Serializer::class)
 class SettingsAudio {
     var outputToInputChannelsMap: SettingsAudioOutputToInputChannelsMap = SettingsAudioOutputToInputChannelsMap()
     internal val _gainDb = MutableStateFlow(0.0f)
     val gainDb: StateFlow<Float> get() = _gainDb
     internal val _preferStereoMic = MutableStateFlow(false)
     val preferStereoMic: StateFlow<Boolean> get() = _preferStereoMic
-}
 
-object SettingsAudioSerializer : KSerializer<SettingsAudio> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("SettingsAudio") {
-        element("audioOutputToInputChannelsMap", SettingsAudioOutputToInputChannelsMap.serializer().descriptor)
-        element("gainDb", Float.serializer().descriptor)
-        element("preferStereoMic", Boolean.serializer().descriptor)
-    }
-
-    override fun serialize(encoder: Encoder, value: SettingsAudio) {
-        val output = encoder.beginStructure(descriptor)
-        output.encodeSerializableElement(
-            descriptor,
-            0,
+    fun encode(): JsonObject = encodeContainer {
+        encode(
+            "audioOutputToInputChannelsMap",
+            outputToInputChannelsMap,
             SettingsAudioOutputToInputChannelsMap.serializer(),
-            value.outputToInputChannelsMap
         )
-        output.encodeFloatElement(descriptor, 1, value.gainDb.value)
-        output.encodeBooleanElement(descriptor, 2, value.preferStereoMic.value)
-        output.endStructure(descriptor)
+        encode("gainDb", gainDb.value)
+        encode("preferStereoMic", preferStereoMic.value)
     }
 
-    override fun deserialize(decoder: Decoder): SettingsAudio {
-        val input = decoder.beginStructure(descriptor)
-        val settings = SettingsAudio()
-        while (true) {
-            when (val index = input.decodeElementIndex(descriptor)) {
-                0 -> settings.outputToInputChannelsMap = input.decodeSerializableElement(
-                    descriptor,
-                    0,
-                    SettingsAudioOutputToInputChannelsMap.serializer(),
-                    settings.outputToInputChannelsMap
-                )
-                1 -> settings._gainDb.value = input.decodeFloatElement(descriptor, 1)
-                2 -> settings._preferStereoMic.value = input.decodeBooleanElement(descriptor, 2)
-                CompositeDecoder.DECODE_DONE -> break
-                else -> throw SerializationException("Unexpected index $index")
-            }
+    companion object {
+        fun decode(container: JsonObject): SettingsAudio {
+            val audio = SettingsAudio()
+            audio.outputToInputChannelsMap = container.decode(
+                "audioOutputToInputChannelsMap",
+                SettingsAudioOutputToInputChannelsMap.serializer(),
+                SettingsAudioOutputToInputChannelsMap(),
+            )
+            audio._gainDb.value = container.decode("gainDb", 0.0f)
+            audio._preferStereoMic.value = container.decode("preferStereoMic", false)
+            return audio
         }
-        input.endStructure(descriptor)
-        return settings
     }
+
+    object Serializer : KSerializer<SettingsAudio> by JsonObjectSerializer(
+        "SettingsAudio",
+        { it.encode() },
+        { decode(it) },
+    )
 }

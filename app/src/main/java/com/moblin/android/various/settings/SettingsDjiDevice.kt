@@ -2,6 +2,10 @@ package com.moblin.android.various.settings
 
 import com.moblin.android.integrations.dji.djidevice.DjiDeviceState
 import com.moblin.android.localized
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.decodeIfPresent
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.utils.Named
 import java.util.UUID
@@ -9,11 +13,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonObject
 
 @Serializable(with = SettingsDjiDeviceUrlTypeSerializer::class)
 enum class SettingsDjiDeviceUrlType(val rawValue: String) {
@@ -172,12 +178,8 @@ val djiDeviceBitrates: List<UInt> = listOf(
 
 val djiDeviceFpss: List<Int> = listOf(25, 30)
 
-@Serializable(with = SettingsDjiDeviceSerializer::class)
+@Serializable(with = SettingsDjiDevice.Serializer::class)
 class SettingsDjiDevice : Named {
-    companion object {
-        val baseName: String = localized("My device")
-    }
-
     var id: UUID = UUID.randomUUID()
 
     private val _name = MutableStateFlow(baseName)
@@ -333,9 +335,66 @@ class SettingsDjiDevice : Named {
         isStarted,
         model,
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("bluetoothPeripheralName", bluetoothPeripheralName)
+        encode("bluetoothPeripheralId", bluetoothPeripheralId)
+        encode("wifiSsid", wifiSsid)
+        encode("wifiPassword", wifiPassword)
+        encode("rtmpUrlType", rtmpUrlType)
+        encode("serverRtmpStreamId", serverRtmpStreamId)
+        encode("serverRtmpUrl", serverRtmpUrl)
+        encode("customRtmpUrl", customRtmpUrl)
+        encode("autoRestartStream", autoRestartStream)
+        encode("imageStabilization", imageStabilization)
+        encode("resolution", resolution)
+        encode("fps", fps)
+        encode("bitrate", bitrate)
+        encode("videoCodec", videoCodec)
+        encode("isStarted", isStarted)
+        encode("model", model)
+    }
+
+    companion object {
+        val baseName: String = localized("My device")
+
+        fun decode(container: JsonObject): SettingsDjiDevice {
+            val device = SettingsDjiDevice()
+            device.id = container.decode("id", UUID.randomUUID())
+            device.name = container.decode("name", baseName)
+            device.bluetoothPeripheralName = container.decodeIfPresent<String>("bluetoothPeripheralName")
+            device.bluetoothPeripheralId = container.decodeIfPresent<UUID>("bluetoothPeripheralId")
+            device.wifiSsid = container.decode("wifiSsid", "")
+            device.wifiPassword = container.decode("wifiPassword", "")
+            device.rtmpUrlType = container.decode("rtmpUrlType", SettingsDjiDeviceUrlType.server)
+            device.serverRtmpStreamId = container.decode("serverRtmpStreamId", UUID.randomUUID())
+            device.serverRtmpUrl = container.decode<String?>("serverRtmpUrl", null)
+            device.customRtmpUrl = container.decode("customRtmpUrl", "")
+            device.autoRestartStream = container.decode("autoRestartStream", false)
+            device.imageStabilization = container.decode(
+                "imageStabilization",
+                SettingsDjiDeviceImageStabilization.off,
+            )
+            device.resolution = container.decode("resolution", SettingsDjiDeviceResolution.r1080p)
+            device.fps = container.decode("fps", 30)
+            device.bitrate = container.decode("bitrate", 6_000_000u)
+            device.videoCodec = container.decode("videoCodec", SettingsDjiDeviceVideoCodec.h265hevc)
+            device.isStarted = container.decode("isStarted", false)
+            device.model = container.decode("model", SettingsDjiDeviceModel.unknown)
+            return device
+        }
+    }
+
+    object Serializer : KSerializer<SettingsDjiDevice> by JsonObjectSerializer(
+        "SettingsDjiDevice",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable(with = SettingsDjiDevicesSerializer::class)
+@Serializable(with = SettingsDjiDevices.Serializer::class)
 class SettingsDjiDevices {
     private val _devices = MutableStateFlow<List<SettingsDjiDevice>>(emptyList())
     var devices: List<SettingsDjiDevice>
@@ -350,6 +409,24 @@ class SettingsDjiDevices {
     enum class CodingKeys {
         devices,
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("devices", devices, ListSerializer(SettingsDjiDevice.serializer()))
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsDjiDevices {
+            val devices = SettingsDjiDevices()
+            devices.devices = container.decode("devices", ListSerializer(SettingsDjiDevice.serializer()), emptyList())
+            return devices
+        }
+    }
+
+    object Serializer : KSerializer<SettingsDjiDevices> by JsonObjectSerializer(
+        "SettingsDjiDevices",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
 object SettingsDjiDeviceUrlTypeSerializer : KSerializer<SettingsDjiDeviceUrlType> {
@@ -391,118 +468,5 @@ object SettingsDjiDeviceVideoCodecSerializer : KSerializer<SettingsDjiDeviceVide
     override fun deserialize(decoder: Decoder): SettingsDjiDeviceVideoCodec {
         return SettingsDjiDeviceVideoCodec.fromRawValue(decoder.decodeString())
             ?: throw SerializationException("Invalid SettingsDjiDeviceVideoCodec")
-    }
-}
-
-object SettingsDjiDeviceUuidSerializer : KSerializer<UUID> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("java.util.UUID", PrimitiveKind.STRING)
-
-    override fun serialize(encoder: Encoder, value: UUID) {
-        encoder.encodeString(value.toString())
-    }
-
-    override fun deserialize(decoder: Decoder): UUID {
-        return UUID.fromString(decoder.decodeString())
-    }
-}
-
-object SettingsDjiDeviceSerializer : KSerializer<SettingsDjiDevice> {
-    @Serializable
-    private data class Surrogate(
-        @Serializable(with = SettingsDjiDeviceUuidSerializer::class) val id: UUID = UUID.randomUUID(),
-        val name: String = SettingsDjiDevice.baseName,
-        val bluetoothPeripheralName: String? = null,
-        @Serializable(with = SettingsDjiDeviceUuidSerializer::class) val bluetoothPeripheralId: UUID? = null,
-        val wifiSsid: String = "",
-        val wifiPassword: String = "",
-        val rtmpUrlType: SettingsDjiDeviceUrlType = SettingsDjiDeviceUrlType.server,
-        @Serializable(with = SettingsDjiDeviceUuidSerializer::class) val serverRtmpStreamId: UUID = UUID.randomUUID(),
-        val serverRtmpUrl: String? = null,
-        val customRtmpUrl: String = "",
-        val autoRestartStream: Boolean = false,
-        val imageStabilization: SettingsDjiDeviceImageStabilization =
-            SettingsDjiDeviceImageStabilization.off,
-        val resolution: SettingsDjiDeviceResolution = SettingsDjiDeviceResolution.r1080p,
-        val fps: Int = 30,
-        val bitrate: UInt = 6_000_000u,
-        val videoCodec: SettingsDjiDeviceVideoCodec = SettingsDjiDeviceVideoCodec.h265hevc,
-        val isStarted: Boolean = false,
-        val model: SettingsDjiDeviceModel = SettingsDjiDeviceModel.unknown,
-    )
-
-    override val descriptor: SerialDescriptor = Surrogate.serializer().descriptor
-
-    override fun serialize(encoder: Encoder, value: SettingsDjiDevice) {
-        encoder.encodeSerializableValue(
-            Surrogate.serializer(),
-            Surrogate(
-                id = value.id,
-                name = value.name,
-                bluetoothPeripheralName = value.bluetoothPeripheralName,
-                bluetoothPeripheralId = value.bluetoothPeripheralId,
-                wifiSsid = value.wifiSsid,
-                wifiPassword = value.wifiPassword,
-                rtmpUrlType = value.rtmpUrlType,
-                serverRtmpStreamId = value.serverRtmpStreamId,
-                serverRtmpUrl = value.serverRtmpUrl,
-                customRtmpUrl = value.customRtmpUrl,
-                autoRestartStream = value.autoRestartStream,
-                imageStabilization = value.imageStabilization,
-                resolution = value.resolution,
-                fps = value.fps,
-                bitrate = value.bitrate,
-                videoCodec = value.videoCodec,
-                isStarted = value.isStarted,
-                model = value.model,
-            ),
-        )
-    }
-
-    override fun deserialize(decoder: Decoder): SettingsDjiDevice {
-        val surrogate = decoder.decodeSerializableValue(Surrogate.serializer())
-        val device = SettingsDjiDevice()
-        device.id = surrogate.id
-        device.name = surrogate.name
-        device.bluetoothPeripheralName = surrogate.bluetoothPeripheralName
-        device.bluetoothPeripheralId = surrogate.bluetoothPeripheralId
-        device.wifiSsid = surrogate.wifiSsid
-        device.wifiPassword = surrogate.wifiPassword
-        device.rtmpUrlType = surrogate.rtmpUrlType
-        device.serverRtmpStreamId = surrogate.serverRtmpStreamId
-        device.serverRtmpUrl = surrogate.serverRtmpUrl
-        device.customRtmpUrl = surrogate.customRtmpUrl
-        device.autoRestartStream = surrogate.autoRestartStream
-        device.imageStabilization = surrogate.imageStabilization
-        device.resolution = surrogate.resolution
-        device.fps = surrogate.fps
-        device.bitrate = surrogate.bitrate
-        device.videoCodec = surrogate.videoCodec
-        device.isStarted = surrogate.isStarted
-        device.model = surrogate.model
-        return device
-    }
-}
-
-object SettingsDjiDevicesSerializer : KSerializer<SettingsDjiDevices> {
-    @Serializable
-    private data class Surrogate(
-        val devices: List<SettingsDjiDevice> = emptyList(),
-    )
-
-    override val descriptor: SerialDescriptor = Surrogate.serializer().descriptor
-
-    override fun serialize(encoder: Encoder, value: SettingsDjiDevices) {
-        encoder.encodeSerializableValue(
-            Surrogate.serializer(),
-            Surrogate(devices = value.devices),
-        )
-    }
-
-    override fun deserialize(decoder: Decoder): SettingsDjiDevices {
-        val surrogate = decoder.decodeSerializableValue(Surrogate.serializer())
-        val settings = SettingsDjiDevices()
-        settings.devices = surrogate.devices
-        return settings
     }
 }

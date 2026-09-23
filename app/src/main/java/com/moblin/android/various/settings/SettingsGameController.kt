@@ -4,22 +4,61 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.moblin.android.localized
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
+import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.util.UUID
+import kotlinx.serialization.json.JsonObject
+
+private fun <T> rawValueSerializer(
+    serialName: String,
+    rawValue: (T) -> String,
+    fromRawValue: (String) -> T?,
+): KSerializer<T> = object : KSerializer<T> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: T) {
+        encoder.encodeString(rawValue(value))
+    }
+
+    override fun deserialize(decoder: Decoder): T {
+        val value = decoder.decodeString()
+        return fromRawValue(value) ?: throw SerializationException("Unknown $serialName raw value '$value'")
+    }
+}
+
+private fun <T> caseNameSerializer(serialName: String, cases: List<T>, caseName: (T) -> String): KSerializer<T> =
+    JsonObjectSerializer(
+        serialName,
+        { value -> JsonObject(mapOf(caseName(value) to JsonObject(emptyMap()))) },
+        { container ->
+            val keys = container.keys.filter { key -> cases.any { caseName(it) == key } }
+            if (keys.size != 1) {
+                throw SerializationException("$serialName expects exactly one case key")
+            }
+            if (container[keys[0]] !is JsonObject) {
+                throw SerializationException("$serialName case value must be an object")
+            }
+            cases.first { caseName(it) == keys[0] }
+        },
+    )
 
 enum class SettingsControllerFunctionSection {
     GENERAL,
     FILTERS,
 }
 
+@Serializable(with = SettingsGimbalMotion.Serializer::class)
 enum class SettingsGimbalMotion(val rawValue: String) {
     KAPOW("kapow"),
     YES("yes"),
@@ -37,8 +76,15 @@ enum class SettingsGimbalMotion(val rawValue: String) {
         fun fromRawValue(rawValue: String): SettingsGimbalMotion =
             entries.firstOrNull { it.rawValue == rawValue } ?: KAPOW
     }
+
+    object Serializer : KSerializer<SettingsGimbalMotion> by caseNameSerializer(
+        "com.moblin.android.various.settings.SettingsGimbalMotion",
+        entries,
+        { it.rawValue },
+    )
 }
 
+@Serializable(with = SettingsControllerThumbStickFunction.Serializer::class)
 enum class SettingsControllerThumbStickFunction(val rawValue: String) {
     UNUSED("Unused"),
     GIMBAL_PAN_TILT("Gimbal pan and tilt");
@@ -58,8 +104,15 @@ enum class SettingsControllerThumbStickFunction(val rawValue: String) {
         fun fromRawValue(rawValue: String): SettingsControllerThumbStickFunction =
             entries.firstOrNull { it.rawValue == rawValue } ?: UNUSED
     }
+
+    object Serializer : KSerializer<SettingsControllerThumbStickFunction> by rawValueSerializer(
+        "com.moblin.android.various.settings.SettingsControllerThumbStickFunction",
+        { it.rawValue },
+        { rawValue -> entries.firstOrNull { it.rawValue == rawValue } },
+    )
 }
 
+@Serializable(with = SettingsControllerFunction.Serializer::class)
 enum class SettingsControllerFunction(val rawValue: String) {
     UNUSED("Unused"),
     RECORD("Record"),
@@ -198,6 +251,12 @@ enum class SettingsControllerFunction(val rawValue: String) {
         fun fromRawValue(rawValue: String): SettingsControllerFunction =
             entries.firstOrNull { it.rawValue == rawValue } ?: UNUSED
     }
+
+    object Serializer : KSerializer<SettingsControllerFunction> by rawValueSerializer(
+        "com.moblin.android.various.settings.SettingsControllerFunction",
+        { it.rawValue },
+        { rawValue -> entries.firstOrNull { it.rawValue == rawValue } },
+    )
 }
 
 data class SettingsControllerFunctionData(
@@ -209,7 +268,7 @@ data class SettingsControllerFunctionData(
     var streamDeckLayoutId: UUID? = null,
 )
 
-@Serializable(with = SettingsGameControllerButtonSerializer::class)
+@Serializable(with = SettingsGameControllerButton.Serializer::class)
 class SettingsGameControllerButton {
     var id: UUID = UUID.randomUUID()
     var name: String = ""
@@ -224,67 +283,45 @@ class SettingsGameControllerButton {
     fun setFunctionData(value: SettingsControllerFunctionData) {
         functionData.value = value
     }
-}
 
-@Serializable
-data class SettingsGameControllerButtonSurrogate(
-    @SerialName("id") val id: String? = null,
-    @SerialName("name") val name: String? = null,
-    @SerialName("text") val text: String? = null,
-    @SerialName("function") val function: String? = null,
-    @SerialName("sceneId") val sceneId: String? = null,
-    @SerialName("widgetId") val widgetId: String? = null,
-    @SerialName("gimbalPresetId") val gimbalPresetId: String? = null,
-    @SerialName("gimbalMotion") val gimbalMotion: String? = null,
-    @SerialName("macroId") val macroId: String? = null,
-    @SerialName("streamDeckLayoutId") val streamDeckLayoutId: String? = null,
-)
-
-object SettingsGameControllerButtonSerializer : KSerializer<SettingsGameControllerButton> {
-    override val descriptor: SerialDescriptor =
-        SettingsGameControllerButtonSurrogate.serializer().descriptor
-
-    override fun serialize(encoder: Encoder, value: SettingsGameControllerButton) {
-        val functionData = value.functionData.value
-        val surrogate = SettingsGameControllerButtonSurrogate(
-            id = value.id.toString(),
-            name = value.name,
-            text = value.text,
-            function = value.function.value.rawValue,
-            sceneId = functionData.sceneId?.toString(),
-            widgetId = functionData.widgetId?.toString(),
-            gimbalPresetId = functionData.gimbalPresetId?.toString(),
-            gimbalMotion = functionData.gimbalMotion.rawValue,
-            macroId = functionData.macroId?.toString(),
-            streamDeckLayoutId = functionData.streamDeckLayoutId?.toString(),
-        )
-        encoder.encodeSerializableValue(SettingsGameControllerButtonSurrogate.serializer(), surrogate)
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("text", text)
+        encode("function", function)
+        encode("sceneId", functionData.value.sceneId)
+        encode("widgetId", functionData.value.widgetId)
+        encode("gimbalPresetId", functionData.value.gimbalPresetId)
+        encode("gimbalMotion", functionData.value.gimbalMotion)
+        encode("macroId", functionData.value.macroId)
+        encode("streamDeckLayoutId", functionData.value.streamDeckLayoutId)
     }
 
-    override fun deserialize(decoder: Decoder): SettingsGameControllerButton {
-        val surrogate = decoder.decodeSerializableValue(SettingsGameControllerButtonSurrogate.serializer())
-        val button = SettingsGameControllerButton()
-        button.id = surrogate.id?.let { UUID.fromString(it) } ?: UUID.randomUUID()
-        button.name = surrogate.name ?: ""
-        button.text = surrogate.text ?: ""
-        button.setFunction(
-            surrogate.function?.let { SettingsControllerFunction.fromRawValue(it) }
-                ?: SettingsControllerFunction.UNUSED
-        )
-        val functionData = SettingsControllerFunctionData()
-        functionData.sceneId = surrogate.sceneId?.let { UUID.fromString(it) }
-        functionData.widgetId = surrogate.widgetId?.let { UUID.fromString(it) }
-        functionData.gimbalPresetId = surrogate.gimbalPresetId?.let { UUID.fromString(it) }
-        functionData.gimbalMotion = surrogate.gimbalMotion?.let { SettingsGimbalMotion.fromRawValue(it) }
-            ?: SettingsGimbalMotion.KAPOW
-        functionData.macroId = surrogate.macroId?.let { UUID.fromString(it) }
-        functionData.streamDeckLayoutId = surrogate.streamDeckLayoutId?.let { UUID.fromString(it) }
-        button.setFunctionData(functionData)
-        return button
+    companion object {
+        fun decode(container: JsonObject): SettingsGameControllerButton {
+            val button = SettingsGameControllerButton()
+            button.id = container.decode("id", UUID.randomUUID())
+            button.name = container.decode("name", "")
+            button.text = container.decode("text", "")
+            button.function.value = container.decode("function", SettingsControllerFunction.UNUSED)
+            button.functionData.value.sceneId = container.decode<UUID?>("sceneId", null)
+            button.functionData.value.widgetId = container.decode<UUID?>("widgetId", null)
+            button.functionData.value.gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null)
+            button.functionData.value.gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW)
+            button.functionData.value.macroId = container.decode<UUID?>("macroId", null)
+            button.functionData.value.streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null)
+            return button
+        }
     }
+
+    object Serializer : KSerializer<SettingsGameControllerButton> by JsonObjectSerializer(
+        "SettingsGameControllerButton",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable(with = SettingsGameControllerSerializer::class)
+@Serializable(with = SettingsGameController.Serializer::class)
 class SettingsGameController {
     var id: UUID = UUID.randomUUID()
     val buttons = MutableStateFlow<List<SettingsGameControllerButton>>(emptyList())
@@ -403,43 +440,38 @@ class SettingsGameController {
         defaultButtons.add(button)
         buttons.value = defaultButtons
     }
-}
 
-@Serializable
-data class SettingsGameControllerSurrogate(
-    @SerialName("id") val id: String? = null,
-    @SerialName("buttons") val buttons: List<SettingsGameControllerButton>? = null,
-    @SerialName("leftThumbStickFunction") val leftThumbStickFunction: String? = null,
-    @SerialName("rightThumbStickFunction") val rightThumbStickFunction: String? = null,
-)
-
-object SettingsGameControllerSerializer : KSerializer<SettingsGameController> {
-    override val descriptor: SerialDescriptor =
-        SettingsGameControllerSurrogate.serializer().descriptor
-
-    override fun serialize(encoder: Encoder, value: SettingsGameController) {
-        val surrogate = SettingsGameControllerSurrogate(
-            id = value.id.toString(),
-            buttons = value.buttons.value,
-            leftThumbStickFunction = value.leftThumbStickFunction.value.rawValue,
-            rightThumbStickFunction = value.rightThumbStickFunction.value.rawValue,
-        )
-        encoder.encodeSerializableValue(SettingsGameControllerSurrogate.serializer(), surrogate)
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("buttons", buttons)
+        encode("leftThumbStickFunction", leftThumbStickFunction)
+        encode("rightThumbStickFunction", rightThumbStickFunction)
     }
 
-    override fun deserialize(decoder: Decoder): SettingsGameController {
-        val surrogate = decoder.decodeSerializableValue(SettingsGameControllerSurrogate.serializer())
-        val controller = SettingsGameController()
-        controller.id = surrogate.id?.let { UUID.fromString(it) } ?: UUID.randomUUID()
-        controller.setButtons(surrogate.buttons ?: emptyList())
-        controller.setLeftThumbStickFunction(
-            surrogate.leftThumbStickFunction?.let { SettingsControllerThumbStickFunction.fromRawValue(it) }
-                ?: SettingsControllerThumbStickFunction.UNUSED
-        )
-        controller.setRightThumbStickFunction(
-            surrogate.rightThumbStickFunction?.let { SettingsControllerThumbStickFunction.fromRawValue(it) }
-                ?: SettingsControllerThumbStickFunction.UNUSED
-        )
-        return controller
+    companion object {
+        fun decode(container: JsonObject): SettingsGameController {
+            val controller = SettingsGameController()
+            controller.id = container.decode("id", UUID.randomUUID())
+            controller.buttons.value = container.decode(
+                "buttons",
+                ListSerializer(SettingsGameControllerButton.serializer()),
+                emptyList(),
+            )
+            controller.leftThumbStickFunction.value = container.decode(
+                "leftThumbStickFunction",
+                SettingsControllerThumbStickFunction.UNUSED,
+            )
+            controller.rightThumbStickFunction.value = container.decode(
+                "rightThumbStickFunction",
+                SettingsControllerThumbStickFunction.UNUSED,
+            )
+            return controller
+        }
     }
+
+    object Serializer : KSerializer<SettingsGameController> by JsonObjectSerializer(
+        "SettingsGameController",
+        { it.encode() },
+        { decode(it) },
+    )
 }

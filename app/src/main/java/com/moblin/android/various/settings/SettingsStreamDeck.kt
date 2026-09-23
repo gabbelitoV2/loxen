@@ -4,6 +4,9 @@ import androidx.compose.ui.graphics.Color
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.color
 import com.moblin.android.localized
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.various.utils.Named
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,19 +15,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.element
-import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.encoding.decodeStructure
-import kotlinx.serialization.encoding.encodeStructure
+import kotlinx.serialization.json.JsonObject
 
-@Serializable(with = SettingsStreamDeckKeySerializer::class)
+@Serializable(with = SettingsStreamDeckKey.Serializer::class)
 class SettingsStreamDeckKey {
-    val id: UUID
+    var id: UUID
+        private set
     var color: RgbColor
     private val _text: MutableStateFlow<String>
     val text: StateFlow<String>
@@ -34,10 +30,6 @@ class SettingsStreamDeckKey {
     val function: StateFlow<SettingsControllerFunction>
     private val _functionData: MutableStateFlow<SettingsControllerFunctionData>
     val functionData: StateFlow<SettingsControllerFunctionData>
-
-    companion object {
-        val defaultColor: RgbColor = RgbColor.black
-    }
 
     constructor() {
         id = UUID.randomUUID()
@@ -70,77 +62,45 @@ class SettingsStreamDeckKey {
         this._functionData = MutableStateFlow(functionData)
         this.functionData = this._functionData.asStateFlow()
     }
-}
 
-object SettingsStreamDeckKeySerializer : KSerializer<SettingsStreamDeckKey> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("SettingsStreamDeckKey") {
-        element<String>("id")
-        element<String>("text")
-        element<RgbColor>("color")
-        element<String>("function")
-        element<String?>("sceneId")
-        element<String?>("widgetId")
-        element<String?>("gimbalPresetId")
-        element<String>("gimbalMotion")
-        element<String?>("macroId")
-        element<String?>("streamDeckLayoutId")
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("text", text.value)
+        encode("color", color)
+        encode("function", function.value)
+        encode("sceneId", functionData.value.sceneId)
+        encode("widgetId", functionData.value.widgetId)
+        encode("gimbalPresetId", functionData.value.gimbalPresetId)
+        encode("gimbalMotion", functionData.value.gimbalMotion)
+        encode("macroId", functionData.value.macroId)
+        encode("streamDeckLayoutId", functionData.value.streamDeckLayoutId)
     }
 
-    override fun serialize(encoder: Encoder, value: SettingsStreamDeckKey) {
-        val data = value.functionData.value
-        encoder.encodeStructure(descriptor) {
-            encodeStringElement(descriptor, 0, value.id.toString())
-            encodeStringElement(descriptor, 1, value.text.value)
-            encodeSerializableElement(descriptor, 2, RgbColor.serializer(), value.color)
-            encodeStringElement(descriptor, 3, value.function.value.rawValue)
-            encodeNullableSerializableElement(descriptor, 4, String.serializer(), data.sceneId?.toString())
-            encodeNullableSerializableElement(descriptor, 5, String.serializer(), data.widgetId?.toString())
-            encodeNullableSerializableElement(descriptor, 6, String.serializer(), data.gimbalPresetId?.toString())
-            encodeStringElement(descriptor, 7, data.gimbalMotion.rawValue)
-            encodeNullableSerializableElement(descriptor, 8, String.serializer(), data.macroId?.toString())
-            encodeNullableSerializableElement(descriptor, 9, String.serializer(), data.streamDeckLayoutId?.toString())
+    companion object {
+        val defaultColor: RgbColor = RgbColor.black
+
+        fun decode(container: JsonObject): SettingsStreamDeckKey {
+            val key = SettingsStreamDeckKey()
+            key.id = container.decode("id", UUID.randomUUID())
+            key._text.value = container.decode("text", "")
+            key.color = container.decode("color", RgbColor.white)
+            key._colorColor.value = key.color.color()
+            key._function.value = container.decode("function", SettingsControllerFunction.UNUSED)
+            key._functionData.value.sceneId = container.decode<UUID?>("sceneId", null)
+            key._functionData.value.widgetId = container.decode<UUID?>("widgetId", null)
+            key._functionData.value.gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null)
+            key._functionData.value.gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW)
+            key._functionData.value.macroId = container.decode<UUID?>("macroId", null)
+            key._functionData.value.streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null)
+            return key
         }
     }
 
-    override fun deserialize(decoder: Decoder): SettingsStreamDeckKey {
-        var id: UUID = UUID.randomUUID()
-        var text: String = ""
-        var color: RgbColor = RgbColor.white
-        var function: SettingsControllerFunction = SettingsControllerFunction.UNUSED
-        var sceneId: UUID? = null
-        var widgetId: UUID? = null
-        var gimbalPresetId: UUID? = null
-        var gimbalMotion: SettingsGimbalMotion = SettingsGimbalMotion.KAPOW
-        var macroId: UUID? = null
-        var streamDeckLayoutId: UUID? = null
-        decoder.decodeStructure(descriptor) {
-            while (true) {
-                when (val index = decodeElementIndex(descriptor)) {
-                    CompositeDecoder.DECODE_DONE -> break
-                    0 -> id = UUID.fromString(decodeStringElement(descriptor, 0))
-                    1 -> text = decodeStringElement(descriptor, 1)
-                    2 -> color = decodeSerializableElement(descriptor, 2, RgbColor.serializer())
-                    3 -> function = SettingsControllerFunction.fromRawValue(decodeStringElement(descriptor, 3))
-                    4 -> sceneId = decodeNullableSerializableElement(descriptor, 4, String.serializer())?.let { UUID.fromString(it) }
-                    5 -> widgetId = decodeNullableSerializableElement(descriptor, 5, String.serializer())?.let { UUID.fromString(it) }
-                    6 -> gimbalPresetId = decodeNullableSerializableElement(descriptor, 6, String.serializer())?.let { UUID.fromString(it) }
-                    7 -> gimbalMotion = SettingsGimbalMotion.fromRawValue(decodeStringElement(descriptor, 7))
-                    8 -> macroId = decodeNullableSerializableElement(descriptor, 8, String.serializer())?.let { UUID.fromString(it) }
-                    9 -> streamDeckLayoutId = decodeNullableSerializableElement(descriptor, 9, String.serializer())?.let { UUID.fromString(it) }
-                    else -> {}
-                }
-            }
-        }
-        val functionData = SettingsControllerFunctionData().apply {
-            this.sceneId = sceneId
-            this.widgetId = widgetId
-            this.gimbalPresetId = gimbalPresetId
-            this.gimbalMotion = gimbalMotion
-            this.macroId = macroId
-            this.streamDeckLayoutId = streamDeckLayoutId
-        }
-        return SettingsStreamDeckKey(id, text, color, function, functionData)
-    }
+    object Serializer : KSerializer<SettingsStreamDeckKey> by JsonObjectSerializer(
+        "SettingsStreamDeckKey",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
 @Serializable
@@ -163,18 +123,15 @@ enum class SettingsStreamDeckModel(val rawValue: String) {
     }
 }
 
-@Serializable(with = SettingsStreamDeckLayoutSerializer::class)
+@Serializable(with = SettingsStreamDeckLayout.Serializer::class)
 class SettingsStreamDeckLayout : Named {
-    val id: UUID
+    var id: UUID
+        private set
     override var name: String
     private val _model: MutableStateFlow<SettingsStreamDeckModel>
     val model: StateFlow<SettingsStreamDeckModel>
     private val _keys: MutableStateFlow<List<SettingsStreamDeckKey>>
     val keys: StateFlow<List<SettingsStreamDeckKey>>
-
-    companion object {
-        const val baseName: String = "My layout"
-    }
 
     constructor() {
         id = UUID.randomUUID()
@@ -203,56 +160,40 @@ class SettingsStreamDeckLayout : Named {
         this._keys = MutableStateFlow(initialKeys)
         this.keys = this._keys.asStateFlow()
     }
-}
 
-object SettingsStreamDeckLayoutSerializer : KSerializer<SettingsStreamDeckLayout> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("SettingsStreamDeckLayout") {
-        element<String>("id")
-        element<String>("name")
-        element<SettingsStreamDeckModel>("model")
-        element<List<SettingsStreamDeckKey>>("keys")
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("model", model.value)
+        encode("keys", keys.value)
     }
 
-    override fun serialize(encoder: Encoder, value: SettingsStreamDeckLayout) {
-        encoder.encodeStructure(descriptor) {
-            encodeStringElement(descriptor, 0, value.id.toString())
-            encodeStringElement(descriptor, 1, value.name)
-            encodeSerializableElement(descriptor, 2, SettingsStreamDeckModel.serializer(), value.model.value)
-            encodeSerializableElement(
-                descriptor,
-                3,
-                ListSerializer(SettingsStreamDeckKeySerializer),
-                value.keys.value,
-            )
-        }
-    }
+    companion object {
+        const val baseName: String = "My layout"
 
-    override fun deserialize(decoder: Decoder): SettingsStreamDeckLayout {
-        var id: UUID = UUID.randomUUID()
-        var name: String = SettingsStreamDeckLayout.baseName
-        var model: SettingsStreamDeckModel = SettingsStreamDeckModel.classic
-        var keys: List<SettingsStreamDeckKey> = emptyList()
-        decoder.decodeStructure(descriptor) {
-            while (true) {
-                when (val index = decodeElementIndex(descriptor)) {
-                    CompositeDecoder.DECODE_DONE -> break
-                    0 -> id = UUID.fromString(decodeStringElement(descriptor, 0))
-                    1 -> name = decodeStringElement(descriptor, 1)
-                    2 -> model = decodeSerializableElement(descriptor, 2, SettingsStreamDeckModel.serializer())
-                    3 -> keys = decodeSerializableElement(
-                        descriptor,
-                        3,
-                        ListSerializer(SettingsStreamDeckKeySerializer),
-                    )
-                    else -> {}
-                }
+        fun decode(container: JsonObject): SettingsStreamDeckLayout {
+            val layout = SettingsStreamDeckLayout()
+            layout.id = container.decode("id", UUID.randomUUID())
+            layout.name = container.decode("name", baseName)
+            layout._model.value = container.decode("model", SettingsStreamDeckModel.classic)
+            val keys = container.decode("keys", ListSerializer(SettingsStreamDeckKey.serializer()), emptyList())
+                .toMutableList()
+            for (i in keys.size until 36) {
+                keys.add(SettingsStreamDeckKey())
             }
+            layout._keys.value = keys
+            return layout
         }
-        return SettingsStreamDeckLayout(id, name, model, keys)
     }
+
+    object Serializer : KSerializer<SettingsStreamDeckLayout> by JsonObjectSerializer(
+        "SettingsStreamDeckLayout",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable(with = SettingsStreamDecksSerializer::class)
+@Serializable(with = SettingsStreamDecks.Serializer::class)
 class SettingsStreamDecks {
     private val _layouts: MutableStateFlow<List<SettingsStreamDeckLayout>>
     val layouts: StateFlow<List<SettingsStreamDeckLayout>>
@@ -276,43 +217,28 @@ class SettingsStreamDecks {
     fun setSelectedId(id: UUID?) {
         _selectedId.value = id
     }
-}
 
-object SettingsStreamDecksSerializer : KSerializer<SettingsStreamDecks> {
-    override val descriptor: SerialDescriptor = buildClassSerialDescriptor("SettingsStreamDecks") {
-        element<List<SettingsStreamDeckLayout>>("layouts")
-        element<String?>("selectedId")
+    fun encode(): JsonObject = encodeContainer {
+        encode("layouts", layouts.value)
+        encode("selectedId", selectedId.value)
     }
 
-    override fun serialize(encoder: Encoder, value: SettingsStreamDecks) {
-        encoder.encodeStructure(descriptor) {
-            encodeSerializableElement(
-                descriptor,
-                0,
-                ListSerializer(SettingsStreamDeckLayoutSerializer),
-                value.layouts.value,
+    companion object {
+        fun decode(container: JsonObject): SettingsStreamDecks {
+            val streamDecks = SettingsStreamDecks()
+            streamDecks._layouts.value = container.decode(
+                "layouts",
+                ListSerializer(SettingsStreamDeckLayout.serializer()),
+                emptyList(),
             )
-            encodeNullableSerializableElement(descriptor, 1, String.serializer(), value.selectedId.value?.toString())
+            streamDecks._selectedId.value = container.decode<UUID?>("selectedId", null)
+            return streamDecks
         }
     }
 
-    override fun deserialize(decoder: Decoder): SettingsStreamDecks {
-        var layouts: List<SettingsStreamDeckLayout> = emptyList()
-        var selectedId: UUID? = null
-        decoder.decodeStructure(descriptor) {
-            while (true) {
-                when (val index = decodeElementIndex(descriptor)) {
-                    CompositeDecoder.DECODE_DONE -> break
-                    0 -> layouts = decodeSerializableElement(
-                        descriptor,
-                        0,
-                        ListSerializer(SettingsStreamDeckLayoutSerializer),
-                    )
-                    1 -> selectedId = decodeNullableSerializableElement(descriptor, 1, String.serializer())?.let { UUID.fromString(it) }
-                    else -> {}
-                }
-            }
-        }
-        return SettingsStreamDecks(layouts, selectedId)
-    }
+    object Serializer : KSerializer<SettingsStreamDecks> by JsonObjectSerializer(
+        "SettingsStreamDecks",
+        { it.encode() },
+        { decode(it) },
+    )
 }

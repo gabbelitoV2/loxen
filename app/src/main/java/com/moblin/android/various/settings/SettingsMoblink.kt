@@ -1,21 +1,15 @@
 package com.moblin.android.various.settings
 
 import com.moblin.android.common.various.isValidWebSocketUrl
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.various.network.DefaultTcpPorts
 import com.moblin.android.various.utils.randomName
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.element
-import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonObject
 
 @Serializable(with = SettingsMoblinkStreamer.Serializer::class)
 class SettingsMoblinkStreamer {
@@ -23,35 +17,25 @@ class SettingsMoblinkStreamer {
 
     val port = MutableStateFlow(DefaultTcpPorts.moblinkStreamer)
 
-    object Serializer : KSerializer<SettingsMoblinkStreamer> {
-        override val descriptor: SerialDescriptor =
-            buildClassSerialDescriptor("SettingsMoblinkStreamer") {
-                element<Boolean>("enabled")
-                element<Int>("port")
-            }
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("port", port)
+    }
 
-        override fun serialize(encoder: Encoder, value: SettingsMoblinkStreamer) {
-            val composite = encoder.beginStructure(descriptor)
-            composite.encodeBooleanElement(descriptor, 0, value.enabled.value)
-            composite.encodeIntElement(descriptor, 1, value.port.value)
-            composite.endStructure(descriptor)
-        }
-
-        override fun deserialize(decoder: Decoder): SettingsMoblinkStreamer {
-            val composite = decoder.beginStructure(descriptor)
-            val result = SettingsMoblinkStreamer()
-            while (true) {
-                when (val index = composite.decodeElementIndex(descriptor)) {
-                    CompositeDecoder.DECODE_DONE -> break
-                    0 -> result.enabled.value = composite.decodeBooleanElement(descriptor, 0)
-                    1 -> result.port.value = composite.decodeIntElement(descriptor, 1)
-                    else -> throw SerializationException("Unexpected index $index")
-                }
-            }
-            composite.endStructure(descriptor)
-            return result
+    companion object {
+        fun decode(container: JsonObject): SettingsMoblinkStreamer {
+            val streamer = SettingsMoblinkStreamer()
+            streamer.enabled.value = container.decode("enabled", false)
+            streamer.port.value = container.decode("port", DefaultTcpPorts.moblinkStreamer.toUShort()).toInt()
+            return streamer
         }
     }
+
+    object Serializer : KSerializer<SettingsMoblinkStreamer> by JsonObjectSerializer(
+        "SettingsMoblinkStreamer",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
 @Serializable(with = SettingsMoblinkRelay.Serializer::class)
@@ -64,54 +48,58 @@ class SettingsMoblinkRelay {
 
     val manual = MutableStateFlow(false)
 
-    object Serializer : KSerializer<SettingsMoblinkRelay> {
-        override val descriptor: SerialDescriptor =
-            buildClassSerialDescriptor("SettingsMoblinkRelay") {
-                element<Boolean>("enabled")
-                element<String>("name")
-                element<String>("url")
-                element<Boolean>("manual")
-            }
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("name", name)
+        encode("url", url)
+        encode("manual", manual)
+    }
 
-        override fun serialize(encoder: Encoder, value: SettingsMoblinkRelay) {
-            val composite = encoder.beginStructure(descriptor)
-            composite.encodeBooleanElement(descriptor, 0, value.enabled.value)
-            composite.encodeStringElement(descriptor, 1, value.name.value)
-            composite.encodeStringElement(descriptor, 2, value.url.value)
-            composite.encodeBooleanElement(descriptor, 3, value.manual.value)
-            composite.endStructure(descriptor)
-        }
-
-        override fun deserialize(decoder: Decoder): SettingsMoblinkRelay {
-            val composite = decoder.beginStructure(descriptor)
-            val result = SettingsMoblinkRelay()
-            while (true) {
-                when (val index = composite.decodeElementIndex(descriptor)) {
-                    CompositeDecoder.DECODE_DONE -> break
-                    0 -> result.enabled.value = composite.decodeBooleanElement(descriptor, 0)
-                    1 -> result.name.value = composite.decodeStringElement(descriptor, 1)
-                    2 -> {
-                        val url = composite.decodeStringElement(descriptor, 2)
-                        result.url.value = if (isValidWebSocketUrl(url) == null) url else ""
-                    }
-                    3 -> result.manual.value = composite.decodeBooleanElement(descriptor, 3)
-                    else -> throw SerializationException("Unexpected index $index")
-                }
-            }
-            composite.endStructure(descriptor)
-            return result
+    companion object {
+        fun decode(container: JsonObject): SettingsMoblinkRelay {
+            val relay = SettingsMoblinkRelay()
+            relay.enabled.value = container.decode("enabled", false)
+            relay.name.value = container.decode("name", randomName())
+            relay.url.value = container.decode("url", "") { isValidWebSocketUrl(it) == null }
+            relay.manual.value = container.decode("manual", false)
+            return relay
         }
     }
+
+    object Serializer : KSerializer<SettingsMoblinkRelay> by JsonObjectSerializer(
+        "SettingsMoblinkRelay",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
+@Serializable(with = SettingsMoblink.Serializer::class)
 class SettingsMoblink {
-    @SerialName("server")
     var streamer: SettingsMoblinkStreamer = SettingsMoblinkStreamer()
 
-    @SerialName("client")
     var relay: SettingsMoblinkRelay = SettingsMoblinkRelay()
 
-    @SerialName("password")
     var password: String = "1234"
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("server", streamer, SettingsMoblinkStreamer.serializer())
+        encode("client", relay, SettingsMoblinkRelay.serializer())
+        encode("password", password)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsMoblink {
+            val moblink = SettingsMoblink()
+            moblink.streamer = container.decode("server", SettingsMoblinkStreamer.serializer(), SettingsMoblinkStreamer())
+            moblink.relay = container.decode("client", SettingsMoblinkRelay.serializer(), SettingsMoblinkRelay())
+            moblink.password = container.decode("password", "1234")
+            return moblink
+        }
+    }
+
+    object Serializer : KSerializer<SettingsMoblink> by JsonObjectSerializer(
+        "SettingsMoblink",
+        { it.encode() },
+        { decode(it) },
+    )
 }

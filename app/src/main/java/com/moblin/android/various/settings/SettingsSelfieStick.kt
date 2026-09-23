@@ -1,17 +1,15 @@
 package com.moblin.android.various.settings
 
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonObject
 
-@Serializable(with = SettingsSelfieStickSerializer::class)
+@Serializable(with = SettingsSelfieStick.Serializer::class)
 class SettingsSelfieStick(
     enabled: Boolean = false,
     function: SettingsControllerFunction = SettingsControllerFunction.SWITCH_SCENE,
@@ -33,61 +31,36 @@ class SettingsSelfieStick(
         macroId,
         streamDeckLayoutId
     }
-}
 
-object SettingsSelfieStickSerializer : KSerializer<SettingsSelfieStick> {
-    private val shapeSerializer: KSerializer<SettingsSelfieStickShape> =
-        SettingsSelfieStickShape.serializer()
-
-    override val descriptor: SerialDescriptor = shapeSerializer.descriptor
-
-    override fun serialize(encoder: Encoder, value: SettingsSelfieStick) {
-        val functionData = value.functionData.value
-        val shape = SettingsSelfieStickShape(
-            enabled = value.enabled.value,
-            function = value.function.value.rawValue,
-            sceneId = functionData.sceneId?.toString(),
-            widgetId = functionData.widgetId?.toString(),
-            gimbalPresetId = functionData.gimbalPresetId?.toString(),
-            gimbalMotion = functionData.gimbalMotion.rawValue,
-            macroId = functionData.macroId?.toString(),
-            streamDeckLayoutId = functionData.streamDeckLayoutId?.toString(),
-        )
-        encoder.encodeSerializableValue(shapeSerializer, shape)
+    fun encode(): JsonObject = encodeContainer {
+        encode("enabled", enabled)
+        encode("function", function)
+        encode("sceneId", functionData.value.sceneId)
+        encode("widgetId", functionData.value.widgetId)
+        encode("gimbalPresetId", functionData.value.gimbalPresetId)
+        encode("gimbalMotion", functionData.value.gimbalMotion)
+        encode("macroId", functionData.value.macroId)
+        encode("streamDeckLayoutId", functionData.value.streamDeckLayoutId)
     }
 
-    override fun deserialize(decoder: Decoder): SettingsSelfieStick {
-        val shape = decoder.decodeSerializableValue(shapeSerializer)
-        val functionData = SettingsControllerFunctionData()
-        functionData.sceneId = shape.sceneId.toUUIDOrNull()
-        functionData.widgetId = shape.widgetId.toUUIDOrNull()
-        functionData.gimbalPresetId = shape.gimbalPresetId.toUUIDOrNull()
-        functionData.gimbalMotion = shape.gimbalMotion
-            ?.let { SettingsGimbalMotion.fromRawValue(it) }
-            ?: SettingsGimbalMotion.KAPOW
-        functionData.macroId = shape.macroId.toUUIDOrNull()
-        functionData.streamDeckLayoutId = shape.streamDeckLayoutId.toUUIDOrNull()
-        return SettingsSelfieStick(
-            enabled = shape.enabled,
-            function = shape.function
-                ?.let { SettingsControllerFunction.fromRawValue(it) }
-                ?: SettingsControllerFunction.SWITCH_SCENE,
-            functionData = functionData,
-        )
+    companion object {
+        fun decode(container: JsonObject): SettingsSelfieStick {
+            val selfieStick = SettingsSelfieStick()
+            selfieStick.enabled.value = container.decode("enabled", false)
+            selfieStick.function.value = container.decode("function", SettingsControllerFunction.SWITCH_SCENE)
+            selfieStick.functionData.value.sceneId = container.decode<UUID?>("sceneId", null)
+            selfieStick.functionData.value.widgetId = container.decode<UUID?>("widgetId", null)
+            selfieStick.functionData.value.gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null)
+            selfieStick.functionData.value.gimbalMotion = container.decode("gimbalMotion", SettingsGimbalMotion.KAPOW)
+            selfieStick.functionData.value.macroId = container.decode<UUID?>("macroId", null)
+            selfieStick.functionData.value.streamDeckLayoutId = container.decode<UUID?>("streamDeckLayoutId", null)
+            return selfieStick
+        }
     }
+
+    object Serializer : KSerializer<SettingsSelfieStick> by JsonObjectSerializer(
+        "SettingsSelfieStick",
+        { it.encode() },
+        { decode(it) },
+    )
 }
-
-@Serializable
-private data class SettingsSelfieStickShape(
-    @SerialName("enabled") val enabled: Boolean = false,
-    @SerialName("function") val function: String? = null,
-    @SerialName("sceneId") val sceneId: String? = null,
-    @SerialName("widgetId") val widgetId: String? = null,
-    @SerialName("gimbalPresetId") val gimbalPresetId: String? = null,
-    @SerialName("gimbalMotion") val gimbalMotion: String? = null,
-    @SerialName("macroId") val macroId: String? = null,
-    @SerialName("streamDeckLayoutId") val streamDeckLayoutId: String? = null,
-)
-
-private fun String?.toUUIDOrNull(): UUID? =
-    this?.let { runCatching { UUID.fromString(it) }.getOrNull() }

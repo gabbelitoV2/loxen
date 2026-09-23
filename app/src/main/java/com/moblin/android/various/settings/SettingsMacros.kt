@@ -1,6 +1,9 @@
 package com.moblin.android.various.settings
 
 import com.moblin.android.localized
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.utils.Named
 import java.util.UUID
@@ -8,84 +11,48 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.Transient
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.SetSerializer
-import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonObject
 
-private object SettingsMacrosUuidSerializer : KSerializer<UUID> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("java.util.UUID", PrimitiveKind.STRING)
-
-    override fun serialize(encoder: Encoder, value: UUID) {
-        encoder.encodeString(value.toString())
-    }
-
-    override fun deserialize(decoder: Decoder): UUID {
-        return UUID.fromString(decoder.decodeString())
-    }
-}
-
-private class RawValueSerializer<T>(
-    private val serialName: String,
-    private val toRawValue: (T) -> String,
-    private val fromRawValue: (String) -> T?,
-) : KSerializer<T> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+private fun <T> rawValueSerializer(
+    serialName: String,
+    rawValue: (T) -> String,
+    fromRawValue: (String) -> T?,
+): KSerializer<T> = object : KSerializer<T> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: T) {
-        encoder.encodeString(toRawValue(value))
+        encoder.encodeString(rawValue(value))
     }
 
     override fun deserialize(decoder: Decoder): T {
-        val rawValue = decoder.decodeString()
-        return fromRawValue(rawValue)
-            ?: throw SerializationException("Unknown $serialName value: $rawValue")
+        val value = decoder.decodeString()
+        return fromRawValue(value) ?: throw SerializationException("Unknown $serialName raw value '$value'")
     }
 }
 
-private val uuidSetSerializer: KSerializer<Set<UUID>> = SetSerializer(SettingsMacrosUuidSerializer)
-private val settingsReactionSerializer: KSerializer<SettingsReaction> = RawValueSerializer(
-    "SettingsReaction",
-    { it.rawValue },
-    { SettingsReaction.fromRawValue(it) },
-)
-private val settingsMacrosActionFunctionSerializer: KSerializer<SettingsMacrosActionFunction> = RawValueSerializer(
-    "SettingsMacrosActionFunction",
-    { it.rawValue },
-    { SettingsMacrosActionFunction.fromRawValue(it) },
-)
-private val settingsMacrosEventSerializer: KSerializer<SettingsMacrosEvent> = RawValueSerializer(
-    "SettingsMacrosEvent",
-    { it.rawValue },
-    { SettingsMacrosEvent.fromRawValue(it) },
-)
-private val settingsMacrosActionIfComparisonSerializer: KSerializer<SettingsMacrosActionIfComparison> = RawValueSerializer(
-    "SettingsMacrosActionIfComparison",
-    { it.rawValue },
-    { SettingsMacrosActionIfComparison.fromRawValue(it) },
-)
-private val settingsMacrosMacroRepeatModeSerializer: KSerializer<SettingsMacrosMacroRepeatMode> = RawValueSerializer(
-    "SettingsMacrosMacroRepeatMode",
-    { it.rawValue },
-    { SettingsMacrosMacroRepeatMode.fromRawValue(it) },
-)
-private val quickButtonTypeSerializer: KSerializer<SettingsQuickButtonType> = RawValueSerializer(
-    "SettingsQuickButtonType",
-    { it.rawValue },
-    { SettingsQuickButtonType.fromRawValue(it) },
-)
-private val quickButtonTypeSetSerializer: KSerializer<Set<SettingsQuickButtonType>> =
-    SetSerializer(quickButtonTypeSerializer)
+private fun <T> caseNameSerializer(serialName: String, cases: List<T>, caseName: (T) -> String): KSerializer<T> =
+    JsonObjectSerializer(
+        serialName,
+        { value -> JsonObject(mapOf(caseName(value) to JsonObject(emptyMap()))) },
+        { container ->
+            val keys = container.keys.filter { key -> cases.any { caseName(it) == key } }
+            if (keys.size != 1) {
+                throw SerializationException("$serialName expects exactly one case key")
+            }
+            if (container[keys[0]] !is JsonObject) {
+                throw SerializationException("$serialName case value must be an object")
+            }
+            cases.first { caseName(it) == keys[0] }
+        },
+    )
 
+@Serializable(with = SettingsReaction.Serializer::class)
 enum class SettingsReaction(val rawValue: String) {
     FIREWORKS("fireworks"),
     BALLOONS("balloons"),
@@ -116,8 +83,15 @@ enum class SettingsReaction(val rawValue: String) {
             return entries.firstOrNull { it.rawValue == value }
         }
     }
+
+    object Serializer : KSerializer<SettingsReaction> by caseNameSerializer(
+        "com.moblin.android.various.settings.SettingsReaction",
+        entries,
+        { it.rawValue },
+    )
 }
 
+@Serializable(with = SettingsMacrosActionFunction.Serializer::class)
 enum class SettingsMacrosActionFunction(val rawValue: String) {
     SCENE("Scene"),
     ZOOM("Zoom"),
@@ -166,8 +140,15 @@ enum class SettingsMacrosActionFunction(val rawValue: String) {
             return entries.firstOrNull { it.rawValue == value }
         }
     }
+
+    object Serializer : KSerializer<SettingsMacrosActionFunction> by rawValueSerializer(
+        "com.moblin.android.various.settings.SettingsMacrosActionFunction",
+        { it.rawValue },
+        { rawValue -> fromRawValue(rawValue) },
+    )
 }
 
+@Serializable(with = SettingsMacrosEvent.Serializer::class)
 enum class SettingsMacrosEvent(val rawValue: String) {
     TWITCH_FOLLOW("Twitch follow"),
     TWITCH_SUBSCRIPTION("Twitch subscription"),
@@ -260,6 +241,12 @@ enum class SettingsMacrosEvent(val rawValue: String) {
             return entries.firstOrNull { it.rawValue == value }
         }
     }
+
+    object Serializer : KSerializer<SettingsMacrosEvent> by rawValueSerializer(
+        "com.moblin.android.various.settings.SettingsMacrosEvent",
+        { it.rawValue },
+        { rawValue -> fromRawValue(rawValue) },
+    )
 }
 
 enum class MacroVariable(val rawValue: String) {
@@ -310,6 +297,7 @@ data class MacroEvent(
     var variables: MutableMap<MacroVariable, String> = mutableMapOf(),
 )
 
+@Serializable(with = SettingsMacrosActionIfComparison.Serializer::class)
 enum class SettingsMacrosActionIfComparison(val rawValue: String) {
     EQUAL("="),
     NOT_EQUAL("!="),
@@ -367,375 +355,173 @@ enum class SettingsMacrosActionIfComparison(val rawValue: String) {
             return entries.firstOrNull { it.rawValue == value }
         }
     }
+
+    object Serializer : KSerializer<SettingsMacrosActionIfComparison> by rawValueSerializer(
+        "com.moblin.android.various.settings.SettingsMacrosActionIfComparison",
+        { it.rawValue },
+        { rawValue -> fromRawValue(rawValue) },
+    )
 }
 
-object SettingsMacrosActionSerializer : KSerializer<SettingsMacrosAction> {
-    private const val ID = 0
-    private const val FUNCTION = 1
-    private const val SCENE_ID = 2
-    private const val SCENE_IDS = 3
-    private const val AUTO_SCENE_SWITCHER_ID = 4
-    private const val ZOOM_X = 5
-    private const val GIMBAL_PRESET_ID = 6
-    private const val CHAT_MESSAGE = 7
-    private const val DELAY = 8
-    private const val MACRO_ID = 9
-    private const val DJI_DEVICES = 10
-    private const val FILTERS = 11
-    private const val RECORD = 12
-    private const val MUTE = 13
-    private const val TORCH = 14
-    private const val REACTION = 15
-    private const val IF_VALUE = 16
-    private const val IF_COMPARISON = 17
-    private const val IF_OTHER_VALUE = 18
-    private const val IF_RUN_COUNT = 19
-    private const val EVENT = 20
-    private const val EVENT_MINIMUM_AMOUNT = 21
-    private const val EVENT_TEXT = 22
-    private const val EVENT_SCENE_ID = 23
-
-    override val descriptor: SerialDescriptor =
-        buildClassSerialDescriptor("SettingsMacrosAction") {
-            element("id", SettingsMacrosUuidSerializer.descriptor)
-            element("function", settingsMacrosActionFunctionSerializer.nullable.descriptor)
-            element("sceneId", SettingsMacrosUuidSerializer.nullable.descriptor)
-            element("sceneIds", uuidSetSerializer.descriptor)
-            element("autoSceneSwitcherId", SettingsMacrosUuidSerializer.nullable.descriptor)
-            element("zoomX", PrimitiveSerialDescriptor("Float", PrimitiveKind.FLOAT))
-            element("gimbalPresetId", SettingsMacrosUuidSerializer.nullable.descriptor)
-            element("chatMessage", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
-            element("delay", PrimitiveSerialDescriptor("Double", PrimitiveKind.DOUBLE))
-            element("macroId", SettingsMacrosUuidSerializer.nullable.descriptor)
-            element("djiDevices", uuidSetSerializer.descriptor)
-            element("filters", quickButtonTypeSetSerializer.descriptor)
-            element("record", PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN))
-            element("mute", PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN))
-            element("torch", PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN))
-            element("reaction", settingsReactionSerializer.descriptor)
-            element("ifValue", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
-            element("ifComparison", settingsMacrosActionIfComparisonSerializer.descriptor)
-            element("ifOtherValue", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
-            element("ifRunCount", PrimitiveSerialDescriptor("Int", PrimitiveKind.INT))
-            element("event", settingsMacrosEventSerializer.descriptor)
-            element("eventMinimumAmount", PrimitiveSerialDescriptor("Int", PrimitiveKind.INT))
-            element("eventText", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
-            element("eventSceneId", SettingsMacrosUuidSerializer.nullable.descriptor)
-        }
-
-    override fun serialize(encoder: Encoder, value: SettingsMacrosAction) {
-        val composite = encoder.beginStructure(descriptor)
-        composite.encodeSerializableElement(descriptor, ID, SettingsMacrosUuidSerializer, value.id)
-        composite.encodeSerializableElement(
-            descriptor,
-            FUNCTION,
-            settingsMacrosActionFunctionSerializer.nullable,
-            value.function,
-        )
-        composite.encodeSerializableElement(descriptor, SCENE_ID, SettingsMacrosUuidSerializer.nullable, value.sceneId)
-        composite.encodeSerializableElement(descriptor, SCENE_IDS, uuidSetSerializer, value.sceneIds)
-        composite.encodeSerializableElement(
-            descriptor,
-            AUTO_SCENE_SWITCHER_ID,
-            SettingsMacrosUuidSerializer.nullable,
-            value.autoSceneSwitcherId,
-        )
-        composite.encodeFloatElement(descriptor, ZOOM_X, value.zoomX)
-        composite.encodeSerializableElement(
-            descriptor,
-            GIMBAL_PRESET_ID,
-            SettingsMacrosUuidSerializer.nullable,
-            value.gimbalPresetId,
-        )
-        composite.encodeStringElement(descriptor, CHAT_MESSAGE, value.chatMessage)
-        composite.encodeDoubleElement(descriptor, DELAY, value.delay)
-        composite.encodeSerializableElement(descriptor, MACRO_ID, SettingsMacrosUuidSerializer.nullable, value.macroId)
-        composite.encodeSerializableElement(descriptor, DJI_DEVICES, uuidSetSerializer, value.djiDevices)
-        composite.encodeSerializableElement(
-            descriptor,
-            FILTERS,
-            quickButtonTypeSetSerializer,
-            value.filters,
-        )
-        composite.encodeBooleanElement(descriptor, RECORD, value.record)
-        composite.encodeBooleanElement(descriptor, MUTE, value.mute)
-        composite.encodeBooleanElement(descriptor, TORCH, value.torch)
-        composite.encodeSerializableElement(
-            descriptor,
-            REACTION,
-            settingsReactionSerializer,
-            value.reaction,
-        )
-        composite.encodeStringElement(descriptor, IF_VALUE, value.ifValue)
-        composite.encodeSerializableElement(
-            descriptor,
-            IF_COMPARISON,
-            settingsMacrosActionIfComparisonSerializer,
-            value.ifComparison,
-        )
-        composite.encodeStringElement(descriptor, IF_OTHER_VALUE, value.ifOtherValue)
-        composite.encodeIntElement(descriptor, IF_RUN_COUNT, value.ifRunCount)
-        composite.encodeSerializableElement(descriptor, EVENT, settingsMacrosEventSerializer, value.event)
-        composite.encodeIntElement(descriptor, EVENT_MINIMUM_AMOUNT, value.eventMinimumAmount)
-        composite.encodeStringElement(descriptor, EVENT_TEXT, value.eventText)
-        composite.encodeSerializableElement(
-            descriptor,
-            EVENT_SCENE_ID,
-            SettingsMacrosUuidSerializer.nullable,
-            value.eventSceneId,
-        )
-        composite.endStructure(descriptor)
-    }
-
-    override fun deserialize(decoder: Decoder): SettingsMacrosAction {
-        val composite = decoder.beginStructure(descriptor)
-        val value = SettingsMacrosAction()
-        while (true) {
-            when (val index = composite.decodeElementIndex(descriptor)) {
-                ID -> value.id = composite.decodeSerializableElement(descriptor, ID, SettingsMacrosUuidSerializer)
-                FUNCTION -> value.function = composite.decodeSerializableElement(
-                    descriptor,
-                    FUNCTION,
-                    settingsMacrosActionFunctionSerializer.nullable,
-                    value.function,
-                )
-                SCENE_ID -> value.sceneId = composite.decodeSerializableElement(
-                    descriptor,
-                    SCENE_ID,
-                    SettingsMacrosUuidSerializer.nullable,
-                    value.sceneId,
-                )
-                SCENE_IDS -> value.sceneIds =
-                    composite.decodeSerializableElement(descriptor, SCENE_IDS, uuidSetSerializer)
-                AUTO_SCENE_SWITCHER_ID -> value.autoSceneSwitcherId = composite.decodeSerializableElement(
-                    descriptor,
-                    AUTO_SCENE_SWITCHER_ID,
-                    SettingsMacrosUuidSerializer.nullable,
-                    value.autoSceneSwitcherId,
-                )
-                ZOOM_X -> value.zoomX = composite.decodeFloatElement(descriptor, ZOOM_X)
-                GIMBAL_PRESET_ID -> value.gimbalPresetId = composite.decodeSerializableElement(
-                    descriptor,
-                    GIMBAL_PRESET_ID,
-                    SettingsMacrosUuidSerializer.nullable,
-                    value.gimbalPresetId,
-                )
-                CHAT_MESSAGE -> value.chatMessage =
-                    composite.decodeStringElement(descriptor, CHAT_MESSAGE)
-                DELAY -> value.delay = composite.decodeDoubleElement(descriptor, DELAY)
-                MACRO_ID -> value.macroId = composite.decodeSerializableElement(
-                    descriptor,
-                    MACRO_ID,
-                    SettingsMacrosUuidSerializer.nullable,
-                    value.macroId,
-                )
-                DJI_DEVICES -> value.djiDevices =
-                    composite.decodeSerializableElement(descriptor, DJI_DEVICES, uuidSetSerializer)
-                FILTERS -> value.filters = composite.decodeSerializableElement(
-                    descriptor,
-                    FILTERS,
-                    quickButtonTypeSetSerializer,
-                )
-                RECORD -> value.record = composite.decodeBooleanElement(descriptor, RECORD)
-                MUTE -> value.mute = composite.decodeBooleanElement(descriptor, MUTE)
-                TORCH -> value.torch = composite.decodeBooleanElement(descriptor, TORCH)
-                REACTION -> value.reaction = composite.decodeSerializableElement(
-                    descriptor,
-                    REACTION,
-                    settingsReactionSerializer,
-                )
-                IF_VALUE -> value.ifValue = composite.decodeStringElement(descriptor, IF_VALUE)
-                IF_COMPARISON -> value.ifComparison = composite.decodeSerializableElement(
-                    descriptor,
-                    IF_COMPARISON,
-                    settingsMacrosActionIfComparisonSerializer,
-                )
-                IF_OTHER_VALUE -> value.ifOtherValue =
-                    composite.decodeStringElement(descriptor, IF_OTHER_VALUE)
-                IF_RUN_COUNT -> value.ifRunCount = composite.decodeIntElement(descriptor, IF_RUN_COUNT)
-                EVENT -> value.event = composite.decodeSerializableElement(
-                    descriptor,
-                    EVENT,
-                    settingsMacrosEventSerializer,
-                )
-                EVENT_MINIMUM_AMOUNT -> value.eventMinimumAmount =
-                    composite.decodeIntElement(descriptor, EVENT_MINIMUM_AMOUNT)
-                EVENT_TEXT -> value.eventText =
-                    composite.decodeStringElement(descriptor, EVENT_TEXT)
-                EVENT_SCENE_ID -> value.eventSceneId = composite.decodeSerializableElement(
-                    descriptor,
-                    EVENT_SCENE_ID,
-                    SettingsMacrosUuidSerializer.nullable,
-                    value.eventSceneId,
-                )
-                CompositeDecoder.DECODE_DONE -> break
-                else -> throw SerializationException("Unexpected index $index")
-            }
-        }
-        composite.endStructure(descriptor)
-        return value
-    }
-}
-
-@Serializable(with = SettingsMacrosActionSerializer::class)
+@Serializable(with = SettingsMacrosAction.Serializer::class)
 class SettingsMacrosAction {
     var id: UUID = UUID.randomUUID()
 
-    @Transient private val _function = MutableStateFlow<SettingsMacrosActionFunction?>(null)
+    private val _function = MutableStateFlow<SettingsMacrosActionFunction?>(null)
     var function: SettingsMacrosActionFunction?
         get() = _function.value
         set(value) {
             _function.value = value
         }
 
-    @Transient private val _sceneId = MutableStateFlow<UUID?>(null)
+    private val _sceneId = MutableStateFlow<UUID?>(null)
     var sceneId: UUID?
         get() = _sceneId.value
         set(value) {
             _sceneId.value = value
         }
 
-    @Transient private val _sceneIds = MutableStateFlow<Set<UUID>>(emptySet())
+    private val _sceneIds = MutableStateFlow<Set<UUID>>(emptySet())
     var sceneIds: Set<UUID>
         get() = _sceneIds.value
         set(value) {
             _sceneIds.value = value
         }
 
-    @Transient private val _autoSceneSwitcherId = MutableStateFlow<UUID?>(null)
+    private val _autoSceneSwitcherId = MutableStateFlow<UUID?>(null)
     var autoSceneSwitcherId: UUID?
         get() = _autoSceneSwitcherId.value
         set(value) {
             _autoSceneSwitcherId.value = value
         }
 
-    @Transient private val _zoomX = MutableStateFlow(1f)
+    private val _zoomX = MutableStateFlow(1f)
     var zoomX: Float
         get() = _zoomX.value
         set(value) {
             _zoomX.value = value
         }
 
-    @Transient private val _gimbalPresetId = MutableStateFlow<UUID?>(null)
+    private val _gimbalPresetId = MutableStateFlow<UUID?>(null)
     var gimbalPresetId: UUID?
         get() = _gimbalPresetId.value
         set(value) {
             _gimbalPresetId.value = value
         }
 
-    @Transient private val _chatMessage = MutableStateFlow("")
+    private val _chatMessage = MutableStateFlow("")
     var chatMessage: String
         get() = _chatMessage.value
         set(value) {
             _chatMessage.value = value
         }
 
-    @Transient private val _delay = MutableStateFlow(3.0)
+    private val _delay = MutableStateFlow(3.0)
     var delay: Double
         get() = _delay.value
         set(value) {
             _delay.value = value
         }
 
-    @Transient private val _macroId = MutableStateFlow<UUID?>(null)
+    private val _macroId = MutableStateFlow<UUID?>(null)
     var macroId: UUID?
         get() = _macroId.value
         set(value) {
             _macroId.value = value
         }
 
-    @Transient private val _djiDevices = MutableStateFlow<Set<UUID>>(emptySet())
+    private val _djiDevices = MutableStateFlow<Set<UUID>>(emptySet())
     var djiDevices: Set<UUID>
         get() = _djiDevices.value
         set(value) {
             _djiDevices.value = value
         }
 
-    @Transient private val _filters = MutableStateFlow<Set<SettingsQuickButtonType>>(emptySet())
+    private val _filters = MutableStateFlow<Set<SettingsQuickButtonType>>(emptySet())
     var filters: Set<SettingsQuickButtonType>
         get() = _filters.value
         set(value) {
             _filters.value = value
         }
 
-    @Transient private val _record = MutableStateFlow(true)
+    private val _record = MutableStateFlow(true)
     var record: Boolean
         get() = _record.value
         set(value) {
             _record.value = value
         }
 
-    @Transient private val _mute = MutableStateFlow(true)
+    private val _mute = MutableStateFlow(true)
     var mute: Boolean
         get() = _mute.value
         set(value) {
             _mute.value = value
         }
 
-    @Transient private val _torch = MutableStateFlow(true)
+    private val _torch = MutableStateFlow(true)
     var torch: Boolean
         get() = _torch.value
         set(value) {
             _torch.value = value
         }
 
-    @Transient private val _reaction = MutableStateFlow(SettingsReaction.FIREWORKS)
+    private val _reaction = MutableStateFlow(SettingsReaction.FIREWORKS)
     var reaction: SettingsReaction
         get() = _reaction.value
         set(value) {
             _reaction.value = value
         }
 
-    @Transient private val _ifValue = MutableStateFlow("")
+    private val _ifValue = MutableStateFlow("")
     var ifValue: String
         get() = _ifValue.value
         set(value) {
             _ifValue.value = value
         }
 
-    @Transient private val _ifComparison = MutableStateFlow(SettingsMacrosActionIfComparison.EQUAL)
+    private val _ifComparison = MutableStateFlow(SettingsMacrosActionIfComparison.EQUAL)
     var ifComparison: SettingsMacrosActionIfComparison
         get() = _ifComparison.value
         set(value) {
             _ifComparison.value = value
         }
 
-    @Transient private val _ifOtherValue = MutableStateFlow("")
+    private val _ifOtherValue = MutableStateFlow("")
     var ifOtherValue: String
         get() = _ifOtherValue.value
         set(value) {
             _ifOtherValue.value = value
         }
 
-    @Transient private val _ifRunCount = MutableStateFlow(1)
+    private val _ifRunCount = MutableStateFlow(1)
     var ifRunCount: Int
         get() = _ifRunCount.value
         set(value) {
             _ifRunCount.value = value
         }
 
-    @Transient private val _event = MutableStateFlow(SettingsMacrosEvent.TWITCH_FOLLOW)
+    private val _event = MutableStateFlow(SettingsMacrosEvent.TWITCH_FOLLOW)
     var event: SettingsMacrosEvent
         get() = _event.value
         set(value) {
             _event.value = value
         }
 
-    @Transient private val _eventMinimumAmount = MutableStateFlow(0)
+    private val _eventMinimumAmount = MutableStateFlow(0)
     var eventMinimumAmount: Int
         get() = _eventMinimumAmount.value
         set(value) {
             _eventMinimumAmount.value = value
         }
 
-    @Transient private val _eventText = MutableStateFlow("")
+    private val _eventText = MutableStateFlow("")
     var eventText: String
         get() = _eventText.value
         set(value) {
             _eventText.value = value
         }
 
-    @Transient private val _eventSceneId = MutableStateFlow<UUID?>(null)
+    private val _eventSceneId = MutableStateFlow<UUID?>(null)
     var eventSceneId: UUID?
         get() = _eventSceneId.value
         set(value) {
@@ -757,8 +543,73 @@ class SettingsMacrosAction {
         val text = eventText.trim()
         return text.isEmpty() || event.text.trim().equals(text, ignoreCase = true)
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("function", function)
+        encode("sceneId", sceneId)
+        encode("sceneIds", sceneIds)
+        encode("autoSceneSwitcherId", autoSceneSwitcherId)
+        encode("zoomX", zoomX)
+        encode("gimbalPresetId", gimbalPresetId)
+        encode("chatMessage", chatMessage)
+        encode("delay", delay)
+        encode("macroId", macroId)
+        encode("djiDevices", djiDevices)
+        encode("filters", filters)
+        encode("record", record)
+        encode("mute", mute)
+        encode("torch", torch)
+        encode("reaction", reaction)
+        encode("ifValue", ifValue)
+        encode("ifComparison", ifComparison)
+        encode("ifOtherValue", ifOtherValue)
+        encode("ifRunCount", ifRunCount)
+        encode("event", event)
+        encode("eventMinimumAmount", eventMinimumAmount)
+        encode("eventText", eventText)
+        encode("eventSceneId", eventSceneId)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsMacrosAction {
+            val action = SettingsMacrosAction()
+            action.id = container.decode("id", UUID.randomUUID())
+            action.function = container.decode<SettingsMacrosActionFunction?>("function", null)
+            action.sceneId = container.decode<UUID?>("sceneId", null)
+            action.sceneIds = container.decode("sceneIds", emptySet<UUID>())
+            action.autoSceneSwitcherId = container.decode<UUID?>("autoSceneSwitcherId", null)
+            action.zoomX = container.decode("zoomX", 1f)
+            action.gimbalPresetId = container.decode<UUID?>("gimbalPresetId", null)
+            action.chatMessage = container.decode("chatMessage", "")
+            action.delay = container.decode("delay", 3.0)
+            action.macroId = container.decode<UUID?>("macroId", null)
+            action.djiDevices = container.decode("djiDevices", emptySet<UUID>())
+            action.filters = container.decode("filters", emptySet<SettingsQuickButtonType>())
+            action.record = container.decode("record", true)
+            action.mute = container.decode("mute", true)
+            action.torch = container.decode("torch", true)
+            action.reaction = container.decode("reaction", SettingsReaction.FIREWORKS)
+            action.ifValue = container.decode("ifValue", "")
+            action.ifComparison = container.decode("ifComparison", SettingsMacrosActionIfComparison.EQUAL)
+            action.ifOtherValue = container.decode("ifOtherValue", "")
+            action.ifRunCount = container.decode("ifRunCount", 1)
+            action.event = container.decode("event", SettingsMacrosEvent.TWITCH_FOLLOW)
+            action.eventMinimumAmount = container.decode("eventMinimumAmount", 0)
+            action.eventText = container.decode("eventText", "")
+            action.eventSceneId = container.decode<UUID?>("eventSceneId", null)
+            return action
+        }
+    }
+
+    object Serializer : KSerializer<SettingsMacrosAction> by JsonObjectSerializer(
+        "SettingsMacrosAction",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
+@Serializable(with = SettingsMacrosMacroRepeatMode.Serializer::class)
 enum class SettingsMacrosMacroRepeatMode(val rawValue: String) {
     OFF("off"),
     COUNT("count"),
@@ -777,136 +628,68 @@ enum class SettingsMacrosMacroRepeatMode(val rawValue: String) {
             return entries.firstOrNull { it.rawValue == value }
         }
     }
+
+    object Serializer : KSerializer<SettingsMacrosMacroRepeatMode> by rawValueSerializer(
+        "com.moblin.android.various.settings.SettingsMacrosMacroRepeatMode",
+        { it.rawValue },
+        { rawValue -> fromRawValue(rawValue) },
+    )
 }
 
-object SettingsMacrosMacroSerializer : KSerializer<SettingsMacrosMacro> {
-    private const val ID = 0
-    private const val NAME = 1
-    private const val ACTIONS = 2
-    private const val REPEAT_MODE = 3
-    private const val REPEAT_COUNT = 4
-    private const val CLOSE_PANEL_ON_RUN = 5
-    private const val RUN_AT_APP_START = 6
-
-    override val descriptor: SerialDescriptor =
-        buildClassSerialDescriptor("SettingsMacrosMacro") {
-            element("id", SettingsMacrosUuidSerializer.descriptor)
-            element("name", PrimitiveSerialDescriptor("String", PrimitiveKind.STRING))
-            element("actions", ListSerializer(SettingsMacrosActionSerializer).descriptor)
-            element("repeatMode", settingsMacrosMacroRepeatModeSerializer.descriptor)
-            element("repeatCount", PrimitiveSerialDescriptor("Int", PrimitiveKind.INT))
-            element("closePanelOnRun", PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN))
-            element("runAtAppStart", PrimitiveSerialDescriptor("Boolean", PrimitiveKind.BOOLEAN))
-        }
-
-    override fun serialize(encoder: Encoder, value: SettingsMacrosMacro) {
-        val composite = encoder.beginStructure(descriptor)
-        composite.encodeSerializableElement(descriptor, ID, SettingsMacrosUuidSerializer, value.id)
-        composite.encodeStringElement(descriptor, NAME, value.name)
-        composite.encodeSerializableElement(
-            descriptor,
-            ACTIONS,
-            ListSerializer(SettingsMacrosActionSerializer),
-            value.actions,
-        )
-        composite.encodeSerializableElement(
-            descriptor,
-            REPEAT_MODE,
-            settingsMacrosMacroRepeatModeSerializer,
-            value.repeatMode,
-        )
-        composite.encodeIntElement(descriptor, REPEAT_COUNT, value.repeatCount)
-        composite.encodeBooleanElement(descriptor, CLOSE_PANEL_ON_RUN, value.closePanelOnRun)
-        composite.encodeBooleanElement(descriptor, RUN_AT_APP_START, value.runAtAppStart)
-        composite.endStructure(descriptor)
-    }
-
-    override fun deserialize(decoder: Decoder): SettingsMacrosMacro {
-        val composite = decoder.beginStructure(descriptor)
-        val value = SettingsMacrosMacro()
-        while (true) {
-            when (val index = composite.decodeElementIndex(descriptor)) {
-                ID -> value.id = composite.decodeSerializableElement(descriptor, ID, SettingsMacrosUuidSerializer)
-                NAME -> value.name = composite.decodeStringElement(descriptor, NAME)
-                ACTIONS -> value.actions = composite.decodeSerializableElement(
-                    descriptor,
-                    ACTIONS,
-                    ListSerializer(SettingsMacrosActionSerializer),
-                )
-                REPEAT_MODE -> value.repeatMode = composite.decodeSerializableElement(
-                    descriptor,
-                    REPEAT_MODE,
-                    settingsMacrosMacroRepeatModeSerializer,
-                )
-                REPEAT_COUNT -> value.repeatCount =
-                    composite.decodeIntElement(descriptor, REPEAT_COUNT)
-                CLOSE_PANEL_ON_RUN -> value.closePanelOnRun =
-                    composite.decodeBooleanElement(descriptor, CLOSE_PANEL_ON_RUN)
-                RUN_AT_APP_START -> value.runAtAppStart =
-                    composite.decodeBooleanElement(descriptor, RUN_AT_APP_START)
-                CompositeDecoder.DECODE_DONE -> break
-                else -> throw SerializationException("Unexpected index $index")
-            }
-        }
-        composite.endStructure(descriptor)
-        return value
-    }
-}
-
-@Serializable(with = SettingsMacrosMacroSerializer::class)
+@Serializable(with = SettingsMacrosMacro.Serializer::class)
 class SettingsMacrosMacro : Named {
     var id: UUID = UUID.randomUUID()
 
-    @Transient private val _name = MutableStateFlow(baseName)
+    private val _name = MutableStateFlow(baseName)
     override var name: String
         get() = _name.value
         set(value) {
             _name.value = value
         }
 
-    @Transient private val _actions = MutableStateFlow<List<SettingsMacrosAction>>(emptyList())
+    private val _actions = MutableStateFlow<List<SettingsMacrosAction>>(emptyList())
     var actions: List<SettingsMacrosAction>
         get() = _actions.value
         set(value) {
             _actions.value = value
         }
 
-    @Transient private val _running = MutableStateFlow(false)
+    private val _running = MutableStateFlow(false)
     var running: Boolean
         get() = _running.value
         set(value) {
             _running.value = value
         }
 
-    @Transient private val _finished = MutableStateFlow(false)
+    private val _finished = MutableStateFlow(false)
     var finished: Boolean
         get() = _finished.value
         set(value) {
             _finished.value = value
         }
 
-    @Transient private val _repeatMode = MutableStateFlow(SettingsMacrosMacroRepeatMode.OFF)
+    private val _repeatMode = MutableStateFlow(SettingsMacrosMacroRepeatMode.OFF)
     var repeatMode: SettingsMacrosMacroRepeatMode
         get() = _repeatMode.value
         set(value) {
             _repeatMode.value = value
         }
 
-    @Transient private val _repeatCount = MutableStateFlow(5)
+    private val _repeatCount = MutableStateFlow(5)
     var repeatCount: Int
         get() = _repeatCount.value
         set(value) {
             _repeatCount.value = value
         }
 
-    @Transient private val _closePanelOnRun = MutableStateFlow(false)
+    private val _closePanelOnRun = MutableStateFlow(false)
     var closePanelOnRun: Boolean
         get() = _closePanelOnRun.value
         set(value) {
             _closePanelOnRun.value = value
         }
 
-    @Transient private val _runAtAppStart = MutableStateFlow(false)
+    private val _runAtAppStart = MutableStateFlow(false)
     var runAtAppStart: Boolean
         get() = _runAtAppStart.value
         set(value) {
@@ -933,55 +716,63 @@ class SettingsMacrosMacro : Named {
         return new
     }
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id)
+        encode("name", name)
+        encode("actions", actions)
+        encode("repeatMode", repeatMode)
+        encode("repeatCount", repeatCount)
+        encode("closePanelOnRun", closePanelOnRun)
+        encode("runAtAppStart", runAtAppStart)
+    }
+
     companion object {
         val baseName: String = localized("My macro")
+
+        fun decode(container: JsonObject): SettingsMacrosMacro {
+            val macro = SettingsMacrosMacro()
+            macro.id = container.decode("id", UUID.randomUUID())
+            macro.name = container.decode("name", baseName)
+            macro.actions = container.decode("actions", ListSerializer(SettingsMacrosAction.serializer()), emptyList())
+            macro.repeatMode = container.decode("repeatMode", SettingsMacrosMacroRepeatMode.OFF)
+            macro.repeatCount = container.decode("repeatCount", 5)
+            macro.closePanelOnRun = container.decode("closePanelOnRun", false)
+            macro.runAtAppStart = container.decode("runAtAppStart", false)
+            return macro
+        }
     }
+
+    object Serializer : KSerializer<SettingsMacrosMacro> by JsonObjectSerializer(
+        "SettingsMacrosMacro",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-object SettingsMacrosSerializer : KSerializer<SettingsMacros> {
-    private const val MACROS = 0
-
-    override val descriptor: SerialDescriptor =
-        buildClassSerialDescriptor("SettingsMacros") {
-            element("macros", ListSerializer(SettingsMacrosMacroSerializer).descriptor)
-        }
-
-    override fun serialize(encoder: Encoder, value: SettingsMacros) {
-        val composite = encoder.beginStructure(descriptor)
-        composite.encodeSerializableElement(
-            descriptor,
-            MACROS,
-            ListSerializer(SettingsMacrosMacroSerializer),
-            value.macros,
-        )
-        composite.endStructure(descriptor)
-    }
-
-    override fun deserialize(decoder: Decoder): SettingsMacros {
-        val composite = decoder.beginStructure(descriptor)
-        val value = SettingsMacros()
-        while (true) {
-            when (val index = composite.decodeElementIndex(descriptor)) {
-                MACROS -> value.macros = composite.decodeSerializableElement(
-                    descriptor,
-                    MACROS,
-                    ListSerializer(SettingsMacrosMacroSerializer),
-                )
-                CompositeDecoder.DECODE_DONE -> break
-                else -> throw SerializationException("Unexpected index $index")
-            }
-        }
-        composite.endStructure(descriptor)
-        return value
-    }
-}
-
-@Serializable(with = SettingsMacrosSerializer::class)
+@Serializable(with = SettingsMacros.Serializer::class)
 class SettingsMacros {
-    @Transient private val _macros = MutableStateFlow<List<SettingsMacrosMacro>>(emptyList())
+    private val _macros = MutableStateFlow<List<SettingsMacrosMacro>>(emptyList())
     var macros: List<SettingsMacrosMacro>
         get() = _macros.value
         set(value) {
             _macros.value = value
         }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("macros", macros)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): SettingsMacros {
+            val macros = SettingsMacros()
+            macros.macros = container.decode("macros", ListSerializer(SettingsMacrosMacro.serializer()), emptyList())
+            return macros
+        }
+    }
+
+    object Serializer : KSerializer<SettingsMacros> by JsonObjectSerializer(
+        "SettingsMacros",
+        { it.encode() },
+        { decode(it) },
+    )
 }

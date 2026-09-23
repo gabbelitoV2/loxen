@@ -6,6 +6,7 @@ import android.util.Base64
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.integrations.workoutdevice.WorkoutDeviceRunningMetrics
 import com.moblin.android.localized
+import com.moblin.android.platform.codable.UUIDSerializer
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.ChatHighlightKind
 import com.moblin.android.various.ChatPostSegment
@@ -28,7 +29,6 @@ import com.moblin.android.various.settings.SettingsWidgetMap
 import com.moblin.android.various.settings.SettingsWidgetScene
 import com.moblin.android.various.settings.SettingsWidgetText
 import com.moblin.android.various.settings.SettingsWidgetType
-import com.moblin.android.various.storages.UuidSerializer
 import com.moblin.android.various.utils.clockAsMinutesAndSeconds
 import java.security.MessageDigest
 import java.security.SecureRandom
@@ -1131,7 +1131,7 @@ enum class RemoteControlFilter(val wireName: String) {
 data class RemoteControlRemoteSceneSettings(
     var scenes: List<RemoteControlRemoteSceneSettingsScene>,
     var widgets: List<RemoteControlRemoteSceneSettingsWidget>,
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     var selectedSceneId: UUID? = null,
 ) {
     companion object {
@@ -1152,7 +1152,7 @@ data class RemoteControlRemoteSceneSettings(
 
 @Serializable
 data class RemoteControlRemoteSceneSettingsScene(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     var id: UUID,
     var widgets: List<RemoteControlRemoteSceneSettingsSceneWidget>,
 ) {
@@ -1179,7 +1179,7 @@ data class RemoteControlRemoteSceneSettingsSceneWidgetLayout(
 
 @Serializable
 data class RemoteControlRemoteSceneSettingsSceneWidget(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val layout: RemoteControlRemoteSceneSettingsSceneWidgetLayout,
 ) {
@@ -1205,7 +1205,7 @@ data class RemoteControlRemoteSceneSettingsSceneWidget(
 
 @Serializable
 data class RemoteControlRemoteSceneSettingsWidget(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val enabled: Boolean,
     val type: RemoteControlRemoteSceneSettingsWidgetType,
@@ -1439,7 +1439,7 @@ data class RemoteControlRemoteSceneSettingsWidgetTypeMap(
 
 @Serializable
 data class RemoteControlRemoteSceneSettingsWidgetTypeScene(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     val sceneId: UUID,
 ) {
     constructor(scene: SettingsWidgetScene) : this(
@@ -1771,28 +1771,28 @@ data class RemoteControlStatusTopRight(
 
 @Serializable
 data class RemoteControlSettingsStream(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val name: String,
 )
 
 @Serializable
 data class RemoteControlSettingsScene(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val name: String,
 )
 
 @Serializable
 data class RemoteControlSettingsAutoSceneSwitcher(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val name: String,
 )
 
 @Serializable
 data class RemoteControlSettingsBitratePreset(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val bitrate: UInt,
 )
@@ -1805,7 +1805,7 @@ data class RemoteControlSettingsMic(
 
 @Serializable
 data class RemoteControlSettingsSrtConnectionPriority(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val name: String,
     var priority: Int,
@@ -1820,7 +1820,7 @@ data class RemoteControlSettingsSrt(
 
 @Serializable
 data class RemoteControlSettingsGimbalPreset(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val name: String,
 )
@@ -1837,20 +1837,20 @@ data class RemoteControlSettings(
 
 @Serializable
 data class RemoteControlStateAutoSceneSwitcher(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID? = null,
 )
 
 @Serializable
 data class RemoteControlZoomPreset(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val name: String,
 )
 
 @Serializable
 data class RemoteControlMacro(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     val id: UUID,
     val name: String,
     val running: Boolean,
@@ -1858,15 +1858,15 @@ data class RemoteControlMacro(
 
 @Serializable
 data class RemoteControlAssistantStreamerState(
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     var scene: UUID? = null,
     var autoSceneSwitcher: RemoteControlStateAutoSceneSwitcher? = null,
     var mic: String? = null,
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     var bitrate: UUID? = null,
     var zoom: Float? = null,
     var zoomPresets: List<RemoteControlZoomPreset>? = null,
-    @Serializable(with = UuidSerializer::class)
+    @Serializable(with = UUIDSerializer::class)
     var zoomPreset: UUID? = null,
     var debugLogging: Boolean? = null,
     var streaming: Boolean? = null,

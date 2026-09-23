@@ -1,50 +1,37 @@
 package com.moblin.android.various.storages
 
 import android.util.Log
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.UUIDSerializer
+import com.moblin.android.platform.codable.codableJson
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.various.settings.SettingsReplay
 import com.moblin.android.various.utils.createAndGetDirectory
 import java.io.File
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.json.JsonObject
 
 private const val tag = "ReplaysStorage"
-
-private val json = Json {
-    ignoreUnknownKeys = true
-    encodeDefaults = true
-}
-
-private object ReplaysStorageUuidSerializer : KSerializer<UUID> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("java.util.UUID", PrimitiveKind.STRING)
-
-    override fun serialize(encoder: Encoder, value: UUID) {
-        encoder.encodeString(value.toString())
-    }
-
-    override fun deserialize(decoder: Decoder): UUID {
-        return UUID.fromString(decoder.decodeString())
-    }
-}
 
 private fun getReplaysDirectory(): File {
     return createAndGetDirectory("Replays")
 }
 
-@Serializable
+private fun <T> JsonObject.decodeRequired(key: String, serializer: KSerializer<T>): T {
+    val element = this[key] ?: throw SerializationException("Missing key '$key'")
+    return codableJson.decodeFromJsonElement(serializer, element)
+}
+
+@Serializable(with = ReplaySettings.Serializer::class)
 class ReplaySettings(
-    @Serializable(with = ReplaysStorageUuidSerializer::class) var id: UUID = UUID.randomUUID(),
+    var id: UUID = UUID.randomUUID(),
     var duration: Double = 0.0,
     var start: Double = 20.0,
     var stop: Double = SettingsReplay.stop,
@@ -76,13 +63,33 @@ class ReplaySettings(
     fun stopFromVideoStart(): Double {
         return duration - stopFromEnd()
     }
+
+    fun encode(): JsonObject = encodeContainer {
+        encode("id", id, UUIDSerializer)
+        encode("duration", duration)
+        encode("start", start)
+        encode("stop", stop)
+    }
+
+    companion object {
+        fun decode(container: JsonObject): ReplaySettings {
+            return ReplaySettings(
+                id = container.decodeRequired("id", UUIDSerializer),
+                duration = container.decodeRequired("duration", Double.serializer()),
+                start = container.decodeRequired("start", Double.serializer()),
+                stop = container.decodeRequired("stop", Double.serializer()),
+            )
+        }
+    }
+
+    object Serializer : KSerializer<ReplaySettings> by JsonObjectSerializer(
+        "ReplaySettings",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable
-private class ReplaysDatabaseDto(
-    @SerialName("replays") val replays: List<ReplaySettings> = emptyList(),
-)
-
+@Serializable(with = ReplaysDatabase.Serializer::class)
 class ReplaysDatabase {
     val replays = MutableStateFlow<List<ReplaySettings>>(emptyList())
 
@@ -90,21 +97,31 @@ class ReplaysDatabase {
         replays.value = value
     }
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("replays", replays, ListSerializer(ReplaySettings.serializer()))
+    }
+
     override fun toString(): String {
-        return json.encodeToString(
-            ReplaysDatabaseDto.serializer(),
-            ReplaysDatabaseDto(replays.value),
-        )
+        return codableJson.encodeToString(Serializer, this)
     }
 
     companion object {
-        fun fromString(settings: String): ReplaysDatabase {
-            val dto = json.decodeFromString(ReplaysDatabaseDto.serializer(), settings)
+        fun decode(container: JsonObject): ReplaysDatabase {
             val database = ReplaysDatabase()
-            database.setReplays(dto.replays)
+            database.replays.value = container.decode("replays", ListSerializer(ReplaySettings.serializer()), emptyList())
             return database
         }
+
+        fun fromString(settings: String): ReplaysDatabase {
+            return codableJson.decodeFromString(Serializer, settings)
+        }
     }
+
+    object Serializer : KSerializer<ReplaysDatabase> by JsonObjectSerializer(
+        "ReplaysDatabase",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
 private val storage = SimpleStringStorage("replays")

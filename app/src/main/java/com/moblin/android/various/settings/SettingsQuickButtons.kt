@@ -3,18 +3,21 @@ package com.moblin.android.various.settings
 import androidx.compose.ui.graphics.Color
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.localized
+import com.moblin.android.platform.codable.JsonObjectSerializer
+import com.moblin.android.platform.codable.decode
+import com.moblin.android.platform.codable.encodeContainer
 import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonObject
 
-@Serializable(with = SettingsQuickButtonTypeSerializer::class)
+@Serializable(with = SettingsQuickButtonType.Serializer::class)
 enum class SettingsQuickButtonType(val rawValue: String) {
     unknown("Unknown"),
     torch("Torch"),
@@ -177,71 +180,24 @@ enum class SettingsQuickButtonType(val rawValue: String) {
             )
         }
     }
-}
 
-object SettingsQuickButtonTypeSerializer : KSerializer<SettingsQuickButtonType> {
-    override val descriptor: SerialDescriptor =
-        PrimitiveSerialDescriptor("SettingsQuickButtonType", PrimitiveKind.STRING)
-
-    override fun serialize(encoder: Encoder, value: SettingsQuickButtonType) {
-        encoder.encodeString(value.rawValue)
-    }
-
-    override fun deserialize(decoder: Decoder): SettingsQuickButtonType {
-        return SettingsQuickButtonType.fromRawValue(decoder.decodeString())
-    }
-}
-
-@Serializable
-private class SettingsQuickButtonSurrogate(
-    @SerialName("name") val name: String = "",
-    @SerialName("id") val id: String = UUID.randomUUID().toString(),
-    @SerialName("type") val type: SettingsQuickButtonType = SettingsQuickButtonType.unknown,
-    @SerialName("systemImageNameOn") val systemImageNameOn: String = "",
-    @SerialName("systemImageNameOff") val systemImageNameOff: String = "",
-    @SerialName("isOn") val isOn: Boolean = false,
-    @SerialName("enabled") val enabled: Boolean = true,
-    @SerialName("backgroundColor") val backgroundColor: RgbColor = defaultQuickButtonColor,
-    @SerialName("page") val page: Int = 1,
-)
-
-object SettingsQuickButtonSerializer : KSerializer<SettingsQuickButton> {
-    override val descriptor: SerialDescriptor = SettingsQuickButtonSurrogate.serializer().descriptor
-
-    override fun serialize(encoder: Encoder, value: SettingsQuickButton) {
-        val surrogate = SettingsQuickButtonSurrogate(
-            name = value.name,
-            id = value.id.toString(),
-            type = value.type,
-            systemImageNameOn = value.imageOn,
-            systemImageNameOff = value.imageOff,
-            isOn = value.isOn.value,
-            enabled = value.enabled.value,
-            backgroundColor = value.backgroundColor,
-            page = value.page.value,
+    object Serializer : KSerializer<SettingsQuickButtonType> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(
+            "com.moblin.android.various.settings.SettingsQuickButtonType",
+            PrimitiveKind.STRING,
         )
-        SettingsQuickButtonSurrogate.serializer().serialize(encoder, surrogate)
-    }
 
-    override fun deserialize(decoder: Decoder): SettingsQuickButton {
-        val surrogate = SettingsQuickButtonSurrogate.serializer().deserialize(decoder)
-        val button = SettingsQuickButton(
-            type = surrogate.type,
-            imageOn = surrogate.systemImageNameOn,
-            imageOff = surrogate.systemImageNameOff,
-            isOn = surrogate.isOn,
-            page = surrogate.page,
-        )
-        button.id = runCatching { UUID.fromString(surrogate.id) }.getOrDefault(UUID.randomUUID())
-        button.name = surrogate.name
-        button.enabled.value = surrogate.enabled
-        button.backgroundColor = surrogate.backgroundColor
-        button.color.value = surrogate.backgroundColor.color()
-        return button
+        override fun serialize(encoder: Encoder, value: SettingsQuickButtonType) {
+            encoder.encodeString(value.rawValue)
+        }
+
+        override fun deserialize(decoder: Decoder): SettingsQuickButtonType {
+            return fromRawValue(decoder.decodeString())
+        }
     }
 }
 
-@Serializable(with = SettingsQuickButtonSerializer::class)
+@Serializable(with = SettingsQuickButton.Serializer::class)
 class SettingsQuickButton {
     var id: UUID = UUID.randomUUID()
     var name: String
@@ -268,62 +224,44 @@ class SettingsQuickButton {
         this.isOn.value = isOn
         this.page.value = page
     }
-}
 
-@Serializable
-private class SettingsQuickButtonsSurrogate(
-    @SerialName("twoColumns") val twoColumns: Boolean = true,
-    @SerialName("bigButtons") val bigButtons: Boolean = false,
-    @SerialName("showName") val showName: Boolean = true,
-    @SerialName("enableScroll") val enableScroll: Boolean = true,
-    @SerialName("blackScreenShowChat") val blackScreenShowChat: Boolean = false,
-    @SerialName("blackScreenShowStatus") val blackScreenShowStatus: Boolean = false,
-    @SerialName("backgroundImageCropX") val backgroundImageCropX: Double = 0.0,
-    @SerialName("backgroundImageCropY") val backgroundImageCropY: Double = 0.0,
-    @SerialName("backgroundImageCropWidth") val backgroundImageCropWidth: Double = 1.0,
-    @SerialName("backgroundImageCropHeight") val backgroundImageCropHeight: Double = 1.0,
-    @SerialName("backgroundImageOpacity") val backgroundImageOpacity: Double = 1.0,
-)
-
-object SettingsQuickButtonsSerializer : KSerializer<SettingsQuickButtons> {
-    override val descriptor: SerialDescriptor = SettingsQuickButtonsSurrogate.serializer().descriptor
-
-    override fun serialize(encoder: Encoder, value: SettingsQuickButtons) {
-        val surrogate = SettingsQuickButtonsSurrogate(
-            twoColumns = value.twoColumns.value,
-            bigButtons = value.bigButtons.value,
-            showName = value.showName.value,
-            enableScroll = value.enableScroll.value,
-            blackScreenShowChat = value.stealthModeShowChat.value,
-            blackScreenShowStatus = value.stealthModeShowStatus.value,
-            backgroundImageCropX = value.backgroundImageCropX,
-            backgroundImageCropY = value.backgroundImageCropY,
-            backgroundImageCropWidth = value.backgroundImageCropWidth,
-            backgroundImageCropHeight = value.backgroundImageCropHeight,
-            backgroundImageOpacity = value.backgroundImageOpacity.value,
-        )
-        SettingsQuickButtonsSurrogate.serializer().serialize(encoder, surrogate)
+    fun encode(): JsonObject = encodeContainer {
+        encode("name", name)
+        encode("id", id)
+        encode("type", type)
+        encode("systemImageNameOn", imageOn)
+        encode("systemImageNameOff", imageOff)
+        encode("isOn", isOn)
+        encode("enabled", enabled)
+        encode("backgroundColor", backgroundColor)
+        encode("page", page)
     }
 
-    override fun deserialize(decoder: Decoder): SettingsQuickButtons {
-        val surrogate = SettingsQuickButtonsSurrogate.serializer().deserialize(decoder)
-        val quickButtons = SettingsQuickButtons()
-        quickButtons.twoColumns.value = surrogate.twoColumns
-        quickButtons.bigButtons.value = surrogate.bigButtons
-        quickButtons.showName.value = surrogate.showName
-        quickButtons.enableScroll.value = surrogate.enableScroll
-        quickButtons.stealthModeShowChat.value = surrogate.blackScreenShowChat
-        quickButtons.stealthModeShowStatus.value = surrogate.blackScreenShowStatus
-        quickButtons.backgroundImageCropX = surrogate.backgroundImageCropX
-        quickButtons.backgroundImageCropY = surrogate.backgroundImageCropY
-        quickButtons.backgroundImageCropWidth = surrogate.backgroundImageCropWidth
-        quickButtons.backgroundImageCropHeight = surrogate.backgroundImageCropHeight
-        quickButtons.backgroundImageOpacity.value = surrogate.backgroundImageOpacity
-        return quickButtons
+    companion object {
+        fun decode(container: JsonObject): SettingsQuickButton {
+            val button = SettingsQuickButton(type = SettingsQuickButtonType.unknown, imageOn = "")
+            button.name = container.decode("name", "")
+            button.id = container.decode("id", UUID.randomUUID())
+            button.type = container.decode("type", SettingsQuickButtonType.unknown)
+            button.imageOn = container.decode("systemImageNameOn", "")
+            button.imageOff = container.decode("systemImageNameOff", "")
+            button.isOn.value = container.decode("isOn", false)
+            button.enabled.value = container.decode("enabled", true)
+            button.backgroundColor = container.decode("backgroundColor", defaultQuickButtonColor)
+            button.color.value = button.backgroundColor.color()
+            button.page.value = container.decode("page", 1)
+            return button
+        }
     }
+
+    object Serializer : KSerializer<SettingsQuickButton> by JsonObjectSerializer(
+        "SettingsQuickButton",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
-@Serializable(with = SettingsQuickButtonsSerializer::class)
+@Serializable(with = SettingsQuickButtons.Serializer::class)
 class SettingsQuickButtons {
     val twoColumns = MutableStateFlow(true)
     val bigButtons = MutableStateFlow(false)
@@ -337,7 +275,45 @@ class SettingsQuickButtons {
     var backgroundImageCropHeight: Double = 1.0
     val backgroundImageOpacity = MutableStateFlow(1.0)
 
+    fun encode(): JsonObject = encodeContainer {
+        encode("twoColumns", twoColumns)
+        encode("bigButtons", bigButtons)
+        encode("showName", showName)
+        encode("enableScroll", enableScroll)
+        encode("blackScreenShowChat", stealthModeShowChat)
+        encode("blackScreenShowStatus", stealthModeShowStatus)
+        encode("backgroundImageCropX", backgroundImageCropX)
+        encode("backgroundImageCropY", backgroundImageCropY)
+        encode("backgroundImageCropWidth", backgroundImageCropWidth)
+        encode("backgroundImageCropHeight", backgroundImageCropHeight)
+        encode("backgroundImageOpacity", backgroundImageOpacity)
+    }
+
     constructor()
+
+    companion object {
+        fun decode(container: JsonObject): SettingsQuickButtons {
+            val quickButtons = SettingsQuickButtons()
+            quickButtons.twoColumns.value = container.decode("twoColumns", true)
+            quickButtons.bigButtons.value = container.decode("bigButtons", false)
+            quickButtons.showName.value = container.decode("showName", true)
+            quickButtons.enableScroll.value = container.decode("enableScroll", true)
+            quickButtons.stealthModeShowChat.value = container.decode("blackScreenShowChat", false)
+            quickButtons.stealthModeShowStatus.value = container.decode("blackScreenShowStatus", false)
+            quickButtons.backgroundImageCropX = container.decode("backgroundImageCropX", 0.0)
+            quickButtons.backgroundImageCropY = container.decode("backgroundImageCropY", 0.0)
+            quickButtons.backgroundImageCropWidth = container.decode("backgroundImageCropWidth", 1.0)
+            quickButtons.backgroundImageCropHeight = container.decode("backgroundImageCropHeight", 1.0)
+            quickButtons.backgroundImageOpacity.value = container.decode("backgroundImageOpacity", 1.0)
+            return quickButtons
+        }
+    }
+
+    object Serializer : KSerializer<SettingsQuickButtons> by JsonObjectSerializer(
+        "SettingsQuickButtons",
+        { it.encode() },
+        { decode(it) },
+    )
 }
 
 private fun RgbColor.color(): Color =
