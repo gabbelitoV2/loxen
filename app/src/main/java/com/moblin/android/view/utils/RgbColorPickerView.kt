@@ -67,56 +67,54 @@ fun RgbColorPickerView(
                 .border(1.dp, formPalette().separator, CircleShape),
         )
     }
-    if (showPicker) {
-        Sheet(onDismissRequest = { showPicker = false }) {
-            Column(
+    Sheet(isPresented = showPicker, onDismissRequest = { showPicker = false }) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(color)
-                        .border(1.dp, formPalette().separator, RoundedCornerShape(12.dp)),
-                )
-                Text("Red", color = formPalette().label, style = formBodyStyle)
+                    .height(120.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(color)
+                    .border(1.dp, formPalette().separator, RoundedCornerShape(12.dp)),
+            )
+            Text("Red", color = formPalette().label, style = formBodyStyle)
+            FormSlider(
+                value = color.red * 255f,
+                onValueChange = { value ->
+                    onColorChanged(Color(value / 255f, color.green, color.blue, color.alpha))
+                },
+                valueRange = 0f..255f,
+            )
+            Text("Green", color = formPalette().label, style = formBodyStyle)
+            FormSlider(
+                value = color.green * 255f,
+                onValueChange = { value ->
+                    onColorChanged(Color(color.red, value / 255f, color.blue, color.alpha))
+                },
+                valueRange = 0f..255f,
+            )
+            Text("Blue", color = formPalette().label, style = formBodyStyle)
+            FormSlider(
+                value = color.blue * 255f,
+                onValueChange = { value ->
+                    onColorChanged(Color(color.red, color.green, value / 255f, color.alpha))
+                },
+                valueRange = 0f..255f,
+            )
+            if (opacity) {
+                Text("Opacity", color = formPalette().label, style = formBodyStyle)
                 FormSlider(
-                    value = color.red * 255f,
+                    value = color.alpha * 255f,
                     onValueChange = { value ->
-                        onColorChanged(Color(value / 255f, color.green, color.blue, color.alpha))
+                        onColorChanged(Color(color.red, color.green, color.blue, value / 255f))
                     },
                     valueRange = 0f..255f,
                 )
-                Text("Green", color = formPalette().label, style = formBodyStyle)
-                FormSlider(
-                    value = color.green * 255f,
-                    onValueChange = { value ->
-                        onColorChanged(Color(color.red, value / 255f, color.blue, color.alpha))
-                    },
-                    valueRange = 0f..255f,
-                )
-                Text("Blue", color = formPalette().label, style = formBodyStyle)
-                FormSlider(
-                    value = color.blue * 255f,
-                    onValueChange = { value ->
-                        onColorChanged(Color(color.red, color.green, value / 255f, color.alpha))
-                    },
-                    valueRange = 0f..255f,
-                )
-                if (opacity) {
-                    Text("Opacity", color = formPalette().label, style = formBodyStyle)
-                    FormSlider(
-                        value = color.alpha * 255f,
-                        onValueChange = { value ->
-                            onColorChanged(Color(color.red, color.green, color.blue, value / 255f))
-                        },
-                        valueRange = 0f..255f,
-                    )
-                }
             }
         }
     }

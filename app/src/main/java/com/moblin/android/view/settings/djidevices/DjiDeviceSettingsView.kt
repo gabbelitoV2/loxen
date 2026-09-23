@@ -1,6 +1,5 @@
 package com.moblin.android.view.settings.djidevices
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.Text
@@ -21,6 +20,8 @@ import com.moblin.android.integrations.dji.djidevice.canStartLive
 import com.moblin.android.localized
 import com.moblin.android.media.rtmpserver.rtmpServerApp
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ContextMenu
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
 import com.moblin.android.platform.swiftui.FormRow
@@ -28,6 +29,7 @@ import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.model.StatusTopRight
@@ -43,15 +45,16 @@ import com.moblin.android.various.settings.SettingsRtmpServer
 import com.moblin.android.various.settings.SettingsWiFi
 import com.moblin.android.various.settings.djiDeviceBitrates
 import com.moblin.android.various.settings.djiDeviceFpss
+import com.moblin.android.various.utils.isMac
 import com.moblin.android.view.settings.ingests.rtmpserver.RtmpServerSettingsView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.ContextMenuDeleteButtonView
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.TextItemLocalizedView
-import com.moblin.android.view.utils.contextMenuDeleteButton
 import java.util.UUID
 import com.moblin.android.various.model.setCurrentDjiDevice
 import com.moblin.android.various.model.startDjiDeviceLiveStream
@@ -176,12 +179,22 @@ private fun DjiDeviceWiFiSettingsInnerView(
                 header = "Saved networks",
                 footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a network")) },
             ) {
-                savedWifiNetworks.forEach { network ->
-                    Box(
-                        modifier = Modifier.contextMenuDeleteButton {
-                            database.savedWifiNetworks = database.savedWifiNetworks
-                                .filterNot { it.ssid == network.ssid }
-                                .toMutableList()
+                ForEach(
+                    database.savedWifiNetworks,
+                    id = { it.id },
+                    onDelete = { offsets ->
+                        database.savedWifiNetworks = database.savedWifiNetworks.removing(atOffsets = offsets)
+                    },
+                ) { network ->
+                    ContextMenu(
+                        menu = {
+                            if (isMac()) {
+                                ContextMenuDeleteButtonView {
+                                    database.savedWifiNetworks = database.savedWifiNetworks
+                                        .filterNot { it.ssid == network.ssid }
+                                        .toMutableList()
+                                }
+                            }
                         },
                     ) {
                         FormRow(

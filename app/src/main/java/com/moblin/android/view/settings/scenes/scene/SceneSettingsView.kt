@@ -1,9 +1,8 @@
 package com.moblin.android.view.settings.scenes.scene
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -49,6 +47,7 @@ import com.moblin.android.various.settings.defaultSegmentedPickerSelectedColor
 import com.moblin.android.various.settings.videoStabilizationModes
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.AddButtonView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.IconAndTextView
 import com.moblin.android.view.utils.NameEditView
@@ -90,38 +89,42 @@ private fun MicView(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SceneWidgetView(
     model: Model = LocalModel.current,
     database: Database,
     sceneWidget: SettingsSceneWidget,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
-    onLongClick: () -> Unit,
 ) {
     val widgets = database.widgets
     val widget = widgets.firstOrNull { it.id == sceneWidget.widgetId } ?: return
-    val enabled = widget.enabled
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(
-                onClick = { onNavigate("SceneWidgetSettingsView/${sceneWidget.widgetId}") },
-                onLongClick = onLongClick,
+    val enabled = binding(
+        get = { widget.enabled },
+        set = { value ->
+            widget.enabled = value
+            model.sceneUpdated(attachCamera = model.isCaptureDeviceWidget(widget = widget))
+        },
+    )
+    NavigationLink(
+        destination = {
+            SceneWidgetSettingsView(
+                model = model,
+                database = database,
+                sceneWidget = sceneWidget,
+                widget = widget,
             )
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        },
     ) {
-        DraggableItemPrefixView()
-        IconAndTextView(widget.image(), widget.name)
-        Spacer(Modifier.weight(1f))
-        IosSwitch(
-            checked = enabled,
-            onCheckedChange = { value ->
-                widget.enabled = value
-                model.sceneUpdated(attachCamera = model.isCaptureDeviceWidget(widget = widget))
-            },
-        )
+        Toggle(isOn = enabled.value, onChange = { enabled.value = it }) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                DraggableItemPrefixView()
+                IconAndTextView(widget.image(), widget.name, longDivider = true)
+                Spacer(Modifier.weight(1f))
+            }
+        }
     }
 }
 
@@ -303,23 +306,19 @@ private fun WidgetsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     var presentingAddWidget by remember { mutableStateOf(false) }
-    var pendingDelete by remember { mutableStateOf<SettingsSceneWidget?>(null) }
     val widgets = database.widgets
-    val sceneWidgets = scene.widgets
 
-    fun deleteSceneWidget(offsets: List<Int>) {
+    fun deleteSceneWidget(offsets: IndexSet) {
         var attachCamera = false
         if (scene.id == model.getSelectedScene()?.id) {
             for (offset in offsets) {
-                val widget = model.findWidget(id = sceneWidgets[offset].widgetId)
+                val widget = model.findWidget(id = scene.widgets[offset].widgetId)
                 if (widget != null) {
                     attachCamera = model.isCaptureDeviceWidget(widget = widget)
                 }
             }
         }
-        scene.widgets = sceneWidgets.toMutableList().also { list ->
-            offsets.sortedDescending().forEach { list.removeAt(it) }
-        }
+        scene.widgets = scene.widgets.removing(atOffsets = offsets)
         model.sceneUpdated(attachCamera = attachCamera)
         model.sceneSettingsPanelSceneId.value += 1
     }
@@ -335,14 +334,29 @@ private fun WidgetsView(
             }
         },
     ) {
-        for (sceneWidget in sceneWidgets) {
-            key(sceneWidget.id) {
+        ForEach(
+            scene.widgets,
+            id = { it.id },
+            onDelete = { deleteSceneWidget(it) },
+            onMove = { froms, to ->
+                scene.widgets = scene.widgets.moving(fromOffsets = froms, toOffset = to)
+                model.sceneUpdated()
+                model.sceneSettingsPanelSceneId.value += 1
+            },
+        ) { sceneWidget ->
+            ContextMenuDeleteButton(
+                action = {
+                    val offset = scene.widgets.indexOfFirst { it.id == sceneWidget.id }
+                    if (offset != -1) {
+                        deleteSceneWidget(setOf(offset))
+                    }
+                },
+            ) {
                 SceneWidgetView(
                     model = model,
                     database = database,
                     sceneWidget = sceneWidget,
                     onNavigate = onNavigate,
-                    onLongClick = { pendingDelete = sceneWidget },
                 )
             }
         }
@@ -351,48 +365,29 @@ private fun WidgetsView(
                 presentingAddWidget = true
             }
         }
-        if (presentingAddWidget) {
-            Sheet(onDismissRequest = { presentingAddWidget = false }) {
-                Column(
-                    modifier = Modifier
-                        .padding(5.dp)
-                        .widthIn(min = 220.dp)
-                        .verticalScroll(rememberScrollState()),
-                ) {
-                    for (widget in widgets) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                ) {
-                                    model.appendWidgetToScene(scene = scene, widget = widget)
-                                    presentingAddWidget = false
-                                }
-                                .padding(11.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            IconAndTextView(widget.image(), widget.name)
-                            Spacer(Modifier.weight(1f))
-                        }
-                    }
-                }
-            }
-        }
-        val sceneWidgetToDelete = pendingDelete
-        Alert(
-            title = "Delete widget?",
-            isPresented = sceneWidgetToDelete != null,
-            onDismissRequest = { pendingDelete = null },
-            message = "Remove this widget from the scene?",
-        ) {
-            Button("Cancel", role = ButtonRole.cancel)
-            Button("Delete", role = ButtonRole.destructive) {
-                if (sceneWidgetToDelete != null) {
-                    val offset = sceneWidgets.indexOfFirst { it.id == sceneWidgetToDelete.id }
-                    if (offset != -1) {
-                        deleteSceneWidget(listOf(offset))
+        Sheet(isPresented = presentingAddWidget, onDismissRequest = { presentingAddWidget = false }) {
+            Column(
+                modifier = Modifier
+                    .padding(5.dp)
+                    .widthIn(min = 220.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                for (widget in widgets) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                            ) {
+                                model.appendWidgetToScene(scene = scene, widget = widget)
+                                presentingAddWidget = false
+                            }
+                            .padding(11.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        IconAndTextView(widget.image(), widget.name)
+                        Spacer(Modifier.weight(1f))
                     }
                 }
             }

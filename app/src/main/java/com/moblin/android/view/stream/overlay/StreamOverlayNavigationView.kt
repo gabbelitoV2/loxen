@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -22,21 +23,17 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
@@ -44,6 +41,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.moblin.android.platform.swiftui.LocalTint
+import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
+import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Navigation
 import com.moblin.android.various.model.NavigationTransportType
@@ -95,7 +96,6 @@ private fun ControlSearchView(navigation: Navigation, modifier: Modifier = Modif
     val isSmall by navigation.isSmall.collectAsState()
     val searchText by navigation.searchText.collectAsState()
     val transportType by navigation.transportType.collectAsState()
-    var expanded by remember { mutableStateOf(false) }
 
     if (!isSmall) {
         Row(modifier = modifier) {
@@ -117,42 +117,27 @@ private fun ControlSearchView(navigation: Navigation, modifier: Modifier = Modif
                     navigation.searchResults.value = mutableListOf()
                 }
             }
-            ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = it },
+            Box(
                 modifier = Modifier
-                    .width(35.dp)
-                    .height(12.dp)
-                    .padding(8.dp)
-                    .then(Modifier)
+                    .padding(16.dp)
+                    .size(width = 35.dp, height = 12.dp),
+                contentAlignment = Alignment.Center
             ) {
-                OutlinedTextField(
-                    value = transportType.name,
-                    onValueChange = {},
-                    readOnly = true,
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                    modifier = Modifier.menuAnchor()
-                )
-                ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    NavigationTransportType.entries.forEach { type ->
-                        DropdownMenuItem(
-                            text = { Text(type.name) },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Default.Close,
-                                    contentDescription = null
-                                )
-                            },
-                            onClick = {
-                                navigation.transportType.value = type
-                                expanded = false
-                            }
-                        )
+                Box(modifier = Modifier.wrapContentSize(unbounded = true)) {
+                    CompositionLocalProvider(LocalTint provides formPalette().label) {
+                        Picker(
+                            "",
+                            selection = transportType,
+                            options = NavigationTransportType.entries,
+                            text = { "" },
+                            systemImage = { it.image() },
+                            pickerStyle = PickerStyle.menu
+                        ) {
+                            navigation.transportType.value = it
+                            navigation.updateDirections()
+                        }
                     }
                 }
-            }
-            LaunchedEffect(transportType) {
-                navigation.updateDirections()
             }
         }
     }

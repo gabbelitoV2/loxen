@@ -5,20 +5,24 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.moving
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.removeDjiDevices
 import com.moblin.android.various.settings.SettingsDjiDevice
 import com.moblin.android.various.settings.SettingsDjiDevices
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.catprinters.IntegrationImageView
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.HCenter
@@ -54,8 +58,8 @@ fun DjiDevicesSettingsView(
     djiDevices: SettingsDjiDevices,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    fun deleteDevice(offsets: List<Int>) {
-        djiDevices.devices = djiDevices.devices.filterIndexed { index, _ -> index !in offsets }
+    fun deleteDevice(offsets: IndexSet) {
+        model.removeDjiDevices(offsets = offsets)
     }
 
     Form(title = "DJI devices") {
@@ -69,8 +73,20 @@ fun DjiDevicesSettingsView(
                 SwipeLeftToDeleteHelpView(kind = localized("a device"))
             },
         ) {
-            for (device in djiDevices.devices) {
-                key(device.id) {
+            ForEach(
+                djiDevices.devices,
+                id = { it.id },
+                onDelete = { deleteDevice(it) },
+                onMove = { froms, to ->
+                    djiDevices.devices = djiDevices.devices.moving(fromOffsets = froms, toOffset = to)
+                },
+            ) { device ->
+                ContextMenuDeleteButton(action = {
+                    val offset = djiDevices.devices.indexOfFirst { it.id == device.id }
+                    if (offset != -1) {
+                        deleteDevice(setOf(offset))
+                    }
+                }) {
                     DjiDeviceSettingsWrapperView(
                         model = model,
                         djiDevices = djiDevices,

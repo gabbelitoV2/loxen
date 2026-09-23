@@ -1,32 +1,31 @@
 package com.moblin.android.view.settings.chat
 
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.move
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsChatNickname
 import com.moblin.android.various.settings.SettingsChatNicknames
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
-import kotlinx.coroutines.withTimeoutOrNull
 import com.moblin.android.various.model.previewTextToSpeech
 import com.moblin.android.various.model.reloadChatMessages
 
@@ -35,13 +34,16 @@ private fun NicknameView(
     model: Model = LocalModel.current,
     nickname: SettingsChatNickname,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
-    onDelete: () -> Unit,
 ) {
-    Box(modifier = Modifier.deleteOnLongPress(onDelete)) {
-        NavigationLink(
-            destination = {
-                NicknameViewDestination(model = model, nickname = nickname)
-            },
+    NavigationLink(
+        destination = {
+            NicknameViewDestination(model = model, nickname = nickname)
+        },
+    ) {
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             DraggableItemPrefixView()
             Text(nickname.user)
@@ -124,49 +126,35 @@ fun ChatNicknamesSettingsViewDestination(
     nicknames: SettingsChatNicknames,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    val nicknameList = nicknames.nicknames
     Form(title = "Nicknames") {
         Section(
             footerContent = {
                 SwipeLeftToDeleteHelpView(kind = localized("a nickname"))
             },
         ) {
-            nicknameList.forEach { nickname ->
-                key(nickname.id) {
-                    NicknameView(
-                        model = model,
-                        nickname = nickname,
-                        onDelete = {
-                            val offset = nicknameList.indexOfFirst { it.id == nickname.id }
-                            if (offset >= 0) {
-                                deleteNickname(model, nicknames, listOf(offset))
-                            }
-                        },
-                    )
+            ForEach(
+                nicknames.nicknames,
+                id = { it.id },
+                onDelete = { offsets ->
+                    deleteNickname(model, nicknames, offsets.toList())
+                },
+                onMove = { froms, to ->
+                    nicknames.nicknames.move(fromOffsets = froms, toOffset = to)
+                },
+            ) { nickname ->
+                ContextMenuDeleteButton(
+                    action = {
+                        val offset = nicknames.nicknames.indexOfFirst { it.id == nickname.id }
+                        if (offset >= 0) {
+                            deleteNickname(model, nicknames, listOf(offset))
+                        }
+                    },
+                ) {
+                    NicknameView(model = model, nickname = nickname)
                 }
             }
             CreateButtonView {
                 nicknames.nicknames.add(SettingsChatNickname())
-            }
-        }
-    }
-}
-
-private fun Modifier.deleteOnLongPress(action: () -> Unit): Modifier = pointerInput(action) {
-    val longPressTimeout = viewConfiguration.longPressTimeoutMillis
-    awaitEachGesture {
-        awaitFirstDown(requireUnconsumed = false)
-        val up = withTimeoutOrNull(longPressTimeout) {
-            waitForUpOrCancellation()
-        }
-        if (up == null) {
-            action()
-            while (true) {
-                val event = awaitPointerEvent(PointerEventPass.Initial)
-                event.changes.forEach { it.consume() }
-                if (event.changes.none { it.pressed }) {
-                    break
-                }
             }
         }
     }

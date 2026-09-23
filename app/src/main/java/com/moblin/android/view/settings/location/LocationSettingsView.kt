@@ -1,16 +1,12 @@
 package com.moblin.android.view.settings.location
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -18,15 +14,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.IosSwitch
 import com.moblin.android.platform.swiftui.Label
@@ -44,6 +39,7 @@ import com.moblin.android.various.settings.SettingsLocationDesiredAccuracy
 import com.moblin.android.various.settings.SettingsLocationDistanceFilter
 import com.moblin.android.various.settings.SettingsPrivacyRegion
 import com.moblin.android.various.settings.SettingsStream
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
@@ -92,7 +88,6 @@ private fun PrivacyRegionView(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LocationSettingsView(
     model: Model = LocalModel.current,
@@ -222,54 +217,35 @@ fun LocationSettingsView(
                 }
             },
         ) {
-            privacyRegions.forEach { region ->
-                key(region.id) {
-                    var regionMenuExpanded by remember { mutableStateOf(false) }
-                    val latitude = region.latitude
-                    val longitude = region.longitude
-                    val latitudeDelta = region.latitudeDelta
-                    val longitudeDelta = region.longitudeDelta
-                    Box {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .combinedClickable(
-                                    onClick = {},
-                                    onLongClick = { regionMenuExpanded = true },
-                                ),
-                        ) {
-                            PrivacyRegionView(
-                                model = model,
-                                region = region,
-                                current = MKCoordinateRegion(
-                                    center = CLLocationCoordinate2D(
-                                        latitude = latitude,
-                                        longitude = longitude,
-                                    ),
-                                    span = MKCoordinateSpan(
-                                        latitudeDelta = latitudeDelta,
-                                        longitudeDelta = longitudeDelta,
-                                    ),
-                                ),
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = regionMenuExpanded,
-                            onDismissRequest = { regionMenuExpanded = false },
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(localized("Delete")) },
-                                onClick = {
-                                    regionMenuExpanded = false
-                                    val index =
-                                        location.privacyRegions.indexOfFirst { it.id == region.id }
-                                    if (index != -1) {
-                                        deletePrivacyRegion(listOf(index))
-                                    }
-                                },
-                            )
-                        }
+            ForEach(
+                privacyRegions,
+                id = { it.id },
+                onDelete = { deletePrivacyRegion(it.toList()) },
+            ) { region ->
+                val latitude = region.latitude
+                val longitude = region.longitude
+                val latitudeDelta = region.latitudeDelta
+                val longitudeDelta = region.longitudeDelta
+                ContextMenuDeleteButton(action = {
+                    val index = location.privacyRegions.indexOfFirst { it.id == region.id }
+                    if (index != -1) {
+                        deletePrivacyRegion(listOf(index))
                     }
+                }) {
+                    PrivacyRegionView(
+                        model = model,
+                        region = region,
+                        current = MKCoordinateRegion(
+                            center = CLLocationCoordinate2D(
+                                latitude = latitude,
+                                longitude = longitude,
+                            ),
+                            span = MKCoordinateSpan(
+                                latitudeDelta = latitudeDelta,
+                                longitudeDelta = longitudeDelta,
+                            ),
+                        ),
+                    )
                 }
             }
             CreateButtonView {

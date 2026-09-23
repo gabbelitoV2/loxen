@@ -2,10 +2,14 @@ package com.moblin.android.view.utils
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -18,15 +22,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.FullScreenCover
 import com.moblin.android.platform.swiftui.formPalette
 
 @Composable
@@ -51,43 +55,37 @@ fun QrCodeImageView(image: ImageBitmap, height: Double) {
                 Image(
                     bitmap = image,
                     contentDescription = null,
-                    modifier = Modifier.heightIn(max = height.dp),
+                    modifier = Modifier
+                        .heightIn(max = height.dp)
+                        .aspectRatio(image.width.toFloat() / image.height.toFloat()),
                     contentScale = ContentScale.Fit,
                     filterQuality = FilterQuality.None,
                 )
                 Text(
-                    text = "Tap the QR code for full screen",
-                    fontSize = 17.sp,
+                    text = localized("Tap the QR code for full screen"),
                     color = formPalette().label,
                     modifier = Modifier.padding(bottom = 7.dp),
                 )
             }
         }
     }
-    if (isFullScreen) {
-        Dialog(
-            onDismissRequest = {
-                isFullScreen = false
-            },
-            properties = DialogProperties(usePlatformDefaultWidth = false),
-        ) {
+    FullScreenCover(isPresented = isFullScreen, onDismissRequest = { isFullScreen = false }) {
+        val interactionSource = remember { MutableInteractionSource() }
+        val pressed by interactionSource.collectIsPressedAsState()
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.White)
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onTap = {
-                                isFullScreen = false
-                            },
-                        )
-                    },
-                contentAlignment = Alignment.Center,
+                    .alpha(if (pressed) 0.2f else 1f)
+                    .clickable(interactionSource = interactionSource, indication = null) {
+                        isFullScreen = false
+                    }
+                    .background(Color.White),
             ) {
                 HCenter {
                     Image(
                         bitmap = image,
                         contentDescription = null,
+                        modifier = Modifier.aspectRatio(image.width.toFloat() / image.height.toFloat()),
                         contentScale = ContentScale.Fit,
                         filterQuality = FilterQuality.None,
                     )

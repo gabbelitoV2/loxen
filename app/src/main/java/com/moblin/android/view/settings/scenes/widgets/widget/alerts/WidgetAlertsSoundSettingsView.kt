@@ -1,39 +1,30 @@
 package com.moblin.android.view.settings.scenes.widgets.widget.alerts
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
-import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
+import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
-import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.AudioPlayer
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsAlertsMediaGallery
 import com.moblin.android.various.settings.SettingsAlertsMediaGalleryItem
 import com.moblin.android.various.settings.SettingsWidgetAlertsAlert
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
 import com.moblin.android.view.utils.TextEditNavigationView
@@ -94,10 +85,8 @@ fun CustomSoundView(
             }
         }
     }
-    if (showPicker) {
-        Sheet(onDismissRequest = { showPicker = false }) {
-            AlertPickerView(type = "audio")
-        }
+    Sheet(isPresented = showPicker, onDismissRequest = { showPicker = false }) {
+        AlertPickerView(type = "audio")
     }
 }
 
@@ -129,43 +118,32 @@ fun SoundGalleryView(
     onSoundIdChange: (UUID) -> Unit,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    fun deleteSound(sound: SettingsAlertsMediaGalleryItem) {
-        val index = gallery.customSounds.indexOfFirst { it.id == sound.id }
-        if (index == -1) {
-            return
-        }
-        gallery.customSounds = gallery.customSounds.filterNot { it.id == sound.id }
+    fun deleteSound(offsets: IndexSet) {
+        gallery.customSounds = gallery.customSounds.removing(atOffsets = offsets)
         model.fixAlertMedias()
         onSoundIdChange(alert.soundId)
     }
 
     Form(title = "My sounds") {
         Section(footerContent = { SwipeLeftToDeleteHelpView(localized("a sound")) }) {
-            gallery.customSounds.forEach { sound ->
-                key(sound.id) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            SoundGalleryItemView(
-                                model = model,
-                                sound = sound,
-                                onNavigate = onNavigate,
-                            )
+            ForEach(
+                gallery.customSounds,
+                id = { it.id },
+                onDelete = { deleteSound(it) },
+            ) { sound ->
+                ContextMenuDeleteButton(
+                    action = {
+                        val index = gallery.customSounds.indexOfFirst { it.id == sound.id }
+                        if (index >= 0) {
+                            deleteSound(setOf(index))
                         }
-                        SystemImage(
-                            name = "trash",
-                            fontSize = 17.sp,
-                            tint = formPalette().red,
-                            modifier = Modifier
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                ) { deleteSound(sound) }
-                                .padding(horizontal = 16.dp),
-                        )
-                    }
+                    },
+                ) {
+                    SoundGalleryItemView(
+                        model = model,
+                        sound = sound,
+                        onNavigate = onNavigate,
+                    )
                 }
             }
             TextButtonView("Add") {

@@ -8,20 +8,22 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.moblin.android.LocalModel
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.move
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsMediaPlayer
 import com.moblin.android.various.settings.SettingsMediaPlayerFile
 import com.moblin.android.various.settings.SettingsMediaPlayers
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.NameEditView
 import java.io.File
 import com.moblin.android.various.model.updateMediaPlayerSettings
@@ -100,8 +102,21 @@ fun MediaPlayerSettingsView(
                     }
                 }
                 Section(header = "Playlist") {
-                    player.playlist.forEach { file ->
-                        key(file.id) {
+                    ForEach(
+                        player.playlist,
+                        id = { it.id },
+                        onDelete = { deletePlaylistFile(model = model, player = player, offsets = it.toList()) },
+                        onMove = { froms, to ->
+                            player.playlist.move(fromOffsets = froms, toOffset = to)
+                            model.updateMediaPlayerSettings(playerId = player.id, settings = player)
+                        },
+                    ) { file ->
+                        ContextMenuDeleteButton(action = {
+                            val offset = player.playlist.indexOfFirst { it.id == file.id }
+                            if (offset != -1) {
+                                deletePlaylistFile(model = model, player = player, offsets = listOf(offset))
+                            }
+                        }) {
                             MediaPlayerFileSettingsView(player = player, file = file)
                         }
                     }

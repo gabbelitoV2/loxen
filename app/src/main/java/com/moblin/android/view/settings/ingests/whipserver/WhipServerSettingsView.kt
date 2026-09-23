@@ -1,33 +1,22 @@
 package com.moblin.android.view.settings.ingests.whipserver
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.remove
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.InfoBannerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
@@ -42,7 +31,6 @@ import com.moblin.android.various.model.getWhipStream
 import com.moblin.android.various.model.reloadWhipServer
 import com.moblin.android.various.model.updateMicsListAsync
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun WhipServerSettingsView(
     model: Model = LocalModel.current,
@@ -92,62 +80,29 @@ fun WhipServerSettingsView(
                     header = localized("Streams"),
                     footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a stream")) },
                 ) {
-                    whipServer.streams.forEachIndexed { index, stream ->
-                        key(stream.id) {
-                            var menuExpanded by remember { mutableStateOf(false) }
-                            val row: @Composable () -> Unit = {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .combinedClickable(
-                                            onClick = {},
-                                            onLongClick = { menuExpanded = true },
-                                        ),
-                                ) {
-                                    WhipServerStreamSettingsView(
-                                        status = model.statusOther,
-                                        whipServer = whipServer,
-                                        stream = stream,
-                                    )
-                                    DropdownMenu(
-                                        expanded = menuExpanded,
-                                        onDismissRequest = { menuExpanded = false },
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text(localized("Delete")) },
-                                            enabled = !whipServer.enabled,
-                                            onClick = {
-                                                menuExpanded = false
-                                                val offsets =
-                                                    streamIndex(whipServer.streams, stream.id)
-                                                if (offsets != null) {
-                                                    deleteStream(model, whipServer, offsets)
-                                                }
-                                            },
-                                        )
-                                    }
+                    ForEach(
+                        whipServer.streams,
+                        id = { it.id },
+                        onDelete = if (!whipServer.enabled) {
+                            { offsets -> deleteStream(model, whipServer, offsets) }
+                        } else {
+                            null
+                        },
+                    ) { stream ->
+                        ContextMenuDeleteButton(
+                            disabled = whipServer.enabled,
+                            action = {
+                                val offsets = streamIndex(whipServer.streams, stream.id)
+                                if (offsets != null) {
+                                    deleteStream(model, whipServer, setOf(offsets))
                                 }
-                            }
-                            if (!whipServer.enabled) {
-                                val dismissState = rememberSwipeToDismissBoxState(
-                                    confirmValueChange = { value ->
-                                        if (value == SwipeToDismissBoxValue.EndToStart) {
-                                            deleteStream(model, whipServer, index)
-                                            true
-                                        } else {
-                                            false
-                                        }
-                                    },
-                                )
-                                SwipeToDismissBox(
-                                    state = dismissState,
-                                    backgroundContent = {},
-                                ) {
-                                    row()
-                                }
-                            } else {
-                                row()
-                            }
+                            },
+                        ) {
+                            WhipServerStreamSettingsView(
+                                status = model.statusOther,
+                                whipServer = whipServer,
+                                stream = stream,
+                            )
                         }
                     }
                     CreateButtonView {
@@ -200,10 +155,8 @@ private fun submitPort(model: Model, whipServer: SettingsWhipServer, value: Stri
     model.reloadWhipServer()
 }
 
-private fun deleteStream(model: Model, whipServer: SettingsWhipServer, index: Int) {
-    if (index in whipServer.streams.indices) {
-        whipServer.streams.removeAt(index)
-    }
+private fun deleteStream(model: Model, whipServer: SettingsWhipServer, indexes: IndexSet) {
+    whipServer.streams.remove(atOffsets = indexes)
     model.reloadWhipServer()
     model.updateMicsListAsync()
 }

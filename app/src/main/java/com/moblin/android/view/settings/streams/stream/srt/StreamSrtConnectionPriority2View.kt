@@ -1,6 +1,5 @@
 package com.moblin.android.view.settings.streams.stream.srt
 
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,26 +8,28 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.DeleteDisabled
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormSlider
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.updateSrtlaPriorities
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamDetailedProtocol
 import com.moblin.android.various.settings.SettingsStreamSrtConnectionPriority
 import com.moblin.android.various.utils.makeOffsets
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 
 val minimumSrtConnectionPriority = 1
@@ -36,10 +37,6 @@ val maximumSrtConnectionPriority = 10
 
 fun clampConnectionPriority(value: Int): Int {
     return value.coerceIn(minimumSrtConnectionPriority, maximumSrtConnectionPriority)
-}
-
-private fun Model.updateSrtlaPriorities() {
-    Unit
 }
 
 @Composable
@@ -166,24 +163,25 @@ private fun SrtlaConnectionPriorityView(
                 SwipeLeftToDeleteHelpView(kind = localized("a connection"))
             }
         }) {
-            stream.srt.connectionPriorities.priorities.forEach { priority ->
+            ForEach(
+                stream.srt.connectionPriorities.priorities,
+                id = { it.id },
+                onDelete = { offsets ->
+                    deletePriority(model, stream, offsets.toList())
+                },
+            ) { priority ->
                 val deleteDisabled = priority.name == "Cellular" || priority.name == "WiFi"
-                key(priority.id) {
-                    Box(
-                        modifier = Modifier.pointerInput(priority.id, deleteDisabled) {
-                            detectTapGestures(
-                                onLongPress = {
-                                    if (!deleteDisabled) {
-                                        val index = stream.srt.connectionPriorities.priorities
-                                            .indexOfFirst { it.id == priority.id }
-                                        if (index != -1) {
-                                            deletePriority(model, stream, listOf(index))
-                                        }
-                                    }
-                                },
-                            )
-                        },
-                    ) {
+                ContextMenuDeleteButton(
+                    disabled = deleteDisabled,
+                    action = {
+                        val index = stream.srt.connectionPriorities.priorities
+                            .indexOfFirst { it.id == priority.id }
+                        if (index != -1) {
+                            deletePriority(model, stream, listOf(index))
+                        }
+                    },
+                ) {
+                    DeleteDisabled(deleteDisabled) {
                         PriorityItemView(
                             model = model,
                             priority = priority,

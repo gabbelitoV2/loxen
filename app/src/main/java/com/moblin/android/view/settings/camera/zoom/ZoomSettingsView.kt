@@ -1,32 +1,23 @@
 package com.moblin.android.view.settings.camera.zoom
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.common.various.color
 import com.moblin.android.common.various.formatOneDecimal
-import com.moblin.android.common.various.iconWidth
 import com.moblin.android.localized
-import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.swiftui.DeleteDisabled
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.FormSlider
 import com.moblin.android.platform.swiftui.Section
-import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.move
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.backZoomPresetSettingsUpdated
 import com.moblin.android.various.model.frontZoomPresetSettingUpdated
@@ -37,6 +28,7 @@ import com.moblin.android.various.settings.SettingsZoomPreset
 import com.moblin.android.various.settings.defaultSegmentedPickerSelectedColor
 import com.moblin.android.various.settings.minZoomX
 import com.moblin.android.various.utils.makeOffsets
+import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
@@ -58,15 +50,6 @@ private fun deleteFrontZoomPreset(model: Model, zoom: SettingsZoom, offsets: Lis
     model.frontZoomPresetSettingUpdated()
 }
 
-private fun moveBackZoomPreset(fromOffsets: List<Int>, toOffset: Int) {
-    Unit
-}
-
-private fun moveFrontZoomPreset(fromOffsets: List<Int>, toOffset: Int) {
-    Unit
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
     Form(title = "Zoom") {
@@ -91,35 +74,27 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
             header = "Back camera presets",
             footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a preset")) },
         ) {
-            zoom.back.forEach { preset ->
-                key(preset.id) {
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        confirmValueChange = { value ->
-                            if (value == SwipeToDismissBoxValue.EndToStart && zoom.back.size > 1) {
-                                val offset = zoom.back.indexOfFirst { it.id == preset.id }
-                                if (offset >= 0) {
-                                    deleteBackZoomPreset(model, zoom, listOf(offset))
-                                }
-                                true
-                            } else {
-                                false
-                            }
+            ForEach(
+                zoom.back,
+                id = { it.id },
+                onDelete = { offsets ->
+                    deleteBackZoomPreset(model, zoom, offsets.toList())
+                },
+                onMove = { froms, to ->
+                    zoom.back.move(fromOffsets = froms, toOffset = to)
+                    model.backZoomPresetSettingsUpdated()
+                },
+            ) { preset ->
+                ContextMenuDeleteButton(
+                    disabled = zoom.back.size == 1,
+                    action = {
+                        val offset = zoom.back.indexOfFirst { it.id == preset.id }
+                        if (offset >= 0) {
+                            deleteBackZoomPreset(model, zoom, listOf(offset))
                         }
-                    )
-                    SwipeToDismissBox(
-                        state = dismissState,
-                        backgroundContent = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(formPalette().red),
-                                contentAlignment = Alignment.CenterEnd,
-                            ) {
-                                SystemImage(name = "trash", fontSize = iconWidth.sp, tint = Color.White)
-                            }
-                        },
-                        enableDismissFromStartToEnd = false,
-                    ) {
+                    },
+                ) {
+                    DeleteDisabled(zoom.back.size == 1) {
                         ZoomPresetSettingsView(
                             model = model,
                             preset = preset,
@@ -144,35 +119,27 @@ fun ZoomSettingsView(model: Model = LocalModel.current, zoom: SettingsZoom) {
             header = "Front camera presets",
             footerContent = { SwipeLeftToDeleteHelpView(kind = localized("a preset")) },
         ) {
-            zoom.front.forEach { preset ->
-                key(preset.id) {
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        confirmValueChange = { value ->
-                            if (value == SwipeToDismissBoxValue.EndToStart && zoom.front.size > 1) {
-                                val offset = zoom.front.indexOfFirst { it.id == preset.id }
-                                if (offset >= 0) {
-                                    deleteFrontZoomPreset(model, zoom, listOf(offset))
-                                }
-                                true
-                            } else {
-                                false
-                            }
+            ForEach(
+                zoom.front,
+                id = { it.id },
+                onDelete = { offsets ->
+                    deleteFrontZoomPreset(model, zoom, offsets.toList())
+                },
+                onMove = { froms, to ->
+                    zoom.front.move(fromOffsets = froms, toOffset = to)
+                    model.frontZoomPresetSettingUpdated()
+                },
+            ) { preset ->
+                ContextMenuDeleteButton(
+                    disabled = zoom.front.size == 1,
+                    action = {
+                        val offset = zoom.front.indexOfFirst { it.id == preset.id }
+                        if (offset >= 0) {
+                            deleteFrontZoomPreset(model, zoom, listOf(offset))
                         }
-                    )
-                    SwipeToDismissBox(
-                        state = dismissState,
-                        backgroundContent = {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(formPalette().red),
-                                contentAlignment = Alignment.CenterEnd,
-                            ) {
-                                SystemImage(name = "trash", fontSize = iconWidth.sp, tint = Color.White)
-                            }
-                        },
-                        enableDismissFromStartToEnd = false,
-                    ) {
+                    },
+                ) {
+                    DeleteDisabled(zoom.front.size == 1) {
                         ZoomPresetSettingsView(
                             model = model,
                             preset = preset,
