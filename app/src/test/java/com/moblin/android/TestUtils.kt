@@ -3,9 +3,16 @@ package com.moblin.android
 import com.moblin.android.integrations.emotes.Emote
 import com.moblin.android.integrations.emotes.Emotes
 import com.moblin.android.various.ChatPostSegment
+import android.os.Looper
 import java.io.IOException
+import java.time.Duration
 import kotlin.math.abs
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
+import org.robolectric.Shadows.shadowOf
 
 private class BundleToken
 
@@ -85,4 +92,17 @@ fun texts(segments: List<ChatPostSegment>): List<String?> {
 
 fun emoteNames(segments: List<ChatPostSegment>): List<String?> {
     return segments.map { it.url?.still?.substringAfterLast('/') }
+}
+
+fun runMainTest(block: suspend CoroutineScope.() -> Unit) {
+    val looper = shadowOf(Looper.getMainLooper())
+    val test = CoroutineScope(Dispatchers.Main).async(block = block)
+    var last = System.nanoTime()
+    while (!test.isCompleted) {
+        Thread.sleep(1)
+        val now = System.nanoTime()
+        looper.idleFor(Duration.ofNanos(now - last))
+        last = now
+    }
+    runBlocking { test.await() }
 }
