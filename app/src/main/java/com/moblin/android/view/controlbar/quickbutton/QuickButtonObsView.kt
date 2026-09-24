@@ -36,6 +36,7 @@ import com.moblin.android.platform.swiftui.Label
 import com.moblin.android.platform.swiftui.LocalTint
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.formPalette
@@ -239,6 +240,7 @@ private fun ObsScenesView(
             title = "",
             selection = currentScenePicker,
             options = scenes,
+            pickerStyle = PickerStyle.inline,
             onChange = { scene ->
                 obsQuickButton.currentScenePicker.value = scene
                 if (currentScene != scene) {

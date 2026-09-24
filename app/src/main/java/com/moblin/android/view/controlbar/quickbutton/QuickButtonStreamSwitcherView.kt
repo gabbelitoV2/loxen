@@ -7,6 +7,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.moblin.android.LocalModel
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
@@ -32,6 +33,7 @@ fun QuickButtonStreamSwitcherView(model: Model = LocalModel.current, database: D
                 selection = currentStreamId,
                 options = streams.map { it.id },
                 text = { id -> streams.firstOrNull { it.id == id }?.name ?: "" },
+                pickerStyle = PickerStyle.inline,
             ) { streamId ->
                 model.currentStreamId.value = streamId
                 model.stopStream()

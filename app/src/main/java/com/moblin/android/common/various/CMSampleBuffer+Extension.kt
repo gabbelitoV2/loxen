@@ -138,7 +138,7 @@ private fun MediaSample.getAttachmentValue(key: String): Boolean? {
 }
 
 fun MediaSample.setAttachmentDisplayImmediately() {
-    Unit
+    setAttachmentValue(kCMSampleAttachmentKey_DisplayImmediately, true)
 }
 
 private fun MediaSample.setAttachmentValue(key: String, value: Boolean) {

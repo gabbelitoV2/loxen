@@ -71,15 +71,21 @@ fun Model.teslaHonk() {
 }
 
 fun Model.teslaGetChargeState() {
-    Unit
+    tesla.vehicle?.getChargeState { state ->
+        tesla.chargeState = state
+    }
 }
 
 fun Model.teslaGetDriveState() {
-    Unit
+    tesla.vehicle?.getDriveState { state ->
+        tesla.driveState = state
+    }
 }
 
 fun Model.teslaGetMediaState() {
-    Unit
+    tesla.vehicle?.getMediaState { state ->
+        tesla.mediaState = state
+    }
 }
 
 fun Model.teslaOpenTrunk() {

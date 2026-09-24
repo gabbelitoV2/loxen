@@ -1,8 +1,11 @@
 package com.moblin.android.various.utils
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.os.Debug
+import android.os.Process
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.compose.ui.geometry.Size
@@ -60,7 +63,9 @@ fun randomName(): String {
 }
 
 fun openUrl(url: String) {
-    Unit
+    runCatching {
+        AppDelegate.context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
 }
 
 private val thumbnails = mutableMapOf<String, Bitmap>()
@@ -170,7 +175,15 @@ class ResourceUsage {
     fun getMemoryUsage(): Int = memoryUsage.toInt()
 
     private fun updateAppCpuUsage(now: Long) {
-        Unit
+        val usage = Process.getElapsedCpuTime()
+        val previousTime = previousTime
+        val previousUsage = previousUsage as? Long
+        if (previousTime != null && previousUsage != null) {
+            val time = (usage - previousUsage).toFloat()
+            appCpuUsage = 100 * time / (now - previousTime).toFloat()
+        }
+        this.previousTime = now
+        this.previousUsage = usage
     }
 
     private fun updateCpuUsage() {

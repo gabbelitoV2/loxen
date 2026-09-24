@@ -10,12 +10,14 @@ import androidx.compose.runtime.setValue
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
+import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
 import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.removing
@@ -34,13 +36,13 @@ import java.util.UUID
 private fun loadSound(model: Model, soundId: UUID): AudioPlayer? {
     val bundledSound = model.database.alertsMediaGallery.bundledSounds.firstOrNull { it.id == soundId }
     val url = if (bundledSound != null) {
-        Unit
+        Bundle.url("Alerts.bundle/${bundledSound.name}", "mp3")?.let { File(it) }
     } else {
         model.alertMediaStorage.makePath(soundId)
     }
     val path = url ?: return null
     return runCatching {
-        TODO()
+        AudioPlayer(contentsOf = path.path)
     }.getOrNull()
 }
 
@@ -173,6 +175,7 @@ fun AlertSoundSelectorView(
                 selection = soundId,
                 options = sounds.map { it.id },
                 text = { id -> sounds.firstOrNull { it.id == id }?.name ?: id.toString() },
+                pickerStyle = PickerStyle.inline,
                 onChange = { id ->
                     onSoundIdChange(id)
                     alert.soundId = id

@@ -1,7 +1,9 @@
 package com.moblin.android.various.network
 
+import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.util.Log
+import com.moblin.android.AppDelegate
 import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.settings.SettingsHttpHeader
 import kotlinx.coroutines.CoroutineDispatcher
@@ -367,6 +369,7 @@ class HttpServer(
     private val retryTimer: SimpleTimer
     private var port: Int = 80
     private var started: Boolean = false
+    private var serviceRegistrationListener: NsdManager.RegistrationListener? = null
 
     init {
         retryTimer = SimpleTimer(queue)
@@ -399,6 +402,7 @@ class HttpServer(
         acceptJob = null
         runCatching { listener?.close() }
         listener = null
+        unregisterService()
     }
 
     private fun setupListener() {
@@ -414,11 +418,35 @@ class HttpServer(
                 }
             }
             if (service != null) {
-                Unit
+                registerService(service = service, port = serverSocket.localPort)
             }
         } catch (e: Exception) {
             handleStateUpdate(failed = true)
         }
+    }
+
+    private fun registerService(service: NsdServiceInfo, port: Int) {
+        unregisterService()
+        val manager = AppDelegate.context.getSystemService(NsdManager::class.java) ?: return
+        service.port = port
+        val registrationListener = object : NsdManager.RegistrationListener {
+            override fun onServiceRegistered(serviceInfo: NsdServiceInfo) {}
+
+            override fun onRegistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {}
+
+            override fun onServiceUnregistered(serviceInfo: NsdServiceInfo) {}
+
+            override fun onUnregistrationFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {}
+        }
+        serviceRegistrationListener = registrationListener
+        runCatching { manager.registerService(service, NsdManager.PROTOCOL_DNS_SD, registrationListener) }
+    }
+
+    private fun unregisterService() {
+        val registrationListener = serviceRegistrationListener ?: return
+        serviceRegistrationListener = null
+        val manager = AppDelegate.context.getSystemService(NsdManager::class.java) ?: return
+        runCatching { manager.unregisterService(registrationListener) }
     }
 
     private fun handleStateUpdate(failed: Boolean) {

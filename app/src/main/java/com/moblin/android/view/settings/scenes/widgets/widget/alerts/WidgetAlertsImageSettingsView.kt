@@ -28,6 +28,7 @@ import com.moblin.android.platform.swiftui.FormSlider
 import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.removing
@@ -204,6 +205,7 @@ fun AlertImageSelectorView(
                     selection = selected,
                     options = images,
                     text = { it.name },
+                    pickerStyle = PickerStyle.inline,
                     onChange = { item ->
                         onImageIdChange(item.id)
                         alert.imageId = item.id

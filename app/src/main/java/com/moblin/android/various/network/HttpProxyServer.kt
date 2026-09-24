@@ -1,13 +1,17 @@
 package com.moblin.android.various.network
 
 import android.content.Context
+import android.net.ConnectivityManager
 import android.net.Network
+import android.net.NetworkCapabilities
 import android.util.Log
+import com.moblin.android.AppDelegate
 import com.moblin.android.various.SimpleTimer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.io.IOException
 import java.net.ConnectException
 import java.net.InetAddress
 import java.net.InetSocketAddress
@@ -184,7 +188,7 @@ private class Connection(
         val socket = Socket()
         try {
             if (interfaceType != null) {
-                Unit
+                bindToInterfaceType(socket, interfaceType)
             }
             socket.connect(InetSocketAddress(host, port))
         } catch (e: Exception) {
@@ -205,6 +209,23 @@ private class Connection(
         destinationJob = queue.launch {
             receiveFromDestination()
         }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun bindToInterfaceType(socket: Socket, interfaceType: InterfaceType) {
+        val transport = when (interfaceType) {
+            InterfaceType.cellular -> NetworkCapabilities.TRANSPORT_CELLULAR
+            InterfaceType.wifi -> NetworkCapabilities.TRANSPORT_WIFI
+            InterfaceType.wiredEthernet -> NetworkCapabilities.TRANSPORT_ETHERNET
+            InterfaceType.other -> return
+        }
+        val connectivityManager = AppDelegate.context.getSystemService(ConnectivityManager::class.java) ?: return
+        val network: Network = connectivityManager.allNetworks.firstOrNull { network ->
+            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return@firstOrNull false
+            capabilities.hasTransport(transport) &&
+                capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        } ?: throw IOException("No $interfaceType network")
+        network.bindSocket(socket)
     }
 
     private fun handleDestinationNotConnected(

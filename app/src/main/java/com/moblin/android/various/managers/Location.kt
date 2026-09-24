@@ -71,7 +71,8 @@ class Location(private val context: Context) : LocationListener {
         if (context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) !=
             PackageManager.PERMISSION_GRANTED
         ) {
-            Unit
+            locationManagerDidChangeAuthorization(manager)
+            return
         }
         manager.requestLocationUpdates(provider, 0L, minDistance, this, Looper.getMainLooper())
         backgroundActivity.start()

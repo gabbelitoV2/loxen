@@ -13,7 +13,16 @@ import com.moblin.android.various.settings.SettingsWidgetPngTuber
 import com.moblin.android.various.settings.SettingsWidgetVTuber
 import com.moblin.android.various.settings.SettingsWidgetVideoSource
 import com.moblin.android.platform.avfoundation.AVCaptureDevice
+import com.moblin.android.various.utils.DeviceOrientation
+import com.moblin.android.various.utils.clamped
 import com.moblin.android.various.utils.exposureFactorStep
+import com.moblin.android.various.utils.factorFromExposure
+import com.moblin.android.various.utils.factorFromIso
+import com.moblin.android.various.utils.factorFromWhiteBalance
+import com.moblin.android.various.utils.factorToExposure
+import com.moblin.android.various.utils.factorToIso
+import com.moblin.android.various.utils.factorToWhiteBalance
+import com.moblin.android.various.utils.getOrientation
 import com.moblin.android.various.utils.hasDualBackCamera
 import com.moblin.android.various.utils.hasTripleBackCamera
 import com.moblin.android.various.utils.hasWideDualBackCamera
@@ -148,24 +157,88 @@ private val backWideDualLowEnergyCamera = Camera(
 )
 
 fun Model.setFocusPointOfInterest(focusPoint: PointF) {
-    if (cameraDevice == null) {
+    val device = cameraDevice
+    if (device == null || !device.device.isFocusPointOfInterestSupported) {
         Log.i(LOG_TAG, "Tap to focus not supported for this camera")
         makeErrorToast(title = localized("Tap to focus not supported for this camera"))
         return
     }
-    Unit
+    val focusPointOfInterest = PointF(focusPoint.x, focusPoint.y)
+    if (stream.value.portrait) {
+        focusPointOfInterest.x = focusPoint.y
+        focusPointOfInterest.y = 1 - focusPoint.x
+    } else if (getOrientation() == DeviceOrientation.LANDSCAPE_RIGHT) {
+        focusPointOfInterest.x = 1 - focusPoint.x
+        focusPointOfInterest.y = 1 - focusPoint.y
+    }
+    try {
+        device.device.lockForConfiguration()
+        device.device.focusPointOfInterest = focusPointOfInterest
+        device.device.focusMode = AVCaptureDevice.FocusMode.autoFocus
+        device.device.exposurePointOfInterest = focusPointOfInterest
+        device.device.exposureMode = AVCaptureDevice.ExposureMode.autoExpose
+        device.device.unlockForConfiguration()
+        camera.setManualFocusPoint(value = focusPoint)
+        startMotionDetection()
+    } catch (error: Exception) {
+        Log.i(LOG_TAG, "while locking device for focusPointOfInterest: $error")
+    }
+    camera.isFocusesLocked[device] = false
+    camera.setIsFocusLocked(false)
 }
 
 fun Model.setAutoFocus() {
-    Unit
+    stopMotionDetection()
+    val device = cameraDevice
+    if (device == null || !device.device.isFocusPointOfInterestSupported) {
+        return
+    }
+    try {
+        device.device.lockForConfiguration()
+        device.device.focusPointOfInterest = PointF(0.5f, 0.5f)
+        device.device.focusMode = AVCaptureDevice.FocusMode.continuousAutoFocus
+        device.device.exposurePointOfInterest = PointF(0.5f, 0.5f)
+        device.device.exposureMode = AVCaptureDevice.ExposureMode.continuousAutoExposure
+        device.device.unlockForConfiguration()
+        camera.setManualFocusPoint(value = null)
+    } catch (error: Exception) {
+        Log.i(LOG_TAG, "while locking device for focusPointOfInterest: $error")
+    }
+    camera.isFocusesLocked[device] = false
+    camera.setIsFocusLocked(false)
 }
 
 fun Model.setManualFocus(lensPosition: Float) {
-    Unit
+    val device = cameraDevice
+    if (device == null || !device.device.isLockingFocusWithCustomLensPositionSupported) {
+        makeErrorToast(title = localized("Manual focus not supported for this camera"))
+        return
+    }
+    stopMotionDetection()
+    try {
+        device.device.lockForConfiguration()
+        device.device.setFocusModeLocked(lensPosition = lensPosition)
+        device.device.unlockForConfiguration()
+    } catch (error: Exception) {
+        Log.i(LOG_TAG, "while locking device for manual focus: $error")
+    }
+    camera.setManualFocusPoint(value = null)
+    camera.isFocusesLocked[device] = true
+    camera.setIsFocusLocked(true)
+    camera.lockedFocuses[device] = lensPosition
 }
 
 fun Model.setFocusAfterCameraAttach() {
-    Unit
+    val device = cameraDevice ?: return
+    camera.setLockedFocus(camera.lockedFocuses[device] ?: device.device.lensPosition)
+    camera.setIsFocusLocked(camera.isFocusesLocked[device] ?: false)
+    if (!camera.isFocusLocked.value) {
+        setAutoFocus()
+    }
+    if (camera.focusObservation != null) {
+        stopObservingFocus()
+        startObservingFocus()
+    }
 }
 
 fun Model.isCameraSupportingManualFocus(): Boolean {
@@ -173,6 +246,8 @@ fun Model.isCameraSupportingManualFocus(): Boolean {
 }
 
 fun Model.startObservingFocus() {
+    val device = cameraDevice ?: return
+    camera.setLockedFocus(device.device.lensPosition)
     Unit
 }
 
@@ -181,11 +256,46 @@ fun Model.stopObservingFocus() {
 }
 
 fun Model.setAutoExposureAndIso() {
-    Unit
+    val device = cameraDevice
+    if (
+        device == null ||
+        !device.device.isExposureModeSupported(AVCaptureDevice.ExposureMode.continuousAutoExposure)
+    ) {
+        makeErrorToast(title = localized("Continuous auto exposure not supported for this camera"))
+        return
+    }
+    try {
+        device.device.lockForConfiguration()
+        device.device.exposureMode = AVCaptureDevice.ExposureMode.continuousAutoExposure
+        device.device.unlockForConfiguration()
+    } catch (error: Exception) {
+        Log.i(LOG_TAG, "while locking device for continuous auto exposure: $error")
+    }
+    camera.isExposuresAndIsosLocked[device] = false
+    camera.setIsExposureAndIsoLocked(false)
 }
 
 fun Model.setExposureAndIsoAfterCameraAttach(device: CaptureDevice) {
-    Unit
+    camera.setLockedIso(camera.lockedIsos[device] ?: factorFromIso(device = device.device, iso = device.device.iso))
+    camera.setLockedExposure(
+        camera.lockedExposures[device] ?: factorFromExposure(
+            device = device.device,
+            exposure = device.device.exposureDuration,
+        ),
+    )
+    camera.setExposure(device.device.exposureDuration)
+    camera.setIsExposureAndIsoLocked(camera.isExposuresAndIsosLocked[device] ?: false)
+    if (camera.isExposureAndIsoLocked.value) {
+        setManualExposureAndIso(exposureFactor = camera.lockedExposure.value, isoFactor = camera.lockedIso.value)
+    }
+    if (camera.isoObservation != null) {
+        stopObservingIso()
+        startObservingIso()
+    }
+    if (camera.exposureObservation != null) {
+        stopObservingExposure()
+        startObservingExposure()
+    }
 }
 
 fun Model.isCameraSupportingManualExposureAndIso(): Boolean {
@@ -193,7 +303,41 @@ fun Model.isCameraSupportingManualExposureAndIso(): Boolean {
 }
 
 private fun Model.setManualExposureAndIso(exposureFactor: Float?, isoFactor: Float?) {
-    Unit
+    val device = cameraDevice
+    if (device == null || !device.device.isExposureModeSupported(AVCaptureDevice.ExposureMode.custom)) {
+        makeErrorToast(title = localized("Manual exposure not supported for this camera"))
+        return
+    }
+    val iso: Float
+    val exposure: Long
+    if (isoFactor != null) {
+        iso = factorToIso(device = device.device, factor = isoFactor)
+        camera.lockedIsos[device] = isoFactor
+    } else {
+        iso = device.device.iso
+        camera.lockedIsos[device] = factorFromIso(device = device.device, iso = device.device.iso)
+    }
+    if (exposureFactor != null) {
+        exposure = factorToExposure(device = device.device, factor = exposureFactor)
+        camera.lockedExposures[device] = exposureFactor
+        camera.setExposure(exposure)
+    } else {
+        exposure = device.device.exposureDuration
+        camera.lockedExposures[device] = factorFromExposure(
+            device = device.device,
+            exposure = device.device.exposureDuration,
+        )
+        camera.setExposure(device.device.exposureDuration)
+    }
+    camera.isExposuresAndIsosLocked[device] = true
+    camera.setIsExposureAndIsoLocked(true)
+    try {
+        device.device.lockForConfiguration()
+        device.device.setExposureModeCustom(duration = exposure, iso = iso) { }
+        device.device.unlockForConfiguration()
+    } catch (error: Exception) {
+        Log.i(LOG_TAG, "while locking device for manual exposure: $error")
+    }
 }
 
 fun Model.setManualIso(factor: Float) {
@@ -201,6 +345,8 @@ fun Model.setManualIso(factor: Float) {
 }
 
 fun Model.startObservingIso() {
+    val device = cameraDevice ?: return
+    camera.setLockedIso(factorFromIso(device = device.device, iso = device.device.iso))
     Unit
 }
 
@@ -218,6 +364,9 @@ fun Model.getExposureFactorStep(): Float {
 }
 
 fun Model.startObservingExposure() {
+    val device = cameraDevice ?: return
+    camera.setLockedExposure(factorFromExposure(device = device.device, exposure = device.device.exposureDuration))
+    camera.setExposure(device.device.exposureDuration)
     Unit
 }
 
@@ -226,11 +375,44 @@ fun Model.stopObservingExposure() {
 }
 
 fun Model.setAutoWhiteBalance() {
-    Unit
+    val device = cameraDevice
+    if (
+        device == null ||
+        !device.device.isWhiteBalanceModeSupported(AVCaptureDevice.WhiteBalanceMode.continuousAutoWhiteBalance)
+    ) {
+        makeErrorToast(
+            title = localized("Continuous auto white balance not supported for this camera"),
+        )
+        return
+    }
+    try {
+        device.device.lockForConfiguration()
+        device.device.whiteBalanceMode = AVCaptureDevice.WhiteBalanceMode.continuousAutoWhiteBalance
+        device.device.unlockForConfiguration()
+    } catch (error: Exception) {
+        Log.i(LOG_TAG, "while locking device for continuous auto white balance: $error")
+    }
+    camera.isWhiteBalancesLocked[device] = false
+    camera.setIsWhiteBalanceLocked(false)
+    updateImageButtonState()
 }
 
 fun Model.setManualWhiteBalance(factor: Float) {
-    Unit
+    val device = cameraDevice
+    if (device == null || !device.device.isLockingWhiteBalanceWithCustomDeviceGainsSupported) {
+        makeErrorToast(title = localized("Manual white balance not supported for this camera"))
+        return
+    }
+    try {
+        device.device.lockForConfiguration()
+        device.device.setWhiteBalanceModeLocked(with = factorToWhiteBalance(device = device.device, factor = factor))
+        device.device.unlockForConfiguration()
+    } catch (error: Exception) {
+        Log.i(LOG_TAG, "while locking device for manual white balance: $error")
+    }
+    camera.isWhiteBalancesLocked[device] = true
+    camera.setIsWhiteBalanceLocked(true)
+    camera.lockedWhiteBalances[device] = factor
 }
 
 fun Model.setWhiteBalanceAfterCameraAttach(device: CaptureDevice) {
@@ -250,6 +432,13 @@ fun Model.isCameraSupportingManualWhiteBalance(): Boolean {
 }
 
 fun Model.startObservingWhiteBalance() {
+    val device = cameraDevice ?: return
+    camera.setLockedWhiteBalance(
+        factorFromWhiteBalance(
+            device = device.device,
+            gains = device.device.deviceWhiteBalanceGains.clamped(maxGain = device.device.maxWhiteBalanceGain),
+        ),
+    )
     Unit
 }
 
@@ -693,5 +882,17 @@ fun Model.getVideoSourceId(cameraId: SettingsCameraId): UUID? {
 }
 
 fun Model.setExposureBias(bias: Float) {
-    Unit
+    val device = cameraDevice ?: return
+    if (bias < device.device.minExposureTargetBias) {
+        return
+    }
+    if (bias > device.device.maxExposureTargetBias) {
+        return
+    }
+    try {
+        device.device.lockForConfiguration()
+        device.device.setExposureTargetBias(bias)
+        device.device.unlockForConfiguration()
+    } catch (error: Exception) {
+    }
 }

@@ -1,6 +1,5 @@
 package com.moblin.android.view.settings.streams.stream.kick
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -55,11 +54,18 @@ import com.moblin.android.streamingplatforms.kick.KickUser
 import com.moblin.android.streamingplatforms.kick.getKickChannelInfo
 import com.moblin.android.various.CacheAsyncImage
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.createKickApi
 import com.moblin.android.various.model.fetchKickCategories
+import com.moblin.android.various.model.getKickStreamInfo
+import com.moblin.android.various.model.kickAccessTokenUpdated
+import com.moblin.android.various.model.kickChannelNameUpdated
+import com.moblin.android.various.model.kickLogin
+import com.moblin.android.various.model.kickLogout
 import com.moblin.android.various.model.searchKickCategories
 import com.moblin.android.various.model.setKickStreamCategory
 import com.moblin.android.various.model.setKickStreamTitle
 import com.moblin.android.various.settings.SettingsKickAlerts
+import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.settings.streams.stream.GrayTextView
 import com.moblin.android.view.utils.TextButtonView
@@ -82,11 +88,13 @@ private fun AuthenticationView(
         if (!stream.kickLoggedIn) {
             TextButtonView("Login") {
                 presentingWebView = true
-                Unit
+                model.kickLogin(stream = stream) {
+                    onLoggedIn()
+                }
             }
         } else {
             TextButtonView("Logout") {
-                Unit
+                model.kickLogout(stream = stream)
             }
         }
     }
@@ -377,7 +385,12 @@ suspend fun loadKickStreamInfo(
         return
     }
     delay(1000)
-    Unit
+    model.getKickStreamInfo(stream = stream) { result ->
+        when (result) {
+            is NetworkResponse.Success -> onChange(result.value.title, result.value.categoryName)
+            else -> onChange(null, null)
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -415,7 +428,7 @@ fun StreamKickSettingsView(
 
     fun reloadConnectionsIfEnabled() {
         if (stream.enabled) {
-            Unit
+            model.kickAccessTokenUpdated()
         }
     }
 
@@ -442,7 +455,7 @@ fun StreamKickSettingsView(
         stream.kickChannelName = value
         fetchChannelInfo()
         if (stream.enabled && stream.kickChannelName.isEmpty()) {
-            Unit
+            model.kickChannelNameUpdated()
         }
     }
 
@@ -457,7 +470,9 @@ fun StreamKickSettingsView(
     }
 
     fun onLoggedIn() {
-        Unit
+        model.createKickApi(stream = stream).getUser { data ->
+            handleUser(data = data)
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -500,19 +515,25 @@ fun StreamKickSettingsView(
             }
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text("Alerts")
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("KickAlertsSettingsViewChat") }
-                        .padding(vertical = 12.dp)
+                NavigationLink(
+                    destination = {
+                        KickAlertsSettingsView(
+                            title = localized("Chat"),
+                            alerts = stream.kickChatAlerts,
+                            showBans = true
+                        )
+                    }
                 ) {
                     Text("Chat")
                 }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNavigate("KickAlertsSettingsViewToasts") }
-                        .padding(vertical = 12.dp)
+                NavigationLink(
+                    destination = {
+                        KickAlertsSettingsView(
+                            title = localized("Toasts"),
+                            alerts = stream.kickToastAlerts,
+                            showBans = false
+                        )
+                    }
                 ) {
                     Text("Toasts")
                 }

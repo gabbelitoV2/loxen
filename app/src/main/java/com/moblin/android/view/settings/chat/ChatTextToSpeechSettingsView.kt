@@ -23,12 +23,14 @@ import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.swiftui.Form
-import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.FormSlider
+import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.view.settings.streams.stream.TtsMonsterLogoAndNameView
+import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.view.utils.VoicesView
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsTtsMonster
@@ -41,7 +43,22 @@ fun TtsMonsterSettingsView(
     ttsMonster: SettingsTtsMonster,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    FormRow(onClick = { onNavigate("tts_monster") }) {
+    NavigationLink(
+        destination = {
+            Form(title = "TTS.Monster") {
+                Section {
+                    TextEditNavigationView(
+                        title = localized("API token"),
+                        value = ttsMonster.apiToken,
+                        onSubmit = { value ->
+                            ttsMonster.apiToken = value
+                        },
+                        sensitive = true,
+                    )
+                }
+            }
+        },
+    ) {
         TtsMonsterLogoAndNameView()
     }
 }
@@ -109,7 +126,18 @@ fun ChatTextToSpeechSettingsView(
 
     Form(title = localized("Text to speech")) {
         Section(header = localized("Voice")) {
-            FormRow(onClick = { onNavigate("voices") }) {
+            NavigationLink(
+                destination = {
+                    VoicesView(
+                        textToSpeechLanguageVoices = chat.textToSpeechLanguageVoices,
+                        onVoiceChange = onVoiceChange,
+                        onLanguageReset = onLanguageReset,
+                        rate = chat.textToSpeechRate,
+                        volume = chat.textToSpeechSayVolume,
+                        ttsMonsterApiToken = ttsMonster.apiToken,
+                    )
+                },
+            ) {
                 Text(localized("Voices"))
             }
             Row(

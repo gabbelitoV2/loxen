@@ -4,6 +4,7 @@ import android.util.Log
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.digitalClockFormatter
 import com.moblin.android.common.various.formatDate
+import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.streamingplatforms.twitch.TwitchChat
 import com.moblin.android.streamingplatforms.twitch.TwitchChatDelegate
 import com.moblin.android.streamingplatforms.twitch.TwitchEventSub
@@ -848,7 +849,7 @@ class RemoteControlAssistant(
         val timestamp = formatDate(Instant.now())
         val message = RemoteControlChatMessage(
             id = getNextChatMessageId(),
-            platform = TODO("Platform is not available in the Android port"),
+            platform = Platform.twitch,
             messageId = messageId,
             displayName = displayName,
             user = user,

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,6 +25,7 @@ import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
+import com.moblin.android.view.settings.location.LocationSettingsView
 import com.moblin.android.view.settings.scenes.widgets.widget.effects.WidgetEffectsView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.various.model.resetSelectedScene
@@ -53,7 +55,18 @@ fun WidgetMapSettingsView(
             )
         }
         ShortcutSectionView {
-            NavigationLink(destination = { onNavigate("LocationSettingsView") }) {
+            NavigationLink(
+                destination = {
+                    val stream by model.stream.collectAsState()
+                    LocationSettingsView(
+                        model = model,
+                        database = model.database,
+                        location = model.database.location,
+                        locationManager = model.locationManager,
+                        stream = stream,
+                    )
+                },
+            ) {
                 Label("Location", systemImage = "location")
             }
         }

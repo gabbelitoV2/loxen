@@ -1,6 +1,11 @@
 package com.moblin.android.various.model
 
 import com.moblin.android.common.various.format
+import com.moblin.android.moblinwatch.shared.WatchProtocolGenericScoreboardAction
+import com.moblin.android.moblinwatch.shared.WatchProtocolGenericScoreboardActionType
+import com.moblin.android.moblinwatch.shared.WatchProtocolPadelScoreboardAction
+import com.moblin.android.moblinwatch.shared.WatchProtocolPadelScoreboardActionPlayers
+import com.moblin.android.moblinwatch.shared.WatchProtocolPadelScoreboardActionType
 import com.moblin.android.remotecontrol.RemoteControlGolfPlayer
 import com.moblin.android.remotecontrol.RemoteControlGolfScoreboard
 import com.moblin.android.remotecontrol.RemoteControlScoreboardControl
@@ -372,12 +377,56 @@ private val configs: Map<String, RemoteControlScoreboardMatchConfig> = mapOf(
     "volleyball" to volleyballConfig,
 )
 
-fun Model.handleUpdatePadelScoreboard(action: Any) {
-    Unit
+fun Model.handleUpdatePadelScoreboard(action: WatchProtocolPadelScoreboardAction) {
+    val scoreboard = findWidget(id = action.id)?.scoreboard ?: return
+    when (val padelAction = action.action) {
+        WatchProtocolPadelScoreboardActionType.reset ->
+            handleUpdatePadelScoreboardReset(scoreboard = scoreboard.padel)
+        WatchProtocolPadelScoreboardActionType.undo ->
+            handleUpdatePadelScoreboardUndo(scoreboard = scoreboard.padel)
+        WatchProtocolPadelScoreboardActionType.incrementHome ->
+            handleUpdatePadelScoreboardIncrementHome(scoreboard = scoreboard.padel)
+        WatchProtocolPadelScoreboardActionType.incrementAway ->
+            handleUpdatePadelScoreboardIncrementAway(scoreboard = scoreboard.padel)
+        is WatchProtocolPadelScoreboardActionType.players ->
+            handleUpdatePadelScoreboardChangePlayers(scoreboard = scoreboard.padel,
+                                                     players = padelAction.players)
+    }
+    getScoreboardEffect(id = action.id)?.update(
+        scoreboard = scoreboard,
+        config = getModularScoreboardConfig(scoreboard = scoreboard),
+        players = database.scoreboardPlayers
+    )
+    sendUpdatePadelScoreboardToWatch(id = action.id, padel = scoreboard.padel)
 }
 
-fun Model.handleUpdateGenericScoreboard(action: Any) {
-    Unit
+fun Model.handleUpdateGenericScoreboard(action: WatchProtocolGenericScoreboardAction) {
+    val scoreboard = findWidget(id = action.id)?.scoreboard ?: return
+    when (val genericAction = action.action) {
+        WatchProtocolGenericScoreboardActionType.reset ->
+            handleUpdateGenericScoreboardReset(scoreboard = scoreboard.generic)
+        WatchProtocolGenericScoreboardActionType.undo ->
+            handleUpdateGenericScoreboardUndo(scoreboard = scoreboard.generic)
+        WatchProtocolGenericScoreboardActionType.incrementHome ->
+            handleUpdateGenericScoreboardIncrementHome(scoreboard = scoreboard.generic)
+        WatchProtocolGenericScoreboardActionType.incrementAway ->
+            handleUpdateGenericScoreboardIncrementAway(scoreboard = scoreboard.generic)
+        is WatchProtocolGenericScoreboardActionType.setTitle ->
+            handleUpdateGenericScoreboardSetTitle(scoreboard = scoreboard.generic, title = genericAction.title)
+        is WatchProtocolGenericScoreboardActionType.setClock ->
+            handleUpdateGenericScoreboardSetClock(scoreboard = scoreboard.generic,
+                                                  minutes = genericAction.minutes,
+                                                  seconds = genericAction.seconds)
+        is WatchProtocolGenericScoreboardActionType.setClockState ->
+            handleUpdateGenericScoreboardSetClockState(scoreboard = scoreboard.generic,
+                                                       stopped = genericAction.stopped)
+    }
+    getScoreboardEffect(id = action.id)?.update(
+        scoreboard = scoreboard,
+        config = getModularScoreboardConfig(scoreboard = scoreboard),
+        players = database.scoreboardPlayers
+    )
+    sendUpdateGenericScoreboardToWatch(id = action.id, generic = scoreboard.generic)
 }
 
 fun Model.getEnabledScoreboardWidgetsInSelectedScene(): List<SettingsWidget> {
@@ -740,9 +789,20 @@ private fun Model.handleUpdatePadelScoreboardIncrementAway(scoreboard: SettingsW
 }
 
 private fun Model.handleUpdatePadelScoreboardChangePlayers(scoreboard: SettingsWidgetPadelScoreboard,
-                                                           players: Any)
+                                                           players: WatchProtocolPadelScoreboardActionPlayers)
 {
-    Unit
+    if (players.home.size > 0) {
+        scoreboard.homePlayer1 = players.home[0]
+        if (players.home.size > 1) {
+            scoreboard.homePlayer2 = players.home[1]
+        }
+    }
+    if (players.away.size > 0) {
+        scoreboard.awayPlayer1 = players.away[0]
+        if (players.away.size > 1) {
+            scoreboard.awayPlayer2 = players.away[1]
+        }
+    }
 }
 
 private fun Model.handleUpdateGenericScoreboardReset(scoreboard: SettingsWidgetGenericScoreboard) {

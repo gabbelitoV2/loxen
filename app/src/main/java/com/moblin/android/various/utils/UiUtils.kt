@@ -4,7 +4,10 @@ import android.app.Activity
 import android.content.res.Configuration
 import android.content.res.Resources
 import android.graphics.Bitmap
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.Window
+import com.moblin.android.AppDelegate
 
 fun Bitmap.resize(height: Float): Bitmap {
     val targetWidth = (width * (height / this.height.toFloat())).toInt()
@@ -32,7 +35,10 @@ fun getOrientation(): DeviceOrientation {
 
 object UIDevice {
     fun vibrate() {
-        Unit
+        runCatching {
+            AppDelegate.context.getSystemService(Vibrator::class.java)
+                ?.vibrate(VibrationEffect.createOneShot(400, VibrationEffect.DEFAULT_AMPLITUDE))
+        }
     }
 }
 

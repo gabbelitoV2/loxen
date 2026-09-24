@@ -9,8 +9,10 @@ import com.moblin.android.media.haishinkit.codec.video.VideoDecoder
 import com.moblin.android.media.haishinkit.codec.video.VideoDecoderDelegate
 import com.moblin.android.media.haishinkit.mpeg.avc.AvcNalUnit
 import com.moblin.android.media.haishinkit.mpeg.avc.AvcNalUnitType
+import com.moblin.android.media.haishinkit.mpeg.avc.makeFormatDescription
 import com.moblin.android.media.haishinkit.mpeg.hevc.HevcNalUnit
 import com.moblin.android.media.haishinkit.mpeg.hevc.HevcNalUnitType
+import com.moblin.android.media.haishinkit.mpeg.hevc.makeFormatDescription
 import com.moblin.android.media.haishinkit.mpeg.nalUnitStartCode
 import com.moblin.android.media.haishinkit.util.BitrateStats
 import com.moblin.android.media.haishinkit.util.BitrateStatsInstant
@@ -862,13 +864,15 @@ class RtspClient(
 
     private fun setupH264(sdpVideo: SdpVideoH264) {
         val nalUnits = listOf(sdpVideo.sps, sdpVideo.pps)
-        val formatDescription: MediaFormat = TODO("Build a MediaFormat for video/avc from $nalUnits")
+        val formatDescription = nalUnits.makeFormatDescription()
+            ?: throw Exception("Failed to create H.264 format description.")
         rtpVideo.processor = RtpProcessorVideoH264(formatDescription, this)
     }
 
     private fun setupH265(sdpVideo: SdpVideoH265) {
         val nalUnits = listOf(sdpVideo.vps, sdpVideo.sps, sdpVideo.pps)
-        val formatDescription: MediaFormat = TODO("Build a MediaFormat for video/hevc from $nalUnits")
+        val formatDescription = nalUnits.makeFormatDescription()
+            ?: throw Exception("Failed to create H.265 format description.")
         rtpVideo.processor = RtpProcessorVideoH265(formatDescription, this)
     }
 

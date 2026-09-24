@@ -61,7 +61,9 @@ class AudioPlayer {
     }
 
     fun setDelegate(delegate: Any) {
-        Unit
+        player.setOnCompletionListener {
+            (delegate as? ChatTextToSpeech)?.audioPlayerDidFinishPlaying(successfully = true)
+        }
     }
 
     fun play() {

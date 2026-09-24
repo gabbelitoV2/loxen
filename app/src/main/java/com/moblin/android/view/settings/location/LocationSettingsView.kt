@@ -1,10 +1,7 @@
 package com.moblin.android.view.settings.location
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
@@ -26,6 +23,7 @@ import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.IosSwitch
 import com.moblin.android.platform.swiftui.Label
 import com.moblin.android.platform.swiftui.LocalTint
+import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
@@ -44,6 +42,7 @@ import com.moblin.android.view.utils.CreateButtonView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextButtonView
+import com.moblin.android.view.settings.streams.stream.realtimeirl.StreamRealtimeIrlSettingsView
 import com.moblin.android.various.model.reloadLocation
 import com.moblin.android.various.model.resetLocationData
 import com.moblin.android.various.model.resetSplitLocationData
@@ -106,7 +105,6 @@ fun LocationSettingsView(
     val privacyRegions by location.privacyRegionsFlow.collectAsState()
     val showAllSettings = database.showAllSettings
     val realtimeIrlEnabled = stream.realtimeIrlEnabled
-    val interactionSource = remember { MutableInteractionSource() }
 
     fun deletePrivacyRegion(offsets: List<Int>) {
         val regions = location.privacyRegions.toMutableList()
@@ -179,20 +177,14 @@ fun LocationSettingsView(
         }
         if (showAllSettings && stream !== fallbackStream) {
             ShortcutSectionView {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable(interactionSource = interactionSource, indication = null) {
-                                onNavigate("StreamRealtimeIrlSettingsView")
-                            },
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Label("RealtimeIRL", systemImage = "dot.radiowaves.left.and.right")
-                    }
+                NavigationLink(destination = {
+                    StreamRealtimeIrlSettingsView(stream = stream)
+                }) {
+                    Label(
+                        "RealtimeIRL",
+                        systemImage = "dot.radiowaves.left.and.right",
+                        modifier = Modifier.weight(1f),
+                    )
                     IosSwitch(
                         checked = realtimeIrlEnabled,
                         onCheckedChange = {

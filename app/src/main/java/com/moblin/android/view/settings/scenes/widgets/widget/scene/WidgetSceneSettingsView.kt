@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.moblin.android.LocalModel
 import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWidget
@@ -28,6 +29,7 @@ fun WidgetSceneSettingsView(
             selection = sceneId,
             options = scenes.map { it.id },
             text = { id -> scenes.firstOrNull { it.id == id }?.name ?: "" },
+            pickerStyle = PickerStyle.inline,
             onChange = { newSceneId ->
                 sceneId = newSceneId
                 widget.scene.sceneId = newSceneId

@@ -13,11 +13,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.moblin.android.AppDelegate
 import com.moblin.android.LocalModel
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.importSettingsFromClipboard
+import com.moblin.android.various.model.importSettingsFromFile
+import com.moblin.android.various.model.importSettingsWithConfirmation
 import com.moblin.android.various.utils.moblinSettingsFileType
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextButtonView
@@ -39,18 +43,6 @@ private enum class ImportState {
     idle,
     fromFile,
     fromClipboard,
-}
-
-private fun Model.importSettingsWithConfirmation(block: () -> Unit) {
-    Unit
-}
-
-private fun Model.importSettingsFromFile(url: String, block: () -> Unit) {
-    Unit
-}
-
-private fun Model.importSettingsFromClipboard(block: () -> Unit) {
-    Unit
 }
 
 @Composable
@@ -103,7 +95,7 @@ fun ImportSettingsView(model: Model = LocalModel.current) {
                 if (enabled) {
                     model.importSettingsWithConfirmation {
                         importState = ImportState.fromClipboard
-                        model.importSettingsFromClipboard {
+                        model.importSettingsFromClipboard(AppDelegate.context) {
                             importState = ImportState.idle
                         }
                     }

@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,7 +21,9 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
+import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.LocalNavigator
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.formPalette
@@ -111,11 +115,14 @@ fun KeyboardKeySettingsForm(
     Form(title = "Keyboard key") {
         Section {
             NavigationLink(destination = {
-                KeyboardKeyPickerView(key = key, onDismiss = { onNavigate("keyboardKey") })
+                val navigator = LocalNavigator.current
+                KeyboardKeyPickerView(key = key, onDismiss = { navigator?.pop() })
             }) {
-                Text(text = "Key")
+                Text(text = localized("Key"))
                 Spacer(modifier = Modifier.weight(1f))
-                SelectedKeyView(key = key)
+                CompositionLocalProvider(LocalContentColor provides formPalette().gray) {
+                    SelectedKeyView(key = key)
+                }
             }
         }
         Section {

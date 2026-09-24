@@ -338,7 +338,7 @@ class RtmpServerClient(
 
     private fun processReceivedData(data: ByteArray) {
         totalBytesReceived += data.size.toULong()
-        Unit
+        server?.bitrateStats?.mutate { it.value.add(bytesTransferred = data.size) }
         latestReceiveTime = System.nanoTime()
         inputBuffer += data
         isProcessing = true

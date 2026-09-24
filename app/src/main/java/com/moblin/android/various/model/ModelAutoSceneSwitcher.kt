@@ -1,6 +1,8 @@
 package com.moblin.android.various.model
 
 import android.util.Log
+import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
+import com.moblin.android.remotecontrol.RemoteControlStateAutoSceneSwitcher
 import com.moblin.android.various.settings.SettingsAutoSceneSwitcher
 import java.time.Instant
 import java.util.UUID
@@ -21,7 +23,11 @@ fun Model.setAutoSceneSwitcher(id: UUID?) {
     database.autoSceneSwitchers.switcherId = id
     autoSceneSwitcher.switchTime = Instant.now()
     autoSceneSwitcher.sceneIds.clear()
-    Unit
+    remoteControlStateChanged(
+        state = RemoteControlAssistantStreamerState(
+            autoSceneSwitcher = RemoteControlStateAutoSceneSwitcher(id = id)
+        )
+    )
 }
 
 fun Model.deleteAutoSceneSwitchers(offsets: Set<Int>) {

@@ -1,17 +1,21 @@
 package com.moblin.android.integrations.catprinter
 
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
+import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.util.Log
+import com.moblin.android.platform.Bundle
 import com.moblin.android.various.AudioPlayer
 import com.moblin.android.various.BluetoothScanner
 import com.moblin.android.various.SimpleTimer
@@ -263,7 +267,9 @@ class CatPrinter : BluetoothGattCallback() {
     }
 
     private fun playMeowSound() {
-        Unit
+        val soundUrl = Bundle.url("Alerts.bundle/Nya", "mp3") ?: return
+        audioPlayer = runCatching { AudioPlayer(contentsOf = soundUrl) }.getOrNull()
+        audioPlayer?.play()
     }
 
     private fun send(
@@ -425,7 +431,12 @@ class CatPrinter : BluetoothGattCallback() {
         stopTryWriteNextChunkTimer()
         stopJobCompleteTimer()
         stopFeedPaperTimer()
-        centralManager = TODO("CBCentralManager has no counterpart, BluetoothGatt needs a Context")
+        centralManager?.close()
+        centralManager = null
+        val central = (AppDelegate.context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
+        if (central?.isEnabled == true) {
+            connect(central)
+        }
     }
 
     private fun updateState(state: CatPrinterState) {
@@ -481,13 +492,19 @@ class CatPrinter : BluetoothGattCallback() {
         )
     }
 
-    private fun connect(central: BluetoothGatt) {
+    private fun connect(central: BluetoothAdapter) {
         val deviceId = deviceId
         if (deviceId == null) {
             Log.i(catPrinterLogTag, "cat-printer: Device not found")
             return
         }
-        peripheral = TODO("BluetoothAdapter.getRemoteDevice(address) requires a BluetoothAdapter and Context")
+        val peripheral = runCatching { central.getRemoteDevice(deviceId) }.getOrNull()
+        if (peripheral == null) {
+            Log.i(catPrinterLogTag, "cat-printer: Device not found")
+            return
+        }
+        this.peripheral = peripheral
+        centralManager = peripheral.connectGatt(AppDelegate.context, false, this)
         updateState(state = CatPrinterState.connecting)
     }
 

@@ -48,6 +48,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.model.StealthMode
 import com.moblin.android.various.model.chat.ChatProvider
+import com.moblin.android.various.model.toggleStealthMode
 import com.moblin.android.various.settings.SettingsQuickButtons
 import com.moblin.android.view.controlbar.controlBarWidth
 import com.moblin.android.view.stream.ChatOverlayView
@@ -205,7 +206,7 @@ fun StealthModeView(
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         returnButton {
-                            Unit
+                            model.toggleStealthMode()
                         }
                     }
                 }
@@ -227,7 +228,7 @@ fun StealthModeView(
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         returnButton {
-                            Unit
+                            model.toggleStealthMode()
                         }
                     }
                 }

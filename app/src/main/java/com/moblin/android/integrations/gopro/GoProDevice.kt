@@ -759,7 +759,7 @@ class GoProDevice(private val context: Context) {
             return
         }
         for (service in gatt.services ?: emptyList()) {
-            Unit
+            peripheralDidDiscoverCharacteristics(service, status)
         }
     }
 

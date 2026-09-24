@@ -15,6 +15,7 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.handleKeyPressCharacters
 import com.moblin.android.LocalModel
 
 class MacKeyPressUIView {
@@ -41,7 +42,7 @@ class MacKeyPressUIView {
             }
             val characters = characters(press)
             if (characters.isNotEmpty()) {
-                if (TODO("model.handleKeyPressCharacters") == true) {
+                if (model?.handleKeyPressCharacters(characters) == true) {
                     handled = true
                 }
             }

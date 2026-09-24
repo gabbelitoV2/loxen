@@ -27,6 +27,7 @@ import com.moblin.android.platform.swiftui.FormButton
 import com.moblin.android.platform.swiftui.Label
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.Toggle
@@ -263,6 +264,7 @@ private fun CameraSettingsAppleLogLutView(
                 selection = color.lut,
                 options = luts.map { it.id },
                 text = { id -> luts.firstOrNull { it.id == id }?.name ?: "" },
+                pickerStyle = PickerStyle.inline,
             ) { id ->
                 color.lut = id
                 model.lutUpdated()

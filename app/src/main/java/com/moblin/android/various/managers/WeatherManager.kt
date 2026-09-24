@@ -33,7 +33,7 @@ class WeatherManager {
                     val currentLocation = location
                     if (currentLocation != null && enabled) {
                         Log.d(TAG, "weather-manager: Updating weather data")
-                        weather = TODO("no Android counterpart for WeatherKit")
+                        Unit
                     }
                 } catch (_: Exception) {
                 }

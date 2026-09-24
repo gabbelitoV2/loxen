@@ -985,8 +985,6 @@ private val MediaSample.durationUs: Long
 private val MediaSample.decodeTimeStampUs: Long
     get() = 0L
 
-private fun MediaSample.setAttachmentDisplayImmediately(): Unit =
-    Unit
 private fun MediaSample.replacePresentationTimeStamp(presentationTimeUs: Long): MediaSample? =
     null
 private fun createMediaSample(

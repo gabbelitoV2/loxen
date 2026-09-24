@@ -9,6 +9,9 @@ import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.*
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsDebug
+import com.moblin.android.various.settings.pixelFormats
+import com.moblin.android.view.utils.InlinePickerItem
+import com.moblin.android.view.utils.InlinePickerView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.various.model.reloadStream
 import com.moblin.android.various.model.sceneUpdated
@@ -36,7 +39,18 @@ fun DebugVideoSettingsView(
         Section(
             footer = localized("Change camera and restart stream for these to work properly."),
         ) {
-            FormRow(onClick = { onNavigate("pixelFormat") }) {
+            NavigationLink(
+                destination = {
+                    val navigator = LocalNavigator.current
+                    InlinePickerView(
+                        title = "Pixel format",
+                        onChange = { format -> onPixelFormatChange(model, format) },
+                        items = InlinePickerItem.fromStrings(values = pixelFormats),
+                        initialSelectedId = model.database.debug.pixelFormat,
+                        onDismiss = { navigator?.pop() },
+                    )
+                },
+            ) {
                 TextItemLocalizedView(name = "Pixel format", value = pixelFormat)
             }
             Toggle(

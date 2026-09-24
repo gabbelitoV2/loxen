@@ -23,6 +23,7 @@ import com.moblin.android.various.model.WizardPlatform
 import com.moblin.android.various.model.getYouTubeApi
 import com.moblin.android.various.model.youTubeSignIn
 import com.moblin.android.various.model.youTubeSignOut
+import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.utils.makeUniqueName
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
@@ -35,8 +36,21 @@ private fun fetchLiveStreams(
     createStreamWizard: CreateStreamWizard,
     youTubeStream: SettingsStream,
 ) {
-    model.getYouTubeApi(stream = youTubeStream) {
-        Unit
+    model.getYouTubeApi(stream = youTubeStream) { youTubeApi ->
+        youTubeApi?.listLiveStreams { response ->
+            when (response) {
+                is NetworkResponse.Success -> {
+                    val liveStream = response.value.items.firstOrNull()
+                    if (liveStream != null) {
+                        val ingestionInfo = liveStream.cdn.ingestionInfo
+                        createStreamWizard.directIngest = ingestionInfo.ingestionAddress
+                        createStreamWizard.directStreamKey = ingestionInfo.streamName
+                    }
+                }
+
+                NetworkResponse.AuthError, NetworkResponse.Error -> Unit
+            }
+        }
     }
 }
 
@@ -45,8 +59,19 @@ private fun fetchChannelHandle(
     createStreamWizard: CreateStreamWizard,
     youTubeStream: SettingsStream,
 ) {
-    model.getYouTubeApi(stream = youTubeStream) {
-        Unit
+    model.getYouTubeApi(stream = youTubeStream) { youTubeApi ->
+        youTubeApi?.listChannels { response ->
+            when (response) {
+                is NetworkResponse.Success -> {
+                    val handle = response.value.items.firstOrNull()?.snippet?.customUrl
+                    if (handle != null) {
+                        createStreamWizard.youTubeHandle = handle
+                    }
+                }
+
+                NetworkResponse.AuthError, NetworkResponse.Error -> Unit
+            }
+        }
     }
 }
 

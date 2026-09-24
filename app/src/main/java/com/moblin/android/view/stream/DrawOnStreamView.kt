@@ -36,6 +36,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Orientation
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.videoeffects.drawOnStreamCreatePath
+import com.moblin.android.view.utils.RgbColorPickerView
 import java.util.UUID
 import com.moblin.android.LocalModel
 import com.moblin.android.various.model.drawOnStreamLineComplete
@@ -134,7 +135,7 @@ private fun DrawOnStreamControlsView(
 ) {
     val lines by drawOnStream.lines.collectAsState()
     val selectedWidth by drawOnStream.selectedWidth.collectAsState()
-    val selectedColor = drawOnStream.selectedColor.value
+    val selectedColor by drawOnStream.selectedColor.collectAsState()
     Column {
         Spacer(modifier = Modifier.weight(1f))
         Row(
@@ -173,7 +174,13 @@ private fun DrawOnStreamControlsView(
                         tint = buttonColor(drawOnStream),
                     )
                 }
-                Unit
+                Box(modifier = Modifier.width(60.dp)) {
+                    RgbColorPickerView(
+                        title = "",
+                        color = selectedColor,
+                        onColorChanged = { drawOnStream.selectedColor.value = it },
+                    ) {}
+                }
                 Slider(
                     value = selectedWidth,
                     onValueChange = {

@@ -14,6 +14,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.viewinterop.AndroidView
+import com.moblin.android.platform.avfoundation.session
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Show
 import java.util.UUID
@@ -92,7 +93,10 @@ class CameraPreviewUiView(context: Context) : FrameLayout(context) {
     }
 
     fun setVideoOrientation(videoOrientation: Int) {
-        Unit
+        for (previewLayer in previewLayers.values) {
+            val connection = previewLayer.session?.connections?.firstOrNull { it.videoPreviewLayer === previewLayer }
+            connection?.videoOrientation = videoOrientation
+        }
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {

@@ -71,6 +71,7 @@ import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
@@ -80,7 +81,12 @@ import android.os.BatteryManager
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.view.WindowManager
+import com.moblin.android.platform.avfoundation.AVAudioSession
 import com.moblin.android.platform.avfoundation.AVCaptureDevice
+import com.moblin.android.platform.coremotion.CMMotionManager
+import com.moblin.android.platform.coremotion.OperationQueue
+import com.moblin.android.media.haishinkit.codec.video.videoEncoderDataRateLimitFactor
+import java.lang.ref.WeakReference
 import com.moblin.android.various.utils.getUIZoomRange
 import com.moblin.android.various.utils.getZoomFactorScale
 import com.moblin.android.various.utils.hasUltraWideBackCamera
@@ -171,7 +177,7 @@ enum class BatteryState { unknown, unplugged, charging, full }
 
 enum class VideoOrientation { portrait, landscapeLeft, landscapeRight }
 
-enum class WatchProtocolWorkoutType { running, cycling }
+enum class WatchProtocolWorkoutType { walking, running, cycling }
 
 data class WatchProtocolWorkoutStats(
     val heartRate: Int? = null,
@@ -443,14 +449,30 @@ class Orientation {
 }
 
 class CameraLevel {
+    private var motion = CMMotionManager()
     val angle = MutableStateFlow<Double?>(null)
 
     fun start(portrait: Boolean) {
-        Unit
+        motion.deviceMotionUpdateInterval = 0.05
+        val weakSelf = WeakReference(this)
+        motion.startDeviceMotionUpdates(to = OperationQueue().apply { underlyingQueue = mainScope }) { data, _ ->
+            val self = weakSelf.get()
+            if (self == null || data == null) {
+                return@startDeviceMotionUpdates
+            }
+            val gravity = data.gravity
+            val newAngle = calcCameraAngle(gravity = gravity, portrait = portrait)
+            val angle = self.angle.value
+            if (angle == null) {
+                self.angle.value = newAngle
+            } else if (abs(newAngle - angle) > 0.002) {
+                self.angle.value = newAngle
+            }
+        }
     }
 
     fun stop() {
-        Unit
+        motion.stopDeviceMotionUpdates()
     }
 }
 
@@ -966,7 +988,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         showToast()
         Log.d("Model", "toast: Info: $title: ${subTitle ?: "-"}")
         if (vibrate) {
-            Unit
+            UIDevice.vibrate()
         }
     }
 
@@ -980,7 +1002,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         showToast()
         Log.d("Model", "toast: Warning: $title: ${subTitle ?: "-"}")
         if (vibrate) {
-            Unit
+            UIDevice.vibrate()
         }
     }
 
@@ -1001,7 +1023,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         showToast()
         Log.d("Model", "toast: Error: $title: ${subTitle ?: "-"}")
         if (vibrate) {
-            Unit
+            UIDevice.vibrate()
         }
     }
 
@@ -1084,7 +1106,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun setAllowHapticsAndSystemSoundsDuringRecording() {
-        Unit
+        runCatching { AVAudioSession.sharedInstance().setAllowHapticsAndSystemSoundsDuringRecording(database.vibrate) }
     }
 
     private fun removeUnusedKeychainItems() {
@@ -1440,9 +1462,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun setBitrateDropFix() {
         if (database.debug.bitrateDropFix.value) {
-            Unit
+            videoEncoderDataRateLimitFactor = database.debug.dataRateLimitFactor.value.toDouble()
         } else {
-            Unit
+            videoEncoderDataRateLimitFactor = 1.2
         }
     }
 
@@ -2197,8 +2219,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         database.alertsMediaGallery.bundledSounds + database.alertsMediaGallery.customSounds
 
     fun getAlertSoundUrl(soundId: UUID): String? {
-        if (database.alertsMediaGallery.bundledSounds.any { it.id == soundId }) {
-            Unit
+        val bundledSound = database.alertsMediaGallery.bundledSounds.firstOrNull { it.id == soundId }
+        if (bundledSound != null) {
+            return com.moblin.android.platform.Bundle.url("Alerts.bundle/${bundledSound.name}", "mp3")
         }
         return alertMediaStorage.makePath(id = soundId).toString()
     }

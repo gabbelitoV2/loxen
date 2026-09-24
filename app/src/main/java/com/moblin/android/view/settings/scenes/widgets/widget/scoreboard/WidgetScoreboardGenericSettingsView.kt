@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.common.various.formatShortDuration
 import com.moblin.android.localized
+import com.moblin.android.moblinwatch.shared.WatchProtocolGenericScoreboardAction
+import com.moblin.android.moblinwatch.shared.WatchProtocolGenericScoreboardActionType
 import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.swiftui.ButtonRole
 import com.moblin.android.platform.swiftui.ConfirmationDialog
@@ -37,6 +39,7 @@ import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.handleUpdateGenericScoreboard
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetGenericScoreboard
 import com.moblin.android.various.settings.SettingsWidgetGenericScoreboardClockDirection
@@ -119,7 +122,12 @@ private fun TimePickerView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             TimeButtonView(text = "Set") {
-                Unit
+                model.handleUpdateGenericScoreboard(
+                    action = WatchProtocolGenericScoreboardAction(
+                        id = widget.id,
+                        action = WatchProtocolGenericScoreboardActionType.setClock(minutes = minutes, seconds = seconds)
+                    )
+                )
                 onPresentingChange(false)
             }
             TimeButtonView(text = "Cancel") {
@@ -216,18 +224,38 @@ fun WidgetScoreboardGenericQuickButtonControlsView(model: Model = LocalModel.cur
         )
         Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
             ScoreboardUndoButtonView {
-                Unit
+                model.handleUpdateGenericScoreboard(
+                    action = WatchProtocolGenericScoreboardAction(
+                        id = widget.id,
+                        action = WatchProtocolGenericScoreboardActionType.undo
+                    )
+                )
             }
             ScoreboardResetScoreButtonView {
-                Unit
+                model.handleUpdateGenericScoreboard(
+                    action = WatchProtocolGenericScoreboardAction(
+                        id = widget.id,
+                        action = WatchProtocolGenericScoreboardActionType.reset
+                    )
+                )
             }
         }
         Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
             ScoreboardIncrementButtonView {
-                Unit
+                model.handleUpdateGenericScoreboard(
+                    action = WatchProtocolGenericScoreboardAction(
+                        id = widget.id,
+                        action = WatchProtocolGenericScoreboardActionType.incrementHome
+                    )
+                )
             }
             ScoreboardIncrementButtonView {
-                Unit
+                model.handleUpdateGenericScoreboard(
+                    action = WatchProtocolGenericScoreboardAction(
+                        id = widget.id,
+                        action = WatchProtocolGenericScoreboardActionType.incrementAway
+                    )
+                )
             }
         }
     }

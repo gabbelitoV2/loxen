@@ -2,6 +2,7 @@ package com.moblin.android.intents
 
 import com.moblin.android.localized
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.takeSnapshot
 
 class SnapshotIntent(private val model: Model) {
     companion object {
@@ -15,6 +16,6 @@ class SnapshotIntent(private val model: Model) {
     }
 
     suspend fun perform() {
-        Unit
+        model.takeSnapshot()
     }
 }

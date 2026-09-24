@@ -37,7 +37,6 @@ import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
-import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.FormSlider
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
@@ -60,6 +59,7 @@ import com.moblin.android.view.settings.streams.stream.KickLogoAndNameView
 import com.moblin.android.view.settings.streams.stream.TwitchLogoAndNameView
 import com.moblin.android.view.utils.OpenAiSettingsView
 import com.moblin.android.view.utils.TextItemLocalizedView
+import com.moblin.android.view.utils.VoicesView
 import java.io.File
 import java.util.UUID
 
@@ -124,7 +124,18 @@ fun AlertTextToSpeechView(
                 Text(formatOneDecimal(ttsDelay.toFloat()))
             }
         }
-        FormRow(onClick = { onNavigate("voices") }) {
+        NavigationLink(
+            destination = {
+                VoicesView(
+                    textToSpeechLanguageVoices = alert.textToSpeechLanguageVoices,
+                    onVoiceChange = onVoiceChange,
+                    onLanguageReset = onLanguageReset,
+                    rate = rate,
+                    volume = volume,
+                    ttsMonsterApiToken = "",
+                )
+            },
+        ) {
             Text("Voices")
         }
     }
@@ -213,10 +224,30 @@ fun AlertMediaView(
     Section {
         when (alert.mediaType) {
             SettingsWidgetAlertsAlertMediaType.gifAndSound -> {
-                FormRow(onClick = { onNavigate("alertImageSelector") }) {
+                NavigationLink(
+                    destination = {
+                        AlertImageSelectorView(
+                            model = model,
+                            gallery = model.database.alertsMediaGallery,
+                            alert = alert,
+                            imageId = alert.imageId,
+                            onImageIdChange = { alert.imageId = it },
+                            loopCount = alert.imageLoopCount.toFloat(),
+                        )
+                    },
+                ) {
                     TextItemLocalizedView(name = "Image", value = getImageName(model = model, id = alert.imageId))
                 }
-                FormRow(onClick = { onNavigate("alertSoundSelector") }) {
+                NavigationLink(
+                    destination = {
+                        AlertSoundSelectorView(
+                            gallery = model.database.alertsMediaGallery,
+                            alert = alert,
+                            soundId = alert.soundId,
+                            onSoundIdChange = { alert.soundId = it },
+                        )
+                    },
+                ) {
                     TextItemLocalizedView(name = "Sound", value = getSoundName(model = model, id = alert.soundId))
                 }
             }
@@ -414,16 +445,18 @@ fun WidgetAlertsSettingsView(
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
     Section {
-        FormRow(onClick = { onNavigate("twitchAlerts") }) {
+        NavigationLink(destination = { WidgetAlertsTwitchSettingsView(twitch = widget.alerts.twitch) }) {
             TwitchLogoAndNameView()
         }
-        FormRow(onClick = { onNavigate("kickAlerts") }) {
+        NavigationLink(destination = { WidgetAlertsKickSettingsView(kick = widget.alerts.kick) }) {
             KickLogoAndNameView()
         }
-        FormRow(onClick = { onNavigate("chatBotAlerts") }) {
+        NavigationLink(destination = { WidgetAlertsChatBotSettingsView(chatBot = widget.alerts.chatBot) }) {
             Text("Chat bot")
         }
-        FormRow(onClick = { onNavigate("speechToTextAlerts") }) {
+        NavigationLink(
+            destination = { WidgetAlertsSpeechToTextSettingsView(speechToText = widget.alerts.speechToText) },
+        ) {
             Text("Speech to text")
         }
     }

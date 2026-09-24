@@ -3,6 +3,7 @@ package com.moblin.android
 import android.app.Activity
 import android.app.Application
 import android.content.pm.ActivityInfo
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.handleSettingsUrls
 import com.moblin.android.view.MainView
 import com.moblin.android.view.externaldisplay.ExternalDisplayView
 import com.moblin.android.view.stream.CameraPreviewView
@@ -77,7 +79,7 @@ class SceneDelegate {
         urlContexts: List<URI>
     ) {
         val model = MoblinApp.globalModel ?: return
-        Unit
+        model.handleSettingsUrls(urls = urlContexts.map { Uri.parse(it.toString()) }.toSet())
         if (sessionRole == SESSION_ROLE_WINDOW_EXTERNAL_DISPLAY_NON_INTERACTIVE) {
             Unit
         }
@@ -89,7 +91,7 @@ class SceneDelegate {
     }
 
     fun scene(urlContexts: List<URI>) {
-        Unit
+        MoblinApp.globalModel?.handleSettingsUrls(urls = urlContexts.map { Uri.parse(it.toString()) }.toSet())
     }
 
     companion object {
@@ -115,7 +117,7 @@ class AppDelegate : Application() {
     }
 
     fun configurationForConnecting(sessionRole: String?): SceneDelegate =
-        TODO()
+        SceneDelegate()
     fun willFinishLaunchingWithOptions(): Boolean = true
 
     fun didFinishLaunchingWithOptions(): Boolean = true

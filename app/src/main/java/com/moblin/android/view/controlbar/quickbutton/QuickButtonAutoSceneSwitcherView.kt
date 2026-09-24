@@ -2,6 +2,7 @@ package com.moblin.android.view.controlbar.quickbutton
 
 import androidx.compose.runtime.Composable
 import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.PickerStyle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.AutoSceneSwitcherProvider
 import com.moblin.android.various.settings.SettingsAutoSceneSwitchers
@@ -19,6 +20,7 @@ fun QuickButtonAutoSceneSwitcherView(
             AutoSwitchersSelectView(
                 autoSceneSwitcher = autoSceneSwitcher,
                 autoSceneSwitchers = autoSceneSwitchers,
+                pickerStyle = PickerStyle.inline,
             )
         }
         ShortcutSectionView {

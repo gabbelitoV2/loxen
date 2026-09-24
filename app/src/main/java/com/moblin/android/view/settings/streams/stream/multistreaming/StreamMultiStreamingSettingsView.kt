@@ -17,7 +17,6 @@ import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
-import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
@@ -109,10 +108,19 @@ private fun numberOfEnabledDestinations(multiStreaming: SettingsStreamMultiStrea
 
 @Composable
 fun StreamMultiStreamingSettingsView(
+    stream: SettingsStream,
     multiStreaming: SettingsStreamMultiStreaming,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    FormRow(onClick = { onNavigate("Multi streaming") }) {
+    NavigationLink(
+        destination = {
+            MultiStreamingSettingsView(
+                stream = stream,
+                multiStreaming = multiStreaming,
+                onNavigate = onNavigate,
+            )
+        },
+    ) {
         Text("Multi streaming")
         Spacer(Modifier.weight(1f))
         GrayTextView(text = numberOfEnabledDestinations(multiStreaming))

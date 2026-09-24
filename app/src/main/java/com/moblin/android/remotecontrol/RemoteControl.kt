@@ -1002,7 +1002,16 @@ enum class RemoteControlReaction(val wireName: String) {
     ;
 
     fun toSettings(): SettingsReaction =
-        SettingsReaction.fromRawValue(wireName) ?: TODO("Unknown reaction")
+        when (this) {
+            Fireworks -> SettingsReaction.FIREWORKS
+            Balloons -> SettingsReaction.BALLOONS
+            Hearts -> SettingsReaction.HEARTS
+            Confetti -> SettingsReaction.CONFETTI
+            Lasers -> SettingsReaction.LASERS
+            Rain -> SettingsReaction.RAIN
+            Glasses -> SettingsReaction.GLASSES
+            Sparkle -> SettingsReaction.SPARKLE
+        }
 
     companion object {
         val allCases: List<RemoteControlReaction> = entries

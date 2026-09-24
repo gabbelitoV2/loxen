@@ -7,6 +7,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
@@ -25,6 +28,8 @@ import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.FormButton
 import com.moblin.android.platform.swiftui.FormRow
+import com.moblin.android.platform.swiftui.LocalNavigator
+import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
@@ -54,6 +59,8 @@ import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.ShortcutSectionView
 import com.moblin.android.view.utils.SwipeLeftToDeleteHelpView
 import com.moblin.android.view.utils.TextEditNavigationView
+import com.moblin.android.view.utils.TextEditView
+import com.moblin.android.view.utils.WiFiSsidEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import java.util.UUID
 import com.moblin.android.various.model.setCurrentDjiDevice
@@ -101,8 +108,15 @@ private fun ColumnScope.DjiDeviceSelectDeviceSettingsView(
     }
 
     Section(header = "Device") {
-        FormRow(
-            onClick = { onNavigate("DjiDeviceScannerSettingsView") },
+        NavigationLink(
+            destination = {
+                val navigator = LocalNavigator.current
+                DjiDeviceScannerSettingsView(
+                    onChange = { onDeviceChange(it) },
+                    selectedId = device.bluetoothPeripheralId?.toString() ?: localized("Select device"),
+                    onDismiss = { navigator?.pop() },
+                )
+            },
             enabled = !isStarted,
         ) {
             GrayTextView(text = bluetoothPeripheralName ?: localized("Select device"))
@@ -123,8 +137,10 @@ private fun ColumnScope.DjiDeviceWiFiSettingsView(
         header = "WiFi",
         footer = "The DJI device will connect to and stream RTMP over this WiFi.",
     ) {
-        FormRow(
-            onClick = { onNavigate("DjiDeviceWiFiSettingsInnerView") },
+        NavigationLink(
+            destination = {
+                DjiDeviceWiFiSettingsInnerView(database = model.database, device = device)
+            },
             enabled = !isStarted,
         ) {
             TextItemLocalizedView(name = "Network", value = wifiSsid)
@@ -161,16 +177,45 @@ private fun DjiDeviceWiFiSettingsInnerView(
         }
     }
 
-    LaunchedEffect(wifiSsid, wifiPassword) {
-        updateSavedNetworks()
-    }
-
     Form(title = "WiFi") {
         Section(header = "Network") {
-            FormRow(onClick = { onNavigate("WiFiSsidEditView") }) {
+            NavigationLink(
+                destination = {
+                    val navigator = LocalNavigator.current
+                    var value by remember { mutableStateOf(device.wifiSsid) }
+                    WiFiSsidEditView(
+                        value = value,
+                        onValueChange = { value = it },
+                        onSubmit = {
+                            device.wifiSsid = it
+                            if (device.wifiPassword.isEmpty()) {
+                                val network = database.getSavedWiFiNetwork(device.wifiSsid)
+                                if (network != null) {
+                                    device.wifiPassword = network.password
+                                }
+                            }
+                            updateSavedNetworks()
+                        },
+                        onDismiss = { navigator?.pop() },
+                    )
+                },
+            ) {
                 TextItemLocalizedView(name = "SSID", value = wifiSsid)
             }
-            FormRow(onClick = { onNavigate("TextEditView") }) {
+            NavigationLink(
+                destination = {
+                    val navigator = LocalNavigator.current
+                    TextEditView(
+                        title = localized("Password"),
+                        value = device.wifiPassword,
+                        onSubmit = {
+                            device.wifiPassword = it
+                            updateSavedNetworks()
+                        },
+                        onDismiss = { navigator?.pop() },
+                    )
+                },
+            ) {
                 TextItemLocalizedView(name = "Password", value = wifiPassword, sensitive = true)
             }
         }

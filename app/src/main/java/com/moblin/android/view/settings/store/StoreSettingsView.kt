@@ -31,10 +31,13 @@ import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.swiftui.Alert
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Store
+import com.moblin.android.various.model.purchaseProduct
+import com.moblin.android.various.model.restorePurchases
 import com.moblin.android.view.utils.TextButtonView
 import kotlinx.coroutines.launch
 
@@ -57,7 +60,7 @@ private fun StoreSettingsRestoreView(model: Model = LocalModel.current) {
                         isRestoring = true
                         scope.launch {
                             runCatching {
-                                Unit
+                                model.restorePurchases()
                             }.onFailure {
                                 showErrorAlert = true
                             }
@@ -129,7 +132,7 @@ private fun StoreSettingsIconsToBuyView(model: Model = LocalModel.current, store
                                             disabledPurchaseButtons + icon.id
                                         scope.launch {
                                             runCatching {
-                                                Unit
+                                                model.purchaseProduct(id = icon.id)
                                             }.onFailure { error ->
                                                 Log.i(
                                                     TAG,
@@ -178,6 +181,7 @@ private fun StoreSettingsMyIconsView(model: Model = LocalModel.current, store: S
             selection = iconImage,
             options = myIcons.map { it.image() },
             text = { image -> myIcons.firstOrNull { it.image() == image }?.name ?: image },
+            pickerStyle = PickerStyle.inline,
             onChange = { image -> store.iconImage.value = image }
         )
     }

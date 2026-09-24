@@ -18,6 +18,7 @@ import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.moving
@@ -191,7 +192,8 @@ private fun AutoSceneSwitcherItemView(autoSceneSwitcher: SettingsAutoSceneSwitch
 fun AutoSwitchersSelectView(
     model: Model = LocalModel.current,
     autoSceneSwitcher: AutoSceneSwitcherProvider,
-    autoSceneSwitchers: SettingsAutoSceneSwitchers
+    autoSceneSwitchers: SettingsAutoSceneSwitchers,
+    pickerStyle: PickerStyle = PickerStyle.automatic
 ) {
     val currentSwitcherId by autoSceneSwitcher.currentSwitcherId.collectAsState()
     val switchers = autoSceneSwitchers.switchers
@@ -208,6 +210,7 @@ fun AutoSwitchersSelectView(
                     switchers.firstOrNull { it.id == id }?.name ?: localized("-- None --")
                 }
             },
+            pickerStyle = pickerStyle,
             onChange = {
                 autoSceneSwitcher.currentSwitcherId.value = it
                 model.setAutoSceneSwitcher(it)

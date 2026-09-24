@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -89,7 +90,22 @@ private fun MicView(
             scene.micId = mic.current.value.id
         }
     }
-    FormRow(onClick = { onNavigate("Mic") }) {
+    NavigationLink(
+        destination = {
+            val mics by model.database.mics.mics.collectAsState()
+            InlinePickerView(
+                title = "Mic",
+                onChange = { id ->
+                    scene.micId = id
+                    if (model.getSelectedScene() === scene) {
+                        model.switchMicIfNeededAfterSceneSwitch()
+                    }
+                },
+                items = mics.map { InlinePickerItem(id = it.id, text = it.name) },
+                initialSelectedId = scene.micId,
+            )
+        },
+    ) {
         Text(localized("Mic"))
         Spacer(Modifier.weight(1f))
         GrayTextView(model.getMicById(id = micId)?.name ?: localized("Unknown 😢"))
@@ -435,7 +451,7 @@ fun SceneShortcutView(
     scene: SettingsScene,
     onNavigate: (String) -> Unit = LocalOnNavigate.current,
 ) {
-    FormRow(onClick = { onNavigate("SceneSettingsView") }) {
+    NavigationLink(destination = { SceneSettingsView(database = database, scene = scene) }) {
         Text(localized("Scene"))
     }
 }

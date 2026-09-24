@@ -1,8 +1,8 @@
 package com.moblin.android.media.rtmpserver
 
-import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Log
+import com.moblin.android.common.various.makeSampleBuffer
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.codec.video.VideoDecoder
 import com.moblin.android.media.haishinkit.codec.video.VideoDecoderDelegate
@@ -32,7 +32,14 @@ import com.moblin.android.media.haishinkit.rtmp.message.RtmpMessageType
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpSetChunkSizeMessage
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpSetPeerBandwidthMessage
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpWindowAcknowledgementSizeMessage
+import com.moblin.android.platform.audio.audioChannelCount
+import com.moblin.android.platform.audio.audioSampleRate
+import com.moblin.android.platform.audio.makePcmFormat
+import com.moblin.android.platform.avfoundation.AVAudioConverter
+import com.moblin.android.platform.avfoundation.AVAudioPCMBuffer
 import java.net.URI
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlinx.coroutines.CoroutineScope
 
 private const val TAG = "RtmpServerChunkStream"
@@ -66,7 +73,7 @@ class RtmpServerChunkStream(
     private var formatDescription: MediaFormat? = null
     private var videoDecoder: VideoDecoder? = null
     private var audioBuffer: ByteArray? = null
-    private var audioDecoder: MediaCodec? = null
+    private var audioDecoder: AVAudioConverter? = null
     private var pcmAudioFormat: MediaFormat? = null
     private var pcmAudioBuffer: ShortArray? = null
 
@@ -351,10 +358,26 @@ class RtmpServerChunkStream(
         val config = MpegTsAudioConfig.fromData(messageBody.copyOfRange(codec.headerSize, messageBody.size))
             ?: return
         Log.i(TAG, "rtmp-server: client: $config")
-        audioBuffer = TODO("AVAudioCompressedBuffer port: allocate the compressed AAC packet buffer")
-        audioDecoder = TODO("AVAudioConverter port: configure a MediaCodec audio/mp4a-latm decoder with csd-0 from the sequence header")
-        pcmAudioFormat = TODO("AVAudioFormat port: build an android.media.MediaFormat for the decoded 16 bit PCM output")
-        pcmAudioBuffer = TODO("AVAudioPCMBuffer port: allocate a 1024 frame ShortArray for the decoded PCM")
+        val audioFormat = config.audioStreamBasicDescription()
+        val channelCount = audioFormat.audioChannelCount()
+        if (channelCount <= 0) {
+            Log.i(TAG, "rtmp-server: client: Failed to create audio format")
+            audioBuffer = null
+            audioDecoder?.release()
+            audioDecoder = null
+            return
+        }
+        audioFormat.setByteBuffer("csd-0", ByteBuffer.wrap(config.encode()))
+        Log.i(TAG, "rtmp-server: client: $audioFormat")
+        audioBuffer = ByteArray(4096 * channelCount)
+        val pcmAudioFormat = makePcmFormat(audioFormat.audioSampleRate(), channelCount)
+        this.pcmAudioFormat = pcmAudioFormat
+        pcmAudioBuffer = ShortArray(1024 * channelCount)
+        audioDecoder?.release()
+        audioDecoder = AVAudioConverter.create(from = audioFormat, to = pcmAudioFormat)
+        if (audioDecoder == null) {
+            Log.i(TAG, "rtmp-server: client: Failed to create audio decoder")
+        }
     }
 
     private fun processMessageAudioTypeRaw(client: RtmpServerClient, codec: FlvAudioCodec) {
@@ -371,7 +394,12 @@ class RtmpServerChunkStream(
         if (audioDecoder == null || pcmAudioBuffer == null) {
             return
         }
-        val pcm: ShortArray = TODO("MediaCodec audio/mp4a-latm decode of the $length byte AAC packet")
+        val pcm = this.pcmAudioBuffer ?: return
+        val error = decodeAudio(this.audioDecoder ?: return, audioBuffer, length, pcm)
+        if (error != null) {
+            Log.i(TAG, "rtmp-server: client: Audio decode error of packet with length $length: $error")
+            return
+        }
         val sampleBuffer = makeAudioSampleBuffer(client, pcm) ?: return
         client.handleAudioBuffer(sampleBuffer)
     }
@@ -578,6 +606,30 @@ class RtmpServerChunkStream(
         val audioTimestamp = mediaTimestamp - mediaTimestampZero
         val presentationTimeUs = ((audioTimestamp + getBasePresentationTimeStamp(client)) * 1000).toLong() +
             client.latency * 1000L
+        val pcmAudioFormat = this.pcmAudioFormat ?: return null
+        return audioBuffer.makeSampleBuffer(
+            presentationTimeUs,
+            pcmAudioFormat.audioSampleRate(),
+            pcmAudioFormat.audioChannelCount(),
+        )
+    }
+
+    private fun decodeAudio(
+        audioDecoder: AVAudioConverter,
+        input: ByteArray,
+        length: Int,
+        output: ShortArray,
+    ): String? {
+        val pcmBuffer = AVAudioPCMBuffer(pcmFormat = audioDecoder.outputFormat, frameCapacity = 0)
+            ?: return "no PCM buffer"
+        val error = audioDecoder.convert(to = pcmBuffer) { input.copyOf(length) }
+        if (error != null) {
+            return error
+        }
+        val samples = ByteBuffer.wrap(pcmBuffer.data).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+        val count = minOf(samples.remaining(), output.size)
+        samples.get(output, 0, count)
+        output.fill(0, count)
         return null
     }
 

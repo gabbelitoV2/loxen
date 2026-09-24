@@ -10,6 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
+import com.moblin.android.moblinwatch.shared.WatchProtocolPadelScoreboardAction
+import com.moblin.android.moblinwatch.shared.WatchProtocolPadelScoreboardActionType
 import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.IndexSet
 import com.moblin.android.platform.swiftui.LocalNavigator
@@ -20,6 +22,7 @@ import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.platform.swiftui.move
 import com.moblin.android.platform.swiftui.remove
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.handleUpdatePadelScoreboard
 import com.moblin.android.various.model.sceneUpdated
 import com.moblin.android.various.model.sendScoreboardPlayersToWatch
 import com.moblin.android.various.settings.Database
@@ -152,10 +155,20 @@ fun WidgetScoreboardPadelQuickButtonControlsView(
         ) {
             Spacer(modifier = Modifier.weight(1f))
             ScoreboardUndoButtonView(action = {
-                Unit
+                model.handleUpdatePadelScoreboard(
+                    action = WatchProtocolPadelScoreboardAction(
+                        id = widget.id,
+                        action = WatchProtocolPadelScoreboardActionType.undo
+                    )
+                )
             })
             ScoreboardIncrementButtonView(action = {
-                Unit
+                model.handleUpdatePadelScoreboard(
+                    action = WatchProtocolPadelScoreboardAction(
+                        id = widget.id,
+                        action = WatchProtocolPadelScoreboardActionType.incrementHome
+                    )
+                )
             })
         }
         Row(
@@ -164,10 +177,20 @@ fun WidgetScoreboardPadelQuickButtonControlsView(
         ) {
             Spacer(modifier = Modifier.weight(1f))
             ScoreboardResetScoreButtonView(action = {
-                Unit
+                model.handleUpdatePadelScoreboard(
+                    action = WatchProtocolPadelScoreboardAction(
+                        id = widget.id,
+                        action = WatchProtocolPadelScoreboardActionType.reset
+                    )
+                )
             })
             ScoreboardIncrementButtonView(action = {
-                Unit
+                model.handleUpdatePadelScoreboard(
+                    action = WatchProtocolPadelScoreboardAction(
+                        id = widget.id,
+                        action = WatchProtocolPadelScoreboardActionType.incrementAway
+                    )
+                )
             })
         }
     }

@@ -10,9 +10,11 @@ import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.Label
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.fallbackStream
+import com.moblin.android.various.model.setBitrate
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsBitratePreset
 import com.moblin.android.various.settings.SettingsStream
@@ -39,9 +41,10 @@ fun QuickButtonBitrateView(
                     selection = stream.bitrate,
                     options = database.bitratePresets.map { it.bitrate },
                     text = { formatBytesPerSecond(speed = it.toLong()) },
+                    pickerStyle = PickerStyle.inline,
                     onChange = { bitrate ->
                         stream.bitrate = bitrate
-                        Unit
+                        model.setBitrate(bitrate = bitrate)
                     },
                 )
             }

@@ -155,7 +155,7 @@ class WorkoutDevice(wheelCircumference: Int) : BluetoothGattCallback() {
             return
         }
         peripheral = device.connectGatt(
-            TODO("BluetoothDevice.connectGatt needs an Android Context supplied by the Activity layer"),
+            AppDelegate.context,
             false,
             this,
         )

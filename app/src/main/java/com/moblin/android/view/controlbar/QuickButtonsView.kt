@@ -799,7 +799,7 @@ fun QuickButtonsInnerView(
                                 onDismissRequest = { presentingStartWorkoutTypePicker = false },
                             ) {
                                 Button("Start walking workout") {
-                                    model.startWorkout(type = TODO("walking"))
+                                    model.startWorkout(type = WatchProtocolWorkoutType.walking)
                                 }
                                 Button("Start running workout") {
                                     model.startWorkout(type = WatchProtocolWorkoutType.running)

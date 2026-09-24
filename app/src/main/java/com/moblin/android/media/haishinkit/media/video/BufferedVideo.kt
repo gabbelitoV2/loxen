@@ -17,8 +17,6 @@ private val driftTrackerVideoMedia: DriftTrackerMedia
 private val MediaSample.presentationTimeSeconds: Double
     get() = presentationTimeUs / 1_000_000.0
 
-private fun MediaSample.replacePresentationTimeStamp(presentationTimeUs: Long): MediaSample =
-    TODO()
 class BufferedVideo(
     private var cameraId: UUID,
     private val name: String,

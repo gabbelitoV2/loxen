@@ -3,6 +3,8 @@ package com.moblin.android.various.model
 import android.util.Log
 import com.moblin.android.media.wifiaware.WiFiAwareReceiver
 import com.moblin.android.media.wifiaware.WiFiAwareSender
+import com.moblin.android.view.settings.wifiaware.WACapabilities
+import com.moblin.android.view.settings.wifiaware.WAFeature
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -12,7 +14,7 @@ private val wiFiAwareScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
 fun Model.wiFiAwareUpdated() {
     stopWiFiAware()
-    if (database.wiFiAware.enabled && TODO("WACapabilities/WAFeature")) {
+    if (database.wiFiAware.enabled && WACapabilities.supportedFeatures.contains(WAFeature.wifiAware)) {
         startWiFiAware()
     }
 }

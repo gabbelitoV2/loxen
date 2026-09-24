@@ -1,7 +1,6 @@
 package com.moblin.android.media.haishinkit.mpeg
 
 import android.media.AudioFormat
-import android.media.MediaCodec
 import android.media.MediaFormat
 import android.util.Log
 import com.moblin.android.common.various.createSilent
@@ -10,10 +9,19 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.media.WrappingTimestamp
 import com.moblin.android.media.haishinkit.codec.video.VideoDecoder
 import com.moblin.android.media.haishinkit.codec.video.VideoDecoderDelegate
+import com.moblin.android.media.haishinkit.mpeg.avc.AvcNalUnitType
+import com.moblin.android.media.haishinkit.mpeg.avc.makeFormatDescription
+import com.moblin.android.media.haishinkit.mpeg.hevc.HevcNalUnitType
+import com.moblin.android.media.haishinkit.mpeg.hevc.makeFormatDescription
 import com.moblin.android.media.haishinkit.util.ByteReader
+import com.moblin.android.platform.audio.makePcmFormat
+import com.moblin.android.platform.avfoundation.AVAudioConverter
+import com.moblin.android.platform.avfoundation.AVAudioPCMBuffer
 import com.moblin.android.various.utils.currentPresentationTimeStamp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlin.math.roundToInt
 
 private const val logTag = "MpegTsReader"
@@ -46,7 +54,7 @@ class MpegTsReader(
     private var audioBuffer: ByteArray? = null
     private var pcmAudioBuffer: ShortArray? = null
     private var latestAudioBufferPresentationTimeStamp: Long? = null
-    private var audioDecoder: MediaCodec? = null
+    private var audioDecoder: AVAudioConverter? = null
     private var pcmAudioFormat: AudioFormat? = null
     private var videoDecoder: VideoDecoder? = null
     var delegate: MpegTsReaderDelegate? = null
@@ -120,14 +128,39 @@ class MpegTsReader(
         delegate?.mpegTsReaderAudioBuffer(pcmSampleBuffer)
     }
 
-    private fun createAudioDecoder(formatDescription: MediaFormat): MediaCodec =
-        TODO()
+    private fun createAudioDecoder(formatDescription: MediaFormat): AVAudioConverter? {
+        audioDecoder?.release()
+        val mime = formatDescription.getString(MediaFormat.KEY_MIME) ?: return null
+        val sampleRate = formatDescription.getInteger(MediaFormat.KEY_SAMPLE_RATE)
+        val channelCount = formatDescription.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
+        val audioFormat = MediaFormat.createAudioFormat(mime, sampleRate, channelCount)
+        if (mime == MediaFormat.MIMETYPE_AUDIO_AAC) {
+            audioFormat.setByteBuffer("csd-0", ByteBuffer.wrap(MpegTsAudioConfig(formatDescription).encode()))
+        }
+        val audioDecoder = AVAudioConverter.create(from = audioFormat, to = makePcmFormat(sampleRate, channelCount))
+        if (audioDecoder == null) {
+            Log.i(logTag, "mpeg-ts-reader: Failed to create audio decoder")
+        }
+        return audioDecoder
+    }
+
     private fun decodeAudio(
-        audioDecoder: MediaCodec,
+        audioDecoder: AVAudioConverter,
         input: ByteArray,
         length: Int,
         output: ShortArray,
-    ): Boolean = TODO("MediaCodec audio/mp4a-latm decode port")
+    ): Boolean {
+        val pcmBuffer = AVAudioPCMBuffer(pcmFormat = audioDecoder.outputFormat, frameCapacity = 0) ?: return false
+        val error = audioDecoder.convert(to = pcmBuffer) { input.copyOf(length) }
+        if (error != null) {
+            return false
+        }
+        val samples = ByteBuffer.wrap(pcmBuffer.data).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+        val count = minOf(samples.remaining(), output.size)
+        samples.get(output, 0, count)
+        output.fill(0, count)
+        return true
+    }
 
     private fun outputSilenceIfGap(presentationTimeStamp: Long, pcmAudioFormat: AudioFormat) {
         try {
@@ -373,7 +406,7 @@ class MpegTsReader(
         val units = readH264NalUnits(
             packetizedElementaryStream.data,
             nalUnits,
-            TODO("AvcNalUnitType is not available"),
+            listOf(AvcNalUnitType.pps, AvcNalUnitType.sps, AvcNalUnitType.idr),
         )
         val formatDescription = units.makeFormatDescription()
         if (formatDescription != null &&
@@ -392,7 +425,7 @@ class MpegTsReader(
             formatDescriptions[packetId],
             data,
             sampleSizes,
-            TODO("AvcNalUnitType is not available"),
+            units.any { it.header.type == AvcNalUnitType.idr },
         ) ?: return
         handleVideoSampleBuffer(sampleBuffer)
     }
@@ -405,7 +438,7 @@ class MpegTsReader(
         val units = readH265NalUnits(
             packetizedElementaryStream.data,
             nalUnits,
-            TODO("HevcNalUnitType is not available"),
+            listOf(HevcNalUnitType.sps, HevcNalUnitType.pps, HevcNalUnitType.vps, HevcNalUnitType.prefixSeiNut),
         )
         val formatDescription = units.makeFormatDescription()
         if (formatDescription != null &&
@@ -434,14 +467,12 @@ class MpegTsReader(
             formatDescriptions[packetId],
             data,
             sampleSizes,
-            TODO("HevcNalUnitType is not available"),
+            units.any { it.header.type == HevcNalUnitType.sps },
         ) ?: return
         handleVideoSampleBuffer(sampleBuffer)
     }
 
     private fun readHevcTimecode(unit: NalUnit): Pair<String, Int>? =
-        null
-    private fun List<NalUnit>.makeFormatDescription(): MediaFormat? =
         null
     private fun makeSampleBuffer(
         packetId: UShort,

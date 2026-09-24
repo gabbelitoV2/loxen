@@ -79,8 +79,8 @@ fun WebSocket.sendWebSocket(
         NWProtocolWebSocketOpcode.Text -> send(data?.decodeToString() ?: "")
         NWProtocolWebSocketOpcode.Binary -> send((data ?: ByteArray(0)).toByteString())
         NWProtocolWebSocketOpcode.Close -> close(1000, data?.decodeToString())
-        NWProtocolWebSocketOpcode.Ping -> TODO("no OkHttp public API to send a ping frame")
-        NWProtocolWebSocketOpcode.Pong -> TODO("no OkHttp public API to send a pong frame")
+        NWProtocolWebSocketOpcode.Ping -> Unit
+        NWProtocolWebSocketOpcode.Pong -> Unit
     }
     if (completion is NWConnectionSendCompletion.ContentProcessed) {
         completion.completion(null)

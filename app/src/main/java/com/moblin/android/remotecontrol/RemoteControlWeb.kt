@@ -1,5 +1,6 @@
 package com.moblin.android.remotecontrol
 
+import android.net.nsd.NsdServiceInfo
 import android.util.Log
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.network.HttpServer
@@ -224,7 +225,10 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
         server = HttpServer(
             queue = Dispatchers.Main,
             routes = routes,
-            service = TODO("no Android counterpart for NetService advertisement"),
+            service = NsdServiceInfo().apply {
+                serviceName = "moblin"
+                serviceType = "_http._tcp"
+            },
         )
         server?.start(port = port)
     }

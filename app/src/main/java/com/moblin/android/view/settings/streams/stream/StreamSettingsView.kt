@@ -293,6 +293,7 @@ fun StreamSettingsView(
                             Text(localized("RTMP"))
                         }
                         StreamMultiStreamingSettingsView(
+                            stream = stream,
                             multiStreaming = stream.multiStreaming,
                         )
                     }

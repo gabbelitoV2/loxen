@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
@@ -19,7 +20,6 @@ import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.codec.video.VideoEncoderSettings
 import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.swiftui.Form
-import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.FormSlider
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
@@ -37,6 +37,7 @@ import com.moblin.android.various.settings.SettingsStreamRateControl
 import com.moblin.android.various.settings.SettingsStreamResolution
 import com.moblin.android.various.settings.fpss
 import com.moblin.android.view.settings.bitratepresets.BitratePresetsSettingsView
+import com.moblin.android.view.utils.TextEditView
 import com.moblin.android.view.utils.TextItemLocalizedView
 import com.moblin.android.various.model.reloadStreamIfEnabled
 import com.moblin.android.various.model.setStreamBitrate
@@ -201,8 +202,18 @@ private fun KeyFrameIntervalSettingsView(
 ) {
     val isLive by model.isLive.collectAsState()
     Section {
-        FormRow(
-            onClick = { onNavigate("Key frame interval") },
+        NavigationLink(
+            destination = {
+                TextEditView(
+                    title = localized("Key frame interval"),
+                    value = stream.maxKeyFrameInterval.toString(),
+                    footers = listOf(
+                        localized("Maximum key frame interval in seconds. Set to 0 for automatic."),
+                    ),
+                    keyboardType = KeyboardType.Number,
+                    onSubmit = { submitMaxKeyFrameInterval(it, stream, model) },
+                )
+            },
             enabled = !(stream.enabled && isLive),
         ) {
             TextItemLocalizedView(
@@ -374,9 +385,32 @@ private fun StreamTimecodesSettingsView(
                 "Timecodes are in UTC and requires H.265/HEVC codec and SRT(LA) or RIST.",
         ),
     ) {
-        FormRow(
-            onClick = { onNavigate("Timecodes") },
-            enabled = !disabled,
+        NavigationLink(
+            destination = {
+                val isLiveNow by model.isLive.collectAsState()
+                Form(title = localized("Timecodes")) {
+                    Section {
+                        NavigationLink(
+                            destination = {
+                                TextEditView(
+                                    title = localized("NTP pool address"),
+                                    value = stream.ntpPoolAddress,
+                                    onSubmit = {
+                                        stream.ntpPoolAddress = it
+                                        if (stream.enabled) {
+                                            model.reloadNtpClient()
+                                            model.reloadIngests()
+                                        }
+                                    },
+                                )
+                            },
+                            enabled = stream.codec == SettingsStreamCodec.h265hevc && !(stream.enabled && isLiveNow),
+                        ) {
+                            TextItemLocalizedView(name = "NTP pool address", value = stream.ntpPoolAddress)
+                        }
+                    }
+                }
+            },
         ) {
             Toggle(
                 title = localized("Timecodes"),

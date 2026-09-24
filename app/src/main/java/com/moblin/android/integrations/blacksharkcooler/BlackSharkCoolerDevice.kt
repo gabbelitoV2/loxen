@@ -435,11 +435,11 @@ object BlackSharkLib {
 
     class UnknownMessage(val rawData: ByteArray)
 
-    fun getServiceUUID(): UUID = TODO("no Android counterpart for BlackSharkLib")
+    fun getServiceUUID(): UUID = UUID.fromString("0000A0A0-3C17-D293-8E48-14FE2E4DA212")
 
-    fun getReadCharacteristicsUUID(): UUID = TODO("no Android counterpart for BlackSharkLib")
+    fun getReadCharacteristicsUUID(): UUID = UUID.fromString("0000a002-0000-1000-8000-00805f9b34fb")
 
-    fun getWriteCharacteristicsUUID(): UUID = TODO("no Android counterpart for BlackSharkLib")
+    fun getWriteCharacteristicsUUID(): UUID = UUID.fromString("0000a001-0000-1000-8000-00805f9b34fb")
 
     fun detectModel(advertisedName: String?): Model? = null
 
@@ -459,7 +459,35 @@ object BlackSharkLib {
         blue: Int,
         brightness: Int,
         model: Model,
-    ): ByteArray? = TODO("no Android counterpart for BlackSharkLib")
+    ): ByteArray? {
+        if (brightness < 0 || brightness > 100) {
+            println("ERROR: Invalid brightness value. Must be between 0 and 100")
+            return null
+        }
+        val scale = brightness / 100.0
+        val r = (red.coerceIn(0, 255) * scale).toInt().toByte()
+        val g = (green.coerceIn(0, 255) * scale).toInt().toByte()
+        val b = (blue.coerceIn(0, 255) * scale).toInt().toByte()
+        if (model == Model.PRO5) {
+            return pro5SolidColorFrame(r, g, b)
+        }
+        return byteArrayOf(
+            0x2F, 0x01, 0x20, 0x00,
+            0x06,
+            0x00, 0xFF.toByte(), 0xFF.toByte(), 0xFF.toByte(), 0x00, 0x01,
+            r, g, b,
+        ) + ByteArray(33)
+    }
+
+    private fun pro5SolidColorFrame(red: Byte, green: Byte, blue: Byte): ByteArray =
+        byteArrayOf(
+            0x10, 0x01, 0x10, 0x00,
+            0x00, 0x09, 0xFF.toByte(), 0x00,
+            0x64,
+            0x01,
+            red, green, blue,
+            0x00, 0x00, 0x00,
+        )
 
     fun getTurnOffLEDCommand(model: Model): ByteArray =
         ByteArray(0)

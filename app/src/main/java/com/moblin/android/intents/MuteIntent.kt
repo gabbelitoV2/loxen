@@ -1,6 +1,7 @@
 package com.moblin.android.intents
 
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.settings.SettingsQuickButtonType
 
 class MuteIntent(private val model: Model) {
 
@@ -11,6 +12,7 @@ class MuteIntent(private val model: Model) {
     }
 
     suspend fun perform() {
-        Unit
+        model.setMuted(value = true)
+        model.setQuickButton(type = SettingsQuickButtonType.mute, isOn = true)
     }
 }

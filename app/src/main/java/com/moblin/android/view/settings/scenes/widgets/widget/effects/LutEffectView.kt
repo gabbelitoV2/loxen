@@ -6,6 +6,7 @@ import com.moblin.android.LocalOnNavigate
 import com.moblin.android.platform.swiftui.Label
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsColor
@@ -56,6 +57,7 @@ fun LutEffectView(
                     luts.firstOrNull { it.id == id }?.name ?: "-- None --"
                 }
             },
+            pickerStyle = PickerStyle.inline,
             onChange = { newValue ->
                 lut.lut = newValue
                 updateWidget(

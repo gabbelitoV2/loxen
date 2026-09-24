@@ -2,8 +2,10 @@ package com.moblin.android.streamingplatforms.soop
 
 import android.util.Log
 import com.moblin.android.integrations.emotes.Emotes
+import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.appendChatMessage
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 import java.time.Instant
@@ -284,7 +286,25 @@ class SoopChat(
         }
         val user = parts[5]
         val segments = createSegments(parts[0])
-        Unit
+        model.appendChatMessage(
+            platform = Platform.soop,
+            messageId = null,
+            displayName = user,
+            user = user,
+            userId = null,
+            userColor = null,
+            userBadges = listOf(),
+            segments = segments,
+            timestamp = model.statusOther.digitalClock.value,
+            timestampTime = Instant.now(),
+            isAction = false,
+            isSubscriber = false,
+            isModerator = false,
+            isOwner = false,
+            bits = null,
+            highlight = null,
+            live = true,
+        )
     }
 
     private suspend fun getChannelInfo(): PlayerLiveChannel {

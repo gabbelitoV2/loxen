@@ -1,6 +1,8 @@
 package com.moblin.android.various
 
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.handleControllerFunction
+import com.moblin.android.various.model.setZoomX
 import com.moblin.android.various.settings.SettingsGimbalMotion
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +37,7 @@ class Gimbal(private val model: Model) {
 
     fun setTracking(on: Boolean) {
         gimbalScope.launch {
-            Unit
+            tracking = on
         }
     }
 
@@ -93,14 +95,37 @@ class Gimbal(private val model: Model) {
         if (shutterCount % 2 != 0) {
             return
         }
-        Unit
+        val gimbal = model.database.gimbal
+        model.handleControllerFunction(
+            buttonId = "g:shutter",
+            function = gimbal.functionShutter,
+            functionData = gimbal.functionDataShutter,
+            pressed = false,
+        )
     }
 
     private fun handleAccessoryEventCameraFlip() {
-        Unit
+        val gimbal = model.database.gimbal
+        model.handleControllerFunction(
+            buttonId = "g:flip",
+            function = gimbal.functionFlip,
+            functionData = gimbal.functionDataFlip,
+            pressed = false,
+        )
     }
 
     private fun handleAccessoryEventCameraZoom(factor: Double) {
-        Unit
+        val gimbal = model.database.gimbal
+        var zoomIn = factor <= 0
+        if (!gimbal.naturalZoom) {
+            zoomIn = !zoomIn
+        }
+        val zoomSpeed = 1 + gimbal.zoomSpeed / 1000
+        val rate = 1 + 2 * (gimbal.zoomSpeed.toDouble() / 50.0).pow(1.3).toFloat()
+        if (zoomIn) {
+            model.setZoomX(x = model.zoom.x.value * zoomSpeed, rate = rate)
+        } else {
+            model.setZoomX(x = model.zoom.x.value / zoomSpeed, rate = rate)
+        }
     }
 }

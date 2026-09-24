@@ -2,6 +2,9 @@ package com.moblin.android.various.model
 
 import android.graphics.Bitmap
 import com.moblin.android.localized
+import com.moblin.android.platform.avfoundation.PHAssetCreationRequest
+import com.moblin.android.platform.avfoundation.PHAssetResourceType
+import com.moblin.android.platform.avfoundation.PHPhotoLibrary
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetType
 import com.moblin.android.various.utils.uploadImage
@@ -28,7 +31,11 @@ fun Model.takeSnapshot(isChatBot: Boolean = false, message: String? = null, noDe
         val output = ByteArrayOutputStream()
         if (uiImage.compress(Bitmap.CompressFormat.JPEG, 90, output)) {
             val imageJpeg = output.toByteArray()
-            Unit
+            PHPhotoLibrary.shared().performChanges({
+                PHAssetCreationRequest.forAsset().addResource(with = PHAssetResourceType.photo,
+                                                              data = imageJpeg,
+                                                              options = null)
+            })
             makeToast(title = localized("Snapshot saved to Photos"))
             tryUploadSnapshotToDiscord(imageJpeg, message, isChatBot)
             printSnapshotCatPrinters(image = portraitImage)

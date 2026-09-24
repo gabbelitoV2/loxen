@@ -2,9 +2,11 @@ package com.moblin.android.streamingplatforms.openstreamingplatform
 
 import android.util.Log
 import com.moblin.android.common.various.RgbColor
+import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.makeChatPostTextSegments
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.appendChatMessage
 import com.moblin.android.various.utils.randomString
 import java.io.ByteArrayOutputStream
 import java.time.Instant
@@ -223,7 +225,25 @@ class OpenStreamingPlatformChat(
     private suspend fun handleMessageMessage(message: Message) {
         val segments = createSegments(message.body)
         val user = message.user() ?: "unknown"
-        Unit
+        model.appendChatMessage(
+            platform = Platform.openStreamingPlatform,
+            messageId = null,
+            displayName = user,
+            user = user,
+            userId = null,
+            userColor = RgbColor.fromHex(string = message.color ?: ""),
+            userBadges = listOf(),
+            segments = segments,
+            timestamp = model.statusOther.digitalClock.value,
+            timestampTime = Instant.now(),
+            isAction = false,
+            isSubscriber = false,
+            isModerator = false,
+            isOwner = false,
+            bits = null,
+            highlight = null,
+            live = true,
+        )
     }
 
     private suspend fun handleMessageIq(message: Iq) {
