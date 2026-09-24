@@ -44,4 +44,29 @@ class InlinePickerViewSuite {
         rule.onNodeWithText("Front").assertDoesNotExist()
         rule.onNodeWithText("Root").assertExists()
     }
+
+    @Test
+    fun tappingTheSelectedItemDoesNothing() {
+        var changes = 0
+        rule.setContent {
+            Form(title = "Root") {
+                Section {
+                    NavigationLink(title = "Camera") {
+                        InlinePickerView(
+                            title = "Camera",
+                            onChange = { changes += 1 },
+                            items = listOf(InlinePickerItem(id = "a", text = "Back"), InlinePickerItem(id = "b", text = "Front")),
+                            initialSelectedId = "a",
+                        )
+                    }
+                }
+            }
+        }
+        rule.onNodeWithText("Camera").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Back").performClick()
+        rule.waitForIdle()
+        assertEquals(0, changes)
+        rule.onNodeWithText("Front").assertExists()
+    }
 }

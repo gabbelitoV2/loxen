@@ -2102,7 +2102,14 @@ private fun <T> InlinePickerRows(
     val palette = formPalette()
     options.forEach { option ->
         key(option) {
-            FormRow(onClick = { onChange(option) }, enabled = enabled) {
+            FormRow(
+                onClick = {
+                    if (option != selection) {
+                        onChange(option)
+                    }
+                },
+                enabled = enabled,
+            ) {
                 val image = systemImage?.invoke(option)
                 if (image != null) {
                     SystemImage(name = image, fontSize = 17.sp, tint = palette.accent)
