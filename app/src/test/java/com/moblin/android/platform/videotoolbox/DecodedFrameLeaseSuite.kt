@@ -5,7 +5,10 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.media.video.BufferedVideo
 import com.moblin.android.platform.core.PipelineThread
 import com.moblin.android.platform.video.CVPixelBuffer
+import com.moblin.android.platform.video.PixelBufferLayout
+import com.moblin.android.platform.video.YCbCrStorage
 import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
+import com.moblin.android.platform.video.kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
 import com.moblin.android.platform.video.releaseLease
 import com.moblin.android.platform.video.retainLease
 import java.util.UUID
@@ -15,6 +18,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -35,19 +39,25 @@ private class Outputs {
     }
 }
 
-private fun makeSession(): VTDecompressionSession {
+private const val globalPixelFormatType = 0x23
+
+private fun makeSession(pixelFormatType: Int = kCVPixelFormatType_32BGRA): VTDecompressionSession {
     val session = VTDecompressionSession(
         MediaFormat.MIMETYPE_VIDEO_HEVC,
         "c2.test.hevc.decoder",
         MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_HEVC, 1920, 1080),
-        kCVPixelFormatType_32BGRA,
+        pixelFormatType,
     )
     session.updateOutputSize(MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_HEVC, 1920, 1080))
     return session
 }
 
-private class Ingest(fps: Int, private val latencySeconds: Double) {
-    val session = makeSession()
+private class Ingest(
+    fps: Int,
+    private val latencySeconds: Double,
+    pixelFormatType: Int = kCVPixelFormatType_32BGRA,
+) {
+    val session = makeSession(pixelFormatType)
     val bufferedVideo = BufferedVideo(
         cameraId = UUID.randomUUID(),
         name = "rist-server",
@@ -119,6 +129,11 @@ private class Ingest(fps: Int, private val latencySeconds: Double) {
 
 @RunWith(RobolectricTestRunner::class)
 class DecodedFrameLeaseSuite {
+    @After
+    fun tearDown() {
+        YCbCrStorage.override = null
+    }
+
     private fun lengthPrefixed(nalUnit: ByteArray): ByteArray {
         val size = nalUnit.size
         return byteArrayOf((size shr 24).toByte(), (size shr 16).toByte(), (size shr 8).toByte(), size.toByte()) +
@@ -177,6 +192,61 @@ class DecodedFrameLeaseSuite {
         assertEquals(maximumNumberOfOutputBuffers, pool.maximumBufferCount)
         assertEquals("decoder", pool.name)
         ingest.close()
+    }
+
+    @Test
+    fun planarDecodedFramesGoBackToThePoolAsBufferedVideoConsumesThem() {
+        YCbCrStorage.override = true
+        val ingest = Ingest(fps = 30, latencySeconds = 2.0, pixelFormatType = globalPixelFormatType)
+        ingest.run(seconds = 20, firstFrameLateUs = 0)
+        assertTrue(ingest.drops.isEmpty())
+        assertEquals(62, ingest.allocated)
+        assertEquals(61, ingest.inUse)
+        val pool = ingest.session.outputPixelBufferPool(1920, 1080)
+        assertEquals(PixelBufferLayout.ycbcr420Full, pool.layout)
+        assertEquals(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, pool.pixelFormatType)
+        val current = PipelineThread.runSync { ingest.bufferedVideo.getLatestSampleBuffer()?.imageBuffer }
+        assertEquals(1, current?.leaseCount?.get())
+        assertEquals(PixelBufferLayout.ycbcr420Full, current?.layout)
+        assertEquals(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, current?.pixelFormatType)
+        PipelineThread.runSync { ingest.bufferedVideo.close() }
+        assertEquals(0, ingest.inUse)
+        ingest.session.invalidateSession()
+    }
+
+    @Test
+    fun planarDecoderPoolHoldsEverythingBufferedVideoKeeps() {
+        YCbCrStorage.override = true
+        val ingest = Ingest(fps = 30, latencySeconds = 2.0, pixelFormatType = globalPixelFormatType)
+        for (frameNumber in 0 until 300) {
+            ingest.decode(0, 60_000_000, frameNumber)
+        }
+        assertTrue(ingest.drops.isEmpty())
+        assertEquals(200, PipelineThread.runSync { ingest.bufferedVideo.numberOfBuffers() })
+        assertEquals(201, ingest.inUse)
+        assertEquals(202, ingest.allocated)
+        val pool = ingest.session.outputPixelBufferPool(1920, 1080)
+        assertEquals(maximumNumberOfOutputBuffers, pool.maximumBufferCount)
+        assertEquals("decoder", pool.name)
+        assertEquals(PixelBufferLayout.ycbcr420Full, pool.layout)
+        assertEquals(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, pool.pixelFormatType)
+        ingest.close()
+    }
+
+    @Test
+    fun decoderStorageFollowsTheRequestedTag() {
+        YCbCrStorage.override = true
+        val bgra = makeSession(kCVPixelFormatType_32BGRA)
+        val bgraPool = PipelineThread.runSync { bgra.outputPixelBufferPool(1920, 1080) }
+        assertEquals(PixelBufferLayout.rgba8, bgraPool.layout)
+        assertEquals(kCVPixelFormatType_32BGRA, bgraPool.pixelFormatType)
+        bgra.invalidateSession()
+        YCbCrStorage.override = false
+        val off = makeSession(globalPixelFormatType)
+        val offPool = PipelineThread.runSync { off.outputPixelBufferPool(1920, 1080) }
+        assertEquals(PixelBufferLayout.rgba8, offPool.layout)
+        assertEquals(globalPixelFormatType, offPool.pixelFormatType)
+        off.invalidateSession()
     }
 
     @Test

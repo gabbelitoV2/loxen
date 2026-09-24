@@ -18,6 +18,7 @@ import com.moblin.android.platform.video.CVPixelBuffer
 import com.moblin.android.platform.video.CVPixelBufferPool
 import com.moblin.android.platform.video.GlRenderer
 import com.moblin.android.platform.video.PixelBufferTurn
+import com.moblin.android.platform.video.YCbCrStorage
 import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
 import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
 import java.util.Collections
@@ -690,13 +691,16 @@ class VTDecompressionSession internal constructor(
             return existing
         }
         existing?.invalidate()
+        val layout = YCbCrStorage.layoutFor(pixelFormatType)
         val newPool = CVPixelBufferPool(
             width = width,
             height = height,
-            pixelFormatType = pixelFormatType,
+            pixelFormatType = YCbCrStorage.tagFor(layout, pixelFormatType),
             maximumBufferCount = maximumNumberOfOutputBuffers,
+            layout = layout,
         )
         newPool.name = "decoder"
+        newPool.state.trimIdle = true
         pool = newPool
         return newPool
     }

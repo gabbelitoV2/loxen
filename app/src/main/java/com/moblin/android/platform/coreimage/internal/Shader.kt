@@ -5,6 +5,8 @@ import android.opengl.GLES30
 import com.moblin.android.platform.core.PipelineStats
 import com.moblin.android.platform.coregraphics.CGAffineTransform
 import com.moblin.android.platform.coregraphics.CGRect
+import com.moblin.android.platform.video.CVPixelBuffer
+import com.moblin.android.platform.video.YCbCrStorage
 import java.util.IdentityHashMap
 import kotlin.math.max
 import kotlin.math.min
@@ -90,6 +92,39 @@ vec4 mbSampleClamp(sampler2D t, vec2 q, vec4 size) {
 }
 """
 
+    const val YCC_LIBRARY = """
+vec4 mbYcc(float y, vec2 c, mat3 m, vec3 o) {
+    return vec4(clamp(m * (vec3(y, c) - o), 0.0, 1.0), 1.0);
+}
+vec4 mbYccFetchZero(sampler2D l, sampler2D k, ivec2 i, vec4 size, vec2 csize, mat3 m, vec3 o) {
+    if (i.x < 0 || i.y < 0 || i.x >= int(size.x) || i.y >= int(size.y)) {
+        return vec4(0.0);
+    }
+    return mbYcc(FETCH(l, i, size.zw).r, TEX(k, (vec2(i) + 0.5) / csize).rg, m, o);
+}
+vec4 mbYccSampleZero(sampler2D l, sampler2D k, vec2 q, vec4 size, vec2 csize, mat3 m, vec3 o) {
+    if (q.x >= 1.0 && q.y >= 1.0 && q.x <= size.x - 1.0 && q.y <= size.y - 1.0) {
+        return mbYcc(TEX(l, q / size.zw).r, TEX(k, q / csize).rg, m, o);
+    }
+    if (q.x <= -0.5 || q.y <= -0.5 || q.x >= size.x + 0.5 || q.y >= size.y + 0.5) {
+        return vec4(0.0);
+    }
+    vec2 g = q - 0.5;
+    vec2 f0 = floor(g);
+    vec2 f = g - f0;
+    ivec2 i = ivec2(f0);
+    vec4 a = mbYccFetchZero(l, k, i, size, csize, m, o);
+    vec4 b = mbYccFetchZero(l, k, i + ivec2(1, 0), size, csize, m, o);
+    vec4 c = mbYccFetchZero(l, k, i + ivec2(0, 1), size, csize, m, o);
+    vec4 d = mbYccFetchZero(l, k, i + ivec2(1, 1), size, csize, m, o);
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+vec4 mbYccSampleClamp(sampler2D l, sampler2D k, vec2 q, vec4 size, vec2 csize, mat3 m, vec3 o) {
+    vec2 s = clamp(q, vec2(0.5), size.xy - vec2(0.5));
+    return mbYcc(TEX(l, s / size.zw).r, TEX(k, s / csize).rg, m, o);
+}
+"""
+
     fun prelude(): String {
         val header = if (Gl.es3) {
             "#version 300 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2D;\n" +
@@ -103,6 +138,15 @@ vec4 mbSampleClamp(sampler2D t, vec2 q, vec4 size) {
                 "#define fragColor gl_FragColor\n"
         }
         return header + LIBRARY
+    }
+
+    fun yccProbeSource(): String {
+        return prelude() +
+            "uniform sampler2D sLuma;\nuniform sampler2D sChroma;\nuniform vec4 uSize;\nuniform vec2 uChromaSize;\n" +
+            "uniform mat3 uMatrix;\nuniform vec3 uOffset;\n" + YCC_LIBRARY +
+            "void main() {\n" +
+            "    fragColor = mbYccSampleZero(sLuma, sChroma, gl_FragCoord.xy, uSize, uChromaSize, uMatrix, uOffset);\n" +
+            "}\n"
     }
 }
 
@@ -292,6 +336,34 @@ internal class ShaderBuilder(val context: RenderContext) {
         val body = StringBuilder()
         body.append("vec4 $name(vec2 p) {\n")
         body.append("    vec4 c = $sample($sampler, p * $map.xy + $map.zw, $size);\n")
+        appendSourceTail(body, alpha, encoding)
+        functions.append(body)
+        return name
+    }
+
+    fun yccLeaf(buffer: CVPixelBuffer, alpha: SourceAlpha, encoding: SourceEncoding): String {
+        includeOnce("ycc", Glsl.YCC_LIBRARY)
+        val layout = buffer.layout
+        val width = buffer.width
+        val height = buffer.height
+        val luma = sampler2D(buffer.lumaTexture)
+        val chroma = sampler2D(buffer.chromaTexture)
+        val size = uniform4f(width.toFloat(), height.toFloat(), width.toFloat(), height.toFloat())
+        val chromaSize = uniform2f(2f * layout.chromaWidth(width), 2f * layout.chromaHeight(height))
+        val descriptor = YCbCrStorage.descriptorFor(layout)
+        val matrix = uniformMat3(descriptor.inverseMat3)
+        val offset = descriptor.offsetVector
+        val offsetName = uniform3f(offset[0], offset[1], offset[2])
+        val name = newName("f")
+        val body = StringBuilder()
+        body.append("vec4 $name(vec2 p) {\n")
+        body.append("    vec4 c = mbYccSampleZero($luma, $chroma, p, $size, $chromaSize, $matrix, $offsetName);\n")
+        appendSourceTail(body, alpha, encoding)
+        functions.append(body)
+        return name
+    }
+
+    private fun appendSourceTail(body: StringBuilder, alpha: SourceAlpha, encoding: SourceEncoding) {
         when (alpha) {
             SourceAlpha.premultiply -> body.append("    c = vec4(c.rgb * c.a, c.a);\n")
             SourceAlpha.opaque -> body.append("    c.a = 1.0;\n")
@@ -306,8 +378,6 @@ internal class ShaderBuilder(val context: RenderContext) {
             body.append("    c = mbDecode(c);\n")
         }
         body.append("    return c;\n}\n")
-        functions.append(body)
-        return name
     }
 
     fun intermediateLeaf(intermediate: Intermediate, clampEdges: Boolean = false): String {
@@ -504,6 +574,9 @@ internal class ShaderBuilder(val context: RenderContext) {
         if (!buffer.checkReadable("CIImage source")) {
             PipelineStats.increment("fxStale")
             return transparent()
+        }
+        if (buffer.layout.isPlanar) {
+            return yccLeaf(buffer, node.alpha, node.encoding)
         }
         return textureLeaf(
             texture = buffer.texture,

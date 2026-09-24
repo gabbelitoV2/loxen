@@ -5,6 +5,7 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.platform.core.PipelineStats
 import com.moblin.android.platform.core.PipelineThread
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 
 private const val TAG = "MoblinPipeline"
 
@@ -95,8 +96,10 @@ internal object PixelBufferTurn {
 internal object PixelBufferStale {
     private const val MAXIMUM_LOGGED_SITES = 256
     private val loggedSites = ConcurrentHashMap.newKeySet<String>()
+    val reported = AtomicLong()
 
     fun report(buffer: CVPixelBuffer, site: String) {
+        reported.incrementAndGet()
         PipelineStats.increment("staleBuffer")
         log(buffer, "Stale pixel buffer used by $site", site)
     }

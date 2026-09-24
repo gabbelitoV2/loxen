@@ -276,11 +276,16 @@ object EglCore {
         GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 1)
         isReady = true
         Log.i(TAG, "EGL ready (OpenGL ES $glMajorVersion.$minor) on ${Thread.currentThread().name}")
+        val extensions = GLES20.glGetString(GLES20.GL_EXTENSIONS) ?: ""
         Log.i(
             TAG,
             "EGL ${version[0]}.${version[1]}, ${GLES20.glGetString(GLES20.GL_VENDOR)} " +
-                "${GLES20.glGetString(GLES20.GL_RENDERER)}, ${GLES20.glGetString(GLES20.GL_VERSION)}"
+                "${GLES20.glGetString(GLES20.GL_RENDERER)}, ${GLES20.glGetString(GLES20.GL_VERSION)}, " +
+                "GL_EXT_texture_rg ${extensions.contains("GL_EXT_texture_rg")}, " +
+                "GL_EXT_YUV_target ${extensions.contains("GL_EXT_YUV_target")}, " +
+                "GL_OES_EGL_image_external_essl3 ${extensions.contains("GL_OES_EGL_image_external_essl3")}"
         )
+        YCbCrStorage.probe()
     }
 
     private fun chooseConfig(display: EGLDisplay, renderableType: Int, withPbuffer: Boolean): EGLConfig? {

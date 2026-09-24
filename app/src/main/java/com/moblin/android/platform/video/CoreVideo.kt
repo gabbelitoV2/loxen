@@ -8,6 +8,7 @@ import android.opengl.GLUtils
 import android.os.SystemClock
 import android.util.Log
 import android.util.Size
+import com.moblin.android.BuildConfig
 import com.moblin.android.media.MediaSample
 import com.moblin.android.platform.core.PipelineStats
 import com.moblin.android.platform.core.PipelineThread
@@ -17,8 +18,10 @@ import java.lang.ref.Reference
 import java.lang.ref.ReferenceQueue
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -35,18 +38,98 @@ const val kCVPixelBufferPixelFormatTypeKey = "PixelFormatType"
 const val kCVPixelBufferIOSurfacePropertiesKey = "IOSurfaceProperties"
 const val kCVPixelBufferMetalCompatibilityKey = "MetalCompatibility"
 
-internal class PixelBufferBacking(val texture: Int, val framebuffer: Int, val width: Int, val height: Int) {
-    @Volatile
-    var generation = 0
+internal enum class PixelBufferLayout(val planeCount: Int, val label: String) {
+    rgba8(1, "rgba"),
+    ycbcr420Full(2, "ycc"),
+    ycbcr420Video(2, "ycc"),
+    ;
+
+    val isPlanar: Boolean
+        get() = planeCount > 1
+
+    fun chromaWidth(width: Int): Int {
+        return (width + 1) / 2
+    }
+
+    fun chromaHeight(height: Int): Int {
+        return (height + 1) / 2
+    }
+
+    fun bytes(width: Int, height: Int): Long {
+        if (!isPlanar) {
+            return 4L * width * height
+        }
+        return width.toLong() * height + 2L * chromaWidth(width) * chromaHeight(height)
+    }
 }
 
-internal class PixelBufferPoolState(val width: Int, val height: Int, val maximumBufferCount: Int, var name: String) {
+internal class PixelBufferBacking(
+    val texture: Int,
+    val framebuffer: Int,
+    val width: Int,
+    val height: Int,
+    val layout: PixelBufferLayout = PixelBufferLayout.rgba8,
+    val chromaTexture: Int = 0,
+    val chromaFramebuffer: Int = 0,
+) {
+    @Volatile
+    var generation = 0
+
+    val bytes: Long
+        get() = layout.bytes(width, height)
+}
+
+internal class PixelBufferPoolState(
+    val width: Int,
+    val height: Int,
+    val maximumBufferCount: Int,
+    var name: String,
+    val layout: PixelBufferLayout = PixelBufferLayout.rgba8,
+) {
     val free = ArrayDeque<PixelBufferBacking>()
     var allocated = 0
+    var allocatedBytes = 0L
     var leased = 0
     var unleased = 0
     var released = false
     var lastExhaustedLogMs = 0L
+    var trimIdle = false
+    var peakInUse = 0
+}
+
+internal object PixelBufferPlanar {
+    private const val MAXIMUM_LOGGED_SITES = 64
+    private val loggedSites = ConcurrentHashMap.newKeySet<String>()
+    val misses = AtomicLong()
+    val badTargets = AtomicLong()
+
+    fun miss(buffer: CVPixelBuffer, member: String) {
+        misses.incrementAndGet()
+        PipelineStats.increment("pbPlanarMiss")
+        log(buffer, "Planar pixel buffer read through .$member")
+    }
+
+    fun badTarget(buffer: CVPixelBuffer, site: String) {
+        badTargets.incrementAndGet()
+        PipelineStats.increment("pbBadTarget")
+        log(buffer, "Planar pixel buffer refused as $site")
+    }
+
+    private fun log(buffer: CVPixelBuffer, message: String) {
+        if (loggedSites.size >= MAXIMUM_LOGGED_SITES) {
+            return
+        }
+        val trace = Throwable(message)
+        val caller = trace.stackTrace.firstOrNull { element ->
+            element.className != PixelBufferPlanar::class.java.name &&
+                element.className != CVPixelBuffer::class.java.name
+        }
+        val key = "$message ${caller?.className}.${caller?.methodName}:${caller?.lineNumber}"
+        if (!loggedSites.add(key)) {
+            return
+        }
+        Log.w(TAG, "$message: $buffer at $caller", trace)
+    }
 }
 
 class CVPixelBuffer internal constructor(
@@ -72,11 +155,41 @@ class CVPixelBuffer internal constructor(
 
     val size: Size = Size(backing.width, backing.height)
 
+    internal val layout: PixelBufferLayout
+        get() = backing.layout
+
+    internal val planeCount: Int
+        get() = backing.layout.planeCount
+
     val texture: Int
-        get() = backing.texture
+        get() {
+            if (backing.layout.isPlanar) {
+                PixelBufferPlanar.miss(this, "texture")
+                return 0
+            }
+            return backing.texture
+        }
 
     val framebuffer: Int
+        get() {
+            if (backing.layout.isPlanar) {
+                PixelBufferPlanar.miss(this, "framebuffer")
+                return 0
+            }
+            return backing.framebuffer
+        }
+
+    internal val lumaTexture: Int
+        get() = backing.texture
+
+    internal val lumaFramebuffer: Int
         get() = backing.framebuffer
+
+    internal val chromaTexture: Int
+        get() = backing.chromaTexture
+
+    internal val chromaFramebuffer: Int
+        get() = backing.chromaFramebuffer
 
     fun isPortrait(): Boolean {
         return height > width
@@ -87,6 +200,14 @@ class CVPixelBuffer internal constructor(
             return true
         }
         PixelBufferStale.report(this, site)
+        return false
+    }
+
+    fun checkRenderable(site: String): Boolean {
+        if (!backing.layout.isPlanar) {
+            return true
+        }
+        PixelBufferPlanar.badTarget(this, site)
         return false
     }
 
@@ -124,7 +245,8 @@ class CVPixelBuffer internal constructor(
     }
 
     override fun toString(): String {
-        return "CVPixelBuffer(${width}x$height, texture=$texture, ${poolState?.name ?: "unpooled"})"
+        val pool = poolState?.name ?: "unpooled"
+        return "CVPixelBuffer(${width}x$height, ${layout.label}, texture=${backing.texture}, $pool)"
     }
 
     private fun scaledSize(longSide: Int): Size {
@@ -146,13 +268,21 @@ class CVPixelBuffer internal constructor(
 
 typealias CVImageBuffer = CVPixelBuffer
 
-class CVPixelBufferPool(
+class CVPixelBufferPool internal constructor(
     val width: Int,
     val height: Int,
     val pixelFormatType: Int,
-    val maximumBufferCount: Int = 16,
+    val maximumBufferCount: Int,
+    internal val layout: PixelBufferLayout,
 ) {
-    internal val state = PixelBufferPoolState(width, height, maximumBufferCount, "pool")
+    constructor(
+        width: Int,
+        height: Int,
+        pixelFormatType: Int,
+        maximumBufferCount: Int = 16,
+    ) : this(width, height, pixelFormatType, maximumBufferCount, PixelBufferLayout.rgba8)
+
+    internal val state = PixelBufferPoolState(width, height, maximumBufferCount, "pool", layout)
 
     var name: String
         get() = state.name
@@ -225,6 +355,14 @@ fun CVPixelBufferGetPixelFormatType(pixelBuffer: CVPixelBuffer): Int {
     return pixelBuffer.pixelFormatType
 }
 
+fun CVPixelBufferGetPlaneCount(pixelBuffer: CVPixelBuffer): Int {
+    return if (pixelBuffer.layout.isPlanar) pixelBuffer.planeCount else 0
+}
+
+fun CVPixelBufferIsPlanar(pixelBuffer: CVPixelBuffer): Boolean {
+    return pixelBuffer.layout.isPlanar
+}
+
 fun VTPixelTransferSessionTransferImage(from: CVPixelBuffer, to: CVPixelBuffer) {
     if (!PipelineThread.isCurrent()) {
         try {
@@ -280,11 +418,65 @@ fun CMVideoFormatDescriptionCreateForImageBuffer(imageBuffer: CVPixelBuffer): Me
 }
 
 internal object PixelBufferGl {
-    fun allocate(width: Int, height: Int): PixelBufferBacking? {
+    private class Plane(val texture: Int, val framebuffer: Int, val status: Int)
+
+    fun allocate(
+        width: Int,
+        height: Int,
+        layout: PixelBufferLayout = PixelBufferLayout.rgba8,
+    ): PixelBufferBacking? {
         if (!EglCore.isReady) {
             return null
         }
+        if (layout.isPlanar && YCbCrStorage.isEnabled) {
+            val planar = allocatePlanar(width, height, layout)
+            if (planar != null) {
+                return planar
+            }
+        }
+        if (layout.isPlanar) {
+            PipelineStats.increment("pbFallback")
+        }
         val previousFramebuffer = GlRenderer.currentFramebuffer()
+        val plane = createPlane(width, height, GLES20.GL_RGBA, GLES20.GL_RGBA)
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, previousFramebuffer)
+        if (plane.status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
+            Log.e(TAG, "Framebuffer ${width}x$height incomplete: 0x${Integer.toHexString(plane.status)}")
+            deletePlane(plane.texture, plane.framebuffer)
+            return null
+        }
+        return PixelBufferBacking(plane.texture, plane.framebuffer, width, height)
+    }
+
+    fun allocatePlanar(width: Int, height: Int, layout: PixelBufferLayout): PixelBufferBacking? {
+        if (!EglCore.isReady || !layout.isPlanar) {
+            return null
+        }
+        val previousFramebuffer = GlRenderer.currentFramebuffer()
+        val luma = createPlane(width, height, GLES30.GL_R8, GLES30.GL_RED)
+        val chroma = createPlane(layout.chromaWidth(width), layout.chromaHeight(height), GLES30.GL_RG8, GLES30.GL_RG)
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, previousFramebuffer)
+        if (luma.status != GLES20.GL_FRAMEBUFFER_COMPLETE || chroma.status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
+            deletePlane(luma.texture, luma.framebuffer)
+            deletePlane(chroma.texture, chroma.framebuffer)
+            YCbCrStorage.disable(
+                "planar framebuffer ${width}x$height incomplete: luma 0x${Integer.toHexString(luma.status)}, " +
+                    "chroma 0x${Integer.toHexString(chroma.status)}"
+            )
+            return null
+        }
+        return PixelBufferBacking(
+            luma.texture,
+            luma.framebuffer,
+            width,
+            height,
+            layout,
+            chroma.texture,
+            chroma.framebuffer,
+        )
+    }
+
+    private fun createPlane(width: Int, height: Int, internalFormat: Int, format: Int): Plane {
         val ids = IntArray(1)
         GLES20.glGenTextures(1, ids, 0)
         val texture = ids[0]
@@ -292,11 +484,11 @@ internal object PixelBufferGl {
         GLES20.glTexImage2D(
             GLES20.GL_TEXTURE_2D,
             0,
-            GLES20.GL_RGBA,
+            internalFormat,
             width,
             height,
             0,
-            GLES20.GL_RGBA,
+            format,
             GLES20.GL_UNSIGNED_BYTE,
             null
         )
@@ -315,27 +507,31 @@ internal object PixelBufferGl {
             texture,
             0
         )
-        val status = GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER)
-        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, previousFramebuffer)
-        if (status != GLES20.GL_FRAMEBUFFER_COMPLETE) {
-            Log.e(TAG, "Framebuffer ${width}x$height incomplete: 0x${Integer.toHexString(status)}")
-            GLES20.glDeleteFramebuffers(1, intArrayOf(framebuffer), 0)
-            GLES20.glDeleteTextures(1, intArrayOf(texture), 0)
-            return null
-        }
-        return PixelBufferBacking(texture, framebuffer, width, height)
+        return Plane(texture, framebuffer, GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER))
+    }
+
+    private fun deletePlane(texture: Int, framebuffer: Int) {
+        GLES20.glDeleteFramebuffers(1, intArrayOf(framebuffer), 0)
+        GLES20.glDeleteTextures(1, intArrayOf(texture), 0)
     }
 
     fun delete(backing: PixelBufferBacking) {
         if (!EglCore.isReady) {
             return
         }
-        GLES20.glDeleteFramebuffers(1, intArrayOf(backing.framebuffer), 0)
-        GLES20.glDeleteTextures(1, intArrayOf(backing.texture), 0)
+        deletePlane(backing.texture, backing.framebuffer)
+        if (backing.layout.isPlanar) {
+            deletePlane(backing.chromaTexture, backing.chromaFramebuffer)
+        }
     }
 
     fun clear(backing: PixelBufferBacking, r: Float, g: Float, b: Float, a: Float) {
         if (!EglCore.isReady) {
+            return
+        }
+        if (backing.layout.isPlanar) {
+            val ycc = YCbCrStorage.descriptorFor(backing.layout).encode(r, g, b)
+            clearPlanes(backing, ycc[0], ycc[1], ycc[2])
             return
         }
         val previousFramebuffer = GlRenderer.currentFramebuffer()
@@ -345,8 +541,30 @@ internal object PixelBufferGl {
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, previousFramebuffer)
     }
 
+    fun clearPlanes(backing: PixelBufferBacking, y: Float, cb: Float, cr: Float) {
+        if (!EglCore.isReady || !backing.layout.isPlanar) {
+            return
+        }
+        val previousFramebuffer = GlRenderer.currentFramebuffer()
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, backing.framebuffer)
+        GLES20.glViewport(0, 0, backing.width, backing.height)
+        GlRenderer.clear(y, 0f, 0f, 1f)
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, backing.chromaFramebuffer)
+        GLES20.glViewport(
+            0,
+            0,
+            backing.layout.chromaWidth(backing.width),
+            backing.layout.chromaHeight(backing.height)
+        )
+        GlRenderer.clear(cb, cr, 0f, 1f)
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, previousFramebuffer)
+    }
+
     fun transfer(from: CVPixelBuffer, to: CVPixelBuffer) {
-        if (!EglCore.isReady || from.framebuffer == to.framebuffer || !to.checkReadable("pixel transfer target")) {
+        if (!EglCore.isReady || from.backing === to.backing || !to.checkReadable("pixel transfer target")) {
+            return
+        }
+        if (!to.checkRenderable("pixel transfer target")) {
             return
         }
         if (!from.checkReadable("pixel transfer")) {
@@ -354,7 +572,18 @@ internal object PixelBufferGl {
             return
         }
         val previousFramebuffer = GlRenderer.currentFramebuffer()
-        if (EglCore.glMajorVersion >= 3) {
+        if (from.layout.isPlanar) {
+            GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, to.framebuffer)
+            GlRenderer.drawBuffer(
+                source = from,
+                targetWidth = to.width,
+                targetHeight = to.height,
+                mode = GlRenderer.ScalingMode.stretch,
+                rotationDegreesCw = 0,
+                mirror = false,
+                flipVertical = false,
+            )
+        } else if (EglCore.glMajorVersion >= 3) {
             GLES30.glBindFramebuffer(GLES30.GL_READ_FRAMEBUFFER, from.framebuffer)
             GLES30.glBindFramebuffer(GLES30.GL_DRAW_FRAMEBUFFER, to.framebuffer)
             val filter = if (from.width == to.width && from.height == to.height) {
@@ -398,7 +627,7 @@ internal object PixelBufferGl {
         if (!EglCore.isReady || bitmap.isRecycled || bitmap.width <= 0 || bitmap.height <= 0) {
             return
         }
-        if (!to.checkReadable("bitmap upload target")) {
+        if (!to.checkReadable("bitmap upload target") || !to.checkRenderable("bitmap upload target")) {
             return
         }
         val previousFramebuffer = GlRenderer.currentFramebuffer()
@@ -455,12 +684,8 @@ internal object PixelBufferGl {
         val previousFramebuffer = GlRenderer.currentFramebuffer()
         try {
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, scratch.framebuffer)
-            GlRenderer.drawTexture(
-                texture = source.texture,
-                oes = false,
-                texMatrix = null,
-                sourceWidth = source.width,
-                sourceHeight = source.height,
+            GlRenderer.drawBuffer(
+                source = source,
                 targetWidth = width,
                 targetHeight = height,
                 mode = GlRenderer.ScalingMode.stretch,
@@ -484,6 +709,8 @@ internal object PixelBufferGl {
 
 internal object PixelBufferReaper {
     private const val FORCED_GC_INTERVAL_MS = 100L
+    private const val TRIM_INTERVAL_MS = 5000L
+    private const val TRIM_SPARE_BUFFERS = 2
 
     private class BufferReference(
         buffer: CVPixelBuffer,
@@ -507,6 +734,9 @@ internal object PixelBufferReaper {
     private var unpooledCount = 0
     private var lastGcRequestMs = 0L
     private var lastNotReadyLogMs = 0L
+    private var lastTrimMs = 0L
+    internal var trimEnabled = BuildConfig.POOL_TRIM
+    val leakedLeases = AtomicLong()
     private val gcExecutor = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "MoblinPixelBufferGc").apply {
             isDaemon = true
@@ -515,11 +745,21 @@ internal object PixelBufferReaper {
     }
 
     init {
-        for (name in listOf("poolExhausted", "gcRequested", "leaseReleased", "staleBuffer")) {
+        val names = listOf(
+            "poolExhausted",
+            "gcRequested",
+            "leaseReleased",
+            "staleBuffer",
+            "pbPlanarMiss",
+            "pbBadTarget",
+            "pbFallback",
+        )
+        for (name in names) {
             PipelineStats.increment(name, 0)
         }
         PipelineStats.addReporter { report() }
         PipelineStats.addPipelineTick { poll() }
+        PipelineStats.addPipelineTick { trimIdle(SystemClock.uptimeMillis()) }
     }
 
     fun trackPool(pool: CVPixelBufferPool, state: PixelBufferPoolState) {
@@ -561,6 +801,7 @@ internal object PixelBufferReaper {
             } else {
                 state.unleased += 1
             }
+            state.peakInUse = max(state.peakInUse, state.allocated - state.free.size)
         }
         if (leased) {
             PixelBufferTurn.defer(buffer)
@@ -590,6 +831,7 @@ internal object PixelBufferReaper {
                 state.leased -= 1
                 if (state.released) {
                     state.allocated -= 1
+                    state.allocatedBytes -= backing.bytes
                     toDelete = backing
                     if (state.allocated <= 0) {
                         pools.remove(state)
@@ -611,6 +853,7 @@ internal object PixelBufferReaper {
             state.released = true
             val free = state.free.toList()
             state.allocated -= free.size
+            state.allocatedBytes -= free.sumOf { it.bytes }
             state.free.clear()
             if (state.allocated <= 0) {
                 pools.remove(state)
@@ -627,9 +870,10 @@ internal object PixelBufferReaper {
         }
         val canAllocate = synchronized(this) { state.allocated < state.maximumBufferCount }
         if (canAllocate) {
-            val allocated = PixelBufferGl.allocate(state.width, state.height) ?: return null
+            val allocated = PixelBufferGl.allocate(state.width, state.height, state.layout) ?: return null
             synchronized(this) {
                 state.allocated += 1
+                state.allocatedBytes += allocated.bytes
             }
             return allocated
         }
@@ -709,6 +953,7 @@ internal object PixelBufferReaper {
                         }
                         if (state.released) {
                             state.allocated -= 1
+                            state.allocatedBytes -= reference.backing.bytes
                             toDelete = listOf(reference.backing)
                             if (state.allocated <= 0) {
                                 pools.remove(state)
@@ -723,12 +968,14 @@ internal object PixelBufferReaper {
                     state.released = true
                     toDelete = state.free.toList()
                     state.allocated -= state.free.size
+                    state.allocatedBytes -= toDelete.sumOf { it.bytes }
                     state.free.clear()
                     pools.remove(state)
                 }
             }
         }
         if (leaked) {
+            leakedLeases.incrementAndGet()
             PipelineStats.increment("leaseLeaked")
         }
         delete(toDelete)
@@ -767,12 +1014,58 @@ internal object PixelBufferReaper {
         return true
     }
 
-    private fun report(): String? {
+    internal fun trimIdle(nowMs: Long) {
+        if (!trimEnabled || !PipelineThread.isCurrent()) {
+            return
+        }
+        val toDelete = ArrayList<PixelBufferBacking>()
         synchronized(this) {
+            if (nowMs - lastTrimMs < TRIM_INTERVAL_MS) {
+                return
+            }
+            lastTrimMs = nowMs
+            for (state in pools) {
+                val inUse = state.allocated - state.free.size
+                if (!state.trimIdle || state.released) {
+                    state.peakInUse = inUse
+                    continue
+                }
+                val keep = max(state.peakInUse, inUse) + TRIM_SPARE_BUFFERS
+                var count = 0
+                var bytes = 0L
+                while (state.allocated > keep) {
+                    val backing = state.free.removeLastOrNull() ?: break
+                    state.allocated -= 1
+                    state.allocatedBytes -= backing.bytes
+                    bytes += backing.bytes
+                    toDelete.add(backing)
+                    count += 1
+                }
+                state.peakInUse = inUse
+                if (count > 0) {
+                    val megabytes = megabytes(bytes)
+                    PipelineStats.increment("pbTrim", count.toLong())
+                    Log.i(TAG, "pbTrim ${state.name} ${state.width}x${state.height}: $count buffers, ${megabytes}MB")
+                }
+            }
+        }
+        delete(toDelete)
+    }
+
+    private fun megabytes(bytes: Long): Long {
+        return (bytes + 500_000) / 1_000_000
+    }
+
+    internal fun report(): String? {
+        synchronized(this) {
+            var totalBytes = 0L
             val parts = pools.filter { it.allocated > 0 }.map {
+                val bytes = it.allocatedBytes
+                totalBytes += bytes
                 buildString {
-                    append("${it.name} ${it.width}x${it.height} ${it.allocated - it.free.size}/${it.allocated}/")
-                    append("${it.maximumBufferCount}")
+                    append("${it.name} ${it.width}x${it.height} ${it.layout.label} ")
+                    append("${it.allocated - it.free.size}/${it.allocated}/${it.maximumBufferCount} ")
+                    append("${megabytes(bytes)}MB")
                     if (it.unleased > 0) {
                         append(" unleased ${it.unleased}")
                     }
@@ -781,6 +1074,7 @@ internal object PixelBufferReaper {
                     }
                 }
             }.toMutableList()
+            PipelineStats.gauge("pbMB", megabytes(totalBytes))
             if (unpooledCount > 0) {
                 parts.add("unpooled $unpooledCount")
             }

@@ -87,6 +87,10 @@ internal class VisionLatestResults<T>(private val maxAgeMs: Long) {
     }
 }
 
+internal fun visionIdentity(buffer: CVPixelBuffer): Any {
+    return buffer.poolState ?: buffer.backing
+}
+
 internal object VisionReadback {
     private const val MAX_SCRATCHES = 3
     private val scratches = ArrayList<PixelBufferBacking>()
@@ -135,12 +139,8 @@ internal object VisionReadback {
             GLES20.glDisable(GLES20.GL_SCISSOR_TEST)
             GLES20.glColorMask(true, true, true, true)
             GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, target.framebuffer)
-            GlRenderer.drawTexture(
-                texture = buffer.texture,
-                oes = false,
-                texMatrix = null,
-                sourceWidth = buffer.width,
-                sourceHeight = buffer.height,
+            GlRenderer.drawBuffer(
+                source = buffer,
                 targetWidth = frame.width,
                 targetHeight = frame.height,
                 mode = GlRenderer.ScalingMode.stretch,
@@ -615,7 +615,7 @@ internal object VisionEngine {
         }
         val startMs = SystemClock.elapsedRealtime()
         val buffer = handler.cvPixelBuffer
-        val source: Any = buffer.poolState ?: buffer.backing
+        val source = visionIdentity(buffer)
         val (width, height) = VisionMapping.analysisSize(buffer.width, buffer.height)
         if (width <= 0 || height <= 0) {
             throw VNError("The pixel buffer is empty")

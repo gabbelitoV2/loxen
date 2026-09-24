@@ -20,6 +20,7 @@ import com.moblin.android.platform.video.CVPixelBufferPool
 import com.moblin.android.platform.video.GlRenderer
 import com.moblin.android.platform.video.PixelBufferLeases
 import com.moblin.android.platform.video.PixelBufferReaper
+import com.moblin.android.platform.video.YCbCrStorage
 import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
 import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
 import com.moblin.android.platform.video.releaseLease
@@ -602,6 +603,14 @@ private fun readFormatInteger(format: MediaFormat, key: String): Int? {
     }.getOrNull()
 }
 
+internal fun makeReaderPool(width: Int, height: Int, pixelFormatType: Int): CVPixelBufferPool {
+    val layout = YCbCrStorage.layoutFor(pixelFormatType)
+    val pool = CVPixelBufferPool(width, height, YCbCrStorage.tagFor(layout, pixelFormatType), 32, layout)
+    pool.name = "reader"
+    pool.state.trimIdle = true
+    return pool
+}
+
 private class VideoTrackDecoder(
     private val path: String,
     private val track: AVAssetTrack,
@@ -814,8 +823,7 @@ private class VideoTrackDecoder(
             return existing
         }
         existing?.invalidate()
-        val newPool = CVPixelBufferPool(width, height, pixelFormatType, 32)
-        newPool.name = "reader"
+        val newPool = makeReaderPool(width, height, pixelFormatType)
         pool = newPool
         return newPool
     }

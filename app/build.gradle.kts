@@ -18,6 +18,17 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField(
+            "boolean",
+            "YCBCR_INGEST",
+            (project.findProperty("moblin.ycbcrIngest")?.toString()?.toBooleanStrictOrNull() ?: true).toString(),
+        )
+        buildConfigField(
+            "boolean",
+            "POOL_TRIM",
+            (project.findProperty("moblin.poolTrim")?.toString()?.toBooleanStrictOrNull() ?: true).toString(),
+        )
         ndk {
             abiFilters += listOf("arm64-v8a", "x86_64")
         }
@@ -37,6 +48,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     sourceSets["test"].resources.srcDir("src/main/assets")
@@ -97,5 +109,7 @@ dependencies {
     testImplementation(platform("androidx.compose:compose-bom:2025.03.00"))
     testImplementation("androidx.compose.ui:ui-test-junit4")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.test:runner:1.5.0")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

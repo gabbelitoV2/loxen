@@ -8,6 +8,7 @@ import com.moblin.android.platform.avfoundation.AVAssetReader
 import com.moblin.android.platform.avfoundation.AVAssetReaderTrackOutput
 import com.moblin.android.platform.avfoundation.AVAssetTrack
 import com.moblin.android.platform.avfoundation.AVMediaType
+import com.moblin.android.platform.avfoundation.makeReaderPool
 import com.moblin.android.platform.core.PipelineThread
 import com.moblin.android.platform.coregraphics.CGPoint
 import com.moblin.android.platform.coregraphics.CGRect
@@ -18,11 +19,16 @@ import com.moblin.android.platform.coreimage.releaseImageLeases
 import com.moblin.android.platform.coreimage.retainImageLeases
 import com.moblin.android.platform.coreimage.swapImageLease
 import com.moblin.android.platform.video.CVPixelBuffer
+import com.moblin.android.platform.video.CVPixelBufferPool
 import com.moblin.android.platform.video.PixelBufferBacking
+import com.moblin.android.platform.video.PixelBufferLayout
+import com.moblin.android.platform.video.PixelBufferLeases
 import com.moblin.android.platform.video.PixelBufferPoolState
 import com.moblin.android.platform.video.PixelBufferReaper
 import com.moblin.android.platform.video.UNLEASED
+import com.moblin.android.platform.video.YCbCrStorage
 import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
+import com.moblin.android.platform.video.kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
 import com.moblin.android.various.ReplayBufferFile
 import com.moblin.android.various.settings.SettingsWidgetLayout
 import com.moblin.android.videoeffects.EffectImageCiImage
@@ -48,6 +54,7 @@ import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -75,6 +82,66 @@ class ReaderFrameLeaseSuite {
             backing
         }
         return CVPixelBuffer(backing, pool, kCVPixelFormatType_32BGRA, leased = true)
+    }
+
+    @After
+    fun tearDown() {
+        YCbCrStorage.override = null
+    }
+
+    private fun decodedReaderFrame(pool: CVPixelBufferPool): CVPixelBuffer {
+        return onPipeline {
+            val buffer = PixelBufferReaper.obtain(pool.state, pool.pixelFormatType, leased = true)!!
+            PixelBufferLeases.retain(buffer, "AVAssetReader")
+            buffer
+        }
+    }
+
+    private fun readerLeaseTrace(pool: CVPixelBufferPool): List<Any> {
+        val trace = mutableListOf<Any>()
+        val frame = decodedReaderFrame(pool)
+        trace.add(frame.leaseCount.get())
+        val shown = replayImage(frame, 0.0).image!!.getCiImage()
+        retainImageLeases(shown)
+        trace.add(frame.leaseCount.get())
+        releaseImageLeases(shown)
+        trace.add(frame.leaseCount.get())
+        trace.add(frame.isValid)
+        releaseImageLeases(shown)
+        trace.add(frame.isValid)
+        val queued = List(3) { decodedReaderFrame(pool) }
+        val images = ArrayDeque(queued.mapIndexed { index, buffer -> replayImage(buffer, index / 30.0) })
+        var held: EffectImageCiImage? = null
+        held = swapImageLease(held, images.first().image) { it.getCiImage() }
+        drainImageLeases(images) { it.image?.getCiImage() }
+        trace.add(queued.map { it.isValid })
+        held = swapImageLease(held, null) { it.getCiImage() }
+        trace.add(held == null)
+        trace.add(queued.map { it.isValid })
+        trace.add(synchronized(PixelBufferReaper) { pool.state.leased })
+        trace.add(synchronized(PixelBufferReaper) { pool.state.allocated == pool.state.free.size })
+        pool.invalidate()
+        return trace
+    }
+
+    @Test
+    fun globalTagReaderFramesArePlanarAndEffectReaderFramesStayRgba() {
+        YCbCrStorage.override = true
+        val replay = makeReaderPool(1920, 1080, com.moblin.android.media.haishinkit.media.video.pixelFormatType)
+        val alerts = makeReaderPool(1920, 1080, kCVPixelFormatType_32BGRA)
+        assertEquals(PixelBufferLayout.ycbcr420Full, replay.layout)
+        assertEquals(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, replay.pixelFormatType)
+        assertEquals(PixelBufferLayout.rgba8, alerts.layout)
+        assertEquals(kCVPixelFormatType_32BGRA, alerts.pixelFormatType)
+        assertEquals("reader", replay.name)
+        assertEquals(32, replay.maximumBufferCount)
+        assertTrue(decodedReaderFrame(replay).layout.isPlanar)
+        val planar = readerLeaseTrace(makeReaderPool(1920, 1080, 0x23))
+        val rgba = readerLeaseTrace(makeReaderPool(1920, 1080, kCVPixelFormatType_32BGRA))
+        assertEquals(listOf<Any>(1, 2, 1, true, false, listOf(true, false, false), true, listOf(false, false, false), 0, true), rgba)
+        assertEquals(rgba, planar)
+        replay.invalidate()
+        alerts.invalidate()
     }
 
     private fun replayImage(buffer: CVPixelBuffer, offset: Double): ReplayImage {

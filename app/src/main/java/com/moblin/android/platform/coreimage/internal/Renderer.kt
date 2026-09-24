@@ -123,6 +123,9 @@ internal object Renderer {
             PipelineStats.increment("fxStale")
             return
         }
+        if (!buffer.checkRenderable("CIContext.render target")) {
+            return
+        }
         guarded("CIContext.render", root, target = buffer) {
             renderCoreImage(
                 root = root,
@@ -166,6 +169,9 @@ internal object Renderer {
     fun renderMetalPetalToBuffer(root: ImageNode, imageWidth: Int, imageHeight: Int, buffer: CVPixelBuffer) {
         if (!buffer.checkReadable("MTIContext.render target")) {
             PipelineStats.increment("fxStale")
+            return
+        }
+        if (!buffer.checkRenderable("MTIContext.render target")) {
             return
         }
         guarded("MTIContext.render", root, target = buffer) {
@@ -635,7 +641,7 @@ internal object Renderer {
         }
     }
 
-    private fun countTextures(context: RenderContext, node: ImageNode, seen: MutableSet<ImageNode>): Int {
+    internal fun countTextures(context: RenderContext, node: ImageNode, seen: MutableSet<ImageNode>): Int {
         if (!seen.add(node)) {
             return 0
         }
@@ -643,13 +649,14 @@ internal object Renderer {
             return 1
         }
         return when (node) {
-            is PixelBufferNode, is BitmapNode -> 1
+            is PixelBufferNode -> node.buffer.planeCount
+            is BitmapNode -> 1
             is TransformNode -> if (node.pyramidInput() != null) 1 else countTextures(context, node.input, seen)
             else -> node.inputs.sumOf { countTextures(context, it, seen) }
         }
     }
 
-    private fun enforceTextureBudget(context: RenderContext, root: ImageNode, limit: Int) {
+    internal fun enforceTextureBudget(context: RenderContext, root: ImageNode, limit: Int) {
         var guard = 0
         while (countTextures(context, root, Collections.newSetFromMap(IdentityHashMap())) > limit && guard < 64) {
             guard += 1
