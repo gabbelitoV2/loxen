@@ -62,9 +62,46 @@ private const val maximumNumberOfPendingFrames = 120
 
 private const val maximumNumberOfDecodedFrames = 8
 
+internal const val maximumNumberOfOutputBuffers = 256
+
 private const val renderTimeoutNs = 500_000_000L
 
 private val nextSessionIndex = AtomicInteger(0)
+
+internal class DecodeOutputHandlers {
+    private val handlers = TreeMap<Long, Pair<Long, VTDecompressionOutputHandler>>()
+    private var latestOutputHandler: VTDecompressionOutputHandler? = null
+
+    fun add(presentationTimeStamp: Long, duration: Long, outputHandler: VTDecompressionOutputHandler) {
+        handlers[presentationTimeStamp] = Pair(duration, outputHandler)
+        latestOutputHandler = outputHandler
+    }
+
+    fun take(
+        presentationTimeStamp: Long,
+        skipped: (Long, Long, VTDecompressionOutputHandler) -> Unit,
+    ): Pair<Long, VTDecompressionOutputHandler?> {
+        val entry = handlers.remove(presentationTimeStamp)
+        val older = handlers.headMap(presentationTimeStamp)
+        for ((olderPresentationTimeStamp, value) in older) {
+            skipped(olderPresentationTimeStamp, value.first, value.second)
+        }
+        older.clear()
+        return entry ?: Pair(-1L, latestOutputHandler)
+    }
+
+    fun drain(dropped: (Long, Long, VTDecompressionOutputHandler) -> Unit) {
+        for ((presentationTimeStamp, value) in handlers) {
+            dropped(presentationTimeStamp, value.first, value.second)
+        }
+        handlers.clear()
+    }
+
+    fun clear() {
+        handlers.clear()
+        latestOutputHandler = null
+    }
+}
 
 class VTDecompressionSession internal constructor(
     private val mimeType: String,
@@ -89,6 +126,14 @@ class VTDecompressionSession internal constructor(
         val outputHandler: VTDecompressionOutputHandler?,
     )
 
+    private class DroppedFrame(
+        val status: Int,
+        val infoFlags: Int,
+        val presentationTimeStamp: Long,
+        val duration: Long,
+        val outputHandler: VTDecompressionOutputHandler,
+    )
+
     private val lock = Any()
     private val index = nextSessionIndex.incrementAndGet()
     private val isHevc = mimeType == MediaFormat.MIMETYPE_VIDEO_HEVC
@@ -102,8 +147,8 @@ class VTDecompressionSession internal constructor(
     private var pool: CVPixelBufferPool? = null
     private val pendingFrames = ArrayDeque<PendingFrame>()
     private val availableInputIndexes = ArrayDeque<Int>()
-    private val outputHandlers = TreeMap<Long, Pair<Long, VTDecompressionOutputHandler>>()
-    private var latestOutputHandler: VTDecompressionOutputHandler? = null
+    private val outputHandlers = DecodeOutputHandlers()
+    private var droppedFrames = ArrayList<DroppedFrame>()
     private val decodedFrames = ArrayDeque<DecodedFrame>()
     private var renderingFrame: DecodedFrame? = null
     private var renderStartedNs = 0L
@@ -131,19 +176,31 @@ class VTDecompressionSession internal constructor(
                 availableInputIndexes.addLast(index)
                 feedInputsLocked(codec)
             }
+            reportDroppedFrames()
         }
 
         override fun onOutputBufferAvailable(codec: MediaCodec, index: Int, info: MediaCodec.BufferInfo) {
             handleOutputBuffer(codec, index, info)
+            reportDroppedFrames()
         }
 
         override fun onError(codec: MediaCodec, e: MediaCodec.CodecException) {
             Log.i(TAG, "video-decoder-$index: Codec error: ${e.diagnosticInfo}")
-            failed = true
+            synchronized(lock) {
+                failed = true
+                failFramesLocked()
+            }
+            reportDroppedFrames()
         }
 
         override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {
             updateOutputSize(format)
+        }
+    }
+
+    init {
+        for (name in listOf("decIn", "decOut", "decDrop")) {
+            PipelineStats.increment(name, 0)
         }
     }
 
@@ -212,8 +269,7 @@ class VTDecompressionSession internal constructor(
                     ),
                 )
                 if (pendingFrames.size > maximumNumberOfPendingFrames) {
-                    pendingFrames.removeFirst()
-                    countDroppedFrameLocked("decoder input is full")
+                    dropPendingFrameLocked(pendingFrames.removeFirst(), "decoder input is full")
                     skipToKeyFrameLocked("decoder input is full")
                 }
                 val codec = codec
@@ -222,8 +278,11 @@ class VTDecompressionSession internal constructor(
                 }
             }
         }
+        reportDroppedFrames()
         if (dropped) {
-            outputHandler(
+            PipelineStats.increment("decDrop")
+            invokeOutputHandler(
+                outputHandler,
                 kVTVideoDecoderBadDataErr,
                 VTDecodeInfoFlags._FrameDropped,
                 null,
@@ -250,9 +309,9 @@ class VTDecompressionSession internal constructor(
             pendingFrames.clear()
             availableInputIndexes.clear()
             outputHandlers.clear()
+            droppedFrames.clear()
             decodedFrames.clear()
             renderingFrame = null
-            latestOutputHandler = null
         }
         if (codec != null) {
             try {
@@ -281,27 +340,32 @@ class VTDecompressionSession internal constructor(
     }
 
     private fun feedInputsLocked(codec: MediaCodec) {
-        while (!invalidated && availableInputIndexes.isNotEmpty() && pendingFrames.isNotEmpty()) {
+        while (!invalidated && !failed && availableInputIndexes.isNotEmpty() && pendingFrames.isNotEmpty()) {
             val frame = pendingFrames.removeFirst()
             val inputIndex = availableInputIndexes.removeFirst()
+            var queued = false
             try {
                 val buffer = codec.getInputBuffer(inputIndex)
                 if (buffer == null || frame.data.size > buffer.capacity()) {
                     codec.queueInputBuffer(inputIndex, 0, 0, frame.presentationTimeStamp, 0)
                     val reason = "frame of ${frame.data.size} bytes does not fit the input buffer"
-                    countDroppedFrameLocked(reason)
+                    dropPendingFrameLocked(frame, reason)
                     skipToKeyFrameLocked(reason)
                     continue
                 }
                 buffer.clear()
                 buffer.put(frame.data)
-                outputHandlers[frame.presentationTimeStamp] = Pair(frame.duration, frame.outputHandler)
-                latestOutputHandler = frame.outputHandler
+                outputHandlers.add(frame.presentationTimeStamp, frame.duration, frame.outputHandler)
+                queued = true
                 codec.queueInputBuffer(inputIndex, 0, frame.data.size, frame.presentationTimeStamp, 0)
                 PipelineStats.increment("decIn")
             } catch (error: Exception) {
                 Log.i(TAG, "video-decoder-$index: Failed to queue input: $error")
+                if (!queued) {
+                    pendingFrames.addFirst(frame)
+                }
                 failed = true
+                failFramesLocked()
                 return
             }
         }
@@ -317,8 +381,7 @@ class VTDecompressionSession internal constructor(
             if (frame.isKeyFrame) {
                 return
             }
-            pendingFrames.removeFirst()
-            countDroppedFrameLocked(reason)
+            dropPendingFrameLocked(pendingFrames.removeFirst(), reason)
         }
     }
 
@@ -327,47 +390,44 @@ class VTDecompressionSession internal constructor(
             if (invalidated) {
                 return
             }
-            if (info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG != 0) {
+            if (failed || info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG != 0) {
                 releaseOutputBufferLocked(codec, index, false)
                 return
             }
             val presentationTimeStamp = info.presentationTimeUs
-            val (duration, outputHandler) = takeOutputHandlerLocked(presentationTimeStamp)
+            val (duration, outputHandler) = outputHandlers.take(presentationTimeStamp) { skipped, length, handler ->
+                dropFrameLocked(skipped, length, handler, "the codec did not output it")
+            }
             decodedFrames.addLast(DecodedFrame(index, presentationTimeStamp, duration, outputHandler))
             while (decodedFrames.size > maximumNumberOfDecodedFrames) {
                 val frame = decodedFrames.removeFirst()
                 releaseOutputBufferLocked(codec, frame.index, false)
-                countDroppedFrameLocked("rendering is too slow")
+                dropDecodedFrameLocked(frame, "rendering is too slow")
             }
             renderNextLocked()
         }
-    }
-
-    private fun takeOutputHandlerLocked(presentationTimeStamp: Long): Pair<Long, VTDecompressionOutputHandler?> {
-        val entry = outputHandlers.remove(presentationTimeStamp)
-        outputHandlers.headMap(presentationTimeStamp).clear()
-        if (entry != null) {
-            return entry
-        }
-        return Pair(-1L, latestOutputHandler)
     }
 
     private fun renderNextLocked() {
         if (invalidated) {
             return
         }
-        if (renderingFrame != null) {
+        val timedOutFrame = renderingFrame
+        if (timedOutFrame != null) {
             if (SystemClock.elapsedRealtimeNanos() - renderStartedNs < renderTimeoutNs) {
                 return
             }
             Log.i(TAG, "video-decoder-$index: Frame render timed out")
             renderingFrame = null
+            dropDecodedFrameLocked(timedOutFrame, "its render timed out")
         }
         val codec = codec ?: return
         val frame = decodedFrames.removeFirstOrNull() ?: return
         if (releaseOutputBufferLocked(codec, frame.index, true)) {
             renderingFrame = frame
             renderStartedNs = SystemClock.elapsedRealtimeNanos()
+        } else {
+            failFrameLocked(frame.presentationTimeStamp, frame.duration, frame.outputHandler)
         }
     }
 
@@ -378,6 +438,7 @@ class VTDecompressionSession internal constructor(
         } catch (error: Exception) {
             Log.i(TAG, "video-decoder-${this.index}: Failed to release output buffer: $error")
             failed = true
+            failFramesLocked()
             false
         }
     }
@@ -392,7 +453,102 @@ class VTDecompressionSession internal constructor(
         }
     }
 
-    private fun updateOutputSize(format: MediaFormat) {
+    private fun dropPendingFrameLocked(frame: PendingFrame, reason: String) {
+        dropFrameLocked(frame.presentationTimeStamp, frame.duration, frame.outputHandler, reason)
+    }
+
+    private fun dropDecodedFrameLocked(frame: DecodedFrame, reason: String) {
+        dropFrameLocked(frame.presentationTimeStamp, frame.duration, frame.outputHandler, reason)
+    }
+
+    private fun dropFrameLocked(
+        presentationTimeStamp: Long,
+        duration: Long,
+        outputHandler: VTDecompressionOutputHandler?,
+        reason: String,
+    ) {
+        countDroppedFrameLocked(reason)
+        addDroppedFrameLocked(noErr, VTDecodeInfoFlags._FrameDropped, presentationTimeStamp, duration, outputHandler)
+    }
+
+    private fun failFramesLocked() {
+        for (frame in pendingFrames) {
+            failFrameLocked(frame.presentationTimeStamp, frame.duration, frame.outputHandler)
+        }
+        pendingFrames.clear()
+        outputHandlers.drain { presentationTimeStamp, duration, outputHandler ->
+            failFrameLocked(presentationTimeStamp, duration, outputHandler)
+        }
+        for (frame in decodedFrames) {
+            failFrameLocked(frame.presentationTimeStamp, frame.duration, frame.outputHandler)
+        }
+        decodedFrames.clear()
+        val frame = renderingFrame ?: return
+        renderingFrame = null
+        failFrameLocked(frame.presentationTimeStamp, frame.duration, frame.outputHandler)
+    }
+
+    private fun failFrameLocked(
+        presentationTimeStamp: Long,
+        duration: Long,
+        outputHandler: VTDecompressionOutputHandler?,
+    ) {
+        addDroppedFrameLocked(kVTVideoDecoderMalfunctionErr, 0, presentationTimeStamp, duration, outputHandler)
+    }
+
+    private fun addDroppedFrameLocked(
+        status: Int,
+        infoFlags: Int,
+        presentationTimeStamp: Long,
+        duration: Long,
+        outputHandler: VTDecompressionOutputHandler?,
+    ) {
+        if (invalidated) {
+            return
+        }
+        PipelineStats.increment("decDrop")
+        if (outputHandler != null) {
+            droppedFrames.add(DroppedFrame(status, infoFlags, presentationTimeStamp, duration, outputHandler))
+        }
+    }
+
+    private fun reportDroppedFrames() {
+        val frames = synchronized(lock) {
+            if (droppedFrames.isEmpty()) {
+                return
+            }
+            val frames = droppedFrames
+            droppedFrames = ArrayList()
+            frames
+        }
+        for (frame in frames) {
+            invokeOutputHandler(
+                frame.outputHandler,
+                frame.status,
+                frame.infoFlags,
+                null,
+                frame.presentationTimeStamp,
+                frame.duration,
+            )
+        }
+    }
+
+    private fun invokeOutputHandler(
+        outputHandler: VTDecompressionOutputHandler,
+        status: Int,
+        infoFlags: Int,
+        imageBuffer: CVPixelBuffer?,
+        presentationTimeStamp: Long,
+        duration: Long,
+    ) {
+        try {
+            outputHandler(status, infoFlags, imageBuffer, presentationTimeStamp, duration)
+        } catch (error: Throwable) {
+            Log.i(TAG, "video-decoder-$index: Output handler failed: $error")
+        }
+    }
+
+    internal fun updateOutputSize(format: MediaFormat) {
         val width = readInteger(format, MediaFormat.KEY_WIDTH) ?: return
         val height = readInteger(format, MediaFormat.KEY_HEIGHT) ?: return
         val cropLeft = readInteger(format, "crop-left")
@@ -435,11 +591,20 @@ class VTDecompressionSession internal constructor(
             synchronized(lock) {
                 renderNextLocked()
             }
+            reportDroppedFrames()
         }
         if (frame == null) {
             return
         }
         val outputHandler = frame.outputHandler ?: return
+        outputFrame(frame.presentationTimeStamp, frame.duration, outputHandler)
+    }
+
+    internal fun outputFrame(
+        presentationTimeStamp: Long,
+        duration: Long,
+        outputHandler: VTDecompressionOutputHandler,
+    ) {
         if (outputWidth <= 0 || outputHeight <= 0) {
             val format = try {
                 codec?.outputFormat
@@ -452,24 +617,20 @@ class VTDecompressionSession internal constructor(
         }
         val width = outputWidth
         val height = outputHeight
-        val buffer = if (width > 0 && height > 0) pixelBufferPool(width, height).createPixelBuffer() else null
+        val buffer = if (width > 0 && height > 0) outputPixelBufferPool(width, height).createPixelBuffer() else null
         if (buffer == null) {
-            PipelineStats.increment("decDrop")
-            outputHandler(
-                kVTVideoDecoderMalfunctionErr,
-                VTDecodeInfoFlags._FrameDropped,
-                null,
-                frame.presentationTimeStamp,
-                frame.duration,
-            )
+            synchronized(lock) {
+                dropFrameLocked(presentationTimeStamp, duration, outputHandler, "no output pixel buffer is free")
+            }
+            reportDroppedFrames()
             return
         }
         GlRenderer.drawOes(oesTexture, stMatrix, buffer, 0, false)
         PipelineStats.increment("decOut")
-        outputHandler(noErr, 0, buffer, frame.presentationTimeStamp, frame.duration)
+        invokeOutputHandler(outputHandler, noErr, 0, buffer, presentationTimeStamp, duration)
     }
 
-    private fun pixelBufferPool(width: Int, height: Int): CVPixelBufferPool {
+    internal fun outputPixelBufferPool(width: Int, height: Int): CVPixelBufferPool {
         val existing = pool
         if (existing != null && existing.width == width && existing.height == height) {
             return existing
@@ -479,7 +640,7 @@ class VTDecompressionSession internal constructor(
             width = width,
             height = height,
             pixelFormatType = pixelFormatType,
-            maximumBufferCount = 64,
+            maximumBufferCount = maximumNumberOfOutputBuffers,
         )
         newPool.name = "decoder"
         pool = newPool

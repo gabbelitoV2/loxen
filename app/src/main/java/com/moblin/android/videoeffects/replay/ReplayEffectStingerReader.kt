@@ -34,6 +34,7 @@ open class ReplayEffectStingerReader(path: String, size: Size) {
     var setupState: ReplayEffectStingerReaderSetupState = ReplayEffectStingerReaderSetupState.working
         private set
     private val size: CGSize = size.toCGSize()
+    fun close() { val current = reader; kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch { current?.cancelReading() }; replayEffectQueue.launch { reader?.cancelReading(); processorPipelineQueue.launch { com.moblin.android.platform.coreimage.drainImageLeases(images) { it.image?.getCiImage() } } } }
 
     init {
         setup(path = path)
@@ -58,7 +59,7 @@ open class ReplayEffectStingerReader(path: String, size: Size) {
             } else {
                 return image
             }
-            images.removeFirst()
+            com.moblin.android.platform.coreimage.releaseImageLeases(images.removeFirst().image?.getCiImage())
         }
         return ReplayImage(image = null, offset = null, isLast = false)
     }
@@ -122,6 +123,7 @@ open class ReplayEffectStingerReader(path: String, size: Size) {
         )
         val output = AVAssetReaderTrackOutput(track = track, outputSettings = videoOutputSettings)
         trackOutput = output
+        output.leasesSampleBuffers = true
         reader?.add(output)
         reader?.startReading()
         fillInternal()

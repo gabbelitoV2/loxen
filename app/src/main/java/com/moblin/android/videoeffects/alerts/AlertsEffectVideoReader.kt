@@ -65,7 +65,7 @@ class AlertsEffectVideoReader(path: String) {
             if (offset <= image.offset) {
                 return image.image
             }
-            images.removeFirst()
+            com.moblin.android.platform.coreimage.releaseImageLeases(images.removeFirst().image.getCiImage())
         }
         return null
     }
@@ -116,6 +116,7 @@ class AlertsEffectVideoReader(path: String) {
             return
         }
         reader?.add(output = output)
+        output.leasesSampleBuffers = true
         reader?.startReading()
         fillInternal()
     }

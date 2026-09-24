@@ -64,6 +64,7 @@ internal class ReplayEffectReplayReader internal constructor(
     private var trackOutput: AVAssetReaderTrackOutput? = null
     private var images: ArrayDeque<ReplayImage> = ArrayDeque()
     private var overlay: CIImage? = null
+    fun close() { val current = reader; kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch { current?.cancelReading() }; replayEffectQueue.launch { reader?.cancelReading(); processorPipelineQueue.launch { com.moblin.android.platform.coreimage.drainImageLeases(images) { it.image?.getCiImage() } } } }
 
     init {
         CoroutineScope(Dispatchers.Main.immediate).launch {
@@ -102,7 +103,7 @@ internal class ReplayEffectReplayReader internal constructor(
             } else {
                 return image
             }
-            images.removeFirst()
+            com.moblin.android.platform.coreimage.releaseImageLeases(images.removeFirst().image?.getCiImage())
         }
         return ReplayImage(image = null, offset = null, isLast = false)
     }
@@ -120,6 +121,7 @@ internal class ReplayEffectReplayReader internal constructor(
         )
         val trackOutput = AVAssetReaderTrackOutput(track = track, outputSettings = outputSettings)
         this.trackOutput = trackOutput
+        trackOutput.leasesSampleBuffers = true
         reader?.add(trackOutput)
         reader?.startReading()
         fillInternal()
