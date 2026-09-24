@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
+import org.junit.rules.ExternalResource
 import org.robolectric.Shadows.shadowOf
 
 private class BundleToken
@@ -105,4 +106,10 @@ fun runMainTest(block: suspend CoroutineScope.() -> Unit) {
         last = now
     }
     runBlocking { test.await() }
+}
+
+class MainLooperDrainRule : ExternalResource() {
+    override fun after() {
+        shadowOf(Looper.getMainLooper()).idle()
+    }
 }

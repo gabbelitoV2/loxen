@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.moblin.android.AppDelegate
+import com.moblin.android.MainLooperDrainRule
 import com.moblin.android.platform.coregraphics.CGSize
 import androidx.compose.ui.text.font.createFontFamilyResolver
 import com.moblin.android.platform.swiftui.layout.AndroidTextMeasurer
@@ -35,6 +36,7 @@ import kotlin.math.abs
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -102,6 +104,9 @@ private fun modularConfig(): RemoteControlScoreboardMatchConfig = RemoteControlS
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class SwiftUIWidgetRenderSuite {
+    @get:Rule
+    val mainLooperDrain = MainLooperDrainRule()
+
     @Test
     fun genericScoreboardBarsSpanTheWholeWidth() {
         val generic = SettingsWidgetGenericScoreboard(home = "Home", away = "Away", title = "Final")
