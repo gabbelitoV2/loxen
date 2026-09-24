@@ -48,6 +48,7 @@ import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.Visibility
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.getTextEffects
 import com.moblin.android.various.model.reloadLocation
@@ -1579,7 +1580,7 @@ fun TextWidgetSuggestionsView(
             widget = widget,
             text = text,
             onChange = onChange,
-            onDismiss = {},
+            onDismiss = rememberDismiss(),
         )
     })
 }

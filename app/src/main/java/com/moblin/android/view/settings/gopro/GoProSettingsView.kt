@@ -24,6 +24,7 @@ import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.move
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.GoProState
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
@@ -164,7 +165,7 @@ private fun GoProWifiCredentialsSettingsView(
                                 wifiCredentials.ssid = it
                                 generate()
                             },
-                            onDismiss = {},
+                            onDismiss = rememberDismiss(),
                         )
                     },
                 ) {

@@ -24,6 +24,7 @@ import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.Tesla
 import com.moblin.android.various.model.mediaNextTrack
@@ -93,7 +94,7 @@ fun TeslaSettingsConfigurationView(
                 destination = {
                     TeslaVehicleScannerSettingsView(
                         onChange = { onDeviceChange(it) },
-                        onDismiss = {},
+                        onDismiss = rememberDismiss(),
                     )
                 },
             ) {

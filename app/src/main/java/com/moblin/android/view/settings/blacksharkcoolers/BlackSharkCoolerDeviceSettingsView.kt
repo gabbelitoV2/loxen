@@ -29,6 +29,7 @@ import com.moblin.android.platform.swiftui.FormSlider
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusTopRight
 import com.moblin.android.various.settings.SettingsBlackSharkCoolerDevice
@@ -166,7 +167,7 @@ fun BlackSharkCoolerDeviceSettingsViewContent(
                         onChange = { onDeviceChange(it, device) },
                         selectedId = device.bluetoothPeripheralId?.toString()
                             ?: localized("Select device"),
-                        onDismiss = {},
+                        onDismiss = rememberDismiss(),
                     )
                 },
                 enabled = !device.enabled,

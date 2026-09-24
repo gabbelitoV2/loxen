@@ -22,6 +22,7 @@ import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsRtspClient
 import com.moblin.android.various.settings.SettingsRtspClientStream
@@ -187,7 +188,7 @@ fun RtspClientStreamSettingsViewDestination(
                             "TP-Link" to "rtsp://username:password@192.168.1.83/stream1"
                         ),
                         onSubmitted = { model.reloadRtspClient() },
-                        onDismiss = {}
+                        onDismiss = rememberDismiss()
                     )
                 }
             ) {

@@ -2,6 +2,7 @@ package com.moblin.android.view.settings.streams.stream.url
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.network.DefaultTcpPorts
 import com.moblin.android.various.settings.SettingsStream
@@ -54,8 +55,7 @@ fun StreamUrlSettingsView(
         onSubmitted = {
             model.reloadStreamIfEnabled(stream = stream)
         },
-        onDismiss = {
-        },
+        onDismiss = rememberDismiss(),
     )
 }
 
@@ -79,7 +79,6 @@ fun StreamMultiStreamingUrlView(
         onSubmitted = {
             model.reloadStreamIfEnabled(stream = stream)
         },
-        onDismiss = {
-        },
+        onDismiss = rememberDismiss(),
     )
 }

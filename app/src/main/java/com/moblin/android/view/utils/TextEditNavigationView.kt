@@ -28,6 +28,7 @@ import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formFootnoteStyle
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.rememberDismiss
 
 @Composable
 private fun TextEditNavigationViewInner(
@@ -180,7 +181,7 @@ fun TextEditNavigationView(
                 onErrorMessageChange = { errorMessage.value = it },
                 submittedValue = submittedValue.value,
                 onSubmittedValueChange = { submittedValue.value = it },
-                onDismiss = {},
+                onDismiss = rememberDismiss(),
             )
         },
     ) {

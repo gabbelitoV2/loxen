@@ -41,6 +41,7 @@ import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formFootnoteStyle
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.Moblink
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
@@ -302,7 +303,7 @@ private fun RelayView(
                         model = model,
                         moblink = model.moblink,
                         initialStreamerUrl = relay.url.value,
-                        onDismiss = {},
+                        onDismiss = rememberDismiss(),
                     )
                 },
             ) {
