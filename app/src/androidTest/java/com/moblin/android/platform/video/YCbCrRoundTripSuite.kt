@@ -11,6 +11,7 @@ import android.opengl.GLES20
 import android.opengl.GLUtils
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.moblin.android.media.MediaSample
 import com.moblin.android.platform.avfoundation.AVAsset
 import com.moblin.android.platform.avfoundation.AVAssetReader
 import com.moblin.android.platform.avfoundation.AVAssetReaderTrackOutput
@@ -44,6 +45,8 @@ private val flipVertical = floatArrayOf(1f, 0f, 0f, 0f, 0f, -1f, 0f, 0f, 0f, 0f,
 private class Pattern(val name: String, val bitmap: Bitmap, val compared: (Int, Int) -> Boolean)
 
 private class Difference(val maximum: Int, val psnr: Double, val alphaOk: Boolean)
+
+private class Clip(val reader: AVAssetReader, val output: AVAssetReaderTrackOutput, val planar: Boolean)
 
 @RunWith(AndroidJUnit4::class)
 class YCbCrRoundTripSuite {
@@ -352,7 +355,7 @@ class YCbCrRoundTripSuite {
         }
     }
 
-    private fun readClip(file: File, planar: Boolean): List<Pair<Long, IntArray>> {
+    private fun openClip(file: File, planar: Boolean): Clip {
         val asset = AVAsset(url = file.path)
         val loaded = CountDownLatch(1)
         val track = AtomicReference<AVAssetTrack?>()
@@ -369,19 +372,18 @@ class YCbCrRoundTripSuite {
         output.leasesSampleBuffers = true
         reader.add(output)
         assertTrue(reader.startReading())
-        val frames = mutableListOf<Pair<Long, IntArray>>()
-        while (true) {
-            val sample = output.copyNextSampleBuffer() ?: break
-            try {
-                val buffer = checkNotNull(sample.imageBuffer)
-                assertEquals(planar, buffer.layout.isPlanar)
-                frames.add(Pair(sample.presentationTimeUs, read(buffer)))
-            } finally {
-                releaseLease(sample)
-            }
-        }
-        reader.cancelReading()
-        return frames
+        return Clip(reader, output, planar)
+    }
+
+    private fun nextFrame(clip: Clip): MediaSample? {
+        YCbCrStorage.override = clip.planar
+        return clip.output.copyNextSampleBuffer()
+    }
+
+    private fun readFrame(clip: Clip, sample: MediaSample): IntArray {
+        val buffer = checkNotNull(sample.imageBuffer)
+        assertEquals(clip.planar, buffer.layout.isPlanar)
+        return read(buffer)
     }
 
     @Test
@@ -391,18 +393,35 @@ class YCbCrRoundTripSuite {
         encodeClip(file, 1920, 1080, 30)
         val stale = PixelBufferStale.reported.get()
         val leaked = PixelBufferReaper.leakedLeases.get()
-        YCbCrStorage.override = false
-        val rgba = readClip(file, planar = false)
-        YCbCrStorage.override = true
-        val planar = readClip(file, planar = true)
-        YCbCrStorage.override = null
-        assertTrue("decoded ${rgba.size} frames", rgba.size >= 25)
-        assertEquals(rgba.map { it.first }, planar.map { it.first })
-        for ((expected, actual) in rgba.zip(planar)) {
-            val result = difference(expected.second, actual.second, 1920) { _, _ -> true }
-            assertTrue("frame ${expected.first}: PSNR ${result.psnr}", result.psnr >= 42)
-            assertTrue(result.alphaOk)
+        val rgba = openClip(file, planar = false)
+        val planar = openClip(file, planar = true)
+        var compared = 0
+        try {
+            while (true) {
+                val expected = nextFrame(rgba)
+                val actual = nextFrame(planar)
+                try {
+                    assertEquals(expected == null, actual == null)
+                    if (expected == null || actual == null) {
+                        break
+                    }
+                    assertEquals(expected.presentationTimeUs, actual.presentationTimeUs)
+                    val reference = readFrame(rgba, expected)
+                    val result = difference(reference, readFrame(planar, actual), 1920) { _, _ -> true }
+                    assertTrue("frame ${expected.presentationTimeUs}: PSNR ${result.psnr}", result.psnr >= 42)
+                    assertTrue(result.alphaOk)
+                    compared += 1
+                } finally {
+                    releaseLease(expected)
+                    releaseLease(actual)
+                }
+            }
+        } finally {
+            rgba.reader.cancelReading()
+            planar.reader.cancelReading()
+            YCbCrStorage.override = null
         }
+        assertTrue("decoded $compared frames", compared >= 25)
         assertEquals(stale, PixelBufferStale.reported.get())
         assertEquals(leaked, PixelBufferReaper.leakedLeases.get())
         file.delete()
