@@ -2,16 +2,6 @@
   "task": "SYS",
   "hooks": [
     {
-      "id": "HSYS.1",
-      "file": "various/settings/Settings.kt",
-      "scope": "fun extractArchive",
-      "op": "replace",
-      "old": "            val target = File(root, entry.name)",
-      "new": "            val target = exportFiles.firstOrNull { it.name == entry.name } ?: File(root, entry.name)",
-      "occurrence": 1,
-      "note": "Swift keeps stealthModeImagePath, faceBackgroundImagePath and controlBarBackgroundImagePath in URL.documentsDirectory and exports them by lastPathComponent, so reader.extract(to: documentsDirectory) puts them back. The port keeps them in filesDir while createAndGetDirectory() is the app data directory, so their archive entries are written to the exportFiles paths instead."
-    },
-    {
       "id": "HSYS.2",
       "file": "various/settings/Settings.kt",
       "scope": "fun extractArchive",
@@ -19,6 +9,45 @@
       "anchor": "        recreateExportDirectories()",
       "new": "        check(entries.none { it.name.startsWith(\"/\") || it.name.split(\"/\").contains(\"..\") }) { \"Invalid file path\" }",
       "note": "Upstream 371f1f364 and 75939ca5b moved swift-zip-archive to 750253d, whose ZipArchiveReader.extract throws invalidFilePath before writing anything when an entry path is absolute or has a '..' component. The Swift diff of Settings.swift does not show it, so the translation never sees it."
+    },
+    {
+      "id": "HSYS.3",
+      "file": "various/utils/FileSystemUtils.kt",
+      "scope": "val documentsDirectory",
+      "op": "replace",
+      "old": "    get() = temporaryDirectory.parentFile ?: File(\"/data/local/tmp\")",
+      "new": "    get() = com.moblin.android.platform.Documents.directory",
+      "occurrence": 1,
+      "note": "URL.documentsDirectory is the sandboxed Documents folder. The translation derived it from java.io.tmpdir, whose parent is the app data directory next to shared_prefs, databases and files, so createAndGetDirectory() and the settings import wrote there. Documents.directory is <filesDir>/Documents and moves what older versions left in the old place once, before its first use."
+    },
+    {
+      "id": "HSYS.4",
+      "file": "various/model/ModelControlBar.kt",
+      "scope": "val controlBarBackgroundImagePath",
+      "op": "replace",
+      "old": "    get() = File(appContext.filesDir, \"controlBarBackgroundImage.img\")",
+      "new": "    get() = File(com.moblin.android.platform.Documents.directory, \"controlBarBackgroundImage.img\")",
+      "occurrence": 1,
+      "note": "Swift keeps controlBarBackgroundImagePath in URL.documentsDirectory, where the settings import extracts it by name."
+    },
+    {
+      "id": "HSYS.5",
+      "file": "various/model/ModelStealthMode.kt",
+      "scope": "val stealthModeImagePath",
+      "op": "replace",
+      "old": "    get() = File(AppDelegate.context.filesDir, \"stealthModeImage.img\")",
+      "new": "    get() = File(com.moblin.android.platform.Documents.directory, \"stealthModeImage.img\")",
+      "occurrence": 1,
+      "note": "Swift keeps stealthModeImagePath in URL.documentsDirectory, where the settings import extracts it by name."
+    },
+    {
+      "id": "HSYS.6",
+      "file": "various/settings/Settings.kt",
+      "scope": "fun extractArchive",
+      "op": "insert_after",
+      "anchor": "        val root = createAndGetDirectory()",
+      "new": "        check(root.canonicalFile.toPath().let { base -> entries.all { File(root, it.name).canonicalFile.toPath().startsWith(base) } }) { \"Invalid file path\" }",
+      "note": "HSYS.2 is the lexical check of swift-zip-archive. java.io.File also treats a backslash or a drive letter as a separator on a Windows JVM, where the unit tests run, and follows symlinks, so every entry must also resolve inside Documents.directory before anything is written."
     }
   ]
 }

@@ -2801,8 +2801,9 @@ private fun extractArchive(url: URI): ByteArray? {
         recreateExportDirectories()
         check(entries.none { it.name.startsWith("/") || it.name.split("/").contains("..") }) { "Invalid file path" }
         val root = createAndGetDirectory()
+        check(root.canonicalFile.toPath().let { base -> entries.all { File(root, it.name).canonicalFile.toPath().startsWith(base) } }) { "Invalid file path" }
         for (entry in entries) {
-            val target = exportFiles.firstOrNull { it.name == entry.name } ?: File(root, entry.name)
+            val target = File(root, entry.name)
             if (entry.isDirectory) {
                 target.mkdirs()
             } else {

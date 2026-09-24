@@ -11,7 +11,7 @@ private val temporaryDirectory: File
     get() = File(System.getProperty("java.io.tmpdir") ?: "/data/local/tmp")
 
 private val documentsDirectory: File
-    get() = temporaryDirectory.parentFile ?: File("/data/local/tmp")
+    get() = com.moblin.android.platform.Documents.directory
 
 val File.attributes: Map<String, Any>?
     get() = try {

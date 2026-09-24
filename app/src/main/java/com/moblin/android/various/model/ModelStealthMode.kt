@@ -6,7 +6,7 @@ import com.moblin.android.AppDelegate
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 
 val stealthModeImagePath: File
-    get() = File(AppDelegate.context.filesDir, "stealthModeImage.img")
+    get() = File(com.moblin.android.platform.Documents.directory, "stealthModeImage.img")
 
 fun Model.setStealthMode(on: Boolean) {
     showStealthMode.value = on

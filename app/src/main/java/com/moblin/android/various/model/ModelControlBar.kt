@@ -12,7 +12,7 @@ import java.io.FileOutputStream
 val appContext: Context get() = com.moblin.android.AppDelegate.context
 
 val controlBarBackgroundImagePath: File
-    get() = File(appContext.filesDir, "controlBarBackgroundImage.img")
+    get() = File(com.moblin.android.platform.Documents.directory, "controlBarBackgroundImage.img")
 
 fun Model.saveControlBarBackgroundImage(data: ByteArray): Bitmap? {
     val original = BitmapFactory.decodeByteArray(data, 0, data.size) ?: return null

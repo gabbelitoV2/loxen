@@ -17,9 +17,9 @@
    "scope": "val faceBackgroundImagePath",
    "op": "replace",
    "old": "val faceBackgroundImagePath: String = File(AppDelegate.context.filesDir, \"faceBackgroundImage.img\").path",
-   "new": "val faceBackgroundImagePath: File = File(AppDelegate.context.filesDir, \"faceBackgroundImage.img\")",
+   "new": "val faceBackgroundImagePath: File = File(com.moblin.android.platform.Documents.directory, \"faceBackgroundImage.img\")",
    "occurrence": 1,
-   "note": "ME1 boundary (effects plan 1.20): faceBackgroundImagePath stays java.io.File, which Settings.kt's exportFiles lists; replaces the retired caller hook HE9.5."
+   "note": "ME1 boundary (effects plan 1.20): faceBackgroundImagePath stays java.io.File, which Settings.kt's exportFiles lists; replaces the retired caller hook HE9.5. It lives in Documents.directory (<filesDir>/Documents), the port's URL.documentsDirectory, like the Swift path, so the settings import extracts it there."
   },
   {
    "id": "HE9.7",

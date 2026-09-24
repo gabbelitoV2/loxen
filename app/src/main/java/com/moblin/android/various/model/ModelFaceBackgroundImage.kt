@@ -6,7 +6,7 @@ import com.moblin.android.platform.uikit.UIImage
 import com.moblin.android.platform.uikit.cgImage
 import java.io.File
 
-val faceBackgroundImagePath: File = File(AppDelegate.context.filesDir, "faceBackgroundImage.img")
+val faceBackgroundImagePath: File = File(com.moblin.android.platform.Documents.directory, "faceBackgroundImage.img")
 
 fun Model.saveFaceBackgroundImage(data: ByteArray) {
     runCatching { faceBackgroundImagePath.writeBytes(data) }
