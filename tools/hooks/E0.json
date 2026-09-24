@@ -102,9 +102,9 @@
       "scope": "class SettingsFontDesign",
       "op": "replace",
       "old": "        rounded -> TODO(\"Compose has no rounded system font family\")",
-      "new": "        rounded -> FontFamily.Default",
+      "new": "        rounded -> com.moblin.android.platform.swiftui.SwiftUIFonts.rounded",
       "occurrence": 1,
-      "note": "ME0 line. At ME2: rounded -> com.moblin.android.platform.swiftui.SwiftUIFonts.rounded"
+      "note": "ME2 line (swapped by E3 with the ME2 merge; ME0 line was rounded -> FontFamily.Default)."
     },
     {
       "id": "HE0.12",

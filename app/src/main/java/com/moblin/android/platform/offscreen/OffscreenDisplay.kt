@@ -1,7 +1,9 @@
 package com.moblin.android.platform.offscreen
 
 import android.app.Presentation
+import android.content.ComponentCallbacks2
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.PixelFormat
@@ -12,6 +14,7 @@ import android.media.ImageReader
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
+import android.os.SystemClock
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.View
@@ -31,11 +34,14 @@ import java.lang.ref.ReferenceQueue
 import java.lang.ref.WeakReference
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
 private const val TAG = "MoblinOverlay"
 private const val displaySize = 16
 private const val sweepIntervalMs = 5_000L
+private const val maximumStartAttempts = 3
+private const val startRetryDelayMs = 2_000L
 
 internal val offscreenMainHandler: Handler by lazy { Handler(Looper.getMainLooper()) }
 
@@ -120,6 +126,22 @@ private object OffscreenOwner : LifecycleOwner, SavedStateRegistryOwner {
     }
 }
 
+private object OffscreenTrimCallbacks : ComponentCallbacks2 {
+    override fun onTrimMemory(level: Int) {
+        if (level != ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
+            Log.i(TAG, "trim memory level $level, collecting hosted views")
+            OffscreenSweep.collect()
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {}
+
+    @Deprecated("Deprecated in Java")
+    override fun onLowMemory() {
+        OffscreenSweep.collect()
+    }
+}
+
 object OffscreenDisplay {
     private enum class State { idle, ready, failed }
 
@@ -129,6 +151,9 @@ object OffscreenDisplay {
     private var virtualDisplay: VirtualDisplay? = null
     private var imageReader: ImageReader? = null
     private var drainThread: HandlerThread? = null
+    private var failures = 0
+    private var nextAttemptAtMs = 0L
+    private var trimCallbacksRegistered = false
 
     fun prewarm() {
         if (isOffscreenMainThread()) {
@@ -179,11 +204,15 @@ object OffscreenDisplay {
     }
 
     private fun start() {
-        if (state != State.idle || !isOffscreenMainThread()) {
+        if (state != State.idle || !isOffscreenMainThread() || SystemClock.uptimeMillis() < nextAttemptAtMs) {
             return
         }
         try {
             val context = AppDelegate.context.applicationContext
+            if (!trimCallbacksRegistered) {
+                context.registerComponentCallbacks(OffscreenTrimCallbacks)
+                trimCallbacksRegistered = true
+            }
             val displayManager = context.getSystemService(DisplayManager::class.java)
                 ?: throw IllegalStateException("no DisplayManager")
             val thread = HandlerThread("MoblinOffscreen").also { it.start() }
@@ -238,8 +267,9 @@ object OffscreenDisplay {
             presentation.show()
             state = State.ready
         } catch (error: Throwable) {
-            state = State.failed
-            Log.e(TAG, "host display failed: $error")
+            failures += 1
+            state = if (failures < maximumStartAttempts) State.idle else State.failed
+            Log.e(TAG, "host display failed (attempt $failures): $error")
             root = null
             runCatching { presentation?.dismiss() }
             presentation = null
@@ -249,6 +279,10 @@ object OffscreenDisplay {
             imageReader = null
             runCatching { drainThread?.quitSafely() }
             drainThread = null
+            if (state == State.idle) {
+                nextAttemptAtMs = SystemClock.uptimeMillis() + startRetryDelayMs
+                offscreenMainHandler.postDelayed({ start() }, startRetryDelayMs)
+            }
         }
     }
 }
@@ -261,6 +295,12 @@ internal object OffscreenSweep {
     private val entries = Collections.newSetFromMap(ConcurrentHashMap<Entry, Boolean>())
     private val sweepPosted = AtomicBoolean(false)
     private val timerRunning = AtomicBoolean(false)
+    private val collecting = AtomicBoolean(false)
+    private val collector by lazy {
+        Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "MoblinOffscreenGc").apply { isDaemon = true }
+        }
+    }
 
     fun track(owner: Any, onCollected: () -> Unit): Any {
         val entry = Entry(owner, queue, onCollected)
@@ -274,6 +314,32 @@ internal object OffscreenSweep {
         val entry = token as? Entry ?: return
         entries.remove(entry)
         entry.clear()
+    }
+
+    fun collect() {
+        if (!collecting.compareAndSet(false, true)) {
+            return
+        }
+        try {
+            collector.execute {
+                try {
+                    repeat(2) {
+                        Runtime.getRuntime().gc()
+                        Thread.sleep(250)
+                        offscreenMainHandler.post { sweep() }
+                        Thread.sleep(250)
+                    }
+                } catch (error: Throwable) {
+                    logOverlayOnce("collect failed: $error")
+                } finally {
+                    collecting.set(false)
+                    offscreenMainHandler.postDelayed({ sweep() }, 1_000)
+                }
+            }
+        } catch (error: Throwable) {
+            collecting.set(false)
+            logOverlayOnce("collect failed: $error")
+        }
     }
 
     private fun requestSweep() {

@@ -75,11 +75,33 @@ class ObservableObjectPublisher {
     internal val hasSubscribers: Boolean
         get() = subscribers.isNotEmpty()
 
+    @Volatile
+    internal var onSubscribe: (() -> Unit)? = null
+
+    @Volatile
+    internal var onUnsubscribe: (() -> Unit)? = null
+
     fun sink(receiveValue: () -> Unit): AnyCancellable {
         val subscriber = Subscriber(receiveValue)
         subscribers.add(subscriber)
+        try {
+            onSubscribe?.invoke()
+        } catch (error: Throwable) {
+            logCombineOnce("objectWillChange subscribe hook failed: $error")
+        }
         val publisher = WeakReference(this)
-        return AnyCancellable { publisher.get()?.subscribers?.remove(subscriber) }
+        return AnyCancellable { publisher.get()?.remove(subscriber) }
+    }
+
+    private fun remove(subscriber: Subscriber) {
+        if (!subscribers.remove(subscriber) || subscribers.isNotEmpty()) {
+            return
+        }
+        try {
+            onUnsubscribe?.invoke()
+        } catch (error: Throwable) {
+            logCombineOnce("objectWillChange unsubscribe hook failed: $error")
+        }
     }
 
     fun send() {

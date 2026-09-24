@@ -39,6 +39,16 @@
    "occurrence": 1
   },
   {
+   "id": "RU.1c",
+   "file": "view/MainView.kt",
+   "scope": "fun BrowserWidgetView",
+   "op": "replace",
+   "old": "        update = { it.allowsHitTesting = allowsHitTesting }",
+   "new": "        update = { it.allowsHitTesting = allowsHitTesting; browser.browserEffect.webView.setBorrowedViewVisible(allowsHitTesting) }",
+   "occurrence": 1,
+   "note": "ME3. MainView composes every browser overlay, at alpha 0 unless interactive browsers are on (MainView.swift browserWidgets). The shim keeps the WebView in its offscreen Presentation, where snapshots come from the display reader, until the overlay is interactive; only then does it move into the Activity and use software snapshots."
+  },
+  {
    "id": "HE4.4",
    "file": "videoeffects/browser/BrowserEffectServer.kt",
    "scope": "fun enable",

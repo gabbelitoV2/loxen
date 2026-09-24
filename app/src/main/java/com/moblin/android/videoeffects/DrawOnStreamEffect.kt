@@ -111,7 +111,7 @@ class DrawOnStreamEffect : VideoEffect() {
                                     },
                                 ),
                                 color = line.color,
-                                style = Stroke(width = width.toFloat()),
+                                style = Stroke(width = width.toFloat(), miter = 10f),
                             )
                         } else {
                             val point = transformPoint(
@@ -131,7 +131,7 @@ class DrawOnStreamEffect : VideoEffect() {
                                     bottom = (point.y + 1).toFloat(),
                                 ),
                             )
-                            drawPath(path = path, color = line.color, style = Stroke(width = width.toFloat()))
+                            drawPath(path = path, color = line.color, style = Stroke(width = width.toFloat(), miter = 10f))
                         }
                     }
                 }

@@ -4,15 +4,22 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.unit.sp
 import com.moblin.android.AppDelegate
 import com.moblin.android.platform.offscreen.logOverlayOnce
 import com.moblin.android.view.utils.FontDesign
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.roundToInt
 
 object SwiftUIFonts {
     private const val interPath = "fonts/InterVariable.ttf"
     private const val nunitoPath = "fonts/Nunito.ttf"
+    private const val bodySize = 17f
+    private const val minimumOpticalSize = 14
+    private const val maximumOpticalSize = 32
 
     private val weights = listOf(
         FontWeight.W100,
@@ -26,18 +33,34 @@ object SwiftUIFonts {
         FontWeight.W900,
     )
 
-    private val inter: FontFamily by lazy { assetFamily(interPath, FontFamily.SansSerif) }
+    private val interAvailable: Boolean by lazy { assetExists(interPath) }
 
-    private val nunito: FontFamily by lazy { assetFamily(nunitoPath, FontFamily.SansSerif) }
+    private val interFamilies = ConcurrentHashMap<Int, FontFamily>()
+
+    private val nunito: FontFamily by lazy {
+        if (assetExists(nunitoPath)) {
+            val assets = AppDelegate.context.assets
+            FontFamily(weights.map { weight -> Font(path = nunitoPath, assetManager = assets, weight = weight) })
+        } else {
+            FontFamily.SansSerif
+        }
+    }
 
     val rounded: FontFamily
         get() = nunito
+
+    val body: TextStyle by lazy { system(bodySize) }
 
     fun system(
         size: Float,
         weight: FontWeight = FontWeight.Normal,
         design: FontDesign = FontDesign.Default,
-    ): TextStyle = TextStyle(fontSize = size.sp, fontWeight = weight, fontFamily = family(design))
+    ): TextStyle = TextStyle(
+        fontSize = size.sp,
+        fontWeight = weight,
+        fontFamily = family(design, size),
+        textMotion = TextMotion.Animated,
+    )
 
     fun system(
         size: Number,
@@ -48,29 +71,63 @@ object SwiftUIFonts {
     fun custom(name: String, size: Number): TextStyle = custom(name, size.toFloat())
 
     fun custom(name: String, size: Float): TextStyle {
-        val font = resolveCustom(name)
+        val font = resolveCustom(name, size)
         return TextStyle(
             fontSize = size.sp,
             fontWeight = font.weight,
             fontStyle = font.style,
             fontFamily = font.family,
+            textMotion = TextMotion.Animated,
         )
     }
 
-    fun family(design: FontDesign): FontFamily = when (design) {
-        FontDesign.Default -> inter
+    fun family(design: FontDesign): FontFamily = family(design, bodySize)
+
+    fun family(design: FontDesign, size: Float): FontFamily = when (design) {
+        FontDesign.Default -> inter(size)
         FontDesign.Serif -> FontFamily.Serif
         FontDesign.Rounded -> nunito
         FontDesign.Monospaced -> FontFamily.Monospace
     }
 
-    private fun assetFamily(path: String, fallback: FontFamily): FontFamily = try {
+    internal fun opticalSize(size: Float): Int {
+        if (!size.isFinite()) {
+            return minimumOpticalSize
+        }
+        return size.roundToInt().coerceIn(minimumOpticalSize, maximumOpticalSize)
+    }
+
+    private fun inter(size: Float): FontFamily {
+        if (!interAvailable) {
+            return FontFamily.SansSerif
+        }
+        val opticalSize = opticalSize(size)
+        return interFamilies.getOrPut(opticalSize) { interFamily(opticalSize) }
+    }
+
+    private fun interFamily(opticalSize: Int): FontFamily {
         val assets = AppDelegate.context.assets
-        assets.open(path).close()
-        FontFamily(weights.map { weight -> Font(path = path, assetManager = assets, weight = weight) })
+        return FontFamily(
+            weights.map { weight ->
+                Font(
+                    path = interPath,
+                    assetManager = assets,
+                    weight = weight,
+                    variationSettings = FontVariation.Settings(
+                        FontVariation.weight(weight.weight),
+                        FontVariation.Setting("opsz", opticalSize.toFloat()),
+                    ),
+                )
+            },
+        )
+    }
+
+    private fun assetExists(path: String): Boolean = try {
+        AppDelegate.context.assets.open(path).close()
+        true
     } catch (error: Throwable) {
         logOverlayOnce("SwiftUIFonts: $path unavailable: $error")
-        fallback
+        false
     }
 
     private class CustomFont(val family: FontFamily, val weight: FontWeight?, val style: FontStyle?)
@@ -135,14 +192,14 @@ object SwiftUIFonts {
         "book" to FontWeight.W400,
     )
 
-    private fun resolveCustom(name: String): CustomFont {
+    private fun resolveCustom(name: String, size: Float): CustomFont {
         val dash = name.lastIndexOf('-')
         val familyPart = if (dash > 0) name.substring(0, dash) else name
         val stylePart = if (dash > 0) name.substring(dash + 1).lowercase() else ""
         val key = familyPart.lowercase().filter { it.isLetterOrDigit() }
         val generic = families.firstOrNull { key.startsWith(it.first) }?.second ?: Generic.sans
         val family = when (generic) {
-            Generic.sans -> inter
+            Generic.sans -> inter(size)
             Generic.serif -> FontFamily.Serif
             Generic.monospace -> FontFamily.Monospace
             Generic.rounded -> nunito

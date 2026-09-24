@@ -3,16 +3,21 @@ package com.moblin.android.platform.webkit
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.webkit.ProxyConfig
+import androidx.webkit.ProxyController
+import androidx.webkit.WebViewFeature
 import com.moblin.android.platform.coregraphics.CGRect
 import com.moblin.android.platform.network.NWEndpoint
 import java.lang.ref.WeakReference
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicBoolean
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
 
-private const val TAG = "MoblinWeb"
+internal const val webKitTag = "MoblinWeb"
 
 internal object WebKitLog {
     private val loggedMessages = Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
@@ -24,18 +29,27 @@ internal object WebKitLog {
         if (!loggedMessages.add(key)) {
             return
         }
+        info(message)
+    }
+
+    fun info(message: String) {
         try {
-            Log.i(TAG, message)
+            Log.i(webKitTag, message)
         } catch (_: Throwable) {
         }
     }
 
-    fun notImplemented(member: String) {
-        once("notImplemented:$member", "$member not implemented yet")
+    fun error(message: String) {
+        try {
+            Log.e(webKitTag, message)
+        } catch (_: Throwable) {
+        }
     }
 }
 
 internal val webKitMainHandler: Handler by lazy { Handler(Looper.getMainLooper()) }
+
+internal val webKitMainExecutor = Executor { runnable -> webKitMainHandler.post(runnable) }
 
 internal fun isWebKitMainThread(): Boolean = Looper.myLooper() == Looper.getMainLooper()
 
@@ -44,6 +58,25 @@ internal fun runOnWebKitMain(block: () -> Unit) {
         block()
     } else {
         webKitMainHandler.post(block)
+    }
+}
+
+internal object WebKitFeatures {
+    val documentStartScript: Boolean by lazy {
+        isSupported(WebViewFeature.DOCUMENT_START_SCRIPT)
+    }
+
+    val proxyOverride: Boolean by lazy {
+        isSupported(WebViewFeature.PROXY_OVERRIDE)
+    }
+
+    private fun isSupported(feature: String): Boolean {
+        return try {
+            WebViewFeature.isFeatureSupported(feature)
+        } catch (error: Throwable) {
+            WebKitLog.once("feature:$feature", "WebView feature check $feature failed: $error")
+            false
+        }
     }
 }
 
@@ -100,6 +133,7 @@ interface WKScriptMessageHandler {
 class WKUserContentController {
     private val scripts = mutableListOf<WKUserScript>()
     private val handlers = LinkedHashMap<String, WeakReference<WKScriptMessageHandler>>()
+    private val observers = mutableListOf<WeakReference<WKWebView>>()
 
     val userScripts: List<WKUserScript>
         get() = synchronized(this) { scripts.toList() }
@@ -108,36 +142,58 @@ class WKUserContentController {
         synchronized(this) {
             scripts.add(userScript)
         }
+        notifyChanged()
     }
 
     fun removeAllUserScripts() {
         synchronized(this) {
             scripts.clear()
         }
+        notifyChanged()
     }
 
     fun add(scriptMessageHandler: WKScriptMessageHandler, name: String) {
         synchronized(this) {
             handlers[name] = WeakReference(scriptMessageHandler)
         }
+        notifyChanged()
     }
 
     fun removeScriptMessageHandler(forName: String) {
         synchronized(this) {
             handlers.remove(forName)
         }
+        notifyChanged()
     }
 
     fun removeAllScriptMessageHandlers() {
         synchronized(this) {
             handlers.clear()
         }
+        notifyChanged()
     }
 
     internal fun handlerNames(): List<String> {
         return synchronized(this) {
             handlers.entries.removeAll { it.value.get() == null }
             handlers.keys.toList()
+        }
+    }
+
+    internal fun addObserver(webView: WKWebView) {
+        synchronized(this) {
+            observers.removeAll { it.get() == null }
+            observers.add(WeakReference(webView))
+        }
+    }
+
+    private fun notifyChanged() {
+        val targets = synchronized(this) {
+            observers.removeAll { it.get() == null }
+            observers.mapNotNull { it.get() }
+        }
+        for (target in targets) {
+            target.userContentChanged()
         }
     }
 
@@ -154,9 +210,83 @@ internal object WebKitProxy {
     var configurations: List<ProxyConfiguration> = emptyList()
         private set
 
-    fun apply(configurations: List<ProxyConfiguration>) {
+    private var appliedRules: List<String>? = null
+    private var pendingApplies = 0
+    private val waiting = mutableListOf<() -> Unit>()
+
+    fun set(configurations: List<ProxyConfiguration>) {
         this.configurations = configurations
-        WebKitLog.notImplemented("WKWebsiteDataStore.proxyConfigurations")
+        runOnWebKitMain {
+            applyOnMain(configurations)
+        }
+    }
+
+    fun whenApplied(block: () -> Unit) {
+        runOnWebKitMain {
+            if (pendingApplies == 0) {
+                runGuarded(block)
+            } else {
+                waiting.add(block)
+            }
+        }
+    }
+
+    private fun applyOnMain(configurations: List<ProxyConfiguration>) {
+        val rules = configurations.map { it.httpCONNECTProxy.toString() }
+        if (rules == appliedRules) {
+            return
+        }
+        appliedRules = rules
+        if (!WebKitFeatures.proxyOverride) {
+            WebKitLog.once("proxyUnsupported", "This WebView has no proxy override; browser widgets connect directly")
+            return
+        }
+        pendingApplies += 1
+        val finished = AtomicBoolean(false)
+        val done = Runnable {
+            if (finished.compareAndSet(false, true)) {
+                finishApply()
+            }
+        }
+        try {
+            val controller = ProxyController.getInstance()
+            if (rules.isEmpty()) {
+                controller.clearProxyOverride(webKitMainExecutor, done)
+                WebKitLog.info("proxy cleared")
+            } else {
+                val builder = ProxyConfig.Builder()
+                for (rule in rules) {
+                    builder.addProxyRule(rule, ProxyConfig.MATCH_HTTPS)
+                }
+                controller.setProxyOverride(builder.build(), webKitMainExecutor, done)
+                WebKitLog.info("proxy ${rules.joinToString(", ")} for https and websockets")
+            }
+        } catch (error: Throwable) {
+            WebKitLog.error("proxy override failed: $error")
+            done.run()
+            return
+        }
+        webKitMainHandler.postDelayed(done, 2000)
+    }
+
+    private fun finishApply() {
+        pendingApplies = (pendingApplies - 1).coerceAtLeast(0)
+        if (pendingApplies > 0) {
+            return
+        }
+        val blocks = waiting.toList()
+        waiting.clear()
+        for (block in blocks) {
+            runGuarded(block)
+        }
+    }
+
+    private fun runGuarded(block: () -> Unit) {
+        try {
+            block()
+        } catch (error: Throwable) {
+            WebKitLog.once("deferred:$error", "deferred web view call failed: $error")
+        }
     }
 }
 
@@ -164,7 +294,7 @@ class WKWebsiteDataStore internal constructor(val isPersistent: Boolean) {
     var proxyConfigurations: List<ProxyConfiguration>
         get() = WebKitProxy.configurations
         set(value) {
-            WebKitProxy.apply(value)
+            WebKitProxy.set(value)
         }
 
     companion object {

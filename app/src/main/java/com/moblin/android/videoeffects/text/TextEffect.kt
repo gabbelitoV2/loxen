@@ -52,6 +52,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckBox
+import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.outlined.MicOff
 
 private class TextViewState(
     fontSize: Float,
@@ -119,6 +124,7 @@ private fun TextView(state: TextViewState) {
     val foregroundColor by state.foregroundColor.collectAsState()
     val backgroundColor by state.backgroundColor.collectAsState()
     val lines by state.lines.collectAsState()
+    @Composable fun TextEffectSymbol(name: String, fontSize: androidx.compose.ui.unit.TextUnit, tint: Color) = androidx.compose.material3.Icon(imageVector = when (name) { "checkmark.square" -> Icons.Outlined.CheckBox; "square" -> Icons.Outlined.CheckBoxOutlineBlank; "mic.slash" -> Icons.Outlined.MicOff; else -> com.moblin.android.platform.systemImage(name) }, contentDescription = null, tint = tint, modifier = Modifier.size(with(androidx.compose.ui.platform.LocalDensity.current) { fontSize.toDp() }))
     val currentSize = size ?: return
     val scaledSize = scaledFontSize(fontSize = fontSize, size = currentSize)
     var textStyle = font(
@@ -166,7 +172,7 @@ private fun TextView(state: TextViewState) {
                                     style = textStyle,
                                     color = foregroundColor,
                                 )
-                                is TextEffectPartData.ImageSystemName -> SystemImage(
+                                is TextEffectPartData.ImageSystemName -> TextEffectSymbol(
                                     name = data.systemName,
                                     fontSize = scaledSize.sp,
                                     tint = foregroundColor,

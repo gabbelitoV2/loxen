@@ -4,9 +4,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ColorSpace
 import android.graphics.ImageDecoder
-import android.media.ExifInterface
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.exifinterface.media.ExifInterface
 import com.moblin.android.platform.coregraphics.CGAffineTransform
 import com.moblin.android.platform.coregraphics.CGImagePropertyOrientation
 import com.moblin.android.platform.coreimage.internal.EffectsLog

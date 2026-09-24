@@ -371,11 +371,10 @@ class TextEffectFormatter {
             val windGust = variables.windGust
             if (windGust != null) {
                 appendTextPart(
-                    value = formatSpeed(speed = windSpeed, unit = unit) + " " +
-                        formatSpeed(speed = windGust, unit = unit),
+                    value = textEffectWindAndGustString(speed = windSpeed, gust = windGust, unit = unit),
                 )
             } else {
-                appendTextPart(value = formatSpeed(speed = windSpeed, unit = unit))
+                appendTextPart(value = textEffectWindString(speed = windSpeed, unit = unit))
             }
         } else {
             appendTextPart(value = "-")
@@ -672,9 +671,9 @@ class TextEffectFormatter {
 
     private fun formatSystemDistance(distance: Double): String {
         return if (systemUsesImperialUnits) {
-            lengthFormatter.string(distance / 1609.344, MeasureUnit.MILE)
+            textEffectLengthString(meters = distance, metric = false)
         } else {
-            lengthFormatter.string(distance / 1000.0, MeasureUnit.KILOMETER)
+            textEffectLengthString(meters = distance, metric = true)
         }
     }
 
@@ -698,6 +697,10 @@ fun List<TextEffectLine>.toPlainText(): String {
 
 private val systemUsesImperialUnits: Boolean
     get() = Locale.getDefault().country in setOf("US", "LR", "MM")
+private fun textEffectWindAndGustString(speed: Double, gust: Double, unit: TextFormatSpeedUnit): String = textEffectWindUnit(unit).let { (factor, _, symbol) -> "${(speed * factor).toInt()} (${(gust * factor).toInt()}) $symbol" }
+private fun textEffectWindString(speed: Double, unit: TextFormatSpeedUnit): String = textEffectWindUnit(unit).let { (factor, measureUnit, _) -> NumberFormatter.withLocale(Locale.getDefault()).unit(measureUnit).precision(Precision.maxFraction(0)).format(speed * factor).toString() }
+private fun textEffectWindUnit(unit: TextFormatSpeedUnit): Triple<Double, MeasureUnit, String> = when (if (unit != TextFormatSpeedUnit.system) unit else if (Locale.getDefault().country in setOf("US", "LR", "MM", "GB")) TextFormatSpeedUnit.milesPerHour else TextFormatSpeedUnit.metersPerSecond) { TextFormatSpeedUnit.kilometersPerHour -> Triple(3.6, MeasureUnit.KILOMETER_PER_HOUR, "km/h"); TextFormatSpeedUnit.milesPerHour -> Triple(2.2369362920544, MeasureUnit.MILE_PER_HOUR, "mph"); else -> Triple(1.0, MeasureUnit.METER_PER_SECOND, "m/s") }
+private fun textEffectLengthString(meters: Double, metric: Boolean): String = (if (metric) { if (meters > 1000 || meters < 0) meters / 1000 to MeasureUnit.KILOMETER else if (meters > 1) meters to MeasureUnit.METER else if (meters > 0.01) meters * 100 to MeasureUnit.CENTIMETER else meters * 1000 to MeasureUnit.MILLIMETER } else { val feet = meters / 0.3048; if (feet < 0 || feet > 5280) meters / 1609.344 to MeasureUnit.MILE else if (feet > 3 || feet == 0.0) meters / 0.9144 to MeasureUnit.YARD else if (feet >= 1) feet to MeasureUnit.FOOT else feet * 12 to MeasureUnit.INCH }).let { (value, unit) -> NumberFormatter.withLocale(Locale.getDefault()).unit(unit).precision(Precision.maxFraction(1)).format(value).toString() }
 
 private enum class UnitOptions {
     ProvidedUnit,
@@ -724,7 +727,7 @@ private class MeasurementFormatter {
 
     private fun convertToSystem(value: Double, unit: MeasureUnit): Pair<Double, MeasureUnit> =
         when (unit.subtype) {
-            "meter-per-second" ->
+            "meter-per-second" -> if (Locale.getDefault().country == "GB") value * 2.2369362920544 to MeasureUnit.MILE_PER_HOUR else
                 if (systemUsesImperialUnits) {
                     value * 2.2369362920544 to MeasureUnit.MILE_PER_HOUR
                 } else {

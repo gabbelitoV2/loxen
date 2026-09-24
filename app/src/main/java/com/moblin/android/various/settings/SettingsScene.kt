@@ -641,7 +641,7 @@ enum class SettingsFontDesign(val rawValue: String) {
     fun toSystem(): FontFamily = when (this) {
         `default` -> FontFamily.Default
         serif -> FontFamily.Serif
-        rounded -> FontFamily.Default
+        rounded -> com.moblin.android.platform.swiftui.SwiftUIFonts.rounded
         monospaced -> FontFamily.Monospace
     }
 

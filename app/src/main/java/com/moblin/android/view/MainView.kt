@@ -393,7 +393,7 @@ fun BrowserWidgetView(browser: Browser, modifier: Modifier = Modifier, allowsHit
         },
         modifier = modifier,
         onRelease = { it.removeAllViews(); browser.browserEffect.webView.returnView() },
-        update = { it.allowsHitTesting = allowsHitTesting }
+        update = { it.allowsHitTesting = allowsHitTesting; browser.browserEffect.webView.setBorrowedViewVisible(allowsHitTesting) }
     )
 }
 

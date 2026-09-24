@@ -108,6 +108,171 @@
    "new": "                                                color = Color(0xFFFFCC00),",
    "occurrence": 1,
    "note": "ME1: SwiftUI .yellow is the iOS system yellow, not Compose Color.Yellow."
+  },
+  {
+   "id": "HE3.12",
+   "file": "videoeffects/text/TextEffect.kt",
+   "scope": "fun TextView",
+   "op": "replace",
+   "old": "                                is TextEffectPartData.ImageSystemName -> SystemImage(",
+   "new": "                                is TextEffectPartData.ImageSystemName -> TextEffectSymbol(",
+   "occurrence": 1,
+   "note": "ME2: checkbox parts draw SF's square and checkmark.square shapes (HE3.13), not the RadioButtonUnchecked fallback of SystemImages.kt."
+  },
+  {
+   "id": "HE3.13",
+   "file": "videoeffects/text/TextEffect.kt",
+   "scope": "fun TextView",
+   "op": "insert_after",
+   "anchor": "    val lines by state.lines.collectAsState()",
+   "new": "    @Composable fun TextEffectSymbol(name: String, fontSize: androidx.compose.ui.unit.TextUnit, tint: Color) = androidx.compose.material3.Icon(imageVector = when (name) { \"checkmark.square\" -> Icons.Outlined.CheckBox; \"square\" -> Icons.Outlined.CheckBoxOutlineBlank; \"mic.slash\" -> Icons.Outlined.MicOff; else -> com.moblin.android.platform.systemImage(name) }, contentDescription = null, tint = tint, modifier = Modifier.size(with(androidx.compose.ui.platform.LocalDensity.current) { fontSize.toDp() }))",
+   "note": "ME2: SystemImage's parameters, with the outline SF Symbols of text parts (square, checkmark.square, mic.slash) as outlined Material icons."
+  },
+  {
+   "id": "HE3.14",
+   "file": "videoeffects/text/TextEffect.kt",
+   "op": "add_import",
+   "new": "import androidx.compose.material.icons.Icons",
+   "note": "ME2, for HE3.13."
+  },
+  {
+   "id": "HE3.15",
+   "file": "videoeffects/text/TextEffect.kt",
+   "op": "add_import",
+   "new": "import androidx.compose.material.icons.outlined.CheckBox",
+   "note": "ME2, for HE3.13."
+  },
+  {
+   "id": "HE3.16",
+   "file": "videoeffects/text/TextEffect.kt",
+   "op": "add_import",
+   "new": "import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank",
+   "note": "ME2, for HE3.13."
+  },
+  {
+   "id": "HE3.17",
+   "file": "videoeffects/text/TextEffect.kt",
+   "op": "add_import",
+   "new": "import androidx.compose.foundation.layout.size",
+   "note": "ME2, for HE3.13."
+  },
+  {
+   "id": "HE3.18",
+   "file": "videoeffects/DrawOnStreamEffect.kt",
+   "scope": "fun updateOverlay",
+   "op": "replace",
+   "old": "                                style = Stroke(width = width.toFloat()),",
+   "new": "                                style = Stroke(width = width.toFloat(), miter = 10f),",
+   "occurrence": 1,
+   "note": "ME2: SwiftUI GraphicsContext.stroke uses CoreGraphics' default miter limit 10 (Compose defaults to 4)."
+  },
+  {
+   "id": "HE3.19",
+   "file": "videoeffects/DrawOnStreamEffect.kt",
+   "scope": "fun updateOverlay",
+   "op": "replace",
+   "old": "                            drawPath(path = path, color = line.color, style = Stroke(width = width.toFloat()))",
+   "new": "                            drawPath(path = path, color = line.color, style = Stroke(width = width.toFloat(), miter = 10f))",
+   "occurrence": 1,
+   "note": "ME2, as HE3.18."
+  },
+  {
+   "id": "HE3.20",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatSystemDistance",
+   "op": "replace",
+   "old": "            lengthFormatter.string(distance / 1609.344, MeasureUnit.MILE)",
+   "new": "            textEffectLengthString(meters = distance, metric = false)",
+   "occurrence": 1,
+   "note": "ME2, kept file. Swift Moblin.format(distance:) is LengthFormatter.string(fromMeters:) with one fraction digit and a unit picked by size (HE3.22)."
+  },
+  {
+   "id": "HE3.21",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatSystemDistance",
+   "op": "replace",
+   "old": "            lengthFormatter.string(distance / 1000.0, MeasureUnit.KILOMETER)",
+   "new": "            textEffectLengthString(meters = distance, metric = true)",
+   "occurrence": 1,
+   "note": "ME2, kept file, as HE3.20."
+  },
+  {
+   "id": "HE3.22",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "op": "insert_after",
+   "anchor": "    get() = Locale.getDefault().country in setOf(\"US\", \"LR\", \"MM\")",
+   "new": "private fun textEffectLengthString(meters: Double, metric: Boolean): String = (if (metric) { if (meters > 1000 || meters < 0) meters / 1000 to MeasureUnit.KILOMETER else if (meters > 1) meters to MeasureUnit.METER else if (meters > 0.01) meters * 100 to MeasureUnit.CENTIMETER else meters * 1000 to MeasureUnit.MILLIMETER } else { val feet = meters / 0.3048; if (feet < 0 || feet > 5280) meters / 1609.344 to MeasureUnit.MILE else if (feet > 3 || feet == 0.0) meters / 0.9144 to MeasureUnit.YARD else if (feet >= 1) feet to MeasureUnit.FOOT else feet * 12 to MeasureUnit.INCH }).let { (value, unit) -> NumberFormatter.withLocale(Locale.getDefault()).unit(unit).precision(Precision.maxFraction(1)).format(value).toString() }",
+   "note": "ME2, kept file. Foundation LengthFormatter.string(fromMeters:) unit choice (swift-corelibs-foundation LengthFormatter.unit(fromMeters:))."
+  },
+  {
+   "id": "HE3.23",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "op": "insert_after",
+   "anchor": "    get() = Locale.getDefault().country in setOf(\"US\", \"LR\", \"MM\")",
+   "new": "private fun textEffectWindUnit(unit: TextFormatSpeedUnit): Triple<Double, MeasureUnit, String> = when (if (unit != TextFormatSpeedUnit.system) unit else if (Locale.getDefault().country in setOf(\"US\", \"LR\", \"MM\", \"GB\")) TextFormatSpeedUnit.milesPerHour else TextFormatSpeedUnit.metersPerSecond) { TextFormatSpeedUnit.kilometersPerHour -> Triple(3.6, MeasureUnit.KILOMETER_PER_HOUR, \"km/h\"); TextFormatSpeedUnit.milesPerHour -> Triple(2.2369362920544, MeasureUnit.MILE_PER_HOUR, \"mph\"); else -> Triple(1.0, MeasureUnit.METER_PER_SECOND, \"m/s\") }",
+   "note": "ME2, kept file. Swift formatWindSpeed/formatWindAndGustSpeed: unit.toSystem() ?? (measurementSystem == .metric ? m/s : mph)."
+  },
+  {
+   "id": "HE3.24",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "op": "insert_after",
+   "anchor": "    get() = Locale.getDefault().country in setOf(\"US\", \"LR\", \"MM\")",
+   "new": "private fun textEffectWindString(speed: Double, unit: TextFormatSpeedUnit): String = textEffectWindUnit(unit).let { (factor, measureUnit, _) -> NumberFormatter.withLocale(Locale.getDefault()).unit(measureUnit).precision(Precision.maxFraction(0)).format(speed * factor).toString() }",
+   "note": "ME2, kept file. Swift formatWindSpeed: provided unit, no fraction digits."
+  },
+  {
+   "id": "HE3.25",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "op": "insert_after",
+   "anchor": "    get() = Locale.getDefault().country in setOf(\"US\", \"LR\", \"MM\")",
+   "new": "private fun textEffectWindAndGustString(speed: Double, gust: Double, unit: TextFormatSpeedUnit): String = textEffectWindUnit(unit).let { (factor, _, symbol) -> \"${(speed * factor).toInt()} (${(gust * factor).toInt()}) $symbol\" }",
+   "note": "ME2, kept file. Swift formatWindAndGustSpeed: \"\\(Int(speed)) (\\(Int(gust))) \\(unit.symbol)\"."
+  },
+  {
+   "id": "HE3.26",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatWind",
+   "op": "replace",
+   "old": "                    value = formatSpeed(speed = windSpeed, unit = unit) + \" \" +",
+   "new": "                    value = textEffectWindAndGustString(speed = windSpeed, gust = windGust, unit = unit),",
+   "occurrence": 1,
+   "note": "ME2, kept file. Paired with the delete HE3.27."
+  },
+  {
+   "id": "HE3.27",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatWind",
+   "op": "delete",
+   "old": "                        formatSpeed(speed = windGust, unit = unit),",
+   "occurrence": 1,
+   "note": "ME2, kept file, with HE3.26."
+  },
+  {
+   "id": "HE3.28",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatWind",
+   "op": "replace",
+   "old": "                appendTextPart(value = formatSpeed(speed = windSpeed, unit = unit))",
+   "new": "                appendTextPart(value = textEffectWindString(speed = windSpeed, unit = unit))",
+   "occurrence": 1,
+   "note": "ME2, kept file. Swift formatWindSpeed, not the speed formatter."
+  },
+  {
+   "id": "HE3.29",
+   "file": "videoeffects/text/TextEffect.kt",
+   "op": "add_import",
+   "new": "import androidx.compose.material.icons.outlined.MicOff",
+   "note": "ME2, for HE3.13."
+  },
+  {
+   "id": "HE3.30",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun convertToSystem",
+   "op": "replace",
+   "old": "            \"meter-per-second\" ->",
+   "new": "            \"meter-per-second\" -> if (Locale.getDefault().country == \"GB\") value * 2.2369362920544 to MeasureUnit.MILE_PER_HOUR else",
+   "occurrence": 1,
+   "note": "ME2, kept file. MeasurementFormatter with unitOptions [] formats speeds in mph for the UK measurement system (en_GB), as for the US."
   }
  ]
 }
