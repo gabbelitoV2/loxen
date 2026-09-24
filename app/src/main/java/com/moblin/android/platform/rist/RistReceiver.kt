@@ -15,6 +15,8 @@ private class RistReceiverContextStream {
 }
 
 class RistReceiverContext private constructor(private val callbacks: Callbacks) {
+    internal constructor() : this(Callbacks())
+
     private val lock = Any()
     private var receiver = 0L
     private val streams = HashMap<Int, RistReceiverContextStream>()
@@ -40,27 +42,27 @@ class RistReceiverContext private constructor(private val callbacks: Callbacks) 
         }
     }
 
-    private fun handleConnectionStatusCallback(status: Int, peer: Long) {
+    internal fun handleConnectionStatusCallback(status: Int, peer: Long) {
         if (status != RistNative.RIST_CONNECTION_TIMED_OUT && status != RistNative.RIST_CLIENT_TIMED_OUT) {
             return
         }
-        var disconnectedVirtualDestinationPort: Int? = null
+        val disconnectedVirtualDestinationPorts = mutableListOf<Int>()
         synchronized(streamsLock) {
-            val entry = streams.entries.firstOrNull { it.value.peers.contains(peer) }
-            if (entry != null) {
-                entry.value.peers.remove(peer)
-                if (entry.value.peers.isEmpty()) {
-                    streams.remove(entry.key)
-                    disconnectedVirtualDestinationPort = entry.key
+            val iterator = streams.entries.iterator()
+            while (iterator.hasNext()) {
+                val entry = iterator.next()
+                if (entry.value.peers.remove(peer) && entry.value.peers.isEmpty()) {
+                    iterator.remove()
+                    disconnectedVirtualDestinationPorts.add(entry.key)
                 }
             }
         }
-        disconnectedVirtualDestinationPort?.let {
-            delegate?.ristReceiverContextDisconnected(it)
+        for (virtualDestinationPort in disconnectedVirtualDestinationPorts) {
+            delegate?.ristReceiverContextDisconnected(virtualDestinationPort)
         }
     }
 
-    private fun handleDataHandlerCallback(virtualDestinationPort: Int, peer: Long, data: ByteArray) {
+    internal fun handleDataHandlerCallback(virtualDestinationPort: Int, peer: Long, data: ByteArray) {
         var connected = false
         var packets: List<ByteArray>? = null
         synchronized(streamsLock) {
