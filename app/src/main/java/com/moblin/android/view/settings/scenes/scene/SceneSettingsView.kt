@@ -28,15 +28,20 @@ import com.moblin.android.common.various.color
 import com.moblin.android.localized
 import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.swiftui.*
+import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.various.model.Mic
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.appendWidgetToScene
+import com.moblin.android.various.model.cameraIdToSettingsCameraId
 import com.moblin.android.various.model.findWidget
+import com.moblin.android.various.model.getCameraId
 import com.moblin.android.various.model.getCameraPositionName
 import com.moblin.android.various.model.getMicById
 import com.moblin.android.various.model.getSelectedScene
 import com.moblin.android.various.model.isCaptureDeviceWidget
 import com.moblin.android.various.model.isSceneVideoSourceActive
+import com.moblin.android.various.model.isScreenCaptureCamera
+import com.moblin.android.various.model.listCameras
 import com.moblin.android.various.model.resetSelectedScene
 import com.moblin.android.various.model.sceneUpdated
 import com.moblin.android.various.model.switchMicIfNeededAfterSceneSwitch
@@ -50,6 +55,8 @@ import com.moblin.android.view.utils.AddButtonView
 import com.moblin.android.view.utils.ContextMenuDeleteButton
 import com.moblin.android.view.utils.DraggableItemPrefixView
 import com.moblin.android.view.utils.IconAndTextView
+import com.moblin.android.view.utils.InlinePickerItem
+import com.moblin.android.view.utils.InlinePickerView
 import com.moblin.android.view.utils.NameEditView
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.view.utils.SwipeLeftToRemoveHelpView
@@ -152,7 +159,34 @@ private fun VideoSourceView(
             null
         },
     ) {
-        FormRow(onClick = { onNavigate("Name") }) {
+        NavigationLink(
+            destination = {
+                InlinePickerView(
+                    title = "Name",
+                    onChange = { cameraId ->
+                        scene.updateCameraId(settingsCameraId = model.cameraIdToSettingsCameraId(cameraId = cameraId))
+                        model.sceneUpdated(attachCamera = true, updateRemoteScene = false)
+                        if (model.isScreenCaptureCamera(cameraId = cameraId)) {
+                            presentingScreenCaptureAlert = true
+                        }
+                    },
+                    footers = listOf(
+                        localized(
+                            "The ultra wide camera does not perform well in low light conditions. Likewise, the " +
+                                "auto cameras do not perform well when zoom is 0.5-1.0x since the ultra wide camera " +
+                                "will be used.",
+                        ),
+                        "",
+                        localized(
+                            "Auto cameras use more energy as multiple cameras are powered on, even if only " +
+                                "one is used at a time. This allows the phone to quickly change camera when zooming.",
+                        ),
+                    ),
+                    items = model.listCameras().map { InlinePickerItem(id = it.id, text = it.name) },
+                    initialSelectedId = model.getCameraId(scene = scene),
+                )
+            },
+        ) {
             SystemImage("camera", fontSize = 17.sp)
             Text(localized("Name"))
             Spacer(Modifier.weight(1f))

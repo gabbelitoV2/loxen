@@ -8,7 +8,7 @@ Package com.moblin.android.platform.swiftui is hand-written and mirrors SwiftUI.
 
 - Form(title = "X", toolbar = { ... }) { ... } for Form + navigationTitle (it provides the NavigationStack). Never emit Scaffold or TopAppBar for a settings page.
 - Section(header = "H", footer = "F") { rows }, or Section(footerContent = { ... }) { rows }. Section applies iOS row insets and separators, so do not pad plain rows.
-- NavigationLink(destination = { D(args) }) { Label("T", systemImage = "s") } and NavigationLink("T") { D() }. Collect StateFlow values the destination needs inside the destination lambda.
+- NavigationLink(destination = { D(args) }) { Label("T", systemImage = "s") } and NavigationLink("T") { D() }. Collect StateFlow values the destination needs inside the destination lambda. Every Swift NavigationLink becomes a NavigationLink with its real destination; never a `FormRow(onClick = { onNavigate("...") })` or any other string route, because nothing handles them.
 - Toggle("T", isOn = v) { newValue -> ... } or Toggle("T", isOn = binding({ obj.prop }) { obj.prop = it }).
 - Picker("T", selection = x, options = E.entries) { x = it }, with text = { ... } for custom labels and enabled for .disabled (see "Menus and pickers").
 - Label("T", systemImage = "sf.name"), FormButton("T", destructive = true, centered = true) { }, FormSlider(value, onValueChange, modifier).
