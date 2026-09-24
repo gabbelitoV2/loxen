@@ -886,6 +886,10 @@ fun FormRow(
     endPadding: Dp = formRowPadding,
     content: @Composable RowScope.() -> Unit,
 ) {
+    if (LocalFormRowInfo.current != null && LocalRowContainerInfo.current == null) {
+        NestedFormRow(onClick = onClick, enabled = enabled, content = content)
+        return
+    }
     val palette = formPalette()
     val info = LocalRowContainerInfo.current ?: remember { FormRowInfo() }
     var modifier = Modifier
@@ -921,6 +925,28 @@ fun FormRow(
             content = content,
         )
     }
+}
+
+@Composable
+private fun NestedFormRow(
+    onClick: (() -> Unit)?,
+    enabled: Boolean,
+    content: @Composable RowScope.() -> Unit,
+) {
+    var modifier = Modifier.fillMaxWidth()
+    if (onClick != null) {
+        modifier = modifier.clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            enabled = enabled,
+            onClick = onClick,
+        )
+    }
+    Row(
+        modifier = modifier.alpha(if (enabled) 1f else 0.4f),
+        verticalAlignment = Alignment.CenterVertically,
+        content = content,
+    )
 }
 
 @Composable
