@@ -381,6 +381,19 @@ val LocalNavigator = staticCompositionLocalOf<Navigator?> { null }
 
 val LocalNavigationEntry = staticCompositionLocalOf<NavigationEntry?> { null }
 
+@Composable
+fun rememberDismiss(): () -> Unit {
+    val navigator = LocalNavigator.current
+    val entry = LocalNavigationEntry.current
+    return remember(navigator, entry) {
+        {
+            if (navigator != null && entry != null && navigator.entries.size > 1 && navigator.entries.last() === entry) {
+                navigator.pop()
+            }
+        }
+    }
+}
+
 private class PropertyBinding<T>(
     private val read: () -> T,
     private val write: (T) -> Unit,
@@ -1112,6 +1125,17 @@ fun <T> Picker(
     pickerStyle: PickerStyle = PickerStyle.automatic,
     onChange: (T) -> Unit,
 ) {
+    if (pickerStyle == PickerStyle.inline) {
+        InlinePickerRows(
+            selection = selection,
+            options = options,
+            enabled = enabled,
+            text = text,
+            systemImage = systemImage,
+            onChange = onChange,
+        )
+        return
+    }
     val palette = formPalette()
     val presentation = rememberMenuPresentation()
     val selectedImage = systemImage?.invoke(selection)
@@ -2063,6 +2087,34 @@ enum class HorizontalEdge {
 enum class PickerStyle {
     automatic,
     menu,
+    inline,
+}
+
+@Composable
+private fun <T> InlinePickerRows(
+    selection: T,
+    options: List<T>,
+    enabled: Boolean,
+    text: (T) -> String,
+    systemImage: ((T) -> String)?,
+    onChange: (T) -> Unit,
+) {
+    val palette = formPalette()
+    options.forEach { option ->
+        key(option) {
+            FormRow(onClick = { onChange(option) }, enabled = enabled) {
+                val image = systemImage?.invoke(option)
+                if (image != null) {
+                    SystemImage(name = image, fontSize = 17.sp, tint = palette.accent)
+                    Spacer(modifier = Modifier.width(formLabelSpacing))
+                }
+                Text(text = text(option), color = palette.label, modifier = Modifier.weight(1f))
+                if (option == selection) {
+                    SystemImage(name = "checkmark", fontSize = 17.sp, tint = palette.accent)
+                }
+            }
+        }
+    }
 }
 
 fun <T> MutableList<T>.move(fromOffsets: Collection<Int>, toOffset: Int) {

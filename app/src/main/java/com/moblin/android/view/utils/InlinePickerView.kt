@@ -13,8 +13,10 @@ import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.Picker
+import com.moblin.android.platform.swiftui.PickerStyle
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.formFootnoteStyle
+import com.moblin.android.platform.swiftui.rememberDismiss
 
 data class InlinePickerItem(
     val id: String,
@@ -34,7 +36,7 @@ fun InlinePickerView(
     footers: List<String> = emptyList(),
     items: List<InlinePickerItem>,
     initialSelectedId: String,
-    onDismiss: () -> Unit = {},
+    onDismiss: () -> Unit = rememberDismiss(),
 ) {
     var selectedId by remember(initialSelectedId) { mutableStateOf(initialSelectedId) }
 
@@ -69,6 +71,7 @@ fun InlinePickerView(
                 selection = selectedItem,
                 options = options,
                 text = { it.text },
+                pickerStyle = PickerStyle.inline,
                 onChange = { item ->
                     selectedId = item.id
                     onChange(item.id)

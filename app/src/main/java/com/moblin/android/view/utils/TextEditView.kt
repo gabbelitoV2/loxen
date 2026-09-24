@@ -27,6 +27,7 @@ import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formPalette
+import com.moblin.android.platform.swiftui.rememberDismiss
 
 @Composable
 fun TextEditView(
@@ -38,7 +39,7 @@ fun TextEditView(
     placeholder: String = "",
     onChange: ((String) -> String?)? = null,
     onSubmit: (String) -> Unit,
-    onDismiss: () -> Unit = {},
+    onDismiss: () -> Unit = rememberDismiss(),
 ) {
     var stateValue by remember { mutableStateOf(value) }
     TextEditBindingView(
@@ -66,7 +67,7 @@ fun TextEditBindingView(
     placeholder: String = "",
     onChange: ((String) -> String?)? = null,
     onSubmit: (String) -> Unit,
-    onDismiss: () -> Unit = {},
+    onDismiss: () -> Unit = rememberDismiss(),
 ) {
     val palette = formPalette()
 
