@@ -71,10 +71,10 @@ private fun unzipLive2DModel(from: String, to: File) {
 
 @Composable
 private fun PickerView(model: Model = LocalModel.current) {
-    val launcher = rememberLauncherForActivityResult(
+    val launcher = com.moblin.android.platform.DocumentPicker.rememberLauncher(
         contract = ActivityResultContracts.OpenDocument(),
     ) { uri ->
-        uri?.let { model.onDocumentPickerUrl?.invoke(it.toString()) }
+        com.moblin.android.platform.DocumentPicker.copy(uri) { url -> model.onDocumentPickerUrl?.invoke(url) }
     }
     LaunchedEffect(Unit) {
         launcher.launch(arrayOf("*/*"))

@@ -1,2 +1,3 @@
-## Documents directory (SYS, package com.moblin.android.platform)
+## Documents directory and keychain (SYS, package com.moblin.android.platform)
 - `URL.documentsDirectory` -> `com.moblin.android.platform.Documents.directory`, a java.io.File for `<filesDir>/Documents`; never derive it from java.io.tmpdir, the cache directory's parent or `filesDir` itself. `URL.documentsDirectory.appending(component: x)` -> `File(com.moblin.android.platform.Documents.directory, x)`.
+- Keychain storage (`SecItem*`) -> `com.moblin.android.platform.KeychainPreferences.create(context, fileName, masterKey, PrefKeyEncryptionScheme.AES256_SIV, PrefValueEncryptionScheme.AES256_GCM)` (androidx.security.crypto types, `MasterKey.Builder(context)` with its default alias), never `EncryptedSharedPreferences.create`. It drops what the Keystore can no longer decrypt; it throws when the Keystore itself fails, so catch that and act as an empty keychain.

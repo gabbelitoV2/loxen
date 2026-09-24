@@ -38,11 +38,11 @@ import com.moblin.android.various.model.sceneUpdated
 
 @Composable
 private fun PickerView(model: Model = LocalModel.current) {
-    val launcher = rememberLauncherForActivityResult(
+    val launcher = com.moblin.android.platform.DocumentPicker.rememberLauncher(
         contract = ActivityResultContracts.OpenDocument(),
     ) { uri ->
         if (uri != null) {
-            model.onDocumentPickerUrl?.invoke(uri.toString())
+            com.moblin.android.platform.DocumentPicker.copy(uri) { url -> model.onDocumentPickerUrl?.invoke(url) }
         }
     }
     LaunchedEffect(Unit) {

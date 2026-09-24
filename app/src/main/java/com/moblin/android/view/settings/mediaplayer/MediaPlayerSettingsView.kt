@@ -69,7 +69,7 @@ fun MediaPlayerSettingsView(
     LaunchedEffect(selectedVideoItem.value) {
         val videoItem = selectedVideoItem.value
         if (videoItem != null) {
-            appendMedia(model = model, player = player, url = videoItem.toString())
+            com.moblin.android.platform.DocumentPicker.loadMovie(videoItem) { url -> if (url != null) appendMedia(model = model, player = player, url = url) }
             selectedVideoItem.value = null
         }
     }
@@ -77,6 +77,8 @@ fun MediaPlayerSettingsView(
     NavigationLink(
         destination = {
             Form(title = "Media player") {
+                LaunchedEffect(selectedVideoItem.value) { selectedVideoItem.value?.let { videoItem -> com.moblin.android.platform.DocumentPicker.loadMovie(videoItem) { url -> if (url != null) appendMedia(model = model, player = player, url = url); selectedVideoItem.value = null } } }
+                com.moblin.android.platform.PhotosPicker(isPresented = presentingPicker, selection = selectedVideoItem, matching = ActivityResultContracts.PickVisualMedia.VideoOnly)
                 Section {
                     NameEditView(
                         name = player.name,

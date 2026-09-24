@@ -31,11 +31,11 @@ private fun SettingsFilePickerView(model: Model = LocalModel.current, onFinished
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
     ) { uri ->
-        uri?.let { model.onDocumentPickerUrl?.invoke(it.toString()) }
+        com.moblin.android.platform.DocumentPicker.copy(uri) { url -> model.onDocumentPickerUrl?.invoke(url) }
         onFinished()
     }
     LaunchedEffect(Unit) {
-        launcher.launch(arrayOf(moblinSettingsFileType))
+        launcher.launch(com.moblin.android.platform.DocumentPicker.contentTypes(moblinSettingsFileType))
     }
 }
 

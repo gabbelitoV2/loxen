@@ -251,7 +251,7 @@ fun makeUniqueName(name: String, existingNames: List<Named>): String {
 fun createSpeechSynthesizer(): TextToSpeech = TextToSpeech(AppDelegate.context) { }
 
 fun makeRecordingPath(recordingPath: ByteArray): String? =
-    null
+    com.moblin.android.platform.Bookmark.path(recordingPath)
 fun zoomToFieldOfView(zoom: Float, zoomOne: Float = (PI / 2).toFloat()): Float =
     2 * atan(tan(zoomOne / 2) / zoom)
 

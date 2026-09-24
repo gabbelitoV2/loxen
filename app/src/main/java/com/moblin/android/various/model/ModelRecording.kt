@@ -61,7 +61,7 @@ fun Model.resumeRecording(): Boolean {
     if (currentRecording == null) {
         return false
     }
-    media.setRecordUrl(url = currentRecording?.url()?.toString())
+    media.setRecordUrl(url = currentRecording?.url()?.let { com.moblin.android.platform.Bookmark.url(it) })
     startRecorderIfNeeded()
     return true
 }
@@ -84,7 +84,7 @@ fun Model.startRecorderIfNeeded() {
     val keyFrameInterval = stream.value.recording.maxKeyFrameInterval.toInt()
     val audioBitrate = stream.value.recording.audioBitrate.toInt()
     media.startRecording(
-        url = if (isRecording.value) currentRecording?.url()?.toString() else null,
+        url = if (isRecording.value) currentRecording?.url()?.let { com.moblin.android.platform.Bookmark.url(it) } else null,
         replay = stream.value.replay.enabled,
         videoCodec = stream.value.recording.videoCodec,
         videoBitrate = if (bitrate != 0) bitrate else null,
@@ -108,7 +108,7 @@ fun Model.updateRecordingLength(now: Instant) {
     if (current != null) {
         val elapsed = uptimeFormatter.string(from = java.time.Duration.between(current.startTime, now).toMillis() / 1000.0)!!
         val url = current.url()
-        val size = if (url != null) sizeFormatter.string(fromByteCount = File(url.toString()).length()) else "-"
+        val size = if (url != null) sizeFormatter.string(fromByteCount = url.length()) else "-"
         recording.length = "$elapsed ($size)"
         if (isWatchLocal()) {
             sendRecordingLengthToWatch(recordingLength = recording.length)

@@ -14,7 +14,7 @@ private fun loadRecordingPath(settings: SettingsStreamRecording?): File? {
     if (settings?.recordingPath == null) {
         return null
     }
-    return null
+    return settings?.recordingPath?.let { com.moblin.android.platform.Bookmark.resolve(it) }
 }
 
 class Recording private constructor(
@@ -35,7 +35,7 @@ class Recording private constructor(
             if (recordingPath == null) {
                 recordingPath = loadRecordingPath(recording)
             }
-            recordingPath?.let { File(it, name()) }
+            recordingPath?.let { com.moblin.android.platform.Bookmark.child(it, name()) }
         }
     }
 

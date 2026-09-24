@@ -79,6 +79,7 @@ dependencies {
     implementation("androidx.camera:camera-lifecycle:1.4.1")
     implementation("androidx.camera:camera-view:1.4.1")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("com.google.crypto.tink:tink-android:1.8.0")
     implementation("com.google.zxing:core:3.5.4")
     implementation("androidx.exifinterface:exifinterface:1.4.2")
     implementation("androidx.webkit:webkit:1.17.1")

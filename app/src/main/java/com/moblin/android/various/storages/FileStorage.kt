@@ -21,10 +21,10 @@ class FileStorage(directory: String) {
     fun add(id: UUID, url: File) {
         try {
             val path = makePath(id)
-            path.delete()
+            path.deleteRecursively()
             if (!url.renameTo(path)) {
-                url.copyTo(path, overwrite = true)
-                url.delete()
+                url.copyRecursively(path, overwrite = true)
+                url.deleteRecursively()
             }
         } catch (e: Exception) {
             Log.i("FileStorage", "file-storage: $directory: Move failed with error $e")
@@ -33,7 +33,7 @@ class FileStorage(directory: String) {
 
     fun remove(id: UUID) {
         try {
-            if (!makePath(id).delete()) {
+            if (!makePath(id).let { it.exists() && it.deleteRecursively() }) {
                 throw IOException("Remove failed")
             }
         } catch (e: Exception) {

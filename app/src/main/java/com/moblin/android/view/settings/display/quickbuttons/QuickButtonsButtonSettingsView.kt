@@ -76,7 +76,7 @@ private fun QuickButtonStealthModeView(
         contract = ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
         if (uri != null) {
-            val data = context.contentResolver.openInputStream(uri)?.use { stream ->
+            val data = com.moblin.android.platform.DocumentPicker.readInput(context, uri)?.use { stream ->
                 stream.readBytes()
             }
             if (data != null) {

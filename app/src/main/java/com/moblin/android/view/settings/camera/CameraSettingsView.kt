@@ -187,7 +187,7 @@ private fun CameraSettingsPngLutsView(
         contract = ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
         if (uri != null) {
-            context.contentResolver.openInputStream(uri)?.use { input ->
+            com.moblin.android.platform.DocumentPicker.readInput(context, uri)?.use { input ->
                 model.addLutPng(input.readBytes())
             }
         }

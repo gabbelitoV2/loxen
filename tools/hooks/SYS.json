@@ -53,31 +53,92 @@
       "id": "HSYS.7",
       "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
       "scope": "fun VideoPickerView",
-      "op": "replace",
+      "op": "delete",
       "old": "                val name = uri.lastPathSegment ?: return@runCatching",
-      "new": "                val name = com.moblin.android.platform.DocumentPicker.displayName(context, uri)",
       "occurrence": 1,
-      "note": "UIDocumentPickerViewController(asCopy: true) hands over a copy named after the picked file. The last path segment of a content URI is a provider id such as primary:Movies/x.mov, which may contain slashes or '..'. displayName is the provider's display name reduced to one safe file name."
+      "note": "See HSYS.15."
     },
     {
       "id": "HSYS.8",
       "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
       "scope": "fun VideoPickerView",
-      "op": "replace",
+      "op": "delete",
       "old": "                val file = File(context.filesDir, name)",
-      "new": "                val file = com.moblin.android.platform.DocumentPicker.inboxFile(context, name)",
       "occurrence": 1,
-      "note": "The picked copy lives in a temporary inbox (<cacheDir>/Inbox) like the iOS tmp Inbox, not in filesDir. onUrl then moves it to Documents/ReplayTransitions/<stinger id>.<extension> with ReplayTransitionsStorage.add, as the Swift StingerView does."
+      "note": "See HSYS.15."
     },
     {
       "id": "HSYS.9",
       "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
       "scope": "fun VideoPickerView",
-      "op": "replace",
+      "op": "delete",
       "old": "                model.onDocumentPickerUrl?.invoke(file.toURI().toString())",
-      "new": "                model.onDocumentPickerUrl?.invoke(file.invariantSeparatorsPath)",
       "occurrence": 1,
-      "note": "onUrl takes the name after the last '/' and moves File(url). A file: URI string is not a path, so File(url) did not exist and nothing reached ReplayTransitions; spaces also came through as %20."
+      "note": "See HSYS.15."
+    },
+    {
+      "id": "HSYS.15",
+      "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
+      "scope": "fun VideoPickerView",
+      "op": "replace",
+      "old": "            runCatching {",
+      "new": "            com.moblin.android.platform.DocumentPicker.copy(uri) { url -> model.onDocumentPickerUrl?.invoke(url) }",
+      "occurrence": 1,
+      "note": "UIDocumentPickerViewController(asCopy: true) hands over a file URL of a copy in the temporary Inbox, named after the picked file. DocumentPicker.copy copies the document to <cacheDir>/Inbox/<display name> off the main thread (a stinger from a cloud provider could block it for seconds) and passes its path on the main thread; onUrl then moves it to Documents/ReplayTransitions/<stinger id>.<extension> with ReplayTransitionsStorage.add, as the Swift StingerView does. The generated block copied on the main thread with the provider's last path segment as the name, into filesDir, and passed a file: URI that File(url) cannot open. HSYS.7 to HSYS.9 and HSYS.16 to HSYS.21 remove the rest of that block."
+    },
+    {
+      "id": "HSYS.16",
+      "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
+      "scope": "fun VideoPickerView",
+      "op": "delete",
+      "old": "                context.contentResolver.openInputStream(uri)?.use { input ->",
+      "occurrence": 1,
+      "note": "See HSYS.15."
+    },
+    {
+      "id": "HSYS.17",
+      "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
+      "scope": "fun VideoPickerView",
+      "op": "delete",
+      "old": "                    file.outputStream().use { output ->",
+      "occurrence": 1,
+      "note": "See HSYS.15."
+    },
+    {
+      "id": "HSYS.18",
+      "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
+      "scope": "fun VideoPickerView",
+      "op": "delete",
+      "old": "                        input.copyTo(output)",
+      "occurrence": 1,
+      "note": "See HSYS.15."
+    },
+    {
+      "id": "HSYS.19",
+      "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
+      "scope": "fun VideoPickerView",
+      "op": "delete",
+      "old": "                    }",
+      "occurrence": 1,
+      "note": "See HSYS.15. Closes the output stream block."
+    },
+    {
+      "id": "HSYS.20",
+      "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
+      "scope": "fun VideoPickerView",
+      "op": "delete",
+      "old": "                }",
+      "occurrence": 1,
+      "note": "See HSYS.15. Closes the input stream block."
+    },
+    {
+      "id": "HSYS.21",
+      "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
+      "scope": "fun VideoPickerView",
+      "op": "delete",
+      "old": "            }",
+      "occurrence": 1,
+      "note": "See HSYS.15. Closes runCatching."
     },
     {
       "id": "HSYS.10",
@@ -118,6 +179,16 @@
       "new": "                    .build() }.getOrElse { exception -> Log.i(tag, \"keychain: Failed to open keychain of server $server: ${exception.message}\"); return null }",
       "occurrence": 1,
       "note": "See HSYS.12."
+    },
+    {
+      "id": "HSYS.14",
+      "file": "various/Keychain.kt",
+      "scope": "fun preferences\nserver: String",
+      "op": "replace",
+      "old": "                    EncryptedSharedPreferences.create(",
+      "new": "                    com.moblin.android.platform.KeychainPreferences.create(",
+      "occurrence": 1,
+      "note": "When the Keystore key is lost (restore to a new device, Keystore reset) the old file can never be decrypted and EncryptedSharedPreferences.create throws on every start, so no token could be saved again. Like iOS after a restore, KeychainPreferences drops what a working key cannot decrypt, keeps everything still readable, and throws only when the Keystore itself fails."
     }
   ]
 }

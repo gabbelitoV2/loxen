@@ -162,7 +162,7 @@ class Recorder : AVAssetWriterDelegate {
                 }
                 runCatching { file.writeBytes(ByteArray(0)) }
                 runCatching { fileHandle?.close() }
-                fileHandle = runCatching { FileOutputStream(file) }.getOrNull()
+                fileHandle = com.moblin.android.platform.Bookmark.openOutput(url, file)
                 val initSegment = initSegment
                 if (initSegment != null) {
                     try {

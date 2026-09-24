@@ -93,7 +93,7 @@ class Keychain(
                     .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                     .build() }.getOrElse { exception -> Log.i(tag, "keychain: Failed to open keychain of server $server: ${exception.message}"); return null }
                 val preferences = try {
-                    EncryptedSharedPreferences.create(
+                    com.moblin.android.platform.KeychainPreferences.create(
                         context,
                         fileNamePrefix + sha256Hex(server),
                         masterKey,

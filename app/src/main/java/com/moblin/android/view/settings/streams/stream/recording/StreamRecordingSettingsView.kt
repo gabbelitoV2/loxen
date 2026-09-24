@@ -46,7 +46,7 @@ import com.moblin.android.various.model.setCleanRecordings
 
 @Composable
 private fun PickerView(model: Model = LocalModel.current) {
-    val launcher = rememberLauncherForActivityResult(
+    val launcher = com.moblin.android.platform.DocumentPicker.rememberLauncher(
         contract = ActivityResultContracts.OpenDocumentTree(),
     ) { uri ->
         if (uri != null) {
@@ -63,7 +63,7 @@ private fun getRecordingPath(recordingPath: ByteArray): String {
 }
 
 private fun onUrl(url: String, recording: SettingsStreamRecording) {
-    recording.recordingPath = url.toByteArray()
+    recording.recordingPath = com.moblin.android.platform.Bookmark.data(url) ?: return
 }
 
 @Composable

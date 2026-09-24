@@ -68,16 +68,7 @@ private fun VideoPickerView(model: Model = LocalModel.current, onDismiss: () -> 
         ActivityResultContracts.OpenDocument(),
     ) { uri ->
         if (uri != null) {
-            runCatching {
-                val name = com.moblin.android.platform.DocumentPicker.displayName(context, uri)
-                val file = com.moblin.android.platform.DocumentPicker.inboxFile(context, name)
-                context.contentResolver.openInputStream(uri)?.use { input ->
-                    file.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                }
-                model.onDocumentPickerUrl?.invoke(file.invariantSeparatorsPath)
-            }
+            com.moblin.android.platform.DocumentPicker.copy(uri) { url -> model.onDocumentPickerUrl?.invoke(url) }
         }
         onDismiss()
     }

@@ -381,6 +381,8 @@ val LocalNavigator = staticCompositionLocalOf<Navigator?> { null }
 
 val LocalNavigationEntry = staticCompositionLocalOf<NavigationEntry?> { null }
 
+val LocalSheetDismiss = staticCompositionLocalOf<(() -> Unit)?> { null }
+
 @Composable
 fun rememberDismiss(): () -> Unit {
     val navigator = LocalNavigator.current
@@ -1423,9 +1425,12 @@ private val actionSheetButtonStyle = TextStyle(fontSize = 20.sp, lineHeight = 25
 
 @Composable
 private fun rememberPresentation(isPresented: Boolean): MutableTransitionState<Boolean> {
-    val state = remember { MutableTransitionState(false) }
-    state.targetState = isPresented
-    return state
+    val states = remember { arrayOf(MutableTransitionState(false)) }
+    if (!isPresented && states[0].targetState && !states[0].currentState) {
+        states[0] = MutableTransitionState(false)
+    }
+    states[0].targetState = isPresented
+    return states[0]
 }
 
 private fun MutableTransitionState<Boolean>.isShowing(): Boolean = currentState || targetState
@@ -1541,6 +1546,7 @@ fun Sheet(isPresented: Boolean, onDismissRequest: () -> Unit, content: @Composab
         return
     }
     val currentOnDismissRequest by rememberUpdatedState(onDismissRequest)
+    val dismissSheet: () -> Unit = remember { { currentOnDismissRequest() } }
     PresentationDialog(state = state, onBack = onDismissRequest) {
         CompositionLocalProvider(LocalElevated provides true) {
             val palette = formPalette()
@@ -1580,6 +1586,7 @@ fun Sheet(isPresented: Boolean, onDismissRequest: () -> Unit, content: @Composab
                     CompositionLocalProvider(
                         LocalNavigator provides null,
                         LocalNavigationEntry provides null,
+                        LocalSheetDismiss provides dismissSheet,
                         LocalInSection provides false,
                         LocalContentColor provides palette.label,
                         LocalTextStyle provides formBodyStyle,

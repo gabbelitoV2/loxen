@@ -67,13 +67,13 @@ val alertTestNames = listOf("Mark", "Natasha", "Pedro", "Anna")
 
 @Composable
 fun AlertPickerView(model: Model = LocalModel.current, type: String) {
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    val launcher = com.moblin.android.platform.DocumentPicker.rememberLauncher(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
-            model.onDocumentPickerUrl?.invoke(uri.toString())
+            com.moblin.android.platform.DocumentPicker.copy(uri) { url -> model.onDocumentPickerUrl?.invoke(url) }
         }
     }
     LaunchedEffect(Unit) {
-        launcher.launch(arrayOf(type))
+        launcher.launch(com.moblin.android.platform.DocumentPicker.contentTypes(type))
     }
 }
 
@@ -153,7 +153,7 @@ private fun getSoundName(model: Model, id: UUID?): String {
 private fun VideoPickerView(model: Model = LocalModel.current) {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
-            model.onDocumentPickerUrl?.invoke(uri.toString())
+            com.moblin.android.platform.DocumentPicker.copy(uri) { url -> model.onDocumentPickerUrl?.invoke(url) }
         }
     }
     LaunchedEffect(Unit) {
@@ -178,13 +178,14 @@ private fun VideoView(model: Model = LocalModel.current, alert: SettingsWidgetAl
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         showPicker = false
         if (uri != null) {
-            model.onDocumentPickerUrl?.invoke(uri.toString())
+            com.moblin.android.platform.DocumentPicker.copy(uri) { url -> model.onDocumentPickerUrl?.invoke(url) }
         }
     }
 
     NavigationLink(
         destination = {
             Form(title = "Video") {
+                val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> com.moblin.android.platform.DocumentPicker.copy(uri) { url -> model.onDocumentPickerUrl?.invoke(url) } }
                 Section {
                     FormButton(
                         title = if (alert.videoName.isEmpty()) "Select video" else alert.videoName,
