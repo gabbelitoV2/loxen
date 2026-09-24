@@ -6,8 +6,10 @@ import com.moblin.android.platform.coregraphics.CGSize
 import com.moblin.android.platform.metalpetal.MTLDevice
 import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.acos
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 private const val TAG = "MoblinEffects"
 
@@ -25,10 +27,6 @@ internal object SceneKitLog {
             Log.i(TAG, message)
         } catch (_: Throwable) {
         }
-    }
-
-    fun notImplemented(member: String) {
-        once("notImplemented:$member", "$member not implemented yet")
     }
 }
 
@@ -137,14 +135,82 @@ class SCNCamera {
 
 open class SCNNode {
     var name: String? = null
-    var position: SCNVector3 = SCNVector3.zero
-    var rotation: SCNVector4 = SCNVector4.zero
-    var eulerAngles: SCNVector3 = SCNVector3.zero
-    var orientation: SCNQuaternion = SCNVector4(0f, 0f, 0f, 1f)
-    var scale: SCNVector3 = SCNVector3(1f, 1f, 1f)
     var camera: SCNCamera? = null
     var isHidden: Boolean = false
     var opacity: Double = 1.0
+
+    private var translation: Vec3 = Vec3.zero
+    private var quaternion: Quat = Quat.identity
+    private var scaling: Vec3 = Vec3.one
+
+    internal var morphWeights: FloatArray? = null
+    internal var renderingOrder: Int = 0
+
+    var position: SCNVector3
+        get() = translation.toSCNVector3()
+        set(value) {
+            translation = Vec3.of(value)
+        }
+
+    var orientation: SCNQuaternion
+        get() = quaternion.toSCNVector4()
+        set(value) {
+            quaternion = Quat.of(value)
+        }
+
+    var rotation: SCNVector4
+        get() {
+            val q = quaternion
+            val length = sqrt(q.lengthSquared())
+            if (length == 0f) {
+                return SCNVector4(0f, 0f, 0f, 0f)
+            }
+            val w = (q.w / length).coerceIn(-1f, 1f)
+            val angle = 2f * acos(w)
+            val s = sqrt(1f - w * w)
+            return if (s < 1e-6f) {
+                SCNVector4(1f, 0f, 0f, 0f)
+            } else {
+                SCNVector4(q.x / length / s, q.y / length / s, q.z / length / s, angle)
+            }
+        }
+        set(value) {
+            quaternion = Quat.fromAxisAngle(value.x, value.y, value.z, value.w)
+        }
+
+    var eulerAngles: SCNVector3
+        get() = eulerFromQuat(quaternion).toSCNVector3()
+        set(value) {
+            quaternion = Quat.fromEuler(value.x, value.y, value.z)
+        }
+
+    var scale: SCNVector3
+        get() = scaling.toSCNVector3()
+        set(value) {
+            scaling = Vec3.of(value)
+        }
+
+    internal var localTranslation: Vec3
+        get() = translation
+        set(value) {
+            translation = value
+        }
+
+    internal var localRotation: Quat
+        get() = quaternion
+        set(value) {
+            quaternion = value
+        }
+
+    internal val localScale: Vec3
+        get() = scaling
+
+    internal fun setTransformMatrix(matrix: FloatArray) {
+        val (t, r, s) = Mat4.decompose(matrix)
+        translation = t
+        quaternion = r
+        scaling = s
+    }
 
     private val children = mutableListOf<SCNNode>()
 
@@ -153,6 +219,12 @@ open class SCNNode {
 
     val childNodes: List<SCNNode>
         get() = synchronized(children) { children.toList() }
+
+    internal val childCount: Int
+        get() = synchronized(children) { children.size }
+
+    internal val firstChild: SCNNode?
+        get() = synchronized(children) { children.firstOrNull() }
 
     fun addChildNode(child: SCNNode) {
         if (child === this) {
@@ -201,6 +273,60 @@ open class SCNNode {
         }
         return null
     }
+
+    internal fun enumerateHierarchy(block: (SCNNode) -> Unit) {
+        block(this)
+        for (child in childNodes) {
+            child.enumerateHierarchy(block)
+        }
+    }
+
+    internal fun localMatrix(): FloatArray {
+        return Mat4.compose(translation, quaternion, scaling)
+    }
+
+    internal fun worldMatrix(): FloatArray {
+        val local = localMatrix()
+        val currentParent = parent ?: return local
+        return Mat4.multiply(currentParent.worldMatrix(), local)
+    }
+
+    internal var worldPosition: Vec3
+        get() {
+            val world = worldMatrix()
+            return Vec3(world[12], world[13], world[14])
+        }
+        set(value) {
+            val currentParent = parent
+            translation = if (currentParent == null) {
+                value
+            } else {
+                Mat4.transformPoint(Mat4.invert(currentParent.worldMatrix()), value)
+            }
+        }
+
+    internal var worldOrientation: Quat
+        get() {
+            val currentParent = parent ?: return quaternion
+            return currentParent.worldOrientation * quaternion
+        }
+        set(value) {
+            val currentParent = parent
+            quaternion = if (currentParent == null) value else currentParent.worldOrientation.inverse() * value
+        }
+
+    internal fun convertPositionToWorld(position: Vec3): Vec3 {
+        return Mat4.transformPoint(worldMatrix(), position)
+    }
+
+    internal fun convertPositionFromWorld(position: Vec3): Vec3 {
+        return Mat4.transformPoint(Mat4.invert(worldMatrix()), position)
+    }
+
+    internal fun lossyScale(): Vec3 {
+        val currentParent = parent ?: return scaling
+        return currentParent.lossyScale().times(scaling)
+    }
 }
 
 open class SCNScene {
@@ -214,12 +340,33 @@ class SCNRenderer(val device: MTLDevice?, options: Map<String, Any>? = null) {
     var autoenablesDefaultLighting: Boolean = false
     var sceneTime: Double = 0.0
 
+    private val filament = FilamentSceneRenderer()
+
     fun snapshot(atTime: Double, with: CGSize, antialiasingMode: SCNAntialiasingMode): Bitmap {
-        SceneKitLog.notImplemented("SCNRenderer.snapshot")
         sceneTime = atTime
         val width = max(pixels(with.width), 1)
         val height = max(pixels(with.height), 1)
-        return Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val currentScene = scene
+        val cameraNode = pointOfView ?: currentScene?.rootNode?.let { findCameraNode(it) }
+        val bitmap = if (currentScene is VRMScene && cameraNode != null) {
+            filament.render(currentScene, cameraNode, width, height)
+        } else {
+            null
+        }
+        return bitmap ?: Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    }
+
+    private fun findCameraNode(node: SCNNode): SCNNode? {
+        if (node.camera != null) {
+            return node
+        }
+        for (child in node.childNodes) {
+            val found = findCameraNode(child)
+            if (found != null) {
+                return found
+            }
+        }
+        return null
     }
 }
 

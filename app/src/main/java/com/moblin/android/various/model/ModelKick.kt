@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.countFormatter
 import com.moblin.android.localized
+import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.streamingplatforms.kick.KickApi
 import com.moblin.android.streamingplatforms.kick.KickApiDelegate
 import com.moblin.android.streamingplatforms.kick.KickCategory
@@ -32,18 +33,14 @@ import com.moblin.android.various.settings.SettingsMacrosEvent
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.view.controlbar.quickbutton.chat.ChatterInfo
 import java.time.Instant
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import com.moblin.android.AppDelegate
 
 fun Model.updateViewersKick(): StreamingPlatformStatus {
     val platformStatus = kickPlatformStatus?.platformStatus
     return if (platformStatus != null) {
-        StreamingPlatformStatus(platform = TODO("no Android counterpart for Platform.kick"), status = platformStatus)
+        StreamingPlatformStatus(platform = Platform.kick, status = platformStatus)
     } else {
-        StreamingPlatformStatus(platform = TODO("no Android counterpart for Platform.kick"), status = PlatformStatus.unknown)
+        StreamingPlatformStatus(platform = Platform.kick, status = PlatformStatus.unknown)
     }
 }
 
@@ -122,7 +119,7 @@ fun Model.reloadKickPusher() {
     val channelId = stream.value.kickChannelId
     val chatroomChannelId = stream.value.kickChatroomChannelId
     if (isKickPusherConfigured() &&
-        !isRemoteControlChatAndEvents(platform = TODO("no Android counterpart for Platform.kick")) &&
+        !isRemoteControlChatAndEvents(platform = Platform.kick) &&
         channelId != null &&
         chatroomChannelId != null
     ) {
@@ -179,7 +176,7 @@ fun Model.makeNotLoggedInToKickToastIfNeeded() {
     if (stream.value.kickNotLoggedInCount >= maxNotLoggedInToastCount) {
         stream.value.kickWantsToBeLoggedIn = false
     }
-    makeNotLoggedInToToast(platform = TODO("no Android counterpart for Platform.kick"))
+    makeNotLoggedInToToast(platform = Platform.kick)
 }
 
 fun Model.sendKickChatMessage(message: String) {
@@ -225,8 +222,7 @@ fun Model.hostKickChannel(channel: String, onComplete: (OperationResult) -> Unit
 }
 
 fun Model.searchKickChannels(query: String, onComplete: (List<KickLiveSearchChannel>?) -> Unit) {
-    kickSearchTimerScope.launch {
-        delay(500)
+    kickSearchChannelsTimer.startSingleShot(0.5) {
         createKickApi(stream = stream.value).searchLiveChannels(query = query, onComplete = onComplete)
     }
 }
@@ -326,8 +322,7 @@ fun Model.searchKickCategories(
     query: String,
     onComplete: (List<KickCategory>?) -> Unit
 ) {
-    kickSearchTimerScope.launch {
-        delay(500)
+    kickSearchCategoriesTimer.startSingleShot(0.5) {
         createKickApi(stream = stream).searchCategories(query = query, onComplete = onComplete)
     }
 }
@@ -387,16 +382,15 @@ private fun Model.appendKickChatAlertMessage(
     image: String,
     kind: ChatHighlightKind
 ) {
-    var id = 0
     appendChatMessage(
-        platform = TODO("no Android counterpart for Platform.kick"),
+        platform = Platform.kick,
         messageId = null,
         displayName = user,
         user = user,
         userId = null,
         userColor = null,
         userBadges = emptyList(),
-        segments = makeChatPostTextSegments(text = text, id = id).first,
+        segments = makeChatPostTextSegments(text = text, id = 0).first,
         timestamp = statusOther.digitalClock.value,
         timestampTime = Instant.now(),
         isAction = false,
@@ -430,7 +424,7 @@ fun Model.kickPusherAppendMessage(
     highlight: ChatHighlight?
 ) {
     appendChatMessage(
-        platform = TODO("no Android counterpart for Platform.kick"),
+        platform = Platform.kick,
         messageId = messageId,
         displayName = user,
         user = user,
@@ -468,19 +462,19 @@ fun Model.kickPusherSubscription(event: KickPusherSubscriptionEvent) {
             user = event.username,
             text = text,
             title = localized("New subscriber"),
-            color = Color.Cyan,
+            color = Color(0xFF32ADE6),
             image = "party.popper",
-            kind = TODO("no Android counterpart for ChatHighlightKind.other")
+            kind = ChatHighlightKind.Other
         )
     }
     playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickSubscription(event))
     printEventCatPrinters(
-        event = TODO("no Android counterpart for EventCatPrinter.kickSubscription"),
+        event = CatPrinterEvent.KickSubscription,
         username = event.username,
         message = text
     )
     macrosEventOccurred(
-        MacroEvent(event = TODO("no Android counterpart for SettingsMacrosEvent.kickSubscription"), amount = event.months)
+        MacroEvent(event = SettingsMacrosEvent.KICK_SUBSCRIPTION, amount = event.months)
     )
     latestSubscriber = event.username
 }
@@ -499,20 +493,20 @@ fun Model.kickPusherGiftedSubscription(event: KickPusherGiftedSubscriptionsEvent
             user = user,
             text = text,
             title = localized("Gift subscriptions"),
-            color = Color.Cyan,
+            color = Color(0xFF32ADE6),
             image = "gift",
-            kind = TODO("no Android counterpart for ChatHighlightKind.other")
+            kind = ChatHighlightKind.Other
         )
     }
     playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickGiftedSubscriptions(event))
     printEventCatPrinters(
-        event = TODO("no Android counterpart for EventCatPrinter.kickGiftedSubscriptions"),
+        event = CatPrinterEvent.KickGiftedSubscriptions,
         username = user,
         message = text
     )
     macrosEventOccurred(
         MacroEvent(
-            event = TODO("no Android counterpart for SettingsMacrosEvent.kickGiftSubscriptions"),
+            event = SettingsMacrosEvent.KICK_GIFT_SUBSCRIPTIONS,
             amount = event.gifted_usernames.size
         )
     )
@@ -531,19 +525,19 @@ fun Model.kickPusherRewardRedeemed(event: KickPusherRewardRedeemedEvent) {
             user = user,
             text = text,
             title = localized("Reward Redeemed"),
-            color = Color.Green,
+            color = Color(0xFF34C759),
             image = "medal.star",
-            kind = TODO("no Android counterpart for ChatHighlightKind.other")
+            kind = ChatHighlightKind.Other
         )
     }
     playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickReward(event))
     printEventCatPrinters(
-        event = TODO("no Android counterpart for EventCatPrinter.kickReward"),
+        event = CatPrinterEvent.KickReward,
         username = user,
         message = text
     )
     macrosEventOccurred(
-        MacroEvent(event = TODO("no Android counterpart for SettingsMacrosEvent.kickReward"), text = event.reward_title)
+        MacroEvent(event = SettingsMacrosEvent.KICK_REWARD, text = event.reward_title)
     )
 }
 
@@ -558,19 +552,19 @@ fun Model.kickPusherStreamHost(event: KickPusherStreamHostEvent) {
             user = user,
             text = text,
             title = localized("Host"),
-            color = Color(0xFFFF9800),
+            color = Color(0xFFFF9500),
             image = "person.3",
-            kind = TODO("no Android counterpart for ChatHighlightKind.other")
+            kind = ChatHighlightKind.Other
         )
     }
     playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickHost(event))
     printEventCatPrinters(
-        event = TODO("no Android counterpart for EventCatPrinter.kickHost"),
+        event = CatPrinterEvent.KickHost,
         username = user,
         message = text
     )
     macrosEventOccurred(
-        MacroEvent(event = TODO("no Android counterpart for SettingsMacrosEvent.kickHost"), amount = event.number_viewers)
+        MacroEvent(event = SettingsMacrosEvent.KICK_HOST, amount = event.number_viewers)
     )
 }
 
@@ -589,9 +583,9 @@ fun Model.kickPusherUserBanned(event: KickPusherUserBannedEvent) {
             user = event.user.username,
             text = text,
             title = title,
-            color = Color.Red,
+            color = Color(0xFFFF3B30),
             image = "nosign",
-            kind = TODO("no Android counterpart for ChatHighlightKind.other")
+            kind = ChatHighlightKind.Other
         )
     }
 }
@@ -609,19 +603,19 @@ fun Model.kickPusherKicksGifted(event: KickPusherKicksGiftedEvent) {
             user = user,
             text = message,
             title = localized("Kicks"),
-            color = Color.Green,
+            color = Color(0xFF34C759),
             image = "suit.diamond",
-            kind = TODO("no Android counterpart for ChatHighlightKind.other")
+            kind = ChatHighlightKind.Other
         )
     }
     playAlert(alert = com.moblin.android.videoeffects.alerts.AlertsEffectAlert.KickKicks(event))
     printEventCatPrinters(
-        event = TODO("no Android counterpart for EventCatPrinter.kickKicks"),
+        event = CatPrinterEvent.KickKicks(amount = event.gift.amount),
         username = user,
         message = message
     )
     macrosEventOccurred(
-        MacroEvent(event = TODO("no Android counterpart for SettingsMacrosEvent.kickKicks"), amount = event.gift.amount)
+        MacroEvent(event = SettingsMacrosEvent.KICK_KICKS, amount = event.gift.amount)
     )
 }
 
@@ -630,10 +624,8 @@ fun Model.kickApiUnauthorized() {
         return
     }
     stream.value.kickLoggedIn = false
-    makeNotLoggedInToToast(platform = TODO("no Android counterpart for Platform.kick"))
+    makeNotLoggedInToToast(platform = Platform.kick)
 }
-
-private val kickSearchTimerScope = CoroutineScope(Dispatchers.Main)
 
 private class KickApiDelegateAdapter(private val model: Model) : KickApiDelegate {
     override fun kickApiUnauthorized() {

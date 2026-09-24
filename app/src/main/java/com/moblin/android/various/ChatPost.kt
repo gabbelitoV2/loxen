@@ -5,6 +5,9 @@ import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.color
 import com.moblin.android.common.various.toRgb
 import com.moblin.android.localized
+import com.moblin.android.moblinwatch.shared.WatchProtocolChatHighlight
+import com.moblin.android.moblinwatch.shared.WatchProtocolChatHighlightKind
+import com.moblin.android.moblinwatch.shared.WatchProtocolColor
 import com.moblin.android.remotecontrol.RemoteControlChatHighlight
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.settings.SettingsChatDisplayStyle
@@ -97,7 +100,25 @@ data class ChatHighlight(
     val image: String,
     val titleSegments: List<ChatPostSegment>?,
 ) {
-    fun toWatchProtocol(): Nothing = TODO("no Android counterpart for WatchConnectivity")
+    fun toWatchProtocol(): WatchProtocolChatHighlight {
+        val watchProtocolKind = when (kind) {
+            ChatHighlightKind.Redemption -> WatchProtocolChatHighlightKind.redemption
+            ChatHighlightKind.Other -> WatchProtocolChatHighlightKind.other
+            ChatHighlightKind.NewFollower -> WatchProtocolChatHighlightKind.redemption
+            ChatHighlightKind.FirstMessage -> WatchProtocolChatHighlightKind.other
+            ChatHighlightKind.Reply -> WatchProtocolChatHighlightKind.reply
+            ChatHighlightKind.Moderator -> WatchProtocolChatHighlightKind.moderator
+            ChatHighlightKind.RemoteControlAssistant -> WatchProtocolChatHighlightKind.other
+            ChatHighlightKind.GigantifiedEmote -> WatchProtocolChatHighlightKind.other
+        }
+        val barColor = barColor.toRgb() ?: RgbColor(red = 0, green = 255, blue = 0)
+        return WatchProtocolChatHighlight(
+            kind = watchProtocolKind,
+            barColor = WatchProtocolColor(red = barColor.red, green = barColor.green, blue = barColor.blue),
+            image = image,
+            title = titleNoEmotes(),
+        )
+    }
 
     fun titleNoEmotes(): String? {
         return titleSegments?.mapNotNull { it.text }?.joinToString(separator = "")
@@ -105,7 +126,7 @@ data class ChatHighlight(
 
     fun messageColor(defaultColor: Color = Color.White): Color {
         return if (kind == ChatHighlightKind.Reply) {
-            Color.Gray
+            Color(0xFF8E8E93)
         } else {
             defaultColor
         }
@@ -161,7 +182,7 @@ data class ChatHighlight(
         fun makeAnnouncement(): ChatHighlight {
             return ChatHighlight(
                 kind = ChatHighlightKind.Other,
-                barColor = Color.Green,
+                barColor = Color(0xFF34C759),
                 image = "horn.blast",
                 titleSegments = makeChatPostTextSegments(localized("Announcement")),
             )
@@ -170,7 +191,7 @@ data class ChatHighlight(
         fun makeFirstMessage(): ChatHighlight {
             return ChatHighlight(
                 kind = ChatHighlightKind.FirstMessage,
-                barColor = Color.Yellow,
+                barColor = Color(0xFFFFCC00),
                 image = "bubble.left",
                 titleSegments = makeChatPostTextSegments(localized("First time chatter")),
             )
@@ -179,7 +200,7 @@ data class ChatHighlight(
         fun makePaidMessage(): ChatHighlight {
             return ChatHighlight(
                 kind = ChatHighlightKind.Other,
-                barColor = Color(red = 1.0f, green = 0.5f, blue = 0.0f),
+                barColor = Color(0xFFFF9500),
                 image = "message",
                 titleSegments = makeChatPostTextSegments(localized("Super Chat")),
             )
@@ -188,7 +209,7 @@ data class ChatHighlight(
         fun makePaidSticker(): ChatHighlight {
             return ChatHighlight(
                 kind = ChatHighlightKind.Other,
-                barColor = Color.Green,
+                barColor = Color(0xFF34C759),
                 image = "doc.plaintext",
                 titleSegments = makeChatPostTextSegments(localized("Super Sticker")),
             )
@@ -197,7 +218,7 @@ data class ChatHighlight(
         fun makeMember(): ChatHighlight {
             return ChatHighlight(
                 kind = ChatHighlightKind.Other,
-                barColor = Color.Blue,
+                barColor = Color(0xFF007AFF),
                 image = "medal",
                 titleSegments = makeChatPostTextSegments(localized("Member")),
             )
@@ -206,7 +227,7 @@ data class ChatHighlight(
         fun makeGiftedMemberships(): ChatHighlight {
             return ChatHighlight(
                 kind = ChatHighlightKind.Other,
-                barColor = Color.Blue,
+                barColor = Color(0xFF007AFF),
                 image = "gift",
                 titleSegments = makeChatPostTextSegments(localized("Gifted Memberships")),
             )
@@ -215,7 +236,7 @@ data class ChatHighlight(
         fun makeJewels(): ChatHighlight {
             return ChatHighlight(
                 kind = ChatHighlightKind.Other,
-                barColor = Color.Blue,
+                barColor = Color(0xFF007AFF),
                 image = "diamond",
                 titleSegments = makeChatPostTextSegments(localized("Jewels")),
             )
@@ -224,7 +245,7 @@ data class ChatHighlight(
         fun makeGigantifiedEmote(): ChatHighlight {
             return ChatHighlight(
                 kind = ChatHighlightKind.GigantifiedEmote,
-                barColor = Color(red = 0.5f, green = 0.0f, blue = 0.5f),
+                barColor = Color(0xFFAF52DE),
                 image = "arrow.up.backward.and.arrow.down.forward.square",
                 titleSegments = makeChatPostTextSegments(localized("Gigantified emote")),
             )
@@ -233,7 +254,7 @@ data class ChatHighlight(
         fun makeModerator(): ChatHighlight {
             return ChatHighlight(
                 kind = ChatHighlightKind.Moderator,
-                barColor = Color.Green,
+                barColor = Color(0xFF34C759),
                 image = "",
                 titleSegments = null,
             )
@@ -242,7 +263,7 @@ data class ChatHighlight(
         fun makeRemoteControlAssistant(): ChatHighlight {
             return ChatHighlight(
                 kind = ChatHighlightKind.RemoteControlAssistant,
-                barColor = Color.Green,
+                barColor = Color(0xFF34C759),
                 image = "person.wave.2",
                 titleSegments = makeChatPostTextSegments(localized("Remote control assistant")),
             )
@@ -288,6 +309,30 @@ class ChatPost(
 
     override fun hashCode(): Int {
         return id
+    }
+
+    fun copy(id: Int): ChatPost {
+        return ChatPost(
+            id = id,
+            messageId = messageId,
+            displayName = displayName,
+            user = user,
+            userId = userId,
+            userColor = userColor,
+            userBadges = userBadges,
+            segments = segments,
+            timestamp = timestamp,
+            timestampTime = timestampTime,
+            isAction = isAction,
+            isSubscriber = isSubscriber,
+            bits = bits,
+            highlight = highlight,
+            live = live,
+            filter = filter,
+            platform = platform,
+            sourceChannelIcon = sourceChannelIcon,
+            state = state,
+        )
     }
 
     fun isRedemption(): Boolean {

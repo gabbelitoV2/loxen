@@ -1,67 +1,40 @@
 package com.moblin.android.videoeffects.scoreboard
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.moblin.android.common.various.color
 import com.moblin.android.localized
-import com.moblin.android.platform.swiftui.SwiftUIFonts
-import com.moblin.android.platform.swiftui.monospacedDigit
+import com.moblin.android.platform.swiftui.layout.EdgeSet
+import com.moblin.android.platform.swiftui.layout.Font
+import com.moblin.android.platform.swiftui.layout.HorizontalAlignment
+import com.moblin.android.platform.swiftui.layout.View
+import com.moblin.android.platform.swiftui.layout.ViewBuilder
+import com.moblin.android.platform.swiftui.layout.background
+import com.moblin.android.platform.swiftui.layout.bold
+import com.moblin.android.platform.swiftui.layout.clipShape
+import com.moblin.android.platform.swiftui.layout.font
+import com.moblin.android.platform.swiftui.layout.foregroundStyle
+import com.moblin.android.platform.swiftui.layout.frame
+import com.moblin.android.platform.swiftui.layout.minimumScaleFactor
+import com.moblin.android.platform.swiftui.layout.monospacedDigit
+import com.moblin.android.platform.swiftui.layout.padding
 import com.moblin.android.various.settings.SettingsWidgetGolfScoreboard
 import com.moblin.android.various.settings.SettingsWidgetGolfScoreboardPlayer
-import androidx.compose.foundation.layout.wrapContentSize
 
-@Composable
-private fun PlayerNameView(
+private fun ViewBuilder.PlayerNameView(
     player: SettingsWidgetGolfScoreboardPlayer,
     playerColor: Boolean,
     scale: Double,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy((6 * scale).dp),
-        modifier = Modifier
-            .padding(start = (8 * scale).dp)
-            .height((35 * scale).dp),
-    ) {
-        if (playerColor) {
-            Box(
-                modifier = Modifier
-                    .size((18 * scale).dp)
-                    .clip(RoundedCornerShape((3 * scale).dp))
-                    .background(player.color.color()),
-            ) {
-            }
-        }
-        Text(
-            player.name.uppercase(),
-            style = SwiftUIFonts.system(25 * scale),
-        )
+): View = HStack(spacing = 6 * scale) {
+    if (playerColor) {
+        RoundedRectangle(cornerRadius = 3 * scale)
+            .fill(player.color.color())
+            .frame(width = 18 * scale, height = 18 * scale)
     }
+    Text(player.name.uppercase())
+        .font(Font.system(size = 25 * scale))
 }
+    .frame(height = 35 * scale)
+    .padding(EdgeSet.leading, 8 * scale)
 
 private fun format(player: SettingsWidgetGolfScoreboardPlayer, numberOfHoles: Int): String {
     val thru = player.holesPlayed(numHoles = numberOfHoles)
@@ -74,147 +47,91 @@ private fun format(player: SettingsWidgetGolfScoreboardPlayer, numberOfHoles: In
     }
 }
 
-@Composable
-private fun GolfShrinkText(
-    text: String,
-    fontSize: Double,
-    minimumScaleFactor: Double,
-    modifier: Modifier = Modifier,
-    color: Color = Color.Unspecified,
-    weight: FontWeight = FontWeight.Normal,
-) {
-    val minimumFontSize = fontSize * minimumScaleFactor
-    var currentFontSize by remember(text, fontSize) { mutableStateOf(fontSize) }
-    Text(
-        text,
-        modifier = modifier,
-        color = color,
-        style = SwiftUIFonts.system(currentFontSize, weight).monospacedDigit(),
-        onTextLayout = { layout ->
-            if (layout.hasVisualOverflow && currentFontSize > minimumFontSize) {
-                currentFontSize = maxOf(minimumFontSize, currentFontSize * 0.95)
-            }
-        },
-    )
-}
-
-@Composable
-private fun ThruView(
+private fun ViewBuilder.ThruView(
     player: SettingsWidgetGolfScoreboardPlayer,
     numberOfHoles: Int,
     textColor: Color,
     scale: Double,
-) {
-    GolfShrinkText(
-        text = format(player, numberOfHoles),
-        fontSize = 15 * scale,
-        minimumScaleFactor = 0.5,
-        modifier = Modifier
-            .width((70 * scale).dp)
-            .height((35 * scale).dp)
-            .padding(end = (6 * scale).dp).wrapContentSize(),
-        color = textColor.copy(alpha = 0.6f),
-    )
-}
+): View = Text(format(player, numberOfHoles))
+    .monospacedDigit()
+    .minimumScaleFactor(0.5)
+    .font(Font.system(size = 15 * scale))
+    .foregroundStyle(textColor.copy(alpha = textColor.alpha * 0.6f))
+    .padding(EdgeSet.trailing, 6 * scale)
+    .frame(width = 70 * scale, height = 35 * scale)
 
-@Composable
-private fun ScoreView(
+private fun ViewBuilder.ScoreView(
     player: SettingsWidgetGolfScoreboardPlayer,
     pars: List<Int>,
     numberOfHoles: Int,
     textColor: Color,
     scale: Double,
-) {
+): View {
     val total = player.totalRelativeToPar(pars = pars, numberOfHoles = numberOfHoles)
-    GolfShrinkText(
-        text = formatScore(total),
-        fontSize = scoreboardScoreFontSize * scale,
-        minimumScaleFactor = 0.5,
-        modifier = Modifier
-            .height((35 * scale).dp)
-            .padding(end = (8 * scale).dp).wrapContentSize(),
-        color = if (total < 0) Color(0xFF34C759) else if (total > 0) Color(0xFFFF3B30) else textColor,
-        weight = FontWeight.Bold,
-    )
+    return Text(formatScore(total))
+        .monospacedDigit()
+        .minimumScaleFactor(0.5)
+        .font(Font.system(size = scoreboardScoreFontSize * scale))
+        .bold()
+        .foregroundStyle(if (total < 0) Color(0xFF34C759) else if (total > 0) Color(0xFFFF3B30) else textColor)
+        .padding(EdgeSet.trailing, 8 * scale)
+        .frame(height = 35 * scale)
 }
 
-@Composable
-fun ScoreboardEffectGolfView(
+fun ViewBuilder.ScoreboardEffectGolfView(
     textColor: Color,
     primaryBackgroundColor: Color,
     secondaryBackgroundColor: Color,
     golf: SettingsWidgetGolfScoreboard,
     scale: Double,
-) {
+): View {
     val holeIndex = minOf(golf.currentHole, golf.numberOfHoles - 1)
     val par = if (holeIndex in golf.pars.indices) golf.pars[holeIndex] else 4
-    CompositionLocalProvider(LocalContentColor provides textColor) {
-        Column(
-            horizontalAlignment = Alignment.Start,
-            modifier = Modifier.clip(RoundedCornerShape((5 * scale).dp)),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy((8 * scale).dp),
-                modifier = Modifier
-                    .background(secondaryBackgroundColor)
-                    .padding(vertical = (4 * scale).dp)
-                    .padding(horizontal = (8 * scale).dp),
-            ) {
-                Text(
-                    golf.title,
-                    style = SwiftUIFonts.system(20 * scale, FontWeight.Bold),
-                )
-                Spacer(Modifier.weight(1f))
-                Text(
-                    localized("HOLE ${holeIndex + 1}  PAR $par"),
-                    style = SwiftUIFonts.system(18 * scale, FontWeight.Bold).monospacedDigit(),
-                )
-            }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.background(primaryBackgroundColor),
-            ) {
-                Column(horizontalAlignment = Alignment.Start) {
-                    golf.players.forEach { player ->
-                        key(player.id) {
-                            PlayerNameView(
-                                player = player,
-                                playerColor = golf.playerColors,
-                                scale = scale,
-                            )
-                        }
-                    }
-                }
-                Spacer(Modifier.weight(1f))
-                Column(horizontalAlignment = Alignment.Start) {
-                    golf.players.forEach { player ->
-                        key(player.id) {
-                            ThruView(
-                                player = player,
-                                numberOfHoles = golf.numberOfHoles,
-                                textColor = textColor,
-                                scale = scale,
-                            )
-                        }
-                    }
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    golf.players.forEach { player ->
-                        key(player.id) {
-                            ScoreView(
-                                player = player,
-                                pars = golf.pars,
-                                numberOfHoles = golf.numberOfHoles,
-                                textColor = textColor,
-                                scale = scale,
-                            )
-                        }
-                    }
-                }
-            }
-            PoweredByMoblinView(backgroundColor = secondaryBackgroundColor, scale = scale)
+    return VStack(alignment = HorizontalAlignment.leading, spacing = 0.0) {
+        HStack(spacing = 8 * scale) {
+            Text(golf.title)
+                .font(Font.system(size = 20 * scale))
+            Spacer()
+            Text(localized("HOLE ${holeIndex + 1}  PAR $par"))
+                .monospacedDigit()
+                .font(Font.system(size = 18 * scale))
         }
+            .bold()
+            .padding(EdgeSet.horizontal, 8 * scale)
+            .padding(EdgeSet.vertical, 4 * scale)
+            .background(secondaryBackgroundColor)
+        HStack {
+            VStack(alignment = HorizontalAlignment.leading, spacing = 0.0) {
+                for (player in golf.players) {
+                    PlayerNameView(player = player, playerColor = golf.playerColors, scale = scale)
+                }
+            }
+            Spacer()
+            VStack(alignment = HorizontalAlignment.leading, spacing = 0.0) {
+                for (player in golf.players) {
+                    ThruView(
+                        player = player,
+                        numberOfHoles = golf.numberOfHoles,
+                        textColor = textColor,
+                        scale = scale,
+                    )
+                }
+            }
+            VStack(alignment = HorizontalAlignment.trailing, spacing = 0.0) {
+                for (player in golf.players) {
+                    ScoreView(
+                        player = player,
+                        pars = golf.pars,
+                        numberOfHoles = golf.numberOfHoles,
+                        textColor = textColor,
+                        scale = scale,
+                    )
+                }
+            }
+        }
+            .background(primaryBackgroundColor)
+        PoweredByMoblinView(backgroundColor = secondaryBackgroundColor, scale = scale)
     }
+        .clipShape(RoundedRectangle(cornerRadius = 5 * scale))
+        .foregroundStyle(textColor)
 }

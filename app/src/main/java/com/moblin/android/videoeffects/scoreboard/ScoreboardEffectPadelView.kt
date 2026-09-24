@@ -1,27 +1,20 @@
 package com.moblin.android.videoeffects.scoreboard
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.key
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.moblin.android.common.various.isSetWin
-import com.moblin.android.platform.swiftui.SwiftUIFonts
+import com.moblin.android.platform.swiftui.layout.EdgeSet
+import com.moblin.android.platform.swiftui.layout.Font
+import com.moblin.android.platform.swiftui.layout.HorizontalAlignment
+import com.moblin.android.platform.swiftui.layout.VerticalAlignment
+import com.moblin.android.platform.swiftui.layout.View
+import com.moblin.android.platform.swiftui.layout.ViewBuilder
+import com.moblin.android.platform.swiftui.layout.background
+import com.moblin.android.platform.swiftui.layout.bold
+import com.moblin.android.platform.swiftui.layout.clipShape
+import com.moblin.android.platform.swiftui.layout.font
+import com.moblin.android.platform.swiftui.layout.foregroundStyle
+import com.moblin.android.platform.swiftui.layout.frame
+import com.moblin.android.platform.swiftui.layout.padding
 import com.moblin.android.various.settings.SettingsWidgetPadelScoreboard
 import com.moblin.android.various.settings.SettingsWidgetPadelScoreboardGameType
 import com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer
@@ -76,108 +69,56 @@ private fun padelScoreboardSettingsToEffect(
     return PadelScoreboard(home = home, away = away, score = score)
 }
 
-@Composable
-fun ScoreboardEffectPadelView(
+fun ViewBuilder.ScoreboardEffectPadelView(
     textColor: Color,
     primaryBackgroundColor: Color,
     secondaryBackgroundColor: Color,
     padel: SettingsWidgetPadelScoreboard,
     players: List<SettingsWidgetScoreboardPlayer>,
     scale: Double,
-) {
+): View {
     fun scoreFontSize(): Double = when (padel.type) {
         SettingsWidgetPadelScoreboardGameType.doubles -> scoreboardScoreBigFontSize
         SettingsWidgetPadelScoreboardGameType.singles -> scoreboardScoreFontSize
     }
 
     val scoreboard = padelScoreboardSettingsToEffect(padel, players)
-    CompositionLocalProvider(LocalContentColor provides textColor) {
-        Column(
-            horizontalAlignment = Alignment.Start,
-            modifier = Modifier.clip(RoundedCornerShape((5 * scale).dp)),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy((18 * scale).dp),
-                modifier = Modifier
-                    .background(primaryBackgroundColor)
-                    .padding(
-                        start = (3 * scale).dp,
-                        end = (18 * scale).dp,
-                        top = (3 * scale).dp,
-                    ),
-            ) {
-                CompositionLocalProvider(LocalTextStyle provides SwiftUIFonts.system(25 * scale)) {
-                    Column(
-                        horizontalAlignment = Alignment.Start,
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.Start,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Spacer(Modifier.weight(1f))
-                            scoreboard.home.players.forEach { player ->
-                                key(player.id) {
-                                    Text(player.name.uppercase())
-                                }
-                            }
-                            Spacer(Modifier.weight(1f))
-                        }
-                        Column(
-                            horizontalAlignment = Alignment.Start,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            Spacer(Modifier.weight(1f))
-                            scoreboard.away.players.forEach { player ->
-                                key(player.id) {
-                                    Text(player.name.uppercase())
-                                }
-                            }
-                            Spacer(Modifier.weight(1f))
-                        }
+    return VStack(alignment = HorizontalAlignment.leading, spacing = 0.0) {
+        HStack(alignment = VerticalAlignment.center, spacing = 18 * scale) {
+            VStack(alignment = HorizontalAlignment.leading) {
+                VStack(alignment = HorizontalAlignment.leading) {
+                    Spacer(minLength = 0.0)
+                    for (player in scoreboard.home.players) {
+                        Text(player.name.uppercase())
                     }
+                    Spacer(minLength = 0.0)
                 }
-                scoreboard.score.forEach { score ->
-                    key(score.id) {
-                        CompositionLocalProvider(
-                            LocalTextStyle provides SwiftUIFonts.system(scoreFontSize() * scale),
-                        ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.width((28 * scale).dp),
-                            ) {
-                                CompositionLocalProvider(
-                                    LocalTextStyle provides SwiftUIFonts.system(
-                                        scoreFontSize() * scale,
-                                        weight = if (score.isHomeWin()) {
-                                            FontWeight.Bold
-                                        } else {
-                                            FontWeight.Normal
-                                        },
-                                    ),
-                                ) {
-                                    TeamScoreView(score = score.home)
-                                }
-                                CompositionLocalProvider(
-                                    LocalTextStyle provides SwiftUIFonts.system(
-                                        scoreFontSize() * scale,
-                                        weight = if (score.isAwayWin()) {
-                                            FontWeight.Bold
-                                        } else {
-                                            FontWeight.Normal
-                                        },
-                                    ),
-                                ) {
-                                    TeamScoreView(score = score.away)
-                                }
-                            }
-                        }
+                VStack(alignment = HorizontalAlignment.leading) {
+                    Spacer(minLength = 0.0)
+                    for (player in scoreboard.away.players) {
+                        Text(player.name.uppercase())
                     }
+                    Spacer(minLength = 0.0)
                 }
             }
-            PoweredByMoblinView(backgroundColor = secondaryBackgroundColor, scale = scale)
+                .font(Font.system(size = 25 * scale))
+            for (score in scoreboard.score) {
+                VStack {
+                    TeamScoreView(score = score.home)
+                        .bold(score.isHomeWin())
+                    TeamScoreView(score = score.away)
+                        .bold(score.isAwayWin())
+                }
+                    .frame(width = 28 * scale)
+                    .font(Font.system(size = scoreFontSize() * scale))
+            }
         }
+            .padding(EdgeSet.leading, 3 * scale)
+            .padding(EdgeSet.trailing, 18 * scale)
+            .padding(EdgeSet.top, 3 * scale)
+            .background(primaryBackgroundColor)
+        PoweredByMoblinView(backgroundColor = secondaryBackgroundColor, scale = scale)
     }
+        .clipShape(RoundedRectangle(cornerRadius = 5 * scale))
+        .foregroundStyle(textColor)
 }

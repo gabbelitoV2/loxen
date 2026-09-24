@@ -32,6 +32,13 @@ internal object VisionLog {
     fun notImplemented(member: String) {
         once("notImplemented:$member", "$member not implemented yet")
     }
+
+    fun info(message: String) {
+        try {
+            Log.i(TAG, message)
+        } catch (_: Throwable) {
+        }
+    }
 }
 
 class VNError(message: String) : Exception(message)
@@ -221,21 +228,38 @@ class VNImageRequestHandler(
     }
 
     fun perform(requests: List<VNRequest>) {
-        if (Thread.currentThread().name == PipelineThread.NAME) {
+        if (PipelineThread.isCurrent()) {
             VisionLog.once("performOnPipeline", "VNImageRequestHandler.perform called on the pipeline thread")
             throw VNError("VNImageRequestHandler.perform must not run on the pipeline thread")
         }
         for (request in requests) {
             request.clearResults()
         }
-        VisionLog.notImplemented("VNImageRequestHandler.perform")
+        val error = try {
+            VisionEngine.perform(this, requests)
+            null
+        } catch (error: VNError) {
+            error
+        } catch (error: Throwable) {
+            VisionLog.once("perform:${error.javaClass.name}", "VNImageRequestHandler.perform failed: $error")
+            VNError(error.message ?: error.javaClass.name)
+        }
         for (request in requests) {
             if (request.isCancelled) {
                 request.completionHandler?.invoke(request, VNError("The request was cancelled"))
                 continue
             }
-            request.setNoResults()
+            if (error != null) {
+                request.completionHandler?.invoke(request, error)
+                continue
+            }
+            if (request.results == null) {
+                request.setNoResults()
+            }
             request.completionHandler?.invoke(request, null)
+        }
+        if (error != null) {
+            throw error
         }
     }
 }

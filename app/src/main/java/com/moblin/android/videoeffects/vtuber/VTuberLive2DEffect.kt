@@ -32,6 +32,7 @@ private data class Live2DLoaded(
 
 class VTuberLive2DEffect(directory: File) : VTuberEffect() {
     private var loaded: Live2DLoaded? = null
+    private var renderedPixelBuffer: com.moblin.android.platform.video.CVPixelBuffer? = null
 
     init {
         CoroutineScope(Dispatchers.Default).launch {
@@ -105,6 +106,7 @@ class VTuberLive2DEffect(directory: File) : VTuberEffect() {
         val currentLoaded = loaded ?: return null
         val pixelBuffer = CVPixelBufferPoolCreatePixelBuffer(currentLoaded.pool) ?: return null
         currentLoaded.renderer.render(model = currentLoaded.model, into = pixelBuffer)
+        renderedPixelBuffer = com.moblin.android.platform.video.swapLease(renderedPixelBuffer, pixelBuffer) { it }
         return EffectImagePixelBuffer(pixelBuffer = pixelBuffer)
     }
 }

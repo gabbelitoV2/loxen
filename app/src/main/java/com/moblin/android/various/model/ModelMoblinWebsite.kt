@@ -1,5 +1,7 @@
 package com.moblin.android.various.model
 
+import com.moblin.android.various.logger
+import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.storages.SimpleStringStorage
 import com.moblin.android.various.utils.isMac
@@ -88,12 +90,20 @@ private fun storeAppAttest(appAttest: MoblinWebsiteAppAttest?) {
     appAttestStorage.set(data ?: "")
 }
 
+private fun isAppAttestSupported(): Boolean {
+    return false
+}
+
 private suspend fun attestedKey(): MoblinWebsiteAppAttest {
-    TODO()
+    val stored = loadAppAttest()
+    if (stored?.attestation != null) {
+        return stored
+    }
+    throw MoblinWebsiteError.KeyRejected("App Attest is not supported on this device")
 }
 
 private suspend fun generateAssertion(keyId: String, clientDataHash: ByteArray): ByteArray {
-    TODO()
+    throw MoblinWebsiteError.KeyRejected("App Attest is not supported on this device")
 }
 
 private suspend fun fetchChallenge(): String = withContext(Dispatchers.IO) {
@@ -146,7 +156,25 @@ private suspend fun postLive(channels: List<MoblinWebsiteChannel>, appAttest: Mo
 }
 
 private suspend fun sendLive(channels: List<MoblinWebsiteChannel>) {
-    Unit
+    if (!isAppAttestSupported()) {
+        logger.info("moblin-website: App Attest is not supported on this device")
+        return
+    }
+    try {
+        val attestedBefore = loadAppAttest()?.attestation != null
+        try {
+            postLive(channels, attestedKey())
+        } catch (error: MoblinWebsiteError.KeyRejected) {
+            if (!attestedBefore) {
+                throw error
+            }
+            logger.info("moblin-website: Key rejected (${error.message}), attesting a new one")
+            storeAppAttest(null)
+            postLive(channels, attestedKey())
+        }
+    } catch (error: Exception) {
+        logger.info("moblin-website: Failed to send live: $error")
+    }
 }
 
 fun Model.sendLiveToMoblinWebsite(onCompleted: (() -> Unit)? = null) {
@@ -200,8 +228,14 @@ private suspend fun Model.fetchYouTubeHandle(stream: SettingsStream): String? {
             if (youTubeApi == null) {
                 continuation.resume(null)
             } else {
-                youTubeApi.listChannels {
-                    Unit
+                youTubeApi.listChannels { response ->
+                    when (response) {
+                        is NetworkResponse.Success -> {
+                            val handle = response.value.items.firstOrNull()?.snippet?.customUrl?.trim()
+                            continuation.resume(handle?.removePrefix("@"))
+                        }
+                        else -> continuation.resume(null)
+                    }
                 }
             }
         }

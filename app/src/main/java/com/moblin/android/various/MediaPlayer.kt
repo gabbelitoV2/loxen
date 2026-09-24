@@ -77,6 +77,7 @@ open class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerS
 
     override fun close() {
         stopOutputTimer()
+        CoroutineScope(mediaPlayerQueue).launch { reader?.cancelReading() }
     }
 
     open fun activate() {
@@ -189,6 +190,7 @@ open class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerS
 
     private fun loadCurrentFile() {
         stopOutputTimer()
+        reader?.cancelReading()
         latestVideoTime = 0L
         if (reader != null) {
             delegate?.mediaPlayerFileUnloaded(playerId = settings.id)
@@ -227,7 +229,7 @@ open class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerS
         val asset = this.asset ?: return
         val reader = this.reader ?: return
         val videoOutputSettings: Map<String, Any> = mapOf(
-            kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_32BGRA,
+            kCVPixelBufferPixelFormatTypeKey to com.moblin.android.media.haishinkit.media.video.pixelFormatType,
             kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
             kCVPixelBufferMetalCompatibilityKey to true,
         )
@@ -236,6 +238,7 @@ open class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerS
             outputSettings = videoOutputSettings,
         )
         videoTrackOutput = videoOutput
+        videoOutput.leasesSampleBuffers = true
         reader.add(output = videoOutput)
         asset.loadTracks(withMediaType = AVMediaType.audio) { audioTracks, audioError ->
             CoroutineScope(mediaPlayerQueue).launch {
@@ -291,6 +294,7 @@ open class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerS
         val presentationTimeStamp = startVideoTime + sampleBuffer.presentationTimeUs
         val newSampleBuffer = sampleBuffer.replacePresentationTimeStamp(presentationTimeStamp)
         delegate?.mediaPlayerVideoBuffer(playerId = settings.id, sampleBuffer = newSampleBuffer)
+        com.moblin.android.platform.video.releaseLease(newSampleBuffer)
         return presentationTimeStamp
     }
 

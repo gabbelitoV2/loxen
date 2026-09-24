@@ -2,6 +2,7 @@ package com.moblin.android.platform.coreimage.internal
 
 import android.opengl.GLES20
 import android.opengl.GLES30
+import com.moblin.android.platform.core.PipelineStats
 import com.moblin.android.platform.coregraphics.CGAffineTransform
 import com.moblin.android.platform.coregraphics.CGRect
 import java.util.IdentityHashMap
@@ -348,19 +349,7 @@ internal class ShaderBuilder(val context: RenderContext) {
             return intermediateLeaf(intermediate, clamp)
         }
         return when (node) {
-            is PixelBufferNode -> textureLeaf(
-                texture = node.buffer.texture,
-                mapX = 1.0,
-                mapY = 1.0,
-                offsetX = 0.0,
-                offsetY = 0.0,
-                validWidth = node.buffer.width,
-                validHeight = node.buffer.height,
-                allocWidth = node.buffer.width,
-                allocHeight = node.buffer.height,
-                alpha = node.alpha,
-                encoding = node.encoding
-            )
+            is PixelBufferNode -> emitPixelBuffer(node)
             is BitmapNode -> emitBitmap(node)
             is ConstantNode -> {
                 val color = workingColor(node.red, node.green, node.blue, node.alpha, node.encoding)
@@ -508,6 +497,27 @@ internal class ShaderBuilder(val context: RenderContext) {
                 transparent()
             }
         }
+    }
+
+    private fun emitPixelBuffer(node: PixelBufferNode): String {
+        val buffer = node.buffer
+        if (!buffer.checkReadable("CIImage source")) {
+            PipelineStats.increment("fxStale")
+            return transparent()
+        }
+        return textureLeaf(
+            texture = buffer.texture,
+            mapX = 1.0,
+            mapY = 1.0,
+            offsetX = 0.0,
+            offsetY = 0.0,
+            validWidth = buffer.width,
+            validHeight = buffer.height,
+            allocWidth = buffer.width,
+            allocHeight = buffer.height,
+            alpha = node.alpha,
+            encoding = node.encoding
+        )
     }
 
     private fun emitBitmap(node: BitmapNode): String {

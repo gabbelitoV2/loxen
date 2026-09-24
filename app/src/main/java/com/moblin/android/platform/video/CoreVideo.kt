@@ -591,6 +591,9 @@ internal object PixelBufferReaper {
                 if (state.released) {
                     state.allocated -= 1
                     toDelete = backing
+                    if (state.allocated <= 0) {
+                        pools.remove(state)
+                    }
                 } else {
                     state.free.addLast(backing)
                 }
@@ -609,6 +612,9 @@ internal object PixelBufferReaper {
             val free = state.free.toList()
             state.allocated -= free.size
             state.free.clear()
+            if (state.allocated <= 0) {
+                pools.remove(state)
+            }
             free
         }
         delete(toDelete)
@@ -704,6 +710,9 @@ internal object PixelBufferReaper {
                         if (state.released) {
                             state.allocated -= 1
                             toDelete = listOf(reference.backing)
+                            if (state.allocated <= 0) {
+                                pools.remove(state)
+                            }
                         } else {
                             state.free.addLast(reference.backing)
                         }

@@ -114,7 +114,7 @@ internal class ReplayEffectReplayReader internal constructor(
             return
         }
         val outputSettings: Map<String, Any> = mapOf(
-            kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_32BGRA,
+            kCVPixelBufferPixelFormatTypeKey to com.moblin.android.media.haishinkit.media.video.pixelFormatType,
             kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
             kCVPixelBufferMetalCompatibilityKey to true,
         )
@@ -171,7 +171,7 @@ internal class ReplayEffectReplayReader internal constructor(
     private fun createOverlay(size: Size): CIImage? {
         val scale = size.width.toDouble() / (if (size.width < size.height) 1080 else 1920)
         val renderer = ImageRenderer(content = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)) {
                 Box(contentAlignment = Alignment.Center) {
                     Box(
                         modifier = Modifier

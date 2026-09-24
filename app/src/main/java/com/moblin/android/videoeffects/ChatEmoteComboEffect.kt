@@ -34,6 +34,7 @@ import com.moblin.android.various.ChatPost
 import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidgetChatEmoteCombo
+import com.moblin.android.view.utils.stroke
 import java.net.URI
 import java.util.UUID
 import kotlinx.coroutines.Dispatchers
@@ -78,11 +79,11 @@ private fun EmoteComboView(state: EmoteComboState, sceneWidget: SettingsSceneWid
                     placeholder = {},
                 )
             }
-            Box {
+            Box(modifier = Modifier.stroke(color = Color.Black, width = borderWidth.toFloat())) {
                 Text(
                     text = "x$count combo!",
                     style = textStyle.copy(drawStyle = Stroke(width = strokeWidth)),
-                    color = Color.Black,
+                    color = Color.Transparent,
                 )
                 Text(
                     text = "x$count combo!",

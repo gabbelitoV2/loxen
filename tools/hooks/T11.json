@@ -669,6 +669,56 @@
       "new": "        fixedHorizonEffect.start(portrait = stream.value.portrait)",
       "occurrence": 1,
       "note": "ME1: Swift ModelScene.swift:618 passes stream.portrait (the stream's orientation), not the UI's database.portrait."
+    },
+    {
+      "id": "R11.27",
+      "file": "various/model/ModelScene.kt",
+      "scope": "fun Model.updateMapEffects",
+      "op": "replace",
+      "old": "            latestKnownLocation = Location(\"\")",
+      "new": "            latestKnownLocation = Location(\"\").apply { time = System.currentTimeMillis() }",
+      "occurrence": 1,
+      "note": "E7 request: Swift ModelScene.swift replaces a location in a privacy region with CLLocation(), whose timestamp is now; MapEffect compares location timestamps."
+    },
+    {
+      "id": "R11.6a",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateFaceFilterSettings",
+      "op": "replace",
+      "old": "                backgroundImage = null,",
+      "new": "                backgroundImage = faceBackgroundImage,",
+      "occurrence": 1,
+      "note": "Effects plan E9, ME8: Swift Model.swift:1458 passes faceBackgroundImage."
+    },
+    {
+      "id": "R11.6b",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateFaceFilterSettings",
+      "op": "replace",
+      "old": "                iconImage = null,",
+      "new": "                iconImage = loadFaceIconImage(),",
+      "occurrence": 1,
+      "note": "Effects plan E9, ME8: Swift Model.swift:1459 passes loadFaceIconImage()."
+    },
+    {
+      "id": "R11.6c",
+      "file": "various/model/Model.kt",
+      "scope": "fun loadFaceIconImage",
+      "op": "replace",
+      "old": "        null",
+      "new": "        com.moblin.android.platform.Bundle.image(\"${database.iconImage}NoBackground\")",
+      "occurrence": 1,
+      "note": "Effects plan E9, ME8: Swift Model.swift:1464 UIImage(named: \"\\(database.iconImage)NoBackground\")?.cgImage."
+    },
+    {
+      "id": "R11.28",
+      "file": "various/model/Model.kt",
+      "scope": "fun handle200msTimer",
+      "op": "replace",
+      "old": "        speechToText?.tick(now = monotonicNow.toEpochMilli())",
+      "new": "        speechToText?.tick(now = android.os.SystemClock.elapsedRealtimeNanos())",
+      "occurrence": 1,
+      "note": "Swift Model.swift:1784 passes the ContinuousClock instant; SpeechToText.kt measures latestResultTime with elapsedRealtimeNanos."
     }
   ]
 }

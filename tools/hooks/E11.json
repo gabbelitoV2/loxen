@@ -1,4 +1,23 @@
 {
  "task": "E11",
- "hooks": []
+ "hooks": [
+  {
+   "id": "HE11.2",
+   "file": "videoeffects/vtuber/VTuberLive2DEffect.kt",
+   "scope": "class VTuberLive2DEffect",
+   "op": "insert_after",
+   "anchor": "    private var loaded: Live2DLoaded? = null",
+   "new": "    private var renderedPixelBuffer: com.moblin.android.platform.video.CVPixelBuffer? = null",
+   "note": "ME10, with HE11.3. VTuberEffect keeps the last rendered image for up to 25 ms (renderedImage), longer than the pipeline turn that leased the pool buffer; Swift's CVPixelBuffer stays alive through ARC."
+  },
+  {
+   "id": "HE11.3",
+   "file": "videoeffects/vtuber/VTuberLive2DEffect.kt",
+   "scope": "fun renderModel",
+   "op": "insert_after",
+   "anchor": "        currentLoaded.renderer.render(model = currentLoaded.model, into = pixelBuffer)",
+   "new": "        renderedPixelBuffer = com.moblin.android.platform.video.swapLease(renderedPixelBuffer, pixelBuffer) { it }",
+   "note": "ME10, with HE11.2. The lease follows VTuberEffect.renderedImage: renderModel's result always replaces it, so the previous buffer returns to the pool at the end of the turn."
+  }
+ ]
 }

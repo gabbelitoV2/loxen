@@ -8,11 +8,7 @@ import android.opengl.GLES30
 import android.opengl.GLUtils
 import android.os.SystemClock
 import com.moblin.android.platform.core.PipelineStats
-import com.moblin.android.platform.core.PipelineThread
-import java.lang.ref.PhantomReference
-import java.lang.ref.ReferenceQueue
 import java.util.WeakHashMap
-import java.util.concurrent.Executors
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -26,8 +22,16 @@ internal class PooledTexture(val id: Int, val width: Int, val height: Int, val f
 
 internal object TexturePool {
     private const val UNUSED_TIMEOUT_MS = 5000L
+    private const val MAX_FREE_BYTES = 192L * 1024 * 1024
     private val free = ArrayList<PooledTexture>()
+    private var freeBytes = 0L
     private var lastTrimMs = 0L
+
+    val freeCount: Int
+        get() = free.size
+
+    val freeByteCount: Long
+        get() = freeBytes
 
     fun obtain(width: Int, height: Int, format: TextureFormat, exact: Boolean): PooledTexture? {
         val allocWidth = if (exact) width else bucket(width)
@@ -36,31 +40,57 @@ internal object TexturePool {
             val texture = free[index]
             if (texture.width == allocWidth && texture.height == allocHeight && texture.format == format) {
                 free.removeAt(index)
+                freeBytes -= texture.bytes
+                reportFree()
                 return texture
             }
         }
         return allocate(allocWidth, allocHeight, format)
     }
 
-    fun release(texture: PooledTexture) {
-        texture.lastUsedMs = SystemClock.uptimeMillis()
+    fun release(texture: PooledTexture, nowMs: Long = SystemClock.uptimeMillis()) {
+        texture.lastUsedMs = nowMs
         free.add(texture)
+        freeBytes += texture.bytes
+        while (freeBytes > MAX_FREE_BYTES && free.size > 1 && free[0].lastUsedMs < nowMs) {
+            val oldest = free.removeAt(0)
+            freeBytes -= oldest.bytes
+            delete(oldest)
+        }
+        reportFree()
     }
 
-    fun trim() {
-        val nowMs = SystemClock.uptimeMillis()
+    fun trim(nowMs: Long = SystemClock.uptimeMillis()) {
         if (nowMs - lastTrimMs < 1000) {
             return
         }
         lastTrimMs = nowMs
+        removeWhere { nowMs - it.lastUsedMs > UNUSED_TIMEOUT_MS }
+    }
+
+    fun trimAll() {
+        removeWhere { true }
+    }
+
+    private fun removeWhere(predicate: (PooledTexture) -> Boolean) {
         val iterator = free.iterator()
+        var removed = false
         while (iterator.hasNext()) {
             val texture = iterator.next()
-            if (nowMs - texture.lastUsedMs > UNUSED_TIMEOUT_MS) {
+            if (predicate(texture)) {
                 iterator.remove()
+                freeBytes -= texture.bytes
                 delete(texture)
+                removed = true
             }
         }
+        if (removed) {
+            reportFree()
+        }
+    }
+
+    private fun reportFree() {
+        PipelineStats.gauge("fxPoolMB", freeBytes / (1024 * 1024))
     }
 
     fun framebuffer(texture: PooledTexture): Int {
@@ -165,6 +195,9 @@ internal class TextureSlot {
     val textures = ArrayList<PooledTexture>()
     var bytes = 0L
     var released = false
+    var lastUsedRender = 0L
+    var lastUsedMs = 0L
+    var onRelease: (() -> Unit)? = null
 
     fun add(texture: PooledTexture) {
         textures.add(texture)
@@ -183,35 +216,36 @@ internal class TextureSlot {
         TextureReaper.addResident(-bytes)
         textures.clear()
         bytes = 0
+        val callback = onRelease
+        onRelease = null
+        callback?.invoke()
     }
 }
 
 internal object TextureReaper {
-    private const val GC_THRESHOLD_BYTES = 96L * 1024 * 1024
-    private const val GC_GROWTH_BYTES = 32L * 1024 * 1024
-    private const val GC_MIN_INTERVAL_MS = 500L
+    private const val UNUSED_RENDERS = 2L
+    private const val UNUSED_MS = 100L
+    private const val IDLE_MS = 2000L
 
-    private class SlotReference(owner: Any, queue: ReferenceQueue<Any>, val slot: TextureSlot) :
-        PhantomReference<Any>(owner, queue)
-
-    private val queue = ReferenceQueue<Any>()
-    private val references = HashSet<SlotReference>()
+    private val slots = ArrayList<TextureSlot>()
     private var residentBytes = 0L
-    private var bytesAtLastGcRequest = 0L
-    private var lastGcRequestMs = 0L
+    private var renderSerial = 0L
+    private var renderMs = 0L
     private var tickRegistered = false
-    private val gcExecutor = Executors.newSingleThreadExecutor { runnable ->
-        Thread(runnable, "MoblinTextureGc").apply {
-            isDaemon = true
-            priority = Thread.MIN_PRIORITY
-        }
+
+    val residentByteCount: Long
+        get() = residentBytes
+
+    fun register(slot: TextureSlot) {
+        ensureTick()
+        touch(slot)
+        slots.add(slot)
+        PipelineStats.gauge("fxSlots", slots.size.toLong())
     }
 
-    fun register(owner: Any, slot: TextureSlot) {
-        synchronized(references) {
-            references.add(SlotReference(owner, queue, slot))
-        }
-        ensureTick()
+    fun touch(slot: TextureSlot) {
+        slot.lastUsedRender = renderSerial
+        slot.lastUsedMs = renderMs
     }
 
     fun addResident(bytes: Long) {
@@ -219,18 +253,48 @@ internal object TextureReaper {
         PipelineStats.gauge("fxTexMB", residentBytes / (1024 * 1024))
     }
 
-    fun poll() {
-        if (!PipelineThread.isCurrent()) {
+    fun beginRender(nowMs: Long = SystemClock.uptimeMillis()) {
+        ensureTick()
+        renderSerial += 1
+        renderMs = nowMs
+        val serial = renderSerial
+        evictWhere { serial - it.lastUsedRender > UNUSED_RENDERS && nowMs - it.lastUsedMs >= UNUSED_MS }
+    }
+
+    fun evictIdle(nowMs: Long = SystemClock.uptimeMillis()) {
+        evictWhere { nowMs - it.lastUsedMs >= IDLE_MS }
+    }
+
+    fun evictAll() {
+        evictWhere { true }
+    }
+
+    private fun evictWhere(predicate: (TextureSlot) -> Boolean) {
+        if (slots.isEmpty()) {
             return
         }
-        while (true) {
-            val reference = queue.poll() as? SlotReference ?: break
-            synchronized(references) {
-                references.remove(reference)
+        var evicted = 0L
+        var index = 0
+        while (index < slots.size) {
+            val slot = slots[index]
+            if (slot.released) {
+                slots[index] = slots[slots.size - 1]
+                slots.removeAt(slots.size - 1)
+                continue
             }
-            reference.slot.releaseAll()
+            if (predicate(slot)) {
+                slot.releaseAll()
+                evicted += 1
+                slots[index] = slots[slots.size - 1]
+                slots.removeAt(slots.size - 1)
+                continue
+            }
+            index += 1
         }
-        maybeRequestGc()
+        if (evicted > 0) {
+            PipelineStats.increment("fxEvict", evicted)
+        }
+        PipelineStats.gauge("fxSlots", slots.size.toLong())
     }
 
     private fun ensureTick() {
@@ -238,31 +302,11 @@ internal object TextureReaper {
             return
         }
         tickRegistered = true
+        PipelineStats.increment("fxEvict", 0)
+        PipelineStats.increment("fxStale", 0)
         PipelineStats.addPipelineTick {
-            poll()
+            evictIdle()
             TexturePool.trim()
-        }
-    }
-
-    private fun maybeRequestGc() {
-        if (residentBytes < GC_THRESHOLD_BYTES) {
-            if (residentBytes < bytesAtLastGcRequest) {
-                bytesAtLastGcRequest = residentBytes
-            }
-            return
-        }
-        if (residentBytes - bytesAtLastGcRequest < GC_GROWTH_BYTES) {
-            return
-        }
-        val nowMs = SystemClock.uptimeMillis()
-        if (nowMs - lastGcRequestMs < GC_MIN_INTERVAL_MS) {
-            return
-        }
-        lastGcRequestMs = nowMs
-        bytesAtLastGcRequest = residentBytes
-        gcExecutor.execute {
-            Runtime.getRuntime().gc()
-            PipelineThread.post { poll() }
         }
     }
 }
@@ -280,6 +324,7 @@ internal object BitmapTextures {
         }
         val existing = entries[bitmap]
         if (existing != null && existing.generationId == bitmap.generationId && !existing.slot.released) {
+            TextureReaper.touch(existing.slot)
             return existing
         }
         existing?.slot?.releaseAll()
@@ -291,20 +336,27 @@ internal object BitmapTextures {
             }
             return null
         }
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture.id)
-        GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 1)
-        GLUtils.texSubImage2D(GLES20.GL_TEXTURE_2D, 0, 0, 0, upload)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
-        if (upload !== bitmap) {
-            upload.recycle()
+        try {
+            GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture.id)
+            GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 1)
+            GLUtils.texSubImage2D(GLES20.GL_TEXTURE_2D, 0, 0, 0, upload)
+        } catch (error: Throwable) {
+            TexturePool.release(texture)
+            throw error
+        } finally {
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+            if (upload !== bitmap) {
+                upload.recycle()
+            }
         }
         PipelineStats.increment("fxUploads")
         val slot = TextureSlot()
         slot.add(texture)
         val entry = BitmapTexture(texture, bitmap.generationId, slot)
+        slot.onRelease = { entry.pyramidLevels.clear() }
         entries[bitmap] = entry
-        TextureReaper.register(bitmap, slot)
+        TextureReaper.register(slot)
         return entry
     }
 

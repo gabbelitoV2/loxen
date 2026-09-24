@@ -72,6 +72,51 @@
    "file": "videoeffects/alerts/AlertsEffect.kt",
    "op": "add_import",
    "new": "import com.moblin.android.common.various.uiColor"
+  },
+  {
+   "id": "HE5.10",
+   "file": "videoeffects/ChatEmoteComboEffect.kt",
+   "scope": "fun EmoteComboView",
+   "op": "replace",
+   "old": "            Box {",
+   "new": "            Box(modifier = Modifier.stroke(color = Color.Black, width = borderWidth.toFloat())) {",
+   "occurrence": 1,
+   "note": "ME4. Swift's .stroke(color: .black, width: borderWidth) is Moblin's StrokeModifier (four 1.5 px shadows, ChatEmoteComboEffect.swift:37); Modifier.stroke is its Kotlin port. A Compose Stroke drawStyle outlines only half the width."
+  },
+  {
+   "id": "HE5.11",
+   "file": "videoeffects/ChatEmoteComboEffect.kt",
+   "scope": "fun EmoteComboView",
+   "op": "replace",
+   "old": "                    color = Color.Black,",
+   "new": "                    color = Color.Transparent,",
+   "occurrence": 1,
+   "note": "ME4. With HE5.10: the translator's extra outline Text is no longer drawn; the stroke modifier outlines the white text."
+  },
+  {
+   "id": "HE5.12",
+   "file": "videoeffects/ChatEmoteComboEffect.kt",
+   "op": "add_import",
+   "new": "import com.moblin.android.view.utils.stroke"
+  },
+  {
+   "id": "HE5.13",
+   "file": "videoeffects/ChatEffect.kt",
+   "scope": "fun render",
+   "op": "insert_after",
+   "anchor": "        format.opaque = false",
+   "new": "        com.moblin.android.platform.core.PipelineStats.increment(\"chatRenders\")",
+   "note": "ME4. Instrumentation for E5 Verify: chatRenders on the MoblinStats line counts chat widget bitmaps, so renderers of dropped ChatEffects (resetChatVideoEffects never calls stop()) show up until the AnyCancellable sweep cancels them."
+  },
+  {
+   "id": "HE5.14",
+   "file": "videoeffects/alerts/AlertsEffect.kt",
+   "scope": "fun getVoice",
+   "op": "replace",
+   "old": "        val language = Locale.getDefault().language",
+   "new": "        val language = Locale.getDefault().toLanguageTag().substringBefore('-')",
+   "occurrence": 1,
+   "note": "ME4. Swift's Locale.current.language.languageCode?.identifier is the modern ISO code (he, id, yi); Java's Locale.language returns the legacy iw, in and ji, which match neither the voice settings keys (written from Voice.locale.toLanguageTag()) nor the voices' language tags, so Hebrew, Indonesian and Yiddish alerts got no voice."
   }
  ]
 }

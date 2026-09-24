@@ -449,7 +449,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         captureSession.setCaptureSize(capture)
         processorPipelineQueue.launch {
             effectsProcessor.reset()
-            bufferedPool = null
+            bufferedPool = com.moblin.android.platform.video.swapPool(bufferedPool, null)
             blackImageBuffer = null
             blackFormatDescription = null
             enqueueBlackToDrawable()
@@ -768,7 +768,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     }
 
     private fun detectObjects(detectionJob: DetectionJob, completion: DetectionsCompletion) {
-        processorPipelineQueue.launch { completion.detections[detectionJob.videoSourceId] = Detections(face = emptyList(), text = emptyList()); detectObjectsComplete(completion) }
+        com.moblin.android.platform.vision.VisionDetector.detect(detectionJob.imageBuffer, detectionJob.detectFaces, detectionJob.detectText) { faces, texts -> processorPipelineQueue.launch { completion.detections[detectionJob.videoSourceId] = Detections(face = faces, text = texts.map { TextDetection(boundingBox = it) }); detectObjectsComplete(completion) } }
     }
 
     private fun detectObjectsComplete(completion: DetectionsCompletion) {

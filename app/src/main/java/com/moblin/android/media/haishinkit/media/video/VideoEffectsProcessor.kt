@@ -87,7 +87,7 @@ class VideoEffectsProcessor {
     fun reset() {
         blackImage = null
         blackImageMetalPetal = null
-        pool = null
+        pool = com.moblin.android.platform.video.swapPool(pool, null)
     }
 
     fun setGraphicsImplementation(value: SettingsGraphicsImplementation) {
@@ -412,8 +412,8 @@ class VideoEffectsProcessor {
             }
         }
         poolFormatDescriptionExtension = formatDescriptionExtension
-        pool = null
-        pool = CVPixelBufferPoolCreate(pixelBufferAttributes)
+        pool = com.moblin.android.platform.video.swapPool(pool, null)
+        pool = CVPixelBufferPoolCreate(pixelBufferAttributes)?.also { it.name = "effects" }
         return pool
     }
 

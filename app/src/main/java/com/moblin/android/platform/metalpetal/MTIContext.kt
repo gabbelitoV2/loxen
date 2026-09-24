@@ -25,5 +25,9 @@ class MTIContext(val device: MTLDevice) {
         }
     }
 
-    fun reclaimResources() {}
+    fun reclaimResources() {
+        Renderer.onPipeline("MTIContext.reclaimResources", Unit) {
+            Renderer.clearCaches()
+        }
+    }
 }

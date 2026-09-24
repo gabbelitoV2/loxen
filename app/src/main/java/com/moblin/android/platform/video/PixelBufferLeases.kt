@@ -161,6 +161,27 @@ fun swapLease(old: MediaSample?, new: MediaSample?): MediaSample? {
     return new
 }
 
+fun <T : Any> swapLease(old: T?, new: T?, buffer: (T) -> CVPixelBuffer?): T? {
+    if (old === new) {
+        return new
+    }
+    if (new != null) {
+        retainLease(buffer(new))
+    }
+    if (old != null) {
+        releaseLease(buffer(old))
+    }
+    return new
+}
+
+fun swapPool(old: Any?, new: CVPixelBufferPool?): CVPixelBufferPool? {
+    val previous = old as? CVPixelBufferPool
+    if (previous != null && previous !== new) {
+        previous.invalidate()
+    }
+    return new
+}
+
 fun retainLeases(samples: Iterable<MediaSample>) {
     for (sample in samples) {
         retainLease(sample)

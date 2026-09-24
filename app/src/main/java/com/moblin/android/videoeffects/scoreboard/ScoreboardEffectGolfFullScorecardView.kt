@@ -1,29 +1,22 @@
 package com.moblin.android.videoeffects.scoreboard
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.moblin.android.localized
-import com.moblin.android.platform.swiftui.SwiftUIFonts
+import com.moblin.android.platform.swiftui.layout.EdgeSet
+import com.moblin.android.platform.swiftui.layout.Font
+import com.moblin.android.platform.swiftui.layout.HorizontalAlignment
+import com.moblin.android.platform.swiftui.layout.View
+import com.moblin.android.platform.swiftui.layout.ViewBuilder
+import com.moblin.android.platform.swiftui.layout.background
+import com.moblin.android.platform.swiftui.layout.bold
+import com.moblin.android.platform.swiftui.layout.clipShape
+import com.moblin.android.platform.swiftui.layout.font
+import com.moblin.android.platform.swiftui.layout.foregroundStyle
+import com.moblin.android.platform.swiftui.layout.frame
+import com.moblin.android.platform.swiftui.layout.lineLimit
+import com.moblin.android.platform.swiftui.layout.minimumScaleFactor
+import com.moblin.android.platform.swiftui.layout.overlay
+import com.moblin.android.platform.swiftui.layout.padding
 import com.moblin.android.various.settings.SettingsWidgetGolfScoreboard
 
 private val nameCellWidth = 150.0
@@ -47,201 +40,124 @@ private fun scoreCellColor(strokes: Int, par: Int): Color {
     }
 }
 
-@Composable
-private fun ScorecardShrinkText(
-    text: String,
-    fontSize: Float,
-    color: Color,
-    weight: FontWeight,
-    minimumScaleFactor: Float,
-    modifier: Modifier = Modifier,
-) {
-    var scaleFactor by remember(text, fontSize) { mutableStateOf(1f) }
-    Text(
-        text = text,
-        color = color,
-        style = SwiftUIFonts.system(size = fontSize * scaleFactor, weight = weight),
-        maxLines = 1,
-        softWrap = false,
-        overflow = TextOverflow.Clip,
-        onTextLayout = { result ->
-            if (result.hasVisualOverflow && scaleFactor > minimumScaleFactor) {
-                scaleFactor = maxOf(minimumScaleFactor, scaleFactor - 0.05f)
-            }
-        },
-        modifier = modifier,
-    )
-}
-
-@Composable
-private fun HeaderCellView(
+private fun ViewBuilder.HeaderCellView(
     text: String,
     width: Double,
     leftAlign: Boolean = false,
     scale: Double,
-    color: Color,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
-        modifier = Modifier
-            .border(width = 0.5.dp, color = Color(0xFF8E8E93).copy(alpha = 0.4f))
-            .size(width = width.dp, height = (20 * scale).dp)
-            .padding(start = (if (leftAlign) leftAlignPadding * scale else 0.0).dp),
-    ) {
-        ScorecardShrinkText(
-            text = text,
-            fontSize = ((scorecardFontSize - 1) * scale).toFloat(),
-            color = color,
-            weight = FontWeight.Normal,
-            minimumScaleFactor = 0.5f,
-        )
-        if (leftAlign) {
-            Spacer(modifier = Modifier.weight(1f))
-        }
+): View = HStack {
+    Text(text)
+        .font(Font.system(size = (scorecardFontSize - 1) * scale))
+        .lineLimit(1)
+        .minimumScaleFactor(0.5)
+        .padding(EdgeSet.leading, if (leftAlign) leftAlignPadding * scale else 0.0)
+    if (leftAlign) {
+        Spacer()
     }
 }
+    .frame(width = width, height = 20 * scale)
+    .overlay(
+        Rectangle()
+            .stroke(Color(0xFF8E8E93).copy(alpha = 0.4f), lineWidth = 0.5),
+    )
 
-@Composable
-private fun CellView(
+private fun ViewBuilder.CellView(
     text: String,
     width: Double,
     background: Color = Color.Transparent,
     bold: Boolean = false,
     leftAlign: Boolean = false,
     scale: Double,
-    color: Color,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.Center,
-        modifier = Modifier
-            .border(width = 0.5.dp, color = Color(0xFF8E8E93).copy(alpha = 0.4f))
-            .background(background)
-            .size(width = width.dp, height = (22 * scale).dp)
-            .padding(start = (if (leftAlign) leftAlignPadding * scale else 0.0).dp),
-    ) {
-        ScorecardShrinkText(
-            text = text,
-            fontSize = (scorecardFontSize * scale).toFloat(),
-            color = color,
-            weight = if (bold) FontWeight.Bold else FontWeight.Normal,
-            minimumScaleFactor = 1.0f,
-        )
-        if (leftAlign) {
-            Spacer(modifier = Modifier.weight(1f))
-        }
+): View = HStack {
+    Text(text)
+        .font(Font.system(size = scorecardFontSize * scale))
+        .bold(bold)
+        .lineLimit(1)
+        .padding(EdgeSet.leading, if (leftAlign) leftAlignPadding * scale else 0.0)
+    if (leftAlign) {
+        Spacer()
     }
 }
+    .frame(width = width, height = 22 * scale)
+    .background(background)
+    .overlay(
+        Rectangle()
+            .stroke(Color(0xFF8E8E93).copy(alpha = 0.4f), lineWidth = 0.5),
+    )
 
-@Composable
-fun ScoreboardEffectGolfFullScorecardView(
+fun ViewBuilder.ScoreboardEffectGolfFullScorecardView(
     textColor: Color,
     primaryBackgroundColor: Color,
     secondaryBackgroundColor: Color,
     golf: SettingsWidgetGolfScoreboard,
     scale: Double,
-) {
-    Column(
-        horizontalAlignment = Alignment.Start,
-        modifier = Modifier.clip(RoundedCornerShape((5 * scale).dp)),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.background(secondaryBackgroundColor),
-        ) {
-            HeaderCellView(
-                text = "",
+): View = VStack(alignment = HorizontalAlignment.leading, spacing = 0.0) {
+    HStack(spacing = 0.0) {
+        HeaderCellView(text = "", width = nameCellWidth * scale, scale = scale)
+        for (holeIndex in 0 until golf.numberOfHoles) {
+            HeaderCellView(text = "${holeIndex + 1}", width = numberCellWidth * scale, scale = scale)
+        }
+        HeaderCellView(text = "", width = totalCellWidth * scale, scale = scale)
+    }
+        .background(secondaryBackgroundColor)
+    if (golf.showPars) {
+        HStack(spacing = 0.0) {
+            CellView(
+                text = localized("PAR"),
                 width = nameCellWidth * scale,
-                leftAlign = false,
+                leftAlign = true,
                 scale = scale,
-                color = textColor,
             )
             for (holeIndex in 0 until golf.numberOfHoles) {
-                HeaderCellView(
-                    text = "${holeIndex + 1}",
+                val par = if (holeIndex < golf.pars.size) golf.pars[holeIndex] else 4
+                CellView(
+                    text = "$par",
                     width = numberCellWidth * scale,
-                    leftAlign = false,
                     scale = scale,
-                    color = textColor,
                 )
             }
-            HeaderCellView(
-                text = "",
+            val totalPar = golf.pars.take(golf.numberOfHoles).sum()
+            CellView(
+                text = "$totalPar",
                 width = totalCellWidth * scale,
-                leftAlign = false,
+                bold = true,
                 scale = scale,
-                color = textColor,
             )
         }
-        if (golf.showPars) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.background(secondaryBackgroundColor),
-            ) {
+            .background(secondaryBackgroundColor)
+    }
+    for (player in golf.players) {
+        HStack(spacing = 0.0) {
+            CellView(
+                text = player.name.uppercase(),
+                width = nameCellWidth * scale,
+                leftAlign = true,
+                scale = scale,
+            )
+            for (holeIndex in 0 until golf.numberOfHoles) {
+                val score = if (holeIndex < player.scores.size) player.scores[holeIndex] else -1
+                val par = if (holeIndex < golf.pars.size) golf.pars[holeIndex] else 4
                 CellView(
-                    text = localized("PAR"),
-                    width = nameCellWidth * scale,
-                    leftAlign = true,
+                    text = if (score >= 0) "$score" else "",
+                    width = numberCellWidth * scale,
+                    background = scoreCellColor(strokes = score, par = par),
                     scale = scale,
-                    color = textColor,
-                )
-                for (holeIndex in 0 until golf.numberOfHoles) {
-                    val par = if (holeIndex < golf.pars.size) golf.pars[holeIndex] else 4
-                    CellView(
-                        text = "$par",
-                        width = numberCellWidth * scale,
-                        scale = scale,
-                        color = textColor,
-                    )
-                }
-                val totalPar = golf.pars.take(golf.numberOfHoles).sum()
-                CellView(
-                    text = "$totalPar",
-                    width = totalCellWidth * scale,
-                    bold = true,
-                    scale = scale,
-                    color = textColor,
                 )
             }
+            val strokes = player.totalStrokes(numberOfHoles = golf.numberOfHoles)
+            val relative = player.totalRelativeToPar(
+                pars = golf.pars,
+                numberOfHoles = golf.numberOfHoles,
+            )
+            CellView(
+                text = "$strokes (${formatScore(relative)})",
+                width = totalCellWidth * scale,
+                bold = true,
+                scale = scale,
+            )
         }
-        Column(modifier = Modifier.background(primaryBackgroundColor)) {
-            golf.players.forEach { player ->
-                key(player.id) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        CellView(
-                            text = player.name.uppercase(),
-                            width = nameCellWidth * scale,
-                            leftAlign = true,
-                            scale = scale,
-                            color = textColor,
-                        )
-                        for (holeIndex in 0 until golf.numberOfHoles) {
-                            val score = if (holeIndex < player.scores.size) player.scores[holeIndex] else -1
-                            val par = if (holeIndex < golf.pars.size) golf.pars[holeIndex] else 4
-                            CellView(
-                                text = if (score >= 0) "$score" else "",
-                                width = numberCellWidth * scale,
-                                background = scoreCellColor(strokes = score, par = par),
-                                scale = scale,
-                                color = textColor,
-                            )
-                        }
-                        val strokes = player.totalStrokes(numberOfHoles = golf.numberOfHoles)
-                        val relative = player.totalRelativeToPar(
-                            pars = golf.pars,
-                            numberOfHoles = golf.numberOfHoles,
-                        )
-                        CellView(
-                            text = "$strokes (${formatScore(relative)})",
-                            width = totalCellWidth * scale,
-                            bold = true,
-                            scale = scale,
-                            color = textColor,
-                        )
-                    }
-                }
-            }
-        }
+            .background(primaryBackgroundColor)
     }
 }
+    .clipShape(RoundedRectangle(cornerRadius = 5 * scale))
+    .foregroundStyle(textColor)

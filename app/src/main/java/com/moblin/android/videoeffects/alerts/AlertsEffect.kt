@@ -465,7 +465,7 @@ class AlertsEffect(
     }
 
     private fun getVoice(settings: SettingsWidgetAlertsAlert): AVSpeechSynthesisVoice? {
-        val language = Locale.getDefault().language
+        val language = Locale.getDefault().toLanguageTag().substringBefore('-')
         if (language.isEmpty()) {
             return null
         }

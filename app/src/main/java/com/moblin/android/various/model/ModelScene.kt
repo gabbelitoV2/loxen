@@ -566,7 +566,7 @@ fun Model.updateMapEffects() {
     } else {
         var latestKnownLocation = locationManager.getLatestKnownLocation() ?: return
         if (isLocationInPrivacyRegion(location = latestKnownLocation)) {
-            latestKnownLocation = Location("")
+            latestKnownLocation = Location("").apply { time = System.currentTimeMillis() }
         }
         remoteControlAssistantSetRemoteSceneDataLocation(location = latestKnownLocation)
         location = latestKnownLocation

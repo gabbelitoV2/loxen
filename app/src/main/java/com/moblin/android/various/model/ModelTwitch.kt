@@ -32,10 +32,6 @@ import com.moblin.android.AppDelegate
 
 private const val TAG = "Model"
 
-private fun macroVariableFromRawValue(rawValue: String): MacroVariable =
-    enumValues<MacroVariable>().firstOrNull { it.name == rawValue || it.rawValue == rawValue }
-        ?: error("Unknown macro variable: $rawValue")
-
 fun Model.updateViewersTwitch(): StreamingPlatformStatus {
     return StreamingPlatformStatus(platform = Platform.twitch, status = twitchPlatformStatus)
 }
@@ -984,19 +980,19 @@ fun Model.twitchEventSubChannelFollow(event: TwitchEventSubNotificationChannelFo
             title = localized("New follower"),
             color = Color(0xFFFF2D55),
             image = "medal",
-            kind = TODO("no ChatHighlightKind case for newFollower"),
+            kind = ChatHighlightKind.NewFollower,
             sharedChat = null
         )
     }
     printEventCatPrinters(
-        event = TODO("no Android counterpart for EventCatPrinterEvent"),
+        event = CatPrinterEvent.TwitchFollow,
         username = event.user_name,
         message = text
     )
     macrosEventOccurred(
         MacroEvent(
-            event = SettingsMacrosEvent.fromRawValue("twitchFollow")!!,
-            variables = mutableMapOf(macroVariableFromRawValue("twitchFollowUser") to event.user_name)
+            event = SettingsMacrosEvent.TWITCH_FOLLOW,
+            variables = mapOf(MacroVariable.TWITCH_FOLLOW_USER to event.user_name)
         )
     )
 }
@@ -1030,20 +1026,20 @@ fun Model.twitchEventSubChannelSubscribe(event: TwitchEventSubNotificationChanne
             title = localized("New subscriber"),
             color = Color(0xFF32ADE6),
             image = "party.popper",
-            kind = TODO("no ChatHighlightKind case for other"),
+            kind = ChatHighlightKind.Other,
             sharedChat = event.sharedChat,
             chatter = event.chatter
         )
     }
     printEventCatPrinters(
-        event = TODO("no Android counterpart for EventCatPrinterEvent"),
+        event = CatPrinterEvent.TwitchSubscribe,
         username = event.user_name,
         message = textWithMessage
     )
     macrosEventOccurred(
         MacroEvent(
-            event = SettingsMacrosEvent.fromRawValue("twitchSubscription")!!,
-            variables = mutableMapOf(macroVariableFromRawValue("twitchSubscriptionUser") to event.user_name)
+            event = SettingsMacrosEvent.TWITCH_SUBSCRIPTION,
+            variables = mapOf(MacroVariable.TWITCH_SUBSCRIPTION_USER to event.user_name)
         )
     )
     latestSubscriber = event.user_name
@@ -1076,21 +1072,21 @@ fun Model.twitchEventSubChannelSubscriptionGift(
             title = localized("Gift subscriptions"),
             color = Color(0xFF32ADE6),
             image = "gift",
-            kind = TODO("no ChatHighlightKind case for other"),
+            kind = ChatHighlightKind.Other,
             sharedChat = event.sharedChat,
             chatter = event.chatter
         )
     }
     printEventCatPrinters(
-        event = TODO("no Android counterpart for EventCatPrinterEvent"),
+        event = CatPrinterEvent.TwitchSubscriptionGift,
         username = user,
         message = textWithMessage
     )
     macrosEventOccurred(
         MacroEvent(
-            event = SettingsMacrosEvent.fromRawValue("twitchGiftSubscription")!!,
+            event = SettingsMacrosEvent.TWITCH_GIFT_SUBSCRIPTION,
             amount = event.total,
-            variables = mutableMapOf(macroVariableFromRawValue("twitchGiftSubscriptionUser") to user)
+            variables = mapOf(MacroVariable.TWITCH_GIFT_SUBSCRIPTION_USER to user)
         )
     )
     latestSubscriber = user
@@ -1128,21 +1124,21 @@ fun Model.twitchEventSubChannelSubscriptionMessage(
             title = localized("New resubscribe"),
             color = Color(0xFF32ADE6),
             image = "party.popper",
-            kind = TODO("no ChatHighlightKind case for other"),
+            kind = ChatHighlightKind.Other,
             sharedChat = event.sharedChat,
             chatter = event.chatter
         )
     }
     printEventCatPrinters(
-        event = TODO("no Android counterpart for EventCatPrinterEvent"),
+        event = CatPrinterEvent.TwitchResubscribe,
         username = event.user_name,
         message = textWithMessage
     )
     macrosEventOccurred(
         MacroEvent(
-            event = SettingsMacrosEvent.fromRawValue("twitchResubscription")!!,
+            event = SettingsMacrosEvent.TWITCH_RESUBSCRIPTION,
             amount = event.cumulative_months,
-            variables = mutableMapOf(macroVariableFromRawValue("twitchResubscriptionUser") to event.user_name)
+            variables = mapOf(MacroVariable.TWITCH_RESUBSCRIPTION_USER to event.user_name)
         )
     )
     latestSubscriber = event.user_name
@@ -1177,20 +1173,20 @@ fun Model.twitchEventSubChannelSubscriptionUpgrade(
             title = localized("New subscriber"),
             color = Color(0xFF32ADE6),
             image = "party.popper",
-            kind = TODO("no ChatHighlightKind case for other"),
+            kind = ChatHighlightKind.Other,
             sharedChat = event.sharedChat,
             chatter = event.chatter
         )
     }
     printEventCatPrinters(
-        event = TODO("no Android counterpart for EventCatPrinterEvent"),
+        event = CatPrinterEvent.TwitchSubscribe,
         username = event.user_name,
         message = textWithMessage
     )
     macrosEventOccurred(
         MacroEvent(
-            event = SettingsMacrosEvent.fromRawValue("twitchSubscription")!!,
-            variables = mutableMapOf(macroVariableFromRawValue("twitchSubscriptionUser") to event.user_name)
+            event = SettingsMacrosEvent.TWITCH_SUBSCRIPTION,
+            variables = mapOf(MacroVariable.TWITCH_SUBSCRIPTION_USER to event.user_name)
         )
     )
     latestSubscriber = event.user_name
@@ -1217,16 +1213,16 @@ fun Model.twitchEventSubChannelWatchStreak(
             title = localized("Watch streak"),
             color = Color(0xFFFF9500),
             image = "flame",
-            kind = TODO("no ChatHighlightKind case for other"),
+            kind = ChatHighlightKind.Other,
             sharedChat = event.sharedChat,
             chatter = event.chatter
         )
     }
     macrosEventOccurred(
         MacroEvent(
-            event = SettingsMacrosEvent.fromRawValue("twitchWatchStreak")!!,
+            event = SettingsMacrosEvent.TWITCH_WATCH_STREAK,
             amount = event.streak_count,
-            variables = mutableMapOf(macroVariableFromRawValue("twitchWatchStreakUser") to event.user_name)
+            variables = mapOf(MacroVariable.TWITCH_WATCH_STREAK_USER to event.user_name)
         )
     )
 }
@@ -1248,20 +1244,20 @@ fun Model.twitchEventSubChannelPointsCustomRewardRedemptionAdd(
             title = localized("Reward redemption"),
             color = Color(0xFF007AFF),
             image = "medal.star",
-            kind = TODO("no ChatHighlightKind case for redemption"),
+            kind = ChatHighlightKind.Redemption,
             sharedChat = null
         )
     }
     printEventCatPrinters(
-        event = TODO("no Android counterpart for EventCatPrinterEvent"),
+        event = CatPrinterEvent.TwitchReward,
         username = event.user_name,
         message = text
     )
     macrosEventOccurred(
         MacroEvent(
-            event = SettingsMacrosEvent.fromRawValue("twitchReward")!!,
+            event = SettingsMacrosEvent.TWITCH_REWARD,
             text = event.reward.title,
-            variables = mutableMapOf(macroVariableFromRawValue("twitchRewardUser") to event.user_name)
+            variables = mapOf(MacroVariable.TWITCH_REWARD_USER to event.user_name)
         )
     )
 }
@@ -1295,23 +1291,23 @@ fun Model.twitchEventSubChannelRaid(event: TwitchEventSubChannelRaidEvent) {
                 title = localized("Raid"),
                 color = Color(0xFFFF2D55),
                 image = "person.3",
-                kind = TODO("no ChatHighlightKind case for other"),
+                kind = ChatHighlightKind.Other,
                 sharedChat = event.sharedChat,
                 chatter = event.chatter
             )
         }
         printEventCatPrinters(
-            event = TODO("no Android counterpart for EventCatPrinterEvent"),
+            event = CatPrinterEvent.TwitchRaid,
             username = event.from_broadcaster_user_name,
             message = textWithMessage
         )
         macrosEventOccurred(
             MacroEvent(
-                event = SettingsMacrosEvent.fromRawValue("twitchRaid")!!,
+                event = SettingsMacrosEvent.TWITCH_RAID,
                 amount = event.viewers,
-                variables = mutableMapOf(
-                    macroVariableFromRawValue("twitchRaidChannelId") to event.from_broadcaster_user_id,
-                    macroVariableFromRawValue("twitchRaidChannelName") to event.from_broadcaster_user_name
+                variables = mapOf(
+                    MacroVariable.TWITCH_RAID_CHANNEL_ID to event.from_broadcaster_user_id,
+                    MacroVariable.TWITCH_RAID_CHANNEL_NAME to event.from_broadcaster_user_name
                 )
             )
         )
@@ -1333,21 +1329,21 @@ fun Model.twitchEventSubChannelCheer(event: TwitchEventSubChannelCheerEvent) {
             title = localized("Cheer"),
             color = Color(0xFF34C759),
             image = "suit.diamond",
-            kind = TODO("no ChatHighlightKind case for other"),
+            kind = ChatHighlightKind.Other,
             sharedChat = null
         )
     }
     val message = if (event.message.isEmpty()) text else "$text ${event.message}"
     printEventCatPrinters(
-        event = TODO("no Android counterpart for EventCatPrinterEvent"),
+        event = CatPrinterEvent.TwitchCheer(amount = event.bits),
         username = user,
         message = message
     )
     macrosEventOccurred(
         MacroEvent(
-            event = SettingsMacrosEvent.fromRawValue("twitchCheer")!!,
+            event = SettingsMacrosEvent.TWITCH_CHEER,
             amount = event.bits,
-            variables = mutableMapOf(macroVariableFromRawValue("twitchCheerUser") to user)
+            variables = mapOf(MacroVariable.TWITCH_CHEER_USER to user)
         )
     )
 }
@@ -1365,7 +1361,7 @@ fun Model.twitchEventSubChannelHypeTrainBegin(event: TwitchEventSubChannelHypeTr
         title = localized("Hype train started"),
         color = Color(0xFFAF52DE),
         image = "train.side.front.car",
-        kind = TODO("no ChatHighlightKind case for other"),
+        kind = ChatHighlightKind.Other,
         sharedChat = null
     )
 }
@@ -1400,7 +1396,7 @@ fun Model.twitchEventSubChannelHypeTrainEnd(event: TwitchEventSubChannelHypeTrai
         title = localized("Hype train ended"),
         color = Color(0xFFAF52DE),
         image = "train.side.rear.car",
-        kind = TODO("no ChatHighlightKind case for other"),
+        kind = ChatHighlightKind.Other,
         sharedChat = null
     )
 }
@@ -1427,7 +1423,7 @@ fun Model.twitchEventSubChannelPollBegin(event: TwitchEventSubChannelPollEvent) 
         title = localized("Poll started"),
         color = Color(0xFF5856D6),
         image = "chart.bar",
-        kind = TODO("no ChatHighlightKind case for other"),
+        kind = ChatHighlightKind.Other,
         sharedChat = null
     )
 }
@@ -1456,7 +1452,7 @@ fun Model.twitchEventSubChannelPollEnd(event: TwitchEventSubChannelPollEvent) {
         title = localized("Poll ended"),
         color = Color(0xFF5856D6),
         image = "chart.bar",
-        kind = TODO("no ChatHighlightKind case for other"),
+        kind = ChatHighlightKind.Other,
         sharedChat = null
     )
 }
@@ -1476,7 +1472,7 @@ fun Model.twitchEventSubChannelPredictionBegin(event: TwitchEventSubChannelPredi
         title = localized("Prediction started"),
         color = Color(0xFF00C7BE),
         image = "questionmark.diamond",
-        kind = TODO("no ChatHighlightKind case for other"),
+        kind = ChatHighlightKind.Other,
         sharedChat = null
     )
 }
@@ -1507,7 +1503,7 @@ fun Model.twitchEventSubChannelPredictionEnd(event: TwitchEventSubChannelPredict
         title = localized("Prediction ended"),
         color = Color(0xFF00C7BE),
         image = "trophy",
-        kind = TODO("no ChatHighlightKind case for other"),
+        kind = ChatHighlightKind.Other,
         sharedChat = null
     )
 }
@@ -1531,7 +1527,7 @@ fun Model.twitchEventSubChannelShoutoutCreate(event: TwitchEventSubChannelShouto
         title = localized("Shoutout sent"),
         color = Color(0xFFFF9500),
         image = "megaphone",
-        kind = TODO("no ChatHighlightKind case for other"),
+        kind = ChatHighlightKind.Other,
         sharedChat = null
     )
 }

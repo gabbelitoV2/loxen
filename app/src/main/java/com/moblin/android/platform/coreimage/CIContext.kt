@@ -5,8 +5,6 @@ import com.moblin.android.platform.coregraphics.CGColorSpace
 import com.moblin.android.platform.coregraphics.CGRect
 import com.moblin.android.platform.coreimage.internal.EffectsLog
 import com.moblin.android.platform.coreimage.internal.Renderer
-import com.moblin.android.platform.coreimage.internal.TexturePool
-import com.moblin.android.platform.coreimage.internal.TextureReaper
 import com.moblin.android.platform.video.CVPixelBuffer
 
 enum class CIContextOption {
@@ -55,8 +53,7 @@ class CIContext(options: Map<CIContextOption, Any>? = null) {
 
     fun clearCaches() {
         Renderer.onPipeline("CIContext.clearCaches", Unit) {
-            TextureReaper.poll()
-            TexturePool.trim()
+            Renderer.clearCaches()
         }
     }
 }

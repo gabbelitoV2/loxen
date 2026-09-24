@@ -79,8 +79,9 @@
    "scope": "fun detectObjects",
    "op": "replace",
    "old": "        Unit",
-   "new": "        processorPipelineQueue.launch { completion.detections[detectionJob.videoSourceId] = Detections(face = emptyList(), text = emptyList()); detectObjectsComplete(completion) }",
-   "occurrence": 1
+   "new": "        com.moblin.android.platform.vision.VisionDetector.detect(detectionJob.imageBuffer, detectionJob.detectFaces, detectionJob.detectText) { faces, texts -> processorPipelineQueue.launch { completion.detections[detectionJob.videoSourceId] = Detections(face = faces, text = texts.map { TextDetection(boundingBox = it) }); detectObjectsComplete(completion) } }",
+   "occurrence": 1,
+   "note": "R4.13 (effects plan E9, ME8): VideoUnit.swift:827-873 detectObjects through the Vision shim."
   },
   {
    "id": "H4.10",

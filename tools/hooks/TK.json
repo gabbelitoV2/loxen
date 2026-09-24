@@ -1,0 +1,15 @@
+{
+  "task": "TK",
+  "hooks": [
+    {
+      "id": "HTK.1",
+      "file": "various/model/Model.kt",
+      "scope": "class Model",
+      "op": "replace",
+      "old": "    var latestKnownLocation: Location? = null",
+      "new": "    var latestKnownLocation: android.location.Location? = null",
+      "occurrence": 1,
+      "note": "Swift Model.swift declares latestKnownLocation as CLLocation?; the wildcard import of various.managers made Location resolve to the location manager class, so updateDistance (ModelLocation.swift) could not keep the last position."
+    }
+  ]
+}

@@ -74,8 +74,9 @@ internal class RenderContext(val mode: RenderMode) {
     }
 
     fun finish() {
+        val nowMs = SystemClock.uptimeMillis()
         for (texture in temporaries) {
-            TexturePool.release(texture)
+            TexturePool.release(texture, nowMs)
         }
         temporaries.clear()
     }
@@ -95,6 +96,7 @@ internal object Renderer {
     private const val MAX_BLUR_SIGMA_PER_LEVEL = 4.0
     private const val MAX_TAPS = 16
     private val renderTimesUs = LongArray(31)
+    private val sortedRenderTimesUs = LongArray(31)
     private var renderTimeIndex = 0
     private var renderTimeCount = 0
 
@@ -117,7 +119,11 @@ internal object Renderer {
     }
 
     fun renderCoreImageToBuffer(root: ImageNode, bounds: CGRect, buffer: CVPixelBuffer) {
-        guarded("CIContext.render", clearOnError = buffer) {
+        if (!buffer.checkReadable("CIContext.render target")) {
+            PipelineStats.increment("fxStale")
+            return
+        }
+        guarded("CIContext.render", root, target = buffer) {
             renderCoreImage(
                 root = root,
                 boundsX = bounds.minX,
@@ -131,7 +137,7 @@ internal object Renderer {
     }
 
     fun createBitmapFromCoreImage(root: ImageNode, rect: CGRect): Bitmap? {
-        return guarded("CIContext.createCGImage", clearOnError = null) {
+        return guarded("CIContext.createCGImage", root, target = null) {
             val width = max(1, Math.round(rect.width).toInt())
             val height = max(1, Math.round(rect.height).toInt())
             if (rect.isNull || rect.isInfinite || width > Gl.maxTextureSize || height > Gl.maxTextureSize) {
@@ -158,13 +164,17 @@ internal object Renderer {
     }
 
     fun renderMetalPetalToBuffer(root: ImageNode, imageWidth: Int, imageHeight: Int, buffer: CVPixelBuffer) {
-        guarded("MTIContext.render", clearOnError = buffer) {
+        if (!buffer.checkReadable("MTIContext.render target")) {
+            PipelineStats.increment("fxStale")
+            return
+        }
+        guarded("MTIContext.render", root, target = buffer) {
             renderMetalPetal(root, imageWidth, imageHeight, buffer.framebuffer, buffer.width, buffer.height, buffer)
         }
     }
 
     fun createBitmapFromMetalPetal(root: ImageNode, imageWidth: Int, imageHeight: Int): Bitmap? {
-        return guarded("MTIContext.makeCGImage", clearOnError = null) {
+        return guarded("MTIContext.makeCGImage", root, target = null) {
             if (imageWidth <= 0 || imageHeight <= 0 || imageWidth > Gl.maxTextureSize || imageHeight > Gl.maxTextureSize) {
                 return@guarded null
             }
@@ -180,7 +190,15 @@ internal object Renderer {
         }
     }
 
-    private fun <T> guarded(label: String, clearOnError: CVPixelBuffer?, block: () -> T): T? {
+    fun clearCaches() {
+        if (!EglCore.isReady) {
+            return
+        }
+        TextureReaper.evictAll()
+        TexturePool.trimAll()
+    }
+
+    private fun <T> guarded(label: String, root: ImageNode, target: CVPixelBuffer?, block: () -> T): T? {
         if (!EglCore.isReady) {
             EffectsLog.once("notready:$label", "$label: EGL is not ready")
             return null
@@ -190,14 +208,17 @@ internal object Renderer {
         val previousFramebuffer = Gl.currentFramebuffer()
         val viewport = IntArray(4)
         GLES20.glGetIntegerv(GLES20.GL_VIEWPORT, viewport, 0)
+        var leases: RenderLeases? = null
         return try {
-            TextureReaper.poll()
+            leases = RenderLeases.acquire(root, target, label)
+            TextureReaper.beginRender()
             TexturePool.trim()
             block()
         } catch (error: Throwable) {
             EffectsLog.once("error:$label:${error.message}", "$label failed: $error", error)
             PipelineStats.increment("fxErrors")
-            if (clearOnError != null) {
+            val clearOnError = target
+            if (clearOnError != null && clearOnError.isValid) {
                 try {
                     GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, clearOnError.framebuffer)
                     GLES20.glViewport(0, 0, clearOnError.width, clearOnError.height)
@@ -211,6 +232,7 @@ internal object Renderer {
             null
         } finally {
             restoreState(previousFramebuffer, viewport)
+            leases?.release()
             recordTime((System.nanoTime() - startNs) / 1000)
         }
     }
@@ -219,9 +241,9 @@ internal object Renderer {
         renderTimesUs[renderTimeIndex] = us
         renderTimeIndex = (renderTimeIndex + 1) % renderTimesUs.size
         renderTimeCount = min(renderTimeCount + 1, renderTimesUs.size)
-        val sorted = renderTimesUs.copyOf(renderTimeCount)
-        sorted.sort()
-        PipelineStats.gauge("fxUs", sorted[sorted.size / 2])
+        System.arraycopy(renderTimesUs, 0, sortedRenderTimesUs, 0, renderTimeCount)
+        sortedRenderTimesUs.sort(0, renderTimeCount)
+        PipelineStats.gauge("fxUs", sortedRenderTimesUs[renderTimeCount / 2])
     }
 
     private fun restoreState(previousFramebuffer: Int, viewport: IntArray) {
@@ -1151,7 +1173,12 @@ internal object Renderer {
                 }
                 val cached = TexturePool.obtain(current.validWidth, current.validHeight, context.mode.workingFormat, true)
                     ?: return current
-                copyTexture(context, current, cached)
+                try {
+                    copyTexture(context, current, cached)
+                } catch (error: Throwable) {
+                    TexturePool.release(cached)
+                    throw error
+                }
                 val result = Intermediate(
                     cached,
                     current.originX,
@@ -1188,23 +1215,27 @@ internal object Renderer {
     }
 
     private fun boundary(context: RenderContext, node: CiBoundaryNode): Intermediate? {
-        node.cached?.let {
-            if (node.cachedMode == coreImageMode()) {
-                return it
-            }
+        val cached = node.cached
+        val cachedSlot = node.slot
+        if (cached != null && cachedSlot != null && !cachedSlot.released && node.cachedMode == coreImageMode()) {
+            TextureReaper.touch(cachedSlot)
+            return cached
         }
         val texture = TexturePool.obtain(node.width, node.height, TextureFormat.rgba8, true) ?: return null
-        val framebuffer = TexturePool.framebuffer(texture)
-        val output = if (node.opaque) OutputEncoding.opaque else OutputEncoding.keepAlpha
-        renderCoreImage(
-            root = node.ciNode,
-            boundsX = node.bounds.minX,
-            boundsY = node.bounds.minY,
-            framebuffer = framebuffer,
-            width = node.width,
-            height = node.height,
-            output = output
-        )
+        try {
+            renderCoreImage(
+                root = node.ciNode,
+                boundsX = node.bounds.minX,
+                boundsY = node.bounds.minY,
+                framebuffer = TexturePool.framebuffer(texture),
+                width = node.width,
+                height = node.height,
+                output = if (node.opaque) OutputEncoding.opaque else OutputEncoding.keepAlpha
+            )
+        } catch (error: Throwable) {
+            TexturePool.release(texture)
+            throw error
+        }
         val intermediate = Intermediate(texture, 0.0, 0.0, 1.0, 1.0, node.width, node.height)
         if (node.ciNode.isStatic) {
             val slot = TextureSlot()
@@ -1213,7 +1244,7 @@ internal object Renderer {
             node.slot = slot
             node.cached = intermediate
             node.cachedMode = coreImageMode()
-            TextureReaper.register(node, slot)
+            TextureReaper.register(slot)
         } else {
             context.adopt(texture)
         }

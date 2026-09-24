@@ -80,16 +80,16 @@ fun Model.reloadRealtimeIrl() {
 
 fun Model.updateDistance() {
     val location = locationManager.getLatestKnownLocation()
-    val lastKnownLocation = latestKnownLocation
-    if (lastKnownLocation != null) {
-        val distance = location?.distanceTo(TODO("Convert last known location to an android location"))?.toDouble() ?: 0.0
-        if (distance > (location?.accuracy?.toDouble() ?: 0.0)) {
+    val latestKnownLocation = latestKnownLocation
+    if (latestKnownLocation != null) {
+        val distance = location?.distanceTo(latestKnownLocation)?.toDouble() ?: 0.0
+        if (distance > latestKnownLocation.accuracy.toDouble()) {
             database.location.distance += distance
             database.location.splitDistance += distance
-            latestKnownLocation = null
+            this.latestKnownLocation = location
         }
     } else {
-        latestKnownLocation = null
+        this.latestKnownLocation = location
     }
 }
 
@@ -143,7 +143,7 @@ fun Model.resetAverageSpeed() {
 
 fun Model.updateAverageSpeed(now: Long) {
     val distance = database.location.distance - averageSpeedStartDistance
-    val elapsed = (now - averageSpeedStartTime.toEpochMilli()) / 1_000_000_000.0
+    val elapsed = (now - averageSpeedStartTime.toEpochMilli()) / 1000.0
     averageSpeed = distance / elapsed
 }
 

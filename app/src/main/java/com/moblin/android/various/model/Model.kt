@@ -742,7 +742,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var moveToGimbalPresetQueue: ArrayDeque<UUID> = ArrayDeque()
     var moveToGimbalPresetQueueRunning = false
     var gimbalPresetLongPressTimers: MutableMap<String, MainTimer> = mutableMapOf()
-    var latestKnownLocation: Location? = null
+    var latestKnownLocation: android.location.Location? = null
     var slopePercent = 0.0
     var previousSlopeAltitude: Double? = 0.0
     var previousSlopeDistance = 0.0
@@ -1571,14 +1571,14 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     fun updateFaceFilterSettings() {
         faceEffect.setSettings(
             settings = database.face.toEffectSettings(
-                backgroundImage = null,
-                iconImage = null,
+                backgroundImage = faceBackgroundImage,
+                iconImage = loadFaceIconImage(),
             ),
         )
     }
 
     private fun loadFaceIconImage(): Bitmap? =
-        null
+        com.moblin.android.platform.Bundle.image("${database.iconImage}NoBackground")
     fun updateImageButtonState() {
         var isOn = streamOverlay.showingCamera.value
         if (camera.bias.value != 0.0f) {
@@ -1908,7 +1908,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             relaxedBitrate = false
             this.relaxedBitrateStartTime = null
         }
-        speechToText?.tick(now = monotonicNow.toEpochMilli())
+        speechToText?.tick(now = android.os.SystemClock.elapsedRealtimeNanos())
     }
 
     private fun handle1sTimer() {

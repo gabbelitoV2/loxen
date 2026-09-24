@@ -1,52 +1,45 @@
 package com.moblin.android.videoeffects
 
 import android.graphics.Bitmap
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
-import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.combine.AnyCancellable
 import com.moblin.android.platform.coregraphics.CGSize
 import com.moblin.android.platform.coregraphics.toCGSize
 import com.moblin.android.platform.coreimage.CIImage
 import com.moblin.android.platform.metalpetal.MTIImage
 import com.moblin.android.platform.swiftui.ImageRenderer
-import com.moblin.android.platform.swiftui.SwiftUIFonts
+import com.moblin.android.platform.swiftui.layout.Alignment
+import com.moblin.android.platform.swiftui.layout.EdgeSet
+import com.moblin.android.platform.swiftui.layout.Font
+import com.moblin.android.platform.swiftui.layout.HorizontalAlignment
+import com.moblin.android.platform.swiftui.layout.SwiftUIView
+import com.moblin.android.platform.swiftui.layout.View
+import com.moblin.android.platform.swiftui.layout.ViewBuilder
+import com.moblin.android.platform.swiftui.layout.background
+import com.moblin.android.platform.swiftui.layout.clipShape
+import com.moblin.android.platform.swiftui.layout.font
+import com.moblin.android.platform.swiftui.layout.foregroundStyle
+import com.moblin.android.platform.swiftui.layout.frame
+import com.moblin.android.platform.swiftui.layout.lineLimit
+import com.moblin.android.platform.swiftui.layout.padding
 import com.moblin.android.various.settings.PomodoroPhase
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidgetPomodoroTimer
 import com.moblin.android.view.utils.FontDesign
+import java.util.Locale
 import java.util.UUID
 import kotlin.math.max
 import kotlinx.coroutines.launch
 
-@Composable
-private fun PomodoroTimerView(
+internal fun ViewBuilder.PomodoroTimerView(
     settings: SettingsWidgetPomodoroTimer,
     sceneWidget: SettingsSceneWidget,
     canvasSize: CGSize,
-) {
+): View {
     val baseWidth = toPixels(sceneWidget.layout.size, canvasSize.minimum())
     val padding = baseWidth * 0.06
     val cornerRadius = baseWidth * 0.08
@@ -76,58 +69,38 @@ private fun PomodoroTimerView(
     }
     val minutes = settings.secondsRemaining / 60
     val seconds = settings.secondsRemaining % 60
-    val timeString = String.format("%02d:%02d", minutes, seconds)
-    Column(
-        modifier = Modifier
-            .clip(RoundedCornerShape(cornerRadius.dp))
-            .background(settings.backgroundColorColor)
-            .width(width.dp)
-            .padding(start = padding.dp, end = padding.dp)
-            .padding(bottom = padding.dp)
-            .padding(top = (padding / 2).dp),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(spacing.dp),
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(spacing.dp),
-        ) {
-            SystemImage(name = phaseIcon, fontSize = phaseSize.sp, tint = phaseColor)
-            Text(
-                text = phaseName,
-                style = SwiftUIFonts.system(phaseSize, FontWeight.SemiBold),
-                color = phaseColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.weight(1f))
-            Text(
-                text = timeString,
-                style = SwiftUIFonts.system(timerSize, FontWeight.Bold, FontDesign.Monospaced),
-                color = settings.foregroundColorColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+    val timeString = String.format(Locale.US, "%02d:%02d", minutes, seconds)
+    val foregroundColor = settings.foregroundColorColor
+    return VStack(alignment = HorizontalAlignment.leading, spacing = spacing) {
+        HStack(spacing = spacing) {
+            Image(systemName = phaseIcon)
+                .font(Font.system(size = phaseSize, weight = FontWeight.SemiBold))
+                .foregroundStyle(phaseColor)
+            Text(phaseName)
+                .lineLimit(1)
+                .font(Font.system(size = phaseSize, weight = FontWeight.SemiBold))
+                .foregroundStyle(phaseColor)
+            Spacer(minLength = 0.0)
+            Text(timeString)
+                .lineLimit(1)
+                .font(Font.system(size = timerSize, weight = FontWeight.Bold, design = FontDesign.Monospaced))
+                .foregroundStyle(foregroundColor)
         }
-        Box(
-            modifier = Modifier
-                .width((width - padding * 2).dp)
-                .height(barHeight.dp),
-            contentAlignment = Alignment.CenterStart,
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(settings.foregroundColorColor.copy(alpha = 0.2f), RoundedCornerShape(barCornerRadius.dp)),
-            )
-            Box(
-                modifier = Modifier
-                    .width(max(0.0, (width - padding * 2) * progress).dp)
-                    .height(barHeight.dp)
-                    .background(phaseColor, RoundedCornerShape(barCornerRadius.dp)),
-            )
+        ZStack(alignment = Alignment.leading) {
+            RoundedRectangle(cornerRadius = barCornerRadius)
+                .fill(foregroundColor.copy(alpha = foregroundColor.alpha * 0.2f))
+                .frame(width = width - padding * 2, height = barHeight)
+            RoundedRectangle(cornerRadius = barCornerRadius)
+                .fill(phaseColor)
+                .frame(width = max(0.0, (width - padding * 2) * progress), height = barHeight)
         }
+            .frame(width = width - padding * 2, height = barHeight)
     }
+        .padding(EdgeSet.top, padding / 2)
+        .padding(EdgeSet.horizontal + EdgeSet.bottom, padding)
+        .frame(width = width)
+        .background(settings.backgroundColorColor)
+        .clipShape(RoundedRectangle(cornerRadius = cornerRadius))
 }
 
 class PomodoroTimerEffect(canvasSize: Size) : VideoEffect() {
@@ -172,7 +145,9 @@ class PomodoroTimerEffect(canvasSize: Size) : VideoEffect() {
         val sceneWidget = this.sceneWidget
         val canvasSize = this.canvasSize
         renderer = ImageRenderer(content = {
-            PomodoroTimerView(settings = settings, sceneWidget = sceneWidget, canvasSize = canvasSize)
+            SwiftUIView {
+                PomodoroTimerView(settings = settings, sceneWidget = sceneWidget, canvasSize = canvasSize)
+            }
         })
         val weakSelf = java.lang.ref.WeakReference(this)
         cancellable = renderer?.objectWillChange?.sink {

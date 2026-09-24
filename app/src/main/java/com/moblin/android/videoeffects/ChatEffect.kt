@@ -227,6 +227,7 @@ private class ChatRenderer(
         val format = UIGraphicsImageRendererFormat()
         format.scale = 1f
         format.opaque = false
+        com.moblin.android.platform.core.PipelineStats.increment("chatRenders")
         val image = UIGraphicsImageRenderer(size = containerView.bounds.size, format = format)
             .image { context ->
                 containerView.draw(context.cgContext)

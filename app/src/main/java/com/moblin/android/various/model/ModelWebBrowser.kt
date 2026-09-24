@@ -1,8 +1,16 @@
 package com.moblin.android.various.model
 
 import android.graphics.Bitmap
+import android.webkit.JsPromptResult
+import android.webkit.JsResult
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import com.moblin.android.platform.network.NWEndpoint
+import com.moblin.android.platform.webkit.WKWebViewConfiguration
+import com.moblin.android.platform.webkit.WebKitProxy
+import com.moblin.android.various.WebBrowserController
+import com.moblin.android.various.network.setHttpProxy
 import java.net.URI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,24 +61,82 @@ fun Model.getWebBrowser(): WebView {
     (webBrowser as? WebView)?.let { return it }
     val model = this
     val browser = WebView(AppDelegate.context)
+    browser.settings.javaScriptEnabled = true
+    browser.settings.domStorageEnabled = true
     browser.settings.javaScriptCanOpenWindowsAutomatically = true
-    browser.settings.mediaPlaybackRequiresUserGesture = false
-    Unit
+    WKWebViewConfiguration().setHttpProxy(endpoint = getHttpProxyServerNWEndpoint())
     browser.webViewClient = object : WebViewClient() {
         override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
             model.webViewDidStartProvisionalNavigation(view, url)
         }
     }
-    Unit
+    browser.webChromeClient = WebBrowserChromeClient(webBrowserController)
     webBrowser = browser
     mainScope.launch {
-        model.loadWebBrowserHome()
+        WebKitProxy.whenApplied {
+            model.loadWebBrowserHome()
+        }
     }
     return browser
 }
 
 fun Model.setWebBrowserProxy() {
-    Unit
+    if (webBrowser == null) {
+        return
+    }
+    WKWebViewConfiguration().setHttpProxy(endpoint = getHttpProxyServerNWEndpoint())
+}
+
+private fun Model.getHttpProxyServerNWEndpoint(): NWEndpoint? {
+    val endpoint = getHttpProxyServerEndpoint() ?: return null
+    return NWEndpoint.hostPort(NWEndpoint.Host(endpoint.hostString), NWEndpoint.Port(endpoint.port))
+}
+
+private class WebBrowserChromeClient(private val controller: WebBrowserController) : WebChromeClient() {
+    override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
+        controller.webViewRunJavaScriptAlertPanelWithMessage(
+            message = message ?: "",
+            initiatedByFrame = null,
+        ) {
+            result?.confirm()
+        }
+        return true
+    }
+
+    override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
+        controller.webViewRunJavaScriptConfirmPanelWithMessage(
+            message = message ?: "",
+            initiatedByFrame = null,
+        ) { confirmed ->
+            if (confirmed) {
+                result?.confirm()
+            } else {
+                result?.cancel()
+            }
+        }
+        return true
+    }
+
+    override fun onJsPrompt(
+        view: WebView?,
+        url: String?,
+        message: String?,
+        defaultValue: String?,
+        result: JsPromptResult?,
+    ): Boolean {
+        controller.webViewRunJavaScriptTextInputPanelWithPrompt(
+            prompt = message ?: "",
+            defaultText = defaultValue,
+            initiatedByFrame = null,
+        ) { text ->
+            if (text != null) {
+                result?.confirm(text)
+            } else {
+                result?.cancel()
+            }
+        }
+        return true
+    }
 }
 
 fun Model.webViewDidStartProvisionalNavigation(webView: WebView?, url: String?) {

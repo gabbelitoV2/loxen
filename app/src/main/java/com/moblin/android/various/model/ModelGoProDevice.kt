@@ -1,9 +1,11 @@
 package com.moblin.android.various.model
 
+import com.moblin.android.AppDelegate
 import com.moblin.android.integrations.gopro.GoProDevice
 import com.moblin.android.integrations.gopro.GoProDeviceDelegate
 import com.moblin.android.integrations.gopro.GoProDeviceState
 import com.moblin.android.localized
+import com.moblin.android.various.network.IPMonitor
 import com.moblin.android.various.settings.SettingsDjiDeviceUrlType
 import com.moblin.android.various.settings.SettingsGoProDevice
 import com.moblin.android.view.settings.djidevices.rtmpServerStreamUrl
@@ -11,7 +13,7 @@ import java.util.UUID
 
 fun Model.startGoProDeviceLiveStream(device: SettingsGoProDevice) {
     if (!goProDevices.containsKey(device.id)) {
-        val goProDevice = GoProDevice(TODO("Missing Android context for GoProDevice"))
+        val goProDevice = GoProDevice(AppDelegate.context)
         goProDevice.delegate = object : GoProDeviceDelegate {
             override fun goProDeviceStreamingState(device: GoProDevice, state: GoProDeviceState) {
                 this@startGoProDeviceLiveStream.goProDeviceStreamingState(device, state)
@@ -80,8 +82,11 @@ fun Model.markGoProIsStreamingIfNeeded(rtmpServerStreamId: UUID) {
 
 fun Model.automaticServerRtmpUrl(device: SettingsGoProDevice): String? {
     val stream = getRtmpStream(device.serverRtmpStreamId) ?: return null
+    val status = statusOther.ipStatuses.value.firstOrNull {
+        it.interfaceType == IPMonitor.InterfaceType.wifi && it.ipType == IPMonitor.IPType.ipv4
+    } ?: return null
     return rtmpServerStreamUrl(
-        address = TODO("getServerAddress"),
+        address = status.ipType.formatAddress(status.ip),
         port = database.rtmpServer.port,
         streamKey = stream.streamKey
     )

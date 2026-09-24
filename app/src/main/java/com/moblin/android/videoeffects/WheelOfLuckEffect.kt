@@ -1,27 +1,9 @@
 package com.moblin.android.videoeffects
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
-import com.moblin.android.platform.SystemImage
 import com.moblin.android.platform.coregraphics.CGAffineTransform
 import com.moblin.android.platform.coregraphics.CGPoint
 import com.moblin.android.platform.coregraphics.CGRect
@@ -31,9 +13,19 @@ import com.moblin.android.platform.coreimage.CIImage
 import com.moblin.android.platform.metalpetal.MTIImage
 import com.moblin.android.platform.metalpetal.MTILayer
 import com.moblin.android.platform.metalpetal.MTIMultilayerCompositingFilter
-import com.moblin.android.platform.swiftui.Chart
 import com.moblin.android.platform.swiftui.ImageRenderer
-import com.moblin.android.platform.swiftui.SwiftUIFonts
+import com.moblin.android.platform.swiftui.layout.Angle
+import com.moblin.android.platform.swiftui.layout.Font
+import com.moblin.android.platform.swiftui.layout.SwiftUIView
+import com.moblin.android.platform.swiftui.layout.View
+import com.moblin.android.platform.swiftui.layout.ViewBuilder
+import com.moblin.android.platform.swiftui.layout.font
+import com.moblin.android.platform.swiftui.layout.foregroundStyle
+import com.moblin.android.platform.swiftui.layout.frame
+import com.moblin.android.platform.swiftui.layout.lineLimit
+import com.moblin.android.platform.swiftui.layout.minimumScaleFactor
+import com.moblin.android.platform.swiftui.layout.offset
+import com.moblin.android.platform.swiftui.layout.rotationEffect
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidgetWheelOfLuck
 import java.util.UUID
@@ -60,55 +52,36 @@ data class WheelOfLuckEffectOption(
     val textAngle: Double,
 )
 
-@Composable
-private fun WheelView(size: Double, options: List<WheelOfLuckEffectOption>) {
+internal fun ViewBuilder.WheelView(size: Double, options: List<WheelOfLuckEffectOption>): View {
     val offset = size / 3.4
     val font = size / 10
-    Box(
-        modifier = Modifier.size(size.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Chart(options, modifier = Modifier.size(size.dp)) { option ->
+    return ZStack {
+        Chart(options) { option ->
             SectorMark(
                 angle = option.weight.toDouble(),
                 foregroundStyle = optionColors[option.id % optionColors.size],
             )
         }
-        Box(
-            modifier = Modifier
-                .size((size / 5).dp)
-                .background(Color.White, CircleShape),
-        )
-        options.forEach { option ->
-            var scale by remember { mutableStateOf(1f) }
-            Text(
-                text = option.text,
-                modifier = Modifier
-                    .width((150 * (size / wheelSize)).dp)
-                    .rotate(option.textAngle.toFloat())
-                    .offset(x = offset.dp),
-                maxLines = 1,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                style = SwiftUIFonts.system((font * scale).toFloat()),
-                onTextLayout = { layoutResult ->
-                    if (layoutResult.hasVisualOverflow) {
-                        scale = (scale * 0.9f).coerceAtLeast(0.1f)
-                    }
-                },
-            )
+        Circle()
+            .foregroundStyle(Color.White)
+            .frame(width = size / 5, height = size / 5)
+        for (option in options) {
+            Text(option.text)
+                .lineLimit(1)
+                .minimumScaleFactor(0.1)
+                .font(Font.system(size = font))
+                .offset(x = offset)
+                .rotationEffect(Angle.degrees(option.textAngle))
+                .frame(width = 150 * (size / wheelSize))
         }
     }
+        .frame(width = size, height = size)
 }
 
-@Composable
-private fun ArrowView(size: Double) {
-    SystemImage(
-        name = "location.north.fill",
-        fontSize = (size / 12).sp,
-        modifier = Modifier.rotate(270f),
-        tint = Color.White,
-    )
-}
+internal fun ViewBuilder.ArrowView(size: Double): View = Image(systemName = "location.north.fill")
+    .font(Font.system(size = size / 12))
+    .foregroundStyle(Color.White)
+    .rotationEffect(Angle.degrees(270.0))
 
 class WheelOfLuckEffect(canvasSize: androidx.compose.ui.geometry.Size) : VideoEffect() {
     private var wheel: EffectImageCgImage? = null
@@ -231,12 +204,12 @@ class WheelOfLuckEffect(canvasSize: androidx.compose.ui.geometry.Size) : VideoEf
     }
 
     private fun renderWheel(size: Double, options: List<WheelOfLuckEffectOption>): EffectImageCgImage? {
-        val renderer = ImageRenderer(content = { WheelView(size = size, options = options) })
+        val renderer = ImageRenderer(content = { SwiftUIView { WheelView(size = size, options = options) } })
         return renderer.cgImage?.toEffectImage()
     }
 
     private fun renderArrow(size: Double): EffectImageCgImage? {
-        val renderer = ImageRenderer(content = { ArrowView(size = size) })
+        val renderer = ImageRenderer(content = { SwiftUIView { ArrowView(size = size) } })
         return renderer.cgImage?.toEffectImage()
     }
 }

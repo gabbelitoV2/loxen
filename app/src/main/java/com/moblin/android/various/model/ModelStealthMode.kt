@@ -3,13 +3,14 @@ package com.moblin.android.various.model
 import android.graphics.BitmapFactory
 import java.io.File
 import com.moblin.android.AppDelegate
+import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 
 val stealthModeImagePath: File
     get() = File(AppDelegate.context.filesDir, "stealthModeImage.img")
 
 fun Model.setStealthMode(on: Boolean) {
     showStealthMode.value = on
-    remoteControlStateChanged(state = TODO("RemoteControlState is not available"))
+    remoteControlStateChanged(state = RemoteControlAssistantStreamerState(stealthMode = on))
 }
 
 fun Model.toggleStealthMode() {

@@ -1,5 +1,7 @@
 package com.moblin.android.various.model
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -13,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.moblin.android.AppDelegate
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.localized
 import com.moblin.android.streamingplatforms.Platform
@@ -24,6 +27,7 @@ import com.moblin.android.various.ChatPost
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.ChatPostState
 import com.moblin.android.various.model.chat.ChatProvider
+import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatFilter
 import java.net.URI
@@ -132,7 +136,11 @@ fun Model.updateChat() {
 }
 
 fun Model.isAlertMessage(post: ChatPost): Boolean {
-    return post.highlight?.isAlert() == true
+    return when (post.highlight?.kind) {
+        ChatHighlightKind.Redemption -> true
+        ChatHighlightKind.NewFollower -> true
+        else -> false
+    }
 }
 
 fun Model.reloadChats() {
@@ -254,8 +262,15 @@ fun Model.sendChatMessage(message: String) {
 
 fun Model.sendChatMessageShowLogin(message: String) {
     if (stream.value.twitchSendMessagesTo) {
-        sendTwitchChatMessage(message = message) {
-            Unit
+        sendTwitchChatMessage(message = message) { result ->
+            when (result) {
+                is NetworkResponse.AuthError -> {
+                    twitchLogin(stream = stream.value) {
+                        showTwitchAuth.value = true
+                    }
+                }
+                else -> {}
+            }
         }
     }
     if (stream.value.kickSendMessagesTo) {
@@ -403,9 +418,8 @@ fun Model.reloadChatMessages() {
 private fun Model.newPostIds(posts: MutableList<ChatPost>): ArrayDeque<ChatPost> {
     val newPosts = ArrayDeque<ChatPost>()
     for (post in posts) {
-        post.id = chatPostId
+        newPosts.addLast(post.copy(id = chatPostId))
         chatPostId += 1
-        newPosts.addLast(post)
     }
     return newPosts
 }
@@ -511,7 +525,8 @@ fun Model.deleteMessage(post: ChatPost) {
 }
 
 fun Model.copyMessage(post: ChatPost) {
-    Unit
+    val clipboard = AppDelegate.context.getSystemService(ClipboardManager::class.java) ?: return
+    clipboard.setPrimaryClip(ClipData.newPlainText(null, post.text()))
 }
 
 fun Model.deleteChatMessage(messageId: String) {
@@ -529,7 +544,7 @@ fun Model.deleteChatUser(userId: String) {
     quickButtonChat.deleteUser(userId = userId)
     externalDisplayChat.deleteUser(userId = userId)
     chatWidgetChat.deleteUser(userId = userId)
-    Unit
+    chatTextToSpeech.deleteByUserId(userId = userId)
 }
 
 @OptIn(ExperimentalLayoutApi::class)

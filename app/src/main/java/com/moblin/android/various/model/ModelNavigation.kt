@@ -2,9 +2,26 @@ package com.moblin.android.various.model
 
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.settings.SettingsNavigation
+import com.moblin.android.various.utils.MKCoordinateRegion
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+
+enum class MKDirectionsTransportType {
+    automobile,
+    walking,
+    transit,
+    cycling,
+}
+
+sealed class MapCameraPosition {
+    data object automatic : MapCameraPosition()
+
+    data class region(val region: MKCoordinateRegion) : MapCameraPosition()
+
+    data class userLocation(
+        val followsHeading: Boolean,
+        val fallback: MapCameraPosition,
+    ) : MapCameraPosition()
+}
 
 enum class NavigationTransportType {
     walking,
@@ -15,7 +32,11 @@ enum class NavigationTransportType {
         val allCases: List<NavigationTransportType> = entries.toList()
     }
 
-    fun toSystem(): Any = TODO("no Android counterpart for MapKit MKDirectionsTransportType")
+    fun toSystem(): MKDirectionsTransportType = when (this) {
+        NavigationTransportType.walking -> MKDirectionsTransportType.walking
+        NavigationTransportType.cycling -> MKDirectionsTransportType.cycling
+        NavigationTransportType.automobile -> MKDirectionsTransportType.automobile
+    }
 
     fun image(): String = when (this) {
         NavigationTransportType.walking -> "figure.walk"
@@ -29,9 +50,9 @@ class Navigation {
         val shared = Navigation()
     }
 
-    val cameraPosition = MutableStateFlow<Any?>(null)
+    val cameraPosition = MutableStateFlow<MapCameraPosition>(MapCameraPosition.automatic)
 
-    var cameraRegion: Any? = null
+    var cameraRegion: MKCoordinateRegion? = null
 
     val route = MutableStateFlow<Any?>(null)
 
@@ -49,12 +70,15 @@ class Navigation {
 
     val timer = MainTimer()
 
-    fun updateCameraPosition(settings: SettingsNavigation, region: Any? = null) {
+    fun updateCameraPosition(settings: SettingsNavigation, region: MKCoordinateRegion? = null) {
         val region = region ?: cameraRegion ?: return
         if (settings.followUser.value) {
-            cameraPosition.value = TODO("no Android counterpart for MapKit MapCameraPosition userLocation")
+            cameraPosition.value = MapCameraPosition.userLocation(
+                followsHeading = settings.followHeading.value,
+                fallback = MapCameraPosition.region(region),
+            )
         } else {
-            cameraPosition.value = TODO("no Android counterpart for MapKit MapCameraPosition region")
+            cameraPosition.value = MapCameraPosition.region(region)
         }
     }
 
