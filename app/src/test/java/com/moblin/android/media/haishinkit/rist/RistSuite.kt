@@ -1,5 +1,6 @@
 package com.moblin.android.media.haishinkit.rist
 
+import com.moblin.android.platform.network.NWEndpoint
 import org.junit.Test
 import kotlin.test.assertEquals
 import org.junit.runner.RunWith
@@ -27,7 +28,10 @@ class RistSuite {
     fun makeMoblinkBondingUrl() {
         assertEquals(
             "rist://1.2.3.4:143?secret=1234&weight=1",
-            makeRistMoblinkBondingUrl("rist://foobar?secret=1234", RistEndpoint("1.2.3.4", 143))
+            makeRistMoblinkBondingUrl(
+                "rist://foobar?secret=1234",
+                NWEndpoint.hostPort(host = NWEndpoint.Host("1.2.3.4"), port = NWEndpoint.Port(143)),
+            )
         )
     }
 }

@@ -1,0 +1,50 @@
+{
+  "task": "RIST",
+  "hooks": [
+    {
+      "id": "HRIST.1",
+      "file": "various/Media.kt",
+      "op": "replace",
+      "old": "import com.moblin.android.media.haishinkit.rist.RistEndpoint",
+      "new": "import com.moblin.android.platform.network.NWEndpoint",
+      "note": "RistStream takes an NWEndpoint for Moblink relays, as in Swift."
+    },
+    {
+      "id": "HRIST.2",
+      "file": "various/Media.kt",
+      "scope": "fun addMoblink",
+      "op": "replace",
+      "old": "        ristStream?.addMoblink(endpoint = RistEndpoint(host = host, port = port), id = id, name = name)",
+      "new": "        ristStream?.addMoblink(endpoint = NWEndpoint.hostPort(host = NWEndpoint.Host(host), port = NWEndpoint.Port(port)), id = id, name = name)",
+      "occurrence": 1
+    },
+    {
+      "id": "HRIST.3",
+      "file": "various/Media.kt",
+      "scope": "fun removeMoblink",
+      "op": "replace",
+      "old": "        ristStream?.removeMoblink(endpoint = RistEndpoint(host = host, port = port))",
+      "new": "        ristStream?.removeMoblink(endpoint = NWEndpoint.hostPort(host = NWEndpoint.Host(host), port = NWEndpoint.Port(port)))",
+      "occurrence": 1
+    },
+    {
+      "id": "HRIST.4",
+      "file": "media/haishinkit/rist/RistStream.kt",
+      "scope": "fun startInternal",
+      "op": "replace",
+      "old": "            Unit",
+      "new": "            processor.startEncoding(writer)",
+      "occurrence": 1,
+      "note": "The writer is the encoder delegate of the processor while the stream runs."
+    },
+    {
+      "id": "HRIST.5",
+      "file": "media/haishinkit/rist/RistStream.kt",
+      "scope": "fun stopInternal",
+      "op": "replace",
+      "old": "            Unit",
+      "new": "            processor.stopEncoding(writer)",
+      "occurrence": 1
+    }
+  ]
+}

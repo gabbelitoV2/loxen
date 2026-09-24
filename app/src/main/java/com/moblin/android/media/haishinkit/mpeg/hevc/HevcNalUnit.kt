@@ -121,7 +121,7 @@ fun List<HevcNalUnit>.makeFormatDescription(): MediaFormat? {
     val vpsData = vps.encode()
     val spsData = sps.encode()
     val ppsData = pps.encode()
-    TODO()
+    return com.moblin.android.platform.videotoolbox.makeVideoFormatDescription(MediaFormat.MIMETYPE_VIDEO_HEVC, 0, 0, vpsData, spsData, ppsData)
 }
 
 val calendar: Calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))

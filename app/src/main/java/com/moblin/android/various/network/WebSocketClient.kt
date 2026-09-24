@@ -2,18 +2,15 @@ package com.moblin.android.various.network
 
 import android.content.Context
 import android.util.Log
+import com.moblin.android.platform.network.NWError
+import com.moblin.android.platform.network.NWInterface
+import com.moblin.android.platform.network.NWProtocolWebSocket
+import com.moblin.android.platform.network.NWWebSocket
+import com.moblin.android.platform.network.WebSocketConnection
+import com.moblin.android.platform.network.WebSocketConnectionDelegate
 import com.moblin.android.various.MainTimer
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import okio.ByteString
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.WebSocket
-import okhttp3.WebSocketListener
 import java.lang.ref.WeakReference
-import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.Dispatchers
 
 private const val shortestDelayMs = 500
 private const val longestDelayMs = 10000
@@ -27,37 +24,25 @@ interface WebSocketClientDelegate {
 
 class WebSocketClient(
     context: Context,
-    url: String,
-    loopback: Boolean = false,
+    private val url: String,
+    private val loopback: Boolean = false,
     cellular: Boolean = true,
-    protocols: List<String>? = null
-) {
-    private var webSocket: WebSocket? = null
+    private val protocols: List<String>? = null,
+) : WebSocketConnectionDelegate {
+    private var webSocket = NWWebSocket(url = url, requiredInterfaceType = NWInterface.InterfaceType.cellular)
     private var connectTimer = MainTimer()
-    private var networkInterfaceTypeSelector: NetworkInterfaceTypeSelector
+    private var networkInterfaceTypeSelector = NetworkInterfaceTypeSelector(context, Dispatchers.Main, cellular)
     private var pingTimer = MainTimer()
     private var pongReceived = true
     private var delegateReference: WeakReference<WebSocketClientDelegate>? = null
+    private var connected = false
+    private var connectDelayMs = shortestDelayMs
 
     var delegate: WebSocketClientDelegate?
         get() = delegateReference?.get()
         set(value) {
             delegateReference = value?.let { WeakReference(it) }
         }
-
-    private val url: String
-    private val loopback: Boolean
-    private var connected = false
-    private var connectDelayMs = shortestDelayMs
-    private val protocols: List<String>?
-    private val mainScope = CoroutineScope(Dispatchers.Main)
-
-    init {
-        this.url = url
-        this.loopback = loopback
-        this.protocols = protocols
-        networkInterfaceTypeSelector = NetworkInterfaceTypeSelector(context, Dispatchers.Main, cellular)
-    }
 
     fun start() {
         startInternal()
@@ -72,15 +57,25 @@ class WebSocketClient(
     }
 
     fun send(string: String) {
-        webSocket?.send(string)
+        webSocket.send(string = string)
     }
 
     private fun startInternal() {
         stopInternal()
-        val interfaceTypeAvailable = networkInterfaceTypeSelector.getNextType() != null
-        if (interfaceTypeAvailable || loopback) {
-            webSocket = newWebSocket()
-            Log.d(tag, "websocket: Connecting to $url")
+        var interfaceType = networkInterfaceTypeSelector.getNextType()?.toNWInterfaceType()
+        if (interfaceType != null) {
+            if (loopback) {
+                interfaceType = NWInterface.InterfaceType.loopback
+            }
+            val options = NWProtocolWebSocket.Options()
+            options.autoReplyPing = true
+            if (protocols != null) {
+                options.setSubprotocols(protocols)
+            }
+            webSocket = NWWebSocket(url = url, requiredInterfaceType = interfaceType, options = options)
+            Log.d(tag, "websocket: Connecting to $url over $interfaceType")
+            webSocket.delegate = this
+            webSocket.connect()
             startPingTimer()
         } else {
             connectDelayMs = shortestDelayMs
@@ -88,21 +83,10 @@ class WebSocketClient(
         }
     }
 
-    private fun newWebSocket(): WebSocket {
-        val requestBuilder = Request.Builder().url(url)
-        protocols?.let { subprotocols ->
-            requestBuilder.header("Sec-WebSocket-Protocol", subprotocols.joinToString(", "))
-        }
-        val client = OkHttpClient.Builder()
-            .pingInterval(10, TimeUnit.SECONDS)
-            .build()
-        return client.newWebSocket(requestBuilder.build(), listener)
-    }
-
     private fun stopInternal() {
         connected = false
-        webSocket?.close(1000, null)
-        webSocket = null
+        webSocket.disconnect()
+        webSocket = NWWebSocket(url = url, requiredInterfaceType = NWInterface.InterfaceType.cellular)
         stopConnectTimer()
         stopPingTimer()
     }
@@ -127,7 +111,7 @@ class WebSocketClient(
         pingTimer.startPeriodic(10.0, 0.0) {
             if (pongReceived) {
                 pongReceived = false
-                Unit
+                webSocket.ping()
             } else {
                 startInternal()
                 delegate?.webSocketClientDisconnected(this)
@@ -139,7 +123,7 @@ class WebSocketClient(
         pingTimer.stop()
     }
 
-    fun webSocketDidConnect() {
+    override fun webSocketDidConnect(connection: WebSocketConnection) {
         Log.d(tag, "websocket: Connected")
         connectDelayMs = shortestDelayMs
         stopConnectTimer()
@@ -147,75 +131,57 @@ class WebSocketClient(
         delegate?.webSocketClientConnected(this)
     }
 
-    fun webSocketDidDisconnect(closeCode: Int, reason: String?) {
+    override fun webSocketDidDisconnect(
+        connection: WebSocketConnection,
+        closeCode: NWProtocolWebSocket.CloseCode,
+        reason: ByteArray?,
+    ) {
         Log.d(tag, "websocket: Disconnected")
         stopInternal()
         startConnectTimer()
         delegate?.webSocketClientDisconnected(this)
     }
 
-    fun webSocketViabilityDidChange(isViable: Boolean) {
-        Unit
-    }
-
-    fun webSocketDidAttemptBetterPathMigration() {
-        Unit
-    }
-
-    fun webSocketDidReceiveError(error: Throwable) {
-        Log.d(tag, "websocket: Error ${error.message}")
-        val wasConnected = connected
+    override fun webSocketViabilityDidChange(connection: WebSocketConnection, isViable: Boolean) {
+        Log.d(tag, "websocket: Viability changed to $isViable")
+        if (isViable) {
+            return
+        }
         stopInternal()
         startConnectTimer()
-        if (wasConnected) {
+        delegate?.webSocketClientDisconnected(this)
+    }
+
+    override fun webSocketDidAttemptBetterPathMigration(result: Result<WebSocketConnection>) {
+        Log.d(tag, "websocket: Better path migration")
+    }
+
+    override fun webSocketDidReceiveError(connection: WebSocketConnection, error: NWError) {
+        Log.d(tag, "websocket: Error ${error.message}")
+        val connected = connected
+        stopInternal()
+        startConnectTimer()
+        if (connected) {
             delegate?.webSocketClientDisconnected(this)
         }
     }
 
-    fun webSocketDidReceivePong() {
+    override fun webSocketDidReceivePong(connection: WebSocketConnection) {
         pongReceived = true
     }
 
-    fun webSocketDidReceiveMessage(string: String) {
+    override fun webSocketDidReceiveMessage(connection: WebSocketConnection, string: String) {
         delegate?.webSocketClientReceiveMessage(this, string = string)
     }
 
-    fun webSocketDidReceiveMessage(data: ByteArray) {
-    }
+    override fun webSocketDidReceiveMessage(connection: WebSocketConnection, data: ByteArray) {}
+}
 
-    private val listener = object : WebSocketListener() {
-        override fun onOpen(webSocket: WebSocket, response: Response) {
-            mainScope.launch {
-                webSocketDidConnect()
-            }
-        }
-
-        override fun onMessage(webSocket: WebSocket, text: String) {
-            mainScope.launch {
-                webSocketDidReceiveMessage(text)
-            }
-        }
-
-        override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-            mainScope.launch {
-                webSocketDidReceiveMessage(bytes.toByteArray())
-            }
-        }
-
-        override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-            webSocket.close(code, reason)
-        }
-
-        override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-            mainScope.launch {
-                webSocketDidDisconnect(code, reason)
-            }
-        }
-
-        override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-            mainScope.launch {
-                webSocketDidReceiveError(t)
-            }
-        }
+private fun InterfaceType.toNWInterfaceType(): NWInterface.InterfaceType {
+    return when (this) {
+        InterfaceType.cellular -> NWInterface.InterfaceType.cellular
+        InterfaceType.wifi -> NWInterface.InterfaceType.wifi
+        InterfaceType.wiredEthernet -> NWInterface.InterfaceType.wiredEthernet
+        InterfaceType.other -> NWInterface.InterfaceType.other
     }
 }

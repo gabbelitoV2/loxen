@@ -5,6 +5,8 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.util.Atomic
 import com.moblin.android.media.haishinkit.util.BitrateStats
 import com.moblin.android.media.haishinkit.util.BitrateStatsInstant
+import com.moblin.android.platform.rist.RistReceiverContext
+import com.moblin.android.platform.rist.RistReceiverContextDelegate
 import com.moblin.android.various.settings.SettingsRistServerStream
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -21,22 +23,6 @@ interface RistServerDelegate {
     fun ristServerOnVideoBuffer(cameraId: UUID, sampleBuffer: MediaSample)
 
     fun ristServerOnAudioBuffer(cameraId: UUID, sampleBuffer: MediaSample)
-}
-
-interface RistReceiverContextDelegate {
-    fun ristReceiverContextConnected(virtualDestinationPort: Int)
-
-    fun ristReceiverContextDisconnected(virtualDestinationPort: Int)
-
-    fun ristReceiverContextReceivedData(virtualDestinationPort: Int, packets: List<ByteArray>)
-}
-
-class RistReceiverContext(val inputUrl: String) {
-    var delegate: RistReceiverContextDelegate? = null
-
-    fun start(): Boolean = false
-
-    fun stop(): Unit = Unit
 }
 
 val ristServerQueue = CoroutineScope(
@@ -72,7 +58,7 @@ class RistServer(
 
     private fun startInternal() {
         Log.i("RistServer", "rist-server: Starting")
-        context = RistReceiverContext("rist://@0.0.0.0:$port?rtt-min=100")
+        context = RistReceiverContext(inputUrl = "rist://@0.0.0.0:$port?rtt-min=100")
         context?.delegate = this
         context?.start()
     }
