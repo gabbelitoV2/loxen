@@ -82,4 +82,7 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.14.1")
     testImplementation("androidx.test:core:1.6.1")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation(platform("androidx.compose:compose-bom:2025.03.00"))
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
