@@ -16,17 +16,6 @@ import android.text.StaticLayout
 import android.text.TextPaint
 import android.text.TextUtils
 import android.text.style.LineHeightSpan
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Eco
-import androidx.compose.material.icons.filled.EmojiPeople
-import androidx.compose.material.icons.filled.OfflineBolt
-import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.icons.filled.Psychology
-import androidx.compose.material.icons.filled.Restaurant
-import androidx.compose.material.icons.filled.School
-import androidx.compose.material.icons.filled.TrackChanges
-import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -289,21 +278,6 @@ internal class AndroidTextMeasurer(private val density: Float, private val resol
     private fun roundUpToPixel(pixels: Double): Double = ceil(pixels - 0.02).coerceAtLeast(0.0) / density
 }
 
-private val additionalSymbols: Map<String, ImageVector> by lazy {
-    mapOf(
-        "sun.max" to Icons.Filled.WbSunny,
-        "bolt.circle" to Icons.Filled.OfflineBolt,
-        "graduationcap" to Icons.Filled.School,
-        "arrowtriangle.right.circle" to Icons.Filled.PlayCircle,
-        "brain.head.profile" to Icons.Filled.Psychology,
-        "pencil" to Icons.Filled.Edit,
-        "target" to Icons.Filled.TrackChanges,
-        "fork.knife" to Icons.Filled.Restaurant,
-        "leaf" to Icons.Filled.Eco,
-        "figure.dance" to Icons.Filled.EmojiPeople,
-    )
-}
-
 internal object AndroidImageProvider : ImageProvider {
     private val assets = HashMap<String, ImageSource?>()
 
@@ -314,8 +288,7 @@ internal object AndroidImageProvider : ImageProvider {
     }
 
     override fun symbol(name: String, pointSize: Double): ImageSource? {
-        val vector = additionalSymbols[name] ?: additionalSymbols[name.removeSuffix(".fill")] ?: systemImage(name)
-        return ImageSource.Symbol(vector, pointSize)
+        return ImageSource.Symbol(systemImage(name), pointSize)
     }
 }
 

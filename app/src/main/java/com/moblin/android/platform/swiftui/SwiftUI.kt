@@ -45,6 +45,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -479,7 +480,9 @@ private fun NavigationBar(navigator: Navigator, entry: NavigationEntry) {
     val scrolled = entry.scrolled
     val parent = entry.parent
     val toolbar = entry.toolbar
-    Box(
+    val textMeasurer = rememberTextMeasurer()
+    val titleStyle = formBodyStyle.copy(fontWeight = FontWeight.SemiBold)
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
             .background(if (scrolled) palette.bar else palette.groupedBackground)
@@ -497,11 +500,22 @@ private fun NavigationBar(navigator: Navigator, entry: NavigationEntry) {
         if (parent != null) {
             val interactionSource = remember { MutableInteractionSource() }
             val pressed by interactionSource.collectIsPressedAsState()
-            val backTitle = if (parent.title.isNotEmpty() && parent.title.length <= 14) {
-                parent.title
+            val density = LocalDensity.current
+            val titleSpace = (maxWidth - 192.dp).coerceAtLeast(0.dp)
+            val titleWidth = with(density) {
+                textMeasurer.measure(entry.title, titleStyle, maxLines = 1).size.width.toDp()
+            }.coerceAtMost(titleSpace)
+            val backSpace = (maxWidth - titleWidth) / 2 - 32.dp
+            val candidates = if (parent.title.isNotEmpty()) {
+                listOf(parent.title, localized("Back"))
             } else {
-                localized("Back")
+                listOf(localized("Back"))
             }
+            val backTitle = candidates.firstOrNull { candidate ->
+                with(density) {
+                    textMeasurer.measure(candidate, formBodyStyle, maxLines = 1).size.width.toDp()
+                } <= backSpace
+            } ?: ""
             Row(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
@@ -533,7 +547,7 @@ private fun NavigationBar(navigator: Navigator, entry: NavigationEntry) {
         Text(
             text = entry.title,
             color = palette.label,
-            style = formBodyStyle.copy(fontWeight = FontWeight.SemiBold),
+            style = titleStyle,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,

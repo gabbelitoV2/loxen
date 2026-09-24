@@ -609,6 +609,7 @@ internal class WebViewHost {
         configurePresentationWindow(newPresentation)
         val home = FrameLayout(newPresentation.context)
         home.setBackgroundColor(Color.TRANSPARENT)
+        home.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
         newPresentation.setContentView(
             home,
             ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT),

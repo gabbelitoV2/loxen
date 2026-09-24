@@ -1,12 +1,20 @@
 package com.moblin.android.platform
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AddLink
 import androidx.compose.material.icons.filled.Air
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowCircleDown
+import androidx.compose.material.icons.filled.ArrowCircleLeft
+import androidx.compose.material.icons.filled.ArrowCircleRight
+import androidx.compose.material.icons.filled.ArrowCircleUp
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowUpward
@@ -14,6 +22,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.AutoAwesomeMotion
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Battery0Bar
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Bookmark
@@ -21,27 +30,37 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Cable
 import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloseFullscreen
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ControlCamera
+import androidx.compose.material.icons.filled.Crop
 import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.CropSquare
 import androidx.compose.material.icons.filled.Cyclone
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.DeviceHub
+import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.EmojiPeople
 import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.FaceRetouchingNatural
 import androidx.compose.material.icons.filled.FastForward
@@ -49,6 +68,7 @@ import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FilterVintage
 import androidx.compose.material.icons.filled.FirstPage
+import androidx.compose.material.icons.filled.Flare
 import androidx.compose.material.icons.filled.FlashlightOff
 import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material.icons.filled.FlipCameraAndroid
@@ -59,6 +79,7 @@ import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Help
+import androidx.compose.material.icons.filled.Hub
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.LastPage
@@ -75,16 +96,21 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MicOff
+import androidx.compose.material.icons.filled.MilitaryTech
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.MotionPhotosOn
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.NightsStay
+import androidx.compose.material.icons.filled.OfflineBolt
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.OpenWith
+import androidx.compose.material.icons.filled.PanTool
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.PhoneIphone
@@ -93,10 +119,13 @@ import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.PictureInPicture
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Portrait
 import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Redo
@@ -104,8 +133,11 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.RemoveCircle
 import androidx.compose.material.icons.filled.RemoveCircleOutline
+import androidx.compose.material.icons.filled.RemoveModerator
 import androidx.compose.material.icons.filled.Replay
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Send
@@ -116,11 +148,20 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.SignLanguage
 import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.Slideshow
 import androidx.compose.material.icons.filled.SlowMotionVideo
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.SportsBasketball
 import androidx.compose.material.icons.filled.SportsEsports
+import androidx.compose.material.icons.filled.SportsFootball
+import androidx.compose.material.icons.filled.SportsHockey
 import androidx.compose.material.icons.filled.SportsScore
+import androidx.compose.material.icons.filled.SportsTennis
+import androidx.compose.material.icons.filled.SportsVolleyball
+import androidx.compose.material.icons.filled.StarOutline
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
@@ -128,10 +169,12 @@ import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.filled.UnfoldMore
+import androidx.compose.material.icons.filled.VerticalSplit
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.VideocamOff
@@ -144,18 +187,21 @@ import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.Watch
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material.icons.filled.WbTwilight
 import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.WifiTethering
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material.icons.filled.ZoomOut
 import androidx.compose.material.icons.filled.ZoomOutMap
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.foundation.layout.size
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 
@@ -358,6 +404,67 @@ private val symbols: Map<String, ImageVector> = mapOf(
     "video.circle.fill" to Icons.Filled.Videocam,
     "waveform.badge.xmark" to Icons.Filled.VoiceOverOff,
     "waveform.slash" to Icons.Filled.VoiceOverOff,
+    "archivebox" to Icons.Filled.Archive,
+    "arrow.down.circle" to Icons.Filled.ArrowCircleDown,
+    "arrow.left.circle" to Icons.Filled.ArrowCircleLeft,
+    "arrow.right.circle" to Icons.Filled.ArrowCircleRight,
+    "arrow.up.circle" to Icons.Filled.ArrowCircleUp,
+    "arrow.up.backward.and.arrow.down.forward.square" to Icons.Filled.OpenInFull,
+    "arrowshape.turn.up.backward" to Icons.AutoMirrored.Filled.Reply,
+    "arrowshape.turn.up.left" to Icons.AutoMirrored.Filled.Reply,
+    "arrowtriangle.right.circle" to Icons.Filled.PlayCircle,
+    "basketball" to Icons.Filled.SportsBasketball,
+    "bolt.circle" to Icons.Filled.OfflineBolt,
+    "brain.head.profile" to Icons.Filled.Psychology,
+    "burn" to Icons.Filled.Flare,
+    "cable.coaxial" to Icons.Filled.Cable,
+    "chart.bar" to Icons.Filled.BarChart,
+    "checkmark.circle" to Icons.Filled.CheckCircleOutline,
+    "crop" to Icons.Filled.Crop,
+    "crown" to Icons.Filled.WorkspacePremium,
+    "diamond" to Icons.Filled.Diamond,
+    "doc.plaintext" to Icons.Filled.Description,
+    "document.on.document" to Icons.Filled.ContentCopy,
+    "figure.dance" to Icons.Filled.EmojiPeople,
+    "football" to Icons.Filled.SportsFootball,
+    "fork.knife" to Icons.Filled.Restaurant,
+    "gift" to Icons.Filled.CardGiftcard,
+    "graduationcap" to Icons.Filled.School,
+    "hand.raised" to Icons.Filled.PanTool,
+    "hands.clap" to Icons.Filled.SignLanguage,
+    "hockey" to Icons.Filled.SportsHockey,
+    "horn.blast" to Icons.Filled.Campaign,
+    "l.joystick" to Icons.Filled.SportsEsports,
+    "leaf" to Icons.Filled.Eco,
+    "livephoto" to Icons.Filled.MotionPhotosOn,
+    "medal" to Icons.Filled.MilitaryTech,
+    "medal.star" to Icons.Filled.MilitaryTech,
+    "network" to Icons.Filled.Hub,
+    "nosign" to Icons.Filled.Block,
+    "party.popper" to Icons.Filled.Celebration,
+    "pencil" to Icons.Filled.Edit,
+    "person.badge.plus" to Icons.Filled.PersonAdd,
+    "person.crop.circle" to Icons.Filled.AccountCircle,
+    "person.crop.circle.dashed" to Icons.Outlined.AccountCircle,
+    "person.wave.2" to Icons.Filled.RecordVoiceOver,
+    "personalhotspot" to Icons.Filled.WifiTethering,
+    "play.rectangle" to Icons.Filled.Slideshow,
+    "questionmark" to Icons.Filled.QuestionMark,
+    "questionmark.diamond" to Icons.Filled.Help,
+    "r.joystick" to Icons.Filled.SportsEsports,
+    "rectangle.split.2x1" to Icons.Filled.VerticalSplit,
+    "shield.slash" to Icons.Filled.RemoveModerator,
+    "sparkles" to Icons.Filled.AutoAwesome,
+    "star" to Icons.Filled.StarOutline,
+    "stop" to Icons.Filled.Stop,
+    "suit.diamond" to Icons.Filled.Diamond,
+    "sun.max" to Icons.Filled.WbSunny,
+    "target" to Icons.Filled.TrackChanges,
+    "tennis" to Icons.Filled.SportsTennis,
+    "textformat" to Icons.Filled.TextFields,
+    "tortoise" to Icons.Filled.SlowMotionVideo,
+    "trophy" to Icons.Filled.EmojiEvents,
+    "volleyball" to Icons.Filled.SportsVolleyball,
 )
 
 fun systemImage(name: String): ImageVector {
