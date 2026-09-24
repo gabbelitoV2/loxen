@@ -1,0 +1,99 @@
+{
+ "task": "LR",
+ "hooks": [
+  {
+   "id": "HLR.1",
+   "file": "videoeffects/alerts/AlertsEffectVideoReader.kt",
+   "scope": "fun findImage",
+   "op": "replace",
+   "old": "            images.removeFirst()",
+   "new": "            com.moblin.android.platform.coreimage.releaseImageLeases(images.removeFirst().image.getCiImage())",
+   "occurrence": 1,
+   "note": "Reader frames are leased (HLR.2): the deque owns one lease per queued frame, and a passed frame returns to the reader pool at the end of this pipeline turn instead of after a GC. The frame findImage returns stays queued, so it is still leased while it is rendered."
+  },
+  {
+   "id": "HLR.2",
+   "file": "videoeffects/alerts/AlertsEffectVideoReader.kt",
+   "scope": "fun loadVideoTrackCompletion",
+   "op": "insert_after",
+   "anchor": "        reader?.add(output = output)",
+   "new": "        output.leasesSampleBuffers = true",
+   "note": "Before startReading. copyNextSampleBuffer then hands out frames that carry one lease, which fillInternal passes on to the deque (HLR.1)."
+  },
+  {
+   "id": "HLR.3",
+   "file": "videoeffects/replay/ReplayEffectStingerReader.kt",
+   "scope": "fun findImage",
+   "op": "replace",
+   "old": "            images.removeFirst()",
+   "new": "            com.moblin.android.platform.coreimage.releaseImageLeases(images.removeFirst().image?.getCiImage())",
+   "occurrence": 1,
+   "note": "As HLR.1. ReplayEffect only uses a stinger frame in the turn that got it."
+  },
+  {
+   "id": "HLR.4",
+   "file": "videoeffects/replay/ReplayEffectStingerReader.kt",
+   "scope": "fun loadVideoTrackCompletion",
+   "op": "insert_after",
+   "anchor": "        trackOutput = output",
+   "new": "        output.leasesSampleBuffers = true",
+   "note": "As HLR.2."
+  },
+  {
+   "id": "HLR.5",
+   "file": "videoeffects/replay/ReplayEffectStingerReader.kt",
+   "scope": "class ReplayEffectStingerReader",
+   "op": "insert_after",
+   "anchor": "    private val size: CGSize = size.toCGSize()",
+   "new": "    fun close() { val current = reader; kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch { current?.cancelReading() }; replayEffectQueue.launch { reader?.cancelReading(); processorPipelineQueue.launch { com.moblin.android.platform.coreimage.drainImageLeases(images) { it.image?.getCiImage() } } } }",
+   "note": "Swift frees the reader, its AVAssetReader and its queued frames when ReplayEffect is freed (ARC); ReplayEffect.removed (HLR.10) calls this instead. The AVAssetReader is cancelled at once on an IO thread, so a fill that waits for a free reader buffer (the pool is full and nothing consumes frames any more) ends now instead of after its 2 s timeout, without releasing the decoder on the pipeline thread. The drain still goes through replayEffectQueue, so a running fill posts its frames before the deque is drained, and later fills get no frames from the cancelled reader."
+  },
+  {
+   "id": "HLR.6",
+   "file": "videoeffects/replay/ReplayEffectReplayReader.kt",
+   "scope": "fun findImage",
+   "op": "replace",
+   "old": "            images.removeFirst()",
+   "new": "            com.moblin.android.platform.coreimage.releaseImageLeases(images.removeFirst().image?.getCiImage())",
+   "occurrence": 1,
+   "note": "As HLR.1. ReplayEffect.latestImage keeps its own lease (HLR.9) for the frame it shows after the deque has passed it."
+  },
+  {
+   "id": "HLR.7",
+   "file": "videoeffects/replay/ReplayEffectReplayReader.kt",
+   "scope": "fun loadVideoTrackCompletion",
+   "op": "insert_after",
+   "anchor": "        this.trackOutput = trackOutput",
+   "new": "        trackOutput.leasesSampleBuffers = true",
+   "note": "As HLR.2."
+  },
+  {
+   "id": "HLR.8",
+   "file": "videoeffects/replay/ReplayEffectReplayReader.kt",
+   "scope": "class ReplayEffectReplayReader",
+   "op": "insert_after",
+   "anchor": "    private var overlay: CIImage? = null",
+   "new": "    fun close() { val current = reader; kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch { current?.cancelReading() }; replayEffectQueue.launch { reader?.cancelReading(); processorPipelineQueue.launch { com.moblin.android.platform.coreimage.drainImageLeases(images) { it.image?.getCiImage() } } } }",
+   "note": "As HLR.5."
+  },
+  {
+   "id": "HLR.9",
+   "file": "videoeffects/replay/ReplayEffect.kt",
+   "scope": "fun updateBeginAndMiddleNoneAndFade",
+   "op": "replace",
+   "old": "        latestImage = replayImage.image ?: latestImage",
+   "new": "        latestImage = com.moblin.android.platform.coreimage.swapImageLease(latestImage, replayImage.image ?: latestImage) { it.getCiImage() }",
+   "occurrence": 1,
+   "note": "latestImage outlives its deque entry: it is shown while the reader is behind and during the fade out after the last frame, so it holds a lease of its own until it is replaced."
+  },
+  {
+   "id": "HLR.10",
+   "file": "videoeffects/replay/ReplayEffect.kt",
+   "scope": "class ReplayEffect",
+   "op": "insert_after",
+   "anchor": "    private var stingersOutTransitionPointPresentationTimeStamp = 0.0",
+   "new": "    override fun removed() { latestImage = com.moblin.android.platform.coreimage.swapImageLease(latestImage, null) { it.getCiImage() }; reader.close(); stingersInReader?.close(); stingersOutReader?.close() }",
+   "note": "Swift frees the effect's readers and frames when the processor drops the finished or cancelled effect (ARC). Frames still queued at that point (stingers mode stops reading the replay at the out transition point, a cancel stops mid-way) return to their pools instead of waiting for a GC."
+  }
+ ]
+}

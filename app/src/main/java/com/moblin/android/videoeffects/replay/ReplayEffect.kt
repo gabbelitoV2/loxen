@@ -105,6 +105,7 @@ class ReplayEffect internal constructor(
     private var stingersInTransitionPointPresentationTimeStamp = 0.0
     private var stingersOutTransitionStartPresentationTimeStamp = 0.0
     private var stingersOutTransitionPointPresentationTimeStamp = 0.0
+    override fun removed() { latestImage = com.moblin.android.platform.coreimage.swapImageLease(latestImage, null) { it.getCiImage() }; reader.close(); stingersInReader?.close(); stingersOutReader?.close() }
 
     init {
         val stingers = transitionMode as? ReplayEffectTransitionMode.Stingers
@@ -263,7 +264,7 @@ class ReplayEffect internal constructor(
 
     private fun updateBeginAndMiddleNoneAndFade(offset: Double): ReplayEffectOutput {
         val replayImage = reader.getImage(offset = offset * speed)
-        latestImage = replayImage.image ?: latestImage
+        latestImage = com.moblin.android.platform.coreimage.swapImageLease(latestImage, replayImage.image ?: latestImage) { it.getCiImage() }
         if (replayImage.isLast) {
             lastImageOffset = offset
         } else if (replayImage.image == null) {
