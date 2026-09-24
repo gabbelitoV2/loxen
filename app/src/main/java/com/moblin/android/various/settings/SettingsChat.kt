@@ -707,6 +707,10 @@ class SettingsChat {
         fun decode(container: JsonObject): SettingsChat {
             val chat = SettingsChat()
             chat.fontSize = container.decode("fontSize", 19.0f)
+            chat.font = chat.font.copy(
+                family = container.decode<String?>("fontFamily", null),
+                style = container.decode("fontStyle", "")
+            )
             chat.usernameColor = container.decode("usernameColor", RgbColor(red = 255, green = 163, blue = 0))
             chat.usernameColorColor = chat.usernameColor.color()
             chat.sameUsernameColor = container.decode("sameUsernameColor", false)
@@ -766,6 +770,10 @@ class SettingsChat {
             chat.textToSpeechSubscribersOnly = container.decode("textToSpeechSubscribersOnly", false)
             chat.textToSpeechFilter = container.decode("textToSpeechFilter", true)
             chat.textToSpeechFilterMentions = container.decode("textToSpeechFilterMentions", true)
+            chat.textToSpeechBluetoothSpeakerOnly = container.decode(
+                "textToSpeechBluetoothSpeakerOnly",
+                false,
+            )
             chat.ttsMonster = container.decode("ttsMonster", SettingsTtsMonster.serializer(), SettingsTtsMonster())
             chat.mirrored = container.decode("mirrored", false)
             chat.botEnabled = container.decode("botEnabled", false)
@@ -821,6 +829,7 @@ class SettingsChat {
     }
 
     var fontSize: Float by Published(19.0f)
+    var font: SettingsFont by Published(SettingsFont())
     var usernameColor: RgbColor = RgbColor(red = 255, green = 163, blue = 0)
     var usernameColorColor: Color by Published(Color(usernameColor.red, usernameColor.green, usernameColor.blue))
     var sameUsernameColor: Boolean by Published(false)
@@ -859,6 +868,7 @@ class SettingsChat {
     var textToSpeechSubscribersOnly: Boolean by Published(false)
     var textToSpeechFilter: Boolean by Published(true)
     var textToSpeechFilterMentions: Boolean by Published(true)
+    var textToSpeechBluetoothSpeakerOnly: Boolean by Published(false)
     var ttsMonster: SettingsTtsMonster by Published(SettingsTtsMonster())
     var mirrored: Boolean by Published(false)
     var botEnabled: Boolean by Published(false)
@@ -887,6 +897,8 @@ class SettingsChat {
 
     fun encode(): JsonObject = encodeContainer {
         encode("fontSize", fontSize)
+        encode("fontFamily", font.family)
+        encode("fontStyle", font.style)
         encode("usernameColor", usernameColor)
         encode("sameUsernameColor", sameUsernameColor)
         encode("messageColor", messageColor)
@@ -918,6 +930,7 @@ class SettingsChat {
         encode("textToSpeechSubscribersOnly", textToSpeechSubscribersOnly)
         encode("textToSpeechFilter", textToSpeechFilter)
         encode("textToSpeechFilterMentions", textToSpeechFilterMentions)
+        encode("textToSpeechBluetoothSpeakerOnly", textToSpeechBluetoothSpeakerOnly)
         encode("ttsMonster", ttsMonster)
         encode("mirrored", mirrored)
         encode("botEnabled", botEnabled)

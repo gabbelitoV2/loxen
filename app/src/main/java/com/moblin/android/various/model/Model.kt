@@ -793,6 +793,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var latestVolumeChangeSequenceNumber: Int? = null
     val volumeView: Any? = null
     var latestSetVolumeTime = Instant.now()
+    var isBluetoothAudioOutput = false
     private var appStoreUpdateListenerTask: Job? = null
     var products: MutableMap<String, Any> = mutableMapOf()
     var streamTotalBytes: Long = 0
@@ -1306,6 +1307,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         addObserver("UIApplication.willResignActiveNotification", "handleApplicationDidChangeActive")
         addObserver("UIApplication.didBecomeActiveNotification", "handleApplicationDidChangeActive")
         addObserver("AVAudioSession.routeChangeNotification", "handleAudioRouteChange")
+        updateIsBluetoothAudioOutput()
         addObserver(
             "UIApplication.didEnterBackgroundNotification",
             "handleApplicationDidEnterBackground",

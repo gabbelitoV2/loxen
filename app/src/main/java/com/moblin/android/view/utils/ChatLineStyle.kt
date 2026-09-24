@@ -9,6 +9,7 @@ import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.network.getHttpsUrl
 import com.moblin.android.various.settings.SettingsChatDisplayStyle
 import com.moblin.android.various.settings.SettingsChatNicknames
+import com.moblin.android.various.settings.SettingsFont
 
 val chatEmoteScale: Float = 1.5f
 
@@ -36,6 +37,7 @@ data class ChatLineStyle(
     var displayStyle: SettingsChatDisplayStyle = SettingsChatDisplayStyle.username,
     var fontWeight: FontWeight = FontWeight.Normal,
     var fontDesign: FontDesign = FontDesign.Default,
+    var font: SettingsFont = SettingsFont(),
 ) {
     fun content(items: MutableList<ChatLineItem>, topAligned: Boolean = false): ChatLineContent {
         return ChatLineContent(
@@ -48,6 +50,7 @@ data class ChatLineStyle(
             topAligned = topAligned,
             fontWeight = fontWeight,
             fontDesign = fontDesign,
+            font = font,
         )
     }
 

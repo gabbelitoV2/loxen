@@ -111,6 +111,7 @@ private fun makeChatLineStyle(chat: SettingsChat): ChatLineStyle =
         linkify = true,
         nicknames = chat.nicknames,
         displayStyle = chat.displayStyle,
+        font = chat.font,
     )
 
 @Composable

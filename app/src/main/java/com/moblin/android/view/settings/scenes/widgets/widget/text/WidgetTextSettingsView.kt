@@ -47,6 +47,7 @@ import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Sheet
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.Visibility
+import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.Model
@@ -81,6 +82,7 @@ import com.moblin.android.videoeffects.text.textEffectFullDateFormatter
 import com.moblin.android.videoeffects.text.textEffectShortTimeFormat
 import com.moblin.android.videoeffects.text.textEffectTimeFormat
 import com.moblin.android.view.settings.streams.stream.GrayTextView
+import com.moblin.android.view.utils.FontSettingsView
 import com.moblin.android.view.utils.MultiLineTextFieldDoneButtonView
 import com.moblin.android.view.utils.MultiLineTextFieldView
 import com.moblin.android.view.utils.RgbColorPickerView
@@ -1586,107 +1588,6 @@ fun TextWidgetSuggestionsView(
 }
 
 @Composable
-private fun FontFamilyPickerView(
-    model: Model = LocalModel.current,
-    widget: SettingsWidget,
-    text: SettingsWidgetText,
-) {
-    var fontFamilies by remember { mutableStateOf(listOf<String>()) }
-
-    fun selectFamily(family: String?) {
-        text.fontFamily = family
-        if (family != null) {
-            text.fontStyle = fontStyles(fontFamily = family).firstOrNull() ?: ""
-        }
-        for (effect in model.getTextEffects(id = widget.id)) {
-            effect.setFontFamily(family = text.fontFamily)
-            effect.setFontStyle(style = text.fontStyle)
-        }
-        model.remoteSceneSettingsUpdated()
-    }
-
-    LaunchedEffect(Unit) {
-        if (fontFamilies.isEmpty()) {
-            fontFamilies = loadFontFamilies()
-        }
-    }
-    Form(title = localized("Family")) {
-        Section {
-            FormRow(onClick = { selectFamily(null) }) {
-                Text(localized("System"))
-                Spacer(Modifier.weight(1f))
-                if (text.fontFamily == null) {
-                    SystemImage(name = "checkmark", fontSize = 17.sp, modifier = Modifier, tint = LocalTint.current)
-                }
-            }
-            fontFamilies.forEach { family ->
-                FormRow(onClick = { selectFamily(family) }) {
-                    Text(family)
-                    Spacer(Modifier.weight(1f))
-                    if (text.fontFamily == family) {
-                        SystemImage(
-                            name = "checkmark",
-                            fontSize = 17.sp,
-                            modifier = Modifier,
-                            tint = LocalTint.current,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-private fun loadFontFamilies(): List<String> =
-    emptyList()
-
-fun fontStyleName(family: String, fontName: String): String {
-    val prefix = family.replace(" ", "")
-    val name = fontName.replace("-", "")
-    if (name.startsWith(prefix)) {
-        val suffix = name.drop(prefix.length)
-        return if (suffix.isEmpty()) "Regular" else suffix
-    }
-    return fontName
-}
-
-private fun fontStyles(fontFamily: String): List<String> =
-    emptyList()
-
-@Composable
-private fun FontStylePickerView(
-    model: Model = LocalModel.current,
-    widget: SettingsWidget,
-    text: SettingsWidgetText,
-    fontFamily: String,
-) {
-    Form(title = localized("Style")) {
-        Section {
-            fontStyles(fontFamily = fontFamily).forEach { style ->
-                FormRow(onClick = {
-                    text.fontStyle = style
-                    for (effect in model.getTextEffects(id = widget.id)) {
-                        effect.setFontStyle(style = text.fontStyle)
-                    }
-                    model.remoteSceneSettingsUpdated()
-                }) {
-                    Text(fontStyleName(family = fontFamily, fontName = style))
-                    Spacer(Modifier.weight(1f))
-                    if (text.fontStyle == style) {
-                        SystemImage(
-                            name = "checkmark",
-                            fontSize = 17.sp,
-                            modifier = Modifier,
-                            tint = LocalTint.current,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun WidgetTextSettingsView(
     model: Model = LocalModel.current,
     widget: SettingsWidget,
@@ -1871,31 +1772,16 @@ fun WidgetTextSettingsView(
             )
             Text(text.fontSizeFloat.toInt().toString(), modifier = Modifier.width(35.dp))
         }
-        NavigationLink(destination = {
-            FontFamilyPickerView(model = model, widget = widget, text = text)
-        }) {
-            Text(localized("Family"))
-            Spacer(Modifier.weight(1f))
-            GrayTextView(text = text.fontFamilyString())
-        }
-        val fontFamily = text.fontFamily
-        if (fontFamily != null) {
-            NavigationLink(
-                enabled = fontStyles(fontFamily = fontFamily).size != 1,
-                destination = {
-                    FontStylePickerView(
-                        model = model,
-                        widget = widget,
-                        text = text,
-                        fontFamily = fontFamily,
-                    )
-                },
-            ) {
-                Text(localized("Style"))
-                Spacer(Modifier.weight(1f))
-                GrayTextView(text = text.fontStyleString())
-            }
-        } else {
+        FontSettingsView(
+            font = binding({ text.font }, { text.font = it }),
+            onChange = {
+                for (effect in model.getTextEffects(id = widget.id)) {
+                    effect.setFont(font = text.font)
+                }
+                model.remoteSceneSettingsUpdated()
+            },
+        )
+        if (text.font.family == null) {
             Picker(
                 title = localized("Design"),
                 selection = text.fontDesign,

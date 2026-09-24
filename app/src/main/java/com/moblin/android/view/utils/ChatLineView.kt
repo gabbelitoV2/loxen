@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.viewinterop.AndroidView
+import com.moblin.android.various.settings.SettingsFont
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -74,6 +75,7 @@ data class ChatLineContent(
     var topAligned: Boolean = false,
     var fontWeight: FontWeight = FontWeight.Normal,
     var fontDesign: FontDesign = FontDesign.Default,
+    var font: SettingsFont = SettingsFont(),
 )
 
 private const val strikethroughKey = "moblinChatLineStrikethrough"
@@ -155,16 +157,21 @@ private class ChatLineLayout(
     val metrics: List<ImageRunMetrics>,
 )
 
-private fun makeFont(content: ChatLineContent, style: ChatLineTextStyle): Typeface {
+private fun makeBaseFont(content: ChatLineContent, bold: Boolean = false): Typeface {
+    val family = content.font.family
+    if (family != null) {
+        val name = content.font.name()
+        if (name != null) {
+            return Typeface.create(name, Typeface.NORMAL)
+        }
+        return Typeface.create(family, Typeface.NORMAL)
+    }
+    val typefaceStyle = if (bold || content.fontWeight.weight >= 600) Typeface.BOLD else Typeface.NORMAL
     val familyName = when (content.fontDesign) {
         FontDesign.Default -> null
         FontDesign.Serif -> "serif"
         FontDesign.Rounded -> "sans-serif-rounded"
         FontDesign.Monospaced -> "monospace"
-    }
-    var typefaceStyle = if (style.bold || content.fontWeight.weight >= 600) Typeface.BOLD else Typeface.NORMAL
-    if (style.italic) {
-        typefaceStyle = typefaceStyle or Typeface.ITALIC
     }
     return if (familyName != null) {
         Typeface.create(familyName, typefaceStyle)
@@ -173,11 +180,26 @@ private fun makeFont(content: ChatLineContent, style: ChatLineTextStyle): Typefa
     }
 }
 
+private fun makeFont(content: ChatLineContent, style: ChatLineTextStyle): Typeface {
+    val typeface = makeBaseFont(content = content, bold = style.bold)
+    var typefaceStyle = Typeface.NORMAL
+    if (style.italic) {
+        typefaceStyle = typefaceStyle or Typeface.ITALIC
+    }
+    if (style.bold && (content.font.family != null || style.italic)) {
+        typefaceStyle = typefaceStyle or Typeface.BOLD
+    }
+    if (typefaceStyle == Typeface.NORMAL) {
+        return typeface
+    }
+    return Typeface.create(typeface, typefaceStyle)
+}
+
 private fun makeLayout(content: ChatLineContent, availableWidth: Float): ChatLineLayout {
     val sizesVersion = EmotesPlayer.shared.sizesVersion.value
     val basePaint = TextPaint()
     basePaint.isAntiAlias = true
-    basePaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+    basePaint.typeface = makeBaseFont(content = content)
     basePaint.textSize = content.fontSize
     val fontMetrics = basePaint.fontMetrics
     val fontAscent = -fontMetrics.ascent

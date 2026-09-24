@@ -12,16 +12,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.moblin.android.LocalModel
 import com.moblin.android.common.various.RgbColor
+import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.FormSlider
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsChatDisplayStyle
 import com.moblin.android.various.settings.SettingsWidget
 import com.moblin.android.various.settings.SettingsWidgetChat
 import com.moblin.android.view.settings.chat.sliderValuePercentageWidth
+import com.moblin.android.view.utils.FontSettingsView
 import com.moblin.android.view.utils.RgbColorPickerView
 import com.moblin.android.various.model.getChatEffect
 
@@ -38,9 +41,9 @@ fun WidgetChatSettingsView(
 
     val showAllSettings = database.showAllSettings
 
-    Section {
+    Section(header = "Font") {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Font size", fontSize = 17.sp)
+            Text(localized("Size"), fontSize = 17.sp)
             FormSlider(
                 value = chat.fontSize.toFloat(),
                 onValueChange = {
@@ -57,6 +60,31 @@ fun WidgetChatSettingsView(
                 fontSize = 17.sp,
             )
         }
+        if (showAllSettings) {
+            val font = binding(get = { chat.font }, set = { chat.font = it })
+            FontSettingsView(
+                font = font,
+                onChange = { setEffectSettings() },
+            )
+            Toggle(
+                title = "Bold name",
+                isOn = chat.boldUsername,
+                onChange = {
+                    chat.boldUsername = it
+                    setEffectSettings()
+                },
+            )
+            Toggle(
+                title = "Bold message",
+                isOn = chat.boldMessage,
+                onChange = {
+                    chat.boldMessage = it
+                    setEffectSettings()
+                },
+            )
+        }
+    }
+    Section(header = "General") {
         Picker(
             title = "Messages",
             selection = chat.maximumNumberOfMessages,
@@ -68,7 +96,7 @@ fun WidgetChatSettingsView(
             },
         )
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Height", fontSize = 17.sp)
+            Text(localized("Height"), fontSize = 17.sp)
             FormSlider(
                 value = chat.height.toFloat(),
                 onValueChange = {
@@ -92,22 +120,6 @@ fun WidgetChatSettingsView(
                 text = { it.toString() },
                 onChange = {
                     chat.displayStyle = it
-                    setEffectSettings()
-                },
-            )
-            Toggle(
-                title = "Bold name",
-                isOn = chat.boldUsername,
-                onChange = {
-                    chat.boldUsername = it
-                    setEffectSettings()
-                },
-            )
-            Toggle(
-                title = "Bold message",
-                isOn = chat.boldMessage,
-                onChange = {
-                    chat.boldMessage = it
                     setEffectSettings()
                 },
             )

@@ -972,21 +972,25 @@ def main():
 
     commit = git_head(root)
 
+    kotlin_before = {}
+
     def work(entry):
+        target = out_dir / entry["kotlin_path"]
+        before = target.read_text(encoding="utf-8", errors="replace") if target.exists() else None
         try:
             result = port_one(
                 backend, entry, root, out_dir, by_path, system, tiers,
                 previous=state.get(entry["path"]), incremental=args.incremental, commit=commit,
             )
-            return entry, result, None
+            return entry, result, None, before
         except Exception as exc:
-            return entry, None, str(exc)
+            return entry, None, str(exc), before
 
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         futures = [pool.submit(work, entry) for entry in todo]
         try:
             for future in as_completed(futures):
-                entry, result, error = future.result()
+                entry, result, error, before = future.result()
                 with lock:
                     finished += 1
                     if error:
@@ -1001,6 +1005,8 @@ def main():
                         print(f"[{finished}/{len(todo)}] FAIL {entry['path']}: {error}")
                     else:
                         state[entry["path"]] = result
+                        if result["mode"] == "incremental" and before is not None:
+                            kotlin_before[out_dir / entry["kotlin_path"]] = before
                         extra = f", WARNING {result['warning']}" if result.get("warning") else ""
                         print(
                             f"[{finished}/{len(todo)}] ok   {entry['path']} -> {entry['kotlin_path']} "
@@ -1017,7 +1023,7 @@ def main():
     written = [out_dir / e["kotlin_path"] for e in todo if state.get(e["path"], {}).get("status") == "ok"]
     if written and not args.no_postprocess:
         print(f"\npostprocessing the {len(written)} files written")
-        postprocess.run(False, only=written)
+        postprocess.run(False, only=written, before=kotlin_before)
     write_report(out_dir, inventory, state)
     ok = sum(1 for e in todo if state.get(e["path"], {}).get("status") == "ok")
     print(f"\ndone: {ok} ok, {len(todo) - ok} failed. Report: {out_dir / 'PORT-REPORT.md'}")

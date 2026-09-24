@@ -3,6 +3,7 @@ package com.moblin.android.videoeffects
 import com.moblin.android.isEqual
 import com.moblin.android.localized
 import com.moblin.android.platform.simd.SIMD3
+import com.moblin.android.platform.simd.SIMD4
 import com.moblin.android.platform.swiftcube.SC3DLut
 import com.moblin.android.platform.swiftcube.SwiftCubeError
 import com.moblin.android.platform.uikit.UIImage
@@ -30,6 +31,18 @@ private fun makeLut(dimension: Int, function: (SIMD3) -> SIMD3): List<SIMD3> {
         }
     }
     return lut
+}
+
+private fun makeCubeData(dimension: Int, function: (SIMD3) -> SIMD3): ByteArray {
+    val cube = makeLut(dimension, function).map { SIMD4(it.x, it.y, it.z, 1f) }
+    val buffer = ByteBuffer.allocate(cube.size * 16).order(ByteOrder.LITTLE_ENDIAN)
+    for (value in cube) {
+        buffer.putFloat(value.x)
+        buffer.putFloat(value.y)
+        buffer.putFloat(value.z)
+        buffer.putFloat(value.w)
+    }
+    return buffer.array()
 }
 
 private fun makeCubeFile(dimension: Int, function: (SIMD3) -> SIMD3): ByteArray {
@@ -66,6 +79,10 @@ private fun entry(lut: SC3DLut, red: Int, green: Int, blue: Int): SIMD3 {
     return SIMD3(entry.red, entry.green, entry.blue)
 }
 
+private fun sampler(lut: List<SIMD3>, dimension: Int): (Int, Int, Int) -> SIMD3 {
+    return { red, green, blue -> lut[(blue * dimension + green) * dimension + red] }
+}
+
 private fun entry(cubeData: ByteArray, dimension: Int, red: Int, green: Int, blue: Int): SIMD3 {
     val index = 4 * ((blue * dimension + green) * dimension + red)
     val cube = ByteBuffer.wrap(cubeData).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
@@ -81,8 +98,8 @@ class LutEffectSuite {
         for (blue in 0 until dimension) {
             for (green in 0 until dimension) {
                 for (red in 0 until dimension) {
-                    val point = SIMD3(blue.toFloat(), green.toFloat(), red.toFloat()) / (dimension - 1).toFloat()
-                    val value = interpolate3d(point, lut, dimension)
+                    val point = SIMD3(red.toFloat(), green.toFloat(), blue.toFloat()) / (dimension - 1).toFloat()
+                    val value = interpolate3d(point, dimension, sampler(lut, dimension))
                     assertTrue(isEqual(value, lut[blue * dimension * dimension + green * dimension + red]))
                 }
             }
@@ -99,48 +116,47 @@ class LutEffectSuite {
             SIMD3(0.75f, 0f, 1f),
             SIMD3(0.99f, 0.01f, 0.4f),
         )) {
-            val value = interpolate3d(point, lut, dimension)
-            assertTrue(isEqual(value, linear(SIMD3(point.z, point.y, point.x))))
+            val value = interpolate3d(point, dimension, sampler(lut, dimension))
+            assertTrue(isEqual(value, linear(point)))
         }
     }
 
     @Test
     fun interpolate3dClampsOutOfRangeInput() {
-        val lut = makeLut(4, ::identity)
-        assertTrue(isEqual(interpolate3d(SIMD3(-1f, -0.5f, -10f), lut, 4), SIMD3(0f, 0f, 0f)))
-        assertTrue(isEqual(interpolate3d(SIMD3(1.5f, 2f, 100f), lut, 4), SIMD3(1f, 1f, 1f)))
+        val lut = sampler(makeLut(4, ::identity), 4)
+        assertTrue(isEqual(interpolate3d(SIMD3(-1f, -0.5f, -10f), 4, lut), SIMD3(0f, 0f, 0f)))
+        assertTrue(isEqual(interpolate3d(SIMD3(1.5f, 2f, 100f), 4, lut), SIMD3(1f, 1f, 1f)))
     }
 
     @Test
-    fun convertIdentityLutTo64() {
-        val lut64 = convertLutTo64(makeLut(65, ::identity), 65)
-        assertEquals(64 * 64 * 64, lut64.size)
-        for ((actual, expected) in lut64.zip(makeLut(64, ::identity))) {
-            assertTrue(isEqual(actual, expected))
-        }
-    }
-
-    @Test
-    fun convertLutTo64KeepsChannelOrder() {
-        val lut64 = convertLutTo64(makeLut(96, ::linear), 96)
-        for ((actual, expected) in lut64.zip(makeLut(64, ::linear))) {
-            assertTrue(isEqual(actual, expected))
+    fun makeBigLutCubeKeepsChannelOrder() {
+        val (dimension, cubeData) = makeLutCube(
+            96,
+            sampler(makeLut(96, ::linear), 96),
+        )
+        assertEquals(64f, dimension)
+        assertEquals(64 * 64 * 64 * 4 * 4, cubeData.size)
+        for (blue in 0 until 64) {
+            for (green in 0 until 64) {
+                for (red in 0 until 64) {
+                    val actual = entry(cubeData, dimension = 64, red = red, green = green, blue = blue)
+                    val expected = linear(SIMD3(red.toFloat(), green.toFloat(), blue.toFloat()) / 63f)
+                    assertTrue(isEqual(actual, expected))
+                }
+            }
         }
     }
 
     @Test
     fun convertCubeFile() {
-        val lut = lutEffectConvertCube(makeCubeFile(3, ::swapRedAndBlue))
-        assertEquals(3, lut.size)
-        assertEquals(27, lut.entries.size)
-        assertTrue(isEqual(entry(lut, 0, 0, 0), SIMD3(0f, 0f, 0f)))
-        assertTrue(isEqual(entry(lut, 2, 0, 0), SIMD3(0f, 0f, 1f)))
-        assertTrue(isEqual(entry(lut, 0, 1, 0), SIMD3(0f, 0.5f, 0f)))
-        assertTrue(isEqual(entry(lut, 0, 0, 2), SIMD3(1f, 0f, 0f)))
-        assertTrue(isEqual(entry(lut, 2, 2, 2), SIMD3(1f, 1f, 1f)))
-        val cubeData = makeCubeData(lut.entries)
+        val (dimension, cubeData) = lutEffectConvertCube(makeCubeFile(3, ::swapRedAndBlue))
+        assertEquals(3f, dimension)
         assertEquals(27 * 4 * 4, cubeData.size)
+        assertTrue(isEqual(entry(cubeData, dimension = 3, red = 0, green = 0, blue = 0), SIMD3(0f, 0f, 0f)))
         assertTrue(isEqual(entry(cubeData, dimension = 3, red = 2, green = 0, blue = 0), SIMD3(0f, 0f, 1f)))
+        assertTrue(isEqual(entry(cubeData, dimension = 3, red = 0, green = 1, blue = 0), SIMD3(0f, 0.5f, 0f)))
+        assertTrue(isEqual(entry(cubeData, dimension = 3, red = 0, green = 0, blue = 2), SIMD3(1f, 0f, 0f)))
+        assertTrue(isEqual(entry(cubeData, dimension = 3, red = 2, green = 2, blue = 2), SIMD3(1f, 1f, 1f)))
         val cube = ByteBuffer.wrap(cubeData).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
         for (index in 3 until cube.capacity() step 4) {
             assertTrue(cube[index] == 1f)
@@ -149,12 +165,17 @@ class LutEffectSuite {
 
     @Test
     fun convertBigCubeFileTo64() {
-        val lut = lutEffectConvertCube(makeCubeFile(65, ::linear))
-        assertEquals(64, lut.size)
-        assertEquals(64 * 64 * 64, lut.entries.size)
-        assertTrue(isEqual(entry(lut, 0, 0, 0), linear(SIMD3(0f, 0f, 0f))))
-        assertTrue(isEqual(entry(lut, 63, 0, 0), linear(SIMD3(1f, 0f, 0f))))
-        assertTrue(isEqual(entry(lut, 21, 42, 63), linear(SIMD3(21f / 63f, 42f / 63f, 1f))))
+        val (dimension, cubeData) = lutEffectConvertCube(makeCubeFile(65, ::linear))
+        assertEquals(64f, dimension)
+        assertEquals(64 * 64 * 64 * 4 * 4, cubeData.size)
+        assertTrue(isEqual(entry(cubeData, dimension = 64, red = 0, green = 0, blue = 0), linear(SIMD3(0f, 0f, 0f))))
+        assertTrue(isEqual(entry(cubeData, dimension = 64, red = 63, green = 0, blue = 0), linear(SIMD3(1f, 0f, 0f))))
+        assertTrue(
+            isEqual(
+                entry(cubeData, dimension = 64, red = 21, green = 42, blue = 63),
+                linear(SIMD3(21f / 63f, 42f / 63f, 1f)),
+            ),
+        )
     }
 
     @Test
@@ -225,8 +246,7 @@ class LutEffectSuite {
     @Test
     fun lutImageRoundTrip() {
         val dimension = 8
-        val original = lutEffectConvertCube(makeCubeFile(dimension, ::linear))
-        val cubeData = makeCubeData(original.entries)
+        val (_, cubeData) = lutEffectConvertCube(makeCubeFile(dimension, ::linear))
         val cgImage = assertNotNull(makeLutCgImage(dimension = dimension, cubeData = cubeData))
         assertEquals(dimension * dimension, cgImage.width)
         assertEquals(dimension, cgImage.height)
@@ -242,7 +262,7 @@ class LutEffectSuite {
                         green = green,
                         blue = blue,
                     )
-                    val expected = entry(original, red = red, green = green, blue = blue)
+                    val expected = entry(cubeData, dimension = dimension, red = red, green = green, blue = blue)
                     assertTrue(isEqual(actual, expected, 0.6f / 255f))
                 }
             }
@@ -252,9 +272,8 @@ class LutEffectSuite {
     @Test
     fun convertBigPngLutTo64() {
         val dimension = 65
-        val original = SC3DLut(fileData = makeCubeFile(dimension, ::linear))
         val cgImage = assertNotNull(
-            makeLutCgImage(dimension = dimension, cubeData = makeCubeData(original.entries)),
+            makeLutCgImage(dimension = dimension, cubeData = makeCubeData(dimension, ::linear)),
         )
         val (convertedDimension, convertedData) = lutEffectConvertLut(cgImage)
         assertEquals(64f, convertedDimension)

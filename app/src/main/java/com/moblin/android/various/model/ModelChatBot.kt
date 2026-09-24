@@ -172,6 +172,9 @@ private fun Model.handleChatBotMessageTtsSay(command: ChatBotCommand) {
         permissions = database.chat.botCommandPermissions.tts,
         command = command,
         onCompleted = {
+            if (!isTextToSpeechOutputAllowed()) {
+                return@executeIfUserAllowedToUseChatBot
+            }
             val user = command.user() ?: "Unknown"
             chatTextToSpeech.say(
                 messageId = null,

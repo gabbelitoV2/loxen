@@ -47,7 +47,6 @@ import com.moblin.android.videoeffects.VideoSourceEffectSettings
 import com.moblin.android.videoeffects.WhirlpoolEffect
 import com.moblin.android.videoeffects.dewarp360.Dewarp360Effect
 import com.moblin.android.videoeffects.dewarp360.Dewarp360EffectSettings
-import com.moblin.android.view.settings.scenes.widgets.widget.text.fontStyleName
 import java.time.Duration
 import java.time.Instant
 import java.util.UUID
@@ -68,6 +67,7 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.serializer
 import com.moblin.android.various.model.getLogLutById
+import com.moblin.android.view.utils.fontStyleName
 
 private fun RgbColor.color(): Color = Color(
     red = red.toFloat() / 255.0f,
@@ -624,6 +624,29 @@ class SettingsVideoEffect(
     }
 }
 
+data class SettingsFont(
+    val family: String? = null,
+    val style: String = ""
+) {
+    fun name(): String? {
+        if (family == null) {
+            return null
+        }
+        return if (style.isEmpty()) family else style
+    }
+
+    fun familyString(): String = family ?: localized("System")
+
+    fun styleString(): String {
+        val family = family
+        return if (family != null) {
+            fontStyleName(family = family, fontName = style)
+        } else {
+            ""
+        }
+    }
+}
+
 @Serializable
 enum class SettingsFontDesign(val rawValue: String) {
     @SerialName("Default") `default`("Default"),
@@ -965,8 +988,7 @@ class SettingsWidgetText(
     var foregroundColor: RgbColor = RgbColor(red = 255, green = 255, blue = 255),
     var clearForegroundColor: Boolean = false,
     var fontSize: Int = 30,
-    fontFamily: String? = null,
-    fontStyle: String = "",
+    font: SettingsFont = SettingsFont(),
     fontDesign: SettingsFontDesign = SettingsFontDesign.`default`,
     fontWeight: SettingsFontWeight = SettingsFontWeight.regular,
     fontMonospacedDigits: Boolean = false,
@@ -992,8 +1014,7 @@ class SettingsWidgetText(
     var backgroundColorColor: Color by Published(backgroundColor.color())
     var foregroundColorColor: Color by Published(foregroundColor.color())
     var fontSizeFloat: Float by Published(fontSize.toFloat())
-    var fontFamily: String? by Published(fontFamily)
-    var fontStyle: String by Published(fontStyle)
+    var font: SettingsFont by Published(font)
     var fontDesign: SettingsFontDesign by Published(fontDesign)
     var fontWeight: SettingsFontWeight by Published(fontWeight)
     var fontMonospacedDigits: Boolean by Published(fontMonospacedDigits)
@@ -1017,8 +1038,8 @@ class SettingsWidgetText(
         encode("foregroundColor", foregroundColor)
         encode("clearForegroundColor", clearForegroundColor)
         encode("fontSize", fontSize)
-        encode("fontFamily", fontFamily)
-        encode("fontStyle", fontStyle)
+        encode("fontFamily", font.family)
+        encode("fontStyle", font.style)
         encode("fontDesign", fontDesign)
         encode("fontWeight", fontWeight)
         encode("fontMonospacedDigits", fontMonospacedDigits)
@@ -1062,8 +1083,10 @@ class SettingsWidgetText(
             text.clearForegroundColor = container.decode("clearForegroundColor", false)
             text.fontSize = container.decode("fontSize", 30)
             text.fontSizeFloat = text.fontSize.toFloat()
-            text.fontFamily = container.decode<String?>("fontFamily", null)
-            text.fontStyle = container.decode("fontStyle", "")
+            text.font = text.font.copy(
+                family = container.decode<String?>("fontFamily", null),
+                style = container.decode("fontStyle", "")
+            )
             text.fontDesign = container.decode("fontDesign", SettingsFontDesign.`default`)
             text.fontWeight = container.decode("fontWeight", SettingsFontWeight.regular)
             text.fontMonospacedDigits = container.decode("fontMonospacedDigits", false)
@@ -1116,17 +1139,6 @@ class SettingsWidgetText(
         { it.encode() },
         { decode(it) },
     )
-
-    fun fontFamilyString(): String = fontFamily ?: localized("System")
-
-    fun fontStyleString(): String {
-        val family = fontFamily
-        return if (family != null) {
-            fontStyleName(family = family, fontName = fontStyle)
-        } else {
-            ""
-        }
-    }
 }
 
 @Serializable(with = SettingsWidgetCrop.Serializer::class)
@@ -2361,6 +2373,7 @@ class SettingsWidgetSnapshot(
 class SettingsWidgetChat(
     var id: UUID = UUID.randomUUID(),
     fontSize: Float = 19.0f,
+    font: SettingsFont = SettingsFont(),
     var usernameColor: RgbColor = RgbColor(red = 255, green = 163, blue = 0),
     var messageColor: RgbColor = RgbColor(red = 255, green = 255, blue = 255),
     var backgroundColor: RgbColor = RgbColor(red = 0, green = 0, blue = 0),
@@ -2376,6 +2389,7 @@ class SettingsWidgetChat(
     maximumNumberOfMessages: Int = 5
 ) {
     var fontSize: Float by Published(fontSize)
+    var font: SettingsFont by Published(font)
     var usernameColorColor: Color by Published(usernameColor.color())
     var messageColorColor: Color by Published(messageColor.color())
     var backgroundColorColor: Color by Published(backgroundColor.color())
@@ -2394,6 +2408,8 @@ class SettingsWidgetChat(
     fun encode(): JsonObject = encodeContainer {
         encode("id", id)
         encode("fontSize", fontSize)
+        encode("fontFamily", font.family)
+        encode("fontStyle", font.style)
         encode("usernameColor", usernameColor)
         encode("messageColor", messageColor)
         encode("backgroundColor", backgroundColor)
@@ -2414,6 +2430,10 @@ class SettingsWidgetChat(
             val chat = SettingsWidgetChat()
             chat.id = container.decode("id", UUID.randomUUID())
             chat.fontSize = container.decode("fontSize", 19.0f)
+            chat.font = chat.font.copy(
+                family = container.decode<String?>("fontFamily", null),
+                style = container.decode("fontStyle", "")
+            )
             chat.usernameColor = container.decode("usernameColor", RgbColor(red = 255, green = 163, blue = 0))
             chat.usernameColorColor = chat.usernameColor.color()
             chat.messageColor = container.decode("messageColor", RgbColor(red = 255, green = 255, blue = 255))
@@ -2443,6 +2463,7 @@ class SettingsWidgetChat(
 
     fun update(other: SettingsWidgetChat) {
         fontSize = other.fontSize
+        font = other.font
         usernameColor = other.usernameColor
         usernameColorColor = other.usernameColorColor
         messageColor = other.messageColor

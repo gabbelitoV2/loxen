@@ -32,6 +32,7 @@ import com.moblin.android.view.settings.streams.stream.TtsMonsterLogoAndNameView
 import com.moblin.android.view.utils.TextEditNavigationView
 import com.moblin.android.view.utils.VoicesView
 import com.moblin.android.various.model.Model
+import com.moblin.android.various.model.stopTextToSpeechIfOutputNotAllowed
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsTtsMonster
 import com.moblin.android.various.settings.SettingsVoice
@@ -257,6 +258,20 @@ fun ChatTextToSpeechSettingsView(
                 onChange = { value ->
                     chat.textToSpeechFilterMentions = value
                     model.chatTextToSpeech.setFilterMentions(value)
+                },
+            )
+        }
+        Section(
+            footer = localized(
+                "Only say messages when a Bluetooth speaker or headset is the audio output.",
+            ),
+        ) {
+            Toggle(
+                localized("Bluetooth speaker only"),
+                isOn = chat.textToSpeechBluetoothSpeakerOnly,
+                onChange = { value ->
+                    chat.textToSpeechBluetoothSpeakerOnly = value
+                    model.stopTextToSpeechIfOutputNotAllowed()
                 },
             )
         }

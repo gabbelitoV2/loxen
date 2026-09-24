@@ -1036,12 +1036,13 @@ class StreamCodableSuite {
             SettingsChat.serializer(),
             SettingsChat(),
             """
-            fontSize usernameColor sameUsernameColor messageColor backgroundColor backgroundColorEnabled shadowColor
-            shadowColorEnabled boldUsername boldMessage animatedEmotes timestampColor timestampColorEnabled height
-            width activityFeed activityFeedHeight maximumAge maximumAgeEnabled meInUsernameColor enabled
-            usernamesToIgnore textToSpeechEnabled textToSpeechDefaultLanguage textToSpeechDetectLanguagePerMessage
-            textToSpeechSayUsername textToSpeechRate textToSpeechSayVolume textToSpeechLanguageVoices
-            textToSpeechSubscribersOnly textToSpeechFilter textToSpeechFilterMentions ttsMonster mirrored botEnabled
+            fontSize fontFamily fontStyle usernameColor sameUsernameColor messageColor backgroundColor
+            backgroundColorEnabled shadowColor shadowColorEnabled boldUsername boldMessage animatedEmotes
+            timestampColor timestampColorEnabled height width activityFeed activityFeedHeight maximumAge
+            maximumAgeEnabled meInUsernameColor enabled usernamesToIgnore textToSpeechEnabled
+            textToSpeechDefaultLanguage textToSpeechDetectLanguagePerMessage textToSpeechSayUsername textToSpeechRate
+            textToSpeechSayVolume textToSpeechLanguageVoices textToSpeechSubscribersOnly textToSpeechFilter
+            textToSpeechFilterMentions textToSpeechBluetoothSpeakerOnly ttsMonster mirrored botEnabled
             botCommandPermissions botSendLowBatteryWarning botCommandAi badges showFirstTimeChatterMessage
             showNewFollowerMessage bottomPoints newMessagesAtTop textToSpeechPauseBetweenMessages showDeletedMessages
             aliases customCommands predefinedMessages predefinedMessagesFilter nicknames displayStyle background
@@ -1477,6 +1478,8 @@ class StreamCodableSuite {
         val json = """
             {
               "fontSize": 25.5,
+              "fontFamily": "Georgia",
+              "fontStyle": "Georgia-Bold",
               "usernameColor": {"red": 1, "green": 2, "blue": 3, "opacity": 0.5},
               "sameUsernameColor": true,
               "messageColor": {"red": 4, "green": 5, "blue": 6, "opacity": 1},
@@ -1522,6 +1525,7 @@ class StreamCodableSuite {
               "textToSpeechSubscribersOnly": true,
               "textToSpeechFilter": false,
               "textToSpeechFilterMentions": false,
+              "textToSpeechBluetoothSpeakerOnly": true,
               "ttsMonster": {"apiToken": "token"},
               "mirrored": true,
               "botEnabled": true,
@@ -1565,6 +1569,8 @@ class StreamCodableSuite {
         """.trimIndent()
         assertSwiftJsonRoundTrips(SettingsChat.serializer(), json)
         val chat = decodeJson(SettingsChat.serializer(), json)
+        assertEquals(SettingsFont(family = "Georgia", style = "Georgia-Bold"), chat.font)
+        assertTrue(chat.textToSpeechBluetoothSpeakerOnly)
         assertEquals(RgbColor(red = 7, green = 8, blue = 9, opacity = 0.25), chat.backgroundColor)
         assertEquals(0.3, chat.activityFeedHeight)
         assertTrue(chat.filters[0].print)

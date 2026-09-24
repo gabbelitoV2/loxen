@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE_DIRS = [ROOT / "app/src/main/java", ROOT / "app/src/test/java"]
 KOTLIN_ROOT = ROOT / "app/src/main/java/com/moblin/android"
 HOOKS_DIR = ROOT / "tools/hooks"
+STATE = ROOT / "tools/port-state.json"
 
 BACKING_PAIR_RE = re.compile(
     r"^(?P<indent>[ \t]*)(?:internal |private |public |protected )?val _(?P<name>\w+)(?P<type>\s*:\s*[^=\n]+?)?\s*=\s*"
@@ -284,21 +285,30 @@ CLIP_PADDING_BACKGROUND_RE = re.compile(
 )
 
 
-def modifier_order(text):
+def modifier_order(text, before=None):
     count = 0
+
+    def kept(match):
+        return before is not None and match.group(0) in before
 
     def swap_padding_background(match):
         nonlocal count
+        if kept(match):
+            return match.group(0)
         count += 1
         return ".background(" + match.group(3) + ")" + match.group(2) + ".padding(" + match.group(1) + ")"
 
     def swap_background_clip(match):
         nonlocal count
+        if kept(match):
+            return match.group(0)
         count += 1
         return ".clip(" + match.group(3) + ").background(" + match.group(1) + ")" + match.group(2)
 
     def fix_clip_padding_background(match):
         nonlocal count
+        if kept(match):
+            return match.group(0)
         count += 1
         return ".clip(" + match.group(1) + ").background(" + match.group(3) + ")" + match.group(2)
 
@@ -338,7 +348,7 @@ def robolectric_runner(text):
     return text, n
 
 
-def process_file(text, renamed_names, sources=None, fresh=False):
+def process_file(text, renamed_names, sources=None, fresh=False, before=None, generated=True):
     counts = {}
     package = re.search(r"^package (\S+)$", text, re.M)
     package_name = package.group(1) if package else ""
@@ -368,10 +378,11 @@ def process_file(text, renamed_names, sources=None, fresh=False):
     text, hooks = host_hooks(text)
     counts["hooks"] = hooks
     if fresh and "@Composable" in text:
-        text, modifiers = modifier_order(text)
+        text, modifiers = modifier_order(text, before)
         counts["modifiers"] = modifiers
-    text, runners = robolectric_runner(text)
-    counts["runners"] = runners
+    if generated:
+        text, runners = robolectric_runner(text)
+        counts["runners"] = runners
     return text, counts
 
 
@@ -1010,10 +1021,20 @@ def kotlin_files():
             yield from sorted(directory.rglob("*.kt"))
 
 
-def run(dry_run, only=None, hooks=True, verbose=False):
+def generated_paths():
+    try:
+        state = json.loads(STATE.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return {(ROOT / entry["kotlin_path"]).resolve() for entry in state.values() if entry.get("kotlin_path")}
+
+
+def run(dry_run, only=None, hooks=True, verbose=False, before=None):
     totals = {}
     renamed = set()
     changed_files = 0
+    generated = generated_paths()
+    before = {Path(path).resolve(): text for path, text in (before or {}).items()}
     files = list(kotlin_files())
     sources = {path: path.read_text(encoding="utf-8", errors="replace") for path in files}
     selected = files
@@ -1024,7 +1045,11 @@ def run(dry_run, only=None, hooks=True, verbose=False):
     contents = {path: (sources[path], sources[path]) for path in files}
     for path in selected:
         original = sources[path]
-        text, counts = process_file(original, renamed, sources, fresh=only is not None)
+        resolved = path.resolve()
+        text, counts = process_file(
+            original, renamed, sources, fresh=only is not None, before=before.get(resolved),
+            generated=generated is None or resolved in generated,
+        )
         contents[path] = (original, text)
         for key, value in counts.items():
             totals[key] = totals.get(key, 0) + value

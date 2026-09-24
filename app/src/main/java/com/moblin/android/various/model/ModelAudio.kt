@@ -385,6 +385,8 @@ fun Model.handleAudioRouteChange(notification: Notification) {
 }
 
 private fun Model.handleAudioRouteChange() {
+    updateIsBluetoothAudioOutput()
+    stopTextToSpeechIfOutputNotAllowed()
     if (isMac()) {
         return
     }
@@ -392,6 +394,16 @@ private fun Model.handleAudioRouteChange() {
     val session = AVAudioSession.sharedInstance()
     mic.setInputGainSettable(session.isInputGainSettable)
     mic.setInputGain(session.inputGain)
+}
+
+fun Model.updateIsBluetoothAudioOutput() {
+    isBluetoothAudioOutput = AVAudioSession.sharedInstance().currentRoute.outputs.any {
+        listOf(
+            AVAudioSession.Port.bluetoothA2DP,
+            AVAudioSession.Port.bluetoothHFP,
+            AVAudioSession.Port.bluetoothLE
+        ).contains(it.portType)
+    }
 }
 
 private fun Model.handleSystemVolumeDidChange(volume: Float, reason: String, sequenceNumber: Int) {

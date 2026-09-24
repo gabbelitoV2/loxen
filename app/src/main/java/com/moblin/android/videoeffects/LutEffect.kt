@@ -16,7 +16,7 @@ import com.moblin.android.platform.metalpetal.MTIColorLookupFilter
 import com.moblin.android.platform.metalpetal.MTIImage
 import com.moblin.android.platform.metalpetal.MTKTextureLoader
 import com.moblin.android.platform.simd.SIMD3
-import com.moblin.android.platform.swiftcube.LutEntry
+import com.moblin.android.platform.simd.SIMD4
 import com.moblin.android.platform.swiftcube.SC3DLut
 import com.moblin.android.platform.swiftcube.SwiftCubeError
 import com.moblin.android.platform.uikit.UIImage
@@ -43,7 +43,7 @@ import com.moblin.android.platform.coregraphics.dataProvider
 
 private val loaderQueue = CoroutineScope(Executors.newSingleThreadExecutor().asCoroutineDispatcher())
 
-fun interpolate3d(at: SIMD3, lut: List<SIMD3>, dimension: Int): SIMD3 {
+fun interpolate3d(at: SIMD3, dimension: Int, lut: (Int, Int, Int) -> SIMD3): SIMD3 {
     val point = at
     val maxIndex = (dimension - 1).toFloat()
     val x = min(max(point.x * maxIndex, 0f), maxIndex)
@@ -58,121 +58,97 @@ fun interpolate3d(at: SIMD3, lut: List<SIMD3>, dimension: Int): SIMD3 {
     val xd = x - x0.toFloat()
     val yd = y - y0.toFloat()
     val zd = z - z0.toFloat()
-    val c00 = lut[x0 * dimension * dimension + y0 * dimension + z0] * (1 - xd) +
-        lut[x1 * dimension * dimension + y0 * dimension + z0] * xd
-    val c01 = lut[x0 * dimension * dimension + y0 * dimension + z1] * (1 - xd) +
-        lut[x1 * dimension * dimension + y0 * dimension + z1] * xd
-    val c10 = lut[x0 * dimension * dimension + y1 * dimension + z0] * (1 - xd) +
-        lut[x1 * dimension * dimension + y1 * dimension + z0] * xd
-    val c11 = lut[x0 * dimension * dimension + y1 * dimension + z1] * (1 - xd) +
-        lut[x1 * dimension * dimension + y1 * dimension + z1] * xd
+    val c00 = lut(x0, y0, z0) * (1 - xd) + lut(x1, y0, z0) * xd
+    val c01 = lut(x0, y0, z1) * (1 - xd) + lut(x1, y0, z1) * xd
+    val c10 = lut(x0, y1, z0) * (1 - xd) + lut(x1, y1, z0) * xd
+    val c11 = lut(x0, y1, z1) * (1 - xd) + lut(x1, y1, z1) * xd
     val c0 = c00 * (1 - yd) + c10 * yd
     val c1 = c01 * (1 - yd) + c11 * yd
     return c0 * (1 - zd) + c1 * zd
 }
 
-fun convertLutTo64(bigLut: List<SIMD3>, bigDimension: Int): List<SIMD3> {
-    val newPoints = List(64) { it / (64 - 1).toDouble() }
-    val lut64 = MutableList(64 * 64 * 64) { SIMD3(0f, 0f, 0f) }
-    for (i in 0 until 64) {
-        for (j in 0 until 64) {
-            for (k in 0 until 64) {
-                val point = SIMD3(newPoints[i], newPoints[j], newPoints[k])
-                lut64[i * 64 * 64 + j * 64 + k] = interpolate3d(
-                    at = point,
-                    lut = bigLut,
-                    dimension = bigDimension,
-                )
+fun makeLutCube(dimension: Int, lut: (Int, Int, Int) -> SIMD3): Pair<Float, ByteArray> {
+    val newDimension = min(dimension, 64)
+    val cube = MutableList(newDimension * newDimension * newDimension) { SIMD4.zero }
+    var index = 0
+    for (blue in 0 until newDimension) {
+        for (green in 0 until newDimension) {
+            for (red in 0 until newDimension) {
+                val entry: SIMD3
+                if (newDimension == dimension) {
+                    entry = lut(red, green, blue)
+                } else {
+                    val point = SIMD3(red.toFloat(), green.toFloat(), blue.toFloat()) / (newDimension - 1).toFloat()
+                    entry = interpolate3d(at = point, dimension = dimension, lut = lut)
+                }
+                cube[index] = SIMD4(entry.x, entry.y, entry.z, 1f)
+                index += 1
             }
         }
     }
-    return lut64
+    val values = FloatArray(cube.size * 4)
+    var valueIndex = 0
+    for (entry in cube) {
+        values[valueIndex] = entry.x
+        valueIndex += 1
+        values[valueIndex] = entry.y
+        valueIndex += 1
+        values[valueIndex] = entry.z
+        valueIndex += 1
+        values[valueIndex] = entry.w
+        valueIndex += 1
+    }
+    return Pair(newDimension.toFloat(), lutFloatsToData(values))
 }
 
-fun lutEffectConvertCube(data: ByteArray): SC3DLut {
-    val sc3dLut = SC3DLut(fileData = data)
-    if (sc3dLut.size > 64) {
-        val bigLut = sc3dLut.entries.map { entry -> SIMD3(entry.red, entry.green, entry.blue) }
-        sc3dLut.entries = convertLutTo64(bigLut = bigLut, bigDimension = sc3dLut.size).map { entry ->
-            LutEntry(red = entry.x, green = entry.y, blue = entry.z)
-        }
-        sc3dLut.size = 64
+fun lutEffectConvertCube(data: ByteArray): Pair<Float, ByteArray> {
+    val lut = SC3DLut(fileData = data)
+    val dimension = lut.size
+    return makeLutCube(dimension = dimension) { red, green, blue ->
+        val entry = lut.entries[(blue * dimension + green) * dimension + red]
+        SIMD3(entry.red, entry.green, entry.blue)
     }
-    return sc3dLut
 }
 
 fun lutEffectConvertLut(image: Bitmap): Pair<Float, ByteArray> {
-    val width = image.size.width * image.scale
-    val height = image.size.height * image.scale
-    val dimension = cbrt(width * height).toInt()
-    if (!(dimension > 0 && width.toInt() % dimension == 0 && height.toInt() % dimension == 0)) {
+    val width = (image.size.width * image.scale).toInt()
+    val height = (image.size.height * image.scale).toInt()
+    val dimension = cbrt((width * height).toDouble()).toInt()
+    if (!(dimension > 0 && width % dimension == 0 && height % dimension == 0)) {
         throw LutLoadError(localized("LUT image is not a cube"))
     }
-    if (dimension * dimension * dimension != (width * height).toInt()) {
+    if (dimension * dimension * dimension != width * height) {
         throw LutLoadError(localized("LUT image is not a cube"))
     }
     val cgImage = image.cgImage
     val data = cgImage.dataProvider?.data
-        ?: throw LutLoadError(localized("Failed to get LUT data"))
-    val length = data.size
-    val pixels: FloatArray
-    if (cgImage.bitsPerComponent == 8) {
-        pixels = FloatArray(length) { ((data[it].toInt() and 0xFF) / 255.0).toFloat() }
-    } else if (cgImage.bitsPerComponent == 16) {
-        val count = length / 2
-        pixels = FloatArray(count) {
-            val value = (data[2 * it].toInt() and 0xFF) or ((data[2 * it + 1].toInt() and 0xFF) shl 8)
-            (value / 65535.0).toFloat()
-        }
-    } else {
+        ?: throw LutLoadError(localized("Failed to get LUT pixels"))
+    val bytes = data
+    if (!(cgImage.bitsPerComponent == 8 || cgImage.bitsPerComponent == 16)) {
         throw LutLoadError(localized("LUT image is not 8 or 16 bits per pixel component"))
     }
-    val numberOfPixels = (width * height).toInt()
-    val numberOutputOfComponents = numberOfPixels * 4
-    val cube = FloatArray(numberOutputOfComponents)
     val componentsPerPixel = cgImage.bitsPerPixel / cgImage.bitsPerComponent
     if (!(componentsPerPixel == 3 || componentsPerPixel == 4)) {
         throw LutLoadError(localized("LUT image is not 3 or 4 components per pixel"))
     }
-    val hasAlpha = componentsPerPixel == 4
-    val rows = height.toInt() / dimension
-    val columns = width.toInt() / dimension
-    var cubeIndex = 0
-    for (row in 0 until rows) {
-        for (column in 0 until columns) {
-            for (lr in 0 until dimension) {
-                val rowStrides = width.toInt() * (row * dimension + lr) * componentsPerPixel
-                val columnStrides = column * dimension * componentsPerPixel
-                var index = rowStrides + columnStrides
-                for (n in 0 until dimension) {
-                    cube[cubeIndex] = pixels[index]
-                    cubeIndex += 1
-                    index += 1
-                    cube[cubeIndex] = pixels[index]
-                    cubeIndex += 1
-                    index += 1
-                    cube[cubeIndex] = pixels[index]
-                    cubeIndex += 1
-                    index += 1
-                    if (hasAlpha) {
-                        cube[cubeIndex] = pixels[index]
-                        index += 1
-                    } else {
-                        cube[cubeIndex] = 1.0f
-                    }
-                    cubeIndex += 1
-                }
-            }
+    if (data.size < width * height * cgImage.bitsPerPixel / 8) {
+        throw LutLoadError(localized("Failed to get LUT pixels"))
+    }
+    fun component(index: Int): Float {
+        return if (cgImage.bitsPerComponent == 8) {
+            (bytes[index].toInt() and 0xFF) / 255f
+        } else {
+            val value = (bytes[2 * index].toInt() and 0xFF) or ((bytes[2 * index + 1].toInt() and 0xFF) shl 8)
+            value / 65535f
         }
     }
-    if (dimension <= 64) {
-        return Pair(dimension.toFloat(), lutFloatsToData(cube))
+    val columns = width / dimension
+    return makeLutCube(dimension = dimension) { red, green, blue ->
+        val row = blue / columns * dimension + green
+        val column = blue % columns * dimension + red
+        val index = (row * width + column) * componentsPerPixel
+        SIMD3(component(index), component(index + 1), component(index + 2))
     }
-    val bigLut = (0 until numberOutputOfComponents step 4).map { index ->
-        SIMD3(cube[index], cube[index + 1], cube[index + 2])
-    }
-    val lut64 = convertLutTo64(bigLut = bigLut, bigDimension = dimension)
-    return Pair(64f, makeCubeData(lut64.map { entry -> LutEntry(red = entry.x, green = entry.y, blue = entry.z) }))
 }
 
 fun makeLutCgImage(dimension: Int, cubeData: ByteArray): Bitmap? {
@@ -209,22 +185,6 @@ fun makeLutCgImage(dimension: Int, cubeData: ByteArray): Bitmap? {
 private fun makeLutImage(dimension: Int, cubeData: ByteArray): MTIImage? {
     val cgImage = makeLutCgImage(dimension = dimension, cubeData = cubeData) ?: return null
     return MTIImage(cgImage = cgImage, options = mapOf(MTKTextureLoader.Option.SRGB to false), isOpaque = true)
-}
-
-fun makeCubeData(entries: List<LutEntry>): ByteArray {
-    val cube = FloatArray(entries.size * 4)
-    var index = 0
-    for (entry in entries) {
-        cube[index] = entry.red
-        index += 1
-        cube[index] = entry.green
-        index += 1
-        cube[index] = entry.blue
-        index += 1
-        cube[index] = 1f
-        index += 1
-    }
-    return lutFloatsToData(cube)
 }
 
 class LutEffect : VideoEffect() {
@@ -311,17 +271,15 @@ class LutEffect : VideoEffect() {
     }
 
     private fun loadDiskCubeLut(lut: SettingsColorLut, imageStorage: ImageStorage) {
-        val sc3dLut = lutEffectConvertCube(data = imageStorage.makePath(id = lut.id).readBytes())
-        val filter = sc3dLut.ciFilter()
-        val lutImage = makeLutImage(dimension = sc3dLut.size, cubeData = makeCubeData(sc3dLut.entries))
-        processorPipelineQueue.launch {
-            this@LutEffect.filter = filter
-            filterMetalPetal.inputColorLookupTable = lutImage
-        }
+        loadCube(lutEffectConvertCube(data = imageStorage.makePath(id = lut.id).readBytes()))
     }
 
     private fun loadImageLut(image: Bitmap) {
-        val (dimension, data) = lutEffectConvertLut(image = image)
+        loadCube(lutEffectConvertLut(image = image))
+    }
+
+    private fun loadCube(cube: Pair<Float, ByteArray>) {
+        val (dimension, data) = cube
         val filter = CIFilter.colorCubeWithColorSpace()
         filter.cubeData = data
         filter.cubeDimension = dimension

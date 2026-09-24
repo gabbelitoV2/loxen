@@ -55,6 +55,7 @@ private fun makeChatLineStyle(settings: SettingsWidgetChat): ChatLineStyle {
         highlightDefaultColor = settings.messageColorColor,
         nicknames = settings.nicknames,
         displayStyle = settings.displayStyle,
+        font = settings.font,
     )
 }
 

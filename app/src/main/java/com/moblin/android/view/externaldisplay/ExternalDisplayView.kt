@@ -46,6 +46,7 @@ private fun makeChatLineStyle(chat: SettingsChat): ChatLineStyle {
     val animatedEmotes = chat.animatedEmotes
     val nicknames = chat.nicknames
     val displayStyle = chat.displayStyle
+    val font = chat.font
     return ChatLineStyle(
         fontSize = (3.0 * fontSize).toFloat(),
         timestampColor = if (timestampColorEnabled) Color.Gray else null,
@@ -54,6 +55,7 @@ private fun makeChatLineStyle(chat: SettingsChat): ChatLineStyle {
         animatedEmotes = animatedEmotes,
         nicknames = nicknames,
         displayStyle = displayStyle,
+        font = font,
     )
 }
 

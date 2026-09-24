@@ -178,6 +178,7 @@ class AVAudioSession private constructor() {
     private var newDeviceRouteUid: String? = null
     private var capturePortUid: String? = null
     private var knownInputUids: Set<String>? = null
+    private var knownOutputUids: Set<String>? = null
     private var category = Category.soloAmbient
     private var mode = Mode.default
     private var categoryOptions = 0
@@ -528,6 +529,7 @@ class AVAudioSession private constructor() {
             val audioManager = audioManager() ?: return
             deviceCallbackRegistered = true
             knownInputUids = currentInputUids()
+            knownOutputUids = currentOutputUids()
             audioManager
         }
         try {
@@ -549,13 +551,23 @@ class AVAudioSession private constructor() {
 
     private fun handleDevicesChanged(added: List<AudioDeviceInfo>, removed: List<AudioDeviceInfo>) {
         val uids = currentInputUids()
+        val outputUids = currentOutputUids()
         val reason = synchronized(lock) {
             val previous = knownInputUids ?: emptySet()
             knownInputUids = uids
+            val previousOutputUids = knownOutputUids ?: emptySet()
+            knownOutputUids = outputUids
             val newUids = uids - previous
             val goneUids = previous - uids
             if (newUids.isEmpty() && goneUids.isEmpty()) {
-                return
+                if (outputUids == previousOutputUids) {
+                    return
+                }
+                return@synchronized if ((outputUids - previousOutputUids).isNotEmpty()) {
+                    RouteChangeReason.newDeviceAvailable
+                } else {
+                    RouteChangeReason.oldDeviceUnavailable
+                }
             }
             val newExternalUid = newUids.firstOrNull { it != builtInPortUid }
             val routeUid = newDeviceRouteUid
@@ -576,7 +588,7 @@ class AVAudioSession private constructor() {
         }
         Log.i(
             TAG,
-            "Inputs changed: added ${added.map { describe(it) }} removed ${removed.map { describe(it) }}",
+            "Devices changed: added ${added.map { describe(it) }} removed ${removed.map { describe(it) }}",
         )
         postRouteChange(reason)
     }
@@ -603,6 +615,10 @@ class AVAudioSession private constructor() {
 
     private fun currentInputUids(): Set<String> {
         return listInputPorts().map { it.uid }.toSet()
+    }
+
+    private fun currentOutputUids(): Set<String> {
+        return listOutputPorts().map { it.uid }.toSet()
     }
 
     private fun postRouteChange(reason: Int) {
@@ -707,7 +723,13 @@ class AVAudioSession private constructor() {
                 AudioDeviceInfo.TYPE_BLUETOOTH_SCO -> Port.bluetoothHFP
                 AudioDeviceInfo.TYPE_HDMI -> Port.HDMI
                 AudioDeviceInfo.TYPE_LINE_ANALOG, AudioDeviceInfo.TYPE_LINE_DIGITAL -> Port.lineOut
-                else -> null
+                else -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                    (type == AudioDeviceInfo.TYPE_BLE_HEADSET || type == AudioDeviceInfo.TYPE_BLE_SPEAKER)
+                ) {
+                    Port.bluetoothLE
+                } else {
+                    null
+                }
             }
         }
     }

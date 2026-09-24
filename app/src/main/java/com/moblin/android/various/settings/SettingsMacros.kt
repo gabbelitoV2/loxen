@@ -161,7 +161,7 @@ enum class SettingsMacrosEvent(val rawValue: String) {
     KICK_SUBSCRIPTION("Kick subscription"),
     KICK_GIFT_SUBSCRIPTIONS("Kick gift subscriptions"),
     KICK_REWARD("Kick reward"),
-    KICK_HOST("Kick host"),
+    KICK_RAID("Kick raid"),
     KICK_KICKS("Kick kicks"),
     GO_LIVE("Stream started"),
     END("Stream stopped"),
@@ -182,7 +182,7 @@ enum class SettingsMacrosEvent(val rawValue: String) {
             KICK_SUBSCRIPTION -> localized("Kick subscription")
             KICK_GIFT_SUBSCRIPTIONS -> localized("Kick gift subscriptions")
             KICK_REWARD -> localized("Kick reward")
-            KICK_HOST -> localized("Kick host")
+            KICK_RAID -> localized("Kick raid")
             KICK_KICKS -> localized("Kick kicks")
             GO_LIVE -> localized("Go live")
             END -> localized("End")
@@ -196,7 +196,7 @@ enum class SettingsMacrosEvent(val rawValue: String) {
         return when (this) {
             TWITCH_GIFT_SUBSCRIPTION, KICK_GIFT_SUBSCRIPTIONS -> localized("Minimum subscriptions")
             TWITCH_RESUBSCRIPTION, KICK_SUBSCRIPTION -> localized("Minimum months")
-            TWITCH_RAID, KICK_HOST -> localized("Minimum viewers")
+            TWITCH_RAID, KICK_RAID -> localized("Minimum viewers")
             TWITCH_CHEER -> localized("Minimum bits")
             TWITCH_WATCH_STREAK -> localized("Minimum watch streak")
             KICK_KICKS -> localized("Minimum kicks")
@@ -219,14 +219,6 @@ enum class SettingsMacrosEvent(val rawValue: String) {
             )
             else -> emptyList()
         }
-    }
-
-    fun variablesToString(): String? {
-        val variables = variables()
-        if (variables.isEmpty()) {
-            return null
-        }
-        return variables.joinToString(separator = ", ") { it.toString() }
     }
 
     fun textTitle(): String? {
@@ -262,6 +254,20 @@ enum class MacroVariable(val rawValue: String) {
 
     override fun toString(): String {
         return "{$rawValue}"
+    }
+
+    fun description(): String {
+        return when (this) {
+            TWITCH_FOLLOW_USER -> localized("Name of the user who followed")
+            TWITCH_SUBSCRIPTION_USER -> localized("Name of the user who subscribed")
+            TWITCH_GIFT_SUBSCRIPTION_USER -> localized("Name of the user who gifted subscriptions")
+            TWITCH_RESUBSCRIPTION_USER -> localized("Name of the user who resubscribed")
+            TWITCH_REWARD_USER -> localized("Name of the user who redeemed the reward")
+            TWITCH_WATCH_STREAK_USER -> localized("Name of the user who shared the watch streak")
+            TWITCH_CHEER_USER -> localized("Name of the user who cheered")
+            TWITCH_RAID_CHANNEL_ID -> localized("Id of the raiding channel")
+            TWITCH_RAID_CHANNEL_NAME -> localized("Name of the raiding channel")
+        }
     }
 }
 

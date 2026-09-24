@@ -564,7 +564,7 @@ fun Model.kickPusherStreamHost(event: KickPusherStreamHostEvent) {
         message = text
     )
     macrosEventOccurred(
-        MacroEvent(event = SettingsMacrosEvent.KICK_HOST, amount = event.number_viewers)
+        MacroEvent(event = SettingsMacrosEvent.KICK_RAID, amount = event.number_viewers)
     )
 }
 

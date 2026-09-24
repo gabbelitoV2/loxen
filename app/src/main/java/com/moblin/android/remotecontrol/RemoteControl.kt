@@ -13,6 +13,7 @@ import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.Variables
 import com.moblin.android.various.managers.GForce
 import com.moblin.android.various.settings.SettingsAlignment
+import com.moblin.android.various.settings.SettingsFont
 import com.moblin.android.various.settings.SettingsFontDesign
 import com.moblin.android.various.settings.SettingsFontWeight
 import com.moblin.android.various.settings.SettingsGimbalMotion
@@ -80,6 +81,7 @@ val remoteControlStartStatsFilterAllEnabled = RemoteControlStartStatsFilter(
     gForce = true,
 )
 
+@Serializable
 class RemoteControlStartStatusFilter(
     var topRight: Boolean = true,
 )
@@ -1377,8 +1379,8 @@ data class RemoteControlRemoteSceneSettingsWidgetTypeText(
         foregroundColor = text.foregroundColor,
         clearForegroundColor = text.clearForegroundColor,
         fontSize = text.fontSize,
-        fontFamily = text.fontFamily,
-        fontStyle = text.fontStyle,
+        fontFamily = text.font.family,
+        fontStyle = text.font.style,
         fontDesign = text.fontDesign,
         fontWeight = text.fontWeight,
         fontMonospacedDigits = text.fontMonospacedDigits,
@@ -1394,8 +1396,7 @@ data class RemoteControlRemoteSceneSettingsWidgetTypeText(
         text.foregroundColor = foregroundColor
         text.clearForegroundColor = clearForegroundColor
         text.fontSize = fontSize
-        text.fontFamily = fontFamily ?: ""
-        text.fontStyle = fontStyle ?: ""
+        text.font = SettingsFont(family = fontFamily, style = fontStyle ?: "")
         text.fontDesign = fontDesign
         text.fontWeight = fontWeight
         text.fontMonospacedDigits = fontMonospacedDigits

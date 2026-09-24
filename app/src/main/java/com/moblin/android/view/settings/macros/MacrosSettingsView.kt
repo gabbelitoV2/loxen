@@ -1,5 +1,7 @@
 package com.moblin.android.view.settings.macros
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,18 +31,21 @@ import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.moblin.android.AppDelegate
 import com.moblin.android.LocalModel
 import com.moblin.android.LocalOnNavigate
 import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.localized
 import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.FormRowInfo
 import com.moblin.android.platform.swiftui.FormSlider
 import com.moblin.android.platform.swiftui.LocalTint
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.SwiftUIFonts
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.platform.swiftui.moving
@@ -50,6 +55,7 @@ import com.moblin.android.various.model.remoteControlMacrosStateChanged
 import com.moblin.android.various.model.startMacro
 import com.moblin.android.various.model.stopMacro
 import com.moblin.android.various.settings.Database
+import com.moblin.android.various.settings.MacroVariable
 import com.moblin.android.various.settings.SettingsMacros
 import com.moblin.android.various.settings.SettingsMacrosAction
 import com.moblin.android.various.settings.SettingsMacrosActionFunction
@@ -217,6 +223,32 @@ private fun TextFormatView(
             value = currentValue,
             onChange = { currentValue = it },
         )
+    }
+}
+
+@Composable
+private fun MacroVariableView(
+    model: Model = LocalModel.current,
+    variable: MacroVariable,
+) {
+    FormRow(
+        onClick = {
+            AppDelegate.context.getSystemService(ClipboardManager::class.java)
+                ?.setPrimaryClip(ClipData.newPlainText(null, variable.toString()))
+            model.makeToast(title = localized("Copied ${variable.toString()} to clipboard"))
+        },
+    ) {
+        Column(
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = variable.toString(),
+                style = SwiftUIFonts.system(size = 20f),
+                color = formPalette().accent,
+            )
+            Text(variable.description())
+        }
     }
 }
 
@@ -720,6 +752,27 @@ fun ActionDestinationView(
                     )
                 }
                 null -> {}
+            }
+        }
+        if (action.function == SettingsMacrosActionFunction.WAIT_FOR_EVENT &&
+            action.event.variables().isNotEmpty()
+        ) {
+            Section(
+                header = localized("Variables"),
+                footerContent = {
+                    Text(
+                        localized(
+                            "Variables set by the event. Following actions can use them in text. " +
+                                "Tap a variable to copy it to the clipboard.",
+                        ),
+                    )
+                },
+            ) {
+                action.event.variables().forEach { variable ->
+                    key(variable) {
+                        MacroVariableView(model = model, variable = variable)
+                    }
+                }
             }
         }
     }

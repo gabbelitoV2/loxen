@@ -1517,26 +1517,23 @@
   },
   "Moblin/Various/Storages/AlertMediaStorage.swift": {
     "status": "ok",
-    "sha256": "b286bc5a56cdd897a11c9dad49f1e4cd586a386bcd3089c607acf550b47357e2",
+    "sha256": "d72dd4864d02e024cbc5f98c928fc21fd8eca7f3f8da60d099ce9ba902d98255",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/storages/AlertMediaStorage.kt",
     "notes": [
-      "FileManager has no Android equivalent and is not needed by java.io.File, so the private fileManager property was dropped; its move/remove work is done directly on File objects.",
-      "Swift URL file paths become java.io.File since the values are only used to build and move/delete file paths.",
-      "try? on filesystem operations maps to runCatching { ... } with the result ignored.",
-      "createAndGetDirectory is called positionally to match the file that provides it in com.moblin.android.various.utils.",
-      "alertsStorageDirectory becomes a top-level const val, mirroring the Swift global.",
-      "AlertMediaStorage extends FileStorage via a primary constructor super call instead of the Swift init + super.init pair.",
-      "AlertVideoMediaStorage() is still constructed eagerly, matching the Swift let-property initialiser."
+      "Added the top-level createAlertVideosDirectory() helper translated from the new Swift function.",
+      "AlertVideoMediaStorage keeps its hand-written Kotlin shape (mediasDir field) and now initialises it through createAlertVideosDirectory().",
+      "AlertMediaStorage continues to delegate to a hand-written FileStorage instance since Kotlin has no subclassing of the directory-based storage."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 1736,
-    "tokens_out": 2159,
-    "seconds": 9.2,
-    "ported_at": "2026-09-22T12:39:59+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 29980,
+    "tokens_out": 701,
+    "seconds": 3.8,
+    "ported_at": "2026-09-24T15:39:57+00:00"
   },
   "Moblin/Various/Storages/PngTuberStorage.swift": {
     "status": "ok",
@@ -3554,27 +3551,24 @@
   },
   "Moblin/Various/Model/ModelTextToSpeech.swift": {
     "status": "ok",
-    "sha256": "dbac46df6dd7dac1fe7e681b61f3460faa7973e9133c717e5370f95f5599b035",
+    "sha256": "09f937972e60d063df8a68077a22fb98e4b93b0d7119a04bbda177bc32751721",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelTextToSpeech.kt",
     "notes": [
-      "Swift extension on Model becomes top-level extension functions on Model in the same package; no import for Model is needed.",
-      "The QuickButtonType argument is passed as QuickButtonType.pauseTts; the entry name must match the enum declared alongside the ported QuickButton type.",
-      "guard with three conditions is expanded into three early-return checks so the behaviour stays identical.",
-      "post.filter?.textToSpeech != false is translated directly as a nullable Boolean comparison, preserving the nil-means-enabled semantics.",
-      "post.bits != nil becomes post.bits != null and the message requires a non-null post.user at the end, as in Swift.",
-      "chatTextToSpeech is expected to expose pause, play, setStreamerMentions and sayPreview on the ported text-to-speech controller.",
-      "enabledAlertsEffects is iterated directly; alertEffect.getSettings() and the nested twitch.follows/subscriptions/raids/cheers isTextToSpeechEnabled() calls are kept as-is.",
-      "isTextToSpeechEnabledForAnyAlertWidget is a private top-level model extension so it stays file-private to this translation."
+      "Added the new guard calling isTextToSpeechOutputAllowed() right after the existing filter checks in isTextToSpeechEnabledForMessage, matching the Swift insertion point.",
+      "Added Model.isTextToSpeechOutputAllowed() and Model.stopTextToSpeechIfOutputNotAllowed() between isTextToSpeechEnabledForMessage and the private isTextToSpeechEnabledForAnyAlertWidget, keeping Swift declaration order.",
+      "The Swift guard in stopTextToSpeechIfOutputNotAllowed is written as an early-return if with the negated condition (!textToSpeechEnabled || isTextToSpeechOutputAllowed()).",
+      "The new functions reference database.chat.textToSpeechBluetoothSpeakerOnly and isBluetoothAudioOutput, which are translated verbatim from the Swift source."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2774,
-    "tokens_out": 3439,
-    "seconds": 14.2,
-    "ported_at": "2026-09-22T12:48:32+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 31158,
+    "tokens_out": 1677,
+    "seconds": 6.9,
+    "ported_at": "2026-09-24T15:40:00+00:00"
   },
   "Moblin/Various/Settings/SettingsGimbal.swift": {
     "status": "ok",
@@ -4154,28 +4148,26 @@
   },
   "MoblinTests/Moblin/VideoEffects/LutEffectSuite.swift": {
     "status": "ok",
-    "sha256": "09ebd82c7d8443759338dc7d77ba03e152dc625a248c241691edbbef51082cba",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "cac94e37e9f06df3c0175904627e2ede33525aa04c1a54b6f7bd00f864e1055a",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/videoeffects/LutEffectSuite.kt",
     "notes": [
-      "The Swift Testing suite becomes the JUnit 4 class LutEffectSuite with kotlin.test assertions; the file-private helpers makeLut, makeCubeFile, isEqual, identity, swapRedAndBlue, linear and the two entry overloads stay file-private at the top level.",
-      "Try #require(...) is translated as assertNotNull(...), which returns the non-null value, and each assertion-less Swift statement stays one Kotlin statement.",
-      "renderBigPngLutWithMetalPetal renders through MTIContext/GL, so per the porting notes it is emitted as the separate class LutEffectRenderSuite with @RunWith(AndroidJUnit4::class) and belongs in app/src/androidTest, not in this JVM suite.",
-      "CVPixelBufferCreate is not part of the shim, so the render target is allocated with CVPixelBufferPool(64, 64, kCVPixelFormatType_32BGRA).createPixelBuffer(); kCFAllocatorDefault and the IOSurface attributes dictionary are dropped.",
-      "UIImage(cgImage: bitmap) is the identity on a Bitmap in this port, so it is dropped and the Bitmap is passed to lutEffectConvertLut directly.",
-      "entry(cubeData:dimension:red:green:blue:) reads the little-endian float triple through java.nio.ByteBuffer.order(LITTLE_ENDIAN).asFloatBuffer(), matching Swift's bindMemory(to: Float.self).",
-      "The parseCubeFileFormats literal reproduces the Swift multiline string character for character, including every \\r, \\t and the two trailing spaces on the '+.5' line, and has no trailing newline.",
-      "dither64 has no Kotlin String error type, so the thrown exception is captured and its message compared with localized(\"LUT image is not 3 or 4 components per pixel\") instead of a Swift String error value."
+      "The suite's production API changed: interpolate3d now takes a (Int, Int, Int) -> SIMD3 sampler instead of a List<SIMD3>, makeLutCube(dimension, sampler) is new, and lutEffectConvertCube returns a (dimension, cubeData) pair. Signatures were inferred from the Swift call sites because the dependency listing still shows the previous list-based overloads.",
+      "makeCubeData is now a file-private test helper (dimension + function) that packs SIMD4(x, y, z, 1) as little-endian Float32; it no longer calls the production makeCubeData(entries:).",
+      "sampler(lut, dimension) returns a Kotlin function value (Int, Int, Int) -> SIMD3 indexing lut[(blue * dimension + green) * dimension + red].",
+      "LutEffectSuite.lutEffectConvertCube is assumed to return Pair<Float, ByteArray> (Swift's Int(dimension) proves the dimension is not Int) and makeLutCube is assumed to return Pair<Int, ByteArray>; adjust if the production declarations differ.",
+      "renderBigPngLutWithMetalPetal is left out as instructed; the newly added renderCubeLutWithMetalPetal is left out as well because it also renders with MetalPetal/GL and cannot run under Robolectric, so both live in the hand-written instrumented LutEffectRenderSuite.",
+      "Byte comparisons of cube data keep the existing wrapper of ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 43962,
-    "tokens_out": 33712,
-    "seconds": 113.7,
-    "ported_at": "2026-09-23T20:10:32+00:00"
+    "tokens_in": 57144,
+    "tokens_out": 31681,
+    "seconds": 111.8,
+    "ported_at": "2026-09-24T15:41:44+00:00"
   },
   "MoblinTests/Moblin/StreamingPlatforms/Twitch/TwitchChatSegmentsSuite.swift": {
     "status": "ok",
@@ -6544,32 +6536,6 @@
     "ported_at": "2026-09-22T13:16:17+00:00",
     "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   },
-  "Moblin/VideoEffects/Blur/BlurKernel.swift": {
-    "status": "ok",
-    "sha256": "3d3c4b0f7e457720a7a3ee95dbf6b33958a9328d51f8a59210559522ff1a66f6",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/blur/BlurKernel.kt",
-    "notes": [
-      "BlurKernel no longer subclasses CIImageProcessorKernel, because CoreImage has no Android counterpart; it is a plain class with the same static entry point moved to a companion object.",
-      "The Swift `override static func process(...)` becomes `BlurKernel.process(...)` inside a companion object; signature order (inputs, arguments, output) is preserved.",
-      "Metal command buffer, Metal textures and MPSImageGaussianBlur have no Android equivalent, so the GPU work is replaced by TODO(\"OpenGL ES port\") as required by the media tier rules.",
-      "The pure part of the kernel is kept: the `radius` argument is still read from the arguments map and copied into `sigma`, matching `let sigma = radius`.",
-      "Input and output textures are typed as Any? placeholders instead of MTLTexture, since no Android texture type is bound to them yet.",
-      "CoreImage's Metal-backed CIImageProcessorKernel pipeline must be re-implemented as an OpenGL ES (or Vulkan) render pass with a Gaussian blur shader; this file only keeps the parameter surface."
-    ],
-    "unsupported": [
-      "CoreImage CIImageProcessorKernel (process(with:arguments:output:))",
-      "Metal MTLCommandBuffer and MTLTexture",
-      "MetalPerformanceShaders MPSImageGaussianBlur"
-    ],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1965,
-    "tokens_out": 1406,
-    "seconds": 6.3,
-    "ported_at": "2026-09-22T13:16:24+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
   "Moblin/Media/HaishinKit/Extension/VTDecompressionSession+Extension.swift": {
     "status": "ok",
     "sha256": "b31a3ffee2b1f539d109201b3e55d5b3461c00693d71fadf55a8c9d44a3c3849",
@@ -7044,30 +7010,6 @@
     "ported_at": "2026-09-22T13:17:33+00:00",
     "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   },
-  "Moblin/VideoEffects/Blur/BlurFilter.swift": {
-    "status": "ok",
-    "sha256": "1abdca15df42cbc7f4e4ed73eb935b180bd37c38eb754ca392c78c813a7873b3",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/blur/BlurFilter.kt",
-    "notes": [
-      "Core Image's CIFilter has no Android counterpart, so BlurFilter is a plain Kotlin class exposing the same public surface (inputImage, radius, outputImage).",
-      "CIImage is mapped to android.media.Image, the closest available frame type in this port.",
-      "Swift's computed `override var outputImage` becomes a read-only property with a custom getter and identical guard behaviour.",
-      "The CIImage extent based BlurKernel.apply call is not translated: the render body is TODO(\"OpenGL ES port\").",
-      "No state is lost: radius keeps its default of 8 and is stored as Float.",
-      "Downstream callers can keep reading outputImage; only the GPU render step needs an OpenGL ES implementation."
-    ],
-    "unsupported": [
-      "Core Image CIFilter / CIKernel rendering (BlurKernel.apply) - OpenGL ES port"
-    ],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 1915,
-    "tokens_out": 1020,
-    "seconds": 5.1,
-    "ported_at": "2026-09-22T13:17:38+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
   "Moblin/View/Utils/StrokeModifier.swift": {
     "status": "ok",
     "sha256": "a0087f9aea10b322fa63caa0bf738c3247429aced25c8d81e8e4ef57a6502799",
@@ -7222,39 +7164,6 @@
     "tokens_out": 3455,
     "seconds": 14.5,
     "ported_at": "2026-09-22T13:18:06+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
-  },
-  "Moblin/VideoEffects/VTuber/Live2DRenderer.swift": {
-    "status": "ok",
-    "sha256": "4058cfcc3c741f2029e107cb68425a70f1b8ad4f5290a5536a3b97ec51867996",
-    "tier": "media",
-    "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/vtuber/Live2DRenderer.kt",
-    "notes": [
-      "All Metal/CoreVideo-Metal work (device, command queue, shader library, textures, buffers, render pipelines, encoders) has no Android counterpart: bodies are TODO(\"OpenGL ES port\") and the GPU handles are kept as Any placeholders so the needed resources stay visible.",
-      "The Metal Shading Language source is kept verbatim in shaderSource as reference material; translating it to GLSL/Vulkan is manual work (no shaders were written).",
-      "init?(model:) becomes companion create(model: AyagamiModel): Live2DRenderer?; the pure model work (art-mesh list, clip-set de-duplication by clip list, vertex uniform math) is fully translated and runs before the GPU TODO.",
-      "render(model:into:) takes android.media.Image in place of CVPixelBuffer (CVPixelBuffer -> android.media.Image).",
-      "SIMD2<Float>/SIMD3<Float> become FloatArray and the uniform vector math is written component-wise.",
-      "UInt32 mesh uids of AyagamiModel are mapped to Int, and the Ayagami port is imported from com.moblin.android.ayagami (no glossary was supplied, so that package is assumed).",
-      "logger.info calls disappear together with their error paths: the only logging sites are inside the TODO'd GPU setup (shader compilation, texture loading, pipeline creation).",
-      "makePipeline/makeMaskPipeline keep their signatures but their blend-factor tables (Metal specific) are TODO'd; the blend mode enum is still used as the pipeline cache key."
-    ],
-    "unsupported": [
-      "MTLCreateSystemDefaultDevice / MTLDevice",
-      "MTLCommandQueue and command buffers",
-      "MTLLibrary.makeLibrary(source:options:) (Metal Shading Language shader compilation)",
-      "MTKTextureLoader.newTexture(URL:options:)",
-      "MTLBuffer with storageModeShared",
-      "MTLRenderPipelineDescriptor, MTLRenderPipelineState and MTLFunctionConstantValues",
-      "MTLRenderPassDescriptor / MTLRenderCommandEncoder / MTLClearColor",
-      "MTLTexture, MTLTextureDescriptor and CVMetalTextureCache (CoreVideo Metal interop)"
-    ],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 5663,
-    "tokens_out": 24748,
-    "seconds": 96.8,
-    "ported_at": "2026-09-22T13:18:15+00:00",
     "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
   },
   "Moblin/Intents/UnmuteIntent.swift": {
@@ -9360,27 +9269,28 @@
   },
   "Moblin/View/Utils/ChatLineView.swift": {
     "status": "ok",
-    "sha256": "49e6eed36857bcc458d1153c990c9c46ce9c3535647a14ff9454c9e925cba290",
+    "sha256": "f9eee47bd94998b55dfdd584f6d42fa45b7c4292233e0525b93907358e856db7",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/ChatLineView.kt",
     "notes": [
-      "CoreText was replaced by android.text.StaticLayout plus a ReplacementSpan for inline emotes; LayoutLine now stores the line range and baseline instead of a CTLine.",
-      "ChatLineUiView became a FrameLayout: the custom drawing and child positioning live in onDraw/onLayout/onMeasure, and EmoteUiView instances are real child views.",
-      "ChatLineView is a @Composable that wraps the view in AndroidView; makeUIView/updateUIView/dismantleUIView/sizeThatFits map to factory/update/onRelease/onMeasure.",
-      "The nested Coordinator became the top level ChatLineViewCoordinator, because a Kotlin composable function cannot declare nested classes; UITapGestureRecognizer is replaced by an OnTouchListener.",
-      "The NSAttributedString attribute keys are kept as constants; FontSpan, LinkSpan and ChatLineStrikethroughSpan carry the same per-run information.",
-      "UIFont and UIFontDescriptor.SystemDesign became android.graphics.Typeface plus the new FontDesign enum (default/serif/rounded/monospaced); UIFont.Weight maps to Typeface BOLD/NORMAL.",
-      "EmotesPlayer is assumed to be a Kotlin object exposing sizesVersion (StateFlow<Int>) and size(source) (Size?); EmoteUiView is assumed to be an Android View exposing onLoaded, setEmote(...) and unregister().",
-      "ChatLineLayout gained layout and strokeLayout StaticLayout fields, which the Swift version expressed as per-line CTLines."
+      "ChatLineContent gains `var font: SettingsFont = SettingsFont()` at the same position as the Swift property.",
+      "New private makeBaseFont(content, bold) builds the Typeface from content.font.family / content.font.name(), falling back to the design family and weight.",
+      "makeFont now calls makeBaseFont, then adds ITALIC and (bold && family != nil || italic) BOLD via Typeface.create(base, style), mirroring the SymbolicTraits logic.",
+      "makeLayout now sets basePaint.typeface from makeBaseFont(content = content) instead of the hard-coded default Typeface.",
+      "Typeface carries no size on Android, so the font size stays on the paint (textSize = content.fontSize), as in the rest of this port.",
+      "UIFont(name:size:) returning nil has no direct equivalent; Typeface.create(name, style) falls back to the default typeface instead, so the two branches of makeBaseFont both produce a Typeface.",
+      "SettingsFont is imported from com.moblin.android.various.settings; `family` and `name()` keep their Swift names.",
+      "No Apple framework API is newly introduced by this change."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7483,
-    "tokens_out": 43742,
-    "seconds": 166.8,
-    "ported_at": "2026-09-22T13:24:10+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 51738,
+    "tokens_out": 9976,
+    "seconds": 32.6,
+    "ported_at": "2026-09-24T15:40:25+00:00"
   },
   "Moblin/Media/HaishinKit/Codec/Audio/AudioEncoderRingBuffer.swift": {
     "status": "ok",
@@ -12270,27 +12180,25 @@
   },
   "Moblin/Various/Settings/SettingsChat.swift": {
     "status": "ok",
-    "sha256": "77d0e8fce053d2d049a32a0d9b541ab33a57f596895246b3cec3223a4664657d",
+    "sha256": "57b80e542c804368718d8c24b6c99db43140717e35c3ba137ef84df251f88f1a",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsChat.kt",
     "notes": [
-      "@Published properties are plain var instead of StateFlow, because these classes are @Serializable and kotlinx.serialization cannot serialize StateFlow fields; Compose observes them through the owning state holder.",
-      "The hand written Codable encode(to:)/init(from:) pairs are replaced by @Serializable plus @SerialName; every Swift decoder fallback value became the Kotlin property default (so SettingsChatFilter.enabled defaults to true, SettingsChatBotAlias.id is @Transient because it was never coded, and textToSpeechLanguageVoices is never decoded twice).",
-      "messageStart is derived from messageStartWords and is @Transient; its declaration was moved after messageStartWords so the initializer compiles.",
-      "The legacy [String: String] -> [String: SettingsVoice] migration of textToSpeechLanguageVoices is not reproduced; only the new map shape is read.",
-      "ContinuousClock.Instant latestExecutionTime became a @Transient Long holding System.nanoTime(); SettingsVoiceType's unknown raw value fallback to .apple is provided by SettingsVoiceType.fromRawValue.",
-      "The bot permission migration guarded by the migrated flag is performed in an init block instead of in init(from:), since deserialization has no hook here.",
-      "RgbColor.color() (from com.moblin.android.common.various) converts to androidx.compose.ui.graphics.Color; the five *Color properties are @Transient and are re-derived from their RgbColor on construction.",
-      "java.util.UUID is used as the serialized type of the id properties; if the project does not register a UUID serializer, a custom one must be provided."
+      "Added `font: SettingsFont` published property to SettingsChat, encoded as the separate `fontFamily`/`fontStyle` keys as in Swift.",
+      "Added `textToSpeechBluetoothSpeakerOnly` published property with its encode and decode entries in the same positions as the Swift source.",
+      "SettingsFont is mutable, so `chat.font.family = ...` / `chat.font.style = ...` are assigned in place after `fontSize`, matching the Swift decode order.",
+      "fontFamily is decoded as a nullable String with null default, matching the existing `textToSpeechDefaultLanguage` handling in this file.",
+      "No new imports were needed: SettingsFont lives in the same package."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 13405,
-    "tokens_out": 27137,
-    "seconds": 108.0,
-    "ported_at": "2026-09-22T13:36:36+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 56979,
+    "tokens_out": 10569,
+    "seconds": 29.9,
+    "ported_at": "2026-09-24T15:40:23+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/ObsRemoteControl/StreamObsRemoteControlSettingsView.swift": {
     "status": "ok",
@@ -12413,27 +12321,23 @@
   },
   "Moblin/View/Utils/ChatLineStyle.swift": {
     "status": "ok",
-    "sha256": "77f7220a636612b2c15bd22e257ed8c7cd58c6aff501073eee9b5f07013f14b4",
+    "sha256": "265f4d1a878b547cdfc7c48bc6ad74e8e1168cd40ec139a03eab50d85e99396e",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/ChatLineStyle.kt",
     "notes": [
-      "ChatLineStyle becomes a data class: CGFloat -> Float, UIColor and SwiftUI Color -> androidx.compose.ui.graphics.Color.",
-      "UIFont.Weight maps to androidx.compose.ui.text.font.FontWeight and UIFontDescriptor.SystemDesign to androidx.compose.ui.text.font.FontFamily (FontFamily.Default).",
-      "ChatLineItem cases are written as ChatLineItem.Text / ChatLineItem.Image and ChatImageSource as ChatImageSource.Url / .Asset / .Symbol; these must match the sealed-class declarations in the other files of this package.",
-      "getHttpsUrl is assumed to return String? and the String.url(animated:) helper is assumed to exist in com.moblin.android.various (or network).",
-      "post.userColor.uiColor() is kept as the color-conversion helper of ChatPost's color type; adapt the call if that helper is named differently in the Kotlin port.",
-      "UIColor.systemBlue is expressed as Color(0xFF007AFF).",
-      "deletedColor is a private top-level Color.Gray val; chatEmoteScale is a top-level val of 1.5f.",
-      "No SwiftUI views, sheets or alerts occur in this file, so no NavigationLink/navigation callbacks are needed."
+      "Added the new `font` field to ChatLineStyle and forwarded it to ChatLineContent, matching the Swift diff.",
+      "SettingsFont is imported from com.moblin.android.various.settings; it is a non-serialized settings class so it stays a plain constructor property without a delegate.",
+      "Everything else in the file, including the hand-written messageItem URL translation and the content() call shape, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5333,
-    "tokens_out": 12071,
-    "seconds": 45.3,
-    "ported_at": "2026-09-22T13:37:15+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 45444,
+    "tokens_out": 2874,
+    "seconds": 10.4,
+    "ported_at": "2026-09-24T15:40:04+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Chat/StreamEmotesSettingsView.swift": {
     "status": "ok",
@@ -12586,27 +12490,24 @@
   },
   "Moblin/View/ExternalDisplay/ExternalDisplayView.swift": {
     "status": "ok",
-    "sha256": "86c0d84421ff71afc06f396716b7ce963ac323178da8f6e23f05cc7dceb653f3",
+    "sha256": "816e03f37f3ff0880aae37234071a6c8469a5b4f94462a32e1bd00ba721b9ae7",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/externaldisplay/ExternalDisplayView.kt",
     "notes": [
-      "Every private SwiftUI view struct became a private @Composable function; the file declares no new classes, so declared_types is empty.",
-      "SettingsChat, ChatProvider, ChatPostState and ExternalDisplay are ObservableObjects, so their fields are read with collectAsState(); makeChatLineStyle therefore became @Composable and keeps its name and parameter list.",
-      "UIColor(Color.gray) -> Color.Gray and all chat-line colors are treated as androidx.compose.ui.graphics.Color; ChatHighlight.messageColor() is assumed to already return that ported type (no UIColor conversion needed).",
-      "ChatLineView is called as a Compose function taking `content`; Swift's `.text(...)` case is written as ChatLineContent.Text(...) and Swift's `.symbolItem(name:color:)`/`.content(items:)` labels are kept as named Kotlin arguments.",
-      "Model is passed as an explicit parameter instead of an @EnvironmentObject (there is no Compose environment-object equivalent in this file).",
-      "GeometryReader -> BoxWithConstraints; metrics.size -> IntSize(constraints.maxWidth, constraints.maxHeight) in pixels, converted back to dp with LocalDensity when used for the deleted-post divider.",
-      "rotationEffect + scaleEffect(anchor: .center) -> Modifier.graphicsLayer(rotationZ, scaleX, scaleY); messages' x scale is scaleX * isMirrored(), which is assumed to return Double (-1.0/1.0) exactly as in the Swift call site.",
-      "SharedUiViewContainerView(context, model.externalDisplayStreamPreviewView) and attachSharedView() are assumed to be the port's constructor/method; ScrollView + LazyVStack became a single LazyColumn with 1.dp item spacing."
+      "Diff only adds the new ChatLineStyle constructor argument `font: chat.font` in makeChatLineStyle.",
+      "Kept the existing Android style of hoisting SettingsChat reads into locals, so `val font = chat.font` is passed as `font = font`.",
+      "No imports were added; type inference covers the new argument as in the rest of the file.",
+      "Everything else in the file is unchanged, byte-identical to the current Kotlin version."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4365,
-    "tokens_out": 19713,
-    "seconds": 76.4,
-    "ported_at": "2026-09-22T13:38:16+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42761,
+    "tokens_out": 4384,
+    "seconds": 16.7,
+    "ported_at": "2026-09-24T15:40:10+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Srt/StreamSrtConnectionPriority2View.swift": {
     "status": "ok",
@@ -12996,28 +12897,24 @@
   },
   "Moblin/VideoEffects/ChatEffect.swift": {
     "status": "ok",
-    "sha256": "2b4fcb1d1a19cf826d7ecf106ea5f8255f4fe7768efdabceabafb888d66cf0ee",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "5fd8932b58c039ea0b8077e645c3c559085136fece43e9d1b24a00d97c6137d3",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/ChatEffect.kt",
     "notes": [
-      "ChatRenderer's settings.objectWillChange subscription has no Kotlin counterpart, so ChatEffect.setSettings schedules a render on the main thread after settings.update(other = ...) instead.",
-      "ChatRenderer.scheduleRender is declared without 'private' so ChatEffect can trigger a re-render after a settings update; the class itself stays private.",
-      "ChatLineStyle is a data class in Kotlin (not a Swift struct), so the highlight variant is built with style.copy(backgroundColor = null) instead of a struct copy.",
-      "ChatLineUiView.size(availableWidth:) returns a Compose IntSize, so every call site converts it with CGSize(width = s.width, height = s.height).",
-      "layoutIfNeeded() and layer.displayIfNeeded() are dropped as the platform layer requires; the renderer still measures through lineView.size().",
-      "stateCancellables are cancelled before being replaced, mirroring ARC releasing the previous AnyCancellable array.",
-      "post.state.deleted is read as a StateFlow (.value in the filter) and observed with post.state.deleted.dropFirst().sink { ... }.",
-      "settings.shadowColor / backgroundColor / messageColor use RgbColor.color() and withAlphaComponent(0.6) becomes Color.copy(alpha = 0.6f)."
+      "The Swift diff only adds `font: settings.font` to makeChatLineStyle; the Kotlin ChatLineStyle call gains `font = settings.font` after `displayStyle`.",
+      "Everything else in ChatEffect.kt stays byte-identical, including the Android-only hooks (PipelineStats.increment, Dispatchers.Main.immediate, WeakReference, toBitmap/cgImage usage).",
+      "The settings.objectWillChange subscription of the Swift renderer stays dropped, as in the current Kotlin file: setSettings calls renderer.scheduleRender() instead.",
+      "`settings.font` is a settings value object passed straight through; no extra import is required because its type is inferred from ChatLineStyle's `font` parameter."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 53509,
-    "tokens_out": 24631,
-    "seconds": 86.2,
-    "ported_at": "2026-09-23T19:50:21+00:00"
+    "tokens_in": 61767,
+    "tokens_out": 4407,
+    "seconds": 14.6,
+    "ported_at": "2026-09-24T15:40:08+00:00"
   },
   "Moblin/VideoEffects/QrCodeEffect.swift": {
     "status": "ok",
@@ -13192,28 +13089,28 @@
   },
   "Moblin/VideoEffects/LutEffect.swift": {
     "status": "ok",
-    "sha256": "f4bc076783c847c6b81a44bdb50b46e9c00ac620096da5d90d18099c2b83fd4d",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "4e58bc9f4b1234e7a7975950f81abf1d8579da697faf9c4b460437c686db7da3",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt",
     "notes": [
-      "loaderQueue (a serial DispatchQueue) becomes a single-thread CoroutineScope, so loaderQueue.async { } is loaderQueue.launch { } and processorPipelineQueue.async { } is processorPipelineQueue.launch { }.",
-      "Swift throws String here; the equivalent is a private LutLoadError whose toString() returns the message, so the catch-all subtitle \"\\(error)\" prints the same text as on iOS.",
-      "The hand-allocated UnsafeMutablePointer<Float> cube is a FloatArray, and Data(bytes:count:) / Data access is done through two private little-endian ByteBuffer helpers (lutFloatsToData / lutDataToFloats).",
-      "'(any CIFilter & CIColorCubeWithColorSpace)?' collapses to CIColorCubeWithColorSpace? because the shim already subclasses CIFilter.",
-      "interpolate3d's Swift argument label 'in' is a Kotlin hard keyword, so the parameter is declared and called with backticks.",
-      "stride(from: 0.0, through: 1.0, by: 1.0/63) for the 64 point grid becomes List(64) { it / 63.0 }.",
-      "Float.rounded() rounds half away from zero and is written as floor(x + 0.5) before the 0...255 clamp; UInt8 values are stored with toInt().toByte().",
-      "@unchecked Sendable and nonisolated(unsafe) have no Kotlin counterpart and were dropped; UIImage is android.graphics.Bitmap and image.cgImage is a non-null identity extension, so the Swift guard for it disappears."
+      "interpolate3d now takes a (Int, Int, Int) -> SIMD3 lookup lambda instead of a flat List<SIMD3>; all call sites pass a Kotlin lambda.",
+      "convertLutTo64 was replaced by makeLutCube(dimension, lut), which clamps the dimension to 64 and interpolates only when the source dimension differs.",
+      "lutEffectConvertCube now returns Pair<Float, ByteArray> (the Swift tuple (Float, Data)) instead of an SC3DLut; makeCubeData and convertLutTo64 were removed.",
+      "Data stays ByteArray, and both lutEffectConvertLut and lutEffectConvertCube return Pair<Float, ByteArray>.",
+      "makeLutCgImage's Accelerate vImage_Buffer/vImageConvert_PlanarFtoPlanar8 float-to-byte pass has no Android counterpart; the existing hand-written per-component rounding loop (floor(v * 255 + 0.5) clamped to 0..255) produces the same bytes and was kept.",
+      "The SIMD4 cube array is serialized little-endian with the existing lutFloatsToData helper (ByteBuffer LITTLE_ENDIAN), matching Swift's Data(bytes: cube, count: cube.count * 16).",
+      "The 16 bit LUT path reads two bytes per component little-endian instead of the removed loadUnaligned; the bitsPerComponent and length guards now match the Swift order.",
+      "LutEffect.loadCube is a new private function that installs the filter and MetalPetal lookup table on processorPipelineQueue; loadDiskCubeLut and loadImageLut now just delegate to it."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 47787,
-    "tokens_out": 28958,
-    "seconds": 102.0,
-    "ported_at": "2026-09-23T19:53:22+00:00"
+    "tokens_in": 62046,
+    "tokens_out": 10628,
+    "seconds": 37.0,
+    "ported_at": "2026-09-24T15:40:35+00:00"
   },
   "Moblin/VideoEffects/MapEffect.swift": {
     "status": "ok",
@@ -13393,27 +13290,26 @@
   },
   "Moblin/View/Settings/Chat/ChatSettingsAppearanceView.swift": {
     "status": "ok",
-    "sha256": "e3313118a5f321300add0c794e27614569e71274173478845e6c1c7d29322770",
+    "sha256": "e91b522dd7781e45bd72530471e55b0495c1202cdd70bcdf0468e3a249952200",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatSettingsAppearanceView.kt",
     "notes": [
-      "The SwiftUI NavigationLink wrapper becomes a clickable 'Appearance' entry row that calls onNavigate(\"Appearance\"), followed by the destination Form content rendered as the body.",
-      "database/chat are ObservedObject parameters; their published properties are assumed to be public MutableStateFlow fields, read with collectAsState() and written through .value.",
-      "Form -> LazyColumn, Section -> a header Text item plus its items; all collectAsState() calls are hoisted to the top of the composable so they are not re-created inside LazyColumn items.",
-      "Slider onEditingChanged(begin == false) maps to onValueChangeFinished; onChange(of:) maps to LaunchedEffect(value), which also fires on first composition unlike SwiftUI.",
-      "Slider steps are computed as (max - min) / step - 1: 19 for 10...30 and 8 for 1...10.",
-      "Picker + ForEach(allCases) becomes ExposedDropdownMenuBox + OutlinedTextField(menuAnchor) with SettingsChatDisplayStyle.entries as DropdownMenuItems.",
-      "RgbColorPickerView keeps the iOS call sites, with the binding passed as the settings StateFlow property and the trailing closure passed as the onChange lambda.",
-      "Toggle with a custom label (RgbColorPickerView as the label) becomes a Row with the label composable and a Switch."
+      "First section is renamed to \"Font\" and keeps the size row; FontSettingsView plus the two bold toggles moved into it under database.showAllSettings.",
+      "The Big GIF scale row moved out of the size section into a new second Section titled \"General\", which is now wrapped in `if (database.showAllSettings)`.",
+      "The Display style picker and the Timestamp/Badges/Animated emotes/Shared chat icons/Compact events toggles moved with it, and the bold toggles were removed from that section.",
+      "FontSettingsView from com.moblin.android.view.utils is imported and called with the same shape used for RgbColorPickerView here: value property plus an ignored change callback and a trailing onChange lambda.",
+      "Colors section is untouched.",
+      "Size row keeps FormRow because it shares a row with the slider and the value text."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 6335,
-    "tokens_out": 13107,
-    "seconds": 48.2,
-    "ported_at": "2026-09-22T13:43:32+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 44355,
+    "tokens_out": 4214,
+    "seconds": 15.1,
+    "ported_at": "2026-09-24T15:40:25+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Soop/StreamSoopSettingsView.swift": {
     "status": "ok",
@@ -14146,28 +14042,27 @@
   },
   "Moblin/VideoEffects/Text/TextEffect.swift": {
     "status": "ok",
-    "sha256": "cd6f6be9c3392b9644e703ea7f532b80b968a364a8b1a083f32257c90c3c463c",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "87f595b1af94f86331ea6e25140cc3fcec7b144541cad9568f72b29a7fe803b7",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/text/TextEffect.kt",
     "notes": [
-      "TextViewState keeps its @Published members as MutableStateFlow and every one of them is collected in TextView so the offscreen ImageRenderer recomposes like SwiftUI.",
-      "horizontalAlignment is typed SettingsHorizontalAlignment (com.moblin.android.various.settings) with leading/center/trailing, mapped to Alignment.Start/CenterHorizontally/End for the Column.",
-      "sceneWidget is created as SettingsSceneWidget(widgetId = UUID.randomUUID()); if the Kotlin settings class has a different constructor the widgetId argument must be adjusted.",
-      "formatter.timersEndTime, stopwatches, checkboxes, ratings and lapTimes are read-only Lists, so the indexed setters rebuild a MutableList before assigning.",
-      "RgbColor.color() is called as a member; if the port defines it as a top-level extension in com.moblin.android.common.various add that import.",
-      "Main-actor work (the @MainActor init and the DispatchQueue.main.async hops) runs in CoroutineScope(Dispatchers.Main.immediate).launch, per the ImageRenderer rules.",
-      "The objectWillChange sink holds a WeakReference to this, as required for ImageRenderer sinks.",
-      "symbolRenderingMode(.multicolor) has no Android counterpart; the .fill symbol is drawn with Color.Unspecified tint so it is not recoloured."
+      "TextViewState now holds one SettingsFont instead of fontFamily/fontStyle; Kotlin keeps it as MutableStateFlow<SettingsFont>.",
+      "The private font(...) helper takes font: SettingsFont and uses font.name() like Swift's if let name = state.font.name().",
+      "The collected value is named settingsFont locally so it does not shadow the top-level font(...) helper function.",
+      "The monospaced-digit check uses settingsFont.family == null, matching state.font.family == nil.",
+      "setFontFamily and setFontStyle are replaced by a single setFont(font: SettingsFont) member.",
+      "TextEffect's constructor now takes font: SettingsFont in place of fontFamily and fontStyle; callers must be updated.",
+      "SettingsFont comes from com.moblin.android.various.settings and is used through its name() function and family property as in Swift; no declarations were supplied for it."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 54786,
-    "tokens_out": 33985,
-    "seconds": 122.7,
-    "ported_at": "2026-09-23T20:03:03+00:00"
+    "tokens_in": 65497,
+    "tokens_out": 8136,
+    "seconds": 26.9,
+    "ported_at": "2026-09-24T15:40:27+00:00"
   },
   "Moblin/View/Stream/Overlay/Right/StreamOverlayRightPinchView.swift": {
     "status": "ok",
@@ -14380,35 +14275,23 @@
   },
   "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatView.swift": {
     "status": "ok",
-    "sha256": "2856a13124efe4b1bd5c38e0d376f12c8f78d03ab96557a1910440e3e52e70f7",
+    "sha256": "d4a74570311f2f02a1a7b705c7836ed57372fd1e057d7f671fe85240c3025780",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/QuickButtonChatView.kt",
     "notes": [
-      "All SwiftUI views become @Composable functions in one file; view bodies were split into small composables so the file is readable alongside the Swift original.",
-      "makeChatLineStyle is a top-level Kotlin function in the same package (private in Swift), with UIColor(Color.gray) replaced by android.graphics.Color.GRAY.",
-      "Swift @Binding properties became plain value parameters in nested composables so the selected post / link url can be hoisted; parent state is kept in QuickButtonChatView with remember { mutableStateOf }.",
-      "ChatLineContent, ChatLineStyle and ChatLineView come from com.moblin.android.view.utils, ChatInfo, ChatOverlayView and BannersView from com.moblin.android.view.stream / com.moblin.android.view.utils.",
-      "Documented Compose libraries do not offer @Binding, ForEach onDelete/onMove, NavigationLink, popover, DatePicker or contextMenu preview; these use Material 3 alternatives (ModalBottomSheet for popover, manual remove/move for delete/reorder) or TODO().",
-      "URL? is kept as java.net.URL so the existing QuickButtonChatLinkConfirmation extension (com.moblin.android.view.utils) can be reused; openUrl is called through LocalUriHandler for link taps.",
-      "Model, SettingsChat, SettingsStream, SettingsChatPredefinedMessage and related types are referred to with the fully qualified package com.moblin.android.various.model / .settings to avoid a long import list.",
-      "platform.name() and platform.imageName() are string resources because Platform is an external type; the icon resource ids are resolved with a TODO fallback if the drawable is not known."
+      "Only makeChatLineStyle changed: the ChatLineStyle construction now passes font = chat.font after displayStyle, matching the new Swift argument.",
+      "Every other declaration, import and line is byte-identical to the previous Kotlin file.",
+      "ChatLineStyle.font is a SettingsFont field that already exists in com.moblin.android.view.utils.ChatLineStyle, so no new import is needed."
     ],
-    "unsupported": [
-      "NavigationLink",
-      "NavigationStack",
-      "contextMenu/onDelete/onMove swipe actions on List row",
-      "popover with presentationCompactAdaptation",
-      "Image(systemName:) is only used for named SF symbols; Material Icons cover most but the exact glyph set differs",
-      "PhotosPicker-style platform picker not present, no counterpart used",
-      "onDelete/onMove reordering behaviour of SwiftUI List"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 11200,
-    "tokens_out": 7276,
-    "seconds": 21.3,
-    "ported_at": "2026-09-22T13:48:46+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 62538,
+    "tokens_out": 9040,
+    "seconds": 23.7,
+    "ported_at": "2026-09-24T15:40:32+00:00"
   },
   "Moblin/View/Utils/ChatActionButtonsView.swift": {
     "status": "ok",
@@ -15126,27 +15009,22 @@
   },
   "Moblin/Various/Model/ModelKick.swift": {
     "status": "ok",
-    "sha256": "5b6891a958e02c9bd74e10a158cf8789cf1f73bc516ce85cdefcd02847d2a3df",
+    "sha256": "62108044eb4244fffa9af8f1fa43a3c815419abbee29db18eee640385717bda2",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelKick.kt",
     "notes": [
-      "Kotlin cannot add protocol conformance through extensions, so the KickPusherDelegate and KickApiDelegate members are plain top-level extension functions on Model; Model must declare those interfaces and forward to them (or a delegate adapter must be added).",
-      "Moblin's Timer.startSingleShot for the channel/category search debounce is replaced by a file-private CoroutineScope with delay(500).",
-      "makeChatPostTextSegments(text:id:) used an inout Int in Swift; the Kotlin call passes the current id value and assumes the port returns the segment list.",
-      "printEventCatPrinters is called with the assumed project enum EventCatPrinter and playAlert with the assumed Alert enum (Alert.kickSubscription/kickGiftedSubscriptions/kickReward/kickHost/kickKicks) - verify case names in the port.",
-      "Chat related calls use ChatPlatform.kick (appendChatMessage, makeNotLoggedInToToast, isRemoteControlChatAndEvents) while viewer statuses use StreamingPlatform.kick; both enums are assumed to live alongside Model.",
-      "SwiftUI Color parameters become androidx.compose.ui.graphics.Color with the named constants Cyan/Green/Red/Orange.",
-      "Model members used here (stream, database, kickPlatformStatus, kickPusher, kickAuthOnComplete, createStreamWizard.showKickAuth, statusOther.digitalClock, latestSubscriber, appendChatMessage, deleteChatMessage/User, toast/alert/print/macro helpers, reloadViewers, resetChat) must exist with these exact names.",
-      "String(localized:) maps to the localized() helper of package com.moblin.android; interpolation is kept inline in the template string."
+      "Single-line change: kickPusherStreamHost now reports the .kickRaid macro event instead of .kickHost.",
+      "Kotlin already used the SCREAMING_SNAKE macro-event entries, so this becomes SettingsMacrosEvent.KICK_RAID in the existing macrosEventOccurred call."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 10676,
-    "tokens_out": 20701,
-    "seconds": 74.3,
-    "ported_at": "2026-09-22T13:52:42+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 56839,
+    "tokens_out": 6141,
+    "seconds": 16.1,
+    "ported_at": "2026-09-24T15:40:43+00:00"
   },
   "Moblin/Various/Model/ModelScreenCapture.swift": {
     "status": "ok",
@@ -15223,58 +15101,42 @@
   },
   "Moblin/Various/Model/ModelAudio.swift": {
     "status": "ok",
-    "sha256": "6e5aa8328b0141bd53777ccac7ea094e29b21267c24f680bc9453f291cb0b614",
+    "sha256": "df1594f5bce1e58ee12a940528cac7fa8c88f6a7d4c58e7a556f1bf96526ac68",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelAudio.kt",
     "notes": [
-      "AudioLevel/AudioProvider/Mic publish state as private MutableStateFlow + public StateFlow; setter helpers (setLevel/setCurrent/setInputGain/...) are added because Kotlin code in the Model extension cannot assign to another class's property.",
-      "DispatchQueue.main -> mainScope (a private CoroutineScope(Dispatchers.Main) declared in this file); processorControlQueue is used as the launch dispatcher; asyncAfter(+0.1) -> delay(100).",
-      "Every AVAudioSession / NSNotification / MPVolumeView touchpoint is TODO(); the surrounding model logic (mic list merging, switching, priority, talkback routing) is translated in full.",
-      "AVAudioSessionPortDescription / AVAudioSessionDataSourceDescription have no Android type, so those private top-level helpers take Any parameters.",
-      "In Model.trySwitchMic the Swift shadowed local `mic` is named requestedMic so that Model.mic stays reachable inside the launched coroutine.",
-      "Model members used here (database, media, isChatPhone(), getRtmpStream(idString:), is*StreamConnected(), remoteControlStateChanged(), isWatchLocal(), sendAudioLevelToWatch(), latestSetVolumeTime, initialVolume, ...) come from other Moblin files and are assumed ported with the same names.",
-      "SettingsMicsMic.delay is assumed Double, hence updateMicDelay falls back to 0.0; SimpleTimer.startSingleShot keeps the Swift parameter name `timeout`.",
-      "The UI that consumes these objects reads the StateFlows with collectAsState(); this file itself declares no @Composable functions."
+      "The diff only adds two calls at the top of handleAudioRouteChange and the new public func updateIsBluetoothAudioOutput.",
+      "isBluetoothAudioOutput is a Model state property declared in the hand-written Model.kt; it is written directly (plain var), matching the other Model booleans used in this file (isAppActive, defaultMic, initialVolume).",
+      "stopTextToSpeechIfOutputNotAllowed() lives in the Model text-to-speech file of the same package and is only called here, never re-declared.",
+      "Swift's collection.contains { predicate } becomes Kotlin's any { predicate } on the outputs list.",
+      "The port-type list uses the AVAudioSession.Port string constants (bluetoothA2DP, bluetoothHFP, bluetoothLE) that the platform shim declares, so portType compares as a String equality test.",
+      "Everything else in the file is byte-identical to the previous Kotlin port."
     ],
-    "unsupported": [
-      "AVAudioSession (category, sample rate, active state, input gain, available inputs, data sources, current route)",
-      "AVAudioSession volume-change / route-change notifications (NSNotificationCenter observers)",
-      "MPVolumeView (setting the system volume)",
-      "AVAudioSessionPortDescription / AVAudioSessionDataSourceDescription / AVAudioSession.Orientation typed parameters"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 10980,
-    "tokens_out": 37034,
-    "seconds": 132.7,
-    "ported_at": "2026-09-22T13:53:38+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 58731,
+    "tokens_out": 10059,
+    "seconds": 29.8,
+    "ported_at": "2026-09-24T15:40:54+00:00"
   },
   "Moblin/Various/Model/ModelChatBot.swift": {
     "status": "ok",
-    "sha256": "508119be1ebda24257837301f5926b66c448f840b804b33a8e372ce1d985748f",
+    "sha256": "22d91451b969ec947b8af33b5f9289a9f3286db38ab20838d72c3278d250ebc5",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChatBot.kt",
-    "notes": [
-      "Model extensions became top-level extension functions on Model in this package; @MainActor and #available(iOS 17, *) have no Android equivalent and were dropped.",
-      "ChatBotCommand(message:aliases:) is translated as the Swift failable initializer, assumed to be a companion invoke returning ChatBotCommand?; popFirstArgument is assumed to be an inline reified generic popFirstArgument<T>().",
-      "chatBotMessages.popFirst() (Swift Deque) is translated as chatBotMessages.removeFirstOrNull(), which exists for both MutableList and ArrayDeque.",
-      "String(localized:) maps to localized() imported from com.moblin.android; 'Moblin chat bot help' is wrapped in localized() too.",
-      "ContinuousClock.now and duration(to:) map to java.time.Instant.now() and java.time.Duration arithmetic; Instant is API 26+, matching minSdk.",
-      "OpenAi.ask is assumed to deliver a kotlin.Result<String>, folded with onSuccess/onFailure; error.description is mapped to Throwable.message.",
-      "Names of types declared in other files but absent from the glossary were taken from the Swift call sites: QuickButtonType, Alert.ChatBotCommand, AddMusicResult.Added/SongNotFound, SettingsReaction.toSystem() (modeled as returning Any?).",
-      "formatAiAnswer needs Char punctuation classification, which Kotlin lacks; it uses a private Regex(\"\\\\p{P}\") top-level value."
-    ],
-    "unsupported": [
-      "AVCaptureReactionType / AVCaptureDevice.performEffect(for:) / availableReactionTypes (handleChatBotMessageReaction, triggerAppleReaction)"
-    ],
+    "notes": [],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 13897,
-    "tokens_out": 39329,
-    "seconds": 139.6,
-    "ported_at": "2026-09-22T13:53:47+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 56251,
+    "tokens_out": 10150,
+    "seconds": 29.7,
+    "ported_at": "2026-09-24T15:40:56+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonAutoSceneSwitcherView.swift": {
     "status": "ok",
@@ -15685,29 +15547,24 @@
   },
   "Moblin/View/Settings/Chat/ChatTextToSpeechSettingsView.swift": {
     "status": "ok",
-    "sha256": "cd8842932165fd58b7f831ea07e4fcaa9be74d8e46fb858bdbe738e24a2c3049",
+    "sha256": "87b663766e87d007440df086e5cdc5cb3c399f01974f967929337691ee2a7e90",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatTextToSpeechSettingsView.kt",
     "notes": [
-      "NavigationLink destinations were replaced with an onNavigate callback using the route names \"voices\" and \"tts_monster\"; the destination screens (VoicesView, the TTS.Monster API token form) must be provided by the parent nav host.",
-      "AVSpeechSynthesisVoice was mapped to android.speech.tts.Voice and AVSpeechSynthesisVoice.speechVoices() to TextToSpeech.getVoices(); the temporary TextToSpeech instance created on appear should be hoisted/shut down by a real implementation.",
-      "chat/model settings properties are read with collectAsState() and written through StateFlow.value, so the settings classes must expose mutable flows for the fields that this screen edits (volume, rate, pause, language, toggles).",
-      "Numeric types follow the Swift source: volume and rate are treated as Float, pause-between-messages as Double (the Swift code explicitly converted it with Float(...)). Verify against the Kotlin SettingsChat declarations.",
-      "LaunchedEffect(key) used for SwiftUI onChange also runs on first composition, so the model setter is called once when the screen opens, unlike SwiftUI.",
-      "Icons Icons.Default.VolumeDown/VolumeUp/DirectionsWalk/DirectionsRun come from material-icons-extended, which must be on the classpath.",
-      ".navigationTitle(\"Text to speech\") has no place inside this composable; the parent Scaffold TopAppBar must render that title.",
-      "onVoiceChange and onLanguageReset are kept as local lambdas (they were private methods passed to VoicesView) and are currently unused because that screen is reached through onNavigate."
+      "Added a new Section with a Bluetooth-speaker-only Toggle after the Filter mentions Section, as the diff adds.",
+      "The Toggle assigns chat.textToSpeechBluetoothSpeakerOnly and then calls model.stopTextToSpeechIfOutputNotAllowed(), the Kotlin equivalent of the Swift onChange that ignores the value.",
+      "Imported the Model extension stopTextToSpeechIfOutputNotAllowed from com.moblin.android.various.model.",
+      "Everything else in the file is byte-identical to the previous translation."
     ],
-    "unsupported": [
-      "AVSpeechSynthesizer.requestPersonalVoiceAuthorization"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 8264,
-    "tokens_out": 24393,
-    "seconds": 92.0,
-    "ported_at": "2026-09-22T13:56:22+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 48556,
+    "tokens_out": 3242,
+    "seconds": 10.9,
+    "ported_at": "2026-09-24T15:40:39+00:00"
   },
   "Moblin/View/Settings/Debug/DebugSettingsView.swift": {
     "status": "ok",
@@ -15873,27 +15730,26 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Chat/WidgetChatSettingsView.swift": {
     "status": "ok",
-    "sha256": "baa9e41b789b7ad538378fb5483154326b4e32fc20ff4cd5d93146bb7adbdaba",
+    "sha256": "16a8fce294a2debd26a3516e69d04e375a1dec54b499c903e0584405ddacf52e",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/chat/WidgetChatSettingsView.kt",
     "notes": [
-      "WidgetChatSettingsView becomes a single @Composable function; the two SwiftUI Sections are emitted inline, with the second Section's header rendered as a Text(\"Colors\") header.",
-      "The settings objects (Database, SettingsWidgetChat) are treated as plain mutable state holders: their Swift @Published properties are read and written directly (chat.fontSize = ...), because this file needs two-way Bindings that a read-only StateFlow cannot express.",
-      "Swift Slider(Double) maps to Material 3 Slider(Float): values are converted with toFloat()/toDouble() and the Swift `step` is expressed through `steps` (39 for 10...50 step 1, 89 for 0.1...1 step 0.01).",
-      "Each `.onChange(of: value)` becomes LaunchedEffect(value) { setEffectSettings() }; note that LaunchedEffect also runs on first composition, whereas SwiftUI onChange does not.",
-      "Picker + ForEach becomes an ExposedDropdownMenuBox with an OutlinedTextField anchor (Modifier.menuAnchor()) and DropdownMenuItem entries; the enum picker iterates SettingsChatDisplayStyle.entries.",
-      "Toggle(isOn:) becomes a Row holding the label content plus a Material 3 Switch; the Switch's onCheckedChange only writes the value, the effect refresh stays in the LaunchedEffect.",
-      "RgbColorPickerView is called with (title, color, trailing onChange lambda); its exact Kotlin parameter names come from com.moblin.android.view.utils and should be verified against that file.",
-      "sliderValuePercentageWidth and the width 25 are used as Dp for Modifier.width, assuming the port declares sliderValuePercentageWidth as a Dp."
+      "The first section now has header \"Font\" and the second header \"General\" (third stays \"Colors\"), so the single Swift Section was split into two Kotlin Section calls at the same place in the body.",
+      "Text(\"Font size\") became Text(\"Size\") and keeps the neighbouring fontSize = 17.sp style of the file.",
+      "FontSettingsView is called as font = chat.font, onFontChanged = { chat.font = it }, onChange = { setEffectSettings() }, following the value+setter shape used by RgbColorPickerView for a Swift @Binding; verify the setter parameter name against FontSettingsView.kt.",
+      "The \"Bold name\" and \"Bold message\" toggles moved from the general block into the new Font section, still guarded by database.showAllSettings.",
+      "Picker Messages, the Height row, Display style, Badges and Shared chat icons stay in the General section untouched.",
+      "The Colors section is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7749,
-    "tokens_out": 10785,
-    "seconds": 40.4,
-    "ported_at": "2026-09-22T13:58:02+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 46943,
+    "tokens_out": 7453,
+    "seconds": 27.6,
+    "ported_at": "2026-09-24T15:41:00+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/QrCode/WidgetQrCodeSettingsView.swift": {
     "status": "ok",
@@ -16508,29 +16364,22 @@
   },
   "Moblin/View/Stream/Overlay/StreamOverlayChatView.swift": {
     "status": "ok",
-    "sha256": "fdae6287ecfaf1e79e45a7c5e79f7d19baefa1022d3acc9f6ba6f395828d1b48",
+    "sha256": "8e3028ea84c9791ac62d177d460923ea695033b5bff047c125f37c6fabb529f0",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayChatView.kt",
     "notes": [
-      "SettingsChat is treated as a plain mutable settings object (properties read/written directly); ChatProvider and ChatPostState are treated as StateFlow-backed models and read with collectAsState().",
-      "SettingsColor.uiColor() is assumed to be the Compose color accessor defined next to SettingsColor in com.moblin.android.various.settings.",
-      "ChatLineStyle is assumed to be a data class so HighlightImageView can build its content from a copy with backgroundColor = null.",
-      "Compose has no allowsHitTesting; the non-interactive chat scroll consumes pointer events in the Initial pass instead.",
-      "SwiftUI overlays are stacked inside a Box with contentAlignment = Center; ChatLabelView fills the size and aligns its own text.",
-      "GeometryReader becomes BoxWithConstraints and SwiftUI points map 1:1 to dp.",
-      "onChange(of:) becomes LaunchedEffect(value), which also runs on first composition, so handleNewPost()/clearNewPosts() may fire once when the separator first appears.",
-      "The 44pt drag hit area of the separator is realised with requiredHeight so the strip is not clamped to the 2dp separator height."
+      "Added `font: chat.font` to the ChatLineStyle construction in makeChatLineStyle.",
+      "Everything else is unchanged from the previous Kotlin file."
     ],
-    "unsupported": [
-      "quickButtonChatLinkConfirmation(url:) SwiftUI view modifier replaced by TODO()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 9013,
-    "tokens_out": 35347,
-    "seconds": 127.6,
-    "ported_at": "2026-09-22T14:01:51+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 54564,
+    "tokens_out": 5391,
+    "seconds": 14.0,
+    "ported_at": "2026-09-24T15:40:50+00:00"
   },
   "Moblin/View/Settings/GameControllers/GameControllersSettingsView.swift": {
     "status": "ok",
@@ -16755,27 +16604,26 @@
   },
   "Moblin/RemoteControl/RemoteControl.swift": {
     "status": "ok",
-    "sha256": "9c13742e2f1b8ce2830a908b92c6cc08ca23ace3786c0047772bb398f566dc17",
+    "sha256": "a9f6c6c18bfb7c7247ef1edba024c49be1be7b32c8cf7fb18fcbcb6870a21948",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/remotecontrol/RemoteControl.kt",
     "notes": [
-      "Swift enums with associated values became Kotlin sealed classes; case names are PascalCase (e.g. `.setRecord(on:)` -> `SetRecord(val on: Boolean)`) while the JSON keys keep the original lower-case Swift case names so the wire format is unchanged.",
-      "Swift's synthesised Codable layout is reproduced by hand for the message/request/response/event types (single-key object whose value is an object of the labelled associated values); simple enums use @SerialName with their Swift case name.",
-      "Date is encoded as a Double of seconds since 2001-01-01 (RemoteControlDateSerializer) to match Swift's default JSONEncoder date strategy; RemoteControlEncoder uses Json { encodeDefaults = true; ignoreUnknownKeys = true; explicitNulls = false } to mimic Swift's optional omission.",
-      "CLLocation -> android.location.Location (bearing/speed are Floats there), Measurement<UnitTemperature>/<UnitSpeed> -> Double, WeatherCondition -> String because WeatherKit has no Android counterpart.",
-      "RemoteControlStatusGeneralFlame.toThermalState() returns android.os.PowerManager.THERMAL_STATUS_* Ints instead of ProcessInfo.ThermalState (white->LIGHT, yellow->SEVERE, red->CRITICAL).",
-      "RemoteControlEncryption uses Cipher(\"AES/GCM/NoPadding\") with a 12-byte nonce, producing nonce || ciphertext+tag, which matches CryptoKit AES.GCM's `combined` layout; the key is SHA-256 of the password.",
-      "Failable Swift initialisers (init?) became companion factories: RemoteControlRemoteSceneSettingsWidget.fromWidget(widget), and non-failable copies became secondary constructors (RemoteControlRemoteSceneDataLocation(location) etc.).",
-      "The Variables and Settings* types live in other packages; their constructor parameter names, property names and enum entry names (e.g. SettingsWidgetType.Browser, SettingsQuickButtonType.FourThree) were assumed from the Swift source and must be checked against the ported declarations."
+      "Only the RemoteControlRemoteSceneSettingsWidgetTypeText mapping changed: the Swift font family/style pair is now stored as a whole SettingsFont value.",
+      "Constructor now reads text.font.family and text.font.style instead of the former text.fontFamily / text.fontStyle properties.",
+      "toSettings() now assigns text.font = SettingsFont(family = fontFamily, style = fontStyle ?: \"\") in one statement, mirroring the Swift single assignment.",
+      "Added the import com.moblin.android.various.settings.SettingsFont; nothing else in the file was touched.",
+      "The RemoteControlRemoteSceneSettingsWidgetTypeText wire fields fontFamily/fontStyle stay unchanged, so the JSON contract with remote clients is untouched.",
+      "Every other Kotlin line is byte-identical to the current file, including the hand-written Android hooks and the remoteControlJson setup."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 14572,
-    "tokens_out": 46534,
-    "seconds": 151.7,
-    "ported_at": "2026-09-22T14:04:30+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 74098,
+    "tokens_out": 21284,
+    "seconds": 54.8,
+    "ported_at": "2026-09-24T15:41:38+00:00"
   },
   "Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift": {
     "status": "ok",
@@ -16827,28 +16675,27 @@
   },
   "Moblin/Various/Settings/SettingsMacros.swift": {
     "status": "ok",
-    "sha256": "f5514eb0d59547da76e2c69e25acb33e4c645bc20ced2241daa4009c0d1b2af8",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "sha256": "0fd679c3f6a4e4545f1d9e6d53815ed0a027d818939007d47ea0e791c93decab",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsMacros.kt",
     "notes": [
-      "Added SettingsMacrosActionFunction.SEND_TWITCH_SHOUTOUT to match the new sendTwitchShoutout case, keeping the Swift declaration order.",
-      "SettingsMacrosEvent gained variables() and variablesToString(), placed before textTitle() exactly as in the diff.",
-      "New MacroVariable enum uses a rawValue property plus override fun toString(), following the existing enum style in this file.",
-      "New MacroVariables class wraps a MutableMap; Swift's Dictionary.merge is maps to MutableMap.putAll, which has the same overwrite semantics.",
-      "MacroEvent gained a variables: MutableMap<MacroVariable, String> field at the end of the data class.",
-      "SettingsMacrosMacro gained val variables = MacroVariables() between runAtAppStart and nextActionIndex.",
-      "String.replacingOccurrences(options: .caseInsensitive) maps to kotlin.text.replace(oldValue, newValue, ignoreCase = true).",
-      "No serialization change: MacroEvent and MacroVariables are not Codable, so no serializer or CodingKeys were touched."
+      "Renamed the Kick host event to Kick raid: KICK_HOST -> KICK_RAID with rawValue \"Kick raid\", updated toString() and the TWITCH_RAID/KICK_RAID branch of minimumAmountTitle().",
+      "Removed SettingsMacrosEvent.variablesToString() exactly as the Swift diff removes it.",
+      "Added MacroVariable.description() with the nine localized strings from Swift, placed after toString() as in the source.",
+      "Enum names in Kotlin keep UPPER_SNAKE entries; raw values stay byte-identical because they are persisted.",
+      "MacroVariable.description() is exhaustive over all entries, so no else branch is needed.",
+      "No other members of the file were touched; formatting, imports and declaration order are unchanged.",
+      "Callers outside this file that used SettingsMacrosEvent.KICK_HOST must be renamed to KICK_RAID separately."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 23988,
-    "tokens_out": 10823,
-    "seconds": 29.1,
-    "ported_at": "2026-09-23T11:19:53+00:00"
+    "tokens_in": 45036,
+    "tokens_out": 6403,
+    "seconds": 18.3,
+    "ported_at": "2026-09-24T15:40:57+00:00"
   },
   "Moblin/Various/Model/ModelRemoteControl.swift": {
     "status": "ok",
@@ -16900,18 +16747,23 @@
   },
   "Moblin/Various/Model/ModelScene.swift": {
     "status": "ok",
-    "sha256": "24c223180d8672ceafcc4d171307a5ea7a6c63a716d6f42ccbfe649d6455b726",
+    "sha256": "85a6e841146ba5cd6ba96b1028442d88fea5cfe9401bd8f9ddd7f337a9474cd7",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelScene.kt",
-    "notes": [],
+    "notes": [
+      "Only createTextEffect changed: the separate fontFamily and fontStyle arguments are replaced by a single font argument from widget.text.font.",
+      "Everything else in the file is unchanged and kept byte-identical.",
+      "fontDesign and horizontalAlignment keep their existing Android shim conversions (toUiKit / raw value), untouched by this diff."
+    ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 23384,
-    "tokens_out": 61268,
-    "seconds": 195.3,
-    "ported_at": "2026-09-22T14:06:16+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 86996,
+    "tokens_out": 17750,
+    "seconds": 44.8,
+    "ported_at": "2026-09-24T15:41:36+00:00"
   },
   "Moblin/View/ControlBar/StreamButton.swift": {
     "status": "ok",
@@ -17010,33 +16862,28 @@
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",
-    "sha256": "f71ae9e91576953be9c8e8f2be5a0653a670ecc2d79eaad1f5facaca3542f3f1",
+    "sha256": "e302769310ebde0ea2b23dcbc1423faea86a00a5a240f16003158141e481d6c8",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/Settings.kt",
     "notes": [
-      "All Codable models become @Serializable classes; `@Published` properties are plain `var`s because kotlinx.serialization cannot serialize StateFlow, so UI observation is left to the settings store.",
-      "Where the Swift property initialiser and its decode fallback differ (e.g. SettingsCyclingPowerDevice.name, SettingsWorkoutDevice.name, SettingsBlackSharkCoolerDevice.name, SettingsMediaPlayer.name), the Kotlin default is the decode fallback.",
-      "Database.toString() is renamed toJsonString() because Kotlin reserves toString(); all other toString() members are translated as overrides.",
-      "java.util.UUID has no built-in serializer, so the file-private UuidSerializer is used; encoded UUID strings are lowercase while Swift produced uppercase (UUID.fromString accepts both).",
-      "WatchConnectivity's WatchSettings has no Android equivalent and is kept as a raw JsonObject so the value still round-trips.",
-      "The migrations that lived in Database.init(from:) (moblink, face, httpProxy and graphicsHighQualityDownsampling fallbacks, stereo mic, cycling power devices, scoreboard size) are applied in Database.applyDecodeMigrations(root), called right after decoding.",
-      "The macCatalyst branch of addDefaultScenes is kept behind isMac(); Android always takes the back/front camera branch. quickButtonPageTwo/Three always return 2/3.",
-      "ZipArchive is replaced by java.util.zip (ZipFile for import, ZipOutputStream plus the private writeZipFile helper for export); documents/cache folders come from createAndGetDirectory() and java.io.tmpdir."
+      "Added top-level Android ports of removeExportFiles, recreateExportDirectories and extractArchive (uses java.util.zip.ZipFile instead of ZipArchiveReader) and placed them at the same position as in Swift.",
+      "extractArchive returns ByteArray? (nil when settings.json is missing) and deletes the extracted settings.json from the documents directory after extraction, mirroring Swift.",
+      "importFromFile now runs extractArchive on ioScope, wraps it in runCatching and unwraps with getOrThrow() so a failure reports the IOException message while a missing entry reports 'Settings file not found in archive'.",
+      "reset() and importFromClipboard() now call removeExportFiles() and the old private member removeFilesAndFolders() was deleted, as in Swift.",
+      "exportToFile now stores files by lastPathComponent and directory entries as \"directory/<relativePath>\" computed with Path.relativize; the prefix-count arithmetic was dropped.",
+      "The new ZipArchiveWriter .noCompression configuration is mapped to ZipOutputStream.setLevel(0), the closest java.util.zip equivalent.",
+      "recreateExportDirectories deletes each export directory recursively and recreates it via createAndGetDirectory, then calls createAlertVideosDirectory().",
+      "createAlertVideosDirectory is now imported from com.moblin.android.various.storages."
     ],
-    "unsupported": [
-      "AVAudioSession input data sources (bottom/top mic orientation) in getDefaultMic()",
-      "AVCaptureDevice.virtualDeviceSwitchOverVideoZoomFactors in backCameraVirtualDeviceSwitchOverVideoZoomFactors()",
-      "AVCaptureDevice zoom factor scale in backCameraZoomFactorScale()",
-      "WatchConnectivity / WatchSettings replaced by a raw JsonObject (no Android counterpart)",
-      "CIImage / CGImage in SettingsFace.toEffectSettings mapped to android.media.Image (Core Image needs an OpenGL ES port)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 32003,
-    "tokens_out": 73564,
-    "seconds": 252.9,
-    "ported_at": "2026-09-22T14:07:33+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 109843,
+    "tokens_out": 35946,
+    "seconds": 98.2,
+    "ported_at": "2026-09-24T15:42:34+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsSettingsView.swift": {
     "status": "ok",
@@ -17208,33 +17055,26 @@
   },
   "Moblin/Various/Settings/SettingsScene.swift": {
     "status": "ok",
-    "sha256": "ac1856349f3be5dda4c2f824c2e33632d72725584ff59d2f5631a0238a881c68",
+    "sha256": "0eeec0956adeb95e82796f8ec0a13b4474a49b566578a59f2f5aad916d829232",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsScene.kt",
     "notes": [
-      "All Codable types become kotlinx.serialization @Serializable types; @SerialName keeps the original coding keys (fps->baseFps, scale->size, eventName->title, type->sport, width/height->width2/height2).",
-      "@Published properties are plain `var`; the ObservableObject/Combine reactivity is expected to live in the shared Store, not in these settings models.",
-      "SwiftUI Color properties derived from an RgbColor (fromColor, backgroundColorColor, ...) are @Transient and computed at construction; they are not refreshed if raw JSON is edited in place after decoding.",
-      "java.util.UUID properties carry @Contextual; a UUID contextual serializer must be registered in the SerializersModule for read/write to work.",
-      "SettingsSceneWidget, SettingsScene, SettingsWidgetVideoSource, SettingsWidgetVTuber and SettingsWidgetPngTuber flatten SettingsVideoSource/layout fields in Swift; here they are serialized as a nested object so the stored JSON layout differs.",
-      "Camera availability validation via AVCaptureDevice(uniqueID:) in decodeCameraId has no direct CameraX equivalent and is dropped from the helper.",
-      "The legacy decode fallbacks (SettingsWidgetBrowser.audioOnly, decodeCamera* migration, UUID?.init() defaults) are not reproduced by plain @Serializable defaults.",
-      "SettingsCameraId and the videoeffects constructors (ShapeEffectSettings, Dewarp360EffectSettings, MaskEffectSettings, ...) are taken from the glossary packages; their exact Kotlin signatures were assumed."
+      "Added SettingsFont as an immutable data class (settings value) with name(), familyString() and styleString().",
+      "SettingsWidgetText now stores a single @Published font: SettingsFont instead of fontFamily/fontStyle; JSON keys fontFamily/fontStyle are unchanged.",
+      "The two consecutive font field writes in decode become one SettingsFont.copy(family = ..., style = ...).",
+      "Removed SettingsWidgetText.fontFamilyString()/fontStyleString(); the same logic now lives on SettingsFont.",
+      "SettingsWidgetChat gained @Published font: SettingsFont with the same fontFamily/fontStyle JSON keys, plus font in update(other).",
+      "SettingsWidgetText.encode keeps the exact keys 'fontFamily' and 'fontStyle' for wire compatibility."
     ],
-    "unsupported": [
-      "CIColor (SettingsVideoEffectShape.toSettings)",
-      "ContinuousClock.Instant (SettingsWidgetTextTimer.textEffectEndTime)",
-      "UIFontDescriptor.SystemDesign (SettingsFontDesign.toUiKit)",
-      "UIFont.Weight (SettingsFontWeight.toUiKit)",
-      "SwiftUI Font.Design rounded family in SettingsFontDesign.toSystem"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 44282,
-    "tokens_out": 72887,
-    "seconds": 250.5,
-    "ported_at": "2026-09-22T14:09:13+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 133777,
+    "tokens_out": 46997,
+    "seconds": 119.2,
+    "ported_at": "2026-09-24T15:42:59+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonLiveView.swift": {
     "status": "ok",
@@ -17312,26 +17152,24 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "95d9fcc0b27d01aa897e2b66f948d0b7cd9ed82bcdf4fda6d15f421fabbf4931",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "sha256": "0996e3b211834a7e180ce6cc517b07d5537a89740b43639511c15b06f4e0d95f",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Applied the Swift diff only: added setNativeLowLightBoost(), called it from setup() right after setAllowVideoRangePixelFormat(), switched externalMonitorConnected/externalMonitorDisconnected from reattachCamera() to attachCamera(), and deleted the reattachCamera() helper.",
-      "setNativeLowLightBoost() assigns the top-level var nativeLowLightBoost, matching how setAllowVideoRangePixelFormat() assigns allowVideoRangePixelFormat. Since database.debug members are MutableStateFlow in this port, database.debug.nativeLowLightBoost is read with .value.",
-      "detachCamera() is kept even though reattachCamera() was the only in-file caller; the Swift source still declares it and other files may call it.",
-      "Everything else in Model.kt, including hand-written Android code and call sites into com.moblin.android.platform, is unchanged."
+      "Adds a new StateFlow-free plain property `isBluetoothAudioOutput` on Model, placed right after `latestSetVolumeTime` as in Swift.",
+      "Adds the `updateIsBluetoothAudioOutput()` call in setup() directly after the AVAudioSession.routeChangeNotification observer registration.",
+      "`updateIsBluetoothAudioOutput()` is declared elsewhere in the port (an audio-related Model extension in com.moblin.android.various.model); it is only called here, never redeclared.",
+      "No other line of the existing Kotlin file changed; the Android hooks (Bundle, AppDelegate.context, platform observers) were left byte-identical."
     ],
-    "unsupported": [
-      "AlertsEffectAlert.quickButton"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 93351,
-    "tokens_out": 32043,
-    "seconds": 82.7,
-    "ported_at": "2026-09-23T11:20:50+00:00"
+    "tokens_in": 129741,
+    "tokens_out": 32254,
+    "seconds": 82.0,
+    "ported_at": "2026-09-24T15:42:25+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -17512,30 +17350,25 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Text/WidgetTextSettingsView.swift": {
     "status": "ok",
-    "sha256": "65cfb2f0e37674abcdc3f176c9811db1e44db196bd82fa17b7043c4262d8f5b8",
+    "sha256": "f6e6316dee460e84d02fea90653366a01ed0492cea399bdb734b05d4bc7ae3ab",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/text/WidgetTextSettingsView.kt",
     "notes": [
-      "@ObservedObject/@EnvironmentObject properties are read with collectAsState() and written through MutableStateFlow.value; this assumes the ported settings/model classes expose mutable flows (note the .value writes).",
-      "NavigationLink destinations are onNavigate(name) callbacks; the destination screens that live in this file (TextSelectionView, the variable groups, FontFamilyPickerView, FontStylePickerView, TextWidgetSuggestionsInnerView) are kept as composables and receive the model objects they need instead of navigating themselves.",
-      "Forms/Sections become a Column with a header Text followed by its rows; sheets become ModalBottomSheet and popovers become Dialog (the quick-button controls are not lazy lists).",
-      ".alert/.confirmationDialog become AlertDialog and SwiftUI onChange(of:) handlers are folded into the corresponding write callbacks (Slider/Toggle/Picker/Switch).",
-      "textEffect*Format values are treated as java.time.format.DateTimeFormatter formatted with java.time.Instant; date/date-time display keeps the same formatting members.",
-      "Icons come from the material-icons-extended set (CheckBoxOutlineBlank, Schedule, RestartAlt, Flag, Timer); add that artifact if it is missing.",
-      "Inline SF Symbol images embedded in text (apple.logo, figure.run) are dropped while the surrounding localized strings are kept.",
-      "UIFont/CoreText font enumeration has no Android counterpart, so font family/style lists and font-style strings are TODO(); Android's Typeface provides no public family enumeration on API 26."
+      "The diff deletes the local FontFamilyPickerView, FontStylePickerView, fontStyleName, fontStyles and loadFontFamilies helpers; their Kotlin copies in this file are removed too, since FontFamilyPickerView, FontStylePickerView, FontSettingsView and fontStyleName now live in com.moblin.android.view.utils.",
+      "The Swift `FontSettingsView(font: $text.font) { ... }` binding is passed with the platform binding(get, set) helper, and the trailing closure becomes the onChange lambda.",
+      "The condition guarding the Design/Weight/Monospaced digits pickers is now `text.font.family == null` instead of the old `text.fontFamily != nil` branch.",
+      "Only the import of FontSettingsView and the binding helper were added; all other import lines are left byte-identical, so the now-unused LaunchedEffect import stays.",
+      "The Design/Weight pickers keep the Kotlin port's existing property names (text.fontDesign, text.fontWeight, text.fontMonospacedDigits) and its toUiKit()/toSystem() setter calls, which the Swift diff does not touch."
     ],
-    "unsupported": [
-      "Translation framework (LanguageAvailability, SupportedLanguage, status(from:to:)) in SubtitlesWithLanguageView",
-      "UIKit and CoreText font enumeration (UIFont.familyNames, UIFont.fontNames(forFamilyName:), CTFontCollectionCreateFromAvailableFonts, CTFontDescriptorCopyAttribute) in FontFamilyPickerView and FontStylePickerView"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 20240,
-    "tokens_out": 62616,
-    "seconds": 224.1,
-    "ported_at": "2026-09-22T14:12:16+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 78652,
+    "tokens_out": 19908,
+    "seconds": 58.3,
+    "ported_at": "2026-09-24T15:42:02+00:00"
   },
   "Moblin/View/Settings/Display/QuickButtons/QuickButtonsButtonSettingsView.swift": {
     "status": "ok",
@@ -17852,28 +17685,28 @@
   },
   "Moblin/View/Settings/Macros/MacrosSettingsView.swift": {
     "status": "ok",
-    "sha256": "9b97f0eb09d638da6967d36ba89fa6d695d9238f134bb963e3520ce141e33289",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "sha256": "a3c04b3c4a98ef383f022eddc21624ae618018c646e469f8df88c41d6f371065",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/macros/MacrosSettingsView.kt",
     "notes": [
-      "Added the new enum case handling for SEND_TWITCH_SHOUTOUT in the action body (empty), the action label (grouped with the snapshot case) and the action footer (explanatory text).",
-      "The wait-for-event footer now wraps its content in a Column with horizontalAlignment Start and verticalArrangement spacedBy(5.dp), matching VStack(alignment: .leading, spacing: 5).",
-      "SettingsMacrosEvent.variablesToString() is not present in the Kotlin SettingsMacrosEvent declaration, so the variables line is a TODO placeholder; add that helper to SettingsMacros.kt to complete it.",
-      "The new Kotlin enum entry SEND_TWITCH_SHOUTOUT must be added to SettingsMacrosActionFunction in SettingsMacros.kt with raw value sendTwitchShoutout.",
-      "The variables sentence is a plain interpolated string, not localized, matching the Swift non-localized Text.",
-      "Everything outside the three changed areas is byte-identical to the previous Kotlin version."
+      "Adds private MacroVariableView between TextFormatView and submitZoomX, matching the new Swift struct position.",
+      "Adds a second Section inside the Action Form that lists the event's variables, gated on function == WAIT_FOR_EVENT and a non-empty variable list.",
+      "UIPasteboard is replaced with the Android clipboard (ClipboardManager via AppDelegate.context), the only place in the file that needs a Context.",
+      "The removed Swift 'variablesToString()' footer text was never present in the Kotlin file, so nothing was deleted.",
+      "ForEach(action.event.variables(), id = { it }) mirrors ForEach(..., id: \\.self); MacroVariable is keyed by value.",
+      "Text(variable.toString()).font(.title3) uses SwiftUIFonts.system(size = 20f), the title3 size.",
+      "VStack(alignment: .leading) maps to Column with Alignment.Start and the default 8.dp spacing.",
+      "model.makeToast(title = ...) is the ported Model extension; the copied string is built with Kotlin interpolation."
     ],
-    "unsupported": [
-      "SettingsMacrosEvent.variablesToString() (no Android counterpart declared; replaced by TODO())"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 32334,
-    "tokens_out": 11710,
-    "seconds": 36.0,
-    "ported_at": "2026-09-23T11:20:10+00:00"
+    "tokens_in": 61333,
+    "tokens_out": 13895,
+    "seconds": 42.7,
+    "ported_at": "2026-09-24T15:42:20+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardGeneralSettingsView.swift": {
     "status": "ok",
@@ -19117,5 +18950,34 @@
     "seconds": 122.2,
     "ported_at": "2026-09-22T15:20:22+00:00",
     "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+  },
+  "Moblin/View/Utils/FontPickerViews.swift": {
+    "status": "ok",
+    "sha256": "b64c6faa0a44733de566a602db95588e91a5f37d07b18f2c1b1853c7516aa7da",
+    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "mode": "full",
+    "tier": "ui",
+    "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/FontPickerViews.kt",
+    "notes": [
+      "@Binding var font: SettingsFont becomes a MutableState<SettingsFont> parameter; reads and writes go through font.value.",
+      "SettingsFont is ported as a settings data class, so font.style = style becomes font.value = font.value.copy(style = style) and SettingsFont()/SettingsFont(family = , style = ) construct new values.",
+      "UIFont.fontNames(forFamilyName:) has no Android counterpart, so fontStyles(fontFamily) is TODO; it is reused for the family picker's default style and for the disabled Style row, exactly as the Swift UIFont call is used in both places.",
+      "loadFontFamilies() is TODO: CoreText font collection and UIFont.familyNames have no Android equivalent.",
+      "@State fontFamilies uses remember { mutableStateOf(emptyList()) } and .onAppear uses DisposableEffect(Unit).",
+      "Form/Section/FormRow/ForEach/NavigationLink/Button/SystemImage come from the hand-written SwiftUI layer; each Swift HStack row of the Form/List becomes a FormRow.",
+      "The platform has no Text composable, so rows use Material3 Text with explicit 17.sp and white, because there is no MaterialTheme to supply defaults.",
+      "fontStyleName drops the family prefix using BreakIterator grapheme counts, matching Swift's grapheme based dropFirst/count."
+    ],
+    "unsupported": [
+      "UIFont.fontNames(forFamilyName:)",
+      "UIFont.familyNames",
+      "CoreText font collection (CTFontCollectionCreateFromAvailableFonts, CTFontDescriptorCopyAttribute)"
+    ],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 38345,
+    "tokens_out": 32604,
+    "seconds": 121.7,
+    "ported_at": "2026-09-24T15:42:05+00:00"
   }
 }

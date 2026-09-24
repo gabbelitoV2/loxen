@@ -26,6 +26,7 @@ import com.moblin.android.various.model.plainIcon
 import com.moblin.android.various.model.stealthModeImagePath
 import com.moblin.android.various.storages.SimpleStringStorage
 import com.moblin.android.various.storages.alertsStorageDirectory
+import com.moblin.android.various.storages.createAlertVideosDirectory
 import com.moblin.android.various.storages.imagesStorageDirectory
 import com.moblin.android.various.storages.mediaPlayerStorageDirectory
 import com.moblin.android.various.storages.pngTuberStorageDirectory
@@ -2778,6 +2779,46 @@ private val exportFiles = listOf(
     controlBarBackgroundImagePath,
 )
 
+private fun removeExportFiles() {
+    for (file in exportFiles) {
+        file.delete()
+    }
+}
+
+private fun recreateExportDirectories() {
+    for (directory in exportDirectories) {
+        File(createAndGetDirectory(), directory).deleteRecursively()
+        createAndGetDirectory(directory)
+    }
+    createAlertVideosDirectory()
+}
+
+private fun extractArchive(url: URI): ByteArray? {
+    return ZipFile(File(url.path)).use { zip ->
+        val entries = zip.entries().asSequence().toList()
+        val settingsEntry = entries.firstOrNull { it.name == settingsJsonName } ?: return null
+        removeExportFiles()
+        recreateExportDirectories()
+        check(entries.none { it.name.startsWith("/") || it.name.split("/").contains("..") }) { "Invalid file path" }
+        val root = createAndGetDirectory()
+        for (entry in entries) {
+            val target = exportFiles.firstOrNull { it.name == entry.name } ?: File(root, entry.name)
+            if (entry.isDirectory) {
+                target.mkdirs()
+            } else {
+                target.parentFile?.mkdirs()
+                zip.getInputStream(entry).use { input ->
+                    FileOutputStream(target).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+            }
+        }
+        File(root, settingsJsonName).delete()
+        zip.getInputStream(settingsEntry).use { it.readBytes() }
+    }
+}
+
 private val storage = SimpleStringStorage(key = "settings")
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
@@ -2823,43 +2864,22 @@ class Settings {
     }
 
     fun reset() {
-        removeFilesAndFolders()
+        removeExportFiles()
         realDatabase = createDefault()
         store()
     }
 
     fun importFromFile(url: URI, onCompleted: (String?) -> Unit) {
-        removeFilesAndFolders()
-        val root = createAndGetDirectory()
         ioScope.launch {
-            val settingsJson = File(root, settingsJsonName)
-            settingsJson.delete()
-            try {
-                ZipFile(File(url.path)).use { zip ->
-                    zip.entries().asSequence().forEach { entry ->
-                        val target = File(root, entry.name)
-                        if (entry.isDirectory) {
-                            target.mkdirs()
-                        } else {
-                            target.parentFile?.mkdirs()
-                            zip.getInputStream(entry).use { input ->
-                                FileOutputStream(target).use { output ->
-                                    input.copyTo(output)
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                mainScope.launch {
-                    onCompleted(e.localizedMessage)
-                }
-                return@launch
-            }
+            val settings = runCatching { extractArchive(url) }
             mainScope.launch {
                 try {
-                    val settings = settingsJson.readBytes()
-                    tryLoadAndMigrate(String(settings, Charsets.UTF_8))
+                    val settingsBytes = settings.getOrThrow()
+                    if (settingsBytes == null) {
+                        onCompleted(localized("Settings file not found in archive"))
+                        return@launch
+                    }
+                    tryLoadAndMigrate(String(settingsBytes, Charsets.UTF_8))
                     store()
                     onCompleted(null)
                 } catch (e: Exception) {
@@ -2870,7 +2890,7 @@ class Settings {
     }
 
     fun importFromClipboard(settings: String, onCompleted: (String?) -> Unit) {
-        removeFilesAndFolders()
+        removeExportFiles()
         try {
             tryLoadAndMigrate(settings)
             store()
@@ -2892,21 +2912,26 @@ class Settings {
             url.delete()
             try {
                 ZipOutputStream(BufferedOutputStream(FileOutputStream(url))).use { zip ->
+                    zip.setLevel(0)
                     zip.putNextEntry(ZipEntry(settingsJsonName))
                     zip.write(settingsJson)
                     zip.closeEntry()
-                    val prefixCount = createAndGetDirectory().canonicalPath.length + 1
                     for (fileUrl in exportFiles) {
                         if (fileUrl.exists()) {
-                            val relativeFilePath = fileUrl.canonicalPath.drop(prefixCount)
-                            writeZipFile(zip, relativeFilePath, fileUrl)
+                            writeZipFile(zip, fileUrl.name, fileUrl)
                         }
                     }
                     for (directory in exportDirectories) {
-                        val directoryUrl = createAndGetDirectory(directory)
-                        directoryUrl.walkTopDown().filter { it.isFile }.forEach { fileUrl ->
-                            val relativeFilePath = fileUrl.canonicalPath.drop(prefixCount)
-                            writeZipFile(zip, relativeFilePath, fileUrl)
+                        val directoryUrl = File(createAndGetDirectory(), directory)
+                        for (fileUrl in directoryUrl.walkTopDown()) {
+                            if (!fileUrl.isFile) {
+                                continue
+                            }
+                            writeZipFile(
+                                zip,
+                                "$directory/${directoryUrl.toPath().relativize(fileUrl.toPath())}",
+                                fileUrl,
+                            )
                         }
                     }
                 }
@@ -2918,12 +2943,6 @@ class Settings {
                     onCompleted(null)
                 }
             }
-        }
-    }
-
-    private fun removeFilesAndFolders() {
-        for (file in exportFiles) {
-            file.delete()
         }
     }
 

@@ -38,6 +38,7 @@ import com.moblin.android.platform.swiftui.SwiftUIFonts
 import com.moblin.android.platform.swiftui.hasSystemImage
 import com.moblin.android.platform.swiftui.monospacedDigit
 import com.moblin.android.various.Variables
+import com.moblin.android.various.settings.SettingsFont
 import com.moblin.android.various.settings.SettingsHorizontalAlignment
 import com.moblin.android.various.settings.SettingsSceneWidget
 import com.moblin.android.various.settings.SettingsWidgetTextStopwatch
@@ -60,8 +61,7 @@ import androidx.compose.material.icons.outlined.MicOff
 
 private class TextViewState(
     fontSize: Float,
-    fontFamily: String?,
-    fontStyle: String,
+    font: SettingsFont,
     fontDesign: FontDesign,
     fontWeight: FontWeight,
     fontMonospacedDigits: Boolean,
@@ -73,8 +73,7 @@ private class TextViewState(
     lines: List<TextEffectLine>,
 ) {
     val fontSize = MutableStateFlow(fontSize)
-    val fontFamily = MutableStateFlow(fontFamily)
-    val fontStyle = MutableStateFlow(fontStyle)
+    val font = MutableStateFlow(font)
     val fontDesign = MutableStateFlow(fontDesign)
     val fontWeight = MutableStateFlow(fontWeight)
     val fontMonospacedDigits = MutableStateFlow(fontMonospacedDigits)
@@ -92,18 +91,14 @@ private fun scaledFontSize(fontSize: Float, size: CGSize): Float {
 }
 
 private fun font(
-    fontFamily: String?,
-    fontStyle: String,
+    font: SettingsFont,
     fontDesign: FontDesign,
     fontWeight: FontWeight,
     size: Float,
 ): TextStyle {
-    if (fontFamily != null) {
-        return if (fontStyle.isEmpty()) {
-            SwiftUIFonts.custom(fontFamily, size)
-        } else {
-            SwiftUIFonts.custom(fontStyle, size)
-        }
+    val name = font.name()
+    if (name != null) {
+        return SwiftUIFonts.custom(name, size)
     } else {
         return SwiftUIFonts.system(size, fontWeight, fontDesign)
     }
@@ -113,8 +108,7 @@ private fun font(
 private fun TextView(state: TextViewState) {
     val size by state.size.collectAsState()
     val fontSize by state.fontSize.collectAsState()
-    val fontFamily by state.fontFamily.collectAsState()
-    val fontStyle by state.fontStyle.collectAsState()
+    val settingsFont by state.font.collectAsState()
     val fontDesign by state.fontDesign.collectAsState()
     val fontWeight by state.fontWeight.collectAsState()
     val fontMonospacedDigits by state.fontMonospacedDigits.collectAsState()
@@ -128,13 +122,12 @@ private fun TextView(state: TextViewState) {
     val currentSize = size ?: return
     val scaledSize = scaledFontSize(fontSize = fontSize, size = currentSize)
     var textStyle = font(
-        fontFamily = fontFamily,
-        fontStyle = fontStyle,
+        font = settingsFont,
         fontDesign = fontDesign,
         fontWeight = fontWeight,
         size = scaledSize,
     )
-    if (fontFamily == null && fontMonospacedDigits) {
+    if (settingsFont.family == null && fontMonospacedDigits) {
         textStyle = textStyle.monospacedDigit()
     }
     Column(
@@ -226,8 +219,7 @@ class TextEffect(
     backgroundColor: RgbColor,
     foregroundColor: RgbColor,
     fontSize: Float,
-    fontFamily: String?,
-    fontStyle: String,
+    font: SettingsFont,
     fontDesign: FontDesign,
     fontWeight: FontWeight,
     fontMonospacedDigits: Boolean,
@@ -255,8 +247,7 @@ class TextEffect(
     private var sceneWidget: SettingsSceneWidget = SettingsSceneWidget(widgetId = UUID.randomUUID())
     private val state: TextViewState = TextViewState(
         fontSize = fontSize,
-        fontFamily = fontFamily,
-        fontStyle = fontStyle,
+        font = font,
         fontDesign = fontDesign,
         fontWeight = fontWeight,
         fontMonospacedDigits = fontMonospacedDigits,
@@ -317,12 +308,8 @@ class TextEffect(
         state.fontSize.value = size
     }
 
-    fun setFontFamily(family: String?) {
-        state.fontFamily.value = family
-    }
-
-    fun setFontStyle(style: String) {
-        state.fontStyle.value = style
+    fun setFont(font: SettingsFont) {
+        state.font.value = font
     }
 
     fun setFontDesign(design: FontDesign) {

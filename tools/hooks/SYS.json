@@ -1,0 +1,24 @@
+{
+  "task": "SYS",
+  "hooks": [
+    {
+      "id": "HSYS.1",
+      "file": "various/settings/Settings.kt",
+      "scope": "fun extractArchive",
+      "op": "replace",
+      "old": "            val target = File(root, entry.name)",
+      "new": "            val target = exportFiles.firstOrNull { it.name == entry.name } ?: File(root, entry.name)",
+      "occurrence": 1,
+      "note": "Swift keeps stealthModeImagePath, faceBackgroundImagePath and controlBarBackgroundImagePath in URL.documentsDirectory and exports them by lastPathComponent, so reader.extract(to: documentsDirectory) puts them back. The port keeps them in filesDir while createAndGetDirectory() is the app data directory, so their archive entries are written to the exportFiles paths instead."
+    },
+    {
+      "id": "HSYS.2",
+      "file": "various/settings/Settings.kt",
+      "scope": "fun extractArchive",
+      "op": "insert_after",
+      "anchor": "        recreateExportDirectories()",
+      "new": "        check(entries.none { it.name.startsWith(\"/\") || it.name.split(\"/\").contains(\"..\") }) { \"Invalid file path\" }",
+      "note": "Upstream 371f1f364 and 75939ca5b moved swift-zip-archive to 750253d, whose ZipArchiveReader.extract throws invalidFilePath before writing anything when an entry path is absolute or has a '..' component. The Swift diff of Settings.swift does not show it, so the translation never sees it."
+    }
+  ]
+}

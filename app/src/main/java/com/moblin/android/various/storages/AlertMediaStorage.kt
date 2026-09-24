@@ -6,8 +6,12 @@ import java.util.UUID
 
 const val alertsStorageDirectory = "Alerts"
 
+fun createAlertVideosDirectory(): File {
+    return createAndGetDirectory(alertsStorageDirectory, "Videos")
+}
+
 class AlertVideoMediaStorage {
-    private val mediasDir: File = createAndGetDirectory(alertsStorageDirectory, "Videos")
+    private val mediasDir: File = createAlertVideosDirectory()
 
     fun makePath(filename: String): File {
         return File(mediasDir, filename)

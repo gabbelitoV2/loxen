@@ -17,10 +17,12 @@ import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.binding
 import com.moblin.android.various.model.*
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsChat
 import com.moblin.android.various.settings.SettingsChatDisplayStyle
+import com.moblin.android.view.utils.FontSettingsView
 import com.moblin.android.view.utils.RgbColorPickerView
 
 @Composable
@@ -33,9 +35,9 @@ fun ChatSettingsAppearanceView(
     NavigationLink(
         destination = {
             Form(title = "Appearance") {
-                Section {
+                Section(header = "Font") {
                     FormRow {
-                        Text(localized("Font size"))
+                        Text(localized("Size"))
                         FormSlider(
                             value = chat.fontSize,
                             onValueChange = {
@@ -53,26 +55,43 @@ fun ChatSettingsAppearanceView(
                             Text(chat.fontSize.toInt().toString())
                         }
                     }
-                    FormRow {
-                        Text(localized("Big GIF scale"))
-                        FormSlider(
-                            value = chat.bigGifScale,
-                            onValueChange = {
-                                chat.bigGifScale = it
-                                model.reloadChatMessages()
-                            },
-                            modifier = Modifier.weight(1f),
-                            valueRange = 1f..10f,
-                            onValueChangeFinished = { model.reloadChatMessages() },
-                        )
-                        Box(
-                            modifier = Modifier.width(25.dp),
-                            contentAlignment = Alignment.Center,
+                    if (database.showAllSettings) {
+                        FontSettingsView(
+                            font = binding(get = { chat.font }, set = { chat.font = it }),
                         ) {
-                            Text(chat.bigGifScale.toInt().toString())
+                            model.reloadChatMessages()
+                        }
+                        Toggle("Bold name", isOn = chat.boldUsername) {
+                            chat.boldUsername = it
+                            model.reloadChatMessages()
+                        }
+                        Toggle("Bold message", isOn = chat.boldMessage) {
+                            chat.boldMessage = it
+                            model.reloadChatMessages()
                         }
                     }
-                    if (database.showAllSettings) {
+                }
+                if (database.showAllSettings) {
+                    Section(header = "General") {
+                        FormRow {
+                            Text(localized("Big GIF scale"))
+                            FormSlider(
+                                value = chat.bigGifScale,
+                                onValueChange = {
+                                    chat.bigGifScale = it
+                                    model.reloadChatMessages()
+                                },
+                                modifier = Modifier.weight(1f),
+                                valueRange = 1f..10f,
+                                onValueChangeFinished = { model.reloadChatMessages() },
+                            )
+                            Box(
+                                modifier = Modifier.width(25.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(chat.bigGifScale.toInt().toString())
+                            }
+                        }
                         Picker(
                             title = "Display style",
                             selection = chat.displayStyle,
@@ -82,14 +101,6 @@ fun ChatSettingsAppearanceView(
                         )
                         Toggle("Timestamp", isOn = chat.timestampColorEnabled) {
                             chat.timestampColorEnabled = it
-                            model.reloadChatMessages()
-                        }
-                        Toggle("Bold name", isOn = chat.boldUsername) {
-                            chat.boldUsername = it
-                            model.reloadChatMessages()
-                        }
-                        Toggle("Bold message", isOn = chat.boldMessage) {
-                            chat.boldMessage = it
                             model.reloadChatMessages()
                         }
                         Toggle("Badges", isOn = chat.badges) {

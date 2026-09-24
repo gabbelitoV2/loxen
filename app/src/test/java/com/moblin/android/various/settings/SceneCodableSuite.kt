@@ -145,8 +145,9 @@ private val swiftEncodedKeys: Map<String, List<String>> = mapOf(
     ),
     "SettingsWidgetSnapshot" to listOf("id", "showtime"),
     "SettingsWidgetChat" to listOf(
-        "id", "fontSize", "usernameColor", "messageColor", "backgroundColor", "backgroundColorEnabled",
-        "shadowColor", "shadowColorEnabled", "boldUsername", "boldMessage", "badges", "displayStyle",
+        "id", "fontSize", "fontFamily", "fontStyle", "usernameColor", "messageColor", "backgroundColor",
+        "backgroundColorEnabled", "shadowColor", "shadowColorEnabled", "boldUsername", "boldMessage", "badges",
+        "displayStyle",
         "sharedChatIcons", "height", "maximumNumberOfMessages",
     ),
     "SettingsWidgetSlideshowSlide" to listOf("id", "widgetId", "time"),
@@ -1027,7 +1028,7 @@ class SceneCodableSuite {
         """
         val text = codableJson.decodeFromString(SettingsWidgetText.serializer(), json)
         assertEquals("{time}", text.formatString)
-        assertEquals("Arial", text.fontFamily)
+        assertEquals("Arial", text.font.family)
         assertEquals(44, text.fontSize)
         assertEquals(44f, text.fontSizeFloat)
         assertEquals(SettingsFontDesign.rounded, text.fontDesign)
@@ -1201,7 +1202,7 @@ class SceneCodableSuite {
         assertEquals(30, text.fontSize)
         assertEquals("{shortTime}", text.formatString)
         assertTrue(text.timers.isEmpty())
-        assertNull(text.fontFamily)
+        assertNull(text.font.family)
         assertEquals(SettingsFontDesign.`default`, text.fontDesign)
         val widget = codableJson.decodeFromString(
             SettingsWidget.serializer(),

@@ -99,6 +99,7 @@ private fun makeChatLineStyle(chat: SettingsChat, interactive: Boolean): ChatLin
         highlightDefaultColor = chat.messageColorColor,
         nicknames = chat.nicknames,
         displayStyle = chat.displayStyle,
+        font = chat.font,
     )
 }
 

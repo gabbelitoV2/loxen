@@ -22,6 +22,9 @@ fun Model.isTextToSpeechEnabledForMessage(post: ChatPost): Boolean {
     if (post.filter?.textToSpeech == false) {
         return false
     }
+    if (!isTextToSpeechOutputAllowed()) {
+        return false
+    }
     if (database.chat.textToSpeechSubscribersOnly) {
         if (!post.isSubscriber) {
             return false
@@ -34,6 +37,17 @@ fun Model.isTextToSpeechEnabledForMessage(post: ChatPost): Boolean {
         return false
     }
     return post.user != null
+}
+
+fun Model.isTextToSpeechOutputAllowed(): Boolean {
+    return !database.chat.textToSpeechBluetoothSpeakerOnly || isBluetoothAudioOutput
+}
+
+fun Model.stopTextToSpeechIfOutputNotAllowed() {
+    if (!database.chat.textToSpeechEnabled || isTextToSpeechOutputAllowed()) {
+        return
+    }
+    chatTextToSpeech.reset(running = true)
 }
 
 private fun Model.isTextToSpeechEnabledForAnyAlertWidget(): Boolean {
