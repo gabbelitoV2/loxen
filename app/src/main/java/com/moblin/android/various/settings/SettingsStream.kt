@@ -1134,7 +1134,7 @@ data class SettingsStreamReplayStinger(
     val transitionPoint: Double = 0.5,
 ) {
     fun makeFilename(): String? {
-        val path = runCatching { URI("file:///$name").path ?: "" }.getOrElse { return null }
+        val path = name.substringBefore('#').substringBefore('?').substringAfterLast('/')
         val fileExtension = path.substringAfterLast('.', "")
         return "$id.$fileExtension"
     }

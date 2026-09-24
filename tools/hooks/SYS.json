@@ -48,6 +48,76 @@
       "anchor": "        val root = createAndGetDirectory()",
       "new": "        check(root.canonicalFile.toPath().let { base -> entries.all { File(root, it.name).canonicalFile.toPath().startsWith(base) } }) { \"Invalid file path\" }",
       "note": "HSYS.2 is the lexical check of swift-zip-archive. java.io.File also treats a backslash or a drive letter as a separator on a Windows JVM, where the unit tests run, and follows symlinks, so every entry must also resolve inside Documents.directory before anything is written."
+    },
+    {
+      "id": "HSYS.7",
+      "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
+      "scope": "fun VideoPickerView",
+      "op": "replace",
+      "old": "                val name = uri.lastPathSegment ?: return@runCatching",
+      "new": "                val name = com.moblin.android.platform.DocumentPicker.displayName(context, uri)",
+      "occurrence": 1,
+      "note": "UIDocumentPickerViewController(asCopy: true) hands over a copy named after the picked file. The last path segment of a content URI is a provider id such as primary:Movies/x.mov, which may contain slashes or '..'. displayName is the provider's display name reduced to one safe file name."
+    },
+    {
+      "id": "HSYS.8",
+      "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
+      "scope": "fun VideoPickerView",
+      "op": "replace",
+      "old": "                val file = File(context.filesDir, name)",
+      "new": "                val file = com.moblin.android.platform.DocumentPicker.inboxFile(context, name)",
+      "occurrence": 1,
+      "note": "The picked copy lives in a temporary inbox (<cacheDir>/Inbox) like the iOS tmp Inbox, not in filesDir. onUrl then moves it to Documents/ReplayTransitions/<stinger id>.<extension> with ReplayTransitionsStorage.add, as the Swift StingerView does."
+    },
+    {
+      "id": "HSYS.9",
+      "file": "view/settings/streams/stream/replay/StreamReplaySettingsView.kt",
+      "scope": "fun VideoPickerView",
+      "op": "replace",
+      "old": "                model.onDocumentPickerUrl?.invoke(file.toURI().toString())",
+      "new": "                model.onDocumentPickerUrl?.invoke(file.invariantSeparatorsPath)",
+      "occurrence": 1,
+      "note": "onUrl takes the name after the last '/' and moves File(url). A file: URI string is not a path, so File(url) did not exist and nothing reached ReplayTransitions; spaces also came through as %20."
+    },
+    {
+      "id": "HSYS.10",
+      "file": "various/settings/SettingsStream.kt",
+      "scope": "fun makeFilename",
+      "op": "replace",
+      "old": "        val path = runCatching { URI(\"file:///$name\").path ?: \"\" }.getOrElse { return null }",
+      "new": "        val path = name.substringBefore('#').substringBefore('?').substringAfterLast('/')",
+      "occurrence": 1,
+      "note": "Swift URL(string:) percent-encodes invalid characters, so a name such as 'My stinger.mov' has the path extension mov. java.net.URI throws on the space, makeFilename returned null and the picked stinger was never stored. pathExtension is taken from the last path component, before any query or fragment."
+    },
+    {
+      "id": "HSYS.11",
+      "file": "various/Keychain.kt",
+      "scope": "fun preferences\nserver: String",
+      "op": "replace",
+      "old": "                val context = appContext",
+      "new": "                val context = appContext ?: runCatching { com.moblin.android.AppDelegate.context }.getOrNull()",
+      "occurrence": 1,
+      "note": "Nothing sets Keychain.appContext, so every load returned nil and every store was dropped: tokens were lost on each restart."
+    },
+    {
+      "id": "HSYS.12",
+      "file": "various/Keychain.kt",
+      "scope": "fun preferences\nserver: String",
+      "op": "replace",
+      "old": "                val masterKey = MasterKey.Builder(context)",
+      "new": "                val masterKey = runCatching { MasterKey.Builder(context)",
+      "occurrence": 1,
+      "note": "With HSYS.13: SecItemCopyMatching reports a status and never throws. A failing Android Keystore must make the keychain empty, not throw out of Settings.load(), which would replace the settings with the defaults."
+    },
+    {
+      "id": "HSYS.13",
+      "file": "various/Keychain.kt",
+      "scope": "fun preferences\nserver: String",
+      "op": "replace",
+      "old": "                    .build()",
+      "new": "                    .build() }.getOrElse { exception -> Log.i(tag, \"keychain: Failed to open keychain of server $server: ${exception.message}\"); return null }",
+      "occurrence": 1,
+      "note": "See HSYS.12."
     }
   ]
 }

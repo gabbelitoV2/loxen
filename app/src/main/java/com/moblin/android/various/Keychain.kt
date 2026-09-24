@@ -84,14 +84,14 @@ class Keychain(
                 if (cached != null) {
                     return cached
                 }
-                val context = appContext
+                val context = appContext ?: runCatching { com.moblin.android.AppDelegate.context }.getOrNull()
                 if (context == null) {
                     Log.i(tag, "keychain: Failed to query items of server $server without an application context")
                     return null
                 }
-                val masterKey = MasterKey.Builder(context)
+                val masterKey = runCatching { MasterKey.Builder(context)
                     .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                    .build()
+                    .build() }.getOrElse { exception -> Log.i(tag, "keychain: Failed to open keychain of server $server: ${exception.message}"); return null }
                 val preferences = try {
                     EncryptedSharedPreferences.create(
                         context,
