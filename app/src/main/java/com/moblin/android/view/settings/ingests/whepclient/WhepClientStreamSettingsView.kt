@@ -11,6 +11,7 @@ import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.SettingsWhepClient
 import com.moblin.android.various.settings.SettingsWhepClientStream
@@ -76,7 +77,7 @@ fun WhepClientStreamSettingsViewInner(
                         allowedSchemes = listOf("http", "https"),
                         examples = emptyList(),
                         onSubmitted = { model.reloadWhepClient() },
-                        onDismiss = { },
+                        onDismiss = rememberDismiss(),
                     )
                 },
             ) {

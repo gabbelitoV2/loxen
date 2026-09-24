@@ -35,6 +35,7 @@ import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.move
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusOther
 import com.moblin.android.various.model.bluetoothNotAllowedMessage
@@ -138,7 +139,7 @@ private fun GoProDeviceSelectionSection(model: Model = LocalModel.current, devic
                             UUID.nameUUIDFromBytes(discoveredDevice.peripheral.address.toByteArray())
                         device.bluetoothPeripheralName = discoveredDevice.name
                     },
-                    onDismiss = {},
+                    onDismiss = rememberDismiss(),
                 )
             },
             enabled = !device.isStarted,
@@ -173,7 +174,7 @@ private fun GoProDeviceWifiSection(model: Model = LocalModel.current, device: Se
                     value = device.wifiSsid,
                     onValueChange = update,
                     onSubmit = update,
-                    onDismiss = {},
+                    onDismiss = rememberDismiss(),
                 )
             },
             enabled = !device.isStarted,

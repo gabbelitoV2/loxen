@@ -19,6 +19,7 @@ import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.Toggle
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.StatusTopRight
 import com.moblin.android.various.settings.SettingsWorkoutDevice
@@ -139,7 +140,7 @@ fun WorkoutDeviceSettingsViewContent(
                         selectedId = device.bluetoothPeripheralId?.toString()
                             ?: localized("Select device"),
                         onSelectedIdChange = { onDeviceChange(it) },
-                        onDismiss = { },
+                        onDismiss = rememberDismiss(),
                     )
                 },
                 enabled = !model.isWorkoutDeviceEnabled(device = device),

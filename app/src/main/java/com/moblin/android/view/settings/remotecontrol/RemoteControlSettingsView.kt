@@ -40,6 +40,7 @@ import com.moblin.android.platform.swiftui.Toggle
 import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.platform.swiftui.moving
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.view.settings.streams.stream.obsremotecontrol.StreamObsRemoteControlSettingsView
 import com.moblin.android.view.utils.ContextMenuDeleteButton
@@ -725,7 +726,7 @@ fun RemoteControlSettingsView(
                         onSubmit = { value ->
                             submitPassword(model = model, database = database, value = value)
                         },
-                        onDismiss = {},
+                        onDismiss = rememberDismiss(),
                     )
                 },
             ) {

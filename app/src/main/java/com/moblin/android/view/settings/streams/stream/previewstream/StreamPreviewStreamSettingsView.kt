@@ -9,6 +9,7 @@ import com.moblin.android.platform.swiftui.NavigationLink
 import com.moblin.android.platform.swiftui.Picker
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.binding
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.settings.SettingsStreamPreviewStream
 import com.moblin.android.various.settings.SettingsStreamResolution
 import com.moblin.android.view.settings.ingests.rtspclient.UrlSettingsView
@@ -49,7 +50,7 @@ fun StreamPreviewStreamSettingsView(
                         allowedSchemes = listOf("whip", "whips"),
                         examples = whipExamples,
                         onSubmitted = {},
-                        onDismiss = {},
+                        onDismiss = rememberDismiss(),
                     )
                 },
             ) {

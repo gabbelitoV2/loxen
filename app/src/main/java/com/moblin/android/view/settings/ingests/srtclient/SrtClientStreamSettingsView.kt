@@ -101,6 +101,6 @@ fun SrtClientStreamUrlSettingsView(
             "BELABOX cloud" to "srt://eu.srt.belabox.net:4001?streamid=P3Kd229fslEWF3SGRQAsd",
         ),
         onSubmitted = { model.reloadSrtClient() },
-        onDismiss = {},
+        onDismiss = rememberDismiss(),
     )
 }
