@@ -18,6 +18,7 @@ import java.lang.ref.ReferenceQueue
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -34,11 +35,16 @@ const val kCVPixelBufferPixelFormatTypeKey = "PixelFormatType"
 const val kCVPixelBufferIOSurfacePropertiesKey = "IOSurfaceProperties"
 const val kCVPixelBufferMetalCompatibilityKey = "MetalCompatibility"
 
-internal class PixelBufferBacking(val texture: Int, val framebuffer: Int, val width: Int, val height: Int)
+internal class PixelBufferBacking(val texture: Int, val framebuffer: Int, val width: Int, val height: Int) {
+    @Volatile
+    var generation = 0
+}
 
 internal class PixelBufferPoolState(val width: Int, val height: Int, val maximumBufferCount: Int, var name: String) {
     val free = ArrayDeque<PixelBufferBacking>()
     var allocated = 0
+    var leased = 0
+    var unleased = 0
     var released = false
     var lastExhaustedLogMs = 0L
 }
@@ -47,7 +53,17 @@ class CVPixelBuffer internal constructor(
     internal val backing: PixelBufferBacking,
     internal val poolState: PixelBufferPoolState?,
     val pixelFormatType: Int,
+    leased: Boolean = false,
 ) {
+    internal val generation: Int = backing.generation
+
+    internal val leaseCount = AtomicInteger(if (leased) 1 else UNLEASED)
+
+    internal var reference: Any? = null
+
+    val isValid: Boolean
+        get() = backing.generation == generation
+
     val width: Int
         get() = backing.width
 
@@ -64,6 +80,18 @@ class CVPixelBuffer internal constructor(
 
     fun isPortrait(): Boolean {
         return height > width
+    }
+
+    fun checkReadable(site: String): Boolean {
+        if (isValid) {
+            return true
+        }
+        PixelBufferStale.report(this, site)
+        return false
+    }
+
+    fun readableTexture(site: String): Int {
+        return if (checkReadable(site)) texture else 0
     }
 
     fun toBitmap(maxLongSide: Int = 0): Bitmap? {
@@ -96,7 +124,7 @@ class CVPixelBuffer internal constructor(
     }
 
     override fun toString(): String {
-        return "CVPixelBuffer(${width}x$height, texture=$texture)"
+        return "CVPixelBuffer(${width}x$height, texture=$texture, ${poolState?.name ?: "unpooled"})"
     }
 
     private fun scaledSize(longSide: Int): Size {
@@ -139,13 +167,17 @@ class CVPixelBufferPool(
     fun createPixelBuffer(): CVPixelBuffer? {
         if (!PipelineThread.isCurrent()) {
             return try {
-                PipelineThread.runSync { createPixelBuffer() }
+                PipelineThread.runSync { PixelBufferReaper.obtain(state, pixelFormatType, leased = false) }
             } catch (error: Throwable) {
                 Log.w(TAG, "createPixelBuffer failed: $error")
                 null
             }
         }
-        return PixelBufferReaper.obtain(state, pixelFormatType)
+        return PixelBufferReaper.obtain(state, pixelFormatType, leased = true)
+    }
+
+    fun invalidate() {
+        PixelBufferReaper.invalidate(state)
     }
 
     companion object {
@@ -155,6 +187,7 @@ class CVPixelBufferPool(
             if (pool != null && pool.width == imageBuffer.width && pool.height == imageBuffer.height) {
                 return pool
             }
+            pool?.invalidate()
             return CVPixelBufferPool(
                 width = imageBuffer.width,
                 height = imageBuffer.height,
@@ -313,7 +346,11 @@ internal object PixelBufferGl {
     }
 
     fun transfer(from: CVPixelBuffer, to: CVPixelBuffer) {
-        if (!EglCore.isReady || from.framebuffer == to.framebuffer) {
+        if (!EglCore.isReady || from.framebuffer == to.framebuffer || !to.checkReadable("pixel transfer target")) {
+            return
+        }
+        if (!from.checkReadable("pixel transfer")) {
+            clear(to.backing, 0f, 0f, 0f, 1f)
             return
         }
         val previousFramebuffer = GlRenderer.currentFramebuffer()
@@ -359,6 +396,9 @@ internal object PixelBufferGl {
 
     fun upload(bitmap: Bitmap, to: CVPixelBuffer) {
         if (!EglCore.isReady || bitmap.isRecycled || bitmap.width <= 0 || bitmap.height <= 0) {
+            return
+        }
+        if (!to.checkReadable("bitmap upload target")) {
             return
         }
         val previousFramebuffer = GlRenderer.currentFramebuffer()
@@ -408,6 +448,9 @@ internal object PixelBufferGl {
         if (!EglCore.isReady || width <= 0 || height <= 0) {
             return null
         }
+        if (!source.checkReadable("readback")) {
+            return null
+        }
         val scratch = allocate(width, height) ?: return null
         val previousFramebuffer = GlRenderer.currentFramebuffer()
         try {
@@ -440,14 +483,17 @@ internal object PixelBufferGl {
 }
 
 internal object PixelBufferReaper {
-    private const val PROACTIVE_GC_INTERVAL_MS = 200L
+    private const val FORCED_GC_INTERVAL_MS = 100L
 
     private class BufferReference(
         buffer: CVPixelBuffer,
         queue: ReferenceQueue<Any>,
         val backing: PixelBufferBacking,
         val poolState: PixelBufferPoolState?,
-    ) : PhantomReference<Any>(buffer, queue)
+        val leased: Boolean,
+    ) : PhantomReference<Any>(buffer, queue) {
+        var recycled = false
+    }
 
     private class PoolReference(
         pool: CVPixelBufferPool,
@@ -469,6 +515,9 @@ internal object PixelBufferReaper {
     }
 
     init {
+        for (name in listOf("poolExhausted", "gcRequested", "leaseReleased", "staleBuffer")) {
+            PipelineStats.increment(name, 0)
+        }
         PipelineStats.addReporter { report() }
         PipelineStats.addPipelineTick { poll() }
     }
@@ -482,14 +531,16 @@ internal object PixelBufferReaper {
 
     fun wrapUnpooled(backing: PixelBufferBacking, pixelFormatType: Int): CVPixelBuffer {
         val buffer = CVPixelBuffer(backing, null, pixelFormatType)
+        val reference = BufferReference(buffer, queue, backing, null, leased = false)
+        buffer.reference = reference
         synchronized(this) {
-            references.add(BufferReference(buffer, queue, backing, null))
+            references.add(reference)
             unpooledCount += 1
         }
         return buffer
     }
 
-    fun obtain(state: PixelBufferPoolState, pixelFormatType: Int): CVPixelBuffer? {
+    fun obtain(state: PixelBufferPoolState, pixelFormatType: Int, leased: Boolean): CVPixelBuffer? {
         poll()
         if (!EglCore.isReady) {
             val nowMs = SystemClock.uptimeMillis()
@@ -500,18 +551,67 @@ internal object PixelBufferReaper {
             return null
         }
         val backing = takeBacking(state) ?: return null
-        val needsGc = synchronized(this) {
-            state.allocated * 4 >= state.maximumBufferCount * 3 &&
-                state.free.size <= max(1, state.maximumBufferCount / 4)
-        }
-        if (needsGc) {
-            requestGc(force = false)
-        }
-        val buffer = CVPixelBuffer(backing, state, pixelFormatType)
+        val buffer = CVPixelBuffer(backing, state, pixelFormatType, leased)
+        val reference = BufferReference(buffer, queue, backing, state, leased)
+        buffer.reference = reference
         synchronized(this) {
-            references.add(BufferReference(buffer, queue, backing, state))
+            references.add(reference)
+            if (leased) {
+                state.leased += 1
+            } else {
+                state.unleased += 1
+            }
+        }
+        if (leased) {
+            PixelBufferTurn.defer(buffer)
         }
         return buffer
+    }
+
+    fun recycle(buffer: CVPixelBuffer) {
+        var toDelete: PixelBufferBacking? = null
+        synchronized(this) {
+            val reference = buffer.reference as? BufferReference
+            if (reference != null) {
+                if (reference.recycled) {
+                    return
+                }
+                reference.recycled = true
+                reference.clear()
+                references.remove(reference)
+            }
+            val backing = buffer.backing
+            backing.generation += 1
+            val state = buffer.poolState
+            if (state == null) {
+                unpooledCount -= 1
+                toDelete = backing
+            } else {
+                state.leased -= 1
+                if (state.released) {
+                    state.allocated -= 1
+                    toDelete = backing
+                } else {
+                    state.free.addLast(backing)
+                }
+            }
+        }
+        PipelineStats.increment("leaseReleased")
+        toDelete?.let { delete(listOf(it)) }
+    }
+
+    fun invalidate(state: PixelBufferPoolState) {
+        val toDelete = synchronized(this) {
+            if (state.released) {
+                return
+            }
+            state.released = true
+            val free = state.free.toList()
+            state.allocated -= free.size
+            state.free.clear()
+            free
+        }
+        delete(toDelete)
     }
 
     private fun takeBacking(state: PixelBufferPoolState): PixelBufferBacking? {
@@ -527,8 +627,15 @@ internal object PixelBufferReaper {
             }
             return allocated
         }
-        requestGc(force = true)
-        awaitReclaimed(timeoutMs = 3)
+        val (leased, unleased) = synchronized(this) { Pair(state.leased, state.unleased) }
+        val pendingReleases = PixelBufferTurn.pendingCount(state)
+        var gcRequested = false
+        if (pendingReleases == 0 && unleased > 0) {
+            gcRequested = requestGc(minimumIntervalMs = FORCED_GC_INTERVAL_MS)
+            awaitReclaimed(timeoutMs = 3)
+        } else if (pendingReleases == 0 && leased > 0) {
+            gcRequested = requestGc(minimumIntervalMs = 1000)
+        }
         val reclaimed = synchronized(this) { state.free.removeFirstOrNull() }
         if (reclaimed != null) {
             return reclaimed
@@ -536,7 +643,11 @@ internal object PixelBufferReaper {
         val nowMs = SystemClock.uptimeMillis()
         if (nowMs - state.lastExhaustedLogMs > 1000) {
             state.lastExhaustedLogMs = nowMs
-            Log.w(TAG, "pool exhausted ${state.width}x${state.height} (${state.name})")
+            Log.w(
+                TAG,
+                "pool exhausted ${state.width}x${state.height} (${state.name}): $leased leased, $unleased unleased, " +
+                    "$pendingReleases releases pending this turn, gc ${if (gcRequested) "requested" else "not requested"}",
+            )
         }
         PipelineStats.increment("poolExhausted")
         return null
@@ -569,19 +680,33 @@ internal object PixelBufferReaper {
 
     private fun handle(reference: Reference<*>) {
         var toDelete: List<PixelBufferBacking> = emptyList()
+        var leaked = false
         synchronized(this) {
             references.remove(reference)
             when (reference) {
                 is BufferReference -> {
+                    if (reference.recycled) {
+                        return
+                    }
+                    reference.recycled = true
+                    reference.backing.generation += 1
+                    leaked = reference.leased
                     val state = reference.poolState
                     if (state == null) {
                         unpooledCount -= 1
                         toDelete = listOf(reference.backing)
-                    } else if (state.released) {
-                        state.allocated -= 1
-                        toDelete = listOf(reference.backing)
                     } else {
-                        state.free.addLast(reference.backing)
+                        if (reference.leased) {
+                            state.leased -= 1
+                        } else {
+                            state.unleased -= 1
+                        }
+                        if (state.released) {
+                            state.allocated -= 1
+                            toDelete = listOf(reference.backing)
+                        } else {
+                            state.free.addLast(reference.backing)
+                        }
                     }
                 }
                 is PoolReference -> {
@@ -594,31 +719,58 @@ internal object PixelBufferReaper {
                 }
             }
         }
-        for (backing in toDelete) {
-            PixelBufferGl.delete(backing)
+        if (leaked) {
+            PipelineStats.increment("leaseLeaked")
+        }
+        delete(toDelete)
+    }
+
+    private fun delete(backings: List<PixelBufferBacking>) {
+        if (backings.isEmpty()) {
+            return
+        }
+        if (PipelineThread.isCurrent()) {
+            for (backing in backings) {
+                PixelBufferGl.delete(backing)
+            }
+        } else {
+            PipelineThread.post {
+                for (backing in backings) {
+                    PixelBufferGl.delete(backing)
+                }
+            }
         }
     }
 
-    private fun requestGc(force: Boolean) {
+    private fun requestGc(minimumIntervalMs: Long): Boolean {
         val nowMs = SystemClock.uptimeMillis()
-        val minimumIntervalMs = if (force) PROACTIVE_GC_INTERVAL_MS / 2 else PROACTIVE_GC_INTERVAL_MS
         synchronized(this) {
             if (nowMs - lastGcRequestMs < minimumIntervalMs) {
-                return
+                return false
             }
             lastGcRequestMs = nowMs
         }
-        PipelineStats.increment("gc")
+        PipelineStats.increment("gcRequested")
         gcExecutor.execute {
             Runtime.getRuntime().gc()
             PipelineThread.post { poll() }
         }
+        return true
     }
 
     private fun report(): String? {
         synchronized(this) {
             val parts = pools.filter { it.allocated > 0 }.map {
-                "${it.name} ${it.width}x${it.height} ${it.allocated - it.free.size}/${it.allocated}/${it.maximumBufferCount}"
+                buildString {
+                    append("${it.name} ${it.width}x${it.height} ${it.allocated - it.free.size}/${it.allocated}/")
+                    append("${it.maximumBufferCount}")
+                    if (it.unleased > 0) {
+                        append(" unleased ${it.unleased}")
+                    }
+                    if (it.released) {
+                        append(" released")
+                    }
+                }
             }.toMutableList()
             if (unpooledCount > 0) {
                 parts.add("unpooled $unpooledCount")

@@ -38,11 +38,14 @@ class BufferedVideo(
     }
 
     fun close() {
+        com.moblin.android.platform.video.drainLeases(sampleBuffers)
         processor?.delegate?.streamVideoBufferedVideoRemoved(cameraId)
+        currentSampleBuffer = com.moblin.android.platform.video.swapLease(currentSampleBuffer, null)
     }
 
     fun appendSampleBuffer(sampleBuffer: MediaSample) {
         hasBufferBeenAppended = true
+        com.moblin.android.platform.video.retainLease(sampleBuffer)
         val index = sampleBuffers.indexOfLast {
             it.presentationTimeUs < sampleBuffer.presentationTimeUs
         }
@@ -83,7 +86,7 @@ class BufferedVideo(
             )
         }
         if (sampleBuffer != null) {
-            currentSampleBuffer = sampleBuffer
+            currentSampleBuffer = com.moblin.android.platform.video.swapLease(currentSampleBuffer, sampleBuffer)
         }
         if (!isInitialBuffering && hasBufferBeenAppended && update) {
             hasBufferBeenAppended = false
@@ -100,7 +103,7 @@ class BufferedVideo(
     }
 
     private fun consumeBuffer(numberOfBuffersConsumed: Int): Int {
-        sampleBuffers.removeFirst()
+        com.moblin.android.platform.video.releaseLease(sampleBuffers.removeFirst())
         return numberOfBuffersConsumed + 1
     }
 
@@ -161,7 +164,7 @@ class BufferedVideo(
     }
 
     fun setLatestSampleBuffer(sampleBuffer: MediaSample?) {
-        currentSampleBuffer = sampleBuffer
+        currentSampleBuffer = com.moblin.android.platform.video.swapLease(currentSampleBuffer, sampleBuffer)
     }
 
     fun getLatestSampleBuffer(): MediaSample? {

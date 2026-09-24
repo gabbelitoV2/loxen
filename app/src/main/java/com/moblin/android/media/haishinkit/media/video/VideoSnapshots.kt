@@ -49,15 +49,16 @@ class VideoSnapshots(private val context: Context) {
             ?.let { it.presentationTimeUs / 1_000_000.0 } ?: 0.0
         if (presentationTimeStamp > latestPresentationTimeStamp + 3.0) {
             val copy = makeCopy(sampleBuffer) ?: return
-            takeSnapshotSampleBuffers.addLast(copy)
+            takeSnapshotSampleBuffers.addLast(com.moblin.android.platform.video.retainLease(copy))
             if (takeSnapshotSampleBuffers.size > 3) {
-                takeSnapshotSampleBuffers.removeFirst()
+                com.moblin.android.platform.video.releaseLease(takeSnapshotSampleBuffers.removeFirst())
             }
         }
         val complete = takeSnapshotComplete ?: return
         val copy = makeCopy(sampleBuffer) ?: return
         val sampleBuffers = ArrayDeque(takeSnapshotSampleBuffers)
         val age = takeSnapshotAge
+        com.moblin.android.platform.video.retainLeases(sampleBuffers + copy)
         globalScope.launch {
             takeSnapshot(copy, sampleBuffers, presentationTimeStamp, age, complete)
         }
@@ -121,7 +122,7 @@ class VideoSnapshots(private val context: Context) {
             if (imageBuffer == null) {
                 return@findBestSnapshot
             }
-            val image = createBitmap(imageBuffer) ?: return@findBestSnapshot
+            val image = createBitmap(imageBuffer).also { com.moblin.android.platform.video.releaseLeases(sampleBuffers + sampleBuffer) } ?: return@findBestSnapshot
             var portraitImage = image
             if (!imageBuffer.isPortrait()) {
                 portraitImage = orientedLeft(portraitImage)

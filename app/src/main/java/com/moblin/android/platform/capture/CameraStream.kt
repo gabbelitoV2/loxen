@@ -40,9 +40,12 @@ import com.moblin.android.platform.uikit.UIDevice
 import com.moblin.android.platform.video.CMVideoFormatDescriptionCreateForImageBuffer
 import com.moblin.android.platform.video.CVPixelBufferPool
 import com.moblin.android.platform.video.GlRenderer
+import com.moblin.android.platform.video.PixelBufferTurn
 import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
 import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
 import com.moblin.android.platform.video.layer
+import com.moblin.android.platform.video.releaseLease
+import com.moblin.android.platform.video.retainLease
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -270,6 +273,7 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
             surfaceTexture?.release()
             surface?.release()
             GlRenderer.deleteTexture(texture)
+            pool?.invalidate()
             pool = null
         }
     }
@@ -509,6 +513,7 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
             val builder = camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
             builder.addTarget(surface)
             val fpsRange = applyControls(builder)
+            CaptureFrameRate.value = fpsRange.upper.toDouble()
             captureSession.setRepeatingRequest(builder.build(), null, Camera2Engine.handler)
             val size = bufferSize
             val description = "${size.width}x${size.height} @${fpsRange.upper} fps range [${fpsRange.lower},${fpsRange.upper}]"
@@ -652,6 +657,8 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
                 lastFrameErrorLogMs = nowMs
                 Log.e(TAG, "Frame handling failed for camera $id", error)
             }
+        } finally {
+            PixelBufferTurn.end()
         }
     }
 
@@ -717,8 +724,13 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
         if (queue == null || queue.coroutineContext[ContinuationInterceptor] === PipelineThread.dispatcher) {
             delegate.captureOutput(output, sample, dataConnection)
         } else {
+            retainLease(buffer)
             queue.launch {
-                delegate.captureOutput(output, sample, dataConnection)
+                try {
+                    delegate.captureOutput(output, sample, dataConnection)
+                } finally {
+                    releaseLease(buffer)
+                }
             }
         }
     }
@@ -732,6 +744,7 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
             ?: kCVPixelFormatType_32BGRA
         val newPool = CVPixelBufferPool(width, height, pixelFormatType, 12)
         newPool.name = "camera"
+        existing?.invalidate()
         pool = newPool
         return newPool
     }
@@ -766,4 +779,9 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
             1f, 0f, 0f, 1f,
         )
     }
+}
+
+internal object CaptureFrameRate {
+    @Volatile
+    var value: Double = 30.0
 }

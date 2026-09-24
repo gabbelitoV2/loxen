@@ -2,9 +2,11 @@ package com.moblin.android.platform.core
 
 import android.os.Handler
 import android.os.Looper
+import android.os.Message
 import android.os.Process
 import android.util.Log
 import com.moblin.android.platform.video.EglCore
+import com.moblin.android.platform.video.PixelBufferTurn
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
@@ -49,6 +51,16 @@ internal class ResilientLooperThread(name: String, private val threadPriority: I
     }
 }
 
+private class PipelineHandler(looper: Looper) : Handler(looper) {
+    override fun dispatchMessage(msg: Message) {
+        try {
+            super.dispatchMessage(msg)
+        } finally {
+            PixelBufferTurn.end()
+        }
+    }
+}
+
 object PipelineThread {
     const val NAME = "com.haishinkit.HaishinKit.Processor.Pipeline"
 
@@ -59,7 +71,7 @@ object PipelineThread {
 
     val looper: Looper? = thread.awaitLooper()
 
-    val handler: Handler = Handler(looper ?: Looper.getMainLooper())
+    val handler: Handler = PipelineHandler(looper ?: Looper.getMainLooper())
 
     val dispatcher: CoroutineDispatcher = handler.asCoroutineDispatcher(NAME)
 

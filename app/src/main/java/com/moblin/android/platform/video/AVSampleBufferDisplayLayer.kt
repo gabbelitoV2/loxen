@@ -81,40 +81,73 @@ class AVSampleBufferDisplayLayer internal constructor(view: TextureView) {
 
     fun enqueue(sampleBuffer: MediaSample) {
         val buffer = sampleBuffer.imageBuffer ?: return
-        synchronized(lock) {
-            pendingBuffer = buffer
-            scheduleProcess()
-        }
+        setPendingBuffer(buffer)
     }
 
     fun flush() {
-        synchronized(lock) {
+        val replaced = synchronized(lock) {
+            val replaced = pendingBuffer
             pendingBuffer = null
             pendingFlush = true
             scheduleProcess()
+            replaced
         }
+        releaseLease(replaced)
     }
 
     fun flushAndRemoveImage() {
-        synchronized(lock) {
+        val replaced = synchronized(lock) {
+            val replaced = pendingBuffer
             pendingBuffer = null
             pendingRemoveImage = true
             scheduleProcess()
+            replaced
         }
+        releaseLease(replaced)
     }
 
     fun drawOnPipeline(buffer: CVPixelBuffer) {
         if (!PipelineThread.isCurrent()) {
-            synchronized(lock) {
-                pendingBuffer = buffer
-                scheduleProcess()
-            }
+            setPendingBuffer(buffer)
             return
         }
-        lastBuffer = buffer
+        if (!buffer.checkReadable("camera preview")) {
+            return
+        }
+        setLastBuffer(buffer)
         if (render(buffer)) {
             PipelineStats.increment("preview")
         }
+    }
+
+    private fun setPendingBuffer(buffer: CVPixelBuffer) {
+        if (!PixelBufferLeases.retain(buffer, "display layer enqueue")) {
+            return
+        }
+        val replaced = synchronized(lock) {
+            val replaced = pendingBuffer
+            pendingBuffer = buffer
+            scheduleProcess()
+            replaced
+        }
+        releaseLease(replaced)
+    }
+
+    private fun setLastBuffer(buffer: CVPixelBuffer?) {
+        val old = lastBuffer
+        if (buffer === old) {
+            return
+        }
+        if (buffer != null && !PixelBufferLeases.retain(buffer, "display layer")) {
+            return
+        }
+        lastBuffer = buffer
+        releaseLease(old)
+    }
+
+    private fun redrawBuffer(): CVPixelBuffer? {
+        val buffer = lastBuffer ?: return null
+        return if (buffer.checkReadable("display layer redraw")) buffer else null
     }
 
     private fun scheduleProcess() {
@@ -142,13 +175,16 @@ class AVSampleBufferDisplayLayer internal constructor(view: TextureView) {
             status = Status.unknown
         }
         if (removeImage) {
-            lastBuffer = null
+            setLastBuffer(null)
         }
         if (buffer != null) {
-            lastBuffer = buffer
-            if (render(buffer)) {
-                PipelineStats.increment("preview")
+            if (buffer.checkReadable("display layer")) {
+                setLastBuffer(buffer)
+                if (render(buffer)) {
+                    PipelineStats.increment("preview")
+                }
             }
+            releaseLease(buffer)
         } else if (removeImage) {
             render(null)
         }
@@ -164,7 +200,7 @@ class AVSampleBufferDisplayLayer internal constructor(view: TextureView) {
         surfaceHeight = height
         latestCreateAttemptTime = 0L
         Log.i(TAG, "$name: surface available ${width}x$height")
-        render(lastBuffer)
+        render(redrawBuffer())
     }
 
     private fun surfaceSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
@@ -173,7 +209,7 @@ class AVSampleBufferDisplayLayer internal constructor(view: TextureView) {
         }
         surfaceWidth = width
         surfaceHeight = height
-        render(lastBuffer)
+        render(redrawBuffer())
     }
 
     private fun surfaceDestroyed(surface: SurfaceTexture) {

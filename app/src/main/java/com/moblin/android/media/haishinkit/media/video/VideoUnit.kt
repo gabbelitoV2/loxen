@@ -398,8 +398,9 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     }
 
     fun appendBufferedVideoSampleBuffer(cameraId: UUID, sampleBuffer: MediaSample) {
+        com.moblin.android.platform.video.retainLease(sampleBuffer)
         processorPipelineQueue.launch {
-            appendBufferedVideoSampleBufferInternal(cameraId = cameraId, sampleBuffer)
+            try { appendBufferedVideoSampleBufferInternal(cameraId = cameraId, sampleBuffer) } finally { com.moblin.android.platform.video.releaseLease(sampleBuffer) }
         }
     }
 
@@ -644,7 +645,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         val isSceneSwitchTransition = !effectsProcessor.isAtEndOfSceneSwitchTransition()
         if (!isSceneSwitchTransition && !sceneSwitchEndRendered) {
             latestSampleBuffer = renderSceneSwitchTransitionEnd(sampleBuffer = latestSampleBuffer)
-            this.latestSampleBuffer = latestSampleBuffer
+            this.latestSampleBuffer = com.moblin.android.platform.video.swapLease(this.latestSampleBuffer, latestSampleBuffer)
             sceneSwitchEndRendered = true
         }
         val timeDeltaUs = delta.inWholeMicroseconds
@@ -753,6 +754,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
             detectionJobs = detectionJobs
         )
         nextDetectionsSequenceNumber += 1
+        com.moblin.android.platform.video.retainLeases(completion.sampleBuffer, completion.detectionJobs.map { it.imageBuffer })
         if (detectionJobs.isNotEmpty()) {
             for (detectionJob in detectionJobs) {
                 detectionsQueue.launch {
@@ -777,6 +779,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         while (true) {
             val nextCompletion = completedDetections.remove(nextCompletedDetectionsSequenceNumber) ?: break
             appendSampleBufferWithDetections(nextCompletion)
+            com.moblin.android.platform.video.releaseLeases(nextCompletion.sampleBuffer, nextCompletion.detectionJobs.map { it.imageBuffer })
             nextCompletedDetectionsSequenceNumber += 1
         }
     }
@@ -878,7 +881,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
         if (first.elapsedNow() <= ignoreFramesAfterAttachSeconds.seconds) {
             return
         }
-        latestSampleBuffer = sampleBuffer
+        latestSampleBuffer = com.moblin.android.platform.video.swapLease(latestSampleBuffer, sampleBuffer)
         effectsProcessor.latestSampleBufferTime = com.moblin.android.platform.core.ContinuousClock.now
         sceneSwitchEndRendered = false
         if (appendSampleBuffer(

@@ -12,6 +12,7 @@ object PipelineStats {
     private const val TAG = "MoblinStats"
     private val counterOrder = listOf(
         "camIn", "camDrop", "vuOut", "preview", "encIn", "encOut", "encDrop", "micIn", "aacOut", "recSeg",
+        "poolExhausted", "leaseReleased", "staleBuffer", "gcRequested",
     )
     private val counters = ConcurrentHashMap<String, AtomicLong>()
     private val gauges = ConcurrentHashMap<String, Long>()
