@@ -273,6 +273,180 @@
    "new": "            \"meter-per-second\" -> if (Locale.getDefault().country == \"GB\") value * 2.2369362920544 to MeasureUnit.MILE_PER_HOUR else",
    "occurrence": 1,
    "note": "ME2, kept file. MeasurementFormatter with unitOptions [] formats speeds in mph for the UK measurement system (en_GB), as for the US."
+  },
+  {
+   "id": "HE3.31",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatClock",
+   "op": "replace",
+   "old": "        appendTextPart(value = textEffectTimeFormat.format(variables.date))",
+   "new": "        appendTextPart(value = textEffectClockString(date = variables.date, seconds = true))",
+   "occurrence": 1,
+   "note": "ME2, kept file. Swift Date.FormatStyle .dateTime.hour().minute().second(): ICU skeleton with the user's 12/24-hour setting (HE3.38), in the current time zone at every format, as Foundation's autoupdating time zone does."
+  },
+  {
+   "id": "HE3.32",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatShortClock",
+   "op": "replace",
+   "old": "        appendTextPart(value = textEffectShortTimeFormat.format(variables.date))",
+   "new": "        appendTextPart(value = textEffectClockString(date = variables.date, seconds = false))",
+   "occurrence": 1,
+   "note": "ME2, kept file, as HE3.31 with .hour().minute()."
+  },
+  {
+   "id": "HE3.33",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatDate",
+   "op": "replace",
+   "old": "        appendTextPart(value = textEffectDateFormatter.format(variables.date))",
+   "new": "        appendTextPart(value = textEffectDateString(date = variables.date, style = android.icu.text.DateFormat.SHORT))",
+   "occurrence": 1,
+   "note": "ME2, kept file. DateFormatter dateStyle .short, current time zone (HE3.39)."
+  },
+  {
+   "id": "HE3.34",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatFullDate",
+   "op": "replace",
+   "old": "        appendTextPart(value = textEffectFullDateFormatter.format(variables.date))",
+   "new": "        appendTextPart(value = textEffectDateString(date = variables.date, style = android.icu.text.DateFormat.FULL))",
+   "occurrence": 1,
+   "note": "ME2, kept file. DateFormatter dateStyle .full, current time zone (HE3.39)."
+  },
+  {
+   "id": "HE3.35",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatTimer",
+   "op": "replace",
+   "old": "            appendTextPart(value = uptimeFormatter.string(timeLeft) ?: \"\")",
+   "new": "            appendTextPart(value = textEffectDurationString(seconds = timeLeft))",
+   "occurrence": 1,
+   "note": "ME2, kept file. DateComponentsFormatter .abbreviated is localized (CLDR narrow units, HE3.40)."
+  },
+  {
+   "id": "HE3.36",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatStopwatch",
+   "op": "replace",
+   "old": "            appendTextPart(value = uptimeFormatter.string(elapsed) ?: \"\")",
+   "new": "            appendTextPart(value = textEffectDurationString(seconds = elapsed))",
+   "occurrence": 1,
+   "note": "ME2, kept file, as HE3.35."
+  },
+  {
+   "id": "HE3.37",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun formatLapTimes",
+   "op": "replace",
+   "old": "                    text = \"Lap $lap ${duration.formatWithSeconds()}\"",
+   "new": "                    text = \"Lap $lap ${textEffectDurationString(seconds = duration.inWholeSeconds.toDouble())}\"",
+   "occurrence": 1,
+   "note": "ME2, kept file. Duration.formatWithSeconds() is uptimeFormatter, as HE3.35."
+  },
+  {
+   "id": "HE3.38",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "op": "insert_after",
+   "anchor": "    get() = Locale.getDefault().country in setOf(\"US\", \"LR\", \"MM\")",
+   "new": "private fun textEffectClockString(date: java.time.Instant, seconds: Boolean): String = android.icu.text.DateFormat.getInstanceForSkeleton(runCatching { if (android.text.format.DateFormat.is24HourFormat(com.moblin.android.AppDelegate.context)) \"H\" else \"h\" }.getOrDefault(\"j\") + if (seconds) \"ms\" else \"m\", Locale.getDefault()).apply { timeZone = android.icu.util.TimeZone.getTimeZone(java.util.TimeZone.getDefault().id) }.format(java.util.Date.from(date))",
+   "note": "ME2, kept file. Foundation formats .hour() with the skeleton j, which follows the iOS 24-Hour Time setting; Android's counterpart is DateFormat.is24HourFormat."
+  },
+  {
+   "id": "HE3.39",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "op": "insert_after",
+   "anchor": "    get() = Locale.getDefault().country in setOf(\"US\", \"LR\", \"MM\")",
+   "new": "private fun textEffectDateString(date: java.time.Instant, style: Int): String = android.icu.text.DateFormat.getDateInstance(style, Locale.getDefault()).apply { timeZone = android.icu.util.TimeZone.getTimeZone(java.util.TimeZone.getDefault().id) }.format(java.util.Date.from(date))",
+   "note": "ME2, kept file. DateFormatter with dateStyle; the zone is read at every format so a time zone change shows at once."
+  },
+  {
+   "id": "HE3.40",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "op": "insert_after",
+   "anchor": "    get() = Locale.getDefault().country in setOf(\"US\", \"LR\", \"MM\")",
+   "new": "private fun textEffectDurationString(seconds: Double): String = if (!seconds.isFinite()) \"\" else kotlin.math.abs(seconds.toLong()).let { total -> listOf(android.icu.util.MeasureUnit.DAY to total / 86_400, android.icu.util.MeasureUnit.HOUR to total % 86_400 / 3_600, android.icu.util.MeasureUnit.MINUTE to total % 3_600 / 60, android.icu.util.MeasureUnit.SECOND to total % 60).filter { it.second > 0 }.ifEmpty { listOf(android.icu.util.MeasureUnit.SECOND to 0L) }.map { android.icu.util.Measure(it.second, it.first) } }.let { android.icu.text.MeasureFormat.getInstance(Locale.getDefault(), android.icu.text.MeasureFormat.FormatWidth.NARROW).formatMeasures(*it.toTypedArray()) }",
+   "note": "ME2, kept file. uptimeFormatter (DateComponentsFormatter, [.day, .hour, .minute, .second], .abbreviated): zero units dropped, seconds truncated, CLDR narrow unit and list patterns (1h 2m 3s in English)."
+  },
+  {
+   "id": "HE3.41",
+   "file": "videoeffects/text/TextEffect.kt",
+   "scope": "fun TextView",
+   "op": "replace",
+   "old": "                                    text = localized(data.text),",
+   "new": "                                    text = data.text,",
+   "occurrence": 1,
+   "note": "ME2. SwiftUI Text(text) with a String variable is verbatim, never looked up in Localizable.xcstrings."
+  },
+  {
+   "id": "RU.2",
+   "file": "view/stream/DrawOnStreamView.kt",
+   "scope": "fun DrawOnStreamCanvasView",
+   "op": "replace",
+   "old": "                                    width = drawOnStream.selectedWidth.value,",
+   "new": "                                    width = drawOnStream.selectedWidth.value * density,",
+   "occurrence": 1,
+   "note": "ME2, request to the UI port, registered by E3 while nobody owns the file. Swift draws in points: DrawOnStreamLine.width is points like its positions and drawOnStreamSize. The Android canvas works in pixels, so the width is converted with the PointerInputScope density; DrawOnStreamEffect then scales it by video pixels per view pixel, which gives the iOS on-stream width, and the on-screen line gets its iOS width too."
+  },
+  {
+   "id": "HE3.42",
+   "file": "videoeffects/text/TextEffectFormatter.kt",
+   "scope": "fun convertToSystem",
+   "op": "replace",
+   "old": "            \"celsius\" ->",
+   "new": "            \"celsius\" -> if (Locale.getDefault().getUnicodeLocaleType(\"mu\") == \"fahrenhe\") (value * 9.0 / 5.0 + 32.0) to MeasureUnit.FAHRENHEIT else if (Locale.getDefault().getUnicodeLocaleType(\"mu\") == \"celsius\") value to MeasureUnit.CELSIUS else",
+   "occurrence": 1,
+   "note": "ME2, kept file. MeasurementFormatter with unitOptions [] follows the iOS Temperature setting; Android's regional temperature preference is the -u-mu- extension of the default locale."
+  },
+  {
+   "id": "RU.3",
+   "file": "view/stream/DrawOnStreamView.kt",
+   "scope": "fun DrawOnStreamCanvasView",
+   "op": "insert_after",
+   "anchor": "                        onDragEnd = {",
+   "new": "                            model.drawOnStreamLineComplete()",
+   "note": "ME2, request to the UI port, registered by E3 while nobody owns the file (as RU.2). Swift DrawOnStreamView.swift:57-60: the drag's onEnded calls model.drawOnStreamLineComplete() before drawing = false. Without it a finished line never reaches DrawOnStreamEffect, so nothing is drawn on the stream until a scene reset."
+  },
+  {
+   "id": "RU.4",
+   "file": "view/stream/DrawOnStreamView.kt",
+   "scope": "fun DrawOnStreamControlsView",
+   "op": "replace",
+   "old": "                        drawOnStream.lines.value = mutableListOf<DrawOnStreamLine>()",
+   "new": "                        model.drawOnStreamWipe()",
+   "occurrence": 1,
+   "note": "ME2, request to the UI port (as RU.3). Swift's trash button calls model.drawOnStreamWipe(), which also clears the stream overlay and unregisters the effect."
+  },
+  {
+   "id": "RU.5",
+   "file": "view/stream/DrawOnStreamView.kt",
+   "scope": "fun DrawOnStreamControlsView",
+   "op": "replace",
+   "old": "                        drawOnStream.lines.value = drawOnStream.lines.value.filterIsInstance<DrawOnStreamLine>().dropLast(1).toMutableList()",
+   "new": "                        model.drawOnStreamUndo()",
+   "occurrence": 1,
+   "note": "ME2, request to the UI port (as RU.3). Swift's undo button calls model.drawOnStreamUndo(), which also redraws the stream overlay."
+  },
+  {
+   "id": "RU.6",
+   "file": "view/stream/DrawOnStreamView.kt",
+   "op": "add_import",
+   "new": "import com.moblin.android.various.model.drawOnStreamLineComplete",
+   "note": "ME2, for RU.3."
+  },
+  {
+   "id": "RU.7",
+   "file": "view/stream/DrawOnStreamView.kt",
+   "op": "add_import",
+   "new": "import com.moblin.android.various.model.drawOnStreamWipe",
+   "note": "ME2, for RU.4."
+  },
+  {
+   "id": "RU.8",
+   "file": "view/stream/DrawOnStreamView.kt",
+   "op": "add_import",
+   "new": "import com.moblin.android.various.model.drawOnStreamUndo",
+   "note": "ME2, for RU.5."
   }
  ]
 }

@@ -40,6 +40,7 @@ android {
     }
 
     sourceSets["test"].resources.srcDir("src/main/assets")
+    sourceSets["test"].resources.exclude("fonts/**")
 
     testOptions {
         unitTests.isReturnDefaultValues = true

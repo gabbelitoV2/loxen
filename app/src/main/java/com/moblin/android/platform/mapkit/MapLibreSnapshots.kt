@@ -151,19 +151,24 @@ internal object MapLibreSnapshots {
     }
 
     private fun isWanted(request: MapSnapshotRequest): Boolean {
-        return !request.isCancelled && request.isLoading
-    }
-
-    private fun isQueuedWanted(request: MapSnapshotRequest): Boolean {
-        if (!isWanted(request)) {
+        if (request.isCancelled || !request.isLoading) {
             return false
         }
         if (request.owner.get() == null) {
             request.isLoading = false
-            log(Log.DEBUG, "Snapshot ${request.sequence} dropped before start (snapshotter released)")
             return false
         }
         return true
+    }
+
+    private fun pruneReleased() {
+        pending.removeAll { request ->
+            val isDropped = !isWanted(request)
+            if (isDropped) {
+                log(Log.DEBUG, "Snapshot ${request.sequence} dropped before start (snapshotter released)")
+            }
+            isDropped
+        }
     }
 
     private fun launch(request: MapSnapshotRequest) {
@@ -271,7 +276,7 @@ internal object MapLibreSnapshots {
         val durationMs = SystemClock.elapsedRealtime() - entry.startedAtMs
         val bitmap = snapshot.bitmap
         if (!isWanted(request)) {
-            log(Log.DEBUG, "Snapshot ${request.sequence} dropped after $durationMs ms (cancelled)")
+            log(Log.DEBUG, "Snapshot ${request.sequence} dropped after $durationMs ms (snapshotter released)")
         } else {
             request.isLoading = false
             val result = MKMapSnapshotter.Snapshot(image = bitmap, frame = entry.frame)
@@ -322,7 +327,7 @@ internal object MapLibreSnapshots {
     }
 
     private fun startPending() {
-        pending.removeAll { !isQueuedWanted(it) }
+        pruneReleased()
         while (running.size < maximumRunning && pending.isNotEmpty()) {
             launch(pending.removeAt(0))
         }

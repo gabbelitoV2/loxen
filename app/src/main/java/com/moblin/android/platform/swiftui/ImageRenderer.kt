@@ -37,6 +37,7 @@ import com.moblin.android.platform.core.PipelineStats
 import com.moblin.android.platform.coregraphics.CGSize
 import com.moblin.android.platform.offscreen.OffscreenDisplay
 import com.moblin.android.platform.offscreen.OffscreenHostedView
+import com.moblin.android.platform.offscreen.OffscreenReadyListener
 import com.moblin.android.platform.offscreen.OffscreenSweep
 import com.moblin.android.platform.offscreen.isOffscreenMainThread
 import com.moblin.android.platform.offscreen.logOverlayOnce
@@ -122,7 +123,7 @@ class ImageRenderer(content: @Composable () -> Unit) {
 private class ImageRendererHost(
     private val content: @Composable () -> Unit,
     publisher: ObservableObjectPublisher,
-) {
+) : OffscreenReadyListener {
     private val publisherRef = WeakReference(publisher)
     private var session: RendererSession? = null
 
@@ -160,6 +161,12 @@ private class ImageRendererHost(
         }
     }
 
+    override fun onHostReady() {
+        if (!released && session == null && publisherRef.get()?.hasSubscribers == true) {
+            attachSafely()
+        }
+    }
+
     fun render(isOpaque: Boolean, keepAttached: Boolean): Bitmap? {
         try {
             if (!attach()) {
@@ -188,7 +195,11 @@ private class ImageRendererHost(
         if (!isOffscreenMainThread()) {
             return null
         }
-        val context = OffscreenDisplay.hostContext() ?: return null
+        val context = OffscreenDisplay.hostContext()
+        if (context == null) {
+            OffscreenDisplay.whenReady(this)
+            return null
+        }
         val hostRef = WeakReference(this)
         val created = RendererSession(context, content, publisherRef, scale, proposal) {
             hostRef.get()?.detachIfUnobserved()

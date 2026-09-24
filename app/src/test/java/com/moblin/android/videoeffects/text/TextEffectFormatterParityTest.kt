@@ -9,12 +9,15 @@ import kotlin.test.assertEquals
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import com.moblin.android.various.settings.SettingsWidgetTextStopwatch
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 class TextEffectFormatterParityTest {
     private val defaultLocale = Locale.getDefault()
+    private val defaultTimeZone = TimeZone.getDefault()
 
     @Before
     fun setUp() {
@@ -26,6 +29,7 @@ class TextEffectFormatterParityTest {
     @After
     fun tearDown() {
         Locale.setDefault(defaultLocale)
+        TimeZone.setDefault(defaultTimeZone)
     }
 
     @Test
@@ -80,6 +84,64 @@ class TextEffectFormatterParityTest {
         assertEquals("-", plain("{wind}"))
     }
 
+    @Test
+    @Config(qualifiers = "en-rSE")
+    fun clockFollowsTimeZoneChanges() {
+        assertEquals("06:26:06 06:26", plain("{time} {shorttime}"))
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
+        assertEquals("04:26:06 04:26", plain("{time} {shorttime}"))
+        assertEquals("2024-08-11", plain("{date}"))
+        TimeZone.setDefault(TimeZone.getTimeZone("Pacific/Auckland"))
+        assertEquals("16:26:06 2024-08-11", plain("{time} {date}"))
+        TimeZone.setDefault(TimeZone.getTimeZone("America/Los_Angeles"))
+        assertEquals("2024-08-10", plain("{date}"))
+    }
+
+    @Test
+    fun systemTemperatureFollowsRegionalPreference() {
+        Locale.setDefault(Locale.forLanguageTag("en-SE"))
+        assertEquals("22°C", plain("{temperature}", temperature = 22.0))
+        Locale.setDefault(Locale.forLanguageTag("en-SE-u-mu-fahrenhe"))
+        assertEquals("72°F", plain("{temperature}", temperature = 22.0))
+        Locale.setDefault(Locale.forLanguageTag("en-US-u-mu-celsius"))
+        assertEquals("22°C", plain("{temperature}", temperature = 22.0))
+        Locale.setDefault(Locale.US)
+        assertEquals("72°F", plain("{temperature}", temperature = 22.0))
+        assertEquals("22°C", plain("{temperature:c}", temperature = 22.0))
+    }
+
+    @Test
+    fun fullDateUsesFullDateStyle() {
+        Locale.setDefault(Locale.US)
+        assertEquals("Sunday, August 11, 2024", plain("{fulldate}"))
+    }
+
+    @Test
+    fun timerUsesAbbreviatedUnits() {
+        val now = ContinuousClock.now
+        assertEquals("1h 2m 3s", plain("{timer}", timersEndTime = listOf(now.advanced(bySeconds = 3723.9)), now = now))
+        assertEquals("1d 1s", plain("{timer}", timersEndTime = listOf(now.advanced(bySeconds = 86_401.0)), now = now))
+        assertEquals("5m", plain("{timer}", timersEndTime = listOf(now.advanced(bySeconds = 300.0)), now = now))
+        assertEquals("4m 59s", plain("{timer}", timersEndTime = listOf(now.advanced(bySeconds = 299.99)), now = now))
+        assertEquals("0s", plain("{timer}", timersEndTime = listOf(now.advanced(bySeconds = -10.0)), now = now))
+        assertEquals("", plain("{timer}", now = now))
+    }
+
+    @Test
+    fun stopwatchUsesAbbreviatedUnits() {
+        val stopped = SettingsWidgetTextStopwatch(totalElapsed = 62.4)
+        assertEquals("1m 2s", plain("{stopwatch}", stopwatches = listOf(stopped)))
+        val running = SettingsWidgetTextStopwatch(totalElapsed = 10.0, running = true)
+        running.playPressedTime = Instant.now().minusSeconds(3600)
+        assertEquals("1h 10s", plain("{stopwatch}", stopwatches = listOf(running)))
+    }
+
+    @Test
+    fun lapTimesUseAbbreviatedUnits() {
+        val laps = listOf(listOf(65.0, 3601.0, Double.POSITIVE_INFINITY, 7.0))
+        assertEquals("Lap 1 1m 5s Lap 2 1h 1s 🏁 Finished 🏁 Lap 1 7s", plain("{laptimes}", lapTimes = laps))
+    }
+
     private fun plain(
         format: String,
         speed: Double = 0.0,
@@ -87,14 +149,19 @@ class TextEffectFormatterParityTest {
         splitDistance: Double = 0.0,
         windSpeed: Double? = null,
         windGust: Double? = null,
+        temperature: Double? = null,
+        timersEndTime: List<ContinuousClock.Instant> = emptyList(),
+        stopwatches: List<SettingsWidgetTextStopwatch> = emptyList(),
+        lapTimes: List<List<Double>> = emptyList(),
+        now: ContinuousClock.Instant = ContinuousClock.now,
     ): String {
         val formatter = TextEffectFormatter(
             formatParts = loadTextFormat(format = format),
-            timersEndTime = emptyList(),
-            stopwatches = emptyList(),
+            timersEndTime = timersEndTime,
+            stopwatches = stopwatches,
             checkboxes = emptyList(),
             ratings = emptyList(),
-            lapTimes = emptyList(),
+            lapTimes = lapTimes,
         )
         val variables = Variables(
             timestamp = ContinuousClock.now.nanoseconds,
@@ -117,7 +184,7 @@ class TextEffectFormatterParityTest {
             slope = "",
             conditions = null,
             condition = null,
-            temperature = null,
+            temperature = temperature,
             feelsLikeTemperature = null,
             windSpeed = windSpeed,
             windGust = windGust,
@@ -146,6 +213,6 @@ class TextEffectFormatterParityTest {
             latestFollower = "",
             systemMonitor = "",
         )
-        return formatter.format(variables = variables, now = ContinuousClock.now).toPlainText()
+        return formatter.format(variables = variables, now = now).toPlainText()
     }
 }

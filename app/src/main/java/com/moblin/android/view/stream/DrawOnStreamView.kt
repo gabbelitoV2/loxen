@@ -38,6 +38,9 @@ import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.videoeffects.drawOnStreamCreatePath
 import java.util.UUID
 import com.moblin.android.LocalModel
+import com.moblin.android.various.model.drawOnStreamLineComplete
+import com.moblin.android.various.model.drawOnStreamWipe
+import com.moblin.android.various.model.drawOnStreamUndo
 
 private var drawing = false
 
@@ -66,7 +69,7 @@ private fun DrawOnStreamCanvasView(
                             if (!drawing) {
                                 val newLine = DrawOnStreamLine(
                                     points = mutableListOf(position),
-                                    width = drawOnStream.selectedWidth.value,
+                                    width = drawOnStream.selectedWidth.value * density,
                                     color = drawOnStream.selectedColor.value,
                                 )
                                 drawOnStream.lines.value =
@@ -87,6 +90,7 @@ private fun DrawOnStreamCanvasView(
                             }
                         },
                         onDragEnd = {
+                            model.drawOnStreamLineComplete()
                             drawing = false
                         },
                     )
@@ -145,7 +149,7 @@ private fun DrawOnStreamControlsView(
             ) {
                 IconButton(
                     onClick = {
-                        drawOnStream.lines.value = mutableListOf<DrawOnStreamLine>()
+                        model.drawOnStreamWipe()
                     },
                     enabled = lines.size > 0,
                 ) {
@@ -158,7 +162,7 @@ private fun DrawOnStreamControlsView(
                 }
                 IconButton(
                     onClick = {
-                        drawOnStream.lines.value = drawOnStream.lines.value.filterIsInstance<DrawOnStreamLine>().dropLast(1).toMutableList()
+                        model.drawOnStreamUndo()
                     },
                     enabled = lines.size > 0,
                 ) {

@@ -11,6 +11,7 @@ import android.graphics.drawable.ColorDrawable
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
 import android.media.ImageReader
+import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
@@ -58,6 +59,10 @@ internal fun logOverlayOnce(message: String) {
 internal interface OffscreenHostedView {
     val widthSpec: Int
     val heightSpec: Int
+}
+
+internal interface OffscreenReadyListener {
+    fun onHostReady()
 }
 
 internal class OffscreenRoot(context: Context) : ViewGroup(context) {
@@ -154,6 +159,7 @@ object OffscreenDisplay {
     private var failures = 0
     private var nextAttemptAtMs = 0L
     private var trimCallbacksRegistered = false
+    private val readyListeners = mutableListOf<WeakReference<OffscreenReadyListener>>()
 
     fun prewarm() {
         if (isOffscreenMainThread()) {
@@ -169,6 +175,23 @@ object OffscreenDisplay {
     internal fun hostContext(): Context? {
         start()
         return root?.context
+    }
+
+    internal fun whenReady(listener: OffscreenReadyListener) {
+        readyListeners.removeAll { it.get().let { registered -> registered == null || registered === listener } }
+        readyListeners.add(WeakReference(listener))
+    }
+
+    private fun notifyReady() {
+        val listeners = readyListeners.mapNotNull { it.get() }
+        readyListeners.clear()
+        for (listener in listeners) {
+            try {
+                listener.onHostReady()
+            } catch (error: Throwable) {
+                logOverlayOnce("hosted view failed to attach after the host became ready: $error")
+            }
+        }
     }
 
     internal fun attach(view: View): Boolean {
@@ -244,6 +267,7 @@ object OffscreenDisplay {
                 override fun onViewAttachedToWindow(view: View) {
                     Log.i(TAG, "host display ready")
                     updateGauge()
+                    offscreenMainHandler.post { notifyReady() }
                 }
 
                 override fun onViewDetachedFromWindow(view: View) {
@@ -251,6 +275,9 @@ object OffscreenDisplay {
                 }
             })
             presentation.window?.let { window ->
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+                    window.setType(WindowManager.LayoutParams.TYPE_PRIVATE_PRESENTATION)
+                }
                 window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
                 window.addFlags(
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or

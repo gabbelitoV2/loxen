@@ -210,7 +210,7 @@ internal object WebKitProxy {
     var configurations: List<ProxyConfiguration> = emptyList()
         private set
 
-    private var appliedRules: List<String>? = null
+    private var appliedRules: List<String> = emptyList()
     private var pendingApplies = 0
     private val waiting = mutableListOf<() -> Unit>()
 
@@ -259,7 +259,7 @@ internal object WebKitProxy {
                     builder.addProxyRule(rule, ProxyConfig.MATCH_HTTPS)
                 }
                 controller.setProxyOverride(builder.build(), webKitMainExecutor, done)
-                WebKitLog.info("proxy ${rules.joinToString(", ")} for https and websockets")
+                WebKitLog.info("proxy ${rules.joinToString(", ")} for https and wss")
             }
         } catch (error: Throwable) {
             WebKitLog.error("proxy override failed: $error")

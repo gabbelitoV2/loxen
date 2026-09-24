@@ -19,7 +19,7 @@
    "old": "        val path = makeCatmullRomPath(pts.map { PointF(it.x, it.y) }, tension.toFloat()).asComposePath()",
    "new": "        val path = makeCatmullRomPath(pts.map { com.moblin.android.platform.coregraphics.CGPoint(it.x, it.y) }, tension = tension.toDouble()).asComposePath()",
    "occurrence": 1,
-   "note": "ME1 (effects plan 3 E8). Deferred: view file, applied by the build owner's postprocess. Compiles before the re-translation of MaskEffect.kt through the interim overload HE8.3, and after it against the regenerated makeCatmullRomPath(List<CGPoint>, tension: Double): CGMutablePath."
+   "note": "ME1 (effects plan 3 E8). Deferred: view file, applied by the build owner's postprocess. Compiles against the regenerated makeCatmullRomPath(List<CGPoint>, tension: Double): CGMutablePath in videoeffects/MaskEffect.kt."
   }
  ]
 }

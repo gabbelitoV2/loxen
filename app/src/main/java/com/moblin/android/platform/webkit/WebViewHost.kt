@@ -53,7 +53,7 @@ internal object WebKitSnapshotThread {
 
 internal fun configurePresentationWindow(presentation: Presentation) {
     val window = presentation.window ?: return
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
         window.setType(WindowManager.LayoutParams.TYPE_PRIVATE_PRESENTATION)
     }
     window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
@@ -535,6 +535,14 @@ internal class WebViewHost {
         try {
             val home = container
             val atHome = home != null && view.parent === home && view.isAttachedToWindow
+            if (home != null && !atHome && (!view.isAttachedToWindow || view.windowVisibility != View.VISIBLE)) {
+                WebKitLog.once(
+                    "$name:betweenWindows",
+                    "$name: web view is between windows; keeping the previous snapshot",
+                )
+                deliver(null, IllegalStateException("The web view is between windows"), completionHandler)
+                return
+            }
             val settled = atHome && latestImageMs >= homeSinceMs + settleMs
             when {
                 !atHome || !settled -> snapshotSoftware(view, configuration, completionHandler, atHome)

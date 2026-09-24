@@ -168,7 +168,7 @@ private fun TextView(state: TextViewState) {
                         key(part.id) {
                             when (val data = part.data) {
                                 is TextEffectPartData.Text -> Text(
-                                    text = localized(data.text),
+                                    text = data.text,
                                     style = textStyle,
                                     color = foregroundColor,
                                 )

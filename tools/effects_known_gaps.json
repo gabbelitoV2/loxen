@@ -2,13 +2,6 @@
   "gaps": [
     {
       "check": "kernels",
-      "name": "crtBarrelDistortion",
-      "owner": "E8",
-      "milestone": "ME7",
-      "note": "The CrtBarrelDistortionPort object lands at ME1 with glsl = null (effects plan 1.10); CRT keeps its input until the GLSL port."
-    },
-    {
-      "check": "kernels",
       "name": "dewarp360",
       "owner": "E11",
       "milestone": "ME10",

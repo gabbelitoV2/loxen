@@ -216,19 +216,19 @@ class TextEffectFormatter {
     }
 
     private fun formatClock(variables: Variables) {
-        appendTextPart(value = textEffectTimeFormat.format(variables.date))
+        appendTextPart(value = textEffectClockString(date = variables.date, seconds = true))
     }
 
     private fun formatShortClock(variables: Variables) {
-        appendTextPart(value = textEffectShortTimeFormat.format(variables.date))
+        appendTextPart(value = textEffectClockString(date = variables.date, seconds = false))
     }
 
     private fun formatDate(variables: Variables) {
-        appendTextPart(value = textEffectDateFormatter.format(variables.date))
+        appendTextPart(value = textEffectDateString(date = variables.date, style = android.icu.text.DateFormat.SHORT))
     }
 
     private fun formatFullDate(variables: Variables) {
-        appendTextPart(value = textEffectFullDateFormatter.format(variables.date))
+        appendTextPart(value = textEffectDateString(date = variables.date, style = android.icu.text.DateFormat.FULL))
     }
 
     private fun formatBitrate(variables: Variables) {
@@ -323,7 +323,7 @@ class TextEffectFormatter {
     private fun formatTimer(variables: Variables, now: com.moblin.android.platform.core.ContinuousClock.Instant) {
         if (timerIndex < timersEndTime.size) {
             val timeLeft = maxOf(now.duration(to = timersEndTime[timerIndex]).toDouble(kotlin.time.DurationUnit.SECONDS), 0.0)
-            appendTextPart(value = uptimeFormatter.string(timeLeft) ?: "")
+            appendTextPart(value = textEffectDurationString(seconds = timeLeft))
         }
         timerIndex += 1
     }
@@ -335,7 +335,7 @@ class TextEffectFormatter {
             if (stopwatch.running) {
                 elapsed += java.time.Duration.between(stopwatch.playPressedTime, java.time.Instant.now()).toNanos() / 1_000_000_000.0
             }
-            appendTextPart(value = uptimeFormatter.string(elapsed) ?: "")
+            appendTextPart(value = textEffectDurationString(seconds = elapsed))
         }
         stopwatchIndex += 1
     }
@@ -543,7 +543,7 @@ class TextEffectFormatter {
                     lap = 1
                 } else {
                     val duration = time.toLong().seconds
-                    text = "Lap $lap ${duration.formatWithSeconds()}"
+                    text = "Lap $lap ${textEffectDurationString(seconds = duration.inWholeSeconds.toDouble())}"
                     lap += 1
                 }
                 appendTextPart(value = text)
@@ -697,6 +697,9 @@ fun List<TextEffectLine>.toPlainText(): String {
 
 private val systemUsesImperialUnits: Boolean
     get() = Locale.getDefault().country in setOf("US", "LR", "MM")
+private fun textEffectDurationString(seconds: Double): String = if (!seconds.isFinite()) "" else kotlin.math.abs(seconds.toLong()).let { total -> listOf(android.icu.util.MeasureUnit.DAY to total / 86_400, android.icu.util.MeasureUnit.HOUR to total % 86_400 / 3_600, android.icu.util.MeasureUnit.MINUTE to total % 3_600 / 60, android.icu.util.MeasureUnit.SECOND to total % 60).filter { it.second > 0 }.ifEmpty { listOf(android.icu.util.MeasureUnit.SECOND to 0L) }.map { android.icu.util.Measure(it.second, it.first) } }.let { android.icu.text.MeasureFormat.getInstance(Locale.getDefault(), android.icu.text.MeasureFormat.FormatWidth.NARROW).formatMeasures(*it.toTypedArray()) }
+private fun textEffectDateString(date: java.time.Instant, style: Int): String = android.icu.text.DateFormat.getDateInstance(style, Locale.getDefault()).apply { timeZone = android.icu.util.TimeZone.getTimeZone(java.util.TimeZone.getDefault().id) }.format(java.util.Date.from(date))
+private fun textEffectClockString(date: java.time.Instant, seconds: Boolean): String = android.icu.text.DateFormat.getInstanceForSkeleton(runCatching { if (android.text.format.DateFormat.is24HourFormat(com.moblin.android.AppDelegate.context)) "H" else "h" }.getOrDefault("j") + if (seconds) "ms" else "m", Locale.getDefault()).apply { timeZone = android.icu.util.TimeZone.getTimeZone(java.util.TimeZone.getDefault().id) }.format(java.util.Date.from(date))
 private fun textEffectWindAndGustString(speed: Double, gust: Double, unit: TextFormatSpeedUnit): String = textEffectWindUnit(unit).let { (factor, _, symbol) -> "${(speed * factor).toInt()} (${(gust * factor).toInt()}) $symbol" }
 private fun textEffectWindString(speed: Double, unit: TextFormatSpeedUnit): String = textEffectWindUnit(unit).let { (factor, measureUnit, _) -> NumberFormatter.withLocale(Locale.getDefault()).unit(measureUnit).precision(Precision.maxFraction(0)).format(speed * factor).toString() }
 private fun textEffectWindUnit(unit: TextFormatSpeedUnit): Triple<Double, MeasureUnit, String> = when (if (unit != TextFormatSpeedUnit.system) unit else if (Locale.getDefault().country in setOf("US", "LR", "MM", "GB")) TextFormatSpeedUnit.milesPerHour else TextFormatSpeedUnit.metersPerSecond) { TextFormatSpeedUnit.kilometersPerHour -> Triple(3.6, MeasureUnit.KILOMETER_PER_HOUR, "km/h"); TextFormatSpeedUnit.milesPerHour -> Triple(2.2369362920544, MeasureUnit.MILE_PER_HOUR, "mph"); else -> Triple(1.0, MeasureUnit.METER_PER_SECOND, "m/s") }
@@ -733,7 +736,7 @@ private class MeasurementFormatter {
                 } else {
                     value * 3.6 to MeasureUnit.KILOMETER_PER_HOUR
                 }
-            "celsius" ->
+            "celsius" -> if (Locale.getDefault().getUnicodeLocaleType("mu") == "fahrenhe") (value * 9.0 / 5.0 + 32.0) to MeasureUnit.FAHRENHEIT else if (Locale.getDefault().getUnicodeLocaleType("mu") == "celsius") value to MeasureUnit.CELSIUS else
                 if (systemUsesImperialUnits) {
                     (value * 9.0 / 5.0 + 32.0) to MeasureUnit.FAHRENHEIT
                 } else {
