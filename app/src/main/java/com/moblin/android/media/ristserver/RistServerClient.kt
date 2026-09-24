@@ -21,6 +21,7 @@ class RistServerClient(
     softwareDecoding: Boolean,
 ) : MpegTsReaderDelegate {
     var server: RistServer? = null
+    fun stop() = reader.stop()
     private val reader: MpegTsReader = MpegTsReader(
         name = "rist-server",
         decoderQueue = ristServerDispatcher,

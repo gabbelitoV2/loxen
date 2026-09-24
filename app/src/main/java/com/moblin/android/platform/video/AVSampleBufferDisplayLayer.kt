@@ -34,9 +34,12 @@ class AVSampleBufferDisplayLayer internal constructor(view: TextureView) {
     var status: Status = Status.unknown
         private set
 
+    private class InFlight(val sampleBuffer: MediaSample, var leased: Boolean)
+
     private val viewRef = WeakReference(view)
     private val name = "layer@${Integer.toHexString(System.identityHashCode(view))}"
     private val lock = Any()
+    private val inFlight = ArrayDeque<InFlight>()
     private var pendingBuffer: CVPixelBuffer? = null
     private var pendingRemoveImage = false
     private var pendingFlush = false
@@ -81,7 +84,31 @@ class AVSampleBufferDisplayLayer internal constructor(view: TextureView) {
 
     fun enqueue(sampleBuffer: MediaSample) {
         val buffer = sampleBuffer.imageBuffer ?: return
-        setPendingBuffer(buffer)
+        setPendingBuffer(buffer, sampleBuffer)
+    }
+
+    fun retainInFlight(sampleBuffer: MediaSample) {
+        val buffer = sampleBuffer.imageBuffer
+        val leased = buffer != null && PixelBufferLeases.retain(buffer, "display layer in flight")
+        val superseded = synchronized(lock) {
+            val newest = if (leased) inFlight.lastOrNull { it.leased } else null
+            newest?.leased = false
+            inFlight.addLast(InFlight(sampleBuffer, leased))
+            newest?.sampleBuffer?.imageBuffer
+        }
+        releaseLease(superseded)
+    }
+
+    fun releaseInFlight(sampleBuffer: MediaSample) {
+        val released = synchronized(lock) {
+            val index = inFlight.indexOfFirst { it.sampleBuffer === sampleBuffer }
+            if (index < 0) {
+                return
+            }
+            val entry = inFlight.removeAt(index)
+            if (entry.leased) entry.sampleBuffer.imageBuffer else null
+        }
+        releaseLease(released)
     }
 
     fun flush() {
@@ -120,11 +147,14 @@ class AVSampleBufferDisplayLayer internal constructor(view: TextureView) {
         }
     }
 
-    private fun setPendingBuffer(buffer: CVPixelBuffer) {
-        if (!PixelBufferLeases.retain(buffer, "display layer enqueue")) {
-            return
-        }
+    private fun setPendingBuffer(buffer: CVPixelBuffer, sampleBuffer: MediaSample? = null) {
         val replaced = synchronized(lock) {
+            if (sampleBuffer != null && inFlight.firstOrNull { it.sampleBuffer === sampleBuffer }?.leased == false) {
+                return
+            }
+            if (!PixelBufferLeases.retain(buffer, "display layer enqueue")) {
+                return
+            }
             val replaced = pendingBuffer
             pendingBuffer = buffer
             scheduleProcess()

@@ -58,7 +58,7 @@ class PreviewView(context: Context, attrs: AttributeSet? = null) :
 
     fun enqueue(sampleBuffer: MediaSample?, isFirstAfterAttach: Boolean) {
         val sample = sampleBuffer ?: return
-        com.moblin.android.platform.video.retainLease(sample)
+        layer.retainInFlight(sample)
         mainScope.launch {
             if (layer.status == com.moblin.android.platform.video.AVSampleBufferDisplayLayer.Status.failed) layer.flush()
             if (isFirstAfterAttach) {
@@ -67,7 +67,7 @@ class PreviewView(context: Context, attrs: AttributeSet? = null) :
             } else {
                 render(sample)
             }
-            com.moblin.android.platform.video.releaseLease(sample)
+            layer.releaseInFlight(sample)
         }
     }
 }

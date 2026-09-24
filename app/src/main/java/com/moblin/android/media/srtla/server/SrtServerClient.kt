@@ -52,6 +52,7 @@ open class SrtServerClient(
             }
         }
         SrtNative.srt_close(clientSocket)
+        reader.stop()
     }
 
     override fun mpegTsReaderAudioBuffer(sampleBuffer: MediaSample) {

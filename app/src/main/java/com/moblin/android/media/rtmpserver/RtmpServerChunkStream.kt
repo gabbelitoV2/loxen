@@ -80,6 +80,7 @@ class RtmpServerChunkStream(
     fun stop() {
         videoDecoder?.stopRunning()
         videoDecoder = null
+        audioDecoder?.release()
         client = null
     }
 

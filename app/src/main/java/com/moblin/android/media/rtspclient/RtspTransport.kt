@@ -29,6 +29,7 @@ interface RtspTransportDelegate {
 
 open class RtspTransport {
     var delegate: RtspTransportDelegate? = null
+    protected fun deliver(block: RtspTransportDelegate.() -> Unit) { CoroutineScope(rtspClientQueue).launch { delegate?.block() } }
 
     open fun start(host: String, port: Int) {
     }
@@ -53,9 +54,9 @@ open class RtspTransport {
 
 class RtspTransportRtpRtspTcp : RtspTransport() {
     private val channelStart: UByte = '$'.code.toUByte()
-    private var connection: Socket? = null
-    private var rtpChannel: UByte? = null
-    private var rtcpChannel: UByte? = null
+    @Volatile private var connection: Socket? = null
+    @Volatile private var rtpChannel: UByte? = null
+    @Volatile private var rtcpChannel: UByte? = null
     private var header = ByteArray(0)
     private var scope: CoroutineScope? = null
 
@@ -64,10 +65,10 @@ class RtspTransportRtpRtspTcp : RtspTransport() {
         scope = newScope
         newScope.launch {
             try {
-                val socket = Socket()
+                val socket = Socket().also { connection = it }
                 socket.connect(InetSocketAddress(host, port))
                 connection = socket
-                delegate?.rtspTransportConnected()
+                deliver { rtspTransportConnected() }
                 receiveMessage()
             } catch (e: Exception) {
                 Log.d(TAG, "rtsp-client: TCP transport error: $e")
@@ -76,6 +77,7 @@ class RtspTransportRtpRtspTcp : RtspTransport() {
     }
 
     override fun stop() {
+        delegate = null
         scope?.coroutineContext?.cancel()
         scope = null
         try {
@@ -157,9 +159,9 @@ class RtspTransportRtpRtspTcp : RtspTransport() {
     private suspend fun receiveChannelData(channel: UByte, size: Int) {
         val data = receive(size) ?: return
         if (channel == rtpChannel) {
-            delegate?.rtspTransportReceivedRtpPacket(data)
+            deliver { rtspTransportReceivedRtpPacket(data) }
         } else if (channel == rtcpChannel) {
-            delegate?.rtspTransportReceivedRtcpPacket(data)
+            deliver { rtspTransportReceivedRtcpPacket(data) }
         }
     }
 
@@ -175,7 +177,7 @@ class RtspTransportRtpRtspTcp : RtspTransport() {
                 if (contentLength > 0) {
                     receiveRtspContent(header, contentLength)
                 } else {
-                    delegate?.rtspTransportReceivedRtspMessage(header, null)
+                    header.let { message -> deliver { rtspTransportReceivedRtspMessage(message, null) } }
                 }
                 return
             }
@@ -184,7 +186,7 @@ class RtspTransportRtpRtspTcp : RtspTransport() {
 
     private suspend fun receiveRtspContent(header: ByteArray, size: Int) {
         val data = receive(size) ?: return
-        delegate?.rtspTransportReceivedRtspMessage(header, data)
+        deliver { rtspTransportReceivedRtspMessage(header, data) }
     }
 
     private suspend fun receive(size: Int): ByteArray? {
@@ -210,7 +212,7 @@ class RtspTransportRtpRtspTcp : RtspTransport() {
 class RtspTransportRtpUdp : RtspTransport() {
     private var host: String = ""
     private var port: Int = 554
-    private var rtspConnection: Socket? = null
+    @Volatile private var rtspConnection: Socket? = null
     private var rtpListener: DatagramSocket? = null
     private var rtcpListener: DatagramSocket? = null
     private var rtcpSendConnection: DatagramSocket? = null
@@ -227,6 +229,7 @@ class RtspTransportRtpUdp : RtspTransport() {
     }
 
     override fun stop() {
+        delegate = null
         scope?.coroutineContext?.cancel()
         scope = null
         try {
@@ -351,10 +354,10 @@ class RtspTransportRtpUdp : RtspTransport() {
         val newScope = scope ?: return
         newScope.launch {
             try {
-                val socket = Socket()
+                val socket = Socket().also { rtspConnection = it }
                 socket.connect(InetSocketAddress(host, port))
                 rtspConnection = socket
-                delegate?.rtspTransportConnected()
+                deliver { rtspTransportConnected() }
                 receiveRtspMessage()
             } catch (e: Exception) {
                 Log.d(TAG, "rtsp-client: UDP transport error: $e")
@@ -373,7 +376,7 @@ class RtspTransportRtpUdp : RtspTransport() {
                 return
             }
             val data = packet.data.copyOfRange(packet.offset, packet.offset + packet.length)
-            delegate?.rtspTransportReceivedRtpPacket(data)
+            deliver { rtspTransportReceivedRtpPacket(data) }
         }
     }
 
@@ -388,7 +391,7 @@ class RtspTransportRtpUdp : RtspTransport() {
                 return
             }
             val data = packet.data.copyOfRange(packet.offset, packet.offset + packet.length)
-            delegate?.rtspTransportReceivedRtcpPacket(data)
+            deliver { rtspTransportReceivedRtcpPacket(data) }
         }
     }
 
@@ -413,7 +416,7 @@ class RtspTransportRtpUdp : RtspTransport() {
                 if (contentLength > 0) {
                     receiveRtspContent(header, contentLength)
                 } else {
-                    delegate?.rtspTransportReceivedRtspMessage(header, null)
+                    header.let { message -> deliver { rtspTransportReceivedRtspMessage(message, null) } }
                 }
                 return
             }
@@ -422,7 +425,7 @@ class RtspTransportRtpUdp : RtspTransport() {
 
     private suspend fun receiveRtspContent(header: ByteArray, size: Int) {
         val data = receiveRtsp(size) ?: return
-        delegate?.rtspTransportReceivedRtspMessage(header, data)
+        deliver { rtspTransportReceivedRtspMessage(header, data) }
     }
 
     private suspend fun receiveRtsp(size: Int): ByteArray? {

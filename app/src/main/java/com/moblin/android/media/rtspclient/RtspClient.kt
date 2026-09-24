@@ -285,6 +285,7 @@ fun URI.removeCredentialsAndPort(): URI {
 }
 
 private open class RtpProcessor {
+    open fun stop() {}
     open fun process(packet: ByteArray, timestamp: Long) {
         throw Exception("Not implemented")
     }
@@ -301,6 +302,7 @@ private open class RtpVideoProcessor(
     private val decoder: VideoDecoder
     private var formatDescription: MediaFormat?
     private val client: RtspClient
+    override fun stop() { decoder.delegate = null; decoder.stopRunning() }
 
     init {
         this.formatDescription = formatDescription
@@ -497,7 +499,7 @@ private class Rtp {
     private var nextExpectedSequenceNumber: Int? = null
     private val reorderBuffer = mutableMapOf<Int, ByteArray>()
     private val reorderBufferMaxSize = 64
-    var processor: RtpProcessor? = null
+    var processor: RtpProcessor? = null; set(value) { field?.stop(); field = value }
     private val wrappingTimestamp = WrappingTimestamp(name = "RTP", maximumTimestamp = 0x1_0000_0000L)
 
     fun handlePacket(packet: ByteArray) {
@@ -614,6 +616,7 @@ class RtspClient(
         rtspClientScope.launch {
             started = false
             stopInternal()
+            rtpVideo.processor = null
         }
     }
 
@@ -650,6 +653,7 @@ class RtspClient(
         transport = createTransport()
         transport?.delegate = this
         transport?.start(host, port)
+        rtpVideo.processor = null
         rtpVideo = Rtp()
         setState(State.CONNECTING)
         connectTimer.startSingleShot(5.0) {

@@ -98,8 +98,8 @@
       "scope": "fun enqueue",
       "op": "insert_after",
       "anchor": "        val sample = sampleBuffer ?: return",
-      "new": "        com.moblin.android.platform.video.retainLease(sample)",
-      "note": "DispatchQueue.main.async holds the sample until the main thread enqueues it."
+      "new": "        layer.retainInFlight(sample)",
+      "note": "DispatchQueue.main.async holds the sample until the main thread enqueues it. The layer leases only the newest sample still on its way through the main queue; enqueue skips an older one it replaced, which the layer would replace in the same main thread burst anyway, so a stalled main thread cannot hold a whole effects or camera pool."
     },
     {
       "id": "HL1.12",
@@ -107,9 +107,9 @@
       "scope": "fun enqueue",
       "op": "insert_after",
       "anchor": "            }",
-      "new": "            com.moblin.android.platform.video.releaseLease(sample)",
+      "new": "            layer.releaseInFlight(sample)",
       "occurrence": 1,
-      "note": "After the if/else in the main thread block, so both the render and the flush paths release it."
+      "note": "After the if/else in the main thread block, so both the render and the flush paths end the sample's trip through the main queue and release its lease if it is still the newest."
     },
     {
       "id": "HL1.13",

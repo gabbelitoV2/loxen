@@ -1,0 +1,352 @@
+{
+  "task": "DL",
+  "hooks": [
+    {
+      "id": "HDL.1",
+      "file": "media/haishinkit/codec/video/VideoDecoder.kt",
+      "scope": "fun startRunning",
+      "op": "replace",
+      "old": "    fun startRunning(formatDescription: MediaFormat? = null) {",
+      "new": "    @Synchronized fun startRunning(formatDescription: MediaFormat? = null) {",
+      "note": "Swift frees the decoder on the queue that feeds it. An Android owner can stop it from another thread than the one that feeds it (SrtClient feeds from its connection thread and stops on srtClientQueue), so start, stop and decode are serialized; a decode racing a stop can then no longer create a session that nobody invalidates."
+    },
+    {
+      "id": "HDL.2",
+      "file": "media/haishinkit/codec/video/VideoDecoder.kt",
+      "scope": "fun stopRunning",
+      "op": "replace",
+      "old": "    fun stopRunning() {",
+      "new": "    @Synchronized fun stopRunning() {"
+    },
+    {
+      "id": "HDL.3",
+      "file": "media/haishinkit/codec/video/VideoDecoder.kt",
+      "scope": "fun decodeSampleBuffer",
+      "op": "replace",
+      "old": "    fun decodeSampleBuffer(sampleBuffer: MediaSample) {",
+      "new": "    @Synchronized fun decodeSampleBuffer(sampleBuffer: MediaSample) {"
+    },
+    {
+      "id": "HDL.4",
+      "file": "media/haishinkit/mpeg/MpegTsReader.kt",
+      "scope": "class MpegTsReader",
+      "op": "insert_after",
+      "anchor": "    var delegate: MpegTsReaderDelegate? = null",
+      "new": "    fun stop() { videoDecoder?.delegate = null; videoDecoder?.stopRunning(); videoDecoder = null; audioDecoder?.release(); audioDecoder = null }",
+      "note": "Swift frees the reader's VideoDecoder (and with it the VTDecompressionSession) and AVAudioConverter when the last reference to the reader goes away, and the decoder's weak delegate becomes nil, so decoded frames still queued for the reader are dropped. Kotlin has no deinit, so owners call stop() at exactly those points: the delegate is cleared, the MediaCodecs are released, the video-decoder HandlerThread quits and the decoder pool is invalidated instead of waiting for GC."
+    },
+    {
+      "id": "HDL.5",
+      "file": "media/ristserver/RistServerClient.kt",
+      "scope": "class RistServerClient",
+      "op": "insert_after",
+      "anchor": "    var server: RistServer? = null",
+      "new": "    fun stop() = reader.stop()",
+      "note": "The client owns the reader; RistServer stops it wherever Swift drops the client."
+    },
+    {
+      "id": "HDL.6",
+      "file": "media/ristserver/RistServer.kt",
+      "scope": "fun stopInternal",
+      "op": "replace",
+      "old": "        clientsByVirtualDestinationPort.clear()",
+      "new": "        clientsByVirtualDestinationPort.onEach { it.value.stop() }.clear()",
+      "note": "Server stop: Swift removeAll() frees every client and its decoder."
+    },
+    {
+      "id": "HDL.7",
+      "file": "media/ristserver/RistServer.kt",
+      "scope": "fun peerConnected",
+      "op": "replace",
+      "old": "        clientsByVirtualDestinationPort[virtualDestinationPort] = client",
+      "new": "        clientsByVirtualDestinationPort.put(virtualDestinationPort, client)?.stop()",
+      "note": "Reconnect on the same virtual destination port: Swift's assignment frees the previous client."
+    },
+    {
+      "id": "HDL.8",
+      "file": "media/ristserver/RistServer.kt",
+      "scope": "fun peerDisconnected",
+      "op": "replace",
+      "old": "        if (clientsByVirtualDestinationPort.remove(virtualDestinationPort) != null) {",
+      "new": "        if (clientsByVirtualDestinationPort.remove(virtualDestinationPort)?.also { it.stop() } != null) {",
+      "note": "Disconnect: Swift's removeValue frees the client."
+    },
+    {
+      "id": "HDL.9",
+      "file": "media/srtla/server/SrtServerClient.kt",
+      "scope": "fun run",
+      "op": "insert_after",
+      "anchor": "        SrtNative.srt_close(clientSocket)",
+      "new": "        reader.stop()",
+      "note": "Swift's SrtServerClient is a temporary that is freed when run() returns (client disconnect or server stop), on the thread that fed the reader."
+    },
+    {
+      "id": "HDL.10",
+      "file": "media/srtclient/SrtClient.kt",
+      "scope": "fun main",
+      "op": "insert_after",
+      "anchor": "        val postFailures = SrtSocketOption.configure(socket, binding = SrtSocketOption.Binding.post, options = options)",
+      "new": "        reader.stop()",
+      "note": "Reconnect: Swift frees the previous connection's reader when main() assigns a new one a few lines below. The previous connection thread has left receive() by then."
+    },
+    {
+      "id": "HDL.11",
+      "file": "media/srtclient/SrtClient.kt",
+      "scope": "fun connectSoon",
+      "op": "insert_after",
+      "anchor": "        if (!running) {",
+      "new": "            reader.stop()",
+      "note": "Stop while connected: Swift frees the client (and its reader) once the connection thread has left receive() and this block ran; the reader is no longer fed here."
+    },
+    {
+      "id": "HDL.12",
+      "file": "media/srtclient/SrtClient.kt",
+      "scope": "fun stop",
+      "op": "insert_after",
+      "anchor": "            reconnectTimer.stop()",
+      "new": "            if (socket == SrtNative.SRT_INVALID_SOCK) reader.stop()",
+      "note": "Stop while no connection thread exists (waiting to reconnect): Swift frees the client right after this block. With a socket, the connection thread ends in connectSoon (HDL.11) instead, so the reader is never stopped while it is fed."
+    },
+    {
+      "id": "HDL.13",
+      "file": "media/rtspclient/RtspClient.kt",
+      "scope": "class RtpProcessor",
+      "op": "insert_after",
+      "anchor": "private open class RtpProcessor {",
+      "new": "    open fun stop() {}"
+    },
+    {
+      "id": "HDL.14",
+      "file": "media/rtspclient/RtspClient.kt",
+      "scope": "class RtpVideoProcessor",
+      "op": "insert_after",
+      "anchor": "    private val client: RtspClient",
+      "new": "    override fun stop() { decoder.delegate = null; decoder.stopRunning() }",
+      "note": "Swift frees the processor's VideoDecoder together with the processor, and the decoder's weak delegate (the processor) becomes nil, so frames still queued for it are dropped."
+    },
+    {
+      "id": "HDL.15",
+      "file": "media/rtspclient/RtspClient.kt",
+      "scope": "class Rtp",
+      "op": "replace",
+      "old": "    var processor: RtpProcessor? = null",
+      "new": "    var processor: RtpProcessor? = null; set(value) { field?.stop(); field = value }",
+      "note": "A new SETUP replaces the processor; Swift frees the old one."
+    },
+    {
+      "id": "HDL.16",
+      "file": "media/rtspclient/RtspClient.kt",
+      "scope": "fun startInternal",
+      "op": "insert_after",
+      "anchor": "        transport?.start(host, port)",
+      "new": "        rtpVideo.processor = null",
+      "note": "Reconnect: the next line replaces rtpVideo, which in Swift frees the previous connection's processor."
+    },
+    {
+      "id": "HDL.17",
+      "file": "media/rtspclient/RtspClient.kt",
+      "scope": "fun stop\nrtsp-client: Stop",
+      "op": "insert_after",
+      "anchor": "            stopInternal()",
+      "new": "            rtpVideo.processor = null",
+      "note": "Stop: the model drops the client right after stop(), and Swift frees it (and rtpVideo) once this block ran."
+    },
+    {
+      "id": "HDL.18",
+      "file": "media/rtmpserver/RtmpServerChunkStream.kt",
+      "scope": "fun stop",
+      "op": "insert_after",
+      "anchor": "        videoDecoder = null",
+      "new": "        audioDecoder?.release()",
+      "note": "The client drops the chunk stream right after stop(), which in Swift frees its AVAudioConverter."
+    },
+    {
+      "id": "HDL.19",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun addBufferedVideoInternal",
+      "op": "replace",
+      "old": "        bufferedVideos[cameraId] = BufferedVideo(",
+      "new": "        bufferedVideos.put(cameraId, BufferedVideo(",
+      "note": "An ingest that connects again for the same camera replaces its BufferedVideo; Swift's deinit of the replaced one (close() here) returns its leased frames and reports it removed, after the new one is in place."
+    },
+    {
+      "id": "HDL.20",
+      "file": "media/haishinkit/media/video/VideoUnit.kt",
+      "scope": "fun addBufferedVideoInternal",
+      "op": "replace",
+      "old": "        )",
+      "new": "        ))?.close()"
+    },
+    {
+      "id": "HDL.21",
+      "file": "media/haishinkit/mpeg/MpegTsReader.kt",
+      "scope": "fun handleAudioFormatDescription",
+      "op": "replace",
+      "old": "            audioDecoder = null",
+      "new": "            audioDecoder?.release(); audioDecoder = null",
+      "note": "Swift frees the previous AVAudioConverter here; release its MediaCodec instead of leaving it to GC, as createAudioDecoder and RtmpServerChunkStream already do."
+    },
+    {
+      "id": "HDL.22",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "class RtspTransport",
+      "op": "insert_after",
+      "anchor": "    var delegate: RtspTransportDelegate? = null",
+      "new": "    protected fun deliver(block: RtspTransportDelegate.() -> Unit) { CoroutineScope(rtspClientQueue).launch { delegate?.block() } }",
+      "note": "Swift starts the NWConnections on rtspClientQueue, so every delegate call runs there, serialized with start, stop, the timers and the decoder. The sockets block on IO threads here, so each delegate call is dispatched to rtspClientQueue and reads the delegate there. Without this, OPTIONS raced startInternal's requests.clear() (handshake stalled 10 s), RTP decode raced stop and the processor setter, and requests was a map shared between threads."
+    },
+    {
+      "id": "HDL.23",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "class RtspTransportRtpRtspTcp",
+      "op": "insert_after",
+      "anchor": "    override fun stop() {",
+      "new": "        delegate = null",
+      "note": "Swift frees the transport on stop and its receive closures hold it weakly, so nothing is delivered after stop. stop runs on rtspClientQueue, so deliveries still queued behind it see no delegate."
+    },
+    {
+      "id": "HDL.24",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "class RtspTransportRtpRtspTcp",
+      "op": "replace",
+      "old": "    private var rtpChannel: UByte? = null",
+      "new": "    @Volatile private var rtpChannel: UByte? = null",
+      "note": "Set by handleSetupTransportResponse on rtspClientQueue, read by the receive loop on an IO thread."
+    },
+    {
+      "id": "HDL.25",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "class RtspTransportRtpRtspTcp",
+      "op": "replace",
+      "old": "    private var rtcpChannel: UByte? = null",
+      "new": "    @Volatile private var rtcpChannel: UByte? = null"
+    },
+    {
+      "id": "HDL.26",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "class RtspTransportRtpRtspTcp",
+      "op": "replace",
+      "old": "                delegate?.rtspTransportConnected()",
+      "new": "                deliver { rtspTransportConnected() }"
+    },
+    {
+      "id": "HDL.27",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "fun receiveChannelData",
+      "op": "replace",
+      "old": "            delegate?.rtspTransportReceivedRtpPacket(data)",
+      "new": "            deliver { rtspTransportReceivedRtpPacket(data) }"
+    },
+    {
+      "id": "HDL.28",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "fun receiveChannelData",
+      "op": "replace",
+      "old": "            delegate?.rtspTransportReceivedRtcpPacket(data)",
+      "new": "            deliver { rtspTransportReceivedRtcpPacket(data) }"
+    },
+    {
+      "id": "HDL.29",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "fun receiveRtspHeaderRemaining",
+      "scope_occurrence": 1,
+      "op": "replace",
+      "old": "                    delegate?.rtspTransportReceivedRtspMessage(header, null)",
+      "new": "                    header.let { message -> deliver { rtspTransportReceivedRtspMessage(message, null) } }",
+      "note": "header is a field that the receive loop replaces for the next message, so the delivery captures the current array."
+    },
+    {
+      "id": "HDL.30",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "fun receiveRtspContent",
+      "scope_occurrence": 1,
+      "op": "replace",
+      "old": "        delegate?.rtspTransportReceivedRtspMessage(header, data)",
+      "new": "        deliver { rtspTransportReceivedRtspMessage(header, data) }"
+    },
+    {
+      "id": "HDL.31",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "class RtspTransportRtpUdp",
+      "op": "insert_after",
+      "anchor": "    override fun stop() {",
+      "new": "        delegate = null"
+    },
+    {
+      "id": "HDL.32",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "class RtspTransportRtpUdp",
+      "op": "replace",
+      "old": "                delegate?.rtspTransportConnected()",
+      "new": "                deliver { rtspTransportConnected() }"
+    },
+    {
+      "id": "HDL.33",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "fun receiveRtpDatagram",
+      "op": "replace",
+      "old": "            delegate?.rtspTransportReceivedRtpPacket(data)",
+      "new": "            deliver { rtspTransportReceivedRtpPacket(data) }"
+    },
+    {
+      "id": "HDL.34",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "fun receiveRtcpDatagram",
+      "op": "replace",
+      "old": "            delegate?.rtspTransportReceivedRtcpPacket(data)",
+      "new": "            deliver { rtspTransportReceivedRtcpPacket(data) }"
+    },
+    {
+      "id": "HDL.35",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "fun receiveRtspHeaderRemaining",
+      "scope_occurrence": 2,
+      "op": "replace",
+      "old": "                    delegate?.rtspTransportReceivedRtspMessage(header, null)",
+      "new": "                    header.let { message -> deliver { rtspTransportReceivedRtspMessage(message, null) } }"
+    },
+    {
+      "id": "HDL.36",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "fun receiveRtspContent",
+      "scope_occurrence": 2,
+      "op": "replace",
+      "old": "        delegate?.rtspTransportReceivedRtspMessage(header, data)",
+      "new": "        deliver { rtspTransportReceivedRtspMessage(header, data) }"
+    },
+    {
+      "id": "HDL.37",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "class RtspTransportRtpRtspTcp",
+      "op": "replace",
+      "old": "    private var connection: Socket? = null",
+      "new": "    @Volatile private var connection: Socket? = null",
+      "note": "Written by the connecting IO thread, closed by stop() on rtspClientQueue."
+    },
+    {
+      "id": "HDL.38",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "class RtspTransportRtpRtspTcp",
+      "op": "replace",
+      "old": "                val socket = Socket()",
+      "new": "                val socket = Socket().also { connection = it }",
+      "note": "Swift's NWConnection.cancel() aborts a connect in progress. Publishing the socket before the blocking connect() lets stop() close it, so a reconnect to an unreachable camera no longer leaves an IO thread blocked in connect() for the OS timeout and a late connect no longer leaks an open socket."
+    },
+    {
+      "id": "HDL.39",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "class RtspTransportRtpUdp",
+      "op": "replace",
+      "old": "    private var rtspConnection: Socket? = null",
+      "new": "    @Volatile private var rtspConnection: Socket? = null"
+    },
+    {
+      "id": "HDL.40",
+      "file": "media/rtspclient/RtspTransport.kt",
+      "scope": "fun connectRtsp",
+      "op": "replace",
+      "old": "                val socket = Socket()",
+      "new": "                val socket = Socket().also { rtspConnection = it }"
+    }
+  ]
+}

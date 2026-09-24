@@ -75,6 +75,7 @@ open class SrtClient(
         CoroutineScope(srtClientQueue).launch {
             running = false
             reconnectTimer.stop()
+            if (socket == SrtNative.SRT_INVALID_SOCK) reader.stop()
             closeSocket()
             SrtNative.srt_cleanup()
         }
@@ -87,6 +88,7 @@ open class SrtClient(
     private fun connectSoon(delay: Double) {
         closeSocket()
         if (!running) {
+            reader.stop()
             return
         }
         reconnectTimer.startSingleShot(timeout = delay) {
@@ -135,6 +137,7 @@ open class SrtClient(
             return
         }
         val postFailures = SrtSocketOption.configure(socket, binding = SrtSocketOption.Binding.post, options = options)
+        reader.stop()
         if (postFailures.isNotEmpty()) {
             Log.i(TAG, "srt-client: $cameraId: Failed to set post-bind options: $postFailures.")
         }

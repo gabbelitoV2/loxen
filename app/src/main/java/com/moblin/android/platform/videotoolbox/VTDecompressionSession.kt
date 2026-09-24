@@ -20,7 +20,9 @@ import com.moblin.android.platform.video.GlRenderer
 import com.moblin.android.platform.video.PixelBufferTurn
 import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
 import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
+import java.util.Collections
 import java.util.TreeMap
+import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 const val kVTVideoDecoderSpecification_EnableHardwareAcceleratedVideoDecoder = "EnableHardwareAcceleratedVideoDecoder"
@@ -67,6 +69,38 @@ internal const val maximumNumberOfOutputBuffers = 256
 private const val renderTimeoutNs = 500_000_000L
 
 private val nextSessionIndex = AtomicInteger(0)
+
+internal object DecompressionSessions {
+    private val sessions = Collections.newSetFromMap(WeakHashMap<VTDecompressionSession, Boolean>())
+    private val numberOfRunningSessions = AtomicInteger(0)
+
+    init {
+        PipelineStats.addReporter { report() }
+    }
+
+    fun started(session: VTDecompressionSession) {
+        synchronized(sessions) {
+            sessions.add(session)
+        }
+        numberOfRunningSessions.incrementAndGet()
+    }
+
+    fun invalidated(session: VTDecompressionSession) {
+        synchronized(sessions) {
+            sessions.remove(session)
+        }
+        numberOfRunningSessions.decrementAndGet()
+    }
+
+    fun running(): List<VTDecompressionSession> {
+        return synchronized(sessions) { sessions.toList() }
+    }
+
+    private fun report(): String? {
+        val count = numberOfRunningSessions.get()
+        return if (count > 0) "decoders $count" else null
+    }
+}
 
 internal class DecodeOutputHandlers {
     private val handlers = TreeMap<Long, Pair<Long, VTDecompressionOutputHandler>>()
@@ -155,6 +189,7 @@ class VTDecompressionSession internal constructor(
     private var waitingForKeyFrame = true
     private var numberOfDroppedFrames = 0
     private var lastDropLogMs = 0L
+    private var running = false
 
     @Volatile
     private var invalidated = false
@@ -167,6 +202,15 @@ class VTDecompressionSession internal constructor(
 
     @Volatile
     private var outputHeight = 0
+
+    internal val isInvalidated: Boolean
+        get() = invalidated
+
+    internal val handlerThread: HandlerThread?
+        get() = thread
+
+    internal val outputPool: CVPixelBufferPool?
+        get() = pool
 
     private val frameListener = SurfaceTexture.OnFrameAvailableListener { onFrameAvailable() }
 
@@ -239,6 +283,10 @@ class VTDecompressionSession internal constructor(
             codec.configure(codecFormat, surface, null, 0)
             codec.start()
             Log.i(TAG, "video-decoder-$index: Started $codecName for $mimeType")
+            synchronized(lock) {
+                running = true
+            }
+            DecompressionSessions.started(this)
             noErr
         } catch (error: Exception) {
             Log.i(TAG, "video-decoder-$index: Failed to start $codecName: $error")
@@ -296,11 +344,14 @@ class VTDecompressionSession internal constructor(
     internal fun invalidateSession() {
         val codec: MediaCodec?
         val thread: HandlerThread?
+        val wasRunning: Boolean
         synchronized(lock) {
             if (invalidated) {
                 return
             }
             invalidated = true
+            wasRunning = running
+            running = false
             codec = this.codec
             this.codec = null
             thread = this.thread
@@ -326,6 +377,9 @@ class VTDecompressionSession internal constructor(
             }
         }
         thread?.quitSafely()
+        if (wasRunning) {
+            DecompressionSessions.invalidated(this)
+        }
         PipelineThread.post {
             surface?.release()
             surface = null
@@ -565,7 +619,7 @@ class VTDecompressionSession internal constructor(
         Log.i(TAG, "video-decoder-$index: Output size ${outputWidth}x$outputHeight")
     }
 
-    private fun onFrameAvailable() {
+    internal fun onFrameAvailable() {
         try {
             handleFrame()
         } catch (error: Throwable) {

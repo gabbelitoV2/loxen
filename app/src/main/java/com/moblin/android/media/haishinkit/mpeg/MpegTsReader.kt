@@ -58,6 +58,7 @@ class MpegTsReader(
     private var pcmAudioFormat: AudioFormat? = null
     private var videoDecoder: VideoDecoder? = null
     var delegate: MpegTsReaderDelegate? = null
+    fun stop() { videoDecoder?.delegate = null; videoDecoder?.stopRunning(); videoDecoder = null; audioDecoder?.release(); audioDecoder = null }
     private val wrappingTimestamp = WrappingTimestamp(
         "MpegTsReader",
         ((0x2_0000_0000L * 1_000_000L) / TSTimestamp.resolution).toLong(),
@@ -233,7 +234,7 @@ class MpegTsReader(
         if (sampleRate <= 0 || channelCount <= 0) {
             Log.i(logTag, "mpeg-ts-reader: Failed to create audio format")
             audioBuffer = null
-            audioDecoder = null
+            audioDecoder?.release(); audioDecoder = null
             return
         }
         val channelMask = if (channelCount == 1) {

@@ -50,21 +50,21 @@ class VideoDecoder(
             invalidateSession = false
         }
 
-    fun startRunning(formatDescription: MediaFormat? = null) {
+    @Synchronized fun startRunning(formatDescription: MediaFormat? = null) {
         isRunning = true
         invalidateSession = true
         numberOfFailedFrames = 0
         this.formatDescription = formatDescription
     }
 
-    fun stopRunning() {
+    @Synchronized fun stopRunning() {
         session = null
         invalidateSession = true
         formatDescription = null
         isRunning = false
     }
 
-    fun decodeSampleBuffer(sampleBuffer: MediaSample) {
+    @Synchronized fun decodeSampleBuffer(sampleBuffer: MediaSample) {
         if (!isRunning) {
             return
         }

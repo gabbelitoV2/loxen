@@ -684,14 +684,14 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     }
 
     private fun addBufferedVideoInternal(cameraId: UUID, name: String, latency: Double) {
-        bufferedVideos[cameraId] = BufferedVideo(
+        bufferedVideos.put(cameraId, BufferedVideo(
             cameraId = cameraId,
             name = name,
             update = true,
             latency = latency,
             processor = processor,
             driftTracker = processor?.driftTracker(cameraId = cameraId, name = name)
-        )
+        ))?.close()
     }
 
     private fun removeBufferedVideoInternal(cameraId: UUID) {

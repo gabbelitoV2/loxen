@@ -70,7 +70,7 @@ class RistServer(
         for (virtualDestinationPort in clientsByVirtualDestinationPort.keys.toList()) {
             delegate.ristServerOnDisconnected(virtualDestinationPort, "")
         }
-        clientsByVirtualDestinationPort.clear()
+        clientsByVirtualDestinationPort.onEach { it.value.stop() }.clear()
         clientsChanged()
     }
 
@@ -93,7 +93,7 @@ class RistServer(
             softwareDecoding,
         )
         client.server = this
-        clientsByVirtualDestinationPort[virtualDestinationPort] = client
+        clientsByVirtualDestinationPort.put(virtualDestinationPort, client)?.stop()
         clientsChanged()
         delegate.ristServerOnConnected(virtualDestinationPort)
     }
@@ -103,7 +103,7 @@ class RistServer(
             "RistServer",
             "rist-server: Disconnected virtual destination port $virtualDestinationPort",
         )
-        if (clientsByVirtualDestinationPort.remove(virtualDestinationPort) != null) {
+        if (clientsByVirtualDestinationPort.remove(virtualDestinationPort)?.also { it.stop() } != null) {
             clientsChanged()
             delegate.ristServerOnDisconnected(virtualDestinationPort, "")
         }
