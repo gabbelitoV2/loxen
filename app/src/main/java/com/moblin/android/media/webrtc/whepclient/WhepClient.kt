@@ -9,8 +9,9 @@ import com.moblin.android.media.haishinkit.whip.opusPayloadType
 import com.moblin.android.media.webrtc.WebrtcIngestClient
 import com.moblin.android.media.webrtc.WebrtcIngestClientDelegate
 import com.moblin.android.media.webrtc.defaultStunServer
+import com.moblin.android.platform.datachannel.*
 import com.moblin.android.various.SimpleTimer
-import java.io.IOException
+import com.moblin.android.various.network.httpRequest
 import java.net.URI
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -19,15 +20,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import okhttp3.Call
-import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 
-private const val tag = "WhepClient"
+private const val TAG = "WhepClient"
 
 private val dispatchQueue: CoroutineDispatcher =
     Executors.newSingleThreadExecutor { Thread(it, "com.eerimoq.whep-client") }.asCoroutineDispatcher()
@@ -57,14 +55,13 @@ class WhepClient(
     private var ingestClient: WebrtcIngestClient? = null
     private var sessionUrl: String? = null
     private var started = false
-    private val reconnectTimer = SimpleTimer(dispatchQueue)
+    private var reconnectTimer = SimpleTimer(dispatchQueue)
     private var connected: Boolean = false
     private var bitrateStats = BitrateStats()
-    private val httpClient = OkHttpClient()
 
     fun start() {
         dispatchQueueScope.launch {
-            Log.i(tag, "whep-client: $streamId: Start")
+            Log.i(TAG, "whep-client: $streamId: Start")
             started = true
             startInternal()
         }
@@ -72,7 +69,7 @@ class WhepClient(
 
     fun stop() {
         dispatchQueueScope.launch {
-            Log.i(tag, "whep-client: $streamId: Stop")
+            Log.i(TAG, "whep-client: $streamId: Stop")
             started = false
             stopInternal()
         }
@@ -105,39 +102,42 @@ class WhepClient(
             dispatchQueue = dispatchQueue,
             delegate = this,
         )
-        val client = ingestClient ?: return
+        val ingestClient = ingestClient ?: return
         try {
-            val msid = UUID.randomUUID().toString()
-            client.createPeerConnection()
-            val videoTrackId = client.addRecvOnlyTrack(
-                codec = TODO("libdatachannel RTC_CODEC_H264 has no Kotlin declaration"),
+            val msid = UUID.randomUUID().toString().uppercase()
+            ingestClient.createPeerConnection()
+            val videoTrackId = ingestClient.addRecvOnlyTrack(
+                codec = RTC_CODEC_H264,
                 payloadType = h264PayloadType.toInt(),
                 mid = "0",
                 msid = msid,
                 name = "video",
                 profile = "",
             )
-            client.setTrackCodec(trackId = videoTrackId, description = "h264")
-            val audioTrackId = client.addRecvOnlyTrack(
-                codec = TODO("libdatachannel RTC_CODEC_OPUS has no Kotlin declaration"),
+            ingestClient.setTrackCodec(trackId = videoTrackId, description = "h264")
+            val audioTrackId = ingestClient.addRecvOnlyTrack(
+                codec = RTC_CODEC_OPUS,
                 payloadType = opusPayloadType.toInt(),
                 mid = "1",
                 msid = msid,
                 name = "audio",
                 profile = "",
             )
-            client.setTrackCodec(trackId = audioTrackId, description = "opus")
-            client.setLocalDescription("offer")
-        } catch (e: Exception) {
-            Log.i(tag, "whep-client: $streamId: Failed to create offer: $e")
+            ingestClient.setTrackCodec(trackId = audioTrackId, description = "opus")
+            ingestClient.setLocalDescription("offer")
+        } catch (error: Exception) {
+            Log.i(TAG, "whep-client: $streamId: Failed to create offer: $error")
             reconnectSoon(reason = "Failed to create offer")
         }
     }
 
     private fun stopInternal() {
         reconnectTimer.stop()
-        sessionUrl?.let { sendDeleteRequest(url = it) }
-        sessionUrl = null
+        val sessionUrl = sessionUrl
+        if (sessionUrl != null) {
+            sendDeleteRequest(url = sessionUrl)
+        }
+        this.sessionUrl = null
         ingestClient?.stop()
         ingestClient = null
         connected = false
@@ -145,80 +145,65 @@ class WhepClient(
 
     private fun reconnectSoon(reason: String) {
         stopInternal()
-        Log.d(tag, "whep-client: $streamId: Reconnecting in $reconnectDelay seconds ($reason)")
-        reconnectTimer.startSingleShot(reconnectDelay) {
+        Log.d(TAG, "whep-client: $streamId: Reconnecting in $reconnectDelay seconds ($reason)")
+        reconnectTimer.startSingleShot(timeout = reconnectDelay) {
             startInternal()
         }
     }
 
     private fun sendOffer(offer: String) {
-        Log.d(tag, "whep-client: $streamId: Sending offer to $url")
-        val request = Request.Builder()
-            .url(url)
-            .header("Content-Type", "application/sdp")
-            .post(offer.toRequestBody("application/sdp".toMediaType()))
-            .build()
-        httpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                dispatchQueueScope.launch {
-                    handleOfferResponse(data = null, code = null, locationHeader = null, error = e)
-                }
+        Log.d(TAG, "whep-client: $streamId: Sending offer to $url")
+        val request = try {
+            Request.Builder()
+                .url(url)
+                .header("Content-Type", "application/sdp")
+                .post(offer.toByteArray(Charsets.UTF_8).toRequestBody("application/sdp".toMediaType()))
+                .build()
+        } catch (error: IllegalArgumentException) {
+            dispatchQueueScope.launch {
+                handleOfferResponse(data = null, response = null, error = error)
             }
-
-            override fun onResponse(call: Call, response: Response) {
-                val data = response.body?.string()
-                val code = response.code
-                val locationHeader = response.header("Location")
-                response.close()
-                dispatchQueueScope.launch {
-                    handleOfferResponse(
-                        data = data,
-                        code = code,
-                        locationHeader = locationHeader,
-                        error = null,
-                    )
-                }
-            }
-        })
+            return
+        }
+        httpRequest(request = request, queue = dispatchQueue) { data, response, error ->
+            handleOfferResponse(data = data, response = response, error = error)
+        }
     }
 
-    private fun handleOfferResponse(
-        data: String?,
-        code: Int?,
-        locationHeader: String?,
-        error: Throwable?,
-    ) {
-        if (error != null || code == null || code !in 200..299 || data == null) {
-            Log.i(tag, "whep-client: $streamId: HTTP response not ok")
+    private fun handleOfferResponse(data: ByteArray?, response: Response?, error: Throwable?) {
+        if (error != null || response == null || !response.isSuccessful || data == null) {
+            Log.i(TAG, "whep-client: $streamId: HTTP response not ok")
             reconnectSoon(reason = "Bad HTTP response")
             return
         }
+        val answer = data.toString(Charsets.UTF_8)
+        val locationHeader = response.header("Location")
         if (locationHeader != null) {
-            sessionUrl = runCatching {
+            sessionUrl = try {
                 URI(url).resolve(locationHeader).toString()
-            }.getOrNull()
+            } catch (error: Exception) {
+                null
+            }
         }
-        Log.d(tag, "whep-client: $streamId: Got answer $data")
+        Log.d(TAG, "whep-client: $streamId: Got answer $answer")
         try {
-            ingestClient?.setRemoteDescription(data, type = "answer")
-        } catch (e: Exception) {
-            Log.i(tag, "whep-client: $streamId: Failed to set remote answer: $e")
+            ingestClient?.setRemoteDescription(answer, type = "answer")
+        } catch (error: Exception) {
+            Log.i(TAG, "whep-client: $streamId: Failed to set remote answer: $error")
             reconnectSoon(reason = "Failed to set remote answer")
         }
     }
 
     private fun sendDeleteRequest(url: String) {
-        val request = Request.Builder()
-            .url(url)
-            .delete()
-            .build()
-        httpClient.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {}
-
-            override fun onResponse(call: Call, response: Response) {
-                response.close()
-            }
-        })
+        val request = try {
+            Request.Builder()
+                .url(url)
+                .delete()
+                .build()
+        } catch (error: IllegalArgumentException) {
+            return
+        }
+        httpRequest(request = request)
     }
 
     override fun webrtcIngestClientOnConnected(streamId: UUID) {

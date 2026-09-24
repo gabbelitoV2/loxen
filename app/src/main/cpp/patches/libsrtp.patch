@@ -1,0 +1,35 @@
+diff --git a/crypto/math/datatypes.c b/crypto/math/datatypes.c
+index 52c7136..07da13d 100644
+--- a/crypto/math/datatypes.c
++++ b/crypto/math/datatypes.c
+@@ -278,7 +278,7 @@ int bitvector_alloc(bitvector_t *v, unsigned long length)
+             return -1;
+         }
+     }
+-    v->length = length;
++    v->length = (int) length;
+ 
+     /* initialize bitvector to zero */
+     bitvector_set_to_zero(v);
+diff --git a/srtp/srtp.c b/srtp/srtp.c
+index 0c9b7cb..3d5ea98 100644
+--- a/srtp/srtp.c
++++ b/srtp/srtp.c
+@@ -388,7 +388,7 @@ static srtp_err_status_t srtp_stream_alloc(srtp_stream_ctx_t **str_ptr,
+     if (p->key != NULL) {
+         str->num_master_keys = 1;
+     } else {
+-        str->num_master_keys = p->num_master_keys;
++        str->num_master_keys = (int) p->num_master_keys;
+     }
+ 
+     str->session_keys = (srtp_session_keys_t *)srtp_crypto_alloc(
+@@ -1386,7 +1386,7 @@ static srtp_err_status_t srtp_stream_init(srtp_stream_ctx_t *srtp,
+ 
+     /* initialize keys */
+     err = srtp_stream_init_all_master_keys(srtp, p->key, p->keys,
+-                                           p->num_master_keys);
++                                           (int) p->num_master_keys);
+     if (err) {
+         srtp_rdbx_dealloc(&srtp->rtp_rdbx);
+         return err;

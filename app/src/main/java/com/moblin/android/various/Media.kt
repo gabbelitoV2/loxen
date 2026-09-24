@@ -34,7 +34,7 @@ import com.moblin.android.media.haishinkit.media.video.PreviewView
 import com.moblin.android.media.haishinkit.media.video.SceneSwitchTransition
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoUnitAttachParams
-import com.moblin.android.media.haishinkit.rist.RistEndpoint
+import com.moblin.android.platform.network.NWEndpoint
 import com.moblin.android.media.haishinkit.rist.RistStream
 import com.moblin.android.media.haishinkit.rist.RistStreamDelegate
 import com.moblin.android.media.haishinkit.rtmp.RtmpConnectionCode
@@ -356,12 +356,12 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
 
     fun addMoblink(host: String, port: Int, id: UUID, name: String) {
         srtlaClient?.addMoblink(host = host, port = port, id = id, name = name)
-        ristStream?.addMoblink(endpoint = RistEndpoint(host = host, port = port), id = id, name = name)
+        ristStream?.addMoblink(endpoint = NWEndpoint.hostPort(host = NWEndpoint.Host(host), port = NWEndpoint.Port(port)), id = id, name = name)
     }
 
     fun removeMoblink(host: String, port: Int) {
         srtlaClient?.removeMoblink(host = host, port = port)
-        ristStream?.removeMoblink(endpoint = RistEndpoint(host = host, port = port))
+        ristStream?.removeMoblink(endpoint = NWEndpoint.hostPort(host = NWEndpoint.Host(host), port = NWEndpoint.Port(port)))
     }
 
     fun srtSetAdaptiveBitrateAlgorithm(

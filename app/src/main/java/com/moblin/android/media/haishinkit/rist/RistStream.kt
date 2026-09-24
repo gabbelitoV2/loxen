@@ -1,9 +1,5 @@
 package com.moblin.android.media.haishinkit.rist
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.Network
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.util.Log
 import com.moblin.android.common.various.formatBytesPerSecond
@@ -15,94 +11,89 @@ import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.media.haishinkit.mpeg.MpegTsWriter
 import com.moblin.android.media.haishinkit.mpeg.MpegTsWriterDelegate
 import com.moblin.android.media.haishinkit.util.Atomic
+import com.moblin.android.platform.network.NWEndpoint
+import com.moblin.android.platform.network.NWInterface
+import com.moblin.android.platform.network.NWPath
+import com.moblin.android.platform.network.NWPathMonitor
+import com.moblin.android.platform.rist.RistPeer
+import com.moblin.android.platform.rist.RistSenderContext
+import com.moblin.android.platform.rist.RistSenderContextDelegate
+import com.moblin.android.platform.rist.RistSenderStats
+import com.moblin.android.platform.rist.RistStats
 import com.moblin.android.various.BondingConnection
 import com.moblin.android.various.SimpleTimer
-import java.net.URI
 import java.util.UUID
 import java.util.concurrent.Executors
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-private val ristDispatcher = Executors.newSingleThreadExecutor { runnable ->
-    Thread(runnable, "com.moblin.android.rist")
+private const val TAG = "RistStream"
+
+private val ristQueue: CoroutineDispatcher = Executors.newSingleThreadExecutor { runnable ->
+    Thread(runnable, "com.eerimoq.Moblin.rist")
 }.asCoroutineDispatcher()
 
-private val ristScope = CoroutineScope(ristDispatcher)
-
-private val weigthTargetBitrate: Int = 10_000_000
-
-private const val tag = "RistStream"
-
-private const val ristRemotePeerTag = "RistRemotePeer"
-
-var ristApplicationContext: Context? = null
-
-private val ristConnectivityManager: ConnectivityManager?
-    get() = ristApplicationContext?.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+private const val weigthTargetBitrate: Int = 10_000_000
 
 private enum class RistPeerState {
-    CONNECTING,
-    CONNECTED,
-    DISCONNECTED,
+    connecting,
+    connected,
+    disconnected,
 }
-
-private data class NetworkInterfaceInfo(val name: String, val type: Int?)
-
-data class RistEndpoint(val host: String, val port: Int)
 
 private class RistRemotePeer(
     val interfaceName: String,
-    val interfaceType: Int?,
-    val relayEndpoint: RistEndpoint?,
+    val interfaceType: NWInterface.InterfaceType?,
+    val relayEndpoint: NWEndpoint?,
     val peer: RistPeer,
-    val stream: RistStream,
+    val stream: RistStream?,
 ) : AdaptiveBitrateDelegate {
     var stats: RistSenderStats? = null
     var adaptiveWeight: AdaptiveBitrateRistExperiment? = null
-    private var state: RistPeerState = RistPeerState.CONNECTING
-    private var connectingTimer = SimpleTimer(ristDispatcher)
+    private var state: RistPeerState = RistPeerState.connecting
+    private var connectingTimer = SimpleTimer(queue = ristQueue)
 
     init {
-        adaptiveWeight = AdaptiveBitrateRistExperiment(
-            targetBitrate = weigthTargetBitrate,
-            delegate = this,
-        )
+        adaptiveWeight = null
+        adaptiveWeight = AdaptiveBitrateRistExperiment(targetBitrate = weigthTargetBitrate, delegate = this)
         connectingTimer.startSingleShot(timeout = 5.0) {
-            Log.i(ristRemotePeerTag, "rist: Failed to connect to server")
-            state = RistPeerState.DISCONNECTED
-            stream.checkDisconnected()
+            Log.i(TAG, "rist: Failed to connect to server")
+            state = RistPeerState.disconnected
+            stream?.checkDisconnected()
         }
     }
 
     fun close() {
         stopConnectingTimer()
+        peer.close()
     }
 
     fun bondingConnectionName(): String {
         return when (interfaceType) {
-            NetworkCapabilities.TRANSPORT_CELLULAR -> "Cellular"
-            NetworkCapabilities.TRANSPORT_WIFI -> "WiFi"
+            NWInterface.InterfaceType.cellular -> "Cellular"
+            NWInterface.InterfaceType.wifi -> "WiFi"
             else -> interfaceName
         }
     }
 
     fun setConnected() {
-        state = RistPeerState.CONNECTED
+        state = RistPeerState.connected
         stopConnectingTimer()
     }
 
     fun setDisconnected() {
-        state = RistPeerState.DISCONNECTED
+        state = RistPeerState.disconnected
     }
 
     fun isConnected(): Boolean {
-        return state == RistPeerState.CONNECTED
+        return state == RistPeerState.connected
     }
 
     fun isDisconnected(): Boolean {
-        return state == RistPeerState.DISCONNECTED
+        return state == RistPeerState.disconnected
     }
 
     private fun stopConnectingTimer() {
@@ -113,14 +104,16 @@ private class RistRemotePeer(
 }
 
 private enum class RistStreamState {
-    CONNECTING,
-    CONNECTED,
-    DISCONNECTED,
+    connecting,
+    connected,
+    disconnected,
 }
 
 interface RistStreamDelegate {
     fun ristStreamOnConnected()
+
     fun ristStreamOnDisconnected()
+
     fun ristStreamRelayDestinationAddress(address: String, port: Int)
 }
 
@@ -131,45 +124,45 @@ class RistStream(
 ) : MpegTsWriterDelegate, RistSenderContextDelegate {
     private var context: RistSenderContext? = null
     private var peers: MutableList<RistRemotePeer> = mutableListOf()
-    private val writer: MpegTsWriter = MpegTsWriter(timecodesEnabled, newSrt = false)
-    private var networkPathMonitor: ConnectivityManager.NetworkCallback? = null
+    private val writer: MpegTsWriter = MpegTsWriter(timecodesEnabled = timecodesEnabled, newSrt = false)
+    private var networkPathMonitor: NWPathMonitor? = null
     private var bonding: Boolean = false
     private var url: String = ""
-    private var state: RistStreamState = RistStreamState.CONNECTING
-    private val ristDelegate: RistStreamDelegate = delegate
-    private val totalByteCount = Atomic<Long>(0L)
+    private var state: RistStreamState = RistStreamState.connecting
+    private val ristDelegate: RistStreamDelegate? = delegate
+    private var totalByteCount = Atomic(0L)
 
     init {
         writer.delegate = this
     }
 
     fun start(url: String, bonding: Boolean) {
-        ristScope.launch {
-            startInternal(url, bonding)
+        CoroutineScope(ristQueue).launch {
+            startInternal(url = url, bonding = bonding)
         }
     }
 
     fun stop() {
-        ristScope.launch {
+        CoroutineScope(ristQueue).launch {
             stopInternal()
         }
     }
 
-    fun addMoblink(endpoint: RistEndpoint, id: UUID, name: String) {
-        ristScope.launch {
-            addMoblinkInternal(endpoint, id, name)
+    fun addMoblink(endpoint: NWEndpoint, id: UUID, name: String) {
+        CoroutineScope(ristQueue).launch {
+            addMoblinkInternal(endpoint = endpoint, moblinkId = id, name = name)
         }
     }
 
-    fun removeMoblink(endpoint: RistEndpoint) {
-        ristScope.launch {
-            removeMoblinkInternal(endpoint)
+    fun removeMoblink(endpoint: NWEndpoint) {
+        CoroutineScope(ristQueue).launch {
+            removeMoblinkInternal(endpoint = endpoint)
         }
     }
 
     fun getSpeed(): ULong {
         var totalBandwidth: ULong = 0u
-        runBlocking(ristDispatcher) {
+        runBlocking(ristQueue) {
             for (peer in peers) {
                 val stats = peer.stats
                 if (stats != null) {
@@ -186,13 +179,9 @@ class RistStream(
 
     fun connectionStatistics(): List<BondingConnection> {
         val connections = mutableListOf<BondingConnection>()
-        runBlocking(ristDispatcher) {
+        runBlocking(ristQueue) {
             for (peer in peers) {
-                val connection = BondingConnection(
-                    name = peer.bondingConnectionName(),
-                    usage = 0L,
-                    rtt = null,
-                )
+                val connection = BondingConnection(name = peer.bondingConnectionName(), usage = 0L, rtt = null)
                 val stats = peer.stats
                 if (stats != null) {
                     connection.usage = (stats.bandwidth + stats.retryBandwidth).toLong()
@@ -205,27 +194,28 @@ class RistStream(
     }
 
     fun getStats(): List<RistSenderStats> {
-        return runBlocking(ristDispatcher) {
+        return runBlocking(ristQueue) {
             peers.filter { it.stats != null }.map { it.stats!! }
         }
     }
 
     fun updateConnectionsWeights() {
-        ristScope.launch {
+        CoroutineScope(ristQueue).launch {
             updateConnectionsWeightsInternal()
         }
     }
 
     fun checkConnected() {
-        if (state != RistStreamState.CONNECTING) {
+        if (state != RistStreamState.connecting) {
             return
         }
         for (peer in peers) {
-            if (peer.isConnected()) {
-                state = RistStreamState.CONNECTED
-                ristDelegate.ristStreamOnConnected()
-                break
+            if (!peer.isConnected()) {
+                continue
             }
+            state = RistStreamState.connected
+            ristDelegate?.ristStreamOnConnected()
+            break
         }
     }
 
@@ -235,58 +225,61 @@ class RistStream(
                 return
             }
         }
-        Log.i(tag, "rist: All peers disconnected")
-        state = RistStreamState.DISCONNECTED
-        ristDelegate.ristStreamOnDisconnected()
+        Log.i(TAG, "rist: All peers disconnected")
+        state = RistStreamState.disconnected
+        ristDelegate?.ristStreamOnDisconnected()
     }
 
     private fun startInternal(url: String, bonding: Boolean) {
-        state = RistStreamState.CONNECTING
+        state = RistStreamState.connecting
         this.url = url
         this.bonding = bonding
         val context = RistSenderContext()
         if (context == null) {
-            Log.i(tag, "rist: Failed to create context")
+            Log.i(TAG, "rist: Failed to create context")
             return
         }
         context.delegate = this
         this.context = context
         if (bonding) {
-            startNetworkPathMonitor()
+            networkPathMonitor = NWPathMonitor()
+            networkPathMonitor?.pathUpdateHandler = ::handleNetworkPathUpdate
+            networkPathMonitor?.start(queue = ristQueue)
         } else {
-            addPeer(url, "", null)
+            addPeer(url = url, interfaceName = "", interfaceType = null)
         }
         if (!context.start()) {
-            Log.i(tag, "rist: Failed to start")
+            Log.i(TAG, "rist: Failed to start")
             return
         }
         processorPipelineQueue.launch {
-            Unit
+            processor.startEncoding(writer)
             writer.startRunning()
         }
-        val uri = runCatching { URI(url) }.getOrNull() ?: return
-        val host = uri.host ?: return
-        if (uri.port == -1) {
+        val parsedUrl = Uri.parse(url)
+        val host = parsedUrl.host ?: return
+        val port = parsedUrl.port
+        if (port == -1) {
             return
         }
-        ristDelegate.ristStreamRelayDestinationAddress(host, uri.port)
+        ristDelegate?.ristStreamRelayDestinationAddress(address = host, port = port.coerceIn(0, 0xFFFF))
     }
 
     private fun stopInternal() {
-        state = RistStreamState.DISCONNECTED
-        stopNetworkPathMonitor()
+        state = RistStreamState.disconnected
+        networkPathMonitor?.cancel()
+        networkPathMonitor = null
         processorPipelineQueue.launch {
             writer.stopRunning()
-            Unit
+            processor.stopEncoding(writer)
         }
-        peers.forEach { it.close() }
-        peers.clear()
+        removePeers { true }
         context?.delegate = null
         context?.stop()
         context = null
     }
 
-    private fun addMoblinkInternal(endpoint: RistEndpoint, moblinkId: UUID, name: String) {
+    private fun addMoblinkInternal(endpoint: NWEndpoint, moblinkId: UUID, name: String) {
         if (!bonding) {
             return
         }
@@ -298,22 +291,19 @@ class RistStream(
         )
     }
 
-    private fun removeMoblinkInternal(endpoint: RistEndpoint) {
+    private fun removeMoblinkInternal(endpoint: NWEndpoint) {
         if (!bonding) {
             return
         }
-        peers.removeAll { it.relayEndpoint == endpoint }
+        removePeers { it.relayEndpoint == endpoint }
     }
 
     private fun updateConnectionsWeightsInternal() {
         for (peer in peers) {
-            val stats = peer.stats
-            val adaptiveWeight = peer.adaptiveWeight
-            if (stats == null || adaptiveWeight == null) {
-                continue
-            }
+            val stats = peer.stats ?: continue
+            val adaptiveWeight = peer.adaptiveWeight ?: continue
             adaptiveWeight.update(
-                StreamStats(
+                stats = StreamStats(
                     rttMs = stats.rtt.toDouble(),
                     packetsInFlight = 10.0,
                     transportBitrate = null,
@@ -323,28 +313,29 @@ class RistStream(
                 ),
             )
             val weight = maxOf(adaptiveWeight.getCurrentBitrate() / (weigthTargetBitrate / 25), 1)
-            Log.d(tag, "rist: peer ${stats.peerId}: weight $weight")
-            peer.peer.setWeight(weight.toUInt())
+            Log.d(TAG, "rist: peer ${stats.peerId}: weight $weight")
+            peer.peer.setWeight(weight = weight.toUInt())
         }
     }
 
-    private fun handleNetworkPathUpdate(interfaces: List<NetworkInterfaceInfo>) {
+    private fun handleNetworkPathUpdate(path: NWPath) {
         if (!bonding) {
             return
         }
+        val interfaces = path.uniqueAvailableInterfaces()
         val removedInterfaceNames = mutableListOf<String>()
         for (peer in peers) {
             if (peer.relayEndpoint != null) {
                 continue
             }
-            if (interfaces.any { it.name == peer.interfaceName }) {
+            if (interfaces.map { it.name }.contains(peer.interfaceName)) {
                 continue
             }
             removedInterfaceNames.add(peer.interfaceName)
         }
         for (interfaceName in removedInterfaceNames) {
-            Log.i(tag, "rist: Removing peer for interface $interfaceName")
-            peers.removeAll { it.interfaceName == interfaceName }
+            Log.i(TAG, "rist: Removing peer for interface $interfaceName")
+            removePeers { it.interfaceName == interfaceName }
         }
         for (networkInterface in interfaces) {
             if (peers.any { it.interfaceName == networkInterface.name }) {
@@ -360,25 +351,25 @@ class RistStream(
 
     private fun handleStatsInternal(stats: RistStats) {
         Log.d(
-            tag,
+            TAG,
             "rist: peer ${stats.sender.peerId}, rtt ${stats.sender.rtt}, " +
                 "sent ${stats.sender.sentPackets}, received ${stats.sender.receivedPackets}, " +
                 "retransmitted ${stats.sender.retransmittedPackets}, quality ${stats.sender.quality}, " +
-                "bandwidth ${formatBytesPerSecond(stats.sender.bandwidth.toLong())}, " +
-                "retry bandwidth ${formatBytesPerSecond(stats.sender.retryBandwidth.toLong())}",
+                "bandwidth ${formatBytesPerSecond(speed = stats.sender.bandwidth.toLong())}, " +
+                "retry bandwidth ${formatBytesPerSecond(speed = stats.sender.retryBandwidth.toLong())}",
         )
-        getPeerById(stats.sender.peerId)?.stats = stats.sender
+        getPeerById(peerId = stats.sender.peerId)?.stats = stats.sender
     }
 
     private fun addPeer(
         url: String?,
         interfaceName: String,
-        interfaceType: Int?,
-        relayEndpoint: RistEndpoint? = null,
+        interfaceType: NWInterface.InterfaceType?,
+        relayEndpoint: NWEndpoint? = null,
     ) {
-        val peer = url?.let { context?.addPeer(it) }
+        val peer = url?.let { context?.addPeer(url = it) }
         if (peer == null) {
-            Log.i(tag, "rist: Failed to add peer")
+            Log.i(TAG, "rist: Failed to add peer")
             return
         }
         peers.add(
@@ -392,92 +383,63 @@ class RistStream(
         )
     }
 
+    private fun removePeers(predicate: (RistRemotePeer) -> Boolean) {
+        val removedPeers = peers.filter(predicate)
+        peers.removeAll(predicate)
+        for (peer in removedPeers) {
+            peer.close()
+        }
+    }
+
     private fun getPeerById(peerId: UInt): RistRemotePeer? {
         return peers.firstOrNull { it.peer.getId() == peerId }
     }
 
     private fun send(data: ByteArray) {
-        totalByteCount.mutate { it.value + data.size.toLong() }
-        context?.send(data)
+        totalByteCount.mutate { it.value += data.size.toLong() }
+        context?.send(data = data)
     }
 
     private fun send(dataPointer: ByteArray, count: Int) {
-        totalByteCount.mutate { it.value + count.toLong() }
-        context?.send(dataPointer, count)
-    }
-
-    private fun startNetworkPathMonitor() {
-        val connectivityManager = ristConnectivityManager ?: return
-        val callback = object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network) {
-                handleNetworkPathUpdateOnQueue()
-            }
-
-            override fun onLost(network: Network) {
-                handleNetworkPathUpdateOnQueue()
-            }
-
-            override fun onCapabilitiesChanged(
-                network: Network,
-                networkCapabilities: NetworkCapabilities,
-            ) {
-                handleNetworkPathUpdateOnQueue()
-            }
-        }
-        networkPathMonitor = callback
-        runCatching { connectivityManager.registerDefaultNetworkCallback(callback) }
-    }
-
-    private fun stopNetworkPathMonitor() {
-        val callback = networkPathMonitor
-        networkPathMonitor = null
-        if (callback != null) {
-            runCatching { ristConnectivityManager?.unregisterNetworkCallback(callback) }
-        }
-    }
-
-    private fun handleNetworkPathUpdateOnQueue() {
-        val interfaces = currentNetworkInterfaces()
-        ristScope.launch {
-            handleNetworkPathUpdate(interfaces)
-        }
+        totalByteCount.mutate { it.value += count.toLong() }
+        context?.send(dataPointer = dataPointer, count = count)
     }
 
     override fun writer(writer: MpegTsWriter, doOutput: ByteArray, containsAudio: Boolean) {
-        send(doOutput)
+        send(data = doOutput)
     }
 
     override fun writer(writer: MpegTsWriter, doOutputPointer: ByteArray, count: Int) {
-        send(doOutputPointer, count)
+        send(dataPointer = doOutputPointer, count = count)
     }
 
     override fun ristSenderContextStats(context: RistSenderContext, stats: RistStats) {
-        ristScope.launch {
-            handleStatsInternal(stats)
+        CoroutineScope(ristQueue).launch {
+            handleStatsInternal(stats = stats)
         }
     }
 
     override fun ristSenderContextPeerConnected(context: RistSenderContext, peerId: UInt) {
-        ristScope.launch {
-            handlePeerConnectedInternal(peerId)
+        CoroutineScope(ristQueue).launch {
+            handlePeerConnectedInternal(peerId = peerId)
         }
     }
 
     override fun ristSenderContextPeerDisconnected(context: RistSenderContext, peerId: UInt) {
-        ristScope.launch {
-            handlePeerDisconnectedInternal(peerId)
+        CoroutineScope(ristQueue).launch {
+            handlePeerDisconnectedInternal(peerId = peerId)
         }
     }
 
     private fun handlePeerConnectedInternal(peerId: UInt) {
-        Log.i(tag, "rist: Peer $peerId connected")
-        getPeerById(peerId)?.setConnected()
+        Log.i(TAG, "rist: Peer $peerId connected")
+        getPeerById(peerId = peerId)?.setConnected()
         checkConnected()
     }
 
     private fun handlePeerDisconnectedInternal(peerId: UInt) {
-        Log.i(tag, "rist: Peer $peerId disconnected")
-        getPeerById(peerId)?.setDisconnected()
+        Log.i(TAG, "rist: Peer $peerId disconnected")
+        getPeerById(peerId = peerId)?.setDisconnected()
         checkDisconnected()
     }
 }
@@ -495,118 +457,12 @@ fun makeRistBondingUrl(url: String, interfaceName: String? = null): String? {
     return builder.build().toString()
 }
 
-fun makeRistMoblinkBondingUrl(url: String, endpoint: RistEndpoint): String? {
+fun makeRistMoblinkBondingUrl(url: String, endpoint: NWEndpoint): String? {
     val uri = Uri.parse(url)
     if (uri.scheme == null) {
         return null
     }
-    val builder = uri.buildUpon()
     val userInfo = uri.encodedUserInfo?.let { "$it@" } ?: ""
-    builder.encodedAuthority("$userInfo${endpoint.host}:${endpoint.port}")
-    return makeRistBondingUrl(builder.build().toString())
-}
-
-private fun currentNetworkInterfaces(): List<NetworkInterfaceInfo> {
-    val connectivityManager = ristConnectivityManager ?: return emptyList()
-    val interfaces = mutableListOf<NetworkInterfaceInfo>()
-    for (network in connectivityManager.allNetworks) {
-        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: continue
-        val name = connectivityManager.getLinkProperties(network)?.interfaceName ?: continue
-        val type = when {
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ->
-                NetworkCapabilities.TRANSPORT_CELLULAR
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ->
-                NetworkCapabilities.TRANSPORT_WIFI
-            else -> null
-        }
-        interfaces.add(NetworkInterfaceInfo(name, type))
-    }
-    return interfaces
-}
-
-interface RistSenderContextDelegate {
-    fun ristSenderContextStats(context: RistSenderContext, stats: RistStats)
-    fun ristSenderContextPeerConnected(context: RistSenderContext, peerId: UInt)
-    fun ristSenderContextPeerDisconnected(context: RistSenderContext, peerId: UInt)
-}
-
-class RistPeer internal constructor(private val handle: Long) {
-    fun getId(): UInt {
-        return RistNative.senderPeerId(handle).toUInt()
-    }
-
-    fun setWeight(weight: UInt) {
-        RistNative.setSenderPeerWeight(handle, weight.toInt())
-    }
-}
-
-class RistSenderContext private constructor(private val handle: Long) {
-    var delegate: RistSenderContextDelegate? = null
-
-    fun start(): Boolean {
-        return RistNative.startSenderContext(handle)
-    }
-
-    fun stop() {
-        RistNative.stopSenderContext(handle)
-    }
-
-    fun addPeer(url: String): RistPeer? {
-        val peerHandle = RistNative.addSenderPeer(handle, url)
-        if (peerHandle == 0L) {
-            return null
-        }
-        return RistPeer(peerHandle)
-    }
-
-    fun send(data: ByteArray): Int {
-        return RistNative.senderSend(handle, data, data.size)
-    }
-
-    fun send(dataPointer: ByteArray, count: Int): Int {
-        return RistNative.senderSend(handle, dataPointer, count)
-    }
-
-    companion object {
-        operator fun invoke(): RistSenderContext? {
-            val handle = RistNative.createSenderContext()
-            if (handle == 0L) {
-                return null
-            }
-            return RistSenderContext(handle)
-        }
-    }
-}
-
-class RistSenderStats(
-    val peerId: UInt,
-    val rtt: UInt,
-    val sentPackets: UInt,
-    val receivedPackets: UInt,
-    val retransmittedPackets: UInt,
-    val quality: UInt,
-    val bandwidth: ULong,
-    val retryBandwidth: ULong,
-)
-
-class RistStats(val sender: RistSenderStats)
-
-private object RistNative {
-    init {
-        System.loadLibrary("rist")
-    }
-
-    external fun createSenderContext(): Long
-
-    external fun startSenderContext(context: Long): Boolean
-
-    external fun stopSenderContext(context: Long)
-
-    external fun addSenderPeer(context: Long, url: String): Long
-
-    external fun senderPeerId(peer: Long): Int
-
-    external fun setSenderPeerWeight(peer: Long, weight: Int)
-
-    external fun senderSend(context: Long, data: ByteArray, count: Int): Int
+    val moblinkUrl = uri.buildUpon().encodedAuthority("$userInfo${endpoint.host}:${endpoint.port}").build()
+    return makeRistBondingUrl(moblinkUrl.toString())
 }

@@ -6,14 +6,18 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderDelegate
 import com.moblin.android.media.haishinkit.codec.video.VideoEncoder
 import com.moblin.android.media.haishinkit.codec.video.VideoEncoderDelegate
+import com.moblin.android.media.haishinkit.media.AudioVideoEncoderDelegate
+import com.moblin.android.media.haishinkit.media.processorControlQueue
 import com.moblin.android.media.haishinkit.mpeg.avc.MpegTsVideoConfigAvc
 import com.moblin.android.media.haishinkit.mpeg.hevc.MpegTsVideoConfigHevc
-import com.moblin.android.media.haishinkit.media.processorControlQueue
+import com.moblin.android.platform.datachannel.*
 import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.settings.SettingsHttpHeader
 import com.moblin.android.various.settings.SettingsStreamAudioCodec
 import com.moblin.android.various.settings.SettingsStreamCodec
 import com.moblin.android.various.utils.TimeStampRebaser
+import com.moblin.android.various.utils.stringFromCArray
+import com.moblin.android.various.utils.withCPointers
 import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.util.UUID
@@ -31,7 +35,8 @@ import okhttp3.Response
 
 private const val TAG = "WhipStream"
 
-private val whipQueue: CoroutineDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
+private val whipQueue: CoroutineDispatcher =
+    Executors.newSingleThreadExecutor { Thread(it, "com.eerimoq.Moblin.whip") }.asCoroutineDispatcher()
 private val whipScope = CoroutineScope(whipQueue)
 val h264PayloadType: UByte = 96u
 private val h265PayloadType: UByte = 97u
@@ -50,7 +55,7 @@ fun makeSsrc(): UInt {
 
 fun checkOkReturnResult(result: Int): Int {
     if (result < 0) {
-        throw IllegalStateException("Error $result")
+        throw DataChannelError("Error $result")
     }
     return result
 }
@@ -62,29 +67,17 @@ fun checkOk(result: Int) {
 private fun makeEndpointUrl(url: String): String? {
     val components = try {
         URI(url)
-    } catch (e: Exception) {
+    } catch (error: Exception) {
         return null
     }
-    val scheme = components.scheme?.replace("whip", "http") ?: return null
-    return try {
-        URI(
-            scheme,
-            components.userInfo,
-            components.host,
-            components.port,
-            components.path,
-            components.query,
-            components.fragment,
-        ).toString()
-    } catch (e: Exception) {
-        null
-    }
+    val scheme = components.scheme ?: return url
+    return scheme.replace("whip", "http") + url.substring(scheme.length)
 }
 
 private enum class TrackState {
-    CONNECTING,
-    OPEN,
-    CLOSED,
+    connecting,
+    open,
+    closed,
 }
 
 private class H264NalUnits {
@@ -103,8 +96,14 @@ private class H264NalUnits {
         }
         if (sampleBuffer.isKeyFrame) {
             val data = ByteArrayOutputStream()
-            sps?.let { appendNalUnit(data, it) }
-            pps?.let { appendNalUnit(data, it) }
+            val sps = sps
+            if (sps != null) {
+                appendNalUnit(data, sps)
+            }
+            val pps = pps
+            if (pps != null) {
+                appendNalUnit(data, pps)
+            }
             data.write(sampleData)
             return data.toByteArray()
         }
@@ -139,9 +138,18 @@ private class H265NalUnits {
         }
         if (sampleBuffer.isKeyFrame) {
             val data = ByteArrayOutputStream()
-            vps?.let { appendNalUnit(data, it) }
-            sps?.let { appendNalUnit(data, it) }
-            pps?.let { appendNalUnit(data, it) }
+            val vps = vps
+            if (vps != null) {
+                appendNalUnit(data, vps)
+            }
+            val sps = sps
+            if (sps != null) {
+                appendNalUnit(data, sps)
+            }
+            val pps = pps
+            if (pps != null) {
+                appendNalUnit(data, pps)
+            }
             data.write(sampleData)
             return data.toByteArray()
         }
@@ -158,26 +166,57 @@ private class H265NalUnits {
     }
 }
 
-private fun toRtcTrack(pointer: Long?): RtcTrack? {
-    return null
+private fun toRtcTrack(pointer: Any?): RtcTrack? {
+    return pointer as? RtcTrack
 }
 
 private class RtcTrack(private val trackId: Int) {
-    private var state: TrackState = TrackState.CONNECTING
+    @Volatile
+    private var state: TrackState = TrackState.connecting
 
     init {
-        Unit
+        try {
+            rtcSetUserPointer(trackId, this)
+            checkOk(
+                rtcSetOpenCallback(trackId) { _, pointer ->
+                    toRtcTrack(pointer)?.setState(TrackState.open)
+                },
+            )
+            checkOk(
+                rtcSetClosedCallback(trackId) { _, pointer ->
+                    toRtcTrack(pointer)?.setState(TrackState.closed)
+                },
+            )
+            checkOk(
+                rtcSetErrorCallback(trackId) { _, _, pointer ->
+                    toRtcTrack(pointer)?.setState(TrackState.closed)
+                },
+            )
+            if (false) {
+                checkOk(
+                    rtcChainRembHandler(trackId) { _, bitrate, pointer ->
+                        toRtcTrack(pointer)?.handleRemb(bitrate)
+                    },
+                )
+            }
+        } catch (error: Exception) {
+            rtcDeleteTrack(trackId)
+            throw error
+        }
     }
 
     fun setTimestamp(presentationTimeStamp: Double) {
-        Unit
+        val timestamp = IntArray(1)
+        checkOk(rtcTransformSecondsToTimestamp(trackId, presentationTimeStamp, timestamp))
+        checkOk(rtcSetTrackRtpTimestamp(trackId, timestamp[0].toUInt()))
     }
 
     fun send(message: ByteArray): Boolean {
-        if (state != TrackState.OPEN) {
+        if (state != TrackState.open) {
             return false
         }
-        return false
+        val result = rtcSendMessage(trackId, message, message.size)
+        return result >= 0
     }
 
     fun handleRemb(bitrate: UInt) {
@@ -187,13 +226,6 @@ private class RtcTrack(private val trackId: Int) {
     private fun setState(state: TrackState) {
         this.state = state
     }
-}
-
-private enum class rtcCodec {
-    H264,
-    H265,
-    OPUS,
-    AAC,
 }
 
 private data class RtcTrackConfig(
@@ -206,53 +238,59 @@ private data class RtcTrackConfig(
     val bitrate: Double,
 ) {
     companion object {
-        fun makeAudio(ssrc: UInt, codec: SettingsStreamAudioCodec): RtcTrackConfig = when (codec) {
-            SettingsStreamAudioCodec.opus -> RtcTrackConfig(
-                name = "audio",
-                codec = rtcCodec.OPUS,
-                payloadType = opusPayloadType.toInt(),
-                ssrc = ssrc,
-                mid = "0",
-                profile = "",
-                bitrate = 0.0,
-            )
-            SettingsStreamAudioCodec.aac -> RtcTrackConfig(
-                name = "audio",
-                codec = rtcCodec.AAC,
-                payloadType = aacPayloadType.toInt(),
-                ssrc = ssrc,
-                mid = "0",
-                profile = "",
-                bitrate = 0.0,
-            )
+        fun makeAudio(ssrc: UInt, codec: SettingsStreamAudioCodec): RtcTrackConfig {
+            return when (codec) {
+                SettingsStreamAudioCodec.opus -> RtcTrackConfig(
+                    name = "audio",
+                    codec = RTC_CODEC_OPUS,
+                    payloadType = opusPayloadType.toInt(),
+                    ssrc = ssrc,
+                    mid = "0",
+                    profile = "",
+                    bitrate = 0.0,
+                )
+                SettingsStreamAudioCodec.aac -> RtcTrackConfig(
+                    name = "audio",
+                    codec = RTC_CODEC_AAC,
+                    payloadType = aacPayloadType.toInt(),
+                    ssrc = ssrc,
+                    mid = "0",
+                    profile = "",
+                    bitrate = 0.0,
+                )
+            }
         }
 
-        fun makeVideo(ssrc: UInt, codec: SettingsStreamCodec, bitrate: Double): RtcTrackConfig = when (codec) {
-            SettingsStreamCodec.h264avc -> RtcTrackConfig(
-                name = "video",
-                codec = rtcCodec.H264,
-                payloadType = h264PayloadType.toInt(),
-                ssrc = ssrc,
-                mid = "1",
-                profile = "level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f",
-                bitrate = bitrate,
-            )
-            SettingsStreamCodec.h265hevc -> RtcTrackConfig(
-                name = "video",
-                codec = rtcCodec.H265,
-                payloadType = h265PayloadType.toInt(),
-                ssrc = ssrc,
-                mid = "1",
-                profile = "",
-                bitrate = bitrate,
-            )
+        fun makeVideo(ssrc: UInt, codec: SettingsStreamCodec, bitrate: Double): RtcTrackConfig {
+            return when (codec) {
+                SettingsStreamCodec.h264avc -> RtcTrackConfig(
+                    name = "video",
+                    codec = RTC_CODEC_H264,
+                    payloadType = h264PayloadType.toInt(),
+                    ssrc = ssrc,
+                    mid = "1",
+                    profile = "level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f",
+                    bitrate = bitrate,
+                )
+                SettingsStreamCodec.h265hevc -> RtcTrackConfig(
+                    name = "video",
+                    codec = RTC_CODEC_H265,
+                    payloadType = h265PayloadType.toInt(),
+                    ssrc = ssrc,
+                    mid = "1",
+                    profile = "",
+                    bitrate = bitrate,
+                )
+            }
         }
     }
 
-    fun isVideo(): Boolean = when (codec) {
-        rtcCodec.H264 -> true
-        rtcCodec.H265 -> true
-        else -> false
+    fun isVideo(): Boolean {
+        return when (codec) {
+            RTC_CODEC_H264 -> true
+            RTC_CODEC_H265 -> true
+            else -> false
+        }
     }
 }
 
@@ -262,84 +300,122 @@ private interface PeerConnectionDelegate {
     fun peerConnectionOnGatheringStateChanged(state: DataChannelGatheringState)
 }
 
-private fun toPeerConnection(pointer: Long?): PeerConnection? {
-    return null
+private fun toPeerConnection(pointer: Any?): PeerConnection? {
+    return pointer as? PeerConnection
 }
 
-private class PeerConnection(
-    private var delegate: PeerConnectionDelegate?,
-    iceServers: List<String>,
-) {
-    private val peerConnectionId: Int =
-        TODO()
+private class PeerConnection(delegate: PeerConnectionDelegate, iceServers: List<String>) {
+    private val peerConnectionId: Int
+    var delegate: PeerConnectionDelegate? = delegate
+
+    init {
+        val config = rtcConfiguration()
+        peerConnectionId = iceServers.withCPointers {
+            config.iceServers = it
+            config.iceServersCount = iceServers.size
+            rtcCreatePeerConnection(config)
+        }
+        checkOk(peerConnectionId)
+        try {
+            rtcSetUserPointer(peerConnectionId, this)
+            checkOk(
+                rtcSetStateChangeCallback(peerConnectionId) { _, state, pointer ->
+                    toPeerConnection(pointer)?.handleStateChange(state)
+                },
+            )
+            checkOk(
+                rtcSetGatheringStateChangeCallback(peerConnectionId) { _, state, pointer ->
+                    toPeerConnection(pointer)?.handleGatheringStateChange(state)
+                },
+            )
+        } catch (error: Exception) {
+            rtcDeletePeerConnection(peerConnectionId)
+            throw error
+        }
+    }
+
     fun close() {
-        Unit
+        rtcDeletePeerConnection(peerConnectionId)
     }
 
     fun addTrack(config: RtcTrackConfig, streamId: String): RtcTrack {
-        TODO()
+        val trackInit = rtcTrackInit(
+            direction = RTC_DIRECTION_SENDONLY,
+            codec = config.codec,
+            payloadType = config.payloadType,
+            ssrc = config.ssrc,
+            mid = config.mid,
+            name = config.name,
+            msid = streamId,
+            trackId = UUID.randomUUID().toString().uppercase(),
+            profile = config.profile,
+        )
+        val trackId = checkOkReturnResult(rtcAddTrackEx(peerConnectionId, trackInit))
+        val packetizerInit = rtcPacketizerInit()
+        packetizerInit.ssrc = config.ssrc
+        packetizerInit.cname = config.name
+        packetizerInit.payloadType = config.payloadType.toUByte()
+        val nackMaxStoredPacketCount: UInt
+        if (config.isVideo()) {
+            packetizerInit.clockRate = 90000u
+            when (config.codec) {
+                RTC_CODEC_H264 -> checkOk(rtcSetH264Packetizer(trackId, packetizerInit))
+                RTC_CODEC_H265 -> checkOk(rtcSetH265Packetizer(trackId, packetizerInit))
+                else -> throw DataChannelError("Unsupported video codec ${config.codec}")
+            }
+            if (false) {
+                checkOk(rtcChainPacingHandler(trackId, 1.2 * config.bitrate, 5))
+            }
+            nackMaxStoredPacketCount = videoNackMaxStoredPacketCount
+        } else {
+            packetizerInit.clockRate = 48000u
+            when (config.codec) {
+                RTC_CODEC_AAC -> checkOk(rtcSetAACPacketizer(trackId, packetizerInit))
+                RTC_CODEC_OPUS -> checkOk(rtcSetOpusPacketizer(trackId, packetizerInit))
+                else -> throw DataChannelError("Unsupported audio codec ${config.codec}")
+            }
+            nackMaxStoredPacketCount = audioNackMaxStoredPacketCount
+        }
+        checkOk(rtcChainRtcpSrReporter(trackId))
+        checkOk(rtcChainRtcpNackResponder(trackId, nackMaxStoredPacketCount))
+        return RtcTrack(trackId)
     }
 
     fun setLocalDescriptionOffer() {
-        Unit
+        checkOk(rtcSetLocalDescription(peerConnectionId, "offer"))
     }
 
     fun getLocalDescription(): String {
-        return ""
+        val size = checkOkReturnResult(rtcGetLocalDescription(peerConnectionId, null, 0))
+        val buffer = ByteArray(size)
+        checkOk(rtcGetLocalDescription(peerConnectionId, buffer, size))
+        return stringFromCArray(buffer)
     }
 
     fun setRemoteAnswer(sdp: String) {
-        Unit
+        checkOk(rtcSetRemoteDescription(peerConnectionId, sdp, "answer"))
     }
 
     fun getSelectedCandidatePair(): Pair<String, String>? {
-        return null
-    }
-
-    private fun handleStateChange(state: Int) {
-        val mapped = DataChannelConnectionState.fromValue(state) ?: return
-        delegate?.peerConnectionOnConnectionStateChanged(mapped)
-    }
-
-    private fun handleGatheringStateChange(state: Int) {
-        val mapped = DataChannelGatheringState.fromValue(state) ?: return
-        delegate?.peerConnectionOnGatheringStateChanged(mapped)
-    }
-}
-
-enum class DataChannelConnectionState {
-    NEW,
-    CONNECTING,
-    CONNECTED,
-    DISCONNECTED,
-    FAILED,
-    CLOSED;
-
-    companion object {
-        fun fromValue(value: Int): DataChannelConnectionState? = when (value) {
-            0 -> NEW
-            1 -> CONNECTING
-            2 -> CONNECTED
-            3 -> DISCONNECTED
-            4 -> FAILED
-            5 -> CLOSED
-            else -> null
+        try {
+            val local = ByteArray(1024)
+            val remote = ByteArray(1024)
+            checkOk(rtcGetSelectedCandidatePair(peerConnectionId, local, local.size, remote, remote.size))
+            return Pair(stringFromCArray(local), stringFromCArray(remote))
+        } catch (error: Exception) {
+            Log.i(TAG, "whip: Failed to get selected candidate pair")
+            return null
         }
     }
-}
 
-enum class DataChannelGatheringState {
-    NEW,
-    IN_PROGRESS,
-    COMPLETE;
+    private fun handleStateChange(state: rtcState) {
+        val connectionState = DataChannelConnectionState(value = state) ?: return
+        delegate?.peerConnectionOnConnectionStateChanged(connectionState)
+    }
 
-    companion object {
-        fun fromValue(value: Int): DataChannelGatheringState? = when (value) {
-            0 -> NEW
-            1 -> IN_PROGRESS
-            2 -> COMPLETE
-            else -> null
-        }
+    private fun handleGatheringStateChange(state: rtcGatheringState) {
+        val gatheringState = DataChannelGatheringState(value = state) ?: return
+        delegate?.peerConnectionOnGatheringStateChanged(gatheringState)
     }
 }
 
@@ -359,7 +435,7 @@ interface WhipStreamDelegate {
     fun whipStreamStopEncoding(audioDelegate: AudioEncoderDelegate, videoDelegate: VideoEncoderDelegate)
 }
 
-class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEncoderDelegate, PeerConnectionDelegate {
+class WhipStream(delegate: WhipStreamDelegate) : AudioVideoEncoderDelegate, PeerConnectionDelegate {
     private var delegate: WhipStreamDelegate? = delegate
     private var peerConnection: PeerConnection? = null
     private var videoTrack: RtcTrack? = null
@@ -385,7 +461,14 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
         videoBitrate: Double,
     ) {
         whipScope.launch {
-            startInternal(url, headers, iceServers, videoCodec, audioCodec, videoBitrate)
+            startInternal(
+                url = url,
+                headers = headers,
+                iceServers = iceServers,
+                videoCodec = videoCodec,
+                audioCodec = audioCodec,
+                videoBitrate = videoBitrate,
+            )
         }
     }
 
@@ -395,8 +478,10 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
         }
     }
 
-    fun getTotalByteCount(): Long = runBlocking(whipQueue) {
-        totalByteCount
+    fun getTotalByteCount(): Long {
+        return runBlocking(whipQueue) {
+            totalByteCount
+        }
     }
 
     private fun startInternal(
@@ -419,31 +504,33 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
         h264NalUnits = H264NalUnits()
         h265NalUnits = H265NalUnits()
         try {
-            val peerConnection = PeerConnection(this, iceServers)
-            val streamId = UUID.randomUUID().toString()
+            val peerConnection = PeerConnection(delegate = this, iceServers = iceServers)
+            val streamId = UUID.randomUUID().toString().uppercase()
             audioTrack = peerConnection.addTrack(
-                RtcTrackConfig.makeAudio(makeSsrc(), audioCodec),
-                streamId,
+                config = RtcTrackConfig.makeAudio(ssrc = makeSsrc(), codec = audioCodec),
+                streamId = streamId,
             )
             videoTrack = peerConnection.addTrack(
-                RtcTrackConfig.makeVideo(makeSsrc(), videoCodec, videoBitrate),
-                streamId,
+                config = RtcTrackConfig.makeVideo(ssrc = makeSsrc(), codec = videoCodec, bitrate = videoBitrate),
+                streamId = streamId,
             )
             this.peerConnection = peerConnection
             peerConnection.setLocalDescriptionOffer()
-            connectTimer.startSingleShot(10.0) { handleConnectTimeout() }
-        } catch (e: Exception) {
-            stopInternal("Start failed: $e")
+            connectTimer.startSingleShot(timeout = 10.0) {
+                handleConnectTimeout()
+            }
+        } catch (error: Exception) {
+            stopInternal(reason = "Start failed: $error")
         }
     }
 
     private fun stopInternal(reason: String? = null) {
         stopEncoding()
-        val currentSessionUrl = sessionUrl
-        if (currentSessionUrl != null) {
-            sendDeleteRequest(currentSessionUrl)
+        val sessionUrl = sessionUrl
+        if (sessionUrl != null) {
+            sendDeleteRequest(url = sessionUrl)
         }
-        sessionUrl = null
+        this.sessionUrl = null
         endpointUrl = null
         peerConnection?.close()
         peerConnection = null
@@ -453,55 +540,56 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
         offerSent = false
         connectTimer.stop()
         if (reason != null) {
-            notifyDisconnected(reason)
+            notifyDisconnected(reason = reason)
         }
     }
 
     private fun handleConnectTimeout() {
-        stopInternal("Connect timeout")
+        stopInternal(reason = "Connect timeout")
     }
 
     private fun handleConnectionStateChanged(state: DataChannelConnectionState) {
         Log.i(TAG, "whip: Connection state: $state")
         when (state) {
-            DataChannelConnectionState.CONNECTED -> {
+            DataChannelConnectionState.connected -> {
                 if (connected) {
                     return
                 }
                 connectTimer.stop()
                 connected = true
-                peerConnection?.getSelectedCandidatePair()?.let { (local, remote) ->
+                val candidatePair = peerConnection?.getSelectedCandidatePair()
+                if (candidatePair != null) {
+                    val (local, remote) = candidatePair
                     Log.i(TAG, "whip: Local candidate: $local")
                     Log.i(TAG, "whip: Remote candidate: $remote")
                 }
                 startEncoding()
                 notifyConnected()
             }
-            DataChannelConnectionState.DISCONNECTED,
-            DataChannelConnectionState.FAILED,
-            DataChannelConnectionState.CLOSED -> {
-                stopInternal("Connection $state")
-            }
-            DataChannelConnectionState.NEW,
-            DataChannelConnectionState.CONNECTING -> {
-            }
+            DataChannelConnectionState.disconnected,
+            DataChannelConnectionState.failed,
+            DataChannelConnectionState.closed,
+            -> stopInternal(reason = "Connection $state")
+            DataChannelConnectionState.new,
+            DataChannelConnectionState.connecting,
+            -> Unit
         }
     }
 
     private fun handleGatheringStateChanged(state: DataChannelGatheringState) {
         Log.i(TAG, "whip: ICE gathering state: $state")
         when (state) {
-            DataChannelGatheringState.COMPLETE -> {
+            DataChannelGatheringState.complete -> {
                 val peerConnection = peerConnection ?: return
                 try {
-                    sendOffer(peerConnection.getLocalDescription())
-                } catch (e: Exception) {
-                    stopInternal("Failed to create offer")
+                    sendOffer(offer = peerConnection.getLocalDescription())
+                } catch (error: Exception) {
+                    stopInternal(reason = "Failed to create offer")
                 }
             }
-            DataChannelGatheringState.NEW,
-            DataChannelGatheringState.IN_PROGRESS -> {
-            }
+            DataChannelGatheringState.new,
+            DataChannelGatheringState.inProgress,
+            -> Unit
         }
     }
 
@@ -511,60 +599,70 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
         }
         val endpointUrl = endpointUrl ?: return
         Log.d(TAG, "whip: Sending offer: ${offer.replace("\r", "")}")
-        val builder = Request.Builder()
-            .url(endpointUrl)
-            .post(offer.toRequestBody("application/sdp".toMediaType()))
-        for (header in headers) {
-            builder.header(header.name, header.value)
+        val request = try {
+            val builder = Request.Builder()
+                .url(endpointUrl)
+                .header("Content-Type", "application/sdp")
+            for (header in headers) {
+                builder.header(header.name, header.value)
+            }
+            builder
+                .post(offer.toByteArray(Charsets.UTF_8).toRequestBody("application/sdp".toMediaType()))
+                .build()
+        } catch (error: IllegalArgumentException) {
+            whipScope.launch {
+                handleOfferResponse(data = null, response = null, error = error)
+            }
+            offerSent = true
+            return
         }
-        val request = builder.build()
-        delegate?.whipStreamPerform(request, whipQueue) { data, response, error ->
-            handleOfferResponse(data, response, error)
+        delegate?.whipStreamPerform(request = request, queue = whipQueue) { data, response, error ->
+            handleOfferResponse(data = data, response = response, error = error)
         }
         offerSent = true
     }
 
     private fun handleOfferResponse(data: ByteArray?, response: Response?, error: Throwable?) {
         if (error != null) {
-            stopInternal("Sending WHIP offer failed: ${error.message}")
+            stopInternal(reason = "Sending WHIP offer failed: ${error.localizedMessage}")
             return
         }
         if (response == null) {
-            stopInternal("Bad WHIP server response")
+            stopInternal(reason = "Bad WHIP server response")
             return
         }
         if (!response.isSuccessful) {
-            stopInternal("WHIP server returned HTTP status ${response.code}")
+            stopInternal(reason = "WHIP server returned HTTP status ${response.code}")
             return
         }
-        response.header("Location")?.let { locationHeader ->
+        val locationHeader = response.header("Location")
+        if (locationHeader != null) {
             sessionUrl = try {
-                val base = endpointUrl
-                if (base != null) {
-                    URI(base).resolve(locationHeader).toString()
-                } else {
-                    URI(locationHeader).toString()
-                }
-            } catch (e: Exception) {
+                URI(endpointUrl).resolve(locationHeader).toString()
+            } catch (error: Exception) {
                 null
             }
         }
         if (data == null) {
-            stopInternal("WHIP answer missing")
+            stopInternal(reason = "WHIP answer missing")
             return
         }
         val answer = data.toString(Charsets.UTF_8)
         Log.d(TAG, "whip: Got answer: ${answer.replace("\r", "")}")
         try {
             peerConnection?.setRemoteAnswer(answer)
-        } catch (e: Exception) {
-            stopInternal("Failed to set remote answer")
+        } catch (error: Exception) {
+            stopInternal(reason = "Failed to set remote answer")
         }
     }
 
     private fun sendDeleteRequest(url: String) {
-        val request = Request.Builder().url(url).delete().build()
-        delegate?.whipStreamPerform(request, whipQueue, null)
+        val request = try {
+            Request.Builder().url(url).delete().build()
+        } catch (error: IllegalArgumentException) {
+            return
+        }
+        delegate?.whipStreamPerform(request = request, queue = whipQueue, completion = null)
     }
 
     private fun startEncoding() {
@@ -584,45 +682,46 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
     }
 
     private fun notifyDisconnected(reason: String) {
-        delegate?.whipStreamOnDisconnected(reason)
+        delegate?.whipStreamOnDisconnected(reason = reason)
     }
 
-    private fun rebaseTimestamp(presentationTimeStampUs: Long): Double? =
-        timeStampRebaser.rebase(presentationTimeStampUs / 1_000_000.0)
+    private fun rebaseTimestamp(presentationTimeStamp: Long): Double? {
+        return timeStampRebaser.rebase(presentationTimeStamp / 1_000_000.0)
+    }
 
-    private fun handleAudioEncoderOutputBuffer(buffer: MediaSample, presentationTimeStampUs: Long) {
+    private fun handleAudioEncoderOutputBuffer(buffer: MediaSample, presentationTimeStamp: Long) {
         if (!connected) {
             return
         }
         val audioTrack = audioTrack ?: return
-        val presentationTimeStamp = rebaseTimestamp(presentationTimeStampUs) ?: return
-        val data = buffer.data
-        if (data.isEmpty()) {
+        val rebasedPresentationTimeStamp = rebaseTimestamp(presentationTimeStamp) ?: return
+        if (buffer.data.isEmpty()) {
             return
         }
         try {
-            audioTrack.setTimestamp(presentationTimeStamp)
-        } catch (e: Exception) {
+            audioTrack.setTimestamp(presentationTimeStamp = rebasedPresentationTimeStamp)
+        } catch (error: Exception) {
             Log.i(TAG, "whip: Failed to set audio timestamp")
             return
         }
-        if (audioTrack.send(data)) {
-            totalByteCount += data.size.toLong()
+        val allData = buffer.data
+        if (audioTrack.send(message = allData)) {
+            totalByteCount += allData.size.toLong()
         }
     }
 
-    private fun handleVideoEncoderOutputFormat(format: MediaFormat) {
+    private fun handleVideoEncoderOutputFormat(formatDescription: MediaFormat) {
         when (videoCodec) {
             SettingsStreamCodec.h264avc -> {
-                val config = MpegTsVideoConfigAvc.fromFormatDescription(format) ?: return
-                h264NalUnits.setParameterSets(config.sequenceParameterSet, config.pictureParameterSet)
+                val config = MpegTsVideoConfigAvc.fromFormatDescription(formatDescription) ?: return
+                h264NalUnits.setParameterSets(sps = config.sequenceParameterSet, pps = config.pictureParameterSet)
             }
             SettingsStreamCodec.h265hevc -> {
-                val config = MpegTsVideoConfigHevc.create(format) ?: return
+                val config = MpegTsVideoConfigHevc.create(formatDescription) ?: return
                 h265NalUnits.setParameterSets(
-                    config.videoParameterSet,
-                    config.sequenceParameterSet,
-                    config.pictureParameterSet,
+                    vps = config.videoParameterSet,
+                    sps = config.sequenceParameterSet,
+                    pps = config.pictureParameterSet,
                 )
             }
         }
@@ -635,8 +734,8 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
         val videoTrack = videoTrack ?: return
         val presentationTimeStamp = rebaseTimestamp(sampleBuffer.presentationTimeUs) ?: return
         try {
-            videoTrack.setTimestamp(presentationTimeStamp)
-        } catch (e: Exception) {
+            videoTrack.setTimestamp(presentationTimeStamp = presentationTimeStamp)
+        } catch (error: Exception) {
             Log.i(TAG, "whip: Failed to set timestamp")
             return
         }
@@ -644,26 +743,27 @@ class WhipStream(delegate: WhipStreamDelegate) : AudioEncoderDelegate, VideoEnco
             SettingsStreamCodec.h264avc -> h264NalUnits.process(sampleBuffer)
             SettingsStreamCodec.h265hevc -> h265NalUnits.process(sampleBuffer)
         }
-        val payload = data ?: return
-        if (videoTrack.send(payload)) {
-            totalByteCount += payload.size.toLong()
+        if (data == null) {
+            return
+        }
+        if (videoTrack.send(message = data)) {
+            totalByteCount += data.size.toLong()
         }
     }
 
     override fun peerConnectionOnConnectionStateChanged(state: DataChannelConnectionState) {
         whipScope.launch {
-            handleConnectionStateChanged(state)
+            handleConnectionStateChanged(state = state)
         }
     }
 
     override fun peerConnectionOnGatheringStateChanged(state: DataChannelGatheringState) {
         whipScope.launch {
-            handleGatheringStateChanged(state)
+            handleGatheringStateChanged(state = state)
         }
     }
 
-    override fun audioEncoderOutputFormat(format: MediaFormat) {
-    }
+    override fun audioEncoderOutputFormat(format: MediaFormat) {}
 
     override fun audioEncoderOutputBuffer(buffer: MediaSample, presentationTimeStamp: Long) {
         whipScope.launch {

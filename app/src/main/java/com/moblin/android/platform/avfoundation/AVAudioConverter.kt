@@ -57,6 +57,7 @@ class AVAudioConverter private constructor(
     private val codecName: String?,
     private var codec: MediaCodec?,
     private val encodeBitRates: List<Int>?,
+    private val decodes: Boolean = false,
 ) {
     private val lock = Any()
     private val inputChannels = inputFormat.audioChannelCount()
@@ -75,6 +76,7 @@ class AVAudioConverter private constructor(
     private var inputFramePosition = 0L
     private var outputFramePosition = 0L
     private var numberOfOutputPackets = 0L
+    private var decodedChannels = inputChannels
     private val framesPerOutputPacket = if (outputMime == MediaFormat.MIMETYPE_AUDIO_OPUS) 960 else 1024
 
     var channelMap: List<Int>
@@ -107,6 +109,9 @@ class AVAudioConverter private constructor(
         synchronized(lock) {
             if (isReleased) {
                 return "converter released"
+            }
+            if (decodes) {
+                return decodeLocked(to, inputBlock)
             }
             if (codecName == null) {
                 return "not an encoder"
@@ -228,7 +233,7 @@ class AVAudioConverter private constructor(
         }
         val codec = codec ?: return null
         return try {
-            codec.configure(makeCodecFormat(), null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+            codec.configure(makeCodecFormat(), null, null, configureFlags())
             codec.start()
             isStarted = true
             outputFramePosition = inputFramePosition
@@ -254,7 +259,7 @@ class AVAudioConverter private constructor(
         }
         isStarted = false
         try {
-            codec.configure(makeCodecFormat(), null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
+            codec.configure(makeCodecFormat(), null, null, configureFlags())
             codec.start()
             isStarted = true
             outputFramePosition = inputFramePosition
@@ -280,7 +285,14 @@ class AVAudioConverter private constructor(
         }
     }
 
+    private fun configureFlags(): Int {
+        return if (decodes) 0 else MediaCodec.CONFIGURE_FLAG_ENCODE
+    }
+
     private fun makeCodecFormat(): MediaFormat {
+        if (decodes) {
+            return makeDecoderFormat(inputFormat)
+        }
         val format = MediaFormat.createAudioFormat(outputMime, sampleRate, outputChannels)
         if (outputMime == MediaFormat.MIMETYPE_AUDIO_AAC) {
             format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
@@ -373,6 +385,94 @@ class AVAudioConverter private constructor(
         PipelineStats.increment(if (outputMime == MediaFormat.MIMETYPE_AUDIO_OPUS) "opusOut" else "aacOut")
     }
 
+    private fun decodeLocked(to: MediaSample, inputBlock: () -> ByteArray?): String? {
+        val codec = startCodecLocked() ?: return "decoder not available"
+        val input = inputBlock() ?: return "no input"
+        val decoded = java.io.ByteArrayOutputStream()
+        try {
+            var index = codec.dequeueInputBuffer(10_000)
+            if (index < 0) {
+                drainDecoderLocked(codec, 0, decoded)
+                index = codec.dequeueInputBuffer(10_000)
+            }
+            if (index < 0) {
+                return "no decoder input buffer"
+            }
+            val buffer: ByteBuffer? = codec.getInputBuffer(index)
+            if (buffer == null || input.size > buffer.capacity()) {
+                codec.queueInputBuffer(index, 0, 0, presentationTimeUs(inputFramePosition), 0)
+                return "packet does not fit the decoder input buffer"
+            }
+            buffer.clear()
+            buffer.put(input)
+            codec.queueInputBuffer(index, 0, input.size, presentationTimeUs(inputFramePosition), 0)
+            inputFramePosition += 960
+            drainDecoderLocked(codec, 0, decoded)
+            val deadlineNs = System.nanoTime() + 20_000_000L
+            while (decoded.size() == 0) {
+                val remainingUs = (deadlineNs - System.nanoTime()) / 1000
+                if (remainingUs <= 0) {
+                    break
+                }
+                drainDecoderLocked(codec, remainingUs, decoded)
+            }
+        } catch (error: Exception) {
+            Log.w(TAG, "${inputFormat.audioMime()} decoder failed: $error")
+            failCodecLocked()
+            return "decoder failed: ${error.message}"
+        }
+        if (decoded.size() == 0) {
+            return "no output yet"
+        }
+        to.data = decoded.toByteArray()
+        return null
+    }
+
+    private fun drainDecoderLocked(codec: MediaCodec, timeoutUs: Long, decoded: java.io.ByteArrayOutputStream) {
+        var timeout = timeoutUs
+        while (true) {
+            val index = codec.dequeueOutputBuffer(bufferInfo, timeout)
+            timeout = 0
+            if (index == MediaCodec.INFO_TRY_AGAIN_LATER) {
+                return
+            }
+            if (index == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                decodedChannels = codec.outputFormat.audioChannelCount().takeIf { it > 0 } ?: decodedChannels
+                continue
+            }
+            if (index < 0) {
+                continue
+            }
+            val isConfig = bufferInfo.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG != 0
+            if (isConfig || bufferInfo.size <= 0) {
+                codec.releaseOutputBuffer(index, false)
+                continue
+            }
+            val pcm = ByteArray(bufferInfo.size)
+            val buffer = codec.getOutputBuffer(index)
+            if (buffer != null) {
+                buffer.position(bufferInfo.offset)
+                buffer.limit(bufferInfo.offset + bufferInfo.size)
+                buffer.get(pcm)
+            }
+            codec.releaseOutputBuffer(index, false)
+            if (decodedChannels == outputChannels || decodedChannels <= 0 || outputChannels <= 0) {
+                decoded.write(pcm)
+            } else {
+                val frames = pcm.size / (decodedChannels * 2)
+                val remapped = ByteArray(frames * outputChannels * 2)
+                remapChannels(
+                    pcm,
+                    frames,
+                    decodedChannels,
+                    fullChannelMap(makeDefaultChannelMap(decodedChannels, outputChannels), outputChannels),
+                    remapped,
+                )
+                decoded.write(remapped)
+            }
+        }
+    }
+
     private fun presentationTimeUs(framePosition: Long): Long {
         if (sampleRate <= 0) {
             return 0
@@ -382,6 +482,9 @@ class AVAudioConverter private constructor(
 
     companion object {
         fun create(from: MediaFormat, to: MediaFormat): AVAudioConverter? {
+            if (!from.isRawPcmAudio() && to.isRawPcmAudio()) {
+                return createDecoder(from, to)
+            }
             if (!from.isRawPcmAudio()) {
                 Log.i(TAG, "Converter input must be PCM: $from")
                 return null
@@ -415,6 +518,88 @@ class AVAudioConverter private constructor(
                 return null
             }
             return AVAudioConverter(from, to, name, codec, audioEncodeBitRateRange(name, mime))
+        }
+
+        private fun createDecoder(from: MediaFormat, to: MediaFormat): AVAudioConverter? {
+            val mime = from.audioMime() ?: return null
+            if (from.audioChannelCount() <= 0 || to.audioChannelCount() <= 0) {
+                return null
+            }
+            if (to.pcmEncoding() != AudioFormat.ENCODING_PCM_16BIT) {
+                Log.i(TAG, "Decoder output must be 16 bit PCM: $to")
+                return null
+            }
+            if (from.audioSampleRate() != to.audioSampleRate()) {
+                Log.i(TAG, "Decoder sample rate ${to.audioSampleRate()} differs from input ${from.audioSampleRate()}")
+                return null
+            }
+            if (mime != MediaFormat.MIMETYPE_AUDIO_OPUS && !from.containsKey("csd-0")) {
+                Log.i(TAG, "Decoder input needs codec specific data: $from")
+                return null
+            }
+            val name = findAudioDecoderName(from) ?: run {
+                Log.i(TAG, "No decoder for $from")
+                return null
+            }
+            val codec = try {
+                MediaCodec.createByCodecName(name)
+            } catch (error: Exception) {
+                Log.w(TAG, "Failed to create $name: $error")
+                return null
+            }
+            return AVAudioConverter(from, to, name, codec, null, decodes = true)
+        }
+
+        private fun findAudioDecoderName(format: MediaFormat): String? {
+            val mime = format.audioMime() ?: return null
+            val probe = MediaFormat.createAudioFormat(mime, format.audioSampleRate(), format.audioChannelCount())
+            return try {
+                val codecList = android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS)
+                codecList.findDecoderForFormat(probe) ?: codecList.codecInfos.firstOrNull { info ->
+                    !info.isEncoder && info.supportedTypes.any { it.equals(mime, ignoreCase = true) }
+                }?.name
+            } catch (error: Exception) {
+                Log.w(TAG, "Finding a $mime decoder failed: $error")
+                null
+            }
+        }
+
+        private fun makeDecoderFormat(inputFormat: MediaFormat): MediaFormat {
+            val mime = inputFormat.audioMime() ?: ""
+            val channels = inputFormat.audioChannelCount()
+            val sampleRate = inputFormat.audioSampleRate()
+            val format = MediaFormat.createAudioFormat(mime, sampleRate, channels)
+            for (key in listOf("csd-0", "csd-1", "csd-2")) {
+                if (inputFormat.containsKey(key)) {
+                    val buffer = inputFormat.getByteBuffer(key) ?: continue
+                    format.setByteBuffer(key, buffer.duplicate())
+                }
+            }
+            if (mime == MediaFormat.MIMETYPE_AUDIO_OPUS && !inputFormat.containsKey("csd-0")) {
+                format.setByteBuffer("csd-0", ByteBuffer.wrap(makeOpusHead(channels, sampleRate)))
+                format.setByteBuffer("csd-1", makeLittleEndianLong(0))
+                format.setByteBuffer("csd-2", makeLittleEndianLong(80_000_000))
+            }
+            return format
+        }
+
+        private fun makeOpusHead(channels: Int, sampleRate: Int): ByteArray {
+            val head = ByteBuffer.allocate(19).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+            head.put("OpusHead".toByteArray(Charsets.US_ASCII))
+            head.put(1)
+            head.put(channels.toByte())
+            head.putShort(0)
+            head.putInt(sampleRate)
+            head.putShort(0)
+            head.put(0)
+            return head.array()
+        }
+
+        private fun makeLittleEndianLong(value: Long): ByteBuffer {
+            val buffer = ByteBuffer.allocate(8).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+            buffer.putLong(value)
+            buffer.flip()
+            return buffer
         }
 
         private fun makeDefaultChannelMap(inputChannels: Int, outputChannels: Int): List<Int> {

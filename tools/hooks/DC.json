@@ -1,0 +1,83 @@
+{
+  "task": "DC",
+  "hooks": [
+    {
+      "id": "HDC.1",
+      "file": "media/haishinkit/mpeg/hevc/HevcNalUnit.kt",
+      "scope": "fun makeFormatDescription",
+      "op": "replace",
+      "old": "    TODO()",
+      "new": "    return com.moblin.android.platform.videotoolbox.makeVideoFormatDescription(MediaFormat.MIMETYPE_VIDEO_HEVC, 0, 0, vpsData, spsData, ppsData)",
+      "note": "CMVideoFormatDescriptionCreateFromHEVCParameterSets: csd-0 with VPS, SPS and PPS in Annex B plus hvcC."
+    },
+    {
+      "id": "HDC.2",
+      "file": "media/haishinkit/codec/video/VideoDecoder.kt",
+      "scope": "fun decodeSampleBuffer",
+      "op": "insert_after",
+      "anchor": "                ) ?: return@decodeFrame",
+      "new": "                com.moblin.android.platform.video.retainLease(sampleBuffer)",
+      "note": "The decoded pixel buffer is leased for one pipeline turn; keep it until lockQueue has handed it on."
+    },
+    {
+      "id": "HDC.3",
+      "file": "media/haishinkit/codec/video/VideoDecoder.kt",
+      "scope": "fun decodeSampleBuffer",
+      "op": "replace",
+      "old": "                    logFailedFrames()",
+      "new": "                    try { logFailedFrames(); delegate?.videoDecoderOutputSampleBuffer(this@VideoDecoder, sampleBuffer) } finally { com.moblin.android.platform.video.releaseLease(sampleBuffer) }"
+    },
+    {
+      "id": "HDC.4",
+      "file": "media/haishinkit/codec/video/VideoDecoder.kt",
+      "scope": "fun decodeSampleBuffer",
+      "op": "delete",
+      "old": "                    delegate?.videoDecoderOutputSampleBuffer(this@VideoDecoder, sampleBuffer)",
+      "occurrence": 1,
+      "note": "Moved into the try/finally of HDC.3."
+    },
+    {
+      "id": "HDC.5",
+      "file": "media/webrtc/WebrtcIngestClient.kt",
+      "scope": "fun stopInternal",
+      "op": "insert_after",
+      "anchor": "    private fun stopInternal(reason: String? = null) {",
+      "new": "        val hadPeerConnection = peerConnectionId >= 0",
+      "note": "iOS drops the Connection closed callback that rtcDeletePeerConnection causes once the weak delegate is gone; report a disconnect only for a live peer connection."
+    },
+    {
+      "id": "HDC.6",
+      "file": "media/webrtc/WebrtcIngestClient.kt",
+      "scope": "fun stopInternal",
+      "op": "replace",
+      "old": "        if (reason != null) {",
+      "new": "        if (reason != null && hadPeerConnection) {"
+    },
+    {
+      "id": "HDC.7",
+      "file": "media/webrtc/WebrtcIngestClient.kt",
+      "scope": "fun handleTrackInternal",
+      "op": "insert_after",
+      "anchor": "    private fun handleTrackInternal(trackId: Int) {",
+      "new": "        if (peerConnectionId < 0) return",
+      "note": "Work queued before stop must not create a decoder that nothing stops."
+    },
+    {
+      "id": "HDC.8",
+      "file": "media/webrtc/WebrtcIngestClient.kt",
+      "scope": "fun handleVideoMessageInternal",
+      "op": "insert_after",
+      "anchor": "    private fun handleVideoMessageInternal(data: ByteArray, timestamp: UInt) {",
+      "new": "        if (peerConnectionId < 0) return",
+      "note": "A frame queued before stop would start a MediaCodec, a thread and a SurfaceTexture that nothing stops."
+    },
+    {
+      "id": "HDC.9",
+      "file": "media/webrtc/WebrtcIngestClient.kt",
+      "scope": "fun handleAudioMessageInternal",
+      "op": "insert_after",
+      "anchor": "    private fun handleAudioMessageInternal(data: ByteArray, timestamp: UInt) {",
+      "new": "        if (peerConnectionId < 0) return"
+    }
+  ]
+}

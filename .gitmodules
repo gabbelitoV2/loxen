@@ -4,3 +4,10 @@
 [submodule "app/src/main/cpp/mbedtls"]
 	path = app/src/main/cpp/mbedtls
 	url = https://github.com/Mbed-TLS/mbedtls
+[submodule "app/src/main/cpp/libdatachannel"]
+	path = app/src/main/cpp/libdatachannel
+	url = https://github.com/eerimoq/libdatachannel
+	ignore = dirty
+[submodule "app/src/main/cpp/librist"]
+	path = app/src/main/cpp/librist
+	url = https://github.com/eerimoq/librist
