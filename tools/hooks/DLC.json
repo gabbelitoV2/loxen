@@ -1,0 +1,33 @@
+{
+  "task": "DLC",
+  "hooks": [
+    {
+      "id": "HDLC.1",
+      "file": "view/settings/deeplinkcreator/DeepLinkCreatorSettingsView.kt",
+      "op": "replace",
+      "old": "        Json.encodeToString(settings)",
+      "new": "        settings.toString()",
+      "note": "Swift settings.toString() uses sortedKeys and withoutEscapingSlashes; MoblinSettingsUrl.toString() does the same."
+    },
+    {
+      "id": "HDLC.2",
+      "file": "view/settings/deeplinkcreator/DeepLinkCreatorSettingsView.kt",
+      "op": "replace",
+      "old": "    var encodedJsonBlob = Uri.encode(jsonBlob)",
+      "new": "    var encodedJsonBlob = jsonBlob.addingPercentEncoding(withAllowedCharacters = CharacterSet.urlQueryAllowed) ?: return null",
+      "note": "Swift addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) keeps : and / unencoded; Uri.encode does not."
+    },
+    {
+      "id": "HDLC.3",
+      "file": "view/settings/deeplinkcreator/DeepLinkCreatorSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.core.CharacterSet"
+    },
+    {
+      "id": "HDLC.4",
+      "file": "view/settings/deeplinkcreator/DeepLinkCreatorSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.core.addingPercentEncoding"
+    }
+  ]
+}

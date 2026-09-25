@@ -41,6 +41,8 @@ import com.moblin.android.view.utils.QrCodeImageView
 import com.moblin.android.view.utils.TextButtonView
 import kotlinx.serialization.json.Json
 import com.moblin.android.localized
+import com.moblin.android.platform.core.CharacterSet
+import com.moblin.android.platform.core.addingPercentEncoding
 
 private const val TAG = "DeepLinkCreatorSettingsView"
 
@@ -142,13 +144,13 @@ private fun updateDeepLink(deepLinkCreator: DeepLinkCreator): String? {
     updateDeepLinkQuickButtons(deepLinkCreator, settings)
     updateDeepLinkWebBrowser(deepLinkCreator, settings)
     val jsonBlob = runCatching {
-        Json.encodeToString(settings)
+        settings.toString()
     }.getOrNull()
     if (jsonBlob == null) {
         Log.i(TAG, "Failed to create deep link")
         return null
     }
-    var encodedJsonBlob = Uri.encode(jsonBlob)
+    var encodedJsonBlob = jsonBlob.addingPercentEncoding(withAllowedCharacters = CharacterSet.urlQueryAllowed) ?: return null
     encodedJsonBlob = encodedJsonBlob.replace("%7B", "{")
     encodedJsonBlob = encodedJsonBlob.replace("%7D", "}")
     encodedJsonBlob = encodedJsonBlob.replace("%5B", "[")
