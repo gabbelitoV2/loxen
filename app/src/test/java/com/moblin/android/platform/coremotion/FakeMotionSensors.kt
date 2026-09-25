@@ -2,6 +2,7 @@ package com.moblin.android.platform.coremotion
 
 import android.hardware.Sensor
 import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import com.moblin.android.platform.uikit.UIDevice
 import kotlin.math.cos
@@ -17,6 +18,7 @@ internal class FakeMotionSensors(
     linearAcceleration: Boolean = true,
     gameRotationVector: Boolean = true,
     rotationVector: Boolean = false,
+    accelerometer: Boolean = false,
 ) {
     val sensorManager: SensorManager = MotionSensors.sensorManager!!
     val shadow: ShadowSensorManager = shadowOf(sensorManager)
@@ -24,6 +26,7 @@ internal class FakeMotionSensors(
     val linearAccelerationSensor: Sensor? = if (linearAcceleration) add(Sensor.TYPE_LINEAR_ACCELERATION) else null
     val gameRotationVectorSensor: Sensor? = if (gameRotationVector) add(Sensor.TYPE_GAME_ROTATION_VECTOR) else null
     val rotationVectorSensor: Sensor? = if (rotationVector) add(Sensor.TYPE_ROTATION_VECTOR) else null
+    val accelerometerSensor: Sensor? = if (accelerometer) add(Sensor.TYPE_ACCELEROMETER) else null
     var nowNs = 10_000_000_000L
 
     private fun add(type: Int): Sensor {
@@ -36,7 +39,11 @@ internal class FakeMotionSensors(
         return shadow.listeners.filterIsInstance<MotionListener>().toSet()
     }
 
-    fun isRegistered(listener: MotionListener, sensor: Sensor?): Boolean {
+    fun accelerometerListeners(): Set<AccelerometerListener> {
+        return shadow.listeners.filterIsInstance<AccelerometerListener>().toSet()
+    }
+
+    fun isRegistered(listener: SensorEventListener, sensor: Sensor?): Boolean {
         return sensor != null && shadow.hasListener(listener, sensor)
     }
 
@@ -66,6 +73,16 @@ internal class FakeMotionSensors(
         }
         sendGravity(quaternion)
         nowNs += 200_000_000L
+    }
+
+    fun sendAcceleration(x: Double, y: Double, z: Double) {
+        val values = if (UIDevice.current.isNaturalOrientationLandscape) {
+            doubleArrayOf(y, -x, -z)
+        } else {
+            doubleArrayOf(-x, -y, -z)
+        }
+        send(accelerometerSensor!!, FloatArray(3) { (values[it] * STANDARD_GRAVITY).toFloat() })
+        nowNs += 100_000_000L
     }
 
     fun send(sensor: Sensor, values: FloatArray) {

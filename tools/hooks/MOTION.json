@@ -14,10 +14,10 @@
       "id": "HMOTION.2",
       "file": "various/model/Model.kt",
       "scope": "class Model",
-      "op": "insert_after",
-      "anchor": "    private var motionManager: SensorManager? = null",
-      "new": "    private val manualFocusMotionManager = com.moblin.android.platform.coremotion.CMMotionManager()",
-      "note": "Swift's motionManager = CMMotionManager() for the device motion; the generated motionManager stays the SensorManager that GForceManager takes."
+      "op": "replace",
+      "old": "    private var motionManager: SensorManager? = null",
+      "new": "    private val motionManager = com.moblin.android.platform.coremotion.CMMotionManager()",
+      "note": "Swift private let motionManager = CMMotionManager(), shared like on iOS by the tap to focus device motion updates and the GForceManager accelerometer updates."
     },
     {
       "id": "HMOTION.3",
@@ -25,7 +25,7 @@
       "scope": "fun startMotionDetection",
       "op": "replace",
       "old": "        Unit",
-      "new": "        manualFocusMotionManager.stopDeviceMotionUpdates(); manualFocusMotionAttitude = null; manualFocusMotionManager.deviceMotionUpdateInterval = 0.2; manualFocusMotionManager.startDeviceMotionUpdates(to = com.moblin.android.platform.coremotion.OperationQueue.main) { data, _ -> if (data == null) { return@startDeviceMotionUpdates }; val attitude = data.attitude; if (manualFocusMotionAttitude == null) { manualFocusMotionAttitude = attitude }; if (diffAngles(attitude.pitch, manualFocusMotionAttitude!!.pitch) > 10) { setAutoFocus() } else if (diffAngles(attitude.roll, manualFocusMotionAttitude!!.roll) > 10) { setAutoFocus() } else if (diffAngles(attitude.yaw, manualFocusMotionAttitude!!.yaw) > 10) { setAutoFocus() } }",
+      "new": "        motionManager.stopDeviceMotionUpdates(); manualFocusMotionAttitude = null; motionManager.deviceMotionUpdateInterval = 0.2; motionManager.startDeviceMotionUpdates(to = com.moblin.android.platform.coremotion.OperationQueue.main) { data, _ -> if (data == null) { return@startDeviceMotionUpdates }; val attitude = data.attitude; if (manualFocusMotionAttitude == null) { manualFocusMotionAttitude = attitude }; if (diffAngles(attitude.pitch, manualFocusMotionAttitude!!.pitch) > 10) { setAutoFocus() } else if (diffAngles(attitude.roll, manualFocusMotionAttitude!!.roll) > 10) { setAutoFocus() } else if (diffAngles(attitude.yaw, manualFocusMotionAttitude!!.yaw) > 10) { setAutoFocus() } }",
       "note": "Swift startMotionDetection on one line: back to continuous focus and exposure once the phone turns more than 10 degrees from where tap to focus was done."
     },
     {
@@ -34,7 +34,7 @@
       "scope": "fun stopMotionDetection",
       "op": "replace",
       "old": "        Unit",
-      "new": "        manualFocusMotionManager.stopDeviceMotionUpdates()",
+      "new": "        motionManager.stopDeviceMotionUpdates()",
       "note": "Swift motionManager.stopDeviceMotionUpdates(); unregisters the sensors."
     },
     {
@@ -45,6 +45,15 @@
       "anchor": "        cameraLevel.stop()",
       "new": "        stopMotionDetection()",
       "note": "iOS suspends the app in the background when nothing keeps it running, so its tap to focus motion updates stop with it; Android keeps the sensors on until the phone moves. Returning to the foreground attaches the camera and setAutoFocus() drops the tapped point either way."
+    },
+    {
+      "id": "HMOTION.6",
+      "file": "various/model/Model.kt",
+      "scope": "fun setup",
+      "op": "replace",
+      "old": "        gForceManager = motionManager?.let { GForceManager(sensorManager = it) }",
+      "new": "        gForceManager = GForceManager(motionManager = motionManager)",
+      "note": "Swift gForceManager = GForceManager(motionManager: motionManager); the accelerometer updates come from Model's CMMotionManager in g."
     }
   ]
 }

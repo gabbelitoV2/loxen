@@ -5111,14 +5111,12 @@
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/managers/GForceManager.kt",
     "notes": [
-      "CoreMotion's CMMotionManager is replaced by android.hardware.SensorManager with TYPE_ACCELEROMETER; the constructor parameter motionManager is therefore named sensorManager.",
-      "motionManager.accelerometerUpdateInterval = 0.1 maps to a sampling period of 100_000 microseconds passed to registerListener.",
-      "startAccelerometerUpdates(to: .main) maps to registerListener with a Handler bound to Looper.getMainLooper(), so updates arrive on the main thread.",
-      "handleAccelerometerUpdate now takes x/y/z Doubles instead of CMAccelerometerData, since SensorEvent is only touched inside the private listener.",
+      "CMMotionManager, CMAccelerometerData and OperationQueue.main come from the CoreMotion shim (platform/coremotion/CoreMotion.kt), so the constructor keeps the Swift parameter motionManager.",
+      "startAccelerometerUpdates(to: .main) becomes startAccelerometerUpdates(to = OperationQueue.main); the handler runs on the main thread, paced to the 0.1 s accelerometerUpdateInterval.",
+      "data.acceleration is a CMAcceleration in g on iOS axes with gravity included, so the magnitude is about 1 at rest, as on iOS.",
+      "guard let data, error == nil else { return } becomes an early return@startAccelerometerUpdates.",
       "GForce is a @Serializable data class; its property names match the Swift coding keys exactly, so no @SerialName is needed.",
-      "getLatest() keeps the Swift optional return type GForce? even though the Swift implementation always returns a value.",
-      "start() now unregisters and resets the started flag when the device has no accelerometer, because getDefaultSensor can return null.",
-      "The SensorEventListener is a private anonymous listener so the public API of GForceManager stays identical to the Swift version."
+      "getLatest() keeps the Swift optional return type GForce? even though the Swift implementation always returns a value."
     ],
     "unsupported": [],
     "model": "deepseek-flash",

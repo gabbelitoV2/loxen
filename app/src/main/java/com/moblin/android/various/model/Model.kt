@@ -683,8 +683,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var previousSrtDroppedPacketsTotal: Int = 0
     var streamBecameBrokenTime: Instant? = null
     var cameraPosition: Int? = null
-    private var motionManager: SensorManager? = null
-    private val manualFocusMotionManager = com.moblin.android.platform.coremotion.CMMotionManager()
+    private val motionManager = com.moblin.android.platform.coremotion.CMMotionManager()
     var gForceManager: GForceManager? = null
     val database: Database
         get() = settings.database
@@ -1377,7 +1376,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         goPro.wifiCredentialsSelection.value = database.goPro.selectedWifiCredentials
         goPro.rtmpUrlSelection.value = database.goPro.selectedRtmpUrl
         replay.speed.value = database.replay.speed
-        gForceManager = motionManager?.let { GForceManager(sensorManager = it) }
+        gForceManager = GForceManager(motionManager = motionManager)
         startGForceManager()
         chatBotCustomCommandsTextChanged()
         macrosTextFormatChanged()
@@ -3129,11 +3128,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun startMotionDetection() {
-        manualFocusMotionManager.stopDeviceMotionUpdates(); manualFocusMotionAttitude = null; manualFocusMotionManager.deviceMotionUpdateInterval = 0.2; manualFocusMotionManager.startDeviceMotionUpdates(to = com.moblin.android.platform.coremotion.OperationQueue.main) { data, _ -> if (data == null) { return@startDeviceMotionUpdates }; val attitude = data.attitude; if (manualFocusMotionAttitude == null) { manualFocusMotionAttitude = attitude }; if (diffAngles(attitude.pitch, manualFocusMotionAttitude!!.pitch) > 10) { setAutoFocus() } else if (diffAngles(attitude.roll, manualFocusMotionAttitude!!.roll) > 10) { setAutoFocus() } else if (diffAngles(attitude.yaw, manualFocusMotionAttitude!!.yaw) > 10) { setAutoFocus() } }
+        motionManager.stopDeviceMotionUpdates(); manualFocusMotionAttitude = null; motionManager.deviceMotionUpdateInterval = 0.2; motionManager.startDeviceMotionUpdates(to = com.moblin.android.platform.coremotion.OperationQueue.main) { data, _ -> if (data == null) { return@startDeviceMotionUpdates }; val attitude = data.attitude; if (manualFocusMotionAttitude == null) { manualFocusMotionAttitude = attitude }; if (diffAngles(attitude.pitch, manualFocusMotionAttitude!!.pitch) > 10) { setAutoFocus() } else if (diffAngles(attitude.roll, manualFocusMotionAttitude!!.roll) > 10) { setAutoFocus() } else if (diffAngles(attitude.yaw, manualFocusMotionAttitude!!.yaw) > 10) { setAutoFocus() } }
     }
 
     fun stopMotionDetection() {
-        manualFocusMotionManager.stopDeviceMotionUpdates()
+        motionManager.stopDeviceMotionUpdates()
     }
 
     fun reloadCameraLevel() {

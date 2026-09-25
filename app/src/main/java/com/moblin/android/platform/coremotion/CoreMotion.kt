@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 
 private const val TAG = "MoblinMotion"
 private const val STANDARD_GRAVITY = 9.81
+private const val ACCELERATION_SCALE = -1.0 / STANDARD_GRAVITY
 private const val LOW_PASS_ALPHA = 0.8
 private const val ATTITUDE_WAIT_NS = 1_000_000_000L
 
@@ -119,9 +120,22 @@ class CMDeviceMotion internal constructor(
     val userAcceleration: CMAcceleration,
 )
 
+class CMAccelerometerData internal constructor(val acceleration: CMAcceleration)
+
 class OperationQueue {
     var underlyingQueue: CoroutineScope? = null
     var maxConcurrentOperationCount: Int = defaultMaxConcurrentOperationCount
+
+    internal fun dispatch(block: () -> Unit) {
+        val scope = underlyingQueue
+        if (scope != null) {
+            scope.launch {
+                block()
+            }
+        } else {
+            PipelineThread.post(block)
+        }
+    }
 
     companion object {
         const val defaultMaxConcurrentOperationCount = -1
@@ -184,6 +198,14 @@ internal object MotionSensors {
         return CMAttitude.fromRotationVector(values, isNaturalOrientationLandscape())
     }
 
+    fun samplingPeriodUs(interval: Double): Int {
+        return (interval.coerceIn(0.005, 1.0) * 1_000_000).toInt()
+    }
+
+    fun intervalNs(interval: Double): Long {
+        return (interval.coerceAtLeast(0.0) * 1_000_000_000).toLong()
+    }
+
     private fun isNaturalOrientationLandscape(): Boolean {
         return try {
             UIDevice.current.isNaturalOrientationLandscape
@@ -195,12 +217,19 @@ internal object MotionSensors {
 
 class CMMotionManager {
     var deviceMotionUpdateInterval: Double = 0.01
+    var accelerometerUpdateInterval: Double = 0.01
 
     @Volatile
     private var listener: MotionListener? = null
 
     @Volatile
+    private var accelerometerListener: AccelerometerListener? = null
+
+    @Volatile
     internal var latest: CMDeviceMotion? = null
+
+    @Volatile
+    internal var latestAccelerometerData: CMAccelerometerData? = null
 
     val isDeviceMotionAvailable: Boolean
         get() = MotionSensors.gravitySensor != null || MotionSensors.accelerometer != null
@@ -211,8 +240,58 @@ class CMMotionManager {
     val deviceMotion: CMDeviceMotion?
         get() = latest
 
+    val isAccelerometerAvailable: Boolean
+        get() = MotionSensors.accelerometer != null
+
+    val isAccelerometerActive: Boolean
+        get() = accelerometerListener != null
+
+    val accelerometerData: CMAccelerometerData?
+        get() = latestAccelerometerData
+
     internal fun isCurrent(candidate: MotionListener): Boolean {
         return listener === candidate
+    }
+
+    internal fun isCurrent(candidate: AccelerometerListener): Boolean {
+        return accelerometerListener === candidate
+    }
+
+    fun startAccelerometerUpdates(to: OperationQueue, withHandler: (CMAccelerometerData?, Throwable?) -> Unit) {
+        stopAccelerometerUpdates()
+        val sensorManager = MotionSensors.sensorManager
+        val accelerometer = MotionSensors.accelerometer
+        if (sensorManager == null || accelerometer == null) {
+            Log.i(TAG, "Accelerometer not available")
+            return
+        }
+        val newListener = AccelerometerListener(
+            WeakReference(this),
+            sensorManager,
+            to,
+            withHandler,
+            MotionSensors.intervalNs(accelerometerUpdateInterval),
+        )
+        accelerometerListener = newListener
+        val periodUs = MotionSensors.samplingPeriodUs(accelerometerUpdateInterval)
+        if (!sensorManager.registerListener(newListener, accelerometer, periodUs, MotionSensors.handler())) {
+            accelerometerListener = null
+            Log.i(TAG, "Failed to register the accelerometer listener")
+            return
+        }
+        Log.i(
+            TAG,
+            "Accelerometer started (interval $accelerometerUpdateInterval s, natural landscape " +
+                "${UIDevice.current.isNaturalOrientationLandscape})"
+        )
+    }
+
+    fun stopAccelerometerUpdates() {
+        val current = accelerometerListener ?: return
+        accelerometerListener = null
+        latestAccelerometerData = null
+        current.unregister()
+        Log.i(TAG, "Accelerometer stopped")
     }
 
     fun startDeviceMotionUpdates(to: OperationQueue, withHandler: (CMDeviceMotion?, Throwable?) -> Unit) {
@@ -226,8 +305,8 @@ class CMMotionManager {
         }
         val linearSensor = if (gravitySensor != null) MotionSensors.linearAccelerationSensor else null
         val attitudeSensor = MotionSensors.attitudeSensor
-        val periodUs = (deviceMotionUpdateInterval.coerceIn(0.005, 1.0) * 1_000_000).toInt()
-        val intervalNs = (deviceMotionUpdateInterval.coerceAtLeast(0.0) * 1_000_000_000).toLong()
+        val periodUs = MotionSensors.samplingPeriodUs(deviceMotionUpdateInterval)
+        val intervalNs = MotionSensors.intervalNs(deviceMotionUpdateInterval)
         val newListener = MotionListener(
             WeakReference(this),
             sensorManager,
@@ -278,7 +357,7 @@ internal class MotionListener(
     private val sensorManager: SensorManager,
     private val queue: OperationQueue,
     private val handler: (CMDeviceMotion?, Throwable?) -> Unit,
-    private val intervalNs: Long,
+    intervalNs: Long,
     private val attitudeSensor: Sensor?,
 ) : SensorEventListener {
     private val gravity = DoubleArray(3)
@@ -286,7 +365,7 @@ internal class MotionListener(
     private var hasGravity = false
     private var attitude: CMAttitude? = null
     private var attitudeWaitStartNs = 0L
-    private var nextDeliveryNs = 0L
+    private val pacer = UpdatePacer(intervalNs)
 
     @Volatile
     private var usesAttitudeSensor = attitudeSensor != null
@@ -376,32 +455,19 @@ internal class MotionListener(
             }
             attitudeUnavailable()
         }
-        if (nextDeliveryNs != 0L && timestampNs < nextDeliveryNs - intervalNs / 4) {
+        if (!pacer.isDue(timestampNs)) {
             return
         }
-        nextDeliveryNs = if (nextDeliveryNs == 0L || timestampNs - nextDeliveryNs > intervalNs) {
-            timestampNs + intervalNs
-        } else {
-            nextDeliveryNs + intervalNs
-        }
-        val scale = -1.0 / STANDARD_GRAVITY
-        val deviceGravity = MotionSensors.toDevice(gravity, scale)
+        val deviceGravity = MotionSensors.toDevice(gravity, ACCELERATION_SCALE)
         val sensorAttitude = if (usesAttitudeSensor) attitude else null
         val motion = CMDeviceMotion(
             attitude = sensorAttitude ?: CMAttitude.fromGravity(deviceGravity),
             gravity = deviceGravity,
-            userAcceleration = MotionSensors.toDevice(userAcceleration, scale)
+            userAcceleration = MotionSensors.toDevice(userAcceleration, ACCELERATION_SCALE)
         )
         owner.latest = motion
-        val scope = queue.underlyingQueue
-        if (scope != null) {
-            scope.launch {
-                runHandler(motion)
-            }
-        } else {
-            PipelineThread.post {
-                runHandler(motion)
-            }
+        queue.dispatch {
+            runHandler(motion)
         }
     }
 
@@ -415,5 +481,83 @@ internal class MotionListener(
         } catch (error: Throwable) {
             Log.w(TAG, "Device motion handler failed", error)
         }
+    }
+}
+
+internal class AccelerometerListener(
+    private val manager: WeakReference<CMMotionManager>,
+    private val sensorManager: SensorManager,
+    private val queue: OperationQueue,
+    private val handler: (CMAccelerometerData?, Throwable?) -> Unit,
+    intervalNs: Long,
+) : SensorEventListener {
+    private val acceleration = DoubleArray(3)
+    private val pacer = UpdatePacer(intervalNs)
+
+    @Volatile
+    private var registered = true
+
+    fun unregister() {
+        if (!registered) {
+            return
+        }
+        registered = false
+        try {
+            sensorManager.unregisterListener(this)
+        } catch (error: Throwable) {
+            Log.w(TAG, "Failed to stop the accelerometer: $error")
+        }
+    }
+
+    override fun onSensorChanged(event: SensorEvent) {
+        val owner = manager.get()
+        if (owner == null || !owner.isCurrent(this)) {
+            if (owner == null && registered) {
+                Log.i(TAG, "Accelerometer stopped (manager released)")
+            }
+            unregister()
+            return
+        }
+        if (event.sensor.type != Sensor.TYPE_ACCELEROMETER || !pacer.isDue(event.timestamp)) {
+            return
+        }
+        for (index in 0 until 3) {
+            acceleration[index] = event.values[index].toDouble()
+        }
+        val data = CMAccelerometerData(MotionSensors.toDevice(acceleration, ACCELERATION_SCALE))
+        owner.latestAccelerometerData = data
+        queue.dispatch {
+            runHandler(data)
+        }
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
+
+    private fun runHandler(data: CMAccelerometerData) {
+        val owner = manager.get()
+        if (owner == null || !owner.isCurrent(this)) {
+            return
+        }
+        try {
+            handler(data, null)
+        } catch (error: Throwable) {
+            Log.w(TAG, "Accelerometer handler failed", error)
+        }
+    }
+}
+
+internal class UpdatePacer(private val intervalNs: Long) {
+    private var nextDeliveryNs = 0L
+
+    fun isDue(timestampNs: Long): Boolean {
+        if (nextDeliveryNs != 0L && timestampNs < nextDeliveryNs - intervalNs / 4) {
+            return false
+        }
+        nextDeliveryNs = if (nextDeliveryNs == 0L || timestampNs - nextDeliveryNs > intervalNs) {
+            timestampNs + intervalNs
+        } else {
+            nextDeliveryNs + intervalNs
+        }
+        return true
     }
 }

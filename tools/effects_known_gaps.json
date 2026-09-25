@@ -42,26 +42,6 @@
       "note": "Navigation and location views use MapKit search, directions and regions; the MapKit shim only covers the map widget's snapshotter."
     },
     {
-      "check": "types",
-      "name": "CM*",
-      "files": [
-        "Moblin/Various/Managers/GForceManager.swift"
-      ],
-      "owner": "E8",
-      "milestone": "none (not in the effects plan)",
-      "note": "GForceManager keeps its Android accelerometer code; the CoreMotion shim covers device motion and attitude (FixedHorizonEffect, CameraLevel, tap to focus motion detection)."
-    },
-    {
-      "check": "members",
-      "name": "CMMotionManager.*",
-      "files": [
-        "Moblin/Various/Managers/GForceManager.swift"
-      ],
-      "owner": "E8",
-      "milestone": "none (not in the effects plan)",
-      "note": "Accelerometer members used by GForceManager."
-    },
-    {
       "check": "members",
       "name": "CIRadialGradient.composited",
       "files": [
