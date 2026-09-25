@@ -1,0 +1,116 @@
+{
+  "task": "KVO",
+  "hooks": [
+    {
+      "id": "HKVO.1",
+      "file": "various/model/ModelCamera.kt",
+      "op": "add_import",
+      "new": "import kotlinx.coroutines.launch",
+      "note": "The observers hop to the main thread like Swift's DispatchQueue.main.async."
+    },
+    {
+      "id": "HKVO.2",
+      "file": "various/model/ModelCamera.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.core.NSKeyValueObservation"
+    },
+    {
+      "id": "HKVO.3",
+      "file": "various/model/ModelCamera.kt",
+      "op": "insert_after",
+      "anchor": "private const val LOG_TAG = \"Model\"",
+      "new": "private val mainScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main)",
+      "note": "DispatchQueue.main.async -> mainScope.launch, declared per file like the other Model files."
+    },
+    {
+      "id": "HKVO.4",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "class CameraState",
+      "op": "replace",
+      "old": "    var focusObservation: Any? = null",
+      "new": "    var focusObservation: NSKeyValueObservation? by NSKeyValueObservation.holder()",
+      "note": "NSKeyValueObservation? property; the holder invalidates a dropped observation like Swift's deinit."
+    },
+    {
+      "id": "HKVO.5",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "class CameraState",
+      "op": "replace",
+      "old": "    var isoObservation: Any? = null",
+      "new": "    var isoObservation: NSKeyValueObservation? by NSKeyValueObservation.holder()",
+      "note": "NSKeyValueObservation? property; the holder invalidates a dropped observation like Swift's deinit."
+    },
+    {
+      "id": "HKVO.6",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "class CameraState",
+      "op": "replace",
+      "old": "    var exposureObservation: Any? = null",
+      "new": "    var exposureObservation: NSKeyValueObservation? by NSKeyValueObservation.holder()",
+      "note": "NSKeyValueObservation? property; the holder invalidates a dropped observation like Swift's deinit."
+    },
+    {
+      "id": "HKVO.7",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "class CameraState",
+      "op": "replace",
+      "old": "    var whiteBalanceObservation: Any? = null",
+      "new": "    var whiteBalanceObservation: NSKeyValueObservation? by NSKeyValueObservation.holder()",
+      "note": "NSKeyValueObservation? property; the holder invalidates a dropped observation like Swift's deinit."
+    },
+    {
+      "id": "HKVO.8",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun Model.startObservingFocus",
+      "op": "replace",
+      "old": "    Unit",
+      "new": "    camera.focusObservation = device.device.observe(AVCaptureDevice::lensPosition) { _, _ -> mainScope.launch { if (!camera.editingLockedFocus) { camera.lockedFocuses[device] = device.device.lensPosition; camera.setLockedFocus(device.device.lensPosition) } } }",
+      "note": "Swift device.observe(\\.x) { [weak self] _, _ in DispatchQueue.main.async { ... } } on one line."
+    },
+    {
+      "id": "HKVO.9",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun Model.startObservingIso",
+      "op": "replace",
+      "old": "    Unit",
+      "new": "    camera.isoObservation = device.device.observe(AVCaptureDevice::iso) { _, _ -> mainScope.launch { if (!camera.editingLockedIso) { val iso = factorFromIso(device = device.device, iso = device.device.iso); camera.lockedIsos[device] = iso; camera.setLockedIso(iso) } } }",
+      "note": "Swift device.observe(\\.x) { [weak self] _, _ in DispatchQueue.main.async { ... } } on one line."
+    },
+    {
+      "id": "HKVO.10",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun Model.startObservingExposure",
+      "op": "replace",
+      "old": "    Unit",
+      "new": "    camera.exposureObservation = device.device.observe(AVCaptureDevice::exposureDuration) { _, _ -> mainScope.launch { if (!camera.editingLockedExposure) { val exposure = factorFromExposure(device = device.device, exposure = device.device.exposureDuration); camera.lockedExposures[device] = exposure; camera.setLockedExposure(exposure); camera.setExposure(device.device.exposureDuration) } } }",
+      "note": "Swift device.observe(\\.x) { [weak self] _, _ in DispatchQueue.main.async { ... } } on one line."
+    },
+    {
+      "id": "HKVO.11",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun Model.startObservingWhiteBalance",
+      "op": "replace",
+      "old": "    Unit",
+      "new": "    camera.whiteBalanceObservation = device.device.observe(AVCaptureDevice::deviceWhiteBalanceGains) { _, _ -> mainScope.launch { if (!camera.editingLockedWhiteBalance) { val factor = factorFromWhiteBalance(device = device.device, gains = device.device.deviceWhiteBalanceGains.clamped(maxGain = device.device.maxWhiteBalanceGain)); camera.lockedWhiteBalances[device] = factor; camera.setLockedWhiteBalance(factor) } } }",
+      "note": "Swift device.observe(\\.x) { [weak self] _, _ in DispatchQueue.main.async { ... } } on one line."
+    },
+    {
+      "id": "HKVO.12",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun Model.setManualExposureAndIso",
+      "op": "replace",
+      "old": "        iso = device.device.iso",
+      "new": "        iso = AVCaptureDevice.currentISO",
+      "note": "Swift AVCaptureDevice.currentISO."
+    },
+    {
+      "id": "HKVO.13",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun Model.setManualExposureAndIso",
+      "op": "replace",
+      "old": "        exposure = device.device.exposureDuration",
+      "new": "        exposure = AVCaptureDevice.currentExposureDuration",
+      "note": "Swift AVCaptureDevice.currentExposureDuration."
+    }
+  ]
+}

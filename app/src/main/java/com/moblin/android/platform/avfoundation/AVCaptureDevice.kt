@@ -1,16 +1,24 @@
 package com.moblin.android.platform.avfoundation
 
 import android.graphics.PointF
+import android.hardware.camera2.CaptureResult
+import android.hardware.camera2.params.RggbChannelVector
 import android.media.AudioDeviceInfo
 import android.util.Log
 import android.util.Size
+import com.moblin.android.media.kCMTimeInvalidUs
 import com.moblin.android.platform.capture.AudioCaptureBridge
 import com.moblin.android.platform.capture.Camera2Engine
 import com.moblin.android.platform.capture.CameraCatalog
 import com.moblin.android.platform.capture.CameraFormats
 import com.moblin.android.platform.core.HostClock
+import com.moblin.android.platform.core.KeyValueObservers
+import com.moblin.android.platform.core.NSKeyValueObservation
+import com.moblin.android.platform.core.NSKeyValueObservedChange
+import com.moblin.android.platform.core.NSKeyValueObservingOptions
 import kotlin.math.abs
 import kotlin.math.pow
+import kotlin.reflect.KProperty1
 
 private const val TAG = "MoblinCamera"
 
@@ -159,6 +167,19 @@ class AVCaptureDevice private constructor(
     private var rampGeneration = 0L
     private var rampTarget = 1f
     private var rampRate = 0f
+    private val observers = KeyValueObservers(this)
+
+    @Volatile
+    private var resultLensPosition = Float.NaN
+
+    @Volatile
+    private var resultIso = Float.NaN
+
+    @Volatile
+    private var resultExposureDuration = kCMTimeInvalidUs
+
+    @Volatile
+    private var resultWhiteBalanceGains: WhiteBalanceGains? = null
 
     val formats: List<Format> by lazy {
         val entry = camera ?: return@lazy emptyList()
@@ -322,10 +343,20 @@ class AVCaptureDevice private constructor(
     var exposurePointOfInterest: PointF = PointF(0.5f, 0.5f)
 
     val iso: Float
-        get() = 100f.coerceIn(activeFormat.minISO, maxOf(activeFormat.minISO, activeFormat.maxISO))
+        get() {
+            val value = resultIso
+            if (!value.isNaN()) {
+                return value
+            }
+            return 100f.coerceIn(activeFormat.minISO, maxOf(activeFormat.minISO, activeFormat.maxISO))
+        }
 
     val exposureDuration: Long
         get() {
+            val value = resultExposureDuration
+            if (value != kCMTimeInvalidUs) {
+                return value
+            }
             val frameDuration = activeVideoMaxFrameDuration
             val duration = if (frameDuration > 0) minOf(frameDuration, 1_000_000L / 60) else 1_000_000L / 60
             return duration.coerceIn(
@@ -368,7 +399,11 @@ class AVCaptureDevice private constructor(
 
     val isLockingFocusWithCustomLensPositionSupported = false
 
-    val lensPosition: Float = 1f
+    val lensPosition: Float
+        get() {
+            val value = resultLensPosition
+            return if (value.isNaN()) 1f else value
+        }
 
     val isSmoothAutoFocusSupported = false
 
@@ -385,7 +420,8 @@ class AVCaptureDevice private constructor(
     val maxWhiteBalanceGain: Float = 4f
 
     val deviceWhiteBalanceGains: WhiteBalanceGains
-        get() = deviceWhiteBalanceGains(WhiteBalanceTemperatureAndTintValues(temperature = 5000f, tint = 0f))
+        get() = resultWhiteBalanceGains
+            ?: deviceWhiteBalanceGains(WhiteBalanceTemperatureAndTintValues(temperature = 5000f, tint = 0f))
 
     val grayWorldDeviceWhiteBalanceGains: WhiteBalanceGains
         get() = deviceWhiteBalanceGains
@@ -460,7 +496,9 @@ class AVCaptureDevice private constructor(
     fun isExposureModeSupported(mode: ExposureMode): Boolean = mode == ExposureMode.continuousAutoExposure
 
     fun setExposureModeCustom(duration: Long, iso: Float, completionHandler: ((Long) -> Unit)? = null) {
-        logNotImplemented("setExposureModeCustom duration=$duration iso=$iso")
+        val exposure = if (duration == currentExposureDuration) exposureDuration else duration
+        val sensitivity = if (iso == currentISO) this.iso else iso
+        logNotImplemented("setExposureModeCustom duration=$exposure iso=$sensitivity")
         completionHandler?.invoke(HostClock.nowUs())
     }
 
@@ -506,7 +544,78 @@ class AVCaptureDevice private constructor(
         completionHandler?.invoke(HostClock.nowUs(), null)
     }
 
+    fun <Value> observe(
+        keyPath: KProperty1<AVCaptureDevice, Value>,
+        options: Set<NSKeyValueObservingOptions> = emptySet(),
+        changeHandler: (AVCaptureDevice, NSKeyValueObservedChange<Value>) -> Unit,
+    ): NSKeyValueObservation {
+        if (keyPath.name !in observableKeys) {
+            Log.i(TAG, "AVCaptureDevice.${keyPath.name} is not observable")
+        }
+        return observers.observe(keyPath, options, changeHandler)
+    }
+
     override fun toString(): String = localizedName
+
+    internal fun captureCompleted(result: CaptureResult) {
+        val entry = camera ?: return
+        val distance = result.get(CaptureResult.LENS_FOCUS_DISTANCE)
+        if (distance != null && !distance.isNaN()) {
+            val oldValue = lensPosition
+            val newValue = entry.lensPosition(focusDistance = distance)
+            resultLensPosition = newValue
+            if (newValue != oldValue && observers.isObserved) {
+                observers.didChangeValue(AVCaptureDevice::lensPosition, oldValue, newValue)
+            }
+        }
+        val sensitivity = result.get(CaptureResult.SENSOR_SENSITIVITY)
+        if (sensitivity != null) {
+            val oldValue = iso
+            val newValue = sensitivity.toFloat()
+            resultIso = newValue
+            if (newValue != oldValue && observers.isObserved) {
+                observers.didChangeValue(AVCaptureDevice::iso, oldValue, newValue)
+            }
+        }
+        val exposureTime = result.get(CaptureResult.SENSOR_EXPOSURE_TIME)
+        if (exposureTime != null && exposureTime > 0) {
+            val oldValue = exposureDuration
+            val newValue = exposureTime / 1000
+            resultExposureDuration = newValue
+            if (newValue != oldValue && observers.isObserved) {
+                observers.didChangeValue(AVCaptureDevice::exposureDuration, oldValue, newValue)
+            }
+        }
+        val gains = result.get(CaptureResult.COLOR_CORRECTION_GAINS)
+        if (gains != null) {
+            whiteBalanceGainsCompleted(gains)
+        }
+    }
+
+    private fun whiteBalanceGainsCompleted(gains: RggbChannelVector) {
+        val green = (gains.greenEven + gains.greenOdd) / 2
+        val minimum = minOf(gains.red, green, gains.blue)
+        if (!(minimum > 0f)) {
+            return
+        }
+        val redGain = gains.red / minimum
+        val greenGain = green / minimum
+        val blueGain = gains.blue / minimum
+        val current = resultWhiteBalanceGains
+        if (current != null &&
+            current.redGain == redGain &&
+            current.greenGain == greenGain &&
+            current.blueGain == blueGain
+        ) {
+            return
+        }
+        val oldValue = current ?: deviceWhiteBalanceGains
+        val newValue = WhiteBalanceGains(redGain = redGain, greenGain = greenGain, blueGain = blueGain)
+        resultWhiteBalanceGains = newValue
+        if (newValue != oldValue && observers.isObserved) {
+            observers.didChangeValue(AVCaptureDevice::deviceWhiteBalanceGains, oldValue, newValue)
+        }
+    }
 
     internal fun cameraZoomRatio(): Float {
         val entry = camera ?: return 1f
@@ -559,6 +668,9 @@ class AVCaptureDevice private constructor(
     }
 
     companion object {
+        const val currentISO = 0f
+        const val currentExposureDuration = kCMTimeInvalidUs
+        private val observableKeys = setOf("lensPosition", "iso", "exposureDuration", "deviceWhiteBalanceGains")
         private val devicesLock = Any()
         private val videoDevices = HashMap<String, AVCaptureDevice>()
         private val audioDevices = HashMap<String, AVCaptureDevice>()

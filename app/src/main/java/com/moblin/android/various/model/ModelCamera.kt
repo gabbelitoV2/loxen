@@ -35,8 +35,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import android.media.MediaFormat
 import com.moblin.android.various.utils.name
+import kotlinx.coroutines.launch
+import com.moblin.android.platform.core.NSKeyValueObservation
 
 private const val LOG_TAG = "Model"
+private val mainScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main)
 
 typealias CameraId = String
 
@@ -70,18 +73,18 @@ class CameraState {
     val isFocusesLocked: MutableMap<CaptureDevice, Boolean> = mutableMapOf()
     val lockedFocuses: MutableMap<CaptureDevice, Float> = mutableMapOf()
     var editingLockedFocus = false
-    var focusObservation: Any? = null
+    var focusObservation: NSKeyValueObservation? by NSKeyValueObservation.holder()
     val isExposuresAndIsosLocked: MutableMap<CaptureDevice, Boolean> = mutableMapOf()
     val lockedIsos: MutableMap<CaptureDevice, Float> = mutableMapOf()
     var editingLockedIso = false
-    var isoObservation: Any? = null
+    var isoObservation: NSKeyValueObservation? by NSKeyValueObservation.holder()
     val lockedExposures: MutableMap<CaptureDevice, Float> = mutableMapOf()
     var editingLockedExposure = false
-    var exposureObservation: Any? = null
+    var exposureObservation: NSKeyValueObservation? by NSKeyValueObservation.holder()
     val isWhiteBalancesLocked: MutableMap<CaptureDevice, Boolean> = mutableMapOf()
     val lockedWhiteBalances: MutableMap<CaptureDevice, Float> = mutableMapOf()
     var editingLockedWhiteBalance = false
-    var whiteBalanceObservation: Any? = null
+    var whiteBalanceObservation: NSKeyValueObservation? by NSKeyValueObservation.holder()
     val bias = MutableStateFlow(0.0f)
     val lockedFocus = MutableStateFlow(1.0f)
     val isFocusLocked = MutableStateFlow(false)
@@ -248,7 +251,7 @@ fun Model.isCameraSupportingManualFocus(): Boolean {
 fun Model.startObservingFocus() {
     val device = cameraDevice ?: return
     camera.setLockedFocus(device.device.lensPosition)
-    Unit
+    camera.focusObservation = device.device.observe(AVCaptureDevice::lensPosition) { _, _ -> mainScope.launch { if (!camera.editingLockedFocus) { camera.lockedFocuses[device] = device.device.lensPosition; camera.setLockedFocus(device.device.lensPosition) } } }
 }
 
 fun Model.stopObservingFocus() {
@@ -314,7 +317,7 @@ private fun Model.setManualExposureAndIso(exposureFactor: Float?, isoFactor: Flo
         iso = factorToIso(device = device.device, factor = isoFactor)
         camera.lockedIsos[device] = isoFactor
     } else {
-        iso = device.device.iso
+        iso = AVCaptureDevice.currentISO
         camera.lockedIsos[device] = factorFromIso(device = device.device, iso = device.device.iso)
     }
     if (exposureFactor != null) {
@@ -322,7 +325,7 @@ private fun Model.setManualExposureAndIso(exposureFactor: Float?, isoFactor: Flo
         camera.lockedExposures[device] = exposureFactor
         camera.setExposure(exposure)
     } else {
-        exposure = device.device.exposureDuration
+        exposure = AVCaptureDevice.currentExposureDuration
         camera.lockedExposures[device] = factorFromExposure(
             device = device.device,
             exposure = device.device.exposureDuration,
@@ -347,7 +350,7 @@ fun Model.setManualIso(factor: Float) {
 fun Model.startObservingIso() {
     val device = cameraDevice ?: return
     camera.setLockedIso(factorFromIso(device = device.device, iso = device.device.iso))
-    Unit
+    camera.isoObservation = device.device.observe(AVCaptureDevice::iso) { _, _ -> mainScope.launch { if (!camera.editingLockedIso) { val iso = factorFromIso(device = device.device, iso = device.device.iso); camera.lockedIsos[device] = iso; camera.setLockedIso(iso) } } }
 }
 
 fun Model.stopObservingIso() {
@@ -367,7 +370,7 @@ fun Model.startObservingExposure() {
     val device = cameraDevice ?: return
     camera.setLockedExposure(factorFromExposure(device = device.device, exposure = device.device.exposureDuration))
     camera.setExposure(device.device.exposureDuration)
-    Unit
+    camera.exposureObservation = device.device.observe(AVCaptureDevice::exposureDuration) { _, _ -> mainScope.launch { if (!camera.editingLockedExposure) { val exposure = factorFromExposure(device = device.device, exposure = device.device.exposureDuration); camera.lockedExposures[device] = exposure; camera.setLockedExposure(exposure); camera.setExposure(device.device.exposureDuration) } } }
 }
 
 fun Model.stopObservingExposure() {
@@ -439,7 +442,7 @@ fun Model.startObservingWhiteBalance() {
             gains = device.device.deviceWhiteBalanceGains.clamped(maxGain = device.device.maxWhiteBalanceGain),
         ),
     )
-    Unit
+    camera.whiteBalanceObservation = device.device.observe(AVCaptureDevice::deviceWhiteBalanceGains) { _, _ -> mainScope.launch { if (!camera.editingLockedWhiteBalance) { val factor = factorFromWhiteBalance(device = device.device, gains = device.device.deviceWhiteBalanceGains.clamped(maxGain = device.device.maxWhiteBalanceGain)); camera.lockedWhiteBalances[device] = factor; camera.setLockedWhiteBalance(factor) } } }
 }
 
 fun Model.stopObservingWhiteBalance() {

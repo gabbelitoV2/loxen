@@ -10,6 +10,7 @@ import android.hardware.camera2.CameraDevice
 import android.hardware.camera2.CameraMetadata
 import android.hardware.camera2.CaptureFailure
 import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.TotalCaptureResult
 import android.hardware.camera2.params.DynamicRangeProfiles
 import android.hardware.camera2.params.OutputConfiguration
 import android.hardware.camera2.params.SessionConfiguration
@@ -112,8 +113,30 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
     private var lastRotation = -1
     private var lastVideoOrientation = -1
     private var lastFrameErrorLogMs = 0L
+    private var lastResultErrorLogMs = 0L
 
     private val frameListener = SurfaceTexture.OnFrameAvailableListener { onFrameAvailable() }
+
+    private val captureCallback = object : CameraCaptureSession.CaptureCallback() {
+        override fun onCaptureCompleted(
+            completedSession: CameraCaptureSession,
+            request: CaptureRequest,
+            result: TotalCaptureResult,
+        ) {
+            if (isReleased) {
+                return
+            }
+            try {
+                device.captureCompleted(result)
+            } catch (error: Throwable) {
+                val nowMs = SystemClock.elapsedRealtime()
+                if (nowMs - lastResultErrorLogMs > 5000) {
+                    lastResultErrorLogMs = nowMs
+                    Log.e(TAG, "Capture result handling failed for camera $id", error)
+                }
+            }
+        }
+    }
 
     private val stateCallback = object : CameraDevice.StateCallback() {
         override fun onOpened(camera: CameraDevice) {
@@ -514,7 +537,7 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
             builder.addTarget(surface)
             val fpsRange = applyControls(builder)
             CaptureFrameRate.value = fpsRange.upper.toDouble()
-            captureSession.setRepeatingRequest(builder.build(), null, Camera2Engine.handler)
+            captureSession.setRepeatingRequest(builder.build(), captureCallback, Camera2Engine.handler)
             val size = bufferSize
             val description = "${size.width}x${size.height} @${fpsRange.upper} fps range [${fpsRange.lower},${fpsRange.upper}]"
             if (description != lastLoggedConfiguration) {
