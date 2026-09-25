@@ -558,6 +558,18 @@ def enum_entry_names(text, masked, line_offset):
     return names
 
 
+def strip_declaration_body(signature):
+    depth = 0
+    for index, character in enumerate(signature):
+        if character == "(":
+            depth += 1
+        elif character == ")":
+            depth -= 1
+        elif character == "{" and depth <= 0:
+            return signature[:index].rstrip()
+    return signature
+
+
 def signatures(path, limit=80):
     if not path.exists():
         return []
@@ -591,7 +603,7 @@ def signatures(path, limit=80):
         while signature.count("(") > signature.count(")") and index < len(lines):
             signature += " " + lines[index].strip()
             index += 1
-        signature = re.sub(r"\s*\{.*$", "", signature)
+        signature = strip_declaration_body(signature)
         result.append(signature)
         if ENUM_CLASS_RE.search(signature):
             if masked is None:

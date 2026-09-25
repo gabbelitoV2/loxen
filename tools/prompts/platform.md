@@ -3,6 +3,7 @@
 This file uses platform services that have Android counterparts. Use the counterpart, keep the same public API shape, and leave permission requests to the Activity layer.
 
 - CoreBluetooth (CBCentralManager, CBPeripheral, CBService, CBCharacteristic, CBDescriptor, CBUUID and their delegates) -> the same-named shims in com.moblin.android.platform.corebluetooth (see Platform API and the shim sections). Keep the Swift calls and delegate callbacks; never use android.bluetooth for them.
+- CryptoKit (SHA256, Insecure.SHA1, Insecure.MD5, HMAC, SymmetricKey, AES.GCM, P256.KeyAgreement, SharedSecret) -> the same-named shims in com.moblin.android.platform.cryptokit (see Platform API and the CryptoKit shim section). Keep the Swift calls; never use java.security or javax.crypto for them.
 - CoreLocation CLLocationManager -> android.location.LocationManager with requestLocationUpdates. Do not add Google Play Services dependencies.
 - Network.framework (NWConnection, NWListener, NWPathMonitor, NWPath, NWParameters, NWEndpoint, NWInterface, NWProtocolTLS, NWProtocolUDP) -> the same-named shims in com.moblin.android.platform.network (see Platform API and the shim sections). Keep the Swift handlers and calls; never use java.net sockets or Dispatchers.IO for them.
 - GameController -> android.view.InputDevice with KeyEvent and MotionEvent handling delegated to the Activity.
