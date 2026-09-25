@@ -1,30 +1,28 @@
 package com.moblin.android.various
 
-import android.Manifest
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Bundle
 import android.os.SystemClock
-import android.speech.RecognitionListener
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
 import android.util.Log
-import androidx.core.content.ContextCompat
 import com.moblin.android.media.MediaSample
+import com.moblin.android.platform.speech.SFSpeechAudioBufferRecognitionRequest
+import com.moblin.android.platform.speech.SFSpeechRecognitionTask
+import com.moblin.android.platform.speech.SFSpeechRecognizer
+import com.moblin.android.platform.speech.SFSpeechRecognizerAuthorizationStatus
+import com.moblin.android.platform.speech.SFSpeechRecognizerDelegate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
+private const val TAG = "SpeechToText"
 
 interface SpeechToTextDelegate {
     fun speechToTextPartialResult(position: Int, text: String)
     fun speechToTextClear()
 }
 
-class SpeechToText(private val context: Context) : RecognitionListener {
-    private var speechRecognizer: SpeechRecognizer? = null
-    private var recognitionRequest: Intent? = null
-    private var recognitionTask = false
+class SpeechToText : SFSpeechRecognizerDelegate {
+    private val speechRecognizer = SFSpeechRecognizer()
+    private var recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+    private var recognitionTask: SFSpeechRecognitionTask? = null
     var delegate: SpeechToTextDelegate? = null
     private var latestResultTime: Long = SystemClock.elapsedRealtimeNanos()
     private var hasResult = false
@@ -39,23 +37,20 @@ class SpeechToText(private val context: Context) : RecognitionListener {
         isStarted = true
         clearFrozenText()
         previousBestTranscription = ""
-        mainScope.launch {
-            if (speechRecognizer == null) {
-                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context).also {
-                    it.setRecognitionListener(this@SpeechToText)
+        speechRecognizer.delegate = this
+        SFSpeechRecognizer.requestAuthorization { authStatus ->
+            mainScope.launch {
+                when (authStatus) {
+                    SFSpeechRecognizerAuthorizationStatus.authorized ->
+                        startAuthorized()
+                    SFSpeechRecognizerAuthorizationStatus.denied ->
+                        onError("Speech recognition not allowed")
+                    SFSpeechRecognizerAuthorizationStatus.restricted ->
+                        onError("Speech recognition restricted on this device")
+                    SFSpeechRecognizerAuthorizationStatus.notDetermined ->
+                        onError("Speech recognition not yet authorized")
                 }
             }
-            if (!SpeechRecognizer.isRecognitionAvailable(context)) {
-                onError("Speech recognition not available on this device")
-                return@launch
-            }
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) !=
-                PackageManager.PERMISSION_GRANTED
-            ) {
-                onError("Speech recognition not allowed")
-                return@launch
-            }
-            startAuthorized()
         }
     }
 
@@ -65,8 +60,8 @@ class SpeechToText(private val context: Context) : RecognitionListener {
     }
 
     private fun stopInternal() {
-        speechRecognizer?.cancel()
-        recognitionTask = false
+        recognitionTask?.cancel()
+        recognitionTask = null
         hasResult = false
         running = false
     }
@@ -75,7 +70,7 @@ class SpeechToText(private val context: Context) : RecognitionListener {
         if (!running) {
             return
         }
-        Unit
+        recognitionRequest.appendAudioSampleBuffer(sampleBuffer)
     }
 
     fun tick(now: Long) {
@@ -84,7 +79,7 @@ class SpeechToText(private val context: Context) : RecognitionListener {
         }
         if (hasResult && now - latestResultTime > 2_000_000_000L) {
             running = false
-            speechRecognizer?.stopListening()
+            recognitionRequest.endAudio()
         }
         if (now - latestResultTime > 5_000_000_000L) {
             if (frozenText.isNotEmpty()) {
@@ -116,64 +111,35 @@ class SpeechToText(private val context: Context) : RecognitionListener {
         }
         hasResult = false
         running = true
-        val request = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-            putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
+        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+        recognitionRequest.shouldReportPartialResults = true
+        recognitionRequest.addsPunctuation = false
+        recognitionTask = speechRecognizer.recognitionTask(with = recognitionRequest) { result, error ->
+            if (error != null) {
+                Log.d(TAG, "speech-to-text: Error $error")
+                startRecognition()
+                return@recognitionTask
+            }
+            if (result == null) {
+                startRecognition()
+                return@recognitionTask
+            }
+            val text = result.bestTranscription.formattedString
+            if (result.isFinal) {
+                startRecognition()
+            } else {
+                delegate?.speechToTextPartialResult(
+                    position = frozenTextPosition,
+                    text = frozenText + text,
+                )
+                latestResultTime = SystemClock.elapsedRealtimeNanos()
+                hasResult = true
+            }
+            previousBestTranscription = text
         }
-        recognitionRequest = request
-        recognitionTask = true
-        speechRecognizer?.startListening(request)
     }
 
-    private fun bestTranscription(bundle: Bundle?): String? {
-        val results = bundle?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-        return results?.firstOrNull()
-    }
-
-    private fun handleRecognitionText(text: String, isFinal: Boolean) {
-        if (isFinal) {
-            startRecognition()
-        } else {
-            delegate?.speechToTextPartialResult(frozenTextPosition, frozenText + text)
-            latestResultTime = SystemClock.elapsedRealtimeNanos()
-            hasResult = true
-        }
-        previousBestTranscription = text
-    }
-
-    override fun onReadyForSpeech(params: Bundle?) {}
-
-    override fun onBeginningOfSpeech() {}
-
-    override fun onRmsChanged(rmsdB: Float) {}
-
-    override fun onBufferReceived(buffer: ByteArray?) {}
-
-    override fun onEndOfSpeech() {}
-
-    override fun onError(error: Int) {
-        Log.d("SpeechToText", "speech-to-text: Error $error")
-        startRecognition()
-    }
-
-    override fun onResults(results: Bundle?) {
-        val text = bestTranscription(results)
-        if (text == null) {
-            startRecognition()
-            return
-        }
-        handleRecognitionText(text, true)
-    }
-
-    override fun onPartialResults(partialResults: Bundle?) {
-        val text = bestTranscription(partialResults) ?: return
-        handleRecognitionText(text, false)
-    }
-
-    override fun onEvent(eventType: Int, params: Bundle?) {}
-
-    fun speechRecognizer(speechRecognizer: SpeechRecognizer, availabilityDidChange: Boolean) {
-        Log.i("SpeechToText", "speech-to-text: Available $availabilityDidChange")
+    override fun speechRecognizer(speechRecognizer: SFSpeechRecognizer, availabilityDidChange: Boolean) {
+        Log.i(TAG, "speech-to-text: Available $availabilityDidChange")
     }
 }
