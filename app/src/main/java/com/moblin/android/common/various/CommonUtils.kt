@@ -277,12 +277,12 @@ fun formatDistance(distance: Double): String {
     return createDistanceFormatter().string(fromMeters = distance)
 }
 
-fun ThermalState.string(): String {
+fun com.moblin.android.platform.core.ProcessInfo.ThermalState.string(): String {
     return when (this) {
-        ThermalState.NOMINAL -> "nominal"
-        ThermalState.FAIR -> "fair"
-        ThermalState.SERIOUS -> "serious"
-        ThermalState.CRITICAL -> "critical"
+        com.moblin.android.platform.core.ProcessInfo.ThermalState.nominal -> "nominal"
+        com.moblin.android.platform.core.ProcessInfo.ThermalState.fair -> "fair"
+        com.moblin.android.platform.core.ProcessInfo.ThermalState.serious -> "serious"
+        com.moblin.android.platform.core.ProcessInfo.ThermalState.critical -> "critical"
         else -> "unknown"
     }
 }
@@ -400,12 +400,12 @@ fun ULong.formatBytes(): String {
     return sizeFormatter.string(fromByteCount = toLong())
 }
 
-fun ThermalState.color(): Color {
+fun com.moblin.android.platform.core.ProcessInfo.ThermalState.color(): Color {
     return when (this) {
-        ThermalState.NOMINAL -> Color.White
-        ThermalState.FAIR -> Color.White
-        ThermalState.SERIOUS -> Color.Yellow
-        ThermalState.CRITICAL -> Color.Red
+        com.moblin.android.platform.core.ProcessInfo.ThermalState.nominal -> Color.White
+        com.moblin.android.platform.core.ProcessInfo.ThermalState.fair -> Color.White
+        com.moblin.android.platform.core.ProcessInfo.ThermalState.serious -> Color.Yellow
+        com.moblin.android.platform.core.ProcessInfo.ThermalState.critical -> Color.Red
         else -> Color(0xFFFFC0CB)
     }
 }

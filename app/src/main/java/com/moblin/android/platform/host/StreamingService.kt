@@ -13,6 +13,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import com.moblin.android.AppDelegate
 import com.moblin.android.platform.capture.Camera2Engine
 
 class StreamingService : Service() {
@@ -20,35 +21,26 @@ class StreamingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        instance = this
+        synchronized(lock) {
+            instance = this
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val types = intent?.getIntExtra(EXTRA_TYPES, 0) ?: 0
-        try {
-            synchronized(lock) {
-                val notification = activityNotification ?: makeNotification(this)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && types != 0) {
-                    startForeground(NOTIFICATION_ID, notification, types)
-                } else {
-                    startForeground(NOTIFICATION_ID, notification)
-                }
-                isForeground = true
-            }
-            isRunning = true
-            Camera2Engine.isForegroundServiceRunning = (types and ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA) != 0 ||
-                Build.VERSION.SDK_INT < Build.VERSION_CODES.R
-            Log.i(TAG, "Foreground service started with types $types")
-        } catch (error: Throwable) {
-            Log.e(TAG, "Failed to start foreground service", error)
-            synchronized(lock) {
-                isForeground = false
-            }
-            isRunning = false
-            Camera2Engine.isForegroundServiceRunning = false
+        if (!enterForeground(fallbackTypes = intent?.getIntExtra(EXTRA_TYPES, 0) ?: 0)) {
             stopSelf()
+            return START_NOT_STICKY
+        }
+        isRunning = true
+        if (intent?.getBooleanExtra(EXTRA_REQUESTED, false) == true) {
+            stopWhenUnneeded(this)
         }
         return START_NOT_STICKY
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        SystemEvents.applicationTaskRemoved(applicationContext)
     }
 
     override fun onDestroy() {
@@ -64,15 +56,45 @@ class StreamingService : Service() {
         super.onDestroy()
     }
 
+    private fun enterForeground(fallbackTypes: Int = 0): Boolean {
+        return try {
+            synchronized(lock) {
+                val types = foregroundTypes().takeIf { it != 0 } ?: fallbackTypes
+                val notification = activityNotification ?: makeNotification(this, types)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && types != 0) {
+                    startForeground(NOTIFICATION_ID, notification, types)
+                } else {
+                    startForeground(NOTIFICATION_ID, notification)
+                }
+                isForeground = true
+                Camera2Engine.isForegroundServiceRunning =
+                    (types and ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA) != 0 ||
+                    (Build.VERSION.SDK_INT < Build.VERSION_CODES.R && Reason.streaming in reasons)
+                Log.i(TAG, "Foreground service started with types $types for ${reasons.keys}")
+            }
+            true
+        } catch (error: Throwable) {
+            Log.e(TAG, "Failed to start foreground service", error)
+            false
+        }
+    }
+
+    private enum class Reason {
+        streaming,
+        background,
+    }
+
     companion object {
         private const val TAG = "StreamingService"
         internal const val CHANNEL_ID = "moblin-streaming"
         internal const val NOTIFICATION_ID = 4711
+        private const val EXTRA_REQUESTED = "requested"
         private const val EXTRA_TYPES = "types"
         private val lock = Any()
         private var instance: StreamingService? = null
         private var isForeground = false
         private var activityNotification: Notification? = null
+        private val reasons = mutableMapOf<Reason, Int>()
 
         @Volatile
         var isRunning = false
@@ -93,11 +115,26 @@ class StreamingService : Service() {
             return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
         }
 
-        private fun makeNotification(context: Context): Notification {
+        private fun foregroundTypes(): Int {
+            return reasons.values.fold(0) { types, reasonTypes -> types or reasonTypes }
+        }
+
+        private fun makeNotification(context: Context, types: Int): Notification {
             createNotificationChannel(context)
+            val captureTypes = ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+            val background = when {
+                Reason.streaming in reasons -> false
+                Reason.background in reasons -> true
+                else -> types != 0 && (types and captureTypes) == 0
+            }
+            val text = if (background) {
+                "Running in background"
+            } else {
+                "Live or recording"
+            }
             val builder = Notification.Builder(context, CHANNEL_ID)
                 .setContentTitle("Moblin")
-                .setContentText("Live or recording")
+                .setContentText(text)
                 .setSmallIcon(android.R.drawable.presence_video_online)
                 .setOngoing(true)
                 .setCategory(Notification.CATEGORY_SERVICE)
@@ -115,7 +152,7 @@ class StreamingService : Service() {
                 val manager = createNotificationChannel(context) ?: return
                 when {
                     ongoing != null -> manager.notify(NOTIFICATION_ID, ongoing)
-                    isForeground -> manager.notify(NOTIFICATION_ID, makeNotification(context))
+                    isForeground -> manager.notify(NOTIFICATION_ID, makeNotification(context, foregroundTypes()))
                     notification != null -> manager.notify(NOTIFICATION_ID, notification)
                     else -> manager.cancel(NOTIFICATION_ID)
                 }
@@ -131,22 +168,97 @@ class StreamingService : Service() {
         }
 
         fun start(context: Context) {
-            val types = foregroundServiceTypes(context)
+            val types = streamingTypes(context)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && types == 0) {
                 Log.i(TAG, "Not starting foreground service without camera or microphone permission")
                 return
             }
-            val intent = Intent(context, StreamingService::class.java).putExtra(EXTRA_TYPES, types)
-            try {
-                context.startForegroundService(intent)
-            } catch (error: Throwable) {
-                Log.e(TAG, "Failed to start foreground service", error)
-            }
+            request(context, Reason.streaming, types)
         }
 
         fun stop(context: Context) {
+            release(context, Reason.streaming)
+        }
+
+        fun startBackground(
+            chat: Boolean,
+            printing: Boolean,
+            moblinkRelay: Boolean,
+            context: Context = AppDelegate.context,
+        ) {
+            if (!chat && !printing && !moblinkRelay) {
+                return
+            }
+            request(context, Reason.background, backgroundTypes(chat, printing, moblinkRelay))
+        }
+
+        fun stopBackground(context: Context = AppDelegate.context) {
+            release(context, Reason.background)
+        }
+
+        internal fun stopAll(context: Context) {
             synchronized(lock) {
-                if (isForeground && activityNotification != null) {
+                reasons.clear()
+                activityNotification = null
+            }
+            stopWhenUnneeded(context)
+            context.getSystemService(NotificationManager::class.java)?.cancel(NOTIFICATION_ID)
+        }
+
+        internal fun backgroundTypes(chat: Boolean, printing: Boolean, moblinkRelay: Boolean): Int {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                return 0
+            }
+            var types = 0
+            if (printing || moblinkRelay) {
+                types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+            }
+            if (chat) {
+                types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
+            }
+            return types
+        }
+
+        private fun request(context: Context, reason: Reason, types: Int) {
+            val running = synchronized(lock) {
+                reasons[reason] = types
+                instance?.takeIf { isForeground }
+            }
+            if (running != null) {
+                running.enterForeground()
+                return
+            }
+            val intent = Intent(context, StreamingService::class.java)
+                .putExtra(EXTRA_REQUESTED, true)
+                .putExtra(EXTRA_TYPES, types)
+            try {
+                context.startForegroundService(intent)
+            } catch (error: Throwable) {
+                Log.e(TAG, "Failed to start foreground service for $reason", error)
+                synchronized(lock) {
+                    reasons.remove(reason)
+                }
+            }
+        }
+
+        private fun release(context: Context, reason: Reason) {
+            val running = synchronized(lock) {
+                reasons.remove(reason)
+                instance?.takeIf { isForeground && reasons.isNotEmpty() }
+            }
+            if (running != null) {
+                running.enterForeground()
+            } else {
+                stopWhenUnneeded(context)
+            }
+        }
+
+        private fun stopWhenUnneeded(context: Context) {
+            synchronized(lock) {
+                if (reasons.isNotEmpty() || !isForeground) {
+                    return
+                }
+                if (activityNotification != null) {
                     instance?.stopForeground(Service.STOP_FOREGROUND_DETACH)
                 }
                 isForeground = false
@@ -158,7 +270,7 @@ class StreamingService : Service() {
             }
         }
 
-        private fun foregroundServiceTypes(context: Context): Int {
+        private fun streamingTypes(context: Context): Int {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
                 return 0
             }

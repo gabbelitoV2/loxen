@@ -113,13 +113,24 @@ object AndroidHost {
             combine(model.isLive, model.isRecording) { isLive, isRecording -> isLive || isRecording }
                 .distinctUntilChanged()
                 .collect { active ->
-                    if (active) {
-                        StreamingService.start(AppDelegate.context)
-                    } else {
-                        StreamingService.stop(AppDelegate.context)
-                    }
+                    streamingStateChanged(model, active)
                 }
         }
+    }
+
+    internal fun streamingStateChanged(model: Model, active: Boolean) {
+        if (active) {
+            StreamingService.start(AppDelegate.context)
+            return
+        }
+        if (SystemEvents.isInBackground && model.stream.value.backgroundStreaming) {
+            StreamingService.startBackground(
+                chat = model.database.chat.background,
+                printing = model.database.catPrinters.backgroundPrinting.value,
+                moblinkRelay = model.database.moblink.relay.enabled.value,
+            )
+        }
+        StreamingService.stop(AppDelegate.context)
     }
 
     private fun onCameraPermissionGranted() {

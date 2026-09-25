@@ -4,7 +4,7 @@ import android.media.MediaPlayer
 import com.moblin.android.various.settings.SettingsQuickButtonType
 
 fun Model.isChatPhone(): Boolean {
-    return database.appMode.toString() == "chatPhone"
+    return database.appMode == com.moblin.android.various.settings.SettingsAppMode.chatPhone
 }
 
 fun Model.isQuickButtonAllowed(type: SettingsQuickButtonType): Boolean {
@@ -82,6 +82,7 @@ fun Model.startChatPhoneBackgroundAudio() {
 }
 
 fun Model.stopChatPhoneBackgroundAudio() {
+    com.moblin.android.platform.host.StreamingService.stopBackground()
     chatPhoneBackgroundAudioPlayer?.stop()
     chatPhoneBackgroundAudioPlayer = null
 }

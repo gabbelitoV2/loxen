@@ -300,7 +300,7 @@ class Battery {
 
 class StatusOther {
     val ipStatuses = MutableStateFlow<List<IPMonitor.Status>>(emptyList())
-    val thermalState = MutableStateFlow(MoblinkThermalState.white)
+    val thermalState = MutableStateFlow(com.moblin.android.platform.core.ProcessInfo.processInfo.thermalState)
     val digitalClock = MutableStateFlow(noValue)
 
     fun isConnectedToIpv4WiFi(): Boolean = ipStatuses.value.any {
@@ -1677,6 +1677,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             is BackgroundRunLevel.Service -> {
                 startLiveActivity()
                 inServiceBackground = true
+                com.moblin.android.platform.host.StreamingService.startBackground(chat = database.chat.background, printing = database.catPrinters.backgroundPrinting.value, moblinkRelay = database.moblink.relay.enabled.value)
                 disableScreenPreview()
                 stopPeriodicTimers(
                     keepChatRunning = level.keepChatRunning,
@@ -1996,7 +1997,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         updateRemoteControlAssistantStatus()
         if (isWatchLocal()) {
             sendThermalStateToWatch(
-                thermalState = ThermalState.from(statusOther.thermalState.value.ordinal),
+                thermalState = statusOther.thermalState.value,
             )
         }
         teslaGetMediaState()
@@ -2849,7 +2850,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     private fun setupThermalState() {
         updateThermalState()
-        addObserver("ProcessInfo.thermalStateDidChangeNotification", "handleThermalStateDidChange")
+        com.moblin.android.platform.core.NotificationCenter.default.addObserver(this, com.moblin.android.platform.core.ProcessInfo.thermalStateDidChangeNotification, null) { handleThermalStateDidChange() }
     }
 
     fun handleThermalStateDidChange() {
@@ -2864,18 +2865,18 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             statusOther.thermalState.value = state
         }
         streamingHistoryStream?.updateHighestThermalState(
-            thermalState = ThermalState.from(state.ordinal),
+            thermalState = ThermalState.from(from = state),
         )
         if (isWatchLocal()) {
-            sendThermalStateToWatch(thermalState = ThermalState.from(state.ordinal))
+            sendThermalStateToWatch(thermalState = state)
         }
         Log.i("Model", "Thermal state: $state")
-        if (statusOther.thermalState.value == MoblinkThermalState.red) {
+        if (statusOther.thermalState.value == com.moblin.android.platform.core.ProcessInfo.ThermalState.critical) {
             makeFlameRedToast()
         }
     }
 
-    private fun getThermalState(): MoblinkThermalState = MoblinkThermalState.white
+    private fun getThermalState(): com.moblin.android.platform.core.ProcessInfo.ThermalState = com.moblin.android.platform.core.ProcessInfo.processInfo.thermalState
 
     fun detachCamera() {
         val params = VideoUnitAttachParams(

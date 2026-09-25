@@ -325,7 +325,7 @@ fun Model.startStream(delayed: Boolean = false) {
     streamingHistoryStream = historyStream
     historyStream.updateHighestThermalState(
         thermalState = ThermalState.entries.firstOrNull {
-            it.name.equals(statusOther.thermalState.value.rawValue, ignoreCase = true)
+            it == ThermalState.from(from = statusOther.thermalState.value)
         } ?: ThermalState.NOMINAL,
     )
     historyStream.updateLowestBatteryLevel(level = battery.level.value)

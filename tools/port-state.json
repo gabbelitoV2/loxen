@@ -9141,25 +9141,23 @@
   "Common/View/ThermalStateView.swift": {
     "status": "ok",
     "sha256": "377fd016cb8f11edfb11d1a10aa4bccc65a839508732965e5ef9337c7334ab2c",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/common/view/ThermalStateView.kt",
     "notes": [
-      "SwiftUI's ThermalStateView becomes a @Composable with the same name taking the ported ThermalState from com.moblin.android.various.storages.",
-      "Image(systemName: \"flame\") maps to Icon(Icons.Default.LocalFireDepartment, contentDescription = null); that icon lives in material-icons-extended, so add that artifact if it is not already a dependency.",
-      ".font(.system(size: 11)) has no text style on an Icon, so it becomes Modifier.size(11.dp) on the icon.",
-      ".foregroundStyle(thermalState.color()) becomes the icon's tint parameter.",
-      "The Swift .color() extension on ProcessInfo.ThermalState is not declared in this file, so it is declared here as a top-level extension function ThermalState.color(): Color in com.moblin.android.common.view; remove it if the port declares it elsewhere to avoid a duplicate declaration.",
-      "The when branches assume the ported ThermalState enum mirrors ProcessInfo.ThermalState with nominal/fair/serious/critical constants; adjust the constant names if the storage type uses Android thermal status names.",
-      "No state, bindings or lifecycle modifiers are used, so the composable is stateless and recomposes only when thermalState changes."
+      "ThermalStateView is a SwiftUI struct: it becomes a @Composable function with the same name, an extra trailing Modifier parameter and thermalState kept first.",
+      "Image(systemName: \"flame\") with .font(.system(size: 11)) and .foregroundStyle(...) is the platform SystemImage composable with fontSize = 11.sp and tint = thermalState.color().",
+      "ProcessInfo.ThermalState comes from com.moblin.android.platform.core and keeps its Swift case names (nominal, fair, serious, critical).",
+      "thermalState.color() is the existing Kotlin extension fun ProcessInfo.ThermalState.color(): Color; it is imported from the same com.moblin.android.common.view package as this view."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2527,
-    "tokens_out": 2522,
-    "seconds": 10.8,
-    "ported_at": "2026-09-22T13:23:11+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 34510,
+    "tokens_out": 2939,
+    "seconds": 13.9,
+    "ported_at": "2026-09-25T10:18:37+00:00"
   },
   "Common/Various/AudioLevel.swift": {
     "status": "ok",

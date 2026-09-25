@@ -1,0 +1,283 @@
+{
+  "task": "THERM",
+  "hooks": [
+    {
+      "id": "HTHERM.1",
+      "file": "various/model/Model.kt",
+      "scope": "class StatusOther",
+      "op": "replace",
+      "old": "    val thermalState = MutableStateFlow(MoblinkThermalState.white)",
+      "new": "    val thermalState = MutableStateFlow(com.moblin.android.platform.core.ProcessInfo.processInfo.thermalState)",
+      "note": "Swift @Published var thermalState = ProcessInfo.processInfo.thermalState; the translation used MoblinkThermalState, so the flame never left white."
+    },
+    {
+      "id": "HTHERM.2",
+      "file": "various/model/Model.kt",
+      "scope": "fun setupThermalState",
+      "op": "replace",
+      "old": "        addObserver(\"ProcessInfo.thermalStateDidChangeNotification\", \"handleThermalStateDidChange\")",
+      "new": "        com.moblin.android.platform.core.NotificationCenter.default.addObserver(this, com.moblin.android.platform.core.ProcessInfo.thermalStateDidChangeNotification, null) { handleThermalStateDidChange() }",
+      "note": "Swift addObserver(ProcessInfo.thermalStateDidChangeNotification, #selector(handleThermalStateDidChange)). The generated Model.addObserver(name, selector) does nothing; ProcessInfo posts the notification from PowerManager's thermal status listener."
+    },
+    {
+      "id": "HTHERM.3",
+      "file": "various/model/Model.kt",
+      "scope": "fun getThermalState",
+      "op": "replace",
+      "old": "    private fun getThermalState(): MoblinkThermalState = MoblinkThermalState.white",
+      "new": "    private fun getThermalState(): com.moblin.android.platform.core.ProcessInfo.ThermalState = com.moblin.android.platform.core.ProcessInfo.processInfo.thermalState",
+      "note": "Swift let state = ProcessInfo.processInfo.thermalState in updateThermalState(); the translation read it through this helper that always returned white."
+    },
+    {
+      "id": "HTHERM.4",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateThermalState",
+      "op": "replace",
+      "old": "            thermalState = ThermalState.from(state.ordinal),",
+      "new": "            thermalState = ThermalState.from(from = state),",
+      "note": "Swift ThermalState(from: state), the streaming history's thermal state for a ProcessInfo.ThermalState."
+    },
+    {
+      "id": "HTHERM.5",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateThermalState",
+      "op": "replace",
+      "old": "            sendThermalStateToWatch(thermalState = ThermalState.from(state.ordinal))",
+      "new": "            sendThermalStateToWatch(thermalState = state)",
+      "note": "Swift sendThermalStateToWatch(thermalState: state) takes the ProcessInfo.ThermalState."
+    },
+    {
+      "id": "HTHERM.6",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateThermalState",
+      "op": "replace",
+      "old": "        if (statusOther.thermalState.value == MoblinkThermalState.red) {",
+      "new": "        if (statusOther.thermalState.value == com.moblin.android.platform.core.ProcessInfo.ThermalState.critical) {",
+      "note": "Swift if statusOther.thermalState == .critical { makeFlameRedToast() }."
+    },
+    {
+      "id": "HTHERM.7",
+      "file": "various/model/Model.kt",
+      "scope": "fun handle5sTimer",
+      "op": "replace",
+      "old": "                thermalState = ThermalState.from(statusOther.thermalState.value.ordinal),",
+      "new": "                thermalState = statusOther.thermalState.value,",
+      "note": "Swift sendThermalStateToWatch(thermalState: statusOther.thermalState)."
+    },
+    {
+      "id": "HTHERM.8",
+      "file": "various/model/ModelAppleWatch.kt",
+      "scope": "fun sendThermalStateToWatch",
+      "op": "replace",
+      "old": "fun Model.sendThermalStateToWatch(thermalState: ThermalState) {",
+      "new": "fun Model.sendThermalStateToWatch(thermalState: com.moblin.android.platform.core.ProcessInfo.ThermalState) {",
+      "note": "Swift func sendThermalStateToWatch(thermalState: ProcessInfo.ThermalState)."
+    },
+    {
+      "id": "HTHERM.9",
+      "file": "various/model/ModelStream.kt",
+      "scope": "fun startStream",
+      "op": "replace",
+      "old": "            it.name.equals(statusOther.thermalState.value.rawValue, ignoreCase = true)",
+      "new": "            it == ThermalState.from(from = statusOther.thermalState.value)",
+      "note": "Swift updateHighestThermalState(thermalState: ThermalState(from: statusOther.thermalState)); the translation compared a name with MoblinkThermalState's raw value and always recorded nominal."
+    },
+    {
+      "id": "HTHERM.10",
+      "file": "various/storages/StreamingHistory.kt",
+      "scope": "class ThermalState",
+      "op": "insert_after",
+      "anchor": "    companion object {",
+      "new": "        fun from(from: com.moblin.android.platform.core.ProcessInfo.ThermalState): ThermalState = entries.first { it.rawValue == from.rawValue }",
+      "note": "Swift init(from: ProcessInfo.ThermalState), a one to one mapping of the four states; the translated from(Int) takes PowerManager constants instead."
+    },
+    {
+      "id": "HTHERM.11",
+      "file": "various/storages/StreamingHistory.kt",
+      "scope": "fun toProcessInfo",
+      "op": "replace",
+      "old": "    fun toProcessInfo(): Int {",
+      "new": "    fun toProcessInfo(): com.moblin.android.platform.core.ProcessInfo.ThermalState {",
+      "note": "Swift func toProcessInfo() -> ProcessInfo.ThermalState."
+    },
+    {
+      "id": "HTHERM.12",
+      "file": "various/storages/StreamingHistory.kt",
+      "scope": "fun toProcessInfo",
+      "op": "replace",
+      "old": "            NOMINAL -> PowerManager.THERMAL_STATUS_NONE",
+      "new": "            NOMINAL -> com.moblin.android.platform.core.ProcessInfo.ThermalState.nominal"
+    },
+    {
+      "id": "HTHERM.13",
+      "file": "various/storages/StreamingHistory.kt",
+      "scope": "fun toProcessInfo",
+      "op": "replace",
+      "old": "            FAIR -> PowerManager.THERMAL_STATUS_LIGHT",
+      "new": "            FAIR -> com.moblin.android.platform.core.ProcessInfo.ThermalState.fair"
+    },
+    {
+      "id": "HTHERM.14",
+      "file": "various/storages/StreamingHistory.kt",
+      "scope": "fun toProcessInfo",
+      "op": "replace",
+      "old": "            SERIOUS -> PowerManager.THERMAL_STATUS_MODERATE",
+      "new": "            SERIOUS -> com.moblin.android.platform.core.ProcessInfo.ThermalState.serious"
+    },
+    {
+      "id": "HTHERM.15",
+      "file": "various/storages/StreamingHistory.kt",
+      "scope": "fun toProcessInfo",
+      "op": "replace",
+      "old": "            CRITICAL -> PowerManager.THERMAL_STATUS_SEVERE",
+      "new": "            CRITICAL -> com.moblin.android.platform.core.ProcessInfo.ThermalState.critical"
+    },
+    {
+      "id": "HTHERM.16",
+      "file": "view/settings/streaminghistory/StreamingHistoryStreamSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.common.various.color",
+      "note": "Swift stream.highestThermalState!.toProcessInfo().color() uses ProcessInfo.ThermalState.color() from CommonUtils (white, white, yellow, red); the file's private Int.color() used other colors."
+    },
+    {
+      "id": "HTHERM.17",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun string\nThermalState",
+      "op": "replace",
+      "old": "fun ThermalState.string(): String {",
+      "new": "fun com.moblin.android.platform.core.ProcessInfo.ThermalState.string(): String {",
+      "note": "Swift extension ProcessInfo.ThermalState { func string() }."
+    },
+    {
+      "id": "HTHERM.18",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun string\nThermalState",
+      "op": "replace",
+      "old": "        ThermalState.NOMINAL -> \"nominal\"",
+      "new": "        com.moblin.android.platform.core.ProcessInfo.ThermalState.nominal -> \"nominal\""
+    },
+    {
+      "id": "HTHERM.19",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun string\nThermalState",
+      "op": "replace",
+      "old": "        ThermalState.FAIR -> \"fair\"",
+      "new": "        com.moblin.android.platform.core.ProcessInfo.ThermalState.fair -> \"fair\""
+    },
+    {
+      "id": "HTHERM.20",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun string\nThermalState",
+      "op": "replace",
+      "old": "        ThermalState.SERIOUS -> \"serious\"",
+      "new": "        com.moblin.android.platform.core.ProcessInfo.ThermalState.serious -> \"serious\""
+    },
+    {
+      "id": "HTHERM.21",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun string\nThermalState",
+      "op": "replace",
+      "old": "        ThermalState.CRITICAL -> \"critical\"",
+      "new": "        com.moblin.android.platform.core.ProcessInfo.ThermalState.critical -> \"critical\""
+    },
+    {
+      "id": "HTHERM.22",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun color\nThermalState",
+      "op": "replace",
+      "old": "fun ThermalState.color(): Color {",
+      "new": "fun com.moblin.android.platform.core.ProcessInfo.ThermalState.color(): Color {",
+      "note": "Swift extension ProcessInfo.ThermalState { func color() }."
+    },
+    {
+      "id": "HTHERM.23",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun color\nThermalState",
+      "op": "replace",
+      "old": "        ThermalState.NOMINAL -> Color.White",
+      "new": "        com.moblin.android.platform.core.ProcessInfo.ThermalState.nominal -> Color.White"
+    },
+    {
+      "id": "HTHERM.24",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun color\nThermalState",
+      "op": "replace",
+      "old": "        ThermalState.FAIR -> Color.White",
+      "new": "        com.moblin.android.platform.core.ProcessInfo.ThermalState.fair -> Color.White"
+    },
+    {
+      "id": "HTHERM.25",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun color\nThermalState",
+      "op": "replace",
+      "old": "        ThermalState.SERIOUS -> Color.Yellow",
+      "new": "        com.moblin.android.platform.core.ProcessInfo.ThermalState.serious -> Color.Yellow"
+    },
+    {
+      "id": "HTHERM.26",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun color\nThermalState",
+      "op": "replace",
+      "old": "        ThermalState.CRITICAL -> Color.Red",
+      "new": "        com.moblin.android.platform.core.ProcessInfo.ThermalState.critical -> Color.Red"
+    },
+    {
+      "id": "HTHERM.27",
+      "file": "remotecontrol/RemoteControl.kt",
+      "scope": "fun toThermalState",
+      "op": "replace",
+      "old": "    fun toThermalState(): Int = when (this) {",
+      "new": "    fun toThermalState(): com.moblin.android.platform.core.ProcessInfo.ThermalState = when (this) {",
+      "note": "Swift RemoteControlStatusGeneralFlame.toThermalState() -> ProcessInfo.ThermalState: white is fair, yellow serious and red critical."
+    },
+    {
+      "id": "HTHERM.28",
+      "file": "remotecontrol/RemoteControl.kt",
+      "scope": "fun toThermalState",
+      "op": "replace",
+      "old": "        White -> PowerManager.THERMAL_STATUS_LIGHT",
+      "new": "        White -> com.moblin.android.platform.core.ProcessInfo.ThermalState.fair"
+    },
+    {
+      "id": "HTHERM.29",
+      "file": "remotecontrol/RemoteControl.kt",
+      "scope": "fun toThermalState",
+      "op": "replace",
+      "old": "        Yellow -> PowerManager.THERMAL_STATUS_SEVERE",
+      "new": "        Yellow -> com.moblin.android.platform.core.ProcessInfo.ThermalState.serious"
+    },
+    {
+      "id": "HTHERM.30",
+      "file": "remotecontrol/RemoteControl.kt",
+      "scope": "fun toThermalState",
+      "op": "replace",
+      "old": "        Red -> PowerManager.THERMAL_STATUS_CRITICAL",
+      "new": "        Red -> com.moblin.android.platform.core.ProcessInfo.ThermalState.critical"
+    },
+    {
+      "id": "HTHERM.31",
+      "file": "view/controlbar/ControlBarLandscapeView.kt",
+      "scope": "fun StatusView",
+      "op": "replace",
+      "old": "            ThermalStateView(thermalState = thermalState.toThermalState())",
+      "new": "            ThermalStateView(thermalState = thermalState)",
+      "note": "Swift ThermalStateView(thermalState: status.thermalState), the ProcessInfo.ThermalState itself."
+    },
+    {
+      "id": "HTHERM.32",
+      "file": "view/controlbar/ControlBarPortraitView.kt",
+      "scope": "fun MainPageView",
+      "op": "replace",
+      "old": "                    ThermalStateView(thermalState = thermalState.toThermalState())",
+      "new": "                    ThermalStateView(thermalState = thermalState)",
+      "note": "Swift ThermalStateView(thermalState: status.thermalState), the ProcessInfo.ThermalState itself."
+    },
+    {
+      "id": "HTHERM.33",
+      "file": "common/view/ThermalStateView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.common.various.color",
+      "note": "Swift thermalState.color() is the ProcessInfo.ThermalState extension in Common/Various/CommonUtils.swift, com.moblin.android.common.various in the port."
+    }
+  ]
+}

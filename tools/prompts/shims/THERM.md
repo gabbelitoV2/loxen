@@ -1,0 +1,6 @@
+## Thermal state (THERM, package com.moblin.android.platform.core)
+- `ProcessInfo.ThermalState` -> `ProcessInfo.ThermalState` (import `com.moblin.android.platform.core.ProcessInfo`), an enum with `nominal`, `fair`, `serious` and `critical` and an Int `rawValue` (0 to 3). Never `MoblinkThermalState`, the streaming history's `ThermalState`, an Int or `PowerManager.THERMAL_STATUS_*` in its place. `@unknown default:` -> `else ->`.
+- `ProcessInfo.processInfo.thermalState` -> `ProcessInfo.processInfo.thermalState`, always the current state; `@Published var thermalState = ProcessInfo.processInfo.thermalState` -> `val thermalState = MutableStateFlow(ProcessInfo.processInfo.thermalState)`.
+- `addObserver(ProcessInfo.thermalStateDidChangeNotification, #selector(f))` -> `NotificationCenter.default.addObserver(this, ProcessInfo.thermalStateDidChangeNotification, null) { f() }` (NotificationCenter from com.moblin.android.platform.core), never Model's `addObserver(name, selector)`. It is posted on the main thread when the state changes.
+- Extensions on `ProcessInfo.ThermalState` (`string()`, `color()`) keep that receiver: `fun ProcessInfo.ThermalState.color(): Color`.
+- The streaming history's `ThermalState(from: state)` -> `ThermalState.from(from = state)`, and its `toProcessInfo()` returns a `ProcessInfo.ThermalState`.

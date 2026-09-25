@@ -10,11 +10,16 @@ internal object SystemEventsState {
         set(SystemEvents::class.java, "startedActivities", 0)
         set(SystemEvents::class.java, "resumedActivities", 0)
         set(SystemEvents::class.java, "hasEnteredBackground", false)
+        set(SystemEvents::class.java, "hasTerminated", false)
         set(Camera2Engine::class.java, "isInBackground", false)
     }
 
     fun bind(model: Model?) {
         set(SystemEvents::class.java, "model", model)
+    }
+
+    fun setInBackground(inBackground: Boolean) {
+        set(SystemEvents::class.java, "hasEnteredBackground", inBackground)
     }
 
     private fun set(owner: Class<*>, name: String, value: Any?) {

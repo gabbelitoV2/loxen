@@ -2,7 +2,9 @@ package com.moblin.android.platform.host
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.os.Bundle
+import android.os.Process
 import android.util.Log
 import com.moblin.android.platform.capture.Camera2Engine
 import com.moblin.android.platform.core.NotificationCenter
@@ -19,12 +21,16 @@ object SystemEvents {
     private var startedActivities = 0
     private var resumedActivities = 0
     private var hasEnteredBackground = false
+    private var hasTerminated = false
+    internal var terminateProcess: () -> Unit = { Process.killProcess(Process.myPid()) }
 
     val isInBackground: Boolean
         get() = hasEnteredBackground
 
     private val lifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
-        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+        override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+            hasTerminated = false
+        }
 
         override fun onActivityStarted(activity: Activity) {
             startedActivities += 1
@@ -130,7 +136,18 @@ object SystemEvents {
         storeState()
     }
 
+    fun applicationTaskRemoved(context: Context) {
+        Log.i(TAG, "Task removed")
+        applicationWillTerminate()
+        StreamingService.stopAll(context)
+        terminateProcess()
+    }
+
     private fun applicationWillTerminate() {
+        if (hasTerminated) {
+            return
+        }
+        hasTerminated = true
         Log.i(TAG, "Application will terminate")
         try {
             model?.handleApplicationWillTerminate()
