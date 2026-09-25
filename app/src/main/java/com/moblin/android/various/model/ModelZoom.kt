@@ -40,6 +40,7 @@ fun Model.setZoomPreset(id: UUID) {
         }
         if (setCameraZoomX(preset.x, database.zoom.speed) != null) {
             setZoomXWhenInRange(preset.x)
+            when (getSelectedScene()?.videoSource?.cameraPosition) { SettingsSceneCameraPosition.backTripleLowEnergy -> attachBackTripleLowEnergyCamera(force = false); SettingsSceneCameraPosition.backDualLowEnergy -> attachBackDualLowEnergyCamera(force = false); SettingsSceneCameraPosition.backWideDualLowEnergy -> attachBackWideDualLowEnergyCamera(force = false); else -> {} }
         }
     } else {
         clearZoomPresetId()

@@ -1,0 +1,6 @@
+<!-- scope: Moblin/Various/Utils/ -->
+## QR codes and AVError toasts (QR, packages com.moblin.android.platform.coreimage and com.moblin.android.platform.avfoundation)
+- `CIFilter.qrCodeGenerator()` -> `CIFilter.qrCodeGenerator()` (a `CIQRCodeGenerator`); `filter.message = string.data(using: .utf8)!` -> `filter.message = string.toByteArray(Charsets.UTF_8)`; `filter.correctionLevel = "M"` stays; `guard let image = filter.outputImage else { return nil }` -> `val image = filter.outputImage ?: return null`. It is supported: never TODO, never return `null` instead.
+- Moblin's `image.scaled(x: 5, y: 5)` -> `image.scaled(x = 5.0, y = 5.0)` with `import com.moblin.android.videoeffects.scaled`.
+- `CIContext().createCGImage(output, from: output.extent)` -> `CIContext().createCGImage(output, from = output.extent)`, an `android.graphics.Bitmap?`; `UIImage(cgImage: cgImage)` -> that same `Bitmap`, so `generateQrCode(from: String)` returns `Bitmap?`.
+- `if let error = error as? AVError { error._nsError.localizedFailureReason } else { nil }` -> `(error as? AVError)?.localizedFailureReason` (`error` is a `Throwable`). `AVError`'s `message` is Apple's `localizedDescription` (the toast title), never the failure reason.

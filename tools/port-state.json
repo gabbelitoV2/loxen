@@ -4915,31 +4915,27 @@
   "Moblin/Various/Model/ModelYouTube.swift": {
     "status": "ok",
     "sha256": "2c2d9086ab7b16dd64d041cb0194d41e9313cf36223c84b1d284be2fba30f091",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "mode": "full",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt",
     "notes": [
-      "AppAuth has no Android counterpart: OIDAuthorizationService.discoverConfiguration, the OIDAuthState authorization flow and OIDAuthState.performAction are TODO(\"no Android counterpart for AppAuth\"), so YouTube sign-in and access-token refresh are inert.",
-      "YouTube.session is typed Any? because OIDExternalUserAgentSession does not exist on Android.",
-      "Model extension members become top-level extension functions in this package; YouTubeApiDelegate.youTubeApiUnauthorized() is an extension function because Kotlin cannot add an interface conformance to Model from another file.",
-      "ContinuousClock.Instant is mapped to monotonic nanoseconds (System.nanoTime()): youTubeStreamUpdateTime and youTubeStreamUpdateTimePollDelta are Long nanoseconds, and the 900 s cap uses 900.seconds.inWholeNanoseconds.",
-      "youTubeFetchVideoIdStartTime keeps the Date -> java.time.Instant mapping, so the 60 s timeout is Duration.between(start, Instant.now()) >= Duration.ofSeconds(60).",
-      "Result-returning callbacks use onSuccess / onFailure, which matches the Swift switch with a default branch (default: break becomes no handler).",
-      "String(localized:) becomes localized() imported from com.moblin.android.",
-      "Platform and StreamingPlatformStatusState are referenced as top-level types of com.moblin.android.various.model (like StreamingPlatformStatus) and are not redeclared here."
+      "Model is expected to declare `YouTubeApiDelegate` in Model.kt; `youTubeApiUnauthorized` can only be a top-level extension function in this file, so Model.kt must wire the interface implementation.",
+      "`NetworkResponse` is assumed to be a sealed class in com.moblin.android.streamingplatforms with a `Success` case exposing `.data`.",
+      "`Platform` is imported from com.moblin.android.streamingplatforms (not declared in com.moblin.android.various.model).",
+      "`youTubePlatformStatus` is a `StreamingPlatformStatus.Status` sealed value whose entries keep the Swift names: `unknown`, `offline`, `live(viewerCount = n)`.",
+      "DispatchQueue.main.async and Task { } become mainScope.launch { } with the main-thread CoroutineScope used across the port.",
+      "`stream.youTubeAuthState` is kept as `OIDAuthState?`; the keychain/settings helpers handle persistence.",
+      "String(localized:) is translated with the top-level localized() from package com.moblin.android.",
+      "Int(concurrentViewers) is translated with toIntOrNull() so non-numeric values fall back to 0 as in Swift."
     ],
-    "unsupported": [
-      "OIDAuthorizationService.discoverConfiguration (AppAuth)",
-      "OIDAuthState.authState(byPresenting:externalUserAgent:callback:) and OIDExternalUserAgentIOS / OIDExternalUserAgentCatalyst authorization flow (AppAuth)",
-      "OIDAuthState.performAction access token refresh (AppAuth)",
-      "OIDExternalUserAgentSession (AppAuth)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5974,
-    "tokens_out": 43970,
-    "seconds": 174.9,
-    "ported_at": "2026-09-22T12:58:23+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 44636,
+    "tokens_out": 49887,
+    "seconds": 191.9,
+    "ported_at": "2026-09-25T11:43:29+00:00"
   },
   "MoblinTests/Moblin/Obs/ObsWebSocketSuite.swift": {
     "status": "ok",
@@ -7914,30 +7910,27 @@
   "Moblin/Various/Utils/UiUtils.swift": {
     "status": "ok",
     "sha256": "3fa1545b2554c959bd8804e654831b5d338a403f2bd91546a8e272ead2959170",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "mode": "full",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/utils/UiUtils.kt",
     "notes": [
-      "UIImage.resize becomes an extension function on android.graphics.Bitmap; UIGraphicsImageRenderer has no Android counterpart, so Bitmap.createScaledBitmap is used and withRenderingMode is dropped.",
-      "getOrientation() returns the newly declared DeviceOrientation enum built from Configuration.orientation; Android cannot distinguish landscape-left from landscape-right without the display rotation of a Context.",
-      "isPhone()/isPad() read Configuration.screenLayout; isMac() always returns false because there is no Mac Catalyst on Android.",
-      "screenScale() returns DisplayMetrics.density, the closest Android equivalent of UIScreen.scale.",
-      "UIDevice.vibrate() is kept as an object function so call sites stay identical, but a Vibrator needs a Context, so the body is TODO().",
-      "getWindow() and getRootViewController() keep Android Window/Activity as return types, but Android has no process-wide global for them, so both bodies are TODO().",
-      "makeOffsets() returns the matching index as Int? instead of IndexSet and needs the declared Identifiable<ID> interface implemented by the item type.",
-      "@MainActor is dropped (no Kotlin equivalent); callers must dispatch to the main dispatcher themselves."
+      "@MainActor on getOrientation/isPhone/isPad/getWindow/getRootViewController/screenScale is dropped; the Kotlin functions are plain and are called from the main thread.",
+      "getOrientation's body starts at the interface orientation, as specified: the port's platform hook prepends the com.moblin.android.platform.uikit.UIDevice.current.orientation check before it.",
+      "This file declares object UIDevice (vibration only), which shadows the UIKit UIDevice, so the UIKit one is referenced fully qualified as com.moblin.android.platform.uikit.UIDevice.",
+      "DeviceOrientation mirrors UIDeviceOrientation with UPPER_SNAKE entries; UIInterfaceOrientation.landscapeLeft maps to LANDSCAPE_RIGHT and landscapeRight to LANDSCAPE_LEFT, exactly as the Swift switch does.",
+      "interface Identifiable<ID> { val id: ID } is declared here because Kotlin has no standard-library equivalent, and makeOffsets is generic over it.",
+      "makeOffsets returns Int? (the index) instead of IndexSet?, matching the shape its callers use.",
+      "UIImage.resize(height:) becomes Bitmap.resize(height: Float) with Bitmap.createScaledBitmap at 1x instead of UIGraphicsImageRenderer, as the port specifies.",
+      "screenScale() returns Float and keeps the UIScreen.main.scale fallback; isMac() is always false and ProcessInfo is not instantiated."
     ],
-    "unsupported": [
-      "AudioServicesPlaySystemSound(kSystemSoundID_Vibrate) in UIDevice.vibrate()",
-      "UIApplication.shared.connectedScenes / UIWindowScene / UIWindow in getWindow()",
-      "UIViewController in getRootViewController()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3550,
-    "tokens_out": 9918,
-    "seconds": 41.1,
-    "ported_at": "2026-09-22T13:20:08+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 40353,
+    "tokens_out": 6789,
+    "seconds": 25.0,
+    "ported_at": "2026-09-25T11:40:42+00:00"
   },
   "Moblin/VideoEffects/TwinEffect.swift": {
     "status": "ok",
@@ -8998,6 +8991,8 @@
   "Moblin/Various/Utils/Utils.swift": {
     "status": "ok",
     "sha256": "652485efd6b4e65bfb72aff33db7ad91faa40ff30eb298983b2a105b46320571",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "mode": "full",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/utils/Utils.kt",
     "notes": [
@@ -9012,19 +9007,16 @@
     ],
     "unsupported": [
       "UIApplication.shared.open (openUrl)",
-      "CIFilter.qrCodeGenerator (generateQrCode)",
-      "AVError (tryGetToastSubTitle)",
       "AVSpeechSynthesizer (createSpeechSynthesizer)",
       "URL(resolvingBookmarkData:) (makeRecordingPath)",
       "Bundle.main resource loading (loadStringResource, loadResource)"
     ],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 6737,
-    "tokens_out": 20430,
-    "seconds": 74.9,
-    "ported_at": "2026-09-22T13:22:50+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 46986,
+    "tokens_out": 53199,
+    "seconds": 192.3,
+    "ported_at": "2026-09-25T11:36:31+00:00"
   },
   "Moblin/View/Settings/HelpAndSupport/HelpAndSupportSettingsView.swift": {
     "status": "ok",
@@ -12419,15 +12411,12 @@
       "Swift's defensive container.decode(key, Type, default) fallbacks are expressed as Kotlin property/constructor defaults, and enums keep the persisted Swift string via @SerialName.",
       "Post-decode work (Srt/Stream migrations, keychain token moves, layout string updates) lives in init blocks, so it also runs when a fresh object is constructed.",
       "Keychain side effects Swift performs inside encode(to:) cannot be hooked by kotlinx.serialization; encodeYouTubeAuthState() is kept but not called by the generated serializer, so callers must persist it.",
-      "OIDAuthState (AppAuthCore) has no port: youTubeAuthState is Any?, isYouTubeAuthorized() and the auth-state (un)archiving are TODO().",
+      "youTubeAuthState is the AppAuth shim's OIDAuthState? (hooks HOID.1-6): isYouTubeAuthorized() reads isAuthorized and the auth state is archived to and unarchived from the keychain as JSON.",
       "CMVideoDimensions became android.util.Size; the static '>' operator is companion fun greaterThan because Kotlin enum comparison is final.",
       "UInt32/Int32 fields (bitrate, maxKeyFrameInterval, latency, packetsInFlight) are Int, and the iOS 26 availability gates around VBR rate control were dropped.",
       "Date -> java.time.Instant and Data -> ByteArray; their JSON representation differs from the Swift encoders, and clone() shares nested class instances where Swift copied structs."
     ],
-    "unsupported": [
-      "AppAuthCore OIDAuthState (isYouTubeAuthorized, encodeYouTubeAuthState, decodeYouTubeAuthState)",
-      "NSKeyedArchiver / NSKeyedUnarchiver"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 24440,
@@ -18918,31 +18907,27 @@
   "Moblin/View/Utils/FontPickerViews.swift": {
     "status": "ok",
     "sha256": "b64c6faa0a44733de566a602db95588e91a5f37d07b18f2c1b1853c7516aa7da",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
     "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/FontPickerViews.kt",
     "notes": [
-      "@Binding var font: SettingsFont becomes a MutableState<SettingsFont> parameter; reads and writes go through font.value.",
-      "SettingsFont is ported as a settings data class, so font.style = style becomes font.value = font.value.copy(style = style) and SettingsFont()/SettingsFont(family = , style = ) construct new values.",
-      "UIFont.fontNames(forFamilyName:) has no Android counterpart, so fontStyles(fontFamily) is TODO; it is reused for the family picker's default style and for the disabled Style row, exactly as the Swift UIFont call is used in both places.",
-      "loadFontFamilies() is TODO: CoreText font collection and UIFont.familyNames have no Android equivalent.",
-      "@State fontFamilies uses remember { mutableStateOf(emptyList()) } and .onAppear uses DisposableEffect(Unit).",
-      "Form/Section/FormRow/ForEach/NavigationLink/Button/SystemImage come from the hand-written SwiftUI layer; each Swift HStack row of the Form/List becomes a FormRow.",
-      "The platform has no Text composable, so rows use Material3 Text with explicit 17.sp and white, because there is no MaterialTheme to supply defaults.",
-      "fontStyleName drops the family prefix using BreakIterator grapheme counts, matching Swift's grapheme based dropFirst/count."
+      "FontFamilyPickerView and FontStylePickerView are private SwiftUI structs and become private @Composable functions; FontSettingsView stays public and emits its two NavigationLinks as siblings, exactly like the SwiftUI TupleView body.",
+      "@Binding var font: SettingsFont becomes font: MutableState<SettingsFont>; SettingsFont is an immutable data class, so font.style = s is font.value = font.value.copy(style = s) and FontSettingsView passes the same state down to both pickers.",
+      "The Swift List inside the Form Section is dropped: its rows are rows of the Section, and each row HStack becomes FormRow(onClick = ...) so the whole row is the button, with the checkmark drawn by SystemImage.",
+      "Form + navigationTitle is Form(title = \"Family\") / Form(title = \"Style\"); the FontStylePickerView List is wrapped in a Section so its rows keep iOS insets and separators.",
+      ".onAppear is DisposableEffect(Unit) with an empty onDispose, and it only loads the families when the remembered list is empty.",
+      "loadFontFamilies() (a static method of the struct) and fontStyles() (a private method of the second struct) exist as file-private top-level functions with the same names.",
+      "fontStyleName keeps Swift's grapheme-cluster semantics: hasPrefix/count/dropFirst are done with java.text.BreakIterator character instances instead of UTF-16 units, since the truncated suffix is displayed.",
+      "CoreText and UIFont come from the hand-written shims (CTFontCollectionCreateFromAvailableFonts/CreateMatchingFontDescriptors/CopyAttribute, UIFont.familyNames, UIFont.fontNames), and GrayTextView is imported from com.moblin.android.view.settings.streams.stream."
     ],
-    "unsupported": [
-      "UIFont.fontNames(forFamilyName:)",
-      "UIFont.familyNames",
-      "CoreText font collection (CTFontCollectionCreateFromAvailableFonts, CTFontDescriptorCopyAttribute)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 38345,
-    "tokens_out": 32604,
-    "seconds": 121.7,
-    "ported_at": "2026-09-24T15:42:05+00:00"
+    "tokens_in": 39411,
+    "tokens_out": 15639,
+    "seconds": 58.0,
+    "ported_at": "2026-09-25T11:44:35+00:00"
   },
   "Moblin Live Activity/Shared/MoblinLiveActivity.swift": {
     "status": "ok",

@@ -1,0 +1,23 @@
+{
+  "task": "FONT",
+  "hooks": [
+    {
+      "id": "HFONT.1",
+      "file": "view/utils/ChatLineView.kt",
+      "scope": "fun makeBaseFont",
+      "op": "replace",
+      "old": "            return Typeface.create(name, Typeface.NORMAL)",
+      "new": "            com.moblin.android.platform.uikit.UIFont(name = name, size = content.fontSize)?.let { return it.typeface }",
+      "note": "Swift if let name = content.font.name(), let font = UIFont(name: name, size: size) { return font }. Typeface.create(name) only knows Android's family aliases, so a family or style chosen in the font picker fell back to the default font."
+    },
+    {
+      "id": "HFONT.2",
+      "file": "view/utils/ChatLineView.kt",
+      "scope": "fun makeBaseFont",
+      "op": "replace",
+      "old": "        return Typeface.create(family, Typeface.NORMAL)",
+      "new": "        return com.moblin.android.platform.uikit.UIFont(name = family, size = content.fontSize)?.typeface ?: Typeface.DEFAULT",
+      "note": "Swift UIFont(descriptor: UIFontDescriptor(fontAttributes: [.family: family]), size: size), the installed family's regular face, or the system font when the family is not installed."
+    }
+  ]
+}

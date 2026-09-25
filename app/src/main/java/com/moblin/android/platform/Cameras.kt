@@ -10,7 +10,7 @@ object Cameras {
             AVMediaType.video,
             AVCaptureDevice.Position.back,
         )
-        val maxZoom = device?.maxAvailableVideoZoomFactor ?: 1f
+        val maxZoom = (device?.maxAvailableVideoZoomFactor ?: 1f) * (device?.displayVideoZoomFactorMultiplier ?: 1f)
         return generateSequence(2f) { it * 2 }.takeWhile { it * 2 <= maxZoom }.toList()
     }
 }

@@ -31,6 +31,10 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import okhttp3.Request
 import com.moblin.android.AppDelegate
+import com.moblin.android.platform.avfoundation.AVError
+import com.moblin.android.platform.coreimage.CIContext
+import com.moblin.android.platform.coreimage.CIFilter
+import com.moblin.android.videoeffects.scaled
 import com.moblin.android.media.haishinkit.extension.dictionaryFromQuery
 import com.moblin.android.platform.darwin.*
 
@@ -189,9 +193,21 @@ class ResourceUsage {
     }
 }
 
-fun generateQrCode(from: String): Bitmap? = null
+fun generateQrCode(from: String): Bitmap? {
+    val data = from.toByteArray(Charsets.UTF_8)
+    val filter = CIFilter.qrCodeGenerator()
+    filter.message = data
+    filter.correctionLevel = "M"
+    val image = filter.outputImage ?: return null
+    val output = image.scaled(x = 5.0, y = 5.0)
+    val context = CIContext()
+    val cgImage = context.createCGImage(output, from = output.extent) ?: return null
+    return cgImage
+}
 
-fun tryGetToastSubTitle(error: Throwable): String? = null
+fun tryGetToastSubTitle(error: Throwable): String? {
+    return (error as? AVError)?.localizedFailureReason
+}
 
 fun secondsToCMTime(seconds: Double): Long = (seconds * 1000.0).toLong()
 

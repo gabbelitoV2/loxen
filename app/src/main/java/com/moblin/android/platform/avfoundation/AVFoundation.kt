@@ -54,12 +54,46 @@ object AVCaptureSessionInterruptionReason {
     const val videoDeviceNotAvailableDueToSystemPressure = 5
 }
 
-class AVError(val code: Int, val localizedFailureReason: String?) : Exception(localizedFailureReason) {
+class AVError(
+    val code: Int,
+    val localizedFailureReason: String?,
+    val localizedDescription: String = defaultLocalizedDescription(code),
+) : Exception(localizedDescription) {
+    override fun toString(): String {
+        val userInfo = listOfNotNull(
+            localizedFailureReason?.let { "NSLocalizedFailureReason=$it" },
+            "NSLocalizedDescription=$localizedDescription",
+        ).joinToString(", ")
+        return "Error Domain=AVFoundationErrorDomain Code=$code \"$localizedDescription\" UserInfo={$userInfo}"
+    }
+
     companion object {
         const val unknown = -11800
-        const val deviceNotConnected = -11814
         const val sessionNotRunning = -11803
+        const val deviceNotConnected = -11814
+        const val mediaServicesWereReset = -11819
+        const val decodeFailed = -11821
+        const val fileFormatNotRecognized = -11828
+        const val fileFailedToParse = -11829
+        const val operationNotSupportedForAsset = -11838
+        const val invalidVideoComposition = -11841
+        const val operationInterrupted = -11847
+        const val serverIncorrectlyConfigured = -11850
         const val applicationIsNotAuthorizedToUseDevice = -11852
+
+        private fun defaultLocalizedDescription(code: Int): String {
+            return when (code) {
+                unknown -> "The operation could not be completed"
+                sessionNotRunning, deviceNotConnected -> "Cannot Record"
+                mediaServicesWereReset -> "Cannot Complete Action"
+                decodeFailed -> "Cannot Decode"
+                fileFormatNotRecognized, fileFailedToParse -> "Cannot Open"
+                operationNotSupportedForAsset, invalidVideoComposition, serverIncorrectlyConfigured ->
+                    "Operation Stopped"
+                operationInterrupted -> "Operation Interrupted"
+                else -> "The operation couldn’t be completed. (AVFoundationErrorDomain error $code.)"
+            }
+        }
     }
 }
 

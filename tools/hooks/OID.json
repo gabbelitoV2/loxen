@@ -1,0 +1,59 @@
+{
+  "task": "OID",
+  "hooks": [
+    {
+      "id": "HOID.1",
+      "file": "various/settings/SettingsStream.kt",
+      "scope": "class SettingsStream",
+      "op": "replace",
+      "old": "    youTubeAuthState: Any? = null,",
+      "new": "    youTubeAuthState: com.moblin.android.platform.appauth.OIDAuthState? = null,",
+      "note": "Swift @Published var youTubeAuthState: OIDAuthState?; the AppAuth shim gives the type."
+    },
+    {
+      "id": "HOID.2",
+      "file": "various/settings/SettingsStream.kt",
+      "scope": "class SettingsStream",
+      "op": "replace",
+      "old": "    var youTubeAuthState: Any? by Published(youTubeAuthState)",
+      "new": "    var youTubeAuthState: com.moblin.android.platform.appauth.OIDAuthState? by Published(youTubeAuthState)",
+      "note": "Swift @Published var youTubeAuthState: OIDAuthState?."
+    },
+    {
+      "id": "HOID.3",
+      "file": "various/settings/SettingsStream.kt",
+      "scope": "fun isYouTubeAuthorized",
+      "op": "replace",
+      "old": "        return false",
+      "new": "        return youTubeAuthState?.isAuthorized == true",
+      "note": "Swift youTubeAuthState?.isAuthorized == true."
+    },
+    {
+      "id": "HOID.4",
+      "file": "various/settings/SettingsStream.kt",
+      "scope": "fun encodeYouTubeAuthState",
+      "op": "replace",
+      "old": "        return null",
+      "new": "        return youTubeAuthState?.archivedData()",
+      "note": "Swift NSKeyedArchiver.archivedData(withRootObject: youTubeAuthState); the shim archives AppAuth's JSON form."
+    },
+    {
+      "id": "HOID.5",
+      "file": "various/settings/SettingsStream.kt",
+      "scope": "fun decodeYouTubeAuthState",
+      "op": "replace",
+      "old": "    private fun decodeYouTubeAuthState(encoded: ByteArray?): Any? {",
+      "new": "    private fun decodeYouTubeAuthState(encoded: ByteArray?): com.moblin.android.platform.appauth.OIDAuthState? {",
+      "note": "Swift decodeYouTubeAuthState(encoded:) -> OIDAuthState?."
+    },
+    {
+      "id": "HOID.6",
+      "file": "various/settings/SettingsStream.kt",
+      "scope": "fun decodeYouTubeAuthState",
+      "op": "replace",
+      "old": "        return null",
+      "new": "        return com.moblin.android.platform.appauth.OIDAuthState.unarchivedObject(from = encoded)",
+      "note": "Swift try? NSKeyedUnarchiver.unarchivedObject(ofClass: OIDAuthState.self, from: encoded); the guard above keeps its own return null."
+    }
+  ]
+}

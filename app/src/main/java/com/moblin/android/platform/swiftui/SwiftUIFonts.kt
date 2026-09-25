@@ -10,6 +10,7 @@ import androidx.compose.ui.text.style.TextMotion
 import androidx.compose.ui.unit.sp
 import com.moblin.android.AppDelegate
 import com.moblin.android.platform.offscreen.logOverlayOnce
+import com.moblin.android.platform.uikit.UIFont
 import com.moblin.android.view.utils.FontDesign
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.roundToInt
@@ -192,7 +193,14 @@ object SwiftUIFonts {
         "book" to FontWeight.W400,
     )
 
+    private val installedFamilies = ConcurrentHashMap<String, FontFamily>()
+
     private fun resolveCustom(name: String, size: Float): CustomFont {
+        val installed = UIFont(name = name, size = size)
+        if (installed != null) {
+            val family = installedFamilies.getOrPut(installed.fontName) { FontFamily(installed.typeface) }
+            return CustomFont(family, null, null)
+        }
         val dash = name.lastIndexOf('-')
         val familyPart = if (dash > 0) name.substring(0, dash) else name
         val stylePart = if (dash > 0) name.substring(dash + 1).lowercase() else ""

@@ -150,6 +150,56 @@ internal object CameraCatalog {
         return maxOf(1, characteristics.physicalCameraIds.size)
     }
 
+    private fun physicalFieldOfViewMetrics(logical: CameraCharacteristics): List<Float> {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P || physicalCameraCount(logical) < 2) {
+            return emptyList()
+        }
+        return logical.physicalCameraIds.mapNotNull { id ->
+            characteristics(id)?.let { fieldOfViewMetric(it) }?.takeIf { it > 0f }
+        }
+    }
+
+    internal fun telephotoZoomRatios(physicalFieldOfViewMetrics: List<Float>, zoomRatioLower: Float): List<Float> {
+        val widest = physicalFieldOfViewMetrics.maxOrNull() ?: return emptyList()
+        val main = if (zoomRatioLower < 0.99f) widest * zoomRatioLower else widest
+        return physicalFieldOfViewMetrics.map { main / it }.filter { it >= 1.5f }.sorted()
+    }
+
+    internal fun deviceType(
+        facing: Int,
+        zoomRatioLower: Float,
+        telephotoZoomRatios: List<Float>,
+        fieldOfViewMetric: Float,
+        referenceFieldOfView: Float,
+    ): AVCaptureDevice.DeviceType {
+        return if (facing == CameraCharacteristics.LENS_FACING_EXTERNAL) {
+            AVCaptureDevice.DeviceType.external
+        } else if (zoomRatioLower < 0.99f && telephotoZoomRatios.isNotEmpty()) {
+            AVCaptureDevice.DeviceType.builtInTripleCamera
+        } else if (zoomRatioLower < 0.99f) {
+            AVCaptureDevice.DeviceType.builtInDualWideCamera
+        } else if (telephotoZoomRatios.isNotEmpty()) {
+            AVCaptureDevice.DeviceType.builtInDualCamera
+        } else if (referenceFieldOfView > 0f && fieldOfViewMetric > referenceFieldOfView * 1.35f) {
+            AVCaptureDevice.DeviceType.builtInUltraWideCamera
+        } else if (referenceFieldOfView > 0f && fieldOfViewMetric > 0f &&
+            fieldOfViewMetric < referenceFieldOfView * 0.65f
+        ) {
+            AVCaptureDevice.DeviceType.builtInTelephotoCamera
+        } else {
+            AVCaptureDevice.DeviceType.builtInWideAngleCamera
+        }
+    }
+
+    internal fun switchOverZoomFactors(
+        zoomRatioLower: Float,
+        zoomScale: Float,
+        telephotoZoomRatios: List<Float>,
+    ): List<Float> {
+        val zoomRatios = if (zoomRatioLower < 0.99f) listOf(1f) + telephotoZoomRatios else telephotoZoomRatios
+        return zoomRatios.map { it / zoomScale }
+    }
+
     private fun makeEntry(id: String, characteristics: CameraCharacteristics, referenceFieldOfView: Float): Entry {
         val facing = characteristics.get(CameraCharacteristics.LENS_FACING) ?: CameraCharacteristics.LENS_FACING_EXTERNAL
         val position = when (facing) {
@@ -167,26 +217,15 @@ internal object CameraCatalog {
         val zoomScale = if (zoomRatioLower < 0.99f) 0.5f else 1f
         val minZoomFactor = maxOf(1f, zoomRatioLower / zoomScale)
         val maxZoomFactor = maxOf(minZoomFactor, zoomRatioUpper / zoomScale)
-        val switchOverZoomFactors = if (zoomRatioLower < 0.99f) listOf(1f / zoomScale) else emptyList()
-        val physicalCameras = physicalCameraCount(characteristics)
-        val deviceType = if (facing == CameraCharacteristics.LENS_FACING_EXTERNAL) {
-            AVCaptureDevice.DeviceType.external
-        } else if (physicalCameras >= 3) {
-            AVCaptureDevice.DeviceType.builtInTripleCamera
-        } else if (zoomRatioLower < 0.99f) {
-            AVCaptureDevice.DeviceType.builtInDualWideCamera
-        } else if (physicalCameras == 2) {
-            AVCaptureDevice.DeviceType.builtInDualCamera
-        } else {
-            val metric = fieldOfViewMetric(characteristics)
-            if (referenceFieldOfView > 0f && metric > referenceFieldOfView * 1.35f) {
-                AVCaptureDevice.DeviceType.builtInUltraWideCamera
-            } else if (referenceFieldOfView > 0f && metric > 0f && metric < referenceFieldOfView * 0.65f) {
-                AVCaptureDevice.DeviceType.builtInTelephotoCamera
-            } else {
-                AVCaptureDevice.DeviceType.builtInWideAngleCamera
-            }
-        }
+        val telephotoZoomRatios = telephotoZoomRatios(physicalFieldOfViewMetrics(characteristics), zoomRatioLower)
+        val switchOverZoomFactors = switchOverZoomFactors(zoomRatioLower, zoomScale, telephotoZoomRatios)
+        val deviceType = deviceType(
+            facing = facing,
+            zoomRatioLower = zoomRatioLower,
+            telephotoZoomRatios = telephotoZoomRatios,
+            fieldOfViewMetric = fieldOfViewMetric(characteristics),
+            referenceFieldOfView = referenceFieldOfView,
+        )
         val positionName = when (position) {
             AVCaptureDevice.Position.back -> "Back"
             AVCaptureDevice.Position.front -> "Front"

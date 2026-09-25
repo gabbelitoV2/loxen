@@ -162,9 +162,9 @@ private fun makeBaseFont(content: ChatLineContent, bold: Boolean = false): Typef
     if (family != null) {
         val name = content.font.name()
         if (name != null) {
-            return Typeface.create(name, Typeface.NORMAL)
+            com.moblin.android.platform.uikit.UIFont(name = name, size = content.fontSize)?.let { return it.typeface }
         }
-        return Typeface.create(family, Typeface.NORMAL)
+        return com.moblin.android.platform.uikit.UIFont(name = family, size = content.fontSize)?.typeface ?: Typeface.DEFAULT
     }
     val typefaceStyle = if (bold || content.fontWeight.weight >= 600) Typeface.BOLD else Typeface.NORMAL
     val familyName = when (content.fontDesign) {

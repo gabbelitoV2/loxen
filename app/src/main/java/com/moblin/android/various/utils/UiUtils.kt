@@ -1,17 +1,19 @@
 package com.moblin.android.various.utils
 
-import android.app.Activity
-import android.content.res.Configuration
-import android.content.res.Resources
 import android.graphics.Bitmap
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.view.Window
-import com.moblin.android.AppDelegate
+import com.moblin.android.platform.audiotoolbox.AudioServicesPlaySystemSound
+import com.moblin.android.platform.audiotoolbox.kSystemSoundID_Vibrate
+import com.moblin.android.platform.uikit.UIApplication
+import com.moblin.android.platform.uikit.UIInterfaceOrientation
+import com.moblin.android.platform.uikit.UIScreen
+import com.moblin.android.platform.uikit.UIUserInterfaceIdiom
+import com.moblin.android.platform.uikit.UIViewController
+import com.moblin.android.platform.uikit.UIWindow
+import com.moblin.android.platform.uikit.UIWindowScene
+import com.moblin.android.platform.uikit.userInterfaceIdiom
 
 fun Bitmap.resize(height: Float): Bitmap {
-    val targetWidth = (width * (height / this.height.toFloat())).toInt()
-    return Bitmap.createScaledBitmap(this, targetWidth, height.toInt(), true)
+    return Bitmap.createScaledBitmap(this, (width * (height / this.height)).toInt(), height.toInt(), true)
 }
 
 enum class DeviceOrientation {
@@ -26,45 +28,48 @@ enum class DeviceOrientation {
 
 fun getOrientation(): DeviceOrientation {
     when (com.moblin.android.platform.uikit.UIDevice.current.orientation) { com.moblin.android.platform.uikit.UIDeviceOrientation.portrait -> return DeviceOrientation.PORTRAIT; com.moblin.android.platform.uikit.UIDeviceOrientation.portraitUpsideDown -> return DeviceOrientation.PORTRAIT_UPSIDE_DOWN; com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft -> return DeviceOrientation.LANDSCAPE_LEFT; com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight -> return DeviceOrientation.LANDSCAPE_RIGHT; com.moblin.android.platform.uikit.UIDeviceOrientation.faceUp -> return DeviceOrientation.FACE_UP; com.moblin.android.platform.uikit.UIDeviceOrientation.faceDown -> return DeviceOrientation.FACE_DOWN }
-    val configuration = Resources.getSystem().configuration
-    return when (configuration.orientation) {
-        Configuration.ORIENTATION_LANDSCAPE -> DeviceOrientation.LANDSCAPE_RIGHT
-        Configuration.ORIENTATION_PORTRAIT -> DeviceOrientation.PORTRAIT
+    val interfaceOrientation = UIApplication.shared.connectedScenes
+        .firstOrNull { it is UIWindowScene }
+        ?.let { it as UIWindowScene }?.interfaceOrientation
+    return when (interfaceOrientation) {
+        UIInterfaceOrientation.landscapeLeft -> DeviceOrientation.LANDSCAPE_RIGHT
+        UIInterfaceOrientation.landscapeRight -> DeviceOrientation.LANDSCAPE_LEFT
         else -> DeviceOrientation.UNKNOWN
     }
 }
 
 object UIDevice {
     fun vibrate() {
-        runCatching {
-            AppDelegate.context.getSystemService(Vibrator::class.java)
-                ?.vibrate(VibrationEffect.createOneShot(400, VibrationEffect.DEFAULT_AMPLITUDE))
-        }
+        AudioServicesPlaySystemSound(kSystemSoundID_Vibrate)
     }
 }
 
 fun isPhone(): Boolean {
-    val screenLayout = Resources.getSystem().configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK
-    return screenLayout <= Configuration.SCREENLAYOUT_SIZE_NORMAL
+    return com.moblin.android.platform.uikit.UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.phone
 }
 
 fun isPad(): Boolean {
-    val screenLayout = Resources.getSystem().configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK
-    return screenLayout >= Configuration.SCREENLAYOUT_SIZE_LARGE
+    return com.moblin.android.platform.uikit.UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.pad
 }
 
-fun isMac(): Boolean = false
+fun isMac(): Boolean {
+    return false
+}
 
-fun getWindow(): Window? = null
+fun getWindow(): UIWindow? {
+    val scene = UIApplication.shared.connectedScenes.firstOrNull() as? UIWindowScene ?: return null
+    return scene.windows.firstOrNull()
+}
 
-fun getRootViewController(): Activity? = null
+fun getRootViewController(): UIViewController? {
+    return getWindow()?.rootViewController
+}
 
 fun screenScale(): Float {
-    return if (isMac()) {
-        2f
-    } else {
-        Resources.getSystem().displayMetrics.density
+    if (isMac()) {
+        return 2.0f
     }
+    return getWindow()?.screen?.scale ?: UIScreen.main.scale
 }
 
 interface Identifiable<ID> {
@@ -73,5 +78,8 @@ interface Identifiable<ID> {
 
 fun <ID, T : Identifiable<ID>> makeOffsets(items: List<T>, id: ID): Int? {
     val index = items.indexOfFirst { it.id == id }
-    return if (index >= 0) index else null
+    if (index >= 0) {
+        return index
+    }
+    return null
 }
