@@ -1,0 +1,59 @@
+{
+  "task": "STUBA",
+  "hooks": [
+    {
+      "id": "HSTUBA.1",
+      "file": "various/model/Model.kt",
+      "scope": "fun attachBackTripleLowEnergyCamera",
+      "op": "insert_after",
+      "anchor": "    fun attachBackTripleLowEnergyCamera(force: Boolean = true) {",
+      "new": "        cameraPosition = CameraSelector.LENS_FACING_BACK; lowEnergyCameraUpdateBackZoom(force = force); zoom.x.value = zoom.backX; val bestDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInTripleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) ?: return; val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return; val x = Math.round(lastZoomFactor * bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)).toFloat(); val device = (if (zoom.backX < 1.0f) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInUltraWideCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else if (zoom.backX < x) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInTelephotoCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back)) ?: return; val scene = getSelectedScene() ?: return; if (!force && device == cameraDevice?.device) return; cameraDevice = CaptureDevice(device = device, id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(), isVideoMirrored = false); cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera); val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera); cameraZoomXMinimum = range.first; cameraZoomXMaximum = range.second; attachCameraFinalize(scene = scene)",
+      "note": "Swift attachBackTripleLowEnergyCamera: picks the ultra wide, wide or telephoto camera for zoom.backX from the triple camera's last switch-over factor and attaches it; the translation left the body empty."
+    },
+    {
+      "id": "HSTUBA.2",
+      "file": "various/model/Model.kt",
+      "scope": "fun attachBackDualLowEnergyCamera",
+      "op": "insert_after",
+      "anchor": "    fun attachBackDualLowEnergyCamera(force: Boolean = true) {",
+      "new": "        cameraPosition = CameraSelector.LENS_FACING_BACK; lowEnergyCameraUpdateBackZoom(force = force); zoom.x.value = zoom.backX; val bestDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInDualCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) ?: return; val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return; val x = Math.round(lastZoomFactor * bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)).toFloat(); val device = (if (zoom.backX < x) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInTelephotoCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back)) ?: return; val scene = getSelectedScene() ?: return; if (!force && device == cameraDevice?.device) return; cameraDevice = CaptureDevice(device = device, id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(), isVideoMirrored = false); cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera); val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera); cameraZoomXMinimum = range.first; cameraZoomXMaximum = range.second; attachCameraFinalize(scene = scene)",
+      "note": "Swift attachBackDualLowEnergyCamera: wide below the dual camera's last switch-over factor, telephoto above it."
+    },
+    {
+      "id": "HSTUBA.3",
+      "file": "various/model/Model.kt",
+      "scope": "fun attachBackWideDualLowEnergyCamera",
+      "op": "insert_after",
+      "anchor": "    fun attachBackWideDualLowEnergyCamera(force: Boolean = true) {",
+      "new": "        cameraPosition = CameraSelector.LENS_FACING_BACK; lowEnergyCameraUpdateBackZoom(force = force); zoom.x.value = zoom.backX; val bestDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInDualWideCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) ?: return; val lastZoomFactor = bestDevice.virtualDeviceSwitchOverVideoZoomFactors.lastOrNull() ?: return; val x = Math.round(lastZoomFactor * bestDevice.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera)).toFloat(); val device = (if (zoom.backX < x) AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInUltraWideCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back) else AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInWideAngleCamera, com.moblin.android.platform.avfoundation.AVMediaType.video, AVCaptureDevice.Position.back)) ?: return; val scene = getSelectedScene() ?: return; if (!force && device == cameraDevice?.device) return; cameraDevice = CaptureDevice(device = device, id = builtinCameraIds[device.uniqueID] ?: UUID.randomUUID(), isVideoMirrored = false); cameraZoomLevelToXScale = device.getZoomFactorScale(hasUltraWideCamera = hasUltraWideBackCamera); val range = bestDevice.getUIZoomRange(hasUltraWideCamera = hasUltraWideBackCamera); cameraZoomXMinimum = range.first; cameraZoomXMaximum = range.second; attachCameraFinalize(scene = scene)",
+      "note": "Swift attachBackWideDualLowEnergyCamera: ultra wide below the wide dual camera's last switch-over factor, wide above it."
+    },
+    {
+      "id": "HSTUBA.4",
+      "file": "various/model/Model.kt",
+      "scope": "fun buttonsBackgroundColor",
+      "op": "replace",
+      "old": "    fun buttonsBackgroundColor(): Color = if (this == chat) Color.Black else Color(0xFFF2F2F7)",
+      "new": "    fun buttonsBackgroundColor(): Color = if (this == chat) Color.Black else com.moblin.android.platform.uikit.UIColor.secondarySystemBackground",
+      "note": "Swift Color(UIColor.secondarySystemBackground) follows light and dark mode; the translation hard-coded the light value."
+    },
+    {
+      "id": "HSTUBA.5",
+      "file": "various/model/Model.kt",
+      "scope": "fun checkPhotoLibraryAuthorization",
+      "op": "replace",
+      "old": "        Unit",
+      "new": "        com.moblin.android.platform.avfoundation.PHPhotoLibrary.requestAuthorization(`for` = com.moblin.android.platform.avfoundation.PHAccessLevel.readWrite) { authorizationStatus -> when (authorizationStatus) { com.moblin.android.platform.avfoundation.PHAuthorizationStatus.limited -> com.moblin.android.various.logger.info(\"photo-auth: limited authorization granted\"); com.moblin.android.platform.avfoundation.PHAuthorizationStatus.authorized -> com.moblin.android.various.logger.info(\"photo-auth: authorization granted\"); else -> com.moblin.android.various.logger.info(\"photo-auth: Status $authorizationStatus\") } }",
+      "note": "Swift PHPhotoLibrary.requestAuthorization(for: .readWrite) and logs the status; the shim asks for WRITE_EXTERNAL_STORAGE on Android 8 and 9, which saving snapshots and photos needs there."
+    },
+    {
+      "id": "HSTUBA.6",
+      "file": "various/model/ModelZoom.kt",
+      "scope": "fun Model.setZoomPreset",
+      "op": "insert_after",
+      "anchor": "            setZoomXWhenInRange(preset.x)",
+      "new": "            when (getSelectedScene()?.videoSource?.cameraPosition) { SettingsSceneCameraPosition.backTripleLowEnergy -> attachBackTripleLowEnergyCamera(force = false); SettingsSceneCameraPosition.backDualLowEnergy -> attachBackDualLowEnergyCamera(force = false); SettingsSceneCameraPosition.backWideDualLowEnergy -> attachBackWideDualLowEnergyCamera(force = false); else -> {} }",
+      "note": "Swift setZoomPreset re-attaches the low power camera for the new zoom after a preset change; the switch was lost in a compile fix. A re-port of ModelZoom.swift loses the file's other fixes (Int camera position, Media zoom calls), so this is a hook."
+    }
+  ]
+}

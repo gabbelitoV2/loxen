@@ -1,13 +1,24 @@
 package com.moblin.android.platform.avfoundation
 
+import android.Manifest
 import android.content.ContentValues
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.util.Log
 import android.util.Size
+import androidx.activity.ComponentActivity
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.moblin.android.AppDelegate
 import com.moblin.android.platform.capture.Camera2Engine
+import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -154,5 +165,127 @@ class PHPhotoLibrary private constructor() {
         private val shared = PHPhotoLibrary()
 
         fun shared(): PHPhotoLibrary = shared
+
+        fun requestAuthorization(`for`: PHAccessLevel, handler: (PHAuthorizationStatus) -> Unit) {
+            PhotoLibraryAuthorization.request(handler)
+        }
+    }
+}
+
+enum class PHAccessLevel(val rawValue: Int) {
+    addOnly(1),
+    readWrite(2),
+}
+
+enum class PHAuthorizationStatus(val rawValue: Int) {
+    notDetermined(0),
+    restricted(1),
+    denied(2),
+    authorized(3),
+    limited(4),
+}
+
+object PhotoLibraryAuthorization {
+    private const val permission = Manifest.permission.WRITE_EXTERNAL_STORAGE
+    private val handler = Handler(Looper.getMainLooper())
+    private val waiting = mutableListOf<(PHAuthorizationStatus) -> Unit>()
+    private var activity: WeakReference<ComponentActivity>? = null
+    private var requested = false
+    private var requesting = false
+    internal var sdkInt = Build.VERSION.SDK_INT
+
+    fun install(activity: ComponentActivity) {
+        this.activity = WeakReference(activity)
+        requesting = false
+        activity.lifecycle.addObserver(
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_DESTROY && this.activity?.get() === activity) {
+                    this.activity = null
+                    requesting = false
+                    finish(status())
+                }
+            },
+        )
+    }
+
+    internal fun status(): PHAuthorizationStatus {
+        if (sdkInt >= Build.VERSION_CODES.Q) {
+            return PHAuthorizationStatus.authorized
+        }
+        val activity = activity?.get()
+        val context: Context = activity ?: applicationContext() ?: return PHAuthorizationStatus.notDetermined
+        if (context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED) {
+            return PHAuthorizationStatus.authorized
+        }
+        if (requested || (activity != null && activity.shouldShowRequestPermissionRationale(permission))) {
+            return PHAuthorizationStatus.denied
+        }
+        return PHAuthorizationStatus.notDetermined
+    }
+
+    internal fun request(completion: (PHAuthorizationStatus) -> Unit) {
+        handler.post {
+            val status = status()
+            if (status != PHAuthorizationStatus.notDetermined) {
+                completion(status)
+                return@post
+            }
+            waiting.add(completion)
+            if (!requesting) {
+                launchRequest()
+            }
+        }
+    }
+
+    private fun launchRequest() {
+        val activity = activity?.get()
+        if (activity == null || activity.isFinishing || activity.isDestroyed) {
+            finish(status())
+            return
+        }
+        var launcher: ActivityResultLauncher<Array<String>>? = null
+        val registered = activity.activityResultRegistry.register(
+            "PHPhotoLibrary.requestAuthorization",
+            ActivityResultContracts.RequestMultiplePermissions(),
+        ) { results ->
+            launcher?.unregister()
+            requesting = false
+            if (results.isNotEmpty()) {
+                requested = true
+            }
+            finish(status())
+        }
+        launcher = registered
+        requesting = true
+        try {
+            registered.launch(arrayOf(permission))
+        } catch (error: RuntimeException) {
+            Log.i(TAG, "Failed to request photo library permission: ${error.message}")
+            requesting = false
+            registered.unregister()
+            finish(status())
+        }
+    }
+
+    private fun finish(status: PHAuthorizationStatus) {
+        val completions = waiting.toList()
+        waiting.clear()
+        for (completion in completions) {
+            completion(status)
+        }
+    }
+
+    private fun applicationContext(): Context? = try {
+        AppDelegate.context
+    } catch (error: UninitializedPropertyAccessException) {
+        null
+    }
+
+    internal fun reset() {
+        waiting.clear()
+        activity = null
+        requested = false
+        requesting = false
+        sdkInt = Build.VERSION.SDK_INT
     }
 }

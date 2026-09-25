@@ -19,6 +19,10 @@ android {
         versionCode = 1
         versionName = "0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["appAuthRedirectScheme"] = Regex("""val youTubeRedirectUri =\s*"([^":]+):""")
+            .find(file("src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeAuth.kt").readText())
+            ?.groupValues?.get(1)
+            ?: error("youTubeRedirectUri not found in YouTubeAuth.kt")
         buildConfigField(
             "boolean",
             "YCBCR_INGEST",
@@ -102,6 +106,7 @@ dependencies {
     implementation("com.google.android.filament:filament-android:1.74.1")
     implementation("com.google.android.filament:gltfio-android:1.74.1")
     implementation("com.google.android.filament:filament-utils-android:1.74.1")
+    implementation("net.openid:appauth:0.11.1")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
     testImplementation("androidx.test:core:1.6.1")

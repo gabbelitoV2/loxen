@@ -29,7 +29,7 @@ class AVCaptureDeviceInput(val device: AVCaptureDevice) : AVCaptureInput() {
 
     init {
         if (!device.isConnected) {
-            throw AVError(AVError.deviceNotConnected, "Cannot Open")
+            throw AVError(AVError.deviceNotConnected, null)
         }
     }
 }

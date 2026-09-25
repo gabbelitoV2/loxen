@@ -1073,10 +1073,17 @@ class AVCaptureDevice private constructor(
                 position == Position.unspecified || it.position == position
             }
             val entry = entries.firstOrNull { it.deviceType == deviceType }
-                ?: if (deviceType == DeviceType.builtInUltraWideCamera) {
-                    entries.firstOrNull { it.reachesUltraWide && !it.isExternal }
-                } else {
-                    null
+                ?: when (deviceType) {
+                    DeviceType.builtInUltraWideCamera -> entries.firstOrNull { it.reachesUltraWide && !it.isExternal }
+                    DeviceType.builtInWideAngleCamera -> entries.firstOrNull {
+                        it.deviceType == DeviceType.builtInTripleCamera ||
+                            it.deviceType == DeviceType.builtInDualWideCamera ||
+                            it.deviceType == DeviceType.builtInDualCamera
+                    }
+                    DeviceType.builtInTelephotoCamera -> entries.firstOrNull {
+                        it.deviceType == DeviceType.builtInTripleCamera || it.deviceType == DeviceType.builtInDualCamera
+                    }
+                    else -> null
                 }
             return entry?.let { videoDevice(it) }
         }

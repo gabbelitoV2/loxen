@@ -1651,7 +1651,7 @@ class SettingsStream(
     kickSendMessagesTo: Boolean = true,
     var kickChatAlerts: SettingsKickAlerts = SettingsKickAlerts(),
     var kickToastAlerts: SettingsKickAlerts = SettingsKickAlerts(),
-    youTubeAuthState: Any? = null,
+    youTubeAuthState: com.moblin.android.platform.appauth.OIDAuthState? = null,
     var youTubeWantsToBeLoggedIn: Boolean = false,
     var youTubeNotLoggedInCount: Int = 0,
     youTubeVideoIds: String = "",
@@ -1728,7 +1728,7 @@ class SettingsStream(
     var kickSlug: String? by Published(kickSlug)
     var kickLoggedIn: Boolean by Published(kickLoggedIn)
     var kickSendMessagesTo: Boolean by Published(kickSendMessagesTo)
-    var youTubeAuthState: Any? by Published(youTubeAuthState)
+    var youTubeAuthState: com.moblin.android.platform.appauth.OIDAuthState? by Published(youTubeAuthState)
     var youTubeVideoIds: String by Published(youTubeVideoIds)
     var youTubeHandle: String by Published(youTubeHandle)
     var youTubeScheduleStreamTitle: String by Published(youTubeScheduleStreamTitle)
@@ -2261,18 +2261,18 @@ class SettingsStream(
     }
 
     fun isYouTubeAuthorized(): Boolean {
-        return false
+        return youTubeAuthState?.isAuthorized == true
     }
 
     private fun encodeYouTubeAuthState(): ByteArray? {
-        return null
+        return youTubeAuthState?.archivedData()
     }
 
-    private fun decodeYouTubeAuthState(encoded: ByteArray?): Any? {
+    private fun decodeYouTubeAuthState(encoded: ByteArray?): com.moblin.android.platform.appauth.OIDAuthState? {
         if (encoded == null) {
             return null
         }
-        return null
+        return com.moblin.android.platform.appauth.OIDAuthState.unarchivedObject(from = encoded)
     }
 
     object Serializer : KSerializer<SettingsStream> by JsonObjectSerializer(

@@ -456,7 +456,7 @@ class AVAssetWriterInput(
                 return false
             }
             if (!input.append(sampleBuffer)) {
-                throw AVError(AVError.unknown, input.writer?.error?.message ?: "Append failed")
+                throw AVError(AVError.unknown, (input.writer?.error as? AVError)?.localizedFailureReason ?: "Append failed")
             }
             return true
         }

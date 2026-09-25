@@ -45,6 +45,7 @@ object AndroidHost {
         SystemEvents.install(activity.application)
         StreamingService.cancelStaleNotification(activity)
         com.moblin.android.platform.corelocation.LocationAuthorization.install(activity)
+        com.moblin.android.platform.avfoundation.PhotoLibraryAuthorization.install(activity)
         com.moblin.android.platform.corebluetooth.BluetoothAuthorization.install(activity)
         com.moblin.android.platform.offscreen.OffscreenDisplay.prewarm()
         com.moblin.android.platform.avkit.PictureInPictureWindow.install(activity)

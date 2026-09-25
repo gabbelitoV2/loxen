@@ -11,6 +11,9 @@ import com.moblin.android.platform.core.NotificationCenter
 import com.moblin.android.platform.uikit.UIDevice
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.handleAudioRouteChange
+import java.lang.ref.WeakReference
+import java.util.Collections
+import java.util.WeakHashMap
 
 object SystemEvents {
     private const val TAG = "SystemEvents"
@@ -22,17 +25,24 @@ object SystemEvents {
     private var resumedActivities = 0
     private var hasEnteredBackground = false
     private var hasTerminated = false
+    private var resumedActivity: WeakReference<Activity>? = null
+    private var aliveActivities: MutableSet<Activity> = Collections.newSetFromMap(WeakHashMap())
     internal var terminateProcess: () -> Unit = { Process.killProcess(Process.myPid()) }
 
     val isInBackground: Boolean
         get() = hasEnteredBackground
 
+    val activity: Activity?
+        get() = resumedActivity?.get()?.takeUnless { it.isDestroyed }
+
     private val lifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
         override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+            aliveActivities.add(activity)
             hasTerminated = false
         }
 
         override fun onActivityStarted(activity: Activity) {
+            aliveActivities.add(activity)
             startedActivities += 1
             if (startedActivities == 1 && hasEnteredBackground) {
                 hasEnteredBackground = false
@@ -41,6 +51,7 @@ object SystemEvents {
         }
 
         override fun onActivityResumed(activity: Activity) {
+            resumedActivity = WeakReference(activity)
             resumedActivities += 1
             if (hasEnteredBackground && startedActivities > 0 && !activity.isInPictureInPictureMode) {
                 hasEnteredBackground = false
@@ -72,7 +83,11 @@ object SystemEvents {
         override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
 
         override fun onActivityDestroyed(activity: Activity) {
-            if (activity.isFinishing && !activity.isChangingConfigurations) {
+            if (resumedActivity?.get() === activity) {
+                resumedActivity = null
+            }
+            aliveActivities.remove(activity)
+            if (activity.isFinishing && !activity.isChangingConfigurations && aliveActivities.isEmpty()) {
                 applicationWillTerminate()
             }
         }

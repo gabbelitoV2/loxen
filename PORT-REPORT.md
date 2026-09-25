@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-09-25T11:54:58+00:00
+Generated 2026-09-25T12:44:10+00:00
 
 ## Summary
 
@@ -197,11 +197,6 @@ Generated 2026-09-25T11:54:58+00:00
   - HealthKit (HKHealthStore, HKWorkoutConfiguration, HKWorkoutSession, HKWorkoutSessionDelegate, HKLiveWorkoutBuilder, HKLiveWorkoutBuilderDelegate, HKLiveWorkoutDataSource, HKQuantitySample, HKUnit, HKSampleType, HKWorkoutSessionState)
   - WatchConnectivity (source of the WatchProtocolWorkoutType workout kinds)
   - ContinuousClock.Instant and HKWorkoutSession state transitions used for sample rate limiting
-- Moblin/Various/Model/ModelYouTube.swift
-  - OIDAuthorizationService.discoverConfiguration (AppAuth)
-  - OIDAuthState.authState(byPresenting:externalUserAgent:callback:) and OIDExternalUserAgentIOS / OIDExternalUserAgentCatalyst authorization flow (AppAuth)
-  - OIDAuthState.performAction access token refresh (AppAuth)
-  - OIDExternalUserAgentSession (AppAuth)
 - Moblin/Various/Network/HttpClient.swift
   - resolve android.net.Network for cellular/wifi/ethernet via ConnectivityManager
 - Moblin/Various/Network/HttpServer.swift
@@ -214,19 +209,10 @@ Generated 2026-09-25T11:54:58+00:00
   - NWWebSocket.ping() manual ping frames (TODO in startPingTimer; OkHttpClient.pingInterval pings automatically)
   - NWConnection viability changes (webSocketViabilityDidChange, no Android counterpart)
   - NWConnection better path migration (webSocketDidAttemptBetterPathMigration, no Android counterpart)
-- Moblin/Various/Settings/SettingsStream.swift
-  - AppAuthCore OIDAuthState (isYouTubeAuthorized, encodeYouTubeAuthState, decodeYouTubeAuthState)
-  - NSKeyedArchiver / NSKeyedUnarchiver
 - Moblin/Various/Storages/RecordingsStorage.swift
   - URL(resolvingBookmarkData:bookmarkDataIsStale:) / startAccessingSecurityScopedResource security-scoped bookmarks
-- Moblin/Various/Utils/UiUtils.swift
-  - AudioServicesPlaySystemSound(kSystemSoundID_Vibrate) in UIDevice.vibrate()
-  - UIApplication.shared.connectedScenes / UIWindowScene / UIWindow in getWindow()
-  - UIViewController in getRootViewController()
 - Moblin/Various/Utils/Utils.swift
   - UIApplication.shared.open (openUrl)
-  - CIFilter.qrCodeGenerator (generateQrCode)
-  - AVError (tryGetToastSubTitle)
   - AVSpeechSynthesizer (createSpeechSynthesizer)
   - URL(resolvingBookmarkData:) (makeRecordingPath)
   - Bundle.main resource loading (loadStringResource, loadResource)
@@ -377,10 +363,6 @@ Generated 2026-09-25T11:54:58+00:00
   - ShareLink
 - Moblin/View/Utils/EmotesPlayer.swift
   - UIImage(systemName:withConfiguration:)
-- Moblin/View/Utils/FontPickerViews.swift
-  - UIFont.fontNames(forFamilyName:)
-  - UIFont.familyNames
-  - CoreText font collection (CTFontCollectionCreateFromAvailableFonts, CTFontDescriptorCopyAttribute)
 - Moblin/View/Utils/RgbColorPickerView.swift
   - SwiftUI ColorPicker (no Compose counterpart, replaced by TODO())
   - Color.toRgb() SwiftUI extension converting Color to RgbColor (no Kotlin counterpart, replaced by TODO())
@@ -406,7 +388,7 @@ Generated 2026-09-25T11:54:58+00:00
 | Common/Various/Validate.swift | app/src/main/java/com/moblin/android/common/various/Validate.kt | claude-opus-5 | 48.1 |
 | Common/View/StreamOverlayIconAndTextView.swift | app/src/main/java/com/moblin/android/common/view/StreamOverlayIconAndTextView.kt | deepseek-flash | 23.0 |
 | Common/View/StreamOverlayTextView.swift | app/src/main/java/com/moblin/android/common/view/StreamOverlayTextView.kt | deepseek-flash | 2.3 |
-| Common/View/ThermalStateView.swift | app/src/main/java/com/moblin/android/common/view/ThermalStateView.kt | deepseek-flash | 10.8 |
+| Common/View/ThermalStateView.swift | app/src/main/java/com/moblin/android/common/view/ThermalStateView.kt | deepseek-flash | 13.9 |
 | Moblin Live Activity/Shared/MoblinLiveActivity.swift | app/src/main/java/com/moblin/android/moblinliveactivity/shared/MoblinLiveActivity.kt | deepseek-flash | 4.1 |
 | Moblin Watch/Shared/WatchProtocol.swift | app/src/main/java/com/moblin/android/moblinwatch/shared/WatchProtocol.kt | deepseek-flash | 36.8 |
 | Moblin Watch/Shared/WatchSettings.swift | app/src/main/java/com/moblin/android/moblinwatch/shared/WatchSettings.kt | deepseek-flash | 122.2 |
@@ -693,7 +675,7 @@ Generated 2026-09-25T11:54:58+00:00
 | Moblin/Various/Model/ModelWiFiAware.swift | app/src/main/java/com/moblin/android/various/model/ModelWiFiAware.kt | deepseek-flash | 97.5 |
 | Moblin/Various/Model/ModelWorkout.swift | app/src/main/java/com/moblin/android/various/model/ModelWorkout.kt | deepseek-flash | 34.4 |
 | Moblin/Various/Model/ModelWorkoutDevice.swift | app/src/main/java/com/moblin/android/various/model/ModelWorkoutDevice.kt | deepseek-flash | 43.6 |
-| Moblin/Various/Model/ModelYouTube.swift | app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt | deepseek-flash | 174.9 |
+| Moblin/Various/Model/ModelYouTube.swift | app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt | deepseek-flash | 191.9 |
 | Moblin/Various/Model/ModelZoom.swift | app/src/main/java/com/moblin/android/various/model/ModelZoom.kt | deepseek-flash | 65.5 |
 | Moblin/Various/Network/DnsLookup.swift | app/src/main/java/com/moblin/android/various/network/DnsLookup.kt | deepseek-flash | 6.9 |
 | Moblin/Various/Network/HttpClient.swift | app/src/main/java/com/moblin/android/various/network/HttpClient.kt | deepseek-flash | 99.8 |
@@ -749,8 +731,8 @@ Generated 2026-09-25T11:54:58+00:00
 | Moblin/Various/Utils/CameraUtils.swift | app/src/main/java/com/moblin/android/various/utils/CameraUtils.kt | deepseek-flash | 31.3 |
 | Moblin/Various/Utils/FileSystemUtils.swift | app/src/main/java/com/moblin/android/various/utils/FileSystemUtils.kt | deepseek-flash | 57.2 |
 | Moblin/Various/Utils/LocationUtils.swift | app/src/main/java/com/moblin/android/various/utils/LocationUtils.kt | deepseek-flash | 19.9 |
-| Moblin/Various/Utils/UiUtils.swift | app/src/main/java/com/moblin/android/various/utils/UiUtils.kt | deepseek-flash | 41.1 |
-| Moblin/Various/Utils/Utils.swift | app/src/main/java/com/moblin/android/various/utils/Utils.kt | deepseek-flash | 74.9 |
+| Moblin/Various/Utils/UiUtils.swift | app/src/main/java/com/moblin/android/various/utils/UiUtils.kt | deepseek-flash | 25.0 |
+| Moblin/Various/Utils/Utils.swift | app/src/main/java/com/moblin/android/various/utils/Utils.kt | deepseek-flash | 192.3 |
 | Moblin/Various/Utils/WiFiUtils.swift | app/src/main/java/com/moblin/android/various/utils/WiFiUtils.kt | deepseek-flash | 5.1 |
 | Moblin/Various/Variables.swift | app/src/main/java/com/moblin/android/various/Variables.kt | deepseek-flash | 20.9 |
 | Moblin/Various/WebBrowserController.swift | app/src/main/java/com/moblin/android/various/WebBrowserController.kt | deepseek-flash | 41.9 |
@@ -1093,7 +1075,7 @@ Generated 2026-09-25T11:54:58+00:00
 | Moblin/View/Utils/CreateButtonView.swift | app/src/main/java/com/moblin/android/view/utils/CreateButtonView.kt | deepseek-flash | 3.6 |
 | Moblin/View/Utils/DraggableItemPrefixView.swift | app/src/main/java/com/moblin/android/view/utils/DraggableItemPrefixView.kt | deepseek-flash | 2.9 |
 | Moblin/View/Utils/EmotesPlayer.swift | app/src/main/java/com/moblin/android/view/utils/EmotesPlayer.kt | deepseek-flash | 135.4 |
-| Moblin/View/Utils/FontPickerViews.swift | app/src/main/java/com/moblin/android/view/utils/FontPickerViews.kt | deepseek-flash | 121.7 |
+| Moblin/View/Utils/FontPickerViews.swift | app/src/main/java/com/moblin/android/view/utils/FontPickerViews.kt | deepseek-flash | 58.0 |
 | Moblin/View/Utils/FormFieldError.swift | app/src/main/java/com/moblin/android/view/utils/FormFieldError.kt | deepseek-flash | 2.9 |
 | Moblin/View/Utils/HCenter.swift | app/src/main/java/com/moblin/android/view/utils/HCenter.kt | deepseek-flash | 11.1 |
 | Moblin/View/Utils/IconAndTextView.swift | app/src/main/java/com/moblin/android/view/utils/IconAndTextView.kt | deepseek-flash | 24.9 |
