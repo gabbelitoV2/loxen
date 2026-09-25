@@ -1,0 +1,41 @@
+{
+  "task": "CAMCTL",
+  "hooks": [
+    {
+      "id": "HCAMCTL.1",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun Model.isCameraSupportingManualFocus",
+      "op": "replace",
+      "old": "    return false",
+      "new": "    return cameraDevice?.device?.isLockingFocusWithCustomLensPositionSupported ?: false",
+      "note": "Swift cameraDevice?.isLockingFocusWithCustomLensPositionSupported ?? false; the shim reads it from the camera."
+    },
+    {
+      "id": "HCAMCTL.2",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun Model.isCameraSupportingManualExposureAndIso",
+      "op": "replace",
+      "old": "    return false",
+      "new": "    return cameraDevice?.device?.isExposureModeSupported(AVCaptureDevice.ExposureMode.custom) ?: false",
+      "note": "Swift cameraDevice?.isExposureModeSupported(.custom) ?? false."
+    },
+    {
+      "id": "HCAMCTL.3",
+      "file": "various/model/ModelCamera.kt",
+      "scope": "fun Model.isCameraSupportingManualWhiteBalance",
+      "op": "replace",
+      "old": "    return false",
+      "new": "    return cameraDevice?.device?.isLockingWhiteBalanceWithCustomDeviceGainsSupported ?: false",
+      "note": "Swift cameraDevice?.isLockingWhiteBalanceWithCustomDeviceGainsSupported ?? false."
+    },
+    {
+      "id": "HCAMCTL.4",
+      "file": "various/utils/UiUtils.kt",
+      "scope": "fun getOrientation",
+      "op": "insert_after",
+      "anchor": "fun getOrientation(): DeviceOrientation {",
+      "new": "    when (com.moblin.android.platform.uikit.UIDevice.current.orientation) { com.moblin.android.platform.uikit.UIDeviceOrientation.portrait -> return DeviceOrientation.PORTRAIT; com.moblin.android.platform.uikit.UIDeviceOrientation.portraitUpsideDown -> return DeviceOrientation.PORTRAIT_UPSIDE_DOWN; com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeLeft -> return DeviceOrientation.LANDSCAPE_LEFT; com.moblin.android.platform.uikit.UIDeviceOrientation.landscapeRight -> return DeviceOrientation.LANDSCAPE_RIGHT; com.moblin.android.platform.uikit.UIDeviceOrientation.faceUp -> return DeviceOrientation.FACE_UP; com.moblin.android.platform.uikit.UIDeviceOrientation.faceDown -> return DeviceOrientation.FACE_DOWN }",
+      "note": "Swift returns UIDevice.current.orientation when it is known, so tap to focus tells landscape left from landscape right."
+    }
+  ]
+}

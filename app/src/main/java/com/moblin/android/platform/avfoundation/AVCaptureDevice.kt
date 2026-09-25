@@ -1,7 +1,9 @@
 package com.moblin.android.platform.avfoundation
 
 import android.graphics.PointF
+import android.hardware.camera2.CameraMetadata
 import android.hardware.camera2.CaptureResult
+import android.hardware.camera2.params.ColorSpaceTransform
 import android.hardware.camera2.params.RggbChannelVector
 import android.media.AudioDeviceInfo
 import android.util.Log
@@ -10,7 +12,11 @@ import com.moblin.android.media.kCMTimeInvalidUs
 import com.moblin.android.platform.capture.AudioCaptureBridge
 import com.moblin.android.platform.capture.Camera2Engine
 import com.moblin.android.platform.capture.CameraCatalog
+import com.moblin.android.platform.capture.CameraControlCapabilities
+import com.moblin.android.platform.capture.CameraControlState
+import com.moblin.android.platform.capture.CameraControls
 import com.moblin.android.platform.capture.CameraFormats
+import com.moblin.android.platform.capture.ControlTrigger
 import com.moblin.android.platform.core.HostClock
 import com.moblin.android.platform.core.KeyValueObservers
 import com.moblin.android.platform.core.NSKeyValueObservation
@@ -181,6 +187,35 @@ class AVCaptureDevice private constructor(
     @Volatile
     private var resultWhiteBalanceGains: WhiteBalanceGains? = null
 
+    @Volatile
+    private var resultColorTransform: ColorSpaceTransform? = null
+
+    @Volatile
+    private var whiteBalanceScale = CameraControls.defaultWhiteBalanceScale
+
+    private var focusModeValue = FocusMode.continuousAutoFocus
+    private var focusPoint = PointF(0.5f, 0.5f)
+    private var heldLensPosition: Float? = null
+    private var focusScan = 0L
+    private var focusScanSent = 0L
+    private var focusScanArmed = 0L
+    private var focusScanRetried = 0L
+    private var exposureModeValue = ExposureMode.continuousAutoExposure
+    private var exposurePoint = PointF(0.5f, 0.5f)
+    private var heldIso: Float? = null
+    private var heldExposureDuration: Long? = null
+    private var heldExposureBias: Float? = null
+    private var exposureScan = 0L
+    private var exposureScanSent = 0L
+    private var exposureScanArmed = 0L
+    private var exposureScanRetried = 0L
+    private var whiteBalanceModeValue = WhiteBalanceMode.continuousAutoWhiteBalance
+    private var heldWhiteBalanceGains: WhiteBalanceGains? = null
+    private var heldColorTransform: ColorSpaceTransform? = null
+
+    private val controls: CameraControlCapabilities?
+        get() = camera?.controls
+
     val formats: List<Format> by lazy {
         val entry = camera ?: return@lazy emptyList()
         CameraFormats.make(entry)
@@ -202,7 +237,7 @@ class AVCaptureDevice private constructor(
     val modelID: String = android.os.Build.MODEL
 
     @Volatile
-    var activeFormat: Format = CameraFormats.defaultFormat(formats)
+    var activeFormat: Format = CameraFormats.defaultFormat(formats, camera)
         set(value) {
             val changed = field !== value
             field = value
@@ -330,20 +365,27 @@ class AVCaptureDevice private constructor(
     var dynamicAspectRatio: AVCaptureAspectRatio? = null
         private set
 
-    var exposureMode: ExposureMode = ExposureMode.continuousAutoExposure
+    var exposureMode: ExposureMode
+        get() = synchronized(lock) { exposureModeValue }
         set(value) {
-            if (value != ExposureMode.continuousAutoExposure) {
-                logNotImplemented("exposureMode $value")
-            }
-            field = value
+            changeExposureMode(value)
         }
 
-    val isExposurePointOfInterestSupported = false
+    val isExposurePointOfInterestSupported: Boolean
+        get() = controls?.supportsExposurePointOfInterest ?: false
 
-    var exposurePointOfInterest: PointF = PointF(0.5f, 0.5f)
+    var exposurePointOfInterest: PointF
+        get() = synchronized(lock) { PointF(exposurePoint.x, exposurePoint.y) }
+        set(value) {
+            synchronized(lock) {
+                exposurePoint = PointF(value.x.coerceIn(0f, 1f), value.y.coerceIn(0f, 1f))
+            }
+            didChange(format = false)
+        }
 
     val iso: Float
         get() {
+            synchronized(lock) { heldExposure() }?.let { return it.first }
             val value = resultIso
             if (!value.isNaN()) {
                 return value
@@ -353,6 +395,7 @@ class AVCaptureDevice private constructor(
 
     val exposureDuration: Long
         get() {
+            synchronized(lock) { heldExposure() }?.let { return it.second }
             val value = resultExposureDuration
             if (value != kCMTimeInvalidUs) {
                 return value
@@ -372,55 +415,55 @@ class AVCaptureDevice private constructor(
     val exposureTargetOffset: Float = 0f
 
     val minExposureTargetBias: Float
-        get() {
-            val entry = camera ?: return -8f
-            val range = entry.aeCompensationRange ?: return 0f
-            return range.lower * entry.aeCompensationStep
-        }
+        get() = controls?.minExposureTargetBias ?: -8f
 
     val maxExposureTargetBias: Float
-        get() {
-            val entry = camera ?: return 8f
-            val range = entry.aeCompensationRange ?: return 0f
-            return range.upper * entry.aeCompensationStep
-        }
+        get() = controls?.maxExposureTargetBias ?: 8f
 
-    var focusMode: FocusMode = FocusMode.continuousAutoFocus
+    var focusMode: FocusMode
+        get() = synchronized(lock) { focusModeValue }
         set(value) {
-            if (value != FocusMode.continuousAutoFocus) {
-                logNotImplemented("focusMode $value")
-            }
-            field = value
+            changeFocusMode(value)
         }
 
-    val isFocusPointOfInterestSupported = false
+    val isFocusPointOfInterestSupported: Boolean
+        get() = controls?.supportsFocusPointOfInterest ?: false
 
-    var focusPointOfInterest: PointF = PointF(0.5f, 0.5f)
+    var focusPointOfInterest: PointF
+        get() = synchronized(lock) { PointF(focusPoint.x, focusPoint.y) }
+        set(value) {
+            synchronized(lock) {
+                focusPoint = PointF(value.x.coerceIn(0f, 1f), value.y.coerceIn(0f, 1f))
+            }
+            didChange(format = false)
+        }
 
-    val isLockingFocusWithCustomLensPositionSupported = false
+    val isLockingFocusWithCustomLensPositionSupported: Boolean
+        get() = controls?.supportsManualFocus ?: false
 
     val lensPosition: Float
         get() {
+            synchronized(lock) { heldLensPosition }?.let { return it }
             val value = resultLensPosition
             return if (value.isNaN()) 1f else value
         }
 
     val isSmoothAutoFocusSupported = false
 
-    var whiteBalanceMode: WhiteBalanceMode = WhiteBalanceMode.continuousAutoWhiteBalance
+    var whiteBalanceMode: WhiteBalanceMode
+        get() = synchronized(lock) { whiteBalanceModeValue }
         set(value) {
-            if (value != WhiteBalanceMode.continuousAutoWhiteBalance) {
-                logNotImplemented("whiteBalanceMode $value")
-            }
-            field = value
+            changeWhiteBalanceMode(value)
         }
 
-    val isLockingWhiteBalanceWithCustomDeviceGainsSupported = false
+    val isLockingWhiteBalanceWithCustomDeviceGainsSupported: Boolean
+        get() = controls?.supportsCustomWhiteBalanceGains ?: false
 
     val maxWhiteBalanceGain: Float = 4f
 
     val deviceWhiteBalanceGains: WhiteBalanceGains
-        get() = resultWhiteBalanceGains
+        get() = synchronized(lock) { heldWhiteBalanceGains }
+            ?: resultWhiteBalanceGains
             ?: deviceWhiteBalanceGains(WhiteBalanceTemperatureAndTintValues(temperature = 5000f, tint = 0f))
 
     val grayWorldDeviceWhiteBalanceGains: WhiteBalanceGains
@@ -493,42 +536,113 @@ class AVCaptureDevice private constructor(
         }
     }
 
-    fun isExposureModeSupported(mode: ExposureMode): Boolean = mode == ExposureMode.continuousAutoExposure
+    fun isExposureModeSupported(mode: ExposureMode): Boolean {
+        val controls = controls ?: return false
+        return when (mode) {
+            ExposureMode.locked -> controls.supportsLockedExposure
+            ExposureMode.autoExpose -> controls.supportsAutoExposure
+            ExposureMode.continuousAutoExposure -> controls.supportsAutoExposure
+            ExposureMode.custom -> controls.supportsCustomExposure
+        }
+    }
 
     fun setExposureModeCustom(duration: Long, iso: Float, completionHandler: ((Long) -> Unit)? = null) {
-        val exposure = if (duration == currentExposureDuration) exposureDuration else duration
-        val sensitivity = if (iso == currentISO) this.iso else iso
-        logNotImplemented("setExposureModeCustom duration=$exposure iso=$sensitivity")
+        if (!isExposureModeSupported(ExposureMode.custom)) {
+            logNotSupported("setExposureModeCustom")
+        } else {
+            changeControls {
+                val format = activeFormat
+                val exposure = if (duration == currentExposureDuration) {
+                    exposureDuration
+                } else {
+                    duration.coerceIn(
+                        format.minExposureDuration,
+                        maxOf(format.minExposureDuration, format.maxExposureDuration)
+                    )
+                }
+                val sensitivity = if (iso == currentISO) {
+                    this.iso
+                } else {
+                    iso.coerceIn(format.minISO, maxOf(format.minISO, format.maxISO))
+                }
+                exposureModeValue = ExposureMode.custom
+                heldExposureDuration = exposure
+                heldIso = sensitivity
+                heldExposureBias = null
+            }
+        }
         completionHandler?.invoke(HostClock.nowUs())
     }
 
     fun setExposureTargetBias(bias: Float, completionHandler: ((Long) -> Unit)? = null) {
+        val old = observedValues()
         exposureTargetBias = bias.coerceIn(minExposureTargetBias, maxOf(minExposureTargetBias, maxExposureTargetBias))
+        notifyObservers(old)
         didChange(format = false)
         completionHandler?.invoke(HostClock.nowUs())
     }
 
-    fun isFocusModeSupported(mode: FocusMode): Boolean = mode == FocusMode.continuousAutoFocus
+    fun isFocusModeSupported(mode: FocusMode): Boolean {
+        val controls = controls ?: return false
+        return when (mode) {
+            FocusMode.locked -> controls.supportsManualFocus || controls.supportsAutoFocus
+            FocusMode.autoFocus -> controls.supportsAutoFocus
+            FocusMode.continuousAutoFocus -> controls.continuousAutoFocusMode != null
+        }
+    }
 
     fun setFocusModeLocked(lensPosition: Float, completionHandler: ((Long) -> Unit)? = null) {
-        logNotImplemented("setFocusModeLocked lensPosition=$lensPosition")
+        if (!isLockingFocusWithCustomLensPositionSupported) {
+            logNotSupported("setFocusModeLocked")
+        } else {
+            changeControls {
+                val position = if (lensPosition == currentLensPosition) {
+                    this.lensPosition
+                } else {
+                    lensPosition.coerceIn(0f, 1f)
+                }
+                focusModeValue = FocusMode.locked
+                heldLensPosition = position
+            }
+        }
         completionHandler?.invoke(HostClock.nowUs())
     }
 
-    fun isWhiteBalanceModeSupported(mode: WhiteBalanceMode): Boolean =
-        mode == WhiteBalanceMode.continuousAutoWhiteBalance
+    fun isWhiteBalanceModeSupported(mode: WhiteBalanceMode): Boolean {
+        val controls = controls ?: return false
+        return when (mode) {
+            WhiteBalanceMode.locked -> controls.supportsLockedWhiteBalance
+            WhiteBalanceMode.autoWhiteBalance -> false
+            WhiteBalanceMode.continuousAutoWhiteBalance -> controls.supportsAutoWhiteBalance
+        }
+    }
 
     fun setWhiteBalanceModeLocked(with: WhiteBalanceGains, completionHandler: ((Long) -> Unit)? = null) {
-        logNotImplemented("setWhiteBalanceModeLocked $with")
+        if (!isLockingWhiteBalanceWithCustomDeviceGainsSupported) {
+            logNotSupported("setWhiteBalanceModeLocked")
+        } else {
+            changeControls {
+                val gains = if (with == currentWhiteBalanceGains) {
+                    deviceWhiteBalanceGains
+                } else {
+                    WhiteBalanceGains(
+                        redGain = with.redGain.coerceIn(1f, maxWhiteBalanceGain),
+                        greenGain = with.greenGain.coerceIn(1f, maxWhiteBalanceGain),
+                        blueGain = with.blueGain.coerceIn(1f, maxWhiteBalanceGain),
+                    )
+                }
+                if (heldWhiteBalanceGains == null) {
+                    heldColorTransform = resultColorTransform
+                }
+                whiteBalanceModeValue = WhiteBalanceMode.locked
+                heldWhiteBalanceGains = gains
+            }
+        }
         completionHandler?.invoke(HostClock.nowUs())
     }
 
     fun deviceWhiteBalanceGains(values: WhiteBalanceTemperatureAndTintValues): WhiteBalanceGains {
-        val temperature = values.temperature.coerceIn(1000f, 20000f)
-        val red = (temperature / 6500f).pow(0.7f)
-        val blue = (6500f / temperature).pow(0.7f)
-        val minimum = minOf(red, 1f, blue)
-        return WhiteBalanceGains(redGain = red / minimum, greenGain = 1f / minimum, blueGain = blue / minimum)
+        return CameraControls.temperatureGains(values.temperature, whiteBalanceScale)
     }
 
     fun temperatureAndTintValues(gains: WhiteBalanceGains): WhiteBalanceTemperatureAndTintValues {
@@ -558,63 +672,324 @@ class AVCaptureDevice private constructor(
     override fun toString(): String = localizedName
 
     internal fun captureCompleted(result: CaptureResult) {
+        captureCompleted(result, result.request?.tag)
+    }
+
+    internal fun captureCompleted(result: CaptureResult, requestTag: Any?) {
         val entry = camera ?: return
+        val old = observedValues()
         val distance = result.get(CaptureResult.LENS_FOCUS_DISTANCE)
         if (distance != null && !distance.isNaN()) {
-            val oldValue = lensPosition
-            val newValue = entry.lensPosition(focusDistance = distance)
-            resultLensPosition = newValue
-            if (newValue != oldValue && observers.isObserved) {
-                observers.didChangeValue(AVCaptureDevice::lensPosition, oldValue, newValue)
-            }
+            resultLensPosition = entry.lensPosition(focusDistance = distance)
         }
         val sensitivity = result.get(CaptureResult.SENSOR_SENSITIVITY)
         if (sensitivity != null) {
-            val oldValue = iso
-            val newValue = sensitivity.toFloat()
-            resultIso = newValue
-            if (newValue != oldValue && observers.isObserved) {
-                observers.didChangeValue(AVCaptureDevice::iso, oldValue, newValue)
-            }
+            resultIso = sensitivity.toFloat()
         }
         val exposureTime = result.get(CaptureResult.SENSOR_EXPOSURE_TIME)
         if (exposureTime != null && exposureTime > 0) {
-            val oldValue = exposureDuration
-            val newValue = exposureTime / 1000
-            resultExposureDuration = newValue
-            if (newValue != oldValue && observers.isObserved) {
-                observers.didChangeValue(AVCaptureDevice::exposureDuration, oldValue, newValue)
-            }
+            resultExposureDuration = exposureTime / 1000
         }
         val gains = result.get(CaptureResult.COLOR_CORRECTION_GAINS)
         if (gains != null) {
-            whiteBalanceGainsCompleted(gains)
+            whiteBalanceGainsCompleted(gains, result.get(CaptureResult.CONTROL_AWB_MODE))
+        }
+        val changed = controlsCompleted(
+            entry.controls,
+            requestTag as? ControlTrigger,
+            result.get(CaptureResult.CONTROL_AF_STATE),
+            result.get(CaptureResult.CONTROL_AE_STATE),
+            result.get(CaptureResult.COLOR_CORRECTION_TRANSFORM),
+        )
+        notifyObservers(old)
+        if (changed) {
+            didChange(format = false)
         }
     }
 
-    private fun whiteBalanceGainsCompleted(gains: RggbChannelVector) {
-        val green = (gains.greenEven + gains.greenOdd) / 2
-        val minimum = minOf(gains.red, green, gains.blue)
-        if (!(minimum > 0f)) {
+    internal fun controlState(): CameraControlState {
+        return synchronized(lock) {
+            val exposure = heldExposure()
+            CameraControlState(
+                focusMode = focusModeValue,
+                focusPointOfInterest = PointF(focusPoint.x, focusPoint.y),
+                lensPosition = heldLensPosition,
+                exposureMode = exposureModeValue,
+                exposurePointOfInterest = PointF(exposurePoint.x, exposurePoint.y),
+                iso = exposure?.first,
+                exposureDuration = exposure?.second,
+                exposureTargetBias = exposureTargetBias,
+                whiteBalanceMode = whiteBalanceModeValue,
+                whiteBalanceGains = heldWhiteBalanceGains,
+                colorTransform = heldColorTransform,
+            )
+        }
+    }
+
+    internal fun controlSessionStarted() {
+        synchronized(lock) {
+            focusScanSent = 0L
+            focusScanArmed = 0L
+            exposureScanSent = 0L
+            exposureScanArmed = 0L
+        }
+    }
+
+    internal fun takeControlTrigger(): ControlTrigger? {
+        val controls = controls ?: return null
+        synchronized(lock) {
+            val focus = if (focusModeValue == FocusMode.autoFocus &&
+                focusScan != focusScanSent &&
+                controls.supportsAutoFocus
+            ) {
+                focusScan
+            } else {
+                0L
+            }
+            val exposure = if (exposureModeValue == ExposureMode.autoExpose &&
+                exposureScan != exposureScanSent &&
+                controls.supportsLockedExposure
+            ) {
+                exposureScan
+            } else {
+                0L
+            }
+            if (focus == 0L && exposure == 0L) {
+                return null
+            }
+            if (focus != 0L) {
+                focusScanSent = focus
+            }
+            if (exposure != 0L) {
+                exposureScanSent = exposure
+            }
+            return ControlTrigger(focusScan = focus, exposureScan = exposure)
+        }
+    }
+
+    internal fun controlTriggerFailed(trigger: ControlTrigger) {
+        val retry = synchronized(lock) {
+            var retry = false
+            if (trigger.focusScan != 0L &&
+                trigger.focusScan == focusScan &&
+                focusScanSent == focusScan &&
+                focusScanArmed != focusScan &&
+                focusScanRetried != focusScan
+            ) {
+                focusScanSent = 0L
+                focusScanRetried = focusScan
+                retry = true
+            }
+            if (trigger.exposureScan != 0L &&
+                trigger.exposureScan == exposureScan &&
+                exposureScanSent == exposureScan &&
+                exposureScanArmed != exposureScan &&
+                exposureScanRetried != exposureScan
+            ) {
+                exposureScanSent = 0L
+                exposureScanRetried = exposureScan
+                retry = true
+            }
+            retry
+        }
+        if (retry) {
+            didChange(format = false)
+        }
+    }
+
+    private fun changeFocusMode(mode: FocusMode) {
+        if (!isFocusModeSupported(mode)) {
+            logNotSupported("focusMode $mode")
             return
         }
-        val redGain = gains.red / minimum
-        val greenGain = green / minimum
-        val blueGain = gains.blue / minimum
+        changeControls {
+            heldLensPosition = if (mode == FocusMode.locked && controls?.supportsManualFocus == true) {
+                heldLensPosition ?: reportedLensPosition()
+            } else {
+                null
+            }
+            focusModeValue = mode
+            if (mode == FocusMode.autoFocus) {
+                focusScan += 1
+            }
+        }
+    }
+
+    private fun changeExposureMode(mode: ExposureMode) {
+        if (!isExposureModeSupported(mode)) {
+            logNotSupported("exposureMode $mode")
+            return
+        }
+        changeControls {
+            val manual = (mode == ExposureMode.locked || mode == ExposureMode.custom) &&
+                controls?.supportsCustomExposure == true &&
+                (heldIso != null || isExposureReported())
+            val sensitivity = if (manual) iso else null
+            val duration = if (manual) exposureDuration else null
+            exposureModeValue = mode
+            heldIso = sensitivity
+            heldExposureDuration = duration
+            heldExposureBias = if (manual && mode == ExposureMode.locked) exposureTargetBias else null
+            if (mode == ExposureMode.autoExpose) {
+                exposureScan += 1
+            }
+        }
+    }
+
+    private fun changeWhiteBalanceMode(mode: WhiteBalanceMode) {
+        if (!isWhiteBalanceModeSupported(mode)) {
+            logNotSupported("whiteBalanceMode $mode")
+            return
+        }
+        changeControls {
+            if (mode == WhiteBalanceMode.locked && controls?.supportsCustomWhiteBalanceGains == true) {
+                if (heldWhiteBalanceGains == null) {
+                    heldWhiteBalanceGains = resultWhiteBalanceGains
+                    heldColorTransform = resultColorTransform
+                }
+            } else {
+                heldWhiteBalanceGains = null
+                heldColorTransform = null
+            }
+            whiteBalanceModeValue = mode
+        }
+    }
+
+    private fun controlsCompleted(
+        controls: CameraControlCapabilities,
+        trigger: ControlTrigger?,
+        afState: Int?,
+        aeState: Int?,
+        colorTransform: ColorSpaceTransform?,
+    ): Boolean {
+        synchronized(lock) {
+            var changed = false
+            if (trigger != null) {
+                if (trigger.focusScan != 0L && trigger.focusScan == focusScan) {
+                    focusScanArmed = focusScan
+                }
+                if (trigger.exposureScan != 0L && trigger.exposureScan == exposureScan) {
+                    exposureScanArmed = exposureScan
+                }
+            }
+            if (focusModeValue == FocusMode.autoFocus &&
+                focusScan != 0L &&
+                focusScanArmed == focusScan &&
+                (afState == CameraMetadata.CONTROL_AF_STATE_FOCUSED_LOCKED ||
+                    afState == CameraMetadata.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED)
+            ) {
+                heldLensPosition = if (controls.supportsManualFocus) reportedLensPosition() else null
+                focusModeValue = FocusMode.locked
+                changed = true
+            }
+            val manualExposure = controls.supportsCustomExposure && isExposureReported()
+            if (exposureModeValue == ExposureMode.autoExpose &&
+                exposureScan != 0L &&
+                exposureScanArmed == exposureScan &&
+                (aeState == CameraMetadata.CONTROL_AE_STATE_CONVERGED ||
+                    aeState == CameraMetadata.CONTROL_AE_STATE_FLASH_REQUIRED) &&
+                (manualExposure || controls.aeLockAvailable)
+            ) {
+                if (manualExposure) {
+                    heldIso = resultIso
+                    heldExposureDuration = resultExposureDuration
+                    heldExposureBias = exposureTargetBias
+                }
+                exposureModeValue = ExposureMode.locked
+                changed = true
+            }
+            if (whiteBalanceModeValue == WhiteBalanceMode.locked &&
+                heldWhiteBalanceGains != null &&
+                heldColorTransform == null
+            ) {
+                heldColorTransform = colorTransform ?: CameraControls.identityTransform
+                changed = true
+            } else if (colorTransform != null && heldWhiteBalanceGains == null) {
+                resultColorTransform = colorTransform
+            }
+            return changed
+        }
+    }
+
+    private fun reportedLensPosition(): Float? {
+        val value = resultLensPosition
+        return if (value.isNaN()) null else value
+    }
+
+    private fun isExposureReported(): Boolean {
+        return !resultIso.isNaN() && resultExposureDuration != kCMTimeInvalidUs
+    }
+
+    private fun heldExposure(): Pair<Float, Long>? {
+        val iso = heldIso ?: return null
+        val duration = heldExposureDuration ?: return null
+        val bias = heldExposureBias ?: return Pair(iso, duration)
+        val controls = controls ?: return Pair(iso, duration)
+        return CameraControls.biasedExposure(
+            iso,
+            duration,
+            exposureTargetBias - bias,
+            controls,
+            activeVideoMaxFrameDuration,
+        )
+    }
+
+    private class ObservedValues(
+        val lensPosition: Float,
+        val iso: Float,
+        val exposureDuration: Long,
+        val whiteBalanceGains: WhiteBalanceGains,
+    )
+
+    private fun observedValues(): ObservedValues? {
+        if (!observers.isObserved) {
+            return null
+        }
+        return ObservedValues(lensPosition, iso, exposureDuration, deviceWhiteBalanceGains)
+    }
+
+    private fun notifyObservers(old: ObservedValues?) {
+        if (old == null) {
+            return
+        }
+        observers.didChangeValue(AVCaptureDevice::lensPosition, old.lensPosition, lensPosition)
+        observers.didChangeValue(AVCaptureDevice::iso, old.iso, iso)
+        observers.didChangeValue(AVCaptureDevice::exposureDuration, old.exposureDuration, exposureDuration)
+        observers.didChangeValue(
+            AVCaptureDevice::deviceWhiteBalanceGains,
+            old.whiteBalanceGains,
+            deviceWhiteBalanceGains
+        )
+    }
+
+    private inline fun changeControls(block: () -> Unit) {
+        val old = observedValues()
+        synchronized(lock) {
+            block()
+        }
+        notifyObservers(old)
+        didChange(format = false)
+    }
+
+    private fun whiteBalanceGainsCompleted(gains: RggbChannelVector, awbMode: Int?) {
+        val automatic = if (awbMode != null) {
+            awbMode != CameraMetadata.CONTROL_AWB_MODE_OFF
+        } else {
+            synchronized(lock) { heldWhiteBalanceGains == null }
+        }
+        if (automatic) {
+            CameraControls.whiteBalanceScale(gains)?.let { whiteBalanceScale = it }
+        }
+        val newValue = CameraControls.deviceGains(gains) ?: return
         val current = resultWhiteBalanceGains
         if (current != null &&
-            current.redGain == redGain &&
-            current.greenGain == greenGain &&
-            current.blueGain == blueGain
+            current.redGain == newValue.redGain &&
+            current.greenGain == newValue.greenGain &&
+            current.blueGain == newValue.blueGain
         ) {
             return
         }
-        val oldValue = current ?: deviceWhiteBalanceGains
-        val newValue = WhiteBalanceGains(redGain = redGain, greenGain = greenGain, blueGain = blueGain)
         resultWhiteBalanceGains = newValue
-        if (newValue != oldValue && observers.isObserved) {
-            observers.didChangeValue(AVCaptureDevice::deviceWhiteBalanceGains, oldValue, newValue)
-        }
     }
 
     internal fun cameraZoomRatio(): Float {
@@ -667,9 +1042,15 @@ class AVCaptureDevice private constructor(
         Log.i(TAG, "AVCaptureDevice.$what not implemented yet")
     }
 
+    private fun logNotSupported(what: String) {
+        Log.i(TAG, "AVCaptureDevice.$what not supported by camera $uniqueID")
+    }
+
     companion object {
         const val currentISO = 0f
         const val currentExposureDuration = kCMTimeInvalidUs
+        const val currentLensPosition = -1f
+        val currentWhiteBalanceGains = WhiteBalanceGains(redGain = 0f, greenGain = 0f, blueGain = 0f)
         private val observableKeys = setOf("lensPosition", "iso", "exposureDuration", "deviceWhiteBalanceGains")
         private val devicesLock = Any()
         private val videoDevices = HashMap<String, AVCaptureDevice>()

@@ -2,7 +2,6 @@ package com.moblin.android.platform.capture
 
 import android.annotation.SuppressLint
 import android.graphics.ImageFormat
-import android.graphics.Rect
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCaptureSession
@@ -135,6 +134,19 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
                     Log.e(TAG, "Capture result handling failed for camera $id", error)
                 }
             }
+        }
+
+        override fun onCaptureFailed(
+            failedSession: CameraCaptureSession,
+            request: CaptureRequest,
+            failure: CaptureFailure,
+        ) {
+            if (isReleased) {
+                return
+            }
+            val trigger = request.tag as? ControlTrigger ?: return
+            Log.i(TAG, "Focus and exposure trigger failed for camera $id, reason ${failure.reason}")
+            device.controlTriggerFailed(trigger)
         }
     }
 
@@ -451,6 +463,7 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
         captureSession = null
         sessionGeneration += 1
         val generation = sessionGeneration
+        device.controlSessionStarted()
         imageReader?.close()
         imageReader = null
         failPendingPhotos()
@@ -538,6 +551,7 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
             val fpsRange = applyControls(builder)
             CaptureFrameRate.value = fpsRange.upper.toDouble()
             captureSession.setRepeatingRequest(builder.build(), captureCallback, Camera2Engine.handler)
+            submitControlTrigger(captureSession, camera, surface)
             val size = bufferSize
             val description = "${size.width}x${size.height} @${fpsRange.upper} fps range [${fpsRange.lower},${fpsRange.upper}]"
             if (description != lastLoggedConfiguration) {
@@ -547,6 +561,16 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
         } catch (error: Throwable) {
             Log.i(TAG, "Failed to set repeating request for camera $id: $error")
         }
+    }
+
+    private fun submitControlTrigger(captureSession: CameraCaptureSession, camera: CameraDevice, surface: Surface) {
+        val trigger = device.takeControlTrigger() ?: return
+        val builder = camera.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
+        builder.addTarget(surface)
+        applyControls(builder)
+        CameraControls.applyTrigger(CaptureRequestBuilderWriter(builder), trigger)
+        builder.setTag(trigger)
+        captureSession.capture(builder.build(), captureCallback, Camera2Engine.handler)
     }
 
     private fun applyControls(builder: CaptureRequest.Builder): Range<Int> {
@@ -565,14 +589,9 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
             }
         )
         val torchOn = device.torchMode == AVCaptureDevice.TorchMode.on && entry.hasFlash
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && device.isLowLightBoostEnabled && !torchOn) {
-            builder.set(
-                CaptureRequest.CONTROL_AE_MODE,
-                CameraMetadata.CONTROL_AE_MODE_ON_LOW_LIGHT_BOOST_BRIGHTNESS_PRIORITY
-            )
-        } else {
-            builder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON)
-        }
+        val lowLightBoost = Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM &&
+            device.isLowLightBoostEnabled &&
+            !torchOn
         if (torchOn) {
             builder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_TORCH)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM && entry.torchMaxLevel > 1) {
@@ -585,24 +604,26 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
         } else {
             builder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF)
         }
-        val compensationRange = entry.aeCompensationRange
-        if (compensationRange != null && entry.aeCompensationStep > 0f) {
-            val steps = (device.exposureTargetBias / entry.aeCompensationStep)
-                .roundToInt()
-                .coerceIn(compensationRange.lower, compensationRange.upper)
-            builder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, steps)
-        }
         val ratio = device.cameraZoomRatio()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && entry.usesZoomRatio) {
+        val usesZoomRatio = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && entry.usesZoomRatio
+        if (usesZoomRatio) {
             builder.set(CaptureRequest.CONTROL_ZOOM_RATIO, ratio)
         } else {
             entry.activeArraySize?.let { area ->
-                builder.set(CaptureRequest.SCALER_CROP_REGION, cropRegion(area, ratio))
+                builder.set(CaptureRequest.SCALER_CROP_REGION, CameraControls.cropRegion(area, ratio))
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && entry.rotateAndCropNoneSupported) {
             builder.set(CaptureRequest.SCALER_ROTATE_AND_CROP, CameraMetadata.SCALER_ROTATE_AND_CROP_NONE)
         }
+        CameraControls.apply(
+            CaptureRequestBuilderWriter(builder),
+            device.controlState(),
+            entry.controls,
+            fpsRange,
+            lowLightBoost,
+            CameraControls.meteringArea(entry, ratio, usesZoomRatio, configuredSize ?: bufferSize),
+        )
         return fpsRange
     }
 
@@ -624,15 +645,6 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
             ?: ranges.filter { it.lower <= maxFps && it.upper >= maxFps }.minByOrNull { it.upper - it.lower }
             ?: ranges.minByOrNull { abs(it.upper - maxFps) }
             ?: ranges.first()
-    }
-
-    private fun cropRegion(area: Rect, ratio: Float): Rect {
-        val zoom = maxOf(1f, ratio)
-        val width = (area.width() / zoom).toInt()
-        val height = (area.height() / zoom).toInt()
-        val left = (area.width() - width) / 2
-        val top = (area.height() - height) / 2
-        return Rect(left, top, left + width, top + height)
     }
 
     private fun makeImageReader(requested: Size): ImageReader {

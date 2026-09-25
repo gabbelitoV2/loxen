@@ -44,6 +44,7 @@ internal object CameraCatalog {
         val rotateAndCropNoneSupported: Boolean,
         val jpegSizes: List<Size>,
         val minimumFocusDistance: Float,
+        val controls: CameraControlCapabilities,
     ) {
         val isFront: Boolean
             get() = facing == CameraCharacteristics.LENS_FACING_FRONT
@@ -55,10 +56,7 @@ internal object CameraCatalog {
             get() = zoomRatioLower < 0.99f
 
         fun lensPosition(focusDistance: Float): Float {
-            if (!(minimumFocusDistance > 0f)) {
-                return 1f
-            }
-            return (1f - focusDistance / minimumFocusDistance).coerceIn(0f, 1f)
+            return CameraControls.lensPosition(focusDistance, minimumFocusDistance)
         }
     }
 
@@ -266,6 +264,7 @@ internal object CameraCatalog {
             rotateAndCropNoneSupported = rotateAndCropNoneSupported,
             jpegSizes = jpegSizes,
             minimumFocusDistance = characteristics.get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE) ?: 0f,
+            controls = CameraControlCapabilities.make(characteristics),
         )
     }
 

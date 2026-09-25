@@ -18,13 +18,7 @@ internal object CameraFormats {
         } else {
             listOf(AVCaptureColorSpace.sRGB)
         }
-        val characteristics = entry.characteristics
-        val isoRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE)
-        val exposureRange = characteristics.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE)
-        val minISO = isoRange?.lower?.toFloat() ?: 34f
-        val maxISO = isoRange?.upper?.toFloat() ?: 3264f
-        val minExposureDuration = exposureRange?.lower?.let { it / 1000 } ?: 14L
-        val maxExposureDuration = exposureRange?.upper?.let { it / 1000 } ?: 1_000_000L
+        val sensor = SensorRanges(entry)
         return sizes.map { (size, minFrameDurationNs) ->
             val maxFrameRate = if (minFrameDurationNs > 0) 1_000_000_000.0 / minFrameDurationNs else 30.0
             var ranges = entry.aeFpsRanges
@@ -43,19 +37,19 @@ internal object CameraFormats {
                 supportedColorSpaces = colorSpaces,
                 videoMaxZoomFactor = entry.maxZoomFactor,
                 supportedMaxPhotoDimensions = photoDimensions(entry, size),
-                minISO = minISO,
-                maxISO = maxISO,
-                minExposureDuration = minExposureDuration,
-                maxExposureDuration = maxExposureDuration,
+                minISO = sensor.minISO,
+                maxISO = sensor.maxISO,
+                minExposureDuration = sensor.minExposureDuration,
+                maxExposureDuration = sensor.maxExposureDuration,
             )
         }
     }
 
-    fun defaultFormat(formats: List<AVCaptureDevice.Format>): AVCaptureDevice.Format {
+    fun defaultFormat(formats: List<AVCaptureDevice.Format>, entry: CameraCatalog.Entry? = null): AVCaptureDevice.Format {
         formats.firstOrNull { width(it) == 1920 && height(it) == 1080 }?.let { return it }
         val wide = formats.filter { abs(width(it) * 9 - height(it) * 16) <= 16 }
         val candidates = wide.ifEmpty { formats }
-        return candidates.minByOrNull { abs(width(it).toLong() * height(it) - 1920L * 1080) } ?: placeholder()
+        return candidates.minByOrNull { abs(width(it).toLong() * height(it) - 1920L * 1080) } ?: placeholder(entry)
     }
 
     private fun width(format: AVCaptureDevice.Format): Int = format.formatDescription.dimensions.width
@@ -69,7 +63,8 @@ internal object CameraFormats {
         return sameAspect.ifEmpty { entry.jpegSizes }.ifEmpty { listOf(size) }
     }
 
-    private fun placeholder(): AVCaptureDevice.Format {
+    private fun placeholder(entry: CameraCatalog.Entry?): AVCaptureDevice.Format {
+        val sensor = SensorRanges(entry)
         return AVCaptureDevice.Format(
             formatDescription = AVCaptureDevice.Format.FormatDescription(
                 dimensions = AVCaptureDevice.Format.Dimensions(1920, 1080),
@@ -79,10 +74,19 @@ internal object CameraFormats {
             supportedColorSpaces = listOf(AVCaptureColorSpace.sRGB),
             videoMaxZoomFactor = 1f,
             supportedMaxPhotoDimensions = listOf(Size(1920, 1080)),
-            minISO = 34f,
-            maxISO = 3264f,
-            minExposureDuration = 14L,
-            maxExposureDuration = 1_000_000L,
+            minISO = sensor.minISO,
+            maxISO = sensor.maxISO,
+            minExposureDuration = sensor.minExposureDuration,
+            maxExposureDuration = sensor.maxExposureDuration,
         )
+    }
+
+    private class SensorRanges(entry: CameraCatalog.Entry?) {
+        private val isoRange = entry?.characteristics?.get(CameraCharacteristics.SENSOR_INFO_SENSITIVITY_RANGE)
+        private val exposureRange = entry?.characteristics?.get(CameraCharacteristics.SENSOR_INFO_EXPOSURE_TIME_RANGE)
+        val minISO = isoRange?.lower?.toFloat() ?: 34f
+        val maxISO = isoRange?.upper?.toFloat() ?: 3264f
+        val minExposureDuration = exposureRange?.lower?.let { it / 1000 } ?: 14L
+        val maxExposureDuration = exposureRange?.upper?.let { it / 1000 } ?: 1_000_000L
     }
 }

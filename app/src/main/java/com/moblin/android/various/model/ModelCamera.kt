@@ -245,7 +245,7 @@ fun Model.setFocusAfterCameraAttach() {
 }
 
 fun Model.isCameraSupportingManualFocus(): Boolean {
-    return false
+    return cameraDevice?.device?.isLockingFocusWithCustomLensPositionSupported ?: false
 }
 
 fun Model.startObservingFocus() {
@@ -302,7 +302,7 @@ fun Model.setExposureAndIsoAfterCameraAttach(device: CaptureDevice) {
 }
 
 fun Model.isCameraSupportingManualExposureAndIso(): Boolean {
-    return false
+    return cameraDevice?.device?.isExposureModeSupported(AVCaptureDevice.ExposureMode.custom) ?: false
 }
 
 private fun Model.setManualExposureAndIso(exposureFactor: Float?, isoFactor: Float?) {
@@ -431,7 +431,7 @@ fun Model.setWhiteBalanceAfterCameraAttach(device: CaptureDevice) {
 }
 
 fun Model.isCameraSupportingManualWhiteBalance(): Boolean {
-    return false
+    return cameraDevice?.device?.isLockingWhiteBalanceWithCustomDeviceGainsSupported ?: false
 }
 
 fun Model.startObservingWhiteBalance() {
