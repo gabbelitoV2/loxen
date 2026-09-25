@@ -103,6 +103,15 @@ def warn_effect_checks():
             print("  " + line)
 
 
+def regenerate_protobufs(check=False):
+    command = [sys.executable, HERE / "pbswift.py", "--moblin", UPSTREAM]
+    if check:
+        command.append("--check")
+    result = run(command, check=False, capture=True)
+    print((result.stdout + result.stderr).rstrip())
+    return result.returncode == 0
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Bring the Android port up to date with eerimoq/moblin.")
@@ -137,11 +146,13 @@ def main():
     inventory = json.loads(INVENTORY.read_text(encoding="utf-8"))
     if args.dry_run:
         run([sys.executable, HERE / "port.py", "--tier", "all", "--provider", args.provider, "--dry-run"])
+        regenerate_protobufs(check=True)
         warn_effect_checks()
         return
     removed = remove_deleted_files(state, inventory)
     for path in removed:
         print(f"removed {path}")
+    protobufs_ok = regenerate_protobufs()
 
     port = [sys.executable, HERE / "port.py", "--tier", "all", "--incremental", "--provider", args.provider,
             "--workers", str(args.workers)]
@@ -165,6 +176,10 @@ def main():
             print("  " + line)
     warn_effect_checks()
 
+    if not protobufs_ok:
+        sys.exit("tools/pbswift.py could not translate the Tesla protobufs (error above), so "
+                 "app/src/main/java/com/moblin/android/integrations/tesla/protobuf is stale. Stopping before the "
+                 "commit. Teach tools/pbswift.py the new construct, then run python tools/pbswift.py.")
     if not hooks_ok:
         print(hooks.stderr.rstrip())
         sys.exit("hooks are missing or not applied, stopping before the commit. Re-derive them as tools/hooks/README.md "

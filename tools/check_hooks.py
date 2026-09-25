@@ -25,6 +25,8 @@ def main():
     root = postprocess.KOTLIN_ROOT
     if root.exists():
         for path in sorted(root.rglob("*.kt")):
+            if postprocess.is_pbswift_output(path):
+                continue
             rel = path.relative_to(root).as_posix()
             contents[rel] = path.read_text(encoding="utf-8", errors="replace")
     results = postprocess.apply_hooks(contents, hooks, apply=False)
