@@ -45,23 +45,21 @@
       "check": "types",
       "name": "CM*",
       "files": [
-        "Moblin/Various/Managers/GForceManager.swift",
-        "Moblin/Various/Model/Model.swift"
+        "Moblin/Various/Managers/GForceManager.swift"
       ],
       "owner": "E8",
       "milestone": "none (not in the effects plan)",
-      "note": "Accelerometer and attitude users outside the effects keep their Android sensor code; the CoreMotion shim covers FixedHorizonEffect."
+      "note": "GForceManager keeps its Android accelerometer code; the CoreMotion shim covers device motion and attitude (FixedHorizonEffect, CameraLevel, tap to focus motion detection)."
     },
     {
       "check": "members",
       "name": "CMMotionManager.*",
       "files": [
-        "Moblin/Various/Managers/GForceManager.swift",
-        "Moblin/Various/Model/Model.swift"
+        "Moblin/Various/Managers/GForceManager.swift"
       ],
       "owner": "E8",
       "milestone": "none (not in the effects plan)",
-      "note": "Accelerometer and attitude members used outside the effects."
+      "note": "Accelerometer members used by GForceManager."
     },
     {
       "check": "members",

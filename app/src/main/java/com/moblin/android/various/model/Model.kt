@@ -586,7 +586,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var currentResolution: String? = null
     var lowLightBoost = false
     var showBackgroundStreamingDisabledToast = false
-    private var manualFocusMotionAttitude: Any? = null
+    private var manualFocusMotionAttitude: com.moblin.android.platform.coremotion.CMAttitude? = null
     var streaming = false
     var inServiceBackground = false
     var chatPhoneBackgroundAudioPlayer: AudioPlayer? = null
@@ -684,6 +684,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var streamBecameBrokenTime: Instant? = null
     var cameraPosition: Int? = null
     private var motionManager: SensorManager? = null
+    private val manualFocusMotionManager = com.moblin.android.platform.coremotion.CMMotionManager()
     var gForceManager: GForceManager? = null
     val database: Database
         get() = settings.database
@@ -1806,6 +1807,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         stopHttpProxyServer()
         fixedHorizonEffect.stop()
         cameraLevel.stop()
+        stopMotionDetection()
         writeFileLogToFile()
         flushFileLogToFile()
     }
@@ -3127,11 +3129,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun startMotionDetection() {
-        Unit
+        manualFocusMotionManager.stopDeviceMotionUpdates(); manualFocusMotionAttitude = null; manualFocusMotionManager.deviceMotionUpdateInterval = 0.2; manualFocusMotionManager.startDeviceMotionUpdates(to = com.moblin.android.platform.coremotion.OperationQueue.main) { data, _ -> if (data == null) { return@startDeviceMotionUpdates }; val attitude = data.attitude; if (manualFocusMotionAttitude == null) { manualFocusMotionAttitude = attitude }; if (diffAngles(attitude.pitch, manualFocusMotionAttitude!!.pitch) > 10) { setAutoFocus() } else if (diffAngles(attitude.roll, manualFocusMotionAttitude!!.roll) > 10) { setAutoFocus() } else if (diffAngles(attitude.yaw, manualFocusMotionAttitude!!.yaw) > 10) { setAutoFocus() } }
     }
 
     fun stopMotionDetection() {
-        Unit
+        manualFocusMotionManager.stopDeviceMotionUpdates()
     }
 
     fun reloadCameraLevel() {
