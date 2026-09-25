@@ -1,0 +1,156 @@
+name: Repair
+
+on:
+  workflow_run:
+    workflows: [Sync and build]
+    types: [completed]
+  schedule:
+    - cron: "17 */4 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "repair runs Claude on the open needs-repair issue; verify-only checks main without Claude"
+        type: choice
+        options: [repair, verify-only]
+        default: repair
+      force:
+        description: "Ignore the night preference, the cap of 2 attempts in 24 hours and a recorded usage limit"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.event != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: read
+      actions: read
+    outputs:
+      run: ${{ steps.gate.outputs.run }}
+      issue: ${{ steps.gate.outputs.issue }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: tools
+      - name: Decide whether to repair now
+        id: gate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          MODE: ${{ inputs.mode || 'repair' }}
+          FORCE: ${{ inputs.force && 'true' || 'false' }}
+        run: |
+          arguments=(gate --event "$EVENT" --mode "$MODE")
+          if [ "$FORCE" = "true" ]; then
+            arguments+=(--force)
+          fi
+          python3 tools/repair.py "${arguments[@]}"
+
+  repair:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    permissions:
+      contents: write
+      issues: write
+    concurrency:
+      group: sync-and-build
+      cancel-in-progress: false
+    env:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      GH_TOKEN: ${{ github.token }}
+      MODE: ${{ inputs.mode || 'repair' }}
+      FORCE: ${{ inputs.force && 'true' || 'false' }}
+      TZ: UTC
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+          submodules: recursive
+      - name: Remember the commit Claude starts from
+        id: base
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Prepare the pipeline
+        run: |
+          pip install anthropic
+          git config user.name "moblin-android repair"
+          git config user.email "moblin-android-repair@users.noreply.github.com"
+          python tools/repair.py upstream
+      - name: Verify main without Claude
+        if: env.MODE == 'verify-only'
+        run: python tools/repair.py verify --base "${{ steps.base.outputs.sha }}"
+      - name: Start the attempt
+        id: start
+        if: env.MODE == 'repair'
+        run: |
+          if [ "$FORCE" = "true" ]; then
+            python tools/repair.py start --force
+          else
+            python tools/repair.py start
+          fi
+      - name: Repair with Claude
+        id: claude
+        if: steps.start.outputs.go == 'true'
+        continue-on-error: true
+        timeout-minutes: 240
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ github.token }}
+          prompt: ${{ steps.start.outputs.prompt }}
+          settings: '{"autoContinueAtUsageLimit": false}'
+          claude_args: |
+            --max-turns 200
+            --allowedTools "Read,Edit,MultiEdit,Write,Glob,Grep,TodoWrite,Bash(python:*),Bash(python3:*),Bash(./gradlew:*),Bash(git status:*),Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git restore:*),Bash(ls:*),Bash(cat:*),Bash(head:*),Bash(tail:*),Bash(grep:*),Bash(find:*),Bash(wc:*),Bash(diff:*),Bash(sort:*),Bash(mkdir:*),Bash(mv:*),Bash(cp:*),Bash(rm:*)"
+            --disallowedTools "Bash(git push:*),Bash(git commit:*),Bash(git reset:*),Bash(git checkout:*),Bash(gh:*),WebFetch,WebSearch"
+      - name: Stop when Claude hit its usage limit
+        id: limit
+        if: steps.claude.outcome == 'success' || steps.claude.outcome == 'failure'
+        env:
+          ISSUE: ${{ steps.start.outputs.issue }}
+          COMMENT: ${{ steps.start.outputs.comment }}
+          OUTCOME: ${{ steps.claude.outcome }}
+          ATTEMPT: ${{ steps.start.outputs.attempt }}
+          REPORT_KEY: ${{ steps.start.outputs.key }}
+        run: |
+          python tools/repair.py limit --issue "$ISSUE" --comment "$COMMENT" --outcome "$OUTCOME" \
+            --attempt "$ATTEMPT" --report-key "$REPORT_KEY"
+      - name: Put back files the repair must not change
+        if: steps.limit.outputs.limited == 'false'
+        env:
+          BASE: ${{ steps.base.outputs.sha }}
+        run: |
+          guarded=(.github .gitmodules tools/repair.py tools/sync_report.py tools/usage_limit.py tools/known_test_failures.json tools/check_hooks.py tools/prompts/repair.md tools/tests)
+          git diff --name-only "$BASE" -- "${guarded[@]}" | while read -r path; do
+            git checkout "$BASE" -- "$path" 2>/dev/null || rm -f "$path"
+          done
+          git ls-files --others --exclude-standard -- "${guarded[@]}" | xargs -r rm -f
+      - name: Verify, commit and push
+        if: steps.limit.outputs.limited == 'false'
+        env:
+          ISSUE: ${{ steps.start.outputs.issue }}
+          COMMENT: ${{ steps.start.outputs.comment }}
+          OUTCOME: ${{ steps.claude.outcome }}
+          BASE: ${{ steps.base.outputs.sha }}
+          ATTEMPT: ${{ steps.start.outputs.attempt }}
+          REPORT_KEY: ${{ steps.start.outputs.key }}
+        run: |
+          git config user.name "moblin-android repair"
+          git config user.email "moblin-android-repair@users.noreply.github.com"
+          python tools/repair.py finish --base "$BASE" --issue "$ISSUE" --comment "$COMMENT" --outcome "$OUTCOME" \
+            --attempt "$ATTEMPT" --report-key "$REPORT_KEY"

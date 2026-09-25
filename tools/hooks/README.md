@@ -65,8 +65,9 @@ Each task keeps its hooks in its own file, `tools/hooks/<task>.json`. Nobody edi
 - `python tools/check_hooks.py` changes nothing. It exits with 1 when a hook is missing, not applied yet or invalid.
   `--task T4` checks one task, `--verbose` lists every hook.
 - `tools/port.py` runs the postprocess on the files it writes (turn it off with `--no-postprocess`), `tools/fix.py`
-  runs it before every compile and on every file it fixes, and `tools/sync.py` runs it once more after `fix.py` and
-  stops before committing when `check_hooks.py` fails.
+  runs it before every compile and on every file it fixes, and `tools/sync.py` runs it once more after `fix.py`. When a
+  hook is missing in a file the sync re-translated, the sync puts back the previous version of that file and reports the
+  hook in `tools/sync-report.json`.
 
 ## Rules for writing hooks
 

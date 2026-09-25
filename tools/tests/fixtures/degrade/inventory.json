@@ -1,0 +1,51 @@
+{
+  "root": "unused",
+  "files": [
+    {
+      "path": "Moblin/Various/Settings.swift",
+      "tier": "logic",
+      "sha256": "settings-new",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/Settings.kt",
+      "deps": []
+    },
+    {
+      "path": "Moblin/Various/Model.swift",
+      "tier": "logic",
+      "sha256": "model-new",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/Model.kt",
+      "deps": [
+        "Moblin/Various/Settings.swift"
+      ]
+    },
+    {
+      "path": "Moblin/Various/Chat.swift",
+      "tier": "logic",
+      "sha256": "chat-new",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/Chat.kt",
+      "deps": []
+    },
+    {
+      "path": "Moblin/Various/Raid.swift",
+      "tier": "logic",
+      "sha256": "raid-new",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/Raid.kt",
+      "deps": []
+    },
+    {
+      "path": "MoblinTests/SettingsSuite.swift",
+      "tier": "test",
+      "sha256": "suite-new",
+      "kotlin_path": "app/src/test/java/com/moblin/android/various/SettingsSuite.kt",
+      "deps": [
+        "Moblin/Various/Settings.swift"
+      ]
+    },
+    {
+      "path": "Moblin Watch/Watch.swift",
+      "tier": "skip",
+      "sha256": "watch",
+      "kotlin_path": "",
+      "deps": []
+    }
+  ]
+}

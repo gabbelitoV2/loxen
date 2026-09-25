@@ -5,7 +5,7 @@ local.properties
 *.iml
 .DS_Store
 .env
-tools/__pycache__/
+__pycache__/
 tools/*.tmp
 .kotlin/
 .upstream/

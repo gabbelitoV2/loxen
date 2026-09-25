@@ -1,0 +1,42 @@
+{
+  "Moblin/Various/Settings.swift": {
+    "status": "ok",
+    "sha256": "settings-new",
+    "moblin_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/Settings.kt",
+    "ported_at": "2026-09-25T03:10:00+00:00"
+  },
+  "Moblin/Various/Model.swift": {
+    "status": "ok",
+    "sha256": "model-new",
+    "moblin_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/Model.kt",
+    "ported_at": "2026-09-25T03:10:00+00:00"
+  },
+  "Moblin/Various/Chat.swift": {
+    "status": "ok",
+    "sha256": "chat-new",
+    "moblin_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/Chat.kt",
+    "ported_at": "2026-09-25T03:10:00+00:00"
+  },
+  "Moblin/Various/Raid.swift": {
+    "status": "ok",
+    "sha256": "raid-new",
+    "moblin_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "tier": "logic",
+    "kotlin_path": "app/src/main/java/com/moblin/android/various/Raid.kt",
+    "ported_at": "2026-09-25T03:10:00+00:00"
+  },
+  "MoblinTests/SettingsSuite.swift": {
+    "status": "ok",
+    "sha256": "suite-new",
+    "moblin_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/various/SettingsSuite.kt",
+    "ported_at": "2026-09-25T03:10:00+00:00"
+  }
+}

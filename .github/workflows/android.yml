@@ -9,9 +9,10 @@ on:
 
 permissions:
   contents: write
+  issues: write
 
 concurrency:
-  group: sync-and-build
+  group: ${{ github.event_name == 'push' && 'push-build' || 'sync-and-build' }}
   cancel-in-progress: false
 
 jobs:
@@ -21,28 +22,40 @@ jobs:
     env:
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           submodules: recursive
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
       - name: Sync with eerimoq/moblin
+        id: sync
         if: github.event_name != 'push' && env.DEEPSEEK_API_KEY != ''
+        timeout-minutes: 150
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           pip install anthropic
           git config user.name "moblin-android sync"
           git config user.email "moblin-android-sync@users.noreply.github.com"
-          python tools/sync.py --commit --push
+          python tools/sync.py --commit --push --issue
+      - name: Open the needs-repair issue when the sync stopped without a report
+        if: always() && (steps.sync.outcome == 'failure' || steps.sync.outcome == 'cancelled') && steps.sync.outputs.published != 'true'
+        timeout-minutes: 5
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python tools/sync_report.py --sync-failed "The sync step failed, timed out or was cancelled before it could write its report. See the log of $RUN_URL."
       - name: Build
         run: ./gradlew :app:assembleDebug
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: moblin-android-debug
           path: app/build/outputs/apk/debug/app-debug.apk
