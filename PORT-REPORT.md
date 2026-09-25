@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-09-25T12:44:10+00:00
+Generated 2026-09-25T13:03:32+00:00
 
 ## Summary
 
@@ -211,11 +211,6 @@ Generated 2026-09-25T12:44:10+00:00
   - NWConnection better path migration (webSocketDidAttemptBetterPathMigration, no Android counterpart)
 - Moblin/Various/Storages/RecordingsStorage.swift
   - URL(resolvingBookmarkData:bookmarkDataIsStale:) / startAccessingSecurityScopedResource security-scoped bookmarks
-- Moblin/Various/Utils/Utils.swift
-  - UIApplication.shared.open (openUrl)
-  - AVSpeechSynthesizer (createSpeechSynthesizer)
-  - URL(resolvingBookmarkData:) (makeRecordingPath)
-  - Bundle.main resource loading (loadStringResource, loadResource)
 - Moblin/Various/Variables.swift
   - WeatherKit WeatherCondition and Measurement<UnitTemperature>/<UnitSpeed> have no Android counterpart; they appear only in property declarations, so they were substituted with String? and Double? instead of a TODO() body
 - Moblin/View/ControlBar/QuickButton/QuickButtonMicView.swift
@@ -732,7 +727,7 @@ Generated 2026-09-25T12:44:10+00:00
 | Moblin/Various/Utils/FileSystemUtils.swift | app/src/main/java/com/moblin/android/various/utils/FileSystemUtils.kt | deepseek-flash | 57.2 |
 | Moblin/Various/Utils/LocationUtils.swift | app/src/main/java/com/moblin/android/various/utils/LocationUtils.kt | deepseek-flash | 19.9 |
 | Moblin/Various/Utils/UiUtils.swift | app/src/main/java/com/moblin/android/various/utils/UiUtils.kt | deepseek-flash | 25.0 |
-| Moblin/Various/Utils/Utils.swift | app/src/main/java/com/moblin/android/various/utils/Utils.kt | deepseek-flash | 192.3 |
+| Moblin/Various/Utils/Utils.swift | app/src/main/java/com/moblin/android/various/utils/Utils.kt | deepseek-flash | 13.5 |
 | Moblin/Various/Utils/WiFiUtils.swift | app/src/main/java/com/moblin/android/various/utils/WiFiUtils.kt | deepseek-flash | 5.1 |
 | Moblin/Various/Variables.swift | app/src/main/java/com/moblin/android/various/Variables.kt | deepseek-flash | 20.9 |
 | Moblin/Various/WebBrowserController.swift | app/src/main/java/com/moblin/android/various/WebBrowserController.kt | deepseek-flash | 41.9 |
@@ -760,7 +755,7 @@ Generated 2026-09-25T12:44:10+00:00
 | Moblin/VideoEffects/GrayScaleEffect.swift | app/src/main/java/com/moblin/android/videoeffects/GrayScaleEffect.kt | deepseek-flash | 9.5 |
 | Moblin/VideoEffects/ImageEffect.swift | app/src/main/java/com/moblin/android/videoeffects/ImageEffect.kt | deepseek-flash | 26.0 |
 | Moblin/VideoEffects/LutEffect.swift | app/src/main/java/com/moblin/android/videoeffects/LutEffect.kt | deepseek-flash | 37.0 |
-| Moblin/VideoEffects/MapEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt | deepseek-flash | 76.9 |
+| Moblin/VideoEffects/MapEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt | deepseek-flash | 11.7 |
 | Moblin/VideoEffects/MaskEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MaskEffect.kt | deepseek-flash | 77.6 |
 | Moblin/VideoEffects/MovieEffect.swift | app/src/main/java/com/moblin/android/videoeffects/MovieEffect.kt | deepseek-flash | 7.7 |
 | Moblin/VideoEffects/OpacityEffect.swift | app/src/main/java/com/moblin/android/videoeffects/OpacityEffect.kt | deepseek-flash | 9.5 |
@@ -800,8 +795,8 @@ Generated 2026-09-25T12:44:10+00:00
 | Moblin/View/ControlBar/ControlBarLandscapeView.swift | app/src/main/java/com/moblin/android/view/controlbar/ControlBarLandscapeView.kt | deepseek-flash | 97.8 |
 | Moblin/View/ControlBar/ControlBarPortraitView.swift | app/src/main/java/com/moblin/android/view/controlbar/ControlBarPortraitView.kt | deepseek-flash | 101.4 |
 | Moblin/View/ControlBar/ControlBarUtils.swift | app/src/main/java/com/moblin/android/view/controlbar/ControlBarUtils.kt | deepseek-flash | 4.7 |
-| Moblin/View/ControlBar/QuickButton/Chat/Moderation/QuickButtonChatModerationKickView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/moderation/QuickButtonChatModerationKickView.kt | deepseek-flash | 93.3 |
-| Moblin/View/ControlBar/QuickButton/Chat/Moderation/QuickButtonChatModerationTwitchView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/moderation/QuickButtonChatModerationTwitchView.kt | deepseek-flash | 142.0 |
+| Moblin/View/ControlBar/QuickButton/Chat/Moderation/QuickButtonChatModerationKickView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/moderation/QuickButtonChatModerationKickView.kt | deepseek-flash | 13.1 |
+| Moblin/View/ControlBar/QuickButton/Chat/Moderation/QuickButtonChatModerationTwitchView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/moderation/QuickButtonChatModerationTwitchView.kt | deepseek-flash | 33.9 |
 | Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatChatterInfoView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/QuickButtonChatChatterInfoView.kt | deepseek-flash | 60.9 |
 | Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatLinkConfirmation.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/QuickButtonChatLinkConfirmation.kt | deepseek-flash | 9.8 |
 | Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatModerationView.swift | app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/QuickButtonChatModerationView.kt | deepseek-flash | 133.3 |
@@ -829,7 +824,7 @@ Generated 2026-09-25T12:44:10+00:00
 | Moblin/View/MainView.swift | app/src/main/java/com/moblin/android/view/MainView.kt | deepseek-flash | 27.8 |
 | Moblin/View/Settings/About/AboutAttributionsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/about/AboutAttributionsSettingsView.kt | deepseek-flash | 20.8 |
 | Moblin/View/Settings/About/AboutSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/about/AboutSettingsView.kt | deepseek-flash | 15.0 |
-| Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/about/AboutVersionHistorySettingsView.kt | deepseek-flash | 212.2 |
+| Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/about/AboutVersionHistorySettingsView.kt | deepseek-flash | 46.2 |
 | Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/applemusic/AppleMusicSettingsView.kt | deepseek-flash | 60.6 |
 | Moblin/View/Settings/Audio/AudioSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/audio/AudioSettingsView.kt | deepseek-flash | 59.7 |
 | Moblin/View/Settings/Audio/MicsDelaySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/audio/MicsDelaySettingsView.kt | deepseek-flash | 19.3 |
@@ -1164,7 +1159,7 @@ Generated 2026-09-25T12:44:10+00:00
 | MoblinTests/Moblin/Various/Utils/CameraUtilsSuite.swift | app/src/test/java/com/moblin/android/various/utils/CameraUtilsSuite.kt | deepseek-flash | 25.1 |
 | MoblinTests/Moblin/Various/Utils/ChatLineViewSuite.swift | app/src/test/java/com/moblin/android/various/utils/ChatLineViewSuite.kt | deepseek-flash | 41.2 |
 | MoblinTests/Moblin/Various/Utils/CmTimeSuite.swift | app/src/test/java/com/moblin/android/various/utils/CmTimeSuite.kt | deepseek-flash | 44.9 |
-| MoblinTests/Moblin/Various/Utils/UtilsSuite.swift | app/src/test/java/com/moblin/android/various/utils/UtilsSuite.kt | deepseek-flash | 45.1 |
+| MoblinTests/Moblin/Various/Utils/UtilsSuite.swift | app/src/test/java/com/moblin/android/various/utils/UtilsSuite.kt | deepseek-flash | 15.6 |
 | MoblinTests/Moblin/VideoEffects/EffectUtilsSuite.swift | app/src/test/java/com/moblin/android/videoeffects/EffectUtilsSuite.kt | deepseek-flash | 34.8 |
 | MoblinTests/Moblin/VideoEffects/LutEffectSuite.swift | app/src/test/java/com/moblin/android/videoeffects/LutEffectSuite.kt | deepseek-flash | 111.8 |
 | MoblinTests/Moblin/VideoEffects/Text/TextEffectSuite.swift | app/src/test/java/com/moblin/android/videoeffects/text/TextEffectSuite.kt | deepseek-flash | 157.7 |

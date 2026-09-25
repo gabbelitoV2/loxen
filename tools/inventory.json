@@ -1,6 +1,6 @@
 {
   "root": "<home>\\Desktop\\code\\moblin-android\\.upstream",
-  "generated": "2026-09-25T10:23:48+00:00",
+  "generated": "2026-09-25T13:02:25+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -6370,28 +6370,6 @@
       "wave": 5
     },
     {
-      "path": "MoblinTests/Moblin/Various/Utils/UtilsSuite.swift",
-      "lines": 128,
-      "sha256": "edcfe192b734448647ae6bbad977283f8a8a93657e02dad1ca8086cdba013509",
-      "imports": [
-        "Foundation",
-        "Testing"
-      ],
-      "tier": "test",
-      "declared_types": [
-        "UtilsSuite"
-      ],
-      "private_types": [],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.various.utils",
-      "kotlin_path": "app/src/test/java/com/moblin/android/various/utils/UtilsSuite.kt",
-      "deps": [
-        "Common/Various/CommonUtils.swift"
-      ],
-      "wave": 5
-    },
-    {
       "path": "Moblin/Intents/MoblinShortcuts.swift",
       "lines": 25,
       "sha256": "eb299310ec3cbc31de82b201c835ae0e31ad8708ab6d649da72ef86dbc308e1f",
@@ -7270,8 +7248,8 @@
     },
     {
       "path": "Moblin/Various/Utils/Utils.swift",
-      "lines": 501,
-      "sha256": "652485efd6b4e65bfb72aff33db7ad91faa40ff30eb298983b2a105b46320571",
+      "lines": 508,
+      "sha256": "43bc8c656b48fc1b7a934c299b8744e26e63fa84e9b5cbef9a2a6b97427beb5e",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -7297,6 +7275,7 @@
         "generateQrCode",
         "tryGetToastSubTitle",
         "makeUniqueName",
+        "sortedBySearchPrefix",
         "createSpeechSynthesizer",
         "makeRecordingPath",
         "zoomToFieldOfView",
@@ -7750,6 +7729,29 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/ButtonView.kt",
       "deps": [
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift",
+        "Moblin/Various/Utils/Utils.swift"
+      ],
+      "wave": 11
+    },
+    {
+      "path": "MoblinTests/Moblin/Various/Utils/UtilsSuite.swift",
+      "lines": 141,
+      "sha256": "529cf68492420a7e52893470f87d903d07f3b093fc3f4249c17261ddb6a411c3",
+      "imports": [
+        "Foundation",
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "UtilsSuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.utils",
+      "kotlin_path": "app/src/test/java/com/moblin/android/various/utils/UtilsSuite.kt",
+      "deps": [
+        "Common/Various/CommonUtils.swift",
         "Moblin/Various/Utils/Utils.swift"
       ],
       "wave": 11
@@ -14615,8 +14617,8 @@
     },
     {
       "path": "Moblin/VideoEffects/MapEffect.swift",
-      "lines": 193,
-      "sha256": "d2e5635e9ff2e4b5c4a50ddeefe6d6ecab21e4c365c9c94118fe3ff707056c54",
+      "lines": 205,
+      "sha256": "7680d2750dee45f5700151ceb46b1dacbd0a263dc06d470bfbf748301c2eee49",
       "imports": [
         "Collections",
         "CoreImage",
@@ -17917,8 +17919,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/Chat/Moderation/QuickButtonChatModerationKickView.swift",
-      "lines": 279,
-      "sha256": "fd65d0b70ac93524955efa987afed197bdf8ef0179bfef45ea9bb8108753f803",
+      "lines": 268,
+      "sha256": "074d9a260419af2a8c17a96cbf91abe34d92b9869cec20e502d2c11a3b81011b",
       "imports": [
         "SwiftUI"
       ],
@@ -17949,6 +17951,7 @@
         "Moblin/StreamingPlatforms/Platform.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Network/NetworkUtils.swift",
+        "Moblin/Various/Utils/Utils.swift",
         "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatModerationView.swift",
         "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift",
         "Moblin/View/Utils/BorderlessButtonView.swift",
@@ -17959,8 +17962,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/Chat/Moderation/QuickButtonChatModerationTwitchView.swift",
-      "lines": 674,
-      "sha256": "8907ed17230d1dcd11b4ce293a6078f2824a7a729c51b4f0450ae59d82762a0f",
+      "lines": 680,
+      "sha256": "b447cf4c2bfb332da022d0f4724d8bdff097486168d0dac5a82456b431008988",
       "imports": [
         "SwiftUI"
       ],
@@ -18020,6 +18023,7 @@
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Network/NetworkUtils.swift",
         "Moblin/Various/Settings/SettingsStream.swift",
+        "Moblin/Various/Utils/Utils.swift",
         "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatModerationView.swift",
         "Moblin/View/Settings/Streams/Stream/StreamSettingsView.swift",
         "Moblin/View/Utils/BorderlessButtonView.swift",
@@ -20635,8 +20639,8 @@
     },
     {
       "path": "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift",
-      "lines": 4305,
-      "sha256": "188340c015a5b603682e16cb5d7a9be7dced5112fd4fa4ca3a6c683fefa57199",
+      "lines": 4339,
+      "sha256": "98004735bbf48eb6f92cca91efe458a05e2ab0832ff321e68fb0eea28c1a85e3",
       "imports": [
         "SwiftUI"
       ],

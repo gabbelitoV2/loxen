@@ -256,6 +256,13 @@ fun makeUniqueName(name: String, existingNames: List<Named>): String {
     }
 }
 
+fun <T> sortedBySearchPrefix(items: List<T>, searchText: String, name: (T) -> String): List<T> {
+    val query = searchText.lowercase()
+    val matches = items.filter { name(it).lowercase().startsWith(query) }
+    val others = items.filter { !name(it).lowercase().startsWith(query) }
+    return matches + others
+}
+
 fun createSpeechSynthesizer(): TextToSpeech = TextToSpeech(AppDelegate.context) { }
 
 fun makeRecordingPath(recordingPath: ByteArray): String? =

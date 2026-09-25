@@ -142,6 +142,18 @@ class UtilsSuite {
         assertEquals("..", "hello!".truncate(length = 2))
         assertEquals("", "hello!".truncate(length = 0))
     }
+
+    @Test
+    fun sortedBySearchPrefixPutsPrefixMatchesFirst() {
+        val names = listOf("xqc", "Bob", "abob", "bobby", "carl", "BOBBO")
+        assertEquals(listOf("Bob", "bobby", "BOBBO", "xqc", "abob", "carl"),
+            sortedBySearchPrefix(names, "bob") { it })
+    }
+
+    @Test
+    fun sortedBySearchPrefixWithoutMatches() {
+        assertEquals(listOf("c", "a", "b"), sortedBySearchPrefix(listOf("c", "a", "b"), "z") { it })
+    }
 }
 
 private fun milesPerHourToMetersPerSecond(milesPerHour: Double): Double = milesPerHour * 0.44704

@@ -32,12 +32,13 @@ class MapEffect(widget: SettingsWidgetMap) : VideoEffect() {
     private var sceneWidget: SettingsSceneWidget? = null
     private var location: Location = Location("")
     private var size: CGSize = CGSize.zero
-    private var newLocations: ArrayDeque<Location> = ArrayDeque(listOf(Location("")))
+    private var newLocations: ArrayDeque<Location> = ArrayDeque()
     private var mapSnapshotter: MKMapSnapshotter? = null
     private val dot: EffectImageCgImage? = Bundle.image("MapDot")?.cgImage?.toEffectImage()
     private var dotOffsetRatio = 0.0
     private var zoomOutFactor: Int? = null
     private var isLocationUpdated: Boolean = true
+    private var isSnapshotInProgress: Boolean = false
 
     fun zoomOutTemporarily() {
         processorPipelineQueue.launch {
@@ -113,19 +114,25 @@ class MapEffect(widget: SettingsWidgetMap) : VideoEffect() {
             info)
     }
 
-    private fun nextNewLocation(): Location {
+    private fun nextNewLocation(): Location? {
         val now = Instant.now()
         val delay = widget.delay
         return newLocations.lastOrNull {
             Instant.ofEpochMilli(it.time).plusMillis((delay * 1000.0).toLong()) <= now
-        } ?: newLocations.first()
+        } ?: newLocations.firstOrNull()
     }
 
     private fun update(size: CGSize) {
+        if (isSnapshotInProgress) {
+            return
+        }
         val newLocation = nextNewLocation()
         val zoomOutFactor = this.zoomOutFactor
         val isLocationUpdated = this.isLocationUpdated
         this.isLocationUpdated = false
+        if (newLocation == null) {
+            return
+        }
         if (!(size.width != this.size.width
                 || size.height != this.size.height
                 || newLocation.latitude != location.latitude
@@ -140,13 +147,18 @@ class MapEffect(widget: SettingsWidgetMap) : VideoEffect() {
             zoomOutFactor = zoomOutFactor
         )
         this.mapSnapshotter = mapSnapshotter
-        this.mapSnapshotter?.start(with = null) { snapshot, error ->
+        isSnapshotInProgress = true
+        mapSnapshotter.start(with = null) { snapshot, error ->
             if (snapshot == null || error != null) {
+                processorPipelineQueue.launch {
+                    this@MapEffect.isSnapshotInProgress = false
+                }
                 return@start
             }
             val image = snapshot.image.cgImage
             val mapSnapshot = CIImage(cgImage = image).toEffectImage(isOpaque = true)
             processorPipelineQueue.launch {
+                this@MapEffect.isSnapshotInProgress = false
                 this@MapEffect.mapSnapshot = mapSnapshot
                 this@MapEffect.dotOffsetRatio = dotOffsetRatio
             }

@@ -2983,26 +2983,26 @@
   },
   "MoblinTests/Moblin/Various/Utils/UtilsSuite.swift": {
     "status": "ok",
-    "sha256": "edcfe192b734448647ae6bbad977283f8a8a93657e02dad1ca8086cdba013509",
+    "sha256": "529cf68492420a7e52893470f87d903d07f3b093fc3f4249c17261ddb6a411c3",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/various/utils/UtilsSuite.kt",
     "notes": [
-      "Swift Testing's @Test(.enabled(if:)) is translated to org.junit.Assume.assumeTrue(Locale.getDefault().toString() == \"en_SE\") at the top of the affected tests.",
-      "Measurement<UnitSpeed> has no Android counterpart; the mph test values are converted to metres per second with the exact factor 0.44704 by a private test helper.",
-      "UUID.add(data:) and Data.getInt64Be(offset:) / String.removeAllWhitespaces() / String.truncate(length:) are extensions from the ported utils file; they are imported from com.moblin.android.common.various, which is the package the glossary gives for the Utils source.",
-      "#require(UUID(uuidString:)) becomes UUID.fromString, which throws IllegalArgumentException instead of failing the test on a nil UUID.",
-      "#expect(a == b) is mapped to kotlin.test.assertEquals(b, a) so the Swift right-hand side is the expected value.",
-      "The getInt64 expectation uses -1L, since a Kotlin Int -1 is not equal to a Long -1L.",
-      "String.withCPointers (C string interop) does not exist on Android; the test builds the same null-terminated UTF-8 byte arrays and asserts the identical byte values."
+      "Added the two new tests as @Test methods at the end of UtilsSuite, matching the Swift declaration order.",
+      "sortedBySearchPrefix lives in the same package com.moblin.android.various.utils, so no new import is needed.",
+      "The closure { $0 } becomes the trailing lambda { it }.",
+      "List literals keep their Swift element order, including the case-sensitive ordering asserted in the first test.",
+      "No locale/time-zone dependency, so no assumeTrue guard is added.",
+      "All pre-existing lines were kept byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4376,
-    "tokens_out": 11612,
-    "seconds": 45.1,
-    "ported_at": "2026-09-22T12:45:26+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 40629,
+    "tokens_out": 4309,
+    "seconds": 15.6,
+    "ported_at": "2026-09-25T13:02:56+00:00"
   },
   "MoblinTests/Moblin/Media/HaishinKit/Mpeg/MpegTsTimecodeGeneratorSuite.swift": {
     "status": "ok",
@@ -8991,33 +8991,24 @@
   },
   "Moblin/Various/Utils/Utils.swift": {
     "status": "ok",
-    "sha256": "652485efd6b4e65bfb72aff33db7ad91faa40ff30eb298983b2a105b46320571",
-    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
-    "mode": "full",
+    "sha256": "43bc8c656b48fc1b7a934c299b8744e26e63fa84e9b5cbef9a2a6b97427beb5e",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/utils/Utils.kt",
     "notes": [
-      "CMTime maps to Long microseconds; the CMTime(seconds:) initializer became the top-level secondsToCMTime(), and CMClockGetTime(CMClockGetHostTimeClock()) became System.nanoTime()/1000.",
-      "Data.random(length:) became the top-level randomBytes(length:) and String(cArray:) became stringFromCArray(cArray:) because Kotlin cannot add members/initializers to Data or String.",
-      "Thumbnails are generated with android.media.MediaMetadataRetriever instead of AVAssetImageGenerator, kept on a single-thread coroutine scope with the result delivered on the main scope.",
-      "uploadImage builds an okhttp3.Request and assumes httpCall(request, body, onCompleted) in com.moblin.android.various.network; adjust the call if the real signature differs.",
-      "ResourceUsage: getrusage, host_processor_info and task_info come from the Darwin shim (platform/darwin/Darwin.kt): process CPU time from /proc/self/stat, per-CPU ticks from /proc/stat (closed to apps since Android 8, so the device total falls back to the app CPU), and the process PSS in bytes as phys_footprint, measured on a background thread.",
-      "ContinuousClock.Instant parameters and state became Long milliseconds from ContinuousClock; the previous rusage and CPU ticks keep their types (rusage?, List<List<UInt>>?).",
-      "List<String>.withCPointers now yields an Array<ByteArray?> of null-terminated UTF-8 strings (the JNI style equivalent) instead of UnsafePointer<CChar> values.",
-      "Locale.Language.name() became an extension on java.util.Locale, Array.truncate became MutableList.truncate, and CGSize helpers are extensions on androidx.compose.ui.geometry.Size."
+      "Only the new sortedBySearchPrefix helper was added after makeUniqueName, before createSpeechSynthesizer.",
+      "Everything else stays byte-identical to the current Kotlin file.",
+      "Swift hasPrefix/lowercased map to Kotlin startsWith/lowercase on the String name, matching the stable part of a search string.",
+      "The name closure keeps the same generic shape as the Swift trailing/parameter closure."
     ],
-    "unsupported": [
-      "UIApplication.shared.open (openUrl)",
-      "AVSpeechSynthesizer (createSpeechSynthesizer)",
-      "URL(resolvingBookmarkData:) (makeRecordingPath)",
-      "Bundle.main resource loading (loadStringResource, loadResource)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 46986,
-    "tokens_out": 53199,
-    "seconds": 192.3,
-    "ported_at": "2026-09-25T11:36:31+00:00"
+    "tokens_in": 53373,
+    "tokens_out": 4523,
+    "seconds": 13.5,
+    "ported_at": "2026-09-25T13:02:53+00:00"
   },
   "Moblin/View/Settings/HelpAndSupport/HelpAndSupportSettingsView.swift": {
     "status": "ok",
@@ -13077,28 +13068,23 @@
   },
   "Moblin/VideoEffects/MapEffect.swift": {
     "status": "ok",
-    "sha256": "d2e5635e9ff2e4b5c4a50ddeefe6d6ecab21e4c365c9c94118fe3ff707056c54",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "7680d2750dee45f5700151ceb46b1dacbd0a263dc06d470bfbf748301c2eee49",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/MapEffect.kt",
     "notes": [
-      "CLLocation maps to android.location.Location: Location(\"\") replaces CLLocation(), .coordinate.latitude/.longitude become .latitude/.longitude, and .timestamp becomes java.time.Instant.ofEpochMilli(time).",
-      "newLocation.course is inlined everywhere as (if (hasBearing()) bearing.toDouble() else -1.0), matching CLLocation's -1 for an invalid course.",
-      "Deque<CLLocation> (swift-collections) becomes kotlin.collections.ArrayDeque with lastOrNull, addLast, removeFirst and size.",
-      "MKMapSnapshotter.start(with: DispatchQueue.global(), completionHandler:) becomes start(with = null) { ... }; the completion runs on a background thread, so the assignment back to the effect goes through processorPipelineQueue.launch.",
-      "UIImage(named: \"MapDot\").cgImage becomes Bundle.image(\"MapDot\")?.cgImage (cgImage is the Bitmap identity), then toEffectImage().",
-      "The CGSize comparison in update() is written field by field (width/height) so it keeps Swift's value semantics regardless of the shim's equals.",
-      "Inside processorPipelineQueue.launch the outer effect is reached with this@MapEffect, because the lambda receiver is CoroutineScope, not MapEffect.",
-      "SettingsWidgetMap is assumed to expose clone(), northUp, delay (seconds) and size (meters), and SettingsSceneWidget.layout.size the widget size percentage passed to toPixels."
+      "newLocations starts empty and nextNewLocation now returns Location?, so it uses firstOrNull() instead of first()",
+      "isSnapshotInProgress guards update() and is cleared on processorPipelineQueue in both the failure and success paths of the snapshotter completion",
+      "mapSnapshotter.start uses the non-optional local instead of the optional property, matching the Swift change"
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 43232,
-    "tokens_out": 21062,
-    "seconds": 76.9,
-    "ported_at": "2026-09-23T19:53:45+00:00"
+    "tokens_in": 54343,
+    "tokens_out": 3294,
+    "seconds": 11.7,
+    "ported_at": "2026-09-25T13:02:50+00:00"
   },
   "Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift": {
     "status": "ok",
@@ -15121,27 +15107,24 @@
   },
   "Moblin/View/ControlBar/QuickButton/Chat/Moderation/QuickButtonChatModerationKickView.swift": {
     "status": "ok",
-    "sha256": "fd65d0b70ac93524955efa987afed197bdf8ef0179bfef45ea9bb8108753f803",
+    "sha256": "074d9a260419af2a8c17a96cbf91abe34d92b9869cec20e502d2c11a3b81011b",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/moderation/QuickButtonChatModerationKickView.kt",
     "notes": [
-      "Compose has no implicit navigation, so the outer `NavigationLink { Form } label: { KickLogoAndNameView() }` becomes a clickable KickLogoAndNameView row calling onNavigate(\"Kick\") followed by the translated destination content in the same composable.",
-      "@Binding var platform becomes a `platform: Platform?` value parameter plus an `onPlatformChange: (Platform?) -> Unit` callback; the `.onAppear { platform = .kick }` becomes LaunchedEffect(Unit).",
-      "Picker -> ExposedDropdownMenuBox with a read-only OutlinedTextField, which needs an ExperimentalMaterial3Api opt-in.",
-      "PollOptionsSectionView's `$options` binding is passed as `options` plus an `onOptionsChange` lambda following the project binding convention.",
-      "The Swift private methods slowModeAction/followersOnlyAction are local Kotlin functions passed to SlowModeView/FollowersOnlyView as callable references.",
-      "@StateObject Executor becomes `remember { Executor() }`; executor.completed is passed as a lambda so it works for either a method or a function-typed property.",
-      "OperationResult cases map to OperationResult.Success(ByteArray(0)) for .success(Data()) and OperationResult.Error for .error.",
-      "`.autocapitalization(.none)` and `.autocorrectionDisabled()` on the search field have no direct Compose counterpart and were dropped."
+      "Only the Kick channel search sorting changed: the inline sorted(by:) closure is replaced by the shared helper sortedBySearchPrefix(results, searchText = newValue) { it.username }.",
+      "Added the import com.moblin.android.various.utils.sortedBySearchPrefix, placed between the various.network and view.controlbar imports to keep the import block ordered.",
+      "The local val text = newValue.lowercase() was removed because the helper lowercases the prefix itself.",
+      "Everything else in the file is unchanged, including the Android-only IosTextField helper and the onPlatformChange / LaunchedEffect hook."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7377,
-    "tokens_out": 25185,
-    "seconds": 93.3,
-    "ported_at": "2026-09-22T13:54:19+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 50736,
+    "tokens_out": 4108,
+    "seconds": 13.1,
+    "ported_at": "2026-09-25T13:02:55+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonBitrateView.swift": {
     "status": "ok",
@@ -15435,27 +15418,27 @@
   },
   "Moblin/View/ControlBar/QuickButton/Chat/Moderation/QuickButtonChatModerationTwitchView.swift": {
     "status": "ok",
-    "sha256": "8907ed17230d1dcd11b4ce293a6078f2824a7a729c51b4f0450ae59d82762a0f",
+    "sha256": "b447cf4c2bfb332da022d0f4724d8bdff097486168d0dac5a82456b431008988",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/moderation/QuickButtonChatModerationTwitchView.kt",
     "notes": [
-      "The SwiftUI Form with three Sections becomes a LazyColumn with three item blocks; each Section header is rendered as a Material 3 Text header inside a Column, and the outer ScrollView/Form state is left to the caller.",
-      "SwiftUI Picker has no direct Compose equivalent, so a private PickerRow helper using ExposedDropdownMenuBox and DropdownMenuItem is declared at the bottom of the file and reused by every picker (durations, prediction window, announcement color).",
-      "@Binding properties become a value parameter plus a change lambda: options/onOptionsChange on PollOptionsSectionView and platform/onPlatformChange on the top level view.",
-      "@StateObject Executor is created with remember { Executor() }; the @ObservedObject Executor of RaidFollowedChannelsView stays a parameter so the parent keeps ownership of its lifecycle.",
-      "onAppear becomes LaunchedEffect(Unit) (PollFormView, PredictionFormView, StartRaidView, form) and onChange(of: searchText) becomes LaunchedEffect(searchText) in RaidChannelSearchView.",
-      ".disabled(!canCreatePoll(...)) and .disabled(!canSend()) are mapped to the enabled parameter of CreateButtonView/TextButtonView since Compose has no disabled modifier.",
-      "The top level NavigationLink to the moderation Form becomes onNavigate(\"QuickButtonChatModerationTwitch\") on the clickable label (TwitchLogoAndNameView); the destination content lives in the extra QuickButtonChatModerationTwitchForm composable that the navigation graph should render for that destination.",
-      "@MainActor on fetchRaidSuggestionImages has no Kotlin equivalent; the callback runs on whatever dispatcher the Twitch API call returns on. AnnouncementColor.toString() is written as override fun toString() because Kotlin enums inherit Any.toString()."
+      "Added the new makeRaidSuggestions(channels, streams) overload just before RaidChannelSearchView, as in the diff, and kept the two existing overloads untouched.",
+      "RaidChannelSearchView now holds suggestions state and a local search() function; the IosTextField onValueChange sets searchText and then calls search() (Compose has no .onChange).",
+      "The search callback uses the ported sortedBySearchPrefix helper from com.moblin.android.various.utils, so the imports gained that line.",
+      "The stale-response guard filter == searchText became if (filter != searchText) return@getTwitchStreams, matching the new Swift behaviour.",
+      "RaidSuggestion.viewerCount is now Int? so channels without a live stream show no viewer count, as the Swift struct does.",
+      "RaidChannelSearchView's second Section now renders RaidSuggestionsView(model, suggestions) instead of a ForEach over TwitchApiChannel.",
+      "Everything else in the file, including the platform hooks, Form layout and the PickerRow/IosTextField helpers, is byte-identical."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 11643,
-    "tokens_out": 39859,
-    "seconds": 142.0,
-    "ported_at": "2026-09-22T13:55:54+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 61207,
+    "tokens_out": 10478,
+    "seconds": 33.9,
+    "ported_at": "2026-09-25T13:03:12+00:00"
   },
   "Moblin/View/Settings/Keyboard/KeyboardKeySettingsView.swift": {
     "status": "ok",
@@ -16797,27 +16780,23 @@
   },
   "Moblin/View/Settings/About/AboutVersionHistorySettingsView.swift": {
     "status": "ok",
-    "sha256": "188340c015a5b603682e16cb5d7a9be7dced5112fd4fa4ca3a6c683fefa57199",
+    "sha256": "98004735bbf48eb6f92cca91efe458a05e2ab0832ff321e68fb0eea28c1a85e3",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/about/AboutVersionHistorySettingsView.kt",
     "notes": [
-      "The huge private `versions` array is transcribed in full as a top-level `private val versions: List<Version>`; every release note string is kept byte-identical.",
-      "Swift `struct Version` with only stored properties became `data class Version(version, date, changes)`.",
-      "`.navigationTitle(\"Version history\")` became a Material 3 `TopAppBar` title inside a `Scaffold`, which is why the file opts in to `ExperimentalMaterial3Api`.",
-      "`ScrollView` + `LazyVStack` + `ForEach` became a single `LazyColumn` with `items(versions, key = { it.version })`.",
-      "`.font(.title2)` mapped to `MaterialTheme.typography.titleLarge`.",
-      "The trailing `Spacer()` of the SwiftUI stack is expressed as bottom padding on each row instead of a separate composable row.",
-      "The composable keeps the exact Swift view name and takes no parameters, matching the parameterless SwiftUI view.",
-      "Emoji, bullets and Swift escape sequences such as \\\" and \\n are preserved literally in the Kotlin strings."
+      "Only change: a new Version entry 35.3.0 (2026-09-25) prepended to the versions list.",
+      "Everything else, including formatting, imports and the composable, is byte-identical to the previous Kotlin file.",
+      "The lazy items import was already `androidx.compose.foundation.lazy.items`, which matches the current file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 72681,
-    "tokens_out": 76791,
-    "seconds": 212.2,
-    "ported_at": "2026-09-22T14:07:27+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 141702,
+    "tokens_out": 16155,
+    "seconds": 46.2,
+    "ported_at": "2026-09-25T13:03:30+00:00"
   },
   "Moblin/Various/Settings/Settings.swift": {
     "status": "ok",

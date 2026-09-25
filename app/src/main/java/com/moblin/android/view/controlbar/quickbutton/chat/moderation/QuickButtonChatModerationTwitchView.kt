@@ -39,6 +39,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.OperationResult
 import com.moblin.android.various.settings.SettingsStreamTwitchRaidChannel
+import com.moblin.android.various.utils.sortedBySearchPrefix
 import com.moblin.android.view.controlbar.quickbutton.chat.ActionRowView
 import com.moblin.android.view.controlbar.quickbutton.chat.EmotesOnlyView
 import com.moblin.android.view.controlbar.quickbutton.chat.Executor
@@ -391,11 +392,64 @@ private fun PredictionView(model: Model = LocalModel.current) {
     }
 }
 
+private fun makeRaidSuggestions(
+    channels: List<TwitchApiChannel>,
+    streams: List<TwitchApiStreamData>?,
+): List<RaidSuggestion> {
+    val viewerCounts = mutableMapOf<String, Int>()
+    for (stream in streams ?: emptyList()) {
+        viewerCounts[stream.user_id] = stream.viewer_count
+    }
+    return channels.map {
+        RaidSuggestion(
+            id = it.id,
+            name = it.display_name,
+            category = it.game_name,
+            title = it.title,
+            viewerCount = viewerCounts[it.id],
+            image = it.thumbnail_url,
+        )
+    }
+}
+
 @Composable
 private fun RaidChannelSearchView(model: Model = LocalModel.current) {
     var searchText by remember { mutableStateOf("") }
-    var channels by remember { mutableStateOf<List<TwitchApiChannel>>(emptyList()) }
+    var suggestions by remember { mutableStateOf<List<RaidSuggestion>>(emptyList()) }
     val executor = remember { Executor() }
+
+    fun search() {
+        if (searchText.isEmpty()) {
+            suggestions = emptyList()
+            return
+        }
+        val filter = searchText
+        executor.startProgress()
+        model.searchTwitchChannels(stream = model.stream.value, filter = filter) { result ->
+            when (result) {
+                is NetworkResponse.Success -> {
+                    val channels = sortedBySearchPrefix(result.value, filter) { it.display_name }
+                    model.getTwitchStreams(
+                        stream = model.stream.value,
+                        userIds = channels.map { it.id },
+                        live = true,
+                    ) { streams ->
+                        if (filter != searchText) {
+                            return@getTwitchStreams
+                        }
+                        suggestions = makeRaidSuggestions(channels = channels, streams = streams)
+                        executor.completedNoTimer(result = NetworkResponse.Success(ByteArray(0)))
+                    }
+                }
+                is NetworkResponse.AuthError -> {
+                    executor.completedNoTimer(result = NetworkResponse.AuthError)
+                }
+                is NetworkResponse.Error -> {
+                    executor.completedNoTimer(result = NetworkResponse.Error)
+                }
+            }
+        }
+    }
 
     Section {
         IosTextField(
@@ -403,34 +457,7 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
             value = searchText,
             onValueChange = { newValue ->
                 searchText = newValue
-                if (newValue.isEmpty()) {
-                    channels = emptyList()
-                } else {
-                    executor.startProgress()
-                    model.searchTwitchChannels(stream = model.stream.value, filter = newValue) { result ->
-                        when (result) {
-                            is NetworkResponse.Success -> {
-                                val text = newValue.lowercase()
-                                channels = result.value.sortedWith(Comparator { first, second ->
-                                    val firstName = first.display_name.lowercase()
-                                    val secondName = second.display_name.lowercase()
-                                    when {
-                                        firstName.startsWith(text) -> -1
-                                        secondName.startsWith(text) -> 1
-                                        else -> -1
-                                    }
-                                })
-                                executor.completedNoTimer(result = NetworkResponse.Success(ByteArray(0)))
-                            }
-                            is NetworkResponse.AuthError -> {
-                                executor.completedNoTimer(result = NetworkResponse.AuthError)
-                            }
-                            is NetworkResponse.Error -> {
-                                executor.completedNoTimer(result = NetworkResponse.Error)
-                            }
-                        }
-                    }
-                }
+                search()
             },
             keyboardOptions = KeyboardOptions(
                 capitalization = KeyboardCapitalization.None,
@@ -440,19 +467,7 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
     }
     Section {
         ExecutorView(executor = executor, centerNonContent = true) {
-            channels.forEach { channel ->
-                RaidChannelView(
-                    buttonText = "Raid",
-                    channel = channel.display_name,
-                    category = channel.game_name,
-                    title = channel.title,
-                    image = channel.thumbnail_url,
-                    isLive = true,
-                    viewerCount = null,
-                ) { onComplete ->
-                    model.startRaidTwitchChannel(channelId = channel.id, onComplete = onComplete)
-                }
-            }
+            RaidSuggestionsView(model = model, suggestions = suggestions)
         }
     }
 }
@@ -462,7 +477,7 @@ private data class RaidSuggestion(
     val name: String,
     val category: String,
     val title: String,
-    val viewerCount: Int,
+    val viewerCount: Int?,
     var image: String? = null,
 )
 
@@ -478,7 +493,7 @@ private fun makeRaidSuggestions(streams: List<TwitchApiStreamData>): List<RaidSu
     }
 }
 
-private fun makeRaidSuggestions(
+private fun makeRaidSuggestionsForRaidChannels(
     streams: List<TwitchApiStreamData>,
     channels: List<SettingsStreamTwitchRaidChannel>,
 ): List<RaidSuggestion> {
@@ -657,8 +672,8 @@ private fun StartRaidView(model: Model = LocalModel.current) {
             if (streams == null) {
                 return@getTwitchStreams
             }
-            raidsSent = makeRaidSuggestions(streams = streams, channels = sentChannels)
-            raidsReceived = makeRaidSuggestions(streams = streams, channels = receivedChannels)
+            raidsSent = makeRaidSuggestionsForRaidChannels(streams = streams, channels = sentChannels)
+            raidsReceived = makeRaidSuggestionsForRaidChannels(streams = streams, channels = receivedChannels)
             fetchRaidSuggestionImages(
                 model = model,
                 userIds = raidsSent.map { it.id } + raidsReceived.map { it.id },

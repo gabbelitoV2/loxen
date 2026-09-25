@@ -42,6 +42,7 @@ import com.moblin.android.various.model.setKickShowViewCount
 import com.moblin.android.various.model.setKickSubscribersOnlyMode
 import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.OperationResult
+import com.moblin.android.various.utils.sortedBySearchPrefix
 import com.moblin.android.view.controlbar.quickbutton.chat.ActionRowView
 import com.moblin.android.view.controlbar.quickbutton.chat.EmotesOnlyView
 import com.moblin.android.view.controlbar.quickbutton.chat.Executor
@@ -197,8 +198,7 @@ private fun RaidChannelSearchView(model: Model = LocalModel.current) {
                     executor.startProgress()
                     model.searchKickChannels(query = newValue) { results ->
                         if (results != null) {
-                            val text = newValue.lowercase()
-                            channels = results.sortedBy { if (it.username.lowercase().startsWith(text)) 0 else 1 }
+                            channels = sortedBySearchPrefix(results, searchText = newValue) { it.username }
                             executor.completedNoTimer(result = NetworkResponse.Success(ByteArray(0)))
                         } else {
                             executor.completedNoTimer(result = NetworkResponse.Error)
