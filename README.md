@@ -58,6 +58,14 @@ Everything in `app/src/main/java/com/moblin/android/platform/` is written by han
 camera, encoding, transports and other Android APIs. Generated files call into it through one-line hooks,
 which `tools/postprocess.py` restores after a re-translation. Put new Android-specific code there.
 
+The Live Activity is split the same way: `Moblin Live Activity/Shared/MoblinLiveActivity.swift` and
+`ModelLiveActivity.swift` are ported by the pipeline onto the ActivityKit shim in `platform/activitykit/`, while the
+lock screen layout in `Moblin Live Activity/MoblinLiveActivityApp.swift` is a widget that is not ported. It is drawn
+by hand in `platform/activitykit/MoblinLiveActivityApp.kt` as an ongoing notification, so a change to
+that Swift file needs the same change there. `tools/sync.py` warns when it happens: `tools/check_hand_ported.py`
+compares every Swift file listed in `tools/hand_ported.json` with the hash its Kotlin was last brought in step
+with. After updating the Kotlin, run `python tools/check_hand_ported.py --update`.
+
 ## First port and manual runs
 
 ```sh

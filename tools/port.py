@@ -553,7 +553,7 @@ def signatures(path, limit=80):
         index += 1
         if not DECLARATION_RE.match(line) or line.lstrip().startswith("private "):
             continue
-        signature = line.strip()
+        signature = line.rstrip()
         while signature.count("(") > signature.count(")") and index < len(lines):
             signature += " " + lines[index].strip()
             index += 1

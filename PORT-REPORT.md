@@ -1,18 +1,18 @@
 # Port report
 
-Generated 2026-09-25T07:40:22+00:00
+Generated 2026-09-25T09:20:33+00:00
 
 ## Summary
 
 | tier | done | error | stale | pending | skipped |
 |---|---|---|---|---|---|
 | logic | 151 | 0 | 0 | 0 | 0 |
-| platform | 53 | 0 | 0 | 0 | 0 |
+| platform | 55 | 0 | 0 | 0 | 0 |
 | test | 63 | 0 | 0 | 0 | 0 |
 | media | 160 | 0 | 0 | 0 | 0 |
-| ui | 362 | 0 | 0 | 0 | 0 |
+| ui | 361 | 0 | 0 | 0 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
-| skip | 0 | 0 | 0 | 0 | 23 |
+| skip | 0 | 0 | 0 | 0 | 22 |
 
 ## Needs manual work
 
@@ -159,8 +159,6 @@ Generated 2026-09-25T07:40:22+00:00
   - UIPasteboard (copyMessage)
 - Moblin/Various/Model/ModelKeyboard.swift
   - SwiftUI KeyPress / KeyPress.Result (iOS 17 press handling) has no Android equivalent; a placeholder KeyPress type with nested Result was declared and key events must come from Compose key input.
-- Moblin/Various/Model/ModelLiveActivity.swift
-  - ActivityKit (Activity.request, Activity.end, Activity.update, ActivityAuthorizationInfo, LiveActivityAttributes/ContentState, LiveActionFunction)
 - Moblin/Various/Model/ModelMacStatusItem.swift
   - NSBundle.main.builtInPlugInsURL / Bundle(url:) / principalClass plugin bundle loading (MoblinMac.bundle)
   - macCatalyst NSStatusItem bridge (MacStatusItem helper object)
@@ -424,6 +422,7 @@ Generated 2026-09-25T07:40:22+00:00
 | Common/View/StreamOverlayIconAndTextView.swift | app/src/main/java/com/moblin/android/common/view/StreamOverlayIconAndTextView.kt | deepseek-flash | 23.0 |
 | Common/View/StreamOverlayTextView.swift | app/src/main/java/com/moblin/android/common/view/StreamOverlayTextView.kt | deepseek-flash | 2.3 |
 | Common/View/ThermalStateView.swift | app/src/main/java/com/moblin/android/common/view/ThermalStateView.kt | deepseek-flash | 10.8 |
+| Moblin Live Activity/Shared/MoblinLiveActivity.swift | app/src/main/java/com/moblin/android/moblinliveactivity/shared/MoblinLiveActivity.kt | deepseek-flash | 4.1 |
 | Moblin Watch/Shared/WatchProtocol.swift | app/src/main/java/com/moblin/android/moblinwatch/shared/WatchProtocol.kt | deepseek-flash | 36.8 |
 | Moblin Watch/Shared/WatchSettings.swift | app/src/main/java/com/moblin/android/moblinwatch/shared/WatchSettings.kt | deepseek-flash | 122.2 |
 | Moblin/Integrations/BlackSharkCooler/BlackSharkCoolerDevice.swift | app/src/main/java/com/moblin/android/integrations/blacksharkcooler/BlackSharkCoolerDevice.kt | deepseek-flash | 98.4 |
@@ -664,7 +663,7 @@ Generated 2026-09-25T07:40:22+00:00
 | Moblin/Various/Model/ModelHttpProxy.swift | app/src/main/java/com/moblin/android/various/model/ModelHttpProxy.kt | deepseek-flash | 27.8 |
 | Moblin/Various/Model/ModelKeyboard.swift | app/src/main/java/com/moblin/android/various/model/ModelKeyboard.kt | deepseek-flash | 14.1 |
 | Moblin/Various/Model/ModelKick.swift | app/src/main/java/com/moblin/android/various/model/ModelKick.kt | deepseek-flash | 16.1 |
-| Moblin/Various/Model/ModelLiveActivity.swift | app/src/main/java/com/moblin/android/various/model/ModelLiveActivity.kt | deepseek-flash | 10.0 |
+| Moblin/Various/Model/ModelLiveActivity.swift | app/src/main/java/com/moblin/android/various/model/ModelLiveActivity.kt | deepseek-flash | 37.7 |
 | Moblin/Various/Model/ModelLocation.swift | app/src/main/java/com/moblin/android/various/model/ModelLocation.kt | deepseek-flash | 32.3 |
 | Moblin/Various/Model/ModelLog.swift | app/src/main/java/com/moblin/android/various/model/ModelLog.kt | deepseek-flash | 35.3 |
 | Moblin/Various/Model/ModelMacStatusItem.swift | app/src/main/java/com/moblin/android/various/model/ModelMacStatusItem.kt | deepseek-flash | 25.4 |

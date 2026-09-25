@@ -43,6 +43,7 @@ object AndroidHost {
     fun onActivityCreated(activity: ComponentActivity) {
         Log.i(TAG, "Activity created")
         SystemEvents.install(activity.application)
+        StreamingService.cancelStaleNotification(activity)
         com.moblin.android.platform.corelocation.LocationAuthorization.install(activity)
         com.moblin.android.platform.corebluetooth.BluetoothAuthorization.install(activity)
         com.moblin.android.platform.offscreen.OffscreenDisplay.prewarm()

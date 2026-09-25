@@ -1,6 +1,6 @@
 {
   "root": "<home>\\Desktop\\code\\moblin-android\\.upstream",
-  "generated": "2026-09-25T06:40:42+00:00",
+  "generated": "2026-09-25T08:40:38+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -22,28 +22,9 @@
       "kotlin_package": "com.moblin.android.moblinliveactivity",
       "kotlin_path": "app/src/main/java/com/moblin/android/moblinliveactivity/MoblinLiveActivityApp.kt",
       "deps": [
+        "Moblin Live Activity/Shared/MoblinLiveActivity.swift",
         "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift"
       ],
-      "wave": -1
-    },
-    {
-      "path": "Moblin Live Activity/Shared/MoblinLiveActivity.swift",
-      "lines": 19,
-      "sha256": "5b595a6e9a5298ead006f906827b28860554bd71e6067d779612905a141ce7f0",
-      "imports": [
-        "ActivityKit",
-        "Foundation"
-      ],
-      "tier": "skip",
-      "declared_types": [
-        "LiveActionFunction",
-        "LiveActivityAttributes"
-      ],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.moblinliveactivity.shared",
-      "kotlin_path": "app/src/main/java/com/moblin/android/moblinliveactivity/shared/MoblinLiveActivity.kt",
-      "deps": [],
       "wave": -1
     },
     {
@@ -603,6 +584,26 @@
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.common.various",
       "kotlin_path": "app/src/main/java/com/moblin/android/common/various/CMFormatDescription+Extension.kt",
+      "deps": [],
+      "wave": 0
+    },
+    {
+      "path": "Moblin Live Activity/Shared/MoblinLiveActivity.swift",
+      "lines": 19,
+      "sha256": "5b595a6e9a5298ead006f906827b28860554bd71e6067d779612905a141ce7f0",
+      "imports": [
+        "ActivityKit",
+        "Foundation"
+      ],
+      "tier": "platform",
+      "declared_types": [
+        "LiveActionFunction",
+        "LiveActivityAttributes"
+      ],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.moblinliveactivity.shared",
+      "kotlin_path": "app/src/main/java/com/moblin/android/moblinliveactivity/shared/MoblinLiveActivity.kt",
       "deps": [],
       "wave": 0
     },
@@ -8456,13 +8457,14 @@
         "ActivityKit",
         "Foundation"
       ],
-      "tier": "ui",
+      "tier": "platform",
       "declared_types": [],
       "declared_functions": [],
       "declared_globals": [],
       "kotlin_package": "com.moblin.android.various.model",
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelLiveActivity.kt",
       "deps": [
+        "Moblin Live Activity/Shared/MoblinLiveActivity.swift",
         "Moblin/Various/Model/Model.swift",
         "Moblin/Various/Model/ModelMoblink.swift",
         "Moblin/Various/Storages/RecordingsStorage.swift"
@@ -19267,6 +19269,7 @@
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
       "deps": [
         "Common/Various/CommonUtils.swift",
+        "Moblin Live Activity/Shared/MoblinLiveActivity.swift",
         "Moblin Watch/Shared/WatchProtocol.swift",
         "Moblin/Integrations/BlackSharkCooler/BlackSharkCoolerDevice.swift",
         "Moblin/Integrations/CatPrinter/CatPrinter.swift",

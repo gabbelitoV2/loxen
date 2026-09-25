@@ -9,3 +9,4 @@ This file uses platform services that have Android counterparts. Use the counter
 - Speech SFSpeechRecognizer, SFSpeechAudioBufferRecognitionRequest and SFSpeechRecognitionTask -> the same-named shims in com.moblin.android.platform.speech (see the STT shim section); never android.speech.SpeechRecognizer directly.
 - CoreHaptics -> android.os.Vibrator.
 - libsrt C API -> import com.moblin.android.platform.srt.SrtNative and call its functions and constants by their C names (see Platform API and the shim sections); never declare SrtNative, external functions or System.loadLibrary.
+- ActivityKit Activity, ActivityContent, ActivityAttributes and ActivityAuthorizationInfo -> the same-named shims in com.moblin.android.platform.activitykit (see the Live Activities shim section); the Live Activity becomes an ongoing notification, so never TODO() them.

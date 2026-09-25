@@ -15,13 +15,14 @@ MEDIA = {
     "CoreML", "ARKit", "SceneKit", "SpriteKit",
 }
 UI = {
-    "SwiftUI", "UIKit", "AppKit", "WidgetKit", "ActivityKit", "AppIntents", "Intents", "IntentsUI",
+    "SwiftUI", "UIKit", "AppKit", "WidgetKit", "AppIntents", "Intents", "IntentsUI",
     "StoreKit", "SafariServices", "WebKit", "MessageUI", "PhotosUI", "Photos", "QuickLook", "TipKit",
 }
 PLATFORM = {
     "Network", "CoreBluetooth", "CoreLocation", "CryptoKit", "GameController", "Speech",
     "NaturalLanguage", "CoreMotion", "LocalAuthentication", "AuthenticationServices", "Security",
     "SystemConfiguration", "CoreTelephony", "libsrt", "CoreHaptics", "MediaPlayer", "NetworkExtension",
+    "ActivityKit",
 }
 APPLE_ONLY = {
     "WatchConnectivity", "HealthKit", "HomeKit", "CarPlay", "ReplayKit", "ExternalAccessory",
@@ -32,6 +33,7 @@ NEUTRAL = {"Foundation", "Combine", "os", "OSLog"}
 SKIP_DIRS = (
     "Moblin Watch/", "Moblin Widget/", "Moblin Live Activity/", "Moblin Mac/", "Moblin Screen Recording/",
 )
+SHARED_DIRS = ("Moblin Watch/Shared/", "Moblin Live Activity/Shared/")
 EXCLUDE_DIRS = ("Moblin/Integrations/Tesla/Protobuf/",)
 PLATFORM_REPLACED = {
     "Moblin/VideoEffects/VTuber/Live2DRenderer.swift",
@@ -63,7 +65,7 @@ IDENT_RE = re.compile(r"\b[A-Za-z_]\w*\b")
 def classify(rel, imports):
     if rel in PLATFORM_REPLACED:
         return "skip"
-    if rel.startswith(SKIP_DIRS) and not rel.startswith("Moblin Watch/Shared/"):
+    if rel.startswith(SKIP_DIRS) and not rel.startswith(SHARED_DIRS):
         return "skip"
     if rel.startswith("MoblinTests/"):
         return "test"

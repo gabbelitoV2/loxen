@@ -9558,27 +9558,27 @@
   "Moblin/Various/Model/ModelLiveActivity.swift": {
     "status": "ok",
     "sha256": "0a5334f599eeb3891dbc0780ddbc864baaa5eae518d1a9c57c3f6dffd9af948f",
-    "tier": "ui",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "mode": "full",
+    "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelLiveActivity.kt",
     "notes": [
-      "Model is an existing class in com.moblin.android.various.model, so the Swift extension becomes top-level extension functions on Model in the same package; nothing is redeclared.",
-      "The `#if !targetEnvironment(macCatalyst)` / `#else` split has no meaning on Android, so only one set of the three functions is emitted (the two branches were identical duplicates).",
-      "startLiveActivity/stopLiveActivity/updateLiveActivity are kept with identical signatures but their bodies are TODO because ActivityKit has no Android counterpart; they still log the same wording when a real implementation lands.",
-      "The private helper makeState() builds LiveActivityAttributes.ContentState, an Apple-only type declared in another file that is not part of this port; it is kept for name parity and returns Nothing since its body only throws.",
-      "The `liveActivity` stored property read/written here belongs to Model in another file and is not declared in this translation.",
-      "DispatchQueue.global() + DispatchSemaphore + Task used in stopLiveActivity are dropped along with the API; if ever re-implemented it would be a suspend function on Dispatchers.IO.",
-      "String(localized:) calls (Live, Recording, Background chat, Moblink relay, Background printing) are only reachable through the TODO body, but the expected localized() keys should be reused if this is ever ported."
+      "Only the `#if !targetEnvironment(macCatalyst)` branch is translated; the empty `#else` extension is dropped and no other Android API replaces it.",
+      "Swift's nested `LiveActivityAttributes.ContentState` stays nested in Kotlin.",
+      "`Activity<LiveActivityAttributes>.activities` becomes `Activity.activities<LiveActivityAttributes>()`; the stored `liveActivity` property keeps its `Activity<LiveActivityAttributes>?` type and is assumed declared on Model.",
+      "`logger.info` becomes `android.util.Log.i` with the class name \"Model\" as tag.",
+      "`String(localized:)` becomes the top-level `localized()` from com.moblin.android.",
+      "`stopLiveActivity` replaces the dispatch semaphore over a global queue with `runBlocking { }` around `end`, as the shim prescribes.",
+      "`updateLiveActivity`'s `Task { await ... }` body is run with `runBlocking`; the shim's `update` never suspends and needs no main thread.",
+      "`functions.prefix(2)` becomes `functions.take(2)` and the state carries a `List<LiveActionFunction>` instead of a Swift Array."
     ],
-    "unsupported": [
-      "ActivityKit (Activity.request, Activity.end, Activity.update, ActivityAuthorizationInfo, LiveActivityAttributes/ContentState, LiveActionFunction)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3301,
-    "tokens_out": 2047,
-    "seconds": 10.0,
-    "ported_at": "2026-09-22T13:26:15+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 39520,
+    "tokens_out": 10001,
+    "seconds": 37.7,
+    "ported_at": "2026-09-25T09:11:30+00:00"
   },
   "Moblin/Various/Model/ModelControlBar.swift": {
     "status": "ok",
@@ -18937,5 +18937,28 @@
     "tokens_out": 32604,
     "seconds": 121.7,
     "ported_at": "2026-09-24T15:42:05+00:00"
+  },
+  "Moblin Live Activity/Shared/MoblinLiveActivity.swift": {
+    "status": "ok",
+    "sha256": "5b595a6e9a5298ead006f906827b28860554bd71e6067d779612905a141ce7f0",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "mode": "full",
+    "tier": "platform",
+    "kotlin_path": "app/src/main/java/com/moblin/android/moblinliveactivity/shared/MoblinLiveActivity.kt",
+    "notes": [
+      "The Swift #if !targetEnvironment(macCatalyst) block is dropped: the whole file applies to Android, so both types are declared unconditionally.",
+      "LiveActionFunction is a Codable, Hashable struct, so it becomes @Serializable data class with the same property order (image, text).",
+      "LiveActivityAttributes conforms to ActivityAttributes, which is an Android interface without members, so the class header keeps the conformance and the nested ContentState stays nested.",
+      "ContentState is Codable, Hashable, so it is an @Serializable data class inside LiveActivityAttributes; 'functions' maps the Swift array to List<LiveActionFunction> and 'showEllipsis' to Boolean.",
+      "Section headers come from com.moblin.android.platform.activitykit, the shim that renders the Live Activity as Moblin's ongoing notification; never use NotificationManager for it.",
+      "The Swift property names become the JSON keys, so the activity content stays wire-compatible between the two apps."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 27378,
+    "tokens_out": 673,
+    "seconds": 4.1,
+    "ported_at": "2026-09-25T08:55:10+00:00"
   }
 }

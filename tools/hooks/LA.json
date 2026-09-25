@@ -1,0 +1,32 @@
+{
+  "task": "LA",
+  "hooks": [
+    {
+      "id": "HLA.1",
+      "file": "various/model/Model.kt",
+      "scope": "class Model",
+      "op": "replace",
+      "old": "    var liveActivity: Any? = null",
+      "new": "    var liveActivity: com.moblin.android.platform.activitykit.Activity<com.moblin.android.moblinliveactivity.shared.LiveActivityAttributes>? = null",
+      "note": "Swift var liveActivity: Activity<LiveActivityAttributes>?; the ActivityKit shim shows it as Moblin's ongoing notification."
+    },
+    {
+      "id": "HLA.2",
+      "file": "various/model/Model.kt",
+      "scope": "fun startLiveActivity",
+      "op": "replace",
+      "old": "    fun startLiveActivity() {",
+      "new": "    @Deprecated(\"Model.startLiveActivity() is ported in ModelLiveActivity.kt\", level = DeprecationLevel.HIDDEN) fun startLiveActivity() {",
+      "note": "Model.swift has no startLiveActivity(); the translation added an empty member that shadowed the ModelLiveActivity.swift extension, so the Live Activity never started. Hidden, the calls in handleApplicationDidEnterBackground resolve to the extension."
+    },
+    {
+      "id": "HLA.3",
+      "file": "various/model/Model.kt",
+      "scope": "fun stopLiveActivity",
+      "op": "replace",
+      "old": "    fun stopLiveActivity() {",
+      "new": "    @Deprecated(\"Model.stopLiveActivity() is ported in ModelLiveActivity.kt\", level = DeprecationLevel.HIDDEN) fun stopLiveActivity() {",
+      "note": "Model.swift has no stopLiveActivity(); the translation added an empty member that shadowed the ModelLiveActivity.swift extension, so the Live Activity never ended. Hidden, the calls in handleApplicationWillEnterForeground and handleApplicationWillTerminate resolve to the extension."
+    }
+  ]
+}

@@ -590,7 +590,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var streaming = false
     var inServiceBackground = false
     var chatPhoneBackgroundAudioPlayer: AudioPlayer? = null
-    var liveActivity: Any? = null
+    var liveActivity: com.moblin.android.platform.activitykit.Activity<com.moblin.android.moblinliveactivity.shared.LiveActivityAttributes>? = null
     var macStatusItem: Any? = null
     var streamStartTime: Instant? = null
     var isRecorderRecording = false
@@ -3412,11 +3412,11 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         }
     }
 
-    fun startLiveActivity() {
+    @Deprecated("Model.startLiveActivity() is ported in ModelLiveActivity.kt", level = DeprecationLevel.HIDDEN) fun startLiveActivity() {
         Unit
     }
 
-    fun stopLiveActivity() {
+    @Deprecated("Model.stopLiveActivity() is ported in ModelLiveActivity.kt", level = DeprecationLevel.HIDDEN) fun stopLiveActivity() {
         Unit
     }
 

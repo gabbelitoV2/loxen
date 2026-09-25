@@ -103,6 +103,18 @@ def warn_effect_checks():
             print("  " + line)
 
 
+def warn_hand_ported():
+    result = run([sys.executable, HERE / "check_hand_ported.py"], check=False, capture=True)
+    output = (result.stdout + result.stderr).rstrip()
+    if result.returncode == 0:
+        print("check_hand_ported.py: no findings")
+        return
+    print("warning: Swift files that are ported by hand changed upstream (the sync goes on; update their Kotlin, "
+          "then run python tools/check_hand_ported.py --update):")
+    for line in output.splitlines():
+        print("  " + line)
+
+
 def regenerate_protobufs(check=False):
     command = [sys.executable, HERE / "pbswift.py", "--moblin", UPSTREAM]
     if check:
@@ -148,6 +160,7 @@ def main():
         run([sys.executable, HERE / "port.py", "--tier", "all", "--provider", args.provider, "--dry-run"])
         regenerate_protobufs(check=True)
         warn_effect_checks()
+        warn_hand_ported()
         return
     removed = remove_deleted_files(state, inventory)
     for path in removed:
@@ -175,6 +188,7 @@ def main():
         for line in errors[:20]:
             print("  " + line)
     warn_effect_checks()
+    warn_hand_ported()
 
     if not protobufs_ok:
         sys.exit("tools/pbswift.py could not translate the Tesla protobufs (error above), so "
