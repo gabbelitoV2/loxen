@@ -1665,10 +1665,10 @@ enum class RemoteControlStatusGeneralFlame(val rawValue: String) {
     Red("Red"),
     ;
 
-    fun toThermalState(): Int = when (this) {
-        White -> PowerManager.THERMAL_STATUS_LIGHT
-        Yellow -> PowerManager.THERMAL_STATUS_SEVERE
-        Red -> PowerManager.THERMAL_STATUS_CRITICAL
+    fun toThermalState(): com.moblin.android.platform.core.ProcessInfo.ThermalState = when (this) {
+        White -> com.moblin.android.platform.core.ProcessInfo.ThermalState.fair
+        Yellow -> com.moblin.android.platform.core.ProcessInfo.ThermalState.serious
+        Red -> com.moblin.android.platform.core.ProcessInfo.ThermalState.critical
     }
 
     companion object {

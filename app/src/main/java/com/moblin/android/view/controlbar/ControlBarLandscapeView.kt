@@ -219,7 +219,7 @@ private fun StatusView(model: Model = LocalModel.current, status: StatusOther, m
                 presentingThermalState = !presentingThermalState
             },
         ) {
-            ThermalStateView(thermalState = thermalState.toThermalState())
+            ThermalStateView(thermalState = thermalState)
         }
         Spacer(Modifier.weight(1f))
         if (isPhone()) {

@@ -2,6 +2,7 @@ package com.moblin.android.platform.core
 
 import android.os.Build
 import android.os.PowerManager
+import androidx.annotation.RequiresApi
 import com.moblin.android.AppDelegate
 
 class ProcessInfo private constructor() {
@@ -12,17 +13,56 @@ class ProcessInfo private constructor() {
         critical(3),
     }
 
+    private val lock = Any()
+    private var observedPowerManager: PowerManager? = null
+    private var observedThermalState = ThermalState.nominal
+
+    init {
+        if (sdkInt >= Build.VERSION_CODES.Q) {
+            powerManager()?.let { observeThermalStatus(it) }
+        }
+    }
+
     val thermalState: ThermalState
         get() {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            if (sdkInt < Build.VERSION_CODES.Q) {
                 return ThermalState.nominal
             }
-            val powerManager = runCatching { AppDelegate.context.getSystemService(PowerManager::class.java) }
-                .getOrNull() ?: return ThermalState.nominal
+            val powerManager = powerManager() ?: return ThermalState.nominal
+            observeThermalStatus(powerManager)
             return processInfoThermalState(powerManager.currentThermalStatus)
         }
 
+    private fun powerManager(): PowerManager? {
+        return runCatching { AppDelegate.context.getSystemService(PowerManager::class.java) }.getOrNull()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun observeThermalStatus(powerManager: PowerManager) {
+        synchronized(lock) {
+            if (observedPowerManager === powerManager) {
+                return
+            }
+            observedPowerManager = powerManager
+            observedThermalState = processInfoThermalState(powerManager.currentThermalStatus)
+        }
+        powerManager.addThermalStatusListener { status -> thermalStatusChanged(status) }
+    }
+
+    private fun thermalStatusChanged(status: Int) {
+        val state = processInfoThermalState(status)
+        synchronized(lock) {
+            if (state == observedThermalState) {
+                return
+            }
+            observedThermalState = state
+        }
+        NotificationCenter.default.post(thermalStateDidChangeNotification, this)
+    }
+
     companion object {
+        const val thermalStateDidChangeNotification = "NSProcessInfoThermalStateDidChangeNotification"
+        internal var sdkInt = Build.VERSION.SDK_INT
         val processInfo = ProcessInfo()
     }
 }

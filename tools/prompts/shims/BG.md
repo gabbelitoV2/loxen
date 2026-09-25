@@ -1,0 +1,3 @@
+<!-- scope: Moblin/Various/Model/ -->
+## Background run level (BG, package com.moblin.android.platform.host)
+- iOS keeps Moblin alive in the `.service` background run level with its audio session and, in chat phone mode, the looping silent `AVAudioPlayer` of `startChatPhoneBackgroundAudio()`. On Android a foreground service does that: `StreamingService.startBackground(chat = ..., printing = ..., moblinkRelay = ...)` right after `inServiceBackground = true`, and `StreamingService.stopBackground()` in `stopChatPhoneBackgroundAudio()`. Never play the silence file and never start an Android service or media player yourself.

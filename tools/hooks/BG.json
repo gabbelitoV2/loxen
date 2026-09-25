@@ -1,0 +1,32 @@
+{
+  "task": "BG",
+  "hooks": [
+    {
+      "id": "HBG.1",
+      "file": "various/model/Model.kt",
+      "scope": "fun handleApplicationDidEnterBackground",
+      "op": "insert_after",
+      "anchor": "                inServiceBackground = true",
+      "new": "                com.moblin.android.platform.host.StreamingService.startBackground(chat = database.chat.background, printing = database.catPrinters.backgroundPrinting.value, moblinkRelay = database.moblink.relay.enabled.value)",
+      "note": "In the .service run level iOS keeps Moblin alive for background chat, background printing and the Moblink relay (the audio session, and the silent audio of startChatPhoneBackgroundAudio() in chat phone mode). Android caches and freezes a process without a foreground service, so the streaming service keeps running in the foreground, sharing the Live Activity notification."
+    },
+    {
+      "id": "HBG.2",
+      "file": "various/model/ModelAppMode.kt",
+      "scope": "fun stopChatPhoneBackgroundAudio",
+      "op": "insert_after",
+      "anchor": "fun Model.stopChatPhoneBackgroundAudio() {",
+      "new": "    com.moblin.android.platform.host.StreamingService.stopBackground()",
+      "note": "The background foreground service ends where Swift stops the silent background audio, in handleApplicationWillEnterForeground()."
+    },
+    {
+      "id": "HBG.3",
+      "file": "various/model/ModelAppMode.kt",
+      "scope": "fun isChatPhone",
+      "op": "replace",
+      "old": "    return database.appMode.toString() == \"chatPhone\"",
+      "new": "    return database.appMode == com.moblin.android.various.settings.SettingsAppMode.chatPhone",
+      "note": "Swift database.appMode == .chatPhone. SettingsAppMode.toString() is the localized name (\"Chat phone\"), so chat phone mode, and with it startChatPhoneBackgroundAudio(), was never detected."
+    }
+  ]
+}

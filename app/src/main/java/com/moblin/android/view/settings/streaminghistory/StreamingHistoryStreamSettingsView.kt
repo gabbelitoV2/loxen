@@ -23,6 +23,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import kotlin.time.Duration
+import com.moblin.android.common.various.color
 
 private fun Duration.formatWithSeconds(): String {
     val totalSeconds = this.inWholeSeconds

@@ -36,7 +36,7 @@ fun Model.sendAudioLevelToWatch(audioLevel: Float) {
     Unit
 }
 
-fun Model.sendThermalStateToWatch(thermalState: ThermalState) {
+fun Model.sendThermalStateToWatch(thermalState: com.moblin.android.platform.core.ProcessInfo.ThermalState) {
     Unit
 }
 

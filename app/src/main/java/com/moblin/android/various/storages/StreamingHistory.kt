@@ -43,16 +43,17 @@ enum class ThermalState(val rawValue: Int) : Comparable<ThermalState> {
     SERIOUS(2),
     CRITICAL(3);
 
-    fun toProcessInfo(): Int {
+    fun toProcessInfo(): com.moblin.android.platform.core.ProcessInfo.ThermalState {
         return when (this) {
-            NOMINAL -> PowerManager.THERMAL_STATUS_NONE
-            FAIR -> PowerManager.THERMAL_STATUS_LIGHT
-            SERIOUS -> PowerManager.THERMAL_STATUS_MODERATE
-            CRITICAL -> PowerManager.THERMAL_STATUS_SEVERE
+            NOMINAL -> com.moblin.android.platform.core.ProcessInfo.ThermalState.nominal
+            FAIR -> com.moblin.android.platform.core.ProcessInfo.ThermalState.fair
+            SERIOUS -> com.moblin.android.platform.core.ProcessInfo.ThermalState.serious
+            CRITICAL -> com.moblin.android.platform.core.ProcessInfo.ThermalState.critical
         }
     }
 
     companion object {
+        fun from(from: com.moblin.android.platform.core.ProcessInfo.ThermalState): ThermalState = entries.first { it.rawValue == from.rawValue }
         fun from(from: Int): ThermalState {
             return when (from) {
                 PowerManager.THERMAL_STATUS_NONE -> NOMINAL

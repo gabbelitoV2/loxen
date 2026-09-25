@@ -330,7 +330,7 @@ private fun MainPageView(
                         presentingThermalState = !presentingThermalState
                     },
                 ) {
-                    ThermalStateView(thermalState = thermalState.toThermalState())
+                    ThermalStateView(thermalState = thermalState)
                 }
                 Spacer(modifier = Modifier.weight(1f))
             }
