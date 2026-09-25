@@ -757,7 +757,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var recordingsStorage = RecordingsStorage()
     var recordingThumbnailsCache: MutableMap<String, ByteArray> = mutableMapOf()
     var latestLowBitrateTime = Instant.now()
-    var bluetoothCentralManger: BluetoothAdapter? = null
+    var bluetoothCentralManger: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
     var sceneSettingsPanelScene = SettingsScene(name = "")
     var snapshotJobs: ArrayDeque<SnapshotJob> = ArrayDeque()
     var gameControllers: MutableList<Any?> = mutableListOf()
@@ -1119,7 +1119,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun setup() {
         battery.level.value = getBatteryLevel()
-        bluetoothCentralManger = BluetoothAdapter.getDefaultAdapter()
+        bluetoothCentralManger = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { centralManagerDidUpdateState(it) }, queue = null)
         deleteTrash()
         removeUnusedKeychainItems()
         media = Media(delegate = object : MediaDelegate {

@@ -67,6 +67,7 @@ import com.moblin.android.LocalOnNavigate
 import java.util.UUID
 import com.moblin.android.various.model.startGoProDeviceLiveStream
 import com.moblin.android.various.model.stopGoProDeviceLiveStream
+import com.moblin.android.platform.corebluetooth.identifier
 
 fun formatGoProDeviceState(state: GoProDeviceState?): String {
     return when (state) {
@@ -136,7 +137,7 @@ private fun GoProDeviceSelectionSection(model: Model = LocalModel.current, devic
                     model = model,
                     onSelect = { discoveredDevice ->
                         device.bluetoothPeripheralId =
-                            UUID.nameUUIDFromBytes(discoveredDevice.peripheral.address.toByteArray())
+                            discoveredDevice.peripheral.identifier
                         device.bluetoothPeripheralName = discoveredDevice.name
                     },
                     onDismiss = rememberDismiss(),

@@ -51,7 +51,7 @@ enum class WorkoutDeviceState {
 @SuppressLint("MissingPermission")
 class WorkoutDevice(wheelCircumference: Int) : BluetoothGattCallback() {
     private var state = WorkoutDeviceState.disconnected
-    private var centralManager: BluetoothAdapter? = null
+    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
     private var peripheral: BluetoothGatt? = null
     private val heartRate = WorkoutDeviceHeartRate()
     private val cyclingPower = WorkoutDeviceCyclingPower()
@@ -91,8 +91,8 @@ class WorkoutDevice(wheelCircumference: Int) : BluetoothGattCallback() {
     }
 
     private fun reset() {
-        centralManager = null
-        peripheral?.close()
+        centralManager?.delegate = null; centralManager = null
+        com.moblin.android.platform.corebluetooth.bluetoothCall { peripheral?.close() }
         peripheral = null
         heartRate.reset()
         cyclingPower.reset()
@@ -112,8 +112,8 @@ class WorkoutDevice(wheelCircumference: Int) : BluetoothGattCallback() {
         peripheral = null
         resetMeasurements()
         setState(WorkoutDeviceState.discovering)
-        centralManager = BluetoothAdapter.getDefaultAdapter()
-        centralManager?.let { centralManagerDidUpdateState(it) }
+        centralManager?.delegate = null; centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = dispatchQueue)
+        Unit
     }
 
     private fun setState(state: WorkoutDeviceState) {
@@ -137,27 +137,27 @@ class WorkoutDevice(wheelCircumference: Int) : BluetoothGattCallback() {
         }
     }
 
-    private fun centralManagerDidUpdateState(central: BluetoothAdapter) {
-        if (central.isEnabled) {
+    private fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
+        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
             connect(central)
         }
     }
 
-    private fun connect(central: BluetoothAdapter) {
+    private fun connect(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
         val deviceId = this.deviceId
         if (deviceId == null) {
             Log.i(tag, "workout-device: Device not found")
             return
         }
-        val device = runCatching { central.getRemoteDevice(deviceId.toString()) }.getOrNull()
+        val device = central.retrievePeripherals(withIdentifiers = listOf(deviceId.toString())).firstOrNull()
         if (device == null) {
             Log.i(tag, "workout-device: Device not found")
             return
         }
-        peripheral = device.connectGatt(
-            AppDelegate.context,
-            false,
-            this,
+        peripheral = central.connect(
+            peripheral = device,
+            autoConnect = false,
+            callback = this,
         )
         setState(WorkoutDeviceState.connecting)
     }
@@ -166,7 +166,7 @@ class WorkoutDevice(wheelCircumference: Int) : BluetoothGattCallback() {
     }
 
     private fun centralManagerDidConnect(peripheral: BluetoothGatt) {
-        peripheral.discoverServices()
+        com.moblin.android.platform.corebluetooth.bluetoothCall { peripheral.discoverServices() }
     }
 
     private fun centralManagerDidDisconnectPeripheral() {
@@ -217,7 +217,7 @@ class WorkoutDevice(wheelCircumference: Int) : BluetoothGattCallback() {
         if (status != BluetoothGatt.GATT_SUCCESS) {
             return
         }
-        peripheralDidDiscoverServices(gatt)
+        com.moblin.android.platform.corebluetooth.bluetoothCall { peripheralDidDiscoverServices(gatt) }
     }
 
     private fun peripheralDidDiscoverServices(peripheral: BluetoothGatt) {

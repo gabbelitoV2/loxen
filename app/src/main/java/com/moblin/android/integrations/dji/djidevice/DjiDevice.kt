@@ -80,7 +80,7 @@ class DjiDevice(private val context: Context) {
     private var videoCodec: SettingsDjiDeviceVideoCodec = SettingsDjiDeviceVideoCodec.h265hevc
     private var imageStabilization: SettingsDjiDeviceImageStabilization? = null
     private var deviceId: UUID? = null
-    private var centralManager: BluetoothAdapter? = null
+    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
     private var cameraPeripheral: BluetoothGatt? = null
     private var fff5Characteristic: BluetoothGattCharacteristic? = null
     private var state: DjiDeviceState = DjiDeviceState.idle
@@ -152,8 +152,8 @@ class DjiDevice(private val context: Context) {
         startStartStreamingTimer()
         setState(DjiDeviceState.discovering)
         centralManager =
-            (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
-        centralManager?.let { centralManagerDidUpdateState(it) }
+            com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)
+        Unit
     }
 
     fun stopLiveStream() {
@@ -174,8 +174,8 @@ class DjiDevice(private val context: Context) {
     private fun reset() {
         stopStartStreamingTimer()
         stopStopStreamingTimer()
-        centralManager = null
-        cameraPeripheral?.close()
+        centralManager?.delegate = null; centralManager = null
+        com.moblin.android.platform.corebluetooth.bluetoothCall { cameraPeripheral?.close() }
         cameraPeripheral = null
         fff5Characteristic = null
         batteryPercentage = null
@@ -223,23 +223,23 @@ class DjiDevice(private val context: Context) {
         return state
     }
 
-    fun centralManagerDidUpdateState(central: BluetoothAdapter) {
-        if (central.isEnabled) {
+    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
+        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
             connect(central)
         }
     }
 
-    private fun connect(central: BluetoothAdapter) {
+    private fun connect(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
         val deviceId = this.deviceId ?: run {
             Log.i(tag, "dji-device: Device not found")
             return
         }
-        val peripheral = runCatching { central.getRemoteDevice(deviceId.toString()) }.getOrNull()
+        val peripheral = central.retrievePeripherals(withIdentifiers = listOf(deviceId.toString())).firstOrNull()
         if (peripheral == null) {
             Log.i(tag, "dji-device: Device not found")
             return
         }
-        cameraPeripheral = peripheral.connectGatt(context, false, gattCallback)
+        cameraPeripheral = central.connect(peripheral, callback = gattCallback)
         startStartStreamingTimer()
         setState(DjiDeviceState.connecting)
     }
@@ -247,7 +247,7 @@ class DjiDevice(private val context: Context) {
     fun centralManagerDidFailToConnect(gatt: BluetoothGatt) {}
 
     fun centralManagerDidConnect(gatt: BluetoothGatt) {
-        gatt.discoverServices()
+        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.discoverServices() }
     }
 
     fun centralManagerDidDisconnectPeripheral(gatt: BluetoothGatt) {
@@ -269,11 +269,11 @@ class DjiDevice(private val context: Context) {
             if (characteristic.uuid == fff5Id) {
                 fff5Characteristic = characteristic
             }
-            gatt.setCharacteristicNotification(characteristic, true)
+            com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, true) }
             val descriptor = characteristic.getDescriptor(cccdId)
             if (descriptor != null) {
                 descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                gatt.writeDescriptor(descriptor)
+                com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }
             }
         }
     }
@@ -540,7 +540,7 @@ class DjiDevice(private val context: Context) {
         val cameraPeripheral = this.cameraPeripheral ?: return
         fff5Characteristic.value = value
         fff5Characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-        cameraPeripheral.writeCharacteristic(fff5Characteristic)
+        com.moblin.android.platform.corebluetooth.bluetoothCall { cameraPeripheral.writeCharacteristic(fff5Characteristic) }
     }
 
     fun peripheralDidUpdateNotificationStateFor(characteristic: BluetoothGattCharacteristic) {

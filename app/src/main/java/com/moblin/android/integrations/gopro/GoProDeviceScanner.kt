@@ -33,7 +33,7 @@ class GoProDeviceScanner {
 
     val discoveredDevices = MutableStateFlow<List<GoProDiscoveredDevice>>(emptyList())
 
-    private var centralManager: BluetoothLeScanner? = null
+    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
     private var scanContext: Context? = null
 
     private val adapterStateReceiver = object : BroadcastReceiver() {
@@ -43,7 +43,7 @@ class GoProDeviceScanner {
             }
             val adapter = (context?.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
                 ?: return
-            centralManagerDidUpdateState(adapter)
+            Unit
         }
     }
 
@@ -65,13 +65,13 @@ class GoProDeviceScanner {
         )
         val adapter = (appContext.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
             ?: return
-        centralManagerDidUpdateState(adapter)
+        centralManager?.delegate = null; centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)
     }
 
     @SuppressLint("MissingPermission")
     fun stopScanningForDevices() {
-        centralManager?.stopScan(scanCallback)
-        centralManager = null
+        centralManager?.stopScan()
+        centralManager?.delegate = null; centralManager = null
         scanContext?.let { context ->
             runCatching { context.unregisterReceiver(adapterStateReceiver) }
         }
@@ -79,11 +79,11 @@ class GoProDeviceScanner {
     }
 
     @SuppressLint("MissingPermission")
-    fun centralManagerDidUpdateState(central: BluetoothAdapter) {
-        if (!central.isEnabled) {
+    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
+        if (central.state != com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
             return
         }
-        val scanner = central.bluetoothLeScanner
+        val scanner = central
         if (scanner == null) {
             return
         }
@@ -94,7 +94,7 @@ class GoProDeviceScanner {
         val settings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
-        scanner.startScan(listOf(filter), settings, scanCallback)
+        scanner.scanForPeripherals(listOf(filter), settings, scanCallback)
     }
 
     @SuppressLint("MissingPermission")
@@ -107,7 +107,7 @@ class GoProDeviceScanner {
             return
         }
         val name = advertisementData?.deviceName
-            ?: peripheral.name
+            ?: com.moblin.android.platform.corebluetooth.bluetoothCall(null) { peripheral.name }
             ?: localized("Unknown")
         discoveredDevices.value = discoveredDevices.value + GoProDiscoveredDevice(peripheral, name)
     }

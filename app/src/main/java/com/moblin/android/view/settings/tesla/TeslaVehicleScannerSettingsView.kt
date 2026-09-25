@@ -18,6 +18,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.bluetoothNotAllowedMessage
 import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.InlinePickerItem
+import com.moblin.android.platform.corebluetooth.identifier
 
 @Composable
 fun TeslaVehicleScannerSettingsView(
@@ -53,7 +54,7 @@ fun TeslaVehicleScannerSettingsView(
                 else -> {
                     peripherals.forEach { peripheral ->
                         val item = InlinePickerItem(
-                            id = peripheral.address,
+                            id = peripheral.identifier.toString(),
                             text = peripheral.name ?: localized("Unknown"),
                         )
                         key(item.id) {

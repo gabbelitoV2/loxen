@@ -44,6 +44,7 @@ object AndroidHost {
         Log.i(TAG, "Activity created")
         SystemEvents.install(activity.application)
         com.moblin.android.platform.corelocation.LocationAuthorization.install(activity)
+        com.moblin.android.platform.corebluetooth.BluetoothAuthorization.install(activity)
         com.moblin.android.platform.offscreen.OffscreenDisplay.prewarm()
         com.moblin.android.platform.avkit.PictureInPictureWindow.install(activity)
         com.moblin.android.platform.mediaplayer.SystemVolume.install(activity)

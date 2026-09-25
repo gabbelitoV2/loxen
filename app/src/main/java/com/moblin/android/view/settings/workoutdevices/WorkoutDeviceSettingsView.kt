@@ -34,6 +34,7 @@ import com.moblin.android.various.model.enableWorkoutDevice
 import com.moblin.android.various.model.isWorkoutDeviceEnabled
 import com.moblin.android.various.model.setCurrentWorkoutDevice
 import com.moblin.android.various.model.setWorkoutDeviceWheelCircumference
+import com.moblin.android.platform.corebluetooth.identifier
 
 private fun formatWorkoutDeviceState(state: WorkoutDeviceState?): String {
     return when (state) {
@@ -108,7 +109,7 @@ fun WorkoutDeviceSettingsViewContent(
     fun onDeviceChange(value: String) {
         val deviceId = runCatching { UUID.fromString(value) }.getOrNull() ?: return
         val peripheral = workoutDeviceScanner.discoveredPeripherals.value
-            .firstOrNull { it.address == value } ?: return
+            .firstOrNull { it.identifier == deviceId } ?: return
         device.bluetoothPeripheralName = peripheral.name
         device.bluetoothPeripheralId = deviceId
     }

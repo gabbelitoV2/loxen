@@ -110,6 +110,7 @@ private data class PrintJob(
 class CatPrinter : BluetoothGattCallback() {
     private var state: CatPrinterState = CatPrinterState.disconnected
     private var centralManager: BluetoothGatt? = null
+    private var bluetoothCentralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
     private var peripheral: BluetoothDevice? = null
     private var printCharacteristic: BluetoothGattCharacteristic? = null
     private var notifyCharacteristic: BluetoothGattCharacteristic? = null
@@ -167,7 +168,7 @@ class CatPrinter : BluetoothGattCallback() {
     }
 
     private fun isMxw01(): Boolean {
-        return peripheral?.name == "MXW01"
+        return com.moblin.android.platform.corebluetooth.bluetoothCall(null) { peripheral?.name } == "MXW01"
     }
 
     private fun printInternal(image: Bitmap, feedPaperDelay: Double?) {
@@ -295,7 +296,7 @@ class CatPrinter : BluetoothGattCallback() {
     ) {
         characteristic.value = data
         characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-        centralManager?.writeCharacteristic(characteristic)
+        com.moblin.android.platform.corebluetooth.bluetoothCall { centralManager?.writeCharacteristic(characteristic) }
     }
 
     private fun tryWriteNextChunk() {
@@ -408,7 +409,7 @@ class CatPrinter : BluetoothGattCallback() {
     }
 
     private fun reset() {
-        centralManager = null
+        com.moblin.android.platform.corebluetooth.bluetoothCall { centralManager?.close() }; centralManager = null; bluetoothCentralManager?.delegate = null; bluetoothCentralManager = null
         peripheral = null
         printCharacteristic = null
         notifyCharacteristic = null
@@ -431,11 +432,11 @@ class CatPrinter : BluetoothGattCallback() {
         stopTryWriteNextChunkTimer()
         stopJobCompleteTimer()
         stopFeedPaperTimer()
-        centralManager?.close()
+        com.moblin.android.platform.corebluetooth.bluetoothCall { centralManager?.close() }
         centralManager = null
-        val central = (AppDelegate.context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
-        if (central?.isEnabled == true) {
-            connect(central)
+        bluetoothCentralManager?.delegate = null; val central = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { if (it.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) { connect(it) } }, queue = catPrinterDispatchQueue); bluetoothCentralManager = central
+        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
+            Unit
         }
     }
 
@@ -492,25 +493,25 @@ class CatPrinter : BluetoothGattCallback() {
         )
     }
 
-    private fun connect(central: BluetoothAdapter) {
+    private fun connect(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
         val deviceId = deviceId
         if (deviceId == null) {
             Log.i(catPrinterLogTag, "cat-printer: Device not found")
             return
         }
-        val peripheral = runCatching { central.getRemoteDevice(deviceId) }.getOrNull()
+        val peripheral = central.retrievePeripherals(withIdentifiers = listOf(deviceId)).firstOrNull()
         if (peripheral == null) {
             Log.i(catPrinterLogTag, "cat-printer: Device not found")
             return
         }
         this.peripheral = peripheral
-        centralManager = peripheral.connectGatt(AppDelegate.context, false, this)
+        centralManager = central.connect(peripheral, callback = this)
         updateState(state = CatPrinterState.connecting)
     }
 
     override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
         when (newState) {
-            BluetoothProfile.STATE_CONNECTED -> gatt.discoverServices()
+            BluetoothProfile.STATE_CONNECTED -> com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.discoverServices() }
             BluetoothProfile.STATE_DISCONNECTED -> reconnect()
             else -> Unit
         }
@@ -529,7 +530,7 @@ class CatPrinter : BluetoothGattCallback() {
                 printCharacteristicId -> printCharacteristic = characteristic
                 notifyCharacteristicId -> {
                     notifyCharacteristic = characteristic
-                    gatt.setCharacteristicNotification(characteristic, true)
+                    com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, true) }
                     setNotifyValue(gatt = gatt, characteristic = characteristic)
                 }
                 dataCharacteristicId -> dataCharacteristic = characteristic
@@ -545,7 +546,7 @@ class CatPrinter : BluetoothGattCallback() {
     private fun setNotifyValue(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
         val descriptor = characteristic.getDescriptor(clientCharacteristicConfigurationId) ?: return
         descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-        gatt.writeDescriptor(descriptor)
+        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }
     }
 
     override fun onCharacteristicChanged(

@@ -66,6 +66,7 @@ import java.util.UUID
 import com.moblin.android.various.model.setCurrentDjiDevice
 import com.moblin.android.various.model.startDjiDeviceLiveStream
 import com.moblin.android.various.model.stopDjiDeviceLiveStream
+import com.moblin.android.platform.corebluetooth.identifier
 
 fun rtmpServerStreamUrl(address: String, port: Int, streamKey: String): String {
     return "rtmp://$address:$port$rtmpServerApp/$streamKey"
@@ -100,7 +101,7 @@ private fun ColumnScope.DjiDeviceSelectDeviceSettingsView(
     fun onDeviceChange(value: String) {
         val deviceId = runCatching { UUID.fromString(value) }.getOrNull() ?: return
         val djiDevice = djiScanner.discoveredDevices.value.firstOrNull {
-            it.peripheral.address == value
+            it.peripheral.identifier == deviceId
         } ?: return
         device.bluetoothPeripheralName = djiDevice.peripheral.name
         device.bluetoothPeripheralId = deviceId

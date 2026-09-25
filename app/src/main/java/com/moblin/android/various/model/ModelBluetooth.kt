@@ -18,6 +18,6 @@ fun isBluetoothAllowed(context: Context): Boolean {
     return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 }
 
-fun Model.centralManagerDidUpdateState(context: Context, central: BluetoothAdapter?) {
-    bluetoothAllowed.value = isBluetoothAllowed(context)
+fun Model.centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
+    bluetoothAllowed.value = com.moblin.android.platform.corebluetooth.CBCentralManager.authorization == com.moblin.android.platform.corebluetooth.CBManagerAuthorization.allowedAlways
 }

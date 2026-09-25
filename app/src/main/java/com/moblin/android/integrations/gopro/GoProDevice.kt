@@ -35,6 +35,7 @@ import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.moblin.android.platform.corebluetooth.identifier
 
 enum class GoProDeviceState {
     idle,
@@ -79,7 +80,7 @@ class GoProDevice(private val context: Context) {
     private var bitrate: UInt = 6_000_000u
     private var lens: SettingsGoProLens = SettingsGoProLens.auto
     private var deviceId: UUID? = null
-    private var centralManager: BluetoothAdapter? = null
+    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
     private var devicePeripheral: BluetoothDevice? = null
     private var gatt: BluetoothGatt? = null
     private var characteristics: MutableMap<UUID, BluetoothGattCharacteristic> = mutableMapOf()
@@ -192,9 +193,8 @@ class GoProDevice(private val context: Context) {
             fail()
         }
         centralManager =
-            (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
-        registerAdapterStateReceiver()
-        centralManagerDidUpdateState()
+            com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { centralManagerDidUpdateState() }, queue = null)
+        Unit
     }
 
     fun stopLiveStream() {
@@ -235,19 +235,18 @@ class GoProDevice(private val context: Context) {
         keepAliveTimer.stop()
         scanCallback?.let { callback ->
             runCatching {
-                centralManager?.bluetoothLeScanner?.stopScan(callback)
+                centralManager?.stopScan()
             }
         }
         scanCallback = null
         unregisterAdapterStateReceiver()
         if (devicePeripheral != null) {
             gatt?.let { g ->
-                g.disconnect()
-                g.close()
+                centralManager?.cancelPeripheralConnection(g)
             }
         }
         gatt = null
-        centralManager = null
+        centralManager?.delegate = null; centralManager = null
         devicePeripheral = null
         characteristics.clear()
         subscribedCharacteristics.clear()
@@ -424,7 +423,7 @@ class GoProDevice(private val context: Context) {
         writeInProgress = true
         next.first.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
         next.first.value = next.second
-        gatt.writeCharacteristic(next.first)
+        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeCharacteristic(next.first) }
     }
 
     private fun processMessage(message: ByteArray, characteristic: UUID) {
@@ -683,7 +682,7 @@ class GoProDevice(private val context: Context) {
 
     fun centralManagerDidUpdateState() {
         val central = centralManager ?: return
-        if (!central.isEnabled) {
+        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.unknown || central.state == com.moblin.android.platform.corebluetooth.CBManagerState.resetting) { return }; if (central.state != com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
             fail()
             return
         }
@@ -699,7 +698,7 @@ class GoProDevice(private val context: Context) {
     }
 
     fun centralManagerDidConnect(peripheral: BluetoothGatt) {
-        peripheral.discoverServices()
+        com.moblin.android.platform.corebluetooth.bluetoothCall { peripheral.discoverServices() }
     }
 
     fun centralManagerDidDisconnectPeripheral(status: Int) {
@@ -715,16 +714,17 @@ class GoProDevice(private val context: Context) {
         if (scanCallback != null) {
             return
         }
-        val scanner = centralManager?.bluetoothLeScanner
+        val scanner = centralManager
         if (scanner == null) {
             fail()
             return
         }
         val callback = object : ScanCallback() {
             override fun onScanResult(callbackType: Int, result: ScanResult) {
+                if (result.device.identifier != deviceId) return
                 mainScope.launch {
                     runCatching {
-                        this@GoProDevice.scanCallback?.let { scanner.stopScan(it) }
+                        this@GoProDevice.scanCallback?.let { scanner.stopScan() }
                     }
                     this@GoProDevice.scanCallback = null
                     connectToPeripheral(result.device)
@@ -739,7 +739,7 @@ class GoProDevice(private val context: Context) {
         }
         scanCallback = callback
         runCatching {
-            scanner.startScan(callback)
+            scanner.scanForPeripherals(withServices = null, callback = callback)
         }.onFailure {
             scanCallback = null
             fail()
@@ -749,7 +749,7 @@ class GoProDevice(private val context: Context) {
     private fun connectToPeripheral(peripheral: BluetoothDevice) {
         devicePeripheral = peripheral
         setState(GoProDeviceState.connecting)
-        gatt = peripheral.connectGatt(context, false, gattCallback)
+        gatt = centralManager?.connect(peripheral, callback = gattCallback)
     }
 
     fun peripheralDidDiscoverServices(status: Int) {
@@ -779,11 +779,11 @@ class GoProDevice(private val context: Context) {
             characteristics[characteristic.uuid] = characteristic
             if (notifyIds.contains(characteristic.uuid)) {
                 accumulators[characteristic.uuid] = GoProBleMessageAccumulator()
-                gatt.setCharacteristicNotification(characteristic, true)
+                com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, true) }
                 val descriptor = characteristic.getDescriptor(goProNotificationDescriptorId)
                 if (descriptor != null) {
                     descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                    gatt.writeDescriptor(descriptor)
+                    com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }
                 }
             }
         }

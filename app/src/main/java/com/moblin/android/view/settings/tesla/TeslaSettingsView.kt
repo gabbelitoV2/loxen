@@ -42,6 +42,7 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextEditNavigationView
 import java.security.PrivateKey
 import java.util.UUID
+import com.moblin.android.platform.corebluetooth.identifier
 
 private fun formatTeslaVehicleState(state: TeslaVehicleState?): String {
     return when {
@@ -79,7 +80,7 @@ fun TeslaSettingsConfigurationView(
     fun onDeviceChange(value: String) {
         val deviceId = runCatching { UUID.fromString(value) }.getOrNull() ?: return
         val peripheral = TeslaVehicleScanner.shared.discoveredPeripherals.value
-            .firstOrNull { UUID.nameUUIDFromBytes(it.address.toByteArray()) == deviceId } ?: return
+            .firstOrNull { it.identifier == deviceId } ?: return
         settings.bluetoothPeripheralName = peripheral.name
         settings.bluetoothPeripheralId = deviceId
         model.reloadTeslaVehicle()

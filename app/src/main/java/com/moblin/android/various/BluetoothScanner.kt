@@ -32,7 +32,7 @@ class BluetoothScanner(
 
     val discoveredPeripherals = MutableStateFlow<List<BluetoothDevice>>(emptyList())
 
-    private var centralManager: BluetoothLeScanner? = null
+    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
     private var bluetoothAdapter: BluetoothAdapter? = null
 
     private val scanCallback = object : ScanCallback() {
@@ -57,7 +57,7 @@ class BluetoothScanner(
                 return
             }
             val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
-            centralManagerDidUpdateState(state)
+            Unit
         }
     }
 
@@ -69,21 +69,20 @@ class BluetoothScanner(
             Log.e(tag, "No bluetooth adapter available")
             return
         }
-        registerAdapterStateReceiver()
-        centralManager = adapter.bluetoothLeScanner
+        Unit
+        centralManager?.delegate = null; centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)
         if (adapter.state == BluetoothAdapter.STATE_ON) {
-            centralManagerDidUpdateState(adapter.state)
         }
     }
 
     fun stopScanningForDevices() {
-        centralManager?.stopScan(scanCallback)
-        centralManager = null
-        unregisterAdapterStateReceiver()
+        centralManager?.stopScan()
+        centralManager?.delegate = null; centralManager = null
+        Unit
     }
 
-    private fun centralManagerDidUpdateState(state: Int) {
-        if (state == BluetoothAdapter.STATE_ON) {
+    private fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
+        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
             startScan()
         }
     }
@@ -102,7 +101,7 @@ class BluetoothScanner(
         val settings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
-        scanner.startScan(filters, settings, scanCallback)
+        scanner.scanForPeripherals(filters, settings, scanCallback)
     }
 
     private fun didDiscover(device: BluetoothDevice, rssi: Int) {

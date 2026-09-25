@@ -53,7 +53,7 @@ val blackSharkCoolerScanner = BluetoothScanner(
 
 class BlackSharkCoolerDevice(private val context: Context) {
     private var state: BlackSharkCoolerDeviceState = BlackSharkCoolerDeviceState.DISCONNECTED
-    private var centralManager: BluetoothAdapter? = null
+    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
     private var peripheral: BluetoothDevice? = null
     private var deviceId: UUID? = null
     private var readCharacteristic: BluetoothGattCharacteristic? = null
@@ -120,9 +120,9 @@ class BlackSharkCoolerDevice(private val context: Context) {
     }
 
     private fun reset() {
-        bluetoothGatt?.close()
+        com.moblin.android.platform.corebluetooth.bluetoothCall { bluetoothGatt?.close() }
         bluetoothGatt = null
-        centralManager = null
+        centralManager?.delegate = null; centralManager = null
         peripheral = null
         readCharacteristic = null
         writeCharacteristic = null
@@ -133,10 +133,10 @@ class BlackSharkCoolerDevice(private val context: Context) {
     private fun reconnect() {
         peripheral = null
         setState(BlackSharkCoolerDeviceState.DISCOVERING)
-        val central = (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
+        centralManager?.delegate = null; val central = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { centralManagerDidUpdateState(it) }, queue = blackSharkCoolerDeviceDispatchQueue)
         centralManager = central
         if (central != null) {
-            centralManagerDidUpdateState(central)
+            Unit
         }
     }
 
@@ -149,27 +149,27 @@ class BlackSharkCoolerDevice(private val context: Context) {
         delegate?.blackSharkCoolerDeviceState(this, state)
     }
 
-    fun centralManagerDidUpdateState(central: BluetoothAdapter) {
+    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
         when (central.state) {
-            BluetoothAdapter.STATE_ON -> connect(central)
+            com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn -> connect(central)
             else -> {}
         }
     }
 
-    private fun connect(central: BluetoothAdapter) {
+    private fun connect(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
         val deviceId = this.deviceId
         if (deviceId == null) {
             Log.i(TAG, "black-shark-cooler-device: Device not found")
             return
         }
         val peripheral = try {
-            central.getRemoteDevice(deviceId.toString())
+            central.retrievePeripherals(withIdentifiers = listOf(deviceId.toString())).firstOrNull() ?: throw IllegalArgumentException(deviceId.toString())
         } catch (e: IllegalArgumentException) {
             Log.i(TAG, "black-shark-cooler-device: Device not found")
             return
         }
         this.peripheral = peripheral
-        bluetoothGatt = peripheral.connectGatt(context, false, gattCallback)
+        bluetoothGatt = central.connect(peripheral, callback = gattCallback)
         setState(BlackSharkCoolerDeviceState.CONNECTING)
     }
 
@@ -177,8 +177,8 @@ class BlackSharkCoolerDevice(private val context: Context) {
     }
 
     fun didConnect(peripheral: BluetoothDevice) {
-        model = BlackSharkLib.detectModel(peripheral.name)
-        bluetoothGatt?.discoverServices()
+        model = BlackSharkLib.detectModel(com.moblin.android.platform.corebluetooth.bluetoothCall(null) { peripheral.name })
+        com.moblin.android.platform.corebluetooth.bluetoothCall { bluetoothGatt?.discoverServices() }
     }
 
     fun didDisconnectPeripheral(peripheral: BluetoothDevice?, error: Throwable?) {
@@ -386,21 +386,21 @@ class BlackSharkCoolerDevice(private val context: Context) {
 
     private fun setNotifyValue(characteristic: BluetoothGattCharacteristic, enabled: Boolean) {
         val gatt = bluetoothGatt ?: return
-        gatt.setCharacteristicNotification(characteristic, enabled)
+        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, enabled) }
         val descriptor = characteristic.getDescriptor(clientCharacteristicConfigUuid) ?: return
         descriptor.value = if (enabled) {
             BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
         } else {
             BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE
         }
-        gatt.writeDescriptor(descriptor)
+        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }
     }
 
     private fun writeValue(characteristic: BluetoothGattCharacteristic, value: ByteArray): Boolean {
         val gatt = bluetoothGatt ?: return false
         characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
         characteristic.value = value
-        return gatt.writeCharacteristic(characteristic)
+        return com.moblin.android.platform.corebluetooth.bluetoothCall(false) { gatt.writeCharacteristic(characteristic) }
     }
 
     private fun currentThermalState(): ThermalState {

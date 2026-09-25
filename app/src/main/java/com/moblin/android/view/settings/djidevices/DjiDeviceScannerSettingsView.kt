@@ -15,6 +15,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.bluetoothNotAllowedMessage
 import com.moblin.android.LocalModel
 import com.moblin.android.platform.swiftui.*
+import com.moblin.android.platform.corebluetooth.identifier
 
 @Composable
 fun DjiDeviceScannerSettingsView(
@@ -28,7 +29,7 @@ fun DjiDeviceScannerSettingsView(
     val discoveredDevices by djiScanner.discoveredDevices.collectAsState()
     val pickerItems = discoveredDevices.map { discoveredDevice ->
         InlinePickerItem(
-            id = discoveredDevice.peripheral.address,
+            id = discoveredDevice.peripheral.identifier.toString(),
             text = discoveredDevice.peripheral.name ?: localized("Unknown"),
         )
     }

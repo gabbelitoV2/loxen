@@ -1,0 +1,1325 @@
+{
+  "task": "BLE",
+  "hooks": [
+    {
+      "id": "HBLE.1",
+      "file": "various/model/Model.kt",
+      "scope": "class Model",
+      "op": "replace",
+      "old": "    var bluetoothCentralManger: BluetoothAdapter? = null",
+      "new": "    var bluetoothCentralManger: com.moblin.android.platform.corebluetooth.CBCentralManager? = null",
+      "note": "Swift var bluetoothCentralManger: CBCentralManager?."
+    },
+    {
+      "id": "HBLE.2",
+      "file": "various/model/Model.kt",
+      "scope": "fun setup",
+      "op": "replace",
+      "old": "        bluetoothCentralManger = BluetoothAdapter.getDefaultAdapter()",
+      "new": "        bluetoothCentralManger = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { centralManagerDidUpdateState(it) }, queue = null)",
+      "note": "Swift bluetoothCentralManger = CBCentralManager(delegate: self, queue: .main); asks for the Bluetooth permission on first use like iOS."
+    },
+    {
+      "id": "HBLE.3",
+      "file": "various/model/ModelBluetooth.kt",
+      "scope": "fun Model.centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "fun Model.centralManagerDidUpdateState(context: Context, central: BluetoothAdapter?) {",
+      "new": "fun Model.centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func centralManagerDidUpdateState(_: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.4",
+      "file": "various/model/ModelBluetooth.kt",
+      "scope": "fun Model.centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "    bluetoothAllowed.value = isBluetoothAllowed(context)",
+      "new": "    bluetoothAllowed.value = com.moblin.android.platform.corebluetooth.CBCentralManager.authorization == com.moblin.android.platform.corebluetooth.CBManagerAuthorization.allowedAlways",
+      "note": "Swift bluetoothAllowed = CBCentralManager.authorization == .allowedAlways."
+    },
+    {
+      "id": "HBLE.5",
+      "file": "various/BluetoothScanner.kt",
+      "scope": "class BluetoothScanner",
+      "op": "replace",
+      "old": "    private var centralManager: BluetoothLeScanner? = null",
+      "new": "    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null",
+      "note": "Swift private var centralManager: CBCentralManager?."
+    },
+    {
+      "id": "HBLE.6",
+      "file": "various/BluetoothScanner.kt",
+      "scope": "val adapterStateReceiver",
+      "op": "replace",
+      "old": "            centralManagerDidUpdateState(state)",
+      "new": "            Unit",
+      "note": "The CBCentralManager shim reports adapter state changes itself."
+    },
+    {
+      "id": "HBLE.7",
+      "file": "various/BluetoothScanner.kt",
+      "scope": "fun startScanningForDevices",
+      "op": "replace",
+      "old": "        registerAdapterStateReceiver()",
+      "new": "        Unit",
+      "note": "The CBCentralManager shim observes the adapter state."
+    },
+    {
+      "id": "HBLE.8",
+      "file": "various/BluetoothScanner.kt",
+      "scope": "fun startScanningForDevices",
+      "op": "replace",
+      "old": "        centralManager = adapter.bluetoothLeScanner",
+      "new": "        centralManager?.delegate = null; centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)",
+      "note": "Swift centralManager = CBCentralManager(delegate: self, queue: .main); the delegate gets the state after the permission prompt."
+    },
+    {
+      "id": "HBLE.9",
+      "file": "various/BluetoothScanner.kt",
+      "scope": "fun startScanningForDevices",
+      "op": "delete",
+      "old": "            centralManagerDidUpdateState(adapter.state)",
+      "occurrence": 1,
+      "note": "The shim calls centralManagerDidUpdateState like iOS; pairs with the replaces above."
+    },
+    {
+      "id": "HBLE.10",
+      "file": "various/BluetoothScanner.kt",
+      "scope": "fun stopScanningForDevices",
+      "op": "replace",
+      "old": "        centralManager?.stopScan(scanCallback)",
+      "new": "        centralManager?.stopScan()",
+      "note": "Swift centralManager?.stopScan()."
+    },
+    {
+      "id": "HBLE.11",
+      "file": "various/BluetoothScanner.kt",
+      "scope": "fun stopScanningForDevices",
+      "op": "replace",
+      "old": "        centralManager = null",
+      "new": "        centralManager?.delegate = null; centralManager = null",
+      "note": "Swift centralManager = nil deallocates the manager, so it gets no more callbacks."
+    },
+    {
+      "id": "HBLE.12",
+      "file": "various/BluetoothScanner.kt",
+      "scope": "fun stopScanningForDevices",
+      "op": "replace",
+      "old": "        unregisterAdapterStateReceiver()",
+      "new": "        Unit",
+      "note": "Nothing registered, see the startScanningForDevices hooks."
+    },
+    {
+      "id": "HBLE.13",
+      "file": "various/BluetoothScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "    private fun centralManagerDidUpdateState(state: Int) {",
+      "new": "    private fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func centralManagerDidUpdateState(_ central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.14",
+      "file": "various/BluetoothScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "        if (state == BluetoothAdapter.STATE_ON) {",
+      "new": "        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {",
+      "note": "Swift if central.state == .poweredOn."
+    },
+    {
+      "id": "HBLE.15",
+      "file": "various/BluetoothScanner.kt",
+      "scope": "fun startScan",
+      "op": "replace",
+      "old": "        scanner.startScan(filters, settings, scanCallback)",
+      "new": "        scanner.scanForPeripherals(filters, settings, scanCallback)",
+      "note": "Swift central.scanForPeripherals(withServices: serviceIds); never throws."
+    },
+    {
+      "id": "HBLE.16",
+      "file": "integrations/tesla/TeslaVehicleScanner.kt",
+      "scope": "class TeslaVehicleScanner",
+      "op": "replace",
+      "old": "    private var centralManager: BluetoothLeScanner? = null",
+      "new": "    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null",
+      "note": "Swift private var centralManager: CBCentralManager?."
+    },
+    {
+      "id": "HBLE.17",
+      "file": "integrations/tesla/TeslaVehicleScanner.kt",
+      "scope": "fun startScanningForDevices",
+      "op": "replace",
+      "old": "        centralManager = adapter?.bluetoothLeScanner",
+      "new": "        centralManager?.delegate = null; centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)",
+      "note": "Swift centralManager = CBCentralManager(delegate: self, queue: .main); this crashed with a SecurityException before the Bluetooth permission was granted."
+    },
+    {
+      "id": "HBLE.18",
+      "file": "integrations/tesla/TeslaVehicleScanner.kt",
+      "scope": "fun startScanningForDevices",
+      "op": "replace",
+      "old": "            centralManagerDidUpdateState(adapter.state)",
+      "new": "            Unit",
+      "note": "The shim calls centralManagerDidUpdateState like iOS."
+    },
+    {
+      "id": "HBLE.19",
+      "file": "integrations/tesla/TeslaVehicleScanner.kt",
+      "scope": "fun stopScanningForDevices",
+      "op": "replace",
+      "old": "        centralManager?.stopScan(this)",
+      "new": "        centralManager?.stopScan()",
+      "note": "Swift centralManager?.stopScan()."
+    },
+    {
+      "id": "HBLE.20",
+      "file": "integrations/tesla/TeslaVehicleScanner.kt",
+      "scope": "fun stopScanningForDevices",
+      "op": "replace",
+      "old": "        centralManager = null",
+      "new": "        centralManager?.delegate = null; centralManager = null",
+      "note": "Swift centralManager = nil."
+    },
+    {
+      "id": "HBLE.21",
+      "file": "integrations/tesla/TeslaVehicleScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "    fun centralManagerDidUpdateState(state: Int) {",
+      "new": "    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func centralManagerDidUpdateState(_ central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.22",
+      "file": "integrations/tesla/TeslaVehicleScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "        if (state == BluetoothAdapter.STATE_ON) {",
+      "new": "        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {",
+      "note": "Swift if central.state == .poweredOn."
+    },
+    {
+      "id": "HBLE.23",
+      "file": "integrations/tesla/TeslaVehicleScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "            centralManager?.startScan(this)",
+      "new": "            central.scanForPeripherals(withServices = null, callback = this)",
+      "note": "Swift central.scanForPeripherals(withServices: nil)."
+    },
+    {
+      "id": "HBLE.24",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "class TeslaVehicle",
+      "op": "replace",
+      "old": "    private var centralManager: BluetoothAdapter? = null",
+      "new": "    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null",
+      "note": "Swift private var centralManager: CBCentralManager?."
+    },
+    {
+      "id": "HBLE.25",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun start",
+      "op": "replace",
+      "old": "        centralManager = BluetoothAdapter.getDefaultAdapter()",
+      "new": "        centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)",
+      "note": "Swift centralManager = CBCentralManager(delegate: self, queue: .main)."
+    },
+    {
+      "id": "HBLE.26",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun start",
+      "op": "replace",
+      "old": "        centralManagerDidUpdateState(centralManager)",
+      "new": "        Unit",
+      "note": "The shim calls centralManagerDidUpdateState like iOS."
+    },
+    {
+      "id": "HBLE.27",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun reset",
+      "op": "replace",
+      "old": "        vehicleGatt?.close()",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { vehicleGatt?.close() }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.28",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun reset",
+      "op": "replace",
+      "old": "        centralManager = null",
+      "new": "        centralManager?.delegate = null; centralManager = null",
+      "note": "Swift centralManager = nil."
+    },
+    {
+      "id": "HBLE.29",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "    fun centralManagerDidUpdateState(central: BluetoothAdapter?) {",
+      "new": "    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func centralManagerDidUpdateState(_ central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.30",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "        if (central?.isEnabled == true) {",
+      "new": "        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {",
+      "note": "Swift if central.state == .poweredOn."
+    },
+    {
+      "id": "HBLE.31",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "    private fun connect(central: BluetoothAdapter) {",
+      "new": "    private fun connect(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func connect(central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.32",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "        val peripheral = runCatching { central.getRemoteDevice(peripheralId.toString()) }.getOrNull()",
+      "new": "        val peripheral = central.retrievePeripherals(withIdentifiers = listOf(peripheralId.toString())).firstOrNull()",
+      "note": "Swift central.retrievePeripherals(withIdentifiers: [peripheralId]).first."
+    },
+    {
+      "id": "HBLE.33",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "        vehicleGatt = peripheral.connectGatt(context, true, this)",
+      "new": "        vehicleGatt = central.connect(peripheral, callback = this, autoConnect = true)",
+      "note": "Swift central.connect(peripheral, options: options); never throws."
+    },
+    {
+      "id": "HBLE.34",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun writeNextBlock",
+      "op": "replace",
+      "old": "        gatt.writeCharacteristic(characteristic)",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeCharacteristic(characteristic) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.35",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun onConnectionStateChange",
+      "op": "replace",
+      "old": "                gatt.discoverServices()",
+      "new": "                com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.discoverServices() }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.36",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun onServicesDiscovered",
+      "op": "replace",
+      "old": "                gatt.setCharacteristicNotification(characteristic, true)",
+      "new": "                com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, true) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.37",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun onServicesDiscovered",
+      "op": "replace",
+      "old": "                    gatt.writeDescriptor(descriptor)",
+      "new": "                    com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.38",
+      "file": "integrations/dji/djidevice/DjiDeviceScanner.kt",
+      "scope": "class DjiDeviceScanner",
+      "op": "replace",
+      "old": "    private var centralManager: BluetoothAdapter? = null",
+      "new": "    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null",
+      "note": "Swift private var centralManager: CBCentralManager?."
+    },
+    {
+      "id": "HBLE.39",
+      "file": "integrations/dji/djidevice/DjiDeviceScanner.kt",
+      "scope": "class DjiDeviceScanner",
+      "op": "replace",
+      "old": "    private var scanner: BluetoothLeScanner? = null",
+      "new": "    private var scanner: com.moblin.android.platform.corebluetooth.CBCentralManager? = null",
+      "note": "The manager that scans; Swift scans with centralManager."
+    },
+    {
+      "id": "HBLE.40",
+      "file": "integrations/dji/djidevice/DjiDeviceScanner.kt",
+      "scope": "fun startScanningForDevices",
+      "op": "replace",
+      "old": "        centralManager = BluetoothAdapter.getDefaultAdapter()",
+      "new": "        centralManager?.delegate = null; centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)",
+      "note": "Swift centralManager = CBCentralManager(delegate: self, queue: DispatchQueue.main)."
+    },
+    {
+      "id": "HBLE.41",
+      "file": "integrations/dji/djidevice/DjiDeviceScanner.kt",
+      "scope": "fun startScanningForDevices",
+      "op": "replace",
+      "old": "        centralManagerDidUpdateState(centralManager)",
+      "new": "        Unit",
+      "note": "The shim calls centralManagerDidUpdateState like iOS."
+    },
+    {
+      "id": "HBLE.42",
+      "file": "integrations/dji/djidevice/DjiDeviceScanner.kt",
+      "scope": "fun stopScanningForDevices",
+      "op": "replace",
+      "old": "        scanner?.stopScan(scanCallback)",
+      "new": "        scanner?.stopScan()",
+      "note": "Swift centralManager?.stopScan()."
+    },
+    {
+      "id": "HBLE.43",
+      "file": "integrations/dji/djidevice/DjiDeviceScanner.kt",
+      "scope": "fun stopScanningForDevices",
+      "op": "replace",
+      "old": "        centralManager = null",
+      "new": "        centralManager?.delegate = null; centralManager = null",
+      "note": "Swift centralManager = nil."
+    },
+    {
+      "id": "HBLE.44",
+      "file": "integrations/dji/djidevice/DjiDeviceScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "    fun centralManagerDidUpdateState(central: BluetoothAdapter?) {",
+      "new": "    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager?) {",
+      "note": "Swift func centralManagerDidUpdateState(_ central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.45",
+      "file": "integrations/dji/djidevice/DjiDeviceScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "        if (central?.isEnabled == true) {",
+      "new": "        if (central?.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {",
+      "note": "Swift if central.state == .poweredOn."
+    },
+    {
+      "id": "HBLE.46",
+      "file": "integrations/dji/djidevice/DjiDeviceScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "            scanner = central.bluetoothLeScanner",
+      "new": "            scanner = central",
+      "note": "Scans with the manager itself."
+    },
+    {
+      "id": "HBLE.47",
+      "file": "integrations/dji/djidevice/DjiDeviceScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "            scanner?.startScan(",
+      "new": "            scanner?.scanForPeripherals(",
+      "note": "Swift central.scanForPeripherals(withServices: nil); never throws."
+    },
+    {
+      "id": "HBLE.48",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "class DjiDevice",
+      "op": "replace",
+      "old": "    private var centralManager: BluetoothAdapter? = null",
+      "new": "    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null",
+      "note": "Swift private var centralManager: CBCentralManager?."
+    },
+    {
+      "id": "HBLE.49",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun startLiveStream",
+      "op": "replace",
+      "old": "            (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter",
+      "new": "            com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)",
+      "note": "Swift centralManager = CBCentralManager(delegate: self, queue: .main)."
+    },
+    {
+      "id": "HBLE.50",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun startLiveStream",
+      "op": "replace",
+      "old": "        centralManager?.let { centralManagerDidUpdateState(it) }",
+      "new": "        Unit",
+      "note": "The shim calls centralManagerDidUpdateState like iOS."
+    },
+    {
+      "id": "HBLE.51",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun reset",
+      "op": "replace",
+      "old": "        centralManager = null",
+      "new": "        centralManager?.delegate = null; centralManager = null",
+      "note": "Swift centralManager = nil."
+    },
+    {
+      "id": "HBLE.52",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun reset",
+      "op": "replace",
+      "old": "        cameraPeripheral?.close()",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { cameraPeripheral?.close() }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.53",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "    fun centralManagerDidUpdateState(central: BluetoothAdapter) {",
+      "new": "    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func centralManagerDidUpdateState(_ central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.54",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "        if (central.isEnabled) {",
+      "new": "        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {",
+      "note": "Swift case .poweredOn."
+    },
+    {
+      "id": "HBLE.55",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "    private fun connect(central: BluetoothAdapter) {",
+      "new": "    private fun connect(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func connect(central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.56",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "        val peripheral = runCatching { central.getRemoteDevice(deviceId.toString()) }.getOrNull()",
+      "new": "        val peripheral = central.retrievePeripherals(withIdentifiers = listOf(deviceId.toString())).firstOrNull()",
+      "note": "Swift central.retrievePeripherals(withIdentifiers: [deviceId]).first."
+    },
+    {
+      "id": "HBLE.57",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "        cameraPeripheral = peripheral.connectGatt(context, false, gattCallback)",
+      "new": "        cameraPeripheral = central.connect(peripheral, callback = gattCallback)",
+      "note": "Swift central.connect(peripheral, options: nil); never throws."
+    },
+    {
+      "id": "HBLE.58",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun centralManagerDidConnect",
+      "op": "replace",
+      "old": "        gatt.discoverServices()",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.discoverServices() }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.59",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun peripheralDidDiscoverCharacteristicsFor",
+      "op": "replace",
+      "old": "            gatt.setCharacteristicNotification(characteristic, true)",
+      "new": "            com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, true) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.60",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun peripheralDidDiscoverCharacteristicsFor",
+      "op": "replace",
+      "old": "                gatt.writeDescriptor(descriptor)",
+      "new": "                com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.61",
+      "file": "integrations/dji/djidevice/DjiDevice.kt",
+      "scope": "fun writeValue",
+      "op": "replace",
+      "old": "        cameraPeripheral.writeCharacteristic(fff5Characteristic)",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { cameraPeripheral.writeCharacteristic(fff5Characteristic) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.62",
+      "file": "integrations/gopro/GoProDeviceScanner.kt",
+      "scope": "class GoProDeviceScanner",
+      "op": "replace",
+      "old": "    private var centralManager: BluetoothLeScanner? = null",
+      "new": "    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null",
+      "note": "Swift private var centralManager: CBCentralManager?."
+    },
+    {
+      "id": "HBLE.63",
+      "file": "integrations/gopro/GoProDeviceScanner.kt",
+      "scope": "val adapterStateReceiver",
+      "op": "replace",
+      "old": "            centralManagerDidUpdateState(adapter)",
+      "new": "            Unit",
+      "note": "The CBCentralManager shim reports adapter state changes itself."
+    },
+    {
+      "id": "HBLE.64",
+      "file": "integrations/gopro/GoProDeviceScanner.kt",
+      "scope": "fun startScanningForDevices",
+      "op": "replace",
+      "old": "        centralManagerDidUpdateState(adapter)",
+      "new": "        centralManager?.delegate = null; centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)",
+      "note": "Swift centralManager = CBCentralManager(delegate: self, queue: .main)."
+    },
+    {
+      "id": "HBLE.65",
+      "file": "integrations/gopro/GoProDeviceScanner.kt",
+      "scope": "fun stopScanningForDevices",
+      "op": "replace",
+      "old": "        centralManager?.stopScan(scanCallback)",
+      "new": "        centralManager?.stopScan()",
+      "note": "Swift centralManager?.stopScan()."
+    },
+    {
+      "id": "HBLE.66",
+      "file": "integrations/gopro/GoProDeviceScanner.kt",
+      "scope": "fun stopScanningForDevices",
+      "op": "replace",
+      "old": "        centralManager = null",
+      "new": "        centralManager?.delegate = null; centralManager = null",
+      "note": "Swift centralManager = nil."
+    },
+    {
+      "id": "HBLE.67",
+      "file": "integrations/gopro/GoProDeviceScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "    fun centralManagerDidUpdateState(central: BluetoothAdapter) {",
+      "new": "    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func centralManagerDidUpdateState(_ central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.68",
+      "file": "integrations/gopro/GoProDeviceScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "        if (!central.isEnabled) {",
+      "new": "        if (central.state != com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {",
+      "note": "Swift guard central.state == .poweredOn."
+    },
+    {
+      "id": "HBLE.69",
+      "file": "integrations/gopro/GoProDeviceScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "        val scanner = central.bluetoothLeScanner",
+      "new": "        val scanner = central",
+      "note": "Scans with the manager itself."
+    },
+    {
+      "id": "HBLE.70",
+      "file": "integrations/gopro/GoProDeviceScanner.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "        scanner.startScan(listOf(filter), settings, scanCallback)",
+      "new": "        scanner.scanForPeripherals(listOf(filter), settings, scanCallback)",
+      "note": "Swift central.scanForPeripherals(withServices: [goProControlServiceId]); never throws."
+    },
+    {
+      "id": "HBLE.71",
+      "file": "integrations/gopro/GoProDeviceScanner.kt",
+      "scope": "fun centralManagerDidDiscover",
+      "op": "replace",
+      "old": "            ?: peripheral.name",
+      "new": "            ?: com.moblin.android.platform.corebluetooth.bluetoothCall(null) { peripheral.name }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.72",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "class GoProDevice",
+      "op": "replace",
+      "old": "    private var centralManager: BluetoothAdapter? = null",
+      "new": "    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null",
+      "note": "Swift private var centralManager: CBCentralManager?."
+    },
+    {
+      "id": "HBLE.73",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun startLiveStream",
+      "op": "replace",
+      "old": "            (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter",
+      "new": "            com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { centralManagerDidUpdateState() }, queue = null)",
+      "note": "Swift centralManager = CBCentralManager(delegate: self, queue: .main)."
+    },
+    {
+      "id": "HBLE.74",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun startLiveStream",
+      "op": "replace",
+      "old": "        registerAdapterStateReceiver()",
+      "new": "        Unit",
+      "note": "The CBCentralManager shim observes the adapter state."
+    },
+    {
+      "id": "HBLE.75",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun startLiveStream",
+      "op": "delete",
+      "old": "        centralManagerDidUpdateState()",
+      "occurrence": 1,
+      "note": "The shim calls centralManagerDidUpdateState like iOS; pairs with the replaces above."
+    },
+    {
+      "id": "HBLE.76",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun resetConnection",
+      "op": "replace",
+      "old": "                centralManager?.bluetoothLeScanner?.stopScan(callback)",
+      "new": "                centralManager?.stopScan()",
+      "note": "Stops the scan of scanForDevice."
+    },
+    {
+      "id": "HBLE.77",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun resetConnection",
+      "op": "replace",
+      "old": "                g.disconnect()",
+      "new": "                centralManager?.cancelPeripheralConnection(g)",
+      "note": "Swift centralManager?.cancelPeripheralConnection(devicePeripheral); never throws."
+    },
+    {
+      "id": "HBLE.78",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun resetConnection",
+      "op": "delete",
+      "old": "                g.close()",
+      "occurrence": 1,
+      "note": "cancelPeripheralConnection closes the connection too; pairs with the replace above."
+    },
+    {
+      "id": "HBLE.79",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun resetConnection",
+      "op": "replace",
+      "old": "        centralManager = null",
+      "new": "        centralManager?.delegate = null; centralManager = null",
+      "note": "Swift centralManager = nil."
+    },
+    {
+      "id": "HBLE.80",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun writeNextPacketIfNeeded",
+      "op": "replace",
+      "old": "        gatt.writeCharacteristic(next.first)",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeCharacteristic(next.first) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.81",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "        if (!central.isEnabled) {",
+      "new": "        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.unknown || central.state == com.moblin.android.platform.corebluetooth.CBManagerState.resetting) { return }; if (central.state != com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {",
+      "note": "Swift guard central.state == .poweredOn else { if central.state != .unknown, central.state != .resetting { fail() }; return }."
+    },
+    {
+      "id": "HBLE.82",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun centralManagerDidConnect",
+      "op": "replace",
+      "old": "        peripheral.discoverServices()",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { peripheral.discoverServices() }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.83",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun scanForDevice",
+      "op": "replace",
+      "old": "        val scanner = centralManager?.bluetoothLeScanner",
+      "new": "        val scanner = centralManager",
+      "note": "Scans with the manager itself."
+    },
+    {
+      "id": "HBLE.84",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun scanForDevice",
+      "op": "replace",
+      "old": "                        this@GoProDevice.scanCallback?.let { scanner.stopScan(it) }",
+      "new": "                        this@GoProDevice.scanCallback?.let { scanner.stopScan() }",
+      "note": "Stops the scan; never throws."
+    },
+    {
+      "id": "HBLE.85",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun scanForDevice",
+      "op": "replace",
+      "old": "            scanner.startScan(callback)",
+      "new": "            scanner.scanForPeripherals(withServices = null, callback = callback)",
+      "note": "Never throws."
+    },
+    {
+      "id": "HBLE.86",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun connectToPeripheral",
+      "op": "replace",
+      "old": "        gatt = peripheral.connectGatt(context, false, gattCallback)",
+      "new": "        gatt = centralManager?.connect(peripheral, callback = gattCallback)",
+      "note": "Swift central.connect(peripheral); never throws."
+    },
+    {
+      "id": "HBLE.87",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun peripheralDidDiscoverCharacteristics",
+      "op": "replace",
+      "old": "                gatt.setCharacteristicNotification(characteristic, true)",
+      "new": "                com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, true) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.88",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun peripheralDidDiscoverCharacteristics",
+      "op": "replace",
+      "old": "                    gatt.writeDescriptor(descriptor)",
+      "new": "                    com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.89",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "class BlackSharkCoolerDevice",
+      "op": "replace",
+      "old": "    private var centralManager: BluetoothAdapter? = null",
+      "new": "    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null",
+      "note": "Swift private var centralManager: CBCentralManager?."
+    },
+    {
+      "id": "HBLE.90",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun reset",
+      "op": "replace",
+      "old": "        bluetoothGatt?.close()",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { bluetoothGatt?.close() }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.91",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun reset",
+      "op": "replace",
+      "old": "        centralManager = null",
+      "new": "        centralManager?.delegate = null; centralManager = null",
+      "note": "Swift centralManager = nil."
+    },
+    {
+      "id": "HBLE.92",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun reconnect",
+      "op": "replace",
+      "old": "        val central = (context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter",
+      "new": "        centralManager?.delegate = null; val central = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { centralManagerDidUpdateState(it) }, queue = blackSharkCoolerDeviceDispatchQueue)",
+      "note": "Swift centralManager = CBCentralManager(delegate: self, queue: blackSharkCoolerDeviceDispatchQueue)."
+    },
+    {
+      "id": "HBLE.93",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun reconnect",
+      "op": "replace",
+      "old": "            centralManagerDidUpdateState(central)",
+      "new": "            Unit",
+      "note": "The shim calls centralManagerDidUpdateState like iOS."
+    },
+    {
+      "id": "HBLE.94",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "    fun centralManagerDidUpdateState(central: BluetoothAdapter) {",
+      "new": "    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func centralManagerDidUpdateState(_ central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.95",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "            BluetoothAdapter.STATE_ON -> connect(central)",
+      "new": "            com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn -> connect(central)",
+      "note": "Swift case .poweredOn: connect(central: central)."
+    },
+    {
+      "id": "HBLE.96",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "    private fun connect(central: BluetoothAdapter) {",
+      "new": "    private fun connect(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func connect(central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.97",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "            central.getRemoteDevice(deviceId.toString())",
+      "new": "            central.retrievePeripherals(withIdentifiers = listOf(deviceId.toString())).firstOrNull() ?: throw IllegalArgumentException(deviceId.toString())",
+      "note": "Swift central.retrievePeripherals(withIdentifiers: [deviceId]).first."
+    },
+    {
+      "id": "HBLE.98",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "        bluetoothGatt = peripheral.connectGatt(context, false, gattCallback)",
+      "new": "        bluetoothGatt = central.connect(peripheral, callback = gattCallback)",
+      "note": "Swift central.connect(peripheral, options: nil); never throws."
+    },
+    {
+      "id": "HBLE.99",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun didConnect",
+      "op": "replace",
+      "old": "        model = BlackSharkLib.detectModel(peripheral.name)",
+      "new": "        model = BlackSharkLib.detectModel(com.moblin.android.platform.corebluetooth.bluetoothCall(null) { peripheral.name })",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.100",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun didConnect",
+      "op": "replace",
+      "old": "        bluetoothGatt?.discoverServices()",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { bluetoothGatt?.discoverServices() }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.101",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun setNotifyValue",
+      "op": "replace",
+      "old": "        gatt.setCharacteristicNotification(characteristic, enabled)",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, enabled) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.102",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun setNotifyValue",
+      "op": "replace",
+      "old": "        gatt.writeDescriptor(descriptor)",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.103",
+      "file": "integrations/blacksharkcooler/BlackSharkCoolerDevice.kt",
+      "scope": "fun writeValue",
+      "op": "replace",
+      "old": "        return gatt.writeCharacteristic(characteristic)",
+      "new": "        return com.moblin.android.platform.corebluetooth.bluetoothCall(false) { gatt.writeCharacteristic(characteristic) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.104",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "class CatPrinter",
+      "op": "insert_after",
+      "anchor": "    private var centralManager: BluetoothGatt? = null",
+      "new": "    private var bluetoothCentralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null",
+      "note": "Swift private var centralManager: CBCentralManager?; the port named the GATT connection centralManager."
+    },
+    {
+      "id": "HBLE.105",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun isMxw01",
+      "op": "replace",
+      "old": "        return peripheral?.name == \"MXW01\"",
+      "new": "        return com.moblin.android.platform.corebluetooth.bluetoothCall(null) { peripheral?.name } == \"MXW01\"",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.106",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun send(\n    data",
+      "op": "replace",
+      "old": "        centralManager?.writeCharacteristic(characteristic)",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { centralManager?.writeCharacteristic(characteristic) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.107",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun reset",
+      "op": "replace",
+      "old": "        centralManager = null",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { centralManager?.close() }; centralManager = null; bluetoothCentralManager?.delegate = null; bluetoothCentralManager = null",
+      "note": "Swift centralManager = nil and peripheral = nil disconnect the printer."
+    },
+    {
+      "id": "HBLE.108",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun reconnect",
+      "op": "replace",
+      "old": "        centralManager?.close()",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { centralManager?.close() }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.109",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun reconnect",
+      "op": "replace",
+      "old": "        val central = (AppDelegate.context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter",
+      "new": "        bluetoothCentralManager?.delegate = null; val central = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { if (it.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) { connect(it) } }, queue = catPrinterDispatchQueue); bluetoothCentralManager = central",
+      "note": "Swift centralManager = CBCentralManager(delegate: self, queue: catPrinterDispatchQueue) and centralManagerDidUpdateState connects when powered on."
+    },
+    {
+      "id": "HBLE.110",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun reconnect",
+      "op": "replace",
+      "old": "        if (central?.isEnabled == true) {",
+      "new": "        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {",
+      "note": "The state is unknown until the shim reports it, like iOS, so the delegate above connects."
+    },
+    {
+      "id": "HBLE.111",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun reconnect",
+      "op": "replace",
+      "old": "            connect(central)",
+      "new": "            Unit",
+      "note": "Only the delegate connects, so a report racing this dispatch queue cannot connect twice."
+    },
+    {
+      "id": "HBLE.112",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "    private fun connect(central: BluetoothAdapter) {",
+      "new": "    private fun connect(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func connect(central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.113",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "        val peripheral = runCatching { central.getRemoteDevice(deviceId) }.getOrNull()",
+      "new": "        val peripheral = central.retrievePeripherals(withIdentifiers = listOf(deviceId)).firstOrNull()",
+      "note": "Swift central.retrievePeripherals(withIdentifiers: [deviceId]).first."
+    },
+    {
+      "id": "HBLE.114",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "        centralManager = peripheral.connectGatt(AppDelegate.context, false, this)",
+      "new": "        centralManager = central.connect(peripheral, callback = this)",
+      "note": "Swift central.connect(peripheral, options: nil); never throws."
+    },
+    {
+      "id": "HBLE.115",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun onConnectionStateChange",
+      "op": "replace",
+      "old": "            BluetoothProfile.STATE_CONNECTED -> gatt.discoverServices()",
+      "new": "            BluetoothProfile.STATE_CONNECTED -> com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.discoverServices() }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.116",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun onServicesDiscovered",
+      "op": "replace",
+      "old": "                    gatt.setCharacteristicNotification(characteristic, true)",
+      "new": "                    com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, true) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.117",
+      "file": "integrations/catprinter/CatPrinter.kt",
+      "scope": "fun setNotifyValue",
+      "op": "replace",
+      "old": "        gatt.writeDescriptor(descriptor)",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.118",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "class WorkoutDevice",
+      "op": "replace",
+      "old": "    private var centralManager: BluetoothAdapter? = null",
+      "new": "    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null",
+      "note": "Swift private var centralManager: CBCentralManager?."
+    },
+    {
+      "id": "HBLE.119",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun reset",
+      "op": "replace",
+      "old": "        centralManager = null",
+      "new": "        centralManager?.delegate = null; centralManager = null",
+      "note": "Swift centralManager = nil."
+    },
+    {
+      "id": "HBLE.120",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun reset",
+      "op": "replace",
+      "old": "        peripheral?.close()",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { peripheral?.close() }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.121",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun reconnect",
+      "op": "replace",
+      "old": "        centralManager = BluetoothAdapter.getDefaultAdapter()",
+      "new": "        centralManager?.delegate = null; centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = dispatchQueue)",
+      "note": "Swift centralManager = CBCentralManager(delegate: self, queue: dispatchQueue)."
+    },
+    {
+      "id": "HBLE.122",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun reconnect",
+      "op": "replace",
+      "old": "        centralManager?.let { centralManagerDidUpdateState(it) }",
+      "new": "        Unit",
+      "note": "The shim calls centralManagerDidUpdateState like iOS."
+    },
+    {
+      "id": "HBLE.123",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "    private fun centralManagerDidUpdateState(central: BluetoothAdapter) {",
+      "new": "    private fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func centralManagerDidUpdateState(_ central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.124",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun centralManagerDidUpdateState",
+      "op": "replace",
+      "old": "        if (central.isEnabled) {",
+      "new": "        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {",
+      "note": "Swift case .poweredOn."
+    },
+    {
+      "id": "HBLE.125",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "    private fun connect(central: BluetoothAdapter) {",
+      "new": "    private fun connect(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {",
+      "note": "Swift func connect(central: CBCentralManager)."
+    },
+    {
+      "id": "HBLE.126",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "        val device = runCatching { central.getRemoteDevice(deviceId.toString()) }.getOrNull()",
+      "new": "        val device = central.retrievePeripherals(withIdentifiers = listOf(deviceId.toString())).firstOrNull()",
+      "note": "Swift central.retrievePeripherals(withIdentifiers: [deviceId]).first."
+    },
+    {
+      "id": "HBLE.127",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "        peripheral = device.connectGatt(",
+      "new": "        peripheral = central.connect(",
+      "note": "Swift central.connect(peripheral, options: nil); never throws."
+    },
+    {
+      "id": "HBLE.128",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "            AppDelegate.context,",
+      "new": "            peripheral = device,",
+      "note": "Argument of the connect above."
+    },
+    {
+      "id": "HBLE.129",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "            false,",
+      "new": "            autoConnect = false,",
+      "note": "Argument of the connect above."
+    },
+    {
+      "id": "HBLE.130",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "            this,",
+      "new": "            callback = this,",
+      "note": "Argument of the connect above."
+    },
+    {
+      "id": "HBLE.131",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun centralManagerDidConnect",
+      "op": "replace",
+      "old": "        peripheral.discoverServices()",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { peripheral.discoverServices() }",
+      "note": "Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.132",
+      "file": "integrations/workoutdevice/WorkoutDevice.kt",
+      "scope": "fun onServicesDiscovered",
+      "op": "replace",
+      "old": "        peripheralDidDiscoverServices(gatt)",
+      "new": "        com.moblin.android.platform.corebluetooth.bluetoothCall { peripheralDidDiscoverServices(gatt) }",
+      "note": "Guards the setCharacteristicNotification calls of peripheralDidDiscoverCharacteristicsFor. Never lets a SecurityException escape, like CoreBluetooth never throws."
+    },
+    {
+      "id": "HBLE.133",
+      "file": "view/settings/tesla/TeslaVehicleScannerSettingsView.kt",
+      "scope": "fun TeslaVehicleScannerSettingsView",
+      "op": "replace",
+      "old": "                            id = peripheral.address,",
+      "new": "                            id = peripheral.identifier.toString(),",
+      "note": "Swift id: peripheral.identifier.uuidString."
+    },
+    {
+      "id": "HBLE.134",
+      "file": "view/settings/tesla/TeslaVehicleScannerSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.corebluetooth.identifier"
+    },
+    {
+      "id": "HBLE.135",
+      "file": "view/settings/tesla/TeslaSettingsView.kt",
+      "scope": "fun onDeviceChange",
+      "op": "replace",
+      "old": "            .firstOrNull { UUID.nameUUIDFromBytes(it.address.toByteArray()) == deviceId } ?: return",
+      "new": "            .firstOrNull { it.identifier == deviceId } ?: return",
+      "note": "Swift .first(where: { $0.identifier == deviceId })."
+    },
+    {
+      "id": "HBLE.136",
+      "file": "view/settings/tesla/TeslaSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.corebluetooth.identifier"
+    },
+    {
+      "id": "HBLE.137",
+      "file": "view/settings/djidevices/DjiDeviceScannerSettingsView.kt",
+      "scope": "fun DjiDeviceScannerSettingsView",
+      "op": "replace",
+      "old": "            id = discoveredDevice.peripheral.address,",
+      "new": "            id = discoveredDevice.peripheral.identifier.toString(),",
+      "note": "Swift id: discoveredDevice.peripheral.identifier.uuidString."
+    },
+    {
+      "id": "HBLE.138",
+      "file": "view/settings/djidevices/DjiDeviceScannerSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.corebluetooth.identifier"
+    },
+    {
+      "id": "HBLE.139",
+      "file": "view/settings/djidevices/DjiDeviceSettingsView.kt",
+      "scope": "fun onDeviceChange",
+      "op": "replace",
+      "old": "            it.peripheral.address == value",
+      "new": "            it.peripheral.identifier == deviceId",
+      "note": "Swift .first(where: { $0.peripheral.identifier == deviceId })."
+    },
+    {
+      "id": "HBLE.140",
+      "file": "view/settings/djidevices/DjiDeviceSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.corebluetooth.identifier"
+    },
+    {
+      "id": "HBLE.141",
+      "file": "view/settings/gopro/GoProBleDeviceSettingsView.kt",
+      "scope": "fun GoProDeviceSelectionSection",
+      "op": "replace",
+      "old": "                            UUID.nameUUIDFromBytes(discoveredDevice.peripheral.address.toByteArray())",
+      "new": "                            discoveredDevice.peripheral.identifier",
+      "note": "Swift device.bluetoothPeripheralId = discoveredDevice.peripheral.identifier."
+    },
+    {
+      "id": "HBLE.142",
+      "file": "view/settings/gopro/GoProBleDeviceSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.corebluetooth.identifier"
+    },
+    {
+      "id": "HBLE.143",
+      "file": "view/settings/workoutdevices/WorkoutDeviceSettingsView.kt",
+      "scope": "fun onDeviceChange",
+      "op": "replace",
+      "old": "            .firstOrNull { it.address == value } ?: return",
+      "new": "            .firstOrNull { it.identifier == deviceId } ?: return",
+      "note": "Swift .first(where: { $0.identifier == deviceId })."
+    },
+    {
+      "id": "HBLE.144",
+      "file": "view/settings/workoutdevices/WorkoutDeviceSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.corebluetooth.identifier"
+    },
+    {
+      "id": "HBLE.145",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "scope": "fun scanForDevice",
+      "op": "insert_after",
+      "anchor": "            override fun onScanResult(callbackType: Int, result: ScanResult) {",
+      "new": "                if (result.device.identifier != deviceId) return",
+      "note": "Swift connects to retrievePeripherals(withIdentifiers: [deviceId]).first, never to another device."
+    },
+    {
+      "id": "HBLE.146",
+      "file": "integrations/gopro/GoProDevice.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.corebluetooth.identifier"
+    },
+    {
+      "id": "HBLE.147",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun connect",
+      "op": "replace",
+      "old": "        val context = applicationContext",
+      "new": "        val context = com.moblin.android.platform.corebluetooth.BluetoothAuthorization.applicationContext()",
+      "note": "Nothing sets TeslaVehicle.applicationContext, so the vehicle was never connected; the shim knows the application context."
+    },
+    {
+      "id": "HBLE.148",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun derContent",
+      "op": "replace",
+      "old": "    val first = bytes[index].toInt() and 0xFF",
+      "new": "    val first = bytes[index + 1].toInt() and 0xFF",
+      "note": "index is the tag of the DER element; the length follows it. Without this every private key fails and no TeslaVehicle is created."
+    },
+    {
+      "id": "HBLE.149",
+      "file": "integrations/tesla/TeslaVehicle.kt",
+      "scope": "fun derContent",
+      "op": "replace",
+      "old": "    var i = index + 1",
+      "new": "    var i = index + 2",
+      "note": "See HBLE.148."
+    }
+  ]
+}

@@ -22,29 +22,29 @@ class TeslaVehicleScanner private constructor() : ScanCallback() {
 
     val discoveredPeripherals = MutableStateFlow<List<BluetoothDevice>>(emptyList())
 
-    private var centralManager: BluetoothLeScanner? = null
+    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
 
     @SuppressLint("MissingPermission")
     fun startScanningForDevices(context: Context) {
         discoveredPeripherals.value = emptyList()
         val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
         val adapter = manager?.adapter
-        centralManager = adapter?.bluetoothLeScanner
+        centralManager?.delegate = null; centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)
         if (adapter != null) {
-            centralManagerDidUpdateState(adapter.state)
+            Unit
         }
     }
 
     @SuppressLint("MissingPermission")
     fun stopScanningForDevices() {
-        centralManager?.stopScan(this)
-        centralManager = null
+        centralManager?.stopScan()
+        centralManager?.delegate = null; centralManager = null
     }
 
     @SuppressLint("MissingPermission")
-    fun centralManagerDidUpdateState(state: Int) {
-        if (state == BluetoothAdapter.STATE_ON) {
-            centralManager?.startScan(this)
+    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
+        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
+            central.scanForPeripherals(withServices = null, callback = this)
         }
     }
 

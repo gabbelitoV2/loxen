@@ -73,8 +73,8 @@ private fun privateKeyFromPem(pem: String): PrivateKey {
 }
 
 private fun derContent(bytes: ByteArray, index: Int): IntRange {
-    val first = bytes[index].toInt() and 0xFF
-    var i = index + 1
+    val first = bytes[index + 1].toInt() and 0xFF
+    var i = index + 2
     val length = if (first and 0x80 == 0) {
         first
     } else {
@@ -228,7 +228,7 @@ class TeslaVehicle private constructor(
     private val clientPrivateKey: PrivateKey,
     private val clientPublicKeyBytes: ByteArray,
 ) : BluetoothGattCallback() {
-    private var centralManager: BluetoothAdapter? = null
+    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
     private var vehiclePeripheral: BluetoothDevice? = null
     private var vehicleGatt: BluetoothGatt? = null
     private var toVehicleCharacteristic: BluetoothGattCharacteristic? = null
@@ -265,9 +265,9 @@ class TeslaVehicle private constructor(
 
     fun start() {
         reset()
-        centralManager = BluetoothAdapter.getDefaultAdapter()
+        centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)
         startSession()
-        centralManagerDidUpdateState(centralManager)
+        Unit
     }
 
     fun stop() {
@@ -276,9 +276,9 @@ class TeslaVehicle private constructor(
 
     private fun reset() {
         resetSession()
-        vehicleGatt?.close()
+        com.moblin.android.platform.corebluetooth.bluetoothCall { vehicleGatt?.close() }
         vehicleGatt = null
-        centralManager = null
+        centralManager?.delegate = null; centralManager = null
         vehiclePeripheral = null
         setState(TeslaVehicleState.idle)
     }
@@ -298,25 +298,25 @@ class TeslaVehicle private constructor(
         pendingWriteBlocks.clear()
     }
 
-    fun centralManagerDidUpdateState(central: BluetoothAdapter?) {
-        if (central?.isEnabled == true) {
+    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
+        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
             connect(central)
         }
     }
 
-    private fun connect(central: BluetoothAdapter) {
-        val context = applicationContext
+    private fun connect(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
+        val context = com.moblin.android.platform.corebluetooth.BluetoothAuthorization.applicationContext()
         if (context == null) {
             Log.i(TAG, "tesla-vehicle: Vehicle not found")
             return
         }
-        val peripheral = runCatching { central.getRemoteDevice(peripheralId.toString()) }.getOrNull()
+        val peripheral = central.retrievePeripherals(withIdentifiers = listOf(peripheralId.toString())).firstOrNull()
         if (peripheral == null) {
             Log.i(TAG, "tesla-vehicle: Vehicle not found")
             return
         }
         vehiclePeripheral = peripheral
-        vehicleGatt = peripheral.connectGatt(context, true, this)
+        vehicleGatt = central.connect(peripheral, callback = this, autoConnect = true)
         setState(TeslaVehicleState.connecting)
     }
 
@@ -480,7 +480,7 @@ class TeslaVehicle private constructor(
         val block = pendingWriteBlocks.removeFirstOrNull() ?: return
         characteristic.value = block
         characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-        gatt.writeCharacteristic(characteristic)
+        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeCharacteristic(characteristic) }
     }
 
     private fun sign(message: Any, payload: ByteArray) {
@@ -509,7 +509,7 @@ class TeslaVehicle private constructor(
                 Log.d(TAG, "tesla-vehicle: Connected")
                 vehicleGatt = gatt
                 vehiclePeripheral = gatt.device
-                gatt.discoverServices()
+                com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.discoverServices() }
             }
             BluetoothProfile.STATE_DISCONNECTED -> {
                 Log.d(TAG, "tesla-vehicle: Disconnected (reconnecting: false)")
@@ -529,11 +529,11 @@ class TeslaVehicle private constructor(
                 toVehicleCharacteristic = characteristic
             } else if (characteristic.uuid == fromVehicleUuid) {
                 fromVehicleCharacteristic = characteristic
-                gatt.setCharacteristicNotification(characteristic, true)
+                com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, true) }
                 val descriptor = characteristic.getDescriptor(clientCharacteristicConfigUuid)
                 if (descriptor != null) {
                     descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                    gatt.writeDescriptor(descriptor)
+                    com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }
                 }
             }
         }

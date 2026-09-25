@@ -25,8 +25,8 @@ class DjiDeviceScanner {
 
     val discoveredDevices = MutableStateFlow<List<DjiDiscoveredDevice>>(emptyList())
 
-    private var centralManager: BluetoothAdapter? = null
-    private var scanner: BluetoothLeScanner? = null
+    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
+    private var scanner: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
 
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
@@ -50,20 +50,20 @@ class DjiDeviceScanner {
 
     fun startScanningForDevices() {
         discoveredDevices.value = emptyList()
-        centralManager = BluetoothAdapter.getDefaultAdapter()
-        centralManagerDidUpdateState(centralManager)
+        centralManager?.delegate = null; centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)
+        Unit
     }
 
     fun stopScanningForDevices() {
-        scanner?.stopScan(scanCallback)
+        scanner?.stopScan()
         scanner = null
-        centralManager = null
+        centralManager?.delegate = null; centralManager = null
     }
 
-    fun centralManagerDidUpdateState(central: BluetoothAdapter?) {
-        if (central?.isEnabled == true) {
-            scanner = central.bluetoothLeScanner
-            scanner?.startScan(
+    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager?) {
+        if (central?.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
+            scanner = central
+            scanner?.scanForPeripherals(
                 null,
                 ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build(),
                 scanCallback,
