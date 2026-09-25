@@ -163,6 +163,7 @@ private fun GoProDeviceWifiSection(model: Model = LocalModel.current, device: Se
     ) {
         NavigationLink(
             destination = {
+                val editedSsid = remember { androidx.compose.runtime.mutableStateOf(device.wifiSsid) }
                 val update = { ssid: String ->
                     device.wifiSsid = ssid
                     if (device.wifiPassword.isEmpty()) {
@@ -171,8 +172,8 @@ private fun GoProDeviceWifiSection(model: Model = LocalModel.current, device: Se
                     }
                 }
                 WiFiSsidEditView(
-                    value = device.wifiSsid,
-                    onValueChange = update,
+                    value = editedSsid.value,
+                    onValueChange = { editedSsid.value = it },
                     onSubmit = update,
                     onDismiss = rememberDismiss(),
                 )

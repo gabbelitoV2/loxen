@@ -33,14 +33,15 @@ import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.utils.fetchCurrentWiFiSsid
 import kotlinx.coroutines.flow.MutableStateFlow
 
-private class CurrentWiFiNetwork {
+private class CurrentWiFiNetwork : com.moblin.android.platform.corelocation.CLLocationManagerDelegate {
     val ssid = MutableStateFlow<String?>(null)
 
     val locationDenied = MutableStateFlow(false)
+    private val locationManager = com.moblin.android.platform.corelocation.CLLocationManager().also { it.delegate = this }
 
-    fun locationManagerDidChangeAuthorization() {
-        fetchCurrentWiFiSsid { newSsid ->
-            ssid.value = newSsid
+    override fun locationManagerDidChangeAuthorization(manager: com.moblin.android.platform.corelocation.CLLocationManager) {
+        when (locationManager.authorizationStatus) { com.moblin.android.platform.corelocation.CLAuthorizationStatus.notDetermined -> locationManager.requestWhenInUseAuthorization(); com.moblin.android.platform.corelocation.CLAuthorizationStatus.denied, com.moblin.android.platform.corelocation.CLAuthorizationStatus.restricted -> locationDenied.value = true; else -> fetchCurrentWiFiSsid { newSsid ->
+            ssid.value = newSsid }
         }
     }
 }
@@ -71,7 +72,7 @@ fun WiFiSsidEditView(
     }
 
     LaunchedEffect(Unit) {
-        currentNetwork.locationManagerDidChangeAuthorization()
+        Unit
     }
 
     LaunchedEffect(ssid) {

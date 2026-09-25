@@ -1,0 +1,14 @@
+{
+  "task": "PIP",
+  "hooks": [
+    {
+      "id": "HPIP.1",
+      "file": "various/model/Model.kt",
+      "scope": "class Model",
+      "op": "replace",
+      "old": "    var pipController: Any? = null",
+      "new": "    var pipController: com.moblin.android.platform.avkit.AVPictureInPictureController? = null",
+      "note": "Swift var pipController: AVPictureInPictureController?. The AVKit shim puts the stream preview in an Activity picture-in-picture window; ModelPictureInPicture reads and sets its contentSource."
+    }
+  ]
+}

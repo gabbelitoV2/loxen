@@ -420,7 +420,7 @@ private fun Model.handleSystemVolumeDidChange(volume: Float, reason: String, seq
             setSystemVolume(volume = initialVolumeValue)
             executeSelfieStickAction()
         } else if (isVolumeMinOrMax(volume = volume)
-            && Duration.between(latestSetVolumeTime, Instant.now()).seconds > 1
+            && latestSetVolumeTime.duration(to = com.moblin.android.platform.core.ContinuousClock.now).toDouble(kotlin.time.DurationUnit.SECONDS) > 1.0
         ) {
             executeSelfieStickAction()
         }
@@ -443,7 +443,7 @@ private fun Model.isVolumeMinOrMax(volume: Float): Boolean {
 }
 
 private fun Model.setSystemVolume(volume: Float) {
-    Unit
+    val volumeSlider = volumeView.subviews.firstOrNull { it is com.moblin.android.platform.uikit.UISlider } as? com.moblin.android.platform.uikit.UISlider ?: return; mainScope.launch { delay(100); latestSetVolumeTime = com.moblin.android.platform.core.ContinuousClock.now; volumeSlider.value = volume }
 }
 
 private fun Model.switchMicIfNeededAfterRouteChange() {

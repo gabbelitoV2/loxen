@@ -1,0 +1,50 @@
+{
+  "task": "VOL",
+  "hooks": [
+    {
+      "id": "HVOL.1",
+      "file": "various/model/Model.kt",
+      "scope": "class Model",
+      "op": "replace",
+      "old": "    val volumeView: Any? = null",
+      "new": "    val volumeView = com.moblin.android.platform.mediaplayer.MPVolumeView(frame = com.moblin.android.platform.coregraphics.CGRect.zero)",
+      "note": "Swift let volumeView = MPVolumeView(frame: .zero). Its UISlider sets the Android media volume, and creating it makes the platform post SystemVolumeDidChange for media volume changes."
+    },
+    {
+      "id": "HVOL.2",
+      "file": "various/model/Model.kt",
+      "scope": "class Model",
+      "op": "replace",
+      "old": "    var latestSetVolumeTime = Instant.now()",
+      "new": "    var latestSetVolumeTime = com.moblin.android.platform.core.ContinuousClock.now",
+      "note": "Swift var latestSetVolumeTime = ContinuousClock.now, a monotonic instant, not the wall clock."
+    },
+    {
+      "id": "HVOL.3",
+      "file": "various/model/Model.kt",
+      "scope": "fun setup",
+      "op": "replace",
+      "old": "        addObserver(\"SystemVolumeDidChange\", \"handleSystemVolumeDidChange\")",
+      "new": "        com.moblin.android.platform.core.NotificationCenter.default.addObserver(this, com.moblin.android.platform.mediaplayer.SystemVolume.didChangeNotification, null) { handleSystemVolumeDidChange(it) }",
+      "note": "Swift addObserver(Notification.Name(\"SystemVolumeDidChange\"), #selector(handleSystemVolumeDidChange)). The generated Model.addObserver(name, selector) does nothing, so the selfie stick never saw a volume button press."
+    },
+    {
+      "id": "HVOL.4",
+      "file": "various/model/ModelAudio.kt",
+      "scope": "fun Model.setSystemVolume",
+      "op": "replace",
+      "old": "    Unit",
+      "new": "    val volumeSlider = volumeView.subviews.firstOrNull { it is com.moblin.android.platform.uikit.UISlider } as? com.moblin.android.platform.uikit.UISlider ?: return; mainScope.launch { delay(100); latestSetVolumeTime = com.moblin.android.platform.core.ContinuousClock.now; volumeSlider.value = volume }",
+      "note": "Swift setSystemVolume on one line: 0.1 seconds later on the main thread, remember the time and set the MPVolumeView slider, which sets the media volume."
+    },
+    {
+      "id": "HVOL.5",
+      "file": "various/model/ModelAudio.kt",
+      "scope": "fun Model.handleSystemVolumeDidChange\nvolume: Float",
+      "op": "replace",
+      "old": "            && Duration.between(latestSetVolumeTime, Instant.now()).seconds > 1",
+      "new": "            && latestSetVolumeTime.duration(to = com.moblin.android.platform.core.ContinuousClock.now).toDouble(kotlin.time.DurationUnit.SECONDS) > 1.0",
+      "note": "Swift latestSetVolumeTime.duration(to: .now) > .seconds(1). The generated whole-second comparison needed two seconds before a press at minimum or maximum volume counted again."
+    }
+  ]
+}

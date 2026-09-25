@@ -1768,7 +1768,7 @@
         "Foundation",
         "NetworkExtension"
       ],
-      "tier": "apple_only",
+      "tier": "platform",
       "declared_types": [],
       "declared_functions": [
         "fetchCurrentWiFiSsid"

@@ -5058,21 +5058,16 @@
   "Moblin/Various/Utils/WiFiUtils.swift": {
     "status": "ok",
     "sha256": "8c9ba48b40ea643f50e0377ab172ccac4955794174098d1e876a954d5880ff74",
-    "tier": "apple_only",
+    "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/utils/WiFiUtils.kt",
     "notes": [
-      "The Swift file only wraps NetworkExtension's NEHotspotNetwork, which has no Android counterpart, so both function bodies are TODO stubs keeping the file's public API intact.",
+      "NEHotspotNetwork.fetchCurrent comes from the NetworkExtension shim (platform/networkextension/NEHotspotNetwork.kt): WifiInfo from the ConnectivityManager transport info on Android 12 and later, WifiManager before that, and null without WiFi or location permission, like iOS.",
       "fetchCurrentWiFiSsid keeps the same callback shape: a top-level function taking (String?) -> Unit, so callers do not change.",
-      "The @MainActor isolation is represented by a private file-level CoroutineScope on Dispatchers.Main; onCompleted is expected to be invoked on the main dispatcher.",
-      "The macCatalyst CoreWLAN dynamic-lookup helper is preserved as a private function of the same name with the same nullable String result.",
-      "On Android the equivalent read is WifiManager/ConnectivityManager plus location permission, but no such implementation is written here because this tier is a compile-compatibility stub.",
-      "onCompleted is never invoked by these stubs; callers must not rely on the callback until an Android implementation is provided.",
+      "DispatchQueue.main.async becomes mainScope.launch on a private file-level CoroutineScope on Dispatchers.Main.",
+      "The macCatalyst CoreWLAN dynamic-lookup helper is preserved as a private function of the same name returning null.",
       "No types are declared by this file, only top-level functions, so declared_types is empty."
     ],
-    "unsupported": [
-      "no Android counterpart for NetworkExtension",
-      "no Android counterpart for NetworkExtension"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 1754,
@@ -7684,24 +7679,13 @@
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelPictureInPicture.kt",
     "notes": [
-      "This whole file is AVKit Picture-in-Picture glue; Android PiP is an Activity mode (PictureInPictureParams + SurfaceView) with no layer/contentSource/playback-delegate model, so the controller-backed bodies become TODO().",
-      "setupPictureInPicture(), updatePictureInPicture() and pictureInPictureEnabled() are translated as top-level extension functions on Model; Model must expose the pipController, stream, isLive and isRecording members they read.",
-      "pipController is kept as a nullable Model member (declared in Model's own file) so the contentSource null-checks in updatePictureInPicture()/pictureInPictureEnabled() stay readable side-by-side with Swift.",
-      "AVPictureInPictureSampleBufferPlaybackDelegate is rewritten as the Kotlin interface PictureInPictureSampleBufferPlaybackDelegate; Kotlin extensions cannot add interface conformance, so Model must implement it in its primary declaration and these extension functions provide the bodies.",
-      "CMTimeRange is mapped to PictureInPictureTimeRange using Long.MIN_VALUE/Long.MAX_VALUE for negative/positive infinity, and CMTime maps to Long microseconds.",
-      "CMVideoDimensions maps to PictureInPictureVideoDimensions(width, height).",
-      "The no-op delegate callbacks are kept as empty bodies and skipByInterval invokes the completion callback, preserving the Swift behaviour.",
-      "AVPictureInPictureController.ContentSource is only ever constructed inside the TODO() bodies because Android has no equivalent object."
+      "AVPictureInPictureController, its ContentSource, AVPictureInPictureSampleBufferPlaybackDelegate and CMVideoDimensions come from the AVKit shim (platform/avkit), which shows the stream preview in an Activity picture-in-picture window: auto-enter on API 31+, enterPictureInPictureMode on user leave before.",
+      "setupPictureInPicture(), updatePictureInPicture() and pictureInPictureEnabled() are top-level extension functions on Model reading pipController, stream, isLive and isRecording like Swift.",
+      "Kotlin extensions cannot add interface conformance, so the delegate methods are Model extensions and the private ModelPictureInPicturePlaybackDelegate forwards to them; it is passed as playbackDelegate where Swift passes self.",
+      "CMTimeRange is the avfoundation shim's CMTimeRange with Long microseconds, Long.MIN_VALUE/Long.MAX_VALUE for negative/positive infinity; skipByInterval is Long microseconds.",
+      "The no-op delegate callbacks keep empty bodies and skipByInterval invokes the completion callback, preserving the Swift behaviour."
     ],
-    "unsupported": [
-      "AVPictureInPictureController",
-      "AVPictureInPictureController.isPictureInPictureSupported()",
-      "AVPictureInPictureController.ContentSource",
-      "AVSampleBufferDisplayLayer (streamPreviewView.layer)",
-      "AVPictureInPictureSampleBufferPlaybackDelegate",
-      "CMTimeRange / CMTime (.negativeInfinity, .positiveInfinity)",
-      "CMVideoDimensions"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 2971,
@@ -9019,8 +9003,8 @@
       "Data.random(length:) became the top-level randomBytes(length:) and String(cArray:) became stringFromCArray(cArray:) because Kotlin cannot add members/initializers to Data or String.",
       "Thumbnails are generated with android.media.MediaMetadataRetriever instead of AVAssetImageGenerator, kept on a single-thread coroutine scope with the result delivered on the main scope.",
       "uploadImage builds an okhttp3.Request and assumes httpCall(request, body, onCompleted) in com.moblin.android.various.network; adjust the call if the real signature differs.",
-      "ResourceUsage: getrusage and host_processor_info have no Android counterpart so updateAppCpuUsage/updateCpuUsage stay TODO(); memory usage is read from android.os.Debug.MemoryInfo.totalPss.",
-      "ContinuousClock.Instant parameters and state became Long nanoseconds, and prior rusage/CPU-tick state is kept as Any?/List<List<UInt>> placeholders next to the TODO() bodies.",
+      "ResourceUsage: getrusage, host_processor_info and task_info come from the Darwin shim (platform/darwin/Darwin.kt): process CPU time from /proc/self/stat, per-CPU ticks from /proc/stat (closed to apps since Android 8, so the device total falls back to the app CPU), and the process PSS in bytes as phys_footprint, measured on a background thread.",
+      "ContinuousClock.Instant parameters and state became Long milliseconds from ContinuousClock; the previous rusage and CPU ticks keep their types (rusage?, List<List<UInt>>?).",
       "List<String>.withCPointers now yields an Array<ByteArray?> of null-terminated UTF-8 strings (the JNI style equivalent) instead of UnsafePointer<CChar> values.",
       "Locale.Language.name() became an extension on java.util.Locale, Array.truncate became MutableList.truncate, and CGSize helpers are extensions on androidx.compose.ui.geometry.Size."
     ],
@@ -9030,9 +9014,7 @@
       "AVError (tryGetToastSubTitle)",
       "AVSpeechSynthesizer (createSpeechSynthesizer)",
       "URL(resolvingBookmarkData:) (makeRecordingPath)",
-      "Bundle.main resource loading (loadStringResource, loadResource)",
-      "getrusage (ResourceUsage.updateAppCpuUsage)",
-      "host_processor_info (ResourceUsage.updateCpuUsage)"
+      "Bundle.main resource loading (loadStringResource, loadResource)"
     ],
     "model": "deepseek-flash",
     "backend": "api",
@@ -13567,7 +13549,7 @@
     "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/WiFiSsidEditView.kt",
     "notes": [
       "CurrentWiFiNetwork is a file-private class whose @Published properties become private MutableStateFlow fields exposed as read-only StateFlow, read in Compose with collectAsState().",
-      "The CLLocationManager delegate (authorization status, requestWhenInUseAuthorization, and the fetchCurrentWiFiSsid completion handler) has no Android counterpart, so its callback body is TODO(); the init that registered the delegate is omitted and noted here.",
+      "CLLocationManager, CLLocationManagerDelegate and CLAuthorizationStatus come from the CoreLocation shim (platform/corelocation/CLLocationManager.kt): setting the delegate in init gives the first authorization callback, requestWhenInUseAuthorization asks for the location permission, and a denial shows the location warning.",
       "The Form/Section structure becomes a LazyColumn: each Section header and footer becomes its own Text item, matching the Swift header/footer slots.",
       ".navigationTitle(\"SSID\") is rendered as the title of a Scaffold TopAppBar (requires ExperimentalMaterial3Api).",
       "value is @State in Swift but is initialised by the parent, so this composable takes value plus an onValueChange callback and writes updates back through it.",
@@ -13575,9 +13557,7 @@
       ".onSubmit plus .submitLabel(.done) map to KeyboardOptions(imeAction = ImeAction.Done) with KeyboardActions(onDone = ...).",
       ".onDisappear maps to DisposableEffect(Unit) { onDispose { ... } }; value and the callbacks are read through rememberUpdatedState so the disposal lambda does not capture stale values."
     ],
-    "unsupported": [
-      "CoreLocation (CLLocationManager authorization status, requestWhenInUseAuthorization, and delegate wiring)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3947,

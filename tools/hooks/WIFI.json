@@ -1,0 +1,102 @@
+{
+  "task": "WIFI",
+  "hooks": [
+    {
+      "id": "HWIFI.1",
+      "file": "various/utils/WiFiUtils.kt",
+      "scope": "fun fetchCurrentWiFiSsid",
+      "op": "replace",
+      "old": "    Unit",
+      "new": "    com.moblin.android.platform.networkextension.NEHotspotNetwork.fetchCurrent { network -> val ssid = network?.ssid; mainScope.launch { onCompleted(ssid) } }",
+      "note": "Swift NEHotspotNetwork.fetchCurrent { network in let ssid = network?.ssid; DispatchQueue.main.async { onCompleted(ssid) } }; nil without location permission or WiFi, like iOS."
+    },
+    {
+      "id": "HWIFI.2",
+      "file": "various/utils/WiFiUtils.kt",
+      "op": "add_import",
+      "new": "import kotlinx.coroutines.launch",
+      "note": "mainScope.launch in HWIFI.1."
+    },
+    {
+      "id": "HWIFI.3",
+      "file": "view/utils/WiFiSsidEditView.kt",
+      "scope": "class CurrentWiFiNetwork",
+      "op": "replace",
+      "old": "private class CurrentWiFiNetwork {",
+      "new": "private class CurrentWiFiNetwork : com.moblin.android.platform.corelocation.CLLocationManagerDelegate {",
+      "note": "Swift extension CurrentWiFiNetwork: CLLocationManagerDelegate."
+    },
+    {
+      "id": "HWIFI.4",
+      "file": "view/utils/WiFiSsidEditView.kt",
+      "scope": "class CurrentWiFiNetwork",
+      "op": "insert_after",
+      "anchor": "    val locationDenied = MutableStateFlow(false)",
+      "new": "    private val locationManager = com.moblin.android.platform.corelocation.CLLocationManager().also { it.delegate = this }",
+      "note": "Swift private let locationManager = CLLocationManager() and locationManager.delegate = self in init; the delegate gets its first authorization callback after init, like iOS."
+    },
+    {
+      "id": "HWIFI.5",
+      "file": "view/utils/WiFiSsidEditView.kt",
+      "scope": "class CurrentWiFiNetwork",
+      "op": "replace",
+      "old": "    fun locationManagerDidChangeAuthorization() {",
+      "new": "    override fun locationManagerDidChangeAuthorization(manager: com.moblin.android.platform.corelocation.CLLocationManager) {",
+      "note": "Swift func locationManagerDidChangeAuthorization(_: CLLocationManager)."
+    },
+    {
+      "id": "HWIFI.6",
+      "file": "view/utils/WiFiSsidEditView.kt",
+      "scope": "fun locationManagerDidChangeAuthorization",
+      "op": "replace",
+      "old": "        fetchCurrentWiFiSsid { newSsid ->",
+      "new": "        when (locationManager.authorizationStatus) { com.moblin.android.platform.corelocation.CLAuthorizationStatus.notDetermined -> locationManager.requestWhenInUseAuthorization(); com.moblin.android.platform.corelocation.CLAuthorizationStatus.denied, com.moblin.android.platform.corelocation.CLAuthorizationStatus.restricted -> locationDenied.value = true; else -> fetchCurrentWiFiSsid { newSsid ->",
+      "note": "Swift switch locationManager.authorizationStatus: ask for location when not determined, show the location warning when denied, otherwise fetch the current SSID."
+    },
+    {
+      "id": "HWIFI.7",
+      "file": "view/utils/WiFiSsidEditView.kt",
+      "scope": "fun locationManagerDidChangeAuthorization",
+      "op": "replace",
+      "old": "            ssid.value = newSsid",
+      "new": "            ssid.value = newSsid }",
+      "note": "Closes the when of HWIFI.6."
+    },
+    {
+      "id": "HWIFI.8",
+      "file": "view/utils/WiFiSsidEditView.kt",
+      "scope": "fun WiFiSsidEditView",
+      "op": "replace",
+      "old": "        currentNetwork.locationManagerDidChangeAuthorization()",
+      "new": "        Unit",
+      "note": "Swift has no such call: the CLLocationManager delegate gets the first authorization callback by itself (HWIFI.4)."
+    },
+    {
+      "id": "HWIFI.9",
+      "file": "view/settings/gopro/GoProBleDeviceSettingsView.kt",
+      "scope": "fun GoProDeviceWifiSection",
+      "op": "insert_after",
+      "anchor": "            destination = {",
+      "new": "                val editedSsid = remember { androidx.compose.runtime.mutableStateOf(device.wifiSsid) }",
+      "note": "Swift WiFiSsidEditView keeps the typed SSID in its own @State and only calls back on submit."
+    },
+    {
+      "id": "HWIFI.10",
+      "file": "view/settings/gopro/GoProBleDeviceSettingsView.kt",
+      "scope": "fun GoProDeviceWifiSection",
+      "op": "replace",
+      "old": "                    value = device.wifiSsid,",
+      "new": "                    value = editedSsid.value,",
+      "note": "See HWIFI.9."
+    },
+    {
+      "id": "HWIFI.11",
+      "file": "view/settings/gopro/GoProBleDeviceSettingsView.kt",
+      "scope": "fun GoProDeviceWifiSection",
+      "op": "replace",
+      "old": "                    onValueChange = update,",
+      "new": "                    onValueChange = { editedSsid.value = it },",
+      "note": "Swift sets device.wifiSsid and looks up the saved password only on submit, so a typed prefix that matches a saved network no longer fills in its password."
+    }
+  ]
+}

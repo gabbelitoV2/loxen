@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Debug
-import android.os.Process
 import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.compose.ui.geometry.Size
@@ -33,6 +32,7 @@ import kotlinx.coroutines.launch
 import okhttp3.Request
 import com.moblin.android.AppDelegate
 import com.moblin.android.media.haishinkit.extension.dictionaryFromQuery
+import com.moblin.android.platform.darwin.*
 
 fun randomBytes(length: Int): ByteArray = ByteArray(length) { Random.nextInt(0, 256).toByte() }
 
@@ -156,7 +156,7 @@ fun Size.maximum(): Float = max(height, width)
 
 class ResourceUsage {
     private var previousTime: Long? = null
-    private var previousUsage: Any? = null
+    private var previousUsage: rusage? = null
     private var previousCpuTicks: List<List<UInt>>? = null
     private var appCpuUsage: Float = 0f
     private var cpuUsage: Float = 0f
@@ -175,25 +175,17 @@ class ResourceUsage {
     fun getMemoryUsage(): Int = memoryUsage.toInt()
 
     private fun updateAppCpuUsage(now: Long) {
-        val usage = Process.getElapsedCpuTime()
-        val previousTime = previousTime
-        val previousUsage = previousUsage as? Long
-        if (previousTime != null && previousUsage != null) {
-            val time = (usage - previousUsage).toFloat()
-            appCpuUsage = 100 * time / (now - previousTime).toFloat()
-        }
-        this.previousTime = now
-        this.previousUsage = usage
+        val usage = rusage(); if (getrusage(RUSAGE_SELF, usage) != 0) { return }; val previousTime = previousTime; val previousUsage = previousUsage; if (previousTime != null && previousUsage != null) { val systemTime = usage.ru_stime.milliseconds - previousUsage.ru_stime.milliseconds; val userTime = usage.ru_utime.milliseconds - previousUsage.ru_utime.milliseconds; val time = (systemTime + userTime).toFloat(); appCpuUsage = 100 * time / (now - previousTime).toFloat() }; this.previousTime = now; this.previousUsage = usage
     }
 
     private fun updateCpuUsage() {
-        Unit
+        val info = host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO) ?: run { cpuUsage = appCpuUsage; return }; val states = CPU_STATE_MAX; val ticks = (0 until info.numberOfCpus).map { cpu -> (0 until states).map { info[cpu * states + it].toUInt() } }; val previousCpuTicks = previousCpuTicks; if (previousCpuTicks != null && previousCpuTicks.size == ticks.size) { var usage = 0f; for ((current, previous) in ticks.zip(previousCpuTicks)) { val user = (current[CPU_STATE_USER] - previous[CPU_STATE_USER]).toFloat(); val system = (current[CPU_STATE_SYSTEM] - previous[CPU_STATE_SYSTEM]).toFloat(); val idle = (current[CPU_STATE_IDLE] - previous[CPU_STATE_IDLE]).toFloat(); val nice = (current[CPU_STATE_NICE] - previous[CPU_STATE_NICE]).toFloat(); val total = user + system + idle + nice; if (total > 0) { usage += 100 * (user + system + nice) / total } }; cpuUsage = usage }; this.previousCpuTicks = ticks
     }
 
     private fun updateMemoryUsage() {
-        val info = Debug.MemoryInfo()
-        Debug.getMemoryInfo(info)
-        memoryUsage = (info.totalPss.toLong() / 1024L / 1024L).toULong()
+        val info = task_vm_info_data_t()
+        val kerr = task_info(mach_task_self_, TASK_VM_INFO, info)
+        if (kerr == KERN_SUCCESS) { memoryUsage = info.phys_footprint / 1024u / 1024u } else { memoryUsage = 0u }
     }
 }
 

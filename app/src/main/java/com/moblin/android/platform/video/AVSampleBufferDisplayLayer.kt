@@ -5,6 +5,7 @@ import android.opengl.EGL14
 import android.opengl.EGLSurface
 import android.os.SystemClock
 import android.util.Log
+import android.util.Size
 import android.view.TextureView
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.media.video.PreviewView
@@ -13,6 +14,7 @@ import com.moblin.android.platform.core.PipelineStats
 import com.moblin.android.platform.core.PipelineThread
 import java.lang.ref.WeakReference
 import java.util.WeakHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 
 private const val TAG = "MoblinPreview"
 
@@ -33,6 +35,23 @@ class AVSampleBufferDisplayLayer internal constructor(view: TextureView) {
     @Volatile
     var status: Status = Status.unknown
         private set
+
+    @Volatile
+    internal var videoSize: Size? = null
+        private set
+
+    private val videoSizeObservers = CopyOnWriteArrayList<() -> Unit>()
+
+    internal val view: TextureView?
+        get() = viewRef.get()
+
+    internal fun addVideoSizeObserver(observer: () -> Unit) {
+        videoSizeObservers.addIfAbsent(observer)
+    }
+
+    internal fun removeVideoSizeObserver(observer: () -> Unit) {
+        videoSizeObservers.remove(observer)
+    }
 
     private class InFlight(val sampleBuffer: MediaSample, var leased: Boolean)
 
@@ -173,6 +192,12 @@ class AVSampleBufferDisplayLayer internal constructor(view: TextureView) {
         }
         lastBuffer = buffer
         releaseLease(old)
+        if (buffer != null && buffer.size != videoSize) {
+            videoSize = buffer.size
+            for (observer in videoSizeObservers) {
+                observer()
+            }
+        }
     }
 
     private fun redrawBuffer(): CVPixelBuffer? {

@@ -631,7 +631,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     val externalDisplayStreamPreviewView = PreviewView(context = AppDelegate.context)
     val cameraPreviewView = CameraPreviewUiView(context = AppDelegate.context)
     val videoPreview = VideoPreviewProvider()
-    var pipController: Any? = null
+    var pipController: com.moblin.android.platform.avkit.AVPictureInPictureController? = null
     var textEffects: MutableMap<UUID, TextEffect> = mutableMapOf()
     var imageEffects: MutableMap<UUID, ImageEffect> = mutableMapOf()
     var browserEffects: MutableMap<UUID, BrowserEffect> = mutableMapOf()
@@ -791,8 +791,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var isAppActive = true
     var initialVolume: Float? = null
     var latestVolumeChangeSequenceNumber: Int? = null
-    val volumeView: Any? = null
-    var latestSetVolumeTime = Instant.now()
+    val volumeView = com.moblin.android.platform.mediaplayer.MPVolumeView(frame = com.moblin.android.platform.coregraphics.CGRect.zero)
+    var latestSetVolumeTime = com.moblin.android.platform.core.ContinuousClock.now
     var isBluetoothAudioOutput = false
     private var appStoreUpdateListenerTask: Job? = null
     var products: MutableMap<String, Any> = mutableMapOf()
@@ -1303,7 +1303,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
             updateProductFromAppStore()
             updateIconImageFromDatabase()
         }
-        addObserver("SystemVolumeDidChange", "handleSystemVolumeDidChange")
+        com.moblin.android.platform.core.NotificationCenter.default.addObserver(this, com.moblin.android.platform.mediaplayer.SystemVolume.didChangeNotification, null) { handleSystemVolumeDidChange(it) }
         addObserver("UIApplication.willResignActiveNotification", "handleApplicationDidChangeActive")
         addObserver("UIApplication.didBecomeActiveNotification", "handleApplicationDidChangeActive")
         addObserver("AVAudioSession.routeChangeNotification", "handleAudioRouteChange")
@@ -1970,7 +1970,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         updateBitrateStatus()
         updateAdsRemainingTimer(now = now)
         if (database.show.systemMonitor) {
-            resourceUsage.update(now = monotonicNow.toEpochMilli())
+            resourceUsage.update(now = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds / 1_000_000)
             systemMonitor.appCpu.value = resourceUsage.getAppCpuUsage()
             systemMonitor.cpu.value = resourceUsage.getCpuUsage()
             systemMonitor.ram.value = resourceUsage.getMemoryUsage()

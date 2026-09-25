@@ -2,6 +2,7 @@ package com.moblin.android.various.utils
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
@@ -10,5 +11,5 @@ private fun fetchCurrentWiFiSsidCoreWlan(): String? {
 }
 
 fun fetchCurrentWiFiSsid(onCompleted: (String?) -> Unit) {
-    Unit
+    com.moblin.android.platform.networkextension.NEHotspotNetwork.fetchCurrent { network -> val ssid = network?.ssid; mainScope.launch { onCompleted(ssid) } }
 }

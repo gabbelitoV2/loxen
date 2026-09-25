@@ -17,10 +17,11 @@ object SystemEvents {
     private var observing = false
     private var model: Model? = null
     private var startedActivities = 0
+    private var resumedActivities = 0
     private var hasEnteredBackground = false
 
     val isInBackground: Boolean
-        get() = hasEnteredBackground && startedActivities == 0
+        get() = hasEnteredBackground
 
     private val lifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
         override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
@@ -33,15 +34,30 @@ object SystemEvents {
             }
         }
 
-        override fun onActivityResumed(activity: Activity) {}
+        override fun onActivityResumed(activity: Activity) {
+            resumedActivities += 1
+            if (hasEnteredBackground && startedActivities > 0 && !activity.isInPictureInPictureMode) {
+                hasEnteredBackground = false
+                applicationWillEnterForeground()
+            }
+            applicationDidChangeActive(active = true)
+        }
 
-        override fun onActivityPaused(activity: Activity) {}
+        override fun onActivityPaused(activity: Activity) {
+            if (resumedActivities > 0) {
+                resumedActivities -= 1
+            }
+            applicationDidChangeActive(active = false)
+            if (activity.isInPictureInPictureMode) {
+                pictureInPictureModeChanged(isInPictureInPictureMode = true)
+            }
+        }
 
         override fun onActivityStopped(activity: Activity) {
             if (startedActivities > 0) {
                 startedActivities -= 1
             }
-            if (startedActivities == 0 && !activity.isChangingConfigurations) {
+            if (startedActivities == 0 && !activity.isChangingConfigurations && !hasEnteredBackground) {
                 hasEnteredBackground = true
                 applicationDidEnterBackground()
             }
@@ -77,6 +93,30 @@ object SystemEvents {
             this.model?.handleAudioRouteChange(notification = notification)
         }
         UIDevice.current.beginGeneratingDeviceOrientationNotifications()
+    }
+
+    fun pictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+        if (isInPictureInPictureMode && !hasEnteredBackground) {
+            hasEnteredBackground = true
+            applicationDidEnterBackground()
+        } else if (!isInPictureInPictureMode && hasEnteredBackground && startedActivities > 0 && resumedActivities > 0) {
+            hasEnteredBackground = false
+            applicationWillEnterForeground()
+        }
+    }
+
+    private fun applicationDidChangeActive(active: Boolean) {
+        val model = model ?: return
+        val name = if (active) {
+            "UIApplication.didBecomeActiveNotification"
+        } else {
+            "UIApplication.willResignActiveNotification"
+        }
+        try {
+            model.handleApplicationDidChangeActive(name)
+        } catch (error: Throwable) {
+            Log.e(TAG, "handleApplicationDidChangeActive failed", error)
+        }
     }
 
     private fun applicationDidEnterBackground() {

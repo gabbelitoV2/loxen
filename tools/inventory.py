@@ -21,11 +21,11 @@ UI = {
 PLATFORM = {
     "Network", "CoreBluetooth", "CoreLocation", "CryptoKit", "GameController", "Speech",
     "NaturalLanguage", "CoreMotion", "LocalAuthentication", "AuthenticationServices", "Security",
-    "SystemConfiguration", "CoreTelephony", "libsrt", "CoreHaptics", "MediaPlayer",
+    "SystemConfiguration", "CoreTelephony", "libsrt", "CoreHaptics", "MediaPlayer", "NetworkExtension",
 }
 APPLE_ONLY = {
     "WatchConnectivity", "HealthKit", "HomeKit", "CarPlay", "ReplayKit", "ExternalAccessory",
-    "MultipeerConnectivity", "NetworkExtension", "CoreNFC", "CoreSpotlight", "MusicKit",
+    "MultipeerConnectivity", "CoreNFC", "CoreSpotlight", "MusicKit",
     "BackgroundTasks", "CallKit", "PushKit", "CloudKit", "ShazamKit",
 }
 NEUTRAL = {"Foundation", "Combine", "os", "OSLog"}
