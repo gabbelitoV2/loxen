@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-09-25T10:23:59+00:00
+Generated 2026-09-25T11:54:58+00:00
 
 ## Summary
 
@@ -434,7 +434,7 @@ Generated 2026-09-25T10:23:59+00:00
 | Moblin/Integrations/GoPro/Protobuf/response_generic.pb.swift | app/src/main/java/com/moblin/android/integrations/gopro/protobuf/response_generic.pb.kt | deepseek-flash | 36.2 |
 | Moblin/Integrations/OpenAi/OpenAi.swift | app/src/main/java/com/moblin/android/integrations/openai/OpenAi.kt | deepseek-flash | 76.0 |
 | Moblin/Integrations/RealtimeIrl/RealtimeIrl.swift | app/src/main/java/com/moblin/android/integrations/realtimeirl/RealtimeIrl.kt | deepseek-flash | 16.5 |
-| Moblin/Integrations/Tesla/TeslaVehicle.swift | app/src/main/java/com/moblin/android/integrations/tesla/TeslaVehicle.kt | deepseek-flash | 195.1 |
+| Moblin/Integrations/Tesla/TeslaVehicle.swift | app/src/main/java/com/moblin/android/integrations/tesla/TeslaVehicle.kt | deepseek-flash | 167.2 |
 | Moblin/Integrations/Tesla/TeslaVehicleScanner.swift | app/src/main/java/com/moblin/android/integrations/tesla/TeslaVehicleScanner.kt | deepseek-flash | 16.2 |
 | Moblin/Integrations/TtsMonster/TtsMonster.swift | app/src/main/java/com/moblin/android/integrations/ttsmonster/TtsMonster.kt | deepseek-flash | 41.6 |
 | Moblin/Integrations/WorkoutDevice/WorkoutDevice.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDevice.kt | deepseek-flash | 49.0 |
@@ -682,7 +682,7 @@ Generated 2026-09-25T10:23:59+00:00
 | Moblin/Various/Model/ModelStream.swift | app/src/main/java/com/moblin/android/various/model/ModelStream.kt | deepseek-flash | 161.9 |
 | Moblin/Various/Model/ModelStreamDeck.swift | app/src/main/java/com/moblin/android/various/model/ModelStreamDeck.kt | deepseek-flash | 43.2 |
 | Moblin/Various/Model/ModelStreamWizard.swift | app/src/main/java/com/moblin/android/various/model/ModelStreamWizard.kt | deepseek-flash | 94.9 |
-| Moblin/Various/Model/ModelTesla.swift | app/src/main/java/com/moblin/android/various/model/ModelTesla.kt | deepseek-flash | 63.3 |
+| Moblin/Various/Model/ModelTesla.swift | app/src/main/java/com/moblin/android/various/model/ModelTesla.kt | deepseek-flash | 43.3 |
 | Moblin/Various/Model/ModelTextToSpeech.swift | app/src/main/java/com/moblin/android/various/model/ModelTextToSpeech.kt | deepseek-flash | 6.9 |
 | Moblin/Various/Model/ModelTwitch.swift | app/src/main/java/com/moblin/android/various/model/ModelTwitch.kt | deepseek-flash | 67.7 |
 | Moblin/Various/Model/ModelVariables.swift | app/src/main/java/com/moblin/android/various/model/ModelVariables.kt | deepseek-flash | 24.9 |
@@ -1044,7 +1044,7 @@ Generated 2026-09-25T10:23:59+00:00
 | Moblin/View/Settings/Streams/Stream/YouTube/StreamYouTubeSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/stream/youtube/StreamYouTubeSettingsView.kt | deepseek-flash | 79.2 |
 | Moblin/View/Settings/Streams/StreamsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/StreamsSettingsView.kt | deepseek-flash | 57.3 |
 | Moblin/View/Settings/Talkback/TalkbackSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/talkback/TalkbackSettingsView.kt | deepseek-flash | 44.4 |
-| Moblin/View/Settings/Tesla/TeslaSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/tesla/TeslaSettingsView.kt | deepseek-flash | 58.5 |
+| Moblin/View/Settings/Tesla/TeslaSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/tesla/TeslaSettingsView.kt | deepseek-flash | 44.3 |
 | Moblin/View/Settings/Tesla/TeslaVehicleScannerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/tesla/TeslaVehicleScannerSettingsView.kt | deepseek-flash | 29.6 |
 | Moblin/View/Settings/Watch/Chat/WatchChatSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/watch/chat/WatchChatSettingsView.kt | deepseek-flash | 32.3 |
 | Moblin/View/Settings/Watch/Display/LocalOverlays/WatchLocalOverlaysSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/watch/display/localoverlays/WatchLocalOverlaysSettingsView.kt | deepseek-flash | 30.3 |

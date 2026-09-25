@@ -6280,26 +6280,27 @@
   "Moblin/Integrations/Tesla/TeslaVehicle.swift": {
     "status": "ok",
     "sha256": "94c4b6ee403838242a6f8afbd1339d8ed3ad461aeab85cdfc30f709a8be1024e",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "mode": "full",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/integrations/tesla/TeslaVehicle.kt",
     "notes": [
-      "CoreBluetooth maps to BluetoothAdapter/BluetoothGatt/BluetoothGattCallback; the CBCentralManagerDelegate and CBPeripheralDelegate extensions are merged into the Android callbacks onConnectionStateChange, onServicesDiscovered, onCharacteristicChanged and onCharacteristicWrite.",
-      "peripheralId is a CoreBluetooth UUID; Android resolves a peripheral from its Bluetooth MAC address, so the identifier stored by the app must be the MAC address passed to BluetoothAdapter.getRemoteDevice.",
-      "CryptoKit P-256, SHA-1/SHA-256 and AES-GCM are replaced by JCA: KeyAgreement ECDH, MessageDigest and Cipher AES/GCM/NoPadding, with the tag and ciphertext split out of the sealed output by hand because the JCA returns them concatenated.",
-      "CryptoKit exposes .publicKey on a private key; JCA does not, so the raw public point is read from the publicKey BIT STRING of the PKCS#8 DER (privateKeyFromPem, ecPublicKeyBytesFromPem, derContent).",
-      "The protobuf types (UniversalMessage_*, Signatures_*, VCSEC_*, CarServer_*) are not in the glossary; they are assumed to be generated into this package with mutable ByteArray/Int properties and enum number values, matching the flattened names the Swift code already uses.",
-      "responseHandlers is keyed by the hex string of the routing address because ByteArray has no value equality.",
-      "BluetoothGatt requires a Context that the Swift initialiser never carried; the Activity layer must assign TeslaVehicle.applicationContext before start().",
-      "BluetoothGatt allows one outstanding write, so the 20-byte blocks are queued in pendingWriteBlocks and drained in onCharacteristicWrite instead of being written back to back."
+      "TeslaVehicle implements CBCentralManagerDelegate and CBPeripheralDelegate directly; the two Swift extensions became override members at the end of the class body.",
+      "responseHandlers is keyed by address.hexString() because ByteArray keys compare by identity.",
+      "The P256 public key DER-header extension became a companion invoke operator plus a toBytes() extension in this file.",
+      "Deque<Job> is ArrayDeque<Job>: append -> addLast, popFirst -> removeFirstOrNull, removeAll -> clear.",
+      "Data.random(length:) -> randomBytes() from com.moblin.android.various.utils; Data.random(length:) for uuid addresses too.",
+      "@MainActor and @available(iOS 17) have no Kotlin counterpart, so the auto-reconnect option is set unconditionally.",
+      "protobuf .init() assignments name the generated message type explicitly (CarServer_*), as the Kotlin setters need a value.",
+      "Log.i/Log.d use the TeslaVehicle tag in place of logger.info/logger.debug."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 8185,
-    "tokens_out": 51962,
-    "seconds": 195.1,
-    "ported_at": "2026-09-22T13:08:34+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 54718,
+    "tokens_out": 51858,
+    "seconds": 167.2,
+    "ported_at": "2026-09-25T11:19:40+00:00"
   },
   "Moblin/Media/HaishinKit/Extension/Data+Extension.swift": {
     "status": "ok",
@@ -11916,26 +11917,27 @@
   "Moblin/Various/Model/ModelTesla.swift": {
     "status": "ok",
     "sha256": "ff0e31cf6f52aad7e886f4929881640a15b65c9f161a55088af63e9ff0ac1bfb",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelTesla.kt",
     "notes": [
-      "Tesla's @Published properties are exposed as public MutableStateFlow fields (no private backing field) so model code in this file can assign through .value while Compose views can still collectAsState().",
-      "TeslaVehicleState enum entries are assumed to be IDLE / CONNECTING / CONNECTED (Kotlin naming); rename if the integrations package uses different entries.",
-      "The Swift 'extension Model: TeslaVehicleDelegate' becomes top-level extension functions on Model; Model.kt must declare ': TeslaVehicleDelegate' and can forward its members to these functions (or they can be moved into Model as overrides).",
-      "The protobuf-generated Tesla vehicle-command types keep their SwiftProtobuf names (CarServer_ChargeState, CarServer_DriveState, CarServer_MediaState); add the matching imports from the generated protobuf package.",
-      "Oneof fields (optionalSpeed, optionalPower, optionalNowPlayingArtist/Title) are treated as sealed-style nested types with a .value payload; switch to the xCase/number accessors if the Kotlin protobuf binding works that way.",
-      "Measurement(milesPerHour).converted(metersPerSecond) is replaced by the constant factor 0.44704.",
-      "format(speed:) is called positionally as format(metersPerSecond); localized() comes from package com.moblin.android.",
-      "This is the model layer of the ui tier, so it declares no @Composable functions - only the Tesla state holder and Model extensions."
+      "Tesla's @Published properties become MutableStateFlow (vehicleState, vehicleVehicleSecurityConnected, vehicleInfotainmentConnected); views read them with collectAsState, and every assignment here writes .value.",
+      "Model's conformance to TeslaVehicleDelegate becomes three Model extension functions plus a private ModelTeslaVehicleDelegate forwarding class, which reloadTeslaVehicle assigns to tesla.vehicle?.delegate.",
+      "Tesla protobuf oneof reads use casts: optionalSpeed/optionalPower as CarServer_DriveState.OneOf_* classes, and optionalNowPlayingArtist/optionalNowPlayingTitle as CarServer_MediaState.OneOf_* classes, taking .value.",
+      "optionalBatteryLevel and optionalMinutesToChargeLimit are presence checks, so they are translated as '!= null'.",
+      "Miles per hour to meters per second is a Measurement(value = speed.toDouble(), unit = UnitSpeed.milesPerHour).converted(to = UnitSpeed.metersPerSecond) from com.moblin.android.common.various, then formatSpeed(speed = ...).",
+      "String(localized:) is localized(...) and makeToast(title = ...) stays the existing Model extension.",
+      "The switch over TeslaVehicleState uses the Kotlin enum entries idle, connecting and connected.",
+      "The switch over the shift oneof uses is-branches on CarServer_ShiftState.OneOf_Type inside a null check."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5347,
-    "tokens_out": 15902,
-    "seconds": 63.3,
-    "ported_at": "2026-09-22T13:35:45+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 45782,
+    "tokens_out": 12487,
+    "seconds": 43.3,
+    "ported_at": "2026-09-25T11:24:40+00:00"
   },
   "Moblin/VideoEffects/Scoreboard/ScoreboardEffectGolfView.swift": {
     "status": "ok",
@@ -16042,26 +16044,27 @@
   "Moblin/View/Settings/Tesla/TeslaSettingsView.swift": {
     "status": "ok",
     "sha256": "52bb225e2b115ea857ea6f5d88a6ba11eb3d9513a1d7f49a49e40969aefaf36d",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/tesla/TeslaSettingsView.kt",
     "notes": [
-      "SwiftUI Form/Section became a LazyColumn with plain Text header/footer items; navigationTitle became a Scaffold with a Material3 TopAppBar.",
-      "NavigationLink/NavigationStack were replaced by an onNavigate: (String) -> Unit parameter carrying the destination name; the TeslaVehicleScannerSettingsView onChange callback must be wired by the navigation host.",
-      "TeslaSettingsConfigurationView was private in Swift but is declared public here because the destination is now resolved by the navigation host outside this file.",
-      "Observable values (@ObservedObject/@EnvironmentObject) are read with collectAsState(); writes assume the settings/state properties are MutableStateFlow, so they use .value = ...",
-      "Image(\"Tesla\") was mapped to painterResource(id = R.drawable.tesla) with ContentScale.Fit for .resizable().scaledToFit().",
-      "UUID(uuidString:) maps to runCatching { UUID.fromString(value) }.getOrNull() with an early return, mirroring guard let.",
-      "Calls into TextButtonView/TextEditNavigationView/GrayTextView assume the Kotlin helpers expose text/title/value/enabled/onSubmit/onClick parameters; GrayTextView is wrapped in a clickable Box for navigation.",
-      "Only String(localized:) literals were routed through localized(); plain Swift literals such as \"Vehicle\", \"Tesla\" and the button labels were kept as-is."
+      "formatTeslaVehicleState stays a private top-level function; TeslaVehicleState? null and .idle both map to the Disconnected string.",
+      "TextButtonView has no enabled state on Android, so every .disabled(...) row became FormButton(title = ..., centered = true, enabled = ...); the enabled rows stay TextButtonView.",
+      "The configuration view's enabled condition reads the collected vehicleState first, so the plain database checks cannot short-circuit the state read and leave the row stale.",
+      "tesla.vehicleState, tesla.vehicleInfotainmentConnected and tesla.vehicleVehicleSecurityConnected are StateFlows collected with collectAsState() at the top of each composable that uses them.",
+      "UUID(uuidString:) is translated to runCatching { UUID.fromString(value) }.getOrNull(), so an invalid string returns early as the Swift guard did.",
+      "ObservedObject parameters tesla and settings are plain required parameters; model keeps the LocalModel.current default of @EnvironmentObject.",
+      "NavigationLink destinations keep their real composables (TeslaVehicleScannerSettingsView, TeslaSettingsConfigurationView) instead of a string route.",
+      "String(localized:) is localized(...); Image(\"Tesla\") is AssetImage with ContentScale.Fit."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5872,
-    "tokens_out": 15188,
-    "seconds": 58.5,
-    "ported_at": "2026-09-22T13:59:35+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 48048,
+    "tokens_out": 12228,
+    "seconds": 44.3,
+    "ported_at": "2026-09-25T11:40:03+00:00"
   },
   "Moblin/View/Settings/WorkoutDevices/WorkoutDeviceSettingsView.swift": {
     "status": "ok",
