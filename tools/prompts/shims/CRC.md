@@ -1,0 +1,3 @@
+<!-- scope: Moblin/Integrations/Dji/DjiMessage.swift, Moblin/Integrations/CatPrinter/ -->
+## CrcSwift (CRC, package com.moblin.android.platform.crcswift)
+- `import CrcSwift` -> `import com.moblin.android.platform.crcswift.CrcSwift`; never write a CRC loop of your own. `CrcSwift.computeCrc8(data, initialCrc: 0xEE, polynom: 0x31, xor: 0x00, refIn: true, refOut: true)` -> `CrcSwift.computeCrc8(data, initialCrc = 0xEEu, polynom = 0x31u, xor = 0x00u, refIn = true, refOut = true)` with `data: ByteArray`, returning `UByte`; `computeCrc16` takes and returns `UShort`, `computeCrc32` `UInt`. Omitted arguments get the defaults of CrcSwift's `Data` overloads, so `CrcSwift.computeCrc8(data)` stays `CrcSwift.computeCrc8(data)`.

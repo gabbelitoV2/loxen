@@ -1,20 +1,21 @@
 package com.moblin.android.integrations.workoutdevice
 
-import android.bluetooth.BluetoothGattCharacteristic
+import com.moblin.android.common.various.isBitSet
 import com.moblin.android.media.haishinkit.util.ByteReader
-import java.util.UUID
+import com.moblin.android.platform.corebluetooth.CBCharacteristic
+import com.moblin.android.platform.corebluetooth.CBUUID
 
-val workoutDeviceHeartRateServiceId: UUID = UUID.fromString("0000180D-0000-1000-8000-00805F9B34FB")
-val workoutDeviceHeartRateMeasurementCharacteristicId: UUID = UUID.fromString("00002A37-0000-1000-8000-00805F9B34FB")
+val workoutDeviceHeartRateServiceId = CBUUID(string = "180D")
+val workoutDeviceHeartRateMeasurementCharacteristicId = CBUUID(string = "2A37")
 private const val measurementHeartRateValueFormatIndex = 0
 
-private class HeartRateMeasurement(value: ByteArray) {
+private class HeartRateMeasurement {
     var heartRate: UShort = 0u
 
-    init {
-        val reader = ByteReader(data = value)
+    constructor(value: ByteArray) {
+        val reader = ByteReader(value)
         val flags = reader.readUInt8()
-        if ((flags.toInt() and (1 shl measurementHeartRateValueFormatIndex)) != 0) {
+        if (flags.isBitSet(index = measurementHeartRateValueFormatIndex)) {
             heartRate = reader.readUInt16Le()
         } else {
             heartRate = reader.readUInt8().toUShort()
@@ -22,20 +23,22 @@ private class HeartRateMeasurement(value: ByteArray) {
     }
 }
 
-class WorkoutDeviceHeartRate {
-    private var measurementCharacteristic: BluetoothGattCharacteristic? = null
+open class WorkoutDeviceHeartRate {
+    private var measurementCharacteristic: CBCharacteristic? = null
 
-    fun reset() {
+    open fun reset() {
         measurementCharacteristic = null
     }
 
-    fun setMeasurementCharacteristic(characteristic: BluetoothGattCharacteristic) {
+    open fun setMeasurementCharacteristic(characteristic: CBCharacteristic) {
         measurementCharacteristic = characteristic
     }
 
-    fun isAnyCharacteristicDiscovered(): Boolean = measurementCharacteristic != null
+    open fun isAnyCharacteristicDiscovered(): Boolean {
+        return measurementCharacteristic != null
+    }
 
-    fun handleMeasurement(value: ByteArray): Int {
+    open fun handleMeasurement(value: ByteArray): Int {
         val measurement = HeartRateMeasurement(value)
         return measurement.heartRate.toInt()
     }

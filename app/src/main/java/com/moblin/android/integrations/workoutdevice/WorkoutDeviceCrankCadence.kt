@@ -1,30 +1,30 @@
 package com.moblin.android.integrations.workoutdevice
 
-import java.time.Duration
-import java.time.Instant
+import com.moblin.android.platform.core.ContinuousClock
+import kotlin.time.Duration.Companion.seconds
 
 private const val averageSampleCount = 3
 
-class WorkoutDeviceAverageCalculator {
+open class WorkoutDeviceAverageCalculator {
     private var values = DoubleArray(averageSampleCount)
     private var nextIndex = 0
 
-    fun reset() {
+    open fun reset() {
         values = DoubleArray(averageSampleCount)
         nextIndex = 0
     }
 
-    fun update(value: Double) {
+    open fun update(value: Double) {
         values[nextIndex] = value
         nextIndex += 1
         nextIndex %= averageSampleCount
     }
 
-    fun average(): Double {
+    open fun average(): Double {
         return values.sum() / averageSampleCount.toDouble()
     }
 
-    fun averageIgnoreZeros(): Double {
+    open fun averageIgnoreZeros(): Double {
         val nonZeroValues = values.filter { it != 0.0 }
         if (nonZeroValues.isEmpty()) {
             return 0.0
@@ -33,31 +33,31 @@ class WorkoutDeviceAverageCalculator {
     }
 }
 
-class WorkoutDeviceCrankCadence {
+open class WorkoutDeviceCrankCadence {
     private var previousRevolutions: UShort? = null
     private var previousRevolutionsTime: UShort? = null
     private val averageCadence = WorkoutDeviceAverageCalculator()
-    private var latestAverageCadenceUpdateTime: Instant = Instant.now()
+    private var latestAverageCadenceUpdateTime = ContinuousClock.now
     private var reportsCadence = false
 
-    fun reset() {
+    open fun reset() {
         previousRevolutions = null
         previousRevolutionsTime = null
         averageCadence.reset()
         reportsCadence = false
     }
 
-    fun update(revolutions: UShort?, time: UShort?, now: Instant): Int? {
+    open fun update(revolutions: UShort?, time: UShort?, now: ContinuousClock.Instant): Int? {
         var cadence = -1.0
         if (revolutions != null && time != null) {
-            val lastRevolutions = previousRevolutions
-            val lastRevolutionsTime = previousRevolutionsTime
-            if (lastRevolutions != null && lastRevolutionsTime != null) {
-                var deltaRevolutions = revolutions.toInt() - lastRevolutions.toInt()
+            val prevRevolutions = previousRevolutions
+            val prevRevolutionsTime = previousRevolutionsTime
+            if (prevRevolutions != null && prevRevolutionsTime != null) {
+                var deltaRevolutions = revolutions.toInt() - prevRevolutions.toInt()
                 if (deltaRevolutions < 0) {
                     deltaRevolutions += 65536
                 }
-                var deltaTime = time.toInt() - lastRevolutionsTime.toInt()
+                var deltaTime = time.toInt() - prevRevolutionsTime.toInt()
                 if (deltaTime < 0) {
                     deltaTime += 65536
                 }
@@ -72,10 +72,10 @@ class WorkoutDeviceCrankCadence {
         }
         if (cadence != -1.0) {
             reportsCadence = true
-            averageCadence.update(cadence)
+            averageCadence.update(value = cadence)
             latestAverageCadenceUpdateTime = now
-        } else if (Duration.between(latestAverageCadenceUpdateTime, now) > Duration.ofSeconds(3)) {
-            averageCadence.update(0.0)
+        } else if (latestAverageCadenceUpdateTime.duration(to = now) > 3.seconds) {
+            averageCadence.update(value = 0.0)
         }
         if (!reportsCadence) {
             return null

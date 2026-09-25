@@ -13,7 +13,7 @@ import java.util.UUID
 
 fun Model.startGoProDeviceLiveStream(device: SettingsGoProDevice) {
     if (!goProDevices.containsKey(device.id)) {
-        val goProDevice = GoProDevice(AppDelegate.context)
+        val goProDevice = GoProDevice()
         goProDevice.delegate = object : GoProDeviceDelegate {
             override fun goProDeviceStreamingState(device: GoProDevice, state: GoProDeviceState) {
                 this@startGoProDeviceLiveStream.goProDeviceStreamingState(device, state)

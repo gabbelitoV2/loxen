@@ -3,7 +3,7 @@ package com.moblin.android.various.model
 import com.moblin.android.integrations.blacksharkcooler.BlackSharkCoolerDevice
 import com.moblin.android.integrations.blacksharkcooler.BlackSharkCoolerDeviceDelegate
 import com.moblin.android.integrations.blacksharkcooler.BlackSharkCoolerDeviceState
-import com.moblin.android.integrations.blacksharkcooler.BlackSharkLib
+import com.moblin.android.platform.blacksharklib.BlackSharkLib
 import com.moblin.android.various.settings.SettingsBlackSharkCoolerDevice
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +24,7 @@ private val mainScope = CoroutineScope(Dispatchers.Main)
 fun Model.enableBlackSharkDevice(device: SettingsBlackSharkCoolerDevice) {
     val peripheralId = device.bluetoothPeripheralId ?: return
     if (!blackSharkCoolerDevices.containsKey(peripheralId)) {
-        val blackSharkCoolerDevice = BlackSharkCoolerDevice(context = AppDelegate.context)
+        val blackSharkCoolerDevice = BlackSharkCoolerDevice()
         blackSharkCoolerDevice.delegate = BlackSharkCoolerDeviceDelegateImpl(this)
         blackSharkCoolerDevices[peripheralId] = blackSharkCoolerDevice
     }

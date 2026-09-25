@@ -3,8 +3,8 @@ package com.moblin.android.view.settings.blacksharkcoolers
 import androidx.compose.runtime.Composable
 import com.moblin.android.LocalModel
 import com.moblin.android.localized
-import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Section
 import com.moblin.android.platform.swiftui.removing
 import com.moblin.android.various.model.Model
@@ -22,8 +22,7 @@ fun BlackSharkCoolerDevicesSettingsView(
     model: Model = LocalModel.current,
     blackSharkCoolerDevices: SettingsBlackSharkCoolerDevices,
 ) {
-    val statusTopRight = model.statusTopRight
-    Form(title = localized("Black Shark coolers")) {
+    Form(title = "Black Shark coolers") {
         Section {
             HCenter {
                 IntegrationImageView(imageName = "BlackSharkMagCooler4Pro")
@@ -36,18 +35,18 @@ fun BlackSharkCoolerDevicesSettingsView(
                 blackSharkCoolerDevices.devices,
                 id = { it.id },
                 onDelete = { offsets ->
-                    blackSharkCoolerDevices.devices =
-                        blackSharkCoolerDevices.devices.removing(atOffsets = offsets)
+                    blackSharkCoolerDevices.devices = blackSharkCoolerDevices.devices
+                        .removing(atOffsets = offsets)
                 },
             ) { device ->
-                ContextMenuDeleteButton(action = {
-                    blackSharkCoolerDevices.devices =
-                        blackSharkCoolerDevices.devices.filterNot { it.id == device.id }
+                ContextMenuDeleteButton(disabled = false, action = {
+                    blackSharkCoolerDevices.devices = blackSharkCoolerDevices.devices
+                        .filterNot { it.id == device.id }
                 }) {
                     BlackSharkCoolerDeviceSettingsView(
                         blackSharkCoolerDevices = blackSharkCoolerDevices,
                         device = device,
-                        status = statusTopRight,
+                        status = model.statusTopRight,
                     )
                 }
             }

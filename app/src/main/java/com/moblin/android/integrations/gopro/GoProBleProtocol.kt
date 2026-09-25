@@ -13,61 +13,63 @@ import com.moblin.android.integrations.gopro.protobuf.OpenGopro_RequestPairingFi
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_RequestSetLiveStreamMode
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_RequestStartScan
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_ResponseGetApEntries
+import com.moblin.android.platform.corebluetooth.CBUUID
 import com.moblin.android.platform.swiftprotobuf.Message
 import com.moblin.android.platform.swiftprotobuf.serializedData
 import com.moblin.android.various.settings.SettingsGoProLaunchLiveStreamResolution
 import com.moblin.android.various.settings.SettingsGoProLens
-import java.util.UUID
 
-val goProControlServiceId: UUID = UUID.fromString("0000fea6-0000-1000-8000-00805f9b34fb")
-val goProCommandId: UUID = UUID.fromString("b5f90072-aa8d-11e3-9046-0002a5d5c51b")
-val goProCommandResponseId: UUID = UUID.fromString("b5f90073-aa8d-11e3-9046-0002a5d5c51b")
-val goProSettingsId: UUID = UUID.fromString("b5f90074-aa8d-11e3-9046-0002a5d5c51b")
-val goProSettingsResponseId: UUID = UUID.fromString("b5f90075-aa8d-11e3-9046-0002a5d5c51b")
-val goProQueryId: UUID = UUID.fromString("b5f90076-aa8d-11e3-9046-0002a5d5c51b")
-val goProQueryResponseId: UUID = UUID.fromString("b5f90077-aa8d-11e3-9046-0002a5d5c51b")
-val goProCameraManagementServiceId: UUID = UUID.fromString("b5f90090-aa8d-11e3-9046-0002a5d5c51b")
-val goProNetworkManagementId: UUID = UUID.fromString("b5f90091-aa8d-11e3-9046-0002a5d5c51b")
-val goProNetworkManagementResponseId: UUID = UUID.fromString("b5f90092-aa8d-11e3-9046-0002a5d5c51b")
+val goProControlServiceId = CBUUID(string = "FEA6")
+val goProCommandId = CBUUID(string = "B5F90072-AA8D-11E3-9046-0002A5D5C51B")
+val goProCommandResponseId = CBUUID(string = "B5F90073-AA8D-11E3-9046-0002A5D5C51B")
+val goProSettingsId = CBUUID(string = "B5F90074-AA8D-11E3-9046-0002A5D5C51B")
+val goProSettingsResponseId = CBUUID(string = "B5F90075-AA8D-11E3-9046-0002A5D5C51B")
+val goProQueryId = CBUUID(string = "B5F90076-AA8D-11E3-9046-0002A5D5C51B")
+val goProQueryResponseId = CBUUID(string = "B5F90077-AA8D-11E3-9046-0002A5D5C51B")
+val goProCameraManagementServiceId =
+    CBUUID(string = "B5F90090-AA8D-11E3-9046-0002A5D5C51B")
+val goProNetworkManagementId = CBUUID(string = "B5F90091-AA8D-11E3-9046-0002A5D5C51B")
+val goProNetworkManagementResponseId =
+    CBUUID(string = "B5F90092-AA8D-11E3-9046-0002A5D5C51B")
 
-val goProNetworkFeatureId: UByte = 0x02.toUByte()
-val goProPairingFeatureId: UByte = 0x03.toUByte()
-val goProLiveStreamCommandFeatureId: UByte = 0xF1.toUByte()
-val goProLiveStreamQueryFeatureId: UByte = 0xF5.toUByte()
-val goProPairingFinishActionId: UByte = 0x01.toUByte()
-val goProStartScanActionId: UByte = 0x02.toUByte()
-val goProGetApEntriesActionId: UByte = 0x03.toUByte()
-val goProConnectActionId: UByte = 0x04.toUByte()
-val goProConnectNewActionId: UByte = 0x05.toUByte()
-val goProScanningNotificationId: UByte = 0x0B.toUByte()
-val goProProvisioningNotificationId: UByte = 0x0C.toUByte()
-val goProGetLiveStreamStatusActionId: UByte = 0x74.toUByte()
-val goProSetLiveStreamModeActionId: UByte = 0x79.toUByte()
-val goProPairingFinishResponseId: UByte = 0x81.toUByte()
-val goProStartScanResponseId: UByte = 0x82.toUByte()
-val goProGetApEntriesResponseId: UByte = 0x83.toUByte()
-val goProConnectResponseId: UByte = 0x84.toUByte()
-val goProConnectNewResponseId: UByte = 0x85.toUByte()
-val goProGetLiveStreamStatusResponseId: UByte = 0xF4.toUByte()
-val goProLiveStreamStatusNotificationId: UByte = 0xF5.toUByte()
-val goProSetLiveStreamModeResponseId: UByte = 0xF9.toUByte()
-val goProShutterCommandId: UByte = 0x01.toUByte()
-val goProGetStatusQueryId: UByte = 0x13.toUByte()
-val goProKeepAliveSettingId: UByte = 0x5B.toUByte()
-val goProBatteryPercentageStatusId: UByte = 0x46.toUByte()
-val goProResponseSuccessStatus: UByte = 0x00.toUByte()
+val goProNetworkFeatureId: UByte = 0x02u
+val goProPairingFeatureId: UByte = 0x03u
+val goProLiveStreamCommandFeatureId: UByte = 0xF1u
+val goProLiveStreamQueryFeatureId: UByte = 0xF5u
+val goProPairingFinishActionId: UByte = 0x01u
+val goProStartScanActionId: UByte = 0x02u
+val goProGetApEntriesActionId: UByte = 0x03u
+val goProConnectActionId: UByte = 0x04u
+val goProConnectNewActionId: UByte = 0x05u
+val goProScanningNotificationId: UByte = 0x0Bu
+val goProProvisioningNotificationId: UByte = 0x0Cu
+val goProGetLiveStreamStatusActionId: UByte = 0x74u
+val goProSetLiveStreamModeActionId: UByte = 0x79u
+val goProPairingFinishResponseId: UByte = 0x81u
+val goProStartScanResponseId: UByte = 0x82u
+val goProGetApEntriesResponseId: UByte = 0x83u
+val goProConnectResponseId: UByte = 0x84u
+val goProConnectNewResponseId: UByte = 0x85u
+val goProGetLiveStreamStatusResponseId: UByte = 0xF4u
+val goProLiveStreamStatusNotificationId: UByte = 0xF5u
+val goProSetLiveStreamModeResponseId: UByte = 0xF9u
+val goProShutterCommandId: UByte = 0x01u
+val goProGetStatusQueryId: UByte = 0x13u
+val goProKeepAliveSettingId: UByte = 0x5Bu
+val goProBatteryPercentageStatusId: UByte = 0x46u
+val goProResponseSuccessStatus: UByte = 0x00u
 val goProMaximumApEntriesPerRequest: Int = 100
 
-private val goProKeepAliveValue: UByte = 0x42.toUByte()
+private val goProKeepAliveValue: UByte = 0x42u
 private val goProMaximumPacketSize = 20
 private val goProMaximumPayloadSize = 8191
-private val goProContinuationPacketHeader: UByte = 0x80.toUByte()
-private val goProGeneralPacketHeaderType: UByte = 0.toUByte()
-private val goProExtended13PacketHeaderType: UByte = 1.toUByte()
-private val goProExtended16PacketHeaderType: UByte = 2.toUByte()
-private val goProPacketHeaderTypeMask: UByte = 0x60.toUByte()
-private val goProPacketHeaderTypeShift: UByte = 5.toUByte()
-private val goProPacketHeaderLengthMask: UByte = 0x1F.toUByte()
+private val goProContinuationPacketHeader: UByte = 0x80u
+private val goProGeneralPacketHeaderType: UByte = 0u
+private val goProExtended13PacketHeaderType: UByte = 1u
+private val goProExtended16PacketHeaderType: UByte = 2u
+private val goProPacketHeaderTypeMask: UByte = 0x60u
+private val goProPacketHeaderTypeShift: UByte = 5u
+private val goProPacketHeaderLengthMask: UByte = 0x1Fu
 
 fun goProBlePackets(payload: ByteArray, maximumPacketSize: Int = goProMaximumPacketSize): List<ByteArray> {
     if (payload.isEmpty() || payload.size >= goProMaximumPayloadSize || maximumPacketSize < 3) {
@@ -76,20 +78,22 @@ fun goProBlePackets(payload: ByteArray, maximumPacketSize: Int = goProMaximumPac
     val length = payload.size
     val packets = mutableListOf<ByteArray>()
     var offset = 0
-    val first = byteArrayOf(
-        ((goProExtended13PacketHeaderType.toInt() shl goProPacketHeaderTypeShift.toInt()) or
-            ((length shr 8) and goProPacketHeaderLengthMask.toInt())).toByte(),
+    var first = byteArrayOf(
+        (
+            (goProExtended13PacketHeaderType.toInt() shl goProPacketHeaderTypeShift.toInt()) or
+                ((length shr 8) and goProPacketHeaderLengthMask.toInt())
+            ).toByte(),
         (length and 0xFF).toByte(),
     )
     val firstCount = minOf(maximumPacketSize - first.size, length)
-    packets.add(first + payload.copyOf(firstCount))
+    first += payload.copyOfRange(0, firstCount)
+    packets.add(first)
     offset += firstCount
     while (offset < length) {
+        var continuation = byteArrayOf(goProContinuationPacketHeader.toByte())
         val count = minOf(maximumPacketSize - 1, length - offset)
-        packets.add(
-            byteArrayOf(goProContinuationPacketHeader.toByte()) +
-                payload.copyOfRange(offset, offset + count)
-        )
+        continuation += payload.copyOfRange(offset, offset + count)
+        packets.add(continuation)
         offset += count
     }
     return packets
@@ -156,13 +160,15 @@ fun goProSetLiveStreamModeMessage(
     request.minimumBitrate = 800
     request.maximumBitrate = (bitrate / 1000u).toInt()
     request.startingBitrate = (bitrate / 1000u).toInt()
-    lens.toProtobuf()?.let { request.lens = it }
+    lens.toProtobuf()?.let {
+        request.lens = it
+    }
     return byteArrayOf(goProLiveStreamCommandFeatureId.toByte(), goProSetLiveStreamModeActionId.toByte()) +
         request.encoded()
 }
 
 fun goProSetShutterMessage(on: Boolean): ByteArray =
-    byteArrayOf(goProShutterCommandId.toByte(), 1, (if (on) 1 else 0).toByte())
+    byteArrayOf(goProShutterCommandId.toByte(), 1, if (on) 1 else 0)
 
 fun goProKeepAliveMessage(): ByteArray =
     byteArrayOf(goProKeepAliveSettingId.toByte(), 1, goProKeepAliveValue.toByte())
@@ -172,7 +178,7 @@ fun goProGetBatteryPercentageMessage(): ByteArray =
 
 class GoProBleMessageAccumulator {
     private var expectedLength: Int? = null
-    private var payload: ByteArray = ByteArray(0)
+    private var payload = ByteArray(0)
 
     fun append(packet: ByteArray): ByteArray? {
         val firstByte = packet.firstOrNull() ?: return null
@@ -186,11 +192,10 @@ class GoProBleMessageAccumulator {
             reset()
             val headerType = (firstByte.toInt() and goProPacketHeaderTypeMask.toInt()) shr
                 goProPacketHeaderTypeShift.toInt()
-            val headerLength: Int
-            when (headerType) {
+            val headerLength = when (headerType) {
                 goProGeneralPacketHeaderType.toInt() -> {
                     expectedLength = firstByte.toInt() and goProPacketHeaderLengthMask.toInt()
-                    headerLength = 1
+                    1
                 }
                 goProExtended13PacketHeaderType.toInt() -> {
                     if (packet.size < 2) {
@@ -198,24 +203,24 @@ class GoProBleMessageAccumulator {
                     }
                     expectedLength = ((firstByte.toInt() and goProPacketHeaderLengthMask.toInt()) shl 8) or
                         (packet[1].toInt() and 0xFF)
-                    headerLength = 2
+                    2
                 }
                 goProExtended16PacketHeaderType.toInt() -> {
                     if (packet.size < 3) {
                         return null
                     }
                     expectedLength = ((packet[1].toInt() and 0xFF) shl 8) or (packet[2].toInt() and 0xFF)
-                    headerLength = 3
+                    3
                 }
                 else -> return null
             }
             payload += packet.copyOfRange(headerLength, packet.size)
         }
-        val expected = expectedLength
-        if (expected == null || payload.size < expected) {
+        val expectedLength = expectedLength
+        if (expectedLength == null || payload.size < expectedLength) {
             return null
         }
-        val message = payload.copyOf(expected)
+        val message = payload.copyOfRange(0, expectedLength)
         reset()
         return message
     }
@@ -232,17 +237,20 @@ fun OpenGopro_ResponseGetApEntries.ScanEntry.isConfigured(): Boolean =
 fun OpenGopro_ResponseGetApEntries.ScanEntry.isUnsupportedType(): Boolean =
     (scanEntryFlags and OpenGopro_EnumScanEntryFlags.scanFlagUnsupportedType.rawValue) != 0
 
-private fun Message.encoded(): ByteArray = runCatching { serializedData() }.getOrDefault(ByteArray(0))
+private fun Message.encoded(): ByteArray =
+    runCatching { serializedData() }.getOrNull() ?: ByteArray(0)
 
-private fun SettingsGoProLaunchLiveStreamResolution.toProtobuf(): OpenGopro_EnumWindowSize = when (this) {
-    SettingsGoProLaunchLiveStreamResolution.r480p -> OpenGopro_EnumWindowSize.windowSize480
-    SettingsGoProLaunchLiveStreamResolution.r720p -> OpenGopro_EnumWindowSize.windowSize720
-    SettingsGoProLaunchLiveStreamResolution.r1080p -> OpenGopro_EnumWindowSize.windowSize1080
-}
+private fun SettingsGoProLaunchLiveStreamResolution.toProtobuf(): OpenGopro_EnumWindowSize =
+    when (this) {
+        SettingsGoProLaunchLiveStreamResolution.r480p -> OpenGopro_EnumWindowSize.windowSize480
+        SettingsGoProLaunchLiveStreamResolution.r720p -> OpenGopro_EnumWindowSize.windowSize720
+        SettingsGoProLaunchLiveStreamResolution.r1080p -> OpenGopro_EnumWindowSize.windowSize1080
+    }
 
-fun SettingsGoProLens.toProtobuf(): OpenGopro_EnumLens? = when (this) {
-    SettingsGoProLens.auto -> null
-    SettingsGoProLens.wide -> OpenGopro_EnumLens.lensWide
-    SettingsGoProLens.linear -> OpenGopro_EnumLens.lensLinear
-    SettingsGoProLens.superView -> OpenGopro_EnumLens.lensSuperview
-}
+fun SettingsGoProLens.toProtobuf(): OpenGopro_EnumLens? =
+    when (this) {
+        SettingsGoProLens.auto -> null
+        SettingsGoProLens.wide -> OpenGopro_EnumLens.lensWide
+        SettingsGoProLens.linear -> OpenGopro_EnumLens.lensLinear
+        SettingsGoProLens.superView -> OpenGopro_EnumLens.lensSuperview
+    }

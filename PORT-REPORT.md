@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-09-25T06:41:07+00:00
+Generated 2026-09-25T10:21:46+00:00
 
 ## Summary
 
@@ -30,19 +30,12 @@ Generated 2026-09-25T06:41:07+00:00
   - contentShape(Rectangle()) combined with negative padding (-20) hit-area expansion: no Compose counterpart, replaced by TODO()
 - Moblin Watch/Shared/WatchProtocol.swift
   - HealthKit (HKStatistics, HKUnit, heart rate / energy / distance / step / power / cadence quantity types)
-- Moblin/Integrations/CatPrinter/CatPrinter.swift
-  - CBCentralManager / CBPeripheral central side: BluetoothGatt connection needs an Android Context for BluetoothDevice.connectGatt
-  - CBCentralManager.retrievePeripherals(withIdentifiers:): BluetoothAdapter.getRemoteDevice needs a BluetoothAdapter obtained from a Context
-  - CBPeripheral.maximumWriteValueLength(for:): the Android payload length comes from BluetoothGatt.requestMtu and onMtuChanged
-  - Bundle.main.url(forResource:withExtension:) for the meow sound: resource lookup and AudioPlayer construction are not ported here
 - Moblin/Integrations/GoPro/Protobuf/network_management.pb.swift
   - SwiftProtobuf.Decoder (decodeMessage has no Android equivalent)
   - SwiftProtobuf.Visitor (traverse has no Android equivalent)
 - Moblin/Integrations/GoPro/Protobuf/response_generic.pb.swift
   - SwiftProtobuf.Decoder
   - SwiftProtobuf.Visitor
-- Moblin/Integrations/WorkoutDevice/WorkoutDevice.swift
-  - BluetoothDevice.connectGatt requires an Android Context which is not available in this file; it must be supplied by the Activity layer
 - Moblin/Intents/MoblinShortcuts.swift
   - AppIntents (AppShortcutsProvider, AppShortcut, ShortcutTileColor)
   - IntentsUI
@@ -258,14 +251,6 @@ Generated 2026-09-25T06:41:07+00:00
 - Moblin/View/Settings/BitratePresets/BitratePresetsSettingsView.swift
   - contextMenuDeleteButton (long-press context menu delete)
   - onMove (List drag-to-reorder)
-- Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDeviceSettingsView.swift
-  - ColorPicker (no Compose counterpart)
-- Moblin/View/Settings/CatPrinters/CatPrinterSettingsView.swift
-  - No setter for SettingsCatPrinter.name in this port (NameEditView binding)
-  - No setter for SettingsCatPrinter.bluetoothPeripheralName and bluetoothPeripheralId in this port (onDeviceChange)
-  - No setter for SettingsCatPrinter.printChat in this port
-  - No setter for SettingsCatPrinter.printSnapshots in this port
-  - No setter for SettingsCatPrinter.faxMeowSound in this port
 - Moblin/View/Settings/Chat/ChatFiltersSettingsView.swift
   - contextMenuDeleteButton (SwiftUI context menu delete action)
   - List.onMove (SwiftUI list reordering)
@@ -430,39 +415,39 @@ Generated 2026-09-25T06:41:07+00:00
 | Common/View/ThermalStateView.swift | app/src/main/java/com/moblin/android/common/view/ThermalStateView.kt | deepseek-flash | 10.8 |
 | Moblin Watch/Shared/WatchProtocol.swift | app/src/main/java/com/moblin/android/moblinwatch/shared/WatchProtocol.kt | deepseek-flash | 36.8 |
 | Moblin Watch/Shared/WatchSettings.swift | app/src/main/java/com/moblin/android/moblinwatch/shared/WatchSettings.kt | deepseek-flash | 122.2 |
-| Moblin/Integrations/BlackSharkCooler/BlackSharkCoolerDevice.swift | app/src/main/java/com/moblin/android/integrations/blacksharkcooler/BlackSharkCoolerDevice.kt | deepseek-flash | 98.4 |
+| Moblin/Integrations/BlackSharkCooler/BlackSharkCoolerDevice.swift | app/src/main/java/com/moblin/android/integrations/blacksharkcooler/BlackSharkCoolerDevice.kt | deepseek-flash | 82.6 |
 | Moblin/Integrations/CatPrinter/AtkinsonDithering.swift | app/src/main/java/com/moblin/android/integrations/catprinter/AtkinsonDithering.kt | deepseek-flash | 9.3 |
-| Moblin/Integrations/CatPrinter/CatPrinter.swift | app/src/main/java/com/moblin/android/integrations/catprinter/CatPrinter.kt | deepseek-flash | 134.4 |
-| Moblin/Integrations/CatPrinter/CatPrinterCommands.swift | app/src/main/java/com/moblin/android/integrations/catprinter/CatPrinterCommands.kt | deepseek-flash | 126.7 |
-| Moblin/Integrations/CatPrinter/CatPrinterCommandsMxw01.swift | app/src/main/java/com/moblin/android/integrations/catprinter/CatPrinterCommandsMxw01.kt | deepseek-flash | 67.3 |
+| Moblin/Integrations/CatPrinter/CatPrinter.swift | app/src/main/java/com/moblin/android/integrations/catprinter/CatPrinter.kt | deepseek-flash | 114.2 |
+| Moblin/Integrations/CatPrinter/CatPrinterCommands.swift | app/src/main/java/com/moblin/android/integrations/catprinter/CatPrinterCommands.kt | deepseek-flash | 61.4 |
+| Moblin/Integrations/CatPrinter/CatPrinterCommandsMxw01.swift | app/src/main/java/com/moblin/android/integrations/catprinter/CatPrinterCommandsMxw01.kt | deepseek-flash | 50.7 |
 | Moblin/Integrations/CatPrinter/FloydSteinbergDithering.swift | app/src/main/java/com/moblin/android/integrations/catprinter/FloydSteinbergDithering.kt | deepseek-flash | 12.1 |
-| Moblin/Integrations/Dji/DjiDevice/DjiDevice.swift | app/src/main/java/com/moblin/android/integrations/dji/djidevice/DjiDevice.kt | deepseek-flash | 110.0 |
+| Moblin/Integrations/Dji/DjiDevice/DjiDevice.swift | app/src/main/java/com/moblin/android/integrations/dji/djidevice/DjiDevice.kt | deepseek-flash | 74.7 |
 | Moblin/Integrations/Dji/DjiDevice/DjiDeviceMessage.swift | app/src/main/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceMessage.kt | deepseek-flash | 58.6 |
 | Moblin/Integrations/Dji/DjiDevice/DjiDeviceModel.swift | app/src/main/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceModel.kt | deepseek-flash | 7.4 |
-| Moblin/Integrations/Dji/DjiDevice/DjiDeviceScanner.swift | app/src/main/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceScanner.kt | deepseek-flash | 29.2 |
-| Moblin/Integrations/Dji/DjiMessage.swift | app/src/main/java/com/moblin/android/integrations/dji/DjiMessage.kt | deepseek-flash | 156.6 |
+| Moblin/Integrations/Dji/DjiDevice/DjiDeviceScanner.swift | app/src/main/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceScanner.kt | deepseek-flash | 16.8 |
+| Moblin/Integrations/Dji/DjiMessage.swift | app/src/main/java/com/moblin/android/integrations/dji/DjiMessage.kt | deepseek-flash | 42.8 |
 | Moblin/Integrations/Emotes/Bttv.swift | app/src/main/java/com/moblin/android/integrations/emotes/Bttv.kt | deepseek-flash | 32.3 |
 | Moblin/Integrations/Emotes/Emotes.swift | app/src/main/java/com/moblin/android/integrations/emotes/Emotes.kt | deepseek-flash | 34.8 |
 | Moblin/Integrations/Emotes/Ffz.swift | app/src/main/java/com/moblin/android/integrations/emotes/Ffz.kt | deepseek-flash | 39.5 |
 | Moblin/Integrations/Emotes/Seventv.swift | app/src/main/java/com/moblin/android/integrations/emotes/Seventv.kt | deepseek-flash | 42.8 |
 | Moblin/Integrations/GoPro/GoPro.swift | app/src/main/java/com/moblin/android/integrations/gopro/GoPro.kt | deepseek-flash | 6.0 |
-| Moblin/Integrations/GoPro/GoProBleProtocol.swift | app/src/main/java/com/moblin/android/integrations/gopro/GoProBleProtocol.kt | deepseek-flash | 80.2 |
-| Moblin/Integrations/GoPro/GoProDevice.swift | app/src/main/java/com/moblin/android/integrations/gopro/GoProDevice.kt | deepseek-flash | 130.8 |
-| Moblin/Integrations/GoPro/GoProDeviceScanner.swift | app/src/main/java/com/moblin/android/integrations/gopro/GoProDeviceScanner.kt | deepseek-flash | 30.6 |
+| Moblin/Integrations/GoPro/GoProBleProtocol.swift | app/src/main/java/com/moblin/android/integrations/gopro/GoProBleProtocol.kt | deepseek-flash | 48.6 |
+| Moblin/Integrations/GoPro/GoProDevice.swift | app/src/main/java/com/moblin/android/integrations/gopro/GoProDevice.kt | deepseek-flash | 98.3 |
+| Moblin/Integrations/GoPro/GoProDeviceScanner.swift | app/src/main/java/com/moblin/android/integrations/gopro/GoProDeviceScanner.kt | deepseek-flash | 11.6 |
 | Moblin/Integrations/GoPro/Protobuf/live_streaming.pb.swift | app/src/main/java/com/moblin/android/integrations/gopro/protobuf/live_streaming.pb.kt | deepseek-flash | 68.2 |
 | Moblin/Integrations/GoPro/Protobuf/network_management.pb.swift | app/src/main/java/com/moblin/android/integrations/gopro/protobuf/network_management.pb.kt | deepseek-flash | 143.8 |
 | Moblin/Integrations/GoPro/Protobuf/response_generic.pb.swift | app/src/main/java/com/moblin/android/integrations/gopro/protobuf/response_generic.pb.kt | deepseek-flash | 36.2 |
 | Moblin/Integrations/OpenAi/OpenAi.swift | app/src/main/java/com/moblin/android/integrations/openai/OpenAi.kt | deepseek-flash | 76.0 |
 | Moblin/Integrations/RealtimeIrl/RealtimeIrl.swift | app/src/main/java/com/moblin/android/integrations/realtimeirl/RealtimeIrl.kt | deepseek-flash | 16.5 |
 | Moblin/Integrations/Tesla/TeslaVehicle.swift | app/src/main/java/com/moblin/android/integrations/tesla/TeslaVehicle.kt | deepseek-flash | 195.1 |
-| Moblin/Integrations/Tesla/TeslaVehicleScanner.swift | app/src/main/java/com/moblin/android/integrations/tesla/TeslaVehicleScanner.kt | deepseek-flash | 41.7 |
+| Moblin/Integrations/Tesla/TeslaVehicleScanner.swift | app/src/main/java/com/moblin/android/integrations/tesla/TeslaVehicleScanner.kt | deepseek-flash | 16.2 |
 | Moblin/Integrations/TtsMonster/TtsMonster.swift | app/src/main/java/com/moblin/android/integrations/ttsmonster/TtsMonster.kt | deepseek-flash | 41.6 |
-| Moblin/Integrations/WorkoutDevice/WorkoutDevice.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDevice.kt | deepseek-flash | 111.8 |
-| Moblin/Integrations/WorkoutDevice/WorkoutDeviceCrankCadence.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCrankCadence.kt | deepseek-flash | 7.2 |
-| Moblin/Integrations/WorkoutDevice/WorkoutDeviceCyclingPower.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCyclingPower.kt | deepseek-flash | 53.7 |
-| Moblin/Integrations/WorkoutDevice/WorkoutDeviceCyclingSpeedCadence.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCyclingSpeedCadence.kt | deepseek-flash | 39.0 |
-| Moblin/Integrations/WorkoutDevice/WorkoutDeviceHeartRate.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceHeartRate.kt | deepseek-flash | 29.3 |
-| Moblin/Integrations/WorkoutDevice/WorkoutDeviceRunning.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceRunning.kt | deepseek-flash | 26.7 |
+| Moblin/Integrations/WorkoutDevice/WorkoutDevice.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDevice.kt | deepseek-flash | 49.0 |
+| Moblin/Integrations/WorkoutDevice/WorkoutDeviceCrankCadence.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCrankCadence.kt | deepseek-flash | 20.8 |
+| Moblin/Integrations/WorkoutDevice/WorkoutDeviceCyclingPower.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCyclingPower.kt | deepseek-flash | 33.6 |
+| Moblin/Integrations/WorkoutDevice/WorkoutDeviceCyclingSpeedCadence.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCyclingSpeedCadence.kt | deepseek-flash | 24.3 |
+| Moblin/Integrations/WorkoutDevice/WorkoutDeviceHeartRate.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceHeartRate.kt | deepseek-flash | 11.2 |
+| Moblin/Integrations/WorkoutDevice/WorkoutDeviceRunning.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceRunning.kt | deepseek-flash | 25.9 |
 | Moblin/Intents/MoblinShortcuts.swift | app/src/main/java/com/moblin/android/intents/MoblinShortcuts.kt | deepseek-flash | 13.7 |
 | Moblin/Intents/MuteIntent.swift | app/src/main/java/com/moblin/android/intents/MuteIntent.kt | deepseek-flash | 5.4 |
 | Moblin/Intents/SnapshotIntent.swift | app/src/main/java/com/moblin/android/intents/SnapshotIntent.kt | deepseek-flash | 15.7 |
@@ -625,7 +610,7 @@ Generated 2026-09-25T06:41:07+00:00
 | Moblin/StreamingPlatforms/YouTube/YouTubeApi.swift | app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeApi.kt | deepseek-flash | 81.1 |
 | Moblin/StreamingPlatforms/YouTube/YouTubeAuth.swift | app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeAuth.kt | deepseek-flash | 10.7 |
 | Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift | app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeLiveChat.kt | deepseek-flash | 121.9 |
-| Moblin/Various/BluetoothScanner.swift | app/src/main/java/com/moblin/android/various/BluetoothScanner.kt | deepseek-flash | 16.0 |
+| Moblin/Various/BluetoothScanner.swift | app/src/main/java/com/moblin/android/various/BluetoothScanner.kt | deepseek-flash | 10.3 |
 | Moblin/Various/BondingStatisticsFormatter.swift | app/src/main/java/com/moblin/android/various/BondingStatisticsFormatter.kt | deepseek-flash | 12.5 |
 | Moblin/Various/CacheAsyncImage.swift | app/src/main/java/com/moblin/android/various/CacheAsyncImage.kt | deepseek-flash | 13.9 |
 | Moblin/Various/ChatBotCommand.swift | app/src/main/java/com/moblin/android/various/ChatBotCommand.kt | deepseek-flash | 158.7 |
@@ -653,7 +638,7 @@ Generated 2026-09-25T06:41:07+00:00
 | Moblin/Various/Model/ModelAudio.swift | app/src/main/java/com/moblin/android/various/model/ModelAudio.kt | deepseek-flash | 29.8 |
 | Moblin/Various/Model/ModelAutoSceneSwitcher.swift | app/src/main/java/com/moblin/android/various/model/ModelAutoSceneSwitcher.kt | deepseek-flash | 64.7 |
 | Moblin/Various/Model/ModelBlackSharkCoolerDevice.swift | app/src/main/java/com/moblin/android/various/model/ModelBlackSharkCoolerDevice.kt | deepseek-flash | 42.8 |
-| Moblin/Various/Model/ModelBluetooth.swift | app/src/main/java/com/moblin/android/various/model/ModelBluetooth.kt | deepseek-flash | 12.4 |
+| Moblin/Various/Model/ModelBluetooth.swift | app/src/main/java/com/moblin/android/various/model/ModelBluetooth.kt | deepseek-flash | 7.5 |
 | Moblin/Various/Model/ModelCamera.swift | app/src/main/java/com/moblin/android/various/model/ModelCamera.kt | deepseek-flash | 17.0 |
 | Moblin/Various/Model/ModelCatPrinters.swift | app/src/main/java/com/moblin/android/various/model/ModelCatPrinters.kt | deepseek-flash | 51.9 |
 | Moblin/Various/Model/ModelChat.swift | app/src/main/java/com/moblin/android/various/model/ModelChat.kt | deepseek-flash | 125.1 |
@@ -873,9 +858,9 @@ Generated 2026-09-25T06:41:07+00:00
 | Moblin/View/Settings/Audio/MicsDelaySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/audio/MicsDelaySettingsView.kt | deepseek-flash | 19.3 |
 | Moblin/View/Settings/BitratePresets/BitratePresetsPresetSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/bitratepresets/BitratePresetsPresetSettingsView.kt | deepseek-flash | 19.8 |
 | Moblin/View/Settings/BitratePresets/BitratePresetsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/bitratepresets/BitratePresetsSettingsView.kt | deepseek-flash | 55.5 |
-| Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDeviceScannerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/blacksharkcoolers/BlackSharkCoolerDeviceScannerSettingsView.kt | deepseek-flash | 32.4 |
-| Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDeviceSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/blacksharkcoolers/BlackSharkCoolerDeviceSettingsView.kt | deepseek-flash | 82.7 |
-| Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDevicesSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/blacksharkcoolers/BlackSharkCoolerDevicesSettingsView.kt | deepseek-flash | 22.9 |
+| Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDeviceScannerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/blacksharkcoolers/BlackSharkCoolerDeviceScannerSettingsView.kt | deepseek-flash | 24.8 |
+| Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDeviceSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/blacksharkcoolers/BlackSharkCoolerDeviceSettingsView.kt | deepseek-flash | 90.2 |
+| Moblin/View/Settings/BlackSharkCoolers/BlackSharkCoolerDevicesSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/blacksharkcoolers/BlackSharkCoolerDevicesSettingsView.kt | deepseek-flash | 14.9 |
 | Moblin/View/Settings/Camera/CameraControls/CameraControlsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/cameracontrols/CameraControlsView.kt | deepseek-flash | 11.7 |
 | Moblin/View/Settings/Camera/CameraSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/CameraSettingsView.kt | deepseek-flash | 13.6 |
 | Moblin/View/Settings/Camera/FixedHorizon/FixedHorizonView.swift | app/src/main/java/com/moblin/android/view/settings/camera/fixedhorizon/FixedHorizonView.kt | deepseek-flash | 11.5 |
@@ -885,9 +870,9 @@ Generated 2026-09-25T06:41:07+00:00
 | Moblin/View/Settings/Camera/Zoom/ZoomPresetSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/zoom/ZoomPresetSettingsView.kt | deepseek-flash | 14.1 |
 | Moblin/View/Settings/Camera/Zoom/ZoomSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/zoom/ZoomSettingsView.kt | deepseek-flash | 93.0 |
 | Moblin/View/Settings/Camera/Zoom/ZoomSwitchToSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/camera/zoom/ZoomSwitchToSettingsView.kt | deepseek-flash | 34.7 |
-| Moblin/View/Settings/CatPrinters/CatPrinterScannerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/catprinters/CatPrinterScannerSettingsView.kt | deepseek-flash | 34.5 |
-| Moblin/View/Settings/CatPrinters/CatPrinterSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/catprinters/CatPrinterSettingsView.kt | deepseek-flash | 78.9 |
-| Moblin/View/Settings/CatPrinters/CatPrintersSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/catprinters/CatPrintersSettingsView.kt | deepseek-flash | 52.3 |
+| Moblin/View/Settings/CatPrinters/CatPrinterScannerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/catprinters/CatPrinterScannerSettingsView.kt | deepseek-flash | 53.7 |
+| Moblin/View/Settings/CatPrinters/CatPrinterSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/catprinters/CatPrinterSettingsView.kt | deepseek-flash | 53.3 |
+| Moblin/View/Settings/CatPrinters/CatPrintersSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/catprinters/CatPrintersSettingsView.kt | deepseek-flash | 24.9 |
 | Moblin/View/Settings/Chat/ChatBotSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/chat/ChatBotSettingsView.kt | deepseek-flash | 122.1 |
 | Moblin/View/Settings/Chat/ChatFiltersSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/chat/ChatFiltersSettingsView.kt | deepseek-flash | 154.6 |
 | Moblin/View/Settings/Chat/ChatNicknamesSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/chat/ChatNicknamesSettingsView.kt | deepseek-flash | 112.3 |
@@ -1065,15 +1050,15 @@ Generated 2026-09-25T06:41:07+00:00
 | Moblin/View/Settings/Streams/StreamsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streams/StreamsSettingsView.kt | deepseek-flash | 57.3 |
 | Moblin/View/Settings/Talkback/TalkbackSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/talkback/TalkbackSettingsView.kt | deepseek-flash | 44.4 |
 | Moblin/View/Settings/Tesla/TeslaSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/tesla/TeslaSettingsView.kt | deepseek-flash | 58.5 |
-| Moblin/View/Settings/Tesla/TeslaVehicleScannerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/tesla/TeslaVehicleScannerSettingsView.kt | deepseek-flash | 15.9 |
+| Moblin/View/Settings/Tesla/TeslaVehicleScannerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/tesla/TeslaVehicleScannerSettingsView.kt | deepseek-flash | 29.6 |
 | Moblin/View/Settings/Watch/Chat/WatchChatSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/watch/chat/WatchChatSettingsView.kt | deepseek-flash | 32.3 |
 | Moblin/View/Settings/Watch/Display/LocalOverlays/WatchLocalOverlaysSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/watch/display/localoverlays/WatchLocalOverlaysSettingsView.kt | deepseek-flash | 30.3 |
 | Moblin/View/Settings/Watch/Display/WatchDisplaySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/watch/display/WatchDisplaySettingsView.kt | deepseek-flash | 9.6 |
 | Moblin/View/Settings/Watch/WatchSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/watch/WatchSettingsView.kt | deepseek-flash | 14.8 |
 | Moblin/View/Settings/WiFiAware/WiFiAwareSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/wifiaware/WiFiAwareSettingsView.kt | deepseek-flash | 77.8 |
-| Moblin/View/Settings/WorkoutDevices/WorkoutDeviceScannerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/workoutdevices/WorkoutDeviceScannerSettingsView.kt | deepseek-flash | 32.6 |
-| Moblin/View/Settings/WorkoutDevices/WorkoutDeviceSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/workoutdevices/WorkoutDeviceSettingsView.kt | deepseek-flash | 58.3 |
-| Moblin/View/Settings/WorkoutDevices/WorkoutDevicesSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/workoutdevices/WorkoutDevicesSettingsView.kt | deepseek-flash | 38.3 |
+| Moblin/View/Settings/WorkoutDevices/WorkoutDeviceScannerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/workoutdevices/WorkoutDeviceScannerSettingsView.kt | deepseek-flash | 53.5 |
+| Moblin/View/Settings/WorkoutDevices/WorkoutDeviceSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/workoutdevices/WorkoutDeviceSettingsView.kt | deepseek-flash | 53.7 |
+| Moblin/View/Settings/WorkoutDevices/WorkoutDevicesSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/workoutdevices/WorkoutDevicesSettingsView.kt | deepseek-flash | 21.8 |
 | Moblin/View/Stream/CameraLevelView.swift | app/src/main/java/com/moblin/android/view/stream/CameraLevelView.kt | deepseek-flash | 8.6 |
 | Moblin/View/Stream/DrawOnStreamView.swift | app/src/main/java/com/moblin/android/view/stream/DrawOnStreamView.kt | deepseek-flash | 48.3 |
 | Moblin/View/Stream/Overlay/Right/AudioLevelView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/right/AudioLevelView.kt | deepseek-flash | 30.2 |
@@ -1149,9 +1134,9 @@ Generated 2026-09-25T06:41:07+00:00
 | MoblinTests/Moblin/Integrations/Dji/DjiDevice/DjiDeviceSuite.swift | app/src/test/java/com/moblin/android/integrations/dji/djidevice/DjiDeviceSuite.kt | deepseek-flash | 25.1 |
 | MoblinTests/Moblin/Integrations/Emotes/EmotesSuite.swift | app/src/test/java/com/moblin/android/integrations/emotes/EmotesSuite.kt | deepseek-flash | 31.8 |
 | MoblinTests/Moblin/Integrations/GoPro/GoProBleProtocolSuite.swift | app/src/test/java/com/moblin/android/integrations/gopro/GoProBleProtocolSuite.kt | deepseek-flash | 48.2 |
-| MoblinTests/Moblin/Integrations/WorkoutDevice/WorkoutDeviceCrankCadenceSuite.swift | app/src/test/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCrankCadenceSuite.kt | deepseek-flash | 17.0 |
-| MoblinTests/Moblin/Integrations/WorkoutDevice/WorkoutDeviceCyclingPowerSuite.swift | app/src/test/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCyclingPowerSuite.kt | deepseek-flash | 24.1 |
-| MoblinTests/Moblin/Integrations/WorkoutDevice/WorkoutDeviceCyclingSpeedCadenceSuite.swift | app/src/test/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCyclingSpeedCadenceSuite.kt | deepseek-flash | 32.0 |
+| MoblinTests/Moblin/Integrations/WorkoutDevice/WorkoutDeviceCrankCadenceSuite.swift | app/src/test/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCrankCadenceSuite.kt | deepseek-flash | 10.1 |
+| MoblinTests/Moblin/Integrations/WorkoutDevice/WorkoutDeviceCyclingPowerSuite.swift | app/src/test/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCyclingPowerSuite.kt | deepseek-flash | 20.7 |
+| MoblinTests/Moblin/Integrations/WorkoutDevice/WorkoutDeviceCyclingSpeedCadenceSuite.swift | app/src/test/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCyclingSpeedCadenceSuite.kt | deepseek-flash | 50.9 |
 | MoblinTests/Moblin/Media/AdaptiveBitrate/AdaptiveBitrateSuite.swift | app/src/test/java/com/moblin/android/media/adaptivebitrate/AdaptiveBitrateSuite.kt | deepseek-flash | 24.9 |
 | MoblinTests/Moblin/Media/HaishinKit/Extension/VideoDimensionsSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/extension/VideoDimensionsSuite.kt | deepseek-flash | 11.1 |
 | MoblinTests/Moblin/Media/HaishinKit/Media/Audio/AudioUnitSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/media/audio/AudioUnitSuite.kt | deepseek-flash | 9.9 |

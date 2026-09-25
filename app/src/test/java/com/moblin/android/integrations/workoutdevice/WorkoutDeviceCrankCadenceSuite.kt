@@ -1,6 +1,6 @@
 package com.moblin.android.integrations.workoutdevice
 
-import java.time.Instant
+import com.moblin.android.platform.core.ContinuousClock
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import org.junit.Test
@@ -12,39 +12,58 @@ class WorkoutDeviceCrankCadenceSuite {
     @Test
     fun reportsNothingWithoutCrankData() {
         val crankCadence = WorkoutDeviceCrankCadence()
-        val now = Instant.now()
-        assertNull(crankCadence.update(null, null, now))
-        assertNull(crankCadence.update(null, null, now.plusSeconds(10)))
+        val now = ContinuousClock.now
+        assertNull(crankCadence.update(revolutions = null, time = null, now = now))
+        assertNull(
+            crankCadence.update(
+                revolutions = null,
+                time = null,
+                now = now.advanced(bySeconds = 10.0),
+            ),
+        )
     }
 
     @Test
     fun firstCrankMeasurementReportsNothing() {
         val crankCadence = WorkoutDeviceCrankCadence()
-        val now = Instant.now().plusSeconds(10)
-        assertNull(crankCadence.update(10.toUShort(), 1024.toUShort(), now))
+        val now = ContinuousClock.now.advanced(bySeconds = 10.0)
+        assertNull(crankCadence.update(revolutions = 10.toUShort(), time = 1024.toUShort(), now = now))
     }
 
     @Test
     fun reportsZeroWhenCrankStops() {
         val crankCadence = WorkoutDeviceCrankCadence()
-        var now = Instant.now()
-        crankCadence.update(10.toUShort(), 1024.toUShort(), now)
-        now = now.plusSeconds(1)
-        assertEquals(60, crankCadence.update(11.toUShort(), 2048.toUShort(), now))
+        var now = ContinuousClock.now
+        crankCadence.update(revolutions = 10.toUShort(), time = 1024.toUShort(), now = now)
+        now = now.advanced(bySeconds = 1.0)
+        assertEquals(60, crankCadence.update(revolutions = 11.toUShort(), time = 2048.toUShort(), now = now))
         repeat(3) {
-            now = now.plusSeconds(4)
-            crankCadence.update(11.toUShort(), 2048.toUShort(), now)
+            now = now.advanced(bySeconds = 4.0)
+            crankCadence.update(revolutions = 11.toUShort(), time = 2048.toUShort(), now = now)
         }
-        assertEquals(0, crankCadence.update(11.toUShort(), 2048.toUShort(), now))
+        assertEquals(0, crankCadence.update(revolutions = 11.toUShort(), time = 2048.toUShort(), now = now))
     }
 
     @Test
     fun forgetsCadenceOnReset() {
         val crankCadence = WorkoutDeviceCrankCadence()
-        val now = Instant.now()
-        crankCadence.update(10.toUShort(), 1024.toUShort(), now)
-        assertEquals(60, crankCadence.update(11.toUShort(), 2048.toUShort(), now.plusSeconds(1)))
+        val now = ContinuousClock.now
+        crankCadence.update(revolutions = 10.toUShort(), time = 1024.toUShort(), now = now)
+        assertEquals(
+            60,
+            crankCadence.update(
+                revolutions = 11.toUShort(),
+                time = 2048.toUShort(),
+                now = now.advanced(bySeconds = 1.0),
+            ),
+        )
         crankCadence.reset()
-        assertNull(crankCadence.update(12.toUShort(), 3072.toUShort(), now.plusSeconds(2)))
+        assertNull(
+            crankCadence.update(
+                revolutions = 12.toUShort(),
+                time = 3072.toUShort(),
+                now = now.advanced(bySeconds = 2.0),
+            ),
+        )
     }
 }

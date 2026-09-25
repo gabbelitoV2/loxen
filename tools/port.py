@@ -527,7 +527,10 @@ def glossary_for(entry, by_path):
         other = by_path.get(dep)
         if other is None or other["tier"] == "skip":
             continue
+        private_types = set(other.get("private_types", []))
         for name in other["declared_types"]:
+            if name in private_types:
+                continue
             rows.append(f"- {name} -> {other['kotlin_package']}")
         for name in other["declared_functions"]:
             rows.append(f"- fun {name}() -> {other['kotlin_package']}")
@@ -537,28 +540,65 @@ def glossary_for(entry, by_path):
 
 
 DECLARATION_RE = re.compile(
-    r"^\s*(?:@\w+(?:\([^)]*\))?\s+)*(?:(?:public|internal|open|abstract|override|suspend|inline|operator|infix|const|lateinit)\s+)*"
-    r"(?:fun|class|data class|sealed class|enum class|object|interface|val|var|typealias)\s"
+    r"^\s*(?:@\w+(?:\([^)]*\))?\s+)*(?:(?:public|internal|open|abstract|override|suspend|inline|operator|infix|const|lateinit|companion)\s+)*"
+    r"(?:(?:fun|class|data class|sealed class|enum class|object|interface|val|var|typealias)\s|constructor\()"
 )
+
+
+ENUM_CLASS_RE = re.compile(r"\benum\s+class\b")
+HIDDEN_MODIFIER_RE = re.compile(r"^(\s*(?:@\w+(?:\([^)]*\))?\s+)*)(?:private|protected)\s+")
+
+
+def enum_entry_names(text, masked, line_offset):
+    brace = masked.find("{", line_offset)
+    if brace == -1 or "}" in masked[line_offset:brace] or len(ENUM_CLASS_RE.findall(masked[line_offset:brace])) != 1:
+        return []
+    readable = "".join(" " if m == " " and t not in " \t" else t for m, t in zip(masked, text))
+    _, names = api_enum_entries(masked, readable, brace + 1)
+    return names
 
 
 def signatures(path, limit=80):
     if not path.exists():
         return []
-    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    text = path.read_text(encoding="utf-8", errors="replace")
+    raw_lines = text.splitlines(keepends=True)
+    lines = [line.rstrip("\r\n") for line in raw_lines]
+    offsets = []
+    offset = 0
+    for line in raw_lines:
+        offsets.append(offset)
+        offset += len(line)
+    masked = None
     result = []
     index = 0
+    hidden_indent = None
     while index < len(lines) and len(result) < limit:
         line = lines[index]
+        line_offset = offsets[index]
         index += 1
-        if not DECLARATION_RE.match(line) or line.lstrip().startswith("private "):
+        hidden = HIDDEN_MODIFIER_RE.match(line)
+        if not DECLARATION_RE.match(HIDDEN_MODIFIER_RE.sub(r"\1", line, count=1) if hidden else line):
             continue
-        signature = line.strip()
+        indent = len(line) - len(line.lstrip())
+        if hidden_indent is not None and indent > hidden_indent:
+            continue
+        hidden_indent = None
+        if hidden:
+            hidden_indent = indent
+            continue
+        signature = line.rstrip()
         while signature.count("(") > signature.count(")") and index < len(lines):
             signature += " " + lines[index].strip()
             index += 1
         signature = re.sub(r"\s*\{.*$", "", signature)
         result.append(signature)
+        if ENUM_CLASS_RE.search(signature):
+            if masked is None:
+                masked = postprocess.mask_kotlin(text)
+            names = enum_entry_names(text, masked, line_offset)
+            if names:
+                result.append("    " + ", ".join(names) + ";")
     return result
 
 

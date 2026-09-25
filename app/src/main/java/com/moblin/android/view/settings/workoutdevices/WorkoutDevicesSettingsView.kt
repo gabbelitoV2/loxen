@@ -2,10 +2,8 @@ package com.moblin.android.view.settings.workoutdevices
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.moblin.android.LocalModel
 import com.moblin.android.localized
@@ -31,7 +29,6 @@ fun WorkoutDevicesSettingsView(
     Form(title = "Workout devices") {
         Section {
             Column(
-                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
@@ -42,22 +39,16 @@ fun WorkoutDevicesSettingsView(
                 IntegrationImageView(imageName = "CyclingPowerDevice", height = 80.0)
             }
         }
-        Section(
-            footerContent = {
-                SwipeLeftToDeleteHelpView(kind = localized("a device"))
-            },
-        ) {
+        Section(footerContent = {
+            SwipeLeftToDeleteHelpView(kind = localized("a device"))
+        }) {
             ForEach(
                 workoutDevices.devices,
                 id = { it.id },
-                onDelete = { offsets ->
-                    workoutDevices.devices.remove(atOffsets = offsets)
-                },
+                onDelete = { offsets -> workoutDevices.devices.remove(atOffsets = offsets) },
             ) { device ->
                 ContextMenuDeleteButton(action = {
-                    workoutDevices.devices = workoutDevices.devices
-                        .filterNot { it.id == device.id }
-                        .toMutableList()
+                    workoutDevices.devices.removeAll { it.id == device.id }
                 }) {
                     WorkoutDeviceSettingsView(
                         model = model,
@@ -70,7 +61,7 @@ fun WorkoutDevicesSettingsView(
             CreateButtonView {
                 val device = SettingsWorkoutDevice()
                 device.name = makeUniqueName(SettingsWorkoutDevice.baseName, workoutDevices.devices)
-                workoutDevices.devices = (workoutDevices.devices + device).toMutableList()
+                workoutDevices.devices.add(device)
             }
         }
     }

@@ -1,21 +1,5 @@
 package com.moblin.android.integrations.gopro
 
-import android.annotation.SuppressLint
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattDescriptor
-import android.bluetooth.BluetoothGattService
-import android.bluetooth.BluetoothManager
-import android.bluetooth.BluetoothProfile
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanResult
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_EnumLens
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_EnumLiveStreamStatus
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_EnumProvisioning
@@ -28,14 +12,19 @@ import com.moblin.android.integrations.gopro.protobuf.OpenGopro_ResponseConnect
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_ResponseGeneric
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_ResponseGetApEntries
 import com.moblin.android.integrations.gopro.protobuf.OpenGopro_ResponseStartScanning
+import com.moblin.android.platform.corebluetooth.CBCentralManager
+import com.moblin.android.platform.corebluetooth.CBCentralManagerDelegate
+import com.moblin.android.platform.corebluetooth.CBCharacteristic
+import com.moblin.android.platform.corebluetooth.CBCharacteristicWriteType
+import com.moblin.android.platform.corebluetooth.CBManagerState
+import com.moblin.android.platform.corebluetooth.CBPeripheral
+import com.moblin.android.platform.corebluetooth.CBPeripheralDelegate
+import com.moblin.android.platform.corebluetooth.CBService
+import com.moblin.android.platform.corebluetooth.CBUUID
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.settings.SettingsGoProLaunchLiveStreamResolution
 import com.moblin.android.various.settings.SettingsGoProLens
 import java.util.UUID
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import com.moblin.android.platform.corebluetooth.identifier
 
 enum class GoProDeviceState {
     idle,
@@ -61,15 +50,12 @@ private const val wifiProvisioningTimeoutMargin = 5.0
 private const val statusPollInterval = 1.0
 private const val startShutterDelay = 2.0
 private const val batteryPollKeepAlives = 10
-private val goProNotificationDescriptorId: UUID =
-    UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
 interface GoProDeviceDelegate {
     fun goProDeviceStreamingState(device: GoProDevice, state: GoProDeviceState)
 }
 
-@SuppressLint("MissingPermission")
-class GoProDevice(private val context: Context) {
+class GoProDevice : CBCentralManagerDelegate, CBPeripheralDelegate {
     var delegate: GoProDeviceDelegate? = null
 
     private var wifiSsid = ""
@@ -80,14 +66,12 @@ class GoProDevice(private val context: Context) {
     private var bitrate: UInt = 6_000_000u
     private var lens: SettingsGoProLens = SettingsGoProLens.auto
     private var deviceId: UUID? = null
-    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
-    private var devicePeripheral: BluetoothDevice? = null
-    private var gatt: BluetoothGatt? = null
-    private var characteristics: MutableMap<UUID, BluetoothGattCharacteristic> = mutableMapOf()
-    private var subscribedCharacteristics: MutableSet<UUID> = mutableSetOf()
-    private var accumulators: MutableMap<UUID, GoProBleMessageAccumulator> = mutableMapOf()
-    private var pendingWrites: MutableList<Pair<BluetoothGattCharacteristic, ByteArray>> =
-        mutableListOf()
+    private var centralManager: CBCentralManager? by CBCentralManager.holder()
+    private var devicePeripheral: CBPeripheral? = null
+    private var characteristics: MutableMap<CBUUID, CBCharacteristic> = mutableMapOf()
+    private var subscribedCharacteristics: MutableSet<CBUUID> = mutableSetOf()
+    private var accumulators: MutableMap<CBUUID, GoProBleMessageAccumulator> = mutableMapOf()
+    private var pendingWrites: MutableList<PendingWrite> = mutableListOf()
     private var writeInProgress = false
     private var state: GoProDeviceState = GoProDeviceState.idle
     private var didBeginSetup = false
@@ -99,7 +83,7 @@ class GoProDevice(private val context: Context) {
     private var scanTotalEntries = 0
     private var scanFetchedEntries = 0
     private var scanMatch: OpenGopro_ResponseGetApEntries.ScanEntry? = null
-    private var supportedLenses: List<OpenGopro_EnumLens>? = null
+    private var supportedLenses: MutableList<OpenGopro_EnumLens>? = null
 
     private val operationTimeoutTimer = MainTimer()
     private val wifiTimeoutTimer = MainTimer()
@@ -108,68 +92,6 @@ class GoProDevice(private val context: Context) {
     private val startShutterTimer = MainTimer()
     private val stopTimer = MainTimer()
     private val keepAliveTimer = MainTimer()
-
-    private val mainScope = CoroutineScope(Dispatchers.Main)
-    private var scanCallback: ScanCallback? = null
-    private var adapterStateReceiverRegistered = false
-
-    private val adapterStateReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            centralManagerDidUpdateState()
-        }
-    }
-
-    private val gattCallback = object : BluetoothGattCallback() {
-        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-            mainScope.launch {
-                when {
-                    newState == BluetoothProfile.STATE_CONNECTED &&
-                        status == BluetoothGatt.GATT_SUCCESS ->
-                        centralManagerDidConnect(gatt)
-
-                    newState == BluetoothProfile.STATE_DISCONNECTED ->
-                        centralManagerDidDisconnectPeripheral(status)
-
-                    else -> centralManagerDidFailToConnect()
-                }
-            }
-        }
-
-        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            mainScope.launch {
-                peripheralDidDiscoverServices(status)
-            }
-        }
-
-        override fun onDescriptorWrite(
-            gatt: BluetoothGatt,
-            descriptor: BluetoothGattDescriptor,
-            status: Int
-        ) {
-            mainScope.launch {
-                peripheralDidUpdateNotificationState(descriptor.characteristic, status)
-            }
-        }
-
-        override fun onCharacteristicChanged(
-            gatt: BluetoothGatt,
-            characteristic: BluetoothGattCharacteristic
-        ) {
-            mainScope.launch {
-                peripheralDidUpdateValue(characteristic)
-            }
-        }
-
-        override fun onCharacteristicWrite(
-            gatt: BluetoothGatt,
-            characteristic: BluetoothGattCharacteristic,
-            status: Int
-        ) {
-            mainScope.launch {
-                peripheralDidWriteValue(status)
-            }
-        }
-    }
 
     fun startLiveStream(
         wifiSsid: String,
@@ -189,12 +111,8 @@ class GoProDevice(private val context: Context) {
         this.deviceId = deviceId
         resetConnection()
         setState(GoProDeviceState.discovering)
-        operationTimeoutTimer.startSingleShot(startLiveStreamTimeout) {
-            fail()
-        }
-        centralManager =
-            com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { centralManagerDidUpdateState() }, queue = null)
-        Unit
+        operationTimeoutTimer.startSingleShot(timeout = startLiveStreamTimeout) { fail() }
+        centralManager = CBCentralManager(delegate = this, queue = null)
     }
 
     fun stopLiveStream() {
@@ -208,10 +126,8 @@ class GoProDevice(private val context: Context) {
             state == GoProDeviceState.startingStream || state == GoProDeviceState.streaming
         setState(GoProDeviceState.stoppingStream)
         if (wasStreaming && characteristics[goProCommandId] != null) {
-            send(goProSetShutterMessage(false), to = goProCommandId)
-            stopTimer.startSingleShot(stopLiveStreamTimeout) {
-                reset()
-            }
+            send(goProSetShutterMessage(on = false), to = goProCommandId)
+            stopTimer.startSingleShot(timeout = stopLiveStreamTimeout) { reset() }
         } else {
             reset()
         }
@@ -233,20 +149,11 @@ class GoProDevice(private val context: Context) {
         startShutterTimer.stop()
         stopTimer.stop()
         keepAliveTimer.stop()
-        scanCallback?.let { callback ->
-            runCatching {
-                centralManager?.stopScan()
-            }
+        val peripheral = devicePeripheral
+        if (peripheral != null) {
+            centralManager?.cancelPeripheralConnection(peripheral)
         }
-        scanCallback = null
-        unregisterAdapterStateReceiver()
-        if (devicePeripheral != null) {
-            gatt?.let { g ->
-                centralManager?.cancelPeripheralConnection(g)
-            }
-        }
-        gatt = null
-        centralManager?.delegate = null; centralManager = null
+        centralManager = null
         devicePeripheral = null
         characteristics.clear()
         subscribedCharacteristics.clear()
@@ -280,7 +187,7 @@ class GoProDevice(private val context: Context) {
             return
         }
         this.state = state
-        delegate?.goProDeviceStreamingState(this, state)
+        delegate?.goProDeviceStreamingState(this, state = state)
     }
 
     private fun beginSetup() {
@@ -288,14 +195,10 @@ class GoProDevice(private val context: Context) {
             return
         }
         didBeginSetup = true
-        keepAliveTimer.startPeriodic(keepAliveInterval) {
-            sendKeepAlive()
-        }
+        keepAliveTimer.startPeriodic(interval = keepAliveInterval) { sendKeepAlive() }
         setState(GoProDeviceState.pairing)
         send(goProPairingCompleteMessage(), to = goProNetworkManagementId)
-        pairingFallbackTimer.startSingleShot(pairingFallbackTimeout) {
-            startWifiScan()
-        }
+        pairingFallbackTimer.startSingleShot(timeout = pairingFallbackTimeout) { startWifiScan() }
     }
 
     private fun startWifiScan() {
@@ -305,22 +208,25 @@ class GoProDevice(private val context: Context) {
         pairingFallbackTimer.stop()
         setState(GoProDeviceState.settingUpWifi)
         send(goProStartScanMessage(), to = goProNetworkManagementId)
-        wifiTimeoutTimer.startSingleShot(wifiScanTimeout) {
-            fail(GoProDeviceState.wifiSetupFailed)
+        wifiTimeoutTimer.startSingleShot(timeout = wifiScanTimeout) {
+            fail(state = GoProDeviceState.wifiSetupFailed)
         }
     }
 
     private fun requestNextApEntries() {
-        val scanId = scanId ?: return
+        val scanId = scanId
+        if (scanId == null) {
+            return
+        }
         if (scanFetchedEntries >= scanTotalEntries) {
             connectToScannedWifi()
             return
         }
         send(
             goProGetApEntriesMessage(
-                scanId,
-                scanFetchedEntries,
-                minOf(
+                scanId = scanId,
+                startIndex = scanFetchedEntries,
+                maximumEntries = minOf(
                     scanTotalEntries - scanFetchedEntries,
                     goProMaximumApEntriesPerRequest
                 )
@@ -332,21 +238,21 @@ class GoProDevice(private val context: Context) {
     private fun connectToScannedWifi() {
         val scanMatch = scanMatch
         if (scanMatch == null) {
-            fail(GoProDeviceState.wifiSetupFailed)
+            fail(state = GoProDeviceState.wifiSetupFailed)
             return
         }
         if (scanMatch.isUnsupportedType()) {
-            fail(GoProDeviceState.wifiSetupFailed)
+            fail(state = GoProDeviceState.wifiSetupFailed)
             return
         }
         if (scanMatch.isConfigured()) {
             send(
-                goProConnectToProvisionedWifiMessage(wifiSsid),
+                goProConnectToProvisionedWifiMessage(ssid = wifiSsid),
                 to = goProNetworkManagementId
             )
         } else {
             send(
-                goProConnectToWifiMessage(wifiSsid, wifiPassword),
+                goProConnectToWifiMessage(ssid = wifiSsid, password = wifiPassword),
                 to = goProNetworkManagementId
             )
         }
@@ -360,7 +266,7 @@ class GoProDevice(private val context: Context) {
         setState(GoProDeviceState.configuring)
         send(goProRegisterLiveStreamStatusMessage(), to = goProQueryId)
         waitingForShutterOffBeforeConfigure = true
-        send(goProSetShutterMessage(false), to = goProCommandId)
+        send(goProSetShutterMessage(on = false), to = goProCommandId)
     }
 
     private fun sendLiveStreamConfiguration() {
@@ -372,14 +278,17 @@ class GoProDevice(private val context: Context) {
         }
         send(
             goProSetLiveStreamModeMessage(
-                rtmpUrl,
-                resolution,
-                bitrate,
-                lens
+                url = rtmpUrl,
+                resolution = resolution,
+                bitrate = bitrate,
+                lens = lens
             ),
             to = goProCommandId
         )
-        statusPollTimer.startPeriodic(statusPollInterval, statusPollInterval) {
+        statusPollTimer.startPeriodic(
+            interval = statusPollInterval,
+            initial = statusPollInterval
+        ) {
             send(goProGetLiveStreamStatusMessage(), to = goProQueryId)
         }
     }
@@ -390,8 +299,8 @@ class GoProDevice(private val context: Context) {
         }
         didScheduleShutterStart = true
         setState(GoProDeviceState.startingStream)
-        startShutterTimer.startSingleShot(startShutterDelay) {
-            send(goProSetShutterMessage(true), to = goProCommandId)
+        startShutterTimer.startSingleShot(timeout = startShutterDelay) {
+            send(goProSetShutterMessage(on = true), to = goProCommandId)
         }
     }
 
@@ -406,10 +315,13 @@ class GoProDevice(private val context: Context) {
         }
     }
 
-    private fun send(payload: ByteArray, to: UUID) {
-        val characteristic = characteristics[to] ?: return
-        for (packet in goProBlePackets(payload)) {
-            pendingWrites.add(Pair(characteristic, packet))
+    private fun send(payload: ByteArray, to: CBUUID) {
+        val characteristic = characteristics[to]
+        if (characteristic == null) {
+            return
+        }
+        for (packet in goProBlePackets(payload = payload)) {
+            pendingWrites.add(PendingWrite(characteristic = characteristic, packet = packet))
         }
         writeNextPacketIfNeeded()
     }
@@ -418,69 +330,77 @@ class GoProDevice(private val context: Context) {
         if (writeInProgress) {
             return
         }
-        val next = pendingWrites.firstOrNull() ?: return
-        val gatt = this.gatt ?: return
+        val next = pendingWrites.firstOrNull()
+        if (next == null) {
+            return
+        }
+        val devicePeripheral = devicePeripheral
+        if (devicePeripheral == null) {
+            return
+        }
         writeInProgress = true
-        next.first.writeType = BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
-        next.first.value = next.second
-        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeCharacteristic(next.first) }
+        devicePeripheral.writeValue(
+            data = next.packet,
+            `for` = next.characteristic,
+            type = CBCharacteristicWriteType.withResponse
+        )
     }
 
-    private fun processMessage(message: ByteArray, characteristic: UUID) {
+    private fun processMessage(message: ByteArray, from: CBUUID) {
         if (message.size < 2) {
             return
         }
-        when (characteristic) {
+        when (from) {
             goProNetworkManagementResponseId -> processNetworkMessage(message)
             goProCommandResponseId -> processCommandMessage(message)
             goProQueryResponseId -> processQueryMessage(message)
-            else -> Unit
+            else -> {}
         }
     }
 
     private fun processNetworkMessage(message: ByteArray) {
         val payload = message.copyOfRange(2, message.size)
         when (message[0].toUByte() to message[1].toUByte()) {
-            goProPairingFeatureId to goProPairingFinishResponseId -> startWifiScan()
-            goProNetworkFeatureId to goProStartScanResponseId -> processStartScanResponse(payload)
+            goProPairingFeatureId to goProPairingFinishResponseId ->
+                startWifiScan()
+            goProNetworkFeatureId to goProStartScanResponseId ->
+                processStartScanResponse(payload)
             goProNetworkFeatureId to goProScanningNotificationId ->
                 processScanningNotification(payload)
-
             goProNetworkFeatureId to goProGetApEntriesResponseId ->
                 processGetApEntriesResponse(payload)
-
             goProNetworkFeatureId to goProConnectResponseId,
             goProNetworkFeatureId to goProConnectNewResponseId ->
                 processConnectResponse(payload)
-
             goProNetworkFeatureId to goProProvisioningNotificationId ->
                 processProvisioningNotification(payload)
-
-            else -> Unit
+            else -> {}
         }
     }
 
     private fun processStartScanResponse(payload: ByteArray) {
-        val response = runCatching { OpenGopro_ResponseStartScanning(serializedBytes = payload) }.getOrNull()
-            ?: return
+        val response = runCatching {
+            OpenGopro_ResponseStartScanning(serializedBytes = payload)
+        }.getOrNull() ?: return
         if (response.result != OpenGopro_EnumResultGeneric.resultSuccess) {
-            fail(GoProDeviceState.wifiSetupFailed)
+            fail(state = GoProDeviceState.wifiSetupFailed)
         }
     }
 
     private fun processScanningNotification(payload: ByteArray) {
-        val notification = runCatching { OpenGopro_NotifStartScanning(serializedBytes = payload) }.getOrNull()
-            ?: return
+        val notification = runCatching {
+            OpenGopro_NotifStartScanning(serializedBytes = payload)
+        }.getOrNull() ?: return
         if (state != GoProDeviceState.settingUpWifi) {
             return
         }
         when (notification.scanningState) {
-            OpenGopro_EnumScanning.scanningSuccess -> startFetchingApEntries(notification)
+            OpenGopro_EnumScanning.scanningSuccess ->
+                startFetchingApEntries(notification)
             OpenGopro_EnumScanning.scanningAbortedBySystem,
             OpenGopro_EnumScanning.scanningCancelledByUser ->
-                fail(GoProDeviceState.wifiSetupFailed)
-
-            else -> Unit
+                fail(state = GoProDeviceState.wifiSetupFailed)
+            else -> {}
         }
     }
 
@@ -489,7 +409,7 @@ class GoProDevice(private val context: Context) {
             return
         }
         if (notification.totalEntries <= 0) {
-            fail(GoProDeviceState.wifiSetupFailed)
+            fail(state = GoProDeviceState.wifiSetupFailed)
             return
         }
         scanId = notification.scanID
@@ -499,13 +419,14 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processGetApEntriesResponse(payload: ByteArray) {
-        val response = runCatching { OpenGopro_ResponseGetApEntries(serializedBytes = payload) }.getOrNull()
-            ?: return
+        val response = runCatching {
+            OpenGopro_ResponseGetApEntries(serializedBytes = payload)
+        }.getOrNull() ?: return
         if (state != GoProDeviceState.settingUpWifi || scanId == null) {
             return
         }
         if (response.result != OpenGopro_EnumResultGeneric.resultSuccess) {
-            fail(GoProDeviceState.wifiSetupFailed)
+            fail(state = GoProDeviceState.wifiSetupFailed)
             return
         }
         if (scanMatch == null) {
@@ -520,34 +441,38 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processConnectResponse(payload: ByteArray) {
-        val response = runCatching { OpenGopro_ResponseConnect(serializedBytes = payload) }.getOrNull()
-            ?: return
+        val response = runCatching {
+            OpenGopro_ResponseConnect(serializedBytes = payload)
+        }.getOrNull() ?: return
         if (response.result != OpenGopro_EnumResultGeneric.resultSuccess) {
-            fail(GoProDeviceState.wifiSetupFailed)
+            fail(state = GoProDeviceState.wifiSetupFailed)
             return
         }
-        val timeoutSeconds =
-            if (response.hasTimeoutSeconds) response.timeoutSeconds
-            else wifiProvisioningDefaultTimeout
+        val timeoutSeconds = if (response.hasTimeoutSeconds) {
+            response.timeoutSeconds
+        } else {
+            wifiProvisioningDefaultTimeout
+        }
         wifiTimeoutTimer.startSingleShot(
-            timeoutSeconds.toDouble() + wifiProvisioningTimeoutMargin
+            timeout = timeoutSeconds.toDouble() + wifiProvisioningTimeoutMargin
         ) {
-            fail(GoProDeviceState.wifiSetupFailed)
+            fail(state = GoProDeviceState.wifiSetupFailed)
         }
         handleProvisioningState(response.provisioningState)
     }
 
     private fun processProvisioningNotification(payload: ByteArray) {
-        val notification = runCatching { OpenGopro_NotifProvisioningState(serializedBytes = payload) }.getOrNull()
-            ?: return
+        val notification = runCatching {
+            OpenGopro_NotifProvisioningState(serializedBytes = payload)
+        }.getOrNull() ?: return
         handleProvisioningState(notification.provisioningState)
     }
 
     private fun handleProvisioningState(provisioningState: OpenGopro_EnumProvisioning) {
         when (provisioningState) {
             OpenGopro_EnumProvisioning.provisioningSuccessNewAp,
-            OpenGopro_EnumProvisioning.provisioningSuccessOldAp -> configureLiveStream()
-
+            OpenGopro_EnumProvisioning.provisioningSuccessOldAp ->
+                configureLiveStream()
             OpenGopro_EnumProvisioning.provisioningAbortedBySystem,
             OpenGopro_EnumProvisioning.provisioningCancelledByUser,
             OpenGopro_EnumProvisioning.provisioningErrorFailedToAssociate,
@@ -555,28 +480,27 @@ class GoProDevice(private val context: Context) {
             OpenGopro_EnumProvisioning.provisioningErrorEulaBlocking,
             OpenGopro_EnumProvisioning.provisioningErrorNoInternet,
             OpenGopro_EnumProvisioning.provisioningErrorUnsupportedType ->
-                fail(GoProDeviceState.wifiSetupFailed)
-
-            else -> Unit
+                fail(state = GoProDeviceState.wifiSetupFailed)
+            else -> {}
         }
     }
 
     private fun processCommandMessage(message: ByteArray) {
         val featureId = message[0].toUByte()
-        val actionId = message[1].toUByte()
-        when {
-            featureId == goProLiveStreamCommandFeatureId &&
-                actionId == goProSetLiveStreamModeResponseId ->
+        val commandId = message[1].toUByte()
+        when (featureId to commandId) {
+            goProLiveStreamCommandFeatureId to goProSetLiveStreamModeResponseId ->
                 processSetLiveStreamModeResponse(message.copyOfRange(2, message.size))
-
-            featureId == goProShutterCommandId -> processShutterResponse(actionId)
-            else -> Unit
+            goProShutterCommandId to commandId ->
+                processShutterResponse(commandId)
+            else -> {}
         }
     }
 
     private fun processSetLiveStreamModeResponse(payload: ByteArray) {
-        val response = runCatching { OpenGopro_ResponseGeneric(serializedBytes = payload) }.getOrNull()
-            ?: return
+        val response = runCatching {
+            OpenGopro_ResponseGeneric(serializedBytes = payload)
+        }.getOrNull() ?: return
         if (response.result != OpenGopro_EnumResultGeneric.resultSuccess) {
             fail()
         }
@@ -594,28 +518,27 @@ class GoProDevice(private val context: Context) {
     }
 
     private fun processQueryMessage(message: ByteArray) {
-        val payload = message.copyOfRange(2, message.size)
         when (message[0].toUByte() to message[1].toUByte()) {
             goProLiveStreamQueryFeatureId to goProGetLiveStreamStatusResponseId ->
-                processLiveStreamStatus(payload, true)
-
+                processLiveStreamStatus(message.copyOfRange(2, message.size), isResponse = true)
             goProLiveStreamQueryFeatureId to goProLiveStreamStatusNotificationId ->
-                processLiveStreamStatus(payload, false)
-
+                processLiveStreamStatus(message.copyOfRange(2, message.size), isResponse = false)
             goProGetStatusQueryId to goProResponseSuccessStatus ->
-                processStatusResponse(payload)
-
-            else -> Unit
+                processStatusResponse(message.copyOfRange(2, message.size))
+            else -> {}
         }
     }
 
     private fun processLiveStreamStatus(payload: ByteArray, isResponse: Boolean) {
-        val status = runCatching { OpenGopro_NotifyLiveStreamStatus(serializedBytes = payload) }.getOrNull()
-            ?: return
+        val status = runCatching {
+            OpenGopro_NotifyLiveStreamStatus(serializedBytes = payload)
+        }.getOrNull() ?: return
         if (isResponse && supportedLenses == null) {
-            supportedLenses =
-                if (status.liveStreamLensSupported) status.liveStreamLensSupportedArray
-                else emptyList()
+            supportedLenses = if (status.liveStreamLensSupported) {
+                status.liveStreamLensSupportedArray
+            } else {
+                mutableListOf()
+            }
         }
         handleLiveStreamStatus(status.liveStreamStatus)
     }
@@ -623,26 +546,27 @@ class GoProDevice(private val context: Context) {
     private fun processStatusResponse(payload: ByteArray) {
         if (payload.size < 3 ||
             payload[0].toUByte() != goProBatteryPercentageStatusId ||
-            payload[1].toUByte() < 1u
+            payload[1].toUByte() < 1.toUByte()
         ) {
             return
         }
-        batteryPercentage = payload[2].toUByte().toInt()
+        batteryPercentage = payload[2].toInt() and 0xFF
     }
 
     private fun handleLiveStreamStatus(liveStreamStatus: OpenGopro_EnumLiveStreamStatus) {
         when (liveStreamStatus) {
-            OpenGopro_EnumLiveStreamStatus.liveStreamStateReady -> startShutterWhenReady()
+            OpenGopro_EnumLiveStreamStatus.liveStreamStateReady ->
+                startShutterWhenReady()
             OpenGopro_EnumLiveStreamStatus.liveStreamStateStreaming,
-            OpenGopro_EnumLiveStreamStatus.liveStreamStateReconnecting -> handleStreaming()
-
+            OpenGopro_EnumLiveStreamStatus.liveStreamStateReconnecting ->
+                handleStreaming()
             OpenGopro_EnumLiveStreamStatus.liveStreamStateIdle,
-            OpenGopro_EnumLiveStreamStatus.liveStreamStateCompleteStayOn -> handleNotStreaming()
-
+            OpenGopro_EnumLiveStreamStatus.liveStreamStateCompleteStayOn ->
+                handleNotStreaming()
             OpenGopro_EnumLiveStreamStatus.liveStreamStateFailedStayOn,
-            OpenGopro_EnumLiveStreamStatus.liveStreamStateUnavailable -> fail()
-
-            else -> Unit
+            OpenGopro_EnumLiveStreamStatus.liveStreamStateUnavailable ->
+                fail()
+            else -> {}
         }
     }
 
@@ -659,49 +583,46 @@ class GoProDevice(private val context: Context) {
         }
     }
 
-    private fun registerAdapterStateReceiver() {
-        if (adapterStateReceiverRegistered) {
+    override fun centralManagerDidUpdateState(central: CBCentralManager) {
+        if (central.state != CBManagerState.poweredOn) {
+            if (central.state != CBManagerState.unknown && central.state != CBManagerState.resetting) {
+                fail()
+            }
             return
         }
-        context.registerReceiver(
-            adapterStateReceiver,
-            IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
-        )
-        adapterStateReceiverRegistered = true
-    }
-
-    private fun unregisterAdapterStateReceiver() {
-        if (!adapterStateReceiverRegistered) {
-            return
-        }
-        runCatching {
-            context.unregisterReceiver(adapterStateReceiver)
-        }
-        adapterStateReceiverRegistered = false
-    }
-
-    fun centralManagerDidUpdateState() {
-        val central = centralManager ?: return
-        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.unknown || central.state == com.moblin.android.platform.corebluetooth.CBManagerState.resetting) { return }; if (central.state != com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
-            fail()
-            return
-        }
+        val deviceId = deviceId
         if (deviceId == null) {
             fail()
             return
         }
-        scanForDevice()
+        val peripheral = central.retrievePeripherals(withIdentifiers = listOf(deviceId)).firstOrNull()
+        if (peripheral == null) {
+            fail()
+            return
+        }
+        devicePeripheral = peripheral
+        peripheral.delegate = this
+        setState(GoProDeviceState.connecting)
+        central.connect(peripheral)
     }
 
-    fun centralManagerDidFailToConnect() {
+    override fun centralManagerDidFailToConnect(
+        central: CBCentralManager,
+        peripheral: CBPeripheral,
+        error: Throwable?
+    ) {
         fail()
     }
 
-    fun centralManagerDidConnect(peripheral: BluetoothGatt) {
-        com.moblin.android.platform.corebluetooth.bluetoothCall { peripheral.discoverServices() }
+    override fun centralManagerDidConnect(central: CBCentralManager, peripheral: CBPeripheral) {
+        peripheral.discoverServices(listOf(goProControlServiceId, goProCameraManagementServiceId))
     }
 
-    fun centralManagerDidDisconnectPeripheral(status: Int) {
+    override fun centralManagerDidDisconnectPeripheral(
+        central: CBCentralManager,
+        peripheral: CBPeripheral,
+        error: Throwable?
+    ) {
         if (state != GoProDeviceState.idle &&
             state != GoProDeviceState.failed &&
             state != GoProDeviceState.wifiSetupFailed
@@ -710,98 +631,54 @@ class GoProDevice(private val context: Context) {
         }
     }
 
-    private fun scanForDevice() {
-        if (scanCallback != null) {
-            return
-        }
-        val scanner = centralManager
-        if (scanner == null) {
+    override fun peripheralDidDiscoverServices(peripheral: CBPeripheral, error: Throwable?) {
+        if (error != null) {
             fail()
             return
         }
-        val callback = object : ScanCallback() {
-            override fun onScanResult(callbackType: Int, result: ScanResult) {
-                if (result.device.identifier != deviceId) return
-                mainScope.launch {
-                    runCatching {
-                        this@GoProDevice.scanCallback?.let { scanner.stopScan() }
-                    }
-                    this@GoProDevice.scanCallback = null
-                    connectToPeripheral(result.device)
-                }
-            }
-
-            override fun onScanFailed(errorCode: Int) {
-                mainScope.launch {
-                    fail()
-                }
-            }
-        }
-        scanCallback = callback
-        runCatching {
-            scanner.scanForPeripherals(withServices = null, callback = callback)
-        }.onFailure {
-            scanCallback = null
-            fail()
+        for (service in peripheral.services.orEmpty()) {
+            peripheral.discoverCharacteristics(null, `for` = service)
         }
     }
 
-    private fun connectToPeripheral(peripheral: BluetoothDevice) {
-        devicePeripheral = peripheral
-        setState(GoProDeviceState.connecting)
-        gatt = centralManager?.connect(peripheral, callback = gattCallback)
-    }
-
-    fun peripheralDidDiscoverServices(status: Int) {
-        val gatt = this.gatt ?: return
-        if (status != BluetoothGatt.GATT_SUCCESS) {
+    override fun peripheralDidDiscoverCharacteristicsFor(
+        peripheral: CBPeripheral,
+        service: CBService,
+        error: Throwable?
+    ) {
+        if (error != null) {
             fail()
             return
         }
-        for (service in gatt.services ?: emptyList()) {
-            peripheralDidDiscoverCharacteristics(service, status)
-        }
-    }
-
-    fun peripheralDidDiscoverCharacteristics(service: BluetoothGattService, status: Int) {
-        val gatt = this.gatt ?: return
-        if (status != BluetoothGatt.GATT_SUCCESS) {
-            fail()
-            return
-        }
-        val notifyIds: Set<UUID> = setOf(
+        val notifyIds: Set<CBUUID> = setOf(
             goProCommandResponseId,
             goProSettingsResponseId,
             goProQueryResponseId,
-            goProNetworkManagementResponseId
+            goProNetworkManagementResponseId,
         )
-        for (characteristic in service.characteristics ?: emptyList()) {
+        for (characteristic in service.characteristics.orEmpty()) {
             characteristics[characteristic.uuid] = characteristic
             if (notifyIds.contains(characteristic.uuid)) {
                 accumulators[characteristic.uuid] = GoProBleMessageAccumulator()
-                com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, true) }
-                val descriptor = characteristic.getDescriptor(goProNotificationDescriptorId)
-                if (descriptor != null) {
-                    descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                    com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }
-                }
+                peripheral.setNotifyValue(true, `for` = characteristic)
             }
         }
     }
 
-    fun peripheralDidUpdateNotificationState(
-        characteristic: BluetoothGattCharacteristic,
-        status: Int
+    override fun peripheralDidUpdateNotificationStateFor(
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic,
+        error: Throwable?
     ) {
-        if (status != BluetoothGatt.GATT_SUCCESS) {
+        if (error != null || !characteristic.isNotifying) {
             fail()
             return
         }
         subscribedCharacteristics.add(characteristic.uuid)
-        val required: Set<UUID> = setOf(
+        val required: Set<CBUUID> = setOf(
             goProCommandResponseId,
             goProQueryResponseId,
-            goProNetworkManagementResponseId
+            goProNetworkManagementResponseId,
         )
         if (subscribedCharacteristics.containsAll(required) &&
             characteristics[goProCommandId] != null &&
@@ -813,15 +690,26 @@ class GoProDevice(private val context: Context) {
         }
     }
 
-    fun peripheralDidUpdateValue(characteristic: BluetoothGattCharacteristic) {
-        val packet = characteristic.value ?: return
-        val message = accumulators[characteristic.uuid]?.append(packet) ?: return
-        processMessage(message, characteristic.uuid)
+    override fun peripheralDidUpdateValueFor(
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic,
+        error: Throwable?
+    ) {
+        val packet = characteristic.value
+        if (error != null || packet == null) {
+            return
+        }
+        val message = accumulators[characteristic.uuid]?.append(packet = packet) ?: return
+        processMessage(message, from = characteristic.uuid)
     }
 
-    fun peripheralDidWriteValue(status: Int) {
+    override fun peripheralDidWriteValueFor(
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic,
+        error: Throwable?
+    ) {
         writeInProgress = false
-        if (status != BluetoothGatt.GATT_SUCCESS) {
+        if (error != null) {
             fail()
             return
         }
@@ -830,4 +718,9 @@ class GoProDevice(private val context: Context) {
         }
         writeNextPacketIfNeeded()
     }
+
+    private data class PendingWrite(
+        val characteristic: CBCharacteristic,
+        val packet: ByteArray
+    )
 }
