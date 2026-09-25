@@ -92,6 +92,10 @@ import com.moblin.android.view.utils.TextItemLocalizedView
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.min
+import com.moblin.android.platform.translation.LanguageAvailability
+import com.moblin.android.platform.translation.minimalIdentifier
+import com.moblin.android.various.utils.name
+import java.util.Locale
 
 private data class Suggestion(val id: Int, val name: String, val text: String)
 
@@ -240,7 +244,7 @@ private fun VariableView(
 private data class Language(
     val identifier: String,
     val name: String,
-    val status: Any?,
+    val status: LanguageAvailability.Status,
 )
 
 @Composable
@@ -249,7 +253,7 @@ private fun SubtitlesWithLanguageView(
     text: String,
     onChange: (String) -> Unit,
 ) {
-    val languages = remember { mutableStateOf(listOf<Language>()) }.value
+    var languages by remember { mutableStateOf(listOf<Language>()) }
     var presentingLanguagePicker by remember { mutableStateOf(false) }
     FormRow(onClick = { presentingLanguagePicker = true }) {
         Column(horizontalAlignment = Alignment.Start) {
@@ -259,6 +263,20 @@ private fun SubtitlesWithLanguageView(
     }
     if (presentingLanguagePicker) {
         Sheet(onDismissRequest = { presentingLanguagePicker = false }) {
+            LaunchedEffect(Unit) {
+                val availability = LanguageAvailability()
+                val supportedLanguages = availability.supportedLanguages()
+                languages = listOf()
+                for (language in supportedLanguages) {
+                    val status = availability.status(from = Locale.getDefault(), to = language)
+                    languages = languages + Language(
+                        identifier = language.minimalIdentifier,
+                        name = language.name(),
+                        status = status,
+                    )
+                }
+                languages = languages.sortedBy { it.identifier }
+            }
             Form(title = localized("Subtitles language")) {
                 Section {
                     Text(
@@ -269,13 +287,25 @@ private fun SubtitlesWithLanguageView(
                 }
                 Section {
                     languages.forEach { language ->
-                        val value = "{subtitles:${language.identifier}}"
-                        FormRow(onClick = {
-                            onChange(text + value)
-                            model.makeToast(title = "Appended $value to text")
-                            presentingLanguagePicker = false
-                        }) {
-                            Text(language.name)
+                        when (language.status) {
+                            LanguageAvailability.Status.installed -> {
+                                FormRow(onClick = {
+                                    val value = "{subtitles:${language.identifier}}"
+                                    onChange(text + value)
+                                    model.makeToast(title = "Appended $value to text")
+                                    presentingLanguagePicker = false
+                                }) {
+                                    Text(language.name)
+                                }
+                            }
+                            LanguageAvailability.Status.supported -> {
+                                FormRow {
+                                    Text(language.name)
+                                    Spacer(Modifier.weight(1f))
+                                    Text(localized("Not downloaded"))
+                                }
+                            }
+                            else -> {}
                         }
                     }
                 }

@@ -1,0 +1,14 @@
+{
+  "task": "STT",
+  "hooks": [
+    {
+      "id": "HSTT.1",
+      "file": "various/model/ModelSpeechToText.kt",
+      "scope": "fun Model.startSpeechToText",
+      "op": "replace",
+      "old": "    val newSpeechToText = SpeechToText(AppDelegate.context)",
+      "new": "    val newSpeechToText = SpeechToText()",
+      "note": "Swift speechToText = SpeechToText(); SpeechToText.kt is a port of the Swift file on the SFSpeechRecognizer shim, which takes no Context."
+    }
+  ]
+}

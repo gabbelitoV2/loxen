@@ -16,7 +16,7 @@ fun Model.reloadSpeechToText() {
 }
 
 fun Model.startSpeechToText() {
-    val newSpeechToText = SpeechToText(AppDelegate.context)
+    val newSpeechToText = SpeechToText()
     speechToText = newSpeechToText
     newSpeechToText.delegate = object : SpeechToTextDelegate {
         override fun speechToTextPartialResult(position: Int, text: String) {

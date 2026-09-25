@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-09-25T06:41:07+00:00
+Generated 2026-09-25T07:40:22+00:00
 
 ## Summary
 
@@ -226,12 +226,8 @@ Generated 2026-09-25T06:41:07+00:00
 - Moblin/Various/Settings/SettingsStream.swift
   - AppAuthCore OIDAuthState (isYouTubeAuthorized, encodeYouTubeAuthState, decodeYouTubeAuthState)
   - NSKeyedArchiver / NSKeyedUnarchiver
-- Moblin/Various/SpeechToText.swift
-  - Android SpeechRecognizer cannot accept raw audio buffers: no equivalent of SFSpeechAudioBufferRecognitionRequest.appendAudioSampleBuffer (RecognizerIntent.EXTRA_AUDIO_SOURCE only exists on API 33+ and requires 16 kHz mono PCM through a ParcelFileDescriptor).
 - Moblin/Various/Storages/RecordingsStorage.swift
   - URL(resolvingBookmarkData:bookmarkDataIsStale:) / startAccessingSecurityScopedResource security-scoped bookmarks
-- Moblin/Various/Subtitles/Translator.swift
-  - Translation framework (TranslationSession, TranslationError, TranslationSession.translate)
 - Moblin/Various/Utils/UiUtils.swift
   - AudioServicesPlaySystemSound(kSystemSoundID_Vibrate) in UIDevice.vibrate()
   - UIApplication.shared.connectedScenes / UIWindowScene / UIWindow in getWindow()

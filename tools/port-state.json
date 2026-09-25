@@ -859,18 +859,13 @@
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/subtitles/Translator.kt",
     "notes": [
-      "Translation is an Apple-only framework with no Android counterpart, so the translation session and the actual translation call are TODO(\"no Android counterpart for Translation\").",
-      "@unchecked Sendable has no Kotlin equivalent and is dropped.",
-      "@MainActor is emulated with a private mainScope on Dispatchers.Main; the Swift Task { @MainActor in ... } becomes mainScope.launch { ... }.",
-      "The weak delegate maps to a plain nullable property; Kotlin has no weak reference by default.",
-      "TranslationSession is modelled as a suspend (String) -> String field named session so the call site stays close to session.translate(text).",
-      "The two Swift catch branches (TranslationError -> delegate message, other -> log) collapse into a single Throwable catch that forwards error.message to the delegate.",
-      "@MainActor static var translators becomes a companion object MutableList; the main-actor isolation guarantee is not reproduced at runtime.",
-      "logger.info(\"speech-to-text: Translation error: ...\") maps to Log.i(TAG, ...) with tag \"Translator\"."
+      "TranslationSession, TranslationError and Locale.Language come from the translation shim (platform/translation) on Android's on-device TranslationManager; Locale.Language is java.util.Locale and .init(identifier:) is localeLanguage(identifier = ...).",
+      "session.translate(text) is a suspend call; the Swift Task { @MainActor in } becomes mainScope.launch on Dispatchers.Main.",
+      "catch let error as TranslationError reports error.failureReason ?: error.localizedDescription, Apple's English failure reasons; other errors are only logged, as in Swift.",
+      "@unchecked Sendable has no Kotlin equivalent and is dropped; @MainActor static var translators becomes a companion object MutableList.",
+      "The weak delegate maps to a plain nullable property."
     ],
-    "unsupported": [
-      "Translation framework (TranslationSession, TranslationError, TranslationSession.translate)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 1747,
@@ -2454,7 +2449,7 @@
     "notes": [
       "Swift's `extension Model` becomes top-level extension functions on `Model` in the same package. A Kotlin file cannot add interface conformances, so `Model` must declare `: SpeechToTextDelegate, TranslatorDelegate` (or their Kotlin equivalents); the same-package extension functions then act as the interface implementations.",
       "All Model members touched here must be visible outside Model's own file (at least `internal`): `speechToText`, `speechToTextLatestPosition`, `speechToTextLatestText`, `speechToTextAlertMatchOffset`, `speechToTextTextAligners`, `textEffects`, `browserEffects`, `enabledAlertsEffects`, `widgetsInCurrentScene(onlyEnabled:)`, `makeErrorToast(title:)`, `playAlert(alert:)`.",
-      "The `#available(iOS 26.0, *)` guards around the Translation framework are dropped: on Android the ported `Translator` from com.moblin.android.various.subtitles runs unconditionally.",
+      "The `#available(iOS 26.0, *)` guards around the Translation framework are dropped: on Android the ported `Translator` runs unconditionally on the TranslationManager shim.",
       "Swift counts Characters; `text.indexOf(string, startIndex, ignoreCase)` plus `string.length` are used instead, so offsets in the alert matcher are UTF-16 code units.",
       "`Set(widget.widget.text.subtitles.map(\\.identifier))` becomes `map { it.identifier }.toSet()` over nullable identifiers with an explicit null check inside the loop.",
       "Assumes the widget model exposes `WidgetType.text` / `WidgetType.alerts` / `WidgetType.browser` and the alert enum case is `Alert.SpeechToTextString(id)` in package com.moblin.android.various.model.",
@@ -6855,18 +6850,15 @@
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/SpeechToText.kt",
     "notes": [
-      "SFSpeechRecognizer maps to android.speech.SpeechRecognizer: the class implements RecognitionListener instead of SFSpeechRecognizerDelegate, and the Swift resultHandler closure is split into onResults (final) and onPartialResults.",
-      "The constructor gains a Context because SpeechRecognizer.createSpeechRecognizer and the RECORD_AUDIO permission check need one; the recognizer is created lazily on Dispatchers.Main inside start().",
-      "SFSpeechRecognitionTask has no Android counterpart, so recognitionTask is now a Boolean session flag; cancel() replaces task.cancel() and stopListening() replaces endAudio().",
-      "requestAuthorization is replaced by a RECORD_AUDIO check via ContextCompat.checkSelfPermission plus SpeechRecognizer.isRecognitionAvailable; the authorized/denied/restricted/notDetermined cases collapse to two error strings and the host Activity must request the permission itself.",
-      "ContinuousClock.Instant becomes Long nanoseconds taken from SystemClock.elapsedRealtimeNanos(); every caller of tick() must pass that same clock.",
-      "shouldReportPartialResults becomes RecognizerIntent.EXTRA_PARTIAL_RESULTS and a free-form language model; addsPunctuation has no RecognizerIntent equivalent and is dropped.",
-      "delegate cannot be weak in Kotlin, so it must be cleared explicitly to avoid leaking the owner.",
-      "Kept the Swift restart-on-error logic as-is: Android delivers ERROR_CLIENT after cancel(), which can cause an extra restart cycle."
+      "SFSpeechRecognizer, SFSpeechAudioBufferRecognitionRequest, SFSpeechRecognitionTask and SFSpeechRecognizerDelegate come from the speech shim (platform/speech), so the class keeps the Swift shape and no Context.",
+      "On Android 13 and newer the audio appended with appendAudioSampleBuffer is converted to 16 kHz mono 16-bit PCM and fed to the recognizer through RecognizerIntent.EXTRA_AUDIO_SOURCE, preferring the on-device recognizer; older versions let the recognizer use the microphone.",
+      "requestAuthorization reports authorized, denied without the microphone permission and restricted without a recognition service; the when over the closed enum drops Swift's @unknown default.",
+      "The result handler runs on the main thread like SFSpeechRecognizer's default queue; return inside it is return@recognitionTask.",
+      "ContinuousClock.Instant becomes Long nanoseconds from SystemClock.elapsedRealtimeNanos(), the clock Model passes to tick(now:).",
+      "String.suffix(150) becomes takeLast(150) on UTF-16 units, matching the offsets Subtitles uses.",
+      "delegate cannot be weak in Kotlin; Model drops the SpeechToText instance on stop."
     ],
-    "unsupported": [
-      "Android SpeechRecognizer cannot accept raw audio buffers: no equivalent of SFSpeechAudioBufferRecognitionRequest.appendAudioSampleBuffer (RecognizerIntent.EXTRA_AUDIO_SOURCE only exists on API 33+ and requires 16 kHz mono PCM through a ParcelFileDescriptor)."
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 2680,
@@ -17325,8 +17317,8 @@
       "The diff deletes the local FontFamilyPickerView, FontStylePickerView, fontStyleName, fontStyles and loadFontFamilies helpers; their Kotlin copies in this file are removed too, since FontFamilyPickerView, FontStylePickerView, FontSettingsView and fontStyleName now live in com.moblin.android.view.utils.",
       "The Swift `FontSettingsView(font: $text.font) { ... }` binding is passed with the platform binding(get, set) helper, and the trailing closure becomes the onChange lambda.",
       "The condition guarding the Design/Weight/Monospaced digits pickers is now `text.font.family == null` instead of the old `text.fontFamily != nil` branch.",
-      "Only the import of FontSettingsView and the binding helper were added; all other import lines are left byte-identical, so the now-unused LaunchedEffect import stays.",
-      "The Design/Weight pickers keep the Kotlin port's existing property names (text.fontDesign, text.fontWeight, text.fontMonospacedDigits) and its toUiKit()/toSystem() setter calls, which the Swift diff does not touch."
+      "The Design/Weight pickers keep the Kotlin port's existing property names (text.fontDesign, text.fontWeight, text.fontMonospacedDigits) and its toUiKit()/toSystem() setter calls, which the Swift diff does not touch.",
+      "SubtitlesWithLanguageView loads its languages with LanguageAvailability from the translation shim in a LaunchedEffect, the Swift .task; installed languages append {subtitles:<minimalIdentifier>}, supported ones show Not downloaded."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
