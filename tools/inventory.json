@@ -1,6 +1,6 @@
 {
   "root": "<home>\\Desktop\\code\\moblin-android\\.upstream",
-  "generated": "2026-09-24T15:39:39+00:00",
+  "generated": "2026-09-25T06:40:42+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -132,11 +132,12 @@
     },
     {
       "path": "Moblin Screen Recording/Shared/SampleBufferReceiver.swift",
-      "lines": 160,
-      "sha256": "33010fb4b5d2e6b13e143e918fe9dcb9145f6e5514816d0299e862cb8396d539",
+      "lines": 159,
+      "sha256": "3a190d4d243c81d12a462c1a7ad4ab18fcb1e258d2d2193e2d0f0bc68c3d2b1c",
       "imports": [
         "AVFoundation",
-        "ReplayKit"
+        "ReplayKit",
+        "System"
       ],
       "tier": "skip",
       "declared_types": [
@@ -157,10 +158,11 @@
     },
     {
       "path": "Moblin Screen Recording/Shared/SampleBufferSender.swift",
-      "lines": 238,
-      "sha256": "46b0c53cf1448d9cf9bb84ff9c8b269660e012a73d2f915ffee9c959fa978441",
+      "lines": 223,
+      "sha256": "704c395aabb090cc6614c0bb63dd37888cca0fc33bdba725bee10ac2dcc9a568",
       "imports": [
         "ReplayKit",
+        "System",
         "VideoToolbox"
       ],
       "tier": "skip",
@@ -6999,8 +7001,8 @@
     },
     {
       "path": "Moblin/Various/ChatTextToSpeech.swift",
-      "lines": 443,
-      "sha256": "c030e49cdbcc1e778414830517f09ae07b0fe79a6b604372f74a15019e25c564",
+      "lines": 458,
+      "sha256": "1d81da2dfcafdfdda34204ad0612184aa95a62ada5ef77d36daaeeec40c4751b",
       "imports": [
         "AVFAudio",
         "Collections",
@@ -7020,6 +7022,7 @@
         "Moblin/Integrations/TtsMonster/TtsMonster.swift",
         "Moblin/Various/KeepSpeakerAlive.swift",
         "Moblin/Various/Settings/SettingsChat.swift",
+        "Moblin/Various/SimpleTimer.swift",
         "Moblin/Various/Utils/Utils.swift"
       ],
       "wave": 11
@@ -7715,7 +7718,7 @@
     {
       "path": "Moblin/Media/HaishinKit/Codec/Video/VideoEncoder.swift",
       "lines": 217,
-      "sha256": "31f2f0552826e191c5b1c94ac1a4778b9e5ca30c6f0173f59e239c85fc851dd1",
+      "sha256": "d17c405e2546a12330de6a7e21e23b436cf39781e502d4bb42bc20c95a5a1815",
       "imports": [
         "AVFoundation",
         "VideoToolbox"
@@ -20298,8 +20301,8 @@
     },
     {
       "path": "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift",
-      "lines": 193,
-      "sha256": "17f214d0b22385a92dd330c353d16e66003feb986fd9b852ba6b51392e6b335d",
+      "lines": 185,
+      "sha256": "ac21816d039617f53443d8012d58bba0911390673d42a788aa2fd8ac45856b18",
       "imports": [
         "SwiftUI",
         "ZipArchive"

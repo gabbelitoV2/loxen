@@ -13,7 +13,6 @@ import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private val textToSpeechDispatchQueue: CoroutineDispatcher = Executors
@@ -80,7 +79,7 @@ class ChatTextToSpeech {
     private var sayUsername: Boolean = false
     private var defaultLanguage: String? = null
     private var detectLanguagePerMessage: Boolean = false
-    private var pauseBetweenMessages: Double = 0.0
+    private var pauseBetweenMessages: Double = 0.5
     private var voices: Map<String, SettingsVoice> = emptyMap()
     private var messageQueue: ArrayDeque<TextToSpeechMessage> = ArrayDeque()
     private var synthesizer: TextToSpeech = createSpeechSynthesizer()
@@ -95,6 +94,8 @@ class ChatTextToSpeech {
     private var ttsMonster: TtsMonster? = null
     private var audioPlayer: AudioPlayer? = null
     private var isSpeaking: Boolean = false
+    private var isPausingBetweenMessages: Boolean = false
+    private val pauseBetweenMessagesTimer = SimpleTimer(queue = textToSpeechDispatchQueue)
     private val scope = CoroutineScope(textToSpeechDispatchQueue)
     private val synthesizerDelegate = object : UtteranceProgressListener() {
         override fun onStart(utteranceId: String?) {}
@@ -246,6 +247,7 @@ class ChatTextToSpeech {
             synthesizer.stop()
             audioPlayer?.stop()
             isSpeaking = false
+            stopPauseBetweenMessages()
             currentlyPlayingMessage = null
             latestUserThatSaidSomething = null
             messageQueue.clear()
@@ -284,7 +286,12 @@ class ChatTextToSpeech {
         audioPlayer?.stop()
         isSpeaking = false
         currentlyPlayingMessage = null
-        trySayNextMessage()
+        sayNextMessageAfterPause(pause = 0.5)
+    }
+
+    private fun stopPauseBetweenMessages() {
+        pauseBetweenMessagesTimer.stop()
+        isPausingBetweenMessages = false
     }
 
     private fun isFilteredOut(message: String): Boolean {
@@ -391,7 +398,7 @@ class ChatTextToSpeech {
     }
 
     private fun trySayNextMessage() {
-        if (paused || isSpeaking) {
+        if (paused || isSpeaking || isPausingBetweenMessages) {
             return
         }
         val next = findNextMessageToSay() ?: return
@@ -428,9 +435,6 @@ class ChatTextToSpeech {
 
     private fun utterApple(voice: android.speech.tts.Voice?, text: String) {
         scope.launch {
-            if (pauseBetweenMessages > 0.0) {
-                delay((pauseBetweenMessages * 1000.0).toLong())
-            }
             if (voice != null) {
                 synthesizer.voice = voice
             }
@@ -470,6 +474,14 @@ class ChatTextToSpeech {
         scope.launch {
             isSpeaking = false
             currentlyPlayingMessage = null
+            sayNextMessageAfterPause(pause = pauseBetweenMessages)
+        }
+    }
+
+    private fun sayNextMessageAfterPause(pause: Double) {
+        isPausingBetweenMessages = true
+        pauseBetweenMessagesTimer.startSingleShot(timeout = pause) {
+            isPausingBetweenMessages = false
             trySayNextMessage()
         }
     }

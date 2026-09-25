@@ -5678,29 +5678,27 @@
   },
   "Moblin/Various/ChatTextToSpeech.swift": {
     "status": "ok",
-    "sha256": "c030e49cdbcc1e778414830517f09ae07b0fe79a6b604372f74a15019e25c564",
+    "sha256": "1d81da2dfcafdfdda34204ad0612184aa95a62ada5ef77d36daaeeec40c4751b",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "mode": "incremental",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatTextToSpeech.kt",
     "notes": [
-      "textToSpeechDispatchQueue becomes a single-thread CoroutineDispatcher backed by an Executor; every DispatchQueue.async block is a scope.launch on it, which keeps the serial FIFO ordering of the original queue.",
-      "AVSpeechSynthesizer is replaced by android.speech.tts.TextToSpeech; the synthesizer is typed as TextToSpeech and comes from createSpeechSynthesizer() so stop()/speak()/setVoice()/voices are available.",
-      "The AVSpeechSynthesizerDelegate extension becomes a UtteranceProgressListener (onDone/onError call sayFinished, onStop is a no-op) and the AVAudioPlayerDelegate extension becomes audioPlayerDidFinishPlaying(); audioPlayer.setDelegate(this) assumes this class satisfies the port's AudioPlayer delegate type.",
-      "Utterance rate/volume/pitch travel as TextToSpeech.Engine.KEY_PARAM_RATE/KEY_PARAM_VOLUME/KEY_PARAM_PITCH in a Bundle; AVSpeechUtterance.preUtteranceDelay is emulated with delay() before speaking.",
-      "AVSpeechSynthesisVoice(identifier:) and speechVoices() are replaced by lookups in TextToSpeech.voices matched on voice name and locale language.",
-      "ContinuousClock.Instant becomes System.nanoTime() nanoseconds, so the 30 second re-speak window is now + 30_000_000_000L and comparisons stay monotonic.",
-      "swift-collections Deque becomes kotlin.collections.ArrayDeque; delete(messageId:) and delete(userId:) erase to the same JVM signature, so the userId overload is annotated @JvmName(\"deleteByUserId\").",
-      "SettingsVoiceType entries are assumed to be apple and ttsMonster, and KeepSpeakerAlivePlayer.shared.audioPlayed(), AudioPlayer(data), setDelegate, play and stop are assumed to exist as declared in com.moblin.android.various."
+      "pauseBetweenMessages default changed from 0.0 to 0.5.",
+      "Added isPausingBetweenMessages and a SimpleTimer on textToSpeechDispatchQueue that gates trySayNextMessage, mirroring AVSpeechUtterance.preUtteranceDelay removal.",
+      "skipCurrentMessageInternal now waits 0.5 s before the next message; sayFinished waits pauseBetweenMessages.",
+      "reset() also stops the pause timer via stopPauseBetweenMessages().",
+      "The Android-only delay that emulated preUtteranceDelay inside utterApple is removed because the pause is now scheduled centrally.",
+      "NLLanguageRecognizer has no Android port, so dominantLanguage/languageProbability stay as local stubs; the filter keeps its 0.7 threshold.",
+      "deleteByUserId keeps the previous Kotlin name for Swift delete(userId:)."
     ],
-    "unsupported": [
-      "NaturalLanguage NLLanguageRecognizer (dominant language detection and language hypotheses probability used by getVoice and isFilteredOutFilter)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5574,
-    "tokens_out": 24380,
-    "seconds": 95.4,
-    "ported_at": "2026-09-22T13:03:16+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 37944,
+    "tokens_out": 4822,
+    "seconds": 15.2,
+    "ported_at": "2026-09-25T06:41:05+00:00"
   },
   "Moblin/Media/WiFiAware/WiFiAwareReceiver.swift": {
     "status": "ok",
@@ -9453,31 +9451,24 @@
   },
   "Moblin/Media/HaishinKit/Codec/Video/VideoEncoder.swift": {
     "status": "ok",
-    "sha256": "31f2f0552826e191c5b1c94ac1a4778b9e5ca30c6f0173f59e239c85fc851dd1",
+    "sha256": "d17c405e2546a12330de6a7e21e23b436cf39781e502d4bb42bc20c95a5a1815",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/codec/video/VideoEncoder.kt",
     "notes": [
-      "lockQueue is a CoroutineScope (expected to wrap a single-threaded dispatcher) instead of a serial DispatchQueue; every lockQueue.async became lockQueue.launch.",
-      "settings keeps Swift's didSet semantics through a Kotlin custom setter: oldValue is read from the backing field before the new Atomic is stored, then the invalidation check runs on lockQueue.",
-      "VTCompressionSession is replaced by MediaCodec: session creation, runtime property updates and frame submission are TODO() because the CVPixelBuffer attributes and the VideoEncoderSettings MediaFormat mapping are not defined yet.",
-      "CMTime maps to Long microseconds (0.15 s -> 150_000L), CMVideoDimensions to android.util.Size, CMFormatDescription to android.media.MediaFormat, CVImageBuffer to android.media.Image and CMSampleBuffer to com.moblin.android.media.MediaSample.",
-      "kVTInvalidSessionErr is expressed as catching MediaCodec.CodecException around the frame submission to invalidate the session and reset the bitrate.",
-      "CMFormatDescriptionEqual is replaced by structural equality on MediaFormat (the guard early-returns when the new description equals the stored one).",
-      "numberOfFailedEncodings stays a top-level mutable Int, matching the nonisolated(unsafe) global counter in Swift.",
-      "VideoEncoderSettings members (format, bitrate, videoSize.convertTo(dimension:), adaptiveResolution*Threshold, bitrateProperties(bitrate:), properties(), shouldInvalidateSession(_:), allowFrameReordering) are referenced unchanged; delegate properties lose weak, which Android has no equivalent for."
+      "Only the makeSession signature and the two call sites changed: videoSize is now a non-nullable Size parameter with no default.",
+      "The second makeSession call in encodeImageBuffer now passes oldBitrateVideoSize, matching the new Swift behaviour.",
+      "The session creation width/height now read the passed videoSize directly; the pixel buffer attributes still use settings.videoSize as on iOS.",
+      "All other lines, including imports, lockQueue usage, logging and platform calls, are unchanged."
     ],
-    "unsupported": [
-      "VTCompressionSession / VTCompressionSessionCreate (VideoToolbox) session creation in makeSession() -> TODO; the CVPixelBuffer attributes have no MediaCodec equivalent",
-      "VTCompressionSession.setProperties / prepareToEncodeFrames in updateBitrate() -> TODO; MediaCodec has no equivalent call that reports an OSStatus",
-      "VTCompressionSession.encodeFrame with its output callback -> TODO in a MediaCodec extension that must queue the Image and report the encoded MediaSample from onOutputBufferAvailable"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4861,
-    "tokens_out": 35292,
-    "seconds": 137.3,
-    "ported_at": "2026-09-22T13:25:29+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42306,
+    "tokens_out": 2506,
+    "seconds": 8.2,
+    "ported_at": "2026-09-25T06:40:58+00:00"
   },
   "Moblin/Various/BondingStatisticsFormatter.swift": {
     "status": "ok",
@@ -17151,27 +17142,24 @@
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
-    "sha256": "17f214d0b22385a92dd330c353d16e66003feb986fd9b852ba6b51392e6b335d",
+    "sha256": "ac21816d039617f53443d8012d58bba0911390673d42a788aa2fd8ac45856b18",
+    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/vtuber/WidgetVTuberSettingsView.kt",
     "notes": [
-      "ZipArchive (ZipArchiveReader.withFile) is replaced with java.util.zip.ZipFile; the Swift 'throws' becomes ordinary JVM IOExceptions and the caller wraps the call in runCatching, matching the Swift do/catch.",
-      "The file-private PickerView (UIDocumentPickerViewController wrapper) is not redeclared: an equivalent PickerView already exists in com.moblin.android.view.settings.scenes.widgets.widget.pngtuber and is imported from there. The iOS document picker itself has no Compose counterpart.",
-      "The NavigationLink to InlinePickerView becomes onNavigate(\"Video source\"); the navigation host must build the InlinePickerView itself, including model.listCameras(excludeBuiltin = false) and model.getCameraId(vTuberWidget = vTuber).",
-      "Swift slider/toggle bindings to $vTuber.* are mirrored into remember { mutableStateOf(...) } local state so the controls recompose, and each change is written back to the SettingsWidgetVTuber property.",
-      ".onChange(of:) becomes LaunchedEffect(value), which also runs once on the first composition (Swift's onChange does not).",
-      "Section header/footer become Text with MaterialTheme.typography; the Swift body has no List/ScrollView so the Kotlin body emits a plain Column without a scroll container.",
-      "SettingsWidgetVTuber.type enum cases .vrm and .live2D are assumed to be SettingsWidgetVTuberType.vrm and SettingsWidgetVTuberType.live2D.",
-      "FileManager.default.temporaryDirectory and UUID().uuidString become context.cacheDir plus java.util.UUID.randomUUID(); the temporary directory is created implicitly by unzipLive2DModel."
+      "Only change: unzipLive2DModel now creates the destination directory before extracting (to.mkdirs()), matching FileManager.default.createDirectory(withIntermediateDirectories: true).",
+      "ZipArchiveReader.withFile/extract has no Android shim in the platform layer, so the existing hand-written java.util.zip.ZipFile extraction loop is kept and now also creates the destination directory first, honouring the new Swift intent.",
+      "The __MACOSX and \"..\" entry filter is kept inside that loop (zip-slip protection); the Swift version relies on ZipArchive's extract(to:) to do this.",
+      "Everything else in the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 6454,
-    "tokens_out": 18150,
-    "seconds": 68.0,
-    "ported_at": "2026-09-22T14:10:02+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 45000,
+    "tokens_out": 3294,
+    "seconds": 12.1,
+    "ported_at": "2026-09-25T06:41:02+00:00"
   },
   "Moblin/View/Settings/Chat/ChatSettingsView.swift": {
     "status": "ok",

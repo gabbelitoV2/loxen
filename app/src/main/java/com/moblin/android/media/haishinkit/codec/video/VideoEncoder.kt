@@ -103,7 +103,7 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
             controlDelegate?.videoEncoderControlResolutionChanged(this, resolution)
         }
         if (invalidateSession) {
-            session = makeSession(settings)
+            session = makeSession(settings, oldBitrateVideoSize)
         }
         updateBitrate(settings)
         val err = session?.encodeFrame(
@@ -193,7 +193,7 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
         return videoSize
     }
 
-    private fun makeSession(settings: VideoEncoderSettings, videoSize: Size? = null): VTCompressionSession? {
+    private fun makeSession(settings: VideoEncoderSettings, videoSize: Size): VTCompressionSession? {
         val attributes = mapOf<String, Any>(
             kCVPixelBufferPixelFormatTypeKey to pixelFormatType,
             kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
@@ -202,8 +202,8 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
             kCVPixelBufferHeightKey to settings.videoSize.height,
         )
         var (status, session) = VTCompressionSessionCreate(
-            width = videoSize?.width ?: settings.videoSize.width,
-            height = videoSize?.height ?: settings.videoSize.height,
+            width = videoSize.width,
+            height = videoSize.height,
             codecType = settings.format.codecType,
             imageBufferAttributes = attributes,
         )

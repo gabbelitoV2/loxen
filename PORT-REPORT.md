@@ -1,17 +1,17 @@
 # Port report
 
-Generated 2026-09-24T15:43:01+00:00
+Generated 2026-09-25T06:41:07+00:00
 
 ## Summary
 
 | tier | done | error | stale | pending | skipped |
 |---|---|---|---|---|---|
 | logic | 151 | 0 | 0 | 0 | 0 |
-| platform | 52 | 0 | 0 | 0 | 0 |
+| platform | 53 | 0 | 0 | 0 | 0 |
 | test | 63 | 0 | 0 | 0 | 0 |
 | media | 160 | 0 | 0 | 0 | 0 |
 | ui | 362 | 0 | 0 | 0 | 0 |
-| apple_only | 2 | 0 | 0 | 0 | 0 |
+| apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 23 |
 
 ## Needs manual work
@@ -52,10 +52,6 @@ Generated 2026-09-24T15:43:01+00:00
   - AppIntents
 - Moblin/Media/HaishinKit/Codec/Video/VTSessionProperty.swift
   - VideoToolbox kVTCompressionPropertyKey_* constants (no Android equivalent, kept as opaque String values)
-- Moblin/Media/HaishinKit/Codec/Video/VideoEncoder.swift
-  - VTCompressionSession / VTCompressionSessionCreate (VideoToolbox) session creation in makeSession() -> TODO; the CVPixelBuffer attributes have no MediaCodec equivalent
-  - VTCompressionSession.setProperties / prepareToEncodeFrames in updateBitrate() -> TODO; MediaCodec has no equivalent call that reports an OSStatus
-  - VTCompressionSession.encodeFrame with its output callback -> TODO in a MediaCodec extension that must queue the Image and report the encoded MediaSample from onOutputBufferAvailable
 - Moblin/Media/HaishinKit/Extension/CMVideoFormatDescription+Extension.swift
   - CMVideoFormatDescriptionCreateForImageBuffer
   - CMVideoFormatDescription
@@ -135,8 +131,6 @@ Generated 2026-09-24T15:43:01+00:00
   - NetService Bonjour advertisement (`_http._tcp` passed to HttpServer) has no Android counterpart and is passed as TODO()
 - Moblin/Various/ChatPost.swift
   - WatchConnectivity: WatchProtocolChatHighlight / WatchProtocolChatHighlightKind do not exist on Android, so ChatHighlight.toWatchProtocol() is TODO().
-- Moblin/Various/ChatTextToSpeech.swift
-  - NaturalLanguage NLLanguageRecognizer (dominant language detection and language hypotheses probability used by getVoice and isFilteredOutFilter)
 - Moblin/Various/Gimbal.swift
   - DockKit (DockAccessoryManager, DockAccessory, DockAccessory.StateChange, DockAccessory.AccessoryEvent, DockAccessory.Animation): no Android counterpart, replaced with TODO
 - Moblin/Various/KeepSpeakerAlive.swift
@@ -184,14 +178,6 @@ Generated 2026-09-24T15:43:01+00:00
   - MapKit MapCameraPosition
   - MapKit MKDirections
   - MapKit MKDirectionsTransportType
-- Moblin/Various/Model/ModelPictureInPicture.swift
-  - AVPictureInPictureController
-  - AVPictureInPictureController.isPictureInPictureSupported()
-  - AVPictureInPictureController.ContentSource
-  - AVSampleBufferDisplayLayer (streamPreviewView.layer)
-  - AVPictureInPictureSampleBufferPlaybackDelegate
-  - CMTimeRange / CMTime (.negativeInfinity, .positiveInfinity)
-  - CMVideoDimensions
 - Moblin/Various/Model/ModelRecording.swift
   - DateComponentsFormatter via uptimeFormatter.string(from:) (no direct Android equivalent)
 - Moblin/Various/Model/ModelScoreboard.swift
@@ -257,11 +243,6 @@ Generated 2026-09-24T15:43:01+00:00
   - AVSpeechSynthesizer (createSpeechSynthesizer)
   - URL(resolvingBookmarkData:) (makeRecordingPath)
   - Bundle.main resource loading (loadStringResource, loadResource)
-  - getrusage (ResourceUsage.updateAppCpuUsage)
-  - host_processor_info (ResourceUsage.updateCpuUsage)
-- Moblin/Various/Utils/WiFiUtils.swift
-  - no Android counterpart for NetworkExtension
-  - no Android counterpart for NetworkExtension
 - Moblin/Various/Variables.swift
   - WeatherKit WeatherCondition and Measurement<UnitTemperature>/<UnitSpeed> have no Android counterpart; they appear only in property declarations, so they were substituted with String? and Double? instead of a TODO() body
 - Moblin/View/ControlBar/QuickButton/QuickButtonMicView.swift
@@ -426,8 +407,6 @@ Generated 2026-09-24T15:43:01+00:00
   - Color.toRgb() SwiftUI extension converting Color to RgbColor (no Kotlin counterpart, replaced by TODO())
 - Moblin/View/Utils/ShareSheetView.swift
   - UIActivityViewController (no Android counterpart for UIActivityViewController)
-- Moblin/View/Utils/WiFiSsidEditView.swift
-  - CoreLocation (CLLocationManager authorization status, requestWhenInUseAuthorization, and delegate wiring)
 - Moblin/View/WebBrowser/WebBrowserView.swift
   - contextMenuDeleteButton
 - MoblinTests/Moblin/Media/HaishinKit/Mpeg/MpegTsReaderSuite.swift
@@ -497,7 +476,7 @@ Generated 2026-09-24T15:43:01+00:00
 | Moblin/Media/HaishinKit/Codec/Audio/AudioEncoderSettings.swift | app/src/main/java/com/moblin/android/media/haishinkit/codec/audio/AudioEncoderSettings.kt | deepseek-flash | 66.6 |
 | Moblin/Media/HaishinKit/Codec/Video/VTSessionProperty.swift | app/src/main/java/com/moblin/android/media/haishinkit/codec/video/VTSessionProperty.kt | deepseek-flash | 17.8 |
 | Moblin/Media/HaishinKit/Codec/Video/VideoDecoder.swift | app/src/main/java/com/moblin/android/media/haishinkit/codec/video/VideoDecoder.kt | deepseek-flash | 67.5 |
-| Moblin/Media/HaishinKit/Codec/Video/VideoEncoder.swift | app/src/main/java/com/moblin/android/media/haishinkit/codec/video/VideoEncoder.kt | deepseek-flash | 137.3 |
+| Moblin/Media/HaishinKit/Codec/Video/VideoEncoder.swift | app/src/main/java/com/moblin/android/media/haishinkit/codec/video/VideoEncoder.kt | deepseek-flash | 8.2 |
 | Moblin/Media/HaishinKit/Codec/Video/VideoEncoderSettings.swift | app/src/main/java/com/moblin/android/media/haishinkit/codec/video/VideoEncoderSettings.kt | deepseek-flash | 57.2 |
 | Moblin/Media/HaishinKit/Extension/AVCaptureColorSpace+Extension.swift | app/src/main/java/com/moblin/android/media/haishinkit/extension/AVCaptureColorSpace+Extension.kt | deepseek-flash | 13.8 |
 | Moblin/Media/HaishinKit/Extension/AVCaptureDevice.Format+Extension.swift | app/src/main/java/com/moblin/android/media/haishinkit/extension/AVCaptureDevice.Format+Extension.kt | deepseek-flash | 7.2 |
@@ -651,7 +630,7 @@ Generated 2026-09-24T15:43:01+00:00
 | Moblin/Various/CacheAsyncImage.swift | app/src/main/java/com/moblin/android/various/CacheAsyncImage.kt | deepseek-flash | 13.9 |
 | Moblin/Various/ChatBotCommand.swift | app/src/main/java/com/moblin/android/various/ChatBotCommand.kt | deepseek-flash | 158.7 |
 | Moblin/Various/ChatPost.swift | app/src/main/java/com/moblin/android/various/ChatPost.kt | deepseek-flash | 78.3 |
-| Moblin/Various/ChatTextToSpeech.swift | app/src/main/java/com/moblin/android/various/ChatTextToSpeech.kt | deepseek-flash | 95.4 |
+| Moblin/Various/ChatTextToSpeech.swift | app/src/main/java/com/moblin/android/various/ChatTextToSpeech.kt | deepseek-flash | 15.2 |
 | Moblin/Various/Detection.swift | app/src/main/java/com/moblin/android/various/Detection.kt | deepseek-flash | 21.6 |
 | Moblin/Various/FaxReceiver.swift | app/src/main/java/com/moblin/android/various/FaxReceiver.kt | deepseek-flash | 20.4 |
 | Moblin/Various/Gimbal.swift | app/src/main/java/com/moblin/android/various/Gimbal.kt | deepseek-flash | 113.9 |
@@ -1014,7 +993,7 @@ Generated 2026-09-24T15:43:01+00:00
 | Moblin/View/Settings/Scenes/Widgets/Widget/Slideshow/WidgetSlideshowSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/slideshow/WidgetSlideshowSettingsView.kt | deepseek-flash | 86.6 |
 | Moblin/View/Settings/Scenes/Widgets/Widget/Snapshot/WidgetSnapshotSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/snapshot/WidgetSnapshotSettingsView.kt | deepseek-flash | 21.1 |
 | Moblin/View/Settings/Scenes/Widgets/Widget/Text/WidgetTextSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/text/WidgetTextSettingsView.kt | deepseek-flash | 58.3 |
-| Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/vtuber/WidgetVTuberSettingsView.kt | deepseek-flash | 68.0 |
+| Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/vtuber/WidgetVTuberSettingsView.kt | deepseek-flash | 12.1 |
 | Moblin/View/Settings/Scenes/Widgets/Widget/VideoSource/WidgetVideoSourceSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/videosource/WidgetVideoSourceSettingsView.kt | deepseek-flash | 102.4 |
 | Moblin/View/Settings/Scenes/Widgets/Widget/WheelOfLuck/WidgetWheelOfLuckSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/wheelofluck/WidgetWheelOfLuckSettingsView.kt | deepseek-flash | 106.0 |
 | Moblin/View/Settings/Scenes/Widgets/Widget/WidgetSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/widget/WidgetSettingsView.kt | deepseek-flash | 100.1 |

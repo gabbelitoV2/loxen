@@ -47,6 +47,7 @@ import com.moblin.android.various.model.resetSelectedScene
 import com.moblin.android.various.model.sceneUpdated
 
 private fun unzipLive2DModel(from: String, to: File) {
+    to.mkdirs()
     ZipFile(from).use { zip ->
         val entries = zip.entries()
         while (entries.hasMoreElements()) {
