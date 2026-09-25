@@ -17,7 +17,8 @@ effects and the libsrt binding have to be written by hand.
   - `pip install anthropic` and `ANTHROPIC_API_KEY`.
   - `pip install anthropic` and `DEEPSEEK_API_KEY`, then `--provider deepseek`. Uses `deepseek-flash`,
     the current DeepSeek V4.1 Flash. About forty times cheaper than Claude Opus. Prices double during
-    peak hours, 01:00-04:00 and 06:00-10:00 UTC on weekdays.
+    peak hours, 01:00-04:00 and 06:00-10:00 UTC on weekdays, so the nightly sync runs at 22:30 UTC and the repair
+    schedule skips the peak hours.
 
   API keys can also be put in a `.env` file in this directory, one `NAME=value` per line. The file is
   ignored by git.
@@ -67,7 +68,7 @@ What the nightly sync cannot bring in is repaired by Claude, without anyone touc
 1. When `tools/sync-report.json` is not empty, or the sync stopped or timed out, the sync opens an issue labelled
    `needs-repair`, or updates the one that is open, with the report. When a later sync has nothing to report, it
    closes the issue. Only issues opened by the workflow itself (`github-actions[bot]`) are used.
-2. `.github/workflows/repair.yml` runs after every sync, every 4 hours and on demand, but only while such an issue is
+2. `.github/workflows/repair.yml` runs after every sync, at 00:17, 04:17, 12:17, 16:17 and 20:17 UTC and on demand, but only while such an issue is
    open. It gives Claude `tools/prompts/repair.md` and the report, and Claude fixes the port the same way a person
    would: shims and translation guidance first, then translating the Swift again through the pipeline, hooks only as
    one-line fixes.

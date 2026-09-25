@@ -56,7 +56,7 @@ class WorkflowSuite(unittest.TestCase):
         triggers = self.repair["on"]
         self.assertEqual(triggers["workflow_run"]["workflows"], [self.sync["name"]])
         self.assertEqual(triggers["workflow_run"]["types"], ["completed"])
-        self.assertEqual(triggers["schedule"], [{"cron": "17 */4 * * *"}])
+        self.assertEqual(triggers["schedule"], [{"cron": "17 0,4,12,16,20 * * *"}])
         inputs = triggers["workflow_dispatch"]["inputs"]
         self.assertEqual(inputs["mode"]["options"], ["repair", "verify-only"])
         self.assertEqual(inputs["force"]["type"], "boolean")
