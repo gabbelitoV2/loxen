@@ -42,7 +42,6 @@ import com.moblin.android.view.utils.HCenter
 import com.moblin.android.view.utils.TextEditNavigationView
 import java.security.PrivateKey
 import java.util.UUID
-import com.moblin.android.platform.corebluetooth.identifier
 
 private fun formatTeslaVehicleState(state: TeslaVehicleState?): String {
     return when {
@@ -95,7 +94,7 @@ fun TeslaSettingsConfigurationView(
                 destination = {
                     TeslaVehicleScannerSettingsView(
                         onChange = { onDeviceChange(it) },
-                        onDismiss = rememberDismiss(),
+                        model = model,
                     )
                 },
             ) {

@@ -12,7 +12,7 @@ import com.moblin.android.AppDelegate
 
 fun Model.startDjiDeviceLiveStream(device: SettingsDjiDevice) {
     if (!djiDevices.containsKey(device.id)) {
-        val djiDevice = DjiDevice(context = AppDelegate.context)
+        val djiDevice = DjiDevice()
         djiDevice.delegate = ModelDjiDeviceDelegate(this)
         djiDevices[device.id] = djiDevice
     }

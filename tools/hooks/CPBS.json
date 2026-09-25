@@ -1,0 +1,103 @@
+{
+  "task": "CPBS",
+  "hooks": [
+    {
+      "id": "HCPBS.1",
+      "file": "various/model/ModelCatPrinters.kt",
+      "scope": "fun Model.printAllCatPrinters",
+      "op": "replace",
+      "old": "        catPrinter.print(image, feedPaperDelay)",
+      "new": "        catPrinter.print(com.moblin.android.platform.coreimage.CIImage(cgImage = image), feedPaperDelay)",
+      "note": "Swift CatPrinter.print(image: CIImage); the Model's images are Bitmaps (UIImage/CGImage)."
+    },
+    {
+      "id": "HCPBS.2",
+      "file": "various/model/ModelCatPrinters.kt",
+      "scope": "fun Model.printSnapshotCatPrinters",
+      "op": "replace",
+      "old": "            catPrinter.print(image, null)",
+      "new": "            catPrinter.print(com.moblin.android.platform.coreimage.CIImage(cgImage = image), null)",
+      "note": "Swift CatPrinter.print(image: CIImage)."
+    },
+    {
+      "id": "HCPBS.3",
+      "file": "various/model/ModelCatPrinters.kt",
+      "scope": "fun Model.printEventCatPrinters",
+      "op": "replace",
+      "old": "                catPrinter.print(currentImage, null)",
+      "new": "                catPrinter.print(com.moblin.android.platform.coreimage.CIImage(cgImage = currentImage), null)",
+      "note": "Swift CatPrinter.print(image: CIImage)."
+    },
+    {
+      "id": "HCPBS.4",
+      "file": "various/model/ModelCatPrinters.kt",
+      "scope": "fun Model.catPrinterPrintTestImage",
+      "op": "replace",
+      "old": "    catPrinters[device.id]?.print(image, null)",
+      "new": "    catPrinters[device.id]?.print(com.moblin.android.platform.coreimage.CIImage(cgImage = image), null)",
+      "note": "Swift prints CIImage.black cropped to 100x10."
+    },
+    {
+      "id": "HCPBS.5",
+      "file": "various/model/ModelCatPrinters.kt",
+      "scope": "fun Model.enableCatPrinter",
+      "op": "replace",
+      "old": "        deviceId = device.bluetoothPeripheralId.value?.toString(),",
+      "new": "        deviceId = device.bluetoothPeripheralId.value,",
+      "note": "Swift CatPrinter.start(deviceId: UUID?)."
+    },
+    {
+      "id": "HCPBS.6",
+      "file": "various/model/ModelBlackSharkCoolerDevice.kt",
+      "op": "replace",
+      "old": "import com.moblin.android.integrations.blacksharkcooler.BlackSharkLib",
+      "new": "import com.moblin.android.platform.blacksharklib.BlackSharkLib",
+      "note": "BlackSharkLib is the platform port of the BlackSharkLib Swift package."
+    },
+    {
+      "id": "HCPBS.7",
+      "file": "various/model/ModelBlackSharkCoolerDevice.kt",
+      "scope": "fun Model.enableBlackSharkDevice",
+      "op": "replace",
+      "old": "        val blackSharkCoolerDevice = BlackSharkCoolerDevice(context = AppDelegate.context)",
+      "new": "        val blackSharkCoolerDevice = BlackSharkCoolerDevice()",
+      "note": "Swift BlackSharkCoolerDevice()."
+    },
+    {
+      "id": "HCPBS.8",
+      "file": "view/stream/overlay/StreamOverlayRightView.kt",
+      "scope": "fun BlackSharkCoolerDeviceStatusView",
+      "op": "replace",
+      "old": "    if (blackSharkCoolerDeviceState == BlackSharkCoolerDeviceState.CONNECTED) {",
+      "new": "    if (blackSharkCoolerDeviceState == BlackSharkCoolerDeviceState.connected) {",
+      "note": "Swift case .connected."
+    },
+    {
+      "id": "HCPBS.9",
+      "file": "integrations/catprinter/CatPrinterCommandsMxw01.kt",
+      "scope": "fun unpack",
+      "op": "replace",
+      "old": "            if (reader.readUInt8() != 0x22u) {",
+      "new": "            if (reader.readUInt8() != 0x22.toUByte()) {",
+      "note": "readUInt8() is a UByte; 0x22u is a UInt and does not compile against it."
+    },
+    {
+      "id": "HCPBS.10",
+      "file": "integrations/catprinter/CatPrinterCommandsMxw01.kt",
+      "scope": "fun unpack",
+      "op": "replace",
+      "old": "            if (reader.readUInt8() != 0x21u) {",
+      "new": "            if (reader.readUInt8() != 0x21.toUByte()) {",
+      "note": "readUInt8() is a UByte."
+    },
+    {
+      "id": "HCPBS.11",
+      "file": "integrations/catprinter/CatPrinterCommandsMxw01.kt",
+      "scope": "fun invoke",
+      "op": "replace",
+      "old": "                            ok = ok == 0u,",
+      "new": "                            ok = ok == 0.toUByte(),",
+      "note": "Swift ok == 0 on a UInt8."
+    }
+  ]
+}

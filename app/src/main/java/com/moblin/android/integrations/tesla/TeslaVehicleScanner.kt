@@ -1,62 +1,49 @@
 package com.moblin.android.integrations.tesla
 
-import android.annotation.SuppressLint
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
-import android.bluetooth.le.BluetoothLeScanner
-import android.bluetooth.le.ScanCallback
-import android.bluetooth.le.ScanResult
-import android.content.Context
+import com.moblin.android.platform.corebluetooth.CBAdvertisementDataLocalNameKey
+import com.moblin.android.platform.corebluetooth.CBCentralManager
+import com.moblin.android.platform.corebluetooth.CBCentralManagerDelegate
+import com.moblin.android.platform.corebluetooth.CBManagerState
+import com.moblin.android.platform.corebluetooth.CBPeripheral
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 
-class TeslaVehicleScanner private constructor() : ScanCallback() {
+open class TeslaVehicleScanner : CBCentralManagerDelegate {
+    open val discoveredPeripherals = MutableStateFlow<List<CBPeripheral>>(emptyList())
+    private var centralManager: CBCentralManager? by CBCentralManager.holder()
 
-    companion object {
-        private val teslaVehicleNameRegex = Regex("S[0-9a-f]{16}C")
-
-        val shared = TeslaVehicleScanner()
-    }
-
-    val discoveredPeripherals = MutableStateFlow<List<BluetoothDevice>>(emptyList())
-
-    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
-
-    @SuppressLint("MissingPermission")
-    fun startScanningForDevices(context: Context) {
+    open fun startScanningForDevices() {
         discoveredPeripherals.value = emptyList()
-        val manager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
-        val adapter = manager?.adapter
-        centralManager?.delegate = null; centralManager = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)
-        if (adapter != null) {
-            Unit
-        }
+        centralManager = CBCentralManager(delegate = this, queue = null)
     }
 
-    @SuppressLint("MissingPermission")
-    fun stopScanningForDevices() {
+    open fun stopScanningForDevices() {
         centralManager?.stopScan()
-        centralManager?.delegate = null; centralManager = null
+        centralManager = null
     }
 
-    @SuppressLint("MissingPermission")
-    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
-        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
-            central.scanForPeripherals(withServices = null, callback = this)
+    override fun centralManagerDidUpdateState(central: CBCentralManager) {
+        if (central.state == CBManagerState.poweredOn) {
+            central.scanForPeripherals(withServices = null)
         }
     }
 
-    override fun onScanResult(callbackType: Int, result: ScanResult) {
-        val peripheral = result.device
-        val localName = result.scanRecord?.deviceName ?: return
-        if (!teslaVehicleNameRegex.matches(localName)) {
+    override fun centralManagerDidDiscover(
+        central: CBCentralManager,
+        peripheral: CBPeripheral,
+        advertisementData: Map<String, Any>,
+        rssi: Int,
+    ) {
+        val localName = advertisementData[CBAdvertisementDataLocalNameKey] as? String ?: return
+        if (!Regex("S[0-9a-f]{16}C").matches(localName)) {
             return
         }
-        if (discoveredPeripherals.value.any { it.address == peripheral.address }) {
+        if (discoveredPeripherals.value.any { it == peripheral }) {
             return
         }
         discoveredPeripherals.value = discoveredPeripherals.value + peripheral
+    }
+
+    companion object {
+        val shared by lazy { TeslaVehicleScanner() }
     }
 }

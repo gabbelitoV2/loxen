@@ -10,11 +10,14 @@ import android.bluetooth.BluetoothManager
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
+import android.bluetooth.le.ScanRecord
+import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Looper
+import android.os.ParcelUuid
 import androidx.activity.ComponentActivity
 import androidx.test.core.app.ApplicationProvider
 import java.io.File
@@ -22,6 +25,7 @@ import java.util.Properties
 import java.util.UUID
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.coroutines.CoroutineContext
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
@@ -437,5 +441,138 @@ class CBCentralManagerSuite {
         assertTrue(Manifest.permission.BLUETOOTH_CONNECT in requested)
         assertFalse(Manifest.permission.BLUETOOTH in requested)
         assertFalse(Manifest.permission.BLUETOOTH_ADMIN in requested)
+    }
+
+    private fun scanRecord(vararg structures: ByteArray): ScanRecord {
+        val bytes = structures.fold(ByteArray(0)) { all, structure -> all + byteArrayOf(structure.size.toByte()) + structure }
+        val parse = ScanRecord::class.java.getDeclaredMethod("parseFromBytes", ByteArray::class.java)
+        return parse.invoke(null, bytes) as ScanRecord
+    }
+
+    private fun bytes(vararg values: Int): ByteArray = values.map { it.toByte() }.toByteArray()
+
+    private class Discovery(val peripheral: CBPeripheral, val advertisementData: Map<String, Any>, val rssi: Int)
+
+    private fun discoveringManager(
+        discovered: MutableList<Discovery>,
+        withServices: List<CBUUID>?,
+        options: Map<String, Any>? = null,
+    ): CBCentralManager {
+        return CBCentralManager(delegate = object : CBCentralManagerDelegate {
+            override fun centralManagerDidUpdateState(central: CBCentralManager) {
+                if (central.state == CBManagerState.poweredOn) {
+                    central.scanForPeripherals(withServices = withServices, options = options)
+                }
+            }
+
+            override fun centralManagerDidDiscover(
+                central: CBCentralManager,
+                peripheral: CBPeripheral,
+                advertisementData: Map<String, Any>,
+                rssi: Int,
+            ) {
+                discovered.add(Discovery(peripheral, advertisementData, rssi))
+            }
+        })
+    }
+
+    @Test
+    fun scanningReportsDidDiscoverWithAdvertisementDataLikeCoreBluetooth() {
+        shadowOf(application).grantPermissions(*permissions)
+        val discovered = mutableListOf<Discovery>()
+        val manager = discoveringManager(discovered, withServices = listOf(CBUUID(string = "180D")))
+        runMain()
+        assertTrue(manager.isScanning)
+        val scanner = Shadow.extract<ShadowBluetoothLeScanner>(adapter().bluetoothLeScanner)
+        val scan = scanner.activeScans.single()
+        assertEquals(
+            listOf(ParcelUuid.fromString("0000180D-0000-1000-8000-00805F9B34FB")),
+            scan.scanFilters().map { it.serviceUuid },
+        )
+        val device = adapter().getRemoteDevice(deviceAddress)
+        val record = scanRecord(
+            bytes(0x01, 0x06),
+            byteArrayOf(0x09) + "Polar H10".toByteArray(),
+            bytes(0x03, 0x0D, 0x18),
+            bytes(0xFF, 0xAA, 0x08, 0x01, 0x02),
+            bytes(0x0A, 0x04),
+        )
+        scan.scanCallback()!!.onScanResult(ScanSettings.CALLBACK_TYPE_ALL_MATCHES, ScanResult(device, record, -61, 0))
+        assertEquals(0, discovered.size)
+        runMain()
+        val discovery = discovered.single()
+        val data = discovery.advertisementData
+        assertEquals("Polar H10", data[CBAdvertisementDataLocalNameKey])
+        assertContentEquals(bytes(0xAA, 0x08, 0x01, 0x02), data[CBAdvertisementDataManufacturerDataKey] as ByteArray)
+        assertEquals(listOf(CBUUID(string = "180D")), data[CBAdvertisementDataServiceUUIDsKey])
+        assertEquals(4, data[CBAdvertisementDataTxPowerLevelKey])
+        assertEquals(true, data[CBAdvertisementDataIsConnectable])
+        assertEquals(-61, discovery.rssi)
+        val peripheral = discovery.peripheral
+        assertEquals("Polar H10", peripheral.name)
+        assertEquals(UUID.fromString("00000000-0000-0000-0000-AABBCCDDEEFF"), peripheral.identifier)
+        assertEquals(CBPeripheralState.disconnected, peripheral.state)
+        assertSame(peripheral, manager.retrievePeripherals(withIdentifiers = listOf(peripheral.identifier)).single())
+        scan.scanCallback()!!.onScanResult(ScanSettings.CALLBACK_TYPE_ALL_MATCHES, ScanResult(device, record, -70, 1))
+        runMain()
+        assertEquals(1, discovered.size)
+        val changed = scanRecord(bytes(0x01, 0x06), bytes(0xFF, 0xAA, 0x08, 0x01, 0x03))
+        scan.scanCallback()!!.onScanResult(ScanSettings.CALLBACK_TYPE_ALL_MATCHES, ScanResult(device, changed, -70, 2))
+        runMain()
+        assertEquals(2, discovered.size)
+        assertSame(peripheral, discovered.last().peripheral)
+        assertContentEquals(bytes(0xAA, 0x08, 0x01, 0x03), discovered.last().advertisementData[CBAdvertisementDataManufacturerDataKey] as ByteArray)
+        val callback = scan.scanCallback()!!
+        manager.stopScan()
+        assertFalse(manager.isScanning)
+        assertEquals(emptySet(), scanCallbacks())
+        callback.onScanResult(ScanSettings.CALLBACK_TYPE_ALL_MATCHES, ScanResult(device, record, -50, 3))
+        runMain()
+        assertEquals(2, discovered.size)
+    }
+
+    @Test
+    fun resultsQueuedBeforeStopScanAreNotDelivered() {
+        shadowOf(application).grantPermissions(*permissions)
+        val discovered = mutableListOf<Discovery>()
+        val manager = discoveringManager(discovered, withServices = null)
+        runMain()
+        val scanner = Shadow.extract<ShadowBluetoothLeScanner>(adapter().bluetoothLeScanner)
+        val device = adapter().getRemoteDevice(deviceAddress)
+        scanner.activeScans.single().scanCallback()!!
+            .onScanResult(ScanSettings.CALLBACK_TYPE_ALL_MATCHES, ScanResult(device, null, -40, 0))
+        manager.stopScan()
+        runMain()
+        assertEquals(0, discovered.size)
+    }
+
+    @Test
+    fun allowDuplicatesReportsEveryAdvertisement() {
+        shadowOf(application).grantPermissions(*permissions)
+        val discovered = mutableListOf<Discovery>()
+        discoveringManager(discovered, withServices = null, options = mapOf(CBCentralManagerScanOptionAllowDuplicatesKey to true))
+        runMain()
+        val callback = scanCallbacks().single()
+        val device = adapter().getRemoteDevice(deviceAddress)
+        repeat(3) {
+            callback.onScanResult(ScanSettings.CALLBACK_TYPE_ALL_MATCHES, ScanResult(device, null, -40 - it, it.toLong()))
+        }
+        runMain()
+        assertEquals(listOf(-40, -41, -42), discovered.map { it.rssi })
+        assertEquals(1, discovered.map { it.peripheral }.toSet().size)
+        assertEquals(mapOf<String, Any>(CBAdvertisementDataIsConnectable to true), discovered.first().advertisementData)
+    }
+
+    @Test
+    fun retrievingPeripheralsByIdentifierSkipsUnknownOnesAndKeepsOneObjectPerPeripheral() {
+        shadowOf(application).grantPermissions(*permissions)
+        val manager = CBCentralManager(delegate = null)
+        val identifier = bluetoothIdentifier(deviceAddress)
+        val peripherals = manager.retrievePeripherals(withIdentifiers = listOf(UUID.randomUUID(), identifier))
+        assertEquals(listOf(identifier), peripherals.map { it.identifier })
+        assertSame(peripherals.single(), manager.retrievePeripherals(withIdentifiers = listOf(identifier)).single())
+        val other = CBCentralManager(delegate = null).retrievePeripherals(withIdentifiers = listOf(identifier)).single()
+        assertNotSame(peripherals.single(), other)
+        assertEquals(peripherals.single(), other)
     }
 }

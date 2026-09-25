@@ -15,7 +15,6 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.bluetoothNotAllowedMessage
 import com.moblin.android.LocalModel
 import com.moblin.android.platform.swiftui.*
-import com.moblin.android.platform.corebluetooth.identifier
 
 @Composable
 fun DjiDeviceScannerSettingsView(

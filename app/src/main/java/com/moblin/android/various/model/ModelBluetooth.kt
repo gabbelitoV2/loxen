@@ -1,23 +1,10 @@
 package com.moblin.android.various.model
 
-import android.Manifest
-import android.bluetooth.BluetoothAdapter
-import android.content.Context
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.content.ContextCompat
+import com.moblin.android.platform.corebluetooth.CBCentralManager
+import com.moblin.android.platform.corebluetooth.CBManagerAuthorization
 
-val bluetoothNotAllowedMessage = "⚠️ Moblin is not allowed to use Bluetooth"
+const val bluetoothNotAllowedMessage = "⚠️ Moblin is not allowed to use Bluetooth"
 
-fun isBluetoothAllowed(context: Context): Boolean {
-    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        Manifest.permission.BLUETOOTH_CONNECT
-    } else {
-        Manifest.permission.BLUETOOTH
-    }
-    return ContextCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
-}
-
-fun Model.centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
-    bluetoothAllowed.value = com.moblin.android.platform.corebluetooth.CBCentralManager.authorization == com.moblin.android.platform.corebluetooth.CBManagerAuthorization.allowedAlways
+fun Model.centralManagerDidUpdateState(central: CBCentralManager) {
+    bluetoothAllowed.value = CBCentralManager.authorization == CBManagerAuthorization.allowedAlways
 }

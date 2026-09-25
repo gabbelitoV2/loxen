@@ -1,30 +1,28 @@
 package com.moblin.android.integrations.workoutdevice
 
-import android.bluetooth.BluetoothGattCharacteristic
+import com.moblin.android.common.various.isBitSet
 import com.moblin.android.media.haishinkit.util.ByteReader
-import java.time.Instant
-import java.util.UUID
+import com.moblin.android.platform.core.ContinuousClock
+import com.moblin.android.platform.corebluetooth.CBCharacteristic
+import com.moblin.android.platform.corebluetooth.CBUUID
 
-val workoutDeviceCyclingPowerServiceId: UUID =
-    UUID.fromString("00001818-0000-1000-8000-00805F9B34FB")
-val workoutDeviceCyclingPowerMeasurementCharacteristicId: UUID =
-    UUID.fromString("00002A63-0000-1000-8000-00805F9B34FB")
-val workoutDeviceCyclingPowerVectorCharacteristicId: UUID =
-    UUID.fromString("00002A64-0000-1000-8000-00805F9B34FB")
+val workoutDeviceCyclingPowerServiceId = CBUUID(string = "1818")
+val workoutDeviceCyclingPowerMeasurementCharacteristicId = CBUUID(string = "2A63")
+val workoutDeviceCyclingPowerVectorCharacteristicId = CBUUID(string = "2A64")
 
-private val measurementPedalPowerBalanceFlagIndex = 0
-private val measurementAccumulatedTorqueFlagIndex = 2
-private val measurementWheelRevolutionDataFlagIndex = 4
-private val measurementCrankRevolutionDataFlagIndex = 5
-private val measurementExtremeForceFlagIndex = 6
-private val measurementExtremeTorqueFlagIndex = 7
-private val measurementExtremeAnglesFlagIndex = 8
-private val measurementTopDeadSpotAngleFlagIndex = 9
-private val measurementBottomDeadSpotAngleFlagIndex = 10
-private val measurementAccumulatedEnergyFlagIndex = 11
+private const val measurementPedalPowerBalanceFlagIndex = 0
+private const val measurementAccumulatedTorqueFlagIndex = 2
+private const val measurementWheelRevolutionDataFlagIndex = 4
+private const val measurementCrankRevolutionDataFlagIndex = 5
+private const val measurementExtremeForceFlagIndex = 6
+private const val measurementExtremeTorqueFlagIndex = 7
+private const val measurementExtremeAnglesFlagIndex = 8
+private const val measurementTopDeadSpotAngleFlagIndex = 9
+private const val measurementBottomDeadSpotAngleFlagIndex = 10
+private const val measurementAccumulatedEnergyFlagIndex = 11
 
 private class PowerMeasurement(value: ByteArray) {
-    var instantaneousPower: UShort = 0u.toUShort()
+    var instantaneousPower: UShort = 0u
     var pedalPowerBalance: UByte? = null
     var accumulatedTorque: UShort? = null
     var cumulativeWheelRevolutions: UInt? = null
@@ -41,58 +39,58 @@ private class PowerMeasurement(value: ByteArray) {
     var accumulatedEnergy: UShort? = null
 
     init {
-        val reader = ByteReader(value)
+        val reader = ByteReader(data = value)
         val flags = reader.readUInt16Le()
         instantaneousPower = reader.readUInt16Le()
-        if ((flags.toInt() and (1 shl measurementPedalPowerBalanceFlagIndex)) != 0) {
+        if (flags.isBitSet(index = measurementPedalPowerBalanceFlagIndex)) {
             pedalPowerBalance = reader.readUInt8()
         }
-        if ((flags.toInt() and (1 shl measurementAccumulatedTorqueFlagIndex)) != 0) {
+        if (flags.isBitSet(index = measurementAccumulatedTorqueFlagIndex)) {
             accumulatedTorque = reader.readUInt16Le()
         }
-        if ((flags.toInt() and (1 shl measurementWheelRevolutionDataFlagIndex)) != 0) {
+        if (flags.isBitSet(index = measurementWheelRevolutionDataFlagIndex)) {
             cumulativeWheelRevolutions = reader.readUInt32Le()
             lastWheelEventTime = reader.readUInt16Le()
         }
-        if ((flags.toInt() and (1 shl measurementCrankRevolutionDataFlagIndex)) != 0) {
+        if (flags.isBitSet(index = measurementCrankRevolutionDataFlagIndex)) {
             cumulativeCrankRevolutions = reader.readUInt16Le()
             lastCrankEventTime = reader.readUInt16Le()
         }
-        if ((flags.toInt() and (1 shl measurementExtremeForceFlagIndex)) != 0) {
+        if (flags.isBitSet(index = measurementExtremeForceFlagIndex)) {
             maximumForceMagnitude = reader.readUInt16Le()
             minimumForceMagnitude = reader.readUInt16Le()
         }
-        if ((flags.toInt() and (1 shl measurementExtremeTorqueFlagIndex)) != 0) {
+        if (flags.isBitSet(index = measurementExtremeTorqueFlagIndex)) {
             maximumTorqueMagnitude = reader.readUInt16Le()
             minimumTorqueMagnitude = reader.readUInt16Le()
         }
-        if ((flags.toInt() and (1 shl measurementExtremeAnglesFlagIndex)) != 0) {
+        if (flags.isBitSet(index = measurementExtremeAnglesFlagIndex)) {
             reader.readBytes(3)
         }
-        if ((flags.toInt() and (1 shl measurementTopDeadSpotAngleFlagIndex)) != 0) {
+        if (flags.isBitSet(index = measurementTopDeadSpotAngleFlagIndex)) {
             topDeadSpotAngle = reader.readUInt16Le()
         }
-        if ((flags.toInt() and (1 shl measurementBottomDeadSpotAngleFlagIndex)) != 0) {
+        if (flags.isBitSet(index = measurementBottomDeadSpotAngleFlagIndex)) {
             bottomDeadSpotAngle = reader.readUInt16Le()
         }
-        if ((flags.toInt() and (1 shl measurementAccumulatedEnergyFlagIndex)) != 0) {
+        if (flags.isBitSet(index = measurementAccumulatedEnergyFlagIndex)) {
             accumulatedEnergy = reader.readUInt16Le()
         }
     }
 }
 
-private val vectorCrankRevolutionDataFlagIndex = 0
-private val vectorFirstCrankMeasurementAngleFlagIndex = 1
-private val vectorInstantaneousForceArrayFlagIndex = 2
-private val vectorInstantaneousTorqueArrayFlagIndex = 3
-private val vectorInstantaneousMeasurementDirectionMask: UByte = 0b110000u
-private val vectorInstantaneousMeasurementDirectionIndex = 4
+private const val vectorCrankRevolutionDataFlagIndex = 0
+private const val vectorFirstCrankMeasurementAngleFlagIndex = 1
+private const val vectorInstantaneousForceArrayFlagIndex = 2
+private const val vectorInstantaneousTorqueArrayFlagIndex = 3
+private val vectorInstantaneousMeasurementDirectionMask: UByte = 0b110000u.toUByte()
+private const val vectorInstantaneousMeasurementDirectionIndex = 4
 
 private enum class WorkoutDeviceCyclingPowerInstantaneousMeasurementDirection(val rawValue: UByte) {
-    unknown(0u.toUByte()),
-    tangentialComponent(1u.toUByte()),
-    radialComponent(2u.toUByte()),
-    lateralComponent(3u.toUByte());
+    unknown(0u),
+    tangentialComponent(1u),
+    radialComponent(2u),
+    lateralComponent(3u);
 
     companion object {
         fun fromRawValue(value: UByte): WorkoutDeviceCyclingPowerInstantaneousMeasurementDirection? {
@@ -110,38 +108,38 @@ private class PowerVector(value: ByteArray) {
     var instantaneousMeasurementDirection: WorkoutDeviceCyclingPowerInstantaneousMeasurementDirection? = null
 
     init {
-        val reader = ByteReader(value)
+        val reader = ByteReader(data = value)
         val flags = reader.readUInt8()
-        if ((flags.toInt() and (1 shl vectorCrankRevolutionDataFlagIndex)) != 0) {
+        if (flags.isBitSet(index = vectorCrankRevolutionDataFlagIndex)) {
             cumulativeCrankRevolutions = reader.readUInt16Le()
             lastCrankEventTime = reader.readUInt16Le()
         }
-        if ((flags.toInt() and (1 shl vectorFirstCrankMeasurementAngleFlagIndex)) != 0) {
+        if (flags.isBitSet(index = vectorFirstCrankMeasurementAngleFlagIndex)) {
             firstCrankMeasurementAngle = reader.readUInt16Le()
         }
         while (reader.bytesAvailable >= 2) {
-            val element = reader.readUInt16Le()
-            if ((flags.toInt() and (1 shl vectorInstantaneousForceArrayFlagIndex)) != 0) {
+            val value = reader.readUInt16Le()
+            if (flags.isBitSet(index = vectorInstantaneousForceArrayFlagIndex)) {
                 if (instantaneousForceMagnitudes == null) {
                     instantaneousForceMagnitudes = mutableListOf()
                 }
-                instantaneousForceMagnitudes!!.add(element)
-            } else if ((flags.toInt() and (1 shl vectorInstantaneousTorqueArrayFlagIndex)) != 0) {
+                instantaneousForceMagnitudes!!.add(value)
+            } else if (flags.isBitSet(index = vectorInstantaneousTorqueArrayFlagIndex)) {
                 if (instantaneousTorqueMagnitudes == null) {
                     instantaneousTorqueMagnitudes = mutableListOf()
                 }
-                instantaneousTorqueMagnitudes!!.add(element)
+                instantaneousTorqueMagnitudes!!.add(value)
             }
         }
-        val direction = ((flags.toInt() and vectorInstantaneousMeasurementDirectionMask.toInt()) shr
+        val value = ((flags and vectorInstantaneousMeasurementDirectionMask).toInt() shr
             vectorInstantaneousMeasurementDirectionIndex).toUByte()
         instantaneousMeasurementDirection =
-            WorkoutDeviceCyclingPowerInstantaneousMeasurementDirection.fromRawValue(direction)
+            WorkoutDeviceCyclingPowerInstantaneousMeasurementDirection.fromRawValue(value)
     }
 }
 
 class WorkoutDeviceCyclingPower {
-    private var measurementCharacteristic: BluetoothGattCharacteristic? = null
+    private var measurementCharacteristic: CBCharacteristic? = null
     private val averagePower = WorkoutDeviceAverageCalculator()
     private val crankCadence = WorkoutDeviceCrankCadence()
 
@@ -154,7 +152,7 @@ class WorkoutDeviceCyclingPower {
         crankCadence.reset()
     }
 
-    fun setMeasurementCharacteristic(characteristic: BluetoothGattCharacteristic) {
+    fun setMeasurementCharacteristic(characteristic: CBCharacteristic) {
         measurementCharacteristic = characteristic
     }
 
@@ -164,10 +162,10 @@ class WorkoutDeviceCyclingPower {
 
     fun handleMeasurement(value: ByteArray): Pair<Int, Int?> {
         val measurement = PowerMeasurement(value)
-        averagePower.update(measurement.instantaneousPower.toDouble())
-        val cadence = crankCadence.update(measurement.cumulativeCrankRevolutions,
-            measurement.lastCrankEventTime,
-            Instant.now())
+        averagePower.update(value = measurement.instantaneousPower.toDouble())
+        val cadence = crankCadence.update(revolutions = measurement.cumulativeCrankRevolutions,
+            time = measurement.lastCrankEventTime,
+            now = ContinuousClock.now)
         return Pair(averagePower.average().toInt(), cadence)
     }
 

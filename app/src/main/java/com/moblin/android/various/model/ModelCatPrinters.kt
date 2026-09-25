@@ -64,14 +64,14 @@ sealed class CatPrinterEvent {
 
 fun Model.printAllCatPrinters(image: Bitmap, feedPaperDelay: Double? = null) {
     for (catPrinter in catPrinters.values) {
-        catPrinter.print(image, feedPaperDelay)
+        catPrinter.print(com.moblin.android.platform.coreimage.CIImage(cgImage = image), feedPaperDelay)
     }
 }
 
 fun Model.printSnapshotCatPrinters(image: Bitmap) {
     for (catPrinter in catPrinters.values) {
         if (getCatPrinterSettings(catPrinter)?.printSnapshots?.value == true) {
-            catPrinter.print(image, null)
+            catPrinter.print(com.moblin.android.platform.coreimage.CIImage(cgImage = image), null)
         }
     }
 }
@@ -93,7 +93,7 @@ fun Model.printEventCatPrinters(event: CatPrinterEvent, username: String, messag
             }
             val currentImage = image
             if (currentImage != null) {
-                catPrinter.print(currentImage, null)
+                catPrinter.print(com.moblin.android.platform.coreimage.CIImage(cgImage = currentImage), null)
             }
         }
     }
@@ -102,7 +102,7 @@ fun Model.printEventCatPrinters(event: CatPrinterEvent, username: String, messag
 fun Model.catPrinterPrintTestImage(device: SettingsCatPrinter) {
     val image = Bitmap.createBitmap(100, 10, Bitmap.Config.ARGB_8888)
     image.eraseColor(Color.BLACK)
-    catPrinters[device.id]?.print(image, null)
+    catPrinters[device.id]?.print(com.moblin.android.platform.coreimage.CIImage(cgImage = image), null)
 }
 
 fun Model.isCatPrinterEnabled(device: SettingsCatPrinter): Boolean {
@@ -116,7 +116,7 @@ fun Model.enableCatPrinter(device: SettingsCatPrinter) {
         catPrinters[device.id] = catPrinter
     }
     catPrinters[device.id]?.start(
-        deviceId = device.bluetoothPeripheralId.value?.toString(),
+        deviceId = device.bluetoothPeripheralId.value,
         meowSoundEnabled = device.faxMeowSound.value
     )
 }

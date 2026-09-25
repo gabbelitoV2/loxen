@@ -1,81 +1,88 @@
 package com.moblin.android.integrations.workoutdevice
 
-import android.bluetooth.BluetoothGattCharacteristic
+import com.moblin.android.common.various.isBitSet
 import com.moblin.android.media.haishinkit.util.ByteReader
-import java.time.Duration
-import java.time.Instant
-import java.util.UUID
-import kotlin.math.min
+import com.moblin.android.platform.core.ContinuousClock
+import com.moblin.android.platform.corebluetooth.CBCharacteristic
+import com.moblin.android.platform.corebluetooth.CBUUID
+import kotlin.time.Duration.Companion.seconds
 
-val workoutDeviceCyclingSpeedCadenceServiceId: UUID =
-    UUID.fromString("00001816-0000-1000-8000-00805F9B34FB")
-
-val workoutDeviceCyclingSpeedCadenceMeasurementCharacteristicId: UUID =
-    UUID.fromString("00002A5B-0000-1000-8000-00805F9B34FB")
+val workoutDeviceCyclingSpeedCadenceServiceId = CBUUID(string = "1816")
+val workoutDeviceCyclingSpeedCadenceMeasurementCharacteristicId = CBUUID(string = "2A5B")
 
 private const val measurementWheelRevolutionDataFlagIndex = 0
 private const val measurementCrankRevolutionDataFlagIndex = 1
 
-private fun UByte.isBitSet(index: Int): Boolean = ((this.toInt() shr index) and 1) == 1
-
-private class CyclingSpeedCadenceMeasurement {
-    var cumulativeWheelRevolutions: UInt? = null
-    var lastWheelEventTime: UShort? = null
-    var cumulativeCrankRevolutions: UShort? = null
-    var lastCrankEventTime: UShort? = null
-
-    constructor(value: ByteArray) {
-        val reader = ByteReader(value)
-        val flags = reader.readUInt8()
-        if (flags.isBitSet(measurementWheelRevolutionDataFlagIndex)) {
-            cumulativeWheelRevolutions = reader.readUInt32Le()
-            lastWheelEventTime = reader.readUInt16Le()
-        }
-        if (flags.isBitSet(measurementCrankRevolutionDataFlagIndex)) {
-            cumulativeCrankRevolutions = reader.readUInt16Le()
-            lastCrankEventTime = reader.readUInt16Le()
+private data class CyclingSpeedCadenceMeasurement(
+    val cumulativeWheelRevolutions: UInt? = null,
+    val lastWheelEventTime: UShort? = null,
+    val cumulativeCrankRevolutions: UShort? = null,
+    val lastCrankEventTime: UShort? = null,
+) {
+    companion object {
+        fun parse(value: ByteArray): CyclingSpeedCadenceMeasurement {
+            val reader = ByteReader(data = value)
+            val flags = reader.readUInt8()
+            var cumulativeWheelRevolutions: UInt? = null
+            var lastWheelEventTime: UShort? = null
+            if (flags.isBitSet(index = measurementWheelRevolutionDataFlagIndex)) {
+                cumulativeWheelRevolutions = reader.readUInt32Le()
+                lastWheelEventTime = reader.readUInt16Le()
+            }
+            var cumulativeCrankRevolutions: UShort? = null
+            var lastCrankEventTime: UShort? = null
+            if (flags.isBitSet(index = measurementCrankRevolutionDataFlagIndex)) {
+                cumulativeCrankRevolutions = reader.readUInt16Le()
+                lastCrankEventTime = reader.readUInt16Le()
+            }
+            return CyclingSpeedCadenceMeasurement(
+                cumulativeWheelRevolutions = cumulativeWheelRevolutions,
+                lastWheelEventTime = lastWheelEventTime,
+                cumulativeCrankRevolutions = cumulativeCrankRevolutions,
+                lastCrankEventTime = lastCrankEventTime,
+            )
         }
     }
 }
 
-class WorkoutDeviceCyclingSpeedCadence(wheelCircumference: Int) {
-    private var measurementCharacteristic: BluetoothGattCharacteristic? = null
+open class WorkoutDeviceCyclingSpeedCadence(wheelCircumference: Int) {
+    private var measurementCharacteristic: CBCharacteristic? = null
     private var previousWheelRevolutions: UInt? = null
     private var previousWheelRevolutionsTime: UShort? = null
     private val crankCadence = WorkoutDeviceCrankCadence()
     private val averageSpeed = WorkoutDeviceAverageCalculator()
-    private var latestAverageSpeedUpdateTime = Instant.now()
+    private var latestAverageSpeedUpdateTime = ContinuousClock.now
     private var reportsWheelRevolutions = false
-    private var wheelCircumferenceMeters: Double = wheelCircumference.toDouble() / 1000.0
+    private var wheelCircumferenceMeters: Double = wheelCircumference.toDouble() / 1000
 
-    fun reset() {
+    open fun reset() {
         measurementCharacteristic = null
         resetMeasurements()
         reportsWheelRevolutions = false
     }
 
-    fun resetMeasurements() {
+    open fun resetMeasurements() {
         previousWheelRevolutions = null
         previousWheelRevolutionsTime = null
         crankCadence.reset()
         averageSpeed.reset()
     }
 
-    fun setMeasurementCharacteristic(characteristic: BluetoothGattCharacteristic) {
+    open fun setMeasurementCharacteristic(characteristic: CBCharacteristic) {
         measurementCharacteristic = characteristic
     }
 
-    fun isAnyCharacteristicDiscovered(): Boolean {
+    open fun isAnyCharacteristicDiscovered(): Boolean {
         return measurementCharacteristic != null
     }
 
-    fun setWheelCircumference(millimeters: Int) {
-        wheelCircumferenceMeters = millimeters.toDouble() / 1000.0
+    open fun setWheelCircumference(millimeters: Int) {
+        wheelCircumferenceMeters = millimeters.toDouble() / 1000
     }
 
-    fun handleMeasurement(value: ByteArray): Pair<Double?, Int?> {
-        val measurement = CyclingSpeedCadenceMeasurement(value)
-        val now = Instant.now()
+    open fun handleMeasurement(value: ByteArray): Pair<Double?, Int?> {
+        val measurement = CyclingSpeedCadenceMeasurement.parse(value)
+        val now = ContinuousClock.now
         val cadence = crankCadence.update(revolutions = measurement.cumulativeCrankRevolutions,
                                           time = measurement.lastCrankEventTime,
                                           now = now)
@@ -84,37 +91,37 @@ class WorkoutDeviceCyclingSpeedCadence(wheelCircumference: Int) {
                     cadence)
     }
 
-    private fun updateSpeed(measurement: CyclingSpeedCadenceMeasurement, now: Instant) {
+    private fun updateSpeed(measurement: CyclingSpeedCadenceMeasurement, now: ContinuousClock.Instant) {
         var speed = -1.0
         val revolutions = measurement.cumulativeWheelRevolutions
         val time = measurement.lastWheelEventTime
         if (revolutions != null && time != null) {
             reportsWheelRevolutions = true
-            val previousRevolutions = previousWheelRevolutions
-            val previousRevolutionsTime = previousWheelRevolutionsTime
-            if (previousRevolutions != null && previousRevolutionsTime != null) {
-                var deltaRevolutions = revolutions.toLong() - previousRevolutions.toLong()
+            val previousWheelRevolutions = this.previousWheelRevolutions
+            val previousWheelRevolutionsTime = this.previousWheelRevolutionsTime
+            if (previousWheelRevolutions != null && previousWheelRevolutionsTime != null) {
+                var deltaRevolutions = revolutions.toLong() - previousWheelRevolutions.toLong()
                 if (deltaRevolutions < 0) {
                     deltaRevolutions += 4_294_967_296L
                 }
-                deltaRevolutions = min(deltaRevolutions, 1000L)
-                var deltaTime = time.toLong() - previousRevolutionsTime.toLong()
+                deltaRevolutions = minOf(deltaRevolutions, 1000L)
+                var deltaTime = time.toInt() - previousWheelRevolutionsTime.toInt()
                 if (deltaTime < 0) {
                     deltaTime += 65536
                 }
-                val deltaTimeSeconds = deltaTime.toDouble() / 1024.0
+                val deltaTimeSeconds = deltaTime.toDouble() / 1024
                 if (deltaTimeSeconds > 0) {
                     speed = deltaRevolutions.toDouble() * wheelCircumferenceMeters / deltaTimeSeconds
-                    speed = min(speed, 100.0)
+                    speed = minOf(speed, 100.0)
                 }
             }
-            previousWheelRevolutions = revolutions
-            previousWheelRevolutionsTime = time
+            this.previousWheelRevolutions = revolutions
+            this.previousWheelRevolutionsTime = time
         }
         if (speed != -1.0) {
             averageSpeed.update(value = speed)
             latestAverageSpeedUpdateTime = now
-        } else if (Duration.between(latestAverageSpeedUpdateTime, now).seconds > 3) {
+        } else if (latestAverageSpeedUpdateTime.duration(to = now) > 3.seconds) {
             averageSpeed.update(value = 0.0)
         }
     }

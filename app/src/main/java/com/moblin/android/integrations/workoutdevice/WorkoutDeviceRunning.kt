@@ -1,96 +1,99 @@
 package com.moblin.android.integrations.workoutdevice
 
-import android.bluetooth.BluetoothGattCharacteristic
-import android.os.SystemClock
+import com.moblin.android.common.various.isBitSet
 import com.moblin.android.media.haishinkit.util.ByteReader
-import java.io.IOException
-import java.util.UUID
-import kotlinx.serialization.SerialName
+import com.moblin.android.platform.core.ContinuousClock
+import com.moblin.android.platform.corebluetooth.CBCharacteristic
+import com.moblin.android.platform.corebluetooth.CBUUID
 import kotlinx.serialization.Serializable
+import kotlin.time.DurationUnit
 
-val workoutDeviceRunningServiceId: UUID = UUID.fromString("00001814-0000-1000-8000-00805f9b34fb")
-val workoutDeviceRunningMeasurementCharacteristicId: UUID = UUID.fromString("00002a53-0000-1000-8000-00805f9b34fb")
+val workoutDeviceRunningServiceId = CBUUID(string = "1814")
+val workoutDeviceRunningMeasurementCharacteristicId = CBUUID(string = "2A53")
 
 private const val rscStrideLengthFlagIndex = 0
 private const val rscTotalDistanceFlagIndex = 1
 
-private fun UByte.isBitSet(index: Int): Boolean = ((this.toInt() shr index) and 0x01) == 0x01
-
 @Serializable
 data class WorkoutDeviceRunningMetrics(
-    @SerialName("speed") var speed: Double? = null,
-    @SerialName("cadence") var cadence: Int? = null,
-    @SerialName("distance") var distance: Double? = null,
+    var speed: Double? = null,
+    var cadence: Int? = null,
+    var distance: Double? = null,
 )
 
-private class RscMeasurement @Throws(IOException::class) constructor(value: ByteArray) {
-    val speedMetersPerSecond: Double
-    val cadence: Int
-    var totalDistanceMeters: Double? = null
-
-    init {
-        val reader = ByteReader(value)
-        val flags = reader.readUInt8()
-        val speedRaw = reader.readUInt16Le()
-        speedMetersPerSecond = speedRaw.toDouble() / 256.0
-        cadence = reader.readUInt8().toInt()
-        if (flags.isBitSet(rscStrideLengthFlagIndex)) {
-            reader.readUInt16Le()
-        }
-        if (flags.isBitSet(rscTotalDistanceFlagIndex)) {
-            val totalDistanceRaw = reader.readUInt32Le()
-            totalDistanceMeters = totalDistanceRaw.toDouble() / 10.0
+private data class RscMeasurement private constructor(
+    val speedMetersPerSecond: Double,
+    val cadence: Int,
+    val totalDistanceMeters: Double?,
+) {
+    companion object {
+        fun create(value: ByteArray): RscMeasurement {
+            val reader = ByteReader(value)
+            val flags = reader.readUInt8()
+            val speedRaw = reader.readUInt16Le()
+            val speedMetersPerSecond = speedRaw.toDouble() / 256.0
+            val cadence = reader.readUInt8().toInt()
+            if (flags.isBitSet(index = rscStrideLengthFlagIndex)) {
+                reader.readUInt16Le()
+            }
+            var totalDistanceMeters: Double? = null
+            if (flags.isBitSet(index = rscTotalDistanceFlagIndex)) {
+                val totalDistanceRaw = reader.readUInt32Le()
+                totalDistanceMeters = totalDistanceRaw.toDouble() / 10.0
+            }
+            return RscMeasurement(speedMetersPerSecond, cadence, totalDistanceMeters)
         }
     }
 }
 
-class WorkoutDeviceRunning {
-    private var measurementCharacteristic: BluetoothGattCharacteristic? = null
-    private var lastRscUpdateTime: Long? = null
-    private var distanceMetersFallback: Double = 0.0
-    private var usingDeviceDistance: Boolean = false
+open class WorkoutDeviceRunning {
+    private var measurementCharacteristic: CBCharacteristic? = null
+    private var lastRscUpdateTime: ContinuousClock.Instant? = null
+    private var distanceMetersFallback = 0.0
+    private var usingDeviceDistance = false
 
-    fun reset() {
+    open fun reset() {
         measurementCharacteristic = null
         resetMeasurements()
         distanceMetersFallback = 0.0
         usingDeviceDistance = false
     }
 
-    fun resetMeasurements() {
+    open fun resetMeasurements() {
         lastRscUpdateTime = null
     }
 
-    fun setMeasurementCharacteristic(characteristic: BluetoothGattCharacteristic) {
+    open fun setMeasurementCharacteristic(characteristic: CBCharacteristic) {
         measurementCharacteristic = characteristic
     }
 
-    fun isAnyCharacteristicDiscovered(): Boolean = measurementCharacteristic != null
+    open fun isAnyCharacteristicDiscovered(): Boolean {
+        return measurementCharacteristic != null
+    }
 
-    @Throws(IOException::class)
-    fun handleMeasurement(value: ByteArray): WorkoutDeviceRunningMetrics {
-        val measurement = RscMeasurement(value)
-        var distanceMeters: Double? = null
+    open fun handleMeasurement(value: ByteArray): WorkoutDeviceRunningMetrics {
+        val measurement = RscMeasurement.create(value)
+        var distanceMeters: Double?
         val totalDistanceMeters = measurement.totalDistanceMeters
         if (totalDistanceMeters != null) {
             usingDeviceDistance = true
             distanceMeters = totalDistanceMeters
         } else if (!usingDeviceDistance) {
-            val now = SystemClock.elapsedRealtimeNanos()
-            val last = lastRscUpdateTime
-            if (last != null) {
-                val deltaSeconds = (now - last) / 1_000_000_000.0
-                if (deltaSeconds > 0.0) {
+            val now = ContinuousClock.now
+            val lastRscUpdateTime = lastRscUpdateTime
+            if (lastRscUpdateTime != null) {
+                val deltaSeconds = lastRscUpdateTime.duration(to = now).toDouble(DurationUnit.SECONDS)
+                if (deltaSeconds > 0) {
                     distanceMetersFallback += measurement.speedMetersPerSecond * deltaSeconds
                 }
             }
             distanceMeters = distanceMetersFallback
-            lastRscUpdateTime = now
+            this.lastRscUpdateTime = now
+        } else {
+            distanceMeters = null
         }
-        return WorkoutDeviceRunningMetrics(
-            speed = measurement.speedMetersPerSecond,
-            cadence = measurement.cadence,
-            distance = distanceMeters,
-        )
+        return WorkoutDeviceRunningMetrics(speed = measurement.speedMetersPerSecond,
+                                           cadence = measurement.cadence,
+                                           distance = distanceMeters)
     }
 }

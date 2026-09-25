@@ -1,16 +1,17 @@
 package com.moblin.android.integrations.dji.djidevice
 
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattDescriptor
-import android.bluetooth.BluetoothGattService
-import android.bluetooth.BluetoothManager
-import android.bluetooth.BluetoothProfile
-import android.content.Context
 import android.util.Log
+import com.moblin.android.common.various.hexString
 import com.moblin.android.integrations.dji.DjiMessage
+import com.moblin.android.platform.corebluetooth.CBCentralManager
+import com.moblin.android.platform.corebluetooth.CBCentralManagerDelegate
+import com.moblin.android.platform.corebluetooth.CBCharacteristic
+import com.moblin.android.platform.corebluetooth.CBCharacteristicWriteType
+import com.moblin.android.platform.corebluetooth.CBManagerState
+import com.moblin.android.platform.corebluetooth.CBPeripheral
+import com.moblin.android.platform.corebluetooth.CBPeripheralDelegate
+import com.moblin.android.platform.corebluetooth.CBService
+import com.moblin.android.platform.corebluetooth.CBUUID
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.settings.SettingsDjiDevice
 import com.moblin.android.various.settings.SettingsDjiDeviceImageStabilization
@@ -20,35 +21,32 @@ import com.moblin.android.various.settings.SettingsDjiDeviceUrlType
 import com.moblin.android.various.settings.SettingsDjiDeviceVideoCodec
 import java.util.UUID
 
-private const val tag = "DjiDevice"
+private val pairTransactionId: UShort = 0x8092u.toUShort()
+private val stopStreamingTransactionId: UShort = 0xEAC8u.toUShort()
+private val preparingToLivestreamTransactionId: UShort = 0x8C12u.toUShort()
+private val setupWifiTransactionId: UShort = 0x8C19u.toUShort()
+private val startStreamingTransactionId: UShort = 0x8C2Cu.toUShort()
+private val configureTransactionId: UShort = 0x8C2Du.toUShort()
 
-private val pairTransactionId: Int = 0x8092
-private val stopStreamingTransactionId: Int = 0xEAC8
-private val preparingToLivestreamTransactionId: Int = 0x8C12
-private val setupWifiTransactionId: Int = 0x8C19
-private val startStreamingTransactionId: Int = 0x8C2C
-private val configureTransactionId: Int = 0x8C2D
+private val pairTarget: UShort = 0x0702u.toUShort()
+private val stopStreamingTarget: UShort = 0x0802u.toUShort()
+private val preparingToLivestreamTarget: UShort = 0x0802u.toUShort()
+private val setupWifiTarget: UShort = 0x0702u.toUShort()
+private val configureTarget: UShort = 0x0102u.toUShort()
+private val startStreamingTarget: UShort = 0x0802u.toUShort()
 
-private val pairTarget: Int = 0x0702
-private val stopStreamingTarget: Int = 0x0802
-private val preparingToLivestreamTarget: Int = 0x0802
-private val setupWifiTarget: Int = 0x0702
-private val configureTarget: Int = 0x0102
-private val startStreamingTarget: Int = 0x0802
+private val pairType: UInt = 0x450740u
+private val stopStreamingType: UInt = 0x8E0240u
+private val preparingToLivestreamType: UInt = 0xE10240u
+private val setupWifiType: UInt = 0x470740u
+private val configureType: UInt = 0x8E0240u
+private val startStreamingType: UInt = 0x780840u
+private val statusType: UInt = 0x020D00u
 
-private val pairType: Int = 0x450740
-private val stopStreamingType: Int = 0x8E0240
-private val preparingToLivestreamType: Int = 0xE10240
-private val setupWifiType: Int = 0x470740
-private val configureType: Int = 0x8E0240
-private val startStreamingType: Int = 0x780840
-private val statusType: Int = 0x020D00
+private val fff4Id = CBUUID(string = "FFF4")
+private val fff5Id = CBUUID(string = "FFF5")
 
-private val fff4Id: UUID = UUID.fromString("0000fff4-0000-1000-8000-00805f9b34fb")
-private val fff5Id: UUID = UUID.fromString("0000fff5-0000-1000-8000-00805f9b34fb")
-private val cccdId: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
-
-private const val pairPinCode = "mbln"
+private val pairPinCode = "mbln"
 
 enum class DjiDeviceState {
     idle,
@@ -70,7 +68,7 @@ interface DjiDeviceDelegate {
     fun djiDeviceStreamingState(device: DjiDevice, state: DjiDeviceState)
 }
 
-class DjiDevice(private val context: Context) {
+open class DjiDevice : CBCentralManagerDelegate, CBPeripheralDelegate {
     private var wifiSsid: String? = null
     private var wifiPassword: String? = null
     private var rtmpUrl: String? = null
@@ -80,52 +78,17 @@ class DjiDevice(private val context: Context) {
     private var videoCodec: SettingsDjiDeviceVideoCodec = SettingsDjiDeviceVideoCodec.h265hevc
     private var imageStabilization: SettingsDjiDeviceImageStabilization? = null
     private var deviceId: UUID? = null
-    private var centralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
-    private var cameraPeripheral: BluetoothGatt? = null
-    private var fff5Characteristic: BluetoothGattCharacteristic? = null
+    private var centralManager: CBCentralManager? by CBCentralManager.holder()
+    private var cameraPeripheral: CBPeripheral? = null
+    private var fff5Characteristic: CBCharacteristic? = null
     private var state: DjiDeviceState = DjiDeviceState.idle
-    var delegate: DjiDeviceDelegate? = null
+    open var delegate: DjiDeviceDelegate? = null
     private val startStreamingTimer = MainTimer()
     private val stopStreamingTimer = MainTimer()
     private var model: SettingsDjiDeviceModel = SettingsDjiDeviceModel.unknown
     private var batteryPercentage: Int? = null
 
-    private val gattCallback = object : BluetoothGattCallback() {
-        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-            if (status != BluetoothGatt.GATT_SUCCESS) {
-                centralManagerDidFailToConnect(gatt)
-                return
-            }
-            when (newState) {
-                BluetoothProfile.STATE_CONNECTED -> centralManagerDidConnect(gatt)
-                BluetoothProfile.STATE_DISCONNECTED -> centralManagerDidDisconnectPeripheral(gatt)
-                else -> {}
-            }
-        }
-
-        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-            peripheralDidDiscoverServices(gatt)
-        }
-
-        override fun onCharacteristicChanged(
-            gatt: BluetoothGatt,
-            characteristic: BluetoothGattCharacteristic,
-        ) {
-            peripheralDidUpdateValueFor(characteristic)
-        }
-
-        override fun onDescriptorWrite(
-            gatt: BluetoothGatt,
-            descriptor: BluetoothGattDescriptor,
-            status: Int,
-        ) {
-            if (status == BluetoothGatt.GATT_SUCCESS) {
-                peripheralDidUpdateNotificationStateFor(descriptor.characteristic)
-            }
-        }
-    }
-
-    fun startLiveStream(
+    open fun startLiveStream(
         wifiSsid: String,
         wifiPassword: String,
         rtmpUrl: String,
@@ -137,7 +100,7 @@ class DjiDevice(private val context: Context) {
         deviceId: UUID,
         model: SettingsDjiDeviceModel,
     ) {
-        Log.d(tag, "dji-device: Start live stream for $model")
+        Log.d("DjiDevice", "dji-device: Start live stream for $model")
         this.wifiSsid = wifiSsid
         this.wifiPassword = wifiPassword
         this.rtmpUrl = rtmpUrl
@@ -150,36 +113,31 @@ class DjiDevice(private val context: Context) {
         this.model = model
         reset()
         startStartStreamingTimer()
-        setState(DjiDeviceState.discovering)
-        centralManager =
-            com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { central -> centralManagerDidUpdateState(central) }, queue = null)
-        Unit
+        setState(state = DjiDeviceState.discovering)
+        centralManager = CBCentralManager(delegate = this, queue = null)
     }
 
-    fun stopLiveStream() {
+    open fun stopLiveStream() {
         if (state == DjiDeviceState.idle) {
             return
         }
-        Log.d(tag, "dji-device: Stop live stream")
+        Log.d("DjiDevice", "dji-device: Stop live stream")
         stopStartStreamingTimer()
         startStopStreamingTimer()
         sendStopStream()
-        setState(DjiDeviceState.stoppingStream)
+        setState(state = DjiDeviceState.stoppingStream)
     }
 
-    fun getBatteryPercentage(): Int? {
-        return batteryPercentage
-    }
+    open fun getBatteryPercentage(): Int? = batteryPercentage
 
     private fun reset() {
         stopStartStreamingTimer()
         stopStopStreamingTimer()
-        centralManager?.delegate = null; centralManager = null
-        com.moblin.android.platform.corebluetooth.bluetoothCall { cameraPeripheral?.close() }
+        centralManager = null
         cameraPeripheral = null
         fff5Characteristic = null
         batteryPercentage = null
-        setState(DjiDeviceState.idle)
+        setState(state = DjiDeviceState.idle)
     }
 
     private fun startStartStreamingTimer() {
@@ -214,101 +172,108 @@ class DjiDevice(private val context: Context) {
         if (state == this.state) {
             return
         }
-        Log.d(tag, "dji-device: State change ${this.state} -> $state")
+        Log.d("DjiDevice", "dji-device: State change ${this.state} -> $state")
         this.state = state
         delegate?.djiDeviceStreamingState(this, state)
     }
 
-    fun getState(): DjiDeviceState {
-        return state
-    }
+    open fun getState(): DjiDeviceState = state
 
-    fun centralManagerDidUpdateState(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
-        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
-            connect(central)
+    override fun centralManagerDidUpdateState(central: CBCentralManager) {
+        when (central.state) {
+            CBManagerState.poweredOn -> connect(central)
+            else -> {}
         }
     }
 
-    private fun connect(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
+    private fun connect(central: CBCentralManager) {
         val deviceId = this.deviceId ?: run {
-            Log.i(tag, "dji-device: Device not found")
+            Log.i("DjiDevice", "dji-device: Device not found")
             return
         }
-        val peripheral = central.retrievePeripherals(withIdentifiers = listOf(deviceId.toString())).firstOrNull()
-        if (peripheral == null) {
-            Log.i(tag, "dji-device: Device not found")
-            return
-        }
-        cameraPeripheral = central.connect(peripheral, callback = gattCallback)
+        val peripheral = central.retrievePeripherals(withIdentifiers = listOf(deviceId)).firstOrNull()
+            ?: run {
+                Log.i("DjiDevice", "dji-device: Device not found")
+                return
+            }
+        cameraPeripheral = peripheral
+        peripheral.delegate = this
+        central.connect(peripheral)
         startStartStreamingTimer()
-        setState(DjiDeviceState.connecting)
+        setState(state = DjiDeviceState.connecting)
     }
 
-    fun centralManagerDidFailToConnect(gatt: BluetoothGatt) {}
+    override fun centralManagerDidFailToConnect(
+        central: CBCentralManager,
+        peripheral: CBPeripheral,
+        error: Throwable?,
+    ) {}
 
-    fun centralManagerDidConnect(gatt: BluetoothGatt) {
-        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.discoverServices() }
+    override fun centralManagerDidConnect(central: CBCentralManager, peripheral: CBPeripheral) {
+        peripheral.discoverServices(null)
     }
 
-    fun centralManagerDidDisconnectPeripheral(gatt: BluetoothGatt) {
+    override fun centralManagerDidDisconnectPeripheral(
+        central: CBCentralManager,
+        peripheral: CBPeripheral,
+        error: Throwable?,
+    ) {
         reset()
     }
 
-    fun peripheralDidDiscoverServices(gatt: BluetoothGatt) {
-        val peripheralServices = gatt.services ?: return
+    override fun peripheralDidDiscoverServices(peripheral: CBPeripheral, error: Throwable?) {
+        val peripheralServices = peripheral.services ?: return
         for (service in peripheralServices) {
-            peripheralDidDiscoverCharacteristicsFor(gatt, service)
+            peripheral.discoverCharacteristics(null, `for` = service)
         }
     }
 
-    fun peripheralDidDiscoverCharacteristicsFor(
-        gatt: BluetoothGatt,
-        service: BluetoothGattService,
+    override fun peripheralDidDiscoverCharacteristicsFor(
+        peripheral: CBPeripheral,
+        service: CBService,
+        error: Throwable?,
     ) {
-        for (characteristic in service.characteristics) {
+        for (characteristic in service.characteristics.orEmpty()) {
             if (characteristic.uuid == fff5Id) {
                 fff5Characteristic = characteristic
             }
-            com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, true) }
-            val descriptor = characteristic.getDescriptor(cccdId)
-            if (descriptor != null) {
-                descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }
-            }
+            peripheral.setNotifyValue(true, `for` = characteristic)
         }
     }
 
-    fun peripheralDidUpdateValueFor(characteristic: BluetoothGattCharacteristic) {
+    override fun peripheralDidUpdateValueFor(
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic,
+        error: Throwable?,
+    ) {
         val value = characteristic.value ?: return
-        val message = runCatching { DjiMessage(data = value) }.getOrNull()
-        if (message == null) {
-            val hex = value.joinToString(separator = "") { "%02x".format(it) }
-            Log.i(tag, "dji-device: Discarding corrupt message $hex")
+        val message = runCatching { DjiMessage(data = value) }.getOrNull() ?: run {
+            Log.i("DjiDevice", "dji-device: Discarding corrupt message ${value.hexString()}")
             return
         }
         when (state) {
-            DjiDeviceState.checkingIfPaired -> processCheckingIfPaired(message)
+            DjiDeviceState.checkingIfPaired -> processCheckingIfPaired(response = message)
             DjiDeviceState.pairing -> processPairing()
-            DjiDeviceState.cleaningUp -> processCleaningUp(message)
-            DjiDeviceState.preparingStream -> processPreparingStream(message)
-            DjiDeviceState.settingUpWifi -> processSettingUpWifi(message)
-            DjiDeviceState.configuring -> processConfiguring(message)
-            DjiDeviceState.startingStream -> processStartingStream(message)
-            DjiDeviceState.streaming -> processStreaming(message)
-            DjiDeviceState.stoppingStream -> processStoppingStream(message)
+            DjiDeviceState.cleaningUp -> processCleaningUp(response = message)
+            DjiDeviceState.preparingStream -> processPreparingStream(response = message)
+            DjiDeviceState.settingUpWifi -> processSettingUpWifi(response = message)
+            DjiDeviceState.configuring -> processConfiguring(response = message)
+            DjiDeviceState.startingStream -> processStartingStream(response = message)
+            DjiDeviceState.streaming -> processStreaming(message = message)
+            DjiDeviceState.stoppingStream -> processStoppingStream(response = message)
             DjiDeviceState.connecting -> {}
-            else -> Log.i(tag, "dji-device: Received message in unexpected state '$state'")
+            else -> Log.i("DjiDevice", "dji-device: Received message in unexpected state '$state'")
         }
     }
 
     private fun sendStopStream() {
-        val payload = byteArrayOf(0x01, 0x01, 0x1A, 0x00, 0x01, 0x02)
+        val payload = DjiStopStreamingMessagePayload
         writeMessage(
-            DjiMessage(
+            message = DjiMessage(
                 target = stopStreamingTarget,
                 id = stopStreamingTransactionId,
                 type = stopStreamingType,
-                payload = payload,
+                payload = payload.encode(),
             ),
         )
     }
@@ -320,29 +285,29 @@ class DjiDevice(private val context: Context) {
         if (response.payload.contentEquals(byteArrayOf(0, 1))) {
             processPairing()
         } else {
-            setState(DjiDeviceState.pairing)
+            setState(state = DjiDeviceState.pairing)
         }
     }
 
     private fun processPairing() {
         sendStopStream()
-        setState(DjiDeviceState.cleaningUp)
+        setState(state = DjiDeviceState.cleaningUp)
     }
 
     private fun processCleaningUp(response: DjiMessage) {
         if (response.id != stopStreamingTransactionId) {
             return
         }
-        val payload = byteArrayOf(0x1A)
+        val payload = DjiPreparingToLivestreamMessagePayload
         writeMessage(
-            DjiMessage(
+            message = DjiMessage(
                 target = preparingToLivestreamTarget,
                 id = preparingToLivestreamTransactionId,
                 type = preparingToLivestreamType,
-                payload = payload,
+                payload = payload.encode(),
             ),
         )
-        setState(DjiDeviceState.preparingStream)
+        setState(state = DjiDeviceState.preparingStream)
     }
 
     private fun processPreparingStream(response: DjiMessage) {
@@ -351,19 +316,16 @@ class DjiDevice(private val context: Context) {
         }
         val wifiSsid = this.wifiSsid ?: return
         val wifiPassword = this.wifiPassword ?: return
-        val payload = DjiSetupWifiMessagePayload(
-            wifiSsid = wifiSsid,
-            wifiPassword = wifiPassword,
-        )
+        val payload = DjiSetupWifiMessagePayload(wifiSsid = wifiSsid, wifiPassword = wifiPassword)
         writeMessage(
-            DjiMessage(
+            message = DjiMessage(
                 target = setupWifiTarget,
                 id = setupWifiTransactionId,
                 type = setupWifiType,
                 payload = payload.encode(),
             ),
         )
-        setState(DjiDeviceState.settingUpWifi)
+        setState(state = DjiDeviceState.settingUpWifi)
     }
 
     private fun processSettingUpWifi(response: DjiMessage) {
@@ -372,44 +334,36 @@ class DjiDevice(private val context: Context) {
         }
         if (!response.payload.contentEquals(byteArrayOf(0x00, 0x00))) {
             reset()
-            setState(DjiDeviceState.wifiSetupFailed)
+            setState(state = DjiDeviceState.wifiSetupFailed)
             return
         }
         when (model) {
-            SettingsDjiDeviceModel.osmoAction2,
-            SettingsDjiDeviceModel.osmoAction3,
-            -> sendStartStreaming()
+            SettingsDjiDeviceModel.osmoAction2, SettingsDjiDeviceModel.osmoAction3 -> sendStartStreaming()
             SettingsDjiDeviceModel.osmoAction4, SettingsDjiDeviceModel.osmoAction6 -> {
                 val imageStabilization = this.imageStabilization ?: return
-                val payload = DjiConfigureMessagePayload(
-                    imageStabilization = imageStabilization,
-                    oa5 = false,
-                )
+                val payload = DjiConfigureMessagePayload(imageStabilization = imageStabilization, oa5 = false)
                 writeMessage(
-                    DjiMessage(
+                    message = DjiMessage(
                         target = configureTarget,
                         id = configureTransactionId,
                         type = configureType,
                         payload = payload.encode(),
                     ),
                 )
-                setState(DjiDeviceState.configuring)
+                setState(state = DjiDeviceState.configuring)
             }
             SettingsDjiDeviceModel.osmoAction5Pro, SettingsDjiDeviceModel.osmo360 -> {
                 val imageStabilization = this.imageStabilization ?: return
-                val payload = DjiConfigureMessagePayload(
-                    imageStabilization = imageStabilization,
-                    oa5 = true,
-                )
+                val payload = DjiConfigureMessagePayload(imageStabilization = imageStabilization, oa5 = true)
                 writeMessage(
-                    DjiMessage(
+                    message = DjiMessage(
                         target = configureTarget,
                         id = configureTransactionId,
                         type = configureType,
                         payload = payload.encode(),
                     ),
                 )
-                setState(DjiDeviceState.configuring)
+                setState(state = DjiDeviceState.configuring)
             }
             SettingsDjiDeviceModel.osmoPocket3 -> sendStartStreaming()
             SettingsDjiDeviceModel.osmoPocket4 -> sendStartStreaming()
@@ -427,7 +381,7 @@ class DjiDevice(private val context: Context) {
     private fun sendStartStreaming() {
         val rtmpUrl = this.rtmpUrl ?: return
         val resolution = this.resolution ?: return
-        val bitrateKbps: UShort = ((bitrate / 1000u) and 0xFFFFu).toUShort()
+        val bitrateKbps = ((bitrate / 1000u) and 0xFFFFu).toUShort()
         when (model) {
             SettingsDjiDeviceModel.osmoPocket4 -> {
                 val payload = DjiStartStreamingMessagePayload2(
@@ -441,7 +395,7 @@ class DjiDevice(private val context: Context) {
                     middle = DjiStartStreamingMessagePayload2.osmoPocket4Middle,
                 )
                 writeMessage(
-                    DjiMessage(
+                    message = DjiMessage(
                         target = startStreamingTarget,
                         id = startStreamingTransactionId,
                         type = startStreamingType,
@@ -461,7 +415,7 @@ class DjiDevice(private val context: Context) {
                     middle = DjiStartStreamingMessagePayload2.osmoAction6Middle,
                 )
                 writeMessage(
-                    DjiMessage(
+                    message = DjiMessage(
                         target = startStreamingTarget,
                         id = startStreamingTransactionId,
                         type = startStreamingType,
@@ -478,7 +432,7 @@ class DjiDevice(private val context: Context) {
                     oa5 = model.hasNewProtocol(),
                 )
                 writeMessage(
-                    DjiMessage(
+                    message = DjiMessage(
                         target = startStreamingTarget,
                         id = startStreamingTransactionId,
                         type = startStreamingType,
@@ -488,33 +442,31 @@ class DjiDevice(private val context: Context) {
             }
         }
         if (model.hasNewProtocol()) {
-            val confirmStartStreamPayload = byteArrayOf(0x01, 0x01, 0x1A, 0x00, 0x01, 0x01)
+            val confirmStartStreamPayload = DjiConfirmStartStreamingMessagePayload
             writeMessage(
-                DjiMessage(
+                message = DjiMessage(
                     target = stopStreamingTarget,
                     id = stopStreamingTransactionId,
                     type = stopStreamingType,
-                    payload = confirmStartStreamPayload,
+                    payload = confirmStartStreamPayload.encode(),
                 ),
             )
         }
-        setState(DjiDeviceState.startingStream)
+        setState(state = DjiDeviceState.startingStream)
     }
 
     private fun processStartingStream(response: DjiMessage) {
         if (response.id != startStreamingTransactionId) {
             return
         }
-        setState(DjiDeviceState.streaming)
+        setState(state = DjiDeviceState.streaming)
         stopStartStreamingTimer()
     }
 
     private fun processStreaming(message: DjiMessage) {
         when (message.type) {
             statusType -> {
-                val payload = runCatching {
-                    DjiStatusMessagePayload(message.payload)
-                }.getOrNull()
+                val payload = DjiStatusMessagePayload(message.payload)
                 if (payload != null) {
                     batteryPercentage = payload.batteryPercentage.toInt()
                 }
@@ -531,19 +483,24 @@ class DjiDevice(private val context: Context) {
     }
 
     private fun writeMessage(message: DjiMessage) {
-        Log.d(tag, "dji-device: Send ${message.format()}")
-        writeValue(message.encode())
+        Log.d("DjiDevice", "dji-device: Send ${message.format()}")
+        writeValue(value = message.encode())
     }
 
     private fun writeValue(value: ByteArray) {
         val fff5Characteristic = this.fff5Characteristic ?: return
-        val cameraPeripheral = this.cameraPeripheral ?: return
-        fff5Characteristic.value = value
-        fff5Characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-        com.moblin.android.platform.corebluetooth.bluetoothCall { cameraPeripheral.writeCharacteristic(fff5Characteristic) }
+        cameraPeripheral?.writeValue(
+            data = value,
+            `for` = fff5Characteristic,
+            type = CBCharacteristicWriteType.withoutResponse,
+        )
     }
 
-    fun peripheralDidUpdateNotificationStateFor(characteristic: BluetoothGattCharacteristic) {
+    override fun peripheralDidUpdateNotificationStateFor(
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic,
+        error: Throwable?,
+    ) {
         if (state != DjiDeviceState.connecting) {
             return
         }
@@ -557,11 +514,11 @@ class DjiDevice(private val context: Context) {
             type = pairType,
             payload = payload.encode(),
         )
-        writeMessage(request)
-        setState(DjiDeviceState.checkingIfPaired)
+        writeMessage(message = request)
+        setState(state = DjiDeviceState.checkingIfPaired)
     }
 
-    fun peripheralIsReadyToSendWriteWithoutResponse(gatt: BluetoothGatt) {}
+    override fun peripheralIsReadyToSendWriteWithoutResponse(peripheral: CBPeripheral) {}
 }
 
 fun SettingsDjiDevice.canStartLive(isConnectedToIpv4WiFi: Boolean): Boolean {
@@ -573,7 +530,7 @@ fun SettingsDjiDevice.canStartLive(isConnectedToIpv4WiFi: Boolean): Boolean {
     }
     when (rtmpUrlType) {
         SettingsDjiDeviceUrlType.server -> {
-            val serverRtmpUrl = this.serverRtmpUrl
+            val serverRtmpUrl = serverRtmpUrl
             if (serverRtmpUrl != null) {
                 if (serverRtmpUrl.isEmpty()) {
                     return false

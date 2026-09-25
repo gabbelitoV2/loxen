@@ -619,7 +619,7 @@ private fun BlackSharkCoolerDeviceStatusView(
     val blackSharkCoolerDeviceState by status.blackSharkCoolerDeviceState.collectAsState()
     val blackSharkCoolerPhoneTemp by status.blackSharkCoolerPhoneTemp.collectAsState()
     val blackSharkCoolerExhaustTemp by status.blackSharkCoolerExhaustTemp.collectAsState()
-    if (blackSharkCoolerDeviceState == BlackSharkCoolerDeviceState.CONNECTED) {
+    if (blackSharkCoolerDeviceState == BlackSharkCoolerDeviceState.connected) {
         StreamOverlayIconAndTextView(
             icon = "fan",
             text = "${blackSharkCoolerPhoneTemp ?: 0} °C / ${blackSharkCoolerExhaustTemp ?: 0} °C",

@@ -1,36 +1,36 @@
 package com.moblin.android.integrations.catprinter
 
-import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothGatt
-import android.bluetooth.BluetoothGattCallback
-import android.bluetooth.BluetoothGattCharacteristic
-import android.bluetooth.BluetoothGattDescriptor
-import android.bluetooth.BluetoothManager
-import android.bluetooth.BluetoothProfile
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
-import android.graphics.Paint
 import android.util.Log
 import com.moblin.android.platform.Bundle
+import com.moblin.android.platform.corebluetooth.CBCentralManager
+import com.moblin.android.platform.corebluetooth.CBCentralManagerDelegate
+import com.moblin.android.platform.corebluetooth.CBCharacteristic
+import com.moblin.android.platform.corebluetooth.CBCharacteristicWriteType
+import com.moblin.android.platform.corebluetooth.CBManagerState
+import com.moblin.android.platform.corebluetooth.CBPeripheral
+import com.moblin.android.platform.corebluetooth.CBPeripheralDelegate
+import com.moblin.android.platform.corebluetooth.CBService
+import com.moblin.android.platform.corebluetooth.CBUUID
+import com.moblin.android.platform.coregraphics.bitsPerComponent
+import com.moblin.android.platform.coregraphics.bitsPerPixel
+import com.moblin.android.platform.coregraphics.dataProvider
+import com.moblin.android.platform.coreimage.CIColor
+import com.moblin.android.platform.coreimage.CIContext
+import com.moblin.android.platform.coreimage.CIFilter
+import com.moblin.android.platform.coreimage.CIImage
 import com.moblin.android.various.AudioPlayer
 import com.moblin.android.various.BluetoothScanner
 import com.moblin.android.various.SimpleTimer
+import com.moblin.android.videoeffects.scaled
 import java.util.UUID
-import kotlin.math.max
-import kotlin.math.roundToInt
+import java.util.concurrent.Executors
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
-import com.moblin.android.AppDelegate
 
-private const val catPrinterLogTag = "CatPrinter"
-
-private val catPrinterDispatchQueue = CoroutineScope(Dispatchers.IO + SupervisorJob())
+private val catPrinterDispatchQueue: CoroutineDispatcher =
+    Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
 val catPrinterWidthPixels = 384
 
@@ -67,11 +67,12 @@ private class CurrentJob(
     var offset: Int = 0
     var state: JobState = JobState.idle
 
-    fun updateState(state: JobState) {
+    @JvmName("updateState")
+    fun setState(state: JobState) {
         if (state == this.state) {
             return
         }
-        Log.d(catPrinterLogTag, "cat-printer: Job state change ${this.state} -> $state")
+        Log.d("CurrentJob", "cat-printer: Job state change ${this.state} -> $state")
         this.state = state
     }
 
@@ -88,76 +89,72 @@ private class CurrentJob(
     }
 }
 
-private val catPrinterServices = listOf(UUID.fromString("0000af30-0000-1000-8000-00805f9b34fb"))
-
-val catPrinterScanner = BluetoothScanner(
-    context = AppDelegate.context,
-    serviceIds = catPrinterServices,
+private val catPrinterServices = listOf(
+    CBUUID(string = "0000af30-0000-1000-8000-00805f9b34fb"),
 )
 
-private val printCharacteristicId = UUID.fromString("0000ae01-0000-1000-8000-00805f9b34fb")
-private val notifyCharacteristicId = UUID.fromString("0000ae02-0000-1000-8000-00805f9b34fb")
-private val dataCharacteristicId = UUID.fromString("0000ae03-0000-1000-8000-00805f9b34fb")
-private val clientCharacteristicConfigurationId =
-    UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+val catPrinterScanner = BluetoothScanner(serviceIds = catPrinterServices)
+
+private val printCharacteristicId = CBUUID(string = "AE01")
+private val notifyCharacteristicId = CBUUID(string = "AE02")
+private val dataCharacteristicId = CBUUID(string = "AE03")
 
 private data class PrintJob(
-    val image: Bitmap,
+    val image: CIImage,
     val feedPaperDelay: Double?,
     val printMode: CatPrinterPrintMode,
 )
 
-class CatPrinter : BluetoothGattCallback() {
+class CatPrinter : CBCentralManagerDelegate, CBPeripheralDelegate {
     private var state: CatPrinterState = CatPrinterState.disconnected
-    private var centralManager: BluetoothGatt? = null
-    private var bluetoothCentralManager: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
-    private var peripheral: BluetoothDevice? = null
-    private var printCharacteristic: BluetoothGattCharacteristic? = null
-    private var notifyCharacteristic: BluetoothGattCharacteristic? = null
-    private var dataCharacteristic: BluetoothGattCharacteristic? = null
-    private var printJobs: ArrayDeque<PrintJob> = ArrayDeque()
+    private var centralManager: CBCentralManager? by CBCentralManager.holder()
+    private var peripheral: CBPeripheral? = null
+    private var printCharacteristic: CBCharacteristic? = null
+    private var notifyCharacteristic: CBCharacteristic? = null
+    private var dataCharacteristic: CBCharacteristic? = null
+    private val context = CIContext()
+    private var printJobs: MutableList<PrintJob> = mutableListOf()
     private var currentJob: CurrentJob? = null
-    private var deviceId: String? = null
+    private var deviceId: UUID? = null
     private val ditheringAlgorithm: DitheringAlgorithm = DitheringAlgorithm.atkinson
     var delegate: CatPrinterDelegate? = null
-    private var tryWriteNextChunkTimer = SimpleTimer(queue = Dispatchers.IO)
-    private var jobCompleteTimer = SimpleTimer(queue = Dispatchers.IO)
-    private var feedPaperTimer = SimpleTimer(queue = Dispatchers.IO)
+    private var tryWriteNextChunkTimer = SimpleTimer(queue = catPrinterDispatchQueue)
+    private var jobCompleteTimer = SimpleTimer(queue = catPrinterDispatchQueue)
+    private var feedPaperTimer = SimpleTimer(queue = catPrinterDispatchQueue)
     private var audioPlayer: AudioPlayer? = null
     private var meowSoundEnabled: Boolean = false
 
-    fun start(deviceId: String?, meowSoundEnabled: Boolean) {
-        catPrinterDispatchQueue.launch {
+    fun start(deviceId: UUID?, meowSoundEnabled: Boolean) {
+        CoroutineScope(catPrinterDispatchQueue).launch {
             this@CatPrinter.meowSoundEnabled = meowSoundEnabled
             startInternal(deviceId = deviceId)
         }
     }
 
     fun stop() {
-        catPrinterDispatchQueue.launch {
+        CoroutineScope(catPrinterDispatchQueue).launch {
             stopInternal()
         }
     }
 
     fun setMeowSoundEnabled(meowSoundEnabled: Boolean) {
-        catPrinterDispatchQueue.launch {
+        CoroutineScope(catPrinterDispatchQueue).launch {
             this@CatPrinter.meowSoundEnabled = meowSoundEnabled
         }
     }
 
-    fun print(image: Bitmap, feedPaperDelay: Double? = null) {
-        catPrinterDispatchQueue.launch {
+    fun print(image: CIImage, feedPaperDelay: Double? = null) {
+        CoroutineScope(catPrinterDispatchQueue).launch {
             printInternal(image = image, feedPaperDelay = feedPaperDelay)
         }
     }
 
+    @JvmName("currentState")
     fun getState(): CatPrinterState {
         return state
     }
 
-    private fun maximumWriteValueLength(peripheral: BluetoothDevice): Int =
-        0
-    private fun startInternal(deviceId: String?) {
+    private fun startInternal(deviceId: UUID?) {
         this.deviceId = deviceId
         reset()
         reconnect()
@@ -168,19 +165,19 @@ class CatPrinter : BluetoothGattCallback() {
     }
 
     private fun isMxw01(): Boolean {
-        return com.moblin.android.platform.corebluetooth.bluetoothCall(null) { peripheral?.name } == "MXW01"
+        return peripheral?.name == "MXW01"
     }
 
-    private fun printInternal(image: Bitmap, feedPaperDelay: Double?) {
+    private fun printInternal(image: CIImage, feedPaperDelay: Double?) {
         if (printJobs.size >= 50) {
             return
         }
-        printJobs.addLast(
+        printJobs.add(
             PrintJob(
                 image = image,
                 feedPaperDelay = feedPaperDelay,
                 printMode = CatPrinterPrintMode.blackAndWhite,
-            ),
+            )
         )
         tryPrintNext()
     }
@@ -195,11 +192,10 @@ class CatPrinter : BluetoothGattCallback() {
             return
         }
         val printJob = printJobs.removeFirstOrNull() ?: return
-        val image: Array<UByteArray>
-        try {
-            image = processImage(image = printJob.image, printMode = printJob.printMode)
+        val image = try {
+            processImage(image = printJob.image, printMode = printJob.printMode)
         } catch (error: Exception) {
-            Log.i(catPrinterLogTag, "cat-printer: $error")
+            Log.i("CatPrinter", "cat-printer: $error")
             return
         }
         if (isMxw01()) {
@@ -214,8 +210,8 @@ class CatPrinter : BluetoothGattCallback() {
 
     private fun tryPrintNextMxw01(
         printJob: PrintJob,
-        image: Array<UByteArray>,
-        peripheral: BluetoothDevice,
+        image: MutableList<UByteArray>,
+        peripheral: CBPeripheral,
     ) {
         val data = catPrinterPackPrintImageCommandsMxw01(
             image = image,
@@ -223,7 +219,7 @@ class CatPrinter : BluetoothGattCallback() {
         )
         currentJob = CurrentJob(
             data = data,
-            mtu = maximumWriteValueLength(peripheral),
+            mtu = peripheral.maximumWriteValueLength(`for` = CBCharacteristicWriteType.withoutResponse),
             feedPaperDelay = printJob.feedPaperDelay,
             printMode = printJob.printMode,
         )
@@ -233,26 +229,24 @@ class CatPrinter : BluetoothGattCallback() {
             reconnect()
             return
         }
-        currentJob.updateState(state = JobState.waitingForReady)
-        send(command = CatPrinterCommandMxw01.statusRequest, peripheral, printCharacteristic)
+        currentJob.setState(JobState.waitingForReady)
+        send(CatPrinterCommandMxw01.StatusRequest, peripheral, printCharacteristic)
         startJobCompleteTimer()
     }
 
     private fun tryPrintNextDefault(
         printJob: PrintJob,
-        image: Array<UByteArray>,
-        peripheral: BluetoothDevice,
+        image: MutableList<UByteArray>,
+        peripheral: CBPeripheral,
     ) {
         val data = catPrinterPackPrintImageCommands(
-            image = image.map { row ->
-                catPrinterEncodeImageRow(imageRow = row, printMode = printJob.printMode)
-            },
+            image = image,
             feedPaper = printJob.feedPaperDelay == null,
             printMode = printJob.printMode,
         )
         currentJob = CurrentJob(
             data = data,
-            mtu = maximumWriteValueLength(peripheral),
+            mtu = peripheral.maximumWriteValueLength(`for` = CBCharacteristicWriteType.withoutResponse),
             feedPaperDelay = printJob.feedPaperDelay,
             printMode = printJob.printMode,
         )
@@ -263,8 +257,8 @@ class CatPrinter : BluetoothGattCallback() {
             reconnect()
             return
         }
-        send(command = CatPrinterCommand.GetDeviceState(), peripheral, printCharacteristic)
-        currentJob.updateState(state = JobState.waitingForReady)
+        send(CatPrinterCommand.GetDeviceState(), peripheral, printCharacteristic)
+        currentJob.setState(JobState.waitingForReady)
     }
 
     private fun playMeowSound() {
@@ -275,28 +269,26 @@ class CatPrinter : BluetoothGattCallback() {
 
     private fun send(
         command: CatPrinterCommand,
-        peripheral: BluetoothDevice,
-        characteristic: BluetoothGattCharacteristic,
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic,
     ) {
-        send(data = command.pack(), peripheral, characteristic)
+        send(data = command.pack(), peripheral = peripheral, characteristic = characteristic)
     }
 
     private fun send(
         command: CatPrinterCommandMxw01,
-        peripheral: BluetoothDevice,
-        characteristic: BluetoothGattCharacteristic,
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic,
     ) {
-        send(data = command.pack(), peripheral, characteristic)
+        send(data = command.pack(), peripheral = peripheral, characteristic = characteristic)
     }
 
     private fun send(
         data: ByteArray,
-        peripheral: BluetoothDevice,
-        characteristic: BluetoothGattCharacteristic,
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic,
     ) {
-        characteristic.value = data
-        characteristic.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-        com.moblin.android.platform.corebluetooth.bluetoothCall { centralManager?.writeCharacteristic(characteristic) }
+        peripheral.writeValue(data, `for` = characteristic, type = CBCharacteristicWriteType.withoutResponse)
     }
 
     private fun tryWriteNextChunk() {
@@ -316,7 +308,7 @@ class CatPrinter : BluetoothGattCallback() {
         }
         val chunk = currentJob?.nextChunk()
         if (chunk != null) {
-            send(data = chunk, peripheral, dataCharacteristic)
+            send(data = chunk, peripheral = peripheral, characteristic = dataCharacteristic)
             startTryWriteNextChunkTimer()
         }
     }
@@ -330,7 +322,7 @@ class CatPrinter : BluetoothGattCallback() {
         }
         val chunk = currentJob?.nextChunk()
         if (chunk != null) {
-            send(data = chunk, peripheral, printCharacteristic)
+            send(data = chunk, peripheral = peripheral, characteristic = printCharacteristic)
             startTryWriteNextChunkTimer()
         } else {
             val feedPaperDelay = currentJob?.feedPaperDelay
@@ -343,73 +335,76 @@ class CatPrinter : BluetoothGattCallback() {
         }
     }
 
-    private fun processImage(image: Bitmap, printMode: CatPrinterPrintMode): Array<UByteArray> {
+    private fun processImage(image: CIImage, printMode: CatPrinterPrintMode): MutableList<UByteArray> {
         var image = makeMonochrome(image = image)
         image = scaleToPrinterWidth(image = image)
         var pixels = convertToPixels(image = image)
         if (printMode == CatPrinterPrintMode.blackAndWhite) {
-            pixels = when (ditheringAlgorithm) {
+            when (ditheringAlgorithm) {
                 DitheringAlgorithm.floydSteinberg -> {
-                    val dithered = FloydSteinbergDithering().apply(
-                        image = pixels.map { row -> row.toList() },
-                    )
-                    Array(dithered.size) { row -> dithered[row].toUByteArray() }
+                    pixels = FloydSteinbergDithering()
+                        .apply(pixels.map { it.toList() })
+                        .map { it.toUByteArray() }
+                        .toMutableList()
                 }
                 DitheringAlgorithm.atkinson -> {
-                    val dithered = AtkinsonDithering().apply(image = pixels.toMutableList())
-                    Array(dithered.size) { row -> dithered[row] }
+                    pixels = AtkinsonDithering().apply(pixels)
                 }
             }
         }
         return when (printMode) {
-            CatPrinterPrintMode.blackAndWhite -> Array(pixels.size) { row ->
-                UByteArray(pixels[row].size) { column ->
-                    ((255 - pixels[row][column].toInt()) / 128).toUByte()
-                }
-            }
-            CatPrinterPrintMode.grayscale -> Array(pixels.size) { row ->
-                UByteArray(pixels[row].size) { column ->
-                    ((255 - pixels[row][column].toInt()) / 16).toUByte()
-                }
-            }
+            CatPrinterPrintMode.blackAndWhite -> pixels
+                .map { row -> row.map { ((255 - it.toInt()) / 128).toUByte() }.toUByteArray() }
+                .toMutableList()
+            CatPrinterPrintMode.grayscale -> pixels
+                .map { row -> row.map { ((255 - it.toInt()) / 16).toUByte() }.toUByteArray() }
+                .toMutableList()
         }
     }
 
-    private fun makeMonochrome(image: Bitmap): Bitmap {
-        val output = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(output)
-        val paint = Paint()
-        paint.colorFilter = ColorMatrixColorFilter(ColorMatrix().apply { setSaturation(0.0f) })
-        canvas.drawBitmap(image, 0.0f, 0.0f, paint)
-        return output
+    private fun makeMonochrome(image: CIImage): CIImage {
+        val filter = CIFilter.colorMonochrome()
+        filter.inputImage = image
+        filter.color = CIColor(red = 0.9, green = 0.9, blue = 0.9)
+        filter.intensity = 1f
+        return filter.outputImage ?: image
     }
 
-    private fun scaleToPrinterWidth(image: Bitmap): Bitmap {
-        val scale = catPrinterWidthPixels.toFloat() / image.width.toFloat()
-        val height = max(1, (image.height * scale).roundToInt())
-        return Bitmap.createScaledBitmap(image, catPrinterWidthPixels, height, true)
+    private fun scaleToPrinterWidth(image: CIImage): CIImage {
+        val scale = catPrinterWidthPixels.toDouble() / image.extent.width
+        return image.scaled(x = scale, y = scale)
     }
 
-    private fun convertToPixels(image: Bitmap): Array<UByteArray> {
-        val width = image.width
-        val height = image.height
-        val pixels = IntArray(width * height)
-        image.getPixels(pixels, 0, width, 0, 0, width, height)
-        return Array(height) { row ->
-            UByteArray(width) { column ->
-                val pixel = pixels[row * width + column]
-                val alpha = (pixel ushr 24) and 0xFF
-                if (alpha != 255) {
-                    255.toUByte()
+    private fun convertToPixels(image: CIImage): MutableList<UByteArray> {
+        val cgImage = context.createCGImage(image, from = image.extent)
+            ?: throw CatPrinterError("Failed to create core graphics image")
+        val data = cgImage.dataProvider?.data ?: throw CatPrinterError("Failed to get data")
+        var length = data.size
+        if (cgImage.bitsPerComponent != 8) {
+            throw CatPrinterError("Expected 8 bits per component, but got ${cgImage.bitsPerComponent}")
+        }
+        if (cgImage.bitsPerPixel != 32) {
+            throw CatPrinterError("Expected 32 bits per pixel, but got ${cgImage.bitsPerPixel}")
+        }
+        val widthPixels = image.extent.width.toInt()
+        length = minOf(length, 4 * (image.extent.width * image.extent.height).toInt())
+        val pixels = mutableListOf<UByteArray>()
+        for (rowOffset in (0 until length) step (4 * widthPixels)) {
+            val row = mutableListOf<UByte>()
+            for (columnOffset in (0 until (4 * widthPixels)) step 4) {
+                if ((data[rowOffset + columnOffset + 3].toInt() and 0xFF) != 255) {
+                    row.add(255.toUByte())
                 } else {
-                    ((pixel ushr 16) and 0xFF).toUByte()
+                    row.add(data[rowOffset + columnOffset].toUByte())
                 }
             }
+            pixels.add(row.toUByteArray())
         }
+        return pixels
     }
 
     private fun reset() {
-        com.moblin.android.platform.corebluetooth.bluetoothCall { centralManager?.close() }; centralManager = null; bluetoothCentralManager?.delegate = null; bluetoothCentralManager = null
+        centralManager = null
         peripheral = null
         printCharacteristic = null
         notifyCharacteristic = null
@@ -419,7 +414,7 @@ class CatPrinter : BluetoothGattCallback() {
         stopTryWriteNextChunkTimer()
         stopJobCompleteTimer()
         stopFeedPaperTimer()
-        updateState(state = CatPrinterState.disconnected)
+        setState(CatPrinterState.disconnected)
     }
 
     private fun reconnect() {
@@ -428,23 +423,21 @@ class CatPrinter : BluetoothGattCallback() {
         notifyCharacteristic = null
         dataCharacteristic = null
         currentJob = null
-        updateState(state = CatPrinterState.discovering)
+        setState(CatPrinterState.discovering)
         stopTryWriteNextChunkTimer()
         stopJobCompleteTimer()
         stopFeedPaperTimer()
-        com.moblin.android.platform.corebluetooth.bluetoothCall { centralManager?.close() }
-        centralManager = null
-        bluetoothCentralManager?.delegate = null; val central = com.moblin.android.platform.corebluetooth.CBCentralManager(delegate = { if (it.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) { connect(it) } }, queue = catPrinterDispatchQueue); bluetoothCentralManager = central
-        if (central.state == com.moblin.android.platform.corebluetooth.CBManagerState.poweredOn) {
-            Unit
-        }
+        centralManager = CBCentralManager(
+            delegate = this,
+            queue = CoroutineScope(catPrinterDispatchQueue),
+        )
     }
 
-    private fun updateState(state: CatPrinterState) {
+    private fun setState(state: CatPrinterState) {
         if (state == this.state) {
             return
         }
-        Log.d(catPrinterLogTag, "cat-printer: State change ${this.state} -> $state")
+        Log.d("CatPrinter", "cat-printer: State change ${this.state} -> $state")
         this.state = state
         delegate?.catPrinterState(catPrinter = this, state = state)
     }
@@ -487,71 +480,88 @@ class CatPrinter : BluetoothGattCallback() {
             return
         }
         send(
-            command = CatPrinterCommand.FeedPaper(pixels = catPrinterFeedPaperPixels),
+            CatPrinterCommand.FeedPaper(pixels = catPrinterFeedPaperPixels),
             peripheral,
             printCharacteristic,
         )
     }
 
-    private fun connect(central: com.moblin.android.platform.corebluetooth.CBCentralManager) {
-        val deviceId = deviceId
-        if (deviceId == null) {
-            Log.i(catPrinterLogTag, "cat-printer: Device not found")
-            return
+    override fun centralManagerDidUpdateState(central: CBCentralManager) {
+        when (central.state) {
+            CBManagerState.poweredOn -> connect(central)
+            else -> {}
         }
-        val peripheral = central.retrievePeripherals(withIdentifiers = listOf(deviceId)).firstOrNull()
+    }
+
+    private fun connect(central: CBCentralManager) {
+        val deviceId = deviceId
+        val peripheral = if (deviceId != null) {
+            central.retrievePeripherals(withIdentifiers = listOf(deviceId)).firstOrNull()
+        } else {
+            null
+        }
         if (peripheral == null) {
-            Log.i(catPrinterLogTag, "cat-printer: Device not found")
+            Log.i("CatPrinter", "cat-printer: Device not found")
             return
         }
         this.peripheral = peripheral
-        centralManager = central.connect(peripheral, callback = this)
-        updateState(state = CatPrinterState.connecting)
+        peripheral.delegate = this
+        central.connect(peripheral)
+        setState(CatPrinterState.connecting)
     }
 
-    override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-        when (newState) {
-            BluetoothProfile.STATE_CONNECTED -> com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.discoverServices() }
-            BluetoothProfile.STATE_DISCONNECTED -> reconnect()
-            else -> Unit
+    override fun centralManagerDidFailToConnect(
+        central: CBCentralManager,
+        peripheral: CBPeripheral,
+        error: Throwable?,
+    ) {
+    }
+
+    override fun centralManagerDidConnect(central: CBCentralManager, peripheral: CBPeripheral) {
+        peripheral.discoverServices(null)
+    }
+
+    override fun centralManagerDidDisconnectPeripheral(
+        central: CBCentralManager,
+        peripheral: CBPeripheral,
+        error: Throwable?,
+    ) {
+        reconnect()
+    }
+
+    override fun peripheralDidDiscoverServices(peripheral: CBPeripheral, error: Throwable?) {
+        val service = peripheral.services?.firstOrNull()
+        if (service != null) {
+            peripheral.discoverCharacteristics(null, `for` = service)
         }
     }
 
-    override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-        if (status != BluetoothGatt.GATT_SUCCESS) {
-            return
-        }
-        val service = gatt.services.firstOrNull()
-        if (service == null) {
-            return
-        }
-        for (characteristic in service.characteristics) {
+    override fun peripheralDidDiscoverCharacteristicsFor(
+        peripheralArg: CBPeripheral,
+        service: CBService,
+        error: Throwable?,
+    ) {
+        for (characteristic in service.characteristics.orEmpty()) {
             when (characteristic.uuid) {
                 printCharacteristicId -> printCharacteristic = characteristic
                 notifyCharacteristicId -> {
                     notifyCharacteristic = characteristic
-                    com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.setCharacteristicNotification(characteristic, true) }
-                    setNotifyValue(gatt = gatt, characteristic = characteristic)
+                    this.peripheral?.setNotifyValue(true, `for` = characteristic)
                 }
                 dataCharacteristicId -> dataCharacteristic = characteristic
-                else -> Unit
+                else -> {}
             }
         }
         if (printCharacteristic != null && notifyCharacteristic != null && dataCharacteristic != null) {
-            updateState(state = CatPrinterState.connected)
+            setState(CatPrinterState.connected)
             tryPrintNext()
         }
     }
 
-    private fun setNotifyValue(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
-        val descriptor = characteristic.getDescriptor(clientCharacteristicConfigurationId) ?: return
-        descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-        com.moblin.android.platform.corebluetooth.bluetoothCall { gatt.writeDescriptor(descriptor) }
-    }
-
-    override fun onCharacteristicChanged(
-        gatt: BluetoothGatt,
-        characteristic: BluetoothGattCharacteristic,
+    override fun peripheralDidUpdateValueFor(
+        peripheral: CBPeripheral,
+        characteristic: CBCharacteristic,
+        error: Throwable?,
     ) {
         if (isMxw01()) {
             handleMessageMxw01(characteristic = characteristic)
@@ -560,17 +570,15 @@ class CatPrinter : BluetoothGattCallback() {
         }
     }
 
-    private fun handleMessageMxw01(characteristic: BluetoothGattCharacteristic) {
+    private fun handleMessageMxw01(characteristic: CBCharacteristic) {
         val value = characteristic.value ?: return
-        val command = CatPrinterCommandMxw01.fromData(data = value) ?: return
+        val command = CatPrinterCommandMxw01(value) ?: return
         val currentJob = currentJob ?: return
         when (currentJob.state) {
-            JobState.waitingForReady ->
-                handleMessageMxw01WaitingForReady(command = command, currentJob = currentJob)
-            JobState.waitingForPrintResponse ->
-                handleMessageMxw01WaitingForPrintResponse(command = command, currentJob = currentJob)
-            JobState.writingChunks -> handleMessageMxw01WritingChunks(command = command)
-            else -> Unit
+            JobState.waitingForReady -> handleMessageMxw01WaitingForReady(command, currentJob)
+            JobState.waitingForPrintResponse -> handleMessageMxw01WaitingForPrintResponse(command, currentJob)
+            JobState.writingChunks -> handleMessageMxw01WritingChunks(command)
+            else -> {}
         }
     }
 
@@ -583,24 +591,21 @@ class CatPrinter : BluetoothGattCallback() {
         if (peripheral == null || printCharacteristic == null) {
             return
         }
-        when (command) {
-            is CatPrinterCommandMxw01.statusResponse -> {
-                currentJob.updateState(state = JobState.waitingForPrintResponse)
-                val bytesPerLine: Int = when (currentJob.printMode) {
-                    CatPrinterPrintMode.blackAndWhite -> catPrinterWidthPixels / 8
-                    CatPrinterPrintMode.grayscale -> catPrinterWidthPixels / 2
-                }
-                val lineCount = (currentJob.data.size / bytesPerLine).toUShort()
-                send(
-                    command = CatPrinterCommandMxw01.printRequest(
-                        printMode = currentJob.printMode,
-                        count = lineCount,
-                    ),
-                    peripheral,
-                    printCharacteristic,
-                )
+        if (command is CatPrinterCommandMxw01.StatusResponse) {
+            currentJob.setState(JobState.waitingForPrintResponse)
+            val bytesPerLine = when (currentJob.printMode) {
+                CatPrinterPrintMode.blackAndWhite -> catPrinterWidthPixels / 8
+                CatPrinterPrintMode.grayscale -> catPrinterWidthPixels / 2
             }
-            else -> Unit
+            val lineCount = (currentJob.data.size / bytesPerLine).toUShort()
+            send(
+                CatPrinterCommandMxw01.PrintRequest(
+                    printMode = currentJob.printMode,
+                    count = lineCount,
+                ),
+                peripheral,
+                printCharacteristic,
+            )
         }
     }
 
@@ -608,52 +613,42 @@ class CatPrinter : BluetoothGattCallback() {
         command: CatPrinterCommandMxw01,
         currentJob: CurrentJob,
     ) {
-        when (command) {
-            is CatPrinterCommandMxw01.printResponse -> {
-                if (command.status.toInt() == 0) {
-                    currentJob.updateState(state = JobState.writingChunks)
-                    tryWriteNextChunk()
-                } else {
-                    currentJob.updateState(state = JobState.failed)
-                }
+        if (command is CatPrinterCommandMxw01.PrintResponse) {
+            if (command.status == 0.toUByte()) {
+                currentJob.setState(JobState.writingChunks)
+                tryWriteNextChunk()
+            } else {
+                currentJob.setState(JobState.failed)
             }
-            else -> Unit
         }
     }
 
     private fun handleMessageMxw01WritingChunks(command: CatPrinterCommandMxw01) {
-        when (command) {
-            is CatPrinterCommandMxw01.printCompleteIndication -> {
-                stopJobCompleteTimer()
-                currentJob = null
-                tryPrintNext()
-            }
-            else -> Unit
+        if (command is CatPrinterCommandMxw01.PrintCompleteIndication) {
+            stopJobCompleteTimer()
+            currentJob = null
+            tryPrintNext()
         }
     }
 
-    private fun handleMessageDefault(characteristic: BluetoothGattCharacteristic) {
+    private fun handleMessageDefault(characteristic: CBCharacteristic) {
         val value = characteristic.value ?: return
         val currentJob = currentJob ?: return
-        val command = CatPrinterCommand.fromData(data = value) ?: return
+        val command = CatPrinterCommand(value) ?: return
         when (currentJob.state) {
-            JobState.idle -> Unit
-            JobState.waitingForReady -> {
-                when (command) {
-                    is CatPrinterCommand.GetDeviceState -> {
-                        currentJob.updateState(state = JobState.writingChunks)
-                        tryWriteNextChunk()
-                    }
-                    else -> Unit
+            JobState.idle -> {}
+            JobState.waitingForReady -> when (command) {
+                is CatPrinterCommand.GetDeviceState -> {
+                    currentJob.setState(JobState.writingChunks)
+                    tryWriteNextChunk()
                 }
+                else -> {}
             }
-            JobState.writingChunks -> {
-                when (command) {
-                    is CatPrinterCommand.WritePacing -> tryWriteNextChunk()
-                    else -> Unit
-                }
+            JobState.writingChunks -> when (command) {
+                is CatPrinterCommand.WritePacing -> tryWriteNextChunk()
+                else -> {}
             }
-            else -> Unit
+            else -> {}
         }
     }
 }
@@ -663,9 +658,9 @@ fun catPrinterEncodeImageRow(imageRow: UByteArray, printMode: CatPrinterPrintMod
         CatPrinterPrintMode.blackAndWhite -> {
             val data = ByteArray(imageRow.size / 8)
             for (byteIndex in 0 until data.size) {
-                var byte: Int = 0
+                var byte = 0
                 for (bitIndex in 0 until 8) {
-                    if (imageRow[8 * byteIndex + bitIndex].toInt() == 1) {
+                    if (imageRow[8 * byteIndex + bitIndex] == 1.toUByte()) {
                         byte = byte or (1 shl bitIndex)
                     }
                 }
@@ -676,12 +671,16 @@ fun catPrinterEncodeImageRow(imageRow: UByteArray, printMode: CatPrinterPrintMod
         CatPrinterPrintMode.grayscale -> {
             val data = ByteArray(imageRow.size / 2)
             for (byteIndex in 0 until data.size) {
-                data[byteIndex] = (
-                    (imageRow[2 * byteIndex].toInt() shl 4) or
-                        imageRow[2 * byteIndex + 1].toInt()
-                    ).toByte()
+                data[byteIndex] = (((imageRow[2 * byteIndex].toInt() shl 4) or
+                    imageRow[2 * byteIndex + 1].toInt()) and 0xFF).toByte()
             }
             data
         }
+    }
+}
+
+private class CatPrinterError(message: String) : Exception(message) {
+    override fun toString(): String {
+        return message ?: ""
     }
 }

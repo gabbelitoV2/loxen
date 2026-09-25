@@ -3,11 +3,17 @@ package com.moblin.android.view.settings.workoutdevices
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.moblin.android.LocalModel
+import com.moblin.android.integrations.workoutdevice.workoutDeviceScanner
+import com.moblin.android.localized
+import com.moblin.android.platform.swiftui.Button
+import com.moblin.android.platform.swiftui.ForEach
 import com.moblin.android.platform.swiftui.Form
-import com.moblin.android.platform.swiftui.FormRow
 import com.moblin.android.platform.swiftui.Section
+import com.moblin.android.platform.swiftui.rememberDismiss
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.bluetoothNotAllowedMessage
 import com.moblin.android.view.utils.HCenter
@@ -15,32 +21,41 @@ import com.moblin.android.view.utils.InlinePickerItem
 
 @Composable
 fun WorkoutDeviceScannerSettingsView(
-    model: Model = LocalModel.current,
     onChange: (String) -> Unit,
     selectedId: String,
-    onSelectedIdChange: (String) -> Unit,
-    onDismiss: () -> Unit,
+    model: Model = LocalModel.current,
 ) {
-    val bluetoothAllowed = model.bluetoothAllowed.collectAsState().value
-    val discoveredPeripherals = emptyList<InlinePickerItem>()
-
+    val scanner = workoutDeviceScanner
+    val dismiss = rememberDismiss()
+    val bluetoothAllowed by model.bluetoothAllowed.collectAsState()
+    val discoveredPeripherals by scanner.discoveredPeripherals.collectAsState()
+    DisposableEffect(Unit) {
+        scanner.startScanningForDevices()
+        onDispose {
+            scanner.stopScanningForDevices()
+        }
+    }
     Form(title = "Device") {
         Section {
             if (!bluetoothAllowed) {
-                Text(text = bluetoothNotAllowedMessage)
+                Text(bluetoothNotAllowedMessage)
             } else if (discoveredPeripherals.isEmpty()) {
                 HCenter {
                     CircularProgressIndicator()
                 }
             } else {
-                discoveredPeripherals.forEach { item ->
-                    FormRow(
-                        onClick = {
-                            onChange(item.id)
-                            onDismiss()
-                        },
-                    ) {
-                        Text(text = item.text)
+                val items = discoveredPeripherals.map { peripheral ->
+                    InlinePickerItem(
+                        id = peripheral.identifier.toString(),
+                        text = peripheral.name ?: localized("Unknown"),
+                    )
+                }
+                ForEach(items, id = { it.id }) { item ->
+                    Button(action = {
+                        onChange(item.id)
+                        dismiss()
+                    }) {
+                        Text(item.text)
                     }
                 }
             }

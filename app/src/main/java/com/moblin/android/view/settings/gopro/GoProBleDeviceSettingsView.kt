@@ -67,7 +67,6 @@ import com.moblin.android.LocalOnNavigate
 import java.util.UUID
 import com.moblin.android.various.model.startGoProDeviceLiveStream
 import com.moblin.android.various.model.stopGoProDeviceLiveStream
-import com.moblin.android.platform.corebluetooth.identifier
 
 fun formatGoProDeviceState(state: GoProDeviceState?): String {
     return when (state) {
@@ -121,7 +120,7 @@ private fun GoProDeviceScannerSettingsView(
         }
     }
     DisposableEffect(Unit) {
-        scanner.startScanningForDevices(context)
+        scanner.startScanningForDevices()
         onDispose {
             scanner.stopScanningForDevices()
         }

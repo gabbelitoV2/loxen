@@ -66,7 +66,6 @@ import java.util.UUID
 import com.moblin.android.various.model.setCurrentDjiDevice
 import com.moblin.android.various.model.startDjiDeviceLiveStream
 import com.moblin.android.various.model.stopDjiDeviceLiveStream
-import com.moblin.android.platform.corebluetooth.identifier
 
 fun rtmpServerStreamUrl(address: String, port: Int, streamKey: String): String {
     return "rtmp://$address:$port$rtmpServerApp/$streamKey"

@@ -89,6 +89,12 @@ object BluetoothAuthorization {
         }
     }
 
+    internal fun remove(manager: CBCentralManager) {
+        synchronized(managers) {
+            managers.removeAll { it.get() == null || it.get() === manager }
+        }
+    }
+
     internal fun applicationContext(): Context? = try {
         AppDelegate.context
     } catch (error: UninitializedPropertyAccessException) {

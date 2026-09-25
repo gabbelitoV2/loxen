@@ -52,10 +52,15 @@ DECL_RE = re.compile(
     r"(?:class|struct|enum|protocol|actor|typealias)\s+([A-Za-z_]\w*)",
     re.M,
 )
+PRIVATE_DECL_RE = re.compile(
+    r"^(?:@\w+(?:\([^)\n]*\))?\s+)*(?:(?:public|internal|open|final|indirect)\s+)*(?:private|fileprivate)\s+"
+    r"(?:(?:open|final|indirect)\s+)*(?:class|struct|enum|protocol|actor|typealias)\s+([A-Za-z_]\w*)",
+    re.M,
+)
 FUNC_RE = re.compile(
     r"^(?:@\w+(?:\([^)\n]*\))?\s+)*(?:(?:public|internal|open)\s+)?func\s+([A-Za-z_]\w*)", re.M
 )
-GLOBAL_RE = re.compile(r"^(?:(?:public|internal)\s+)?(?:let|var)\s+([A-Za-z_]\w*)", re.M)
+GLOBAL_RE = re.compile(r"^(?:@MainActor\s+)?(?:(?:public|internal)\s+)?(?:let|var)\s+([A-Za-z_]\w*)", re.M)
 IMPORT_RE = re.compile(
     r"^\s*import\s+(?:(?:class|struct|enum|protocol|func|var|let|typealias)\s+)?([A-Za-z_]\w*)", re.M
 )
@@ -122,6 +127,7 @@ def scan(root):
                 "imports": imports,
                 "tier": classify(rel, set(imports)),
                 "declared_types": list(dict.fromkeys(DECL_RE.findall(text))),
+                "private_types": list(dict.fromkeys(PRIVATE_DECL_RE.findall(text))),
                 "declared_functions": list(dict.fromkeys(FUNC_RE.findall(text))),
                 "declared_globals": list(dict.fromkeys(GLOBAL_RE.findall(text))),
                 "identifiers": set(IDENT_RE.findall(text)),
