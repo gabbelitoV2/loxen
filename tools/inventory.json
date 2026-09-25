@@ -1,6 +1,6 @@
 {
-  "root": "<home>\\Desktop\\code\\moblin-android\\.upstream",
-  "generated": "2026-09-25T13:02:25+00:00",
+  "root": "/home/runner/work/moblin-android/moblin-android/.upstream",
+  "generated": "2026-09-25T19:33:24+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
