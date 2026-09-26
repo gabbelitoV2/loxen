@@ -1,0 +1,23 @@
+{
+  "task": "A16",
+  "hooks": [
+    {
+      "id": "HA16.1",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateIsPortrait",
+      "op": "replace",
+      "old": "        orientation.isPortrait.value = stream.value.portrait || database.portrait || isChatPhone()",
+      "new": "        orientation.isPortrait.value = com.moblin.android.platform.uikit.InterfaceOrientation.isPortrait(requested = stream.value.portrait || database.portrait || isChatPhone())",
+      "note": "Swift locks the interface to the requested orientation (UIRequiresFullScreen, also on iPad), so isPortrait always matches the window. Apps targeting Android 16 cannot lock orientation on displays with smallest width >= 600dp or in multi-window, so the layout follows the window shape the activity really has and falls back to the requested orientation without an activity. InterfaceOrientation calls updateIsPortrait again on every configuration change."
+    },
+    {
+      "id": "HA16.2",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateOrientationLock",
+      "op": "replace",
+      "old": "        AppDelegate.orientationLock = if (database.portrait) ActivityInfo.SCREEN_ORIENTATION_PORTRAIT else ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE",
+      "new": "        AppDelegate.orientationLock = com.moblin.android.platform.uikit.InterfaceOrientation.lock(portrait = stream.value.portrait || database.portrait || isChatPhone())",
+      "note": "Swift requests .portrait when orientation.isPortrait (portrait stream, portrait UI or chat phone) and .landscape (both landscape sides) otherwise. The lock uses the requested orientation, not isPortrait, which follows the window since HA16.1; .landscape is SCREEN_ORIENTATION_SENSOR_LANDSCAPE so the interface turns with the device like the video orientation does."
+    }
+  ]
+}

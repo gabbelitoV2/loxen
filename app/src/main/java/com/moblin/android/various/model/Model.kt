@@ -849,7 +849,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun updateIsPortrait() {
-        orientation.isPortrait.value = stream.value.portrait || database.portrait || isChatPhone()
+        orientation.isPortrait.value = com.moblin.android.platform.uikit.InterfaceOrientation.isPortrait(requested = stream.value.portrait || database.portrait || isChatPhone())
     }
 
     fun isLandscapeStreamAndPortraitUi(): Boolean = !stream.value.portrait && database.portrait
@@ -2314,7 +2314,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
 
     fun updateOrientationLock() {
         updateCameraPreviewRotation()
-        AppDelegate.orientationLock = if (database.portrait) ActivityInfo.SCREEN_ORIENTATION_PORTRAIT else ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        AppDelegate.orientationLock = com.moblin.android.platform.uikit.InterfaceOrientation.lock(portrait = stream.value.portrait || database.portrait || isChatPhone())
     }
 
     fun reloadBrowserWidgets() {

@@ -11,3 +11,7 @@ tools/*.tmp
 .upstream/
 .cxx/
 *.log
+*.jks
+*.keystore
+upload-keystore.properties
+play-service-account.json

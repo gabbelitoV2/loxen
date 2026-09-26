@@ -1,0 +1,107 @@
+name: Google Play internal testing
+
+on:
+  workflow_run:
+    workflows: [Sync and build]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: play-internal
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      (github.event.workflow_run.event == 'schedule' || github.event.workflow_run.event == 'workflow_dispatch'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      signing: ${{ steps.secrets.outputs.signing }}
+    steps:
+      - name: Check the upload key secrets
+        id: secrets
+        env:
+          SIGNING: ${{ secrets.MOBLIN_UPLOAD_KEYSTORE_BASE64 != '' && secrets.MOBLIN_UPLOAD_KEYSTORE_PASSWORD != '' }}
+        run: |
+          echo "signing=$SIGNING" >> "$GITHUB_OUTPUT"
+          if [ "$SIGNING" != "true" ]; then
+            echo "::notice::MOBLIN_UPLOAD_KEYSTORE_BASE64 or MOBLIN_UPLOAD_KEYSTORE_PASSWORD is not set, so nothing is built or uploaded."
+          fi
+
+  release:
+    needs: gate
+    if: needs.gate.outputs.signing == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      PACKAGE_NAME: com.moblin.android
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Read the release version
+        id: version
+        run: |
+          ./gradlew -q :app:printReleaseVersion > version.txt
+          cat version.txt
+          echo "code=$(sed -n 's/^versionCode=//p' version.txt)" >> "$GITHUB_OUTPUT"
+          echo "name=$(sed -n 's/^versionName=//p' version.txt)" >> "$GITHUB_OUTPUT"
+          rm version.txt
+      - name: Decide whether main changed since the last upload
+        id: decide
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          EVENT: ${{ github.event_name }}
+          VERSION_CODE: ${{ steps.version.outputs.code }}
+        run: |
+          if [ -n "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            pip install --quiet "google-auth>=2.30" "requests>=2.32"
+          fi
+          python tools/play.py decide --package "$PACKAGE_NAME" --version-code "$VERSION_CODE" --event "$EVENT"
+      - name: Build the signed app bundle and APK
+        if: steps.decide.outputs.build == 'true'
+        env:
+          MOBLIN_UPLOAD_KEYSTORE_BASE64: ${{ secrets.MOBLIN_UPLOAD_KEYSTORE_BASE64 }}
+          MOBLIN_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.MOBLIN_UPLOAD_KEYSTORE_PASSWORD }}
+          MOBLIN_UPLOAD_KEY_ALIAS: ${{ secrets.MOBLIN_UPLOAD_KEY_ALIAS }}
+          MOBLIN_UPLOAD_KEY_PASSWORD: ${{ secrets.MOBLIN_UPLOAD_KEY_PASSWORD }}
+        run: |
+          git submodule update --init --recursive
+          ./gradlew :app:bundleRelease :app:assembleRelease
+      - name: Remove the decoded upload key
+        if: always()
+        run: rm -rf app/build/upload-key
+      - uses: actions/upload-artifact@v6
+        if: steps.decide.outputs.build == 'true'
+        with:
+          name: moblin-android-release-${{ steps.version.outputs.code }}
+          path: |
+            app/build/outputs/bundle/release/app-release.aab
+            app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload to the internal testing track
+        if: steps.decide.outputs.upload == 'true'
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ env.PACKAGE_NAME }}
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          releaseName: ${{ steps.version.outputs.name }} (${{ steps.version.outputs.code }})
+          track: internal
+          status: completed

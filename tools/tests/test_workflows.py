@@ -140,5 +140,86 @@ class WorkflowSuite(unittest.TestCase):
         self.assertIn("--sync-failed", result.stdout)
 
 
+@unittest.skipIf(yaml is None, "PyYAML is not installed")
+class PlayWorkflowSuite(unittest.TestCase):
+    def setUp(self):
+        self.sync = load("android.yml")
+        self.play = load("play.yml")
+        self.release = self.play["jobs"]["release"]
+
+    def test_runs_after_a_successful_sync_and_by_hand(self):
+        triggers = self.play["on"]
+        self.assertEqual(set(triggers), {"workflow_run", "workflow_dispatch"})
+        self.assertEqual(triggers["workflow_run"]["workflows"], [self.sync["name"]])
+        self.assertEqual(triggers["workflow_run"]["types"], ["completed"])
+        condition = self.play["jobs"]["gate"]["if"]
+        self.assertIn("github.event.workflow_run.conclusion == 'success'", condition)
+        self.assertIn("github.event.workflow_run.event == 'schedule'", condition)
+        self.assertNotIn("'push'", condition)
+        self.assertEqual(self.release["needs"], "gate")
+        self.assertEqual(self.release["if"], "needs.gate.outputs.signing == 'true'")
+
+    def test_has_its_own_concurrency_group_and_reads_only(self):
+        self.assertEqual(self.play["permissions"], {"contents": "read"})
+        self.assertEqual(self.play["concurrency"]["group"], "play-internal")
+        self.assertFalse(self.play["concurrency"]["cancel-in-progress"])
+        self.assertNotIn("sync-and-build", self.play["concurrency"]["group"])
+
+    def test_builds_main_with_the_full_history(self):
+        checkout = self.release["steps"][0]
+        self.assertTrue(checkout["uses"].startswith("actions/checkout@"))
+        self.assertEqual(checkout["with"]["ref"], "main")
+        self.assertEqual(checkout["with"]["fetch-depth"], 0)
+
+    def test_secrets_only_reach_the_steps_that_use_them(self):
+        self.assertNotIn("secrets.", str(self.release.get("env", {})))
+        job_steps = steps(self.release)
+        build = job_steps["Build the signed app bundle and APK"]
+        self.assertEqual(sorted(build["env"]), ["MOBLIN_UPLOAD_KEYSTORE_BASE64", "MOBLIN_UPLOAD_KEYSTORE_PASSWORD",
+                                                "MOBLIN_UPLOAD_KEY_ALIAS", "MOBLIN_UPLOAD_KEY_PASSWORD"])
+        for name, value in build["env"].items():
+            self.assertEqual(value, f"${{{{ secrets.{name} }}}}")
+        with_secrets = [name for name, step in job_steps.items() if "secrets." in str(step)]
+        self.assertEqual(sorted(with_secrets), sorted([
+            "Build the signed app bundle and APK", "Decide whether main changed since the last upload",
+            "Upload to the internal testing track",
+        ]))
+        gate = self.play["jobs"]["gate"]["steps"][0]
+        self.assertNotIn("secrets.", gate["run"])
+        self.assertEqual(list(gate["env"]), ["SIGNING"])
+
+    def test_uploads_only_what_the_decision_allows(self):
+        job_steps = steps(self.release)
+        self.assertEqual(job_steps["Build the signed app bundle and APK"]["if"], "steps.decide.outputs.build == 'true'")
+        upload = job_steps["Upload to the internal testing track"]
+        self.assertEqual(upload["if"], "steps.decide.outputs.upload == 'true'")
+        self.assertRegex(upload["uses"], r"^r0adkll/upload-google-play@[0-9a-f]{40}$")
+        self.assertEqual(upload["with"]["track"], "internal")
+        self.assertEqual(upload["with"]["releaseFiles"], "app/build/outputs/bundle/release/app-release.aab")
+        self.assertEqual(upload["with"]["serviceAccountJsonPlainText"], "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}")
+        self.assertEqual(self.release["env"]["PACKAGE_NAME"], "com.moblin.android")
+        cleanup = job_steps["Remove the decoded upload key"]
+        self.assertEqual(cleanup["if"], "always()")
+        self.assertIn("app/build/upload-key", cleanup["run"])
+
+    def test_play_command_exists(self):
+        run = steps(self.release)["Decide whether main changed since the last upload"]["run"]
+        self.assertIn("python tools/play.py decide", run)
+        result = subprocess.run([sys.executable, str(TOOLS / "play.py"), "decide", "--help"], capture_output=True,
+                                text=True, encoding="utf-8")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for flag in re.findall(r"--[\w-]+", run.split("tools/play.py decide")[1].splitlines()[0]):
+            self.assertIn(flag, result.stdout)
+
+    def test_actions_run_on_node_24(self):
+        for name in ("android.yml", "repair.yml", "play.yml"):
+            text = (WORKFLOWS / name).read_text(encoding="utf-8")
+            for action, version in re.findall(r"uses: (actions/checkout|actions/setup-java|actions/setup-python|"
+                                              r"gradle/actions/setup-gradle|actions/upload-artifact)@v(\d+)", text):
+                minimum = {"actions/checkout": 5, "actions/setup-java": 5, "actions/setup-python": 6,
+                           "gradle/actions/setup-gradle": 5, "actions/upload-artifact": 6}[action]
+                self.assertGreaterEqual(int(version), minimum, f"{name}: {action}@v{version}")
+
+
 if __name__ == "__main__":
     unittest.main()

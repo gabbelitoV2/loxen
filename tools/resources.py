@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -8,6 +9,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 ASSETS = ROOT / "app/src/main/assets"
+VERSION = ROOT / "app/moblin-version.properties"
+MARKETING_VERSION = re.compile(r"^[ \t]*MARKETING_VERSION[ \t]*=[ \t]*(\d+(?:\.\d+)*)[ \t]*(?://.*)?$", re.MULTILINE)
 
 
 def mirror_bundle(source, target):
@@ -81,6 +84,25 @@ def mirror_loose_resources(app, target):
     return copied
 
 
+def marketing_version(config):
+    files = sorted(config.glob("*.xcconfig"), key=lambda path: (path.name != "Base.xcconfig", path.name))
+    for path in files:
+        match = MARKETING_VERSION.search(path.read_text(encoding="utf-8"))
+        if match:
+            return match.group(1)
+    return None
+
+
+def mirror_version(config, target):
+    version = marketing_version(config) if config.is_dir() else None
+    if version is None:
+        return None
+    text = f"MARKETING_VERSION={version}\n"
+    if not target.exists() or target.read_text(encoding="utf-8") != text:
+        target.write_text(text, encoding="utf-8", newline="\n")
+    return version
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Mirror Moblin's bundled resources into the Android assets.")
@@ -96,6 +118,8 @@ def main():
         print(f"Assets.xcassets: {count} images")
     loose = mirror_loose_resources(app, ASSETS)
     print(f"loose resources: {len(loose)} files ({', '.join(sorted(loose))})")
+    version = mirror_version(args.moblin / "Config", VERSION)
+    print(f"MARKETING_VERSION: {version or 'not found, ' + VERSION.name + ' kept'}")
 
 
 if __name__ == "__main__":

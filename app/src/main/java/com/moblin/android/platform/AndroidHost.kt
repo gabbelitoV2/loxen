@@ -48,6 +48,7 @@ object AndroidHost {
     fun onActivityCreated(activity: ComponentActivity) {
         Log.i(TAG, "Activity created")
         SystemEvents.install(activity.application)
+        com.moblin.android.platform.uikit.InterfaceOrientation.install(activity)
         StreamingService.cancelStaleNotification(activity)
         com.moblin.android.platform.corelocation.LocationAuthorization.install(activity)
         com.moblin.android.platform.avfoundation.PhotoLibraryAuthorization.install(activity)

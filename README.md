@@ -17,7 +17,7 @@ effects and the libsrt binding have to be written by hand.
   - `pip install anthropic` and `ANTHROPIC_API_KEY`.
   - `pip install anthropic` and `DEEPSEEK_API_KEY`, then `--provider deepseek`. Uses `deepseek-flash`,
     the current DeepSeek V4.1 Flash. About forty times cheaper than Claude Opus. Prices double during
-    peak hours, 01:00-04:00 and 06:00-10:00 UTC on weekdays, so the nightly sync runs at 22:30 UTC and the repair
+    peak hours, 01:00-04:00 and 06:00-10:00 UTC on weekdays, so the nightly sync runs at 19:47 UTC (GitHub often starts scheduled runs hours late) and the repair
     schedule skips the peak hours.
 
   API keys can also be put in a `.env` file in this directory, one `NAME=value` per line. The file is
@@ -88,6 +88,110 @@ Push builds use their own concurrency group; the sync and the repair share `sync
 same time, and both build again before pushing on top of a `main` that moved. The workflow needs the repository
 secrets `CLAUDE_CODE_OAUTH_TOKEN` (from `claude setup-token`) and `DEEPSEEK_API_KEY`. Run it by hand from the Actions
 tab: `repair` with `force` to try right away, or `verify-only` to run the checks on `main` without Claude.
+
+## Google Play
+
+The app is distributed as `com.moblin.android` on the internal testing track of Google Play, with Play App Signing:
+Google keeps the app signing key and the builds here are signed with an upload key.
+
+### Versions
+
+- `versionName` is Moblin's `MARKETING_VERSION` from `Config/Base.xcconfig` in the Swift project. Every sync copies it
+  into `app/moblin-version.properties` (`tools/resources.py`), so the Android port always shows the version it was
+  ported from. Debug builds show it too.
+- `versionCode` of release builds is 1000 plus the number of commits of `HEAD` (`git rev-list --count HEAD`). Every
+  commit on `main` raises it, and the same commit always gets the same code. It needs the full git history, so a
+  shallow clone fails the release build. Debug builds keep `versionCode` 1, so debug APKs from any branch install over
+  each other. `./gradlew -q :app:printReleaseVersion` prints both.
+
+### Release build
+
+Release builds are not debuggable and not minified. R8 stays off because this code base depends on names at run
+time in ways a keep rule list would have to follow forever: the C++ code finds `SrtNative`, `SrtSendHook`,
+`CBytePerfMon`, `RistNative`, the RIST callbacks and `DataChannelNative` and their `on*` callbacks and fields by name
+through JNI, `CIFilter` loads filters with `Class.forName`, `StructCopy` copies Swift structs through reflection on
+their fields and no-argument constructors, and hundreds of `@Serializable` settings classes are regenerated every
+night. The release build is uploaded without anyone testing it on a device, so a missing keep rule would only show up
+as a crash on a tester's phone. The dex files are about 40 % of an arm64 download (about 23 of 57 MB compressed), so
+R8 would save some megabytes, but not enough to be worth that risk on an internal test track.
+
+The release signing configuration reads these settings, each from an environment variable first and otherwise from a
+local properties file with the same keys:
+
+| setting | meaning |
+|---|---|
+| `MOBLIN_UPLOAD_KEYSTORE_BASE64` | the upload keystore, base64 encoded (used by CI) |
+| `MOBLIN_UPLOAD_KEYSTORE_FILE` | or an absolute path to the keystore; default `upload-keystore.jks` next to the properties file |
+| `MOBLIN_UPLOAD_KEYSTORE_PASSWORD` | the keystore password |
+| `MOBLIN_UPLOAD_KEY_ALIAS` | the key alias, default `upload` |
+| `MOBLIN_UPLOAD_KEY_PASSWORD` | the key password, default the keystore password |
+
+The properties file lives outside every checkout, next to the keystore, and is never committed. Point Gradle at it
+with a line in `local.properties` (ignored by git) or with `-Pmoblin.uploadKeystoreProperties=...`:
+
+```properties
+moblin.uploadKeystoreProperties=<home>/Desktop/code/moblin-android-keys/upload-keystore.properties
+```
+
+Then `./gradlew :app:bundleRelease :app:assembleRelease` writes the signed app bundle to
+`app/build/outputs/bundle/release/app-release.aab` and a signed APK with every ABI to
+`app/build/outputs/apk/release/app-release.apk`, which installs directly with `adb install`. Without an upload key the
+release outputs are unsigned; debug builds never need the key.
+
+### Automatic uploads
+
+`.github/workflows/play.yml` runs after every successful nightly sync (`Sync and build` started by the schedule or by
+hand, not by a push) and by hand from the Actions tab. It always builds `main`:
+
+1. Without the upload key secrets it stops right away.
+2. It reads the release `versionCode` and asks Google Play for the highest version code of the app on any track or in
+   the bundle library (`tools/play.py`). When that is not lower, `main` has not changed since the last upload and the
+   run stops without building. A run started by hand still builds.
+3. It builds the signed app bundle and APK, attaches both to the run for 14 days, and uploads the bundle to the
+   internal track as a completed release with `r0adkll/upload-google-play` v1.1.5, pinned by commit.
+
+Without `PLAY_SERVICE_ACCOUNT_JSON`, or while the app does not exist in Play Console, nightly runs stop after step 2 and
+runs started by hand only attach the signed bundle. A service account that has no access to the app fails the run.
+The workflow has its own concurrency group, `play-internal`, and only reads the repository.
+
+Repository secrets:
+
+| secret | value |
+|---|---|
+| `MOBLIN_UPLOAD_KEYSTORE_BASE64` | `upload-keystore.jks`, base64 encoded |
+| `MOBLIN_UPLOAD_KEYSTORE_PASSWORD`, `MOBLIN_UPLOAD_KEY_ALIAS`, `MOBLIN_UPLOAD_KEY_PASSWORD` | from `upload-keystore.properties` |
+| `PLAY_SERVICE_ACCOUNT_JSON` | the JSON key of the Google Cloud service account |
+
+```powershell
+$keys = "<home>\Desktop\code\moblin-android-keys"
+gh secret set --repo gabbelitoV2/moblin-android -f "$keys\upload-keystore.properties"
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("$keys\upload-keystore.jks")) | gh secret set MOBLIN_UPLOAD_KEYSTORE_BASE64 --repo gabbelitoV2/moblin-android
+Get-Content "$keys\play-service-account.json" -Raw | gh secret set PLAY_SERVICE_ACCOUNT_JSON --repo gabbelitoV2/moblin-android
+```
+
+Setting up the service account:
+
+1. In the [Google Cloud console](https://console.cloud.google.com/), create a project, open *APIs & Services*, and
+   enable the *Google Play Android Developer API*.
+2. Under *IAM & Admin > Service accounts*, create a service account without any roles, then *Keys > Add key > Create
+   new key > JSON*. Save the file as `play-service-account.json` in the keys folder.
+3. In [Play Console](https://play.google.com/console/), open *Users and permissions*, invite the service account's
+   e-mail address, add the app under *App permissions* with *View app information (read-only)* and *Release apps to
+   testing tracks*, and send the invitation. The access can take a few hours to start working.
+
+The first app bundle has to be uploaded by hand, because the API cannot create an app and Play App Signing is chosen
+in Play Console:
+
+1. Create the app in Play Console with the package name `com.moblin.android`.
+2. Build a bundle: run this workflow by hand before `PLAY_SERVICE_ACCOUNT_JSON` is set and download
+   `moblin-android-release-<versionCode>` from the run, or build it locally.
+3. Under *Test and release*, open *Internal testing*: add testers, create a release, keep the Google-generated app
+   signing key (Play App Signing), upload `app-release.aab` and start the rollout. The release has to be rolled out, not only saved as a
+   draft, or later uploads fail with "Only releases with status draft may be created on draft app".
+4. Then add `PLAY_SERVICE_ACCOUNT_JSON`. From then on every sync that changes `main` reaches the testers.
+
+With Play App Signing a lost or leaked upload key is not the end: the account owner can ask Play support to reset the
+upload key (*App integrity*, *Play app signing*, *Request upload key reset*) and register a new one.
 
 ## Hand-written Android code
 

@@ -1,4 +1,6 @@
 import java.time.Duration
+import java.util.Base64
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -7,17 +9,53 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
+val moblinVersion: String = Properties().apply { file("moblin-version.properties").reader().use { load(it) } }
+    .getProperty("MARKETING_VERSION")
+    ?: error("MARKETING_VERSION not found in moblin-version.properties")
+
+val releaseVersionCode: Provider<Int> = providers.exec {
+    commandLine("git", "rev-parse", "--is-shallow-repository")
+}.standardOutput.asText.zip(
+    providers.exec { commandLine("git", "rev-list", "--count", "HEAD") }.standardOutput.asText,
+) { shallow, count ->
+    check(shallow.trim() == "false") {
+        "The release versionCode is 1000 plus the number of commits of HEAD and needs the full git history"
+    }
+    1000 + count.trim().toInt()
+}
+
+val uploadKeyPropertiesPath: String? = providers.gradleProperty("moblin.uploadKeystoreProperties").orNull
+    ?: Properties().apply { rootProject.file("local.properties").takeIf { it.isFile }?.reader()?.use { load(it) } }
+        .getProperty("moblin.uploadKeystoreProperties")
+
+val uploadKeyProperties: File? = uploadKeyPropertiesPath?.let { file(it) }?.takeIf { properties ->
+    properties.isFile.also { if (!it) logger.warn("moblin.uploadKeystoreProperties: $properties does not exist") }
+}
+
+val uploadKey = Properties().apply { uploadKeyProperties?.reader()?.use { load(it) } }
+
+fun uploadKeySetting(name: String): String? =
+    (providers.environmentVariable(name).orNull ?: uploadKey.getProperty(name))?.takeIf { it.isNotBlank() }
+
+val uploadKeystore: File? = uploadKeySetting("MOBLIN_UPLOAD_KEYSTORE_BASE64")?.let { encoded ->
+    layout.buildDirectory.file("upload-key/upload-keystore.jks").get().asFile.apply {
+        parentFile.mkdirs()
+        writeBytes(Base64.getMimeDecoder().decode(encoded))
+    }
+} ?: uploadKeySetting("MOBLIN_UPLOAD_KEYSTORE_FILE")?.let { (uploadKeyProperties?.parentFile ?: rootDir).resolve(it) }
+    ?: uploadKeyProperties?.resolveSibling("upload-keystore.jks")
+
 android {
     namespace = "com.moblin.android"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = "28.2.13676358"
 
     defaultConfig {
         applicationId = "com.moblin.android"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
-        versionName = "0.1"
+        versionName = moblinVersion
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["appAuthRedirectScheme"] = Regex("""val youTubeRedirectUri =\s*"([^":]+):""")
             .find(file("src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeAuth.kt").readText())
@@ -50,6 +88,28 @@ android {
         }
     }
 
+    signingConfigs {
+        if (uploadKeystore != null) {
+            create("upload") {
+                storeFile = uploadKeystore
+                storePassword = uploadKeySetting("MOBLIN_UPLOAD_KEYSTORE_PASSWORD")
+                keyAlias = uploadKeySetting("MOBLIN_UPLOAD_KEY_ALIAS") ?: "upload"
+                keyPassword = uploadKeySetting("MOBLIN_UPLOAD_KEY_PASSWORD") ?: storePassword
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            isDebuggable = false
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("upload")
+            ndk {
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
+        }
+    }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -66,6 +126,21 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        variant.outputs.forEach { it.versionCode.set(releaseVersionCode) }
+    }
+}
+
+tasks.register("printReleaseVersion") {
+    val versionCode = releaseVersionCode
+    val versionName = moblinVersion
+    doLast {
+        println("versionCode=${versionCode.get()}")
+        println("versionName=$versionName")
     }
 }
 
@@ -117,4 +192,64 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test:runner:1.5.0")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
+}
+
+abstract class PageAlignmentCheck : DefaultTask() {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.NAME_ONLY)
+    abstract val packages: ConfigurableFileCollection
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    abstract val checker: RegularFileProperty
+
+    @get:OutputFile
+    abstract val report: RegularFileProperty
+
+    @get:javax.inject.Inject
+    abstract val execOperations: org.gradle.process.ExecOperations
+
+    @TaskAction
+    fun check() {
+        val python = listOf("python3", "python", "py").firstOrNull { candidate ->
+            runCatching {
+                val process = ProcessBuilder(candidate, "--version").redirectErrorStream(true).start()
+                process.inputStream.readBytes()
+                process.waitFor() == 0
+            }.getOrDefault(false)
+        } ?: throw GradleException("Python 3 is needed to check that the native libraries are 16 KB page aligned")
+        val reportFile = report.get().asFile
+        val result = reportFile.outputStream().use { output ->
+            execOperations.exec {
+                commandLine(listOf(python, checker.get().asFile.path) + packages.files.map { it.path })
+                standardOutput = output
+                errorOutput = output
+                isIgnoreExitValue = true
+            }
+        }
+        val text = reportFile.readText()
+        if (result.exitValue != 0) {
+            val failures = text.lines().filter { !it.startsWith("ok ") && it.isNotBlank() }
+            throw GradleException("Native libraries are not 16 KB page aligned:\n" + failures.joinToString("\n"))
+        }
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val suffix = variant.name.replaceFirstChar { it.uppercase() }
+        val script = rootProject.layout.projectDirectory.file("tools/check_16kb.py")
+        val apkCheck = tasks.register<PageAlignmentCheck>("check${suffix}ApkPageAlignment") {
+            packages.from(variant.artifacts.get(com.android.build.api.artifact.SingleArtifact.APK))
+            checker.set(script)
+            report.set(layout.buildDirectory.file("reports/page-alignment/${variant.name}-apk.txt"))
+        }
+        val bundleCheck = tasks.register<PageAlignmentCheck>("check${suffix}BundlePageAlignment") {
+            packages.from(variant.artifacts.get(com.android.build.api.artifact.SingleArtifact.BUNDLE))
+            checker.set(script)
+            report.set(layout.buildDirectory.file("reports/page-alignment/${variant.name}-bundle.txt"))
+        }
+        tasks.named { it == "assemble$suffix" }.configureEach { dependsOn(apkCheck) }
+        tasks.named { it == "bundle$suffix" }.configureEach { dependsOn(bundleCheck) }
+    }
 }
