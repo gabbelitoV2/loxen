@@ -130,7 +130,7 @@ The properties file lives outside every checkout, next to the keystore, and is n
 with a line in `local.properties` (ignored by git) or with `-Pmoblin.uploadKeystoreProperties=...`:
 
 ```properties
-moblin.uploadKeystoreProperties=<home>/Desktop/code/moblin-android-keys/upload-keystore.properties
+moblin.uploadKeystoreProperties=<path to the keys folder>/upload-keystore.properties
 ```
 
 Then `./gradlew :app:bundleRelease :app:assembleRelease` writes the signed app bundle to
@@ -163,7 +163,7 @@ Repository secrets:
 | `PLAY_SERVICE_ACCOUNT_JSON` | the JSON key of the Google Cloud service account |
 
 ```powershell
-$keys = "<home>\Desktop\code\moblin-android-keys"
+$keys = "<path to the keys folder>"
 gh secret set --repo gabbelitoV2/moblin-android -f "$keys\upload-keystore.properties"
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("$keys\upload-keystore.jks")) | gh secret set MOBLIN_UPLOAD_KEYSTORE_BASE64 --repo gabbelitoV2/moblin-android
 Get-Content "$keys\play-service-account.json" -Raw | gh secret set PLAY_SERVICE_ACCOUNT_JSON --repo gabbelitoV2/moblin-android
