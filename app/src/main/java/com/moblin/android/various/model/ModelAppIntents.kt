@@ -1,5 +1,7 @@
 package com.moblin.android.various.model
 
+import com.moblin.android.platform.appintents.AppDependencyManager
+
 fun Model.setupAppIntents() {
-    Unit
+    AppDependencyManager.shared.add(dependency = this)
 }

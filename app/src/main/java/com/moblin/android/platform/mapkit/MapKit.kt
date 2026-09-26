@@ -16,6 +16,12 @@ object MapKitConfiguration {
 
     @Volatile
     var showsAttribution: Boolean = true
+
+    @Volatile
+    var searchUrl: String = "https://photon.komoot.io"
+
+    @Volatile
+    var routingUrl: String = "https://routing.openstreetmap.de"
 }
 
 class MKError(message: String) : Exception(message)

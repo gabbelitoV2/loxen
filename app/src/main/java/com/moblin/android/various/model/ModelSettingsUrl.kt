@@ -3,6 +3,7 @@ package com.moblin.android.various.model
 import android.net.Uri
 import com.moblin.android.localized
 import com.moblin.android.common.various.isValidAudioBitrate
+import com.moblin.android.common.various.trim
 import com.moblin.android.various.MoblinSettingsUrl
 import com.moblin.android.various.MoblinSettingsUrlStream
 import com.moblin.android.various.settings.SettingsStream
@@ -13,27 +14,33 @@ private fun streamImportCollisionTitle(names: Set<String>): String {
     if (names.size <= 1) {
         return String.format(
             localized("A stream named ‘%s’ already exists."),
-            names.firstOrNull() ?: ""
+            names.firstOrNull() ?: "",
         )
     }
-    val joined = names.joinToString(separator = ", ") { "‘$it’" }
+    val joined = names.joinToString(", ") { "‘$it’" }
     return String.format(localized("Streams named %s already exist."), joined)
 }
 
-private fun Model.handleSettingsUrlsDefaultStreams(settings: MoblinSettingsUrl,
-                                                   replaceCollisions: Boolean) {
+private fun Model.handleSettingsUrlsDefaultStreams(
+    settings: MoblinSettingsUrl,
+    replaceCollisions: Boolean,
+) {
     var newSelectedStream: SettingsStream? = null
     for (stream in settings.streams ?: emptyList()) {
         val targetStream: SettingsStream
-        val existingStream = database.streams.firstOrNull { it.name == stream.name }
-        if (replaceCollisions && existingStream != null) {
+        val existingStream = if (replaceCollisions) {
+            database.streams.firstOrNull { it.name == stream.name }
+        } else {
+            null
+        }
+        if (existingStream != null) {
             targetStream = existingStream
             if (targetStream.enabled && newSelectedStream == null) {
                 newSelectedStream = targetStream
             }
         } else {
             targetStream = SettingsStream(
-                name = makeUniqueName(name = stream.name, existingNames = database.streams)
+                name = makeUniqueName(name = stream.name, existingNames = database.streams),
             )
             database.streams.add(targetStream)
         }
@@ -41,48 +48,100 @@ private fun Model.handleSettingsUrlsDefaultStreams(settings: MoblinSettingsUrl,
         if (stream.selected == true) {
             newSelectedStream = targetStream
         }
-        stream.backgroundStreaming?.let { targetStream.backgroundStreaming = it }
-        stream.backgroundStreamingPiP?.let { targetStream.backgroundStreamingPiP = it }
-        stream.video?.let { video ->
-            video.resolution?.let { targetStream.resolution = it }
-            video.fps?.let { if (fpss.contains(it)) targetStream.fps = it }
-            video.bitrate?.let { if (it.toInt() >= 50000 && it.toInt() <= 50_000_000) targetStream.bitrate = it.toInt() }
-            video.codec?.let { targetStream.codec = it }
-            video.bFrames?.let { targetStream.bFrames = it }
-            video.maxKeyFrameInterval?.let { if (it >= 0 && it <= 10) targetStream.maxKeyFrameInterval = it }
+        val backgroundStreaming = stream.backgroundStreaming
+        if (backgroundStreaming != null) {
+            targetStream.backgroundStreaming = backgroundStreaming
         }
-        stream.audio?.let { audio ->
-            audio.bitrate?.let { if (isValidAudioBitrate(it)) targetStream.audioBitrate = it }
+        val backgroundStreamingPiP = stream.backgroundStreamingPiP
+        if (backgroundStreamingPiP != null) {
+            targetStream.backgroundStreamingPiP = backgroundStreamingPiP
         }
-        stream.srt?.let { srt ->
-            srt.latency?.let { targetStream.srt.latency = it }
-            srt.adaptiveBitrateEnabled?.let { targetStream.srt.adaptiveBitrateEnabled = it }
-            srt.dnsLookupStrategy?.let { targetStream.srt.dnsLookupStrategy = it }
+        val video = stream.video
+        if (video != null) {
+            val resolution = video.resolution
+            if (resolution != null) {
+                targetStream.resolution = resolution
+            }
+            val fps = video.fps
+            if (fps != null && fpss.contains(fps)) {
+                targetStream.fps = fps
+            }
+            val bitrate = video.bitrate
+            if (bitrate != null && bitrate >= 50_000u && bitrate <= 50_000_000u) {
+                targetStream.bitrate = bitrate.toInt()
+            }
+            val codec = video.codec
+            if (codec != null) {
+                targetStream.codec = codec
+            }
+            val bFrames = video.bFrames
+            if (bFrames != null) {
+                targetStream.bFrames = bFrames
+            }
+            val maxKeyFrameInterval = video.maxKeyFrameInterval
+            if (maxKeyFrameInterval != null && maxKeyFrameInterval >= 0 && maxKeyFrameInterval <= 10) {
+                targetStream.maxKeyFrameInterval = maxKeyFrameInterval
+            }
         }
-        stream.obs?.let { obs ->
+        val audio = stream.audio
+        if (audio != null) {
+            val bitrate = audio.bitrate
+            if (bitrate != null && isValidAudioBitrate(bitrate = bitrate)) {
+                targetStream.audioBitrate = bitrate
+            }
+        }
+        val srt = stream.srt
+        if (srt != null) {
+            val latency = srt.latency
+            if (latency != null) {
+                targetStream.srt.latency = latency
+            }
+            val adaptiveBitrateEnabled = srt.adaptiveBitrateEnabled
+            if (adaptiveBitrateEnabled != null) {
+                targetStream.srt.adaptiveBitrateEnabled = adaptiveBitrateEnabled
+            }
+            val dnsLookupStrategy = srt.dnsLookupStrategy
+            if (dnsLookupStrategy != null) {
+                targetStream.srt.dnsLookupStrategy = dnsLookupStrategy
+            }
+        }
+        val obs = stream.obs
+        if (obs != null) {
             targetStream.obsWebSocketEnabled = true
             targetStream.obsWebSocketUrl = obs.webSocketUrl.trim()
             targetStream.obsWebSocketPassword = obs.webSocketPassword.trim()
         }
-        stream.twitch?.let { twitch ->
+        val twitch = stream.twitch
+        if (twitch != null) {
             targetStream.twitchChannelName = twitch.channelName.trim()
             targetStream.twitchChannelId = twitch.channelId.trim()
         }
-        stream.kick?.let { kick ->
+        val kick = stream.kick
+        if (kick != null) {
             targetStream.kickChannelName = kick.channelName.trim()
         }
     }
-    newSelectedStream?.let { stream ->
-        setCurrentStream(stream = stream)
-        reloadStreamIfEnabled(stream = stream)
+    val selectedStream = newSelectedStream
+    if (selectedStream != null) {
+        setCurrentStream(stream = selectedStream)
+        reloadStreamIfEnabled(stream = selectedStream)
     }
 }
 
 private fun Model.handleSettingsUrlsDefaultQuickButtons(settings: MoblinSettingsUrl) {
     val quickButtons = settings.quickButtons ?: return
-    quickButtons.twoColumns?.let { database.quickButtonsGeneral.twoColumns.value = it }
-    quickButtons.showName?.let { database.quickButtonsGeneral.showName.value = it }
-    quickButtons.enableScroll?.let { database.quickButtonsGeneral.enableScroll.value = it }
+    val twoColumns = quickButtons.twoColumns
+    if (twoColumns != null) {
+        database.quickButtonsGeneral.twoColumns.value = twoColumns
+    }
+    val showName = quickButtons.showName
+    if (showName != null) {
+        database.quickButtonsGeneral.showName.value = showName
+    }
+    val enableScroll = quickButtons.enableScroll
+    if (enableScroll != null) {
+        database.quickButtonsGeneral.enableScroll.value = enableScroll
+    }
     if (quickButtons.disableAllButtons == true) {
         for (databaseQuickButton in database.quickButtons) {
             databaseQuickButton.enabled.value = false
@@ -91,29 +150,41 @@ private fun Model.handleSettingsUrlsDefaultQuickButtons(settings: MoblinSettings
     for (quickButton in quickButtons.buttons ?: emptyList()) {
         val databaseQuickButton = database.quickButtons.firstOrNull { quickButton.type == it.type }
         if (databaseQuickButton != null) {
-            quickButton.enabled?.let { databaseQuickButton.enabled.value = it }
-            quickButton.page?.let { databaseQuickButton.page.value = it }
+            val enabled = quickButton.enabled
+            if (enabled != null) {
+                databaseQuickButton.enabled.value = enabled
+            }
+            val page = quickButton.page
+            if (page != null) {
+                databaseQuickButton.page.value = page
+            }
         }
     }
 }
 
 private fun Model.handleSettingsUrlsDefaultWebBrowser(settings: MoblinSettingsUrl) {
     val webBrowser = settings.webBrowser ?: return
-    webBrowser.home?.let { database.webBrowser.home = it }
+    val home = webBrowser.home
+    if (home != null) {
+        database.webBrowser.home = home
+    }
 }
 
 private fun Model.handleSettingsUrlsDefaultRemoteControl(settings: MoblinSettingsUrl) {
     val remoteControl = settings.remoteControl ?: return
-    remoteControl.assistant?.let { assistant ->
+    val assistant = remoteControl.assistant
+    if (assistant != null) {
         database.remoteControl.assistant.enabled = assistant.enabled
         database.remoteControl.assistant.port = assistant.port.toInt()
-        assistant.relay?.let { relay ->
+        val relay = assistant.relay
+        if (relay != null) {
             database.remoteControl.assistant.relay.enabled = relay.enabled
             database.remoteControl.assistant.relay.baseUrl = relay.baseUrl.trim()
             database.remoteControl.assistant.relay.bridgeId = relay.bridgeId.trim()
         }
     }
-    remoteControl.streamer?.let { streamer ->
+    val streamer = remoteControl.streamer
+    if (streamer != null) {
         database.remoteControl.streamer.enabled = streamer.enabled
         database.remoteControl.streamer.url = streamer.url.trim()
     }
@@ -124,29 +195,31 @@ private fun Model.handleSettingsUrlsDefaultRemoteControl(settings: MoblinSetting
 }
 
 private fun Model.handleSettingsUrlsDefault(settings: MoblinSettingsUrl) {
-    val collisions = findCollidingStreamNames(settings.streams ?: emptyList())
+    val collisions = findCollidingStreamNames(streams = settings.streams ?: emptyList())
     if (collisions.isEmpty()) {
         handleSettingsUrlsDefaultStreamCollisions(
             settings = settings,
-            replaceStreamCollisions = false
+            replaceStreamCollisions = false,
         )
     } else {
-        pendingStreamImportCollisionTitle = streamImportCollisionTitle(collisions)
-        pendingStreamImportCollisionAction = { replaceStreamCollisions ->
-            this.handleSettingsUrlsDefaultStreamCollisions(
+        pendingStreamImportCollisionTitle = streamImportCollisionTitle(names = collisions)
+        pendingStreamImportCollisionAction = { replace ->
+            handleSettingsUrlsDefaultStreamCollisions(
                 settings = settings,
-                replaceStreamCollisions = replaceStreamCollisions
+                replaceStreamCollisions = replace,
             )
         }
         presentingStreamImportCollisionConfirmation.value = true
     }
 }
 
-private fun Model.handleSettingsUrlsDefaultStreamCollisions(settings: MoblinSettingsUrl,
-                                                            replaceStreamCollisions: Boolean) {
+private fun Model.handleSettingsUrlsDefaultStreamCollisions(
+    settings: MoblinSettingsUrl,
+    replaceStreamCollisions: Boolean,
+) {
     handleSettingsUrlsDefaultStreams(
         settings = settings,
-        replaceCollisions = replaceStreamCollisions
+        replaceCollisions = replaceStreamCollisions,
     )
     handleSettingsUrlsDefaultQuickButtons(settings = settings)
     handleSettingsUrlsDefaultWebBrowser(settings = settings)
@@ -171,19 +244,18 @@ fun Model.handleSettingsUrls(urls: Set<Uri>) {
         return
     }
     for (url in urls) {
-        val pathExtension = url.lastPathSegment?.substringAfterLast('.')
         if (url.scheme == "file" &&
-            pathExtension?.equals("moblinSettings", ignoreCase = true) == true
+            (url.path ?: "").substringAfterLast('.', "").equals("moblinSettings", ignoreCase = true)
         ) {
             importSettingsWithConfirmation {
-                this.handleSettingsFileImport(url = url)
+                handleSettingsFileImport(url = url)
             }
         } else {
             val message = handleSettingsUrlWithConfirmation(url = url)
             if (message != null) {
                 makeErrorToast(
                     title = localized("URL import failed"),
-                    subTitle = message
+                    subTitle = message,
                 )
             }
         }
@@ -194,10 +266,7 @@ private fun Model.handleSettingsFileImport(url: Uri) {
     if (isLive.value || isRecording.value) {
         return
     }
-    Unit
-    importSettingsFromFile(url.toString()) { _ ->
-        Unit
-    }
+    importSettingsFromFile(url = url.path ?: return) { _ -> }
 }
 
 private fun Model.handleSettingsUrlWithConfirmation(url: Uri): String? {
@@ -206,15 +275,15 @@ private fun Model.handleSettingsUrlWithConfirmation(url: Uri): String? {
     }
     val query = url.query ?: return "Custom URL query is missing"
     val settings = try {
-        MoblinSettingsUrl.fromString(query)
-    } catch (e: Exception) {
-        return e.message
+        MoblinSettingsUrl.fromString(query = query)
+    } catch (error: Throwable) {
+        return error.localizedMessage
     }
     if (createStreamWizard.presenting || createStreamWizard.presentingSetup) {
         handleSettingsUrlsInWizard(settings = settings)
     } else {
         importSettingsWithConfirmation {
-            this@handleSettingsUrlWithConfirmation.handleSettingsUrlsDefault(settings = settings)
+            handleSettingsUrlsDefault(settings = settings)
         }
     }
     return null

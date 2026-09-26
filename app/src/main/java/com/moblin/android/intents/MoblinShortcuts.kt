@@ -1,49 +1,37 @@
 package com.moblin.android.intents
 
-data class ShortcutTileColor(val rawValue: String) {
-    companion object {
-        val navy: ShortcutTileColor = ShortcutTileColor("navy")
-    }
-}
+import com.moblin.android.platform.appintents.AppShortcut
+import com.moblin.android.platform.appintents.AppShortcutPhraseToken
+import com.moblin.android.platform.appintents.AppShortcutsProvider
+import com.moblin.android.platform.appintents.ShortcutTileColor
 
-data class AppShortcut(
-    val intent: Any,
-    val phrases: List<String>,
-    val shortTitle: String,
-    val systemImageName: String,
-)
+object MoblinShortcuts : AppShortcutsProvider {
+    override val shortcutTileColor = ShortcutTileColor.navy
 
-object MoblinShortcuts {
-    val shortcutTileColor: ShortcutTileColor = ShortcutTileColor.navy
-
-    val appShortcuts: List<AppShortcut> = listOf(
+    override val appShortcuts: List<AppShortcut> = listOf(
         AppShortcut(
-            intent = MuteIntent::class,
+            intent = MuteIntent(),
             phrases = listOf(
-                "\${applicationName}, mute",
+                "${AppShortcutPhraseToken.applicationName}, mute"
             ),
             shortTitle = "Mute",
-            systemImageName = "microphone.slash",
+            systemImageName = "microphone.slash"
         ),
         AppShortcut(
-            intent = UnmuteIntent::class,
+            intent = UnmuteIntent(),
             phrases = listOf(
-                "\${applicationName}, unmute",
+                "${AppShortcutPhraseToken.applicationName}, unmute"
             ),
             shortTitle = "Unmute",
-            systemImageName = "microphone",
+            systemImageName = "microphone"
         ),
         AppShortcut(
-            intent = SnapshotIntent::class,
+            intent = SnapshotIntent(),
             phrases = listOf(
-                "\${applicationName}, take snapshot",
+                "${AppShortcutPhraseToken.applicationName}, take snapshot"
             ),
             shortTitle = "Take snapshot",
-            systemImageName = "microphone",
-        ),
+            systemImageName = "microphone"
+        )
     )
-
-    fun updateAppShortcutParameters() {
-        Unit
-    }
 }

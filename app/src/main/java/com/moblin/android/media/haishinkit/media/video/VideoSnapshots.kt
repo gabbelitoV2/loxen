@@ -3,16 +3,12 @@ package com.moblin.android.media.haishinkit.media.video
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
-import com.moblin.android.platform.video.CVPixelBuffer as Image
 import com.moblin.android.media.MediaSample
+import com.moblin.android.platform.video.CVPixelBuffer
+import com.moblin.android.platform.vision.CalculateImageAestheticsScoresRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-
-private val mainScope = CoroutineScope(Dispatchers.Main)
-private val globalScope = CoroutineScope(Dispatchers.Default)
-
-private fun Image.isPortrait(): Boolean = height > width
 
 class VideoSnapshots(private val context: Context) {
     private var cleanSnapshots = false
@@ -29,21 +25,24 @@ class VideoSnapshots(private val context: Context) {
         takeSnapshotComplete = onComplete
     }
 
-    fun takeVideoSourceSnapshot(imageBuffer: Image, onComplete: (Bitmap?) -> Unit) {
+    fun takeVideoSourceSnapshot(imageBuffer: CVPixelBuffer, onComplete: (Bitmap?) -> Unit) {
         val bitmap = createBitmap(imageBuffer)
         if (bitmap == null) {
-            mainScope.launch { onComplete(null) }
+            CoroutineScope(Dispatchers.Main.immediate).launch {
+                onComplete(null)
+            }
             return
         }
-        mainScope.launch { onComplete(bitmap) }
+        CoroutineScope(Dispatchers.Main.immediate).launch {
+            onComplete(bitmap)
+        }
     }
 
-    fun handleTakeSnapshot(
-        cleanSampleBuffer: MediaSample,
-        modSampleBuffer: MediaSample,
-        presentationTimeStamp: Double,
-        makeCopy: (MediaSample) -> MediaSample?,
-    ) {
+    fun handleTakeSnapshot(cleanSampleBuffer: MediaSample,
+                           modSampleBuffer: MediaSample,
+                           presentationTimeStamp: Double,
+                           makeCopy: (MediaSample) -> MediaSample?)
+    {
         val sampleBuffer = if (cleanSnapshots) cleanSampleBuffer else modSampleBuffer
         val latestPresentationTimeStamp = takeSnapshotSampleBuffers.lastOrNull()
             ?.let { it.presentationTimeUs / 1_000_000.0 } ?: 0.0
@@ -59,21 +58,20 @@ class VideoSnapshots(private val context: Context) {
         val sampleBuffers = ArrayDeque(takeSnapshotSampleBuffers)
         val age = takeSnapshotAge
         com.moblin.android.platform.video.retainLeases(sampleBuffers + copy)
-        globalScope.launch {
+        CoroutineScope(Dispatchers.Default).launch {
             takeSnapshot(copy, sampleBuffers, presentationTimeStamp, age, complete)
         }
         takeSnapshotComplete = null
     }
 
-    private fun findBestSnapshot(
-        sampleBuffer: MediaSample,
-        sampleBuffers: ArrayDeque<MediaSample>,
-        presentationTimeStamp: Double,
-        age: Float,
-        onCompleted: (Image?) -> Unit,
-    ) {
+    private fun findBestSnapshot(sampleBuffer: MediaSample,
+                                 sampleBuffers: ArrayDeque<MediaSample>,
+                                 presentationTimeStamp: Double,
+                                 age: Float,
+                                 onCompleted: (CVPixelBuffer?) -> Unit)
+    {
         if (age == 0.0f) {
-            mainScope.launch {
+            CoroutineScope(Dispatchers.Main.immediate).launch {
                 onCompleted(imageBufferOf(sampleBuffer))
             }
         } else {
@@ -81,43 +79,44 @@ class VideoSnapshots(private val context: Context) {
             val sampleBufferAtAge = sampleBuffers.lastOrNull {
                 it.presentationTimeUs / 1_000_000.0 <= requestedPresentationTimeStamp
             } ?: sampleBuffers.firstOrNull() ?: sampleBuffer
-            val allSampleBuffers = ArrayDeque(sampleBuffers)
-            allSampleBuffers.addLast(sampleBuffer)
-            findBestSnapshotUsingAesthetics(sampleBufferAtAge, allSampleBuffers, onCompleted)
+            val buffers = ArrayDeque(sampleBuffers)
+            buffers.addLast(sampleBuffer)
+            findBestSnapshotUsingAesthetics(sampleBufferAtAge, buffers, onCompleted)
         }
     }
 
-    private fun findBestSnapshotUsingAesthetics(
-        preferredSampleBuffer: MediaSample,
-        sampleBuffers: ArrayDeque<MediaSample>,
-        onComplete: (Image?) -> Unit,
-    ) {
-        globalScope.launch {
+    private fun findBestSnapshotUsingAesthetics(preferredSampleBuffer: MediaSample,
+                                                sampleBuffers: ArrayDeque<MediaSample>,
+                                                onComplete: (CVPixelBuffer?) -> Unit)
+    {
+        CoroutineScope(Dispatchers.Default).launch {
             var bestSampleBuffer = preferredSampleBuffer
-            var bestResult = runCatching { imageAestheticsScore(preferredSampleBuffer) }.getOrNull()
+            var bestResult = runCatching {
+                CalculateImageAestheticsScoresRequest()
+                    .perform(on = preferredSampleBuffer)
+            }.getOrNull()
             for (sampleBuffer in sampleBuffers) {
-                val result = runCatching { imageAestheticsScore(sampleBuffer) }.getOrNull() ?: continue
-                val currentBest = bestResult
-                if (currentBest == null || result > currentBest + 0.2f) {
+                val result = runCatching {
+                    CalculateImageAestheticsScoresRequest()
+                        .perform(on = sampleBuffer)
+                }.getOrNull() ?: continue
+                if (bestResult == null || result.overallScore > bestResult.overallScore + 0.2f) {
                     bestSampleBuffer = sampleBuffer
                     bestResult = result
                 }
             }
-            mainScope.launch {
+            CoroutineScope(Dispatchers.Main.immediate).launch {
                 onComplete(imageBufferOf(bestSampleBuffer))
             }
         }
     }
 
-    private suspend fun imageAestheticsScore(sampleBuffer: MediaSample): Float =
-        0f
-    private fun takeSnapshot(
-        sampleBuffer: MediaSample,
-        sampleBuffers: ArrayDeque<MediaSample>,
-        presentationTimeStamp: Double,
-        age: Float,
-        onComplete: (Bitmap, Bitmap, Bitmap) -> Unit,
-    ) {
+    private fun takeSnapshot(sampleBuffer: MediaSample,
+                             sampleBuffers: ArrayDeque<MediaSample>,
+                             presentationTimeStamp: Double,
+                             age: Float,
+                             onComplete: (Bitmap, Bitmap, Bitmap) -> Unit)
+    {
         findBestSnapshot(sampleBuffer, sampleBuffers, presentationTimeStamp, age) { imageBuffer ->
             if (imageBuffer == null) {
                 return@findBestSnapshot
@@ -131,13 +130,15 @@ class VideoSnapshots(private val context: Context) {
         }
     }
 
-    private fun imageBufferOf(sampleBuffer: MediaSample): Image? =
+    private fun imageBufferOf(sampleBuffer: MediaSample): CVPixelBuffer? =
         sampleBuffer.imageBuffer
-    private fun createBitmap(imageBuffer: Image): Bitmap? =
+
+    private fun createBitmap(imageBuffer: CVPixelBuffer): Bitmap? =
         imageBuffer.toBitmap()
-    private fun orientedLeft(source: Bitmap): Bitmap {
+
+    private fun orientedLeft(bitmap: Bitmap): Bitmap {
         val matrix = Matrix()
         matrix.postRotate(-90.0f)
-        return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
     }
 }

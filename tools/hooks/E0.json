@@ -68,16 +68,6 @@
       "note": "ME1 line. The ME0 line was: Unit"
     },
     {
-      "id": "HE0.8",
-      "file": "various/model/ModelChat.kt",
-      "scope": "fun Model.printChatMessage",
-      "op": "replace",
-      "old": "        val image = TODO(\"no Android counterpart for SwiftUI ImageRenderer and CIImage based CatPrinter rendering\")",
-      "new": "        val image = return@launch",
-      "occurrence": 1,
-      "note": "Cat printer rendering is out of the effects plan; stops the main-thread crash."
-    },
-    {
       "id": "HE0.9",
       "file": "various/settings/SettingsScene.kt",
       "scope": "class SettingsFontDesign",

@@ -1,121 +1,100 @@
 package com.moblin.android.various.network
 
-import android.net.Network
+import com.moblin.android.platform.network.NWConnection
+import com.moblin.android.platform.network.NWEndpoint
+import com.moblin.android.platform.network.NWInterface
+import com.moblin.android.platform.network.NWParameters
 import com.moblin.android.various.MainTimer
-import java.io.IOException
-import java.net.InetSocketAddress
-import java.net.Socket
-import javax.net.ssl.SSLSocket
-import javax.net.ssl.SSLSocketFactory
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-
-private val mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+import java.nio.ByteBuffer
+import java.nio.charset.CodingErrorAction
 
 open class HttpParser {
-    var data: ByteArray = ByteArray(0)
+    open var data: ByteArray = ByteArray(0)
 
-    fun append(data: ByteArray) {
+    open fun append(data: ByteArray) {
         this.data += data
     }
 
-    fun getLine(data: ByteArray, offset: Int): Pair<String, Int>? {
-        val remaining = data.copyOfRange(offset, data.size)
-        var rIndex = -1
-        for (i in remaining.indices) {
-            if (remaining[i] == 0x0D.toByte()) {
-                rIndex = i
-                break
-            }
-        }
-        if (rIndex < 0 || remaining.size <= rIndex + 1 || remaining[rIndex + 1] != 0x0A.toByte()) {
+    open fun getLine(data: ByteArray, offset: Int): Pair<String, Int>? {
+        if (offset < 0 || offset > data.size) {
             return null
         }
-        val line = String(remaining, 0, rIndex, Charsets.UTF_8)
-        return line to (offset + rIndex + 2)
+        val slice = data.copyOfRange(offset, data.size)
+        val rIndex = slice.indexOfFirst { it == 0x0D.toByte() }
+        if (rIndex < 0 || slice.size <= rIndex + 1 || slice[rIndex + 1] != 0x0A.toByte()) {
+            return null
+        }
+        val line = decodeUtf8Strict(bytes = slice, offset = 0, length = rIndex) ?: return null
+        return Pair(line, offset + rIndex + 2)
     }
 }
 
-class HttpResponseParser : HttpParser() {
-    fun parse(): Pair<Boolean, ByteArray?> {
+open class HttpResponseParser : HttpParser() {
+    open fun parse(): Pair<Boolean, ByteArray?> {
         var offset = 0
-        val firstLine = getLine(data, offset) ?: return false to null
-        var nextLineOffset = firstLine.second
-        offset = nextLineOffset
-        val statusLine = firstLine.first
+        val status = getLine(data = data, offset = offset) ?: return Pair(false, null)
+        offset = status.second
+        val statusLine = status.first
         val statusParts = statusLine.split(" ").filter { it.isNotEmpty() }
-        val statusCode = statusParts.getOrNull(1)?.toIntOrNull()
-        if (!statusLine.startsWith("HTTP") ||
-            statusParts.size < 3 ||
-            statusCode == null ||
-            statusCode !in 200..299
-        ) {
-            return true to null
+        if (!statusLine.startsWith("HTTP") || statusParts.size < 3) {
+            return Pair(true, null)
+        }
+        val statusCode = parseIntStrict(statusParts[1])
+        if (statusCode == null || statusCode !in 200..299) {
+            return Pair(true, null)
         }
         var contentLength = 0
         while (true) {
-            val lineResult = getLine(data, offset) ?: break
-            val line = lineResult.first
-            nextLineOffset = lineResult.second
+            val entry = getLine(data = data, offset = offset) ?: break
+            val line = entry.first
+            val nextLineOffset = entry.second
             val parts = line.lowercase().split(" ").filter { it.isNotEmpty() }
             if (parts.size == 2 && parts.first() == "content-length:") {
-                val length = parts.last().toIntOrNull()
+                val length = parseIntStrict(parts.last())
                 if (length == null || length < 0) {
-                    return true to null
+                    return Pair(true, null)
                 }
                 contentLength = length
             } else if (line.isEmpty()) {
                 val body = data.copyOfRange(nextLineOffset, data.size)
                 if (body.size == contentLength) {
-                    return true to body
+                    return Pair(true, body)
                 }
             }
             offset = nextLineOffset
         }
-        return false to null
+        return Pair(false, null)
     }
 }
 
-private class PlainRequest(
-    val host: String,
-    val port: Int,
-    val useTls: Boolean,
-    val content: ByteArray
-)
-
 private class InterfaceTypeHttpClient {
     companion object {
-        private var interfaceTypes: List<Network> = getInterfaceTypes()
-
-        private fun getInterfaceTypes(): List<Network> {
-            return emptyList()
-        }
+        private var interfaceTypes: List<NWInterface.InterfaceType> = listOf(
+            NWInterface.InterfaceType.cellular,
+            NWInterface.InterfaceType.wifi,
+            NWInterface.InterfaceType.wiredEthernet,
+        )
     }
 
-    private var interfaceTypes: List<Network> = emptyList()
+    private var interfaceTypes: List<NWInterface.InterfaceType> = emptyList()
     private var interfaceTypeIndex: Int = 0
-    private var connection: Socket? = null
+    private var connection: NWConnection? = null
     private val timer = MainTimer()
     private var completion: ((ByteArray?) -> Unit)? = null
     private var responseParser = HttpResponseParser()
 
     init {
-        interfaceTypes = Companion.interfaceTypes
+        this.interfaceTypes = Companion.interfaceTypes
     }
 
     private fun stop() {
         completion = null
         timer.stop()
-        connection?.let { socket -> runCatching { socket.close() } }
+        connection?.stateUpdateHandler = null
+        connection?.cancel()
         connection = null
     }
 
@@ -125,76 +104,60 @@ private class InterfaceTypeHttpClient {
     }
 
     fun call(request: Request, body: ByteArray?, completion: (ByteArray?) -> Unit) {
-        val created = createRequest(request, body)
-        if (created == null) {
+        val created = createRequest(request = request, body = body) ?: run {
             completion(null)
             return
         }
+        val (host, port, useTls, content) = created
+        val endpoint = NWEndpoint.hostPort(host = NWEndpoint.Host(host), port = NWEndpoint.Port(port))
         this.completion = completion
-        timer.startSingleShot(60.0) {
-            completed(null)
+        timer.startSingleShot(timeout = 60.0) {
+            completed(data = null)
         }
-        connect(created.host, created.port, created.useTls) { index ->
-            val socket = connection
-            if (socket == null) {
-                completed(null)
-                return@connect
-            }
-            mainScope.launch {
-                val sent = withContext(Dispatchers.IO) {
-                    runCatching {
-                        val output = socket.getOutputStream()
-                        output.write(created.content)
-                        output.flush()
-                    }.isSuccess
-                }
-                if (!sent) {
-                    completed(null)
-                    return@launch
-                }
-                receiveData(index)
-            }
+        connect(endpoint = endpoint, useTls = useTls) { interfaceTypeIndex ->
+            connection?.send(
+                content = content,
+                completion = NWConnection.SendCompletion.contentProcessed { error ->
+                    if (error != null) {
+                        completed(data = null)
+                    } else {
+                        receiveData(interfaceTypeIndex)
+                    }
+                },
+            )
         }
     }
 
-    private fun connect(host: String, port: Int, useTls: Boolean, onConnected: (Int) -> Unit) {
-        if (interfaceTypeIndex >= interfaceTypes.size) {
-            completed(null)
+    private fun connect(endpoint: NWEndpoint, useTls: Boolean, onConnected: (Int) -> Unit) {
+        if (this.interfaceTypeIndex >= this.interfaceTypes.size) {
+            completed(data = null)
             return
         }
         responseParser = HttpResponseParser()
-        val index = interfaceTypeIndex
-        val network = interfaceTypes[index]
-        mainScope.launch {
-            val socket = withContext(Dispatchers.IO) {
-                runCatching {
-                    val raw = Socket()
-                    network.bindSocket(raw)
-                    raw.connect(InetSocketAddress(host, port), 60000)
-                    if (useTls) {
-                        val ssl = (SSLSocketFactory.getDefault() as SSLSocketFactory)
-                            .createSocket(raw, host, port, true) as SSLSocket
-                        ssl.startHandshake()
-                        ssl
-                    } else {
-                        raw
+        val interfaceType = this.interfaceTypes[this.interfaceTypeIndex]
+        val currentIndex = this.interfaceTypeIndex
+        val parameters: NWParameters = if (useTls) NWParameters.tls else NWParameters.tcp
+        parameters.requiredInterfaceType = interfaceType
+        connection = NWConnection(endpoint = endpoint, parameters = parameters)
+        connection?.stateUpdateHandler = { state ->
+            if (isCurrentConnection(currentIndex)) {
+                when (state) {
+                    NWConnection.State.preparing -> {
                     }
-                }.getOrNull()
+                    NWConnection.State.ready -> {
+                        updateGlobalInterfaceTypesIfNeeded()
+                        onConnected(currentIndex)
+                    }
+                    else -> {
+                        connection?.stateUpdateHandler = null
+                        connection?.cancel()
+                        this.interfaceTypeIndex += 1
+                        connect(endpoint = endpoint, useTls = useTls, onConnected = onConnected)
+                    }
+                }
             }
-            if (!isCurrentConnection(index)) {
-                socket?.let { active -> runCatching { active.close() } }
-                return@launch
-            }
-            if (socket == null) {
-                connection = null
-                interfaceTypeIndex += 1
-                connect(host, port, useTls, onConnected)
-                return@launch
-            }
-            updateGlobalInterfaceTypesIfNeeded()
-            connection = socket
-            onConnected(index)
         }
+        connection?.start(queue = Dispatchers.Main)
     }
 
     private fun isCurrentConnection(interfaceTypeIndex: Int): Boolean {
@@ -202,31 +165,31 @@ private class InterfaceTypeHttpClient {
     }
 
     private fun updateGlobalInterfaceTypesIfNeeded() {
-        if (interfaceTypeIndex == 0) {
+        if (this.interfaceTypeIndex == 0) {
             return
         }
-        val types = interfaceTypes.toMutableList()
-        val first = types[0]
-        types[0] = types[interfaceTypeIndex]
-        types[interfaceTypeIndex] = first
-        Companion.interfaceTypes = types
+        val swapped = this.interfaceTypes.toMutableList()
+        val first = swapped[0]
+        swapped[0] = swapped[this.interfaceTypeIndex]
+        swapped[this.interfaceTypeIndex] = first
+        Companion.interfaceTypes = swapped
     }
 
-    private fun createRequest(request: Request, body: ByteArray?): PlainRequest? {
+    private fun createRequest(request: Request, body: ByteArray?): CreatedRequest? {
         val url = request.url
         val host = url.host
         val scheme = url.scheme
         val method = request.method
-        if (host.isEmpty() || scheme.isEmpty() || method.isEmpty()) {
-            return null
-        }
         val useTls = scheme == "https"
-        val port = if (url.port != -1) url.port else if (useTls) 443 else 80
+        val port = url.port
         var path = url.encodedPath
         if (path.isEmpty()) {
             path = "/"
         }
-        url.encodedQuery?.let { query -> path += "?$query" }
+        val query = url.encodedQuery
+        if (query != null) {
+            path += "?$query"
+        }
         var data = "$method $path HTTP/1.1\r\nHost: $host\r\n"
         for ((name, value) in request.headers) {
             data += "$name: $value\r\n"
@@ -235,90 +198,90 @@ private class InterfaceTypeHttpClient {
             data += "Content-Length: ${body.size}\r\n"
         }
         data += "\r\n"
-        var content = data.toByteArray(Charsets.UTF_8)
+        var content = data.encodeToByteArray()
         if (body != null) {
             content += body
         }
-        return PlainRequest(host, port, useTls, content)
+        return CreatedRequest(host = host, port = port, useTls = useTls, content = content)
     }
 
     private fun receiveData(interfaceTypeIndex: Int) {
-        val socket = connection ?: return
-        mainScope.launch {
-            val buffer = ByteArray(4096)
-            val count = withContext(Dispatchers.IO) {
-                runCatching {
-                    socket.getInputStream().read(buffer)
-                }.getOrNull()
+        connection?.receive(minimumIncompleteLength = 1, maximumLength = 4096) { data, _, _, error ->
+            if (isCurrentConnection(interfaceTypeIndex)) {
+                if (data == null || error != null) {
+                    completed(data = null)
+                } else {
+                    handleResponse(data = data)
+                    receiveData(interfaceTypeIndex)
+                }
             }
-            if (!isCurrentConnection(interfaceTypeIndex)) {
-                return@launch
-            }
-            if (count == null || count < 0) {
-                completed(null)
-                return@launch
-            }
-            val data = buffer.copyOf(count)
-            handleResponse(data)
-            receiveData(interfaceTypeIndex)
         }
     }
 
     private fun handleResponse(data: ByteArray) {
-        responseParser.append(data)
+        responseParser.append(data = data)
         val (done, body) = responseParser.parse()
         if (done) {
-            completed(body)
+            completed(data = body)
         }
     }
+
+    private data class CreatedRequest(
+        val host: String,
+        val port: Int,
+        val useTls: Boolean,
+        val content: ByteArray,
+    )
 }
 
 fun httpCall(request: Request, body: ByteArray?, completion: (ByteArray?) -> Unit) {
-    InterfaceTypeHttpClient().call(request, body) { data ->
+    InterfaceTypeHttpClient().call(request = request, body = body) { data ->
         if (data != null) {
             completion(data)
         } else {
-            httpCallUrlSession(request, body, completion)
+            httpCallUrlSession(request = request, body = body, completion = completion)
         }
     }
 }
 
 private fun httpCallUrlSession(request: Request, body: ByteArray?, completion: (ByteArray?) -> Unit) {
-    if (body != null) {
-        val client = OkHttpClient()
-        val contentType = request.body?.contentType()
-        val upload = request.newBuilder()
-            .method(request.method, body.toRequestBody(contentType))
-            .build()
-        client.newCall(upload).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                mainScope.launch {
-                    completion(null)
-                }
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!it.isSuccessful) {
-                        mainScope.launch {
-                            completion(null)
-                        }
-                        return
-                    }
-                    val bytes = it.body?.bytes()
-                    mainScope.launch {
-                        completion(bytes)
-                    }
-                }
-            }
-        })
+    val effective = if (body != null) {
+        request.newBuilder().method(request.method, body.toRequestBody()).build()
     } else {
-        httpRequest(request) { data, response, error ->
-            if (error != null || response?.isSuccessful != true) {
-                completion(null)
-                return@httpRequest
-            }
-            completion(data)
+        request
+    }
+    httpRequest(request = effective) { data, response, error ->
+        if (error != null || response?.isSuccessful != true) {
+            completion(null)
+            return@httpRequest
         }
+        completion(data)
     }
 }
+
+private fun parseIntStrict(value: String): Int? {
+    if (value.isEmpty()) {
+        return null
+    }
+    var index = 0
+    if (value[0] == '+' || value[0] == '-') {
+        index = 1
+    }
+    if (index >= value.length) {
+        return null
+    }
+    for (i in index until value.length) {
+        val c = value[i]
+        if (c < '0' || c > '9') {
+            return null
+        }
+    }
+    return value.toIntOrNull()
+}
+
+private fun decodeUtf8Strict(bytes: ByteArray, offset: Int, length: Int): String? = runCatching {
+    val decoder = Charsets.UTF_8.newDecoder()
+        .onMalformedInput(CodingErrorAction.REPORT)
+        .onUnmappableCharacter(CodingErrorAction.REPORT)
+    decoder.decode(ByteBuffer.wrap(bytes, offset, length)).toString().removePrefix("\uFEFF")
+}.getOrNull()

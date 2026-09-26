@@ -1,0 +1,14 @@
+{
+  "task": "NMW",
+  "hooks": [
+    {
+      "id": "HNMW.1",
+      "file": "view/settings/recordings/RecordingsSettingsView.kt",
+      "scope": "fun RecordingsSettingsView",
+      "op": "replace",
+      "old": "                Text(localized(\"Current recordings directory unavailable\"))",
+      "new": "                Section { Text(localized(\"Current recordings directory unavailable\")) }",
+      "note": "A Text directly in a SwiftUI Form is drawn as a row of its own section; the Form shim only does that for Section, so the text sat on the grouped background without a row."
+    }
+  ]
+}

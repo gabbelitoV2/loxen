@@ -1,0 +1,21 @@
+{
+  "task": "LSF",
+  "hooks": [
+    {
+      "id": "HLSF.1",
+      "file": "view/settings/debug/DebugLogSettingsView.kt",
+      "scope": "fun DebugLogSettingsView",
+      "op": "replace",
+      "old": "                    url = formatLog(log.filter { isMessageVisible(logFilter, it.message) }),",
+      "new": "                    url = model.formatLog(log.filter { isMessageVisible(logFilter, it.message) }),",
+      "note": "Swift shares model.formatLog(log:), the URL of a temporary log file, so the share sheet sends the file instead of the text."
+    },
+    {
+      "id": "HLSF.2",
+      "file": "view/settings/debug/DebugLogSettingsView.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.various.model.formatLog",
+      "note": "Model.formatLog in HLSF.1."
+    }
+  ]
+}

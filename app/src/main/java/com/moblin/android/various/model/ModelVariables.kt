@@ -11,7 +11,7 @@ import kotlin.time.TimeSource
 
 fun Model.createVariables(now: Instant, timestamp: TimeSource.Monotonic.ValueTimeMark): Variables {
     val location = locationManager.getLatestKnownLocation()
-    val weather = weatherManager.getLatestWeather()
+    val weather = weatherManager.getLatestWeather()?.currentWeather
     val placemark = geographyManager.getLatestPlacemark()
     return Variables(
         timestamp = com.moblin.android.platform.core.ContinuousClock.now.nanoseconds,
@@ -32,12 +32,12 @@ fun Model.createVariables(now: Instant, timestamp: TimeSource.Monotonic.ValueTim
         splitAltitudeAscent = database.location.splitAltitudeAscent,
         splitAltitudeDescent = database.location.splitAltitudeDescent,
         slope = "${slopePercent.toInt()}%",
-        conditions = null,
-        condition = null,
-        temperature = null,
-        feelsLikeTemperature = null,
-        windSpeed = null,
-        windGust = null,
+        conditions = weather?.symbolName,
+        condition = weather?.condition,
+        temperature = weather?.temperature,
+        feelsLikeTemperature = weather?.apparentTemperature,
+        windSpeed = weather?.wind?.speed,
+        windGust = weather?.wind?.gust,
         country = placemark?.countryName ?: "",
         countryFlag = emojiFlag(placemark?.countryCode),
         state = placemark?.adminArea,

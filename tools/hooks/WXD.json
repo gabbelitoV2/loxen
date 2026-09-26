@@ -1,0 +1,185 @@
+{
+  "task": "WXD",
+  "hooks": [
+    {
+      "id": "HWXD.1",
+      "file": "various/model/Model.kt",
+      "scope": "fun handle1sTimer",
+      "op": "replace",
+      "old": "        weatherManager.setLocation(location = null)",
+      "new": "        weatherManager.setLocation(location = latestKnownLocation)",
+      "note": "Swift weatherManager.setLocation(location: latestKnownLocation); with null the weather was never fetched."
+    },
+    {
+      "id": "HWXD.2",
+      "file": "various/model/Model.kt",
+      "scope": "fun handle1sTimer",
+      "op": "replace",
+      "old": "        geographyManager.setLocation(location = null)",
+      "new": "        geographyManager.setLocation(location = latestKnownLocation)",
+      "note": "Swift geographyManager.setLocation(location: latestKnownLocation); with null the country, state, city and neighborhood variables stayed empty."
+    },
+    {
+      "id": "HWXD.3",
+      "file": "various/model/Model.kt",
+      "scope": "fun externalMonitorConnected",
+      "op": "replace",
+      "old": "        externalDisplayWindow = null",
+      "new": "        externalDisplayWindow = windowScene",
+      "note": "Swift keeps the UIWindow it creates on the external display scene; platform/uikit/ExternalDisplay passes an ExternalDisplayWindow around an android.app.Presentation that already shows ExternalScreenContentView()."
+    },
+    {
+      "id": "HWXD.4",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateExternalMonitorWindow",
+      "op": "replace",
+      "old": "        Unit",
+      "new": "        (externalDisplayWindow as? com.moblin.android.platform.uikit.ExternalDisplayWindow)?.isHidden = database.externalDisplayContent == SettingsExternalDisplayContent.mirror",
+      "note": "Swift makeKeyAndVisible() for stream, clean stream and chat, and resignKey() plus isHidden = true for mirror, so that the system mirrors the phone screen again."
+    },
+    {
+      "id": "HWXD.5",
+      "file": "MoblinApp.kt",
+      "scope": "class MainActivity",
+      "op": "insert_after",
+      "anchor": "        com.moblin.android.platform.AndroidHost.onActivityCreated(this)",
+      "new": "        com.moblin.android.platform.uikit.ExternalDisplay.install(this)",
+      "note": "SceneDelegate's windowExternalDisplayNonInteractive scene: DisplayManager presentation displays (HDMI, USB-C, cast) call Model.externalMonitorConnected and externalMonitorDisconnected."
+    },
+    {
+      "id": "HWXD.6",
+      "file": "various/model/ModelRemoteControl.kt",
+      "scope": "fun Model.sendPeriodicRemoteControlStreamerStats",
+      "op": "insert_after",
+      "anchor": "    val location = locationManager.getLatestKnownLocation()",
+      "new": "    val weather = weatherManager.getLatestWeather()?.currentWeather",
+      "note": "Swift let weather = weatherManager.getLatestWeather()?.currentWeather. The file carries many hand fixes, so it is not translated again for this."
+    },
+    {
+      "id": "HWXD.7",
+      "file": "various/model/ModelRemoteControl.kt",
+      "scope": "fun Model.sendPeriodicRemoteControlStreamerStats",
+      "op": "replace",
+      "old": "            temperature = null,",
+      "new": "            temperature = weather?.temperature,",
+      "note": "Swift weather?.temperature.converted(to: .celsius).value; the shim's temperature is in °C."
+    },
+    {
+      "id": "HWXD.8",
+      "file": "various/model/ModelRemoteControl.kt",
+      "scope": "fun Model.sendPeriodicRemoteControlStreamerStats",
+      "op": "replace",
+      "old": "            feelsLikeTemperature = null,",
+      "new": "            feelsLikeTemperature = weather?.apparentTemperature,",
+      "note": "Swift weather?.apparentTemperature.converted(to: .celsius).value."
+    },
+    {
+      "id": "HWXD.9",
+      "file": "various/model/ModelRemoteControl.kt",
+      "scope": "fun Model.sendPeriodicRemoteControlStreamerStats",
+      "op": "replace",
+      "old": "            windSpeed = null,",
+      "new": "            windSpeed = weather?.wind?.speed,",
+      "note": "Swift weather?.wind.speed.converted(to: .metersPerSecond).value; the shim's wind is in m/s."
+    },
+    {
+      "id": "HWXD.10",
+      "file": "various/model/ModelRemoteControl.kt",
+      "scope": "fun Model.sendPeriodicRemoteControlStreamerStats",
+      "op": "replace",
+      "old": "            windGust = null,",
+      "new": "            windGust = weather?.wind?.gust,",
+      "note": "Swift weather?.wind.gust?.converted(to: .metersPerSecond).value."
+    },
+    {
+      "id": "HWXD.11",
+      "file": "view/settings/scenes/widgets/widget/text/WidgetTextSettingsView.kt",
+      "scope": "fun WeatherVariablesView",
+      "op": "replace",
+      "old": "                    Text(",
+      "new": "                    com.moblin.android.platform.weatherkit.WeatherAttributionText(",
+      "note": "The footer's markdown links are tappable in SwiftUI; WeatherAttributionText renders them as links."
+    },
+    {
+      "id": "HWXD.12",
+      "file": "view/settings/scenes/widgets/widget/text/WidgetTextSettingsView.kt",
+      "scope": "fun WeatherVariablesView",
+      "op": "replace",
+      "old": "                            \"Weather data is provided by Apple Weather. \" +",
+      "new": "                            \"[Weather data by Open-Meteo.com](https://open-meteo.com/) \" +",
+      "note": "The weather comes from Open-Meteo (CC BY 4.0), whose terms require this credit linked to open-meteo.com instead of Apple Weather's."
+    },
+    {
+      "id": "HWXD.13",
+      "file": "view/settings/scenes/widgets/widget/text/WidgetTextSettingsView.kt",
+      "scope": "fun WeatherVariablesView",
+      "op": "replace",
+      "old": "                                \"[Legal information](https://weatherkit.apple.com/legal-attribution.html).\",",
+      "new": "                                \"([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)).\",",
+      "note": "Open-Meteo's licence in place of Apple Weather's legal attribution page."
+    },
+    {
+      "id": "HWXD.14",
+      "file": "various/model/ModelVariables.kt",
+      "scope": "fun Model.createVariables",
+      "op": "replace",
+      "old": "    val weather = weatherManager.getLatestWeather()",
+      "new": "    val weather = weatherManager.getLatestWeather()?.currentWeather",
+      "note": "Swift let weather = weatherManager.getLatestWeather()?.currentWeather. The file carries hand fixes that a new translation loses, so the weather lines are hooks."
+    },
+    {
+      "id": "HWXD.15",
+      "file": "various/model/ModelVariables.kt",
+      "scope": "fun Model.createVariables",
+      "op": "replace",
+      "old": "        conditions = null,",
+      "new": "        conditions = weather?.symbolName,",
+      "note": "Swift conditions: weather?.symbolName."
+    },
+    {
+      "id": "HWXD.16",
+      "file": "various/model/ModelVariables.kt",
+      "scope": "fun Model.createVariables",
+      "op": "replace",
+      "old": "        condition = null,",
+      "new": "        condition = weather?.condition,",
+      "note": "Swift condition: weather?.condition, the WeatherKit case name that conditionToEmoji matches."
+    },
+    {
+      "id": "HWXD.17",
+      "file": "various/model/ModelVariables.kt",
+      "scope": "fun Model.createVariables",
+      "op": "replace",
+      "old": "        temperature = null,",
+      "new": "        temperature = weather?.temperature,",
+      "note": "Swift temperature: weather?.temperature, in °C."
+    },
+    {
+      "id": "HWXD.18",
+      "file": "various/model/ModelVariables.kt",
+      "scope": "fun Model.createVariables",
+      "op": "replace",
+      "old": "        feelsLikeTemperature = null,",
+      "new": "        feelsLikeTemperature = weather?.apparentTemperature,",
+      "note": "Swift feelsLikeTemperature: weather?.apparentTemperature, in °C."
+    },
+    {
+      "id": "HWXD.19",
+      "file": "various/model/ModelVariables.kt",
+      "scope": "fun Model.createVariables",
+      "op": "replace",
+      "old": "        windSpeed = null,",
+      "new": "        windSpeed = weather?.wind?.speed,",
+      "note": "Swift windSpeed: weather?.wind.speed, in m/s."
+    },
+    {
+      "id": "HWXD.20",
+      "file": "various/model/ModelVariables.kt",
+      "scope": "fun Model.createVariables",
+      "op": "replace",
+      "old": "        windGust = null,",
+      "new": "        windGust = weather?.wind?.gust,",
+      "note": "Swift windGust: weather?.wind.gust, in m/s."
+    }
+  ]
+}

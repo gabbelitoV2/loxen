@@ -15,6 +15,7 @@ It also contains code ported from, and files taken from, the following projects.
 | [Mbed TLS](https://github.com/Mbed-TLS/mbedtls) | Apache-2.0 or GPL-2.0-or-later | `app/src/main/cpp/mbedtls` |
 | [libdatachannel](https://github.com/eerimoq/libdatachannel) | MPL-2.0 | `app/src/main/cpp/libdatachannel` |
 | [librist](https://github.com/eerimoq/librist) | BSD-2-Clause, Copyright (c) 2019-2020 VideoLAN and librist authors | `app/src/main/cpp/librist` |
+| [Material Design icons](https://github.com/google/material-design-icons) | Apache-2.0 | Glyphs of the launcher shortcut icons in `app/src/main/res/drawable/shortcut_*.xml` |
 
 The MPL-2.0 sources are the git submodules under `app/src/main/cpp`, including any patches in
 `app/src/main/cpp/patches`.

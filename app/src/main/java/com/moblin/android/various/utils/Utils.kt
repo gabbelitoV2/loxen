@@ -37,6 +37,7 @@ import com.moblin.android.platform.coreimage.CIFilter
 import com.moblin.android.videoeffects.scaled
 import com.moblin.android.media.haishinkit.extension.dictionaryFromQuery
 import com.moblin.android.platform.darwin.*
+import okhttp3.RequestBody.Companion.toRequestBody
 
 fun randomBytes(length: Int): ByteArray = ByteArray(length) { Random.nextInt(0, 256).toByte() }
 
@@ -133,7 +134,7 @@ fun uploadImage(
 ) {
     val boundary = UUID.randomUUID().toString()
     val request = Request.Builder()
-        .url(url)
+        .url(url).post(ByteArray(0).toRequestBody())
         .header("Content-Type", "multipart/form-data; boundary=$boundary")
         .build()
     val data = ByteArrayOutputStream()
@@ -144,7 +145,7 @@ fun uploadImage(
     }
     data.write("\r\n--$boundary\r\n".toByteArray())
     data.write(
-        "content-disposition: form-data; name=\"$paramName\"; filename=\"$fileName\"\r\n\r\n".toByteArray()
+        "content-disposition: form-data; name=\"$paramName\"; filename=\"$fileName\"\r\n".toByteArray()
     )
     data.write("content-type: image/jpeg\r\n\r\n".toByteArray())
     data.write(image)

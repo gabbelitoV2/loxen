@@ -400,7 +400,7 @@ internal object MapLibreSnapshots {
         }
     }
 
-    private fun ensureMapLibre(context: Context): Boolean {
+    fun ensureMapLibre(context: Context): Boolean {
         mapLibreReady?.let {
             return it
         }

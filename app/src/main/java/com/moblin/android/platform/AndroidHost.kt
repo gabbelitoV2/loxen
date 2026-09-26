@@ -22,9 +22,14 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import com.moblin.android.intents.MoblinShortcuts
+import com.moblin.android.platform.appintents.AppShortcuts
 import com.moblin.android.various.model.handleSettingsUrls
+import com.moblin.android.various.model.isLocationEnabled
+import com.moblin.android.various.model.reloadLocation
 
 object AndroidHost {
     private const val TAG = "AndroidHost"
@@ -61,24 +66,76 @@ object AndroidHost {
             } else if (results.containsKey(Manifest.permission.RECORD_AUDIO)) {
                 Log.i(TAG, "Microphone permission denied")
             }
+            withModel { model ->
+                if (model.isLocationEnabled()) {
+                    model.reloadLocation()
+                }
+            }
         }
         val missing = permissions.filter { activity.checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
         if (missing.isNotEmpty()) {
             launcher.launch(missing.toTypedArray())
         }
-        pendingUrls.addAll(settingsUrls(activity.intent))
+        handleIntent(activity, activity.intent)
         activity.addOnNewIntentListener { intent ->
-            pendingUrls.addAll(settingsUrls(intent))
-            deliverSettingsUrls()
+            handleIntent(activity, intent)
         }
         bindModelWhenReady()
     }
 
     private val pendingUrls = mutableListOf<Uri>()
+    private val ioScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    private fun settingsUrls(intent: Intent?): List<Uri> {
-        val data = intent?.data ?: return emptyList()
-        return if (data.scheme == "moblin") listOf(data) else emptyList()
+    internal fun handleIntent(context: Context, intent: Intent?) {
+        if (intent == null || (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0) {
+            return
+        }
+        if (AppShortcuts.perform(MoblinShortcuts, intent)) {
+            return
+        }
+        val url = settingsUrl(intent) ?: return
+        if (url.scheme == "content") {
+            copySettingsFile(context.applicationContext, url)
+        } else {
+            addSettingsUrl(url)
+        }
+    }
+
+    private fun settingsUrl(intent: Intent): Uri? {
+        val data = intent.data
+        return when (intent.action) {
+            Intent.ACTION_VIEW -> data?.takeIf { it.scheme == "moblin" || it.scheme == "file" || it.scheme == "content" }
+            Intent.ACTION_SEND -> stream(intent)?.takeIf { it.scheme == "file" || it.scheme == "content" }
+            else -> data?.takeIf { it.scheme == "moblin" }
+        }
+    }
+
+    private fun stream(intent: Intent): Uri? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(Intent.EXTRA_STREAM)
+        }
+    }
+
+    private fun copySettingsFile(context: Context, url: Uri) {
+        ioScope.launch {
+            val file = try {
+                DocumentPicker.copy(context, url)
+            } catch (error: Exception) {
+                Log.i(TAG, "Failed to copy settings file: $error")
+                return@launch
+            }
+            mainScope.launch {
+                addSettingsUrl(Uri.fromFile(file))
+            }
+        }
+    }
+
+    private fun addSettingsUrl(url: Uri) {
+        pendingUrls.add(url)
+        deliverSettingsUrls()
     }
 
     private fun deliverSettingsUrls() {

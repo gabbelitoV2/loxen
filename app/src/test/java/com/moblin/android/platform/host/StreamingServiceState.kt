@@ -9,6 +9,7 @@ internal object StreamingServiceState {
         set("isForeground", false)
         set("activityNotification", null)
         set("isRunning", false)
+        set("locationSessions", 0)
         Camera2Engine.isForegroundServiceRunning = false
     }
 

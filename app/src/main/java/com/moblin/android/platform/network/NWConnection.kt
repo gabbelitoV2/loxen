@@ -127,6 +127,8 @@ class NWConnection private constructor(
     @Volatile
     private var datagramSocket: DatagramSocket? = null
 
+    private var interfaceMonitor: NWPathMonitor? = null
+
     private var started = false
     private var hasFailed = false
     private var viabilityLost = false
@@ -255,9 +257,12 @@ class NWConnection private constructor(
     private fun runTcp() {
         val host = endpoint.host.value
         val port = endpoint.port.value
-        val startNs = System.nanoTime()
         try {
-            val network = parameters.requiredInterface?.resolveNetwork()
+            val network = requiredNetwork()
+            if (cancelled) {
+                return
+            }
+            val startNs = System.nanoTime()
             val addresses = resolve(host, network)
             val timeoutSeconds = parameters.tcpOptions.connectionTimeout
             val timeoutMs = if (timeoutSeconds > 0) timeoutSeconds * 1000L else DEFAULT_CONNECT_TIMEOUT_MS
@@ -305,6 +310,58 @@ class NWConnection private constructor(
             }
             fail(makeError(error))
         }
+    }
+
+    private fun requiredNetwork(): Network? {
+        val requiredInterface = parameters.requiredInterface
+        if (requiredInterface != null) {
+            return requiredInterface.resolveNetwork()
+        }
+        val type = parameters.requiredInterfaceType
+        if (type !in requestableInterfaceTypes) {
+            return null
+        }
+        startInterfaceMonitor(type)
+        val deadlineNs = System.nanoTime() + REQUIRED_INTERFACE_GRACE_MS * 1_000_000L
+        var waitingReported = false
+        while (!cancelled) {
+            val network = requestedNetwork(type)
+            if (network != null) {
+                return network
+            }
+            if (!waitingReported && System.nanoTime() >= deadlineNs) {
+                waitingReported = true
+                val error = NWError("No $type network")
+                Log.i(TAG, "$description: Waiting: $error")
+                setState(State.waiting(error))
+            }
+            sleepUnlessCancelled(if (waitingReported) 250L else 20L)
+        }
+        return null
+    }
+
+    private fun startInterfaceMonitor(type: NWInterface.InterfaceType) {
+        val monitor = synchronized(lock) {
+            if (cancelled || interfaceMonitor != null) {
+                return
+            }
+            NWPathMonitor(requiredInterfaceType = type).also {
+                interfaceMonitor = it
+            }
+        }
+        monitor.start(queue = Dispatchers.Default)
+        if (cancelled) {
+            monitor.cancel()
+        }
+    }
+
+    private fun stopInterfaceMonitor() {
+        val monitor = synchronized(lock) {
+            interfaceMonitor.also {
+                interfaceMonitor = null
+            }
+        }
+        monitor?.cancel()
     }
 
     private fun runAccepted(socket: Socket) {
@@ -513,7 +570,10 @@ class NWConnection private constructor(
         var socket: DatagramSocket? = null
         while (!cancelled && socket == null) {
             try {
-                val network = parameters.requiredInterface?.resolveNetwork()
+                val network = requiredNetwork()
+                if (cancelled) {
+                    return
+                }
                 val address = resolve(host, network).first()
                 val candidate = DatagramSocket()
                 datagramSocket = candidate
@@ -741,6 +801,7 @@ class NWConnection private constructor(
         postDeliverReceives()
         setState(State.failed(error))
         closeSockets(force = true)
+        stopInterfaceMonitor()
     }
 
     private fun cancelInternal(force: Boolean) {
@@ -763,6 +824,7 @@ class NWConnection private constructor(
             PipelineStats.gauge("tcpBufferedBytes", totalStreamPendingBytes.get())
         }
         closeSockets(force)
+        stopInterfaceMonitor()
         val queueScope = scope ?: return
         queueScope.launch {
             runHandler {
@@ -817,7 +879,7 @@ class NWConnection private constructor(
     }
 
     private fun resolve(host: String, network: Network?): List<InetAddress> {
-        val addresses = if (network != null) {
+        val addresses = if (network != null && isHostName(host)) {
             network.getAllByName(host)
         } else {
             InetAddress.getAllByName(host)
@@ -861,6 +923,12 @@ class NWConnection private constructor(
         private const val MAXIMUM_DATAGRAM_SIZE = 65_535
         private const val MAXIMUM_BUFFERED_DATAGRAMS = 4096
         private const val UDP_RETRY_INTERVAL_MS = 1_000L
+        private const val REQUIRED_INTERFACE_GRACE_MS = 3_000L
+        private val requestableInterfaceTypes = setOf(
+            NWInterface.InterfaceType.wifi,
+            NWInterface.InterfaceType.cellular,
+            NWInterface.InterfaceType.wiredEthernet,
+        )
         private val nextId = AtomicInteger(0)
         private val totalStreamPendingBytes = AtomicLong(0)
         private val stopWriting = PendingSend(null, SendCompletion.idempotent)

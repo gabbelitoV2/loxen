@@ -588,6 +588,7 @@ fun Model.sendPeriodicRemoteControlStreamerStats(now: Instant) {
         return
     }
     val location = locationManager.getLatestKnownLocation()
+    val weather = weatherManager.getLatestWeather()?.currentWeather
     val placemark = geographyManager.getLatestPlacemark()
     remoteControlStreamer?.sendStats(
         data = RemoteControlStats(
@@ -605,10 +606,10 @@ fun Model.sendPeriodicRemoteControlStreamerStats(now: Instant) {
             altitudeDescent = database.location.altitudeDescent,
             splitAltitudeAscent = database.location.splitAltitudeAscent,
             splitAltitudeDescent = database.location.splitAltitudeDescent,
-            temperature = null,
-            feelsLikeTemperature = null,
-            windSpeed = null,
-            windGust = null,
+            temperature = weather?.temperature,
+            feelsLikeTemperature = weather?.apparentTemperature,
+            windSpeed = weather?.wind?.speed,
+            windGust = weather?.wind?.gust,
             country = placemark?.countryName,
             countryFlag = emojiFlag(countryCode = placemark?.countryCode),
             state = placemark?.adminArea,

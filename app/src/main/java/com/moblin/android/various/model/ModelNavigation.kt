@@ -1,76 +1,50 @@
 package com.moblin.android.various.model
 
+import com.moblin.android.platform.mapkit.MKDirections
+import com.moblin.android.platform.mapkit.MKDirectionsTransportType
+import com.moblin.android.platform.mapkit.MKMapItem
+import com.moblin.android.platform.mapkit.MKRoute
+import com.moblin.android.platform.mapkit.MapCameraPosition
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.settings.SettingsNavigation
 import com.moblin.android.various.utils.MKCoordinateRegion
 import kotlinx.coroutines.flow.MutableStateFlow
-
-enum class MKDirectionsTransportType {
-    automobile,
-    walking,
-    transit,
-    cycling,
-}
-
-sealed class MapCameraPosition {
-    data object automatic : MapCameraPosition()
-
-    data class region(val region: MKCoordinateRegion) : MapCameraPosition()
-
-    data class userLocation(
-        val followsHeading: Boolean,
-        val fallback: MapCameraPosition,
-    ) : MapCameraPosition()
-}
 
 enum class NavigationTransportType {
     walking,
     cycling,
     automobile;
 
-    companion object {
-        val allCases: List<NavigationTransportType> = entries.toList()
+    fun toSystem(): MKDirectionsTransportType {
+        return when (this) {
+            NavigationTransportType.walking -> MKDirectionsTransportType.walking
+            NavigationTransportType.cycling -> MKDirectionsTransportType.cycling
+            NavigationTransportType.automobile -> MKDirectionsTransportType.automobile
+        }
     }
 
-    fun toSystem(): MKDirectionsTransportType = when (this) {
-        NavigationTransportType.walking -> MKDirectionsTransportType.walking
-        NavigationTransportType.cycling -> MKDirectionsTransportType.cycling
-        NavigationTransportType.automobile -> MKDirectionsTransportType.automobile
-    }
-
-    fun image(): String = when (this) {
-        NavigationTransportType.walking -> "figure.walk"
-        NavigationTransportType.cycling -> "bicycle"
-        NavigationTransportType.automobile -> "car.fill"
+    fun image(): String {
+        return when (this) {
+            NavigationTransportType.walking -> "figure.walk"
+            NavigationTransportType.cycling -> "bicycle"
+            NavigationTransportType.automobile -> "car.fill"
+        }
     }
 }
 
-class Navigation {
-    companion object {
-        val shared = Navigation()
-    }
+open class Navigation internal constructor() {
+    open val cameraPosition = MutableStateFlow<MapCameraPosition>(MapCameraPosition.automatic)
+    open var cameraRegion: MKCoordinateRegion? = null
+    open val route = MutableStateFlow<MKRoute?>(null)
+    open val isSmall = MutableStateFlow(true)
+    open val destination = MutableStateFlow<MKMapItem?>(null)
+    open val transportType = MutableStateFlow(NavigationTransportType.walking)
+    open val longPressLocation = MutableStateFlow<MKMapItem?>(null)
+    open val searchText = MutableStateFlow("")
+    open val searchResults = MutableStateFlow<List<MKMapItem>>(emptyList())
+    open val timer = MainTimer()
 
-    val cameraPosition = MutableStateFlow<MapCameraPosition>(MapCameraPosition.automatic)
-
-    var cameraRegion: MKCoordinateRegion? = null
-
-    val route = MutableStateFlow<Any?>(null)
-
-    val isSmall = MutableStateFlow(true)
-
-    val destination = MutableStateFlow<Any?>(null)
-
-    val transportType = MutableStateFlow(NavigationTransportType.walking)
-
-    val longPressLocation = MutableStateFlow<Any?>(null)
-
-    val searchText = MutableStateFlow("")
-
-    val searchResults = MutableStateFlow<List<Any>>(emptyList())
-
-    val timer = MainTimer()
-
-    fun updateCameraPosition(settings: SettingsNavigation, region: MKCoordinateRegion? = null) {
+    open fun updateCameraPosition(settings: SettingsNavigation, region: MKCoordinateRegion? = null) {
         val region = region ?: cameraRegion ?: return
         if (settings.followUser.value) {
             cameraPosition.value = MapCameraPosition.userLocation(
@@ -82,11 +56,28 @@ class Navigation {
         }
     }
 
-    fun updateDirections() {
+    open fun updateDirections() {
         val destination = destination.value ?: return
         route.value = null
-        Unit
+        val request = MKDirections.Request()
+        request.source = MKMapItem.forCurrentLocation()
+        request.destination = destination
+        request.transportType = transportType.value.toSystem()
+        val directions = MKDirections(request = request)
+        directions.calculate { response, _ ->
+            if (response == null) {
+                return@calculate
+            }
+            val route = response.routes.firstOrNull()
+            this.route.value = route
+        }
+    }
+
+    companion object {
+        val shared by lazy { Navigation() }
     }
 }
 
-fun Model.navigation(): Navigation = Navigation.shared
+fun Model.navigation(): Navigation {
+    return Navigation.shared
+}

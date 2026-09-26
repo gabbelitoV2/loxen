@@ -1,0 +1,42 @@
+{
+  "task": "MW4",
+  "hooks": [
+    {
+      "id": "HMW4.1",
+      "file": "various/utils/Utils.kt",
+      "op": "add_import",
+      "new": "import okhttp3.RequestBody.Companion.toRequestBody",
+      "note": "Used by HMW4.2."
+    },
+    {
+      "id": "HMW4.2",
+      "file": "various/utils/Utils.kt",
+      "scope": "fun uploadImage",
+      "op": "replace",
+      "old": "        .url(url)",
+      "new": "        .url(url).post(ByteArray(0).toRequestBody())",
+      "occurrence": 1,
+      "note": "Swift request.httpMethod = \"POST\": the raw per-interface request line and the OkHttp fallback need POST, and OkHttp rejects a body on GET."
+    },
+    {
+      "id": "HMW4.3",
+      "file": "various/utils/Utils.kt",
+      "scope": "fun uploadImage",
+      "op": "replace",
+      "old": "        \"content-disposition: form-data; name=\\\"$paramName\\\"; filename=\\\"$fileName\\\"\\r\\n\\r\\n\".toByteArray()",
+      "new": "        \"content-disposition: form-data; name=\\\"$paramName\\\"; filename=\\\"$fileName\\\"\\r\\n\".toByteArray()",
+      "occurrence": 1,
+      "note": "Swift ends the content-disposition line with one CRLF; the part's content-type header follows it."
+    },
+    {
+      "id": "HMW4.4",
+      "file": "various/model/ModelAudio.kt",
+      "scope": "fun Model.keepSpeakerAlive",
+      "op": "replace",
+      "old": "    shared.playIfNeeded(now = now)",
+      "new": "    KeepSpeakerAlivePlayer.shared.playIfNeeded(now = now)",
+      "occurrence": 1,
+      "note": "Swift KeepSpeakerAlivePlayer.shared: AudioPlayer.play() records audio on the shared player, so a file-private instance never hears it and plays silence every 10 s."
+    }
+  ]
+}

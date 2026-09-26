@@ -3,6 +3,7 @@ package com.moblin.android.platform
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
+import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
@@ -40,6 +41,7 @@ import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloseFullscreen
+import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ControlCamera
 import androidx.compose.material.icons.filled.Crop
@@ -48,6 +50,7 @@ import androidx.compose.material.icons.filled.CropSquare
 import androidx.compose.material.icons.filled.Cyclone
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Dehaze
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.DeviceHub
@@ -59,6 +62,7 @@ import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Eco
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.EmojiPeople
 import androidx.compose.material.icons.filled.Face
@@ -66,6 +70,7 @@ import androidx.compose.material.icons.filled.FaceRetouchingNatural
 import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.FilterDrama
 import androidx.compose.material.icons.filled.FilterVintage
 import androidx.compose.material.icons.filled.FirstPage
 import androidx.compose.material.icons.filled.Flare
@@ -74,6 +79,7 @@ import androidx.compose.material.icons.filled.FlashlightOn
 import androidx.compose.material.icons.filled.FlipCameraAndroid
 import androidx.compose.material.icons.filled.FormatIndentIncrease
 import androidx.compose.material.icons.filled.FormatListBulleted
+import androidx.compose.material.icons.filled.Grain
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.GridOn
 import androidx.compose.material.icons.filled.GridView
@@ -88,6 +94,7 @@ import androidx.compose.material.icons.filled.LayersClear
 import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.LocationOff
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockOpen
@@ -104,6 +111,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material.icons.filled.OfflineBolt
+import androidx.compose.material.icons.filled.OndemandVideo
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.OpenWith
 import androidx.compose.material.icons.filled.PanTool
@@ -144,6 +152,7 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SettingsRemote
+import androidx.compose.material.icons.filled.SevereCold
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -167,11 +176,13 @@ import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.Thunderstorm
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material.icons.filled.Train
 import androidx.compose.material.icons.filled.Tv
+import androidx.compose.material.icons.filled.Umbrella
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.filled.UnfoldMore
 import androidx.compose.material.icons.filled.VerticalSplit
@@ -196,6 +207,10 @@ import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material.icons.filled.ZoomOut
 import androidx.compose.material.icons.filled.ZoomOutMap
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.ArrowCircleLeft
+import androidx.compose.material.icons.outlined.ArrowCircleRight
+import androidx.compose.material.icons.outlined.CheckBox
+import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -205,7 +220,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 
-private val symbols: Map<String, ImageVector> = mapOf(
+private val symbols: Map<String, ImageVector> = controllerSymbols + mapOf(
     "globe" to Icons.Filled.Public,
     "speedometer" to Icons.Filled.Speed,
     "gauge" to Icons.Filled.Speed,
@@ -309,6 +324,7 @@ private val symbols: Map<String, ImageVector> = mapOf(
     "hare.fill" to Icons.Filled.FastForward,
     "tortoise.fill" to Icons.Filled.SlowMotionVideo,
     "location" to Icons.Filled.LocationOn,
+    "location.slash" to Icons.Filled.LocationOff,
     "location.north.fill" to Icons.Filled.Navigation,
     "map" to Icons.Filled.Map,
     "sparkle" to Icons.Filled.AutoAwesome,
@@ -400,6 +416,14 @@ private val symbols: Map<String, ImageVector> = mapOf(
     "text.redaction" to Icons.Filled.TextFields,
     "tornado" to Icons.Filled.Cyclone,
     "tv" to Icons.Filled.Tv,
+    "play.tv" to Icons.Filled.OndemandVideo,
+    "arrow.forward.circle" to Icons.Outlined.ArrowCircleRight,
+    "arrow.forward.circle.fill" to Icons.Filled.ArrowCircleRight,
+    "arrow.backward.circle" to Icons.Outlined.ArrowCircleLeft,
+    "arrow.backward.circle.fill" to Icons.Filled.ArrowCircleLeft,
+    "face.smiling" to Icons.Outlined.EmojiEmotions,
+    "face.smiling.inverse" to Icons.Filled.EmojiEmotions,
+    "checkmark.square" to Icons.Outlined.CheckBox,
     "video.circle" to Icons.Filled.Videocam,
     "video.circle.fill" to Icons.Filled.Videocam,
     "waveform.badge.xmark" to Icons.Filled.VoiceOverOff,
@@ -459,12 +483,41 @@ private val symbols: Map<String, ImageVector> = mapOf(
     "stop" to Icons.Filled.Stop,
     "suit.diamond" to Icons.Filled.Diamond,
     "sun.max" to Icons.Filled.WbSunny,
+    "moon.stars" to Icons.Filled.DarkMode,
+    "cloud" to Icons.Filled.Cloud,
+    "cloud.sun" to Icons.Filled.FilterDrama,
+    "cloud.moon" to Icons.Filled.NightsStay,
+    "cloud.fog" to Icons.Filled.Dehaze,
+    "cloud.drizzle" to Icons.Filled.Grain,
+    "cloud.rain" to Icons.Filled.Umbrella,
+    "cloud.heavyrain" to Icons.Filled.Umbrella,
+    "cloud.sleet" to Icons.Filled.SevereCold,
+    "cloud.snow" to Icons.Filled.AcUnit,
+    "cloud.hail" to Icons.Filled.SevereCold,
+    "cloud.bolt.rain" to Icons.Filled.Thunderstorm,
+    "snowflake" to Icons.Filled.AcUnit,
     "target" to Icons.Filled.TrackChanges,
     "tennis" to Icons.Filled.SportsTennis,
     "textformat" to Icons.Filled.TextFields,
     "tortoise" to Icons.Filled.SlowMotionVideo,
     "trophy" to Icons.Filled.EmojiEvents,
     "volleyball" to Icons.Filled.SportsVolleyball,
+)
+
+private val multicolorSymbols: Map<String, Color> = mapOf(
+    "sun.max.fill" to Color(0xFFFFCC00),
+    "moon.stars.fill" to Color.White,
+    "cloud.fill" to Color.White,
+    "cloud.sun.fill" to Color.White,
+    "cloud.moon.fill" to Color.White,
+    "cloud.fog.fill" to Color.White,
+    "cloud.drizzle.fill" to Color(0xFF5AC8FA),
+    "cloud.rain.fill" to Color(0xFF5AC8FA),
+    "cloud.heavyrain.fill" to Color(0xFF5AC8FA),
+    "cloud.sleet.fill" to Color.White,
+    "cloud.snow.fill" to Color.White,
+    "cloud.hail.fill" to Color.White,
+    "cloud.bolt.rain.fill" to Color(0xFFFFCC00),
 )
 
 fun systemImage(name: String): ImageVector {
@@ -474,5 +527,6 @@ fun systemImage(name: String): ImageVector {
 @Composable
 fun SystemImage(name: String, fontSize: TextUnit, modifier: Modifier = Modifier, tint: Color = Color.White) {
     val size = with(LocalDensity.current) { if (fontSize.isSp) fontSize.toDp() else 20.dp }
-    Icon(imageVector = systemImage(name), contentDescription = null, tint = tint, modifier = modifier.size(size))
+    val color = if (tint == Color.Unspecified) multicolorSymbols[name] ?: tint else tint
+    Icon(imageVector = systemImage(name), contentDescription = null, tint = color, modifier = modifier.size(size))
 }

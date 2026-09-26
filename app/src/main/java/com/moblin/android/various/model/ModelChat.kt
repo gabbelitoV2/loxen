@@ -3,21 +3,32 @@ package com.moblin.android.various.model
 import android.content.ClipData
 import android.content.ClipboardManager
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.moblin.android.AppDelegate
 import com.moblin.android.common.various.RgbColor
+import com.moblin.android.common.various.trim
 import com.moblin.android.localized
+import com.moblin.android.platform.Bundle
+import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.swiftui.ImageRenderer
+import com.moblin.android.platform.swiftui.SwiftUIFonts
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.CacheAsyncImage
 import com.moblin.android.various.ChatBotMessage
@@ -38,8 +49,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-const val maximumNumberOfChatMessages = 50
-const val maximumNumberOfInteractiveChatMessages = 100
+val maximumNumberOfChatMessages = 50
+val maximumNumberOfInteractiveChatMessages = 100
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
@@ -86,9 +97,11 @@ fun Model.endOfQuickButtonChatAlertsReachedWhenPaused() {
             }
         }
         if (quickButtonChatState.chatAlertsPosts.value.size > maximumNumberOfInteractiveChatMessages - 1) {
-            quickButtonChatState.chatAlertsPosts.value.removeLast()
+            quickButtonChatState.chatAlertsPosts.value = ArrayDeque(quickButtonChatState.chatAlertsPosts.value)
+                .apply { removeLast() }
         }
-        quickButtonChatState.chatAlertsPosts.value.addFirst(post)
+        quickButtonChatState.chatAlertsPosts.value = ArrayDeque(quickButtonChatState.chatAlertsPosts.value)
+            .apply { addFirst(post) }
     }
     quickButtonChatState.chatAlertsPaused.value = false
 }
@@ -97,7 +110,7 @@ fun Model.removeOldChatMessages(now: Instant) {
     if (!database.chat.maximumAgeEnabled) {
         return
     }
-    removeOldChatMessages(now, chat)
+    removeOldChatMessages(now = now, chat = chat)
 }
 
 private fun Model.removeOldChatMessages(now: Instant, chat: ChatProvider) {
@@ -106,7 +119,7 @@ private fun Model.removeOldChatMessages(now: Instant, chat: ChatProvider) {
     }
     while (true) {
         val post = chat.posts.value.lastOrNull() ?: break
-        if (Duration.between(post.timestampTime, now).seconds > database.chat.maximumAge) {
+        if (Duration.between(post.timestampTime, now).seconds > database.chat.maximumAge.toDouble()) {
             chat.posts.value = chat.posts.value.dropLast(1)
         } else {
             break
@@ -122,14 +135,19 @@ fun Model.updateChat() {
         externalDisplayChat.update()
     }
     if (quickButtonChatState.chatAlertsPaused.value) {
-        quickButtonChatState.pausedChatAlertsPostsCount.value = maxOf(pausedQuickButtonChatAlertsPosts.size - 1, 0)
+        quickButtonChatState.pausedChatAlertsPostsCount.value = maxOf(
+            pausedQuickButtonChatAlertsPosts.size - 1,
+            0,
+        )
     } else {
         while (true) {
             val post = newQuickButtonChatAlertsPosts.removeFirstOrNull() ?: break
             if (quickButtonChatState.chatAlertsPosts.value.size > maximumNumberOfInteractiveChatMessages - 1) {
-                quickButtonChatState.chatAlertsPosts.value.removeLast()
+                quickButtonChatState.chatAlertsPosts.value = ArrayDeque(quickButtonChatState.chatAlertsPosts.value)
+                    .apply { removeLast() }
             }
-            quickButtonChatState.chatAlertsPosts.value.addFirst(post)
+            quickButtonChatState.chatAlertsPosts.value = ArrayDeque(quickButtonChatState.chatAlertsPosts.value)
+                .apply { addFirst(post) }
         }
     }
     chatWidgetChat.update()
@@ -180,7 +198,7 @@ private fun Model.createRedLineChatPost(): ChatPost {
         filter = null,
         platform = null,
         sourceChannelIcon = null,
-        state = ChatPostState()
+        state = ChatPostState(),
     )
     chatPostId += 1
     return post
@@ -214,7 +232,7 @@ fun Model.isChatConfigured(): Boolean {
 
 fun Model.isRemoteControlChatAndEvents(platform: Platform?): Boolean {
     when (platform) {
-        Platform.twitch, null -> Unit
+        Platform.twitch, null -> {}
         else -> return false
     }
     return useRemoteControlForChatAndEvents
@@ -262,14 +280,11 @@ fun Model.sendChatMessage(message: String) {
 
 fun Model.sendChatMessageShowLogin(message: String) {
     if (stream.value.twitchSendMessagesTo) {
-        sendTwitchChatMessage(message = message) { result ->
-            when (result) {
-                is NetworkResponse.AuthError -> {
-                    twitchLogin(stream = stream.value) {
-                        showTwitchAuth.value = true
-                    }
+        sendTwitchChatMessage(message = message) { response ->
+            if (response is NetworkResponse.AuthError) {
+                twitchLogin(stream = stream.value) {
+                    showTwitchAuth.value = true
                 }
-                else -> {}
             }
         }
     }
@@ -283,7 +298,7 @@ fun Model.sendChatMessageShowLogin(message: String) {
 }
 
 private fun Model.evaluateFilters(user: String?, segments: List<ChatPostSegment>): SettingsChatFilter? {
-    return database.chat.filters.firstOrNull { it.isMatching(user, segments) }
+    return database.chat.filters.firstOrNull { it.isMatching(user = user, segments = segments) }
 }
 
 fun Model.appendChatMessage(
@@ -304,7 +319,7 @@ fun Model.appendChatMessage(
     bits: String?,
     highlight: ChatHighlight?,
     live: Boolean,
-    sourceChannelIcon: String? = null
+    sourceChannelIcon: String? = null,
 ) {
     val filter = evaluateFilters(user = user, segments = segments)
     if (platform != null && database.chat.botEnabled && live && filter?.chatBot != false &&
@@ -319,7 +334,7 @@ fun Model.appendChatMessage(
                     isModerator = isModerator,
                     isSubscriber = isSubscriber,
                     userId = userId,
-                    segments = segments
+                    segments = segments,
                 )
             )
         }
@@ -341,23 +356,23 @@ fun Model.appendChatMessage(
         isAction = isAction,
         isSubscriber = isSubscriber,
         bits = bits,
-        highlight = highlight ?: (if (isModerator) ChatHighlight.makeModerator() else null),
+        highlight = highlight ?: if (isModerator) ChatHighlight.makeModerator() else null,
         live = live,
         filter = filter,
         platform = platform,
         sourceChannelIcon = sourceChannelIcon,
-        state = ChatPostState()
+        state = ChatPostState(),
     )
     chatPostId += 1
     if (isTextToSpeechEnabledForMessage(post = post)) {
         val message = post.text()
-        if (message.trim().isNotEmpty()) {
+        if (!message.trim().isEmpty()) {
             chatTextToSpeech.say(
                 messageId = post.messageId,
                 user = post.shortDisplayName(nicknames = database.chat.nicknames),
                 userId = post.userId,
                 message = message,
-                isRedemption = post.isRedemption()
+                isRedemption = post.isRedemption(),
             )
         }
     }
@@ -406,20 +421,20 @@ private fun Model.makeUserColor(userColor: RgbColor?): RgbColor {
 }
 
 fun Model.reloadChatMessages() {
-    chat.posts.value = newPostIds(posts = chat.posts.value.toMutableList())
-    chatActivityFeed.posts.value = newPostIds(posts = chatActivityFeed.posts.value.toMutableList())
-    quickButtonChat.posts.value = newPostIds(posts = quickButtonChat.posts.value.toMutableList())
-    externalDisplayChat.posts.value = newPostIds(posts = externalDisplayChat.posts.value.toMutableList())
-    chatWidgetChat.posts.value = newPostIds(posts = chatWidgetChat.posts.value.toMutableList())
-    quickButtonChatState.chatAlertsPosts.value =
-        newPostIds(posts = quickButtonChatState.chatAlertsPosts.value.toMutableList())
+    chat.posts.value = newPostIds(posts = chat.posts.value)
+    chatActivityFeed.posts.value = newPostIds(posts = chatActivityFeed.posts.value)
+    quickButtonChat.posts.value = newPostIds(posts = quickButtonChat.posts.value)
+    externalDisplayChat.posts.value = newPostIds(posts = externalDisplayChat.posts.value)
+    chatWidgetChat.posts.value = newPostIds(posts = chatWidgetChat.posts.value)
+    quickButtonChatState.chatAlertsPosts.value = newPostIds(posts = quickButtonChatState.chatAlertsPosts.value)
 }
 
-private fun Model.newPostIds(posts: MutableList<ChatPost>): ArrayDeque<ChatPost> {
+private fun Model.newPostIds(posts: List<ChatPost>): ArrayDeque<ChatPost> {
     val newPosts = ArrayDeque<ChatPost>()
     for (post in posts) {
-        newPosts.addLast(post.copy(id = chatPostId))
+        val newPost = post.copy(id = chatPostId)
         chatPostId += 1
+        newPosts.addLast(newPost)
     }
     return newPosts
 }
@@ -447,7 +462,12 @@ fun Model.updateStatusChatText() {
             statuses.add(ChatPlatformStatus(platform = Platform.kick, connected = isKickPusherConnected()))
         }
         if (isYouTubeLiveChatConfigured()) {
-            statuses.add(ChatPlatformStatus(platform = Platform.youTube, connected = isYouTubeLiveChatConnected()))
+            statuses.add(
+                ChatPlatformStatus(
+                    platform = Platform.youTube,
+                    connected = isYouTubeLiveChatConnected(),
+                )
+            )
         }
         if (isSoopChatConfigured()) {
             statuses.add(ChatPlatformStatus(platform = Platform.soop, connected = isSoopChatConnected()))
@@ -456,7 +476,7 @@ fun Model.updateStatusChatText() {
             statuses.add(
                 ChatPlatformStatus(
                     platform = Platform.openStreamingPlatform,
-                    connected = isOpenStreamingPlatformChatConnected()
+                    connected = isOpenStreamingPlatformChatConnected(),
                 )
             )
         }
@@ -481,11 +501,15 @@ fun Model.showChatLabelsForAWhile() {
 
 fun Model.printChatMessage(post: ChatPost) {
     mainScope.launch {
-        delay(2_000)
-        val image = return@launch
+        delay(2000)
+        val post0 = post
+        val chat0 = database.chat
+        val renderer = ImageRenderer(content = { ChatPrinterMessage(post = post0, chat = chat0) })
+        val image = renderer.uiImage ?: return@launch
+        val ciImage = CIImage(cgImage = image)
         for (catPrinter in catPrinters.values) {
             if (getCatPrinterSettings(catPrinter = catPrinter)?.printChat?.value == true) {
-                catPrinter.print(image = image, feedPaperDelay = 3.0)
+                catPrinter.print(image = ciImage, feedPaperDelay = 3.0)
             }
         }
     }
@@ -525,8 +549,8 @@ fun Model.deleteMessage(post: ChatPost) {
 }
 
 fun Model.copyMessage(post: ChatPost) {
-    val clipboard = AppDelegate.context.getSystemService(ClipboardManager::class.java) ?: return
-    clipboard.setPrimaryClip(ClipData.newPlainText(null, post.text()))
+    AppDelegate.context.getSystemService(ClipboardManager::class.java)
+        ?.setPrimaryClip(ClipData.newPlainText(null, post.text()))
 }
 
 fun Model.deleteChatMessage(messageId: String) {
@@ -551,49 +575,55 @@ fun Model.deleteChatUser(userId: String) {
 @Composable
 fun ChatPrinterMessage(post: ChatPost, chat: SettingsChat) {
     Row(modifier = Modifier.width(384.dp)) {
-        FlowRow(modifier = Modifier.weight(1f, fill = false)) {
-            Text(
-                text = post.displayName(nicknames = chat.nicknames, displayStyle = chat.displayStyle),
-                maxLines = 1,
-                color = Color.Black,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = if (post.isRedemption()) " " else ": ",
-                color = Color.Black,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold
-            )
-            for (segment in post.segments) {
-                val text = segment.text
-                if (text != null) {
-                    Text(
-                        text = text,
-                        color = Color.Black,
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+        CompositionLocalProvider(
+            LocalTextStyle provides SwiftUIFonts.system(30, FontWeight.Bold),
+            LocalContentColor provides Color.Black,
+        ) {
+            FlowRow(
+                modifier = Modifier.weight(1f, fill = false),
+                horizontalArrangement = Arrangement.Start,
+                verticalArrangement = Arrangement.Top,
+            ) {
+                Text(
+                    text = post.displayName(nicknames = chat.nicknames, displayStyle = chat.displayStyle),
+                    maxLines = 1,
+                )
+                if (post.isRedemption()) {
+                    Text(text = " ")
+                } else {
+                    Text(text = ": ")
                 }
-                val url = (segment.url ?: segment.bigGifUrl)?.url(animated = false)
-                if (url != null) {
-                    CacheAsyncImage(
-                        url = URI(url),
-                        content = { image ->
-                            Image(
-                                bitmap = image,
-                                contentDescription = null,
-                                modifier = Modifier.height(45.dp)
+                post.segments.forEach { segment ->
+                    key(segment.id) {
+                        segment.text?.let { text ->
+                            Text(text = text)
+                        }
+                        (segment.url ?: segment.bigGifUrl)?.url(animated = false)?.let { url ->
+                            CacheAsyncImage(
+                                url = URI(url),
+                                content = { image ->
+                                    Image(
+                                        bitmap = image,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Fit,
+                                        modifier = Modifier.height(45.dp),
+                                    )
+                                },
+                                placeholder = {
+                                    val icon = Bundle.image("AppIconNoBackground")
+                                    if (icon != null) {
+                                        Image(
+                                            bitmap = icon.asImageBitmap(),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Fit,
+                                            modifier = Modifier.height(45.dp),
+                                        )
+                                    }
+                                },
                             )
-                        },
-                        placeholder = { }
-                    )
-                    Text(
-                        text = " ",
-                        color = Color.Black,
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                            Text(text = " ")
+                        }
+                    }
                 }
             }
         }

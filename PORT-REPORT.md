@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-09-25T21:00:58+00:00
+Generated 2026-09-26T00:08:58+00:00
 
 ## Summary
 
@@ -14,144 +14,34 @@ Generated 2026-09-25T21:00:58+00:00
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
 
-## Needs manual work
+## Apple only / needs Gabriel
 
-- Common/Various/CMFormatDescription+Extension.swift
-  - CMFormatDescriptionGetExtensions (MediaFormat key enumeration requires API 29)
-- Common/Various/CMSampleBuffer+Extension.swift
-  - CMSampleBufferCreateReadyWithImageBuffer
-  - kCMSampleAttachmentKey_DisplayImmediately
-  - CMSampleBuffer attachment dictionary (setAttachmentValue / getAttachmentValue)
+Not port work: the Swift uses an Apple-only service, or the Android counterpart needs Gabriel.
+
+### Apple only
+
 - Common/Various/CommonUtils.swift
   - HealthKit HKQuantityType (heartRateType, distanceCyclingType, distanceWalkingRunningType, stepCountType, activeEnergyBurnedType, runningPowerType, cyclingPowerType, cyclingCadenceType)
-  - CoreMedia CMBlockBuffer (ByteArray.makeBlockBuffer)
-- Common/View/StreamOverlayIconAndTextView.swift
-  - Image(systemName: icon) with a runtime SF Symbol name: no Android/Material counterpart, painter replaced by TODO()
-  - contentShape(Rectangle()) combined with negative padding (-20) hit-area expansion: no Compose counterpart, replaced by TODO()
 - Moblin Watch/Shared/WatchProtocol.swift
   - HealthKit (HKStatistics, HKUnit, heart rate / energy / distance / step / power / cadence quantity types)
-- Moblin/Integrations/GoPro/Protobuf/network_management.pb.swift
-  - SwiftProtobuf.Decoder (decodeMessage has no Android equivalent)
-  - SwiftProtobuf.Visitor (traverse has no Android equivalent)
-- Moblin/Integrations/GoPro/Protobuf/response_generic.pb.swift
-  - SwiftProtobuf.Decoder
-  - SwiftProtobuf.Visitor
-- Moblin/Intents/MoblinShortcuts.swift
-  - AppIntents (AppShortcutsProvider, AppShortcut, ShortcutTileColor)
-  - IntentsUI
-- Moblin/Intents/SnapshotIntent.swift
-  - AppIntents (AppIntent, IntentResult, @Dependency, LocalizedStringResource, IntentDescription)
-- Moblin/Intents/UnmuteIntent.swift
-  - AppIntents
-- Moblin/Media/HaishinKit/Codec/Video/VTSessionProperty.swift
-  - VideoToolbox kVTCompressionPropertyKey_* constants (no Android equivalent, kept as opaque String values)
-- Moblin/Media/HaishinKit/Extension/CMVideoFormatDescription+Extension.swift
-  - CMVideoFormatDescriptionCreateForImageBuffer
-  - CMVideoFormatDescription
-- Moblin/Media/HaishinKit/Extension/VTCompressionSession+Extension.swift
-  - VideoToolbox VTCompressionSessionPrepareToEncodeFrames
-  - VideoToolbox VTCompressionSessionEncodeFrame
-  - VideoToolbox VTCompressionSessionInvalidate
-  - VideoToolbox VTSessionSetProperties
-- Moblin/Media/HaishinKit/Extension/VTDecompressionSession+Extension.swift
-  - VTDecompressionSessionDecodeFrame
-- Moblin/Media/HaishinKit/Media/Audio/AudioUnit.swift
-  - AVCaptureDeviceInput / AVCaptureAudioDataOutput / AVCaptureSession audio device wiring (AudioUnit.attachDevice)
-  - AVCaptureSession.synchronizationClock host clock conversion (syncTimeToHost)
-  - AVCaptureAudioDataOutputSampleBufferDelegate capture loop
-- Moblin/Media/HaishinKit/Media/Audio/BufferedAudio.swift
-  - CMSampleBuffer.numSamples (PCM frame count)
 - Moblin/Media/HaishinKit/Media/MacScreenCapture.swift
   - no Android counterpart for ScreenCaptureKit SCStream
   - no Android counterpart for ScreenCaptureKit SCStream.stopCapture
   - no Android counterpart for ScreenCaptureKit SCShareableContent
-- Moblin/Media/HaishinKit/Media/Recorder.swift
-  - AVAssetWriter segmented HLS writer (AVAssetWriter, outputFileTypeProfile .mpeg4AppleHLS, preferredOutputSegmentInterval, initialSegmentStartTime, delegate) in startRunningInternal
-  - AVAssetWriterInput.SampleBufferReceiver / CMReadySampleBuffer (ReceiverWriterInput.append)
-  - AVAudioConverter and AVAudioFormat (makeAudioConverter, tryConvertAudio)
-  - AVAudioChannelLayout / kAudioChannelLayoutTag_DiscreteInOrder (makeChannelLayout)
-  - AVAudioFormat(streamDescription:) / AudioStreamBasicDescription (makeAudioFormat)
-- Moblin/Media/HaishinKit/Media/Video/PreviewView.swift
-  - AVSampleBufferDisplayLayer (enqueue, flush, flushAndRemoveImage)
-- Moblin/Media/HaishinKit/Media/Video/VideoLowFpsImage.swift
-  - Core Image render path (CIImage.scaled, CIContext.createCGImage, UIImage.jpegData) - createImage body replaced by TODO("OpenGL ES port")
-- Moblin/Media/HaishinKit/Media/Video/VideoSnapshots.swift
-  - Core Image CIContext.createCGImage render
-  - Vision CalculateImageAestheticsScoresRequest
-  - CMSampleBuffer.imageBuffer (MediaCodec decode to android.media.Image)
-- Moblin/Media/HaishinKit/Mpeg/Avc/MpegTsVideoConfigAvc.swift
-  - CMFormatDescription atoms() avcC extraction (getAvcC)
-- Moblin/Media/HaishinKit/Mpeg/Hevc/HevcNalUnit.swift
-  - CMVideoFormatDescriptionCreateFromHEVCParameterSets (CoreMedia)
-- Moblin/Media/HaishinKit/Mpeg/MpegTsReader.swift
-  - AVAudioConverter codec construction replaced by TODO("MediaCodec audio/mp4a-latm decoder configuration port")
-  - AVAudioConverter.convert replaced by TODO("MediaCodec audio/mp4a-latm decode port")
-  - H.265 SEI timecode payload access replaced by TODO("H.265 SEI timecode extraction port")
-- Moblin/Media/HaishinKit/Whip/WhipStream.swift
-  - libdatachannel C API (rtcCreatePeerConnection, rtcAddTrackEx, rtcSendMessage, rtcSetLocalDescription, rtcSetRemoteDescription, rtcGetSelectedCandidatePair, rtcSetUserPointer and the open/closed/error/state/gathering callbacks) - no Android equivalent
-- Moblin/Media/RistServer/RistServer.swift
-  - librist RistReceiverContext start (native RIST receiver has no Android binding in this port)
-  - librist RistReceiverContext stop (native RIST receiver has no Android binding in this port)
-- Moblin/Media/RtmpServer/RtmpServerChunkStream.swift
-  - AVAudioFormat
-  - AVAudioConverter
-  - AVAudioCompressedBuffer
-  - AVAudioPCMBuffer
-- Moblin/Media/RtspClient/RtspClient.swift
-  - CMFormatDescription creation from the SPS/PPS NAL units ([AvcNalUnit].makeFormatDescription()) has no counterpart in the port: TODO("Build a MediaFormat for video/avc from $nalUnits").
-  - CMFormatDescription creation from the VPS/SPS/PPS NAL units ([HevcNalUnit].makeFormatDescription()) has no counterpart in the port: TODO("Build a MediaFormat for video/hevc from $nalUnits").
-- Moblin/Media/Srtla/Client/SrtlaClient.swift
-  - Network.framework NWPathMonitor: no ConnectivityManager is available in SrtlaClient, network path registration is TODO(...) and must be wired from the Activity layer
-- Moblin/Media/Webrtc/WebrtcCommon.swift
-  - libdatachannel `rtcInitLogger` / `RTC_LOG_DEBUG` (C library, no Android binding in this port)
-- Moblin/Media/Webrtc/WebrtcIngestClient.swift
-  - AVAudioConverter / AVAudioFormat(streamDescription:) / AVAudioCompressedBuffer — replaced by TODO in setupOpusDecoder: the MediaCodec "audio/opus" decoder needs the OpusHead codec specific data from the SDP
-  - AVAudioConverter.convert(to:error:withInputFrom:) — replaced by TODO in decodeOpusPacket: MediaCodec audio/opus packet decode
-- Moblin/Media/Webrtc/WhepClient/WhepClient.swift
-  - libdatachannel RTC_CODEC_H264 / RTC_CODEC_OPUS constants (codec: argument of addRecvOnlyTrack)
 - Moblin/Media/WiFiAware/WiFiAwareReceiver.swift
   - WiFiAware framework (Wi-Fi Aware listening, publishable/subscribable service pairing)
   - Network.framework declarative NetworkListener / NetworkConnection API
 - Moblin/Media/WiFiAware/WiFiAwareSender.swift
   - WiFiAware NetworkBrowser / NetworkConnection over UDP (Network.framework on Wi-Fi Aware)
-- Moblin/MoblinApp.swift
-  - UIWindowScene / UIScene / UISceneSession (SceneDelegate scene connection)
-  - UISceneConfiguration
-  - UIInterfaceOrientationMask / requestGeometryUpdate(_:) / setNeedsUpdateOfSupportedInterfaceOrientations()
-  - UIOpenURLContext
-  - UIApplicationDelegateAdaptor
-- Moblin/RemoteControl/RemoteControlWeb.swift
-  - NetService Bonjour advertisement (`_http._tcp` passed to HttpServer) has no Android counterpart and is passed as TODO()
 - Moblin/Various/ChatPost.swift
   - WatchConnectivity: WatchProtocolChatHighlight / WatchProtocolChatHighlightKind do not exist on Android, so ChatHighlight.toWatchProtocol() is TODO().
 - Moblin/Various/Gimbal.swift
   - DockKit (DockAccessoryManager, DockAccessory, DockAccessory.StateChange, DockAccessory.AccessoryEvent, DockAccessory.Animation): no Android counterpart, replaced with TODO
-- Moblin/Various/KeepSpeakerAlive.swift
-  - Bundle.main.url(forResource:withExtension:) -> needs a Context and res/raw or assets lookup, replaced by TODO()
-  - AVAudioPlayerDelegate -> no Android counterpart, replaced by TODO()
-- Moblin/Various/Managers/Location.swift
-  - CLBackgroundActivitySession (BackgroundActivity.start/stop)
-  - CLLocationManager.requestWhenInUseAuthorization (ACCESS_FINE_LOCATION must be requested by the Activity layer)
-- Moblin/Various/Managers/WeatherManager.swift
-  - WeatherKit (WeatherService, Weather) — no Android counterpart for WeatherKit
-- Moblin/Various/Media.swift
-  - AVCaptureDevice.lockForConfiguration/ramp(toVideoZoomFactor:withRate:)/videoZoomFactor (camera zoom control) replaced by TODO("CameraX zoom control port")
-  - AVCaptureDevice.default(for: .audio) replaced by TODO("AVCaptureDevice.default(for: .audio) port")
-- Moblin/Various/Model/ModelAppIntents.swift
-  - AppIntents (AppDependencyManager.shared.add(dependency:)) - no Android counterpart for AppIntents
-- Moblin/Various/Model/ModelAppMode.swift
-  - Bundle.main.url(forResource: "Alerts.bundle/Silence", withExtension: "mp3") -> TODO("Resolve Alerts.bundle/Silence.mp3 from assets and create a MediaPlayer")
 - Moblin/Various/Model/ModelAppleWatch.swift
   - WatchConnectivity (WCSession, WCSessionDelegate, WCSessionActivationState)
   - WatchMessageToWatch and WatchMessageFromWatch
   - WatchProtocol* payload types (WatchProtocolScene, WatchProtocolChatMessage, WatchProtocolPadelScoreboard, ...)
   - UIImage (UIKit)
-- Moblin/Various/Model/ModelChat.swift
-  - SwiftUI ImageRenderer (offscreen chat-message rendering for the CatPrinter in printChatMessage)
-  - CIImage (chat-message image handed to the CatPrinter in printChatMessage)
-  - UIPasteboard (copyMessage)
-- Moblin/Various/Model/ModelKeyboard.swift
-  - SwiftUI KeyPress / KeyPress.Result (iOS 17 press handling) has no Android equivalent; a placeholder KeyPress type with nested Result was declared and key events must come from Compose key input.
 - Moblin/Various/Model/ModelMacStatusItem.swift
   - NSBundle.main.builtInPlugInsURL / Bundle(url:) / principalClass plugin bundle loading (MoblinMac.bundle)
   - macCatalyst NSStatusItem bridge (MacStatusItem helper object)
@@ -165,210 +55,30 @@ Generated 2026-09-25T21:00:58+00:00
   - MusicKit MusicCatalogResourceRequest / MusicCatalogSearchRequest (Song lookup by URL id and search by term)
   - MusicKit ApplicationMusicPlayer (queue assignment/insertion, play, pause, prepareToPlay, skipToNextEntry, skipToPreviousEntry, state.playbackStatus, isPreparedToPlay)
   - MusicKit Song and MusicItemID types (findSong result type kept as placeholder Any?)
-- Moblin/Various/Model/ModelNavigation.swift
-  - MapKit MapCameraPosition
-  - MapKit MKDirections
-  - MapKit MKDirectionsTransportType
-- Moblin/Various/Model/ModelRecording.swift
-  - DateComponentsFormatter via uptimeFormatter.string(from:) (no direct Android equivalent)
-- Moblin/Various/Model/ModelScoreboard.swift
-  - WatchConnectivity (WatchProtocolPadelScoreboardAction, WatchProtocolPadelScoreboardActionPlayers)
-- Moblin/Various/Model/ModelSettingsUrl.swift
-  - no Android counterpart for security-scoped resource access
-- Moblin/Various/Model/ModelSnapshot.swift
-  - UIImageWriteToSavedPhotosAlbum
-- Moblin/Various/Model/ModelStealthMode.swift
-  - URL.documentsDirectory with appending(component:) — replaced by TODO("no Android counterpart for URL.documentsDirectory: needs File(context.filesDir, \"stealthModeImage.img\")") because a Context is required on Android
-- Moblin/Various/Model/ModelStore.swift
-  - StoreKit: Product.products(for:), Transaction.updates, VerificationResult, AppStore.sync(), Product.purchase(), Transaction.currentEntitlements, Transaction.finish()
 - Moblin/Various/Model/ModelStreamDeck.swift
   - StreamDeckKit (StreamDeckSession.setUp, StreamDeckLayout, StreamDeckKeyAreaLayout)
   - UIApplication.canOpenURL
-- Moblin/Various/Model/ModelTwitch.swift
-  - AVFoundation alert sounds (playAlert) -> TODO("no Android counterpart for Alert")
-  - EventCatPrinter event printing -> TODO("no Android counterpart for EventCatPrinterEvent")
-  - Missing ChatHighlightKind cases (newFollower, redemption, other) -> TODO("no ChatHighlightKind case for ...")
-- Moblin/Various/Model/ModelWebBrowser.swift
-  - WKWebViewConfiguration.setHttpProxy(endpoint:) (NetworkExtension proxy configuration)
-  - WKUIDelegate (webBrowserController)
-  - WKNavigationDelegate (replaced by android.webkit.WebViewClient.onPageStarted)
-  - Context needed to construct android.webkit.WebView inside Model.getWebBrowser()
 - Moblin/Various/Model/ModelWorkout.swift
   - HealthKit (HKHealthStore, HKWorkoutConfiguration, HKWorkoutSession, HKWorkoutSessionDelegate, HKLiveWorkoutBuilder, HKLiveWorkoutBuilderDelegate, HKLiveWorkoutDataSource, HKQuantitySample, HKUnit, HKSampleType, HKWorkoutSessionState)
   - WatchConnectivity (source of the WatchProtocolWorkoutType workout kinds)
   - ContinuousClock.Instant and HKWorkoutSession state transitions used for sample rate limiting
-- Moblin/Various/Network/HttpClient.swift
-  - resolve android.net.Network for cellular/wifi/ethernet via ConnectivityManager
-- Moblin/Various/Network/HttpServer.swift
-  - NWListener.Service (Bonjour/mDNS advertisement) replaced by TODO("register mDNS service with NsdManager")
-- Moblin/Various/Network/NetworkUtils.swift
-  - Network.framework NWProtocolWebSocket ping frame (no OkHttp public API to send it)
-  - Network.framework NWProtocolWebSocket pong frame (no OkHttp public API to send it)
-  - WKWebViewConfiguration.proxyConfigurations (no Android per-WebView HTTP proxy equivalent)
-- Moblin/Various/Network/WebSocketClient.swift
-  - NWWebSocket.ping() manual ping frames (TODO in startPingTimer; OkHttpClient.pingInterval pings automatically)
-  - NWConnection viability changes (webSocketViabilityDidChange, no Android counterpart)
-  - NWConnection better path migration (webSocketDidAttemptBetterPathMigration, no Android counterpart)
-- Moblin/Various/Storages/RecordingsStorage.swift
-  - URL(resolvingBookmarkData:bookmarkDataIsStale:) / startAccessingSecurityScopedResource security-scoped bookmarks
-- Moblin/Various/Variables.swift
-  - WeatherKit WeatherCondition and Measurement<UnitTemperature>/<UnitSpeed> have no Android counterpart; they appear only in property declarations, so they were substituted with String? and Double? instead of a TODO() body
-- Moblin/View/ControlBar/QuickButton/QuickButtonMicView.swift
-  - contextMenuDeleteButton (SwiftUI context menu) replaced by TODO()
-  - SwiftUI List .onMove drag reordering replaced by TODO()
-- Moblin/View/ControlBar/QuickButton/QuickButtonSceneWidgetsView.swift
-  - NavigationLink
-  - navigationTitle
 - Moblin/View/Settings/AppleMusic/AppleMusicSettingsView.swift
   - MusicKit MusicSubscription.subscriptionUpdates
   - MusicKit MusicSubscriptionOffer (musicSubscriptionOffer modifier)
   - MusicKit ApplicationMusicPlayer state and queue (musicPlayer)
-- Moblin/View/Settings/BitratePresets/BitratePresetsSettingsView.swift
-  - contextMenuDeleteButton (long-press context menu delete)
-  - onMove (List drag-to-reorder)
-- Moblin/View/Settings/Chat/ChatFiltersSettingsView.swift
-  - contextMenuDeleteButton (SwiftUI context menu delete action)
-  - List.onMove (SwiftUI list reordering)
-- Moblin/View/Settings/Chat/ChatNicknamesSettingsView.swift
-  - SwiftUI List.onMove (drag to reorder) has no Compose counterpart
-- Moblin/View/Settings/DeepLinkCreator/DeepLinkCreatorStreamsSettingsView.swift
-  - contextMenuDeleteButton (SwiftUI context menu delete) has no direct Compose counterpart; replaced by long-press plus AlertDialog
-  - onMove list reordering has no Compose counterpart; reordering is omitted
-- Moblin/View/Settings/Display/DisplaySettingsView.swift
-  - PhotosUI PhotosPicker
-  - PhotosUI loadTransferable
-- Moblin/View/Settings/Display/QuickButtons/QuickButtonsButtonSettingsView.swift
-  - no Android counterpart for PhotosPicker
-  - no Android counterpart for PhotosPicker loadTransferable
-- Moblin/View/Settings/DjiDevices/DjiDevicesSettingsView.swift
-  - contextMenuDeleteButton (context menu delete modifier)
-  - ForEach onMove (drag to reorder)
-  - ForEach onDelete (swipe to delete)
-- Moblin/View/Settings/GameControllers/GameControllersControllerButtonSettingsView.swift
-  - Image(systemName: button.name) with a dynamic SF Symbol name has no Android/Compose counterpart and is replaced by TODO().
-- Moblin/View/Settings/GameControllers/GameControllersControllerSettingsView.swift
-  - SwiftUI @Binding mutation of SettingsGameController.leftThumbStickFunction / rightThumbStickFunction (no known setter)
-- Moblin/View/Settings/GameControllers/GameControllersControllerThumbStickSettingsView.swift
-  - Image(systemName:) with a dynamic SF Symbol name has no Compose ImageVector mapping
-- Moblin/View/Settings/Gimbal/GimbalSettingsView.swift
-  - SwiftUI contextMenu / contextMenuDeleteButton
-- Moblin/View/Settings/GoPro/GoProBleDeviceSettingsView.swift
-  - no Compose counterpart for drag reordering of a list (onMove)
-- Moblin/View/Settings/ImportExport/ExportSettingsView.swift
-  - ShareLink
-- Moblin/View/Settings/Ingests/SrtlaServer/SrtlaServerSettingsView.swift
-  - contextMenuDeleteButton (SwiftUI .contextMenu on stream rows)
-- Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift
-  - Transferable / TransferRepresentation (Video.transferRepresentation)
-  - PhotosPickerItem and .photosPicker modifier
-  - PhotosPickerItem.loadTransferable
-  - contextMenuDeleteButton
-  - List.onMove (drag to reorder)
-  - List.onDelete (swipe to delete)
-- Moblin/View/Settings/Recordings/RecordingsSettingsView.swift
-  - UIApplication.shared.canOpenURL
-  - UIApplication.shared.open
-  - shareddocuments:// Files app URL scheme
-- Moblin/View/Settings/Scenes/AutoSwitchers/AutoSwitchersSettingsView.swift
-  - contextMenuDeleteButton (iOS context menu delete) -> TODO("no Android counterpart for context menu delete button")
-  - ForEach.onMove drag to reorder -> TODO("no Android counterpart for drag to reorder list items")
-  - ForEach.onDelete swipe to delete -> TODO("no Android counterpart for swipe to delete list items")
-- Moblin/View/Settings/Scenes/Scene/SceneSettingsView.swift
-  - onMove: SwiftUI List drag-to-reorder of scene widgets has no Compose counterpart and is replaced by TODO()
-- Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsChatBotSettingsView.swift
-  - SettingsColor.color() used for textColor/accentColor has no translation declared in the port glossary, replaced by TODO()
-  - The AlertTest.chatBotCommand(name, ...) case passed to model.testAlert() has no AlertTest type declared in the port glossary, replaced by TODO()
-- Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsImageSettingsView.swift
-  - Bundle.main.path(forResource:ofType:)
-- Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsKickSettingsView.swift
-  - Model.testAlert(Model.AlertType) associated-value cases for Kick (kickSubscription, kickGiftedSubscriptions, kickHost, kickReward, kickKicks) - TODO(...) in the five Test buttons
-  - contextMenuDeleteButton (SwiftUI context menu on a list row) - TODO(...) in KickGiftsView
-  - SwiftUI ForEach .onMove reordering and .onDelete swipe-to-delete - no Compose counterpart, the list is rendered without them
-- Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSettingsView.swift
-  - UIDocumentPickerViewController (AlertPickerView, VideoPickerView)
-  - SwiftUI bundled image asset "AlertFace"
-  - UTType used as AlertPickerView's parameter type, replaced by String
-- Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSoundSettingsView.swift
-  - Bundle.main.url(forResource:withExtension:)
-- Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSpeechToTextSettingsView.swift
-  - Model.testAlert alert case for speechToTextString(string.id) - the ported test alert type is unknown, argument replaced with TODO()
-- Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsTwitchSettingsView.swift
-  - Model.testAlert alert case for TwitchEventSubNotificationChannelFollowEvent (twitchFollow) replaced by TODO
-  - Model.testAlert alert case for TwitchEventSubNotificationChannelSubscribeEvent (twitchSubscribe) replaced by TODO
-  - Model.testAlert alert case for TwitchEventSubChannelRaidEvent (twitchRaid) replaced by TODO
-  - Model.testAlert alert case for TwitchEventSubChannelCheerEvent (twitchCheer) replaced by TODO
-- Moblin/View/Settings/Scenes/Widgets/Widget/Effects/WidgetEffectsView.swift
-  - contextMenuDeleteButton (SwiftUI context menu row action)
-- Moblin/View/Settings/Scenes/Widgets/Widget/Image/WidgetImageSettingsView.swift
-  - PhotosUI .photosPicker presentation replaced with TODO("no Android counterpart for the PhotosUI photosPicker presentation")
-  - PhotosPickerItem.loadTransferable replaced with TODO("no Android counterpart for PhotosPickerItem.loadTransferable")
-- Moblin/View/Settings/Scenes/Widgets/Widget/PomodoroTimer/WidgetPomodoroTimerSettingsView.swift
-  - Image(systemName:) with a dynamic SF Symbol name (PomodoroFocusIcon.rawValue, PomodoroBreakIcon.rawValue) has no Android counterpart
-- Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardGolfSettingsView.swift
-  - SwiftUI contextMenuDeleteButton (context menu)
-  - SwiftUI List .onDelete swipe-to-delete gesture
-- Moblin/View/Settings/Scenes/Widgets/Widget/Scoreboard/WidgetScoreboardPadelSettingsView.swift
-  - SwiftUI contextMenuDeleteButton (context menu delete) -> TODO("no Android counterpart for contextMenuDeleteButton")
-  - SwiftUI ForEach.onMove (drag reordering) -> TODO("no Android counterpart for list reordering")
-  - PadelScoreboardAction argument of Model.handleUpdatePadelScoreboard -> TODO() (type not in the port glossary)
-- Moblin/View/Settings/Scenes/Widgets/Widget/Snapshot/WidgetSnapshotSettingsView.swift
-  - mutation of SettingsWidgetSnapshot.showtime from the picker selection
-- Moblin/View/Settings/Scenes/Widgets/WidgetsSettingsView.swift
-  - SwiftUI contextMenu (.contextMenuDeleteButton) -> TODO("context menus have no Material 3 counterpart")
-- Moblin/View/Settings/Store/StoreSettingsView.swift
-  - UIApplication.shared.setAlternateIconName (switching the app icon) has no Android counterpart and is replaced by TODO() in setAppIcon
 - Moblin/View/Settings/StreamDeck/StreamDeckLayoutSettingsView.swift
   - ColorPicker -> TODO("ColorPicker has no Compose counterpart")
-- Moblin/View/Settings/Streams/Stream/Wizard/Custom/StreamWizardCustomSettingsView.swift
-  - Swift enum-case assignment createStreamWizard.platform = .custom has no known Kotlin enum type in the glossary, replaced by TODO()
-  - Swift enum-case assignment createStreamWizard.customProtocol = .none has no known Kotlin enum type in the glossary, replaced by TODO()
-- Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/MyServers/StreamWizardNetworkSetupMyServersSettingsView.swift
-  - Assignment of CreateStreamWizard's network setup selection (Swift .myServers enum case) has no verified Kotlin counterpart
-- Moblin/View/Settings/Streams/Stream/Wizard/NetworkSetup/MyServers/StreamWizardNetworkSetupMyServersSrtSettingsView.swift
-  - createStreamWizard.customProtocol = .srt: the protocol enum setter is not present in the glossary, replaced with TODO()
-- Moblin/View/Settings/Streams/Stream/Wizard/Platform/StreamWizardYouTubeSettingsView.swift
-  - YouTubeApi.listLiveStreams result handling (success/authError/error) has no ported type in this project
-  - YouTubeApi.listChannels result handling (success/authError/error) has no ported type in this project
-- Moblin/View/Settings/Streams/Stream/Wizard/StreamWizardMobcamSettingsView.swift
-  - createStreamWizard.platform = .mobcam (no Mobcam platform enum value is known in the Kotlin port, so the assignment is TODO())
 - Moblin/View/Settings/WiFiAware/WiFiAwareSettingsView.swift
   - WiFiAware (WAPublishableService.allServices, WASubscribableService.allServices, WAPairedDevice.allDevices, WACapabilities.supportedFeatures, WAFeature.wifiAware)
   - DeviceDiscoveryUI.DevicePairingView
   - DeviceDiscoveryUI.DevicePicker
-- Moblin/View/Stream/DrawOnStreamView.swift
-  - ColorPicker
-- Moblin/View/Stream/Overlay/Right/SegmentedPicker.swift
-  - SwiftUI @Namespace / matchedGeometryEffect (animated selection highlight)
-  - SwiftUI .onLongPressGesture
-  - SwiftUI .contentShape(Rectangle())
-- Moblin/View/Stream/Overlay/Right/StreamOverlayRightFaceView.swift
-  - PhotosPicker / PhotosPickerItem.loadTransferable (no Android counterpart, TODO in the backgroundImage branch)
-  - Write of SettingsFace.blurStrength (TODO in the blur branch)
-  - Write of SettingsFace.pixellateStrength (TODO in the pixellate branch)
-  - Write of SettingsFace.privacyMode (TODO in the picker menu)
-- Moblin/View/Stream/Overlay/StreamOverlayNavigationView.swift
-  - MapKit (Map, MapReader, MKLocalSearch, MKMapItem, MKMapItemRequest, PlaceDescriptor, Marker, MapPolyline, UserAnnotation)
-  - glassEffect() view modifier
-  - SF Symbol image per NavigationTransportType case (transportType.image())
-- Moblin/View/Stream/Overlay/StreamOverlayRightView.swift
-  - Swift Charts SectorMark pie chart (collapsed bonding view)
-- Moblin/View/Stream/StreamView.swift
-  - AVCaptureVideoOrientation / AVCaptureVideoPreviewLayer.videoOrientation (no per-layer orientation in CameraX PreviewView)
-- Moblin/View/Utils/CommandCopyView.swift
-  - ShareLink
-- Moblin/View/Utils/EmotesPlayer.swift
-  - UIImage(systemName:withConfiguration:)
-- Moblin/View/Utils/RgbColorPickerView.swift
-  - SwiftUI ColorPicker (no Compose counterpart, replaced by TODO())
-  - Color.toRgb() SwiftUI extension converting Color to RgbColor (no Kotlin counterpart, replaced by TODO())
-- Moblin/View/Utils/ShareSheetView.swift
-  - UIActivityViewController (no Android counterpart for UIActivityViewController)
-- Moblin/View/WebBrowser/WebBrowserView.swift
-  - contextMenuDeleteButton
-- MoblinTests/Moblin/Media/HaishinKit/Mpeg/MpegTsReaderSuite.swift
-  - CMFormatDescription.audioStreamBasicDescription (AVFoundation)
 - MoblinTests/Moblin/Various/Utils/CmTimeSuite.swift
   - no Android counterpart for CMTime preferredTimescale quantization
+
+### Needs Gabriel
+
+- Moblin/Various/Model/ModelStore.swift
+  - StoreKit: Product.products(for:), Transaction.updates, VerificationResult, AppStore.sync(), Product.purchase(), Transaction.currentEntitlements, Transaction.finish() (needs Google Play Billing and the icon products in the Play Console)
 
 ## Ported files
 
@@ -420,10 +130,10 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/Integrations/WorkoutDevice/WorkoutDeviceCyclingSpeedCadence.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceCyclingSpeedCadence.kt | deepseek-flash | 24.3 |
 | Moblin/Integrations/WorkoutDevice/WorkoutDeviceHeartRate.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceHeartRate.kt | deepseek-flash | 11.2 |
 | Moblin/Integrations/WorkoutDevice/WorkoutDeviceRunning.swift | app/src/main/java/com/moblin/android/integrations/workoutdevice/WorkoutDeviceRunning.kt | deepseek-flash | 25.9 |
-| Moblin/Intents/MoblinShortcuts.swift | app/src/main/java/com/moblin/android/intents/MoblinShortcuts.kt | deepseek-flash | 13.7 |
+| Moblin/Intents/MoblinShortcuts.swift | app/src/main/java/com/moblin/android/intents/MoblinShortcuts.kt | deepseek-flash | 3.2 |
 | Moblin/Intents/MuteIntent.swift | app/src/main/java/com/moblin/android/intents/MuteIntent.kt | deepseek-flash | 5.4 |
-| Moblin/Intents/SnapshotIntent.swift | app/src/main/java/com/moblin/android/intents/SnapshotIntent.kt | deepseek-flash | 15.7 |
-| Moblin/Intents/UnmuteIntent.swift | app/src/main/java/com/moblin/android/intents/UnmuteIntent.kt | deepseek-flash | 9.6 |
+| Moblin/Intents/SnapshotIntent.swift | app/src/main/java/com/moblin/android/intents/SnapshotIntent.kt | deepseek-flash | 5.4 |
+| Moblin/Intents/UnmuteIntent.swift | app/src/main/java/com/moblin/android/intents/UnmuteIntent.kt | deepseek-flash | 9.9 |
 | Moblin/Media/AdaptiveBitrate/AdaptiveBitrate.swift | app/src/main/java/com/moblin/android/media/adaptivebitrate/AdaptiveBitrate.kt | deepseek-flash | 26.4 |
 | Moblin/Media/AdaptiveBitrate/AdaptiveBitrateRistExperiment.swift | app/src/main/java/com/moblin/android/media/adaptivebitrate/AdaptiveBitrateRistExperiment.kt | deepseek-flash | 67.7 |
 | Moblin/Media/AdaptiveBitrate/AdaptiveBitrateSrtBelabox.swift | app/src/main/java/com/moblin/android/media/adaptivebitrate/AdaptiveBitrateSrtBelabox.kt | deepseek-flash | 96.0 |
@@ -463,7 +173,7 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt | deepseek-flash | 147.5 |
 | Moblin/Media/HaishinKit/Media/Video/VideoFpsEstimator.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoFpsEstimator.kt | deepseek-flash | 5.9 |
 | Moblin/Media/HaishinKit/Media/Video/VideoLowFpsImage.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoLowFpsImage.kt | deepseek-flash | 29.5 |
-| Moblin/Media/HaishinKit/Media/Video/VideoSnapshots.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoSnapshots.kt | deepseek-flash | 80.7 |
+| Moblin/Media/HaishinKit/Media/Video/VideoSnapshots.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoSnapshots.kt | deepseek-flash | 63.7 |
 | Moblin/Media/HaishinKit/Media/Video/VideoUnit.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoUnit.kt | deepseek-flash | 23.2 |
 | Moblin/Media/HaishinKit/Mpeg/Adts.swift | app/src/main/java/com/moblin/android/media/haishinkit/mpeg/Adts.kt | deepseek-flash | 84.4 |
 | Moblin/Media/HaishinKit/Mpeg/AudioSpecificConfig.swift | app/src/main/java/com/moblin/android/media/haishinkit/mpeg/AudioSpecificConfig.kt | deepseek-flash | 20.4 |
@@ -591,20 +301,20 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/Various/Detection.swift | app/src/main/java/com/moblin/android/various/Detection.kt | deepseek-flash | 21.6 |
 | Moblin/Various/FaxReceiver.swift | app/src/main/java/com/moblin/android/various/FaxReceiver.kt | deepseek-flash | 20.4 |
 | Moblin/Various/Gimbal.swift | app/src/main/java/com/moblin/android/various/Gimbal.kt | deepseek-flash | 113.9 |
-| Moblin/Various/KeepSpeakerAlive.swift | app/src/main/java/com/moblin/android/various/KeepSpeakerAlive.kt | deepseek-flash | 36.0 |
+| Moblin/Various/KeepSpeakerAlive.swift | app/src/main/java/com/moblin/android/various/KeepSpeakerAlive.kt | deepseek-flash | 61.1 |
 | Moblin/Various/Keychain.swift | app/src/main/java/com/moblin/android/various/Keychain.kt | deepseek-flash | 33.7 |
 | Moblin/Various/Logger.swift | app/src/main/java/com/moblin/android/various/Logger.kt | deepseek-flash | 9.6 |
 | Moblin/Various/MainTimer.swift | app/src/main/java/com/moblin/android/various/MainTimer.kt | deepseek-flash | 6.7 |
 | Moblin/Various/Managers/GForceManager.swift | app/src/main/java/com/moblin/android/various/managers/GForceManager.kt | deepseek-flash | 17.4 |
 | Moblin/Various/Managers/GeographyManager.swift | app/src/main/java/com/moblin/android/various/managers/GeographyManager.kt | deepseek-flash | 12.4 |
-| Moblin/Various/Managers/Location.swift | app/src/main/java/com/moblin/android/various/managers/Location.kt | deepseek-flash | 65.7 |
-| Moblin/Various/Managers/WeatherManager.swift | app/src/main/java/com/moblin/android/various/managers/WeatherManager.kt | deepseek-flash | 19.5 |
+| Moblin/Various/Managers/Location.swift | app/src/main/java/com/moblin/android/various/managers/Location.kt | deepseek-flash | 35.7 |
+| Moblin/Various/Managers/WeatherManager.swift | app/src/main/java/com/moblin/android/various/managers/WeatherManager.kt | deepseek-flash | 10.5 |
 | Moblin/Various/Media.swift | app/src/main/java/com/moblin/android/various/Media.kt | deepseek-flash | 191.1 |
 | Moblin/Various/MediaPlayer.swift | app/src/main/java/com/moblin/android/various/MediaPlayer.kt | deepseek-flash | 71.1 |
 | Moblin/Various/MoblinSettingsUrl.swift | app/src/main/java/com/moblin/android/various/MoblinSettingsUrl.kt | deepseek-flash | 66.4 |
 | Moblin/Various/Model/Chat/ChatProvider.swift | app/src/main/java/com/moblin/android/various/model/chat/ChatProvider.kt | deepseek-flash | 49.7 |
 | Moblin/Various/Model/Model.swift | app/src/main/java/com/moblin/android/various/model/Model.kt | deepseek-flash | 82.0 |
-| Moblin/Various/Model/ModelAppIntents.swift | app/src/main/java/com/moblin/android/various/model/ModelAppIntents.kt | deepseek-flash | 2.6 |
+| Moblin/Various/Model/ModelAppIntents.swift | app/src/main/java/com/moblin/android/various/model/ModelAppIntents.kt | deepseek-flash | 2.9 |
 | Moblin/Various/Model/ModelAppMode.swift | app/src/main/java/com/moblin/android/various/model/ModelAppMode.kt | deepseek-flash | 25.7 |
 | Moblin/Various/Model/ModelAppleWatch.swift | app/src/main/java/com/moblin/android/various/model/ModelAppleWatch.kt | deepseek-flash | 36.6 |
 | Moblin/Various/Model/ModelAudio.swift | app/src/main/java/com/moblin/android/various/model/ModelAudio.kt | deepseek-flash | 29.8 |
@@ -613,7 +323,7 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/Various/Model/ModelBluetooth.swift | app/src/main/java/com/moblin/android/various/model/ModelBluetooth.kt | deepseek-flash | 7.5 |
 | Moblin/Various/Model/ModelCamera.swift | app/src/main/java/com/moblin/android/various/model/ModelCamera.kt | deepseek-flash | 17.0 |
 | Moblin/Various/Model/ModelCatPrinters.swift | app/src/main/java/com/moblin/android/various/model/ModelCatPrinters.kt | deepseek-flash | 51.9 |
-| Moblin/Various/Model/ModelChat.swift | app/src/main/java/com/moblin/android/various/model/ModelChat.kt | deepseek-flash | 125.1 |
+| Moblin/Various/Model/ModelChat.swift | app/src/main/java/com/moblin/android/various/model/ModelChat.kt | deepseek-flash | 127.2 |
 | Moblin/Various/Model/ModelChatBot.swift | app/src/main/java/com/moblin/android/various/model/ModelChatBot.kt | deepseek-flash | 29.7 |
 | Moblin/Various/Model/ModelControlBar.swift | app/src/main/java/com/moblin/android/various/model/ModelControlBar.kt | deepseek-flash | 37.0 |
 | Moblin/Various/Model/ModelDisconnectProtection.swift | app/src/main/java/com/moblin/android/various/model/ModelDisconnectProtection.kt | deepseek-flash | 10.7 |
@@ -634,7 +344,7 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/Various/Model/ModelMoblinWebsite.swift | app/src/main/java/com/moblin/android/various/model/ModelMoblinWebsite.kt | deepseek-flash | 82.5 |
 | Moblin/Various/Model/ModelMoblink.swift | app/src/main/java/com/moblin/android/various/model/ModelMoblink.kt | deepseek-flash | 50.7 |
 | Moblin/Various/Model/ModelMusic.swift | app/src/main/java/com/moblin/android/various/model/ModelMusic.kt | deepseek-flash | 40.1 |
-| Moblin/Various/Model/ModelNavigation.swift | app/src/main/java/com/moblin/android/various/model/ModelNavigation.kt | deepseek-flash | 20.6 |
+| Moblin/Various/Model/ModelNavigation.swift | app/src/main/java/com/moblin/android/various/model/ModelNavigation.kt | deepseek-flash | 16.5 |
 | Moblin/Various/Model/ModelObs.swift | app/src/main/java/com/moblin/android/various/model/ModelObs.kt | deepseek-flash | 96.2 |
 | Moblin/Various/Model/ModelPhotoShoot.swift | app/src/main/java/com/moblin/android/various/model/ModelPhotoShoot.kt | deepseek-flash | 1.4 |
 | Moblin/Various/Model/ModelPictureInPicture.swift | app/src/main/java/com/moblin/android/various/model/ModelPictureInPicture.kt | deepseek-flash | 36.4 |
@@ -648,7 +358,7 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/Various/Model/ModelScoreboard.swift | app/src/main/java/com/moblin/android/various/model/ModelScoreboard.kt | deepseek-flash | 104.6 |
 | Moblin/Various/Model/ModelScreenCapture.swift | app/src/main/java/com/moblin/android/various/model/ModelScreenCapture.kt | deepseek-flash | 45.0 |
 | Moblin/Various/Model/ModelSettingsImportExport.swift | app/src/main/java/com/moblin/android/various/model/ModelSettingsImportExport.kt | deepseek-flash | 39.6 |
-| Moblin/Various/Model/ModelSettingsUrl.swift | app/src/main/java/com/moblin/android/various/model/ModelSettingsUrl.kt | deepseek-flash | 47.4 |
+| Moblin/Various/Model/ModelSettingsUrl.swift | app/src/main/java/com/moblin/android/various/model/ModelSettingsUrl.kt | deepseek-flash | 52.3 |
 | Moblin/Various/Model/ModelSnapshot.swift | app/src/main/java/com/moblin/android/various/model/ModelSnapshot.kt | deepseek-flash | 47.4 |
 | Moblin/Various/Model/ModelSoop.swift | app/src/main/java/com/moblin/android/various/model/ModelSoop.kt | deepseek-flash | 16.0 |
 | Moblin/Various/Model/ModelSpeechToText.swift | app/src/main/java/com/moblin/android/various/model/ModelSpeechToText.kt | deepseek-flash | 41.7 |
@@ -673,7 +383,7 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/Various/Model/ModelYouTube.swift | app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt | deepseek-flash | 191.9 |
 | Moblin/Various/Model/ModelZoom.swift | app/src/main/java/com/moblin/android/various/model/ModelZoom.kt | deepseek-flash | 65.5 |
 | Moblin/Various/Network/DnsLookup.swift | app/src/main/java/com/moblin/android/various/network/DnsLookup.kt | deepseek-flash | 6.9 |
-| Moblin/Various/Network/HttpClient.swift | app/src/main/java/com/moblin/android/various/network/HttpClient.kt | deepseek-flash | 99.8 |
+| Moblin/Various/Network/HttpClient.swift | app/src/main/java/com/moblin/android/various/network/HttpClient.kt | deepseek-flash | 119.4 |
 | Moblin/Various/Network/HttpProxyServer.swift | app/src/main/java/com/moblin/android/various/network/HttpProxyServer.kt | deepseek-flash | 80.7 |
 | Moblin/Various/Network/HttpServer.swift | app/src/main/java/com/moblin/android/various/network/HttpServer.kt | deepseek-flash | 85.3 |
 | Moblin/Various/Network/IpMonitor.swift | app/src/main/java/com/moblin/android/various/network/IpMonitor.kt | deepseek-flash | 52.0 |
@@ -878,7 +588,7 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/View/Settings/GoPro/GoProSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/gopro/GoProSettingsView.kt | deepseek-flash | 92.0 |
 | Moblin/View/Settings/HelpAndSupport/HelpAndSupportSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/helpandsupport/HelpAndSupportSettingsView.kt | deepseek-flash | 5.6 |
 | Moblin/View/Settings/HttpProxy/HttpProxySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/httpproxy/HttpProxySettingsView.kt | deepseek-flash | 45.7 |
-| Moblin/View/Settings/ImportExport/ExportSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/importexport/ExportSettingsView.kt | deepseek-flash | 6.7 |
+| Moblin/View/Settings/ImportExport/ExportSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/importexport/ExportSettingsView.kt | deepseek-flash | 15.0 |
 | Moblin/View/Settings/ImportExport/ImportExportSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/importexport/ImportExportSettingsView.kt | deepseek-flash | 5.5 |
 | Moblin/View/Settings/ImportExport/ImportSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/importexport/ImportSettingsView.kt | deepseek-flash | 31.9 |
 | Moblin/View/Settings/Ingests/IngestsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/ingests/IngestsSettingsView.kt | deepseek-flash | 23.0 |
@@ -904,7 +614,7 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/View/Settings/MediaPlayer/MediaPlayerSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/mediaplayer/MediaPlayerSettingsView.kt | deepseek-flash | 105.7 |
 | Moblin/View/Settings/MediaPlayer/MediaPlayersSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/mediaplayer/MediaPlayersSettingsView.kt | deepseek-flash | 28.1 |
 | Moblin/View/Settings/Moblink/MoblinkSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/moblink/MoblinkSettingsView.kt | deepseek-flash | 86.6 |
-| Moblin/View/Settings/Recordings/RecordingsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/recordings/RecordingsSettingsView.kt | deepseek-flash | 30.7 |
+| Moblin/View/Settings/Recordings/RecordingsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/recordings/RecordingsSettingsView.kt | deepseek-flash | 46.7 |
 | Moblin/View/Settings/RemoteControl/RemoteControlSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/remotecontrol/RemoteControlSettingsView.kt | deepseek-flash | 156.0 |
 | Moblin/View/Settings/SaveReset/SettingsResetView.swift | app/src/main/java/com/moblin/android/view/settings/savereset/SettingsResetView.kt | deepseek-flash | 10.4 |
 | Moblin/View/Settings/SaveReset/SettingsSaveView.swift | app/src/main/java/com/moblin/android/view/settings/savereset/SettingsSaveView.kt | deepseek-flash | 7.0 |
@@ -968,7 +678,7 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/View/Settings/Scenes/Widgets/WidgetsSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/scenes/widgets/WidgetsSettingsView.kt | deepseek-flash | 73.7 |
 | Moblin/View/Settings/SelfieStick/SelfieStickSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/selfiestick/SelfieStickSettingsView.kt | deepseek-flash | 25.7 |
 | Moblin/View/Settings/SettingsView.swift | app/src/main/java/com/moblin/android/view/settings/SettingsView.kt | deepseek-flash | 62.4 |
-| Moblin/View/Settings/Store/StoreSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/store/StoreSettingsView.kt | deepseek-flash | 60.7 |
+| Moblin/View/Settings/Store/StoreSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/store/StoreSettingsView.kt | deepseek-flash | 73.6 |
 | Moblin/View/Settings/StreamDeck/StreamDeckLayoutSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streamdeck/StreamDeckLayoutSettingsView.kt | deepseek-flash | 136.7 |
 | Moblin/View/Settings/StreamingHistory/StreamingHistorySettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streaminghistory/StreamingHistorySettingsView.kt | deepseek-flash | 43.9 |
 | Moblin/View/Settings/StreamingHistory/StreamingHistoryStreamSettingsView.swift | app/src/main/java/com/moblin/android/view/settings/streaminghistory/StreamingHistoryStreamSettingsView.kt | deepseek-flash | 33.7 |
@@ -1050,7 +760,7 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/View/Stream/Overlay/StreamOverlayChatView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayChatView.kt | deepseek-flash | 14.0 |
 | Moblin/View/Stream/Overlay/StreamOverlayDebugView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayDebugView.kt | deepseek-flash | 5.2 |
 | Moblin/View/Stream/Overlay/StreamOverlayLeftView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayLeftView.kt | deepseek-flash | 60.7 |
-| Moblin/View/Stream/Overlay/StreamOverlayNavigationView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayNavigationView.kt | deepseek-flash | 90.3 |
+| Moblin/View/Stream/Overlay/StreamOverlayNavigationView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayNavigationView.kt | deepseek-flash | 125.6 |
 | Moblin/View/Stream/Overlay/StreamOverlayRightView.swift | app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayRightView.kt | deepseek-flash | 141.7 |
 | Moblin/View/Stream/StreamGridView.swift | app/src/main/java/com/moblin/android/view/stream/StreamGridView.kt | deepseek-flash | 4.0 |
 | Moblin/View/Stream/StreamOverlayView.swift | app/src/main/java/com/moblin/android/view/stream/StreamOverlayView.kt | deepseek-flash | 82.2 |
@@ -1064,7 +774,7 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/View/Utils/ChatLineStyle.swift | app/src/main/java/com/moblin/android/view/utils/ChatLineStyle.kt | deepseek-flash | 10.4 |
 | Moblin/View/Utils/ChatLineView.swift | app/src/main/java/com/moblin/android/view/utils/ChatLineView.kt | deepseek-flash | 32.6 |
 | Moblin/View/Utils/CloseToolbarView.swift | app/src/main/java/com/moblin/android/view/utils/CloseToolbarView.kt | deepseek-flash | 5.2 |
-| Moblin/View/Utils/CommandCopyView.swift | app/src/main/java/com/moblin/android/view/utils/CommandCopyView.kt | deepseek-flash | 4.1 |
+| Moblin/View/Utils/CommandCopyView.swift | app/src/main/java/com/moblin/android/view/utils/CommandCopyView.kt | deepseek-flash | 5.9 |
 | Moblin/View/Utils/ContextMenuDeleteButtonView.swift | app/src/main/java/com/moblin/android/view/utils/ContextMenuDeleteButtonView.kt | deepseek-flash | 16.5 |
 | Moblin/View/Utils/ContextMenuDuplicateButtonView.swift | app/src/main/java/com/moblin/android/view/utils/ContextMenuDuplicateButtonView.kt | deepseek-flash | 3.3 |
 | Moblin/View/Utils/CreateButtonView.swift | app/src/main/java/com/moblin/android/view/utils/CreateButtonView.kt | deepseek-flash | 3.6 |
@@ -1082,7 +792,7 @@ Generated 2026-09-25T21:00:58+00:00
 | Moblin/View/Utils/PositionEditView.swift | app/src/main/java/com/moblin/android/view/utils/PositionEditView.kt | deepseek-flash | 8.4 |
 | Moblin/View/Utils/QrCodeImageView.swift | app/src/main/java/com/moblin/android/view/utils/QrCodeImageView.kt | deepseek-flash | 11.1 |
 | Moblin/View/Utils/RgbColorPickerView.swift | app/src/main/java/com/moblin/android/view/utils/RgbColorPickerView.kt | deepseek-flash | 12.3 |
-| Moblin/View/Utils/ShareSheetView.swift | app/src/main/java/com/moblin/android/view/utils/ShareSheetView.kt | deepseek-flash | 5.7 |
+| Moblin/View/Utils/ShareSheetView.swift | app/src/main/java/com/moblin/android/view/utils/ShareSheetView.kt | deepseek-flash | 3.3 |
 | Moblin/View/Utils/ShortcutView.swift | app/src/main/java/com/moblin/android/view/utils/ShortcutView.kt | deepseek-flash | 24.0 |
 | Moblin/View/Utils/SizeEditView.swift | app/src/main/java/com/moblin/android/view/utils/SizeEditView.kt | deepseek-flash | 6.7 |
 | Moblin/View/Utils/SliderView.swift | app/src/main/java/com/moblin/android/view/utils/SliderView.kt | deepseek-flash | 2.7 |

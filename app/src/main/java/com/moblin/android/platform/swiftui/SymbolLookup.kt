@@ -114,6 +114,11 @@ private val symbolsWithoutFillVariant = setOf(
     "chevron.right",
     "ellipsis",
     "magnifyingglass",
+    "dpad.up.fill",
+    "dpad.down.fill",
+    "dpad.left.fill",
+    "dpad.right.fill",
+    "face.smiling.inverse",
 )
 
 fun hasSystemImage(name: String): Boolean {

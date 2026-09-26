@@ -109,7 +109,7 @@ class StreamingServiceBackgroundSuite {
             android.content.ComponentName(application, StreamingService::class.java),
             0,
         )
-        val types = camera or microphone or connectedDevice or mediaPlayback
+        val types = camera or microphone or connectedDevice or mediaPlayback or ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
         assertEquals(types, info.foregroundServiceType)
         val permissions = application.packageManager
             .getPackageInfo(application.packageName, android.content.pm.PackageManager.GET_PERMISSIONS)
@@ -118,6 +118,7 @@ class StreamingServiceBackgroundSuite {
             .toSet()
         assertTrue(Manifest.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE in permissions)
         assertTrue(Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK in permissions)
+        assertTrue(Manifest.permission.FOREGROUND_SERVICE_LOCATION in permissions)
         assertTrue(Manifest.permission.CHANGE_NETWORK_STATE in permissions)
     }
 

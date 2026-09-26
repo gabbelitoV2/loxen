@@ -1813,7 +1813,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun externalMonitorConnected(windowScene: Any) {
-        externalDisplayWindow = null
+        externalDisplayWindow = windowScene
         updateExternalMonitorWindow()
         externalDisplayPreview = true
         attachCamera()
@@ -1840,7 +1840,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         if (externalDisplayWindow == null) {
             return
         }
-        Unit
+        (externalDisplayWindow as? com.moblin.android.platform.uikit.ExternalDisplayWindow)?.isHidden = database.externalDisplayContent == SettingsExternalDisplayContent.mirror
     }
 
     private fun backgroundRunLevel(): BackgroundRunLevel {
@@ -1966,8 +1966,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         updateScoreboardEffects()
         updatePoll()
         updateObsSceneSwitcher(now = monotonicNow)
-        weatherManager.setLocation(location = null)
-        geographyManager.setLocation(location = null)
+        weatherManager.setLocation(location = latestKnownLocation)
+        geographyManager.setLocation(location = latestKnownLocation)
         updateBitrateStatus()
         updateAdsRemainingTimer(now = now)
         if (database.show.systemMonitor) {

@@ -326,7 +326,7 @@ fun Model.selectMicDefault(mic: SettingsMicsMic) {
 }
 
 fun Model.keepSpeakerAlive(now: Instant) {
-    shared.playIfNeeded(now = now)
+    KeepSpeakerAlivePlayer.shared.playIfNeeded(now = now)
 }
 
 fun Model.updateAudioLevel() {

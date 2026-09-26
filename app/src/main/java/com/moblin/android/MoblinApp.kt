@@ -164,6 +164,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         com.moblin.android.platform.AndroidHost.onActivityCreated(this)
+        com.moblin.android.platform.uikit.ExternalDisplay.install(this)
         setContent {
             MoblinApp()
         }

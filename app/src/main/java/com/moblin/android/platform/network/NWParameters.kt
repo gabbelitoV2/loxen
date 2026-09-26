@@ -24,6 +24,7 @@ class NWParameters private constructor(
     internal val tcpOptions: NWProtocolTCP.Options,
 ) {
     var requiredInterface: NWInterface? = null
+    var requiredInterfaceType: NWInterface.InterfaceType = NWInterface.InterfaceType.other
     var requiredLocalEndpoint: NWEndpoint? = null
     var allowLocalEndpointReuse = false
     var acceptLocalOnly = false
@@ -34,6 +35,9 @@ class NWParameters private constructor(
 
         val tcp: NWParameters
             get() = tls(null)
+
+        val tls: NWParameters
+            get() = tls(NWProtocolTLS.Options())
 
         val udp: NWParameters
             get() = dtls(null)

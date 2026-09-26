@@ -1119,10 +1119,10 @@ private fun WeatherVariablesView(
         Form(title = localized("Weather")) {
             Section(footerContent = {
                 Column(horizontalAlignment = Alignment.Start) {
-                    Text(
+                    com.moblin.android.platform.weatherkit.WeatherAttributionText(
                         localized(
-                            "Weather data is provided by Apple Weather. " +
-                                "[Legal information](https://weatherkit.apple.com/legal-attribution.html).",
+                            "[Weather data by Open-Meteo.com](https://open-meteo.com/) " +
+                                "([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)).",
                         ),
                     )
                 }

@@ -39,7 +39,7 @@
       ],
       "owner": "UI port",
       "milestone": "none (not in the effects plan)",
-      "note": "Navigation and location views use MapKit search, directions and regions; the MapKit shim only covers the map widget's snapshotter."
+      "note": "MKCoordinateRegion and MKCoordinateSpan are Moblin data classes in various/utils/LocationUtils.kt, not platform shims; map, search and directions are shimmed in platform/mapkit."
     },
     {
       "check": "members",

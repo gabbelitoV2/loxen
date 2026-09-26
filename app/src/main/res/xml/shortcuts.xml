@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/shortcut_mute"
+        android:shortcutId="MuteIntent"
+        android:shortcutShortLabel="@string/shortcut_mute">
+        <intent
+            android:action="com.moblin.android.shortcut.MuteIntent"
+            android:targetClass="com.moblin.android.MainActivity"
+            android:targetPackage="com.moblin.android" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/shortcut_unmute"
+        android:shortcutId="UnmuteIntent"
+        android:shortcutShortLabel="@string/shortcut_unmute">
+        <intent
+            android:action="com.moblin.android.shortcut.UnmuteIntent"
+            android:targetClass="com.moblin.android.MainActivity"
+            android:targetPackage="com.moblin.android" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/shortcut_snapshot"
+        android:shortcutId="SnapshotIntent"
+        android:shortcutShortLabel="@string/shortcut_snapshot">
+        <intent
+            android:action="com.moblin.android.shortcut.SnapshotIntent"
+            android:targetClass="com.moblin.android.MainActivity"
+            android:targetPackage="com.moblin.android" />
+    </shortcut>
+</shortcuts>

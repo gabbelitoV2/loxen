@@ -376,9 +376,7 @@
       "No Apple-only framework is used here; the only missing piece is the native WebRTC logger bridge.",
       "When a JNI wrapper for libdatachannel is added, `setupWebrtcDebugLogging()` should register a callback that forwards the C string to `Log.i(\"WebrtcCommon\", \"webrtc: $message\")`."
     ],
-    "unsupported": [
-      "libdatachannel `rtcInitLogger` / `RTC_LOG_DEBUG` (C library, no Android binding in this port)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 1525,
@@ -889,16 +887,17 @@
       "Test class uses JUnit 4 with kotlin.test assertions, matching the port's test tier.",
       "No Moblin types are imported: the file only exercises numeric duration arithmetic."
     ],
-    "unsupported": [
-      "no Android counterpart for CMTime preferredTimescale quantization"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 2242,
     "tokens_out": 10950,
     "seconds": 44.9,
     "ported_at": "2026-09-22T12:38:38+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "no Android counterpart for CMTime preferredTimescale quantization"
+    ]
   },
   "Moblin/Media/HaishinKit/Rtmp/RtmpHandshake.swift": {
     "status": "ok",
@@ -1646,15 +1645,11 @@
       "Struct with only stored properties becomes a data class; the Swift memberwise initialiser becomes the primary constructor with every parameter required.",
       "ContinuousClock.Instant maps to Long holding monotonic nanoseconds (System.nanoTime() base); use it only for elapsed-time arithmetic.",
       "Date maps to java.time.Instant.",
-      "WeatherKit's WeatherCondition has no Android counterpart and is stored here as the raw condition string (String?).",
-      "Measurement<UnitTemperature> becomes Double? in degrees Celsius; Measurement<UnitSpeed> becomes Double? in metres per second.",
+      "WeatherCondition becomes String (the WeatherKit case name that com.moblin.android.platform.weatherkit gives), Measurement<UnitTemperature> becomes Double? in degrees Celsius and Measurement<UnitSpeed> becomes Double? in metres per second, the units of the weatherkit shim.",
       "heartRates keeps nullable values, so the Kotlin type is Map<String, Int?>.",
-      "runningMetrics values come from WorkoutDeviceRunningMetrics (com.moblin.android.integrations.workoutdevice) and gForce from GForce (com.moblin.android.various.managers).",
-      "This file only holds values produced by callers, so no behaviour is stubbed with TODO(); the WeatherKit substitutions are recorded in unsupported."
+      "runningMetrics values come from WorkoutDeviceRunningMetrics (com.moblin.android.integrations.workoutdevice) and gForce from GForce (com.moblin.android.various.managers)."
     ],
-    "unsupported": [
-      "WeatherKit WeatherCondition and Measurement<UnitTemperature>/<UnitSpeed> have no Android counterpart; they appear only in property declarations, so they were substituted with String? and Double? instead of a TODO() body"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 1927,
@@ -2407,19 +2402,20 @@
       "logger.debug maps to Log.d with the tag \"ModelMusic\"; String(localized:) maps to the top-level localized() from package com.moblin.android and error.localizedDescription to e.message ?: e.toString().",
       "makeErrorToast(title = , subTitle = ) is assumed to exist on Model in package com.moblin.android.various.model, as used by the Swift original."
     ],
-    "unsupported": [
-      "MusicKit MusicAuthorization.request()",
-      "MusicKit MusicCatalogResourceRequest / MusicCatalogSearchRequest (Song lookup by URL id and search by term)",
-      "MusicKit ApplicationMusicPlayer (queue assignment/insertion, play, pause, prepareToPlay, skipToNextEntry, skipToPreviousEntry, state.playbackStatus, isPreparedToPlay)",
-      "MusicKit Song and MusicItemID types (findSong result type kept as placeholder Any?)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3498,
     "tokens_out": 9980,
     "seconds": 40.1,
     "ported_at": "2026-09-22T12:43:24+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "MusicKit MusicAuthorization.request()",
+      "MusicKit MusicCatalogResourceRequest / MusicCatalogSearchRequest (Song lookup by URL id and search by term)",
+      "MusicKit ApplicationMusicPlayer (queue assignment/insertion, play, pause, prepareToPlay, skipToNextEntry, skipToPreviousEntry, state.playbackStatus, isPreparedToPlay)",
+      "MusicKit Song and MusicItemID types (findSong result type kept as placeholder Any?)"
+    ]
   },
   "Moblin/View/ControlBar/ControlBarUtils.swift": {
     "status": "ok",
@@ -3321,9 +3317,7 @@
       "final class RecordingsStorage becomes a plain Kotlin class (final by default).",
       "Security-scoped bookmark resolution (URL(resolvingBookmarkData:)) has no Android equivalent and is replaced with TODO in loadRecordingPath()."
     ],
-    "unsupported": [
-      "URL(resolvingBookmarkData:bookmarkDataIsStale:) / startAccessingSecurityScopedResource security-scoped bookmarks"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3049,
@@ -4014,9 +4008,7 @@
       "#expect(cond) becomes assertTrue(cond) / assertFalse(cond); #expect(a == b) becomes assertEquals(b, a) with the expected value first.",
       "mock.audioSampleBuffers and videoSampleBuffers are MutableList<MediaSample>, and count maps to size."
     ],
-    "unsupported": [
-      "CMFormatDescription.audioStreamBasicDescription (AVFoundation)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 10204,
@@ -4519,10 +4511,7 @@
       "Sendable conformance has no Kotlin equivalent and is dropped.",
       "SwiftProtobuf.ProtobufAPIVersionCheck is kept as private marker interfaces plus a private object, since Kotlin has no nested typealias."
     ],
-    "unsupported": [
-      "SwiftProtobuf.Decoder",
-      "SwiftProtobuf.Visitor"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5217,
@@ -4642,9 +4631,7 @@
       "Enum entries for SettingsStreamCodec (H264AVC/H265HEVC), SettingsStreamAudioCodec (OPUS/AAC) and the MpegTsVideoConfigAvc/Hevc create(format) factory are inferred.",
       "logger.info/debug are replaced with Log.i/Log.d using the tag WhipStream."
     ],
-    "unsupported": [
-      "libdatachannel C API (rtcCreatePeerConnection, rtcAddTrackEx, rtcSendMessage, rtcSetLocalDescription, rtcSetRemoteDescription, rtcGetSelectedCandidatePair, rtcSetUserPointer and the open/closed/error/state/gathering callbacks) - no Android equivalent"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 8951,
@@ -4691,16 +4678,17 @@
       "handleAccessoryEventCameraShutter/Flip/Zoom are fully translated against Model.database.gimbal, Model.handleControllerFunction and Model.setZoomX (Float conversions added because the Kotlin settings types are unknown).",
       "Those camera event handlers stay unreachable until an Android gimbal backend feeds handleAccessoryEvent, which is itself a TODO."
     ],
-    "unsupported": [
-      "DockKit (DockAccessoryManager, DockAccessory, DockAccessory.StateChange, DockAccessory.AccessoryEvent, DockAccessory.Animation): no Android counterpart, replaced with TODO"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3675,
     "tokens_out": 27078,
     "seconds": 113.9,
     "ported_at": "2026-09-22T12:56:04+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "DockKit (DockAccessoryManager, DockAccessory, DockAccessory.StateChange, DockAccessory.AccessoryEvent, DockAccessory.Animation): no Android counterpart, replaced with TODO"
+    ]
   },
   "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift": {
     "status": "ok",
@@ -4900,10 +4888,7 @@
       "`SwiftProtobuf.Internal.areAllInitialized(self.entries)` became `entries.all { it.isInitialized }`.",
       "Only `==` is written in Swift; `equals`/`hashCode` were added (with a private `byteArraysEqual` helper) so the Kotlin classes behave as value objects."
     ],
-    "unsupported": [
-      "SwiftProtobuf.Decoder (decodeMessage has no Android equivalent)",
-      "SwiftProtobuf.Visitor (traverse has no Android equivalent)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 18443,
@@ -5410,28 +5395,26 @@
   "Moblin/Various/Managers/WeatherManager.swift": {
     "status": "ok",
     "sha256": "ed2e56d4ebffa83d731ca36d02c843c968aeb3b1f057a416b811c75aa8c2c8ad",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/managers/WeatherManager.kt",
     "notes": [
-      "WeatherKit has no Android counterpart, so WeatherService and Weather are kept as Any? placeholders and the weather fetch is TODO(\"no Android counterpart for WeatherKit\"); the surrounding try/catch swallows the resulting error exactly like the Swift do/catch, so start() keeps looping.",
-      "@MainActor becomes a private CoroutineScope(Dispatchers.Main); all state stays reachable from the main thread like the Swift actor isolation implied.",
-      "Task<Void, any Error>? becomes Job? and the Task { } block becomes mainScope.launch { }.",
-      "CLLocation is replaced by android.location.Location (platform tier); requesting the location permission is left to the Activity layer.",
-      "logger.debug(...) becomes Log.d(\"WeatherManager\", ...) using the class name as the tag.",
-      "sleep(seconds:) is imported from com.moblin.android.common.various and called as a suspend function; the local delay counter is a Double so it matches the seconds parameter.",
-      "Task.isCancelled is translated to the CoroutineScope.isActive check inside the launched coroutine.",
-      "stop() cancels the job and clears location and weather, matching the Swift teardown."
+      "CLLocation maps to android.location.Location, the same type the WeatherService shim accepts.",
+      "The Swift Task<Void, any Error>? loop becomes a Job launched from a main-dispatched CoroutineScope; Task.isCancelled is checked with the coroutine scope's isActive.",
+      "try await sleep(seconds: delay) is sleepSeconds(seconds = delay) from com.moblin.android.common.various.",
+      "weatherService.weather(for: location) is called with the backticked keyword parameter `for` exactly as the shim declares.",
+      "logger.debug is android.util.Log.d with \"WeatherManager\" as the tag.",
+      "The non-final Swift class keeps open members so subclasses can override, matching Swift.",
+      "The private stored properties stay private, so they are never marked open."
     ],
-    "unsupported": [
-      "WeatherKit (WeatherService, Weather) — no Android counterpart for WeatherKit"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3119,
-    "tokens_out": 4395,
-    "seconds": 19.5,
-    "ported_at": "2026-09-22T13:01:23+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 31014,
+    "tokens_out": 2427,
+    "seconds": 10.5,
+    "ported_at": "2026-09-25T22:43:08+00:00"
   },
   "Moblin/Moblink/MoblinkScanner.swift": {
     "status": "ok",
@@ -5628,28 +5611,27 @@
   "Moblin/Various/Network/HttpClient.swift": {
     "status": "ok",
     "sha256": "9dcd467010aad8b3c199f88140ce2168228b84d65da57c66667938f31f29929b",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/network/HttpClient.kt",
     "notes": [
-      "URLRequest is mapped to okhttp3.Request and Data to ByteArray throughout.",
-      "NWConnection/NWParameters are replaced by java.net.Socket on Dispatchers.IO, with TLS applied through SSLSocketFactory.",
-      "NWInterface interface cycling is preserved, but the default interface list must be resolved from ConnectivityManager and needs an Android Context (left as TODO).",
-      "@MainActor is represented by a file-private mainScope = CoroutineScope(Dispatchers.Main + SupervisorJob()).",
-      "The createRequest tuple return is replaced by the private PlainRequest holder class.",
-      "Swift split(separator:) omits empty subsequences; the Kotlin splits filter out empty strings to match.",
-      "HttpResponseParser stays an open class hierarchy (HttpParser -> HttpResponseParser) as in the Swift source.",
-      "httpCallUrlSession uses OkHttp for the upload/body case and delegates the body-less case to the shared httpRequest() helper."
+      "URLRequest is translated as okhttp3.Request: request.url/host/scheme/method are non-null, url.port is always the effective port, and url.path()/query become url.encodedPath/encodedQuery.",
+      "The URLSession uploadTask fallback is replaced by the project's OkHttp-based httpRequest helper with the body attached through RequestBody.toRequestBody(), so no URLSession shim is used.",
+      "MainActor.assumeIsolated is dropped: InterfaceTypeHttpClient runs its callbacks on Dispatchers.Main (the queue passed to NWConnection.start) and on MainTimer.",
+      "Data becomes ByteArray; Swift's Data.advanced(by:) is written as copyOfRange, which rebases indices to 0 exactly as the Swift code assumes when it re-adds offset.",
+      "String(bytes:encoding:.utf8) is failable in Swift, so decodeUtf8Strict decodes with a CharsetDecoder set to REPORT, returns null on malformed UTF-8 and strips a leading BOM.",
+      "Int(String) is strict in Swift, so parseIntStrict validates [+-]?[0-9]+ before toIntOrNull; Swift's split omits empty subsequences, so every split here is split(\" \").filter { it.isNotEmpty() }.",
+      "The Swift tuple returned by createRequest becomes the private data class InterfaceTypeHttpClient.CreatedRequest, destructured at the call site.",
+      "NWEndpoint is imported from com.moblin.android.platform.network; that explicit import shadows the unrelated same-package NWEndpoint declared in NetworkUtils.kt for this file only."
     ],
-    "unsupported": [
-      "resolve android.net.Network for cellular/wifi/ethernet via ConnectivityManager"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4011,
-    "tokens_out": 25832,
-    "seconds": 99.8,
-    "ported_at": "2026-09-22T13:03:03+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 39820,
+    "tokens_out": 33429,
+    "seconds": 119.4,
+    "ported_at": "2026-09-25T22:47:26+00:00"
   },
   "Moblin/Obs/ObsWebSocket.swift": {
     "status": "ok",
@@ -5714,17 +5696,18 @@
       "The '#if !targetEnvironment(macCatalyst)' compile guard and '@available(iOS 26, *)' annotations are dropped since they have no Kotlin meaning.",
       "logger.info(...) lines disappear with the stubbed body; when the body is implemented use android.util.Log.i with the class name as tag."
     ],
-    "unsupported": [
-      "WiFiAware framework (Wi-Fi Aware listening, publishable/subscribable service pairing)",
-      "Network.framework declarative NetworkListener / NetworkConnection API"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 2227,
     "tokens_out": 3081,
     "seconds": 15.7,
     "ported_at": "2026-09-22T13:03:23+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "WiFiAware framework (Wi-Fi Aware listening, publishable/subscribable service pairing)",
+      "Network.framework declarative NetworkListener / NetworkConnection API"
+    ]
   },
   "Moblin/Media/Srtla/Client/LocalListener.swift": {
     "status": "ok",
@@ -5826,29 +5809,27 @@
   "Moblin/Various/Managers/Location.swift": {
     "status": "ok",
     "sha256": "8aac618511dfc85b925f61eb18d94f7159c123f22c07cc9afa9cdac92f90b227",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "platform",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/managers/Location.kt",
     "notes": [
-      "Location now takes a Context because CLLocationManager is replaced by LocationManager obtained from context.getSystemService.",
-      "CLLocationManagerDelegate maps to android.location.LocationListener, so the delegate callbacks are implemented inside the class body instead of a Swift extension.",
-      "The iOS authorization callback has no Android counterpart; locationManagerDidChangeAuthorization stays a public method the Activity layer calls after the permission dialog, and isDenied is derived from checkSelfPermission.",
-      "requestWhenInUseAuthorization is replaced by a permission check plus TODO(); ACCESS_FINE_LOCATION / ACCESS_COARSE_LOCATION must be requested by the Activity layer.",
-      "CLBackgroundActivitySession has no Android counterpart, so BackgroundActivity.start and stop are TODO() (a foreground service would be needed).",
-      "desiredAccuracy maps onto android.location.Criteria plus getBestProvider; distanceFilter maps onto the minDistance metres argument with minTime 0 ms.",
-      "didFailWithError is mapped onto onProviderDisabled, the closest LocationListener callback; onProviderEnabled and onStatusChanged are required by the interface and are empty.",
-      "format(speed = ...) is called with a Double and isDenied is a StateFlow; the class must be used from the main thread."
+      "CLLocationManager, CLBackgroundActivitySession and the delegate protocol come from com.moblin.android.platform.corelocation; CLLocation is android.location.Location, imported as AndroidLocation.",
+      "LocationManager has no desiredAccuracy/distanceFilter: the accuracy choice selects the provider (ACCURACY_FINE for best and nearestTenMeters, ACCURACY_COARSE for hundredMeters) and the distance filter sets the private minDistance Float, both applied by the private startUpdatingLocation() once a location permission is granted.",
+      "The class implements android.location.LocationListener and CLLocationManagerDelegate: didFailWithError becomes onProviderDisabled, didUpdateLocations becomes onLocationChanged, and onProviderEnabled/onStatusChanged are kept as empty overrides for Android 10 and older.",
+      "@Published isDenied is a MutableStateFlow(false); format(speed:) from com.moblin.android.common.various is called as formatSpeed(location.speed.toDouble()).",
+      "start()'s manager.delegate / requestWhenInUseAuthorization calls go through the CLLocationManager authorization shim, whose locationManagerDidChangeAuthorization also restarts location updates when the user grants permission and onUpdate is set.",
+      "The iOS 17 availability check around CLBackgroundActivitySession is dropped because the shim always exists on Android.",
+      "Location takes the application Context in its constructor (Model passes AppDelegate.context).",
+      "logger.debug/info become Log.d/Log.i with the \"Location\" tag."
     ],
-    "unsupported": [
-      "CLBackgroundActivitySession (BackgroundActivity.start/stop)",
-      "CLLocationManager.requestWhenInUseAuthorization (ACCESS_FINE_LOCATION must be requested by the Activity layer)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3896,
-    "tokens_out": 14839,
-    "seconds": 65.7,
-    "ported_at": "2026-09-22T13:04:28+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 43448,
+    "tokens_out": 9872,
+    "seconds": 35.7,
+    "ported_at": "2026-09-25T23:00:55+00:00"
   },
   "Moblin/Media/Srtla/Server/SrtlaServerClient.swift": {
     "status": "ok",
@@ -5914,18 +5895,19 @@
       "The nonisolated delegate callbacks are not dispatched to the main queue any more: coroutine dispatch belongs in the ported watch/health layer, not in these TODO stubs.",
       "Calls to logger, String(localized:), makeErrorToast and setIsWorkout vanish with the TODO bodies, so no logging or localization import is needed."
     ],
-    "unsupported": [
-      "HealthKit (HKHealthStore, HKWorkoutConfiguration, HKWorkoutSession, HKWorkoutSessionDelegate, HKLiveWorkoutBuilder, HKLiveWorkoutBuilderDelegate, HKLiveWorkoutDataSource, HKQuantitySample, HKUnit, HKSampleType, HKWorkoutSessionState)",
-      "WatchConnectivity (source of the WatchProtocolWorkoutType workout kinds)",
-      "ContinuousClock.Instant and HKWorkoutSession state transitions used for sample rate limiting"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5661,
     "tokens_out": 8268,
     "seconds": 34.4,
     "ported_at": "2026-09-22T13:05:23+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "HealthKit (HKHealthStore, HKWorkoutConfiguration, HKWorkoutSession, HKWorkoutSessionDelegate, HKLiveWorkoutBuilder, HKLiveWorkoutBuilderDelegate, HKLiveWorkoutDataSource, HKQuantitySample, HKUnit, HKSampleType, HKWorkoutSessionState)",
+      "WatchConnectivity (source of the WatchProtocolWorkoutType workout kinds)",
+      "ContinuousClock.Instant and HKWorkoutSession state transitions used for sample rate limiting"
+    ]
   },
   "Moblin/Moblink/MoblinkRelay.swift": {
     "status": "ok",
@@ -5991,16 +5973,17 @@
       "DatagramSocket.receive is blocking, so cancelling the receiver task only ends the loop once a packet arrives or the socket is closed.",
       "Receiver keeps the same three stored properties in the same order, with senderTask/receiverTask as Job."
     ],
-    "unsupported": [
-      "WiFiAware NetworkBrowser / NetworkConnection over UDP (Network.framework on Wi-Fi Aware)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3906,
     "tokens_out": 17198,
     "seconds": 73.0,
     "ported_at": "2026-09-22T13:05:41+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "WiFiAware NetworkBrowser / NetworkConnection over UDP (Network.framework on Wi-Fi Aware)"
+    ]
   },
   "Moblin/Media/HaishinKit/Rist/RistStream.swift": {
     "status": "ok",
@@ -6065,9 +6048,7 @@
       "State is redeclared here as a file-private enum, matching the Swift private enum; SrtlaDelegate's conforming members were moved into the class body because Kotlin interfaces cannot be implemented by extensions.",
       "Sibling APIs are assumed to keep their Swift names: RemoteConnection.networkInterface/type(Int?)/register/setPriority/score/getDataSentDelta/stop(reason), LocalListener.onReady/onError/sendPacket, SimpleTimer-startSingleShot/stop, BondingConnection(name, usage, rtt) and the enum cases SettingsDnsLookupStrategy.ipv4/ipv6/ipv4AndIpv6/system, DnsLookupFamily.ipv4/ipv6/unspec, SettingsStreamSrtImplementation.moblin/official."
     ],
-    "unsupported": [
-      "Network.framework NWPathMonitor: no ConnectivityManager is available in SrtlaClient, network path registration is TODO(...) and must be wired from the Activity layer"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 7291,
@@ -6091,9 +6072,7 @@
       "Data.advanced(by:)/prefix become ByteArray.copyOfRange/copyOf; utf8Data becomes String.toByteArray().",
       "logger.debug/info become Log.d/Log.i with a file level TAG constant because Kotlin has no per-class logger."
     ],
-    "unsupported": [
-      "NWListener.Service (Bonjour/mDNS advertisement) replaced by TODO(\"register mDNS service with NsdManager\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5866,
@@ -6141,17 +6120,18 @@
       "The Twitch/YouTube/Kick callbacks are bridged with suspendCancellableCoroutine; createTwitchApi, getYouTubeApi, createKickApi and the listChannels result type (YouTubeApiResult.Success) must match their own ports.",
       "defer { onCompleted?() } becomes try/finally inside a mainScope.launch block, so the @MainActor completion still runs on the main thread."
     ],
-    "unsupported": [
-      "DeviceCheck DCAppAttestService.generateKey/attestKey/isSupported (App Attest) - attestedKey() and sendLive() bodies are TODO()",
-      "DeviceCheck DCAppAttestService.generateAssertion - generateAssertion() body is TODO()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5430,
     "tokens_out": 20972,
     "seconds": 82.5,
     "ported_at": "2026-09-22T13:07:04+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "DeviceCheck DCAppAttestService.generateKey/attestKey/isSupported (App Attest) - attestedKey() and sendLive() bodies are TODO()",
+      "DeviceCheck DCAppAttestService.generateAssertion - generateAssertion() body is TODO()"
+    ]
   },
   "Moblin/RemoteControl/RemoteControlAssistant.swift": {
     "status": "ok",
@@ -6188,9 +6168,7 @@
       "Sealed-class case names are assumed as RemoteControlRequest.*, RemoteControlResponse.*, RemoteControlMessageToAssistant.* and RemoteControlEvent.* (PascalCase, matching the Swift case labels).",
       "@MainActor isolation is not reproduced; blocking socket work runs on Dispatchers.IO and UI-visible callbacks run on Dispatchers.Main."
     ],
-    "unsupported": [
-      "NetService Bonjour advertisement (`_http._tcp` passed to HttpServer) has no Android counterpart and is passed as TODO()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 9176,
@@ -6262,9 +6240,7 @@
       "scoreChanges elements are translated as SettingsWidgetScoreboardScoreIncrement.home/.away, and padel/generic score entries as SettingsWidgetScoreboardScore().",
       "modular.home.textColor.toHex() is kept as a member call on the color type of com.moblin.android.common.various, and modular.clock.format() is imported as the top-level extension format() from that package."
     ],
-    "unsupported": [
-      "WatchConnectivity (WatchProtocolPadelScoreboardAction, WatchProtocolPadelScoreboardActionPlayers)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 13409,
@@ -6402,9 +6378,7 @@
       "runCatching replaces the optional casts done by 'as?' in the Swift original, so missing or wrong-typed keys yield null.",
       "The returned atom map is derived from csd-0 only; codecs that split parameter sets across csd-0/csd-1 return just csd-0."
     ],
-    "unsupported": [
-      "CMFormatDescriptionGetExtensions (MediaFormat key enumeration requires API 29)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 1876,
@@ -6472,9 +6446,7 @@
       "The type name VTSessionPropertyKey is kept unchanged for side-by-side reading even though there is no VTSession type on Android.",
       "String literals mirror the documented contents of the kVTCompressionPropertyKey_* CFStrings; only the key strings are stored, no MediaCodec session call is performed here."
     ],
-    "unsupported": [
-      "VideoToolbox kVTCompressionPropertyKey_* constants (no Android equivalent, kept as opaque String values)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 2252,
@@ -6545,9 +6517,7 @@
       "@inline(__always) is kept as Kotlin inline.",
       "defaultDecodeFlags is retained for call-site parity even though MediaCodec's asynchronous mode makes those flags meaningless."
     ],
-    "unsupported": [
-      "VTDecompressionSessionDecodeFrame"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 1967,
@@ -6789,26 +6759,22 @@
   "Moblin/View/Utils/ShareSheetView.swift": {
     "status": "ok",
     "sha256": "6b3acc05e3686b7bf2a2fabba885729205394fb6f11466757c1fd34240fd0f24",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/ShareSheetView.kt",
     "notes": [
-      "ShareSheetView was a UIViewControllerRepresentable wrapping UIActivityViewController; it becomes a @Composable function taking the shared items as a parameter.",
-      "The Swift activityItems type [Any] maps to List<Any>; the Compose version receives it directly instead of through a coordinator/context.",
-      "No Compose counterpart exists for the system share UI in this port, so the body is TODO(\"no Android counterpart for UIActivityViewController\").",
-      "On Android the equivalent runtime behaviour would be Intent.ACTION_SEND wrapped in Intent.createChooser, but that is out of scope for this file's translation.",
-      "makeUIViewController/updateUIViewController (the representable lifecycle hooks) have no analogue and are folded into the single composable.",
-      "There is no view body to translate: keep the composable stateless and let the caller decide when to show it."
+      "UIViewControllerRepresentable that returns a UIActivityViewController becomes a @Composable function with the same name and the same activityItems property, per the platform shim rules.",
+      "makeUIViewController and updateUIViewController are dropped: UIActivityViewController from com.moblin.android.platform.swiftui shows the Android share sheet and dismisses the Sheet it is presented in.",
+      "The item type is widened to List<Any?> to match the declared platform signature."
     ],
-    "unsupported": [
-      "UIActivityViewController (no Android counterpart for UIActivityViewController)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2039,
-    "tokens_out": 1157,
-    "seconds": 5.7,
-    "ported_at": "2026-09-22T13:17:01+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 35613,
+    "tokens_out": 621,
+    "seconds": 3.3,
+    "ported_at": "2026-09-25T22:54:53+00:00"
   },
   "Moblin/View/Utils/SwipeLeftToDuplicateButtonView.swift": {
     "status": "ok",
@@ -6921,30 +6887,27 @@
   "Moblin/Media/HaishinKit/Media/Video/VideoSnapshots.swift": {
     "status": "ok",
     "sha256": "37152089867e865fcfbc246abd655bc6fcf8b3039ba4cb9b12d11d3ba205fa19",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoSnapshots.kt",
     "notes": [
-      "Core Image has no Android counterpart: CIContext maps to android.content.Context and both UIImage and CIImage map to android.graphics.Bitmap, so the snapshot callback receives the rendered bitmap, the same bitmap as un-oriented CIImage, and the portrait-oriented bitmap.",
-      "The Core Image render step (CIContext.createCGImage) is TODO(\"Core Image CIContext.createCGImage has no Android counterpart\") and creates the bitmap used by both takeVideoSourceSnapshot and takeSnapshot.",
-      "CMSampleBuffer/CVImageBuffer map to com.moblin.android.media.MediaSample; the port has no MediaSample.imageBuffer, so imageBufferOf() TODO()s a MediaCodec decode of the encoded frame.",
-      "presentationTimeStamp.seconds is computed as MediaSample.presentationTimeUs / 1_000_000.0 for the oldest-buffer and best-snapshot selection logic.",
-      "DispatchQueue.main.async -> mainScope.launch, DispatchQueue.global().async -> globalScope.launch (Dispatchers.Default) and Swift Task {} -> globalScope.launch, all over CoroutineScope fields declared in this file.",
-      "Swift Deque is a value type, so the buffer list is copied with ArrayDeque(takeSnapshotSampleBuffers) before hopping to another dispatcher, exactly like the Swift `let sampleBuffers = takeSnapshotSampleBuffers` copy.",
-      "@available(iOS 18, *) gating is dropped and the aesthetics path is always taken; because Vision scoring is TODO() inside runCatching, it degrades to the age-based preferred sample buffer at runtime.",
-      "imageBuffer.isPortrait() is called as an extension on android.media.Image that is expected from another file of the port; it is not declared here."
+      "CIContext is not stored: readback goes through CVPixelBuffer.toBitmap(), reached via the private createBitmap helper as the platform layer requires.",
+      "The constructor takes an android.content.Context, the shape the platform layer declares for VideoSnapshots; the Swift CIContext argument has no Kotlin counterpart.",
+      "UIImage and CIImage callbacks become Bitmap callbacks, so takeSnapshotComplete is (Bitmap, Bitmap, Bitmap) -> Unit and is invoked as onComplete(image, image, portraitImage).",
+      "Deque<CMSampleBuffer> becomes ArrayDeque<MediaSample>; last(where:) maps to lastOrNull { } and first to firstOrNull().",
+      "DispatchQueue.main.async and Task become CoroutineScope(Dispatchers.Main.immediate).launch and CoroutineScope(Dispatchers.Default).launch; DispatchQueue.global().async uses Dispatchers.Default.",
+      "presentationTimeStamp stays in seconds, and sample times are read as MediaSample.presentationTimeUs / 1_000_000.0 (microseconds on MediaSample).",
+      "#available(iOS 18, *) is dropped and the aesthetics branch is always taken, so findBestSnapshotUsingAesthetics runs on every Android version.",
+      "orientedLeft rotates the Bitmap by -90 degrees with android.graphics.Matrix, standing in for CIImage.oriented(.left)."
     ],
-    "unsupported": [
-      "Core Image CIContext.createCGImage render",
-      "Vision CalculateImageAestheticsScoresRequest",
-      "CMSampleBuffer.imageBuffer (MediaCodec decode to android.media.Image)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3005,
-    "tokens_out": 20782,
-    "seconds": 80.7,
-    "ported_at": "2026-09-22T13:17:21+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 37101,
+    "tokens_out": 17764,
+    "seconds": 63.7,
+    "ported_at": "2026-09-25T22:45:26+00:00"
   },
   "Moblin/Media/HaishinKit/Extension/VTCompressionSession+Extension.swift": {
     "status": "ok",
@@ -6961,12 +6924,7 @@
       "The Swift `duration _: CMTime` parameter is kept as an unused `duration: Long` to match the signature; only `.invalid` was ever passed.",
       "No top-level Kotlin type is declared in this file; only extension functions."
     ],
-    "unsupported": [
-      "VideoToolbox VTCompressionSessionPrepareToEncodeFrames",
-      "VideoToolbox VTCompressionSessionEncodeFrame",
-      "VideoToolbox VTCompressionSessionInvalidate",
-      "VideoToolbox VTSessionSetProperties"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 2112,
@@ -6990,9 +6948,7 @@
       "ByteReader is imported from com.moblin.android.media.haishinkit.util and assumed to expose readBytes(count)/readUInt8()/readUInt16() that throw on underflow.",
       "MediaFormat.MIMETYPE_VIDEO_AVC is set because CMVideoFormatDescriptionCreateFromH264ParameterSets is H.264-specific and an Android MediaFormat needs a mime type."
     ],
-    "unsupported": [
-      "CMFormatDescription atoms() avcC extraction (getAvcC)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 2504,
@@ -7073,29 +7029,26 @@
   "Moblin/Various/KeepSpeakerAlive.swift": {
     "status": "ok",
     "sha256": "aed05df1c80e7a0fd3492d5744f5a3a2b83a730321b05b50443ea16f0af1c913",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/KeepSpeakerAlive.kt",
     "notes": [
-      "AVAudioPlayer is mapped to android.media.MediaPlayer; playback starts with start() and the player is prepared right after setDataSource().",
-      "ContinuousClock.Instant becomes java.time.Instant and the 5 minute guard uses Duration.between(...) <= Duration.ofSeconds(300).",
-      "Atomic.mutate is assumed to take a (T) -> T block returning the new value; verify against com.moblin.android.media.haishinkit.util.Atomic.",
-      "The singleton shared lives in a companion object so callers use KeepSpeakerAlivePlayer.shared.",
-      "The Silence.mp3 asset has to be shipped in res/raw or assets; resolving it needs a Context, so the lookup is a TODO().",
-      "AudioPlayer(contentsOf:) takes a String path, matching MediaPlayer.setDataSource(String).",
-      "AudioPlayer(data:) feeds the bytes through an android.media.MediaDataSource implementation and keeps a reference to it so it cannot be collected.",
-      "AVAudioPlayerDelegate has no direct counterpart, setDelegate is left as TODO() pointing at MediaPlayer listeners."
+      "AudioPlayer is translated against android.media.MediaPlayer as the platform shim prescribes: constructor(contentsOf: String) uses the asset path returned by Bundle.url, constructor(data: ByteArray) plays through a MediaDataSource kept in a field.",
+      "The MediaDataSource subclass overrides the abstract readAt(position, buffer, offset, size) (the newer read(long, byte[], int, int) delegates to it), so the file also works on API 26.",
+      "ContinuousClock.Instant becomes java.time.Instant and duration(to:) becomes Duration.between(latestPlayTime.value, now).seconds, keeping the guard that only plays after more than 5 * 60 seconds of silence.",
+      "latestPlayTime is Atomic<Instant> from com.moblin.android.media.haishinkit.util and is updated with latestPlayTime.mutate { it.value = Instant.now() } as the shim states.",
+      "try? AudioPlayer(contentsOf: soundUrl) is runCatching { ... }.getOrNull(), and the previous player is simply replaced exactly like Swift's optional assignment.",
+      "setDelegate stores the delegate as Any and fires the ported audioPlayerDidFinishPlaying(successfully = true) from the MediaPlayer completion listener, per the speaker keep-alive shim; the delegate is the ChatTextToSpeech instance declared alongside this file's package.",
+      "KeepSpeakerAlivePlayer.shared is a companion object val, standing in for nonisolated(unsafe) static let shared."
     ],
-    "unsupported": [
-      "Bundle.main.url(forResource:withExtension:) -> needs a Context and res/raw or assets lookup, replaced by TODO()",
-      "AVAudioPlayerDelegate -> no Android counterpart, replaced by TODO()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2129,
-    "tokens_out": 8985,
-    "seconds": 36.0,
-    "ported_at": "2026-09-22T13:17:57+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 28969,
+    "tokens_out": 15331,
+    "seconds": 61.1,
+    "ported_at": "2026-09-25T22:45:23+00:00"
   },
   "Common/View/StreamOverlayTextView.swift": {
     "status": "ok",
@@ -7121,17 +7074,25 @@
   "Moblin/Intents/MuteIntent.swift": {
     "status": "ok",
     "sha256": "02d66eaf06f33f8320cad0c3aaf22225820eb06c547d813514dab7c427e0408f",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/intents/MuteIntent.kt",
-    "notes": [],
+    "notes": [
+      "Swift struct MuteIntent becomes a Kotlin class implementing AppIntent, with the static constants moved into a companion object of the same names.",
+      "@MainActor func perform() async throws -> some IntentResult becomes override suspend fun perform(): IntentResult, returning IntentResult.result().",
+      "@Dependency private var model becomes private val model: Model by Dependency<Model>().",
+      "model.setQuickButton(type: .mute, isOn: true) maps the Swift enum case .mute to SettingsQuickButtonType.mute from com.moblin.android.various.settings.",
+      "LocalizedStringResource is the platform typealias for String, so title and description keep their Swift literals.",
+      "No Android-side permission or UI is needed: the intent runs when its launcher shortcut is used."
+    ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2814,
-    "tokens_out": 1026,
+    "tokens_in": 36794,
+    "tokens_out": 1020,
     "seconds": 5.4,
-    "ported_at": "2026-09-22T13:18:04+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "ported_at": "2026-09-25T23:00:20+00:00"
   },
   "Common/Various/AVAudioPCMBuffer+Extension.swift": {
     "status": "ok",
@@ -7160,52 +7121,49 @@
   "Moblin/Intents/UnmuteIntent.swift": {
     "status": "ok",
     "sha256": "2315b2f65b54d4cda089dce16d44aebc410c2c3fcd11ef42f29084c72e5b4217",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/intents/UnmuteIntent.kt",
     "notes": [
-      "AppIntents has no Android counterpart, so UnmuteIntent is kept as a plain class with identical naming and metadata so the two codebases can be read side by side.",
-      "perform() keeps its suspend signature but its body is TODO because the intent can never be triggered by the Android system; the original body called model.setMuted(value: false) and model.setQuickButton(type: .mute, isOn: false).",
-      "title, description and openAppWhenRun are Swift statics, so they are declared in the Kotlin companion object.",
-      "LocalizedStringResource is mapped to a plain String literal; there is no resource-backed localized string here.",
-      "The @Dependency model property becomes a constructor parameter of type Model from com.moblin.android.various.model.",
-      "This file declares no SwiftUI views, so no @Composable function is produced.",
-      "Swift's `static let description: IntentDescription?` becomes `val description: String?`."
+      "Swift struct UnmuteIntent becomes a Kotlin class implementing AppIntent; it stays constructed with no arguments, as MoblinShortcuts does.",
+      "The three Swift static lets move into the companion object; the AppIntent interface does not declare them, so they are plain vals without override.",
+      "@MainActor func perform() async throws -> some IntentResult becomes override suspend fun perform(): IntentResult and returns IntentResult.result().",
+      "@Dependency private var model: Model becomes a property delegated by Dependency<Model>(), resolved through AppDependencyManager.",
+      "model.setMuted(value = false) and model.setQuickButton(type = SettingsQuickButtonType.mute, isOn = false) are Model members, so no import is needed for them; SettingsQuickButtonType comes from com.moblin.android.various.settings.",
+      "The two LocalizedStringResource literals are wrapped in localized() from package com.moblin.android, as every localizable String literal in this port.",
+      "perform() runs when the Android launcher shortcut for this intent is used; the body is fully ported, no TODO()."
     ],
-    "unsupported": [
-      "AppIntents"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2821,
-    "tokens_out": 2191,
-    "seconds": 9.6,
-    "ported_at": "2026-09-22T13:18:15+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 36801,
+    "tokens_out": 2241,
+    "seconds": 9.9,
+    "ported_at": "2026-09-25T23:00:24+00:00"
   },
   "Moblin/Intents/SnapshotIntent.swift": {
     "status": "ok",
     "sha256": "cd4f38d4b786512b063e9e31bafe4e43d0dda701b62b82f7238c707a12fb9dba",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/intents/SnapshotIntent.kt",
     "notes": [
-      "AppIntents is an Apple-only framework, so SnapshotIntent is translated as a plain Kotlin class instead of an AppIntent conformance; perform() stays a suspend fun matching Swift's async throws.",
-      "title, description and openAppWhenRun are `static let` in Swift, so they live in the companion object in Kotlin.",
-      "LocalizedStringResource and IntentDescription are mapped to localized strings produced by the com.moblin.android.localized top-level function.",
-      "The @Dependency-injected Model becomes a constructor parameter so the class can still be created and driven from Android code.",
-      "model.takeSnapshot() is kept verbatim in perform(); the surrounding IntentResult plumbing has no Android counterpart.",
-      "The static IntentResult.result() factory is kept as a signature-only stub because there is no Android equivalent to return.",
-      "This file contains no SwiftUI views, so no @Composable functions are produced even though the file is in the ui tier."
+      "AppIntent maps to the AppIntents shim: SnapshotIntent is a plain class implementing AppIntent, with title/description/openAppWhenRun in its companion object.",
+      "@Dependency private var model: Model becomes `private val model: Model by Dependency<Model>()`, which resolves the model that was registered with AppDependencyManager.",
+      "@MainActor func perform() async throws -> some IntentResult becomes `override suspend fun perform(): IntentResult`; the TODO-free body calls the Model extension takeSnapshot() and returns IntentResult.result().",
+      "takeSnapshot() is the Model extension imported from com.moblin.android.various.model, not a member declared here.",
+      "LocalizedStringResource is a typealias of String in the shim, so the title and description strings are stored unchanged.",
+      "The declaration order of the Swift file (title, description, openAppWhenRun, perform, model) is preserved."
     ],
-    "unsupported": [
-      "AppIntents (AppIntent, IntentResult, @Dependency, LocalizedStringResource, IntentDescription)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2797,
-    "tokens_out": 3395,
-    "seconds": 15.7,
-    "ported_at": "2026-09-22T13:18:20+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 36777,
+    "tokens_out": 988,
+    "seconds": 5.4,
+    "ported_at": "2026-09-25T23:00:20+00:00"
   },
   "Moblin/Media/HaishinKit/Extension/CMVideoFormatDescription+Extension.swift": {
     "status": "ok",
@@ -7220,10 +7178,7 @@
       "CMVideoFormatDescriptionCreateForImageBuffer is a CoreVideo/CoreMedia function with no counterpart; nothing here is pure logic, the entire body is hardware/vendor bound.",
       "No other Moblin types from the glossary are referenced by this file, so no cross-package imports beyond the Android framework are needed."
     ],
-    "unsupported": [
-      "CMVideoFormatDescriptionCreateForImageBuffer",
-      "CMVideoFormatDescription"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3164,
@@ -7295,11 +7250,7 @@
       "createSilent replaces AVAudioFormat with sampleRate/channels, emits zeroed 16-bit PCM (AVAudioPCMBuffer -> ByteArray) and attaches a raw PCM MediaFormat.",
       "muted() and deepCopyAudioSampleBuffer() operate on the ByteArray directly: zeroing a fresh array and copying the bytes respectively, since CMBlockBuffer has no Android counterpart."
     ],
-    "unsupported": [
-      "CMSampleBufferCreateReadyWithImageBuffer",
-      "kCMSampleAttachmentKey_DisplayImmediately",
-      "CMSampleBuffer attachment dictionary (setAttachmentValue / getAttachmentValue)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4525,
@@ -7390,9 +7341,7 @@
       "streamLowFpsImage is called with named arguments matching the Swift labels lowFpsImage and frameNumber.",
       "CVImageBuffer.isPortrait() is not in the glossary, so that branch of the scale computation lives inside the TODO(\"OpenGL ES port\") body."
     ],
-    "unsupported": [
-      "Core Image render path (CIImage.scaled, CIContext.createCGImage, UIImage.jpegData) - createImage body replaced by TODO(\"OpenGL ES port\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 2345,
@@ -7404,25 +7353,22 @@
   "Moblin/Various/Model/ModelAppIntents.swift": {
     "status": "ok",
     "sha256": "bd5f65a2ba3b4693c5cae04d71f11ce9491e71e71b019aace1e40ef412e63fb1",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelAppIntents.kt",
     "notes": [
-      "Swift extension on Model becomes a top-level Kotlin extension function in the same package, so Model.swift and ModelAppIntents.kt stay readable side by side.",
-      "AppDependencyManager is part of Apple's AppIntents framework, which has no Android counterpart, so the body is a single TODO.",
-      "Model is imported from com.moblin.android.various.model since it is declared in a sibling file of this package.",
-      "No Compose UI is produced here: the source file only registers a dependency, it defines no View, so no @Composable was added.",
-      "If Siri shortcut style entry points are later needed on Android, they would be short intents backed by Activity or service actions, not a library port."
+      "Swift extension on Model becomes a top-level extension function fun Model.setupAppIntents() in the same package.",
+      "AppDependencyManager.shared.add(dependency: self) maps to the AppIntent shim call with the explicit parameter name dependency.",
+      "No new types are declared; the extension is an import-only helper so nothing else in the file needs translating."
     ],
-    "unsupported": [
-      "AppIntents (AppDependencyManager.shared.add(dependency:)) - no Android counterpart for AppIntents"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2736,
-    "tokens_out": 452,
-    "seconds": 2.6,
-    "ported_at": "2026-09-22T13:18:52+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 40390,
+    "tokens_out": 415,
+    "seconds": 2.9,
+    "ported_at": "2026-09-25T22:54:56+00:00"
   },
   "Moblin/Media/HaishinKit/Media/Video/PreviewView.swift": {
     "status": "ok",
@@ -7439,9 +7385,7 @@
       "DispatchQueue.main.async becomes CoroutineScope(Dispatchers.Main).launch.",
       "enqueue takes MediaSample instead of CMSampleBuffer."
     ],
-    "unsupported": [
-      "AVSampleBufferDisplayLayer (enqueue, flush, flushAndRemoveImage)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3379,
@@ -7489,11 +7433,7 @@
       "MainTimer from com.moblin.android.various is reused unchanged; this file assumes startSingleShot(timeout, function), startPeriodic(interval, initial, function) and stop().",
       "webSocketDidReceivePong has no caller because OkHttp does not surface pong frames, and the manual ping path is marked TODO because OkHttp owns ping/pong via pingInterval."
     ],
-    "unsupported": [
-      "NWWebSocket.ping() manual ping frames (TODO in startPingTimer; OkHttpClient.pingInterval pings automatically)",
-      "NWConnection viability changes (webSocketViabilityDidChange, no Android counterpart)",
-      "NWConnection better path migration (webSocketDidAttemptBetterPathMigration, no Android counterpart)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3188,
@@ -7564,9 +7504,7 @@
       "No imports are needed for Model, ShowingPanel or the other peer types because they live in this same package.",
       "handleControllerFunction is called with named arguments to mirror the Swift parameter labels."
     ],
-    "unsupported": [
-      "SwiftUI KeyPress / KeyPress.Result (iOS 17 press handling) has no Android equivalent; a placeholder KeyPress type with nested Result was declared and key events must come from Compose key input."
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 2982,
@@ -7613,9 +7551,7 @@
       "RemoteControlState is not part of the provided glossary, so it is referenced by name from the same package as Model without being redeclared.",
       "This file contains no SwiftUI views, so no @Composable functions are produced despite the ui tier."
     ],
-    "unsupported": [
-      "URL.documentsDirectory with appending(component:) — replaced by TODO(\"no Android counterpart for URL.documentsDirectory: needs File(context.filesDir, \\\"stealthModeImage.img\\\")\") because a Context is required on Android"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 2902,
@@ -7707,16 +7643,17 @@
       "The global logger is replaced by a file-private Log tag constant named TAG with value \"Model\".",
       "updateIcons(myProductIds:) keeps its full loop and store bookkeeping; only the Icon built from StoreKit product metadata (displayName/displayPrice/id) is a TODO."
     ],
-    "unsupported": [
-      "StoreKit: Product.products(for:), Transaction.updates, VerificationResult, AppStore.sync(), Product.purchase(), Transaction.currentEntitlements, Transaction.finish()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3772,
     "tokens_out": 9868,
     "seconds": 40.6,
     "ported_at": "2026-09-22T13:19:44+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "needs_user": [
+      "StoreKit: Product.products(for:), Transaction.updates, VerificationResult, AppStore.sync(), Product.purchase(), Transaction.currentEntitlements, Transaction.finish() (needs Google Play Billing and the icon products in the Play Console)"
+    ]
   },
   "Moblin/Various/Model/ModelWebBrowser.swift": {
     "status": "ok",
@@ -7733,12 +7670,7 @@
       "mainScope is a file-private CoroutineScope(Dispatchers.Main) used for the DispatchQueue.main.async call.",
       "WKWebViewConfiguration.setHttpProxy and WKUIDelegate have no Android counterpart and are TODO placeholders."
     ],
-    "unsupported": [
-      "WKWebViewConfiguration.setHttpProxy(endpoint:) (NetworkExtension proxy configuration)",
-      "WKUIDelegate (webBrowserController)",
-      "WKNavigationDelegate (replaced by android.webkit.WebViewClient.onPageStarted)",
-      "Context needed to construct android.webkit.WebView inside Model.getWebBrowser()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3143,
@@ -8118,25 +8050,25 @@
   "Moblin/View/Utils/CommandCopyView.swift": {
     "status": "ok",
     "sha256": "a9cd65ffb9c1d5b60ba864524e15077451f685c9089c832c52a0d75b05b99201",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/utils/CommandCopyView.kt",
     "notes": [
-      "ShareLink has no Compose equivalent, so CopyToClipboardButtonView's body is TODO(\"no Compose counterpart for ShareLink\"); on Android clipboard copying is normally done with LocalClipboardManager.",
-      "The square.and.arrow.up icon and .font(.system(size: 20)) are dropped because they only existed as the ShareLink label.",
-      "Both SwiftUI structs become @Composable functions in the same file, keeping their names and property order (command/text become constructor-style parameters).",
-      "CommandCopyView keeps the backtick-delimited markdown formatting of the command string via Kotlin string interpolation.",
-      "ShareLink's tap-to-present share sheet can be replaced later with Intent.ACTION_SEND through a Context, which is why the TODO is isolated in the button composable."
+      "Both SwiftUI structs became @Composable functions with the same names, per the ui tier contract.",
+      "ShareLink(item = text) and SystemImage come from com.moblin.android.platform.swiftui and com.moblin.android.platform.",
+      "The label tint uses LocalTint.current, as required for Image(systemName:).font(.system(size:)).",
+      "The HStack has no explicit spacing, so the Row uses Arrangement.spacedBy(8.dp) and centers vertically.",
+      "The text row gets Modifier.weight(1f, fill = false) so a long command wraps and the share button keeps its size.",
+      "Text is androidx.compose.material3.Text."
     ],
-    "unsupported": [
-      "ShareLink"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2515,
-    "tokens_out": 823,
-    "seconds": 4.1,
-    "ported_at": "2026-09-22T13:20:28+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 36924,
+    "tokens_out": 1247,
+    "seconds": 5.9,
+    "ported_at": "2026-09-25T23:34:29+00:00"
   },
   "Moblin/Various/ReplayFrameExtractor.swift": {
     "status": "ok",
@@ -8242,11 +8174,7 @@
       "URL.isLoopback is an extension on java.net.URI and only resolves IP literals, so no DNS lookup happens, matching Swift IPv4Address/IPv6Address behaviour.",
       "WKWebViewConfiguration.setHttpProxy becomes an extension on android.webkit.WebView; Android has no per-instance proxy configuration so it is a TODO."
     ],
-    "unsupported": [
-      "Network.framework NWProtocolWebSocket ping frame (no OkHttp public API to send it)",
-      "Network.framework NWProtocolWebSocket pong frame (no OkHttp public API to send it)",
-      "WKWebViewConfiguration.proxyConfigurations (no Android per-WebView HTTP proxy equivalent)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 2907,
@@ -8432,9 +8360,7 @@
       "CATransaction.setDisableActions(true) during layout has no Compose/Android counterpart and was dropped; addView already lays children out without animation.",
       "AVFoundation import only supplied AVCaptureVideoPreviewLayer/AVCaptureVideoOrientation, both replaced by androidx.camera.view.PreviewView."
     ],
-    "unsupported": [
-      "AVCaptureVideoOrientation / AVCaptureVideoPreviewLayer.videoOrientation (no per-layer orientation in CameraX PreviewView)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3241,
@@ -8478,10 +8404,7 @@
       "Parameter order matches the Swift declaration (title, color, opacity, onChange) with the binding callback inserted after color.",
       "opacity keeps its default value false and only documents whether the picker supports alpha in the original implementation."
     ],
-    "unsupported": [
-      "SwiftUI ColorPicker (no Compose counterpart, replaced by TODO())",
-      "Color.toRgb() SwiftUI extension converting Color to RgbColor (no Kotlin counterpart, replaced by TODO())"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3319,
@@ -8538,29 +8461,23 @@
   "Moblin/Intents/MoblinShortcuts.swift": {
     "status": "ok",
     "sha256": "eb299310ec3cbc31de82b201c835ae0e31ad8708ab6d649da72ef86dbc308e1f",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/intents/MoblinShortcuts.kt",
     "notes": [
-      "AppIntents has no Android counterpart in this port: AppShortcutsProvider, AppShortcut and ShortcutTileColor are kept as plain data holders and the runtime registration is a TODO.",
-      "MoblinShortcuts is static-only in Swift, so it becomes a Kotlin object; shortcutTileColor and appShortcuts keep their names and order.",
-      "ShortcutTileColor.navy is modelled as a companion constant on a data class carrying the raw value, since the Apple type exposes named tile colors rather than a Compose Color.",
-      "appShortcuts instantiates MuteIntent(), UnmuteIntent() and SnapshotIntent() from com.moblin.android.intents with no-argument constructors, matching the Swift call sites.",
-      "AppShortcut.intent is typed Any because the three intent types come from other files in the same package.",
-      "The Swift phrase interpolation \\(.applicationName) is preserved verbatim as the literal ${applicationName} placeholder inside each phrase string.",
-      "updateAppShortcutParameters() is an AppShortcutsProvider requirement with no Android equivalent, so its body is TODO().",
-      "Android dynamic shortcuts (ShortcutManagerCompat) are intentionally not used here because the entries describe AppIntents, not Android shortcut intents."
+      "MoblinShortcuts is a stateless provider, so it becomes a Kotlin object implementing AppShortcutsProvider.",
+      "AppShortcut phrases interpolate AppShortcutPhraseToken.applicationName because the AppIntents shim has no implicit .applicationName.",
+      "nonisolated(unsafe) is dropped; Kotlin has no equivalent.",
+      "Every intent is constructed without arguments, as the AppIntents shim declares."
     ],
-    "unsupported": [
-      "AppIntents (AppShortcutsProvider, AppShortcut, ShortcutTileColor)",
-      "IntentsUI"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2217,
-    "tokens_out": 3203,
-    "seconds": 13.7,
-    "ported_at": "2026-09-22T13:20:58+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 35316,
+    "tokens_out": 598,
+    "seconds": 3.2,
+    "ported_at": "2026-09-25T23:00:17+00:00"
   },
   "Moblin/Media/HaishinKit/Rtmp/Message/RtmpMessage.swift": {
     "status": "ok",
@@ -8613,30 +8530,27 @@
   "Moblin/Various/Model/ModelNavigation.swift": {
     "status": "ok",
     "sha256": "7762acae920944e724606c0f28c70ed296ded17c0f926c18109101c885b6f922",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelNavigation.kt",
     "notes": [
-      "Navigation is an ObservableObject state holder: @Published properties became private MutableStateFlow fields with public read-only StateFlow accessors (_cameraPosition/cameraPosition etc.).",
-      "MapKit types (MapCameraPosition, MKCoordinateRegion, MKRoute, MKMapItem) have no Android counterpart, so those properties are typed as Any? / List<Any> and every operation on them is a TODO.",
-      "NavigationTransportType is a CaseIterable enum with no raw values, so it is a plain Kotlin enum class with a companion allCases list.",
-      "toSystem() referenced MKDirectionsTransportType; its return type has no Android equivalent, so it returns Any with TODO until a routing backend is chosen.",
-      "updateCameraPosition keeps the same signature and the guard-let-as-early-return (region ?: cameraRegion ?: return); only the camera assignment is TODO.",
-      "updateDirections keeps the early return on destination and the route reset, then stops at TODO because MKDirections and its completion handler are unavailable.",
-      "The Model extension is translated as a top-level extension function in the same package, so no import of Model is needed.",
-      "cameraRegion stays a plain nullable var (it was not @Published in Swift) and holds the raw region value used by updateCameraPosition."
+      "@MainActor and @available(iOS 26, *) are dropped; Navigation stays a plain open class with a lazy companion `shared`.",
+      "@Published properties became MutableStateFlow; composables read them with collectAsState(), and non-composable code (this file) writes `.value`.",
+      "SettingsNavigation.followUser/followHeading are read-only StateFlow<Boolean>, so they are read with `.value` and never assigned here.",
+      "The DispatchQueue.main.async inside MKDirections.calculate is unnecessary because the shim's completion handler already runs on the main thread, so the route is assigned directly; nonisolated(unsafe) is dropped.",
+      "NavigationTransportType is CaseIterable in Swift, which Kotlin enums provide as `entries`.",
+      "The Model extension is a top-level extension function in the same package returning Navigation.shared.",
+      "MKCoordinateRegion comes from com.moblin.android.various.utils and MapCameraPosition/MKDirections/MKRoute/MKMapItem from com.moblin.android.platform.mapkit.",
+      "MainTimer is taken from com.moblin.android.various as-is."
     ],
-    "unsupported": [
-      "MapKit MapCameraPosition",
-      "MapKit MKDirections",
-      "MapKit MKDirectionsTransportType"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3368,
-    "tokens_out": 5179,
-    "seconds": 20.6,
-    "ported_at": "2026-09-22T13:21:19+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 45934,
+    "tokens_out": 4387,
+    "seconds": 16.5,
+    "ported_at": "2026-09-25T22:48:42+00:00"
   },
   "Moblin/View/Utils/TextEditView.swift": {
     "status": "ok",
@@ -8952,9 +8866,7 @@
       "EmoteBorder and EmoteKey are internal instead of private because EmotesPlayer's internal members expose them in their signatures.",
       "ChatImageSource.Symbol cannot resolve a dynamic icon name on Android, so its render branch is TODO()."
     ],
-    "unsupported": [
-      "UIImage(systemName:withConfiguration:)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 7076,
@@ -8978,9 +8890,7 @@
       "The file-global 'calendar' maps to a java.util.Calendar pinned to UTC (Swift Calendar(identifier: .iso8601) with UTC time zone).",
       "writeRbspTrailingBits and writeMoreDataInPayload are unchanged top-level functions."
     ],
-    "unsupported": [
-      "CMVideoFormatDescriptionCreateFromHEVCParameterSets (CoreMedia)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3757,
@@ -9094,10 +9004,7 @@
       "Logging uses android.util.Log with the tag \"RistServer\" (the class name).",
       "stopInternal iterates over a snapshot of the client keys (keys.toList()), matching Swift's value-semantics Dictionary iteration while those keys are removed afterwards."
     ],
-    "unsupported": [
-      "librist RistReceiverContext start (native RIST receiver has no Android binding in this port)",
-      "librist RistReceiverContext stop (native RIST receiver has no Android binding in this port)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3153,
@@ -9120,19 +9027,20 @@
       "logger.info maps to Log.i with the tag \"Model\".",
       "The Swift #else branch (empty stubs) is represented by the same three function names; their bodies are TODO because the macCatalyst plugin bundle cannot be loaded on Android."
     ],
-    "unsupported": [
-      "NSBundle.main.builtInPlugInsURL / Bundle(url:) / principalClass plugin bundle loading (MoblinMac.bundle)",
-      "macCatalyst NSStatusItem bridge (MacStatusItem helper object)",
-      "UIImage(named:)?.pngData() icon encoding",
-      "MacStatusItemDelegate conformance declared from an extension"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3183,
     "tokens_out": 5945,
     "seconds": 25.4,
     "ported_at": "2026-09-22T13:23:10+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "NSBundle.main.builtInPlugInsURL / Bundle(url:) / principalClass plugin bundle loading (MoblinMac.bundle)",
+      "macCatalyst NSStatusItem bridge (MacStatusItem helper object)",
+      "UIImage(named:)?.pngData() icon encoding",
+      "MacStatusItemDelegate conformance declared from an extension"
+    ]
   },
   "Common/View/ThermalStateView.swift": {
     "status": "ok",
@@ -9194,10 +9102,7 @@
       "Swift's .contentShape(Rectangle()) plus .padding(-20) hit-area expansion has no Compose counterpart (negative padding is not supported); it is left as TODO().",
       "enum case names differ in casing only, so the Swift and Kotlin sources can still be read side by side."
     ],
-    "unsupported": [
-      "Image(systemName: icon) with a runtime SF Symbol name: no Android/Material counterpart, painter replaced by TODO()",
-      "contentShape(Rectangle()) combined with negative padding (-20) hit-area expansion: no Compose counterpart, replaced by TODO()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3886,
@@ -9319,18 +9224,19 @@
       "logger.info is translated to Log.i with tag \"MacScreenCapture\"; the start log cannot reproduce the SCStream width/height pixels, so it logs the filter/display/scale instead.",
       "TODO() throws NotImplementedError (not an Exception), so startInternal/stopInternal short-circuit before the delegate callbacks run; the TS-adjustment callback logic is still fully translated."
     ],
-    "unsupported": [
-      "no Android counterpart for ScreenCaptureKit SCStream",
-      "no Android counterpart for ScreenCaptureKit SCStream.stopCapture",
-      "no Android counterpart for ScreenCaptureKit SCShareableContent"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4185,
     "tokens_out": 12025,
     "seconds": 46.4,
     "ported_at": "2026-09-22T13:24:25+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "no Android counterpart for ScreenCaptureKit SCStream",
+      "no Android counterpart for ScreenCaptureKit SCStream.stopCapture",
+      "no Android counterpart for ScreenCaptureKit SCShareableContent"
+    ]
   },
   "Moblin/Media/HaishinKit/Media/Audio/BufferedAudio.swift": {
     "status": "ok",
@@ -9347,9 +9253,7 @@
       "Assumes the ported SimpleTimer takes the queue in its constructor and exposes startPeriodic(interval, initial) { } and stop(), that DriftTrackerMedia's entry is Audio and DriftTracker.update/addMedia keep the Swift parameter order, and that currentPresentationTimeStamp() returns microseconds.",
       "logger.info/debug become android.util.Log with tag \"BufferedAudio\"; logger.debugEnabled becomes Log.isLoggable(tag, Log.DEBUG)."
     ],
-    "unsupported": [
-      "CMSampleBuffer.numSamples (PCM frame count)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5758,
@@ -9534,9 +9438,7 @@
       "The long Swift switch lists every SettingsQuickButtonType case explicitly, all returning false, with `default` returning true; the Kotlin `when` mirrors this with `else -> true`.",
       "No new types are declared by this file; it only adds extension functions to Model."
     ],
-    "unsupported": [
-      "Bundle.main.url(forResource: \"Alerts.bundle/Silence\", withExtension: \"mp3\") -> TODO(\"Resolve Alerts.bundle/Silence.mp3 from assets and create a MediaPlayer\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3297,
@@ -9705,10 +9607,7 @@
       "DataChannelConnectionState and DataChannelGatheringState came from the Swift DataChannel package and are declared here as private enums with fromValue(rawValue).",
       "Opus audio decoding has no drop-in Android equivalent in this file, so setupOpusDecoder and decodeOpusPacket are TODO(); the PCM16 helper pcm16ToBytes is pure logic and fully translated."
     ],
-    "unsupported": [
-      "AVAudioConverter / AVAudioFormat(streamDescription:) / AVAudioCompressedBuffer — replaced by TODO in setupOpusDecoder: the MediaCodec \"audio/opus\" decoder needs the OpusHead codec specific data from the SDP",
-      "AVAudioConverter.convert(to:error:withInputFrom:) — replaced by TODO in decodeOpusPacket: MediaCodec audio/opus packet decode"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 8634,
@@ -9756,9 +9655,7 @@
       "String(localized: \"...\\(x)...\") kept its interpolation inside localized(...), matching the rest of the port.",
       "takeVideoSourcePreviewImage collapses the two-part guard into a single if that calls onComplete(null) before returning."
     ],
-    "unsupported": [
-      "UIImageWriteToSavedPhotosAlbum"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5723,
@@ -9856,11 +9753,7 @@
       "`data.getDescriptor(ElementaryStreamDescriptiorTag.registration)` is kept exactly as in the Swift source (returning the registration enum) while `…Tag.extension` is read as descriptor bytes; adjust if the Kotlin ElementaryStreamSpecificData exposes a single byte-array accessor.",
       "The delegate is a strong reference (Kotlin has no weak references) and the decoder queue is a kotlinx.coroutines CoroutineDispatcher instead of DispatchQueue."
     ],
-    "unsupported": [
-      "AVAudioConverter codec construction replaced by TODO(\"MediaCodec audio/mp4a-latm decoder configuration port\")",
-      "AVAudioConverter.convert replaced by TODO(\"MediaCodec audio/mp4a-latm decode port\")",
-      "H.265 SEI timecode payload access replaced by TODO(\"H.265 SEI timecode extraction port\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 9122,
@@ -9884,10 +9777,7 @@
       "RTP sequence numbers use Int masked to 16 bits instead of UShort so the wrapping arithmetic (&- and &+) stays explicit.",
       "String(utf8) splitting uses filter { it.isNotEmpty() } to reproduce Swift's omittingEmptySubsequences behaviour."
     ],
-    "unsupported": [
-      "CMFormatDescription creation from the SPS/PPS NAL units ([AvcNalUnit].makeFormatDescription()) has no counterpart in the port: TODO(\"Build a MediaFormat for video/avc from $nalUnits\").",
-      "CMFormatDescription creation from the VPS/SPS/PPS NAL units ([HevcNalUnit].makeFormatDescription()) has no counterpart in the port: TODO(\"Build a MediaFormat for video/hevc from $nalUnits\")."
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 12513,
@@ -10336,10 +10226,7 @@
       "All user-facing strings go through localized() from package com.moblin.android.",
       "makeUniqueName and DeepLinkCreatorStream.baseName are called positionally because their Kotlin parameter names are defined in other packages."
     ],
-    "unsupported": [
-      "contextMenuDeleteButton (SwiftUI context menu delete) has no direct Compose counterpart; replaced by long-press plus AlertDialog",
-      "onMove list reordering has no Compose counterpart; reordering is omitted"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3024,
@@ -10399,26 +10286,26 @@
   "Moblin/View/Settings/ImportExport/ExportSettingsView.swift": {
     "status": "ok",
     "sha256": "c21dba6666e739109c91dd3f90062a7fbef349b684892d242f268fac9cd2205c",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/importexport/ExportSettingsView.kt",
     "notes": [
-      "ExportSettingsView keeps its name and takes the observed Model as a parameter; @State url becomes a local remember { mutableStateOf<String?>(null) } holding a String because the URL is only stored.",
-      "onAppear becomes LaunchedEffect(Unit) and calls model.exportToFile { url = it }, assuming Model.exportToFile takes a (String) -> Unit callback in the Kotlin port.",
-      "HCenter is used as a composable content wrapper taken from com.moblin.android.view.utils, matching the Swift helper of the same name.",
-      "ShareLink has no Compose equivalent, so that branch is TODO() while the loading branch uses CircularProgressIndicator.",
-      "ProgressView maps to CircularProgressIndicator for the indefinite case used here.",
-      "URL is mapped to String per the storage-only rule, so no java.net.URI import is needed."
+      "Swift struct ExportSettingsView: View becomes a @Composable function taking model, defaulted from LocalModel.",
+      "@State URL? becomes remember { mutableStateOf<String?>(null) }; the URL is carried as a String file path.",
+      ".onAppear is translated to DisposableEffect(Unit) calling model.exportToFile, with an empty onDispose.",
+      "ShareLink(item:label:) maps to the platform ShareLink composable, which shares a file path String as the file.",
+      "ProgressView() becomes CircularProgressIndicator with 20.dp size, formPalette().secondaryLabel colour and 2.dp stroke, matching the port's convention.",
+      "The HCenter wrapper from com.moblin.android.view.utils replaces the SwiftUI HCenter.",
+      "The result of the export callback is read back through the state, exactly like the Swift closure assigning to url."
     ],
-    "unsupported": [
-      "ShareLink"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2943,
-    "tokens_out": 1502,
-    "seconds": 6.7,
-    "ported_at": "2026-09-22T13:29:06+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 38682,
+    "tokens_out": 3790,
+    "seconds": 15.0,
+    "ported_at": "2026-09-25T23:00:35+00:00"
   },
   "Moblin/View/Settings/CatPrinters/CatPrinterScannerSettingsView.swift": {
     "status": "ok",
@@ -10555,9 +10442,7 @@
       "The Label's SF Symbol icon (a runtime image name) has no direct Compose ImageVector mapping, so the Icon slot is TODO.",
       "The whole row is made clickable with Modifier.clickable to reproduce the NavigationLink tappable label."
     ],
-    "unsupported": [
-      "Image(systemName:) with a dynamic SF Symbol name has no Compose ImageVector mapping"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 2764,
@@ -10853,11 +10738,7 @@
       "defaultSegmentedPickerSelectedColor.color() is translated as a TODO() because the Settings color helper is not available in this file's glossary; replace it with the real conversion once Settings is ported.",
       "The ForEach with Divider separators becomes a Kotlin for loop emitting each item followed by a HorizontalDivider."
     ],
-    "unsupported": [
-      "SwiftUI @Namespace / matchedGeometryEffect (animated selection highlight)",
-      "SwiftUI .onLongPressGesture",
-      "SwiftUI .contentShape(Rectangle())"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3989,
@@ -11141,10 +11022,7 @@
       "String(localized:) becomes localized(...) imported from com.moblin.android.",
       "golf is unused in WidgetScoreboardGolfGeneralSettingsView, exactly as in the Swift source, and is kept for signature parity."
     ],
-    "unsupported": [
-      "SwiftUI contextMenuDeleteButton (context menu)",
-      "SwiftUI List .onDelete swipe-to-delete gesture"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4518,
@@ -11288,9 +11166,7 @@
       "libdatachannel's RTC_CODEC_H264 / RTC_CODEC_OPUS have no Kotlin declaration, so the codec: argument of addRecvOnlyTrack is TODO(); payload types still use h264PayloadType / opusPayloadType.",
       "Assumes the ported WebrtcIngestClient keeps the Swift initializer labels (name, streamId, latency, syncTimestamps, softwareDecoding, iceServers, dispatchQueue, delegate), the method labels addRecvOnlyTrack/setTrackCodec/setLocalDescription/setRemoteDescription, and that it delivers delegate callbacks on the dispatcher it was given."
     ],
-    "unsupported": [
-      "libdatachannel RTC_CODEC_H264 / RTC_CODEC_OPUS constants (codec: argument of addRecvOnlyTrack)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4374,
@@ -11362,17 +11238,18 @@
       "The @MainActor annotation on StreamDeck has no Kotlin equivalent; StateFlow provides the thread-safe observation instead.",
       "SettingsStreamDecks.layouts and selectedId are treated as plain Kotlin properties (read/assigned directly) as in the Swift code."
     ],
-    "unsupported": [
-      "StreamDeckKit (StreamDeckSession.setUp, StreamDeckLayout, StreamDeckKeyAreaLayout)",
-      "UIApplication.canOpenURL"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3622,
     "tokens_out": 11048,
     "seconds": 43.2,
     "ported_at": "2026-09-22T13:31:56+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "StreamDeckKit (StreamDeckSession.setUp, StreamDeckLayout, StreamDeckKeyAreaLayout)",
+      "UIApplication.canOpenURL"
+    ]
   },
   "Moblin/Various/Model/ModelWhipServer.swift": {
     "status": "ok",
@@ -11728,17 +11605,17 @@
       "The ProcessInfo.ThermalState extensions assume the ported enum in com.moblin.android.various.storages has the entries nominal, fair, serious, critical; thermal colors use Color(0xFFFFC0CB) for pink.",
       "KeyedEncodingContainer/KeyedDecodingContainer helpers are translated as JsonObject extensions that take a KSerializer (decode falls back to the given default, matching the Swift behaviour); String.utf8Data/fromUtf8 use UTF-8 and never fail, unlike the Swift fatalError."
     ],
-    "unsupported": [
-      "HealthKit HKQuantityType (heartRateType, distanceCyclingType, distanceWalkingRunningType, stepCountType, activeEnergyBurnedType, runningPowerType, cyclingPowerType, cyclingCadenceType)",
-      "CoreMedia CMBlockBuffer (ByteArray.makeBlockBuffer)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 9344,
     "tokens_out": 68071,
     "seconds": 251.4,
     "ported_at": "2026-09-22T13:34:44+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "HealthKit HKQuantityType (heartRateType, distanceCyclingType, distanceWalkingRunningType, stepCountType, activeEnergyBurnedType, runningPowerType, cyclingPowerType, cyclingCadenceType)"
+    ]
   },
   "Moblin/Media/HaishinKit/Media/Recorder.swift": {
     "status": "ok",
@@ -11755,13 +11632,7 @@
       "The Swift weak delegate is a plain nullable property because Kotlin has no weak references, so Recorder holds a strong reference to its delegate.",
       "URL parameters are plain Strings used as file paths (URL.path only), AVFoundation output-settings keys are replaced by android.media.MediaFormat keys when reading those maps, and isZero is assumed to accept Any?."
     ],
-    "unsupported": [
-      "AVAssetWriter segmented HLS writer (AVAssetWriter, outputFileTypeProfile .mpeg4AppleHLS, preferredOutputSegmentInterval, initialSegmentStartTime, delegate) in startRunningInternal",
-      "AVAssetWriterInput.SampleBufferReceiver / CMReadySampleBuffer (ReceiverWriterInput.append)",
-      "AVAudioConverter and AVAudioFormat (makeAudioConverter, tryConvertAudio)",
-      "AVAudioChannelLayout / kAudioChannelLayoutTag_DiscreteInOrder (makeChannelLayout)",
-      "AVAudioFormat(streamDescription:) / AudioStreamBasicDescription (makeAudioFormat)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 7418,
@@ -11785,16 +11656,17 @@
       "ChatMessageEmote keeps `id` as a body property because Swift's memberwise initializer excludes a `let` that has a default value; the constructor is (url, stillUrl, range, isGif).",
       "ChatHighlight's Swift extension init(remoteControl:) becomes a secondary constructor and toRemoteControl() stays a member function; ChatHighlight is a data class with the static factories in its companion object."
     ],
-    "unsupported": [
-      "WatchConnectivity: WatchProtocolChatHighlight / WatchProtocolChatHighlightKind do not exist on Android, so ChatHighlight.toWatchProtocol() is TODO()."
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 6849,
     "tokens_out": 20408,
     "seconds": 78.3,
     "ported_at": "2026-09-22T13:34:50+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "WatchConnectivity: WatchProtocolChatHighlight / WatchProtocolChatHighlightKind do not exist on Android, so ChatHighlight.toWatchProtocol() is TODO()."
+    ]
   },
   "Moblin/Media/HaishinKit/Rtmp/RtmpConnection.swift": {
     "status": "ok",
@@ -11835,11 +11707,7 @@
       "CMSampleBuffer -> MediaSample and CMTime -> Long microseconds; NSNumber channel maps become List<Int>.",
       "captureOutput keeps its AVCaptureAudioDataOutputSampleBufferDelegate signature but is not wired to any capture loop in this port."
     ],
-    "unsupported": [
-      "AVCaptureDeviceInput / AVCaptureAudioDataOutput / AVCaptureSession audio device wiring (AudioUnit.attachDevice)",
-      "AVCaptureSession.synchronizationClock host clock conversion (syncTimeToHost)",
-      "AVCaptureAudioDataOutputSampleBufferDelegate capture loop"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 7924,
@@ -12321,30 +12189,27 @@
   "Moblin/View/Settings/Recordings/RecordingsSettingsView.swift": {
     "status": "ok",
     "sha256": "57c038e45808f148d36facd2b280defdd2a9d776298af203cbe6c2edf84c3de9",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/recordings/RecordingsSettingsView.kt",
     "notes": [
-      "FilesLocationView's SwiftUI `let text: Text` becomes `text: String` because Compose Text is a composable; the label is rendered with Text(text) inside the button content.",
-      "URL is mapped to java.net.URI because the code needs `.path`; model.recordingsStorage.defaultStorageDirectory(), model.stream.recording.recordingPath and makeRecordingPath(...) are assumed to speak URI in the Kotlin port.",
-      "`@Binding var presentingHelp` is translated to a value parameter plus an `onPresentingHelpChange` lambda, and `.sheet` becomes a Material3 ModalBottomSheet gated on the same state.",
-      "Form/Section are rendered as a LazyColumn with the section header Text placed before its content, matching SwiftUI header ordering.",
-      "UIApplication.shared.canOpenURL / open and the `shareddocuments://` Files-app scheme have no Android counterpart, so makeSharedUrl, openInFilesApp and openInFinder bodies are TODO() and listed as unsupported.",
-      "UIPasteboard is replaced with Compose's LocalClipboardManager/ClipboardManager, and copyPathToClipboard takes the ClipboardManager as a parameter so it can stay a plain (non-composable) function.",
-      "CloseToolbar, CommandCopyView, ExternalButtonView and TextButtonView are called with the most plausible Kotlin signatures (onClick/content, command, text/action); adjust if the shared files differ.",
-      "`.navigationTitle` for both HelpView and RecordingsSettingsView is rendered as a Scaffold TopAppBar title."
+      "FilesLocationView receives 'text: Text' in Swift; it is translated as a String parameter rendered with Text(localized(text)), so call sites pass the raw literal.",
+      "FilesLocationView's 'path: URL' becomes 'path: java.net.URI' and path.path() becomes the URI's path property, matching the hand-written platform note for this screen.",
+      "The struct's private methods makeSharedUrl/openInFilesApp/openInFinder/copyPathToClipboard became private top-level functions; model is threaded through the ones that need it.",
+      "UIPasteboard.general.string is translated to ClipboardManager.setPrimaryClip with AppDelegate.context, and UIApplication.shared.open uses the java.net.URI overload with its success completion.",
+      "RecordingsSettingsView collects model.stream with collectAsState before reading stream.recording.recordingPath, since model.stream is a StateFlow.",
+      "The Swift .sheet modifier on TextButtonView is translated to Sheet placed inside the same Section, next to TextButtonView, so it can animate in and out.",
+      "The multi-line ffmpeg string literals and the long Help paragraphs were joined into single-line Kotlin strings with escaped quotes.",
+      "Text is androidx.compose.material3.Text so it picks up the app's LocalTextStyle (17.sp body by default)."
     ],
-    "unsupported": [
-      "UIApplication.shared.canOpenURL",
-      "UIApplication.shared.open",
-      "shareddocuments:// Files app URL scheme"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4743,
-    "tokens_out": 8731,
-    "seconds": 30.7,
-    "ported_at": "2026-09-22T13:37:32+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 41932,
+    "tokens_out": 12831,
+    "seconds": 46.7,
+    "ported_at": "2026-09-25T23:01:07+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/OpenStreamingPlatform/StreamOpenStreamingPlatformSettingsView.swift": {
     "status": "ok",
@@ -12540,28 +12405,26 @@
   "Moblin/Various/Model/ModelSettingsUrl.swift": {
     "status": "ok",
     "sha256": "17c43a941f721dfef49d5c6d7d12a87fcfb6d5d5e94859f73a5146f8968010a8",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSettingsUrl.kt",
     "notes": [
-      "The Swift `extension Model` became top-level Kotlin extension functions in com.moblin.android.various.model; the `private` helpers stay file-private so they match the Swift file-private visibility.",
-      "`UIOpenURLContext` maps to `android.net.Uri`; `url.url.isFileURL` becomes `url.scheme == \"file\"` and `url.url.pathExtension` becomes the last path segment suffix.",
-      "`String(format:)` templates using the iOS `%@` specifier were rewritten with `%s` because java.util.Formatter rejects `%@`; wording stays identical.",
-      "`String(localized:)` calls go through the top-level `localized()` function imported from com.moblin.android.",
-      "`url.startAccessingSecurityScopedResource()`/`stopAccessing...` have no Android counterpart and are replaced with TODO().",
-      "`pendingStreamImportCollisionAction = { [weak self] in ... }` is kept as a `(Boolean) -> Unit` lambda that captures the extension receiver instead of a weak self.",
-      "The `do/catch` around `MoblinSettingsUrl.fromString(query:)` returns `error.localizedDescription`, translated to `e.message` on the caught Exception.",
-      "`url.query(percentEncoded: false)` is `Uri.query`, which is already percent-decoded on Android."
+      "HandleSettingsUrls is an extension of Model, so every method becomes a file-private or public top-level `fun Model.` extension in com.moblin.android.various.model.",
+      "handleSettingsUrls takes Set<android.net.Uri> instead of Set<UIOpenURLContext>; the file extension test uses `(url.path ?: \"\").substringAfterLast('.', \"\")` compared case-insensitively with equals(ignoreCase = true).",
+      "Flow-backed settings used here (isLive, isRecording, presentingStreamImportCollisionConfirmation, quickButtonsGeneral.twoColumns/showName/enableScroll and each quick button's enabled/page) are read and written through `.value`; pendingStreamImportCollisionTitle/Action, createStreamWizard.presenting and presentingSetup stay plain vars.",
+      "MoblinSettingsUrlStream.video.bitrate stays UInt? and is range-checked as UInt (50000u..50000_000u) then stored with toInt(); assistant.port is UShort and is stored with toInt().",
+      "streamImportCollisionTitle replaces %@ with java.util.Formatter's %s, as java.util.Formatter throws on %@.",
+      "startAccessingSecurityScopedResource/stopAccessingSecurityScopedResource are dropped: a .moblinSettings file always arrives as a readable file URI, so importSettingsFromFile is called with url.path.",
+      "try/catch around MoblinSettingsUrl.fromString is kept as a Kotlin try expression returning error.localizedMessage from the catch block."
     ],
-    "unsupported": [
-      "no Android counterpart for security-scoped resource access"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7486,
-    "tokens_out": 12903,
-    "seconds": 47.4,
-    "ported_at": "2026-09-22T13:39:03+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 50367,
+    "tokens_out": 15566,
+    "seconds": 52.3,
+    "ported_at": "2026-09-25T23:12:58+00:00"
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift": {
     "status": "ok",
@@ -12623,17 +12486,11 @@
       "AppDelegate maps to android.app.Application, using Application.registerActivityLifecycleCallbacks to track the current activity so orientationLock can call Activity.requestedOrientation like the Swift didSet did.",
       "Sub-views (StreamView, CameraPreviewView, StreamPreviewView) are passed to MainView as @Composable lambdas, which is the Compose equivalent of the SwiftUI view parameters.",
       "Model @Published state (show, toast, orientation, database) is read with collectAsState(); controllers (webBrowserController, createStreamWizard) stay plain properties.",
-      "SceneDelegate has no Android counterpart: only the settings-URL forwarding is translated, the external-display branch is TODO.",
+      "SceneDelegate is not used on Android: settings URLs come through platform/AndroidHost, and the external display scene is platform/uikit/ExternalDisplay (DisplayManager presentation displays shown with android.app.Presentation), installed from MainActivity by a hook.",
       ".background(.black) becomes a Box with Modifier.background(Color.Black); .ignoresSafeArea() is a no-op because nothing applies window insets here.",
       "targetEnvironment(macCatalyst) branches (storeSettings, replaysStorage.store, exit(EXIT_SUCCESS)) are not part of the Android build and were dropped."
     ],
-    "unsupported": [
-      "UIWindowScene / UIScene / UISceneSession (SceneDelegate scene connection)",
-      "UISceneConfiguration",
-      "UIInterfaceOrientationMask / requestGeometryUpdate(_:) / setNeedsUpdateOfSupportedInterfaceOrientations()",
-      "UIOpenURLContext",
-      "UIApplicationDelegateAdaptor"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3959,
@@ -12682,12 +12539,7 @@
       "Video still runs through VideoDecoder (MediaCodec based) from com.moblin.android.media.haishinkit.codec.video and frames are handed to RtmpServerClient.handleFrame as MediaSample.",
       "stopInternal/sendMessage/handleClientConnected/handleAudioBuffer/handleFrame are called positionally, and RtmpChunk/RtmpCommandMessage use named type/chunkStreamId/message/streamId/transactionId arguments; verify those names against the other rtmpserver files."
     ],
-    "unsupported": [
-      "AVAudioFormat",
-      "AVAudioConverter",
-      "AVAudioCompressedBuffer",
-      "AVAudioPCMBuffer"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 10411,
@@ -12699,30 +12551,27 @@
   "Moblin/Various/Model/ModelChat.swift": {
     "status": "ok",
     "sha256": "2d9382679e5b2990d0d957cdbe07f53a14941a58ad1badd5461fe493d966ecc7",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChat.kt",
     "notes": [
-      "ModelChat.swift is an extension of Model, so everything becomes top-level extension functions on Model in the same package (com.moblin.android.various.model); Model and the other model types are not redeclared.",
-      "Swift Deque collections (chatAlertsPosts, newQuickButtonChatAlertsPosts, pausedQuickButtonChatAlertsPosts, posts) are translated to kotlin.collections.ArrayDeque with removeFirstOrNull/addFirst/addLast; newPostIds takes MutableList (unknown property type at the call site) and returns ArrayDeque so it can be assigned to either a MutableList or an ArrayDeque property.",
-      "ContinuousClock.Instant maps to java.time.Instant and the elapsed-time comparison to java.time.Duration.between(...).seconds.",
-      "localized() from package com.moblin.android replaces every String(localized:).",
-      "Enum cases are rendered UPPER_SNAKE_CASE (Platform.TWITCH, Platform.KICK, Platform.YOUTUBE, Platform.SOOP, Platform.OPEN_STREAMING_PLATFORM, ChatHighlightKind.REDEMPTION, ChatHighlightKind.NEW_FOLLOWER).",
-      "DispatchQueue.main.asyncAfter with a 2 second deadline becomes mainScope.launch { delay(2000) ... } with a file-private mainScope = CoroutineScope(Dispatchers.Main).",
-      "The inline SwiftUI message built inside printChatMessage is preserved as the ChatPrinterMessage composable (Row + FlowRow as the WrappingHStack replacement with @OptIn(ExperimentalLayoutApi::class)); only the offscreen render and CatPrinter image conversion are TODO.",
-      "sendTwitchChatMessage's completion is assumed to carry a TwitchChatSendMessageResult with an AUTH_ERROR entry; align that name with the ported Twitch chat type."
+      "Model extensions become top-level extension functions in com.moblin.android.various.model, in the same order as the Swift extension.",
+      "ContinuousClock.Instant becomes java.time.Instant; the age check uses Duration.between(post.timestampTime, now).seconds.",
+      "ChatProvider state (posts, paused, moreThanOneStreamingPlatform) and the model sub-objects (quickButtonChatState, statusTopLeft, externalDisplay) are read and written through MutableStateFlow.value.",
+      "In-place Deque mutations of quickButtonChatState.chatAlertsPosts are copied into a new ArrayDeque and assigned back to the flow; Model's newQuickButtonChatAlertsPosts/pausedQuickButtonChatAlertsPosts stay ArrayDeque<ChatPost>.",
+      "printChatMessage renders the ChatPrinterMessage composable with ImageRenderer on a private main coroutine scope, waits 2 s, and prints to every cat printer whose printChat flow is true.",
+      "UIPasteboard.general.string is the system ClipboardManager from AppDelegate.context.",
+      "createRedLineChatPost keeps Swift's defer by incrementing chatPostId after the ChatPost is built; newPostIds copies each post with a fresh id.",
+      "ChatPrinterMessage uses Compose FlowRow for WrappingHStack and CacheAsyncImage with AssetImage placeholder from Bundle.image(\"AppIconNoBackground\")."
     ],
-    "unsupported": [
-      "SwiftUI ImageRenderer (offscreen chat-message rendering for the CatPrinter in printChatMessage)",
-      "CIImage (chat-message image handed to the CatPrinter in printChatMessage)",
-      "UIPasteboard (copyMessage)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 9373,
-    "tokens_out": 34129,
-    "seconds": 125.1,
-    "ported_at": "2026-09-22T13:40:17+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 57727,
+    "tokens_out": 36944,
+    "seconds": 127.2,
+    "ported_at": "2026-09-25T22:52:34+00:00"
   },
   "Moblin/VideoEffects/ImageEffect.swift": {
     "status": "ok",
@@ -13101,18 +12950,19 @@
       ".onSubmit -> KeyboardOptions(imeAction = ImeAction.Done) with KeyboardActions(onDone = ...).",
       ".navigationTitle(\"Apple Music\") is rendered by the Scaffold TopAppBar title."
     ],
-    "unsupported": [
-      "MusicKit MusicSubscription.subscriptionUpdates",
-      "MusicKit MusicSubscriptionOffer (musicSubscriptionOffer modifier)",
-      "MusicKit ApplicationMusicPlayer state and queue (musicPlayer)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3767,
     "tokens_out": 16054,
     "seconds": 60.6,
     "ported_at": "2026-09-22T13:42:48+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "MusicKit MusicSubscription.subscriptionUpdates",
+      "MusicKit MusicSubscriptionOffer (musicSubscriptionOffer modifier)",
+      "MusicKit ApplicationMusicPlayer state and queue (musicPlayer)"
+    ]
   },
   "Moblin/VideoEffects/VideoSourceEffect.swift": {
     "status": "ok",
@@ -13154,10 +13004,7 @@
       "String(localized: \"a preset\") maps to localized(\"a preset\") from package com.moblin.android.",
       "The Section footer is the last LazyColumn item: SwipeLeftToDeleteHelpView(kind = localized(\"a preset\"))."
     ],
-    "unsupported": [
-      "contextMenuDeleteButton (long-press context menu delete)",
-      "onMove (List drag-to-reorder)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3877,
@@ -13311,28 +13158,27 @@
   "Moblin/View/Settings/Store/StoreSettingsView.swift": {
     "status": "ok",
     "sha256": "f8236baefac6c0ac17da311b3d0767b2feeb8454a455e50f62a4aa50d74fc123",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/store/StoreSettingsView.kt",
     "notes": [
-      "Five SwiftUI views became five private @Composable functions in the same order; StoreSettingsView is the only public entry point.",
-      "@EnvironmentObject/@ObservedObject model access became explicit parameters (model: Model, store: Store) and their @Published properties are read with collectAsState().",
-      "Writes to the store's Picker binding use store.iconImage.value = ... which assumes the port exposes a MutableStateFlow for two-way binding; if it exposes a read-only StateFlow, route the write through the store's setter instead.",
-      "icon.imageNoBackground() is assumed to return an Int drawable resource id that is loaded with painterResource().",
-      "controlBarButtonSize (from com.moblin.android.common.various) is assumed to be a numeric Float/Double, converted with .dp; if it is already a Dp, drop the .dp calls.",
-      "TextButtonView from com.moblin.android.view.utils is called with assumed named parameters text/enabled/action; verify against its real signature.",
-      "SwiftUI .tag()/Picker selection tags have no Compose counterpart and are dropped; the inline Picker is rendered as an ExposedDropdownMenuBox.",
-      "Nested SwiftUI List inside a Form is rendered as a plain Column of rows so it can live inside the parent LazyColumn without nested-scroll crashes."
+      "Each SwiftUI View becomes a @Composable function with the same name; @EnvironmentObject model is a parameter defaulted from LocalModel.current, as in the rest of the port.",
+      "store.iconsInStore, store.myIcons and store.iconImage are StateFlows, collected at the top of each view with collectAsState() so the view recomposes.",
+      "The ForEach rows have no onDelete/onMove/swipeActions, so they stay items.forEach { key(it.id) { ... } } and the surrounding List is dropped.",
+      "The .tag(icon.image()) modifiers are Picker-only and have no Compose counterpart outside Picker, which takes its options list instead.",
+      "Icon assets use AssetImage from com.moblin.android.platform.swiftui; .interpolation(.high) has no equivalent and is dropped.",
+      "ProgressView() is CircularProgressIndicator(Modifier.size(20.dp), formPalette().secondaryLabel, 2.dp) and Text is androidx.compose.material3.Text.",
+      "The opacity-0 button during a purchase keeps its layout with Modifier.alpha and enabled = !disabled, matching the SwiftUI disabled+opacity pair.",
+      "The Restore alert stays inside the Section content where the Swift .alert modifier is attached."
     ],
-    "unsupported": [
-      "UIApplication.shared.setAlternateIconName (switching the app icon) has no Android counterpart and is replaced by TODO() in setAppIcon"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5528,
-    "tokens_out": 15704,
-    "seconds": 60.7,
-    "ported_at": "2026-09-22T13:43:52+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42420,
+    "tokens_out": 20110,
+    "seconds": 73.6,
+    "ported_at": "2026-09-25T23:07:20+00:00"
   },
   "Moblin/View/Settings/Moblink/MoblinkSettingsView.swift": {
     "status": "ok",
@@ -13373,9 +13219,7 @@
       "TextButtonView is called with an enabled argument derived from .disabled(nickname.nickname.isEmpty); verify against the util signature.",
       "IndexSet parameters are modelled as List<Int> and makeOffsets is assumed to return List<Int>?."
     ],
-    "unsupported": [
-      "SwiftUI List.onMove (drag to reorder) has no Compose counterpart"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4576,
@@ -13471,10 +13315,7 @@
       "Sub-views from com.moblin.android.view.utils (TextItemLocalizedView, DraggableItemPrefixView, SwipeLeftToRemoveHelpView, TextEditView, AddButtonView) and GrayTextView from the streams package are reused as-is.",
       "contextMenuDeleteButton and List.onMove have no Compose counterpart and are left as TODO markers."
     ],
-    "unsupported": [
-      "contextMenuDeleteButton (SwiftUI context menu delete action)",
-      "List.onMove (SwiftUI list reordering)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4568,
@@ -13498,18 +13339,19 @@
       "The role Picker becomes an ExposedDropdownMenuBox with MenuAnchorType.PrimaryNotEditable; .disabled(wiFiAware.enabled) maps to enabled = !enabled on both the anchored field and the expansion handler.",
       "The private serviceName constant is retained for parity although it is only mentioned inside the TODO() reasons."
     ],
-    "unsupported": [
-      "WiFiAware (WAPublishableService.allServices, WASubscribableService.allServices, WAPairedDevice.allDevices, WACapabilities.supportedFeatures, WAFeature.wifiAware)",
-      "DeviceDiscoveryUI.DevicePairingView",
-      "DeviceDiscoveryUI.DevicePicker"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4468,
     "tokens_out": 20389,
     "seconds": 77.8,
     "ported_at": "2026-09-22T13:45:09+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "WiFiAware (WAPublishableService.allServices, WASubscribableService.allServices, WAPairedDevice.allDevices, WACapabilities.supportedFeatures, WAFeature.wifiAware)",
+      "DeviceDiscoveryUI.DevicePairingView",
+      "DeviceDiscoveryUI.DevicePicker"
+    ]
   },
   "Moblin/View/Utils/WiFiSsidEditView.swift": {
     "status": "ok",
@@ -13598,9 +13440,7 @@
       "SF Symbols map as: trash.fill -> Icons.Default.Delete, arrow.uturn.backward -> Icons.AutoMirrored.Filled.Undo (requires material-icons-extended).",
       ".font(.title) on the icons becomes Modifier.size(28.dp) and .accentColor becomes SliderDefaults.colors(thumbColor/activeTrackColor) on the Slider."
     ],
-    "unsupported": [
-      "ColorPicker"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5878,
@@ -13624,12 +13464,7 @@
       "onChange(of:) -> LaunchedEffect(value); note it also fires on first composition, unlike SwiftUI.",
       "SettingsFacePrivacyMode case names are assumed to keep the Swift spellings (blur, pixellate, backgroundImage, icon) and are iterated with .entries."
     ],
-    "unsupported": [
-      "PhotosPicker / PhotosPickerItem.loadTransferable (no Android counterpart, TODO in the backgroundImage branch)",
-      "Write of SettingsFace.blurStrength (TODO in the blur branch)",
-      "Write of SettingsFace.pixellateStrength (TODO in the pixellate branch)",
-      "Write of SettingsFace.privacyMode (TODO in the picker menu)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5940,
@@ -13827,10 +13662,7 @@
       ".bold() on the checkmark Image has no Icon equivalent and was dropped; only the blue/clear tint is kept.",
       "The `if false` block around the Auto switch Toggle is preserved verbatim (kept as an if (false) branch)."
     ],
-    "unsupported": [
-      "contextMenuDeleteButton (SwiftUI context menu) replaced by TODO()",
-      "SwiftUI List .onMove drag reordering replaced by TODO()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3812,
@@ -14287,30 +14119,27 @@
   "Moblin/View/Stream/Overlay/StreamOverlayNavigationView.swift": {
     "status": "ok",
     "sha256": "6e731e8c3d4c81242a3e332989e3e32dd60373f9ba8904f0fd48844e5a6feb63",
+    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
+    "mode": "full",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayNavigationView.kt",
     "notes": [
-      "MapKit (Map, MapReader, MKLocalSearch, MKMapItem, MKMapItemRequest, PlaceDescriptor, Marker, MapPolyline, UserAnnotation) has no Android counterpart, so the bodies of MapView, MarkerLabel and the MapKit search helpers are TODO().",
-      "GeometryProxy is replaced by Dp parameters (maxWidth/maxHeight); the caller uses BoxWithConstraints instead of GeometryReader.",
-      "Navigation, SettingsNavigation and Database observable properties are assumed to be MutableStateFlow: reads use collectAsState(), writes use .value.",
-      "navigation.searchResults is written/cleared through .value, assuming it is a mutable state holder of a list of search items.",
-      "The iOS 26 glassEffect() view modifier is replaced with TODO() inside the modifier chains.",
-      "@available(iOS 26, *) is dropped; all views are translated as regular composables.",
-      "ControlSearchView gained a Modifier parameter so the caller can apply the trailing padding that Swift applied to the whole view.",
-      "segmentHeight and segmentHeightBig are assumed to be Double (as used by the Swift offset computation) and are converted with .dp."
+      "The @available(iOS 26, *) gates on the upstream structs have no Android counterpart branch, so every view is always rendered (glassEffect is a platform shim).",
+      "GeometryProxy becomes a CGSize taken from BoxWithConstraints maxWidth/maxHeight (dp values used as points); shouldStackVertically, mapSide and offset take the collected isSmall value instead of reading navigation.isSmall.",
+      "Navigation and SettingsNavigation StateFlows are collected with collectAsState in each composable and passed to the local helpers; writes to followUser/followHeading go through a cast to MutableStateFlow.",
+      "`.onChange(of: navigation.destination)` is folded into Map's onSelectionChange, which calls navigation.updateDirections() right after assigning destination.",
+      "The two `.onChange` on navigationSettings.followUser/followHeading become one LaunchedEffect(followUser, followHeading).",
+      "`.onChange(of: navigation.searchText)` side effect moved into BasicTextField's onValueChange (clears searchResults when the text becomes empty).",
+      "ControlSearchView emits two siblings (field + picker); the `.padding(.trailing, 10)` of the stacked branch is applied by wrapping the call in an inner Row, since Compose cannot pad a group of siblings.",
+      ".onAppear is LaunchedEffect(Unit) with statement bodies and an explicit null check instead of `?.let`; MapView helper serLongPressLocation takes a CoroutineScope from rememberCoroutineScope."
     ],
-    "unsupported": [
-      "MapKit (Map, MapReader, MKLocalSearch, MKMapItem, MKMapItemRequest, PlaceDescriptor, Marker, MapPolyline, UserAnnotation)",
-      "glassEffect() view modifier",
-      "SF Symbol image per NavigationTransportType case (transportType.image())"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 7823,
-    "tokens_out": 22787,
-    "seconds": 90.3,
-    "ported_at": "2026-09-22T13:49:17+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 50873,
+    "tokens_out": 36000,
+    "seconds": 125.6,
+    "ported_at": "2026-09-25T22:59:37+00:00"
   },
   "Moblin/View/Utils/VoicesView.swift": {
     "status": "ok",
@@ -14400,9 +14229,7 @@
       "Icons.Default.OpenInFull and Icons.Default.CloseFullscreen come from material-icons-extended, which must be on the classpath.",
       "GeometryReader metrics are replaced by BoxWithConstraints maxWidth/maxHeight; smallBrowserSide is 250.dp and mapSide/offset keep their original names."
     ],
-    "unsupported": [
-      "contextMenuDeleteButton"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 6066,
@@ -14810,9 +14637,7 @@
       "List's .onDelete(perform:) has no LazyColumn counterpart, so it is rendered as a trailing delete IconButton that is only shown while the SRT(LA) server is disabled; the swipe gesture itself is not reproduced.",
       ".navigationTitle(\"SRT(LA) server\") becomes the Scaffold TopAppBar title of the destination form, and Section header/footer texts are emitted as plain Text items inside the LazyColumn."
     ],
-    "unsupported": [
-      "contextMenuDeleteButton (SwiftUI .contextMenu on stream rows)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5095,
@@ -14861,19 +14686,20 @@
       "This file declares no SwiftUI View, so no @Composable functions are generated despite the ui tier.",
       "Data maps to ByteArray and UUID to java.util.UUID in the retained signatures."
     ],
-    "unsupported": [
-      "WatchConnectivity (WCSession, WCSessionDelegate, WCSessionActivationState)",
-      "WatchMessageToWatch and WatchMessageFromWatch",
-      "WatchProtocol* payload types (WatchProtocolScene, WatchProtocolChatMessage, WatchProtocolPadelScoreboard, ...)",
-      "UIImage (UIKit)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 11511,
     "tokens_out": 9381,
     "seconds": 36.6,
     "ported_at": "2026-09-22T13:52:01+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "WatchConnectivity (WCSession, WCSessionDelegate, WCSessionActivationState)",
+      "WatchMessageToWatch and WatchMessageFromWatch",
+      "WatchProtocol* payload types (WatchProtocolScene, WatchProtocolChatMessage, WatchProtocolPadelScoreboard, ...)",
+      "UIImage (UIKit)"
+    ]
   },
   "Moblin/View/Stream/Overlay/Right/ReplayView.swift": {
     "status": "ok",
@@ -14914,9 +14740,7 @@
       "WatchConnectivity calls (sendRecordingLengthToWatch, sendIsRecordingToWatch), ActivityKit/PiP/mac status updates and remote control state are kept as plain calls; their bodies live in other files.",
       "Optional default arguments of stopRecording and stopRecorderIfNeeded are preserved as Kotlin default parameters."
     ],
-    "unsupported": [
-      "DateComponentsFormatter via uptimeFormatter.string(from:) (no direct Android equivalent)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5751,
@@ -15259,11 +15083,7 @@
       "Swift .orange is translated as Color(0xFFFF9500), the orange value already used elsewhere in this file.",
       "Pre-existing TODO()s for Alert playback, EventCat printers and ChatHighlightKind cases were kept unchanged."
     ],
-    "unsupported": [
-      "AVFoundation alert sounds (playAlert) -> TODO(\"no Android counterpart for Alert\")",
-      "EventCatPrinter event printing -> TODO(\"no Android counterpart for EventCatPrinterEvent\")",
-      "Missing ChatHighlightKind cases (newFollower, redemption, other) -> TODO(\"no ChatHighlightKind case for ...\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 45483,
@@ -15328,9 +15148,7 @@
       "GameControllersControllerButtonSettingsView and GameControllersControllerThumbStickSettingsView are not imported because they live in the same package com.moblin.android.view.settings.gamecontrollers.",
       "SF Symbol names (\"l.joystick\", \"r.joystick\") are passed through unchanged so the thumb stick view can map them to its own icons."
     ],
-    "unsupported": [
-      "SwiftUI @Binding mutation of SettingsGameController.leftThumbStickFunction / rightThumbStickFunction (no known setter)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3090,
@@ -15378,11 +15196,7 @@
       "`.navigationTitle(\"DJI devices\")` is rendered as the Material 3 TopAppBar title inside a Scaffold.",
       "The private Swift struct becomes a private @Composable function of the same name so the two files read side by side."
     ],
-    "unsupported": [
-      "contextMenuDeleteButton (context menu delete modifier)",
-      "ForEach onMove (drag to reorder)",
-      "ForEach onDelete (swipe to delete)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4637,
@@ -15544,14 +15358,7 @@
       "logger.info calls become android.util.Log.i with the tag \"MediaPlayerSettingsView\".",
       "List.onMove and List.onDelete have no LazyColumn equivalent and are marked TODO; deletePlaylistFile is kept because it is the target of onDelete."
     ],
-    "unsupported": [
-      "Transferable / TransferRepresentation (Video.transferRepresentation)",
-      "PhotosPickerItem and .photosPicker modifier",
-      "PhotosPickerItem.loadTransferable",
-      "contextMenuDeleteButton",
-      "List.onMove (drag to reorder)",
-      "List.onDelete (swipe to delete)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4642,
@@ -15599,11 +15406,7 @@
       "navigationTitle becomes a Scaffold TopAppBar title and every NavigationLink becomes an onNavigate(destinationName) callback; destination names are kickSubscriptions, kickGiftedSubscriptions, kickHosts, kickRewards, kickGifts and kickGift.",
       "Kick event model property names (giftedUsernames, gifterUsername, gifterTotal, hostUsername, numberViewers, rewardTitle, userInput) are assumed to follow the port's camelCase + @SerialName convention, and SettingsWidgetAlertsCheerBitsAlertOperator entries are assumed UPPER_SNAKE (EQUAL, GREATER_EQUAL) with a nullable fromRawValue."
     ],
-    "unsupported": [
-      "Model.testAlert(Model.AlertType) associated-value cases for Kick (kickSubscription, kickGiftedSubscriptions, kickHost, kickReward, kickKicks) - TODO(...) in the five Test buttons",
-      "contextMenuDeleteButton (SwiftUI context menu on a list row) - TODO(...) in KickGiftsView",
-      "SwiftUI ForEach .onMove reordering and .onDelete swipe-to-delete - no Compose counterpart, the list is rendered without them"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 9739,
@@ -15627,10 +15430,7 @@
       "String(localized:) uses localized() from com.moblin.android; Form/List became LazyColumn and the Section became plain items plus header/footer texts.",
       "The Toggle binding became a Row with a label and a Material 3 Switch."
     ],
-    "unsupported": [
-      "SettingsColor.color() used for textColor/accentColor has no translation declared in the port glossary, replaced by TODO()",
-      "The AlertTest.chatBotCommand(name, ...) case passed to model.testAlert() has no AlertTest type declared in the port glossary, replaced by TODO()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5689,
@@ -15654,11 +15454,7 @@
       "@EnvironmentObject model is now an explicit parameter on AutoSwitcherSettingsView and AutoSwitcherScenesSettingsView, and its value must be supplied by the navigation host.",
       "Form/Section become LazyColumn/Column blocks; SwitcherTimePickerView and the scene picker use ExposedDropdownMenuBox and therefore need @OptIn(ExperimentalMaterial3Api::class)."
     ],
-    "unsupported": [
-      "contextMenuDeleteButton (iOS context menu delete) -> TODO(\"no Android counterpart for context menu delete button\")",
-      "ForEach.onMove drag to reorder -> TODO(\"no Android counterpart for drag to reorder list items\")",
-      "ForEach.onDelete swipe to delete -> TODO(\"no Android counterpart for swipe to delete list items\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 7826,
@@ -15753,12 +15549,7 @@
       ".contextMenuDeleteButton is mapped to Modifier.combinedClickable long press, which performs the same deletion.",
       "List .onMove (drag to reorder cheer bits) has no direct Compose counterpart and is omitted; deletion is still available through the long press."
     ],
-    "unsupported": [
-      "Model.testAlert alert case for TwitchEventSubNotificationChannelFollowEvent (twitchFollow) replaced by TODO",
-      "Model.testAlert alert case for TwitchEventSubNotificationChannelSubscribeEvent (twitchSubscribe) replaced by TODO",
-      "Model.testAlert alert case for TwitchEventSubChannelRaidEvent (twitchRaid) replaced by TODO",
-      "Model.testAlert alert case for TwitchEventSubChannelCheerEvent (twitchCheer) replaced by TODO"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 10786,
@@ -15806,10 +15597,7 @@
       "The picker success path (imageStorage.write, getImageEffect(id)?.loadImage, logger calls) lives inside the unsupported PhotosUI branch and is therefore unreachable in the port.",
       "WidgetImageSettingsView holds the image in remember state and passes it down; the two child views are stacked in a Column."
     ],
-    "unsupported": [
-      "PhotosUI .photosPicker presentation replaced with TODO(\"no Android counterpart for the PhotosUI photosPicker presentation\")",
-      "PhotosPickerItem.loadTransferable replaced with TODO(\"no Android counterpart for PhotosPickerItem.loadTransferable\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5379,
@@ -15903,9 +15691,7 @@
       "AlertMediaView, AlertPositionView and TextEditNavigationView are called with model passed explicitly, following the convention that @EnvironmentObject becomes a parameter.",
       "Text(\"Trigger by saying '\\(text)'.\") became localized(\"Trigger by saying '$text'.\") because the port has no parameterised localized string builder here."
     ],
-    "unsupported": [
-      "Model.testAlert alert case for speechToTextString(string.id) - the ported test alert type is unknown, argument replaced with TODO()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5388,
@@ -15929,9 +15715,7 @@
       "setEffectSettings keeps its private Swift method name as a private top-level function taking model, widget and showtime.",
       "WidgetEffectsView(model, widget) is called from the effects package of this settings tree."
     ],
-    "unsupported": [
-      "mutation of SettingsWidgetSnapshot.showtime from the picker selection"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4533,
@@ -16078,9 +15862,7 @@
       "PomodoroPhase entries are assumed to be Focus and ShortBreak, and PomodoroFocusIcon/PomodoroBreakIcon are used through the Kotlin enum 'entries'.",
       "PomodoroSoundSelectorView is not file-private so the screen that renders navigation destinations can instantiate it."
     ],
-    "unsupported": [
-      "Image(systemName:) with a dynamic SF Symbol name (PomodoroFocusIcon.rawValue, PomodoroBreakIcon.rawValue) has no Android counterpart"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 8244,
@@ -16458,10 +16240,7 @@
       "`any AudioEncoderDelegate & VideoEncoderDelegate` has no Kotlin intersection type and is expressed as a generic `<T> where T : AudioEncoderDelegate, T : VideoEncoderDelegate`.",
       "URLQueryItem/URLComponents are replaced by android.net.Uri + Uri.Builder; `numberOfFailedEncodings` is referenced but declared in another Media file of this package."
     ],
-    "unsupported": [
-      "AVCaptureDevice.lockForConfiguration/ramp(toVideoZoomFactor:withRate:)/videoZoomFactor (camera zoom control) replaced by TODO(\"CameraX zoom control port\")",
-      "AVCaptureDevice.default(for: .audio) replaced by TODO(\"AVCaptureDevice.default(for: .audio) port\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 20094,
@@ -16533,16 +16312,17 @@
       "Picker plus its onChange became an ExposedDropdownMenuBox whose item click sets the selection and calls model.setSelectedStreamDeck() directly.",
       "minimumScaleFactor(0.5) on the key caption has no Compose equivalent; the Text is limited to maxLines = 2."
     ],
-    "unsupported": [
-      "ColorPicker -> TODO(\"ColorPicker has no Compose counterpart\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5670,
     "tokens_out": 35238,
     "seconds": 136.7,
     "ported_at": "2026-09-22T14:03:55+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "ColorPicker -> TODO(\"ColorPicker has no Compose counterpart\")"
+    ]
   },
   "Moblin/RemoteControl/RemoteControl.swift": {
     "status": "ok",
@@ -17053,9 +16833,7 @@
       "CGFloat width is translated as Float and passed through to the child selector views.",
       "StreamState, BlackSharkCoolerDeviceState and SettingsAppMode come from the wildcard imports of various.model / various.settings; verify their entry names (connecting/connected/disconnected, connected, streaming) match the port."
     ],
-    "unsupported": [
-      "Swift Charts SectorMark pie chart (collapsed bonding view)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 14706,
@@ -17193,9 +16971,7 @@
       "Bundle.main.url(forResource:withExtension:) has no Android counterpart and is TODO(); sound files must be resolved from assets/resources instead.",
       "AudioPlayer is constructed from a path String (loadSound) and play() is called on it; model.onDocumentPickerUrl is assumed to be ((String) -> Unit)?."
     ],
-    "unsupported": [
-      "Bundle.main.url(forResource:withExtension:)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 7148,
@@ -17219,10 +16995,7 @@
       "Form/Section become a LazyColumn with header Texts, and the DrawScope canvas calls drawPositioningRectangle(this, rect) as a two-argument function.",
       "DragGesture is translated to Modifier.pointerInput(Unit) { detectDragGestures(...) }, using the PointerInputScope size for anchor-point calculation."
     ],
-    "unsupported": [
-      "PhotosUI PhotosPicker",
-      "PhotosUI loadTransferable"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 6678,
@@ -17246,9 +17019,7 @@
       "Model.sceneSelector.objectWillChange.send() is emitted as SceneSelector.notifyChanged(); a StateFlow based port can make that method a no-op.",
       "combinedClickable may need @OptIn(ExperimentalFoundationApi::class) before Compose Foundation 1.7, and Modifier.menuAnchor() takes no argument before Material 3 1.3."
     ],
-    "unsupported": [
-      "onMove: SwiftUI List drag-to-reorder of scene widgets has no Compose counterpart and is replaced by TODO()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 10437,
@@ -17272,9 +17043,7 @@
       "contextMenuDeleteButton becomes combinedClickable(onLongClick) + DropdownMenu, which also carries the .onDelete(perform:) delete action.",
       "Image(systemName: \"photo\") is approximated with Icons.Default.AccountBox (closest icon in material-icons-core), and AlertPickerView(type = AlertPickerViewType.Gif) is inferred from the Swift `.gif` case."
     ],
-    "unsupported": [
-      "Bundle.main.path(forResource:ofType:)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 7345,
@@ -17320,10 +17089,7 @@
       "RgbColorPickerView is assumed to be (title: String, color: Color, onChange: (RgbColor) -> Unit) and RgbColor.color() is assumed to return androidx.compose.ui.graphics.Color; TextButtonView / ShortcutSectionView / HCenter signatures are assumed (text + trailing lambda / content lambda).",
       "The .tint(.red) modifier on the Delete image button is dropped because TextButtonView exposes no color parameter."
     ],
-    "unsupported": [
-      "no Android counterpart for PhotosPicker",
-      "no Android counterpart for PhotosPicker loadTransferable"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 7453,
@@ -17537,9 +17303,7 @@
       "@State presentingCreateWizard and newEffect are remember { mutableStateOf(...) } values; .sheet became a ModalBottomSheet.",
       "SettingsVideoEffect is treated as a class with plain mutable properties (enabled), so effect.enabled is read and written directly."
     ],
-    "unsupported": [
-      "contextMenuDeleteButton (SwiftUI context menu row action)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 5681,
@@ -17848,11 +17612,7 @@
       "calculatePositioningAnchorPoint and calculatePositioningRectangle are destructured directly, assuming a Pair and a component1..component4 type respectively.",
       "The ai.* onChange handlers were moved to LaunchedEffect(...) so they also run on first composition, not only on change."
     ],
-    "unsupported": [
-      "UIDocumentPickerViewController (AlertPickerView, VideoPickerView)",
-      "SwiftUI bundled image asset \"AlertFace\"",
-      "UTType used as AlertPickerView's parameter type, replaced by String"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 10435,
@@ -18016,11 +17776,7 @@
       "The padel scoreboard action struct passed to handleUpdatePadelScoreboard is not in the port glossary, so the argument is TODO().",
       "The .font(.title) on the quick button container is dropped; the referenced button views carry their own typography."
     ],
-    "unsupported": [
-      "SwiftUI contextMenuDeleteButton (context menu delete) -> TODO(\"no Android counterpart for contextMenuDeleteButton\")",
-      "SwiftUI ForEach.onMove (drag reordering) -> TODO(\"no Android counterpart for list reordering\")",
-      "PadelScoreboardAction argument of Model.handleUpdatePadelScoreboard -> TODO() (type not in the port glossary)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 7219,
@@ -18044,9 +17800,7 @@
       "Label(systemImage:) icons are mapped to Icons.Default.Info because the Swift symbol names have no guaranteed material-icons-core equivalent.",
       "onChange(of: device.serverRtmpStreamId) is folded into the stream DropdownMenuItem click, which clears device.serverRtmpUrl like the Swift onChange did."
     ],
-    "unsupported": [
-      "no Compose counterpart for drag reordering of a list (onMove)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 9808,
@@ -18070,9 +17824,7 @@
       "makeUniqueName is called positionally as makeUniqueName(localized(\"Custom Mobcam\"), model.database.streams).",
       "model and createStreamWizard are plain parameters; no StateFlow collection is needed because this view only writes to createStreamWizard."
     ],
-    "unsupported": [
-      "createStreamWizard.platform = .mobcam (no Mobcam platform enum value is known in the Kotlin port, so the assignment is TODO())"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3701,
@@ -18192,9 +17944,7 @@
       ".navigationTitle is rendered with a Scaffold + TopAppBar ('Gimbal' and 'Preset').",
       "The @ViewBuilder position() helper is inlined, and onAppear's LaunchedEffect(Unit) is declared before the state-change effects so it initialises the local x/y/zoomX before the onChange handlers run."
     ],
-    "unsupported": [
-      "SwiftUI contextMenu / contextMenuDeleteButton"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 6375,
@@ -18217,10 +17967,7 @@
       "The Section header \"Protocol\" is emitted as a plain header Text above the items, per the section mapping rule.",
       "The destination views are not referenced directly because navigation is delegated to onNavigate; they live in the same package as this file."
     ],
-    "unsupported": [
-      "Swift enum-case assignment createStreamWizard.platform = .custom has no known Kotlin enum type in the glossary, replaced by TODO()",
-      "Swift enum-case assignment createStreamWizard.customProtocol = .none has no known Kotlin enum type in the glossary, replaced by TODO()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3839,
@@ -18243,9 +17990,7 @@
       "WizardNextButtonView is called with named parameters enabled and onClick, matching the .disabled modifier on the NavigationLink.",
       "Only composable functions are declared here, no top-level types."
     ],
-    "unsupported": [
-      "createStreamWizard.customProtocol = .srt: the protocol enum setter is not present in the glossary, replaced with TODO()"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3357,
@@ -18289,13 +18034,10 @@
       "@Binding function/functionData became value parameters plus onFunctionChange/onFunctionDataChange lambdas; updates build a new SettingsControllerFunctionData via copy(...).",
       "Picker -> ExposedDropdownMenuBox with ExposedDropdownMenu; the 'General'/'Filters' Sections are rendered as non-clickable label rows inside the menu.",
       "Scene and widget dropdown entries re-look-up the model object by id so SceneNameView/WidgetNameView can render the item, and the collapsed field text uses model.getSceneName/getWidgetName plus the palette of listed names.",
-      "Image(systemName: button.name) uses a runtime SF Symbol name, which has no Compose counterpart, so the icon is a TODO().",
       "SettingsControllerFunction.toString(), SettingsControllerFunction.toString(sceneName:widgetName:) and SettingsControllerFunction.color() are expected as members/extensions in com.moblin.android.various.settings; SettingsControllerFunctionSection.general/.filters and SettingsGimbalMotion.entries are used for the sections and motions.",
       "The Swift switch on function is translated as a Kotlin when with the same cases plus else -> Unit for the default EmptyView() branch."
     ],
-    "unsupported": [
-      "Image(systemName: button.name) with a dynamic SF Symbol name has no Android/Compose counterpart and is replaced by TODO()."
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4244,
@@ -18460,9 +18202,7 @@
       "Background execution of the wizard-setup assignment is not needed; the assignment happens once when the composable enters composition.",
       "The CreateStreamWizard network-setup enum case has no known Kotlin counterpart, so the assignment body is TODO()."
     ],
-    "unsupported": [
-      "Assignment of CreateStreamWizard's network setup selection (Swift .myServers enum case) has no verified Kotlin counterpart"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 3225,
@@ -18510,10 +18250,7 @@
       "navigationTitle(\"Scene widgets\") has no equivalent in a plain composable and must be applied by the hosting screen; sceneSelector is kept as a parameter even though the body does not read it.",
       "Property access (widget.image(), widget.name, widget.text, widget.bingoCard, widget.scoreboard, widget.pomodoroTimer, model.database) relies on the settings/model types from com.moblin.android.various.settings and com.moblin.android.various.model."
     ],
-    "unsupported": [
-      "NavigationLink",
-      "navigationTitle"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 6773,
@@ -18657,9 +18394,7 @@
       "ForEach.onMove drag reordering has no Material 3 counterpart: the reorder logic is kept in the (currently unwired) onMove lambda and must be attached to a drag gesture by hand.",
       ".sheet became ModalBottomSheet around WidgetWizardSettingsView; the @Binding became value plus onPresentingCreateWizardChange, .navigationBarTitleDisplayMode(.inline) has no equivalent, and if the Kotlin WidgetWizardSettingsView also declares onNavigate it must be threaded from here."
     ],
-    "unsupported": [
-      "SwiftUI contextMenu (.contextMenuDeleteButton) -> TODO(\"context menus have no Material 3 counterpart\")"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 6107,
@@ -18803,10 +18538,7 @@
       ".textInputAutocapitalization(.never) and .disableAutocorrection(true) become KeyboardOptions(capitalization = KeyboardCapitalization.None, autoCorrectEnabled = false).",
       "The YouTube API result switch inside fetchLiveStreams/fetchChannelHandle is left as TODO because the YouTube API port type is not part of the glossary."
     ],
-    "unsupported": [
-      "YouTubeApi.listLiveStreams result handling (success/authError/error) has no ported type in this project",
-      "YouTubeApi.listChannels result handling (success/authError/error) has no ported type in this project"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4719,
@@ -18851,16 +18583,17 @@
       "The SwiftUI extension on WatchProtocolColor is now a file-private colorScale extension followed by a Compose Color extension; colors are converted to Float channels.",
       "WatchProtocolChatHighlightKind and WatchProtocolWorkoutType have no raw values, so they are plain @Serializable enum classes whose entry names match the Swift case names."
     ],
-    "unsupported": [
-      "HealthKit (HKStatistics, HKUnit, heart rate / energy / distance / step / power / cadence quantity types)"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
     "tokens_in": 4880,
     "tokens_out": 9695,
     "seconds": 36.8,
     "ported_at": "2026-09-22T15:18:57+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "apple_only": [
+      "HealthKit (HKStatistics, HKUnit, heart rate / energy / distance / step / power / cadence quantity types)"
+    ]
   },
   "Moblin Watch/Shared/WatchSettings.swift": {
     "status": "ok",

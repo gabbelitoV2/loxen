@@ -59,12 +59,17 @@ class StreamingService : Service() {
     private fun enterForeground(fallbackTypes: Int = 0): Boolean {
         return try {
             synchronized(lock) {
-                val types = foregroundTypes().takeIf { it != 0 } ?: fallbackTypes
-                val notification = activityNotification ?: makeNotification(this, types)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && types != 0) {
-                    startForeground(NOTIFICATION_ID, notification, types)
-                } else {
-                    startForeground(NOTIFICATION_ID, notification)
+                val base = foregroundTypes().takeIf { it != 0 } ?: fallbackTypes
+                val types = if (base == 0) 0 else base or locationTypes(this)
+                val location = types and locationType
+                try {
+                    startForeground(types)
+                } catch (error: SecurityException) {
+                    if (location == 0) {
+                        throw error
+                    }
+                    Log.i(TAG, "Foreground service cannot use location now: ${error.message}")
+                    startForeground(types and location.inv())
                 }
                 isForeground = true
                 Camera2Engine.isForegroundServiceRunning =
@@ -76,6 +81,15 @@ class StreamingService : Service() {
         } catch (error: Throwable) {
             Log.e(TAG, "Failed to start foreground service", error)
             false
+        }
+    }
+
+    private fun startForeground(types: Int) {
+        val notification = activityNotification ?: makeNotification(this, types)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && types != 0) {
+            startForeground(NOTIFICATION_ID, notification, types)
+        } else {
+            startForeground(NOTIFICATION_ID, notification)
         }
     }
 
@@ -95,6 +109,9 @@ class StreamingService : Service() {
         private var isForeground = false
         private var activityNotification: Notification? = null
         private val reasons = mutableMapOf<Reason, Int>()
+        private var locationSessions = 0
+        private val locationType: Int
+            get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION else 0
 
         @Volatile
         var isRunning = false
@@ -194,6 +211,42 @@ class StreamingService : Service() {
 
         fun stopBackground(context: Context = AppDelegate.context) {
             release(context, Reason.background)
+        }
+
+        fun startLocation() {
+            val running = synchronized(lock) {
+                locationSessions += 1
+                instance?.takeIf { isForeground && reasons.isNotEmpty() && locationSessions == 1 }
+            }
+            running?.enterForeground()
+        }
+
+        fun stopLocation() {
+            val running = synchronized(lock) {
+                if (locationSessions == 0) {
+                    return
+                }
+                locationSessions -= 1
+                instance?.takeIf { isForeground && reasons.isNotEmpty() && locationSessions == 0 }
+            }
+            running?.enterForeground()
+        }
+
+        internal fun locationTypes(context: Context): Int {
+            if (locationSessions == 0 || locationType == 0) {
+                return 0
+            }
+            val permitted = isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION) ||
+                isGranted(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+            if (!permitted) {
+                return 0
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+                !isGranted(context, Manifest.permission.FOREGROUND_SERVICE_LOCATION)
+            ) {
+                return 0
+            }
+            return locationType
         }
 
         internal fun stopAll(context: Context) {

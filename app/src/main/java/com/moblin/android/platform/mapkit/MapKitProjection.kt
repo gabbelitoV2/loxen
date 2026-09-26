@@ -2,8 +2,12 @@ package com.moblin.android.platform.mapkit
 
 import com.moblin.android.platform.coregraphics.CGPoint
 import com.moblin.android.various.utils.CLLocationCoordinate2D
+import com.moblin.android.various.utils.MKCoordinateRegion
+import com.moblin.android.various.utils.MKCoordinateSpan
 import kotlin.math.PI
+import kotlin.math.atan
 import kotlin.math.cos
+import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.log2
 import kotlin.math.max
@@ -94,6 +98,61 @@ internal object MapKitProjection {
         return CGPoint(x = frame.widthPoints / 2.0 + x, y = frame.heightPoints / 2.0 + y)
     }
 
+    fun coordinate(frame: MapFrame, point: CGPoint): CLLocationCoordinate2D {
+        val worldSize = tileSize * 2.0.pow(frame.zoom)
+        val x = point.x - frame.widthPoints / 2.0
+        val y = point.y - frame.heightPoints / 2.0
+        val bearing = frame.bearing * PI / 180
+        val dx = x * cos(bearing) - y * sin(bearing)
+        val dy = x * sin(bearing) + y * cos(bearing)
+        val mapX = mercatorX(frame.longitude, worldSize) + dx
+        val mapY = mercatorY(frame.latitude, worldSize) + dy
+        return CLLocationCoordinate2D(
+            latitude = inverseMercatorY(mapY, worldSize),
+            longitude = wrapLongitude(mapX / worldSize * 360.0 - 180.0),
+        )
+    }
+
+    fun region(frame: MapFrame): MKCoordinateRegion {
+        val corners = listOf(
+            CGPoint(x = 0.0, y = 0.0),
+            CGPoint(x = frame.widthPoints.toDouble(), y = 0.0),
+            CGPoint(x = 0.0, y = frame.heightPoints.toDouble()),
+            CGPoint(x = frame.widthPoints.toDouble(), y = frame.heightPoints.toDouble()),
+        ).map { coordinate(frame, it) }
+        val latitudes = corners.map { it.latitude }
+        val longitudes = corners.map { unwrapLongitude(it.longitude, frame.longitude) }
+        return MKCoordinateRegion(
+            center = CLLocationCoordinate2D(latitude = frame.latitude, longitude = frame.longitude),
+            span = MKCoordinateSpan(
+                latitudeDelta = latitudes.max() - latitudes.min(),
+                longitudeDelta = min(360.0, longitudes.max() - longitudes.min()),
+            ),
+        )
+    }
+
+    fun zoom(region: MKCoordinateRegion, widthPoints: Double, heightPoints: Double): Double {
+        val latitude = region.center.latitude.coerceIn(-maximumMercatorLatitude, maximumMercatorLatitude)
+        val latitudeDelta = region.span.latitudeDelta
+        val longitudeDelta = region.span.longitudeDelta
+        var zoom = maximumZoom
+        if (longitudeDelta > 0.0 && widthPoints > 0.0) {
+            zoom = min(zoom, log2(widthPoints * 360.0 / (tileSize * min(longitudeDelta, 360.0))))
+        }
+        if (latitudeDelta > 0.0 && heightPoints > 0.0) {
+            val north = (latitude + latitudeDelta / 2).coerceIn(-maximumMercatorLatitude, maximumMercatorLatitude)
+            val south = (latitude - latitudeDelta / 2).coerceIn(-maximumMercatorLatitude, maximumMercatorLatitude)
+            val fraction = mercatorY(south, 1.0) - mercatorY(north, 1.0)
+            if (fraction > 0.0) {
+                zoom = min(zoom, log2(heightPoints / (tileSize * fraction)))
+            }
+        }
+        if (zoom.isNaN()) {
+            return minimumZoom
+        }
+        return zoom.coerceIn(minimumZoom, maximumZoom)
+    }
+
     fun wrapLongitude(longitude: Double): Double {
         if (longitude >= -180.0 && longitude <= 180.0) {
             return longitude
@@ -116,6 +175,22 @@ internal object MapKitProjection {
 
     private fun mercatorX(longitude: Double, worldSize: Double): Double {
         return (longitude + 180.0) / 360.0 * worldSize
+    }
+
+    private fun unwrapLongitude(longitude: Double, reference: Double): Double {
+        var value = longitude
+        while (value - reference > 180.0) {
+            value -= 360.0
+        }
+        while (value - reference < -180.0) {
+            value += 360.0
+        }
+        return value
+    }
+
+    private fun inverseMercatorY(y: Double, worldSize: Double): Double {
+        val n = PI * (1.0 - 2.0 * y / worldSize)
+        return (2.0 * atan(exp(n)) - PI / 2) * 180.0 / PI
     }
 
     private fun mercatorY(latitude: Double, worldSize: Double): Double {

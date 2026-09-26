@@ -2,71 +2,67 @@ package com.moblin.android.various.managers
 
 import android.location.Location
 import android.util.Log
+import com.moblin.android.common.various.sleepSeconds
+import com.moblin.android.platform.weatherkit.Weather
+import com.moblin.android.platform.weatherkit.WeatherService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-private suspend fun sleep(seconds: Double) {
-    delay((seconds * 1000.0).toLong())
-}
+private const val TAG = "WeatherManager"
 
-class WeatherManager {
-    private val mainScope = CoroutineScope(Dispatchers.Main)
-    val weatherService: Any? = null
+open class WeatherManager {
+    open val weatherService = WeatherService()
     private var task: Job? = null
     private var location: Location? = null
-    private var weather: Any? = null
+    private var weather: Weather? = null
     private var enabled = true
+    private val mainScope = CoroutineScope(Dispatchers.Main.immediate)
 
-    fun start() {
+    open fun start() {
         if (task != null) {
             return
         }
         task = mainScope.launch {
-            var delaySeconds = 5.0
+            var delay = 5
             while (true) {
                 try {
-                    sleep(seconds = delaySeconds)
-                    val currentLocation = location
-                    if (currentLocation != null && enabled) {
+                    sleepSeconds(seconds = delay)
+                    val location = location
+                    if (location != null && enabled) {
                         Log.d(TAG, "weather-manager: Updating weather data")
-                        Unit
+                        weather = weatherService.weather(`for` = location)
                     }
-                } catch (_: Exception) {
+                } catch (error: Throwable) {
                 }
                 if (!isActive) {
                     break
                 }
                 if (weather != null) {
-                    delaySeconds = 10.0 * 60.0
+                    delay = 10 * 60
                 }
             }
         }
     }
 
-    fun setEnabled(value: Boolean) {
+    open fun setEnabled(value: Boolean) {
         enabled = value
     }
 
-    fun setLocation(location: Location?) {
+    open fun setLocation(location: Location?) {
         this.location = location
     }
 
-    fun getLatestWeather(): Any? {
+    open fun getLatestWeather(): Weather? {
         return weather
     }
 
-    fun stop() {
+    open fun stop() {
         task?.cancel()
         task = null
         location = null
         weather = null
-    }
-
-    companion object {
-        private const val TAG = "WeatherManager"
     }
 }

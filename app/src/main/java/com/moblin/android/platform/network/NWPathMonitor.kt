@@ -64,6 +64,15 @@ class NWPath internal constructor(
     }
 }
 
+private val startedPathMonitors = LinkedHashSet<NWPathMonitor>()
+
+internal fun requestedNetwork(type: NWInterface.InterfaceType): Network? {
+    val monitors = synchronized(startedPathMonitors) {
+        startedPathMonitors.toList()
+    }
+    return monitors.firstNotNullOfOrNull { it.network(type) }
+}
+
 class NWPathMonitor(private val requiredInterfaceType: NWInterface.InterfaceType? = null) {
     private class Link(val network: Network, val type: NWInterface.InterfaceType, var name: String?)
 
@@ -111,10 +120,23 @@ class NWPathMonitor(private val requiredInterfaceType: NWInterface.InterfaceType
             registered = callbacks.toList()
             callbacks.clear()
         }
+        synchronized(startedPathMonitors) {
+            startedPathMonitors.remove(this)
+        }
         for (callback in registered) {
             unregister(manager, callback)
         }
         Log.i(TAG, "path#$id: Cancelled")
+    }
+
+    internal fun network(type: NWInterface.InterfaceType): Network? {
+        return synchronized(lock) {
+            if (scope == null) {
+                null
+            } else {
+                links.values.firstOrNull { it.type == type }?.network
+            }
+        }
     }
 
     private fun startInternal(queueScope: CoroutineScope) {
@@ -130,6 +152,9 @@ class NWPathMonitor(private val requiredInterfaceType: NWInterface.InterfaceType
             generation += 1
             scope = queueScope
             connectivityManager = manager
+            synchronized(startedPathMonitors) {
+                startedPathMonitors.add(this)
+            }
             generation
         }
         if (manager == null) {

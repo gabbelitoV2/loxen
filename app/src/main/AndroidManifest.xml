@@ -29,6 +29,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -45,6 +46,14 @@
         <intent>
             <action android:name="android.speech.RecognitionService" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="vnd.android.document/directory" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="vnd.android.document/root" />
+        </intent>
     </queries>
 
     <application
@@ -52,7 +61,9 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/app_icon"
         android:label="Moblin"
+        android:roundIcon="@mipmap/app_icon"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="true"
@@ -65,20 +76,343 @@
             android:supportsPictureInPicture="true"
             android:screenOrientation="sensorLandscape">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="moblin" />
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.moblinSettings" />
+                <data android:pathPattern=".*\\..*\\.moblinSettings" />
+                <data android:pathPattern=".*\\..*\\..*\\.moblinSettings" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.moblinSettings" />
+                <data android:pathSuffix=".moblinSettings" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.moblinSettings" />
+                <data android:pathPattern=".*\\..*\\.moblinSettings" />
+                <data android:pathPattern=".*\\..*\\..*\\.moblinSettings" />
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.moblinSettings" />
+                <data android:pathSuffix=".moblinSettings" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
         </activity>
+        <activity-alias
+            android:name=".AppIcon"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/app_icon"
+            android:roundIcon="@mipmap/app_icon"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconSanDiego"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_san_diego"
+            android:roundIcon="@mipmap/app_icon_san_diego"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconKing"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_king"
+            android:roundIcon="@mipmap/app_icon_king"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconQueen"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_queen"
+            android:roundIcon="@mipmap/app_icon_queen"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconLooking"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_looking"
+            android:roundIcon="@mipmap/app_icon_looking"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconPixels"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_pixels"
+            android:roundIcon="@mipmap/app_icon_pixels"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconHeart"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_heart"
+            android:roundIcon="@mipmap/app_icon_heart"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconPink"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_pink"
+            android:roundIcon="@mipmap/app_icon_pink"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconHappy"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_happy"
+            android:roundIcon="@mipmap/app_icon_happy"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconMillionaire"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_millionaire"
+            android:roundIcon="@mipmap/app_icon_millionaire"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconBillionaire"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_billionaire"
+            android:roundIcon="@mipmap/app_icon_billionaire"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconTrillionaire"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_trillionaire"
+            android:roundIcon="@mipmap/app_icon_trillionaire"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconTetris"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_tetris"
+            android:roundIcon="@mipmap/app_icon_tetris"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconTub"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_tub"
+            android:roundIcon="@mipmap/app_icon_tub"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconGoblin"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_goblin"
+            android:roundIcon="@mipmap/app_icon_goblin"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconGoblina"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_goblina"
+            android:roundIcon="@mipmap/app_icon_goblina"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconIreland"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_ireland"
+            android:roundIcon="@mipmap/app_icon_ireland"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
+        <activity-alias
+            android:name=".AppIconPeru"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/app_icon_peru"
+            android:roundIcon="@mipmap/app_icon_peru"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+        </activity-alias>
         <service
             android:name=".platform.host.StreamingService"
             android:exported="false"
-            android:foregroundServiceType="camera|microphone|connectedDevice|mediaPlayback" />
+            android:foregroundServiceType="camera|microphone|connectedDevice|mediaPlayback|location" />
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+        <provider
+            android:name=".platform.host.MoblinDocumentsProvider"
+            android:authorities="${applicationId}.documents"
+            android:exported="true"
+            android:grantUriPermissions="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS">
+            <intent-filter>
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+            </intent-filter>
+        </provider>
     </application>
 
 </manifest>

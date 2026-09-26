@@ -36,6 +36,7 @@ import com.moblin.android.various.settings.SettingsDebug
 import com.moblin.android.view.utils.CloseToolbar
 import com.moblin.android.view.utils.ShareSheetView
 import java.util.UUID
+import com.moblin.android.various.model.formatLog
 
 private data class ShareItem(
     val id: String = UUID.randomUUID().toString(),
@@ -95,7 +96,7 @@ fun DebugLogSettingsView(
                 enabled = log.isNotEmpty(),
             ) {
                 shareItem = ShareItem(
-                    url = formatLog(log.filter { isMessageVisible(logFilter, it.message) }),
+                    url = model.formatLog(log.filter { isMessageVisible(logFilter, it.message) }),
                 )
             }
             DebugLogToolbarButton(

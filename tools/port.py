@@ -40,8 +40,20 @@ PRICES = {
 }
 
 
+CLASSIFIED_NOTES = {
+    "apple_only": "Apple only",
+    "needs_user": "Needs Gabriel",
+}
+
+
 class PortError(Exception):
     pass
+
+
+def classified_notes(unsupported, previous):
+    kept = {key: list(previous.get(key, [])) for key in CLASSIFIED_NOTES if previous and previous.get(key)}
+    known = {item for items in kept.values() for item in items}
+    return [item for item in unsupported if item not in known], kept
 
 
 def now_iso():
@@ -799,6 +811,7 @@ def port_one(backend, entry, root, out_dir, by_path, system, tiers, previous=Non
         meta, kotlin = parse_response(text)
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(kotlin.rstrip() + "\n", encoding="utf-8", newline="\n")
+    unsupported, classified = classified_notes(list(meta.get("unsupported", [])), previous)
     result = {
         "status": "ok",
         "sha256": entry["sha256"],
@@ -807,7 +820,8 @@ def port_one(backend, entry, root, out_dir, by_path, system, tiers, previous=Non
         "tier": entry["tier"],
         "kotlin_path": entry["kotlin_path"],
         "notes": list(meta.get("notes", []))[:8],
-        "unsupported": list(meta.get("unsupported", [])),
+        "unsupported": unsupported,
+        **classified,
         "model": backend.model,
         "backend": backend.name,
         "tokens_in": tokens_in,
@@ -920,6 +934,18 @@ def write_report(out_dir, inventory, state):
             lines.append(f"- {path}")
             for item in saved["unsupported"]:
                 lines.append(f"  - {item}")
+    classified = [(p, s) for p, s in sorted(state.items()) if s.get("status") == "ok"]
+    if any(saved.get(key) for _, saved in classified for key in CLASSIFIED_NOTES):
+        lines += ["", "## Apple only / needs Gabriel", "",
+                  "Not port work: the Swift uses an Apple-only service, or the Android counterpart needs Gabriel."]
+        for key, title in CLASSIFIED_NOTES.items():
+            marked = [(path, saved[key]) for path, saved in classified if saved.get(key)]
+            if marked:
+                lines += ["", f"### {title}", ""]
+                for path, items in marked:
+                    lines.append(f"- {path}")
+                    for item in items:
+                        lines.append(f"  - {item}")
     errors = [(p, s) for p, s in sorted(state.items()) if s.get("status") == "error"]
     if errors:
         lines += ["", "## Errors", ""]
