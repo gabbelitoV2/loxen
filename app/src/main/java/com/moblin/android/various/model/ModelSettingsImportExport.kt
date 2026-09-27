@@ -106,6 +106,7 @@ private fun Model.importSucceeded() {
     show.chatPhone.value = isChatPhone()
     updateScreenAutoOff()
     reloadStream()
+    lutUpdated()
     chatBotCustomCommandsTextChanged()
     macrosTextFormatChanged()
     resetSelectedScene()

@@ -225,6 +225,15 @@ fun hasAppleLog(): Boolean {
     return false
 }
 
+fun hasHlg(): Boolean {
+    for (format in bestBackCameraDevice?.formats ?: emptyList()) {
+        if (format.supportedColorSpaces.contains(AVCaptureColorSpace.HLG_BT2020)) {
+            return true
+        }
+    }
+    return false
+}
+
 fun factorToIso(device: AVCaptureDevice, factor: Float): Float {
     val minIso = device.activeFormat.minISO
     val maxIso = device.activeFormat.maxISO

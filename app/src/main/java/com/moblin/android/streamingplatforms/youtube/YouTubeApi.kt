@@ -102,6 +102,7 @@ data class YouTubeApiListVideoStreamingDetails(
     val concurrentViewers: String? = null,
     val actualStartTime: String? = null,
     val actualEndTime: String? = null,
+    val activeLiveChatId: String? = null,
 ) {
     fun isLive(): Boolean = actualStartTime != null && actualEndTime == null
 }
@@ -347,6 +348,37 @@ class YouTubeApi(private val accessToken: String) {
                         onCompleted(NetworkResponse.Error)
                     }
                 }
+                NetworkResponse.AuthError -> onCompleted(NetworkResponse.AuthError)
+                NetworkResponse.Error -> onCompleted(NetworkResponse.Error)
+            }
+        }
+    }
+
+    fun insertLiveChatBan(
+        liveChatId: String,
+        channelId: String,
+        duration: Int?,
+        onCompleted: (NetworkResponse<Unit>) -> Unit,
+    ) {
+        val subPath = makeUrl("liveChat/bans", listOf("part" to "snippet"))
+        val snippet: JsonElement = buildJsonObject {
+            put("liveChatId", liveChatId)
+            put(
+                "bannedUserDetails",
+                buildJsonObject {
+                    put("channelId", channelId)
+                },
+            )
+            if (duration != null) {
+                put("type", "temporary")
+                put("banDurationSeconds", duration)
+            } else {
+                put("type", "permanent")
+            }
+        }
+        doPost(subPath, serialize(buildJsonObject { put("snippet", snippet) })) { result ->
+            when (result) {
+                is NetworkResponse.Success -> onCompleted(NetworkResponse.Success(Unit))
                 NetworkResponse.AuthError -> onCompleted(NetworkResponse.AuthError)
                 NetworkResponse.Error -> onCompleted(NetworkResponse.Error)
             }

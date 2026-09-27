@@ -523,6 +523,10 @@ fun Model.banUser(post: ChatPost) {
             banTwitchUser(user = user, userId = userId, duration = null) { }
         }
         Platform.kick -> banKickUser(user = user, duration = null) { }
+        Platform.youTube -> {
+            val userId = post.userId ?: return
+            banYouTubeUser(user = user, channelId = userId, duration = null)
+        }
         else -> makeErrorToast(title = "Ban not supported for this platform")
     }
 }
@@ -535,6 +539,10 @@ fun Model.timeoutUser(post: ChatPost, duration: Int) {
             banTwitchUser(user = user, userId = userId, duration = duration) { }
         }
         Platform.kick -> banKickUser(user = user, duration = duration) { }
+        Platform.youTube -> {
+            val userId = post.userId ?: return
+            banYouTubeUser(user = user, channelId = userId, duration = duration)
+        }
         else -> makeErrorToast(title = "Timeout not supported for this platform")
     }
 }

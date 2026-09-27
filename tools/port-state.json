@@ -2509,27 +2509,25 @@
   },
   "Moblin/StreamingPlatforms/YouTube/YouTubeApi.swift": {
     "status": "ok",
-    "sha256": "e58457f33989f018ac1ed619685d6d6cb7389bbb4948a063147745fd16374eab",
+    "sha256": "5788d2f7206b5f30919966e1dfd47c49603fc4643a4166143b98393caee89b17",
+    "moblin_commit": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeApi.kt",
     "notes": [
-      "OperationResult and NetworkResponse are imported from com.moblin.android.various.network and used as variants Success(data) / Error / AuthError; if the port names those variants differently, only the construction sites need renaming.",
-      "httpRequest is assumed to be httpRequest(request: Request, onCompleted: (ByteArray?, Response?, Throwable?) -> Unit) using OkHttp's Response; the iOS isUnauthorized extension becomes response.code == 401.",
-      "makeUrl is assumed to be makeUrl(path: String, query: List<Pair<String, String>>) to preserve the ordered, duplicate-tolerant Swift tuple array.",
-      "The weak delegate has no Kotlin equivalent and is a plain nullable property, so YouTubeApi does not own a strong reference to its delegate.",
-      "@MainActor is dropped; callbacks now run on the OkHttp dispatcher thread, so callers must switch to the main dispatcher when touching UI.",
-      "URLRequest.httpBody cannot be set on an OkHttp Request, so createRequest gained an extra body parameter that doPost fills in.",
-      "Date().ISO8601Format() becomes a private top-level DateTimeFormatter producing second precision in UTC, matching the Swift default format.",
-      "YouTubeApiLiveBroadcaseVisibility keeps a rawValue property and is serialized by kotlinx by entry name, which is identical to the raw values; Identifiable on YouTubeApiLiveBroadcast is dropped since the id property remains."
+      "Added activeLiveChatId to YouTubeApiListVideoStreamingDetails with a null default so synthesized Codable decoding stays optional.",
+      "Added insertLiveChatBan between listChannels and doGet, keeping the Swift map insertion order (liveChatId, bannedUserDetails, then type/banDurationSeconds).",
+      "The Swift [String: Any] snippet body became a kotlinx.serialization buildJsonObject tree, which is what serialize(JsonElement) accepts.",
+      "A nil duration produces \"type\": \"permanent\"; a non-nil duration adds \"type\": \"temporary\" and \"banDurationSeconds\".",
+      "NetworkResponse<Void> maps to NetworkResponse<Unit> as in deleteLiveBroadcast, so success is NetworkResponse.Success(Unit)."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4030,
-    "tokens_out": 22242,
-    "seconds": 81.1,
-    "ported_at": "2026-09-22T12:43:42+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 37978,
+    "tokens_out": 4891,
+    "seconds": 14.8,
+    "ported_at": "2026-09-27T22:38:03+00:00"
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchEventSub.swift": {
     "status": "ok",
@@ -4692,27 +4690,24 @@
   },
   "Moblin/StreamingPlatforms/YouTube/YouTubeLiveChat.swift": {
     "status": "ok",
-    "sha256": "13ca7b8dfcba55545768af8d03a2aafe44bc9ee71dc5b931f071cc0b3f08a739",
+    "sha256": "e653ac4cbe1e67fec7cea5acc3abba871b5c0bb22013f08dd1a07919bd588220",
+    "moblin_commit": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/streamingplatforms/youtube/YouTubeLiveChat.kt",
     "notes": [
-      "Swift's `throw \"text\"` is translated as `throw IllegalStateException(\"text\")`; the `URL(string:)` guards were dropped because URLs are plain non-null Strings here.",
-      "`httpGet(request)` is assumed to be `suspend fun httpGet(request: Request): Pair<ByteArray, okhttp3.Response>`; `response.isSuccessful` keeps the same meaning as in Swift.",
-      "`Emotes.createSegments(text, id)` is assumed to return `Pair<List<ChatPostSegment>, Int>` (segments plus the next id), because Swift's `inout Int` has no Kotlin equivalent.",
-      "URLSession is replaced with OkHttp (`OkHttpClient`, `Request`, `Response`), including the POST upload with an `application/json` body.",
-      "JSON decoding uses a file-level `Json { ignoreUnknownKeys = true }` instance and every Swift optional property got a `= null` default, so kotlinx.serialization tolerates missing keys.",
-      "`@MainActor` plus `Task` became a `MainScope()` coroutine stored as a `Job`; `Task.isCancelled` is `isActive` inside the launch block.",
-      "`sleep(seconds = 5.0)` and `sleep(milliSeconds = delay)` use the two overloads from `com.moblin.android.common.various`, and `delay` is a `Long`.",
-      "`ChatPostUrl(moving:, still:)` is constructed from String URLs, and the platform constant is `ChatPlatform.youTube` from `com.moblin.android.various` (not in the glossary)."
+      "ChatDescription and SponsorshipsHeaderRenderer gained the authorExternalChannelId field, placed right after authorName with a null default like the other optional fields.",
+      "handleChatDescription now passes chatDescription.authorExternalChannelId as userId instead of null.",
+      "The Swift diff's fourth hunk (userId in handleGiftPurchaseDescription) has no matching Kotlin line: this file's handleGiftPurchaseDescription body is a hand-written Android deviation that ends before the model.appendChatMessage call, so it was left byte-identical.",
+      "All other declarations, imports and formatting are unchanged from the previous Kotlin file."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 8680,
-    "tokens_out": 32135,
-    "seconds": 121.9,
-    "ported_at": "2026-09-22T12:56:06+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 50947,
+    "tokens_out": 6716,
+    "seconds": 21.4,
+    "ported_at": "2026-09-27T22:39:32+00:00"
   },
   "Moblin/Various/Settings/SettingsDeepLinkCreator.swift": {
     "status": "ok",
@@ -4899,28 +4894,25 @@
   },
   "Moblin/Various/Model/ModelYouTube.swift": {
     "status": "ok",
-    "sha256": "2c2d9086ab7b16dd64d041cb0194d41e9313cf36223c84b1d284be2fba30f091",
-    "moblin_commit": "7947162bdce2e500a9fa26637f221b946fa35967",
-    "mode": "full",
+    "sha256": "b440c198ff7025a5a03becb580171b659df230fd5c8609f2d2f267f505674f18",
+    "moblin_commit": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelYouTube.kt",
     "notes": [
-      "Model is expected to declare `YouTubeApiDelegate` in Model.kt; `youTubeApiUnauthorized` can only be a top-level extension function in this file, so Model.kt must wire the interface implementation.",
-      "`NetworkResponse` is assumed to be a sealed class in com.moblin.android.streamingplatforms with a `Success` case exposing `.data`.",
-      "`Platform` is imported from com.moblin.android.streamingplatforms (not declared in com.moblin.android.various.model).",
-      "`youTubePlatformStatus` is a `StreamingPlatformStatus.Status` sealed value whose entries keep the Swift names: `unknown`, `offline`, `live(viewerCount = n)`.",
-      "DispatchQueue.main.async and Task { } become mainScope.launch { } with the main-thread CoroutineScope used across the port.",
-      "`stream.youTubeAuthState` is kept as `OIDAuthState?`; the keychain/settings helpers handle persistence.",
-      "String(localized:) is translated with the top-level localized() from package com.moblin.android.",
-      "Int(concurrentViewers) is translated with toIntOrNull() so non-numeric values fall back to 0 as in Swift."
+      "Inserted Model.banYouTubeUser between updateYouTubeStream and getYouTubeAccesssToken, matching the Swift diff position.",
+      "Used stream.value, NetworkResponse.Success and localized(...) exactly like the rest of the Kotlin port.",
+      "compactMap(\\.liveStreamingDetails.activeLiveChatId) became mapNotNull { it.liveStreamingDetails.activeLiveChatId }.",
+      "The shared remaining/failed counters are captured by the insertLiveChatBan completions like the Swift closure captures.",
+      "No other line of the existing file was changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 44636,
-    "tokens_out": 49887,
-    "seconds": 191.9,
-    "ported_at": "2026-09-25T11:43:29+00:00"
+    "tokens_in": 54100,
+    "tokens_out": 4671,
+    "seconds": 14.1,
+    "ported_at": "2026-09-27T22:39:47+00:00"
   },
   "MoblinTests/Moblin/Obs/ObsWebSocketSuite.swift": {
     "status": "ok",
@@ -9618,27 +9610,22 @@
   },
   "Moblin/Various/Model/ModelSettingsImportExport.swift": {
     "status": "ok",
-    "sha256": "6bc24d42dd24bc66444f78d7a436fb64433656ca055e842171baf722cd81d86b",
+    "sha256": "d09d13a2cd17d1117e0c4748a71f2a8878c60918c62f069802d2752fb3a953a0",
+    "moblin_commit": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelSettingsImportExport.kt",
     "notes": [
-      "Model is extended here with top-level extension functions; the referenced Model members (settings, show, database, pendingSettingsImportAction, presentingSettingsImportConfirmation) must exist on Model in this package.",
-      "No new Kotlin types are declared, so declared_types is empty; the file only adds extension functions to Model.",
-      "FileManager.default.temporaryDirectory is replaced by context.cacheDir, so importSettingsFromData and importSettingsFromClipboard take an android.content.Context parameter.",
-      "UIPasteboard item providers with UTType conformance are replaced by ClipboardManager plus a ContentResolver MIME-type lookup against moblinSettingsFileType.",
-      "Reading the clipboard URI is blocking I/O, so it runs in a private CoroutineScope(Dispatchers.IO) and hops back to Dispatchers.Main before invoking the callbacks.",
-      "The Swift @MainActor completion handlers become plain lambdas; callers must assume they are invoked on the main dispatcher (Dispatchers.Main).",
-      "Settings.importFromFile/importFromClipboard/exportToFile are called exactly as in Swift; the ported Settings class in com.moblin.android.various.settings must expose matching signatures.",
-      "This ui tier file contains no SwiftUI views, so no Composable functions are produced."
+      "The Swift diff only adds a lutUpdated() call to importSucceeded(); the Kotlin file gets the same call between reloadStream() and chatBotCustomCommandsTextChanged().",
+      "Everything else in the Kotlin file, including the Android-specific clipboard handling and settingsImportScope, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 4322,
-    "tokens_out": 10119,
-    "seconds": 39.6,
-    "ported_at": "2026-09-22T13:27:04+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42807,
+    "tokens_out": 1153,
+    "seconds": 4.4,
+    "ported_at": "2026-09-27T22:38:06+00:00"
   },
   "Moblin/Various/Model/ModelSnapshot.swift": {
     "status": "ok",
@@ -11841,25 +11828,22 @@
   },
   "Moblin/Various/Utils/CameraUtils.swift": {
     "status": "ok",
-    "sha256": "c0d060c73219a12beb69f773cc4e2121a18ceb21800e8e0199832c610fc38d55",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+    "sha256": "5edf780a7e28a27fb1c70a024115bb18548104ecb1721d7d1cde35bea639cf63",
+    "moblin_commit": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/utils/CameraUtils.kt",
     "notes": [
-      "The Swift diff only adds AVCaptureDevice.setLowLightBoost(value:), translated as a Kotlin extension function placed directly after setAutoFps, matching Swift order.",
-      "The two iOS AVCaptureDevice properties the function relies on (isLowLightBoostSupported, automaticallyEnablesLowLightBoostWhenAvailable) had no mirror in the hand-written AVCaptureDevice class, so matching fields were added next to the other device properties.",
-      "Android low-light boost is really a Camera2 CONTROL_AE_MODE session reconfiguration; the Kotlin mirror stores the requested value just like the existing setFps/setAutoFps mirrors do.",
-      "The guard becomes an early return; the support field defaults to false so the setter is a safe no-op on devices where the flag is not populated.",
-      "Everything else in the file is byte-identical to the previous translation."
+      "Added hasHlg() right after hasAppleLog(), matching the Swift diff position.",
+      "AVCaptureColorSpace.HLG_BT2020 already exists in the avfoundation shim and is imported, so no new import is needed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 17051,
-    "tokens_out": 9249,
-    "seconds": 31.3,
-    "ported_at": "2026-09-23T11:19:15+00:00"
+    "tokens_in": 48076,
+    "tokens_out": 3738,
+    "seconds": 10.7,
+    "ported_at": "2026-09-27T22:38:53+00:00"
   },
   "Moblin/VideoEffects/Scoreboard/ScoreboardEffectPadelView.swift": {
     "status": "ok",
@@ -12550,28 +12534,24 @@
   },
   "Moblin/Various/Model/ModelChat.swift": {
     "status": "ok",
-    "sha256": "2d9382679e5b2990d0d957cdbe07f53a14941a58ad1badd5461fe493d966ecc7",
-    "moblin_commit": "afa485d231cb21bbf41a69eb2a3c408f612d8490",
-    "mode": "full",
+    "sha256": "df13c3ea6140a1a3851f3bd8efc4dea4212554d90ec23a1c31fd44e7cdb9ef5f",
+    "moblin_commit": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChat.kt",
     "notes": [
-      "Model extensions become top-level extension functions in com.moblin.android.various.model, in the same order as the Swift extension.",
-      "ContinuousClock.Instant becomes java.time.Instant; the age check uses Duration.between(post.timestampTime, now).seconds.",
-      "ChatProvider state (posts, paused, moreThanOneStreamingPlatform) and the model sub-objects (quickButtonChatState, statusTopLeft, externalDisplay) are read and written through MutableStateFlow.value.",
-      "In-place Deque mutations of quickButtonChatState.chatAlertsPosts are copied into a new ArrayDeque and assigned back to the flow; Model's newQuickButtonChatAlertsPosts/pausedQuickButtonChatAlertsPosts stay ArrayDeque<ChatPost>.",
-      "printChatMessage renders the ChatPrinterMessage composable with ImageRenderer on a private main coroutine scope, waits 2 s, and prints to every cat printer whose printChat flow is true.",
-      "UIPasteboard.general.string is the system ClipboardManager from AppDelegate.context.",
-      "createRedLineChatPost keeps Swift's defer by incrementing chatPostId after the ChatPost is built; newPostIds copies each post with a fresh id.",
-      "ChatPrinterMessage uses Compose FlowRow for WrappingHStack and CacheAsyncImage with AssetImage placeholder from Bundle.image(\"AppIconNoBackground\")."
+      "Added the Platform.youTube branch to banUser and timeoutUser, calling banYouTubeUser with channelId = userId.",
+      "Kotlin keeps userId as a String (non-null after the early return), same as the other branches.",
+      "duration stays nullable: null for ban, the caller's Int for timeout.",
+      "No other line of the file changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 57727,
-    "tokens_out": 36944,
-    "seconds": 127.2,
-    "ported_at": "2026-09-25T22:52:34+00:00"
+    "tokens_in": 63474,
+    "tokens_out": 5703,
+    "seconds": 15.6,
+    "ported_at": "2026-09-27T22:39:27+00:00"
   },
   "Moblin/VideoEffects/ImageEffect.swift": {
     "status": "ok",
@@ -18666,5 +18646,29 @@
     "tokens_out": 673,
     "seconds": 4.1,
     "ported_at": "2026-09-25T08:55:10+00:00"
+  },
+  "Moblin/Media/HaishinKit/Media/Video/Hlg.swift": {
+    "status": "ok",
+    "sha256": "fa17d608c14472f11aaf46b7b6cb3392db3adcf211548efc1ccd51accf1df66a",
+    "moblin_commit": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
+    "mode": "full",
+    "tier": "media",
+    "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/Hlg.kt",
+    "notes": [
+      "The Swift labelled tuple (toLinear:toHlg:) becomes the file-private HlgKernels data class so the field labels survive side-by-side reading.",
+      "hlgKernels stays a file-private val evaluated with lazy, matching the one-shot Swift initializer.",
+      "Bundle.main.url(forResource:withExtension:) plus Data(contentsOf:) collapse into Bundle.readBytes(\"default\", \"metallib\").",
+      "try? CIColorKernel(functionName:fromMetalLibraryData:) becomes runCatching { ... }.getOrNull(), so a failing kernel leaves hlgKernels null as on iOS.",
+      "hlgToLinear() and linearToHlg() return the receiver when the kernels are unavailable, exactly like Swift's ?? self.",
+      "CIColorKernel.apply is called with named extent/arguments so it resolves to the shim member instead of Kotlin's stdlib apply.",
+      "The hlgToLinear and linearToHlg kernels must be registered in CIKernelLibrary (the GLSL port of default.metallib); otherwise the shim constructor throws and both functions pass the image through."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 35506,
+    "tokens_out": 5653,
+    "seconds": 22.6,
+    "ported_at": "2026-09-27T22:38:07+00:00"
   }
 }

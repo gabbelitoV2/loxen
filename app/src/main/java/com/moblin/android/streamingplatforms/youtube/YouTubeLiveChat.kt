@@ -145,6 +145,7 @@ private data class AuthorBadge(
 @Serializable
 private data class ChatDescription(
     val authorName: Author,
+    val authorExternalChannelId: String? = null,
     val message: Message? = null,
     val purchaseAmountText: Amount? = null,
     val headerSubtext: Message? = null,
@@ -154,6 +155,7 @@ private data class ChatDescription(
 @Serializable
 private data class SponsorshipsHeaderRenderer(
     val authorName: Author,
+    val authorExternalChannelId: String? = null,
     val primaryText: Message? = null,
     val authorBadges: List<AuthorBadge>? = null,
 )
@@ -463,7 +465,7 @@ class YouTubeLiveChat(model: Model, videoId: String, settings: SettingsStreamCha
             messageId = null,
             displayName = chatDescription.authorName.simpleText,
             user = chatDescription.authorName.simpleText,
-            userId = null,
+            userId = chatDescription.authorExternalChannelId,
             userColor = null,
             userBadges = listOf(),
             segments = segments,

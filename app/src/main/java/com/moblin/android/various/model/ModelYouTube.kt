@@ -238,6 +238,55 @@ fun Model.updateYouTubeStream(monotonicNow: java.time.Instant) {
     getVideo()
 }
 
+fun Model.banYouTubeUser(user: String, channelId: String, duration: Int?) {
+    if (!stream.value.isYouTubeAuthorized()) {
+        makeNotLoggedInToToast(platform = Platform.youTube)
+        return
+    }
+    getYouTubeApi(stream = stream.value) { youTubeApi ->
+        if (youTubeApi == null) {
+            return@getYouTubeApi
+        }
+        youTubeApi.listVideos(videoIds = stream.value.youTubeVideoIds) { response ->
+            when (response) {
+                is NetworkResponse.Success -> {
+                    val liveChatIds = response.value.items.mapNotNull { it.liveStreamingDetails.activeLiveChatId }
+                    if (liveChatIds.isEmpty()) {
+                        makeErrorToast(title = localized("Failed to ban user"))
+                        return@listVideos
+                    }
+                    var remaining = liveChatIds.size
+                    var failed = false
+                    for (liveChatId in liveChatIds) {
+                        youTubeApi.insertLiveChatBan(liveChatId = liveChatId,
+                                                     channelId = channelId,
+                                                     duration = duration) { response ->
+                            when (response) {
+                                is NetworkResponse.Success -> {}
+                                else -> failed = true
+                            }
+                            remaining -= 1
+                            if (remaining != 0) {
+                                return@insertLiveChatBan
+                            }
+                            if (failed) {
+                                makeErrorToast(title = localized("Failed to ban user"))
+                            } else if (duration == null) {
+                                makeToast(title = localized("Banned $user"))
+                            } else {
+                                makeToast(title = localized("Timed out $user"))
+                            }
+                        }
+                    }
+                }
+                else -> {
+                    makeErrorToast(title = localized("Failed to ban user"))
+                }
+            }
+        }
+    }
+}
+
 private fun Model.getYouTubeAccesssToken(stream: SettingsStream, onCompleted: (String?) -> Unit) {
     val authState = stream.youTubeAuthState
     if (authState == null) {
