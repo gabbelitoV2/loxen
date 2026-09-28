@@ -1,8 +1,8 @@
 # Third-party notices
 
 Loxen is an unofficial Android port of [Moblin](https://github.com/eerimoq/moblin), MIT License, Copyright (c) 2023
-Erik Moqvist. Loxen is not affiliated with or endorsed by Moblin. The Loxen icon, drawn by `tools/icon/loxen_icon.py`,
-is Loxen's own and does not use Moblin's app icons.
+Erik Moqvist. Loxen is not affiliated with or endorsed by Moblin. The Loxen icon is
+Loxen's own and does not use Moblin's app icons.
 
 It also contains code ported from, and files taken from, the following projects.
 
