@@ -436,7 +436,7 @@ fun Model.reloadRemoteControlRelay() {
 
 fun Model.isRemoteControlRelayConfigured(): Boolean {
     val relay = database.remoteControl.assistant.relay
-    return relay.enabled && relay.baseUrl.isNotEmpty()
+    return relay.enabled && relay.baseUrl.isNotEmpty() && isRemoteControlAssistantConfigured()
 }
 
 fun Model.remoteControlStreamerCreateStatus(

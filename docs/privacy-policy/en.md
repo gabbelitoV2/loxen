@@ -26,10 +26,9 @@ In short:
   that you choose to show can come from third parties (section 4.2.3).
 - We (Gabbeloxen) do not receive your streams, your chat, your API Data or your usage of the app;
   see section 2.4 for what Google Play shows us.
-- Erik Moqvist does not receive data from Loxen, except in these cases. While Loxen is running, it
-  keeps a connection open to a remote control relay server of the Moblin project. This happens by
-  default, without any setup, and is described exactly in section 4.2.1, which also says when your
-  remote control traffic passes through that server and how to stop the connection. YouTube and
+- Erik Moqvist does not receive data from Loxen, except in these cases. If you set up remote
+  control through the Moblin relay, your remote control traffic passes through a relay server of
+  the Moblin project (section 4.2.1); Loxen never connects to it without that setup. YouTube and
   Twitch sign-in use the Moblin project's app registrations (sections 1 and 2.2), so Google can
   show the owner of the YouTube registration aggregate figures such as the number of API
   requests. Links to Moblin's websites open them in your browser when you tap them.
@@ -390,38 +389,40 @@ receive your data. No information is shared internally.
 
 Information leaves your device in the cases below.
 
-#### 4.2.1 Without any setup: the Moblin remote control relay
+#### 4.2.1 Remote control through the Moblin relay (off by default)
 
-On a new install, without any setup, Loxen opens a connection when it starts to the remote
-control relay server `wss://moblin.mys-lang.org/moblin-remote-control-relay`. This server belongs
-to the upstream Moblin project, and we understand that it is run by Erik Moqvist. Loxen does not
-operate it. This is a default inherited from Moblin's remote control assistant feature.
+Loxen can use the remote control relay server `wss://moblin.mys-lang.org/moblin-remote-control-relay`
+so that a remote control streamer can reach Loxen when Loxen is the assistant and is behind CGNAT
+or a similar network. This server belongs to the upstream Moblin project, and we understand that
+it is run by Erik Moqvist. Loxen does not operate it. Loxen does not connect to it until you set
+up remote control as described below.
 
-- **When:** while Loxen is running. The connection is reopened when you return to the app or
-  change stream, and is kept alive with a message every 10 seconds.
+- **When:** only while Loxen is the remote control assistant. That is the case when you turn on
+  **Show all settings** at the bottom of Settings, open Settings → Remote control → Assistant,
+  create a streamer entry and choose it as **Current streamer**, and the entry's assistant and
+  relay are turned on (the default for a new entry). The connection is then open while Loxen is
+  running, is reopened when you return to the app or change stream, and is kept alive with a
+  message every 10 seconds.
 - **What is sent:** a random identifier that Loxen creates once and then sends on every connection
   (the bridge id). Because it stays the same, the server can recognize your installation across
   connections and IP addresses. It is stored in the settings file, so it is also kept in Android
   backup (section 3.4) and in exported settings, and a new one is created only when you reset the
   settings or clear the app's data. The server also sees the technical connection information any
-  server sees, such as your IP address and the time of the connection. No settings, video, audio,
-  chat or location is sent over this connection.
-- **When more is sent:** your remote control traffic passes through this server in two cases. The
-  first is when you set up another device as a remote control streamer and give it the relay
-  address shown in Loxen's remote control settings. The second is when you set up Loxen as a
-  remote control streamer and enter a relay address on `moblin.mys-lang.org`, for example one
-  shown by another Moblin or Loxen device, or one used by the Moblin Remote Control Assistant
-  website that Loxen links to. The server then carries everything listed for remote control in
-  section 4.2.5, in both directions, including viewer counts, the Wi-Fi network name, your exact
-  coordinates, chat, log messages and preview images. This traffic is encrypted between each
-  device and the server, but not end to end, so the server can read it. Only the Twitch access token sent with "Reliable
-  chat and events" is encrypted end to end.
-- **How to stop it:** Loxen currently has no single switch for this connection. To stop it, turn
-  on **Show all settings** at the bottom of Settings, open Settings → Remote control → Assistant,
-  tap **Create**, choose the new entry as **Current streamer**, and then set **Current streamer**
-  back to "-- None --". You can then delete the entry. The connection stays off until you choose a
-  current streamer whose relay is turned on (the default for a new entry), or until you reset the
-  settings or clear the app's data, which turn it back on.
+  server sees, such as your IP address and the time of the connection.
+- **What passes through it:** your remote control traffic passes through this server in two
+  cases. The first is when Loxen is the assistant as described above and another device connects
+  to it as a remote control streamer through the relay address shown in Loxen's remote control
+  settings. The second is when you set up Loxen as a remote control streamer and enter a relay
+  address on `moblin.mys-lang.org`, for example one shown by another Moblin or Loxen device, or one
+  used by the Moblin Remote Control Assistant website that Loxen links to. The server then carries
+  everything listed for remote control in section 4.2.5, in both directions, including viewer
+  counts, the Wi-Fi network name, your exact coordinates, chat, log messages and preview images.
+  This traffic is encrypted between each device and the server, but not end to end, so the server
+  can read it. Only the Twitch access token sent with "Reliable chat and events" is encrypted end
+  to end.
+- **How to stop it:** set **Current streamer** back to "-- None --", or turn off the assistant or
+  the relay in the streamer entry. As a remote control streamer, turn off the streamer or remove
+  the relay address.
 
 #### 4.2.2 Streaming platforms and servers you configure
 
@@ -508,7 +509,7 @@ Remote Control websites, Discord and GitHub) open in your browser only when you 
   custom commands and macro messages can include your city, neighborhood, country, speed,
   altitude, distance, weather, heart rate, workout values and Tesla state, and AI command replies
   include the AI service's answer. Macros can run automatically on events you choose.
-- **Remote control (off by default, except the relay connection in section 4.2.1).** If you set
+- **Remote control (off by default).** If you set
   up remote control, the streamer device sends the assistant device its status (including live,
   recording and muted state, viewer counts, battery level and the Wi-Fi network name), statistics
   (which can include your exact latitude and longitude, time zone, speed, altitude, distance,
@@ -614,8 +615,8 @@ you ask us to.
 - **To stop the connection to the Moblin relay:** follow the steps in section 4.2.1.
 - **To reset the settings:** tap **Reset settings** at the bottom of Settings. This replaces your
   settings with the defaults, and the tokens of the old streams are deleted at the next start. It
-  does not delete the streaming history, replays, recordings, logs, snapshots or cookies, and it
-  turns the connection to the Moblin relay back on with a new bridge id (section 4.2.1).
+  does not delete the streaming history, replays, recordings, logs, snapshots or cookies. It
+  creates a new bridge id and turns remote control off (section 4.2.1).
 - **To delete all app data at once:** open Settings → Apps → Loxen → Storage (called Storage &
   cache on some devices) and tap **Clear storage** (called **Clear data** on some devices), or
   uninstall Loxen. Android then removes the app's private storage: the settings file, streaming
@@ -732,11 +733,9 @@ that data as described in its
 [Google Privacy Policy](http://www.google.com/policies/privacy), and may process it in the United
 States. You can object by not using these effects.
 
-By default, Loxen connects to the Moblin remote control relay described in section 4.2.1, which
-receives the bridge id and sees your IP address. Loxen keeps this default from Moblin so that
-remote control through the relay works without setup, on the basis of our legitimate interest in
-offering that feature (Article 6(1)(f) GDPR). We do not operate the relay server and cannot say
-where it is hosted; its operator processes these data under its own responsibility. You can object
-at any time by stopping the connection as described in section 4.2.1.
+If you set up remote control through the Moblin relay (section 4.2.1), Loxen sends the bridge id
+and your remote control traffic to that relay because you asked it to. We do not operate the relay
+server and cannot say where it is hosted; its operator processes these data under its own
+responsibility. You can stop it at any time as described in section 4.2.1.
 
 Data controller: Gabbeloxen, Sweden.

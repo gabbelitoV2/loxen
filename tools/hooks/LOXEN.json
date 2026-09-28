@@ -183,6 +183,15 @@
       "old": "        ExternalUrlButtonView(url = \"https://eerimoq.github.io/moblin/privacy-policy/en.html\") {",
       "new": "        ExternalUrlButtonView(url = com.moblin.android.platform.loxen.Loxen.privacyPolicyUrl) {",
       "note": "Loxen has its own privacy policy, published from docs/privacy-policy/en.md."
+    },
+    {
+      "id": "HLOXEN.21",
+      "file": "various/model/ModelRemoteControl.kt",
+      "scope": "fun isRemoteControlRelayConfigured",
+      "op": "replace",
+      "old": "    return relay.enabled && relay.baseUrl.isNotEmpty()",
+      "new": "    return relay.enabled && relay.baseUrl.isNotEmpty() && isRemoteControlAssistantConfigured()",
+      "note": "The relay only bridges to the local remote control assistant, so Loxen connects to it only while the assistant runs. Without this a new install connects to the Moblin relay server on every start although remote control is off."
     }
   ]
 }
