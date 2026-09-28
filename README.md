@@ -1,13 +1,18 @@
 # Moblin for Android
 
 An automated port of [Moblin](https://github.com/eerimoq/moblin), the iOS IRL streaming app, to
-Android. A small pipeline reads the Swift sources in the sibling `../moblin` checkout, sorts every file
-by how portable it is, and lets an LLM translate it file by file into the Android Studio project under
-`app/`. The Kotlin keeps the same structure, type names and function names as the Swift code. Anything
-without an Android counterpart is marked `TODO("...")` and listed in `PORT-REPORT.md`.
+Android. A pipeline clones the Swift sources of eerimoq/moblin into `.upstream/`, sorts every file by
+how portable it is, and translates it file by file into the Android Studio project under `app/`. The
+Kotlin keeps the same structure, type names and function names as the Swift code, and hand-written
+Apple-named shims under `app/src/main/java/com/moblin/android/platform/` provide the Apple APIs on
+Android (camera, encoding, video effects, SRT, RIST, WebRTC, Bluetooth, ...). Every night the port
+follows the latest Moblin automatically. What has no Android counterpart is listed in `PORT-REPORT.md`.
 
-This is a starting point, not a finished app. Camera capture, MediaCodec encoding, OpenGL video
-effects and the libsrt binding have to be written by hand.
+## Test the app
+
+The app is in internal testing on Google Play:
+[join the test](https://play.google.com/apps/internaltest/4701238496954390302). Only Google accounts
+that have been added to the testers list can join; others see that the app is not available.
 
 ## Requirements
 
