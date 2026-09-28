@@ -28,9 +28,9 @@ In short:
   see section 2.4 for what Google Play shows us.
 - Erik Moqvist does not receive data from Loxen, except in these cases. If you set up remote
   control through the Moblin relay, your remote control traffic passes through a relay server of
-  the Moblin project (section 4.2.1); Loxen never connects to it without that setup. YouTube and
-  Twitch sign-in use the Moblin project's app registrations (sections 1 and 2.2), so Google can
-  show the owner of the YouTube registration aggregate figures such as the number of API
+  the Moblin project (section 4.2.1); Loxen never connects to it without that setup. YouTube
+  sign-in uses the Moblin project's app registration (section 1), so Google can show the owner
+  of that registration aggregate figures such as the number of API
   requests. Links to Moblin's websites open them in your browser when you tap them.
 - When you use face or text effects, Google components built into Loxen send diagnostic data to
   Google (section 4.2.4).
@@ -122,8 +122,7 @@ governed by their own terms and privacy policies.
   anonymously from Twitch's chat server (`irc-ws.chat.twitch.tv`) when you enter a channel name,
   without the token. Loxen also stores the names and ids of the last 10 channels that raided you
   and of the last 10 channels you raided in the settings file, so that you can raid them again.
-  Twitch sign-in currently uses the Twitch application registration of the upstream Moblin
-  project, so Twitch's authorization page may show the name "Moblin". The token goes directly
+  Twitch sign-in uses Loxen's own Twitch application registration. The token goes directly
   between your device and Twitch.
 - **Kick.** Kick sign-in does not use OAuth. Loxen opens Kick's login page (`kick.com/login`) in
   a web view inside Loxen, and after you log in it reads the `session_token` cookie that Kick sets
@@ -645,8 +644,8 @@ Because Loxen uses the Moblin project's registration (section 1), the entry may 
 Google Account. After revoking access, any token still stored on your device stops working; use
 the **Logout** button described above to delete it from your device as well.
 
-For Twitch, you can remove the app's access under Connections in your Twitch account settings,
-where it may also be shown as "Moblin". For Kick, logging out in Loxen does not end the session on
+For Twitch, you can remove Loxen's access under Connections in your Twitch account settings. For
+Kick, logging out in Loxen does not end the session on
 Kick's side; use the account security options Kick provides to end it.
 
 ## 6. Security

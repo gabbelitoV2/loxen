@@ -192,6 +192,14 @@
       "old": "    return relay.enabled && relay.baseUrl.isNotEmpty()",
       "new": "    return relay.enabled && relay.baseUrl.isNotEmpty() && isRemoteControlAssistantConfigured()",
       "note": "The relay only bridges to the local remote control assistant, so Loxen connects to it only while the assistant runs. Without this a new install connects to the Moblin relay server on every start although remote control is off."
+    },
+    {
+      "id": "HLOXEN.22",
+      "file": "streamingplatforms/twitch/TwitchAuth.kt",
+      "op": "replace",
+      "old": "const val twitchMoblinAppClientId = \"qv6bnocuwapqigeqjoamfhif0cv2xn\"",
+      "new": "const val twitchMoblinAppClientId = com.moblin.android.platform.loxen.Loxen.twitchClientId",
+      "note": "Twitch sign-in and the Twitch API use Loxen's own Twitch application (public client, redirect https://localhost), so Twitch shows Loxen and not Moblin."
     }
   ]
 }

@@ -5,6 +5,7 @@ object Loxen {
     const val upstreamName = "Moblin"
     const val repositoryUrl = "https://github.com/gabbelitoV2/loxen"
     const val privacyPolicyUrl = "https://gabbelitov2.github.io/loxen/privacy-policy/en.html"
+    const val twitchClientId = "vv58ywvqesrle0zm9trsu3jg20utzr"
     const val attribution = "Loxen is based on Moblin by Erik Moqvist (MIT). Not affiliated with or endorsed by Moblin."
     const val noPurchases = "Loxen is free and has no in-app purchases."
     val hidesStore = true

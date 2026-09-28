@@ -26,7 +26,7 @@ import java.util.UUID
 import com.moblin.android.LocalModel
 
 private const val authorizeUrl = "https://id.twitch.tv/oauth2/authorize"
-const val twitchMoblinAppClientId = "qv6bnocuwapqigeqjoamfhif0cv2xn"
+const val twitchMoblinAppClientId = com.moblin.android.platform.loxen.Loxen.twitchClientId
 private val scopes = listOf(
     "user:read:chat",
     "user:read:follows",
