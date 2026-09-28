@@ -278,7 +278,7 @@ fun SettingsView(
                 NavigationLink(destination = {
                     StoreSettingsView(model = model, store = model.store)
                 }) {
-                    Label("Store (support us) ❤️", systemImage = "cart")
+                    Label(com.moblin.android.platform.loxen.Loxen.appName, systemImage = "pawprint")
                 }
             }
             Section {

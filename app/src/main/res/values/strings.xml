@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name" translatable="false">Loxen</string>
     <string name="shortcut_mute">Mute</string>
     <string name="shortcut_unmute">Unmute</string>
     <string name="shortcut_snapshot">Take snapshot</string>

@@ -5,7 +5,6 @@ import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.DocumentsContract
 import androidx.compose.runtime.Composable
@@ -17,15 +16,18 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.moblin.android.LocalModel
+import com.moblin.android.platform.loxen.Loxen
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.various.Media
 import com.moblin.android.various.MediaDelegate
 import com.moblin.android.various.model.Icon
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.plainIcon
+import com.moblin.android.view.settings.about.AboutSettingsView
 import com.moblin.android.view.settings.importexport.ExportSettingsView
 import com.moblin.android.view.settings.recordings.RecordingsSettingsView
 import com.moblin.android.view.settings.store.StoreSettingsView
@@ -162,22 +164,22 @@ class LauncherSharingViewsSuite {
     }
 
     @Test
-    fun choosingAnIconInTheStoreChangesTheLauncherIcon() {
-        val sanDiego = Icon(name = "San Diego", id = "AppIconSanDiego", price = "$")
-        model.store.myIcons.value = listOf(plainIcon, sanDiego)
-        show { StoreSettingsView(model = model, store = model.store) }
-        rule.onNodeWithText("San Diego").performClick()
+    fun aboutCreditsMoblinAndListsTheLicense() {
+        show { AboutSettingsView() }
+        rule.onNodeWithText(Loxen.attribution).assertExists()
+        rule.onNodeWithText("License").performClick()
         rule.waitForIdle()
-        assertEquals("AppIconSanDiego", model.store.iconImage.value)
-        assertEquals("AppIconSanDiego", model.database.iconImage)
-        val packageManager = application.packageManager
-        assertEquals(
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-            packageManager.getComponentEnabledSetting(ComponentName(application, "com.moblin.android.AppIconSanDiego")),
-        )
-        assertEquals(
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-            packageManager.getComponentEnabledSetting(ComponentName(application, "com.moblin.android.AppIcon")),
-        )
+        rule.onNodeWithText(Loxen.license.trim(), substring = true).assertExists()
+    }
+
+    @Test
+    fun theStoreShowsTheLoxenPageInsteadOfMoblinIcons() {
+        model.store.myIcons.value = listOf(plainIcon, Icon(name = "San Diego", id = "AppIconSanDiego", price = "$"))
+        show { StoreSettingsView(model = model, store = model.store) }
+        rule.onNodeWithText(Loxen.noPurchases).assertExists()
+        rule.onNodeWithText(Loxen.attribution).assertExists()
+        assertTrue(rule.onAllNodesWithText("San Diego").fetchSemanticsNodes().isEmpty())
+        assertTrue(rule.onAllNodesWithText("Restore purchases").fetchSemanticsNodes().isEmpty())
+        assertEquals(plainIcon.id, model.database.iconImage)
     }
 }

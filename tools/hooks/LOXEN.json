@@ -1,0 +1,179 @@
+{
+  "task": "LOXEN",
+  "hooks": [
+    {
+      "id": "HLOXEN.1",
+      "file": "view/settings/store/StoreSettingsView.kt",
+      "scope": "fun StoreSettingsView",
+      "op": "insert_after",
+      "anchor": "fun StoreSettingsView(model: Model = LocalModel.current, store: Store) {",
+      "new": "    if (com.moblin.android.platform.loxen.Loxen.hidesStore) return com.moblin.android.platform.loxen.LoxenSettingsView()",
+      "note": "The Store sells Moblin's app icons, which are Erik's artwork and not Loxen's. Every way into it (the Settings row and a tap on the icon in the control bar) shows the Loxen page instead: the Loxen icon, no in-app purchases, the attribution and the license."
+    },
+    {
+      "id": "HLOXEN.2",
+      "file": "view/settings/SettingsView.kt",
+      "scope": "fun SettingsView",
+      "op": "replace",
+      "old": "                    Label(\"Store (support us) ❤️\", systemImage = \"cart\")",
+      "new": "                    Label(com.moblin.android.platform.loxen.Loxen.appName, systemImage = \"pawprint\")",
+      "note": "The Store row leads to the Loxen page (see HLOXEN.1), so it is named after the app."
+    },
+    {
+      "id": "HLOXEN.3",
+      "file": "various/model/Model.kt",
+      "scope": "fun makeBuyIconsToastIfNeeded",
+      "op": "replace",
+      "old": "        if (store.hasBoughtSomething) {",
+      "new": "        if (store.hasBoughtSomething || com.moblin.android.platform.loxen.Loxen.hidesStore) {",
+      "note": "No toast asks to buy Moblin icons, which Loxen does not sell."
+    },
+    {
+      "id": "HLOXEN.4",
+      "file": "view/settings/about/AboutSettingsView.kt",
+      "scope": "fun AboutSettingsView",
+      "op": "insert_after",
+      "anchor": "    Form(title = \"About\") {",
+      "new": "        com.moblin.android.platform.loxen.LoxenAboutSection()",
+      "note": "About starts with the attribution to Moblin, the disclaimer, the MIT license and a link to the Loxen source code."
+    },
+    {
+      "id": "HLOXEN.5",
+      "file": "view/settings/helpandsupport/HelpAndSupportSettingsView.kt",
+      "scope": "fun HelpAndSupportSettingsView",
+      "op": "replace",
+      "old": "            ExternalUrlButtonView(url = \"https://github.com/eerimoq/moblin\") {",
+      "new": "            ExternalUrlButtonView(url = com.moblin.android.platform.loxen.Loxen.repositoryUrl) {",
+      "note": "Issues about the Android app belong in the Loxen repository, not in Moblin's."
+    },
+    {
+      "id": "HLOXEN.6",
+      "file": "view/settings/streams/stream/wizard/networksetup/StreamWizardNetworkSetupSettingsView.kt",
+      "scope": "fun StreamWizardNetworkSetupSettingsView",
+      "op": "replace",
+      "old": "                    Text(\"Moblin\")",
+      "new": "                    Text(com.moblin.android.localized(\"Moblin\"))",
+      "occurrence": 1,
+      "note": "SwiftUI Text(\"Moblin\") is a localized string key, so it goes through localized(), which names the app Loxen. The four rows need four different new lines."
+    },
+    {
+      "id": "HLOXEN.7",
+      "file": "view/settings/streams/stream/wizard/networksetup/StreamWizardNetworkSetupSettingsView.kt",
+      "scope": "fun StreamWizardNetworkSetupSettingsView",
+      "op": "replace",
+      "old": "                    Text(\"Moblin\")",
+      "new": "                    Text(text = com.moblin.android.localized(\"Moblin\"))",
+      "occurrence": 2,
+      "note": "See HLOXEN.6."
+    },
+    {
+      "id": "HLOXEN.8",
+      "file": "view/settings/streams/stream/wizard/networksetup/StreamWizardNetworkSetupSettingsView.kt",
+      "scope": "fun StreamWizardNetworkSetupSettingsView",
+      "op": "replace",
+      "old": "                    Text(\"Moblin\")",
+      "new": "                    Text(com.moblin.android.localized(text = \"Moblin\"))",
+      "occurrence": 3,
+      "note": "See HLOXEN.6."
+    },
+    {
+      "id": "HLOXEN.9",
+      "file": "view/settings/streams/stream/wizard/networksetup/StreamWizardNetworkSetupSettingsView.kt",
+      "scope": "fun StreamWizardNetworkSetupSettingsView",
+      "op": "replace",
+      "old": "                    Text(\"Moblin\")",
+      "new": "                    Text(text = com.moblin.android.localized(text = \"Moblin\"))",
+      "occurrence": 4,
+      "note": "See HLOXEN.6."
+    },
+    {
+      "id": "HLOXEN.10",
+      "file": "view/settings/streams/stream/wizard/StreamWizardMobcamSettingsView.kt",
+      "scope": "fun StreamWizardMobcamSettingsView",
+      "op": "replace",
+      "old": "                Text(\"2. Connect Moblin to the computer with a USB cable.\")",
+      "new": "                Text(com.moblin.android.localized(\"2. Connect Moblin to the computer with a USB cable.\"))",
+      "note": "SwiftUI Text with a literal is localized, so the app is named Loxen."
+    },
+    {
+      "id": "HLOXEN.11",
+      "file": "view/settings/streams/stream/wizard/StreamWizardMobcamSettingsView.kt",
+      "scope": "fun StreamWizardMobcamSettingsView",
+      "op": "replace",
+      "old": "                Text(\"4. Press Go live in Moblin to start the stream to OBS.\")",
+      "new": "                Text(com.moblin.android.localized(\"4. Press Go live in Moblin to start the stream to OBS.\"))",
+      "note": "See HLOXEN.10."
+    },
+    {
+      "id": "HLOXEN.12",
+      "file": "view/utils/WiFiSsidEditView.kt",
+      "scope": "fun WiFiSsidEditView",
+      "op": "replace",
+      "old": "                    \"⚠️ Allow Moblin to access your location in iOS Settings to see the current WiFi network.\",",
+      "new": "                    com.moblin.android.localized(\"⚠️ Allow Moblin to access your location in iOS Settings to see the current WiFi network.\"),",
+      "note": "See HLOXEN.10."
+    },
+    {
+      "id": "HLOXEN.13",
+      "file": "view/settings/scenes/widgets/widget/browser/WidgetBrowserSettingsView.kt",
+      "scope": "fun WidgetBrowserSettingsView",
+      "op": "replace",
+      "old": "            \"Give the webpage access to various data in Moblin, for example chat messages \" +",
+      "new": "            com.moblin.android.localized(\"Give the webpage access to various data in Moblin, for example chat messages \") +",
+      "note": "See HLOXEN.10."
+    },
+    {
+      "id": "HLOXEN.14",
+      "file": "various/model/ModelBluetooth.kt",
+      "op": "replace",
+      "old": "const val bluetoothNotAllowedMessage = \"⚠️ Moblin is not allowed to use Bluetooth\"",
+      "new": "val bluetoothNotAllowedMessage = com.moblin.android.localized(\"⚠️ Moblin is not allowed to use Bluetooth\")",
+      "note": "Shown in the Bluetooth device scanners, so it names the app Loxen."
+    },
+    {
+      "id": "HLOXEN.15",
+      "file": "various/model/Model.kt",
+      "scope": "fun findScoreboardPlayer",
+      "op": "replace",
+      "old": "        database.scoreboardPlayers.firstOrNull { it.id == id }?.name ?: \"🇸🇪 Moblin\"",
+      "new": "        database.scoreboardPlayers.firstOrNull { it.id == id }?.name ?: com.moblin.android.localized(\"🇸🇪 Moblin\")",
+      "note": "The default scoreboard player is localized(\"🇸🇪 Moblin\") in SettingsScene, so the fallback matches it."
+    },
+    {
+      "id": "HLOXEN.16",
+      "file": "videoeffects/scoreboard/ScoreboardEffectPadelView.kt",
+      "scope": "fun findScoreboardPlayer",
+      "op": "replace",
+      "old": "    return players.firstOrNull { it.id == id }?.name ?: \"🇸🇪 Moblin\"",
+      "new": "    return players.firstOrNull { it.id == id }?.name ?: com.moblin.android.localized(\"🇸🇪 Moblin\")",
+      "note": "See HLOXEN.15."
+    },
+    {
+      "id": "HLOXEN.17",
+      "file": "various/model/Model.kt",
+      "scope": "fun updateBatteryLevel",
+      "op": "replace",
+      "old": "                sendChatMessage(message = \"Moblin bot: $lowBatteryMessage\")",
+      "new": "                sendChatMessage(message = \"${com.moblin.android.platform.loxen.Loxen.appName} bot: $lowBatteryMessage\")",
+      "note": "The low battery chat message names the app that sends it."
+    },
+    {
+      "id": "HLOXEN.18",
+      "file": "various/model/ModelDjiDevice.kt",
+      "scope": "fun updateDjiDevicesStatus",
+      "op": "replace",
+      "old": "            sendChatMessage(message = \"Moblin bot: $lowBatteryMessage: $status\")",
+      "new": "            sendChatMessage(message = \"${com.moblin.android.platform.loxen.Loxen.appName} bot: $lowBatteryMessage: $status\")",
+      "note": "See HLOXEN.17."
+    },
+    {
+      "id": "HLOXEN.19",
+      "file": "various/model/ModelLog.kt",
+      "scope": "fun formatLog",
+      "op": "replace",
+      "old": "    val file = File(System.getProperty(\"java.io.tmpdir\"), \"Moblin-log-${System.currentTimeMillis()}.txt\")",
+      "new": "    val file = File(System.getProperty(\"java.io.tmpdir\"), \"${com.moblin.android.platform.loxen.Loxen.appName}-log-${System.currentTimeMillis()}.txt\")",
+      "note": "The shared log file is named after the app."
+    }
+  ]
+}

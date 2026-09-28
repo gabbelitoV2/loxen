@@ -215,7 +215,7 @@ fun WidgetBrowserSettingsView(
 
     Section(footerContent = {
         Text(
-            "Give the webpage access to various data in Moblin, for example chat messages " +
+            com.moblin.android.localized("Give the webpage access to various data in Moblin, for example chat messages ") +
                 "and your location.",
             style = formFootnoteStyle,
         )

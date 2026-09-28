@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import com.moblin.android.AppDelegate
+import com.moblin.android.platform.loxen.Loxen
 import java.io.File
 import java.io.InputStream
 
@@ -33,7 +34,7 @@ object Bundle {
 
     fun image(name: String): Bitmap? {
         for (ext in listOf("png", "jpg", "jpeg")) {
-            val bytes = readBytes("Assets/$name", ext) ?: continue
+            val bytes = readBytes(Loxen.imagePath(name), ext) ?: continue
             return BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
         }
         return null

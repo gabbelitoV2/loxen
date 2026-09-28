@@ -93,7 +93,7 @@ class ActivityKitSuite {
     fun requestPostsTheLiveActivityAsAnOngoingNotification() {
         val activity = request(listOf(live))
         val notification = assertNotNull(posted())
-        assertEquals("Moblin is running in background", notification.title())
+        assertEquals("Loxen is running in background", notification.title())
         assertEquals("Live", notification.text())
         assertEquals("Live", notification.bigText())
         assertTrue(notification.isOngoing())
@@ -123,7 +123,7 @@ class ActivityKitSuite {
     fun withoutFunctionsTheNotificationStillExplainsThatMoblinRuns() {
         request(emptyList())
         val notification = assertNotNull(posted())
-        assertEquals("Moblin is running in background", notification.title())
+        assertEquals("Loxen is running in background", notification.title())
         assertEquals("", notification.text().orEmpty())
         assertEquals(Icon.TYPE_RESOURCE, notification.smallIcon.type)
     }
@@ -218,7 +218,7 @@ class ActivityKitSuite {
         val service = startService()
         assertEquals("Live or recording", assertNotNull(posted()).text())
         val activity = request(listOf(live))
-        assertEquals("Moblin is running in background", assertNotNull(posted()).title())
+        assertEquals("Loxen is running in background", assertNotNull(posted()).title())
         runBlocking {
             activity.end(null, dismissalPolicy = ActivityUIDismissalPolicy.immediate)
         }
@@ -233,7 +233,7 @@ class ActivityKitSuite {
         request(listOf(recording))
         val service = startService()
         val notification = assertNotNull(shadowOf(service).lastForegroundNotification)
-        assertEquals("Moblin is running in background", notification.title())
+        assertEquals("Loxen is running in background", notification.title())
         assertEquals("Recording", notification.text())
         assertEquals(StreamingService.NOTIFICATION_ID, shadowOf(service).lastForegroundNotificationId)
     }
@@ -250,7 +250,7 @@ class ActivityKitSuite {
         runBlocking {
             activity.update(content(emptyList()))
         }
-        assertEquals("Moblin is running in background", assertNotNull(posted()).title())
+        assertEquals("Loxen is running in background", assertNotNull(posted()).title())
         runBlocking {
             activity.end(null, dismissalPolicy = ActivityUIDismissalPolicy.immediate)
         }
@@ -260,7 +260,7 @@ class ActivityKitSuite {
     @Test
     fun aLiveActivityNotificationLeftByAKilledProcessIsRemovedAtStart() {
         val stale = Notification.Builder(AppDelegate.context, StreamingService.CHANNEL_ID)
-            .setContentTitle("Moblin is running in background")
+            .setContentTitle("Loxen is running in background")
             .setSmallIcon(android.R.drawable.presence_video_online)
             .setOngoing(true)
             .build()

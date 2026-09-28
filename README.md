@@ -1,18 +1,195 @@
-# Moblin for Android
+# Loxen
 
-An automated port of [Moblin](https://github.com/eerimoq/moblin), the iOS IRL streaming app, to
-Android. A pipeline clones the Swift sources of eerimoq/moblin into `.upstream/`, sorts every file by
-how portable it is, and translates it file by file into the Android Studio project under `app/`. The
-Kotlin keeps the same structure, type names and function names as the Swift code, and hand-written
-Apple-named shims under `app/src/main/java/com/moblin/android/platform/` provide the Apple APIs on
-Android (camera, encoding, video effects, SRT, RIST, WebRTC, Bluetooth, ...). Every night the port
+Loxen is an unofficial Android IRL streaming app, automatically ported from
+[Moblin](https://github.com/eerimoq/moblin), the iOS IRL streaming app by Erik Moqvist. A pipeline clones the Swift
+sources of eerimoq/moblin into `.upstream/`, sorts every file by how portable it is, and translates it file by file
+into the Android Studio project under `app/`. The Kotlin keeps the same structure, type names and function names as
+the Swift code, and hand-written Apple-named shims under `app/src/main/java/com/moblin/android/platform/` provide the
+Apple APIs on Android (camera, encoding, video effects, SRT, RIST, WebRTC, Bluetooth, ...). Every night the port
 follows the latest Moblin automatically. What has no Android counterpart is listed in `PORT-REPORT.md`.
+
+Loxen is based on Moblin by Erik Moqvist (MIT). Not affiliated with or endorsed by Moblin. Both are MIT licensed, see
+`LICENSE` and `NOTICE.md`.
 
 ## Test the app
 
 The app is in internal testing on Google Play:
-[join the test](https://play.google.com/apps/internaltest/4701238496954390302). Only Google accounts
-that have been added to the testers list can join; others see that the app is not available.
+[join the test](LOXEN_INTERNAL_TEST_LINK). Only Google accounts that have been added to the testers list can join;
+others see that the app is not available.
+
+## Import settings using loxen:// or moblin:// (custom URL)
+
+The custom URL format comes from Moblin, see
+[Import settings using moblin:// (custom URL)](https://github.com/eerimoq/moblin#import-settings-using-moblin-custom-url)
+in Moblin's README. Loxen opens both `loxen://` and `moblin://` URLs, so links and QR codes made for iOS Moblin also
+work in Loxen. *Settings > Deep link creator* in the app (shown with *Show all settings* on) builds such links and
+QR codes. It writes `moblin://` links, which work in both apps.
+
+Loxen asks before it imports anything, and does not import while live or recording. A stream with the same name as an
+existing one can replace it or be added under a new name.
+
+### Examples
+
+#### New stream
+
+An example creating a new stream is
+
+```
+loxen://?{"streams":[{"name":"BELABOX%20UK","url":"srtla://uk.srt.belabox.net:5000?streamid=9812098rh9hf8942hid","video":{"codec":"H.265/HEVC"},"obs":{"webSocketUrl":"ws://123.22.32.112:5465","webSocketPassword":"foobar"}}]}
+```
+
+where the URL decoded pretty printed JSON blob is
+
+```json
+{
+  "streams": [
+    {
+      "name": "BELABOX UK",
+      "url": "srtla://uk.srt.belabox.net:5000?streamid=9812098rh9hf8942hid",
+      "video": {
+        "codec": "H.265/HEVC"
+      },
+      "obs": {
+        "webSocketUrl": "ws://123.22.32.112:5465",
+        "webSocketPassword": "foobar"
+      }
+    }
+  ]
+}
+```
+
+#### Quick button settings
+
+An example with only two quick buttons enabled is
+
+```
+loxen://?{"quickButtons":{"twoColumns":false,"showName":true,"enableScroll":true,"disableAllButtons":true,"buttons":[{"type":"Mute","enabled":true},{"type":"Draw","enabled":true}]}}
+```
+
+where the URL decoded pretty printed JSON blob is
+
+```json
+{
+  "quickButtons": {
+    "twoColumns": false,
+    "showName": true,
+    "enableScroll": true,
+    "disableAllButtons": true,
+    "buttons": [
+      {
+        "type": "Mute",
+        "enabled": true
+      },
+      {
+        "type": "Draw",
+        "enabled": true
+      }
+    ]
+  }
+}
+```
+
+#### Web browser and remote control
+
+An example setting the web browser's home page and connecting to a remote control assistant is
+
+```
+loxen://?{"webBrowser":{"home":"https://example.com"},"remoteControl":{"streamer":{"enabled":true,"url":"ws://192.168.1.10:2345"},"password":"secret"}}
+```
+
+where the URL decoded pretty printed JSON blob is
+
+```json
+{
+  "webBrowser": {
+    "home": "https://example.com"
+  },
+  "remoteControl": {
+    "streamer": {
+      "enabled": true,
+      "url": "ws://192.168.1.10:2345"
+    },
+    "password": "secret"
+  }
+}
+```
+
+The same URLs with `moblin://` instead of `loxen://` import the same settings.
+
+### Specification
+
+Format: `loxen://?<URL encoded JSON blob>` or `moblin://?<URL encoded JSON blob>`
+
+The JSON blob is Moblin's `MoblinSettingsUrl`, ported to
+`app/src/main/java/com/moblin/android/various/MoblinSettingsUrl.kt`. Class members are JSON object keys. Every key is
+optional unless it is marked as required, and unknown keys are ignored. These are the keys Loxen imports:
+
+| key | type | notes |
+|---|---|---|
+| `streams` | array of streams | Added in order. A stream whose name already exists can replace that stream. |
+| `quickButtons` | object | See below. |
+| `webBrowser.home` | string | The web browser's home page. |
+| `remoteControl` | object | See below. |
+
+A stream:
+
+| key | type | notes |
+|---|---|---|
+| `name` | string, required | |
+| `url` | string, required | Must be a valid stream URL, for example `rtmp://`, `rtmps://`, `srt://`, `srtla://` or `rist://`. |
+| `selected` | bool | `true` makes it the current stream. |
+| `backgroundStreaming` | bool | |
+| `backgroundStreamingPiP` | bool | |
+| `video.resolution` | string | `"4032x3024"`, `"3840x2160"`, `"2560x1440"`, `"1920x1440"`, `"1920x1080"`, `"1664x936"`, `"1280x720"`, `"1024x768"`, `"960x540"`, `"854x480"`, `"640x360"` or `"426x240"`. |
+| `video.fps` | int | 15, 25, 30, 50, 60, 100 or 120. Other values are ignored. |
+| `video.bitrate` | int | Bits per second, 50000 to 50000000. Other values are ignored. |
+| `video.codec` | string | `"H.264/AVC"` or `"H.265/HEVC"`. |
+| `video.bFrames` | bool | |
+| `video.maxKeyFrameInterval` | int | Seconds, 0 to 10. Other values are ignored. |
+| `audio.bitrate` | int | Bits per second, a multiple of 32000 from 32000 to 320000. Other values are ignored. |
+| `srt.latency` | int | Milliseconds, 0 to 65535. |
+| `srt.adaptiveBitrateEnabled` | bool | |
+| `srt.dnsLookupStrategy` | string | `"System"`, `"IPv4"`, `"IPv6"` or `"IPv4 and IPv6"`. |
+| `obs.webSocketUrl`, `obs.webSocketPassword` | strings, both required | Enables OBS remote control. The URL must be a valid WebSocket URL. |
+| `twitch.channelName`, `twitch.channelId` | strings, both required | |
+| `kick.channelName` | string, required | |
+
+`quickButtons`:
+
+| key | type | notes |
+|---|---|---|
+| `twoColumns`, `showName`, `enableScroll` | bool | |
+| `disableAllButtons` | bool | `true` disables every quick button first, so that `buttons` enables only the listed ones. |
+| `buttons` | array | Each has `type` (required, the quick button's name, for example `"Mute"` or `"Draw"`, as in `SettingsQuickButtonType`), `enabled` (bool) and `page` (int). |
+
+`remoteControl`:
+
+| key | type | notes |
+|---|---|---|
+| `password` | string, required | |
+| `assistant.enabled`, `assistant.port` | bool and int, both required | Port 0 to 65535. |
+| `assistant.relay.enabled`, `assistant.relay.baseUrl`, `assistant.relay.bridgeId` | bool and strings, all required | |
+| `streamer.enabled`, `streamer.url` | bool and string, both required | The URL of the assistant to connect to. |
+
+## App icon
+
+The launcher icon, the round icon, the Android 13 themed (monochrome) icon, the Google Play icon
+(`app/src/main/ic_launcher-playstore.png`, 512x512) and the Loxen icon shown inside the app
+(`app/src/main/assets/Loxen/`) are all generated by one script:
+
+```sh
+python tools/icon/loxen_icon.py                     # draw the Loxen lynx
+python tools/icon/loxen_icon.py --from my-icon.png  # or use your own square PNG, at least 512x512
+python tools/icon/loxen_icon.py --preview previews  # also write previews of the launcher icons
+```
+
+The lynx is drawn with Pillow (`pip install Pillow`) in `tools/icon/loxen_icon.py`; edit it there and run the script
+again. The output is the same byte for byte on every run with the same Pillow version. With `--from`,
+the PNG is used as it is for the Play icon and inside the app, and the adaptive launcher icon shows it inside the
+launcher's mask on a background of its edge color, without a themed icon. Upload the new
+`app/src/main/ic_launcher-playstore.png` in Play Console under *Grow users > Store presence > Main store listing* as
+well. Moblin's own app icons are not part of Loxen: `tools/resources.py` does not copy them from the Swift project, and
+the app shows the Loxen icon wherever Moblin shows its icon.
 
 ## Requirements
 
@@ -96,7 +273,7 @@ tab: `repair` with `force` to try right away, or `verify-only` to run the checks
 
 ## Google Play
 
-The app is distributed as `com.moblin.android` on the internal testing track of Google Play, with Play App Signing:
+The app is distributed as `com.loxen.app` on the internal testing track of Google Play, with Play App Signing:
 Google keeps the app signing key and the builds here are signed with an upload key.
 
 ### Versions
@@ -152,11 +329,12 @@ hand, not by a push) and by hand from the Actions tab. It always builds `main`:
 2. It reads the release `versionCode` and asks Google Play for the highest version code of the app on any track or in
    the bundle library (`tools/play.py`). When that is not lower, `main` has not changed since the last upload and the
    run stops without building. A run started by hand still builds.
-3. It builds the signed app bundle and APK, attaches both to the run for 14 days, and uploads the bundle to the
-   internal track as a completed release with `r0adkll/upload-google-play` v1.1.5, pinned by commit.
+3. It builds the signed app bundle and APK, attaches both to the run for 14 days as the artifact
+   `loxen-<versionCode>-<versionName>` (`loxen-<versionCode>-<versionName>.aab` and `.apk`), and uploads the bundle
+   to the internal track as a completed release with `r0adkll/upload-google-play` v1.1.5, pinned by commit.
 
 Without `PLAY_SERVICE_ACCOUNT_JSON`, or while the app does not exist in Play Console, nightly runs stop after step 2 and
-runs started by hand only attach the signed bundle. A service account that has no access to the app fails the run.
+runs started by hand only attach the signed bundle and APK. A service account that has no access to the app fails the run.
 The workflow has its own concurrency group, `play-internal`, and only reads the repository.
 
 Repository secrets:
@@ -169,9 +347,9 @@ Repository secrets:
 
 ```powershell
 $keys = "<path to the keys folder>"
-gh secret set --repo gabbelitoV2/moblin-android -f "$keys\upload-keystore.properties"
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("$keys\upload-keystore.jks")) | gh secret set MOBLIN_UPLOAD_KEYSTORE_BASE64 --repo gabbelitoV2/moblin-android
-Get-Content "$keys\play-service-account.json" -Raw | gh secret set PLAY_SERVICE_ACCOUNT_JSON --repo gabbelitoV2/moblin-android
+gh secret set --repo gabbelitoV2/loxen -f "$keys\upload-keystore.properties"
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("$keys\upload-keystore.jks")) | gh secret set MOBLIN_UPLOAD_KEYSTORE_BASE64 --repo gabbelitoV2/loxen
+Get-Content "$keys\play-service-account.json" -Raw | gh secret set PLAY_SERVICE_ACCOUNT_JSON --repo gabbelitoV2/loxen
 ```
 
 Setting up the service account:
@@ -187,11 +365,12 @@ Setting up the service account:
 The first app bundle has to be uploaded by hand, because the API cannot create an app and Play App Signing is chosen
 in Play Console:
 
-1. Create the app in Play Console with the package name `com.moblin.android`.
+1. Create the app in Play Console with the package name `com.loxen.app`.
 2. Build a bundle: run this workflow by hand before `PLAY_SERVICE_ACCOUNT_JSON` is set and download
-   `moblin-android-release-<versionCode>` from the run, or build it locally.
+   `loxen-<versionCode>-<versionName>` from the run, or build it locally.
 3. Under *Test and release*, open *Internal testing*: add testers, create a release, keep the Google-generated app
-   signing key (Play App Signing), upload `app-release.aab` and start the rollout. The release has to be rolled out, not only saved as a
+   signing key (Play App Signing), upload the bundle (`loxen-<versionCode>-<versionName>.aab` from the run, or
+   `app-release.aab` from a local build) and start the rollout. The release has to be rolled out, not only saved as a
    draft, or later uploads fail with "Only releases with status draft may be created on draft app".
 4. Then add `PLAY_SERVICE_ACCOUNT_JSON`. From then on every sync that changes `main` reaches the testers.
 
@@ -203,6 +382,15 @@ upload key (*App integrity*, *Play app signing*, *Request upload key reset*) and
 Everything in `app/src/main/java/com/moblin/android/platform/` is written by hand and never generated:
 camera, encoding, transports and other Android APIs. Generated files call into it through one-line hooks,
 which `tools/postprocess.py` restores after a re-translation. Put new Android-specific code there.
+
+The Kotlin packages stay `com.moblin.android.*`, because the pipeline maps every Swift file to them; only the
+application id (`com.loxen.app`) and what users see say Loxen. `platform/loxen/Loxen.kt` holds the name: every
+`localized()` string names the app Loxen instead of Moblin, except Moblink and the names of Moblin's own website,
+Discord, Mobcam host tool and remote control websites, and `moblin://`, `.moblinSettings` and URLs, which are
+lower case. `Bundle.image` shows the Loxen icon wherever Moblin shows its icon or mascot. The hooks in
+`tools/hooks/LOXEN.json` replace the icon store with a Loxen page, add the attribution and the MIT license to
+About, point Help and support to this repository's issues and name the app in the few texts that do not go
+through `localized()`.
 
 The Live Activity is split the same way: `Moblin Live Activity/Shared/MoblinLiveActivity.swift` and
 `ModelLiveActivity.swift` are ported by the pipeline onto the ActivityKit shim in `platform/activitykit/`, while the

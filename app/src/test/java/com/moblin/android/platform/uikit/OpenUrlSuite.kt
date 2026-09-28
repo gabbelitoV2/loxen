@@ -55,7 +55,7 @@ class OpenUrlSuite {
         val started = assertNotNull(shadowOf(application).nextStartedActivity)
         assertEquals(Intent.ACTION_VIEW, started.action)
         assertEquals(DocumentsContract.Document.MIME_TYPE_DIR, started.type)
-        assertEquals("com.moblin.android.documents", started.data?.authority)
+        assertEquals("com.loxen.app.documents", started.data?.authority)
         assertEquals("Documents/Recordings", DocumentsContract.getDocumentId(started.data))
     }
 

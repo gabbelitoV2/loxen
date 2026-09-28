@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 150
     env:
-      PACKAGE_NAME: com.moblin.android
+      PACKAGE_NAME: com.loxen.app
     steps:
       - uses: actions/checkout@v5
         with:
@@ -86,13 +86,19 @@ jobs:
       - name: Remove the decoded upload key
         if: always()
         run: rm -rf app/build/upload-key
+      - name: Name the release files
+        if: steps.decide.outputs.build == 'true'
+        env:
+          RELEASE: loxen-${{ steps.version.outputs.code }}-${{ steps.version.outputs.name }}
+        run: |
+          mkdir -p app/build/outputs/loxen
+          cp app/build/outputs/bundle/release/app-release.aab "app/build/outputs/loxen/$RELEASE.aab"
+          cp app/build/outputs/apk/release/app-release.apk "app/build/outputs/loxen/$RELEASE.apk"
       - uses: actions/upload-artifact@v6
         if: steps.decide.outputs.build == 'true'
         with:
-          name: moblin-android-release-${{ steps.version.outputs.code }}
-          path: |
-            app/build/outputs/bundle/release/app-release.aab
-            app/build/outputs/apk/release/app-release.apk
+          name: loxen-${{ steps.version.outputs.code }}-${{ steps.version.outputs.name }}
+          path: app/build/outputs/loxen/
           if-no-files-found: error
           retention-days: 14
       - name: Upload to the internal testing track

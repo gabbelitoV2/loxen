@@ -38,7 +38,7 @@ class WiFiSsidEditViewSuite {
     private var value by mutableStateOf("")
     private val submitted = mutableListOf<String>()
     private var dismissed = 0
-    private val locationWarning = "Allow Moblin to access your location"
+    private val locationWarning = "Allow Loxen to access your location"
 
     @Before
     fun setUp() {

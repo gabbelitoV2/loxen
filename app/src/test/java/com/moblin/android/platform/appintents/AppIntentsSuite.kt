@@ -47,7 +47,13 @@ private object AppIntentsTestShortcuts : AppShortcutsProvider {
 class AppIntentsSuite {
     private lateinit var application: Application
 
-    private class StaticShortcut(val id: String, val label: String, val action: String, val targetClass: String)
+    private class StaticShortcut(
+        val id: String,
+        val label: String,
+        val action: String,
+        val targetClass: String,
+        val targetPackage: String,
+    )
 
     @Before
     fun setUp() {
@@ -85,6 +91,7 @@ class AppIntentsSuite {
                         label = label,
                         action = parser.getAttributeValue(androidNamespace, "action"),
                         targetClass = parser.getAttributeValue(androidNamespace, "targetClass"),
+                        targetPackage = parser.getAttributeValue(androidNamespace, "targetPackage"),
                     ),
                 )
             }
@@ -120,6 +127,7 @@ class AppIntentsSuite {
         assertEquals(MoblinShortcuts.appShortcuts.map { it.shortTitle }, shortcuts.map { it.label })
         assertEquals(MoblinShortcuts.appShortcuts.map { it.intent.javaClass.simpleName }, shortcuts.map { it.id })
         assertTrue(shortcuts.all { it.targetClass == "com.moblin.android.MainActivity" })
+        assertTrue(shortcuts.all { it.targetPackage == application.packageName })
         assertEquals(ShortcutTileColor.navy, MoblinShortcuts.shortcutTileColor)
     }
 }

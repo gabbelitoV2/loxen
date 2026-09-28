@@ -2,6 +2,7 @@ package com.moblin.android.platform.appintents
 
 import android.content.Intent
 import android.util.Log
+import com.moblin.android.platform.loxen.Loxen
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -101,7 +102,7 @@ enum class ShortcutTileColor {
 }
 
 object AppShortcutPhraseToken {
-    const val applicationName = "Moblin"
+    const val applicationName = Loxen.appName
 }
 
 class AppShortcut(

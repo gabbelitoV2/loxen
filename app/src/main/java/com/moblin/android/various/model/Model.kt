@@ -1047,7 +1047,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     private fun makeBuyIconsToastIfNeeded(): Boolean {
-        if (store.hasBoughtSomething) {
+        if (store.hasBoughtSomething || com.moblin.android.platform.loxen.Loxen.hidesStore) {
             return false
         }
         if (enterForegroundCount < 100) {
@@ -2659,7 +2659,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun findScoreboardPlayer(id: UUID): String =
-        database.scoreboardPlayers.firstOrNull { it.id == id }?.name ?: "🇸🇪 Moblin"
+        database.scoreboardPlayers.firstOrNull { it.id == id }?.name ?: com.moblin.android.localized("🇸🇪 Moblin")
 
     private fun updateDigitalClock(now: Instant) {
         val digitalClock = formatDate(date = now)
@@ -2679,7 +2679,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         ) {
             makeWarningToast(title = lowBatteryMessage, vibrate = true)
             if (database.chat.botEnabled && database.chat.botSendLowBatteryWarning) {
-                sendChatMessage(message = "Moblin bot: $lowBatteryMessage")
+                sendChatMessage(message = "${com.moblin.android.platform.loxen.Loxen.appName} bot: $lowBatteryMessage")
             }
         }
     }

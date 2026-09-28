@@ -15,6 +15,7 @@ import android.os.IBinder
 import android.util.Log
 import com.moblin.android.AppDelegate
 import com.moblin.android.platform.capture.Camera2Engine
+import com.moblin.android.platform.loxen.Loxen
 
 class StreamingService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
@@ -150,7 +151,7 @@ class StreamingService : Service() {
                 "Live or recording"
             }
             val builder = Notification.Builder(context, CHANNEL_ID)
-                .setContentTitle("Moblin")
+                .setContentTitle(Loxen.appName)
                 .setContentText(text)
                 .setSmallIcon(android.R.drawable.presence_video_online)
                 .setOngoing(true)

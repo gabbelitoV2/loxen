@@ -7,7 +7,8 @@ import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-PACKAGE = "com.moblin.android"
+PACKAGE = "com.loxen.app"
+ACTIVITY = "com.moblin.android.MainActivity"
 DANGER = re.compile(
     r"^(delete|remove|reset|create|duplicate|import|export|log ?out|sign ?out|clear|save|go live|end|"
     r"start|stop|connect|disconnect|record|pair|scan|donate|buy|purchase|restore|upgrade|rate|share|"
@@ -78,7 +79,7 @@ class Device:
                 time.sleep(0.8)
 
     def launch(self):
-        self.run("shell", "am", "start", "-n", f"{PACKAGE}/.MainActivity")
+        self.run("shell", "am", "start", "-n", f"{PACKAGE}/{ACTIVITY}")
 
 
 def nodes(root):

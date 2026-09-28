@@ -251,7 +251,7 @@ def main():
     parser.add_argument("--fix-rounds", type=int, default=3)
     parser.add_argument("--dry-run", action="store_true", help="show what would be ported and stop")
     parser.add_argument("--no-build", action="store_true")
-    parser.add_argument("--commit", action="store_true", help="commit the result in moblin-android")
+    parser.add_argument("--commit", action="store_true", help="commit the result in this repository")
     parser.add_argument("--push", action="store_true", help="push after committing")
     parser.add_argument("--issue", action="store_true",
                         help="open, update or close the needs-repair GitHub issue with gh (needs GITHUB_TOKEN)")

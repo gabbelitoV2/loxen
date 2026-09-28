@@ -54,11 +54,11 @@ val backgroundColor: Color = Color(0.0f, 0.0f, 0.0f, 0.4f)
 val scoreboardBlueColor: Color = RgbColor(red = 0x0B, green = 0x10, blue = 0xAC).color()
 
 fun String.trim(): String {
-    return this.trim()
+    return this.trim(Char::isWhitespace)
 }
 
 fun String.substring(begin: Int, end: Int): String {
-    return this.substring(begin, end)
+    return this.subSequence(begin, end).toString()
 }
 
 fun String.replace(of: String, with: String): String {

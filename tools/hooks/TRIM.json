@@ -1,0 +1,23 @@
+{
+  "task": "TRIM",
+  "hooks": [
+    {
+      "id": "HTRIM.1",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun String.trim",
+      "op": "replace",
+      "old": "    return this.trim()",
+      "new": "    return this.trim(Char::isWhitespace)",
+      "note": "Swift trim() is trimmingCharacters(in: .whitespacesAndNewlines). In Kotlin this.trim() inside the extension calls the extension itself, because it shadows kotlin.text.trim in this package and in every file that imports it (ModelSettingsUrl, ModelChat), so a moblin:// or loxen:// settings URL with a stream ended in a StackOverflowError. trim(Char::isWhitespace) is kotlin.text's trim()."
+    },
+    {
+      "id": "HTRIM.2",
+      "file": "common/various/CommonUtils.kt",
+      "scope": "fun String.substring",
+      "op": "replace",
+      "old": "    return this.substring(begin, end)",
+      "new": "    return this.subSequence(begin, end).toString()",
+      "note": "Same as HTRIM.1: this.substring(begin, end) inside the extension calls the extension itself, so hexStringToByteArray and every two-argument substring in this package ended in a StackOverflowError. subSequence is a member of String, which the extension cannot shadow."
+    }
+  ]
+}

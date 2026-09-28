@@ -32,6 +32,7 @@ import com.moblin.android.platform.swiftui.formBodyStyle
 import com.moblin.android.platform.swiftui.formPalette
 import com.moblin.android.various.utils.fetchCurrentWiFiSsid
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.moblin.android.localized
 
 private class CurrentWiFiNetwork : com.moblin.android.platform.corelocation.CLLocationManagerDelegate {
     val ssid = MutableStateFlow<String?>(null)
@@ -149,7 +150,7 @@ fun WiFiSsidEditView(
         } else if (locationDenied) {
             Section {
                 Text(
-                    "⚠️ Allow Moblin to access your location in iOS Settings to see the current WiFi network.",
+                    com.moblin.android.localized("⚠️ Allow Moblin to access your location in iOS Settings to see the current WiFi network."),
                 )
             }
         }

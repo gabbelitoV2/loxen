@@ -146,6 +146,53 @@ class AndroidHostIntentsSuite {
     }
 
     @Test
+    fun loxenAndMoblinUrlsAskToImportTheirSettings() {
+        for (scheme in listOf("loxen", "moblin")) {
+            model.presentingSettingsImportConfirmation.value = false
+            val name = "From $scheme"
+            val json = """{"streams":[{"name":"$name","url":"rtmp://example.com/live/key"}]}"""
+            AndroidHost.handleIntent(application, Intent(Intent.ACTION_VIEW, Uri.parse("$scheme://?${Uri.encode(json)}")))
+            shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(model.presentingSettingsImportConfirmation.value, scheme)
+            assertNotNull(model.pendingSettingsImportAction).invoke()
+            shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(model.database.streams.any { it.name == name }, scheme)
+        }
+    }
+
+    @Test
+    fun theReadmeCustomUrlExamplesImportWhenOpened() {
+        val readme = listOf(File("../README.md"), File("README.md")).first { it.isFile }.readText()
+        val examples = readme.lines().filter { it.startsWith("loxen://?") }
+        assertEquals(3, examples.size)
+        for (example in examples + examples.map { "moblin" + it.removePrefix("loxen") }) {
+            model.presentingSettingsImportConfirmation.value = false
+            model.pendingSettingsImportAction = null
+            AndroidHost.handleIntent(application, Intent(Intent.ACTION_VIEW, Uri.parse(example)))
+            shadowOf(Looper.getMainLooper()).idle()
+            assertTrue(model.presentingSettingsImportConfirmation.value, example)
+            assertNotNull(model.pendingSettingsImportAction, example)
+        }
+        model.presentingSettingsImportConfirmation.value = false
+        AndroidHost.handleIntent(application, Intent(Intent.ACTION_VIEW, Uri.parse(examples.first())))
+        shadowOf(Looper.getMainLooper()).idle()
+        assertNotNull(model.pendingSettingsImportAction).invoke()
+        shadowOf(Looper.getMainLooper()).idle()
+        val stream = model.database.streams.single { it.name == "BELABOX UK" }
+        assertEquals("srtla://uk.srt.belabox.net:5000?streamid=9812098rh9hf8942hid", stream.url)
+        assertEquals("ws://123.22.32.112:5465", stream.obsWebSocketUrl)
+    }
+
+    @Test
+    fun theManifestOffersLoxenForLoxenAndMoblinUrls() {
+        for (scheme in listOf("loxen", "moblin")) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("$scheme://?%7B%7D")).addCategory(Intent.CATEGORY_BROWSABLE)
+            val activities = application.packageManager.queryIntentActivities(intent, 0)
+            assertTrue(activities.any { it.activityInfo.name == "com.moblin.android.MainActivity" }, scheme)
+        }
+    }
+
+    @Test
     fun theMuteAndUnmuteShortcutsActOnTheRunningModel() {
         AndroidHost.handleIntent(application, shortcut(MuteIntent::class.java.simpleName))
         shadowOf(Looper.getMainLooper()).idle()

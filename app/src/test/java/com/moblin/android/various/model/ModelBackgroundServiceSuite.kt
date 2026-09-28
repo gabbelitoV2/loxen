@@ -143,7 +143,7 @@ class ModelBackgroundServiceSuite {
 
     private fun assertSharesTheLiveActivity(service: StreamingService, text: String) {
         val notification = assertNotNull(shadowOf(service).lastForegroundNotification)
-        assertEquals("Moblin is running in background", notification.title())
+        assertEquals("Loxen is running in background", notification.title())
         assertEquals(text, notification.text())
         assertEquals(StreamingService.NOTIFICATION_ID, shadowOf(service).lastForegroundNotificationId)
         assertEquals(1, notifications.allNotifications.size)
@@ -161,7 +161,7 @@ class ModelBackgroundServiceSuite {
         assertFalse(model.inServiceBackground)
         assertNotNull(stoppedIntent())
         assertNull(model.liveActivity)
-        assertNotEquals("Moblin is running in background", posted()?.title())
+        assertNotEquals("Loxen is running in background", posted()?.title())
     }
 
     @Test
@@ -292,7 +292,7 @@ class ModelBackgroundServiceSuite {
         assertNull(stoppedIntent())
         assertNull(startedIntent())
         assertEquals(ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE, service.foregroundServiceType)
-        assertEquals("Moblin is running in background", assertNotNull(shadowOf(service).lastForegroundNotification).title())
+        assertEquals("Loxen is running in background", assertNotNull(shadowOf(service).lastForegroundNotification).title())
         assertEquals(1, notifications.allNotifications.size)
         SystemEventsState.setInBackground(false)
         model.handleApplicationWillEnterForeground()

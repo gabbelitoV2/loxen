@@ -18,6 +18,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.moblin.android.AppDelegate
 import com.moblin.android.platform.capture.Camera2Engine
+import com.moblin.android.platform.loxen.Loxen
 import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -138,10 +139,10 @@ class PHPhotoLibrary private constructor() {
         val resolver = AppDelegate.context.contentResolver
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(Date())
         val values = ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, resource.options?.originalFilename ?: "Moblin_$timestamp.jpg")
+            put(MediaStore.Images.Media.DISPLAY_NAME, resource.options?.originalFilename ?: "${Loxen.appName}_$timestamp.jpg")
             put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/Moblin")
+                put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/${Loxen.appName}")
                 put(MediaStore.Images.Media.IS_PENDING, 1)
             }
         }

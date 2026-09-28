@@ -88,8 +88,8 @@ jobs:
       - name: Prepare the pipeline
         run: |
           pip install anthropic
-          git config user.name "moblin-android repair"
-          git config user.email "moblin-android-repair@users.noreply.github.com"
+          git config user.name "loxen repair"
+          git config user.email "loxen-repair@users.noreply.github.com"
           python tools/repair.py upstream
       - name: Verify main without Claude
         if: env.MODE == 'verify-only'
@@ -153,7 +153,7 @@ jobs:
           ATTEMPT: ${{ steps.start.outputs.attempt }}
           REPORT_KEY: ${{ steps.start.outputs.key }}
         run: |
-          git config user.name "moblin-android repair"
-          git config user.email "moblin-android-repair@users.noreply.github.com"
+          git config user.name "loxen repair"
+          git config user.email "loxen-repair@users.noreply.github.com"
           python tools/repair.py finish --base "$BASE" --issue "$ISSUE" --comment "$COMMENT" --outcome "$OUTCOME" \
             --attempt "$ATTEMPT" --report-key "$REPORT_KEY"

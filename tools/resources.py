@@ -48,13 +48,16 @@ def best_image(imageset):
     return max(candidates)[1] if candidates else None
 
 
+MOBLIN_ARTWORK = re.compile(r"^(AppIcon.*|MoblinInMouth)$")
+
+
 def mirror_asset_catalog(catalog, target):
     copied = 0
     if target.exists():
         shutil.rmtree(target)
     target.mkdir(parents=True)
     for imageset in sorted(catalog.iterdir()):
-        if imageset.suffix not in (".imageset", ".appiconset"):
+        if imageset.suffix not in (".imageset", ".appiconset") or MOBLIN_ARTWORK.match(imageset.stem):
             continue
         image = best_image(imageset)
         if image is None:

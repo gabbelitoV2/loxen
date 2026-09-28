@@ -118,7 +118,7 @@ fun Model.updateDjiDevicesStatus() {
         )
         statuses.add(status)
         if (!ok && database.chat.botEnabled && database.chat.botSendLowBatteryWarning) {
-            sendChatMessage(message = "Moblin bot: $lowBatteryMessage: $status")
+            sendChatMessage(message = "${com.moblin.android.platform.loxen.Loxen.appName} bot: $lowBatteryMessage: $status")
         }
     }
     val status = statuses.joinToString(", ")

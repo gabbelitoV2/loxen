@@ -147,7 +147,7 @@ class StreamingServiceBackgroundSuite {
         StreamingService.startBackground(chat = false, printing = false, moblinkRelay = true, context = application)
         val service = runStartedService()
         val notification = assertNotNull(shadowOf(service).lastForegroundNotification)
-        assertEquals("Moblin is running in background", notification.title())
+        assertEquals("Loxen is running in background", notification.title())
         assertEquals("Moblink relay", notification.text())
         assertEquals(1, notifications.allNotifications.size)
         assertEquals("Moblink relay", assertNotNull(posted()).text())

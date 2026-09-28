@@ -40,7 +40,7 @@ fun Model.formatLog(log: List<LogEntry>): String {
     var data = "Version: ${appVersion()}\n"
     data += "Debug: ${logger.debugEnabled}\n\n"
     data += log.joinToString(separator = "\n") { it.message }
-    val file = File(System.getProperty("java.io.tmpdir"), "Moblin-log-${System.currentTimeMillis()}.txt")
+    val file = File(System.getProperty("java.io.tmpdir"), "${com.moblin.android.platform.loxen.Loxen.appName}-log-${System.currentTimeMillis()}.txt")
     runCatching {
         file.writeText(data)
     }

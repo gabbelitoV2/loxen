@@ -189,6 +189,7 @@ private fun StoreSettingsMyIconsView(store: Store, model: Model = LocalModel.cur
 
 @Composable
 fun StoreSettingsView(model: Model = LocalModel.current, store: Store) {
+    if (com.moblin.android.platform.loxen.Loxen.hidesStore) return com.moblin.android.platform.loxen.LoxenSettingsView()
     val disabledPurchaseButtons = remember { mutableStateListOf<String>() }
     val iconsInStore by store.iconsInStore.collectAsState()
     Form(title = "Store") {

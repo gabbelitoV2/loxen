@@ -58,11 +58,11 @@ fun StreamWizardMobcamSettingsView(
                     ),
                 )
                 Text("")
-                Text("2. Connect Moblin to the computer with a USB cable.")
+                Text(com.moblin.android.localized("2. Connect Moblin to the computer with a USB cable."))
                 Text("")
                 Text("3. Add a Mobcam source in OBS.")
                 Text("")
-                Text("4. Press Go live in Moblin to start the stream to OBS.")
+                Text(com.moblin.android.localized("4. Press Go live in Moblin to start the stream to OBS."))
             }
         }
         Section {

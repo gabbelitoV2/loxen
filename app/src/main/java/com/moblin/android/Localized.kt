@@ -1,3 +1,5 @@
 package com.moblin.android
 
-fun localized(text: String): String = text
+import com.moblin.android.platform.loxen.Loxen
+
+fun localized(text: String): String = Loxen.rename(text)

@@ -22,6 +22,7 @@ fun AboutSettingsView(
 ) {
     var presentingVersionHistory by remember { mutableStateOf(false) }
     Form(title = "About") {
+        com.moblin.android.platform.loxen.LoxenAboutSection()
         Section {
             TextItemLocalizedView(name = "Version", value = appVersion())
             NavigationLink("Attributions") {

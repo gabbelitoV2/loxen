@@ -129,7 +129,7 @@ class ModelBluetoothSuite {
     }
 
     @Test
-    fun theNotAllowedMessageIsTheSwiftOne() {
-        assertEquals("⚠️ Moblin is not allowed to use Bluetooth", bluetoothNotAllowedMessage)
+    fun theNotAllowedMessageNamesLoxen() {
+        assertEquals("⚠️ Loxen is not allowed to use Bluetooth", bluetoothNotAllowedMessage)
     }
 }

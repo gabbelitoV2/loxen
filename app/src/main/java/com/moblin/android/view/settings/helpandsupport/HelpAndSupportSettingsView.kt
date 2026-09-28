@@ -20,7 +20,7 @@ fun HelpAndSupportSettingsView() {
             ExternalUrlButtonView(url = "https://discord.moblin.app") {
                 DiscordLogoAndNameView()
             }
-            ExternalUrlButtonView(url = "https://github.com/eerimoq/moblin") {
+            ExternalUrlButtonView(url = com.moblin.android.platform.loxen.Loxen.repositoryUrl) {
                 GithubLogoAndNameView()
             }
         }

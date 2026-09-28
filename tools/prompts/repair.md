@@ -1,10 +1,13 @@
 # Repair the Android port
 
-You run unattended in GitHub Actions on a checkout of the `main` branch of moblin-android, the Kotlin/Jetpack Compose
-port of Moblin, the iOS IRL streaming app by Erik Moqvist (eerimoq). Erik only changes the Swift app. The Android port
-follows it automatically: every night `tools/sync.py` translates the changed Swift files, builds the app and commits
-what builds. What it could not bring in is listed in the report at the end of this prompt. Your task is to fix the
-port so that every item in the report goes away. Nobody answers questions during the run; do the work, then stop.
+You run unattended in GitHub Actions on a checkout of the `main` branch of Loxen, the Kotlin/Jetpack Compose port of
+Moblin, the iOS IRL streaming app by Erik Moqvist (eerimoq). Loxen is the Android app's own name: its application id
+is `com.loxen.app`, `localized()` names the app Loxen through `platform/loxen/Loxen.kt`, and the hooks in
+`tools/hooks/LOXEN.json` keep Moblin's store and icons out of the app. Keep all of that. Erik only changes the Swift
+app. The Android port follows it automatically: every night `tools/sync.py` translates the changed Swift files, builds
+the app and commits what builds. What it could not bring in is listed in the report at the end of this prompt. Your
+task is to fix the port so that every item in the report goes away. Nobody answers questions during the run; do the
+work, then stop.
 
 ## How to run commands here
 

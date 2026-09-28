@@ -95,7 +95,7 @@ class ModelLiveActivitySuite {
         assertFalse(state().showEllipsis)
         val notification = assertNotNull(posted())
         assertEquals(
-            "Moblin is running in background",
+            "Loxen is running in background",
             notification.extras.getCharSequence(Notification.EXTRA_TITLE)?.toString(),
         )
         assertEquals("Live", notification.extras.getCharSequence(Notification.EXTRA_TEXT)?.toString())

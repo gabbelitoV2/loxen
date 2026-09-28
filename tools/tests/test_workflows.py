@@ -197,7 +197,12 @@ class PlayWorkflowSuite(unittest.TestCase):
         self.assertEqual(upload["with"]["track"], "internal")
         self.assertEqual(upload["with"]["releaseFiles"], "app/build/outputs/bundle/release/app-release.aab")
         self.assertEqual(upload["with"]["serviceAccountJsonPlainText"], "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}")
-        self.assertEqual(self.release["env"]["PACKAGE_NAME"], "com.moblin.android")
+        self.assertEqual(self.release["env"]["PACKAGE_NAME"], "com.loxen.app")
+        artifact = next(step for step in self.release["steps"] if step.get("uses", "").startswith("actions/upload-artifact@"))
+        release = "loxen-${{ steps.version.outputs.code }}-${{ steps.version.outputs.name }}"
+        self.assertEqual(artifact["with"]["name"], release)
+        self.assertEqual(job_steps["Name the release files"]["env"]["RELEASE"], release)
+        self.assertEqual(job_steps["Name the release files"]["if"], "steps.decide.outputs.build == 'true'")
         cleanup = job_steps["Remove the decoded upload key"]
         self.assertEqual(cleanup["if"], "always()")
         self.assertIn("app/build/upload-key", cleanup["run"])

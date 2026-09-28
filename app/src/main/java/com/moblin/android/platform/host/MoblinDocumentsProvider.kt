@@ -13,6 +13,7 @@ import android.provider.DocumentsProvider
 import android.webkit.MimeTypeMap
 import com.moblin.android.R
 import com.moblin.android.platform.Documents
+import com.moblin.android.platform.loxen.Loxen
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -48,9 +49,9 @@ class MoblinDocumentsProvider : DocumentsProvider() {
         result.newRow().apply {
             add(Root.COLUMN_ROOT_ID, rootId)
             add(Root.COLUMN_DOCUMENT_ID, rootDocumentId)
-            add(Root.COLUMN_TITLE, "Moblin")
+            add(Root.COLUMN_TITLE, Loxen.appName)
             add(Root.COLUMN_FLAGS, Root.FLAG_LOCAL_ONLY or Root.FLAG_SUPPORTS_CREATE or Root.FLAG_SUPPORTS_IS_CHILD)
-            add(Root.COLUMN_ICON, R.mipmap.app_icon)
+            add(Root.COLUMN_ICON, R.mipmap.ic_launcher)
             add(Root.COLUMN_MIME_TYPES, "*/*")
             add(Root.COLUMN_AVAILABLE_BYTES, documents.usableSpace)
         }
@@ -105,7 +106,7 @@ class MoblinDocumentsProvider : DocumentsProvider() {
 
     override fun deleteDocument(documentId: String) {
         if (documentId == rootDocumentId) {
-            throw UnsupportedOperationException("The Moblin folder cannot be deleted")
+            throw UnsupportedOperationException("The ${Loxen.appName} folder cannot be deleted")
         }
         if (!file(documentId).deleteRecursively()) {
             throw IOException("Failed to delete $documentId")
@@ -115,7 +116,7 @@ class MoblinDocumentsProvider : DocumentsProvider() {
 
     override fun renameDocument(documentId: String, displayName: String): String {
         if (documentId == rootDocumentId) {
-            throw UnsupportedOperationException("The Moblin folder cannot be renamed")
+            throw UnsupportedOperationException("The ${Loxen.appName} folder cannot be renamed")
         }
         val file = file(documentId)
         val parentId = parentDocumentId(documentId)
@@ -149,7 +150,7 @@ class MoblinDocumentsProvider : DocumentsProvider() {
         }
         result.newRow().apply {
             add(Document.COLUMN_DOCUMENT_ID, documentId)
-            add(Document.COLUMN_DISPLAY_NAME, if (documentId == rootDocumentId) "Moblin" else file.name)
+            add(Document.COLUMN_DISPLAY_NAME, if (documentId == rootDocumentId) Loxen.appName else file.name)
             add(Document.COLUMN_MIME_TYPE, mimeType(file))
             add(Document.COLUMN_FLAGS, flags)
             add(Document.COLUMN_SIZE, if (file.isDirectory) null else file.length())

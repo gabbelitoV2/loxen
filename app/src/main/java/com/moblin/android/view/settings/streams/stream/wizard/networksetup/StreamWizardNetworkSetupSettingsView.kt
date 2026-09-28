@@ -17,6 +17,7 @@ import com.moblin.android.various.model.CreateStreamWizard
 import com.moblin.android.various.model.Model
 import com.moblin.android.view.settings.streams.stream.CreateStreamWizardToolbar
 import com.moblin.android.view.settings.streams.stream.wizard.networksetup.myservers.StreamWizardNetworkSetupMyServersSettingsView
+import com.moblin.android.localized
 
 @Composable
 fun StreamWizardNetworkSetupSettingsView(
@@ -46,7 +47,7 @@ fun StreamWizardNetworkSetupSettingsView(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Moblin")
+                    Text(com.moblin.android.localized("Moblin"))
                     SystemImage("arrow.right", fontSize = 17.sp)
                     Text("OBS")
                     SystemImage("arrow.right", fontSize = 17.sp)
@@ -69,7 +70,7 @@ fun StreamWizardNetworkSetupSettingsView(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Moblin")
+                    Text(text = com.moblin.android.localized("Moblin"))
                     SystemImage("arrow.right", fontSize = 17.sp)
                     Text("BELABOX cloud")
                     SystemImage("arrow.right", fontSize = 17.sp)
@@ -94,7 +95,7 @@ fun StreamWizardNetworkSetupSettingsView(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Moblin")
+                    Text(com.moblin.android.localized(text = "Moblin"))
                     SystemImage("arrow.right", fontSize = 17.sp)
                     Text(platform)
                 }
@@ -115,7 +116,7 @@ fun StreamWizardNetworkSetupSettingsView(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("Moblin")
+                    Text(text = com.moblin.android.localized(text = "Moblin"))
                     SystemImage("arrow.right", fontSize = 17.sp)
                     Text("My server(s)")
                     SystemImage("arrow.right", fontSize = 17.sp)

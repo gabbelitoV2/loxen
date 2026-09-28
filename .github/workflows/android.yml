@@ -42,8 +42,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           pip install anthropic
-          git config user.name "moblin-android sync"
-          git config user.email "moblin-android-sync@users.noreply.github.com"
+          git config user.name "loxen sync"
+          git config user.email "loxen-sync@users.noreply.github.com"
           python tools/sync.py --commit --push --issue
       - name: Open the needs-repair issue when the sync stopped without a report
         if: always() && (steps.sync.outcome == 'failure' || steps.sync.outcome == 'cancelled') && steps.sync.outputs.published != 'true'
@@ -57,5 +57,5 @@ jobs:
         run: ./gradlew :app:assembleDebug
       - uses: actions/upload-artifact@v6
         with:
-          name: moblin-android-debug
+          name: loxen-debug
           path: app/build/outputs/apk/debug/app-debug.apk

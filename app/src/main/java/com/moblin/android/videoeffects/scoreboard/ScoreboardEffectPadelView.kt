@@ -19,6 +19,7 @@ import com.moblin.android.various.settings.SettingsWidgetPadelScoreboard
 import com.moblin.android.various.settings.SettingsWidgetPadelScoreboardGameType
 import com.moblin.android.various.settings.SettingsWidgetScoreboardPlayer
 import java.util.UUID
+import com.moblin.android.localized
 
 private data class PadelScoreboardScore(
     val id: UUID = UUID.randomUUID(),
@@ -50,7 +51,7 @@ private fun createPadelPlayer(players: List<SettingsWidgetScoreboardPlayer>, id:
 }
 
 private fun findScoreboardPlayer(players: List<SettingsWidgetScoreboardPlayer>, id: UUID): String {
-    return players.firstOrNull { it.id == id }?.name ?: "🇸🇪 Moblin"
+    return players.firstOrNull { it.id == id }?.name ?: com.moblin.android.localized("🇸🇪 Moblin")
 }
 
 private fun padelScoreboardSettingsToEffect(

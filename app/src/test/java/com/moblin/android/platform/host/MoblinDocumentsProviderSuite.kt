@@ -29,7 +29,7 @@ class MoblinDocumentsProviderSuite {
     private lateinit var application: Application
     private lateinit var provider: MoblinDocumentsProvider
     private lateinit var documents: File
-    private val authority = "com.moblin.android.documents"
+    private val authority = "com.loxen.app.documents"
 
     @Before
     fun setUp() {
@@ -83,7 +83,7 @@ class MoblinDocumentsProviderSuite {
     fun theRootIsMoblinsDocumentsFolder() {
         val root = provider.queryRoots(null).rows().single()
         assertEquals(MoblinDocumentsProvider.rootDocumentId, root[Root.COLUMN_DOCUMENT_ID])
-        assertEquals("Moblin", root[Root.COLUMN_TITLE])
+        assertEquals("Loxen", root[Root.COLUMN_TITLE])
         val children = provider.queryChildDocuments(MoblinDocumentsProvider.rootDocumentId, null, null as String?).rows()
         assertEquals(listOf("Recordings", "Replays"), children.map { it[Document.COLUMN_DISPLAY_NAME] })
         assertTrue(children.all { it[Document.COLUMN_MIME_TYPE] == Document.MIME_TYPE_DIR })

@@ -10,7 +10,7 @@ TOOLS = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(TOOLS))
 import play
 
-PACKAGE = "com.moblin.android"
+PACKAGE = "com.loxen.app"
 EDITS = f"{play.API}/{PACKAGE}/edits"
 
 
@@ -35,7 +35,7 @@ class Session:
     def post(self, url, json=None, timeout=None):
         self.calls.append(("POST", url))
         if self.insert_status != 200:
-            return Response(self.insert_status, {"error": {"message": "Package not found: com.moblin.android."}})
+            return Response(self.insert_status, {"error": {"message": "Package not found: com.loxen.app."}})
         return Response(200, {"id": "edit1"})
 
     def get(self, url, timeout=None):

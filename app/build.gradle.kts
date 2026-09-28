@@ -51,7 +51,7 @@ android {
     ndkVersion = "28.2.13676358"
 
     defaultConfig {
-        applicationId = "com.moblin.android"
+        applicationId = "com.loxen.app"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

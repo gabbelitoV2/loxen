@@ -76,7 +76,7 @@ internal object MapKitServices {
 
     val userAgent: String by lazy {
         val context = applicationContext()
-        val packageName = context?.packageName ?: "com.moblin.android"
+        val packageName = context?.packageName ?: com.moblin.android.BuildConfig.APPLICATION_ID
         val version = try {
             @Suppress("DEPRECATION")
             context?.packageManager?.getPackageInfo(packageName, 0)?.versionName

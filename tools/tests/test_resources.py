@@ -47,5 +47,32 @@ class MirrorVersionSuite(unittest.TestCase):
         self.assertEqual(self.target.read_text(encoding="utf-8"), "MARKETING_VERSION=35.3.0\n")
 
 
+class MirrorAssetCatalogSuite(unittest.TestCase):
+    def setUp(self):
+        self.directory = Path(tempfile.mkdtemp())
+        self.catalog = self.directory / "Assets.xcassets"
+        self.target = self.directory / "Assets"
+
+    def tearDown(self):
+        shutil.rmtree(self.directory, ignore_errors=True)
+
+    def add(self, name):
+        imageset = self.catalog / name
+        imageset.mkdir(parents=True)
+        (imageset / "image.png").write_bytes(b"png")
+        (imageset / "Contents.json").write_text('{"images": [{"filename": "image.png", "scale": "1x"}]}',
+                                                encoding="utf-8")
+
+    def test_leaves_out_moblins_app_icons_and_mascot(self):
+        for name in ("AppIcon.appiconset", "AppIconKing.appiconset", "AppIconNoBackground.imageset",
+                     "AppIconKingNoBackground.imageset", "MoblinInMouth.imageset", "ObsLogo.imageset",
+                     "AlertFace.imageset"):
+            self.add(name)
+        self.target.mkdir()
+        (self.target / "AppIcon.png").write_bytes(b"old")
+        self.assertEqual(resources.mirror_asset_catalog(self.catalog, self.target), 2)
+        self.assertEqual(sorted(path.name for path in self.target.iterdir()), ["AlertFace.png", "ObsLogo.png"])
+
+
 if __name__ == "__main__":
     unittest.main()

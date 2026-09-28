@@ -102,12 +102,14 @@ object AndroidHost {
         }
     }
 
+    private val settingsUrlSchemes = setOf("loxen", "moblin")
+
     private fun settingsUrl(intent: Intent): Uri? {
         val data = intent.data
         return when (intent.action) {
-            Intent.ACTION_VIEW -> data?.takeIf { it.scheme == "moblin" || it.scheme == "file" || it.scheme == "content" }
+            Intent.ACTION_VIEW -> data?.takeIf { it.scheme in settingsUrlSchemes || it.scheme == "file" || it.scheme == "content" }
             Intent.ACTION_SEND -> stream(intent)?.takeIf { it.scheme == "file" || it.scheme == "content" }
-            else -> data?.takeIf { it.scheme == "moblin" }
+            else -> data?.takeIf { it.scheme in settingsUrlSchemes }
         }
     }
 

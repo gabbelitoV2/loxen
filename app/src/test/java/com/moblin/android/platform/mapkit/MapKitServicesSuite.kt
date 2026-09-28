@@ -110,7 +110,7 @@ class MapKitServicesSuite {
         assertEquals("59.330000", url.queryParameter("lat"))
         assertEquals("18.060000", url.queryParameter("lon"))
         assertNotNull(url.queryParameter("zoom"))
-        assertTrue(recorded.getHeader("User-Agent")!!.startsWith("com.moblin.android/"))
+        assertTrue(recorded.getHeader("User-Agent")!!.startsWith("com.loxen.app/"))
     }
 
     @Test
