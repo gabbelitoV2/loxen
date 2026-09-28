@@ -6,6 +6,19 @@ follows it automatically: every night `tools/sync.py` translates the changed Swi
 what builds. What it could not bring in is listed in the report at the end of this prompt. Your task is to fix the
 port so that every item in the report goes away. Nobody answers questions during the run; do the work, then stop.
 
+## How to run commands here
+
+This session is headless: ending your turn ends the run, and nothing will ever wake you up again. There are no
+background-task notifications in this environment.
+
+- Run every command in the foreground, including `tools/port.py` and Gradle. Commands may run for up to 60 minutes;
+  pass a timeout of up to 3600000 ms when a command can take longer than a few minutes. Never use
+  `run_in_background`, never start processes with `&` or `nohup`, and never end your turn to wait for something.
+- When a translation run would take longer than about 45 minutes, split `--include` into smaller batches and run
+  them one after the other.
+- Only end your turn when the checks below pass, or when you have run out of ideas. Then summarise what you did and
+  what is left.
+
 ## Where things are
 
 - `.upstream/` is the Swift source of eerimoq/moblin, checked out at the upstream commit of the report. It is read
