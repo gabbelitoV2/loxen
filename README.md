@@ -11,6 +11,8 @@ follows the latest Moblin automatically. What has no Android counterpart is list
 Loxen is based on Moblin by Erik Moqvist (MIT). Not affiliated with or endorsed by Moblin. Both are MIT licensed, see
 `LICENSE` and `NOTICE.md`.
 
+[Privacy policy](https://gabbelitov2.github.io/loxen/privacy-policy/en.html)
+
 ## Test the app
 
 The app is in internal testing on Google Play:

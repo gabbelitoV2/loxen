@@ -59,5 +59,10 @@ fun LoxenSettingsView() {
             }
         }
         LoxenAboutSection()
+        Section {
+            FormButton(title = "Privacy policy") {
+                UIApplication.shared.open(Loxen.privacyPolicyUrl)
+            }
+        }
     }
 }

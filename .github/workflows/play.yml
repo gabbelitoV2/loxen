@@ -109,5 +109,5 @@ jobs:
           packageName: ${{ env.PACKAGE_NAME }}
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
           releaseName: ${{ steps.version.outputs.name }} (${{ steps.version.outputs.code }})
-          track: internal
+          tracks: internal
           status: completed

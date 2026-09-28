@@ -37,7 +37,7 @@ fun AboutSettingsView(
         ExternalUrlButtonView(url = "https://moblin.app") {
             Text(text = localized("Website"))
         }
-        ExternalUrlButtonView(url = "https://eerimoq.github.io/moblin/privacy-policy/en.html") {
+        ExternalUrlButtonView(url = com.moblin.android.platform.loxen.Loxen.privacyPolicyUrl) {
             Text(text = localized("Privacy policy"))
         }
         ExternalUrlButtonView(url = "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/") {
