@@ -23,6 +23,7 @@ import resources
 import system_tests
 from loxen_shims import lsof
 from loxen_shims import ltc
+from loxen_shims import startup
 
 RE_LTCDUMP = re.compile(r"\S+\s+00:(\d+):(\d+):.*")
 MOBLIN_CAPABILITIES = {"pip", "record", "background-streaming", "dual-mics", "stereo-mic", "gimbal"}
@@ -113,6 +114,34 @@ class LsofSuite(unittest.TestCase):
             self.assertEqual(lsof.main(["-nP", "-a", "-p", str(os.getpid()), f"-iTCP:{port}"]), 1)
 
 
+class DrawtextFontSuite(unittest.TestCase):
+    FONT = r"C:\Windows\Fonts\arial.ttf"
+
+    def test_drawtext_without_a_font_gets_the_font_file(self):
+        graph = "qrencode=text=n %{frame_num}:q=400:x=150,drawtext=fontsize=60:text=%{frame_num}:x=10:y=100"
+        self.assertEqual(
+            startup.with_font(graph, self.FONT),
+            "qrencode=text=n %{frame_num}:q=400:x=150,"
+            "drawtext=fontfile='C\\:/Windows/Fonts/arial.ttf':fontsize=60:text=%{frame_num}:x=10:y=100",
+        )
+
+    def test_a_given_font_and_other_filters_are_kept(self):
+        for graph in ["drawtext=fontfile=a.ttf:text=x", "scale=640:360", "qrencode=text=drawtext"]:
+            self.assertEqual(startup.with_font(graph, self.FONT), graph)
+
+    def test_only_ffmpeg_command_lines_change(self):
+        arguments = ["ffmpeg", "-vf", "drawtext=text=x"]
+        self.assertIn("fontfile=", startup.ffmpeg_arguments(arguments, self.FONT)[2])
+        self.assertIn("fontfile=", startup.ffmpeg_arguments([r"C:\bin\ffmpeg.exe", "-vf", "drawtext=text=x"],
+                                                            self.FONT)[2])
+        self.assertEqual(startup.ffmpeg_arguments(["python", "drawtext=text=x"], self.FONT),
+                         ["python", "drawtext=text=x"])
+
+    def test_the_tests_still_use_drawtext_without_a_font(self):
+        ingests = (ROOT / "tests/suites/ingests.py").read_text(encoding="utf-8")
+        self.assertIn('"drawtext=fontsize=60:text=%{frame_num}:x=10:y=100"', ingests)
+
+
 class RunnerSuite(unittest.TestCase):
     def setUp(self):
         self.directory = Path(tempfile.mkdtemp())
@@ -183,18 +212,41 @@ class RunnerSuite(unittest.TestCase):
         self.assertIsNone(system_tests.one_device(["R00000000AB", "emulator-5554"]))
         self.assertIsNone(system_tests.one_device([]))
 
-    def test_settings_backups_are_named_after_the_serial(self):
-        class Device:
-            serial = "192.0.2.8:5555"
+    def test_settings_backups_follow_the_hardware_serial_over_usb_and_wifi(self):
+        class Device(system_tests.ui_crawl.Device):
+            def __init__(self, serial):
+                super().__init__("adb", serial)
 
-        self.assertEqual(system_tests.settings_backup(Device()).name, "192.0.2.8_5555.settings")
-        Device.serial = "adb-R00000000AB-abc123._adb-tls-connect._tcp"
-        self.assertEqual(system_tests.settings_backup(Device()).name, Device.serial + ".settings")
+            def run(self, *args, timeout=30):
+                return "R00000000AB\n" if args == ("shell", "getprop", "ro.serialno") else ""
 
-    def test_base_settings_are_imported_with_the_tests_own_code(self):
-        compile(system_tests.BASE_SETTINGS_IMPORT, "base settings import", "exec")
+        usb = system_tests.settings_backup(system_tests.hardware_serial(Device("R00000000AB")))
+        wireless = system_tests.settings_backup(
+            system_tests.hardware_serial(Device("adb-R00000000AB-abc123._adb-tls-connect._tcp")))
+        self.assertEqual(usb, wireless)
+        self.assertEqual(usb.name, "R00000000AB.settings")
+        self.assertEqual(system_tests.settings_backup("192.0.2.8:5555").name, "192.0.2.8_5555.settings")
+
+    def test_the_last_exit_reason_is_read_from_exit_info(self):
+        class Device(system_tests.ui_crawl.Device):
+            def run(self, *args, timeout=30):
+                return (
+                    "ApplicationExitInfo #0:\n"
+                    "  timestamp=2026-09-29 17:29:28.006 pid=27210 realUid=10312 user=0\n"
+                    "  process=com.loxen.app reason=3 (LOW_MEMORY) subreason=0 (UNKNOWN) status=0\n"
+                    "ApplicationExitInfo #1:\n"
+                    "  timestamp=2026-09-29 16:20:51.262 pid=697 user=0\n"
+                    "  process=com.loxen.app reason=10 (USER REQUESTED) subreason=22 (REMOVE TASK)\n"
+                )
+
+        self.assertEqual(system_tests.last_exit_reason(Device("adb", "serial")), "LOW_MEMORY at 2026-09-29 17:29:28.006")
+
+    def test_preparation_uses_the_tests_own_moblin_client(self):
+        compile(system_tests.PREPARE, "prepare", "exec")
+        self.assertIn(f"sys.exit({system_tests.NOT_CONNECTED})", system_tests.PREPARE)
         moblin = (ROOT / "tests/utils/moblin.py").read_text(encoding="utf-8")
-        self.assertIn("def import_settings(self, overrides", moblin)
+        for method in ["def import_settings(self, overrides", "def end(self)", "def stop_recording(self)"]:
+            self.assertIn(method, moblin)
         self.assertIn("settings = base_settings(self.config", moblin)
 
     def test_tool_patterns_pick_the_windows_builds(self):

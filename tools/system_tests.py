@@ -9,6 +9,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -36,16 +37,36 @@ WINDOWS_TOOLS = [
     ("bluenviron/mediamtx", re.compile(r"^mediamtx_v[\d.]+_windows_amd64\.zip$"), ("mediamtx.exe",)),
     ("sorairolake/qrtool", re.compile(r"^qrtool-v[\d.]+-x86_64-pc-windows-msvc\.zip$"), ("qrtool.exe",)),
 ]
+WINDOWS_FONT = Path(os.environ.get("WINDIR", r"C:\Windows")) / "Fonts" / "arial.ttf"
 INET = re.compile(r"\binet (\d+\.\d+\.\d+\.\d+)/")
 DEVICE_SETTINGS = "files/SimpleStorage/settings"
 BACKUPS = CACHE / "device-settings"
-BASE_SETTINGS_IMPORT = (
-    "import sys\n"
-    "from tests.utils.config import Config\n"
-    "from tests.utils.moblin import Moblin\n"
-    "with Moblin(Config(), sys.argv[1]) as moblin:\n"
-    "    moblin.import_settings({})\n"
-)
+NOT_CONNECTED = 2
+PREPARE = """
+import sys
+import time
+from tests.utils.config import Config
+from tests.utils.moblin import Moblin
+
+moblin = Moblin(Config(), sys.argv[1])
+try:
+    moblin.__enter__()
+except Exception:
+    sys.exit(2)
+try:
+    moblin.end()
+    moblin.stop_recording()
+    for attempt in range(5):
+        time.sleep(2)
+        try:
+            moblin.import_settings({})
+            break
+        except Exception:
+            if attempt == 4:
+                raise
+finally:
+    moblin.__exit__(None, None, None)
+"""
 
 
 def windows():
@@ -121,6 +142,8 @@ def ensure_venv(upgrade=False):
     run([venv_python(), "-m", "pip", "install", "-q", "--upgrade", "-r", REQUIREMENTS], env=env)
     if windows():
         run([venv_python(), "-m", "pip", "install", "-q", "--upgrade", SHIMS], env=env)
+        (VENV / "Lib" / "site-packages" / "loxen_system_tests.pth").write_text("import loxen_shims.startup\n",
+                                                                           encoding="utf-8")
     run([venv_python(), "-m", "playwright", "install", "chromium"], env=env)
     CACHE.mkdir(parents=True, exist_ok=True)
     stamp.write_text(requirements_stamp(), encoding="utf-8")
@@ -290,12 +313,16 @@ def connect_app(device, tester_ip):
     print(f"Loxen connects to the test assistant at ws://{tester_ip}:{REMOTE_CONTROL_PORT}", flush=True)
 
 
-def settings_backup(device):
-    return BACKUPS / (re.sub(r"[^A-Za-z0-9._-]", "_", device.serial) + ".settings")
+def settings_backup(serial):
+    return BACKUPS / (re.sub(r"[^A-Za-z0-9._-]", "_", serial) + ".settings")
+
+
+def hardware_serial(device):
+    return device.run("shell", "getprop", "ro.serialno").strip() or device.serial
 
 
 def backup_settings(device):
-    path = settings_backup(device)
+    path = settings_backup(hardware_serial(device))
     if path.exists():
         return None
     data = subprocess.run([device.adb, "-s", device.serial, "exec-out", "run-as", ui_crawl.PACKAGE, "cat",
@@ -311,7 +338,7 @@ def backup_settings(device):
 def restore_settings(args):
     adb = find_adb()
     device = ui_crawl.Device(adb, find_serial(adb, args.serial))
-    path = settings_backup(device)
+    path = settings_backup(hardware_serial(device))
     if not path.exists():
         raise SystemExit(f"no backup of {device.serial}'s settings in {BACKUPS}")
     device.key("KEYCODE_HOME")
@@ -324,9 +351,38 @@ def restore_settings(args):
     return 0
 
 
-def import_base_settings():
-    command = [venv_python(), "-c", BASE_SETTINGS_IMPORT, DEVICE]
-    run(command, cwd=ROOT, env=test_environment(), label="importing the base settings of the tests into Loxen")
+def last_exit_reason(device):
+    output = device.run("shell", "dumpsys", "activity", "exit-info", ui_crawl.PACKAGE)
+    match = re.search(r"timestamp=(\S+ \S+).*?reason=\d+ \(([^)]+)\)", output, re.DOTALL)
+    return f"{match.group(2)} at {match.group(1)}" if match else "unknown reason"
+
+
+class Watchdog(threading.Thread):
+    def __init__(self, device, interval=5):
+        super().__init__(daemon=True)
+        self.device = device
+        self.interval = interval
+        self.stopped = threading.Event()
+        self.restarts = []
+
+    def run(self):
+        while not self.stopped.wait(self.interval):
+            if self.device.pid() == "":
+                reason = last_exit_reason(self.device)
+                self.restarts.append(reason)
+                print(f"warning: Loxen was not running ({reason}), starting it again", flush=True)
+                self.device.launch()
+
+    def stop(self):
+        self.stopped.set()
+        self.join(timeout=2 * self.interval)
+
+
+def prepare_app():
+    command = [venv_python(), "-c", PREPARE, DEVICE]
+    return run(command, check=False, cwd=ROOT, env=test_environment(),
+               label="waiting up to a minute for Loxen, then ending any stream or recording and importing the base "
+                     "settings of the tests").returncode
 
 
 def test_environment():
@@ -339,6 +395,8 @@ def test_environment():
             if (usr_bin / "openssl.exe").exists():
                 paths.append(str(usr_bin))
     env["PATH"] = os.pathsep.join(paths)
+    if windows() and WINDOWS_FONT.exists():
+        env["LOXEN_DRAWTEXT_FONT"] = str(WINDOWS_FONT)
     return env
 
 
@@ -369,10 +427,21 @@ def run_tests(module, args, extra):
             if backup:
                 print(f"backed up Loxen's settings to {backup.relative_to(ROOT)} "
                       "(python tools/system_tests.py restore-settings puts them back)")
-            connect_app(device, tester_ip)
-            import_base_settings()
+            result = prepare_app()
+            if result == NOT_CONNECTED:
+                connect_app(device, tester_ip)
+                result = prepare_app()
+            if result != 0:
+                raise SystemExit("Loxen did not connect to the test assistant or did not import the base settings")
+        watchdog = Watchdog(device)
+        watchdog.start()
         command = [venv_python(), "-m", module, "--device", DEVICE, *extra]
-        return run(command, check=False, cwd=ROOT, env=test_environment()).returncode
+        try:
+            return run(command, check=False, cwd=ROOT, env=test_environment()).returncode
+        finally:
+            watchdog.stop()
+            for reason in watchdog.restarts:
+                print(f"Loxen was restarted during the run: {reason}")
     finally:
         if stay_on.isdigit():
             device.run("shell", "settings", "put", "global", "stay_on_while_plugged_in", stay_on)
