@@ -59,7 +59,7 @@ fun Model.flushFileLogToFile() {
 private fun Model.debugLog(message: String) {
     mainScope.launch {
         if (log.size > database.debug.maximumLogLines) {
-            log.removeFirst()
+            log.removeAt(0)
         }
         log.add(LogEntry(id = logId, message = message))
         logId += 1

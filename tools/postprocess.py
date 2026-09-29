@@ -336,6 +336,21 @@ def host_hooks(text):
     return text, count
 
 
+LIST_DECLARATION_RE = re.compile(
+    r"\b(?:val|var)\s+(\w+)\s*(?::\s*(?:MutableList|ArrayList|java\.util\.ArrayList)\s*<|=\s*(?:mutableListOf|arrayListOf|ArrayList)\s*[<(])"
+)
+
+
+def api35_list_calls(text):
+    count = 0
+    for name in sorted(set(LIST_DECLARATION_RE.findall(text))):
+        receiver = rf"(?<![\w.])((?:this(?:@\w+)?\.)?{re.escape(name)})"
+        text, first = re.subn(receiver + r"\.removeFirst\(\)", r"\1.removeAt(0)", text)
+        text, last = re.subn(receiver + r"\.removeLast\(\)", r"\1.removeAt(\1.lastIndex)", text)
+        count += first + last
+    return text, count
+
+
 TEST_CLASS_RE = re.compile(r"^((?:@\w+(?:\([^)\n]*\))?\n)*)(class \w+Suite\b)", re.M)
 
 
@@ -384,6 +399,8 @@ def process_file(text, renamed_names, sources=None, fresh=False, before=None, ge
     if generated:
         text, runners = robolectric_runner(text)
         counts["runners"] = runners
+        text, lists = api35_list_calls(text)
+        counts["lists"] = lists
     return text, counts
 
 

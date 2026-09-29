@@ -360,7 +360,7 @@ class RemoteControlAssistant(
         performRequestNoResponseData(
             RemoteControlRequest.TwitchEventSubNotification(message = message),
             {
-                twitchEventSubNotitications.removeFirst()
+                twitchEventSubNotitications.removeAt(0)
                 twitchEventSubNotiticationWaitForResponse = false
                 tryNextTwitchEventSubNotification()
             }

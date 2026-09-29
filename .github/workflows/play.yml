@@ -83,6 +83,7 @@ jobs:
         run: |
           git submodule update --init --recursive
           ./gradlew :app:bundleRelease :app:assembleRelease
+          python tools/check_api35.py --classes app/build/tmp/kotlin-classes/release
       - name: Remove the decoded upload key
         if: always()
         run: rm -rf app/build/upload-key

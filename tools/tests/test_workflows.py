@@ -194,7 +194,7 @@ class PlayWorkflowSuite(unittest.TestCase):
         upload = job_steps["Upload to the internal testing track"]
         self.assertEqual(upload["if"], "steps.decide.outputs.upload == 'true'")
         self.assertRegex(upload["uses"], r"^r0adkll/upload-google-play@[0-9a-f]{40}$")
-        self.assertEqual(upload["with"]["track"], "internal")
+        self.assertEqual(upload["with"]["tracks"], "internal")
         self.assertEqual(upload["with"]["releaseFiles"], "app/build/outputs/bundle/release/app-release.aab")
         self.assertEqual(upload["with"]["serviceAccountJsonPlainText"], "${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}")
         self.assertEqual(self.release["env"]["PACKAGE_NAME"], "com.loxen.app")

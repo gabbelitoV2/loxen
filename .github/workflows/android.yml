@@ -55,6 +55,8 @@ jobs:
           python tools/sync_report.py --sync-failed "The sync step failed, timed out or was cancelled before it could write its report. See the log of $RUN_URL."
       - name: Build
         run: ./gradlew :app:assembleDebug
+      - name: Check for Android 15 list calls that crash on older Android
+        run: python tools/check_api35.py
       - uses: actions/upload-artifact@v6
         with:
           name: loxen-debug
