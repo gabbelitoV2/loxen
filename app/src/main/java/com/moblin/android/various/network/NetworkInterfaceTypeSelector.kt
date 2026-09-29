@@ -54,7 +54,7 @@ class NetworkInterfaceTypeSelector(
         if (!cellular) {
             interfaceTypes.removeFirst()
         }
-        connectivityManager?.registerDefaultNetworkCallback(networkCallback)
+        com.moblin.android.platform.network.SharedDefaultNetworkCallback.register(context, networkCallback)
     }
 
     fun getNextType(): InterfaceType? {

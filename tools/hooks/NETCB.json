@@ -1,0 +1,13 @@
+{
+  "task": "NETCB",
+  "hooks": [
+    {
+      "id": "HNETCB.1",
+      "file": "various/network/NetworkInterfaceTypeSelector.kt",
+      "op": "replace",
+      "old": "        connectivityManager?.registerDefaultNetworkCallback(networkCallback)",
+      "new": "        com.moblin.android.platform.network.SharedDefaultNetworkCallback.register(context, networkCallback)",
+      "note": "Swift's NWPathMonitor stops when the selector is freed ([weak self]). Every WebSocketClient makes a selector, and a default network callback registered per selector is never unregistered, so after about a hundred reconnects or settings imports Android threw ConnectivityManager.TooManyRequestsException and Loxen crashed. The selectors now share one registration and are held weakly."
+    }
+  ]
+}
