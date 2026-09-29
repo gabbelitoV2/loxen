@@ -2,6 +2,7 @@ package com.moblin.android.platform.avfoundation
 
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
+import android.os.Looper
 import android.util.Log
 import com.moblin.android.media.MediaSample
 import com.moblin.android.platform.audio.audioChannelCount
@@ -39,6 +40,7 @@ import com.moblin.android.platform.videotoolbox.kVTProfileLevel_H264_High_AutoLe
 import com.moblin.android.platform.videotoolbox.kVTProfileLevel_HEVC_Main_AutoLevel
 import com.moblin.android.platform.videotoolbox.noErr
 import java.util.Collections
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.ScheduledExecutorService
@@ -51,6 +53,7 @@ import kotlin.math.roundToLong
 private const val TAG = "MoblinRecorder"
 private const val aacFramesPerPacket = 1024
 private const val finishEncoderDrainMs = 300L
+private const val finishWaitMs = 3_000L
 
 private val loggedMessages: MutableSet<String> = Collections.synchronizedSet(HashSet())
 
@@ -249,17 +252,23 @@ class AVAssetWriter(val contentType: String) {
         for (input in inputs) {
             input.markAsFinished()
         }
+        val lastSegmentOutput = CountDownLatch(1)
         PipelineThread.post {
             try {
                 writerExecutor.schedule(
-                    Runnable { finalizeWriting(writerExecutor, completionHandler) },
+                    Runnable { finalizeWriting(writerExecutor, lastSegmentOutput, completionHandler) },
                     finishEncoderDrainMs,
                     TimeUnit.MILLISECONDS,
                 )
             } catch (error: RejectedExecutionException) {
                 runInBackground {
-                    finalizeWriting(null, completionHandler)
+                    finalizeWriting(null, lastSegmentOutput, completionHandler)
                 }
+            }
+        }
+        if (!PipelineThread.isCurrent() && Looper.myLooper() != Looper.getMainLooper()) {
+            if (!lastSegmentOutput.await(finishWaitMs, TimeUnit.MILLISECONDS)) {
+                Log.i(TAG, "The last segment was not output within $finishWaitMs ms")
             }
         }
     }
@@ -358,13 +367,18 @@ class AVAssetWriter(val contentType: String) {
             inputList.none { it.mediaType == input.mediaType }
     }
 
-    private fun finalizeWriting(executor: ScheduledExecutorService?, completionHandler: () -> Unit) {
+    private fun finalizeWriting(
+        executor: ScheduledExecutorService?,
+        lastSegmentOutput: CountDownLatch,
+        completionHandler: () -> Unit,
+    ) {
         val muxer = muxer
         try {
             muxer?.finish()
         } catch (error: Throwable) {
             Log.i(TAG, "Failed to flush the last segment: $error")
         }
+        lastSegmentOutput.countDown()
         releaseInputs()
         synchronized(lock) {
             if (statusValue == Status.writing) {
