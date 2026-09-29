@@ -225,6 +225,40 @@ The GitHub Actions workflow in `.github/workflows/android.yml` runs the same syn
 demand, then builds `app-debug.apk` and attaches it to the run. It needs the repository secret
 `DEEPSEEK_API_KEY`.
 
+## System tests
+
+`tests/` is a copy of Moblin's system tests (Python, MIT, by Erik Moqvist). They drive the app from a computer over
+Moblin's remote control protocol: the computer runs `moblin_assistant`, the app connects to it, and the tests import
+settings, switch scenes and mics, go live, record, send chat messages and so on, then check the result with mediamtx
+and ffmpeg (does the stream arrive and decode, does the timecode in the audio run without gaps, what did the app log).
+Every sync copies Moblin's `tests/` again (`tools/resources.py`), so nothing in it is changed for Loxen; Loxen's
+part lives in `tools/`.
+
+`tools/system_tests.py` runs them against Loxen on an Android device on the same network as the computer. Like
+Moblin's, the tests need Python 3.14 or newer; `setup` looks for it (also in pyenv-win) and builds `.venv` with it.
+
+```sh
+python tools/system_tests.py setup                    # .venv with the test packages, on Windows also the tools
+python tools/system_tests.py firewall                 # Windows, once per checkout: asks for administrator rights
+python tools/system_tests.py test                     # every suite
+python tools/system_tests.py test StreamSrtToMediaMtx # one test; any argument of python -m tests.test works
+python tools/system_tests.py stability --duration 0.5
+```
+
+`test` finds the device with adb (`--serial` picks one), writes `tests/config.toml` with the addresses of the device
+and of this computer (edit the capabilities there; later runs only update the addresses), keeps the screen on while
+the device is plugged in, and points Loxen's remote control at this computer with a `moblin://` link, tapping
+*Import settings* itself. Loxen must be installed and neither live nor recording. The tablet streams for minutes at a
+time, so keep it on a charger (wireless debugging works).
+
+On Windows, `setup` downloads the full ffmpeg build (the tests need its `qrencode` filter), mediamtx and qrtool into
+`.system-tests/`, and installs `tools/system_tests_shims/` into `.venv`: `ltcgen` and `ltcdump` (SMPTE linear
+timecode, which the tests put in the audio of their streams and read back from recordings), `lsof`, and a `tcpdump`
+that only says that packet capture is not available. `firewall` allows inbound connections to that ffmpeg, mediamtx
+and Python on private networks, so run it again after moving the checkout or changing Python. The stability test's
+`--network-capture` and its traffic shaper (a Linux machine controlled over SSH) are not supported on Windows. As in
+Moblin, tests that need a capability the device does not list, a DJI camera, a gimbal or the Arduino rig are skipped.
+
 ## Automatic repair
 
 What the nightly sync cannot bring in is repaired by Claude, without anyone touching the Android port:
@@ -417,4 +451,5 @@ and upstream commit it was ported from. Useful flags: `--provider deepseek`, `--
 - `tools/degrade.py`, `tools/sync_report.py`, `tools/repair.py` and `tools/usage_limit.py` hold back what does not build,
   write the report and the issue, and drive the automatic repair. Their tests run with
   `python -m unittest discover -s tools/tests`.
+- `tests/` is Moblin's system test suite, copied by every sync; `tools/system_tests.py` runs it against Loxen.
 - `app/` is the Android Studio project.

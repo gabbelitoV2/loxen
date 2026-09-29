@@ -1,0 +1,14 @@
+systest
+systest_moblin
+moblin_assistant
+requests
+websockets
+av
+pyperclip
+playwright
+simba_soam
+irwin
+xdg-base-dirs
+humanfriendly
+psutil
+windows-curses; sys_platform == "win32"

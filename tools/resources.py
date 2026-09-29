@@ -3,6 +3,7 @@ import argparse
 import json
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -106,9 +107,29 @@ def mirror_version(config, target):
     return version
 
 
+def git_files(repository, directory):
+    result = subprocess.run(["git", "-C", str(repository), "ls-files", "-z", "--", directory], capture_output=True)
+    if result.returncode != 0:
+        return None
+    return {name for name in result.stdout.decode("utf-8").split("\0") if name}
+
+
+def mirror_system_tests(moblin, root):
+    source = git_files(moblin, "tests")
+    if not source:
+        return None
+    for name in sorted((git_files(root, "tests") or set()) - source):
+        (root / name).unlink(missing_ok=True)
+    for name in sorted(source):
+        destination = root / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(moblin / name, destination)
+    return len(source)
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    parser = argparse.ArgumentParser(description="Mirror Moblin's bundled resources into the Android assets.")
+    parser = argparse.ArgumentParser(description="Mirror Moblin's bundled resources into the Android assets and its system tests into tests/.")
     parser.add_argument("--moblin", type=Path, default=ROOT / ".upstream")
     args = parser.parse_args()
     app = args.moblin / "Moblin"
@@ -123,6 +144,8 @@ def main():
     print(f"loose resources: {len(loose)} files ({', '.join(sorted(loose))})")
     version = mirror_version(args.moblin / "Config", VERSION)
     print(f"MARKETING_VERSION: {version or 'not found, ' + VERSION.name + ' kept'}")
+    count = mirror_system_tests(args.moblin, ROOT)
+    print(f"tests: {count} files" if count is not None else "tests: not found, kept")
 
 
 if __name__ == "__main__":

@@ -15,3 +15,15 @@ tools/*.tmp
 *.keystore
 upload-keystore.properties
 play-service-account.json
+.venv/
+.system-tests/
+tools/system_tests_shims/build/
+tools/system_tests_shims/*.egg-info/
+tests/config.toml
+tests/files/
+tests/logs/
+tests/cache/
+tests/ltc.wav
+tests/*.moblinSettings
+tests/suites/websites/*.jpg
+tests/suites/websites/*.mp4

@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "loxen-system-tests-shims"
+version = "1.0.0"
+description = "Windows stand-ins for ltcgen, ltcdump, lsof and tcpdump, which Moblin's system tests call."
+requires-python = ">=3.11"
+dependencies = ["psutil"]
+
+[project.scripts]
+ltcgen = "loxen_shims.ltc:ltcgen_main"
+ltcdump = "loxen_shims.ltc:ltcdump_main"
+lsof = "loxen_shims.lsof:main"
+tcpdump = "loxen_shims.tcpdump:main"
+
+[tool.setuptools]
+packages = ["loxen_shims"]
