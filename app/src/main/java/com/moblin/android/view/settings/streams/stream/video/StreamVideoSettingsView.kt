@@ -31,6 +31,7 @@ import com.moblin.android.various.model.Model
 import com.moblin.android.various.settings.Database
 import com.moblin.android.various.settings.SettingsStream
 import com.moblin.android.various.settings.SettingsStreamCodec
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.settings.SettingsStreamH264Profile
 import com.moblin.android.various.settings.SettingsStreamProtocol
 import com.moblin.android.various.settings.SettingsStreamRateControl
@@ -129,6 +130,30 @@ private fun CodecSettingsView(model: Model = LocalModel.current, stream: Setting
                 stream.h264Profile = it
                 model.reloadStreamIfEnabled(stream)
             }
+        }
+    }
+}
+
+@Composable
+private fun ColorRangeSettingsView(model: Model = LocalModel.current, stream: SettingsStream) {
+    val isLive by model.isLive.collectAsState()
+    val isRecording by model.isRecording.collectAsState()
+    Section(
+        footer = localized(
+            "Color range of streams and recordings. Full range uses all levels, while limited " +
+                "range is the broadcast standard expected by some servers and players. Color space " +
+                "is configured in Settings → Camera.",
+        ),
+    ) {
+        Picker(
+            title = localized("Color range"),
+            selection = stream.colorRange,
+            options = SettingsStreamColorRange.entries,
+            enabled = !(stream.enabled && (isLive || isRecording)),
+            text = { it.toString() },
+        ) {
+            stream.colorRange = it
+            model.reloadStreamIfEnabled(stream)
         }
     }
 }
@@ -453,6 +478,7 @@ fun StreamVideoSettingsView(
                 onNavigate = onNavigate,
             )
             BFramesSettingsView(model = model, stream = stream)
+            ColorRangeSettingsView(model = model, stream = stream)
             AdaptiveResolutionSettingsView(
                 model = model,
                 stream = stream,

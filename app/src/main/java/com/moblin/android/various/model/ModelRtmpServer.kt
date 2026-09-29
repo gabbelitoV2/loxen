@@ -97,6 +97,7 @@ fun Model.reloadRtmpServer() {
         ingests.rtmp = RtmpServer(
             settings = database.rtmpServer.clone(),
             softwareDecoding = database.ingestsSoftwareVideoDecoding,
+            colorRange = stream.value.colorRange,
             delegate = object : RtmpServerDelegate {
                 override fun rtmpServerOnPublishStart(streamKey: String) {
                     model.rtmpServerOnPublishStart(streamKey = streamKey)

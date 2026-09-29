@@ -7,15 +7,19 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.extension.CMVideoFormatDescription
 import com.moblin.android.media.haishinkit.extension.decodeFrame
 import com.moblin.android.media.haishinkit.extension.invalidate
-import com.moblin.android.media.haishinkit.media.video.pixelFormatType
+import com.moblin.android.media.haishinkit.extension.sdrYCbCrMatrix
 import com.moblin.android.platform.video.kCVPixelBufferIOSurfacePropertiesKey
 import com.moblin.android.platform.video.kCVPixelBufferMetalCompatibilityKey
 import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
 import com.moblin.android.platform.videotoolbox.VTDecompressionSession
 import com.moblin.android.platform.videotoolbox.VTDecompressionSessionCreate
+import com.moblin.android.platform.videotoolbox.VTSessionSetProperty
+import com.moblin.android.platform.videotoolbox.kVTDecompressionPropertyKey_PixelTransferProperties
 import com.moblin.android.platform.videotoolbox.kVTInvalidSessionErr
+import com.moblin.android.platform.videotoolbox.kVTPixelTransferPropertyKey_DestinationYCbCrMatrix
 import com.moblin.android.platform.videotoolbox.kVTVideoDecoderSpecification_EnableHardwareAcceleratedVideoDecoder
 import com.moblin.android.platform.videotoolbox.noErr
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import java.lang.ref.WeakReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -30,6 +34,7 @@ class VideoDecoder(
     private val name: String,
     private val lockQueue: CoroutineScope,
     private val softwareDecoding: Boolean,
+    private val colorRange: SettingsStreamColorRange,
 ) {
     private var isRunning = false
     private var formatDescription: MediaFormat? = null
@@ -119,7 +124,7 @@ class VideoDecoder(
             return null
         }
         val attributes: Map<String, Any> = mapOf(
-            kCVPixelBufferPixelFormatTypeKey to pixelFormatType,
+            kCVPixelBufferPixelFormatTypeKey to colorRange.pixelFormatType(),
             kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
             kCVPixelBufferMetalCompatibilityKey to true,
         )
@@ -136,9 +141,20 @@ class VideoDecoder(
             imageBufferAttributes = attributes,
             outputCallback = null,
         )
-        if (status != noErr) {
+        if (status != noErr || session == null) {
             Log.i(TAG, "video-decoder: $name: Failed to create session with status $status")
             return null
+        }
+        val pixelTransferProperties = mapOf(
+            kVTPixelTransferPropertyKey_DestinationYCbCrMatrix to sdrYCbCrMatrix(colorRange),
+        )
+        val propertyStatus = VTSessionSetProperty(
+            session,
+            kVTDecompressionPropertyKey_PixelTransferProperties,
+            pixelTransferProperties,
+        )
+        if (propertyStatus != noErr) {
+            Log.i(TAG, "video-decoder: $name: Failed to set pixel transfer properties $propertyStatus")
         }
         return session
     }

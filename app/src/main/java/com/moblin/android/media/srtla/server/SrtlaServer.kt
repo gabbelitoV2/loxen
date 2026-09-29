@@ -12,6 +12,7 @@ import com.moblin.android.media.srtla.common.isSrtDataPacket
 import com.moblin.android.media.srtla.common.srtControlTypeSize
 import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.settings.SettingsSrtlaServer
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -57,6 +58,7 @@ class SrtlaServer(
     val delegate: SrtlaServerDelegate,
     timecodesEnabled: Boolean,
     softwareDecoding: Boolean,
+    colorRange: SettingsStreamColorRange,
 ) {
     private var listener: DatagramSocket? = null
     private var clients: MutableMap<String, SrtlaServerClient> = mutableMapOf()
@@ -73,12 +75,14 @@ class SrtlaServer(
         srtServer = SrtServer(
             timecodesEnabled = timecodesEnabled,
             softwareDecoding = softwareDecoding,
+            colorRange = colorRange,
             port = settings.srtlaSrtPort(),
             srtlaPatches = true
         )
         srtServerNoSrtlaPatches = SrtServer(
             timecodesEnabled = timecodesEnabled,
             softwareDecoding = softwareDecoding,
+            colorRange = colorRange,
             port = settings.srtPort,
             srtlaPatches = false
         )

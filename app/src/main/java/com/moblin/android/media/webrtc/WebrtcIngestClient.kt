@@ -23,6 +23,7 @@ import com.moblin.android.platform.avfoundation.AVAudioConverter
 import com.moblin.android.platform.avfoundation.AVAudioPCMBuffer
 import com.moblin.android.platform.datachannel.*
 import com.moblin.android.platform.videotoolbox.CMFormatDescriptionEqual
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.utils.TimeStampRebaser
 import com.moblin.android.various.utils.currentPresentationTimeStamp
 import com.moblin.android.various.utils.stringFromCArray
@@ -115,6 +116,7 @@ class WebrtcIngestClient(
     private val latency: Double,
     private val syncTimestamps: Boolean,
     private val softwareDecoding: Boolean,
+    private val colorRange: SettingsStreamColorRange,
     private val iceServers: List<String>,
     private val dispatchQueue: CoroutineDispatcher,
     delegate: WebrtcIngestClientDelegate,
@@ -398,6 +400,7 @@ class WebrtcIngestClient(
                 name = name,
                 lockQueue = scope,
                 softwareDecoding = softwareDecoding,
+                colorRange = colorRange,
             )
             videoDecoder?.delegate = this
             videoDecoder?.startRunning(formatDescription = videoFormatDescription)

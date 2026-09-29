@@ -5,6 +5,7 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReader
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReaderDelegate
 import com.moblin.android.platform.srt.SrtNative
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import java.lang.ref.WeakReference
 import java.util.UUID
 import kotlin.coroutines.ContinuationInterceptor
@@ -19,6 +20,7 @@ open class SrtServerClient(
     private val cameraId: UUID,
     timecodesEnabled: Boolean,
     softwareDecoding: Boolean,
+    colorRange: SettingsStreamColorRange,
 ) : MpegTsReaderDelegate {
     private val server: WeakReference<SrtServer> = WeakReference(server)
     private val reader: MpegTsReader = MpegTsReader(
@@ -27,6 +29,7 @@ open class SrtServerClient(
             .limitedParallelism(1),
         timecodesEnabled = timecodesEnabled,
         softwareDecoding = softwareDecoding,
+        colorRange = colorRange,
         targetLatency = srtServerClientLatency,
     )
 

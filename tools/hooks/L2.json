@@ -2,26 +2,6 @@
   "task": "L2",
   "hooks": [
     {
-      "id": "HL2.1",
-      "file": "media/haishinkit/media/video/VideoEffectsProcessor.kt",
-      "scope": "fun reset",
-      "op": "replace",
-      "old": "        pool = null",
-      "new": "        pool = com.moblin.android.platform.video.swapPool(pool, null)",
-      "occurrence": 1,
-      "note": "Setting the pool to nil frees the CVPixelBufferPool in Swift: its free buffers are deleted now and the ones still held by the encoder, preview or recorder when their last lease is released."
-    },
-    {
-      "id": "HL2.2",
-      "file": "media/haishinkit/media/video/VideoEffectsProcessor.kt",
-      "scope": "fun getBufferPool",
-      "op": "replace",
-      "old": "        pool = null",
-      "new": "        pool = com.moblin.android.platform.video.swapPool(pool, null)",
-      "occurrence": 1,
-      "note": "A new output format replaces the output pool; the old one is invalidated instead of waiting for a GC."
-    },
-    {
       "id": "HL2.3",
       "file": "media/haishinkit/media/video/VideoEffectsProcessor.kt",
       "scope": "fun getBufferPool",

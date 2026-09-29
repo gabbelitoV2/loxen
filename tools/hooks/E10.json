@@ -89,16 +89,6 @@
    "note": "ME9. With HE10.10: the reader's lease ends once VideoUnit.appendBufferedVideoSampleBuffer has retained the frame (Swift releases the CMSampleBuffer here)."
   },
   {
-   "id": "HE10.12",
-   "file": "various/MediaPlayer.kt",
-   "scope": "fun loadVideoTrackCompletion",
-   "op": "replace",
-   "old": "            kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_32BGRA,",
-   "new": "            kCVPixelBufferPixelFormatTypeKey to com.moblin.android.media.haishinkit.media.video.pixelFormatType,",
-   "occurrence": 1,
-   "note": "ME9. MediaPlayer.swift:163 requests the global pixelFormatType, so the frames carry the camera's tag and the processor treats them as opaque like camera frames."
-  },
-  {
    "id": "HE10.13",
    "file": "various/MediaPlayer.kt",
    "scope": "fun loadCurrentFile",
@@ -115,16 +105,6 @@
    "anchor": "        stopOutputTimer()",
    "new": "        CoroutineScope(mediaPlayerQueue).launch { reader?.cancelReading() }",
    "note": "ME9. Swift's deinit frees the reader with the player; close() (HE10.5, HE10.6) cancels it on the player's queue."
-  },
-  {
-   "id": "HE10.15",
-   "file": "videoeffects/replay/ReplayEffectReplayReader.kt",
-   "scope": "fun loadVideoTrackCompletion",
-   "op": "replace",
-   "old": "            kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_32BGRA,",
-   "new": "            kCVPixelBufferPixelFormatTypeKey to com.moblin.android.media.haishinkit.media.video.pixelFormatType,",
-   "occurrence": 1,
-   "note": "ME9. ReplayEffectReplayReader.swift:73 requests the global pixelFormatType (the stinger reader keeps 32BGRA)."
   },
   {
    "id": "HE10.16",

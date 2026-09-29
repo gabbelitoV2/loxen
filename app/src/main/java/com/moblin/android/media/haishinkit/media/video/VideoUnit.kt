@@ -25,6 +25,7 @@ import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.model.screenCaptureCameraId
 import com.moblin.android.various.model.screenCaptureCameraName
 import com.moblin.android.various.settings.SettingsGraphicsImplementation
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.utils.currentPresentationTimeStamp
 import java.util.UUID
 import kotlin.math.abs
@@ -109,8 +110,6 @@ enum class SceneSwitchTransition {
     BLUR_AND_ZOOM
 }
 
-var pixelFormatType: Int = ImageFormat.YUV_420_888
-var allowVideoRangePixelFormat: Boolean = false
 private val detectionsQueue = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
 data class TextDetection(
@@ -133,12 +132,12 @@ class DetectionsCompletion(
     val detections: MutableMap<UUID, Detections> = mutableMapOf()
 }
 
-class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEncoderControlDelegate {
+class VideoUnit(private val colorRange: SettingsStreamColorRange) : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEncoderControlDelegate {
     companion object {
         val defaultFrameRate: Double = 30.0
     }
 
-    private val captureSession = VideoCaptureSession()
+    private val captureSession = VideoCaptureSession(colorRange = colorRange)
     private val effectsProcessor: VideoEffectsProcessor
     private val snapshots: VideoSnapshots
     private val lowFpsImage: VideoLowFpsImage
@@ -160,7 +159,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
             effectsProcessor.canvasSize = com.moblin.android.platform.coregraphics.CGSize(width = value.width.toDouble(), height = value.height.toDouble())
         }
 
-    val encoder = VideoEncoder(lockQueue = processorPipelineQueue)
+    val encoder = VideoEncoder(lockQueue = processorPipelineQueue, colorRange = colorRange)
     var previewEncoder: VideoEncoder? = null
     var processor: Processor? = null
         set(value) {
@@ -202,7 +201,7 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     private var macScreenCaptureActive = false
 
     init {
-        val effectsProcessor = VideoEffectsProcessor()
+        val effectsProcessor = VideoEffectsProcessor(colorRange = colorRange)
         this.effectsProcessor = effectsProcessor
         snapshots = VideoSnapshots(context = AppDelegate.context)
         lowFpsImage = VideoLowFpsImage(context = AppDelegate.context)
@@ -247,6 +246,14 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
 
     fun setColorSpace(colorSpace: Int) {
         captureSession.setColorSpace(colorSpace = colorSpace)
+        processorPipelineQueue.launch {
+            effectsProcessor.colorSpace = colorSpace
+            encoder.outputColorAttachments = effectsProcessor.outputColorAttachments
+            previewEncoder?.outputColorAttachments = effectsProcessor.outputColorAttachments
+            effectsProcessor.reset()
+            blackImageBuffer = null
+            blackFormatDescription = null
+        }
     }
 
     fun setCameraControl(enabled: Boolean) {
@@ -428,11 +435,12 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
     }
 
     fun startPreviewEncoding(delegate: VideoEncoderDelegate, settings: VideoEncoderSettings) {
-        val encoder = VideoEncoder(lockQueue = processorPipelineQueue)
+        val encoder = VideoEncoder(lockQueue = processorPipelineQueue, colorRange = colorRange)
         encoder.settings.mutate { it.value = settings }
         encoder.delegate = delegate
         encoder.startRunning()
         processorPipelineQueue.launch {
+            encoder.outputColorAttachments = effectsProcessor.outputColorAttachments
             previewEncoder = encoder
         }
     }
@@ -465,7 +473,11 @@ class VideoUnit : VideoCaptureSessionDelegate, MacScreenCaptureDelegate, VideoEn
 
     fun getCiImage(videoSourceId: UUID, presentationTimeUs: Long): com.moblin.android.platform.coreimage.CIImage? {
         val sampleBuffer = bufferedVideos[videoSourceId]?.getSampleBuffer(presentationTimeUs) ?: return null
-        return sampleBuffer.imageBuffer?.let { com.moblin.android.platform.coreimage.CIImage(cvPixelBuffer = it) }
+        return sampleBuffer.imageBuffer?.let { effectsProcessor.makeCiImage(it) }
+    }
+
+    fun makeCiImage(imageBuffer: Image): com.moblin.android.platform.coreimage.CIImage {
+        return effectsProcessor.makeCiImage(imageBuffer)
     }
 
     fun getMetalPetalImage(videoSourceId: UUID, presentationTimeUs: Long): com.moblin.android.platform.metalpetal.MTIImage? {

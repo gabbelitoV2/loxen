@@ -159,13 +159,14 @@ class RootCodableSuite {
     fun debugKeysAndMigrations() {
         val keys = listOf(
             "logLevel", "logFilter", "debugLogging", "debugLoggingMigrated", "srtOverlay",
-            "cameraSwitchRemoveBlackish", "bluetoothOutputOnly", "maximumLogLines", "pixelFormat",
-            "beautyFilterSettings", "allowVideoRangePixelFormat", "nativeLowLightBoost", "blurSceneSwitch",
+            "cameraSwitchRemoveBlackish", "bluetoothOutputOnly", "maximumLogLines",
+            "beautyFilterSettings", "nativeLowLightBoost", "blurSceneSwitch",
             "preferStereoMic", "twitchRewards", "tesla", "dnsLookupStrategy", "dataRateLimitFactor",
             "bitrateDropFix", "relaxedBitrate", "externalDisplayChat", "videoSourceWidgetTrackFace", "replay",
             "recordSegmentLength", "builtinAudioAndVideoDelay", "builtinAudioAndVideoDelay70msMigrated",
             "cameraManMoveVertically", "cameraManSpeed", "cameraManAlwaysMove", "enhancedMoblinSrt",
             "videoBitrateChangeEnabled", "highQualityDownsampling", "httpProxy3", "packetPadding",
+            "externalCameraVideoRange",
         )
         assertKeys(SettingsDebug.serializer(), SettingsDebug(), keys)
         val migrated = SettingsDebug()
@@ -214,7 +215,6 @@ class RootCodableSuite {
                 "cameraSwitchRemoveBlackish": 0.5,
                 "bluetoothOutputOnly": false,
                 "maximumLogLines": 1000,
-                "pixelFormat": "32BGRA",
                 "beautyFilterSettings": {"privacyMode": "pixellate", "blurStrength": 0.25},
                 "nativeLowLightBoost": true,
                 "preferStereoMic": true,
@@ -239,7 +239,6 @@ class RootCodableSuite {
         assertEquals(0.5f, debug.cameraSwitchRemoveBlackish.value)
         assertFalse(debug.bluetoothOutputOnly.value)
         assertEquals(1000, debug.maximumLogLines)
-        assertEquals("32BGRA", debug.pixelFormat)
         assertEquals(SettingsFacePrivacyMode.pixellate, debug.faceToBeRemoved.privacyMode)
         assertEquals(0.25f, debug.faceToBeRemoved.blurStrength)
         assertTrue(debug.nativeLowLightBoost.value)

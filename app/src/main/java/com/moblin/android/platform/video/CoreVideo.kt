@@ -32,6 +32,8 @@ const val kCVPixelFormatType_32BGRA = 0x42475241
 const val kCVPixelFormatType_32RGBA = 0x52474241
 const val kCVPixelFormatType_420YpCbCr8BiPlanarFullRange = 0x34323066
 const val kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange = 0x34323076
+const val kCVPixelFormatType_420YpCbCr10BiPlanarFullRange = 0x78663230
+const val kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange = 0x78343230
 const val kCVPixelBufferWidthKey = "Width"
 const val kCVPixelBufferHeightKey = "Height"
 const val kCVPixelBufferPixelFormatTypeKey = "PixelFormatType"
@@ -143,6 +145,8 @@ class CVPixelBuffer internal constructor(
     internal val leaseCount = AtomicInteger(if (leased) 1 else UNLEASED)
 
     internal var reference: Any? = null
+
+    internal val attachments = ConcurrentHashMap<String, Any>()
 
     val isValid: Boolean
         get() = backing.generation == generation
@@ -267,6 +271,23 @@ class CVPixelBuffer internal constructor(
 }
 
 typealias CVImageBuffer = CVPixelBuffer
+
+enum class CVAttachmentMode {
+    shouldNotPropagate,
+    shouldPropagate,
+}
+
+fun CVBufferSetAttachment(buffer: CVPixelBuffer, key: String, value: Any, attachmentMode: CVAttachmentMode) {
+    buffer.attachments[key] = value
+}
+
+fun CVBufferSetAttachments(buffer: CVPixelBuffer, theAttachments: Map<String, Any>, attachmentMode: CVAttachmentMode) {
+    buffer.attachments.putAll(theAttachments)
+}
+
+fun CVBufferCopyAttachment(buffer: CVPixelBuffer, key: String): Any? {
+    return buffer.attachments[key]
+}
 
 class CVPixelBufferPool internal constructor(
     val width: Int,
@@ -415,6 +436,11 @@ fun CMVideoFormatDescriptionCreateForImageBuffer(imageBuffer: CVPixelBuffer): Me
             MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_RAW, imageBuffer.width, imageBuffer.height)
         }
     }
+}
+
+fun CMVideoFormatDescriptionMatchesImageBuffer(description: MediaFormat, imageBuffer: CVPixelBuffer): Boolean {
+    return description.getInteger(MediaFormat.KEY_WIDTH) == imageBuffer.width &&
+        description.getInteger(MediaFormat.KEY_HEIGHT) == imageBuffer.height
 }
 
 internal object PixelBufferGl {

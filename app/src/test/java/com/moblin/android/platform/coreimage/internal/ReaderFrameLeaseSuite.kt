@@ -30,6 +30,7 @@ import com.moblin.android.platform.video.YCbCrStorage
 import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
 import com.moblin.android.platform.video.kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
 import com.moblin.android.various.ReplayBufferFile
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.settings.SettingsWidgetLayout
 import com.moblin.android.videoeffects.EffectImageCiImage
 import com.moblin.android.videoeffects.alerts.AlertsEffectVideoReader
@@ -127,7 +128,7 @@ class ReaderFrameLeaseSuite {
     @Test
     fun globalTagReaderFramesArePlanarAndEffectReaderFramesStayRgba() {
         YCbCrStorage.override = true
-        val replay = makeReaderPool(1920, 1080, com.moblin.android.media.haishinkit.media.video.pixelFormatType)
+        val replay = makeReaderPool(1920, 1080, SettingsStreamColorRange.full.pixelFormatType())
         val alerts = makeReaderPool(1920, 1080, kCVPixelFormatType_32BGRA)
         assertEquals(PixelBufferLayout.ycbcr420Full, replay.layout)
         assertEquals(kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, replay.pixelFormatType)
@@ -204,6 +205,7 @@ class ReaderFrameLeaseSuite {
                 size = Size(1920, 1080),
                 layout = SettingsWidgetLayout(),
                 transitionMode = transitionMode,
+                pixelFormatType = SettingsStreamColorRange.full.pixelFormatType(),
                 delegate = delegate,
             )
         }
@@ -256,6 +258,7 @@ class ReaderFrameLeaseSuite {
                 start = 0.0,
                 duration = 10.0,
                 size = Size(1920, 1080),
+                pixelFormatType = SettingsStreamColorRange.full.pixelFormatType(),
             )
         }
         val images: ArrayDeque<ReplayImage> = privateField(reader, "images")
@@ -383,6 +386,7 @@ class ReaderFrameLeaseSuite {
                 start = 0.0,
                 duration = 10.0,
                 size = Size(1920, 1080),
+                pixelFormatType = SettingsStreamColorRange.full.pixelFormatType(),
             )
         }
         closeCancelsTheReaderWhileAFillIsRunning(replay) { replay.close() }
@@ -409,6 +413,7 @@ class ReaderFrameLeaseSuite {
                 start = 0.0,
                 duration = 10.0,
                 size = Size(1920, 1080),
+                pixelFormatType = SettingsStreamColorRange.full.pixelFormatType(),
             )
         }
         val load = { owner: Any, argument: Any ->

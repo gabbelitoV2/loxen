@@ -48,6 +48,7 @@ fun Model.reloadWhepClient() {
             latency = stream.latencySeconds(),
             syncTimestamps = stream.syncTimestamps,
             softwareDecoding = database.ingestsSoftwareVideoDecoding,
+            colorRange = this.stream.value.colorRange,
             delegate = ModelWhepClientDelegate(this)
         )
         client.start()

@@ -88,6 +88,7 @@ fun Model.reloadWhipServer() {
         ingests.whip = WhipServer(
             settings = database.whipServer.clone(),
             softwareDecoding = database.ingestsSoftwareVideoDecoding,
+            colorRange = stream.value.colorRange,
             delegate = ModelWhipServerDelegate(this)
         )
         ingests.whip?.start()

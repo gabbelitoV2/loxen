@@ -23,7 +23,8 @@ fun Model.reloadSrtlaServer() {
             settings = database.srtlaServer,
             delegate = ModelSrtlaServerDelegate(this),
             timecodesEnabled = isTimecodesEnabled(),
-            softwareDecoding = database.ingestsSoftwareVideoDecoding
+            softwareDecoding = database.ingestsSoftwareVideoDecoding,
+            colorRange = stream.value.colorRange
         )
         ingests.srtla?.start()
     }

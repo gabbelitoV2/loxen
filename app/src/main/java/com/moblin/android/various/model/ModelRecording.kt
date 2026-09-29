@@ -6,6 +6,7 @@ import com.moblin.android.common.various.sizeFormatter
 import com.moblin.android.localized
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.various.settings.MacroEvent
+import com.moblin.android.various.settings.SettingsColorSpace
 import com.moblin.android.various.settings.SettingsMacrosEvent
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import java.io.File
@@ -89,7 +90,8 @@ fun Model.startRecorderIfNeeded() {
         videoCodec = stream.value.recording.videoCodec,
         videoBitrate = if (bitrate != 0) bitrate else null,
         keyFrameInterval = if (keyFrameInterval != 0) keyFrameInterval else null,
-        audioBitrate = if (audioBitrate != 0) audioBitrate else null
+        audioBitrate = if (audioBitrate != 0) audioBitrate else null,
+        hdr = database.color.space == SettingsColorSpace.hlgBt2020
     )
 }
 

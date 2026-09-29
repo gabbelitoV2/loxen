@@ -10,6 +10,8 @@ import com.moblin.android.platform.coreimage.internal.WarpNode
 import com.moblin.android.platform.coreimage.internal.WarpOp
 import com.moblin.android.platform.coreimage.kernels.CrtBarrelDistortionPort
 import com.moblin.android.platform.coreimage.kernels.Dewarp360Port
+import com.moblin.android.platform.coreimage.kernels.HlgToLinearPort
+import com.moblin.android.platform.coreimage.kernels.LinearToHlgPort
 
 class CIKernelException(message: String) : Exception(message)
 
@@ -55,7 +57,7 @@ object CIKernelLibrary {
 }
 
 private fun kernelPorts(): List<CIKernelPort> {
-    return listOf(CrtBarrelDistortionPort, Dewarp360Port)
+    return listOf(CrtBarrelDistortionPort, Dewarp360Port, HlgToLinearPort, LinearToHlgPort)
 }
 
 open class CIKernel(functionName: String, @Suppress("UNUSED_PARAMETER") fromMetalLibraryData: ByteArray) {

@@ -251,16 +251,6 @@
    "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.6/HE1.7 bridge it."
   },
   {
-   "id": "R4.4",
-   "file": "media/haishinkit/media/video/VideoUnit.kt",
-   "scope": "fun getCiImage",
-   "op": "replace",
-   "old": "        return sampleBuffer.imageBuffer",
-   "new": "        return sampleBuffer.imageBuffer?.let { com.moblin.android.platform.coreimage.CIImage(cvPixelBuffer = it) }",
-   "occurrence": 1,
-   "note": "ME1 boundary; until VideoEffect.kt is regenerated, E1's interim HE1.6/HE1.7 bridge it."
-  },
-  {
    "id": "R4.5",
    "file": "media/haishinkit/media/video/VideoUnit.kt",
    "scope": "fun getMetalPetalImage",

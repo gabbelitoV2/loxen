@@ -77,6 +77,7 @@ class ReplayEffect internal constructor(
     size: Size,
     layout: SettingsWidgetLayout,
     transitionMode: ReplayEffectTransitionMode,
+    pixelFormatType: Int,
     delegate: ReplayEffectDelegate,
 ) : VideoEffect() {
     private var playbackCompleted = false
@@ -86,6 +87,7 @@ class ReplayEffect internal constructor(
         start = start,
         duration = stop - start,
         size = size,
+        pixelFormatType = pixelFormatType,
     )
     private var startPresentationTimeStamp: Double? = null
     private val delegate = java.util.concurrent.atomic.AtomicReference(delegate)

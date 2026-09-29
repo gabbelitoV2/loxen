@@ -1,7 +1,11 @@
 package com.moblin.android.media.haishinkit.codec.video
 
 import android.util.Size
+import com.moblin.android.media.haishinkit.extension.hlgColorAttachments
 import com.moblin.android.media.haishinkit.media.video.VideoUnit
+import com.moblin.android.platform.video.kCVImageBufferColorPrimariesKey
+import com.moblin.android.platform.video.kCVImageBufferTransferFunctionKey
+import com.moblin.android.platform.video.kCVImageBufferYCbCrMatrixKey
 
 @Volatile
 var videoEncoderDataRateLimitFactor: Double = 1.2
@@ -32,6 +36,20 @@ fun createDataRateLimits(bitRate: Int): List<Double> {
     val bytesLimit = bitRate / 8
     val secondsLimit = 1.0
     return listOf(bytesLimit, secondsLimit)
+}
+
+fun createColorProperties(colorAttachments: Map<String, String>): List<VTSessionProperty> {
+    val properties = mutableListOf<VTSessionProperty>()
+    colorAttachments[kCVImageBufferColorPrimariesKey]?.let { primaries ->
+        properties.add(VTSessionProperty(key = VTSessionPropertyKey.colorPrimaries, value = primaries))
+    }
+    colorAttachments[kCVImageBufferTransferFunctionKey]?.let { transferFunction ->
+        properties.add(VTSessionProperty(key = VTSessionPropertyKey.transferFunction, value = transferFunction))
+    }
+    colorAttachments[kCVImageBufferYCbCrMatrixKey]?.let { yCbCrMatrix ->
+        properties.add(VTSessionProperty(key = VTSessionPropertyKey.YCbCrMatrix, value = yCbCrMatrix))
+    }
+    return properties
 }
 
 class VideoEncoderSettings {
@@ -103,12 +121,8 @@ class VideoEncoderSettings {
         )
         properties += bitrateProperties(bitrate)
         if (profileLevel.contains("Main10")) {
-            properties += listOf(
-                VTSessionProperty(key = VTSessionPropertyKey.hdrMetadataInsertionMode, value = kVTHDRMetadataInsertionMode_Auto),
-                VTSessionProperty(key = VTSessionPropertyKey.colorPrimaries, value = kCVImageBufferColorPrimaries_ITU_R_2020),
-                VTSessionProperty(key = VTSessionPropertyKey.transferFunction, value = kCVImageBufferTransferFunction_ITU_R_2100_HLG),
-                VTSessionProperty(key = VTSessionPropertyKey.YCbCrMatrix, value = kCVImageBufferYCbCrMatrix_ITU_R_2020),
-            )
+            properties.add(VTSessionProperty(key = VTSessionPropertyKey.hdrMetadataInsertionMode, value = kVTHDRMetadataInsertionMode_Auto))
+            properties += createColorProperties(hlgColorAttachments)
         }
         if (!isBaseline && profileLevel.contains("H264")) {
             properties.add(VTSessionProperty(key = VTSessionPropertyKey.h264EntropyMode, value = kVTH264EntropyMode_CABAC))

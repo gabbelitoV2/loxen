@@ -59,6 +59,7 @@ import com.moblin.android.various.settings.SettingsHttpHeader
 import com.moblin.android.various.settings.SettingsNetworkInterfaceName
 import com.moblin.android.various.settings.SettingsStreamAudioCodec
 import com.moblin.android.various.settings.SettingsStreamCodec
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.settings.SettingsStreamMultiStreamingDestination
 import com.moblin.android.various.settings.SettingsStreamProtocol
 import com.moblin.android.various.settings.SettingsStreamRateControl
@@ -77,6 +78,8 @@ import kotlinx.coroutines.launch
 import okhttp3.Request
 import okhttp3.Response
 import com.moblin.android.platform.avfoundation.AVCaptureDevice
+import com.moblin.android.platform.avfoundation.AVVideoProfileLevelKey
+import com.moblin.android.platform.videotoolbox.kVTProfileLevel_HEVC_Main10_AutoLevel
 
 interface MediaDelegate {
     fun mediaOnSrtConnected()
@@ -201,13 +204,14 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         attachDefaultAudio: Boolean,
         destinations: List<SettingsStreamMultiStreamingDestination>,
         srtImplementation: SettingsStreamSrtImplementation,
-        limitAdaptiveBitrateByTransportBitrate: Boolean
+        limitAdaptiveBitrateByTransportBitrate: Boolean,
+        colorRange: SettingsStreamColorRange
     ) {
         this.srtImplementation = srtImplementation
         this.limitAdaptiveBitrateByTransportBitrate = limitAdaptiveBitrateByTransportBitrate
         processor?.stop()
         stopAllNetStreams()
-        val processor = Processor(delegate = this)
+        val processor = Processor(delegate = this, colorRange = colorRange)
         when (proto) {
             SettingsStreamProtocol.rtmp -> {
                 rtmpStreams.add(RtmpStream(name = "Main",
@@ -1077,7 +1081,8 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         videoCodec: SettingsStreamCodec,
         videoBitrate: Int?,
         keyFrameInterval: Int?,
-        audioBitrate: Int?
+        audioBitrate: Int?,
+        hdr: Boolean
     ) {
         processor?.startRecording(url = url?.let { URI.create(it) },
             replay = replay,
@@ -1085,7 +1090,8 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
             videoSettings = makeVideoCompressionSettings(
                 videoCodec = videoCodec,
                 videoBitrate = videoBitrate,
-                keyFrameInterval = keyFrameInterval
+                keyFrameInterval = keyFrameInterval,
+                hdr = hdr
             ))
     }
 
@@ -1099,7 +1105,8 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
 
     private fun makeVideoCompressionSettings(videoCodec: SettingsStreamCodec,
                                              videoBitrate: Int?,
-                                             keyFrameInterval: Int?): Map<String, Any>
+                                             keyFrameInterval: Int?,
+                                             hdr: Boolean): Map<String, Any>
     {
         val codec = when (videoCodec) {
             SettingsStreamCodec.h264avc -> android.media.MediaFormat.MIMETYPE_VIDEO_AVC
@@ -1116,6 +1123,9 @@ class Media(val delegate: MediaDelegate) : ProcessorDelegate, SrtlaDelegate, Ada
         }
         if (keyFrameInterval != null) {
             compressionProperties[android.media.MediaFormat.KEY_I_FRAME_INTERVAL] = keyFrameInterval
+        }
+        if (videoCodec == SettingsStreamCodec.h265hevc && hdr) {
+            compressionProperties[AVVideoProfileLevelKey] = kVTProfileLevel_HEVC_Main10_AutoLevel
         }
         if (compressionProperties.isNotEmpty()) {
             settings["compressionProperties"] = compressionProperties

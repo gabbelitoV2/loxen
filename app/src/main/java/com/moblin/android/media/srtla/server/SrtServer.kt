@@ -4,6 +4,7 @@ import android.util.Log
 import com.moblin.android.media.haishinkit.srt.SrtSocketOption
 import com.moblin.android.platform.srt.SrtError
 import com.moblin.android.platform.srt.SrtNative
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.utils.startBlockingThread
 
 private const val TAG = "SrtServer"
@@ -11,6 +12,7 @@ private const val TAG = "SrtServer"
 open class SrtServer(
     private val timecodesEnabled: Boolean,
     private val softwareDecoding: Boolean,
+    private val colorRange: SettingsStreamColorRange,
     private val port: Int,
     private val srtlaPatches: Boolean,
 ) {
@@ -72,6 +74,7 @@ open class SrtServer(
                     cameraId = cameraId,
                     timecodesEnabled = timecodesEnabled,
                     softwareDecoding = softwareDecoding,
+                    colorRange = colorRange,
                 ).run(clientSocket = clientSocket)
                 srtlaServer.connectedStreamIds.mutate { it.value = it.value.filterNot { id -> id == streamId } }
                 srtlaServer.clientDisconnected(cameraId = cameraId, name = name)

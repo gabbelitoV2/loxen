@@ -7,6 +7,11 @@ import java.nio.ByteBuffer
 
 const val kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms = "SampleDescriptionExtensionAtoms"
 
+const val kCMFormatDescriptionExtension_ColorPrimaries = "ColorPrimaries"
+const val kCMFormatDescriptionExtension_TransferFunction = "TransferFunction"
+const val kCMFormatDescriptionExtension_YCbCrMatrix = "YCbCrMatrix"
+const val kCMFormatDescriptionExtension_FullRangeVideo = "FullRangeVideo"
+
 private val atomKeys = listOf("avcC", "hvcC")
 
 private val comparedIntegerKeys = listOf(
@@ -36,6 +41,35 @@ fun CMFormatDescriptionGetExtension(formatDescription: MediaFormat, extensionKey
             atoms[key] = bytes
         }
         return if (atoms.isEmpty()) null else atoms
+    }
+    if (extensionKey == kCMFormatDescriptionExtension_FullRangeVideo) {
+        return readInteger(formatDescription, MediaFormat.KEY_COLOR_RANGE)?.let { it == MediaFormat.COLOR_RANGE_FULL }
+    }
+    if (extensionKey == kCMFormatDescriptionExtension_ColorPrimaries) {
+        return when (readInteger(formatDescription, MediaFormat.KEY_COLOR_STANDARD)) {
+            MediaFormat.COLOR_STANDARD_BT709 -> "ITU_R_709_2"
+            MediaFormat.COLOR_STANDARD_BT601_PAL -> "EBU_3213"
+            MediaFormat.COLOR_STANDARD_BT601_NTSC -> "SMPTE_C"
+            MediaFormat.COLOR_STANDARD_BT2020 -> "ITU_R_2020"
+            else -> null
+        }
+    }
+    if (extensionKey == kCMFormatDescriptionExtension_YCbCrMatrix) {
+        return when (readInteger(formatDescription, MediaFormat.KEY_COLOR_STANDARD)) {
+            MediaFormat.COLOR_STANDARD_BT709 -> "ITU_R_709_2"
+            MediaFormat.COLOR_STANDARD_BT601_PAL, MediaFormat.COLOR_STANDARD_BT601_NTSC -> "ITU_R_601_4"
+            MediaFormat.COLOR_STANDARD_BT2020 -> "ITU_R_2020"
+            else -> null
+        }
+    }
+    if (extensionKey == kCMFormatDescriptionExtension_TransferFunction) {
+        return when (readInteger(formatDescription, MediaFormat.KEY_COLOR_TRANSFER)) {
+            MediaFormat.COLOR_TRANSFER_SDR_VIDEO -> "ITU_R_709_2"
+            MediaFormat.COLOR_TRANSFER_HLG -> "ITU_R_2100_HLG"
+            MediaFormat.COLOR_TRANSFER_ST2084 -> "SMPTE_ST_2084_PQ"
+            MediaFormat.COLOR_TRANSFER_LINEAR -> "Linear"
+            else -> null
+        }
     }
     return CMFormatDescriptionGetExtensions(formatDescription)?.get(extensionKey)
 }

@@ -38,8 +38,6 @@ import com.moblin.android.various.settings.SettingsStreamRateControl
 import com.moblin.android.various.settings.SettingsStreamResolution
 import com.moblin.android.various.settings.SettingsStreamWhipHttpTransport
 import com.moblin.android.various.settings.defaultStreamUrl
-import com.moblin.android.various.settings.pixelFormatTypes
-import com.moblin.android.various.settings.pixelFormats
 import com.moblin.android.various.storages.StreamingHistoryStream
 import com.moblin.android.various.storages.ThermalState
 import com.moblin.android.various.utils.tryGetToastSubTitle
@@ -587,6 +585,7 @@ fun Model.reloadStream() {
     cameraPosition = null
     stopRecorderIfNeeded(forceStop = true)
     stopStream()
+    setColorRange()
     setNetStream()
     setStreamResolution()
     setStreamFps()
@@ -636,6 +635,7 @@ private fun Model.setNetStream() {
         destinations = stream.value.multiStreaming.destinations,
         srtImplementation = stream.value.srt.implementation,
         limitAdaptiveBitrateByTransportBitrate = stream.value.rateControl != SettingsStreamRateControl.cbr,
+        colorRange = stream.value.colorRange,
     )
     updateTorch()
     updateMute()
@@ -1130,12 +1130,11 @@ fun Model.updateDebugOverlay() {
     }
 }
 
-fun Model.setPixelFormat() {
-    for ((format, type) in pixelFormats.zip(pixelFormatTypes)) {
-        if (database.debug.pixelFormat == format) {
-            Log.i(TAG, "Setting pixel format $format")
-        }
+private fun Model.setColorRange() {
+    for (mediaPlayer in mediaPlayers.values) {
+        mediaPlayer.setPixelFormatType(stream.value.colorRange)
     }
+    reloadIngests()
 }
 
 fun Model.mediaOnSrtConnected() {

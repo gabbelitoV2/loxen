@@ -28,6 +28,7 @@ fun Model.reloadRistServer() {
             port = database.ristServer.port,
             streams = database.ristServer.streams.map { it.clone() },
             softwareDecoding = database.ingestsSoftwareVideoDecoding,
+            colorRange = stream.value.colorRange,
             delegate = delegate
         )
         ingests.rist?.start()

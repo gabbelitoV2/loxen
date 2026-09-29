@@ -16,6 +16,7 @@ import com.moblin.android.media.haishinkit.rtmp.message.RtmpMessageType
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpSetChunkSizeMessage
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpSetPeerBandwidthMessage
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpWindowAcknowledgementSizeMessage
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -211,7 +212,7 @@ class RtmpStreamSuite {
         runBlocking {
             val streamKey = "5"
             val modelMock = ModelMock()
-            val processor = Processor(delegate = modelMock)
+            val processor = Processor(delegate = modelMock, colorRange = SettingsStreamColorRange.full)
             val server = RtmpServerMock()
             val rtmpStream = RtmpStream(
                 name = "test",
@@ -331,7 +332,7 @@ class RtmpStreamSuite {
         runBlocking {
             val streamKey = "5"
             val modelMock = ModelMock()
-            val processor = Processor(delegate = modelMock)
+            val processor = Processor(delegate = modelMock, colorRange = SettingsStreamColorRange.full)
             val server = RtmpServerMock()
             val rtmpStream = RtmpStream(
                 name = "test",
@@ -454,7 +455,7 @@ class RtmpStreamSuite {
     @Test
     fun acknowledgementChunkSplitOverTwoReads() {
         val modelMock = ModelMock()
-        val processor = Processor(delegate = modelMock)
+        val processor = Processor(delegate = modelMock, colorRange = SettingsStreamColorRange.full)
         val rtmpStream = RtmpStream(
             name = "test",
             processor = processor,

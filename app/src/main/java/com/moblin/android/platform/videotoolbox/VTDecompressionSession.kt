@@ -791,6 +791,10 @@ fun VTDecompressionSessionCreate(
     return Pair(noErr, session)
 }
 
+fun VTSessionSetProperty(session: VTDecompressionSession, key: String, value: Any?): Int {
+    return noErr
+}
+
 fun VTDecompressionSessionDecodeFrame(
     session: VTDecompressionSession,
     sampleBuffer: MediaSample,

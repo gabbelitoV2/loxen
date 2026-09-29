@@ -12,6 +12,8 @@ import com.moblin.android.platform.codable.decodeIfPresent
 import com.moblin.android.platform.codable.encodeContainer
 import com.moblin.android.platform.swiftui.Published
 import com.moblin.android.platform.swiftui.PublishedList
+import com.moblin.android.platform.video.kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+import com.moblin.android.platform.video.kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
 import com.moblin.android.streamingplatforms.kick.storeKickAccessTokenInKeychain
 import com.moblin.android.streamingplatforms.twitch.storeTwitchAccessTokenInKeychain
 import com.moblin.android.streamingplatforms.youtube.YouTubeApiLiveBroadcaseVisibility
@@ -97,6 +99,35 @@ enum class SettingsStreamH264Profile(val rawValue: String) {
     companion object {
         fun fromRawValue(value: String): SettingsStreamH264Profile? {
             return SettingsStreamH264Profile.entries.firstOrNull { it.rawValue == value }
+        }
+    }
+}
+
+@Serializable
+enum class SettingsStreamColorRange(val rawValue: String) {
+    @SerialName("Full")
+    full("Full"),
+
+    @SerialName("Limited")
+    limited("Limited");
+
+    override fun toString(): String {
+        return when (this) {
+            SettingsStreamColorRange.full -> localized("Full")
+            SettingsStreamColorRange.limited -> localized("Limited")
+        }
+    }
+
+    fun pixelFormatType(): Int {
+        return when (this) {
+            SettingsStreamColorRange.full -> kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+            SettingsStreamColorRange.limited -> kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+        }
+    }
+
+    companion object {
+        fun fromRawValue(value: String): SettingsStreamColorRange? {
+            return SettingsStreamColorRange.entries.firstOrNull { it.rawValue == value }
         }
     }
 }
@@ -1686,6 +1717,7 @@ class SettingsStream(
     rateControl: SettingsStreamRateControl = SettingsStreamRateControl.abr,
     codec: SettingsStreamCodec = SettingsStreamCodec.h265hevc,
     h264Profile: SettingsStreamH264Profile = SettingsStreamH264Profile.main,
+    colorRange: SettingsStreamColorRange = SettingsStreamColorRange.full,
     bFrames: Boolean = false,
     adaptiveEncoderResolution: Boolean = false,
     adaptiveEncoderResolutionThreashold: Double = 1.0,
@@ -1746,6 +1778,7 @@ class SettingsStream(
     var rateControl: SettingsStreamRateControl by Published(rateControl)
     var codec: SettingsStreamCodec by Published(codec)
     var h264Profile: SettingsStreamH264Profile by Published(h264Profile)
+    var colorRange: SettingsStreamColorRange by Published(colorRange)
     var bFrames: Boolean by Published(bFrames)
     var adaptiveEncoderResolution: Boolean by Published(adaptiveEncoderResolution)
     var adaptiveEncoderResolutionThreashold: Double by Published(adaptiveEncoderResolutionThreashold)
@@ -1889,6 +1922,7 @@ class SettingsStream(
             )
             stream.codec = container.decode("codec", SettingsStreamCodec.h265hevc)
             stream.h264Profile = container.decode("h264Profile", SettingsStreamH264Profile.main)
+            stream.colorRange = container.decode("colorRange", SettingsStreamColorRange.full)
             stream.bFrames = container.decode("bFrames", false)
             stream.adaptiveEncoderResolution = container.decode("adaptiveEncoderResolution", false)
             stream.adaptiveEncoderResolutionThreashold = container.decode(
@@ -2009,6 +2043,7 @@ class SettingsStream(
         encode("bitrateRateControl", rateControl)
         encode("codec", codec)
         encode("h264Profile", h264Profile)
+        encode("colorRange", colorRange)
         encode("bFrames", bFrames)
         encode("adaptiveEncoderResolution", adaptiveEncoderResolution)
         encode("adaptiveEncoderResolutionThreashold", adaptiveEncoderResolutionThreashold)
@@ -2119,6 +2154,7 @@ class SettingsStream(
         new.rateControl = rateControl
         new.codec = codec
         new.h264Profile = h264Profile
+        new.colorRange = colorRange
         new.bFrames = bFrames
         new.adaptiveEncoderResolution = adaptiveEncoderResolution
         new.adaptiveEncoderResolutionThreashold = adaptiveEncoderResolutionThreashold

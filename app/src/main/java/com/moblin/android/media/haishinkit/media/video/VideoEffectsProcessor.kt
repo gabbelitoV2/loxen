@@ -4,9 +4,11 @@ import android.media.MediaFormat
 import android.util.Log
 import com.moblin.android.common.various.create
 import com.moblin.android.media.MediaSample
+import com.moblin.android.media.haishinkit.extension.hlgColorAttachments
+import com.moblin.android.media.haishinkit.extension.sdrColorAttachments
+import com.moblin.android.platform.avfoundation.AVCaptureColorSpace
 import com.moblin.android.platform.avfoundation.AVCaptureVideoOrientation
 import com.moblin.android.platform.core.ContinuousClock
-import com.moblin.android.platform.coregraphics.CGAffineTransform
 import com.moblin.android.platform.coregraphics.CGColorSpace
 import com.moblin.android.platform.coregraphics.CGImagePropertyOrientation
 import com.moblin.android.platform.coregraphics.CGPoint
@@ -16,6 +18,8 @@ import com.moblin.android.platform.coregraphics.cgSize
 import com.moblin.android.platform.coreimage.CIContext
 import com.moblin.android.platform.coreimage.CIFilter
 import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.platform.coreimage.CIImageOption
+import com.moblin.android.platform.darwin.NSNull
 import com.moblin.android.platform.metalpetal.MTIAlphaType
 import com.moblin.android.platform.metalpetal.MTIColor
 import com.moblin.android.platform.metalpetal.MTIContext
@@ -27,7 +31,7 @@ import com.moblin.android.platform.metalpetal.MTIMPSGaussianBlurFilter
 import com.moblin.android.platform.metalpetal.MTIMultilayerCompositingFilter
 import com.moblin.android.platform.metalpetal.MTLCreateSystemDefaultDevice
 import com.moblin.android.platform.video.CMVideoFormatDescriptionCreateForImageBuffer
-import com.moblin.android.platform.video.CVImageBuffer
+import com.moblin.android.platform.video.CVBufferCopyAttachment
 import com.moblin.android.platform.video.CVPixelBuffer
 import com.moblin.android.platform.video.CVPixelBufferPool
 import com.moblin.android.platform.video.CVPixelBufferPoolCreate
@@ -39,25 +43,35 @@ import com.moblin.android.platform.video.kCVImageBufferColorPrimaries_P3_D65
 import com.moblin.android.platform.video.kCVImageBufferLogTransferFunctionKey
 import com.moblin.android.platform.video.kCVImageBufferLogTransferFunction_AppleLog
 import com.moblin.android.platform.video.kCVImageBufferTransferFunctionKey
+import com.moblin.android.platform.video.kCVImageBufferTransferFunction_ITU_R_2100_HLG
 import com.moblin.android.platform.video.kCVImageBufferYCbCrMatrixKey
 import com.moblin.android.platform.video.kCVPixelBufferHeightKey
 import com.moblin.android.platform.video.kCVPixelBufferIOSurfacePropertiesKey
 import com.moblin.android.platform.video.kCVPixelBufferMetalCompatibilityKey
 import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
 import com.moblin.android.platform.video.kCVPixelBufferWidthKey
+import com.moblin.android.platform.video.kCVPixelFormatType_420YpCbCr10BiPlanarFullRange
+import com.moblin.android.platform.video.kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
+import com.moblin.android.platform.video.swapPool
 import com.moblin.android.platform.videotoolbox.CMFormatDescriptionGetExtensions
 import com.moblin.android.various.settings.SettingsGraphicsImplementation
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.videoeffects.MetalPetalWidgetShape
 import com.moblin.android.videoeffects.VideoSourceEffect
+import com.moblin.android.videoeffects.scaled
+import com.moblin.android.videoeffects.translated
 import java.util.UUID
+import kotlin.math.min
 import kotlin.time.DurationUnit
 
-class VideoEffectsProcessor {
-    val context = CIContext()
-    private val metalPetalContext: MTIContext?
-    var canvasSize = CGSize(1920.0, 1080.0)
+class VideoEffectsProcessor(private val colorRange: SettingsStreamColorRange) {
+    private val context = CIContext()
+    private val metalPetalContext: MTIContext? =
+        MTLCreateSystemDefaultDevice()?.let { device -> runCatching { MTIContext(device) }.getOrNull() }
+    var canvasSize = CGSize(width = 1920.0, height = 1080.0)
     var fillFrame = true
-    var sceneSwitchTransition: SceneSwitchTransition = sceneSwitchTransitionEntry("blur")
+    var sceneSwitchTransition: SceneSwitchTransition = SceneSwitchTransition.BLUR
+    var colorSpace: Int = AVCaptureColorSpace.sRGB
     var latestSampleBufferTime: ContinuousClock.Instant? = null
     private var rotation: Double = 0.0
     private var mirror: Boolean = false
@@ -71,23 +85,15 @@ class VideoEffectsProcessor {
     private var blackImageMetalPetal: MTIImage? = null
     private var pool: CVPixelBufferPool? = null
     private var poolColorSpace: CGColorSpace? = null
+    private val sRGBColorSpace = CGColorSpace(CGColorSpace.sRGB)
     private var poolFormatDescriptionExtension: Map<String, Any>? = null
     private var previousFaceDetectionTimes: MutableMap<UUID, Double> = mutableMapOf()
     private var previousTextDetectionTimes: MutableMap<UUID, Double> = mutableMapOf()
 
-    init {
-        val metalDevice = MTLCreateSystemDefaultDevice()
-        metalPetalContext = if (metalDevice != null) {
-            runCatching { MTIContext(device = metalDevice) }.getOrNull()
-        } else {
-            null
-        }
-    }
-
     fun reset() {
         blackImage = null
         blackImageMetalPetal = null
-        pool = com.moblin.android.platform.video.swapPool(pool, null)
+        pool = swapPool(pool, null)
     }
 
     fun setGraphicsImplementation(value: SettingsGraphicsImplementation) {
@@ -123,7 +129,7 @@ class VideoEffectsProcessor {
     fun unregisterEffect(effect: VideoEffect) {
         effect.removed()
         val index = effects.indexOf(effect)
-        if (index >= 0) {
+        if (index != -1) {
             effects.removeAt(index)
         }
     }
@@ -145,7 +151,7 @@ class VideoEffectsProcessor {
         val pendingEffects = pendingAfterAttachEffects
         if (pendingEffects != null) {
             effects = pendingEffects
-            isMetalPetalGraphicsForcedByEffects = pendingEffects.any { it.isMetalPetal() }
+            isMetalPetalGraphicsForcedByEffects = effects.any { it.isMetalPetal() }
             pendingAfterAttachEffects = null
         }
         val pendingRotation = pendingAfterAttachRotation
@@ -167,10 +173,11 @@ class VideoEffectsProcessor {
     private fun removeEffects() {
         effects.removeAll { effect ->
             if (!effect.shouldRemove()) {
-                return@removeAll false
+                false
+            } else {
+                effect.removed()
+                true
             }
-            effect.removed()
-            true
         }
     }
 
@@ -253,21 +260,21 @@ class VideoEffectsProcessor {
     }
 
     fun render(
-        imageBuffer: CVImageBuffer,
+        imageBuffer: CVPixelBuffer,
         completion: DetectionsCompletion,
         videoUnit: VideoUnit,
-        videoOrientation: Int
-    ): Pair<CVImageBuffer, MediaSample> {
+        videoOrientation: Int,
+    ): Pair<CVPixelBuffer, MediaSample> {
         val sampleBuffer = completion.sampleBuffer
         if (completion.isFirstAfterAttach) {
             usePendingAfterAttachEffects()
         }
         val enabledEffects = getEnabledEffects()
-        if (enabledEffects.isEmpty() &&
-            !completion.isSceneSwitchTransition &&
-            imageBuffer.cgSize == canvasSize &&
-            rotation == 0.0 &&
-            !mirror
+        if (enabledEffects.isEmpty()
+            && !completion.isSceneSwitchTransition
+            && imageBuffer.cgSize == canvasSize
+            && rotation == 0.0
+            && !mirror
         ) {
             return Pair(imageBuffer, sampleBuffer)
         }
@@ -276,19 +283,19 @@ class VideoEffectsProcessor {
             enabledEffects,
             completion,
             videoUnit,
-            videoOrientation
+            videoOrientation,
         )
         removeEffects()
         return Pair(newImageBuffer ?: imageBuffer, newSampleBuffer ?: sampleBuffer)
     }
 
     private fun applyEffects(
-        imageBuffer: CVImageBuffer,
+        imageBuffer: CVPixelBuffer,
         enabledEffects: List<VideoEffect>,
         completion: DetectionsCompletion,
         videoUnit: VideoUnit,
-        videoOrientation: Int
-    ): Pair<CVImageBuffer?, MediaSample?> {
+        videoOrientation: Int,
+    ): Pair<CVPixelBuffer?, MediaSample?> {
         val sampleBuffer = completion.sampleBuffer
         val info = VideoEffectInfo(
             sceneVideoSourceId = completion.sceneVideoSourceId,
@@ -305,7 +312,7 @@ class VideoEffectsProcessor {
                 enabledEffects,
                 completion.isSceneSwitchTransition,
                 videoOrientation,
-                info
+                info,
             )
         } else {
             applyEffectsCoreImage(
@@ -314,8 +321,64 @@ class VideoEffectsProcessor {
                 enabledEffects,
                 completion.isSceneSwitchTransition,
                 videoOrientation,
-                info
+                info,
             )
+        }
+    }
+
+    fun outputPixelFormatType(): Int {
+        return if (colorSpace == AVCaptureColorSpace.HLG_BT2020) {
+            when (colorRange) {
+                SettingsStreamColorRange.full -> kCVPixelFormatType_420YpCbCr10BiPlanarFullRange
+                SettingsStreamColorRange.limited -> kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange
+            }
+        } else {
+            colorRange.pixelFormatType()
+        }
+    }
+
+    val outputColorAttachments: Map<String, String>?
+        get() = when (colorSpace) {
+            AVCaptureColorSpace.sRGB -> sdrColorAttachments(colorRange = colorRange)
+            AVCaptureColorSpace.HLG_BT2020 -> hlgColorAttachments
+            else -> null
+        }
+
+    fun makeCiImage(imageBuffer: CVPixelBuffer): CIImage {
+        return when (colorSpace) {
+            AVCaptureColorSpace.sRGB -> CIImage(
+                cvPixelBuffer = imageBuffer,
+                options = mapOf(CIImageOption.colorSpace to sRGBColorSpace),
+            )
+            AVCaptureColorSpace.HLG_BT2020 -> {
+                if ((CVBufferCopyAttachment(imageBuffer, kCVImageBufferTransferFunctionKey) as? String)
+                    == kCVImageBufferTransferFunction_ITU_R_2100_HLG
+                ) {
+                    CIImage(
+                        cvPixelBuffer = imageBuffer,
+                        options = mapOf(CIImageOption.colorSpace to NSNull()),
+                    ).hlgToLinear()
+                } else {
+                    CIImage(
+                        cvPixelBuffer = imageBuffer,
+                        options = mapOf(CIImageOption.colorSpace to sRGBColorSpace),
+                    )
+                }
+            }
+            else -> CIImage(cvPixelBuffer = imageBuffer)
+        }
+    }
+
+    fun renderCoreImage(image: CIImage, outputImageBuffer: CVPixelBuffer, bounds: CGRect) {
+        if (colorSpace == AVCaptureColorSpace.HLG_BT2020) {
+            context.render(image.linearToHlg(), outputImageBuffer, bounds, null)
+        } else {
+            val poolColorSpace = poolColorSpace
+            if (poolColorSpace != null) {
+                context.render(image, outputImageBuffer, bounds, poolColorSpace)
+            } else {
+                context.render(image, outputImageBuffer)
+            }
         }
     }
 
@@ -323,10 +386,10 @@ class VideoEffectsProcessor {
         val latest = latestSampleBufferTime
         if (latest != null) {
             val offset = ContinuousClock.now - latest
-            return if (sceneSwitchTransitionName() == "blurandzoom") {
-                offset.toDouble(DurationUnit.SECONDS) >= 5
+            return if (sceneSwitchTransition == SceneSwitchTransition.BLUR_AND_ZOOM) {
+                offset.toDouble(DurationUnit.SECONDS) >= 5.0
             } else {
-                offset.toDouble(DurationUnit.SECONDS) >= 2
+                offset.toDouble(DurationUnit.SECONDS) >= 2.0
             }
         }
         return false
@@ -334,24 +397,19 @@ class VideoEffectsProcessor {
 
     fun renderSceneSwitchTransitionEnd(
         sampleBuffer: MediaSample,
-        imageBuffer: CVImageBuffer,
-        outputImageBuffer: CVPixelBuffer
+        imageBuffer: CVPixelBuffer,
+        outputImageBuffer: CVPixelBuffer,
     ): MediaSample {
         if (isMetalPetalGraphicsEnabled()) {
             val image = MTIImage(cvPixelBuffer = imageBuffer, alphaType = MTIAlphaType.alphaIsOne)
             try {
-                metalPetalContext?.render(applySceneSwitchTransitionMetalPetal(image), to = outputImageBuffer)
-            } catch (error: Throwable) {
+                metalPetalContext?.render(applySceneSwitchTransitionMetalPetal(image), outputImageBuffer)
+            } catch (error: Exception) {
                 return sampleBuffer
             }
         } else {
-            val image = applySceneSwitchTransition(CIImage(cvPixelBuffer = imageBuffer))
-            val colorSpace = poolColorSpace
-            if (colorSpace != null) {
-                context.render(image, to = outputImageBuffer, bounds = image.extent, colorSpace = colorSpace)
-            } else {
-                context.render(image, to = outputImageBuffer)
-            }
+            val image = applySceneSwitchTransition(makeCiImage(imageBuffer))
+            renderCoreImage(image, outputImageBuffer, image.extent)
         }
         val formatDescription = CMVideoFormatDescriptionCreateForImageBuffer(outputImageBuffer)
         val outputSampleBuffer = create(
@@ -359,13 +417,14 @@ class VideoEffectsProcessor {
             formatDescription,
             sampleBuffer.durationUs,
             sampleBuffer.presentationTimeUs,
-            sampleBuffer.decodeTimeStampUs
+            sampleBuffer.decodeTimeStampUs,
         ) ?: return sampleBuffer
         return outputSampleBuffer
     }
 
     private fun isMetalPetalGraphicsEnabled(): Boolean {
-        return isMetalPetalGraphics || isMetalPetalGraphicsForcedByEffects
+        return (isMetalPetalGraphics && colorSpace != AVCaptureColorSpace.HLG_BT2020) ||
+            isMetalPetalGraphicsForcedByEffects
     }
 
     private fun getBufferPool(formatDescription: MediaFormat): CVPixelBufferPool? {
@@ -375,18 +434,22 @@ class VideoEffectsProcessor {
             return existingPool
         }
         val pixelBufferAttributes: MutableMap<String, Any> = mutableMapOf(
-            kCVPixelBufferPixelFormatTypeKey to pixelFormatType,
-            kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
+            kCVPixelBufferPixelFormatTypeKey to outputPixelFormatType(),
+            kCVPixelBufferIOSurfacePropertiesKey to mapOf<String, Any>(),
             kCVPixelBufferMetalCompatibilityKey to true,
-            kCVPixelBufferWidthKey to canvasSize.width.toInt(),
-            kCVPixelBufferHeightKey to canvasSize.height.toInt(),
+            kCVPixelBufferWidthKey to canvasSize.width,
+            kCVPixelBufferHeightKey to canvasSize.height,
         )
         poolColorSpace = null
-        if (formatDescriptionExtension != null) {
+        val attachments = outputColorAttachments
+        if (attachments != null) {
+            pixelBufferAttributes[kCVBufferPropagatedAttachmentsKey] = attachments
+            poolColorSpace = if (colorSpace == AVCaptureColorSpace.sRGB) sRGBColorSpace else null
+        } else if (formatDescriptionExtension != null) {
             val colorPrimaries = formatDescriptionExtension[kCVImageBufferColorPrimariesKey]
             if (colorPrimaries != null) {
                 val colorSpaceProperties: MutableMap<String, Any> = mutableMapOf(
-                    kCVImageBufferColorPrimariesKey to colorPrimaries
+                    kCVImageBufferColorPrimariesKey to colorPrimaries,
                 )
                 val yCbCrMatrix = formatDescriptionExtension[kCVImageBufferYCbCrMatrixKey]
                 if (yCbCrMatrix != null) {
@@ -398,37 +461,41 @@ class VideoEffectsProcessor {
                 }
                 pixelBufferAttributes[kCVBufferPropagatedAttachmentsKey] = colorSpaceProperties
             }
-            val colorSpace = formatDescriptionExtension[kCVImageBufferCGColorSpaceKey]
-            if (colorSpace != null) {
-                poolColorSpace = colorSpace as? CGColorSpace
-            } else if (colorPrimaries is String) {
-                if (colorPrimaries == kCVImageBufferColorPrimaries_P3_D65) {
-                    poolColorSpace = CGColorSpace(CGColorSpace.displayP3)
-                } else if (formatDescriptionExtension[kCVImageBufferLogTransferFunctionKey] as? String ==
-                    kCVImageBufferLogTransferFunction_AppleLog
-                ) {
-                    poolColorSpace = CGColorSpace(CGColorSpace.itur_2020)
+            val colorSpaceValue = formatDescriptionExtension[kCVImageBufferCGColorSpaceKey]
+            if (colorSpaceValue != null) {
+                poolColorSpace = colorSpaceValue as? CGColorSpace
+            } else {
+                val colorPrimariesString = colorPrimaries as? String
+                if (colorPrimariesString != null) {
+                    if (colorPrimariesString == kCVImageBufferColorPrimaries_P3_D65) {
+                        poolColorSpace = CGColorSpace(CGColorSpace.displayP3)
+                    } else if (formatDescriptionExtension[kCVImageBufferLogTransferFunctionKey] as? String
+                        == kCVImageBufferLogTransferFunction_AppleLog
+                    ) {
+                        poolColorSpace = CGColorSpace(CGColorSpace.itur_2020)
+                    }
                 }
             }
         }
         poolFormatDescriptionExtension = formatDescriptionExtension
-        pool = com.moblin.android.platform.video.swapPool(pool, null)
+        pool = swapPool(pool, null)
         pool = CVPixelBufferPoolCreate(pixelBufferAttributes)?.also { it.name = "effects" }
         return pool
     }
 
-    private fun createPixelBuffer(sampleBuffer: MediaSample): CVPixelBuffer? {
-        val formatDescription = sampleBuffer.format ?: return null
-        val pool = getBufferPool(formatDescription) ?: return null
-        return CVPixelBufferPoolCreatePixelBuffer(pool)
+    fun createPixelBuffer(sampleBuffer: MediaSample): CVPixelBuffer? {
+        val format = sampleBuffer.format ?: return null
+        val localPool = getBufferPool(format) ?: return null
+        return CVPixelBufferPoolCreatePixelBuffer(localPool)
     }
 
     private fun getBlackImage(width: Double, height: Double): CIImage {
-        var image = blackImage
-        if (image == null) {
-            image = createBlackImage(width = width, height = height)
-            blackImage = image
+        val existing = blackImage
+        if (existing != null) {
+            return existing
         }
+        val image = createBlackImage(width, height)
+        blackImage = image
         return image
     }
 
@@ -437,23 +504,19 @@ class VideoEffectsProcessor {
         val x = (canvasSize.width - image.extent.width * scaleFactor) / 2
         val y = (canvasSize.height - image.extent.height * scaleFactor) / 2
         return image
-            .transformed(by = CGAffineTransform(scaleX = scaleFactor, y = scaleFactor))
-            .transformed(by = CGAffineTransform(translationX = x, y = y))
-            .cropped(to = CGRect(x = 0.0, y = 0.0, width = canvasSize.width, height = canvasSize.height))
-            .composited(
-                over = getBlackImage(
-                    width = canvasSize.width,
-                    height = canvasSize.height
-                )
-            )
+            .scaled(x = scaleFactor, y = scaleFactor)
+            .translated(x = x, y = y)
+            .cropped(to = CGRect(0.0, 0.0, canvasSize.width, canvasSize.height))
+            .composited(over = getBlackImage(canvasSize.width, canvasSize.height))
     }
 
     private fun getBlackImageMetalPetal(size: CGSize): MTIImage {
-        var image = blackImageMetalPetal
-        if (image == null) {
-            image = MTIImage(color = MTIColor.black, sRGB = false, size = size)
-            blackImageMetalPetal = image
+        val existing = blackImageMetalPetal
+        if (existing != null) {
+            return existing
         }
+        val image = MTIImage(color = MTIColor.black, sRGB = false, size = size)
+        blackImageMetalPetal = image
         return image
     }
 
@@ -481,7 +544,7 @@ class VideoEffectsProcessor {
                 contentFlipOptions = if (mirror) shape.mirrorFlipOptions() else MTILayer.FlipOptions.donotFlip,
                 position = position,
                 size = size,
-                rotation = shape.rotationRadians()
+                rotation = shape.rotationRadians(),
             ),
         )
         return filter.outputImage ?: image
@@ -497,20 +560,18 @@ class VideoEffectsProcessor {
     }
 
     private fun mirrorCoreImage(image: CIImage): CIImage {
-        return image
-            .transformed(by = CGAffineTransform(scaleX = -1.0, y = 1.0))
-            .transformed(by = CGAffineTransform(translationX = image.extent.width, y = 0.0))
+        return image.scaled(x = -1.0, y = 1.0).translated(x = image.extent.width, y = 0.0)
     }
 
     private fun applyEffectsCoreImage(
-        imageBuffer: CVImageBuffer,
+        imageBuffer: CVPixelBuffer,
         sampleBuffer: MediaSample,
         enabledEffects: List<VideoEffect>,
         isSceneSwitchTransition: Boolean,
         videoOrientation: Int,
-        info: VideoEffectInfo
-    ): Pair<CVImageBuffer?, MediaSample?> {
-        var image = CIImage(cvPixelBuffer = imageBuffer)
+        info: VideoEffectInfo,
+    ): Pair<CVPixelBuffer?, MediaSample?> {
+        var image = makeCiImage(imageBuffer)
         val originalImage = image
         if (videoOrientation != AVCaptureVideoOrientation.portrait && imageBuffer.isPortrait()) {
             image = image.oriented(CGImagePropertyOrientation.left)
@@ -536,35 +597,29 @@ class VideoEffectsProcessor {
             return Pair(null, null)
         }
         val outputImageBuffer = createPixelBuffer(sampleBuffer) ?: return Pair(null, null)
-        val colorSpace = poolColorSpace
-        if (colorSpace != null) {
-            context.render(image, to = outputImageBuffer, bounds = extent, colorSpace = colorSpace)
-        } else {
-            context.render(image, to = outputImageBuffer)
-        }
+        renderCoreImage(image, outputImageBuffer, extent)
         val formatDescription = CMVideoFormatDescriptionCreateForImageBuffer(outputImageBuffer)
         val outputSampleBuffer = create(
             outputImageBuffer,
             formatDescription,
             sampleBuffer.durationUs,
             sampleBuffer.presentationTimeUs,
-            sampleBuffer.decodeTimeStampUs
+            sampleBuffer.decodeTimeStampUs,
         ) ?: return Pair(null, null)
         return Pair(outputImageBuffer, outputSampleBuffer)
     }
 
     private fun applyEffectsMetalPetal(
-        imageBuffer: CVImageBuffer,
+        imageBuffer: CVPixelBuffer,
         sampleBuffer: MediaSample,
         enabledEffects: List<VideoEffect>,
         isSceneSwitchTransition: Boolean,
         videoOrientation: Int,
-        info: VideoEffectInfo
-    ): Pair<CVImageBuffer?, MediaSample?> {
-        val imageBufferImage: MTIImage? = MTIImage(cvPixelBuffer = imageBuffer, alphaType = MTIAlphaType.alphaIsOne)
-        val originalImage = imageBufferImage
-        var image = imageBufferImage ?: return Pair(null, null)
-        var rotation = this.rotation
+        info: VideoEffectInfo,
+    ): Pair<CVPixelBuffer?, MediaSample?> {
+        var image = MTIImage(cvPixelBuffer = imageBuffer, alphaType = MTIAlphaType.alphaIsOne)
+        val originalImage = image
+        var rotation = rotation
         if (videoOrientation != AVCaptureVideoOrientation.portrait && imageBuffer.isPortrait()) {
             rotation = (rotation + 270) % 360
         }
@@ -582,8 +637,8 @@ class VideoEffectsProcessor {
         }
         val outputImageBuffer = createPixelBuffer(sampleBuffer) ?: return Pair(null, null)
         try {
-            metalPetalContext?.render(image, to = outputImageBuffer)
-        } catch (error: Throwable) {
+            metalPetalContext?.render(image, outputImageBuffer)
+        } catch (error: Exception) {
             Log.i("VideoEffectsProcessor", "video-unit: Metal petal error: $error")
             return Pair(null, null)
         }
@@ -593,7 +648,7 @@ class VideoEffectsProcessor {
             formatDescription,
             sampleBuffer.durationUs,
             sampleBuffer.presentationTimeUs,
-            sampleBuffer.decodeTimeStampUs
+            sampleBuffer.decodeTimeStampUs,
         ) ?: return Pair(null, null)
         return Pair(outputImageBuffer, outputSampleBuffer)
     }
@@ -602,10 +657,11 @@ class VideoEffectsProcessor {
         val latest = latestSampleBufferTime
         if (latest != null) {
             val offset = ContinuousClock.now - latest
-            return if (sceneSwitchTransitionName() == "blurandzoom") {
-                0f + minOf(offset.toDouble(DurationUnit.SECONDS).toFloat(), 5f) * 5
+            val seconds = offset.toDouble(DurationUnit.SECONDS)
+            return if (sceneSwitchTransition == SceneSwitchTransition.BLUR_AND_ZOOM) {
+                0f + min(seconds.toFloat(), 5f) * 5f
             } else {
-                15f + minOf(offset.toDouble(DurationUnit.SECONDS).toFloat(), 2f) * 15
+                15f + min(seconds.toFloat(), 2f) * 15f
             }
         }
         return 25f
@@ -615,24 +671,24 @@ class VideoEffectsProcessor {
         val latest = latestSampleBufferTime
         if (latest != null) {
             val offset = ContinuousClock.now - latest
-            return 1.0 - minOf(offset.toDouble(DurationUnit.SECONDS), 5.0) * 0.05
+            return 1.0 - min(offset.toDouble(DurationUnit.SECONDS), 5.0) * 0.05
         }
         return 0.75
     }
 
     private fun applySceneSwitchTransition(image: CIImage): CIImage {
-        return when (sceneSwitchTransitionName()) {
-            "blur" -> {
+        return when (sceneSwitchTransition) {
+            SceneSwitchTransition.BLUR -> {
                 val filter = CIFilter.gaussianBlur()
                 filter.inputImage = image
-                filter.radius = calcBlurRadius() * (image.extent.size.maximum() / 1920.0).toFloat()
+                filter.radius = calcBlurRadius() * (image.extent.size.maximum() / 1920).toFloat()
                 filter.outputImage?.cropped(to = image.extent) ?: image
             }
-            "freeze" -> image
-            "blurandzoom" -> {
+            SceneSwitchTransition.FREEZE -> image
+            SceneSwitchTransition.BLUR_AND_ZOOM -> {
                 val filter = CIFilter.gaussianBlur()
                 filter.inputImage = image
-                filter.radius = calcBlurRadius() * (image.extent.size.maximum() / 1920.0).toFloat()
+                filter.radius = calcBlurRadius() * (image.extent.size.maximum() / 1920).toFloat()
                 val width = image.extent.width
                 val height = image.extent.height
                 val cropScaleDownFactor = calcBlurScale()
@@ -642,60 +698,40 @@ class VideoEffectsProcessor {
                 val smallOffsetX = (width - smallWidth) / 2
                 val smallOffsetY = (height - smallHeight) / 2
                 filter.outputImage
-                    ?.cropped(
-                        to = CGRect(
-                            x = smallOffsetX,
-                            y = smallOffsetY,
-                            width = smallWidth,
-                            height = smallHeight
-                        )
-                    )
-                    ?.transformed(by = CGAffineTransform(translationX = -smallOffsetX, y = -smallOffsetY))
-                    ?.transformed(by = CGAffineTransform(scaleX = scaleUpFactor, y = scaleUpFactor))
-                    ?.cropped(to = image.extent)
-                    ?: image
+                    ?.cropped(to = CGRect(smallOffsetX, smallOffsetY, smallWidth, smallHeight))
+                    ?.translated(x = -smallOffsetX, y = -smallOffsetY)
+                    ?.scaled(x = scaleUpFactor, y = scaleUpFactor)
+                    ?.cropped(to = image.extent) ?: image
             }
-            else -> image
         }
     }
 
     private fun blurMetalPetal(image: MTIImage): MTIImage {
         val filter = MTIMPSGaussianBlurFilter()
         filter.inputImage = image
-        filter.radius = calcBlurRadius() * (image.extent.size.maximum() / 1920.0).toFloat()
+        filter.radius = calcBlurRadius() * (image.extent.size.maximum() / 1920).toFloat()
         return filter.outputImage ?: image
     }
 
     private fun applySceneSwitchTransitionMetalPetal(image: MTIImage): MTIImage {
-        return when (sceneSwitchTransitionName()) {
-            "blur" -> blurMetalPetal(image)
-            "freeze" -> image
-            "blurandzoom" -> {
+        return when (sceneSwitchTransition) {
+            SceneSwitchTransition.BLUR -> blurMetalPetal(image)
+            SceneSwitchTransition.FREEZE -> image
+            SceneSwitchTransition.BLUR_AND_ZOOM -> {
                 val cropScaleDownFactor = calcBlurScale()
                 val filter = MTICropFilter()
                 filter.inputImage = blurMetalPetal(image)
                 filter.cropRegion = MTICropRegion.fractional(
                     CGRect(
-                        x = (1 - cropScaleDownFactor) / 2,
-                        y = (1 - cropScaleDownFactor) / 2,
-                        width = cropScaleDownFactor,
-                        height = cropScaleDownFactor
-                    )
+                        (1 - cropScaleDownFactor) / 2,
+                        (1 - cropScaleDownFactor) / 2,
+                        cropScaleDownFactor,
+                        cropScaleDownFactor,
+                    ),
                 )
                 filter.scale = (1 / cropScaleDownFactor).toFloat()
                 filter.outputImage ?: image
             }
-            else -> image
         }
-    }
-
-    private fun sceneSwitchTransitionName(): String {
-        return sceneSwitchTransition.name.lowercase().replace("_", "")
-    }
-
-    private fun sceneSwitchTransitionEntry(name: String): SceneSwitchTransition {
-        return SceneSwitchTransition.values().firstOrNull {
-            it.name.lowercase().replace("_", "") == name
-        } ?: SceneSwitchTransition.values().first()
     }
 }

@@ -42,7 +42,11 @@ private fun Model.removeUnusedMediaPlayerFiles() {
 }
 
 fun Model.addMediaPlayer(settings: SettingsMediaPlayer) {
-    val mediaPlayer = MediaPlayer(settings = settings, mediaStorage = mediaStorage)
+    val mediaPlayer = MediaPlayer(
+        settings = settings,
+        mediaStorage = mediaStorage,
+        colorRange = stream.value.colorRange,
+    )
     mediaPlayer.delegate = MediaPlayerDelegateImpl(this)
     mediaPlayers.put(settings.id, mediaPlayer)?.close()
     updateMicsListAsync()

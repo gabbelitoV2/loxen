@@ -12,6 +12,7 @@ import com.moblin.android.media.webrtc.defaultStunServer
 import com.moblin.android.platform.datachannel.*
 import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.network.httpRequest
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import java.net.URI
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -50,6 +51,7 @@ class WhepClient(
     private val latency: Double,
     private val syncTimestamps: Boolean,
     private val softwareDecoding: Boolean,
+    private val colorRange: SettingsStreamColorRange,
     private val delegate: WhepClientDelegate,
 ) : WebrtcIngestClientDelegate {
     private var ingestClient: WebrtcIngestClient? = null
@@ -98,6 +100,7 @@ class WhepClient(
             latency = latency,
             syncTimestamps = syncTimestamps,
             softwareDecoding = softwareDecoding,
+            colorRange = colorRange,
             iceServers = listOf(defaultStunServer),
             dispatchQueue = dispatchQueue,
             delegate = this,

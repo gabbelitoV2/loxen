@@ -1,8 +1,10 @@
 package com.moblin.android.media.haishinkit.media.video
 
+import android.media.MediaFormat
 import android.util.Log
 import android.util.Size
 import com.moblin.android.common.various.clamped
+import com.moblin.android.common.various.create
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.extension.description
 import com.moblin.android.media.haishinkit.extension.isFrameRateSupported
@@ -40,8 +42,23 @@ import com.moblin.android.platform.avfoundation.session
 import com.moblin.android.platform.avfoundation.setSessionWithNoConnection
 import com.moblin.android.platform.core.Notification
 import com.moblin.android.platform.core.NotificationCenter
+import com.moblin.android.platform.coregraphics.CGSize
+import com.moblin.android.platform.video.CMVideoFormatDescriptionCreateForImageBuffer
+import com.moblin.android.platform.video.CVPixelBufferGetHeight
+import com.moblin.android.platform.video.CVPixelBufferGetPixelFormatType
+import com.moblin.android.platform.video.CVPixelBufferGetWidth
+import com.moblin.android.platform.video.CVPixelBufferPool
+import com.moblin.android.platform.video.CVPixelBufferPoolCreate
+import com.moblin.android.platform.video.CVPixelBufferPoolCreatePixelBuffer
+import com.moblin.android.platform.video.kCVPixelBufferHeightKey
+import com.moblin.android.platform.video.kCVPixelBufferIOSurfacePropertiesKey
+import com.moblin.android.platform.video.kCVPixelBufferMetalCompatibilityKey
 import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
+import com.moblin.android.platform.video.kCVPixelBufferWidthKey
+import com.moblin.android.platform.video.kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
 import com.moblin.android.platform.video.kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+import com.moblin.android.platform.video.swapPool
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.utils.fps
 import com.moblin.android.various.utils.setAutoFps
 import com.moblin.android.various.utils.setFps
@@ -54,6 +71,8 @@ import kotlinx.coroutines.launch
 private const val TAG = "VideoCaptureSession"
 
 var nativeLowLightBoost = false
+
+var externalCameraVideoRange = false
 
 data class CaptureDevice(
     val device: AVCaptureDevice,
@@ -80,13 +99,129 @@ interface VideoCaptureSessionDelegate {
     fun videoCaptureSessionWasInterrupted()
 }
 
+private const val kCVPixelFormatComponentRange_FullRange = "FullRange"
+
+private const val kCVPixelFormatComponentRange_VideoRange = "VideoRange"
+
+private fun pixelFormatComponentRange(pixelFormat: Int): String? {
+    return when (pixelFormat) {
+        kCVPixelFormatType_420YpCbCr8BiPlanarFullRange -> kCVPixelFormatComponentRange_FullRange
+        kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange -> kCVPixelFormatComponentRange_VideoRange
+        else -> null
+    }
+}
+
+fun isVideoRangePixelFormat(pixelFormat: Int): Boolean {
+    return pixelFormatComponentRange(pixelFormat) == kCVPixelFormatComponentRange_VideoRange
+}
+
+fun isFullRangePixelFormat(pixelFormat: Int): Boolean {
+    return pixelFormatComponentRange(pixelFormat) == kCVPixelFormatComponentRange_FullRange
+}
+
+fun filterFormatsByColorRange(
+    formats: List<AVCaptureDevice.Format>,
+    colorRange: SettingsStreamColorRange,
+): List<AVCaptureDevice.Format> {
+    val preferences: List<(AVCaptureDevice.Format) -> Boolean> = when (colorRange) {
+        SettingsStreamColorRange.full -> listOf(
+            { isFullRangePixelFormat(it.pixelFormat) },
+            { it.pixelFormat != kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange },
+        )
+        SettingsStreamColorRange.limited -> listOf(
+            { isVideoRangePixelFormat(it.pixelFormat) },
+        )
+    }
+    for (isPreferred in preferences) {
+        val preferredFormats = formats.filter(isPreferred)
+        if (preferredFormats.isNotEmpty()) {
+            return preferredFormats
+        }
+    }
+    return formats
+}
+
+interface VideoFormat {
+    val pixelFormat: Int
+}
+
+val AVCaptureDevice.Format.pixelFormat: Int
+    get() = formatDescription.mediaSubType.rawValue
+
+private fun isExternalCameraVideoRange(
+    device: AVCaptureDevice,
+    colorRange: SettingsStreamColorRange,
+): Boolean {
+    return externalCameraVideoRange &&
+        device.deviceType == AVCaptureDevice.DeviceType.external &&
+        colorRange == SettingsStreamColorRange.limited
+}
+
+private class VideoRangeRelabeler {
+    private var pool: CVPixelBufferPool? = null
+    private var poolSize = CGSize.zero
+    private var formatDescription: MediaFormat? = null
+    private var logged = false
+
+    fun relabel(sampleBuffer: MediaSample): MediaSample? {
+        val imageBuffer = sampleBuffer.imageBuffer ?: return sampleBuffer
+        if (CVPixelBufferGetPixelFormatType(imageBuffer) !=
+            kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+        ) {
+            return sampleBuffer
+        }
+        val width = CVPixelBufferGetWidth(imageBuffer)
+        val height = CVPixelBufferGetHeight(imageBuffer)
+        if (pool == null || poolSize.width != width.toDouble() || poolSize.height != height.toDouble()) {
+            val attributes: Map<String, Any> = mapOf(
+                kCVPixelBufferPixelFormatTypeKey to kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
+                kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
+                kCVPixelBufferMetalCompatibilityKey to true,
+                kCVPixelBufferWidthKey to width,
+                kCVPixelBufferHeightKey to height,
+            )
+            pool = swapPool(pool, null)
+            pool = CVPixelBufferPoolCreate(attributes)
+            poolSize = CGSize(width, height)
+            formatDescription = null
+        }
+        val currentPool = pool ?: return null
+        val outputImageBuffer = CVPixelBufferPoolCreatePixelBuffer(currentPool) ?: return null
+        Unit
+        if (formatDescription == null) {
+            formatDescription = CMVideoFormatDescriptionCreateForImageBuffer(outputImageBuffer)
+            if (!logged) {
+                logged = true
+                Log.i(TAG, "video-unit: Relabeled 420f to 420v: $formatDescription")
+            }
+        }
+        val newFormatDescription = formatDescription ?: return null
+        return create(
+            outputImageBuffer,
+            newFormatDescription,
+            sampleBuffer.durationUs,
+            sampleBuffer.presentationTimeUs,
+            sampleBuffer.decodeTimeStampUs,
+        )
+    }
+}
+
 private class DeviceOutputHandler(
     private val device: AVCaptureDevice,
     private val cameraId: UUID,
     private val delegate: VideoCaptureSessionDelegate?,
+    relabelToVideoRange: Boolean,
 ) : AVCaptureVideoDataOutputSampleBufferDelegate {
+    private val relabeler: VideoRangeRelabeler? = if (relabelToVideoRange) VideoRangeRelabeler() else null
+
     override fun captureOutput(output: AVCaptureOutput, didOutput: MediaSample, from: AVCaptureConnection) {
-        delegate?.videoCaptureSessionDidOutput(device, cameraId, didOutput)
+        val relabeler = relabeler
+        if (relabeler != null) {
+            val sampleBuffer = relabeler.relabel(didOutput) ?: return
+            delegate?.videoCaptureSessionDidOutput(device, cameraId, sampleBuffer)
+        } else {
+            delegate?.videoCaptureSessionDidOutput(device, cameraId, didOutput)
+        }
     }
 }
 
@@ -100,12 +235,17 @@ private data class CaptureSessionDevice(
     val outputHandler: DeviceOutputHandler,
 )
 
-private data class VideoFormatSearch(
-    val format: AVCaptureDevice.Format?,
-    val useAutoFrameRate: Boolean,
-    val useLandscapeInPortrait: Boolean,
-    val error: String?,
-)
+private sealed class VideoFormatResult {
+    data class Found(
+        val format: AVCaptureDevice.Format,
+        val useAutoFrameRate: Boolean,
+        val useLandscapeInPortrait: Boolean,
+    ) : VideoFormatResult()
+
+    data class NotFound(
+        val error: String,
+    ) : VideoFormatResult()
+}
 
 private fun makeCaptureSession(): AVCaptureMultiCamSession {
     val session = AVCaptureMultiCamSession()
@@ -131,7 +271,10 @@ private fun setOrientation(
     }
 }
 
-class VideoCaptureSession : AVCaptureSessionControlsDelegate, AVCapturePhotoCaptureDelegate {
+class VideoCaptureSession(colorRange: SettingsStreamColorRange) :
+    AVCaptureSessionControlsDelegate,
+    AVCapturePhotoCaptureDelegate
+{
     var delegate: VideoCaptureSessionDelegate? = null
     var processor: Processor? = null
     val session = makeCaptureSession()
@@ -144,6 +287,7 @@ class VideoCaptureSession : AVCaptureSessionControlsDelegate, AVCapturePhotoCapt
     private var preferAutoFps = false
     private var colorSpace: Int = AVCaptureColorSpace.sRGB
     private var isLandscapeStreamAndPortraitUi = false
+    private val colorRange: SettingsStreamColorRange = colorRange
 
     var videoOrientation: Int = AVCaptureVideoOrientation.portrait
         set(value) {
@@ -377,7 +521,7 @@ class VideoCaptureSession : AVCaptureSessionControlsDelegate, AVCapturePhotoCapt
         fps: Double,
         preferAutoFrameRate: Boolean,
         colorSpace: Int,
-    ): VideoFormatSearch {
+    ): VideoFormatResult {
         var useAutoFrameRate = false
         var useLandscapeInPortrait = false
         var formats = device.formats
@@ -405,39 +549,25 @@ class VideoCaptureSession : AVCaptureSessionControlsDelegate, AVCapturePhotoCapt
         }
         formats = formats.filter { it.supportedColorSpaces.contains(colorSpace) }
         if (formats.isEmpty()) {
-            return VideoFormatSearch(
-                format = null,
-                useAutoFrameRate = useAutoFrameRate,
-                useLandscapeInPortrait = useLandscapeInPortrait,
-                error = "No format found matching ${height}p${fps.toInt()}, ${AVCaptureColorSpace.description(colorSpace)}",
+            return VideoFormatResult.NotFound(
+                "No format found matching ${height}p${fps.toInt()}, ${AVCaptureColorSpace.description(colorSpace)}",
             )
         }
         formats = formats.filter { !it.isVideoBinned }
         if (formats.isEmpty()) {
-            return VideoFormatSearch(
-                format = null,
-                useAutoFrameRate = useAutoFrameRate,
-                useLandscapeInPortrait = useLandscapeInPortrait,
-                error = "No unbinned video format found",
-            )
+            return VideoFormatResult.NotFound("No unbinned video format found")
         }
-        formats = formats.filter {
-            it.formatDescription.mediaSubType.rawValue != kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange ||
-                allowVideoRangePixelFormat
+        val formatColorRange = if (isExternalCameraVideoRange(device, colorRange)) {
+            SettingsStreamColorRange.full
+        } else {
+            colorRange
         }
-        if (formats.isEmpty()) {
-            return VideoFormatSearch(
-                format = null,
-                useAutoFrameRate = useAutoFrameRate,
-                useLandscapeInPortrait = useLandscapeInPortrait,
-                error = "Unsupported pixel format",
-            )
-        }
-        return VideoFormatSearch(
-            format = formats.first(),
+        val format = filterFormatsByColorRange(formats, formatColorRange).firstOrNull()
+            ?: return VideoFormatResult.NotFound("Unsupported pixel format")
+        return VideoFormatResult.Found(
+            format = format,
             useAutoFrameRate = useAutoFrameRate,
             useLandscapeInPortrait = useLandscapeInPortrait,
-            error = null,
         )
     }
 
@@ -464,21 +594,36 @@ class VideoCaptureSession : AVCaptureSessionControlsDelegate, AVCapturePhotoCapt
         if (device == null) {
             return
         }
-        val (format, useAutoFrameRate, useLandscapeInPortrait, error) = findVideoFormat(
-            device = device,
-            width = captureSize.width,
-            height = captureSize.height,
-            fps = fps,
-            preferAutoFrameRate = preferAutoFrameRate,
-            colorSpace = colorSpace,
-        )
-        if (error != null) {
-            reportFormatNotFound(device, error)
-            return
+        when (
+            val result = findVideoFormat(
+                device = device,
+                width = captureSize.width,
+                height = captureSize.height,
+                fps = fps,
+                preferAutoFrameRate = preferAutoFrameRate,
+                colorSpace = colorSpace,
+            )
+        ) {
+            is VideoFormatResult.Found -> applyDeviceFormat(
+                device = device,
+                format = result.format,
+                fps = fps,
+                colorSpace = colorSpace,
+                useAutoFrameRate = result.useAutoFrameRate,
+                useLandscapeInPortrait = result.useLandscapeInPortrait,
+            )
+            is VideoFormatResult.NotFound -> reportFormatNotFound(device, result.error)
         }
-        if (format == null) {
-            return
-        }
+    }
+
+    private fun applyDeviceFormat(
+        device: AVCaptureDevice,
+        format: AVCaptureDevice.Format,
+        fps: Double,
+        colorSpace: Int,
+        useAutoFrameRate: Boolean,
+        useLandscapeInPortrait: Boolean,
+    ) {
         Log.d(TAG, "video-unit: Selected format: $format")
         try {
             device.lockForConfiguration()
@@ -509,8 +654,13 @@ class VideoCaptureSession : AVCaptureSessionControlsDelegate, AVCapturePhotoCapt
     private fun attachDevice(device: CaptureDevice, session: AVCaptureMultiCamSession, attachPhotoShoot: Boolean) {
         val input = AVCaptureDeviceInput(device = device.device)
         val output = AVCaptureVideoDataOutput()
+        val relabelToVideoRange = isExternalCameraVideoRange(device.device, colorRange)
         output.videoSettings = mapOf(
-            kCVPixelBufferPixelFormatTypeKey to pixelFormatType,
+            kCVPixelBufferPixelFormatTypeKey to if (relabelToVideoRange) {
+                kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+            } else {
+                colorRange.pixelFormatType()
+            },
         )
         var connection: AVCaptureConnection? = null
         val port = input.ports.firstOrNull { it.mediaType == AVMediaType.video }
@@ -571,6 +721,7 @@ class VideoCaptureSession : AVCaptureSessionControlsDelegate, AVCapturePhotoCapt
                         device = device.device,
                         cameraId = device.id,
                         delegate = delegate,
+                        relabelToVideoRange = relabelToVideoRange,
                     ),
                 )
             )

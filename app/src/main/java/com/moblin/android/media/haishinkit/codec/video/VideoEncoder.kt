@@ -7,10 +7,12 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.extension.convertTo
 import com.moblin.android.media.haishinkit.extension.encodeFrame
 import com.moblin.android.media.haishinkit.extension.invalidate
+import com.moblin.android.media.haishinkit.extension.colorAttachments
 import com.moblin.android.media.haishinkit.extension.prepareToEncodeFrames
 import com.moblin.android.media.haishinkit.extension.setProperties
-import com.moblin.android.media.haishinkit.media.video.pixelFormatType
 import com.moblin.android.media.haishinkit.util.Atomic
+import com.moblin.android.platform.video.CMVideoFormatDescriptionCreateForImageBuffer
+import com.moblin.android.platform.video.CMVideoFormatDescriptionMatchesImageBuffer
 import com.moblin.android.platform.video.CVImageBuffer
 import com.moblin.android.platform.video.kCVPixelBufferHeightKey
 import com.moblin.android.platform.video.kCVPixelBufferIOSurfacePropertiesKey
@@ -22,6 +24,7 @@ import com.moblin.android.platform.videotoolbox.VTCompressionSession
 import com.moblin.android.platform.videotoolbox.VTCompressionSessionCreate
 import com.moblin.android.platform.videotoolbox.kVTInvalidSessionErr
 import com.moblin.android.platform.videotoolbox.noErr
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -41,7 +44,10 @@ interface VideoEncoderControlDelegate {
     fun videoEncoderControlResolutionChanged(encoder: VideoEncoder, resolution: Size)
 }
 
-class VideoEncoder(private val lockQueue: CoroutineScope) {
+class VideoEncoder(
+    private val lockQueue: CoroutineScope,
+    private val colorRange: SettingsStreamColorRange,
+) {
     var settings: Atomic<VideoEncoderSettings> = Atomic(VideoEncoderSettings())
         set(value) {
             val oldValue = field.value
@@ -66,6 +72,9 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
         }
 
     private var invalidateSession = true
+    private var colorAttachments: Map<String, String> = emptyMap()
+    private var colorAttachmentsFormatDescription: MediaFormat? = null
+    var outputColorAttachments: Map<String, String>? = null
     private var currentBitrate = 0
     private var oldBitrateVideoSize: Size = Size(0, 0)
 
@@ -95,6 +104,7 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
             return
         }
         val settings = this.settings.value
+        updateColorAttachments(imageBuffer)
         val newBitrateVideoSize = updateAdaptiveResolution(settings)
         if (newBitrateVideoSize != oldBitrateVideoSize) {
             session = makeSession(settings, newBitrateVideoSize)
@@ -152,6 +162,26 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
         delegate?.videoEncoderOutputFormat(this, description)
     }
 
+    private fun updateColorAttachments(imageBuffer: CVImageBuffer) {
+        val colorAttachments: Map<String, String>
+        val output = outputColorAttachments
+        if (output != null) {
+            colorAttachmentsFormatDescription = null
+            colorAttachments = output
+        } else {
+            val description = colorAttachmentsFormatDescription
+            if (description != null && CMVideoFormatDescriptionMatchesImageBuffer(description, imageBuffer)) {
+                return
+            }
+            colorAttachmentsFormatDescription = CMVideoFormatDescriptionCreateForImageBuffer(imageBuffer)
+            colorAttachments = imageBuffer.colorAttachments
+        }
+        if (colorAttachments != this.colorAttachments) {
+            this.colorAttachments = colorAttachments
+            invalidateSession = true
+        }
+    }
+
     private fun updateBitrate(settings: VideoEncoderSettings) {
         if (currentBitrate == settings.bitrate) {
             return
@@ -195,7 +225,7 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
 
     private fun makeSession(settings: VideoEncoderSettings, videoSize: Size): VTCompressionSession? {
         val attributes = mapOf<String, Any>(
-            kCVPixelBufferPixelFormatTypeKey to pixelFormatType,
+            kCVPixelBufferPixelFormatTypeKey to colorRange.pixelFormatType(),
             kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
             kCVPixelBufferMetalCompatibilityKey to true,
             kCVPixelBufferWidthKey to settings.videoSize.width,
@@ -210,6 +240,10 @@ class VideoEncoder(private val lockQueue: CoroutineScope) {
         if (status != noErr || session == null) {
             Log.i(TAG, "video-encoder: Failed to create session with status $status")
             return null
+        }
+        status = session.setProperties(createColorProperties(colorAttachments))
+        if (status != noErr) {
+            Log.i(TAG, "video-encoder: Failed to set color properties with status $status")
         }
         status = session.setProperties(settings.properties())
         if (status != noErr) {

@@ -4,6 +4,7 @@ import android.util.Log
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReader
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReaderDelegate
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import java.util.UUID
 import kotlin.coroutines.ContinuationInterceptor
 import kotlinx.coroutines.CoroutineDispatcher
@@ -19,6 +20,7 @@ class RistServerClient(
     private val cameraId: UUID,
     latency: Double,
     softwareDecoding: Boolean,
+    colorRange: SettingsStreamColorRange,
 ) : MpegTsReaderDelegate {
     var server: RistServer? = null
     fun stop() = reader.stop()
@@ -27,6 +29,7 @@ class RistServerClient(
         decoderQueue = ristServerDispatcher,
         timecodesEnabled = false,
         softwareDecoding = softwareDecoding,
+        colorRange = colorRange,
         targetLatency = latency,
     )
 

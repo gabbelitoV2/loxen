@@ -19,6 +19,8 @@ const val KERN_FAILURE = 5
 const val TASK_VM_INFO = 22
 const val mach_task_self_ = 0
 
+class NSNull
+
 class timeval(var tv_sec: Long = 0, var tv_usec: Int = 0) {
     val milliseconds: Long
         get() = tv_sec * 1000 + tv_usec / 1000

@@ -16,6 +16,7 @@ import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
 import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
 import com.moblin.android.various.settings.SettingsMediaPlayer
 import com.moblin.android.various.settings.SettingsMediaPlayerFile
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.storages.MediaPlayerStorage
 import com.moblin.android.various.utils.currentPresentationTimeStamp
 import java.util.Locale
@@ -49,7 +50,11 @@ private val mediaPlayerQueue: CoroutineDispatcher =
 
 val mediaPlayerLatency: Double = 0.5
 
-open class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerStorage) : AutoCloseable {
+open class MediaPlayer(
+    settings: SettingsMediaPlayer,
+    mediaStorage: MediaPlayerStorage,
+    colorRange: SettingsStreamColorRange,
+) : AutoCloseable {
     private var asset: AVAsset? = null
     private var reader: AVAssetReader? = null
     private var videoTrackOutput: AVAssetReaderTrackOutput? = null
@@ -67,6 +72,7 @@ open class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerS
     private var outputTimer: SimpleTimer = SimpleTimer(queue = mediaPlayerQueue)
     private var active = false
     private var filename = ""
+    private var colorRange: SettingsStreamColorRange = colorRange
     open var delegate: MediaPlayerDelegate? = null
 
     init {
@@ -89,6 +95,12 @@ open class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerS
     open fun deactivate() {
         CoroutineScope(mediaPlayerQueue).launch {
             active = false
+        }
+    }
+
+    open fun setPixelFormatType(colorRange: SettingsStreamColorRange) {
+        CoroutineScope(mediaPlayerQueue).launch {
+            this@MediaPlayer.colorRange = colorRange
         }
     }
 
@@ -229,7 +241,7 @@ open class MediaPlayer(settings: SettingsMediaPlayer, mediaStorage: MediaPlayerS
         val asset = this.asset ?: return
         val reader = this.reader ?: return
         val videoOutputSettings: Map<String, Any> = mapOf(
-            kCVPixelBufferPixelFormatTypeKey to com.moblin.android.media.haishinkit.media.video.pixelFormatType,
+            kCVPixelBufferPixelFormatTypeKey to colorRange.pixelFormatType(),
             kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
             kCVPixelBufferMetalCompatibilityKey to true,
         )

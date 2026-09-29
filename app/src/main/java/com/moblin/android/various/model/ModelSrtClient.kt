@@ -64,6 +64,7 @@ fun Model.reloadSrtClient() {
             cameraId = stream.id,
             url = url,
             softwareDecoding = database.ingestsSoftwareVideoDecoding,
+            colorRange = this@reloadSrtClient.stream.value.colorRange,
             delegate = delegate,
         )
         client.start()

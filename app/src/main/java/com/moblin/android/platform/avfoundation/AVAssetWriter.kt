@@ -77,6 +77,7 @@ const val AVVideoHeightKey = "height"
 const val AVVideoCompressionPropertiesKey = "compressionProperties"
 const val AVVideoAverageBitRateKey = "bitrate"
 const val AVVideoMaxKeyFrameIntervalDurationKey = "i-frame-interval"
+const val AVVideoProfileLevelKey = "profile-level"
 const val AVFormatIDKey = "mime"
 const val AVSampleRateKey = "sample-rate"
 const val AVNumberOfChannelsKey = "channel-count"
@@ -542,6 +543,7 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
     private val requestedWidth = (outputSettings?.get(AVVideoWidthKey) as? Number)?.toInt() ?: 0
     private val requestedHeight = (outputSettings?.get(AVVideoHeightKey) as? Number)?.toInt() ?: 0
     private val compressionProperties = outputSettings?.get(AVVideoCompressionPropertiesKey) as? Map<*, *>
+    private val requestedProfileLevel = compressionProperties?.get(AVVideoProfileLevelKey) as? String
     private val requestedBitrate = (compressionProperties?.get(AVVideoAverageBitRateKey) as? Number)?.toInt()
     private val requestedKeyFrameInterval =
         (compressionProperties?.get(AVVideoMaxKeyFrameIntervalDurationKey) as? Number)?.toDouble()
@@ -694,7 +696,8 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
             "ExpectedFrameRate" to frameRate,
             "AllowFrameReordering" to false,
             "MaxKeyFrameIntervalDuration" to (requestedKeyFrameInterval ?: 2.0),
-            "ProfileLevel" to if (isHevc) kVTProfileLevel_HEVC_Main_AutoLevel else kVTProfileLevel_H264_High_AutoLevel,
+            "ProfileLevel" to (requestedProfileLevel
+                ?: if (isHevc) kVTProfileLevel_HEVC_Main_AutoLevel else kVTProfileLevel_H264_High_AutoLevel),
             "AverageBitRate" to bitrate,
         )
         VTSessionSetProperties(session, properties)

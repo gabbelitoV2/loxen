@@ -17,6 +17,7 @@ import com.moblin.android.media.haishinkit.util.ByteReader
 import com.moblin.android.platform.audio.makePcmFormat
 import com.moblin.android.platform.avfoundation.AVAudioConverter
 import com.moblin.android.platform.avfoundation.AVAudioPCMBuffer
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.utils.currentPresentationTimeStamp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -39,6 +40,7 @@ class MpegTsReader(
     private val decoderQueue: CoroutineDispatcher,
     private val timecodesEnabled: Boolean,
     private val softwareDecoding: Boolean,
+    private val colorRange: SettingsStreamColorRange,
     private val targetLatency: Double,
 ) : VideoDecoderDelegate {
     private var programAssociationTable = MpegTsProgramAssociation()
@@ -263,7 +265,7 @@ class MpegTsReader(
         val height = formatDescription.getInteger(MediaFormat.KEY_HEIGHT)
         Log.i(logTag, "mpeg-ts-reader: Got new video dimensions ${width}x${height}")
         videoDecoder?.stopRunning()
-        videoDecoder = VideoDecoder(name, CoroutineScope(decoderQueue), softwareDecoding)
+        videoDecoder = VideoDecoder(name, CoroutineScope(decoderQueue), softwareDecoding, colorRange)
         videoDecoder?.delegate = this
         videoDecoder?.startRunning(formatDescription)
     }

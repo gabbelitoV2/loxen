@@ -57,6 +57,7 @@ internal class ReplayEffectReplayReader internal constructor(
     start: Double,
     duration: Double,
     size: Size,
+    private val pixelFormatType: Int,
 ) {
     private val startTime: Double = start
     private val size: CGSize = size.toCGSize()
@@ -115,7 +116,7 @@ internal class ReplayEffectReplayReader internal constructor(
             return
         }
         val outputSettings: Map<String, Any> = mapOf(
-            kCVPixelBufferPixelFormatTypeKey to com.moblin.android.media.haishinkit.media.video.pixelFormatType,
+            kCVPixelBufferPixelFormatTypeKey to pixelFormatType,
             kCVPixelBufferIOSurfacePropertiesKey to emptyMap<String, Any>(),
             kCVPixelBufferMetalCompatibilityKey to true,
         )

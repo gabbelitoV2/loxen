@@ -69,6 +69,7 @@ fun Model.loadReplay(video: ReplaySettings, completion: (suspend () -> Unit)? = 
     replayFrameExtractor = ReplayFrameExtractor(
         video = ReplayBufferFile(url = video.url().path, duration = video.duration, remove = false),
         offset = video.thumbnailOffset(),
+        pixelFormatType = stream.value.colorRange.pixelFormatType(),
         delegate = ModelReplayDelegate(this),
         completion = completion,
     )
@@ -184,6 +185,7 @@ fun Model.replayPlay(): Boolean {
         size = stream.value.dimensions(),
         layout = replay.layout,
         transitionMode = transitionMode,
+        pixelFormatType = stream.value.colorRange.pixelFormatType(),
         delegate = ModelReplayEffectDelegate(this),
     )
     media.registerEffectBack(replayEffect!!)

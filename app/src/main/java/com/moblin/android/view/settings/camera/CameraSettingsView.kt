@@ -311,6 +311,16 @@ private fun PhotoShootSettingsView(
     }
 }
 
+private fun colorSpaces(model: Model): List<SettingsColorSpace> {
+    return SettingsColorSpace.entries.filter {
+        when (it) {
+            SettingsColorSpace.hlgBt2020 -> model.supportsHlg
+            SettingsColorSpace.appleLog -> model.supportsAppleLog
+            else -> true
+        }
+    }
+}
+
 @Composable
 fun CameraSettingsView(
     model: Model = LocalModel.current,
@@ -369,41 +379,31 @@ fun CameraSettingsView(
         if (database.showAllSettings) {
             CameraPreviewSettingsView(model = model, database = database)
             PhotoShootSettingsView(model = model, database = database)
-            if (model.supportsAppleLog) {
-                Section(
-                    footer = "The Apple Log LUT is only applied when the Apple Log color space " +
-                        "is selected.",
-                ) {
-                    Picker(
-                        title = "Color space",
-                        selection = color.space,
-                        options = SettingsColorSpace.entries,
-                        enabled = !(isLive || isRecording),
-                        text = { it.rawValue },
-                    ) { space ->
-                        color.space = space
-                        model.colorSpaceUpdated()
-                    }
+            Section(
+                footer = if (model.supportsAppleLog) {
+                    "The Apple Log LUT is only applied when the Apple Log color space " +
+                        "is selected."
+                } else {
+                    null
+                },
+            ) {
+                Picker(
+                    title = "Color space",
+                    selection = color.space,
+                    options = colorSpaces(model),
+                    enabled = !(isLive || isRecording),
+                    text = { it.rawValue },
+                ) { space ->
+                    color.space = space
+                    model.colorSpaceUpdated()
+                }
+                if (model.supportsAppleLog) {
                     NavigationLink(
                         destination = {
                             CameraSettingsAppleLogLutView(model = model, color = color)
                         },
                     ) {
                         Text("Apple Log LUT")
-                    }
-                }
-            } else {
-                Section {
-                    Picker(
-                        title = "Color space",
-                        selection = color.space,
-                        options = SettingsColorSpace.entries
-                            .filter { it != SettingsColorSpace.appleLog },
-                        enabled = !(isLive || isRecording),
-                        text = { it.rawValue },
-                    ) { space ->
-                        color.space = space
-                        model.colorSpaceUpdated()
                     }
                 }
             }

@@ -986,7 +986,7 @@ class StreamCodableSuite {
             obsWebSocketPassword obsSourceName obsMainScene obsBrbScene obsBrbSceneVideoSourceBroken
             obsAutoStartStream obsAutoStopStream obsAutoStartRecording obsAutoStopRecording streamingDirectlyToObs
             discordSnapshotWebhook discordChatBotSnapshotWebhook discordSnapshotWebhookOnlyWhenLive resolution fps
-            autoFps bitrate bitrateRateControl codec h264Profile bFrames adaptiveEncoderResolution
+            autoFps bitrate bitrateRateControl codec h264Profile colorRange bFrames adaptiveEncoderResolution
             adaptiveEncoderResolutionThreashold adaptiveBitrate srt rtmp rist whip maxKeyFrameInterval audioCodec
             audioBitrate chat recording realtimeIrlEnabled realtimeIrlBaseUrl realtimeIrlPushKey portrait
             backgroundStreaming backgroundStreamingPiP estimatedViewerDelay ntpPoolAddress timecodesEnabled replay
@@ -1343,6 +1343,7 @@ class StreamCodableSuite {
               "bitrateRateControl": "VBR",
               "codec": "H.264\/AVC",
               "h264Profile": "High",
+              "colorRange": "Limited",
               "bFrames": true,
               "adaptiveEncoderResolution": true,
               "adaptiveEncoderResolutionThreashold": 0.5,

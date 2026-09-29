@@ -26,18 +26,6 @@ enum class SettingsLogLevel(val rawValue: String) {
     }
 }
 
-val pixelFormats: List<String> = listOf(
-    "32BGRA",
-    "420YpCbCr8BiPlanarFullRange",
-    "420YpCbCr8BiPlanarVideoRange",
-)
-
-val pixelFormatTypes: List<Int> = listOf(
-    0x42475241,
-    0x34323066,
-    0x34323076,
-)
-
 @Serializable(with = SettingsDebug.Serializer::class)
 class SettingsDebug {
     var logLevel: SettingsLogLevel = SettingsLogLevel.error
@@ -55,10 +43,7 @@ class SettingsDebug {
     val bluetoothOutputOnly = MutableStateFlow(true)
 
     var maximumLogLines: Int = 500
-    var pixelFormat: String = pixelFormats[1]
     var faceToBeRemoved: SettingsFace = SettingsFace()
-
-    val allowVideoRangePixelFormat = MutableStateFlow(false)
 
     val nativeLowLightBoost = MutableStateFlow(false)
 
@@ -100,6 +85,8 @@ class SettingsDebug {
 
     val packetPadding = MutableStateFlow(false)
 
+    val externalCameraVideoRange = MutableStateFlow(false)
+
     fun encode(): JsonObject = encodeContainer {
         encode("logLevel", logLevel)
         encode("logFilter", logFilter)
@@ -109,9 +96,7 @@ class SettingsDebug {
         encode("cameraSwitchRemoveBlackish", cameraSwitchRemoveBlackish)
         encode("bluetoothOutputOnly", bluetoothOutputOnly)
         encode("maximumLogLines", maximumLogLines)
-        encode("pixelFormat", pixelFormat)
         encode("beautyFilterSettings", faceToBeRemoved, SettingsFace.serializer())
-        encode("allowVideoRangePixelFormat", allowVideoRangePixelFormat)
         encode("nativeLowLightBoost", nativeLowLightBoost)
         encode("blurSceneSwitch", blurSceneSwitch)
         encode("preferStereoMic", preferStereoMicToBeRemoved)
@@ -135,6 +120,7 @@ class SettingsDebug {
         encode("highQualityDownsampling", highQualityDownsamplingToBeRemoved)
         encode("httpProxy3", httpProxyToBeRemoved)
         encode("packetPadding", packetPadding)
+        encode("externalCameraVideoRange", externalCameraVideoRange)
     }
 
     companion object {
@@ -154,9 +140,7 @@ class SettingsDebug {
             debug.cameraSwitchRemoveBlackish.value = container.decode("cameraSwitchRemoveBlackish", 0.3f)
             debug.bluetoothOutputOnly.value = container.decode("bluetoothOutputOnly", true)
             debug.maximumLogLines = container.decode("maximumLogLines", 500)
-            debug.pixelFormat = container.decode("pixelFormat", pixelFormats[1])
             debug.faceToBeRemoved = container.decode("beautyFilterSettings", SettingsFace.serializer(), SettingsFace())
-            debug.allowVideoRangePixelFormat.value = container.decode("allowVideoRangePixelFormat", false)
             debug.nativeLowLightBoost.value = container.decode("nativeLowLightBoost", false)
             debug.blurSceneSwitch = container.decode("blurSceneSwitch", true)
             debug.preferStereoMicToBeRemoved = container.decode("preferStereoMic", false)
@@ -190,6 +174,7 @@ class SettingsDebug {
             debug.highQualityDownsamplingToBeRemoved = container.decode("highQualityDownsampling", false)
             debug.httpProxyToBeRemoved = container.decode("httpProxy3", false)
             debug.packetPadding.value = container.decode("packetPadding", false)
+            debug.externalCameraVideoRange.value = container.decode("externalCameraVideoRange", false)
             return debug
         }
     }

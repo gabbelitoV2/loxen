@@ -497,10 +497,18 @@ class Recorder : AVAssetWriterDelegate {
             reset()
             return
         }
-        writer.finishWriting {
-            delegate?.recorderFinished()
+        if (hasAudioAndVideoBeenAppended()) {
+            writer.finishWriting {
+                delegate?.recorderFinished()
+            }
+        } else {
+            writer.cancelWriting()
         }
         reset()
+    }
+
+    private fun hasAudioAndVideoBeenAppended(): Boolean {
+        return nextAudioPresentationTimeStamp > 0
     }
 
     private fun reset() {

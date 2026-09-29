@@ -8,6 +8,7 @@ import com.moblin.android.media.haishinkit.util.BitrateStatsInstant
 import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.network.DefaultTcpPorts
 import com.moblin.android.various.settings.SettingsRtmpServer
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
@@ -37,6 +38,7 @@ interface RtmpServerDelegate {
 class RtmpServer(
     settings: SettingsRtmpServer,
     softwareDecoding: Boolean,
+    colorRange: SettingsStreamColorRange,
     delegate: RtmpServerDelegate,
 ) {
     private var listener: ServerSocket? = null
@@ -44,6 +46,7 @@ class RtmpServer(
     val delegate: RtmpServerDelegate
     var settings: SettingsRtmpServer
     private val softwareDecoding: Boolean
+    private val colorRange: SettingsStreamColorRange
     private var periodicTimer: SimpleTimer = SimpleTimer(rtmpServerDispatchQueue)
     val bitrateStats: Atomic<BitrateStats> = Atomic(BitrateStats())
     private var numberOfClients: Atomic<Int> = Atomic(0)
@@ -54,6 +57,7 @@ class RtmpServer(
     init {
         this.settings = settings
         this.softwareDecoding = softwareDecoding
+        this.colorRange = colorRange
         this.delegate = delegate
     }
 
@@ -146,7 +150,7 @@ class RtmpServer(
 
     private fun handleNewListenerConnection(connection: Socket) {
         Log.i(TAG, "rtmp-server: Client TCP connected")
-        val client = RtmpServerClient(this, connection, softwareDecoding)
+        val client = RtmpServerClient(this, connection, softwareDecoding, colorRange)
         client.start()
         clients.add(client)
         clientsChanged()

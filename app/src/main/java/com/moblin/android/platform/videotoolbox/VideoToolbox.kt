@@ -34,6 +34,8 @@ const val kVTProfileLevel_H264_Main_AutoLevel = "H264_Main_AutoLevel"
 const val kVTProfileLevel_H264_High_AutoLevel = "H264_High_AutoLevel"
 const val kVTProfileLevel_HEVC_Main_AutoLevel = "HEVC_Main_AutoLevel"
 const val kVTProfileLevel_HEVC_Main10_AutoLevel = "HEVC_Main10_AutoLevel"
+const val kVTDecompressionPropertyKey_PixelTransferProperties = "PixelTransferProperties"
+const val kVTPixelTransferPropertyKey_DestinationYCbCrMatrix = "DestinationYCbCrMatrix"
 const val kVTEncodeFrameOptionKey_ForceKeyFrame = "ForceKeyFrame"
 
 typealias VTCompressionOutputHandler = (status: Int, infoFlags: Int, sampleBuffer: MediaSample?) -> Unit

@@ -3,6 +3,7 @@ package com.moblin.android.media.webrtc.whipserver
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.webrtc.WebrtcIngestClient
 import com.moblin.android.media.webrtc.WebrtcIngestClientDelegate
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import java.util.UUID
 
 interface WhipServerClientDelegate {
@@ -18,6 +19,7 @@ class WhipServerClient(
     latency: Double,
     syncTimestamps: Boolean,
     softwareDecoding: Boolean,
+    colorRange: SettingsStreamColorRange,
     iceServers: List<String>,
     val delegate: WhipServerClientDelegate?
 ) : WebrtcIngestClientDelegate {
@@ -31,6 +33,7 @@ class WhipServerClient(
             latency = latency,
             syncTimestamps = syncTimestamps,
             softwareDecoding = softwareDecoding,
+            colorRange = colorRange,
             iceServers = iceServers,
             dispatchQueue = whipServerDispatchQueue,
             delegate = this

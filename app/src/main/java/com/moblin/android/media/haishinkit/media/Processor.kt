@@ -20,6 +20,7 @@ import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoUnit
 import com.moblin.android.media.haishinkit.media.video.VideoUnitAttachParams
 import com.moblin.android.various.settings.SettingsGraphicsImplementation
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import java.net.URI
 import java.util.UUID
 import java.util.concurrent.Executors
@@ -59,17 +60,18 @@ val processorPipelineQueue = CoroutineScope(
 
 private class Stream(var delegate: AudioVideoEncoderDelegate? = null)
 
-class Processor(val delegate: ProcessorDelegate) :
+class Processor(val delegate: ProcessorDelegate, colorRange: SettingsStreamColorRange) :
     AudioEncoderDelegate,
     VideoEncoderDelegate,
     RecorderDelegate {
     val audio = AudioUnit()
-    val video = VideoUnit()
+    val video: VideoUnit
     val recorder = Recorder()
     private val streams = mutableListOf<Stream>()
     private val driftTrackers = mutableMapOf<UUID, DriftTracker>()
 
     init {
+        video = VideoUnit(colorRange = colorRange)
         audio.processor = this
         video.processor = this
         recorder.delegate = this

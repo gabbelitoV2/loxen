@@ -12,6 +12,7 @@ import com.moblin.android.various.network.HttpServerResponse
 import com.moblin.android.various.network.HttpServerRoute
 import com.moblin.android.various.network.HttpServerStatus
 import com.moblin.android.various.settings.SettingsHttpHeader
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.settings.SettingsWhipServer
 import com.moblin.android.various.settings.SettingsWhipServerStream
 import java.util.UUID
@@ -41,6 +42,7 @@ interface WhipServerDelegate {
 class WhipServer(
     var settings: SettingsWhipServer,
     private val softwareDecoding: Boolean,
+    private val colorRange: SettingsStreamColorRange,
     private val delegate: WhipServerDelegate,
 ) : WhipServerClientDelegate {
     private var server: HttpServer? = null
@@ -172,6 +174,7 @@ class WhipServer(
             latency = stream.latencySeconds(),
             syncTimestamps = stream.syncTimestamps,
             softwareDecoding = softwareDecoding,
+            colorRange = colorRange,
             iceServers = listOf(defaultStunServer),
             delegate = this,
         )

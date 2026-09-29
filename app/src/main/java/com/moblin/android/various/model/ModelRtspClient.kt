@@ -43,6 +43,7 @@ fun Model.reloadRtspClient() {
             latency = stream.latencySeconds(),
             transport = stream.transport,
             softwareDecoding = database.ingestsSoftwareVideoDecoding,
+            colorRange = this.stream.value.colorRange,
             delegate = delegate
         )
         client.start()

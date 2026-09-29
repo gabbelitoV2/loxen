@@ -10,6 +10,7 @@ import com.moblin.android.media.haishinkit.util.BitrateStats
 import com.moblin.android.media.haishinkit.util.BitrateStatsInstant
 import com.moblin.android.platform.srt.SrtNative
 import com.moblin.android.various.SimpleTimer
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.utils.startBlockingThread
 import java.net.URI
 import java.util.UUID
@@ -43,6 +44,7 @@ open class SrtClient(
     private val cameraId: UUID,
     private val url: URI,
     private val softwareDecoding: Boolean,
+    private val colorRange: SettingsStreamColorRange,
     delegate: SrtClientDelegate,
 ) : MpegTsReaderDelegate {
     private val delegate: SrtClientDelegate? = delegate
@@ -58,6 +60,7 @@ open class SrtClient(
             decoderQueue = srtClientQueue,
             timecodesEnabled = false,
             softwareDecoding = softwareDecoding,
+            colorRange = colorRange,
             targetLatency = srtClientLatency,
         )
         reader.delegate = this
@@ -146,6 +149,7 @@ open class SrtClient(
             decoderQueue = srtClientQueue,
             timecodesEnabled = false,
             softwareDecoding = softwareDecoding,
+            colorRange = colorRange,
             targetLatency = srtClientLatency,
         )
         reader.delegate = this

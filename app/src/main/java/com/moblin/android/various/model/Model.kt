@@ -778,7 +778,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     internal var replayVideo: ReplayBufferFile? = null
     internal var replayBuffer = ReplayBuffer()
     val replay = ReplayProvider()
-    private var sampleBufferReceiver: Any? = null
+    var sampleBufferReceiver: Any? = null
     val faxReceiver = FaxReceiver()
     var twitchStreamUpdateTime = Instant.now()
     var externalDisplayPreview = false
@@ -820,6 +820,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var locationManager = Location(context = AppDelegate.context)
     var realtimeIrl: RealtimeIrl? = null
     var supportsAppleLog: Boolean = false
+    var supportsHlg: Boolean = false
     val weatherManager = WeatherManager()
     val geographyManager = GeographyManager(context = AppDelegate.context)
     var onDocumentPickerUrl: ((String) -> Unit)? = null
@@ -961,12 +962,12 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         setQuickButton(type = SettingsQuickButtonType.interactiveBrowserWidgets, isOn = on)
     }
 
-    fun setAllowVideoRangePixelFormat() {
-        allowVideoRangePixelFormat = database.debug.allowVideoRangePixelFormat.value
-    }
-
     fun setNativeLowLightBoost() {
         nativeLowLightBoost = database.debug.nativeLowLightBoost.value
+    }
+
+    fun setExternalCameraVideoRange() {
+        externalCameraVideoRange = database.debug.externalCameraVideoRange.value
     }
 
     fun setHighQualityDownsampling() {
@@ -1220,8 +1221,8 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         setupAppIntents()
         faxReceiver.delegate = this
         fixAlertMediasNoUpdate()
-        setAllowVideoRangePixelFormat()
         setNativeLowLightBoost()
+        setExternalCameraVideoRange()
         setHighQualityDownsampling()
         setExternalDisplayContent()
         portraitVideoOffsetFromTop.value = database.portraitVideoOffsetFromTop
@@ -1231,6 +1232,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         quickButtonChatState.showNewFollowerMessage.value = database.chat.showNewFollowerMessage
         autoSceneSwitcher.currentSwitcherId.value = database.autoSceneSwitchers.switcherId
         supportsAppleLog = hasAppleLog()
+        supportsHlg = hasHlg()
         chat.interactiveChat.value =
             getQuickButton(type = SettingsQuickButtonType.interactiveChat)?.isOn?.value ?: false
         chatActivityFeed.interactiveChat.value = chat.interactiveChat.value
@@ -1245,7 +1247,6 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         setupLogging()
         updateCameraLists()
         updateBatteryLevel()
-        setPixelFormat()
         setupInputGainObserver()
         setupAudioSession()
         val camera = preferredCamera(position = CameraSelector.LENS_FACING_BACK)
@@ -1656,11 +1657,15 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     fun handleCaptureDeviceWasConnected() {
-        updateCameraLists()
+        mainScope.launch {
+            updateCameraLists()
+        }
     }
 
     fun handleCaptureDeviceWasDisconnected() {
-        updateCameraLists()
+        mainScope.launch {
+            updateCameraLists()
+        }
     }
 
     fun handleApplicationDidEnterBackground() {

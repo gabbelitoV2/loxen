@@ -19,6 +19,7 @@ import com.moblin.android.media.haishinkit.util.BitrateStatsInstant
 import com.moblin.android.media.haishinkit.util.calculateMd5
 import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.settings.SettingsRtspTransport
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.utils.TimeStampRebaser
 import com.moblin.android.various.utils.currentPresentationTimeStamp
 import java.net.URI
@@ -311,6 +312,7 @@ private open class RtpVideoProcessor(
             name = "rtsp-client",
             lockQueue = rtspClientScope,
             softwareDecoding = client.softwareDecoding,
+            colorRange = client.colorRange,
         )
         decoder.delegate = this
         decoder.startRunning(formatDescription)
@@ -569,6 +571,7 @@ class RtspClient(
     internal val latency: Double,
     transport: SettingsRtspTransport,
     internal val softwareDecoding: Boolean,
+    internal val colorRange: SettingsStreamColorRange,
     private val delegate: RtspClientDelegate,
 ) : RtspTransportDelegate {
     private var state = State.DISCONNECTED

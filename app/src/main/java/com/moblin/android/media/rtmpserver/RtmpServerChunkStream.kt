@@ -37,6 +37,7 @@ import com.moblin.android.platform.audio.audioSampleRate
 import com.moblin.android.platform.audio.makePcmFormat
 import com.moblin.android.platform.avfoundation.AVAudioConverter
 import com.moblin.android.platform.avfoundation.AVAudioPCMBuffer
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -59,6 +60,7 @@ class RtmpServerChunkStream(
     private var client: RtmpServerClient?,
     private val streamId: UShort,
     private val softwareDecoding: Boolean,
+    private val colorRange: SettingsStreamColorRange,
 ) : VideoDecoderDelegate {
     private var messageBody: ByteArray = ByteArray(0)
     var messageLength: Int = 0
@@ -520,6 +522,7 @@ class RtmpServerChunkStream(
             name = "rtmp-server",
             lockQueue = CoroutineScope(rtmpServerDispatchQueue),
             softwareDecoding = softwareDecoding,
+            colorRange = colorRange,
         )
         videoDecoder?.delegate = this
         videoDecoder?.startRunning(formatDescription = formatDescription)

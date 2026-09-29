@@ -50,6 +50,7 @@ internal interface JobDelegate {
 internal class FrameExtractorJob(
     private val video: ReplayBufferFile,
     private val offset: Double,
+    private val pixelFormatType: Int,
     delegate: JobDelegate
 ) {
     var delegate: JobDelegate? = delegate
@@ -103,6 +104,7 @@ internal class FrameExtractorJob(
 internal class ReplayFrameExtractor(
     private val video: ReplayBufferFile,
     offset: Double,
+    private val pixelFormatType: Int,
     delegate: ReplayDelegate,
     completion: (suspend () -> Unit)?
 ) : JobDelegate {
@@ -127,7 +129,7 @@ internal class ReplayFrameExtractor(
             return
         }
         val offset = pendingOffset ?: return
-        job = runCatching { FrameExtractorJob(video, offset, this) }.getOrNull()
+        job = runCatching { FrameExtractorJob(video, offset, pixelFormatType, this) }.getOrNull()
         pendingOffset = null
     }
 

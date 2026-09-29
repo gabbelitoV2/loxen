@@ -13,6 +13,7 @@ import com.moblin.android.platform.avfoundation.AVCaptureDevice
 import com.moblin.android.platform.core.PipelineThread
 import com.moblin.android.platform.coregraphics.CGRect
 import com.moblin.android.platform.coreimage.CIImage
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import java.util.UUID
 import kotlin.math.max
 import kotlin.test.assertEquals
@@ -114,7 +115,7 @@ class PreviewLeaseSuite {
     }
 
     private fun makeVideoUnit(view: PreviewView): VideoUnit {
-        val videoUnit = VideoUnit()
+        val videoUnit = VideoUnit(SettingsStreamColorRange.full)
         videoUnits.add(videoUnit)
         videoUnit.drawable = view
         return videoUnit

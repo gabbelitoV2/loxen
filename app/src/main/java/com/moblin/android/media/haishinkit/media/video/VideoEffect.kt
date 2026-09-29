@@ -40,7 +40,7 @@ data class VideoEffectInfo(
             .firstOrNull { it.videoSourceId == videoSourceId }
             ?.imageBuffer
             ?: return videoUnit.getCiImage(videoSourceId, presentationTimeStamp)
-        return CIImage(cvPixelBuffer = imageBuffer)
+        return videoUnit.makeCiImage(imageBuffer)
     }
 
     fun getMetalPetalImage(videoSourceId: UUID): MTIImage? {

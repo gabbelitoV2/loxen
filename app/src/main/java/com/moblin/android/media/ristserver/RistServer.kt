@@ -8,6 +8,7 @@ import com.moblin.android.media.haishinkit.util.BitrateStatsInstant
 import com.moblin.android.platform.rist.RistReceiverContext
 import com.moblin.android.platform.rist.RistReceiverContextDelegate
 import com.moblin.android.various.settings.SettingsRistServerStream
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import java.util.UUID
 import java.util.concurrent.Executors
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +34,7 @@ class RistServer(
     private var port: Int,
     private val streams: List<SettingsRistServerStream>,
     private val softwareDecoding: Boolean,
+    private val colorRange: SettingsStreamColorRange,
     val delegate: RistServerDelegate,
 ) : RistReceiverContextDelegate {
     private var context: RistReceiverContext? = null
@@ -91,6 +93,7 @@ class RistServer(
             stream.id,
             stream.latencySeconds(),
             softwareDecoding,
+            colorRange,
         )
         client.server = this
         clientsByVirtualDestinationPort.put(virtualDestinationPort, client)?.stop()

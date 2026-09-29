@@ -26,6 +26,7 @@ import com.moblin.android.various.settings.SettingsRistServerStream
 import com.moblin.android.media.rtspclient.RtspClient
 import com.moblin.android.media.rtspclient.RtspClientDelegate
 import com.moblin.android.various.settings.SettingsRtspTransport
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import java.io.IOException
 import java.io.InputStream
 import java.net.InetAddress
@@ -202,7 +203,7 @@ private class Ingest : RistServerDelegate {
     val connected: MutableList<Int> = Collections.synchronizedList(mutableListOf())
     val disconnected: MutableList<Int> = Collections.synchronizedList(mutableListOf())
     val stream = SettingsRistServerStream().also { it.virtualDestinationPort = virtualDestinationPort }
-    val server = RistServer(5556, listOf(stream), false, this)
+    val server = RistServer(5556, listOf(stream), false, SettingsStreamColorRange.full, this)
 
     override fun ristServerOnConnected(port: Int) {
         connected.add(port)
@@ -340,7 +341,7 @@ private class FakeRtspServer : AutoCloseable {
 private class RtspIngest : RtspClientDelegate {
     val consumer = Consumer()
     val server = FakeRtspServer()
-    val client = RtspClient(UUID.randomUUID(), server.url, 0.5, SettingsRtspTransport.rtpRtspTcp, false, this)
+    val client = RtspClient(UUID.randomUUID(), server.url, 0.5, SettingsRtspTransport.rtpRtspTcp, false, SettingsStreamColorRange.full, this)
 
     override fun rtspClientErrorToast(title: String) {}
 
@@ -468,6 +469,7 @@ class IngestDecoderLifecycleSuite {
             decoderQueue = Dispatchers.IO,
             timecodesEnabled = false,
             softwareDecoding = false,
+            colorRange = SettingsStreamColorRange.full,
             targetLatency = 0.5,
         )
         val output = ReaderOutput()
@@ -493,6 +495,7 @@ class IngestDecoderLifecycleSuite {
             decoderQueue = queue,
             timecodesEnabled = false,
             softwareDecoding = false,
+            colorRange = SettingsStreamColorRange.full,
             targetLatency = 0.5,
         )
         val output = ReaderOutput()
@@ -524,7 +527,7 @@ class IngestDecoderLifecycleSuite {
 
     @Test
     fun stoppedDecoderDoesNotStartANewSession() {
-        val decoder = VideoDecoder("rtsp-client", CoroutineScope(Dispatchers.IO), false)
+        val decoder = VideoDecoder("rtsp-client", CoroutineScope(Dispatchers.IO), false, SettingsStreamColorRange.full)
         val before = DecompressionSessions.running().toSet()
         val formatDescription = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, 0, 0)
         formatDescription.setByteBuffer("csd-0", ByteBuffer.wrap(byteArrayOf(0, 0, 0, 1) + sps))
@@ -548,7 +551,7 @@ class IngestDecoderLifecycleSuite {
 
     @Test
     fun replacingABufferedVideoReturnsItsFramesToThePool() {
-        val videoUnit = VideoUnit()
+        val videoUnit = VideoUnit(SettingsStreamColorRange.full)
         val cameraId = UUID.randomUUID()
         val pool = CVPixelBufferPool(64, 36, kCVPixelFormatType_32BGRA, maximumBufferCount = 16)
         try {

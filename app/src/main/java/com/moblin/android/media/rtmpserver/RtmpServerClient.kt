@@ -5,6 +5,7 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.rtmp.RtmpChunk
 import com.moblin.android.media.haishinkit.rtmp.RtmpChunkType
 import com.moblin.android.media.haishinkit.rtmp.message.RtmpAcknowledgementMessage
+import com.moblin.android.various.settings.SettingsStreamColorRange
 import com.moblin.android.various.utils.currentPresentationTimeStamp
 import java.io.IOException
 import java.net.Socket
@@ -45,6 +46,7 @@ class RtmpServerClient(
     val server: RtmpServer?,
     private val connection: Socket,
     private val softwareDecoding: Boolean,
+    private val colorRange: SettingsStreamColorRange,
 ) {
     private var state: ClientState
     private var chunkState: ChunkState
@@ -199,7 +201,8 @@ class RtmpServerClient(
             chunkStreams[chunkStreamId] = RtmpServerChunkStream(
                 client = this,
                 streamId = chunkStreamId,
-                softwareDecoding = softwareDecoding
+                softwareDecoding = softwareDecoding,
+                colorRange = colorRange
             )
         }
         chunkStream = chunkStreams[chunkStreamId]
