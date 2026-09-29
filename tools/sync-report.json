@@ -1,5 +1,5 @@
 {
-  "upstream": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
+  "upstream": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
   "sync_error": null,
   "build": [],
   "pbswift": null,
@@ -34,23 +34,33 @@
       "reason": "compile",
       "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
       "errors": [
-        "8: Unresolved reference 'SettingsStreamColorRange'.",
-        "38: Unresolved reference 'SettingsStreamColorRange'.",
-        "39: 'when' expression must be exhaustive. Add an 'else' branch.",
-        "40: Unresolved reference 'SettingsStreamColorRange'.",
-        "41: Unresolved reference 'SettingsStreamColorRange'.",
-        "45: Unresolved reference 'SettingsStreamColorRange'.",
-        "46: 'when' expression must be exhaustive. Add an 'else' branch.",
-        "47: Unresolved reference 'SettingsStreamColorRange'.",
-        "48: Unresolved reference 'SettingsStreamColorRange'."
+        "7: Unresolved reference 'SettingsStreamColorRange'.",
+        "52: Unresolved reference 'SettingsStreamColorRange'.",
+        "53: 'when' expression must be exhaustive. Add an 'else' branch.",
+        "54: Unresolved reference 'SettingsStreamColorRange'.",
+        "55: Unresolved reference 'SettingsStreamColorRange'.",
+        "59: Unresolved reference 'SettingsStreamColorRange'.",
+        "60: 'when' expression must be exhaustive. Add an 'else' branch.",
+        "61: Unresolved reference 'SettingsStreamColorRange'.",
+        "62: Unresolved reference 'SettingsStreamColorRange'."
       ],
       "hooks": []
     },
     {
       "swift": "Moblin/Media/HaishinKit/Media/Processor.swift",
       "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/media/Processor.kt",
-      "reason": "dependency",
+      "reason": "compile",
       "ported_from": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
+      "errors": [
+        "74: No parameter with name 'colorRange' found."
+      ],
+      "hooks": []
+    },
+    {
+      "swift": "Moblin/Media/HaishinKit/Media/Recorder.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/media/Recorder.kt",
+      "reason": "dependency",
+      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
       "errors": [],
       "hooks": []
     },
@@ -65,9 +75,11 @@
     {
       "swift": "Moblin/Media/HaishinKit/Media/Video/VideoEffect.swift",
       "kotlin": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt",
-      "reason": "dependency",
+      "reason": "compile",
       "ported_from": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-      "errors": [],
+      "errors": [
+        "43: Unresolved reference 'makeCiImage'."
+      ],
       "hooks": []
     },
     {
@@ -231,9 +243,7 @@
       "reason": "compile",
       "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
       "errors": [
-        "62: Unresolved reference 'SettingsStreamColorRange'.",
-        "207: Unresolved reference 'SettingsStreamColorRange'.",
-        "213: No parameter with name 'colorRange' found."
+        "212: No parameter with name 'colorRange' found."
       ],
       "hooks": []
     },
@@ -261,8 +271,7 @@
       "reason": "compile",
       "ported_from": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
       "errors": [
-        "47: No parameter with name 'colorRange' found.",
-        "47: Unresolved reference 'colorRange'."
+        "48: No parameter with name 'colorRange' found."
       ],
       "hooks": []
     },
@@ -282,8 +291,7 @@
       "reason": "compile",
       "ported_from": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
       "errors": [
-        "72: Unresolved reference 'colorRange'.",
-        "188: Unresolved reference 'colorRange'."
+        "188: No parameter with name 'pixelFormatType' found."
       ],
       "hooks": []
     },
@@ -321,6 +329,16 @@
       "hooks": []
     },
     {
+      "swift": "Moblin/Various/Model/ModelSettingsImportExport.swift",
+      "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelSettingsImportExport.kt",
+      "reason": "compile",
+      "ported_from": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
+      "errors": [
+        "103: Unresolved reference 'setExternalCameraVideoRange'."
+      ],
+      "hooks": []
+    },
+    {
       "swift": "Moblin/Various/Model/ModelSrtClient.swift",
       "kotlin": "app/src/main/java/com/moblin/android/various/model/ModelSrtClient.kt",
       "reason": "compile",
@@ -337,7 +355,7 @@
       "reason": "compile",
       "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
       "errors": [
-        "27: No parameter with name 'colorRange' found."
+        "27: Unresolved reference 'colorRange'."
       ],
       "hooks": []
     },
@@ -347,9 +365,8 @@
       "reason": "compile",
       "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
       "errors": [
-        "638: Unresolved reference 'colorRange'.",
-        "1135: Unresolved reference 'setPixelFormatType'.",
-        "1135: Unresolved reference 'colorRange'."
+        "26: Unresolved reference 'setPixelFormatType'.",
+        "1136: Unresolved reference 'setPixelFormatType'."
       ],
       "hooks": []
     },
@@ -402,9 +419,11 @@
     {
       "swift": "Moblin/VideoEffects/Replay/ReplayEffect.swift",
       "kotlin": "app/src/main/java/com/moblin/android/videoeffects/replay/ReplayEffect.kt",
-      "reason": "dependency",
+      "reason": "compile",
       "ported_from": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-      "errors": [],
+      "errors": [
+        "90: No parameter with name 'pixelFormatType' found."
+      ],
       "hooks": []
     },
     {
@@ -423,7 +442,7 @@
       "reason": "compile",
       "ported_from": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
       "errors": [
-        "317: Unresolved reference 'supportsHlg'."
+        "327: Unresolved reference 'supportsHlg'."
       ],
       "hooks": []
     },
@@ -462,30 +481,9 @@
     {
       "swift": "MoblinTests/Moblin/Media/HaishinKit/Media/Video/VideoColorSuite.swift",
       "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/media/video/VideoColorSuite.kt",
-      "reason": "compile",
+      "reason": "dependency",
       "ported_from": null,
-      "errors": [
-        "5: Unresolved reference 'CMSampleBuffer'.",
-        "25: Unresolved reference 'CVAttachmentMode'.",
-        "26: Unresolved reference 'CVBufferSetAttachments'.",
-        "28: Unresolved reference 'CVPixelBufferCreate'.",
-        "33: Unresolved reference 'kCVPixelFormatType_420YpCbCr10BiPlanarFullRange'.",
-        "34: Unresolved reference 'kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange'.",
-        "38: Unresolved reference 'kCMFormatDescriptionExtension_ColorPrimaries'.",
-        "39: Unresolved reference 'kCMFormatDescriptionExtension_FullRangeVideo'.",
-        "40: Unresolved reference 'kCMFormatDescriptionExtension_TransferFunction'.",
-        "41: Unresolved reference 'kCMFormatDescriptionExtension_YCbCrMatrix'.",
-        "64: Unresolved reference 'kCVPixelFormatType_420YpCbCr10BiPlanarFullRange'.",
-        "65: Unresolved reference 'kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange'.",
-        "169: Unresolved reference 'videoSize'.",
-        "170: Unresolved reference 'bitrate'.",
-        "217: Unresolved reference 'videoSize'.",
-        "218: Unresolved reference 'bitrate'.",
-        "336: Argument type mismatch: actual type is 'List<TestVideoFormat>', but 'List<AVCaptureDevice.Format>' was expected.",
-        "341: Argument type mismatch: actual type is 'List<TestVideoFormat>', but 'List<AVCaptureDevice.Format>' was expected.",
-        "347: Argument type mismatch: actual type is 'List<TestVideoFormat>', but 'List<AVCaptureDevice.Format>' was expected.",
-        "352: Argument type mismatch: actual type is 'List<TestVideoFormat>', but 'List<AVCaptureDevice.Format>' was expected."
-      ],
+      "errors": [],
       "hooks": []
     },
     {
@@ -494,20 +492,8 @@
       "reason": "compile",
       "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
       "errors": [
-        "47: No value passed for parameter 'colorRange'."
-      ],
-      "hooks": []
-    },
-    {
-      "swift": "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpStreamSuite.swift",
-      "kotlin": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt",
-      "reason": "compile",
-      "ported_from": "c861d40e79a6198cbded1604ce80c3de3707b035",
-      "errors": [
-        "10: Unresolved reference 'VideoColorRange'.",
-        "217: Unresolved reference 'VideoColorRange'.",
-        "340: Unresolved reference 'VideoColorRange'.",
-        "466: Unresolved reference 'VideoColorRange'."
+        "47: No parameter with name 'colorRange' found.",
+        "47: Unresolved reference 'ColorRange'."
       ],
       "hooks": []
     }

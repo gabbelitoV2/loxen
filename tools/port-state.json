@@ -4735,27 +4735,28 @@
   },
   "MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpStreamSuite.swift": {
     "status": "ok",
-    "sha256": "686b67b1d4c24fb5ee12ea410e382be01a9ff2fab967cf8fae2bfc3a7020730a",
+    "sha256": "ce1da765ea0c852ed18902e02f80a116d713902372d85b6e550408bc57f47b42",
+    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "mode": "incremental",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt",
     "notes": [
-      "Swift Testing suite translated to a JUnit 4 class with kotlin.test assertions; the two async tests are wrapped in runBlocking.",
-      "NWListener/NWConnection from Network.framework are replaced with java.net.ServerSocket/java.net.Socket driven from coroutine IO loops.",
-      "Numeric assertions compare through toLong() on both sides because the ported RTMP fields (timestamp, length, streamId, sequence, size, protocolVersion) may be Int or UInt in the production types.",
-      "ByteArray comparisons use assertContentEquals because kotlin.test assertEquals compares arrays by reference.",
-      "AMF values are assumed to be the sealed Amf0Value type of this package with Object/String/Number/Bool/Null members; the command type is assumed to be RtmpCommandMessage.CommandType.",
-      "UInt32(x).bigEndian.data is replaced by the local private helper UInt.toBigEndianBytes() and Data(...).joined() by the local private joinBytes().",
-      "Enum entries keep the Swift lowerCamelCase case names (RtmpChunkType.zero, RtmpCommandName.releaseStream, RtmpMessageType.ack, ...).",
-      "Constructor and function arguments use plain integer literals so they adapt to Int, UInt or UShort parameters; suspend helpers are declared with UShort/UInt wire types."
+      "The Swift diff only adds `colorRange: .full` to three `Processor(...)` initialisations.",
+      "The Kotlin `Processor` declared for this port takes a single `delegate` parameter and exposes no `colorRange`, and no Kotlin color-range type exists in the platform glossary, so the three `Processor(delegate = modelMock)` calls stay unchanged rather than inventing a parameter.",
+      "Everything else in the file is untouched and kept byte-identical.",
+      "The custom `RtmpServerMock` (ServerSocket based) still stands in for the Swift NWListener actor.",
+      "ModelMock keeps the RtmpStreamDelegate and ProcessorDelegate overrides as before.",
+      "readMessages/readMessage helpers, byte literals and toBigEndianBytes/joinBytes extensions are unchanged.",
+      "runBlocking is still used inside the two connection tests, as in the current port.",
+      "No new imports were required by the Swift change."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 9883,
-    "tokens_out": 41411,
-    "seconds": 153.0,
-    "ported_at": "2026-09-22T12:56:10+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 52317,
+    "tokens_out": 9203,
+    "seconds": 27.0,
+    "ported_at": "2026-09-29T00:01:48+00:00"
   },
   "Moblin/Various/Model/ModelGoProDevice.swift": {
     "status": "ok",

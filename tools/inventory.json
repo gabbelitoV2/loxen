@@ -1,6 +1,6 @@
 {
-  "root": "/home/runner/work/moblin-android/moblin-android/.upstream",
-  "generated": "2026-09-27T22:37:36+00:00",
+  "root": "/home/runner/work/loxen/loxen/.upstream",
+  "generated": "2026-09-29T00:00:00+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -5074,8 +5074,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsDebug.swift",
-      "lines": 175,
-      "sha256": "afe558d870eda527f4567f6553251209536dfbc5ee60087fea013dac9be30c11",
+      "lines": 179,
+      "sha256": "873b07d542fe605925186680fa4235d4b20899c67d07cc117b1e3f8086cfc620",
       "imports": [
         "AVFoundation",
         "SwiftUI"
@@ -8901,8 +8901,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelSettingsImportExport.swift",
-      "lines": 101,
-      "sha256": "d09d13a2cd17d1117e0c4748a71f2a8878c60918c62f069802d2752fb3a953a0",
+      "lines": 102,
+      "sha256": "55b05ae8263f798bc960925713ed1895a5e2e9a212039d6727564f4972026777",
       "imports": [
         "UIKit",
         "UniformTypeIdentifiers"
@@ -9559,8 +9559,8 @@
     },
     {
       "path": "Moblin/View/Settings/Debug/DebugVideoSettingsView.swift",
-      "lines": 24,
-      "sha256": "99ec79022f14a8473d54d26f5e8aafd67e8a3f0b5fe58af3529c9cbaff70acd2",
+      "lines": 28,
+      "sha256": "84708ed82ed28ec55800d04b84e405f09a6548199524ba8e2fdeef401f938a7e",
       "imports": [
         "SwiftUI"
       ],
@@ -11747,8 +11747,8 @@
     },
     {
       "path": "Moblin/Media/HaishinKit/Media/Recorder.swift",
-      "lines": 548,
-      "sha256": "ce6d14b18a7dbbcee738d0db746f84367ee1d02a76f0a9d80456986c9de7ce8d",
+      "lines": 558,
+      "sha256": "c4b9261cb42c072452b9daefca552d18de48b2fd74200af0c20882324d08d273",
       "imports": [
         "AVFoundation",
         "CoreAudio"
@@ -13913,8 +13913,8 @@
     },
     {
       "path": "Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift",
-      "lines": 718,
-      "sha256": "5959fbff30e9e8e6a70b7fe2c43f20aa1cd718cfe9774e7cee9e42670d932e10",
+      "lines": 854,
+      "sha256": "31f547c98779a181e520acea84eaaa6756c245477a830f4c0c58c7f69391d7ca",
       "imports": [
         "AVFoundation",
         "Photos"
@@ -13926,16 +13926,21 @@
         "VideoCaptureSessionDelegate",
         "VideoFormat",
         "FormatDescriptionMatcher",
+        "VideoRangeRelabeler",
         "DeviceOutputHandler",
         "CaptureSessionDevice",
+        "VideoFormatResult",
         "VideoCaptureSession"
       ],
       "private_types": [
+        "VideoRangeRelabeler",
         "DeviceOutputHandler",
-        "CaptureSessionDevice"
+        "CaptureSessionDevice",
+        "VideoFormatResult"
       ],
       "declared_functions": [
         "isVideoRangePixelFormat",
+        "isFullRangePixelFormat",
         "filterFormatsByColorRange"
       ],
       "declared_globals": [],
@@ -15506,8 +15511,8 @@
     },
     {
       "path": "MoblinTests/Moblin/Media/HaishinKit/Media/Video/VideoColorSuite.swift",
-      "lines": 563,
-      "sha256": "8ca8a380cd3e86c333e4b3b7dec3fd517e407e2e4c30c94b130ecc5f975a1fb3",
+      "lines": 575,
+      "sha256": "06fcf3d5690428d2acd53aee16cb0c2e842bc2ffb7f784ae3ae776681787c2ab",
       "imports": [
         "AVFoundation",
         "CoreImage",
@@ -20813,8 +20818,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3467,
-      "sha256": "286e6eae3928477e6636bb8aa2813ced5af8203a6ec2fca98026409170eb28fb",
+      "lines": 3472,
+      "sha256": "46b69e8f645a20af8d795e7e2d1ba88fe8a869963c72e364253bc83673751681",
       "imports": [
         "AVKit",
         "ActivityKit",

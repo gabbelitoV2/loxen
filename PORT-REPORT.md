@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-09-27T23:13:46+00:00
+Generated 2026-09-29T00:32:36+00:00
 
 ## Summary
 
@@ -8,9 +8,9 @@ Generated 2026-09-27T23:13:46+00:00
 |---|---|---|---|---|---|
 | logic | 150 | 0 | 1 | 0 | 0 |
 | platform | 55 | 0 | 0 | 0 | 0 |
-| test | 60 | 0 | 3 | 1 | 0 |
-| media | 120 | 0 | 41 | 0 | 0 |
-| ui | 357 | 0 | 4 | 0 | 0 |
+| test | 61 | 0 | 2 | 1 | 0 |
+| media | 119 | 0 | 42 | 0 | 0 |
+| ui | 356 | 0 | 5 | 0 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
 
@@ -837,7 +837,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | MoblinTests/Moblin/Media/HaishinKit/Rist/RistSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/rist/RistSuite.kt | deepseek-flash | 37.2 |
 | MoblinTests/Moblin/Media/HaishinKit/Rtmp/Amf/AmfSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/rtmp/amf/AmfSuite.kt | deepseek-flash | 94.1 |
 | MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpStreamInfoSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamInfoSuite.kt | deepseek-flash | 53.6 |
-| MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpStreamSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt | deepseek-flash | 153.0 |
+| MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpStreamSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpStreamSuite.kt | deepseek-flash | 27.0 |
 | MoblinTests/Moblin/Media/HaishinKit/Rtmp/RtmpSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/rtmp/RtmpSuite.kt | deepseek-flash | 42.1 |
 | MoblinTests/Moblin/Media/HaishinKit/Srt/SrtSenderSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/srt/SrtSenderSuite.kt | deepseek-flash | 61.2 |
 | MoblinTests/Moblin/Media/HaishinKit/Util/Md5Suite.swift | app/src/test/java/com/moblin/android/media/haishinkit/util/Md5Suite.kt | deepseek-flash | 7.9 |
