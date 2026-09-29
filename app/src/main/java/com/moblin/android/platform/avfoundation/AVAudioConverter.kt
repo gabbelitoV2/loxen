@@ -19,6 +19,8 @@ import com.moblin.android.platform.audio.pcmEncoding
 import com.moblin.android.platform.audio.remapChannels
 import com.moblin.android.platform.core.PipelineStats
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.ShortBuffer
 
 private const val TAG = "MoblinAudio"
 
@@ -50,6 +52,21 @@ fun AVAudioPCMBuffer(pcmFormat: MediaFormat, frameCapacity: Int): MediaSample? {
         format = pcmFormat,
     )
 }
+
+val MediaSample.int16ChannelData: List<ShortBuffer>
+    get() = listOf(ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer())
+
+var MediaSample.frameLength: Int
+    get() = numSamples
+    set(value) {
+        val format = format
+        val channels = maxOf(1, format?.audioChannelCount() ?: 1)
+        val frameSize = channels * bytesPerPcmSample(format?.pcmEncoding() ?: AudioFormat.ENCODING_PCM_16BIT)
+        val size = value * frameSize
+        if (size != data.size) {
+            data = data.copyOf(size)
+        }
+    }
 
 class AVAudioConverter private constructor(
     val inputFormat: MediaFormat,

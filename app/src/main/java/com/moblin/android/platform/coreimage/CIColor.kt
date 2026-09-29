@@ -2,8 +2,15 @@ package com.moblin.android.platform.coreimage
 
 import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import com.moblin.android.platform.coregraphics.CGColor
+import com.moblin.android.platform.coregraphics.CGColorSpace
 
-class CIColor(val red: Double, val green: Double, val blue: Double, val alpha: Double = 1.0) {
+class CIColor(
+    val red: Double,
+    val green: Double,
+    val blue: Double,
+    val alpha: Double = 1.0,
+    val colorSpace: CGColorSpace? = null,
+) {
     constructor(red: Float, green: Float, blue: Float, alpha: Float = 1f) : this(
         red.toDouble(),
         green.toDouble(),

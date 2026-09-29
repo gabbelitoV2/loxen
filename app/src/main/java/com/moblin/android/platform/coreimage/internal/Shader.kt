@@ -350,7 +350,7 @@ internal class ShaderBuilder(val context: RenderContext) {
         val chroma = sampler2D(buffer.chromaTexture)
         val size = uniform4f(width.toFloat(), height.toFloat(), width.toFloat(), height.toFloat())
         val chromaSize = uniform2f(2f * layout.chromaWidth(width), 2f * layout.chromaHeight(height))
-        val descriptor = YCbCrStorage.descriptorFor(layout)
+        val descriptor = YCbCrStorage.descriptorFor(buffer)
         val matrix = uniformMat3(descriptor.inverseMat3)
         val offset = descriptor.offsetVector
         val offsetName = uniform3f(offset[0], offset[1], offset[2])

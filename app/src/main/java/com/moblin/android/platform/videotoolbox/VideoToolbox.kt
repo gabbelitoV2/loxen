@@ -18,8 +18,10 @@ import com.moblin.android.media.haishinkit.mpeg.getNalUnits
 import com.moblin.android.platform.core.PipelineStats
 import com.moblin.android.platform.core.PipelineThread
 import com.moblin.android.platform.video.CVPixelBuffer
+import com.moblin.android.platform.video.ColorDescription
 import com.moblin.android.platform.video.EglCore
 import com.moblin.android.platform.video.GlRenderer
+import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
 import java.util.TreeMap
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -50,8 +52,9 @@ class VTCompressionSession internal constructor(
     val width: Int,
     val height: Int,
     val mimeType: String,
-    internal val codecInfo: MediaCodecInfo,
-    codec: MediaCodec,
+    internal val codecInfo: MediaCodecInfo?,
+    codec: MediaCodec?,
+    private val pixelFormatType: Int? = null,
 ) {
     private val lock = Any()
     private val index = nextSessionIndex.incrementAndGet()
@@ -92,6 +95,8 @@ class VTCompressionSession internal constructor(
     private var sequenceParameterSet: ByteArray? = null
     private var pictureParameterSet: ByteArray? = null
     private var formatDescription: MediaFormat? = null
+    private var color = ColorDescription()
+    private var softwareEncoder: SoftwareVideoEncoder? = null
 
     private val callback = object : MediaCodec.Callback() {
         override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {}
@@ -156,12 +161,16 @@ class VTCompressionSession internal constructor(
         if (prepared) {
             return noErr
         }
-        val codec = codec ?: return kVTInvalidSessionErr
         val properties = synchronized(lock) {
             pendingProperties.toMap()
         }
+        val codecInfo = codecInfo
+        if (codecInfo == null) {
+            return prepareSoftwareEncoder(properties)
+        }
+        val codec = codec ?: return kVTInvalidSessionErr
         val configuration = try {
-            makeEncoderConfiguration(codecInfo, mimeType, width, height, properties)
+            makeEncoderConfiguration(codecInfo, mimeType, width, height, properties, pixelFormatType)
         } catch (e: Exception) {
             Log.i(TAG, "video-encoder-$index: Failed to create configuration: $e")
             null
@@ -174,6 +183,7 @@ class VTCompressionSession internal constructor(
         allowFrameReordering = configuration.allowFrameReordering
         scalingMode = configuration.scalingMode
         bitrateRange = configuration.bitrateRange
+        color = configuration.color
         val thread = HandlerThread("video-encoder-$index")
         thread.start()
         this.thread = thread
@@ -226,6 +236,10 @@ class VTCompressionSession internal constructor(
             if (status != noErr) {
                 return status
             }
+        }
+        val softwareEncoder = softwareEncoder
+        if (softwareEncoder != null) {
+            return encodeInSoftware(softwareEncoder, imageBuffer, presentationTimeStamp, frameProperties, outputHandler)
         }
         val surface = eglSurface ?: return kVTInvalidSessionErr
         if (!imageBuffer.checkReadable("video encoder")) {
@@ -321,6 +335,59 @@ class VTCompressionSession internal constructor(
         }
     }
 
+    private fun prepareSoftwareEncoder(properties: Map<String, Any>): Int {
+        color = encoderColorDescription(properties, pixelFormatType).let { it.copy(fullRange = it.fullRange ?: false) }
+        val keyFrameInterval = (properties["MaxKeyFrameIntervalDuration"] as? Number)?.toDouble() ?: 2.0
+        val keyFrameIntervalUs = (keyFrameInterval * 1_000_000).toLong()
+        val profileLevel = properties["ProfileLevel"] as? String
+        softwareEncoder = if (isHevc) {
+            SoftwareHevcEncoder(width, height, color, keyFrameIntervalUs, profileLevel?.contains("Main10") == true)
+        } else {
+            SoftwareH264Encoder(width, height, color, keyFrameIntervalUs, SoftwareVideoCodecs.h264ProfileIdc(profileLevel))
+        }
+        latestOutputTimeNs = System.nanoTime()
+        prepared = true
+        Log.i(TAG, "video-encoder-$index: Software $mimeType encoder ${width}x$height, no MediaCodec encoder")
+        return noErr
+    }
+
+    private fun encodeInSoftware(
+        encoder: SoftwareVideoEncoder,
+        imageBuffer: CVPixelBuffer,
+        presentationTimeStamp: Long,
+        frameProperties: Map<String, Any>?,
+        outputHandler: VTCompressionOutputHandler,
+    ): Int {
+        if (!imageBuffer.checkReadable("video encoder")) {
+            PipelineStats.increment("encDrop")
+            postDroppedFrame(outputHandler)
+            return noErr
+        }
+        if (presentationTimeStamp <= latestInputPresentationTimeStamp) {
+            logOnce("video-encoder: Dropping frames with non-increasing presentation time stamps")
+            return kVTParameterErr
+        }
+        val forceKeyFrame = frameProperties?.get(kVTEncodeFrameOptionKey_ForceKeyFrame) == true
+        val frame = try {
+            encoder.encode(imageBuffer, presentationTimeStamp, forceKeyFrame)
+        } catch (e: Exception) {
+            Log.i(TAG, "video-encoder-$index: Software encoding failed: $e")
+            return kVTParameterErr
+        }
+        synchronized(lock) {
+            outputHandlers[presentationTimeStamp] = outputHandler
+            decodeTimeStamps.addLast(presentationTimeStamp)
+        }
+        latestInputPresentationTimeStamp = presentationTimeStamp
+        PipelineStats.increment("encIn")
+        handleOutputData(
+            frame.annexB,
+            if (frame.isKeyFrame) MediaCodec.BUFFER_FLAG_KEY_FRAME else 0,
+            presentationTimeStamp,
+        )
+        return noErr
+    }
+
     private fun maximumNumberOfPendingFrames(): Int {
         return if (allowFrameReordering || reorderingDetected) 8 else 5
     }
@@ -332,7 +399,7 @@ class VTCompressionSession internal constructor(
         } catch (e: Exception) {
             Log.i(
                 TAG,
-                "video-encoder-$index: Configure ${codecInfo.name} with ${configuration.format} failed ($e), " +
+                "video-encoder-$index: Configure ${codecInfo?.name} with ${configuration.format} failed ($e), " +
                     "retrying with ${configuration.fallbackFormat}",
             )
             codec.reset()
@@ -660,7 +727,7 @@ class VTCompressionSession internal constructor(
             if (newSps == null || newPps == null || (isHevc && newVps == null)) {
                 return
             }
-            format = makeVideoFormatDescription(mimeType, width, height, newVps, newSps, newPps)
+            format = makeVideoFormatDescription(mimeType, width, height, newVps, newSps, newPps, color)
             formatDescription = format
         }
         val recordKey = if (isHevc) "hvcC" else "avcC"
@@ -721,8 +788,12 @@ fun VTCompressionSessionCreate(
         return Pair(kVTParameterErr, null)
     }
     val mimeType = normalizeVideoMimeType(codecType)
+    val pixelFormatType = (imageBufferAttributes?.get(kCVPixelBufferPixelFormatTypeKey) as? Number)?.toInt()
     val candidates = selectVideoEncoders(mimeType, width, height)
     if (candidates.isEmpty()) {
+        if (SoftwareVideoCodecs.isAvailable(mimeType)) {
+            return Pair(noErr, VTCompressionSession(width, height, mimeType, null, null, pixelFormatType))
+        }
         Log.i(TAG, "No $mimeType encoder supports ${width}x$height")
         return Pair(kVTCouldNotFindVideoEncoderErr, null)
     }
@@ -733,10 +804,7 @@ fun VTCompressionSessionCreate(
             Log.i(TAG, "Failed to create ${codecInfo.name}: $e")
             continue
         }
-        if (imageBufferAttributes != null) {
-            logOnce("Image buffer attributes are not used, the encoder draws RGBA textures to its input surface")
-        }
-        return Pair(noErr, VTCompressionSession(width, height, mimeType, codecInfo, codec))
+        return Pair(noErr, VTCompressionSession(width, height, mimeType, codecInfo, codec, pixelFormatType))
     }
     return Pair(kVTCouldNotFindVideoEncoderErr, null)
 }

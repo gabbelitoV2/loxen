@@ -1,9 +1,5 @@
 {
   "tests": [
-    "com.moblin.android.media.haishinkit.media.RecorderSuite.audioGoingBackInTimeIsDropped",
-    "com.moblin.android.media.haishinkit.media.RecorderSuite.negativeAudioDelayAdvancesAudio",
-    "com.moblin.android.media.haishinkit.media.RecorderSuite.positiveAudioDelayDelaysAudio",
-    "com.moblin.android.media.haishinkit.media.RecorderSuite.recordsAudioAndVideo",
     "com.moblin.android.media.haishinkit.mpeg.MpegTsReaderSuite.ffmpegAudioOnlyPeriodicBeep"
   ]
 }

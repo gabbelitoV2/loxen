@@ -1,6 +1,7 @@
 package com.moblin.android.platform.mp4
 
 import android.media.MediaFormat
+import com.moblin.android.platform.video.ColorDescription
 
 internal const val mp4MovieTimescale = 1000
 internal const val mp4VideoTimescale = 90000
@@ -173,6 +174,7 @@ class Mp4VideoTrackConfig(
     val width: Int,
     val height: Int,
     val decoderConfigurationRecord: ByteArray,
+    val color: ColorDescription? = null,
 ) {
     val isHevc: Boolean
         get() = mimeType == MediaFormat.MIMETYPE_VIDEO_HEVC
@@ -184,6 +186,7 @@ class Mp4AudioTrackConfig(
     val channelCount: Int,
     val bitrate: Int,
     val audioSpecificConfig: ByteArray,
+    val isPcm: Boolean = false,
 )
 
 internal class Mp4FragmentSample(
@@ -454,6 +457,16 @@ private fun Mp4Writer.writeVisualSampleEntry(video: Mp4VideoTrackConfig) {
         box(if (video.isHevc) "hvcC" else "avcC") {
             bytes(video.decoderConfigurationRecord)
         }
+        val color = video.color
+        if (color != null && !color.isEmpty) {
+            box("colr") {
+                fourcc("nclx")
+                u16(color.primariesCode())
+                u16(color.transferCode())
+                u16(color.matrixCode())
+                u8(if (color.fullRange == true) 0x80 else 0)
+            }
+        }
         box("pasp") {
             u32(1)
             u32(1)
@@ -486,6 +499,19 @@ private fun Mp4Writer.writeAudioTrack(audio: Mp4AudioTrackConfig, time: Long) {
 }
 
 private fun Mp4Writer.writeAudioSampleEntry(audio: Mp4AudioTrackConfig) {
+    if (audio.isPcm) {
+        box("sowt") {
+            zeros(6)
+            u16(1)
+            zeros(8)
+            u16(audio.channelCount)
+            u16(16)
+            u16(0)
+            u16(0)
+            u32(if (audio.sampleRate in 1..0xFFFF) audio.sampleRate.toLong() shl 16 else 0L)
+        }
+        return
+    }
     box("mp4a") {
         zeros(6)
         u16(1)

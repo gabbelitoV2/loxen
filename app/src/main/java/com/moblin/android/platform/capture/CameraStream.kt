@@ -41,6 +41,12 @@ import com.moblin.android.platform.video.CMVideoFormatDescriptionCreateForImageB
 import com.moblin.android.platform.video.CVPixelBufferPool
 import com.moblin.android.platform.video.GlRenderer
 import com.moblin.android.platform.video.PixelBufferTurn
+import com.moblin.android.platform.video.kCVImageBufferColorPrimariesKey
+import com.moblin.android.platform.video.kCVImageBufferColorPrimaries_ITU_R_2020
+import com.moblin.android.platform.video.kCVImageBufferTransferFunctionKey
+import com.moblin.android.platform.video.kCVImageBufferTransferFunction_ITU_R_2100_HLG
+import com.moblin.android.platform.video.kCVImageBufferYCbCrMatrixKey
+import com.moblin.android.platform.video.kCVImageBufferYCbCrMatrix_ITU_R_2020
 import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
 import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
 import com.moblin.android.platform.video.layer
@@ -736,6 +742,11 @@ internal class CameraStream(val session: AVCaptureSession, initialBinding: Video
             adjustedMatrix
         } else {
             stMatrix
+        }
+        if (configuredColorSpace == AVCaptureColorSpace.HLG_BT2020 && entry.hlgSupported) {
+            buffer.attachments[kCVImageBufferColorPrimariesKey] = kCVImageBufferColorPrimaries_ITU_R_2020
+            buffer.attachments[kCVImageBufferTransferFunctionKey] = kCVImageBufferTransferFunction_ITU_R_2100_HLG
+            buffer.attachments[kCVImageBufferYCbCrMatrixKey] = kCVImageBufferYCbCrMatrix_ITU_R_2020
         }
         GlRenderer.drawOes(oesTexture, matrix, buffer, rotation, connection.isVideoMirrored)
         for (previewLayer in previewLayers) {

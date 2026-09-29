@@ -53,7 +53,7 @@ class CIImage internal constructor(internal val node: ImageNode) {
             color.green,
             color.blue,
             color.alpha,
-            SourceEncoding.srgb,
+            colorEncoding(color),
             CGRect.infinite
         )
     )
@@ -178,6 +178,15 @@ internal fun blurExtent(extent: CGRect, sigma: Double): CGRect {
         return extent
     }
     return extent.insetBy(-3 * sigma, -3 * sigma)
+}
+
+private fun colorEncoding(color: CIColor): SourceEncoding {
+    return when (color.colorSpace?.name) {
+        com.moblin.android.platform.coregraphics.CGColorSpace.extendedLinearSRGB,
+        com.moblin.android.platform.coregraphics.CGColorSpace.linearSRGB,
+        -> SourceEncoding.working
+        else -> SourceEncoding.srgb
+    }
 }
 
 private fun encodingFor(options: Map<CIImageOption, Any>?): SourceEncoding {

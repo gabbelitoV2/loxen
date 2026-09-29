@@ -28,6 +28,7 @@ import kotlin.math.roundToInt
 private const val TAG = "MoblinPipeline"
 
 const val kCVReturnSuccess = 0
+const val kCVReturnInvalidArgument = -6661
 const val kCVPixelFormatType_32BGRA = 0x42475241
 const val kCVPixelFormatType_32RGBA = 0x52474241
 const val kCVPixelFormatType_420YpCbCr8BiPlanarFullRange = 0x34323066
@@ -76,6 +77,12 @@ internal class PixelBufferBacking(
 ) {
     @Volatile
     var generation = 0
+
+    @Volatile
+    var memory: PixelBufferMemory? = null
+
+    val isGpuBacked: Boolean
+        get() = texture != 0
 
     val bytes: Long
         get() = layout.bytes(width, height)
@@ -305,6 +312,8 @@ class CVPixelBufferPool internal constructor(
 
     internal val state = PixelBufferPoolState(width, height, maximumBufferCount, "pool", layout)
 
+    internal var propagatedAttachments: Map<String, Any> = emptyMap()
+
     var name: String
         get() = state.name
         set(value) {
@@ -316,15 +325,20 @@ class CVPixelBufferPool internal constructor(
     }
 
     fun createPixelBuffer(): CVPixelBuffer? {
-        if (!PipelineThread.isCurrent()) {
-            return try {
+        val buffer = if (!PipelineThread.isCurrent()) {
+            try {
                 PipelineThread.runSync { PixelBufferReaper.obtain(state, pixelFormatType, leased = false) }
             } catch (error: Throwable) {
                 Log.w(TAG, "createPixelBuffer failed: $error")
                 null
             }
+        } else {
+            PixelBufferReaper.obtain(state, pixelFormatType, leased = true)
         }
-        return PixelBufferReaper.obtain(state, pixelFormatType, leased = true)
+        if (buffer != null && propagatedAttachments.isNotEmpty()) {
+            buffer.attachments.putAll(propagatedAttachments)
+        }
+        return buffer
     }
 
     fun invalidate() {
@@ -357,7 +371,14 @@ fun CVPixelBufferPoolCreate(attributes: Map<String, Any>): CVPixelBufferPool? {
     }
     val pixelFormatType = (attributes[kCVPixelBufferPixelFormatTypeKey] as? Number)?.toInt()
         ?: kCVPixelFormatType_32BGRA
-    return CVPixelBufferPool(width = width, height = height, pixelFormatType = pixelFormatType)
+    val pool = CVPixelBufferPool(width = width, height = height, pixelFormatType = pixelFormatType)
+    val attachments = attributes[kCVBufferPropagatedAttachmentsKey] as? Map<*, *>
+    if (attachments != null) {
+        pool.propagatedAttachments = attachments.entries
+            .mapNotNull { (key, value) -> if (key is String && value != null) key to value else null }
+            .toMap()
+    }
+    return pool
 }
 
 fun CVPixelBufferPoolCreatePixelBuffer(pool: CVPixelBufferPool): CVPixelBuffer? {
@@ -377,11 +398,15 @@ fun CVPixelBufferGetPixelFormatType(pixelBuffer: CVPixelBuffer): Int {
 }
 
 fun CVPixelBufferGetPlaneCount(pixelBuffer: CVPixelBuffer): Int {
+    val info = PixelFormats.info(pixelBuffer.pixelFormatType)
+    if (info != null) {
+        return if (info.isYCbCr) info.planeCount else 0
+    }
     return if (pixelBuffer.layout.isPlanar) pixelBuffer.planeCount else 0
 }
 
 fun CVPixelBufferIsPlanar(pixelBuffer: CVPixelBuffer): Boolean {
-    return pixelBuffer.layout.isPlanar
+    return CVPixelBufferGetPlaneCount(pixelBuffer) > 0
 }
 
 fun VTPixelTransferSessionTransferImage(from: CVPixelBuffer, to: CVPixelBuffer) {
@@ -427,20 +452,53 @@ fun makeCopy(sampleBuffer: MediaSample, into: CVPixelBuffer): MediaSample? {
     )
 }
 
-private val videoFormatDescriptions = HashMap<Long, MediaFormat>()
+internal const val kCMFormatDescriptionPixelFormatTypeKey = "pixel-format-type"
+
+private data class VideoFormatDescriptionKey(
+    val width: Int,
+    val height: Int,
+    val pixelFormatType: Int,
+    val color: ColorDescription,
+)
+
+private val videoFormatDescriptions = HashMap<VideoFormatDescriptionKey, MediaFormat>()
 
 fun CMVideoFormatDescriptionCreateForImageBuffer(imageBuffer: CVPixelBuffer): MediaFormat {
-    val key = (imageBuffer.width.toLong() shl 32) or (imageBuffer.height.toLong() and 0xFFFF_FFFFL)
+    val key = VideoFormatDescriptionKey(
+        imageBuffer.width,
+        imageBuffer.height,
+        imageBuffer.pixelFormatType,
+        ColorDescription.fromImageBuffer(imageBuffer),
+    )
     return synchronized(videoFormatDescriptions) {
+        if (videoFormatDescriptions.size > 64) {
+            videoFormatDescriptions.clear()
+        }
         videoFormatDescriptions.getOrPut(key) {
-            MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_RAW, imageBuffer.width, imageBuffer.height)
+            val format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_RAW, key.width, key.height)
+            format.setInteger(kCMFormatDescriptionPixelFormatTypeKey, key.pixelFormatType)
+            key.color.apply(format)
+            format
         }
     }
 }
 
 fun CMVideoFormatDescriptionMatchesImageBuffer(description: MediaFormat, imageBuffer: CVPixelBuffer): Boolean {
-    return description.getInteger(MediaFormat.KEY_WIDTH) == imageBuffer.width &&
-        description.getInteger(MediaFormat.KEY_HEIGHT) == imageBuffer.height
+    if (description.getInteger(MediaFormat.KEY_WIDTH) != imageBuffer.width ||
+        description.getInteger(MediaFormat.KEY_HEIGHT) != imageBuffer.height
+    ) {
+        return false
+    }
+    if (description.containsKey(kCMFormatDescriptionPixelFormatTypeKey) &&
+        description.getInteger(kCMFormatDescriptionPixelFormatTypeKey) != imageBuffer.pixelFormatType
+    ) {
+        return false
+    }
+    val color = ColorDescription.fromMediaFormat(description)
+    val attachments = imageBuffer.attachments
+    return color.primaries == attachments[kCVImageBufferColorPrimariesKey] &&
+        color.transferFunction == attachments[kCVImageBufferTransferFunctionKey] &&
+        color.yCbCrMatrix == attachments[kCVImageBufferYCbCrMatrixKey]
 }
 
 internal object PixelBufferGl {

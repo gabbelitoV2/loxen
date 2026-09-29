@@ -6,7 +6,9 @@ import android.util.Log
 import com.moblin.android.media.MediaSample
 import com.moblin.android.platform.audio.audioChannelCount
 import com.moblin.android.platform.audio.audioSampleRate
+import com.moblin.android.platform.audio.hasAudioEncoder
 import com.moblin.android.platform.audio.makePcmFormat
+import com.moblin.android.platform.audio.remapChannels
 import com.moblin.android.platform.capture.CaptureFrameRate
 import com.moblin.android.platform.core.PipelineStats
 import com.moblin.android.platform.core.PipelineThread
@@ -17,7 +19,11 @@ import com.moblin.android.platform.mp4.Mp4TrackReport
 import com.moblin.android.platform.mp4.Mp4VideoTrackConfig
 import com.moblin.android.platform.mp4.makeAacAudioSpecificConfig
 import com.moblin.android.platform.video.CVPixelBuffer
+import com.moblin.android.platform.video.ColorDescription
 import com.moblin.android.platform.video.PixelBufferLeases
+import com.moblin.android.platform.video.SoftwareRendering
+import com.moblin.android.platform.video.kCMFormatDescriptionPixelFormatTypeKey
+import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
 import com.moblin.android.platform.video.releaseLease
 import com.moblin.android.platform.videotoolbox.CMFormatDescriptionGetExtension
 import com.moblin.android.platform.videotoolbox.VTCompressionSession
@@ -410,6 +416,7 @@ class AVAssetWriter(val contentType: String) {
             width = width,
             height = height,
             decoderConfigurationRecord = record,
+            color = ColorDescription.fromMediaFormat(format).takeIf { !it.isEmpty },
         )
     }
 
@@ -475,7 +482,11 @@ class AVAssetWriterInput(
     @Volatile
     private var finished = false
 
-    private val videoEncoder = if (mediaType == AVMediaType.video) AssetWriterVideoEncoder(outputSettings) else null
+    private val videoEncoder = if (mediaType == AVMediaType.video) {
+        AssetWriterVideoEncoder(outputSettings, sourceFormatHint)
+    } else {
+        null
+    }
 
     private val audioEncoder = if (mediaType == AVMediaType.audio) {
         AssetWriterAudioEncoder(outputSettings, sourceFormatHint)
@@ -534,7 +545,7 @@ class AVAssetWriterInput(
     }
 }
 
-internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
+internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?, sourceFormatHint: MediaFormat? = null) {
     private val lock = Any()
     private val mimeType = when ((outputSettings?.get(AVVideoCodecKey) as? String)?.lowercase()) {
         MediaFormat.MIMETYPE_VIDEO_HEVC, "hevc", "hvc1", "h265" -> MediaFormat.MIMETYPE_VIDEO_HEVC
@@ -548,6 +559,8 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
     private val requestedKeyFrameInterval =
         (compressionProperties?.get(AVVideoMaxKeyFrameIntervalDurationKey) as? Number)?.toDouble()
     private var session: VTCompressionSession? = null
+    private var sessionPixelFormatType: Int? = sourceFormatHint?.let { readPixelFormatType(it) }
+    private var sessionColor: ColorDescription? = sourceFormatHint?.let { ColorDescription.fromMediaFormat(it) }
     private var isCreatingSession = false
     private var hasAppendedFirstFrame = false
     private var numberOfFramesBeforeSession = 0
@@ -589,6 +602,7 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
                 writer,
                 if (requestedWidth > 0) requestedWidth else imageBuffer.width,
                 if (requestedHeight > 0) requestedHeight else imageBuffer.height,
+                imageBuffer,
             )
             numberOfFramesBeforeSession += 1
             return true
@@ -617,17 +631,21 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
         }
     }
 
-    private fun startCreatingSession(writer: AVAssetWriter, width: Int, height: Int) {
+    private fun startCreatingSession(writer: AVAssetWriter, width: Int, height: Int, imageBuffer: CVPixelBuffer? = null) {
         synchronized(lock) {
             if (isCreatingSession || session != null || released) {
                 return
             }
             isCreatingSession = true
+            if (imageBuffer != null) {
+                sessionPixelFormatType = imageBuffer.pixelFormatType
+                sessionColor = ColorDescription.fromImageBuffer(imageBuffer)
+            }
         }
         sessionRequestTimeNs = System.nanoTime()
         val frameRate = CaptureFrameRate.value.roundToInt().coerceIn(5, 120).toDouble()
         Log.i(TAG, "Creating the video encoder for ${width}x$height at ${frameRate.roundToInt()} fps")
-        encoderSetupExecutor.execute {
+        val create: () -> Unit = {
             val created = try {
                 createSession(writer, width and 1.inv(), height and 1.inv(), frameRate)
             } catch (error: Throwable) {
@@ -641,6 +659,11 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
                 TAG,
                 "Video encoder ${if (created) "ready" else "not created"} after ${elapsedMs(sessionRequestTimeNs)} ms",
             )
+        }
+        if (SoftwareRendering.isActive) {
+            create()
+        } else {
+            encoderSetupExecutor.execute(create)
         }
     }
 
@@ -679,11 +702,13 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
         frameRate: Double,
         failures: MutableList<String>,
     ): VTCompressionSession? {
+        val pixelFormatType = synchronized(lock) { sessionPixelFormatType }
+        val color = synchronized(lock) { sessionColor }
         val (status, session) = VTCompressionSessionCreate(
             width = width,
             height = height,
             codecType = codecType,
-            imageBufferAttributes = null,
+            imageBufferAttributes = pixelFormatType?.let { mapOf<String, Any>(kCVPixelBufferPixelFormatTypeKey to it) },
         )
         if (status != noErr || session == null) {
             failures.add("Failed to create a $codecType encoder for ${width}x$height (status $status)")
@@ -691,7 +716,7 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
         }
         val isHevc = codecType == MediaFormat.MIMETYPE_VIDEO_HEVC
         val bitrate = requestedBitrate ?: (width.toDouble() * height * frameRate * (if (isHevc) 0.1 else 0.15)).toInt()
-        val properties = mapOf<String, Any>(
+        val properties = mutableMapOf<String, Any>(
             "RealTime" to true,
             "ExpectedFrameRate" to frameRate,
             "AllowFrameReordering" to false,
@@ -700,6 +725,9 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
                 ?: if (isHevc) kVTProfileLevel_HEVC_Main_AutoLevel else kVTProfileLevel_H264_High_AutoLevel),
             "AverageBitRate" to bitrate,
         )
+        color?.primaries?.let { properties["ColorPrimaries"] = it }
+        color?.transferFunction?.let { properties["TransferFunction"] = it }
+        color?.yCbCrMatrix?.let { properties["YCbCrMatrix"] = it }
         VTSessionSetProperties(session, properties)
         val prepareStatus = VTCompressionSessionPrepareToEncodeFrames(session)
         if (prepareStatus != noErr) {
@@ -775,6 +803,18 @@ internal class AssetWriterVideoEncoder(outputSettings: Map<String, Any>?) {
     private fun elapsedMs(startNs: Long): Long {
         return (System.nanoTime() - startNs) / 1_000_000
     }
+
+    private fun readPixelFormatType(format: MediaFormat): Int? {
+        return try {
+            if (format.containsKey(kCMFormatDescriptionPixelFormatTypeKey)) {
+                format.getInteger(kCMFormatDescriptionPixelFormatTypeKey)
+            } else {
+                null
+            }
+        } catch (error: Exception) {
+            null
+        }
+    }
 }
 
 internal class AssetWriterAudioEncoder(outputSettings: Map<String, Any>?, sourceFormatHint: MediaFormat?) {
@@ -810,8 +850,19 @@ internal class AssetWriterAudioEncoder(outputSettings: Map<String, Any>?, source
             ?: (64_000 * channelCount)
     }
 
+    private val writesPcm: Boolean by lazy {
+        SoftwareRendering.isActive && !hasAudioEncoder(makeAacFormat())
+    }
+
+    private fun makeAacFormat(): MediaFormat {
+        val format = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, channelCount)
+        format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
+        format.setInteger(MediaFormat.KEY_BIT_RATE, bitrate)
+        return format
+    }
+
     fun prepare() {
-        if (sourceChannels <= 0) {
+        if (sourceChannels <= 0 || writesPcm) {
             return
         }
         encoderSetupExecutor.execute {
@@ -824,6 +875,17 @@ internal class AssetWriterAudioEncoder(outputSettings: Map<String, Any>?, source
     }
 
     fun makeTrackConfig(trackID: Int): Mp4AudioTrackConfig {
+        if (writesPcm) {
+            Log.i(TAG, "No AAC encoder and no GPU, recording $sampleRate Hz 16-bit PCM audio")
+            return Mp4AudioTrackConfig(
+                trackId = trackID,
+                sampleRate = sampleRate,
+                channelCount = channelCount,
+                bitrate = sampleRate * channelCount * 16,
+                audioSpecificConfig = ByteArray(0),
+                isPcm = true,
+            )
+        }
         return Mp4AudioTrackConfig(
             trackId = trackID,
             sampleRate = sampleRate,
@@ -847,7 +909,11 @@ internal class AssetWriterAudioEncoder(outputSettings: Map<String, Any>?, source
                 logOnce("Dropping ${format.audioSampleRate()} Hz audio, the AAC encoder runs at $sampleRate Hz")
                 return true
             }
-            val converter = getConverter(channels) ?: return true
+            val converter = if (writesPcm) null else getConverter(channels) ?: return true
+            if (writesPcm && pendingChannels != channels) {
+                pendingFrames = 0
+                pendingChannels = channels
+            }
             val frameSize = channels * 2
             val frames = sampleBuffer.data.size / frameSize
             if (frames <= 0) {
@@ -875,7 +941,11 @@ internal class AssetWriterAudioEncoder(outputSettings: Map<String, Any>?, source
                 val offset = consumedFrames * frameSize
                 val chunk = pending.copyOfRange(offset, offset + chunkSize)
                 val chunkPresentationTimeStamp = pendingStartTimeUs.roundToLong()
-                encodeChunk(writer, converter, chunk, chunkPresentationTimeStamp)
+                if (converter == null) {
+                    writePcmChunk(writer, chunk, channels, chunkPresentationTimeStamp)
+                } else {
+                    encodeChunk(writer, converter, chunk, chunkPresentationTimeStamp)
+                }
                 consumedFrames += aacFramesPerPacket
                 pendingStartTimeUs += aacFramesPerPacket * 1_000_000.0 / sampleRate
             }
@@ -931,6 +1001,17 @@ internal class AssetWriterAudioEncoder(outputSettings: Map<String, Any>?, source
         converterInputChannels = inputChannels
         Log.i(TAG, "Audio encoder AAC $sampleRate Hz $channelCount channels $bitrate bps")
         return newConverter
+    }
+
+    private fun writePcmChunk(writer: AVAssetWriter, chunk: ByteArray, channels: Int, presentationTimeStamp: Long) {
+        if (channels == channelCount) {
+            writer.appendEncodedAudio(chunk, presentationTimeStamp)
+            return
+        }
+        val output = ByteArray(aacFramesPerPacket * channelCount * 2)
+        val channelMap = List(channelCount) { index -> if (index < channels) index else 0 }
+        remapChannels(chunk, aacFramesPerPacket, channels, channelMap, output)
+        writer.appendEncodedAudio(output, presentationTimeStamp)
     }
 
     private fun encodeChunk(

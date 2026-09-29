@@ -2,15 +2,25 @@ package com.moblin.android.platform.videotoolbox
 
 import android.media.MediaFormat
 import com.moblin.android.media.haishinkit.mpeg.NalUnitReader
+import com.moblin.android.platform.video.ColorDescription
+import com.moblin.android.platform.video.kCVImageBufferColorPrimariesKey
+import com.moblin.android.platform.video.kCVImageBufferTransferFunctionKey
+import com.moblin.android.platform.video.kCVImageBufferYCbCrMatrixKey
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 
 const val kCMFormatDescriptionExtension_SampleDescriptionExtensionAtoms = "SampleDescriptionExtensionAtoms"
 
-const val kCMFormatDescriptionExtension_ColorPrimaries = "ColorPrimaries"
-const val kCMFormatDescriptionExtension_TransferFunction = "TransferFunction"
-const val kCMFormatDescriptionExtension_YCbCrMatrix = "YCbCrMatrix"
+const val kCMFormatDescriptionExtension_ColorPrimaries = kCVImageBufferColorPrimariesKey
+const val kCMFormatDescriptionExtension_TransferFunction = kCVImageBufferTransferFunctionKey
+const val kCMFormatDescriptionExtension_YCbCrMatrix = kCVImageBufferYCbCrMatrixKey
 const val kCMFormatDescriptionExtension_FullRangeVideo = "FullRangeVideo"
+
+private val colorExtensionKeys = listOf(
+    kCMFormatDescriptionExtension_ColorPrimaries,
+    kCMFormatDescriptionExtension_TransferFunction,
+    kCMFormatDescriptionExtension_YCbCrMatrix,
+)
 
 private val atomKeys = listOf("avcC", "hvcC")
 
@@ -43,33 +53,16 @@ fun CMFormatDescriptionGetExtension(formatDescription: MediaFormat, extensionKey
         return if (atoms.isEmpty()) null else atoms
     }
     if (extensionKey == kCMFormatDescriptionExtension_FullRangeVideo) {
-        return readInteger(formatDescription, MediaFormat.KEY_COLOR_RANGE)?.let { it == MediaFormat.COLOR_RANGE_FULL }
+        return ColorDescription.fromMediaFormat(formatDescription).fullRange
     }
     if (extensionKey == kCMFormatDescriptionExtension_ColorPrimaries) {
-        return when (readInteger(formatDescription, MediaFormat.KEY_COLOR_STANDARD)) {
-            MediaFormat.COLOR_STANDARD_BT709 -> "ITU_R_709_2"
-            MediaFormat.COLOR_STANDARD_BT601_PAL -> "EBU_3213"
-            MediaFormat.COLOR_STANDARD_BT601_NTSC -> "SMPTE_C"
-            MediaFormat.COLOR_STANDARD_BT2020 -> "ITU_R_2020"
-            else -> null
-        }
+        return ColorDescription.fromMediaFormat(formatDescription).primaries
     }
     if (extensionKey == kCMFormatDescriptionExtension_YCbCrMatrix) {
-        return when (readInteger(formatDescription, MediaFormat.KEY_COLOR_STANDARD)) {
-            MediaFormat.COLOR_STANDARD_BT709 -> "ITU_R_709_2"
-            MediaFormat.COLOR_STANDARD_BT601_PAL, MediaFormat.COLOR_STANDARD_BT601_NTSC -> "ITU_R_601_4"
-            MediaFormat.COLOR_STANDARD_BT2020 -> "ITU_R_2020"
-            else -> null
-        }
+        return ColorDescription.fromMediaFormat(formatDescription).yCbCrMatrix
     }
     if (extensionKey == kCMFormatDescriptionExtension_TransferFunction) {
-        return when (readInteger(formatDescription, MediaFormat.KEY_COLOR_TRANSFER)) {
-            MediaFormat.COLOR_TRANSFER_SDR_VIDEO -> "ITU_R_709_2"
-            MediaFormat.COLOR_TRANSFER_HLG -> "ITU_R_2100_HLG"
-            MediaFormat.COLOR_TRANSFER_ST2084 -> "SMPTE_ST_2084_PQ"
-            MediaFormat.COLOR_TRANSFER_LINEAR -> "Linear"
-            else -> null
-        }
+        return ColorDescription.fromMediaFormat(formatDescription).transferFunction
     }
     return CMFormatDescriptionGetExtensions(formatDescription)?.get(extensionKey)
 }
@@ -79,6 +72,14 @@ fun CMFormatDescriptionGetExtensions(formatDescription: MediaFormat): Map<String
     for (key in extensionIntegerKeys) {
         val value = readInteger(formatDescription, key) ?: continue
         extensions[key] = value
+    }
+    for (key in colorExtensionKeys) {
+        val value = readString(formatDescription, key) ?: continue
+        extensions[key] = value
+    }
+    val fullRange = ColorDescription.fromMediaFormat(formatDescription).fullRange
+    if (fullRange != null) {
+        extensions[kCMFormatDescriptionExtension_FullRangeVideo] = fullRange
     }
     val atoms = CMFormatDescriptionGetExtension(
         formatDescription,
@@ -110,7 +111,7 @@ fun CMFormatDescriptionEqual(a: MediaFormat?, b: MediaFormat?): Boolean {
             return false
         }
     }
-    return true
+    return ColorDescription.fromMediaFormat(a) == ColorDescription.fromMediaFormat(b)
 }
 
 fun makeAvcDecoderConfigurationRecord(sps: ByteArray, pps: ByteArray): ByteArray {
@@ -209,8 +210,10 @@ fun makeVideoFormatDescription(
     vps: ByteArray?,
     sps: ByteArray,
     pps: ByteArray,
+    color: ColorDescription? = null,
 ): MediaFormat {
     val format = MediaFormat.createVideoFormat(mimeType, width, height)
+    color?.apply(format)
     if (mimeType == MediaFormat.MIMETYPE_VIDEO_HEVC) {
         format.setByteBuffer("csd-0", ByteBuffer.wrap(makeAnnexB(listOfNotNull(vps, sps, pps))))
         if (vps != null) {

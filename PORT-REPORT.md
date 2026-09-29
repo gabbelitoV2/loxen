@@ -1,6 +1,6 @@
 # Port report
 
-Generated 2026-09-29T01:01:25+00:00
+Generated 2026-09-29T09:33:41+00:00
 
 ## Summary
 
@@ -18,8 +18,6 @@ Generated 2026-09-29T01:01:25+00:00
 
 - Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift
   - no Android counterpart for CVPixelBuffer plane access (CVPixelBufferLockBaseAddress, CVPixelBufferGetBaseAddressOfPlane, CVPixelBufferGetBytesPerRowOfPlane, CVPixelBufferGetHeightOfPlane) and CVBufferPropagateAttachments/CVBufferSetAttachment
-- MoblinTests/Moblin/Media/HaishinKit/Media/Video/VideoColorSuite.swift
-  - CIContext.render(toBitmap:rowBytes:bounds:format:colorSpace:) used by readHlgSignal has no Android shim
 
 ## Apple only / needs Gabriel
 
@@ -832,9 +830,9 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | MoblinTests/Moblin/Media/HaishinKit/Media/Audio/AudioUnitSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/media/audio/AudioUnitSuite.kt | deepseek-flash | 9.9 |
 | MoblinTests/Moblin/Media/HaishinKit/Media/Audio/BufferedAudioSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/media/audio/BufferedAudioSuite.kt | deepseek-flash | 32.5 |
 | MoblinTests/Moblin/Media/HaishinKit/Media/DriftTrackerSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/media/DriftTrackerSuite.kt | deepseek-flash | 21.4 |
-| MoblinTests/Moblin/Media/HaishinKit/Media/RecorderSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/media/RecorderSuite.kt | deepseek-flash | 41.4 |
+| MoblinTests/Moblin/Media/HaishinKit/Media/RecorderSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/media/RecorderSuite.kt | deepseek-flash | 78.6 |
 | MoblinTests/Moblin/Media/HaishinKit/Media/Video/BufferedVideoSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/media/video/BufferedVideoSuite.kt | deepseek-flash | 11.6 |
-| MoblinTests/Moblin/Media/HaishinKit/Media/Video/VideoColorSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/media/video/VideoColorSuite.kt | deepseek-flash | 136.2 |
+| MoblinTests/Moblin/Media/HaishinKit/Media/Video/VideoColorSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/media/video/VideoColorSuite.kt | deepseek-flash | 121.7 |
 | MoblinTests/Moblin/Media/HaishinKit/Mpeg/MpegTsReaderSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/mpeg/MpegTsReaderSuite.kt | deepseek-flash | 34.7 |
 | MoblinTests/Moblin/Media/HaishinKit/Mpeg/MpegTsSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/mpeg/MpegTsSuite.kt | deepseek-flash | 16.0 |
 | MoblinTests/Moblin/Media/HaishinKit/Mpeg/MpegTsTimecodeGeneratorSuite.swift | app/src/test/java/com/moblin/android/media/haishinkit/mpeg/MpegTsTimecodeGeneratorSuite.kt | deepseek-flash | 106.9 |

@@ -120,7 +120,10 @@ class AVCaptureDevice private constructor(
         val maxISO: Float,
         val minExposureDuration: Long,
         val maxExposureDuration: Long,
-    ) {
+    ) : com.moblin.android.media.haishinkit.media.video.VideoFormat {
+        override val pixelFormat: Int
+            get() = formatDescription.mediaSubType.rawValue
+
         val isAutoVideoFrameRateSupported = false
         val isVideoBinned = false
         val isVideoHDRSupported = false

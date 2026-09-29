@@ -4418,27 +4418,28 @@
   },
   "MoblinTests/Moblin/Media/HaishinKit/Media/RecorderSuite.swift": {
     "status": "ok",
-    "sha256": "db2d19d2da4414e2e2140ff1673be73a16b152d16cdffee196a02af3f65ea169",
+    "sha256": "1e9f7319fb4966714e72194f65ece79d6e554d363055f7a47ec0a9f2866aac16",
+    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "mode": "full",
     "tier": "test",
     "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/media/RecorderSuite.kt",
     "notes": [
-      "Swift Testing @Suite(.serialized) becomes a plain JUnit 4 class; JUnit already runs methods of one class serially, so no annotation is needed.",
-      "DispatchSemaphore -> CountDownLatch; FileManager.default.temporaryDirectory -> the java.io.tmpdir system property.",
-      "CMTime(value: 1, timescale: 30) is stored as a Long of microseconds (videoFrameDuration), and CMTime(seconds:) becomes a Long of microseconds.",
-      "AVAudioPCMBuffer / CVPixelBuffer sample creation is replaced by MediaSample instances built from raw PCM 16-bit little-endian bytes and a YUV420 frame buffer.",
-      "AVURLAsset and AVAssetReader track inspection are replaced by MediaExtractor plus MediaCodec decoding of the written mp4.",
-      "processorPipelineQueue.sync {} is assumed to be an ExecutorService submit/get on that top-level val from the same package.",
-      "Recorder.startRunning output settings are assumed to be android.media.MediaFormat values (AAC audio, AVC video) mirroring the AVFoundation dictionaries.",
-      "deinit file removal is translated into an AutoCloseable.close() on RecorderTester."
+      "RecorderTester's deinit that removed the temp file has no Kotlin equivalent; the tester registers its path in the file-private recorderSuiteTempFiles list and RecorderSuite.@After deletes every registered file.",
+      "DispatchSemaphore(value: 0) is java.util.concurrent.CountDownLatch(1); wait(timeout: .now() + 10) is await(10, TimeUnit.SECONDS).",
+      "CMTime is Long microseconds: videoFrameDuration is 1_000_000L / 30, CMTime(seconds:) becomes the file-private helper cmTime(seconds) and .seconds becomes / 1_000_000.0.",
+      "URL paths are plain String paths backed by java.io.File; FileManager.default.temporaryDirectory.appendingPathComponent is File(System.getProperty(\"java.io.tmpdir\"), name) and attributesOfItem/.size is File.length() after File.exists().",
+      "Thread.sleep(forTimeInterval:) stays Thread.sleep(ms) so record() remains blocking exactly like the Swift helper.",
+      "The AVAssetReaderTrackOutput settings use the shim keys AVLinearPCM*, kAudioFormatLinearPCM and MediaFormat.MIMETYPE_AUDIO_AAC for Int(kAudioFormatMPEG4AAC).",
+      "sampleBuffer.withAudioBufferList + mData assumingMemoryBound(to: Int16.self) is ByteBuffer.wrap(sampleBuffer.data).order(LITTLE_ENDIAN).asShortBuffer() with samples.put/get.",
+      "The async tests run through runMainTest { } and loadTrackDuration/loadToneTime/loadVideoFullRange are suspend functions."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 5271,
-    "tokens_out": 28280,
-    "seconds": 103.4,
-    "ported_at": "2026-09-22T12:53:45+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 45696,
+    "tokens_out": 21376,
+    "seconds": 78.6,
+    "ported_at": "2026-09-29T09:10:56+00:00"
   },
   "Moblin/StreamingPlatforms/OpenStreamingPlatform/OpenStreamingPlatformChat.swift": {
     "status": "ok",
@@ -18588,5 +18589,30 @@
     "tokens_out": 5653,
     "seconds": 22.6,
     "ported_at": "2026-09-27T22:38:07+00:00"
+  },
+  "MoblinTests/Moblin/Media/HaishinKit/Media/Video/VideoColorSuite.swift": {
+    "status": "ok",
+    "sha256": "06fcf3d5690428d2acd53aee16cb0c2e842bc2ffb7f784ae3ae776681787c2ab",
+    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "mode": "full",
+    "tier": "test",
+    "kotlin_path": "app/src/test/java/com/moblin/android/media/haishinkit/media/video/VideoColorSuite.kt",
+    "notes": [
+      "The Mac Catalyst-only test formatDescriptionMatcherAddsColorExtensions is dropped: targetEnvironment(macCatalyst) blocks are Mac only and there is no #else branch.",
+      "Swift tuple results (Int, Int, Int) became Triple<Int, Int, Int>, and the argument tuple in processorOutputPixelFormatFollowsColorRange became the private ProcessorOutputCase data class.",
+      "@Test(arguments:) suites became one @Test with nested loops that create the queue, tester and encoder inside the loop body.",
+      "DispatchQueue(label:) became a single-thread CoroutineDispatcher and lockQueue.sync { } became runBlocking(lockQueue) { }.",
+      "try #require(optional) became requireNotNull; CIColor and CGColorSpace are non-null in the shim, so CIColor(...)! and CGColorSpace(name:)! lose their force unwraps.",
+      "CMTime(value:timescale:) became Long microseconds (v * 1_000_000L / timescale) and CMTime.invalid became kCMTimeInvalidUs.",
+      "encoder.settings.mutate { it.videoSize = Size(320, 240); ... } assumes the platform Atomic exposes mutate(block: (T) -> Unit); VideoEncoderSettings.videoSize is assumed to be android.util.Size.",
+      "getIsSync() is called on MediaSample from com.moblin.android.common.various, and luma/chroma bytes are read with ByteBuffer.get(i).toInt() and 0xFF."
+    ],
+    "unsupported": [],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 58013,
+    "tokens_out": 37182,
+    "seconds": 121.7,
+    "ported_at": "2026-09-29T09:05:53+00:00"
   }
 }

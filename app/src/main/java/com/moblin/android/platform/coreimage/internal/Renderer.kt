@@ -118,7 +118,7 @@ internal object Renderer {
         }
     }
 
-    fun renderCoreImageToBuffer(root: ImageNode, bounds: CGRect, buffer: CVPixelBuffer) {
+    fun renderCoreImageToBuffer(root: ImageNode, bounds: CGRect, buffer: CVPixelBuffer, encode: Boolean = true) {
         if (!buffer.checkReadable("CIContext.render target")) {
             PipelineStats.increment("fxStale")
             return
@@ -134,7 +134,8 @@ internal object Renderer {
                 framebuffer = buffer.framebuffer,
                 width = buffer.width,
                 height = buffer.height,
-                output = if (isOpaqueFormat(buffer.pixelFormatType)) OutputEncoding.opaque else OutputEncoding.keepAlpha
+                output = if (isOpaqueFormat(buffer.pixelFormatType)) OutputEncoding.opaque else OutputEncoding.keepAlpha,
+                encode = encode,
             )
         }
     }
@@ -291,6 +292,7 @@ internal object Renderer {
         width: Int,
         height: Int,
         output: OutputEncoding,
+        encode: Boolean = true,
     ) {
         val context = RenderContext(coreImageMode())
         try {
@@ -309,7 +311,7 @@ internal object Renderer {
                     height
                 )
                 drawGraph(context, workTarget, root, region, floatArrayOf(0f, 0f, 0f, 0f), true)
-                encodePass(context, work, framebuffer, width, height, output)
+                encodePass(context, work, framebuffer, width, height, output, encode)
             } else {
                 val target = Target(framebuffer, width, height, boundsX, boundsY, 1.0, 1.0, width, height)
                 if (output == OutputEncoding.opaque) {
@@ -1265,8 +1267,15 @@ internal object Renderer {
         width: Int,
         height: Int,
         output: OutputEncoding,
+        encode: Boolean,
     ) {
-        val program = fixedProgram(if (output == OutputEncoding.opaque) ENCODE_OPAQUE else ENCODE_ALPHA) ?: return
+        val programSource = when {
+            output == OutputEncoding.opaque && encode -> ENCODE_OPAQUE
+            output == OutputEncoding.opaque -> COPY_OPAQUE
+            encode -> ENCODE_ALPHA
+            else -> COPY_ALPHA
+        }
+        val program = fixedProgram(programSource) ?: return
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, framebuffer)
         GLES20.glViewport(0, 0, width, height)
         GLES20.glDisable(GLES20.GL_BLEND)
@@ -1320,6 +1329,25 @@ uniform vec4 uSize;
 void main() {
     vec4 c = FETCH(uSource, ivec2(gl_FragCoord.xy), uSize.zw);
     fragColor = vec4(mbLinearToSrgb(clamp(c.rgb, 0.0, 1.0)), 1.0);
+}
+"""
+
+    private const val COPY_OPAQUE = """
+uniform sampler2D uSource;
+uniform vec4 uSize;
+void main() {
+    vec4 c = FETCH(uSource, ivec2(gl_FragCoord.xy), uSize.zw);
+    fragColor = vec4(clamp(c.rgb, 0.0, 1.0), 1.0);
+}
+"""
+
+    private const val COPY_ALPHA = """
+uniform sampler2D uSource;
+uniform vec4 uSize;
+void main() {
+    vec4 c = FETCH(uSource, ivec2(gl_FragCoord.xy), uSize.zw);
+    c.a = clamp(c.a, 0.0, 1.0);
+    fragColor = c;
 }
 """
 

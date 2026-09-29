@@ -30,6 +30,20 @@ object EglCore {
     var glMajorVersion = 0
         private set
 
+    @Volatile
+    var renderer: String? = null
+        private set
+
+    @Volatile
+    var isSetUp = false
+        private set
+
+    val hasGpu: Boolean
+        get() {
+            ensureSetUp()
+            return isReady && !renderer.isNullOrEmpty()
+        }
+
     val display: EGLDisplay
         get() {
             ensureSetUp()
@@ -59,6 +73,7 @@ object EglCore {
         } catch (error: Throwable) {
             Log.e(TAG, "EGL setup failed", error)
         }
+        isSetUp = true
     }
 
     fun createWindowSurface(nativeWindow: Any): EGLSurface {
@@ -274,6 +289,7 @@ object EglCore {
         GLES20.glDisable(GLES20.GL_SCISSOR_TEST)
         GLES20.glPixelStorei(GLES20.GL_PACK_ALIGNMENT, 1)
         GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 1)
+        renderer = GLES20.glGetString(GLES20.GL_RENDERER)
         isReady = true
         Log.i(TAG, "EGL ready (OpenGL ES $glMajorVersion.$minor) on ${Thread.currentThread().name}")
         val extensions = GLES20.glGetString(GLES20.GL_EXTENSIONS) ?: ""

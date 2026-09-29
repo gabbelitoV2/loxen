@@ -333,7 +333,7 @@ void main() {
             return
         }
         val program = program(ProgramKind.yccToRgb) ?: return
-        val descriptor = YCbCrStorage.descriptorFor(source.layout)
+        val descriptor = YCbCrStorage.descriptorFor(source)
         val chromaScale = YCbCrGeometry.chromaScale(width, height)
         layoutQuad(width, height, targetWidth, targetHeight, mode, rotationDegreesCw, mirror, flipVertical)
         GLES20.glUseProgram(program.id)
@@ -403,7 +403,7 @@ void main() {
         val luma = program(if (external) ProgramKind.oesToLuma else ProgramKind.rgbaToLuma) ?: return
         val chroma = program(if (external) ProgramKind.oesToChroma else ProgramKind.rgbaToChroma) ?: return
         val textureTarget = if (external) GLES11Ext.GL_TEXTURE_EXTERNAL_OES else GLES20.GL_TEXTURE_2D
-        val descriptor = YCbCrStorage.descriptorFor(target.layout)
+        val descriptor = YCbCrStorage.descriptorFor(target)
         val chromaWidth = target.layout.chromaWidth(width)
         val chromaHeight = target.layout.chromaHeight(height)
         val extent = YCbCrGeometry.chromaExtent(width, height)

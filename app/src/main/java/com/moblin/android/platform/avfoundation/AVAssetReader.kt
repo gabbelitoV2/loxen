@@ -14,6 +14,8 @@ import com.moblin.android.media.MediaSample
 import com.moblin.android.platform.coregraphics.CGSize
 import com.moblin.android.platform.core.PipelineStats
 import com.moblin.android.platform.core.PipelineThread
+import com.moblin.android.platform.mp4.Mp4Reader
+import com.moblin.android.platform.mp4.Mp4ReaderTrack
 import com.moblin.android.platform.video.CMVideoFormatDescriptionCreateForImageBuffer
 import com.moblin.android.platform.video.CVPixelBuffer
 import com.moblin.android.platform.video.CVPixelBufferPool
@@ -43,6 +45,9 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sin
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 private const val TAG = "MoblinReader"
 private const val AUDIO_CHUNK_FRAMES = 1024
@@ -134,7 +139,22 @@ class AVAssetTrack internal constructor(
     val trackID: Int,
     internal val trackIndex: Int,
     internal val format: MediaFormat,
-)
+) {
+    val formatDescriptions: List<MediaFormat>
+        get() = listOf(format)
+
+    val timeRange: CMTimeRange
+        get() {
+            val duration = try {
+                if (format.containsKey(MediaFormat.KEY_DURATION)) format.getLong(MediaFormat.KEY_DURATION) else 0L
+            } catch (error: Exception) {
+                0L
+            }
+            return CMTimeRange(start = 0L, duration = duration)
+        }
+}
+
+typealias AVURLAsset = AVAsset
 
 class AVAsset(url: String) {
     val path: String = url
@@ -170,7 +190,67 @@ class AVAsset(url: String) {
         }
     }
 
+    suspend fun loadTracks(withMediaType: AVMediaType): List<AVAssetTrack> {
+        return suspendCancellableCoroutine { continuation ->
+            loadTracks(withMediaType) { tracks, error ->
+                if (tracks != null) {
+                    continuation.resume(tracks)
+                } else {
+                    continuation.resumeWithException(error ?: AVError(AVError.unknown, "Cannot read $path"))
+                }
+            }
+        }
+    }
+
     private fun readTracks(mediaType: AVMediaType): List<AVAssetTrack> {
+        val tracks = try {
+            readExtractorTracks(mediaType)
+        } catch (error: Exception) {
+            null
+        }
+        if (tracks.isNullOrEmpty()) {
+            return readMp4Tracks(mediaType) ?: tracks ?: throw AVError(AVError.unknown, "Cannot read $path")
+        }
+        if (tracks.all { it.format.containsKey(MediaFormat.KEY_DURATION) }) {
+            return tracks
+        }
+        val mp4Tracks = readMp4Tracks(mediaType) ?: return tracks
+        for ((index, track) in tracks.withIndex()) {
+            val duration = mp4Tracks.getOrNull(index)?.timeRange?.duration ?: continue
+            if (!track.format.containsKey(MediaFormat.KEY_DURATION)) {
+                track.format.setLong(MediaFormat.KEY_DURATION, duration)
+            }
+        }
+        return tracks
+    }
+
+    private fun readMp4Tracks(mediaType: AVMediaType): List<AVAssetTrack>? {
+        val tracks = Mp4Reader.read(path) ?: return null
+        return tracks.filter { track ->
+            when (mediaType) {
+                AVMediaType.video -> track.isVideo
+                AVMediaType.audio -> track.isAudio
+            }
+        }.mapIndexed { index, track ->
+            val width = readFormatInteger(track.format, MediaFormat.KEY_WIDTH) ?: 0
+            val height = readFormatInteger(track.format, MediaFormat.KEY_HEIGHT) ?: 0
+            val frameRate = if (track.isVideo && track.durationUs > 0) {
+                (track.samples.size * 1_000_000.0 / track.durationUs).toFloat()
+            } else {
+                0f
+            }
+            AVAssetTrack(
+                mediaType = mediaType,
+                naturalSize = CGSize(width = width, height = height),
+                nominalFrameRate = frameRate,
+                trackID = track.trackId,
+                trackIndex = index,
+                format = track.format,
+            )
+        }
+    }
+
+    private fun readExtractorTracks(mediaType: AVMediaType): List<AVAssetTrack> {
         val extractor = MediaExtractor()
         try {
             extractor.setDataSource(path)
@@ -597,6 +677,10 @@ private fun feedInput(codec: MediaCodec, extractor: MediaExtractor, stopTimeUs: 
     return false
 }
 
+private fun readFormatString(format: MediaFormat, key: String): String? {
+    return runCatching { if (format.containsKey(key)) format.getString(key) else null }.getOrNull()
+}
+
 private fun readFormatInteger(format: MediaFormat, key: String): Int? {
     return runCatching {
         if (format.containsKey(key)) format.getInteger(key) else null
@@ -916,9 +1000,18 @@ private class AudioTrackDecoder(
     private var decodedEncoding = AudioFormat.ENCODING_PCM_16BIT
     private var lastProgressMs = 0L
     private var released = false
+    private var pcmTrack: Mp4ReaderTrack? = null
+    private var pcmSampleIndex = 0
 
     override fun start(): Boolean {
-        val extractor = openExtractor(path, track, timeRange) ?: return false
+        if (readFormatString(track.format, MediaFormat.KEY_MIME) == MediaFormat.MIMETYPE_AUDIO_RAW && startPcmTrack()) {
+            return true
+        }
+        val extractor = openExtractor(path, track, timeRange) ?: return startPcmTrack()
+        if (extractor.trackCount <= track.trackIndex) {
+            runCatching { extractor.release() }
+            return startPcmTrack()
+        }
         this.extractor = extractor
         val format = extractor.getTrackFormat(track.trackIndex)
         readFormatInteger(format, MediaFormat.KEY_SAMPLE_RATE)?.let { decodedRate = it }
@@ -956,7 +1049,47 @@ private class AudioTrackDecoder(
         }
     }
 
+    private fun startPcmTrack(): Boolean {
+        val tracks = Mp4Reader.read(path)?.filter { it.isAudio } ?: return false
+        val pcmTrack = tracks.firstOrNull { it.trackId == track.trackID } ?: tracks.getOrNull(track.trackIndex)
+            ?: return false
+        if (readFormatString(pcmTrack.format, MediaFormat.KEY_MIME) != MediaFormat.MIMETYPE_AUDIO_RAW) {
+            ReaderLog.info("AVAssetReader: no decoder for the audio of $path")
+            return false
+        }
+        decodedRate = readFormatInteger(pcmTrack.format, MediaFormat.KEY_SAMPLE_RATE) ?: return false
+        decodedChannels = readFormatInteger(pcmTrack.format, MediaFormat.KEY_CHANNEL_COUNT) ?: return false
+        decodedEncoding = AudioFormat.ENCODING_PCM_16BIT
+        this.pcmTrack = pcmTrack
+        return true
+    }
+
+    private fun readPcmStep(pcmTrack: Mp4ReaderTrack) {
+        val sample = pcmTrack.samples.getOrNull(pcmSampleIndex)
+        if (sample == null) {
+            outputDone = true
+            return
+        }
+        pcmSampleIndex += 1
+        val data = Mp4Reader.readSample(path, sample)
+        if (data == null) {
+            outputDone = true
+            return
+        }
+        val presentationTimeUs = sample.decodeTime * 1_000_000L / pcmTrack.timescale
+        if (presentationTimeUs >= saturatingAdd(timeRange.end, 100_000L)) {
+            outputDone = true
+            return
+        }
+        appendPcm(ByteBuffer.wrap(data), 0, data.size, presentationTimeUs)
+    }
+
     private fun decodeStep() {
+        val pcmTrack = pcmTrack
+        if (pcmTrack != null) {
+            readPcmStep(pcmTrack)
+            return
+        }
         val codec = codec
         val extractor = extractor
         if (codec == null || extractor == null) {

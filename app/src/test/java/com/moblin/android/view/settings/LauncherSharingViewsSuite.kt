@@ -20,6 +20,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.moblin.android.LocalModel
+import com.moblin.android.platform.FileProviderRoots
 import com.moblin.android.platform.loxen.Loxen
 import com.moblin.android.platform.swiftui.Form
 import com.moblin.android.various.Media
@@ -59,6 +60,7 @@ class LauncherSharingViewsSuite {
     @Before
     fun setUp() {
         application = RuntimeEnvironment.getApplication()
+        FileProviderRoots.forget()
         model = Model()
         model.media = Media(delegate = mediaDelegate())
     }

@@ -51,32 +51,50 @@ internal object YCbCr {
     private const val KR = 0.2126
     private const val KB = 0.0722
 
-    val full: YCbCrDescriptor = make(lumaScale = 1.0, chromaScale = 1.0, lumaOffset = 0.0)
+    val full: YCbCrDescriptor = make(KR, KB, lumaScale = 1.0, chromaScale = 1.0, lumaOffset = 0.0)
 
-    val video: YCbCrDescriptor = make(lumaScale = 219.0 / 255, chromaScale = 224.0 / 255, lumaOffset = 16.0 / 255)
+    val video: YCbCrDescriptor = make(KR, KB, lumaScale = 219.0 / 255, chromaScale = 224.0 / 255, lumaOffset = 16.0 / 255)
 
-    private fun make(lumaScale: Double, chromaScale: Double, lumaOffset: Double): YCbCrDescriptor {
-        val kg = 1 - KR - KB
-        val cbRange = 2 - 2 * KB
-        val crRange = 2 - 2 * KR
+    private val descriptors = HashMap<Pair<String, Boolean>, YCbCrDescriptor>()
+
+    fun descriptor(matrix: String?, videoRange: Boolean): YCbCrDescriptor {
+        if (matrix == null || matrix == kCVImageBufferYCbCrMatrix_ITU_R_709_2) {
+            return if (videoRange) video else full
+        }
+        return synchronized(descriptors) {
+            descriptors.getOrPut(Pair(matrix, videoRange)) {
+                val (kr, kb) = YCbCrCoding.coefficients(matrix)
+                if (videoRange) {
+                    make(kr, kb, lumaScale = 219.0 / 255, chromaScale = 224.0 / 255, lumaOffset = 16.0 / 255)
+                } else {
+                    make(kr, kb, lumaScale = 1.0, chromaScale = 1.0, lumaOffset = 0.0)
+                }
+            }
+        }
+    }
+
+    private fun make(kr: Double, kb: Double, lumaScale: Double, chromaScale: Double, lumaOffset: Double): YCbCrDescriptor {
+        val kg = 1 - kr - kb
+        val cbRange = 2 - 2 * kb
+        val crRange = 2 - 2 * kr
         val forward = doubleArrayOf(
-            KR * lumaScale,
+            kr * lumaScale,
             kg * lumaScale,
-            KB * lumaScale,
-            -KR / cbRange * chromaScale,
+            kb * lumaScale,
+            -kr / cbRange * chromaScale,
             -kg / cbRange * chromaScale,
-            (1 - KB) / cbRange * chromaScale,
-            (1 - KR) / crRange * chromaScale,
+            (1 - kb) / cbRange * chromaScale,
+            (1 - kr) / crRange * chromaScale,
             -kg / crRange * chromaScale,
-            -KB / crRange * chromaScale,
+            -kb / crRange * chromaScale,
         )
         val inverse = doubleArrayOf(
             1 / lumaScale,
             0.0,
             crRange / chromaScale,
             1 / lumaScale,
-            -KB * cbRange / kg / chromaScale,
-            -KR * crRange / kg / chromaScale,
+            -kb * cbRange / kg / chromaScale,
+            -kr * crRange / kg / chromaScale,
             1 / lumaScale,
             cbRange / chromaScale,
             0.0,
@@ -138,7 +156,9 @@ internal object YCbCrStorage {
         }
         return when (requestedTag) {
             kCVPixelFormatType_32BGRA, kCVPixelFormatType_32RGBA -> PixelBufferLayout.rgba8
-            kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange -> PixelBufferLayout.ycbcr420Video
+            kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange,
+            kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange,
+            -> PixelBufferLayout.ycbcr420Video
             else -> PixelBufferLayout.ycbcr420Full
         }
     }
@@ -153,6 +173,11 @@ internal object YCbCrStorage {
 
     fun descriptorFor(layout: PixelBufferLayout): YCbCrDescriptor {
         return if (layout == PixelBufferLayout.ycbcr420Video) YCbCr.video else YCbCr.full
+    }
+
+    fun descriptorFor(buffer: CVPixelBuffer): YCbCrDescriptor {
+        val matrix = buffer.attachments[kCVImageBufferYCbCrMatrixKey] as? String
+        return YCbCr.descriptor(matrix, buffer.layout == PixelBufferLayout.ycbcr420Video)
     }
 
     fun disable(reason: String) {

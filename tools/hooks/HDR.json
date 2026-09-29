@@ -1,0 +1,52 @@
+{
+  "task": "HDR",
+  "hooks": [
+    {
+      "id": "HHDR.1",
+      "file": "media/haishinkit/media/video/VideoEffectsProcessor.kt",
+      "scope": "class VideoEffectsProcessor",
+      "op": "replace",
+      "old": "    private val context = CIContext()",
+      "new": "    val context = CIContext()",
+      "note": "Swift declares `let context = CIContext()` (internal), and VideoColorSuite renders through processor.context."
+    },
+    {
+      "id": "HHDR.2",
+      "file": "media/haishinkit/media/video/VideoCaptureSession.kt",
+      "scope": "fun pixelFormatComponentRange",
+      "op": "replace",
+      "old": "        else -> null",
+      "new": "        else -> com.moblin.android.platform.video.CVPixelFormatDescriptionCreateWithPixelFormatType(null, pixelFormat)?.get(com.moblin.android.platform.video.kCVPixelFormatComponentRange) as? String",
+      "note": "Swift reads kCVPixelFormatComponentRange from CVPixelFormatDescriptionCreateWithPixelFormatType, so the 10-bit x420/xf20 formats are video and full range too; the translation listed only the 8-bit formats."
+    },
+    {
+      "id": "HHDR.3",
+      "file": "media/haishinkit/media/video/VideoCaptureSession.kt",
+      "op": "replace",
+      "old": "fun filterFormatsByColorRange(",
+      "new": "fun <Format : VideoFormat> filterFormatsByColorRange(",
+      "note": "Swift filterFormatsByColorRange is generic over VideoFormat (AVCaptureDevice.Format and VideoColorSuite's TestVideoFormat); AVCaptureDevice.Format implements VideoFormat in the platform shim."
+    },
+    {
+      "id": "HHDR.4",
+      "file": "media/haishinkit/media/video/VideoCaptureSession.kt",
+      "op": "replace",
+      "old": "    formats: List<AVCaptureDevice.Format>,",
+      "new": "    formats: List<Format>,"
+    },
+    {
+      "id": "HHDR.5",
+      "file": "media/haishinkit/media/video/VideoCaptureSession.kt",
+      "op": "replace",
+      "old": "): List<AVCaptureDevice.Format> {",
+      "new": "): List<Format> {"
+    },
+    {
+      "id": "HHDR.6",
+      "file": "media/haishinkit/media/video/VideoCaptureSession.kt",
+      "op": "replace",
+      "old": "    val preferences: List<(AVCaptureDevice.Format) -> Boolean> = when (colorRange) {",
+      "new": "    val preferences: List<(Format) -> Boolean> = when (colorRange) {"
+    }
+  ]
+}

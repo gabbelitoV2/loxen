@@ -15,25 +15,42 @@ import com.moblin.android.platform.coreimage.kernels.LinearToHlgPort
 
 class CIKernelException(message: String) : Exception(message)
 
+fun interface CIColorKernelCpu {
+    fun evaluate(inputs: List<DoubleArray>, arguments: List<FloatArray>): DoubleArray
+}
+
 interface CIKernelPort {
     val name: String
     val isWarp: Boolean
     val glsl: String?
+    val cpu: CIColorKernelCpu?
+        get() = null
 }
 
 object CIKernelLibrary {
     private class Entry(val name: String, val isWarp: Boolean, val glsl: String)
 
     private val entries = HashMap<String, Entry>()
+    private val cpuColorKernels = HashMap<String, CIColorKernelCpu>()
 
     init {
         for (port in kernelPorts()) {
+            val cpu = port.cpu
+            if (cpu != null && !port.isWarp) {
+                cpuColorKernels[port.name] = cpu
+            }
             val glsl = port.glsl ?: continue
             if (port.isWarp) {
                 registerWarp(port.name, glsl)
             } else {
                 registerColor(port.name, glsl)
             }
+        }
+    }
+
+    internal fun cpuColorKernel(name: String): CIColorKernelCpu? {
+        return synchronized(entries) {
+            cpuColorKernels[name]
         }
     }
 
@@ -125,10 +142,14 @@ internal class KernelWarpOp(
 }
 
 internal class KernelColorOp(
-    private val kernelName: String,
+    internal val kernelName: String,
     private val glsl: String,
     private val arguments: List<KernelArgument>,
 ) : CombineOp() {
+    fun floatArguments(): List<FloatArray> {
+        return arguments.mapNotNull { it.values }
+    }
+
     override fun emit(builder: ShaderBuilder, name: String, inputs: List<String>) {
         builder.includeOnce("kernel:$kernelName", glsl + "\n")
         var imageIndex = 0

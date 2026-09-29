@@ -107,7 +107,7 @@ private fun pixelFormatComponentRange(pixelFormat: Int): String? {
     return when (pixelFormat) {
         kCVPixelFormatType_420YpCbCr8BiPlanarFullRange -> kCVPixelFormatComponentRange_FullRange
         kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange -> kCVPixelFormatComponentRange_VideoRange
-        else -> null
+        else -> com.moblin.android.platform.video.CVPixelFormatDescriptionCreateWithPixelFormatType(null, pixelFormat)?.get(com.moblin.android.platform.video.kCVPixelFormatComponentRange) as? String
     }
 }
 
@@ -119,11 +119,11 @@ fun isFullRangePixelFormat(pixelFormat: Int): Boolean {
     return pixelFormatComponentRange(pixelFormat) == kCVPixelFormatComponentRange_FullRange
 }
 
-fun filterFormatsByColorRange(
-    formats: List<AVCaptureDevice.Format>,
+fun <Format : VideoFormat> filterFormatsByColorRange(
+    formats: List<Format>,
     colorRange: SettingsStreamColorRange,
-): List<AVCaptureDevice.Format> {
-    val preferences: List<(AVCaptureDevice.Format) -> Boolean> = when (colorRange) {
+): List<Format> {
+    val preferences: List<(Format) -> Boolean> = when (colorRange) {
         SettingsStreamColorRange.full -> listOf(
             { isFullRangePixelFormat(it.pixelFormat) },
             { it.pixelFormat != kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange },

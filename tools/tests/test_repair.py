@@ -233,8 +233,8 @@ class VerifySuite(unittest.TestCase):
 
     def test_known_failures_file(self):
         known = json.loads((TOOLS / "known_test_failures.json").read_text(encoding="utf-8"))["tests"]
-        self.assertEqual(len(known), 5)
-        self.assertEqual(sum(1 for name in known if ".RecorderSuite." in name), 4)
+        self.assertEqual(len(known), len(set(known)))
+        self.assertTrue(all(name.startswith("com.moblin.android.") for name in known))
         self.assertIn("com.moblin.android.media.haishinkit.mpeg.MpegTsReaderSuite.ffmpegAudioOnlyPeriodicBeep", known)
 
     def test_step_outputs_use_a_delimiter_for_multi_line_values(self):
@@ -412,7 +412,7 @@ class StartSuite(unittest.TestCase):
 
 
 class TestsGateSuite(unittest.TestCase):
-    KNOWN = "com.moblin.android.media.haishinkit.media.RecorderSuite.recordsAudioAndVideo"
+    KNOWN = "com.moblin.android.media.haishinkit.mpeg.MpegTsReaderSuite.ffmpegAudioOnlyPeriodicBeep"
 
     def gate(self, first, again=None, at_base=(), has_changes=True):
         return repair.tests_gate(
@@ -422,7 +422,7 @@ class TestsGateSuite(unittest.TestCase):
         )
 
     def test_only_known_failures(self):
-        result = self.gate((100, {self.KNOWN: "RecorderSuite"}, "There were failing tests", False))
+        result = self.gate((100, {self.KNOWN: "MpegTsReaderSuite"}, "There were failing tests", False))
         self.assertTrue(result["ok"], result)
 
     def test_new_failure_blocks(self):

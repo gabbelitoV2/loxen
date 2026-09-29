@@ -9,7 +9,9 @@ import android.media.MediaFormat
 import android.os.Build
 import android.util.Log
 import android.util.Range
+import com.moblin.android.platform.video.ColorDescription
 import com.moblin.android.platform.video.GlRenderer
+import com.moblin.android.platform.video.PixelFormats
 import java.util.Collections
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -24,6 +26,7 @@ internal class EncoderConfiguration(
     val scalingMode: GlRenderer.ScalingMode,
     val bitrateRange: Range<Int>?,
     val summary: String,
+    val color: ColorDescription,
 )
 
 private class LevelLimits(
@@ -156,24 +159,39 @@ internal fun profileFromProfileLevel(
     return Pair(profile, explicitLevel(profileLevel, mimeType))
 }
 
+internal fun encoderColorDescription(properties: Map<String, Any>, pixelFormatType: Int?): ColorDescription {
+    val fullRange = if (pixelFormatType != null && PixelFormats.isYCbCr(pixelFormatType)) {
+        PixelFormats.isFullRange(pixelFormatType)
+    } else {
+        null
+    }
+    return ColorDescription(
+        properties["ColorPrimaries"] as? String,
+        properties["TransferFunction"] as? String,
+        properties["YCbCrMatrix"] as? String,
+        fullRange,
+    )
+}
+
 internal fun makeEncoderConfiguration(
     codecInfo: MediaCodecInfo,
     mimeType: String,
     width: Int,
     height: Int,
     properties: Map<String, Any>,
+    pixelFormatType: Int? = null,
 ): EncoderConfiguration? {
     val capabilities = codecInfo.getCapabilitiesForType(mimeType)
     val profileLevelName = properties["ProfileLevel"] as? String
-    if (profileLevelName?.contains("Main10") == true || properties["TransferFunction"] == "ITU_R_2100_HLG") {
+    val color = encoderColorDescription(properties, pixelFormatType)
+    if (profileLevelName?.contains("Main10") == true) {
+        if (capabilities.profileLevels.none { it.profile == CodecProfileLevel.HEVCProfileMain10 }) {
+            Log.i(TAG, "${codecInfo.name}: HEVC Main10 is not supported, failing prepare")
+            return null
+        }
         val hdrEditing = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             capabilities.isFeatureSupported(CodecCapabilities.FEATURE_HdrEditing)
-        Log.i(
-            TAG,
-            "${codecInfo.name}: HEVC Main10 HLG needs FEATURE_HdrEditing (supported: $hdrEditing) and a " +
-                "10-bit EGL config (not available), failing prepare",
-        )
-        return null
+        Log.i(TAG, "${codecInfo.name}: HEVC Main10 with ${color.transferFunction} (FEATURE_HdrEditing: $hdrEditing)")
     }
     logUnhandledProperties(properties)
     val bitrateRange = capabilities.videoCapabilities?.bitrateRange
@@ -241,9 +259,15 @@ internal fun makeEncoderConfiguration(
         format.setInteger(MediaFormat.KEY_PREPEND_HEADER_TO_SYNC_FRAMES, 0)
         format.setInteger(MediaFormat.KEY_MAX_B_FRAMES, if (allowFrameReordering) 2 else 0)
     }
-    format.setInteger(MediaFormat.KEY_COLOR_STANDARD, MediaFormat.COLOR_STANDARD_BT709)
-    format.setInteger(MediaFormat.KEY_COLOR_RANGE, MediaFormat.COLOR_RANGE_LIMITED)
-    format.setInteger(MediaFormat.KEY_COLOR_TRANSFER, MediaFormat.COLOR_TRANSFER_SDR_VIDEO)
+    format.setInteger(MediaFormat.KEY_COLOR_STANDARD, color.mediaFormatStandard() ?: MediaFormat.COLOR_STANDARD_BT709)
+    format.setInteger(
+        MediaFormat.KEY_COLOR_RANGE,
+        if (color.fullRange == true) MediaFormat.COLOR_RANGE_FULL else MediaFormat.COLOR_RANGE_LIMITED,
+    )
+    format.setInteger(
+        MediaFormat.KEY_COLOR_TRANSFER,
+        color.mediaFormatTransfer() ?: MediaFormat.COLOR_TRANSFER_SDR_VIDEO,
+    )
     val summary = "${codecInfo.name} ${width}x$height profile=${profileName(mimeType, profile)} " +
         "level=${level ?: "default"} bitrate=$bitrate mode=${bitrateModeName(bitrateMode)} " +
         "iframe=$iFrameInterval fps=${frameRate.roundToInt()} bframes=$allowFrameReordering scaling=$scalingMode"
@@ -254,6 +278,7 @@ internal fun makeEncoderConfiguration(
         scalingMode = scalingMode,
         bitrateRange = bitrateRange,
         summary = summary,
+        color = color.copy(fullRange = color.fullRange ?: false),
     )
 }
 

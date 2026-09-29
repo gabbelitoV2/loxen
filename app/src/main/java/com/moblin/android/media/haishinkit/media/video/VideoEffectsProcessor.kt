@@ -65,7 +65,7 @@ import kotlin.math.min
 import kotlin.time.DurationUnit
 
 class VideoEffectsProcessor(private val colorRange: SettingsStreamColorRange) {
-    private val context = CIContext()
+    val context = CIContext()
     private val metalPetalContext: MTIContext? =
         MTLCreateSystemDefaultDevice()?.let { device -> runCatching { MTIContext(device) }.getOrNull() }
     var canvasSize = CGSize(width = 1920.0, height = 1080.0)

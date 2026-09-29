@@ -17,6 +17,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.moblin.android.platform.Documents
 import com.moblin.android.platform.FakeActivityResults
+import com.moblin.android.platform.FileProviderRoots
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -44,6 +45,7 @@ class ShareSheetSuite {
     @Before
     fun setUp() {
         application = RuntimeEnvironment.getApplication()
+        FileProviderRoots.forget()
         shadowOf(MimeTypeMap.getSingleton()).addExtensionMimeTypeMapping("txt", "text/plain")
         shadowOf(MimeTypeMap.getSingleton()).addExtensionMimeTypeMapping("mp4", "video/mp4")
     }
@@ -78,7 +80,7 @@ class ShareSheetSuite {
         assertEquals("text/plain", intent.type)
         val uri = stream(intent)
         assertEquals("content", uri.scheme)
-        assertEquals("com.moblin.android.fileprovider", uri.authority)
+        assertEquals("com.loxen.app.fileprovider", uri.authority)
         assertEquals(uri, intent.clipData?.getItemAt(0)?.uri)
         assertTrue((intent.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0)
         assertEquals("Version: 1", sharedText(uri))

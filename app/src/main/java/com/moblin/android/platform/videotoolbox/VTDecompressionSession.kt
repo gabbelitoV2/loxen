@@ -16,11 +16,18 @@ import com.moblin.android.platform.core.PipelineStats
 import com.moblin.android.platform.core.PipelineThread
 import com.moblin.android.platform.video.CVPixelBuffer
 import com.moblin.android.platform.video.CVPixelBufferPool
+import com.moblin.android.platform.video.ColorDescription
 import com.moblin.android.platform.video.GlRenderer
 import com.moblin.android.platform.video.PixelBufferTurn
+import com.moblin.android.platform.video.PixelFormats
+import com.moblin.android.platform.video.YCbCrCoding
 import com.moblin.android.platform.video.YCbCrStorage
+import com.moblin.android.platform.video.kCVImageBufferColorPrimariesKey
+import com.moblin.android.platform.video.kCVImageBufferTransferFunctionKey
+import com.moblin.android.platform.video.kCVImageBufferYCbCrMatrixKey
 import com.moblin.android.platform.video.kCVPixelBufferPixelFormatTypeKey
 import com.moblin.android.platform.video.kCVPixelFormatType_32BGRA
+import com.moblin.android.platform.video.memory
 import java.util.Collections
 import java.util.TreeMap
 import java.util.WeakHashMap
@@ -140,11 +147,20 @@ internal class DecodeOutputHandlers {
 
 class VTDecompressionSession internal constructor(
     private val mimeType: String,
-    private val codecName: String,
+    private val codecName: String?,
     private val codecFormat: MediaFormat,
     private val pixelFormatType: Int,
+    private val streamColor: ColorDescription = ColorDescription(),
 ) {
     companion object {}
+
+    @Volatile
+    internal var destinationYCbCrMatrix: String? = null
+
+    @Volatile
+    private var outputColor: ColorDescription = streamColor
+
+    private var softwareDecoder: SoftwareH264Decoder? = null
 
     private class PendingFrame(
         val data: ByteArray,
@@ -250,6 +266,9 @@ class VTDecompressionSession internal constructor(
     }
 
     internal fun start(): Int {
+        if (codecName == null) {
+            return startSoftwareDecoder()
+        }
         val created = try {
             PipelineThread.runSync {
                 val texture = GlRenderer.createOesTexture()
@@ -296,11 +315,134 @@ class VTDecompressionSession internal constructor(
         }
     }
 
+    private fun startSoftwareDecoder(): Int {
+        val decoder = SoftwareH264Decoder()
+        try {
+            decoder.configure(SoftwareH264Decoder.parameterSets(codecFormat))
+        } catch (error: Exception) {
+            Log.i(TAG, "video-decoder-$index: Software decoder cannot use the parameter sets: $error")
+        }
+        softwareDecoder = decoder
+        synchronized(lock) {
+            running = true
+        }
+        DecompressionSessions.started(this)
+        Log.i(TAG, "video-decoder-$index: Software $mimeType decoder, no MediaCodec decoder")
+        return noErr
+    }
+
+    private fun decodeInSoftware(
+        decoder: SoftwareH264Decoder,
+        data: ByteArray,
+        sampleBuffer: MediaSample,
+        outputHandler: VTDecompressionOutputHandler,
+    ): Int {
+        val frame = try {
+            decoder.decode(data)
+        } catch (error: Exception) {
+            Log.i(TAG, "video-decoder-$index: Software decoding failed: $error")
+            null
+        }
+        if (frame == null) {
+            invokeOutputHandler(
+                outputHandler,
+                kVTVideoDecoderBadDataErr,
+                VTDecodeInfoFlags._FrameDropped,
+                null,
+                sampleBuffer.presentationTimeUs,
+                sampleBuffer.durationUs,
+            )
+            return noErr
+        }
+        val color = frame.color.merged(streamColor)
+        val buffer = outputPixelBufferPool(frame.width, frame.height).createPixelBuffer()
+        if (buffer == null) {
+            invokeOutputHandler(
+                outputHandler,
+                noErr,
+                VTDecodeInfoFlags._FrameDropped,
+                null,
+                sampleBuffer.presentationTimeUs,
+                sampleBuffer.durationUs,
+            )
+            return noErr
+        }
+        setOutputAttachments(buffer, color)
+        writeSoftwareFrame(frame, color, buffer)
+        PipelineStats.increment("decOut")
+        invokeOutputHandler(
+            outputHandler,
+            noErr,
+            0,
+            buffer,
+            sampleBuffer.presentationTimeUs,
+            sampleBuffer.durationUs,
+        )
+        return noErr
+    }
+
+    private fun writeSoftwareFrame(frame: SoftwareDecodedFrame, color: ColorDescription, buffer: CVPixelBuffer) {
+        val source = YCbCrCoding.make(color.yCbCrMatrix, frame.frame.bits, color.fullRange != true)
+        val destination = YCbCrCoding.forBuffer(buffer)
+        val memory = buffer.memory()
+        val width = minOf(frame.width, buffer.width)
+        val height = minOf(frame.height, buffer.height)
+        val yuv = frame.frame
+        if (destination != null && destination.sameAs(source)) {
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    memory.setLuma(x, y, yuv.luma[(frame.originY + y) * yuv.width + frame.originX + x])
+                }
+            }
+            for (y in 0 until (height + 1) / 2) {
+                for (x in 0 until (width + 1) / 2) {
+                    val index = (frame.originY / 2 + y) * yuv.chromaWidth + frame.originX / 2 + x
+                    memory.setChroma(x, y, yuv.cb[index], yuv.cr[index])
+                }
+            }
+            return
+        }
+        val image = DoubleArray(width * height * 4)
+        val pixel = DoubleArray(3)
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val sourceX = frame.originX + x
+                val sourceY = frame.originY + y
+                val chromaIndex = (sourceY / 2) * yuv.chromaWidth + sourceX / 2
+                source.decode(
+                    yuv.luma[sourceY * yuv.width + sourceX].toDouble(),
+                    yuv.cb[chromaIndex].toDouble(),
+                    yuv.cr[chromaIndex].toDouble(),
+                    pixel,
+                )
+                val index = (y * width + x) * 4
+                image[index] = pixel[0].coerceIn(0.0, 1.0)
+                image[index + 1] = pixel[1].coerceIn(0.0, 1.0)
+                image[index + 2] = pixel[2].coerceIn(0.0, 1.0)
+                image[index + 3] = 1.0
+            }
+        }
+        memory.writeRgb(image, width, height, destination, false)
+    }
+
+    private fun setOutputAttachments(buffer: CVPixelBuffer, color: ColorDescription) {
+        color.primaries?.let { buffer.attachments[kCVImageBufferColorPrimariesKey] = it }
+        color.transferFunction?.let { buffer.attachments[kCVImageBufferTransferFunctionKey] = it }
+        val matrix = destinationYCbCrMatrix ?: color.yCbCrMatrix
+        if (matrix != null && PixelFormats.isYCbCr(buffer.pixelFormatType)) {
+            buffer.attachments[kCVImageBufferYCbCrMatrixKey] = matrix
+        }
+    }
+
     internal fun decodeFrame(sampleBuffer: MediaSample, outputHandler: VTDecompressionOutputHandler): Int {
         if (invalidated || failed) {
             return kVTInvalidSessionErr
         }
         val data = sampleDataToAnnexB(sampleBuffer.data) ?: return kVTVideoDecoderBadDataErr
+        val softwareDecoder = softwareDecoder
+        if (softwareDecoder != null) {
+            return decodeInSoftware(softwareDecoder, data, sampleBuffer, outputHandler)
+        }
         val keyFrame = annexBContainsKeyFrame(data, isHevc)
         var dropped = false
         synchronized(lock) {
@@ -617,6 +759,7 @@ class VTDecompressionSession internal constructor(
             outputWidth = width
             outputHeight = height
         }
+        outputColor = ColorDescription.fromMediaFormat(format).merged(streamColor)
         Log.i(TAG, "video-decoder-$index: Output size ${outputWidth}x$outputHeight")
     }
 
@@ -680,6 +823,7 @@ class VTDecompressionSession internal constructor(
             reportDroppedFrames()
             return
         }
+        setOutputAttachments(buffer, outputColor)
         GlRenderer.drawOes(oesTexture, stMatrix, buffer, 0, false)
         PipelineStats.increment("decOut")
         invokeOutputHandler(outputHandler, noErr, 0, buffer, presentationTimeStamp, duration)
@@ -769,8 +913,18 @@ fun VTDecompressionSessionCreate(
         decoderSpecification?.get(kVTVideoDecoderSpecification_EnableHardwareAcceleratedVideoDecoder) as? Boolean
             ?: true
     val codecFormat = makeDecoderFormat(formatDescription, mimeType)
+    val pixelFormatType = (imageBufferAttributes?.get(kCVPixelBufferPixelFormatTypeKey) as? Number)?.toInt()
+        ?: kCVPixelFormatType_32BGRA
+    val streamColor = ColorDescription.fromMediaFormat(formatDescription)
     val codecInfo = selectVideoDecoder(mimeType, codecFormat, hardwareAccelerated)
-        ?: return Pair(kVTCouldNotFindVideoDecoderErr, null)
+    if (codecInfo == null) {
+        if (!SoftwareVideoCodecs.isDecoderAvailable(mimeType)) {
+            return Pair(kVTCouldNotFindVideoDecoderErr, null)
+        }
+        val session = VTDecompressionSession(mimeType, null, formatDescription, pixelFormatType, streamColor)
+        val status = session.start()
+        return if (status == noErr) Pair(noErr, session) else Pair(status, null)
+    }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
         val capabilities = try {
             codecInfo.getCapabilitiesForType(mimeType)
@@ -781,9 +935,7 @@ fun VTDecompressionSessionCreate(
             codecFormat.setInteger(MediaFormat.KEY_LOW_LATENCY, 1)
         }
     }
-    val pixelFormatType = (imageBufferAttributes?.get(kCVPixelBufferPixelFormatTypeKey) as? Number)?.toInt()
-        ?: kCVPixelFormatType_32BGRA
-    val session = VTDecompressionSession(mimeType, codecInfo.name, codecFormat, pixelFormatType)
+    val session = VTDecompressionSession(mimeType, codecInfo.name, codecFormat, pixelFormatType, streamColor)
     val status = session.start()
     if (status != noErr) {
         return Pair(status, null)
@@ -792,6 +944,10 @@ fun VTDecompressionSessionCreate(
 }
 
 fun VTSessionSetProperty(session: VTDecompressionSession, key: String, value: Any?): Int {
+    if (key == kVTDecompressionPropertyKey_PixelTransferProperties) {
+        val matrix = (value as? Map<*, *>)?.get(kVTPixelTransferPropertyKey_DestinationYCbCrMatrix) as? String
+        session.destinationYCbCrMatrix = matrix
+    }
     return noErr
 }
 
