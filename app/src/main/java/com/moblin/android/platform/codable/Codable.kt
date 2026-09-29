@@ -20,6 +20,7 @@ import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.contextual
 import kotlinx.serialization.serializer
@@ -105,6 +106,17 @@ val codableJson = Json {
         contextual(UUIDSerializer)
         contextual(AppleDateSerializer)
     }
+}
+
+fun swiftCase(name: String): JsonObject = JsonObject(mapOf(name to JsonObject(emptyMap())))
+
+fun <T> swiftCase(element: JsonElement, fromName: (String) -> T?): T {
+    val name = when (element) {
+        is JsonObject -> element.keys.singleOrNull()
+        is JsonPrimitive -> element.contentOrNull
+        else -> null
+    }
+    return name?.let(fromName) ?: throw SerializationException("Unknown case in $element")
 }
 
 class JsonObjectSerializer<T>(

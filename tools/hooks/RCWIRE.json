@@ -1,0 +1,48 @@
+{
+  "task": "RCWIRE",
+  "hooks": [
+    {
+      "id": "HRCWIRE.1",
+      "file": "remotecontrol/RemoteControl.kt",
+      "scope": "class Identified",
+      "op": "replace",
+      "old": "                put(\"result\", remoteControlJson.encodeToJsonElement(result))",
+      "new": "                put(\"result\", swiftCase(result.wireName))",
+      "note": "Swift's RemoteControlResult has no raw type, so Codable writes {\"ok\":{}}; kotlinx wrote \"ok\", which Moblin cannot read."
+    },
+    {
+      "id": "HRCWIRE.2",
+      "file": "remotecontrol/RemoteControl.kt",
+      "scope": "class Response",
+      "op": "replace",
+      "old": "                put(\"result\", remoteControlJson.encodeToJsonElement(result))",
+      "new": "                put(\"result\", swiftCase(result.wireName))",
+      "note": "As HRCWIRE.1, for the result of every response to an assistant."
+    },
+    {
+      "id": "HRCWIRE.3",
+      "file": "remotecontrol/RemoteControl.kt",
+      "scope": "class RemoteControlMessageToStreamer",
+      "op": "replace",
+      "old": "                    result = remoteControlJson.decodeFromJsonElement(params.getValue(\"result\")),",
+      "new": "                    result = swiftCase(params.getValue(\"result\"), RemoteControlResult::fromName),",
+      "note": "The assistant sends {\"identified\":{\"result\":{\"ok\":{}}}}. Decoding it as a string failed, so the streamer never became connected and never sent state or log events to the assistant."
+    },
+    {
+      "id": "HRCWIRE.4",
+      "file": "remotecontrol/RemoteControl.kt",
+      "scope": "class RemoteControlMessageToAssistant",
+      "op": "replace",
+      "old": "                    result = remoteControlJson.decodeFromJsonElement(params.getValue(\"result\")),",
+      "new": "                    result = swiftCase(params.getValue(\"result\"), RemoteControlResult::fromName),",
+      "note": "As HRCWIRE.3, for the responses a streamer sends to Loxen as assistant."
+    },
+    {
+      "id": "HRCWIRE.5",
+      "file": "remotecontrol/RemoteControl.kt",
+      "op": "add_import",
+      "new": "import com.moblin.android.platform.codable.swiftCase",
+      "note": "swiftCase() encodes and decodes Swift enum cases without associated values, {\"name\":{}}."
+    }
+  ]
+}

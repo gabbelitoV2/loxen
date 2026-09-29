@@ -66,6 +66,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
+import com.moblin.android.platform.codable.swiftCase
 
 const val remoteControlApiVersion = "0.1"
 
@@ -2037,7 +2038,7 @@ sealed class RemoteControlMessageToStreamer {
     data class Identified(val result: RemoteControlResult) : RemoteControlMessageToStreamer() {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("identified") {
-                put("result", remoteControlJson.encodeToJsonElement(result))
+                put("result", swiftCase(result.wireName))
             }
         }
     }
@@ -2067,7 +2068,7 @@ sealed class RemoteControlMessageToStreamer {
                     authentication = remoteControlJson.decodeFromJsonElement(params.getValue("authentication")),
                 )
                 "identified" -> Identified(
-                    result = remoteControlJson.decodeFromJsonElement(params.getValue("result")),
+                    result = swiftCase(params.getValue("result"), RemoteControlResult::fromName),
                 )
                 "request" -> Request(
                     id = params.getValue("id").jsonPrimitive.int,
@@ -2106,7 +2107,7 @@ sealed class RemoteControlMessageToAssistant {
         override fun toJsonElement(): JsonObject = buildJsonObject {
             putJsonObject("response") {
                 put("id", id)
-                put("result", remoteControlJson.encodeToJsonElement(result))
+                put("result", swiftCase(result.wireName))
                 if (data == null) {
                     put("data", JsonNull)
                 } else {
@@ -2171,7 +2172,7 @@ sealed class RemoteControlMessageToAssistant {
                 )
                 "response" -> Response(
                     id = params.getValue("id").jsonPrimitive.int,
-                    result = remoteControlJson.decodeFromJsonElement(params.getValue("result")),
+                    result = swiftCase(params.getValue("result"), RemoteControlResult::fromName),
                     data = params["data"]?.let {
                         if (it is JsonNull) null else RemoteControlResponse.fromJsonElement(it)
                     },
