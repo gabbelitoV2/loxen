@@ -12350,30 +12350,22 @@
   },
   "Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift": {
     "status": "ok",
-    "sha256": "31f547c98779a181e520acea84eaaa6756c245477a830f4c0c58c7f69391d7ca",
-    "moblin_commit": "ad7072c6ada394a432fcc121ca00bc08a85fa414",
+    "sha256": "8b621b827789058ad4b891fe1dc625b954859fdc6b9fdd3d884f778247b29c15",
+    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoCaptureSession.kt",
     "notes": [
-      "Added the new global `externalCameraVideoRange` next to `nativeLowLightBoost`.",
-      "`CVPixelFormatDescriptionCreateWithPixelFormatType` has no Android counterpart, so `pixelFormatComponentRange` maps the platform's two YUV pixel format constants to Apple's component range strings; the two predicates keep their Swift shape.",
-      "Kotlin cannot retro-fit the `VideoFormat` protocol onto the platform's final `AVCaptureDevice.Format`, so `filterFormatsByColorRange` takes the concrete `List<AVCaptureDevice.Format>` and uses the new `AVCaptureDevice.Format.pixelFormat` extension property; the `VideoFormat` interface is still declared.",
-      "`VideoFormatSearch` (the old tuple translation) was replaced by the sealed class `VideoFormatResult` with `Found`/`NotFound`, and `setDeviceFormat` now uses `when` and delegates to the new `applyDeviceFormat`.",
-      "`VideoRangeRelabeler` is translated up to the pixel copy; the plane copy plus the CoreVideo attachment calls have no shim, so they are a TODO (which is never reached on Android because every buffer is RGBA8, not 420f).",
-      "`CGSize` in the platform is not a value type, so the pool size check compares `width`/`height` instead of `poolSize != CGSize(...)` to keep Swift's value semantics.",
-      "The `#if targetEnvironment(macCatalyst)` `FormatDescriptionMatcher` is not translated, as Android is not macCatalyst.",
-      "`colorRange` is a constructor parameter of `VideoCaptureSession` plus a body property, and `attachDevice`/`findVideoFormat` use it via `colorRange.pixelFormatType()`."
+      "The Swift diff only adds a comment line above `output.videoSettings`; comments are not emitted in Kotlin, so the file body is unchanged.",
+      "All Android hooks (Bundle/AVFoundation shims, pixel-buffer pool via swapPool, VideoRangeRelabeler's Android narrowing to format relabeling) are preserved byte-identical."
     ],
-    "unsupported": [
-      "no Android counterpart for CVPixelBuffer plane access (CVPixelBufferLockBaseAddress, CVPixelBufferGetBaseAddressOfPlane, CVPixelBufferGetBytesPerRowOfPlane, CVPixelBufferGetHeightOfPlane) and CVBufferPropagateAttachments/CVBufferSetAttachment"
-    ],
+    "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 61989,
-    "tokens_out": 47782,
-    "seconds": 177.2,
-    "ported_at": "2026-09-29T00:41:50+00:00"
+    "tokens_in": 62998,
+    "tokens_out": 7755,
+    "seconds": 20.8,
+    "ported_at": "2026-09-29T23:16:32+00:00"
   },
   "Moblin/StreamingPlatforms/Twitch/TwitchChat.swift": {
     "status": "ok",

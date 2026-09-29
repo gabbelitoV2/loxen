@@ -1,23 +1,18 @@
 # Port report
 
-Generated 2026-09-29T09:33:41+00:00
+Generated 2026-09-29T23:39:18+00:00
 
 ## Summary
 
 | tier | done | error | stale | pending | skipped |
 |---|---|---|---|---|---|
-| logic | 151 | 0 | 0 | 0 | 0 |
+| logic | 145 | 0 | 6 | 0 | 0 |
 | platform | 55 | 0 | 0 | 0 | 0 |
-| test | 64 | 0 | 0 | 0 | 0 |
-| media | 161 | 0 | 0 | 0 | 0 |
-| ui | 361 | 0 | 0 | 0 | 0 |
+| test | 63 | 0 | 1 | 1 | 0 |
+| media | 146 | 0 | 15 | 0 | 0 |
+| ui | 333 | 0 | 28 | 0 | 0 |
 | apple_only | 1 | 0 | 0 | 0 | 0 |
 | skip | 0 | 0 | 0 | 0 | 22 |
-
-## Needs manual work
-
-- Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift
-  - no Android counterpart for CVPixelBuffer plane access (CVPixelBufferLockBaseAddress, CVPixelBufferGetBaseAddressOfPlane, CVPixelBufferGetBytesPerRowOfPlane, CVPixelBufferGetHeightOfPlane) and CVBufferPropagateAttachments/CVBufferSetAttachment
 
 ## Apple only / needs Gabriel
 
@@ -174,7 +169,7 @@ Not port work: the Swift uses an Apple-only service, or the Android counterpart 
 | Moblin/Media/HaishinKit/Media/Video/BufferedVideo.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/BufferedVideo.kt | deepseek-flash | 40.4 |
 | Moblin/Media/HaishinKit/Media/Video/Hlg.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/Hlg.kt | deepseek-flash | 22.6 |
 | Moblin/Media/HaishinKit/Media/Video/PreviewView.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/PreviewView.kt | deepseek-flash | 44.4 |
-| Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoCaptureSession.kt | deepseek-flash | 177.2 |
+| Moblin/Media/HaishinKit/Media/Video/VideoCaptureSession.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoCaptureSession.kt | deepseek-flash | 20.8 |
 | Moblin/Media/HaishinKit/Media/Video/VideoEffect.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffect.kt | deepseek-flash | 11.7 |
 | Moblin/Media/HaishinKit/Media/Video/VideoEffectsProcessor.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoEffectsProcessor.kt | deepseek-flash | 142.5 |
 | Moblin/Media/HaishinKit/Media/Video/VideoFpsEstimator.swift | app/src/main/java/com/moblin/android/media/haishinkit/media/video/VideoFpsEstimator.kt | deepseek-flash | 5.9 |

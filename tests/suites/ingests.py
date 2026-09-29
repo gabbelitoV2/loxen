@@ -16,6 +16,7 @@ from systest_moblin.ffmpeg import video_encoder_args
 
 from ..utils.config import RIST_SERVER_PORT
 from ..utils.config import RTMP_SERVER_PORT
+from ..utils.config import SRT_CLIENT_1_RELAYED_SERVER_PORT
 from ..utils.config import SRT_CLIENT_1_SERVER_PORT
 from ..utils.config import SRT_CLIENT_2_SERVER_PORT
 from ..utils.config import SRT_SERVER_PORT
@@ -31,6 +32,7 @@ from ..utils.generate_device_settings import mic_id
 from ..utils.generate_device_settings import scene_widget_settings
 from ..utils.generate_device_settings import uuid
 from ..utils.generate_device_settings import video_source_widget_settings
+from ..utils.lossy_udp_relay import LossyUdpRelay
 from ..utils.mediamtx import MediaMtx
 from ..utils.moblin import Moblin
 from ..utils.moblin import Recorder
@@ -218,7 +220,7 @@ def _find_silence_start(samples: array) -> float:
 
 
 class IngestSrtServer(IngestTestCase):
-    """Stream to an SRT server ingest."""
+    """Stream to an SRT server ingest with packet loss."""
 
     def setup(self):
         self.import_settings(
@@ -235,18 +237,20 @@ class IngestSrtServer(IngestTestCase):
         )
 
     def run(self):
-        stream = FfmpegTestStream(
-            url=self.moblin.ingest_srt_url(),
-            files_dir=FILES_DIR,
-            transport_format=TransportFormat.MPEGTS,
-        )
-        with stream:
-            recording = self.record_ingest()
+        url = self.moblin.ingest_srt_url()
+        with LossyUdpRelay.from_url(url) as relay:
+            stream = FfmpegTestStream(
+                url=relay.relayed_url(url),
+                files_dir=FILES_DIR,
+                transport_format=TransportFormat.MPEGTS,
+            )
+            with stream:
+                recording = self.record_ingest()
         self.assert_recording(recording, FILES_DIR)
 
 
 class IngestSrtClient(IngestTestCase):
-    """Stream to an SRT client ingest."""
+    """Stream to an SRT client ingest with packet loss."""
 
     def setup(self):
         self.import_settings(
@@ -268,13 +272,16 @@ class IngestSrtClient(IngestTestCase):
         )
 
     def run(self):
-        stream = FfmpegTestStream(
-            url=srt_listener_url(SRT_CLIENT_1_SERVER_PORT, stream_id="1"),
-            files_dir=FILES_DIR,
-            transport_format=TransportFormat.MPEGTS,
-        )
-        with stream:
-            recording = self.record_ingest()
+        with LossyUdpRelay(
+            ("127.0.0.1", SRT_CLIENT_1_RELAYED_SERVER_PORT), ("0.0.0.0", SRT_CLIENT_1_SERVER_PORT)
+        ):
+            stream = FfmpegTestStream(
+                url=srt_listener_url(SRT_CLIENT_1_RELAYED_SERVER_PORT, stream_id="1"),
+                files_dir=FILES_DIR,
+                transport_format=TransportFormat.MPEGTS,
+            )
+            with stream:
+                recording = self.record_ingest()
         self.assert_recording(recording, FILES_DIR)
 
 
@@ -318,7 +325,7 @@ class IngestRtspClient(IngestTestCase):
 
 
 class IngestRistServer(IngestTestCase):
-    """Stream to an RIST server ingest."""
+    """Stream to an RIST server ingest with packet loss."""
 
     def setup(self):
         self.import_settings(
@@ -330,18 +337,20 @@ class IngestRistServer(IngestTestCase):
             ristServer={
                 "enabled": True,
                 "port": RIST_SERVER_PORT,
-                "streams": [{"id": STREAM_ID, "name": "1", "virtualDestinationPort": 1}],
+                "streams": [{"id": STREAM_ID, "name": "1", "virtualDestinationPort": 2}],
             },
         )
 
     def run(self):
-        stream = FfmpegTestStream(
-            url=self.moblin.ingest_rist_url(),
-            files_dir=FILES_DIR,
-            transport_format=TransportFormat.MPEGTS,
-        )
-        with stream:
-            recording = self.record_ingest()
+        url = self.moblin.ingest_rist_url()
+        with LossyUdpRelay.from_url(url) as relay:
+            stream = FfmpegTestStream(
+                url=relay.relayed_url(url),
+                files_dir=FILES_DIR,
+                transport_format=TransportFormat.MPEGTS,
+            )
+            with stream:
+                recording = self.record_ingest()
         self.assert_recording(recording, FILES_DIR)
 
 
@@ -372,7 +381,7 @@ class IngestWhipServer(IngestTestCase):
     def run(self):
         with FfmpegWhipTestStream(url=self.moblin.ingest_whip_url(), files_dir=FILES_DIR):
             recording = self.record_ingest(startup_delay=4)
-        self.assert_recording(recording, FILES_DIR)
+        self.assert_recording(recording, FILES_DIR, channels=2)
 
 
 class IngestWhepClient(IngestTestCase):
@@ -403,7 +412,7 @@ class IngestWhepClient(IngestTestCase):
             with FfmpegRtspTestStream(url=rtsp_reader_url("1"), files_dir=FILES_DIR):
                 mediamtx.wait_for_rtsp_publisher("1", 2_000_000)
                 recording = self.record_ingest(startup_delay=4)
-        self.assert_recording(recording, FILES_DIR)
+        self.assert_recording(recording, FILES_DIR, channels=2)
 
 
 class ParallelIngestTestCase(IngestTestCase):
@@ -443,8 +452,8 @@ class ParallelIngestTestCase(IngestTestCase):
     def record_parallel_ingests(self, startup_delay: int = 1) -> Path:
         return self.record_ingest(startup_delay=startup_delay, number_of_ingests=2)
 
-    def assert_parallel_recording(self, recording: Path):
-        self.assert_recording(recording, FILES_DIR, has_qr_codes=False)
+    def assert_parallel_recording(self, recording: Path, channels: int = 1):
+        self.assert_recording(recording, FILES_DIR, has_qr_codes=False, channels=channels)
 
 
 class IngestParallelRtmpServer(ParallelIngestTestCase):
@@ -600,18 +609,18 @@ class IngestParallelRistServer(ParallelIngestTestCase):
                 "enabled": True,
                 "port": RIST_SERVER_PORT,
                 "streams": [
-                    {"id": STREAM_ID, "name": "1", "virtualDestinationPort": 1},
-                    {"id": STREAM_2_ID, "name": "2", "virtualDestinationPort": 2},
+                    {"id": STREAM_ID, "name": "1", "virtualDestinationPort": 2},
+                    {"id": STREAM_2_ID, "name": "2", "virtualDestinationPort": 4},
                 ],
             },
         )
 
     def run(self):
         stream_1 = FfmpegTestStream(
-            url=self.moblin.ingest_rist_url(1), files_dir=FILES_DIR, transport_format=TransportFormat.MPEGTS
+            url=self.moblin.ingest_rist_url(2), files_dir=FILES_DIR, transport_format=TransportFormat.MPEGTS
         )
         stream_2 = FfmpegTestStream(
-            url=self.moblin.ingest_rist_url(2), files_dir=FILES_DIR, transport_format=TransportFormat.MPEGTS
+            url=self.moblin.ingest_rist_url(4), files_dir=FILES_DIR, transport_format=TransportFormat.MPEGTS
         )
         with stream_1, stream_2:
             recording = self.record_parallel_ingests(startup_delay=3)
@@ -652,7 +661,7 @@ class IngestParallelWhipServer(ParallelIngestTestCase):
         stream_2 = FfmpegWhipTestStream(url=self.moblin.ingest_whip_url("2"), files_dir=FILES_DIR)
         with stream_1, stream_2:
             recording = self.record_parallel_ingests(startup_delay=3)
-        self.assert_parallel_recording(recording)
+        self.assert_parallel_recording(recording, channels=2)
 
 
 class IngestParallelWhepClient(ParallelIngestTestCase):
@@ -692,7 +701,7 @@ class IngestParallelWhepClient(ParallelIngestTestCase):
                 mediamtx.wait_for_rtsp_publisher("1", 2_000_000)
                 mediamtx.wait_for_rtsp_publisher("2", 2_000_000)
                 recording = self.record_parallel_ingests(startup_delay=3)
-        self.assert_parallel_recording(recording)
+        self.assert_parallel_recording(recording, channels=2)
 
 
 def tests(moblin: Moblin):
