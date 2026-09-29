@@ -1,6 +1,6 @@
 package com.moblin.android.various.model
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.wifiaware.WiFiAwareReceiver
 import com.moblin.android.media.wifiaware.WiFiAwareSender
 import com.moblin.android.view.settings.wifiaware.WACapabilities

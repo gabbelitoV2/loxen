@@ -1,6 +1,6 @@
 package com.moblin.android.media.haishinkit.media.video
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.formatThreeDecimals
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.media.BufferedStats

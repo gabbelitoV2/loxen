@@ -184,6 +184,7 @@ import com.moblin.android.LocalOnNavigate
 import com.moblin.android.localized
 import com.moblin.android.moblinwatch.shared.WatchSettings
 import com.moblin.android.platform.SystemImage
+import com.moblin.android.platform.gamecontroller.GCController
 import com.moblin.android.various.model.Model
 import com.moblin.android.various.model.appModeChanged
 import com.moblin.android.various.model.sendInitToWatch
@@ -1472,6 +1473,7 @@ private fun PresentationDialog(
     ) {
         val window = (LocalView.current.parent as? DialogWindowProvider)?.window
         SideEffect {
+            window?.let { GCController.install(it) }
             window?.setDimAmount(0f)
             window?.setWindowAnimations(0)
             window?.setLayout(

@@ -1,7 +1,7 @@
 package com.moblin.android.various.storages
 
 import android.os.PowerManager
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.formatBytesPerSecond
 import com.moblin.android.moblink.MoblinkThermalState
 import com.moblin.android.platform.codable.AppleDateSerializer

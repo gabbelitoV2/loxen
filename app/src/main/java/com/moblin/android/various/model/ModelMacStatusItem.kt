@@ -1,6 +1,6 @@
 package com.moblin.android.various.model
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.localized
 import java.util.WeakHashMap
 

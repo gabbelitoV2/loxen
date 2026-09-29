@@ -3,7 +3,7 @@ package com.moblin.android.various
 import android.graphics.Bitmap
 import android.graphics.ColorSpace
 import android.net.Uri
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import android.util.Size
 import android.view.Surface
 import com.moblin.android.common.various.defaultAudioLevel

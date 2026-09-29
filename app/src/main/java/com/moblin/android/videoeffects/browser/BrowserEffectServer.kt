@@ -1,6 +1,6 @@
 package com.moblin.android.videoeffects.browser
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.platform.codable.codableJson
 import com.moblin.android.platform.webkit.WKScriptMessage
 import com.moblin.android.platform.webkit.WKScriptMessageHandler

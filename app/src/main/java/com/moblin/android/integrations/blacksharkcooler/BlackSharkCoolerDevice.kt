@@ -1,6 +1,6 @@
 package com.moblin.android.integrations.blacksharkcooler
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.hexString
 import com.moblin.android.platform.blacksharklib.BlackSharkLib

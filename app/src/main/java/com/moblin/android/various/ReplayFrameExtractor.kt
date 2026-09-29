@@ -2,7 +2,7 @@ package com.moblin.android.various
 
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.haishinkit.media.RecorderDataSegment
 import java.io.File
 import java.io.FileOutputStream

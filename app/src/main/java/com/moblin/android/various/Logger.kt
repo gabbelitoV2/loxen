@@ -1,6 +1,6 @@
 package com.moblin.android.various
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -25,7 +25,7 @@ class EasyLogger {
 
     private fun log(message: String) {
         val line = "${makeTimestamp()} $message"
-        Log.d(TAG, line)
+        android.util.Log.d(TAG, line)
         handler?.invoke(line)
     }
 

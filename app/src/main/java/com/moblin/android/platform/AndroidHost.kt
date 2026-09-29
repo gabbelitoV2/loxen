@@ -56,6 +56,7 @@ object AndroidHost {
         com.moblin.android.platform.offscreen.OffscreenDisplay.prewarm()
         com.moblin.android.platform.avkit.PictureInPictureWindow.install(activity)
         com.moblin.android.platform.mediaplayer.SystemVolume.install(activity)
+        com.moblin.android.platform.gamecontroller.GCController.install(activity)
         val launcher = activity.registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { results ->
             if (results[Manifest.permission.CAMERA] == true) {
                 onCameraPermissionGranted()

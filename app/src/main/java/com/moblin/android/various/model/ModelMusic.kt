@@ -1,6 +1,6 @@
 package com.moblin.android.various.model
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.localized
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -1,6 +1,6 @@
 package com.moblin.android.videoeffects
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.haishinkit.media.video.VideoEffect
 import com.moblin.android.media.haishinkit.media.video.VideoEffectInfo
 import com.moblin.android.platform.coreimage.CIImage

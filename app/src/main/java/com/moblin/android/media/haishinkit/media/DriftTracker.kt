@@ -1,6 +1,6 @@
 package com.moblin.android.media.haishinkit.media
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.formatThreeDecimals
 
 enum class DriftTrackerMedia {

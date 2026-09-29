@@ -1,6 +1,6 @@
 package com.moblin.android.various.model
 
-import android.view.InputDevice
+import com.moblin.android.platform.gamecontroller.GCController as InputDevice
 import com.moblin.android.localized
 import com.moblin.android.various.Gimbal
 import com.moblin.android.various.MainTimer
@@ -300,8 +300,12 @@ private fun Model.gameControllerNumber(gameController: InputDevice): Int? {
     return null
 }
 
-fun Model.handleGameControllerDidConnect(device: InputDevice) {
+fun Model.handleGameControllerDidConnect(notification: com.moblin.android.platform.core.Notification) { val device = notification.obj as? com.moblin.android.platform.gamecontroller.GCController ?: return
     val emptyIndex = gameControllers.indexOf(null)
+    if (device.extendedGamepad == null) return
+    device.extendedGamepad?.let { gamepad -> listOf(gamepad.dpad.left, gamepad.dpad.right, gamepad.dpad.up, gamepad.dpad.down, gamepad.buttonA, gamepad.buttonB, gamepad.buttonX, gamepad.buttonY, gamepad.buttonMenu, gamepad.leftShoulder, gamepad.rightShoulder, gamepad.leftTrigger, gamepad.rightTrigger).forEach { it.pressedChangedHandler = { button, value, pressed -> button.sfSymbolsName?.let { name -> handleGameControllerButton(device, name, value, pressed) } } } }
+    device.extendedGamepad?.leftThumbstick?.valueChangedHandler = { _, xValue, yValue -> getGameControllerIndex(device)?.let { index -> handleGameControllerThumbStick(function = database.gameControllers[index].leftThumbStickFunction.value, xValue = xValue, yValue = yValue) } }
+    device.extendedGamepad?.rightThumbstick?.valueChangedHandler = { _, xValue, yValue -> getGameControllerIndex(device)?.let { index -> handleGameControllerThumbStick(function = database.gameControllers[index].rightThumbStickFunction.value, xValue = xValue, yValue = yValue) } }
     if (emptyIndex >= 0) {
         gameControllers[emptyIndex] = device
     } else {
@@ -314,7 +318,7 @@ fun Model.handleGameControllerDidConnect(device: InputDevice) {
     updateGameControllers()
 }
 
-fun Model.handleGameControllerDidDisconnect(device: InputDevice) {
+fun Model.handleGameControllerDidDisconnect(notification: com.moblin.android.platform.core.Notification) { val device = notification.obj as? com.moblin.android.platform.gamecontroller.GCController ?: return
     val number = gameControllerNumber(device)
     if (number != null) {
         makeToast(title = localized("Game controller $number disconnected"))

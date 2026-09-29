@@ -334,7 +334,7 @@ fun SettingsView(
                     }) {
                         Label("Keyboard", systemImage = "keyboard")
                     }
-                    if (isPad()) {
+                    if (isPad() && !com.moblin.android.platform.loxen.Loxen.hidesStreamDecks) {
                         NavigationLink(destination = {
                             StreamDecksSettingsView(
                                 model = model,

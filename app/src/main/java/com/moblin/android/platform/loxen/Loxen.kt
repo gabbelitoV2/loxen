@@ -9,6 +9,7 @@ object Loxen {
     const val attribution = "Loxen is based on Moblin by Erik Moqvist (MIT). Not affiliated with or endorsed by Moblin."
     const val noPurchases = "Loxen is free and has no in-app purchases."
     val hidesStore = true
+    val hidesStreamDecks = true
 
     const val license = """MIT License
 
@@ -43,14 +44,30 @@ SOFTWARE.
         "Add automatically to Moblin",
     )
 
+    val androidTexts = mapOf(
+        "⚠️ Allow Moblin to access your location in iOS Settings to use location." to
+            "⚠️ Allow Moblin to access your location and turn on location in Android settings to use location.",
+        "⚠️ Allow Moblin to access your location in iOS Settings to see the current WiFi network." to
+            "⚠️ Allow Moblin to access your location and turn on location in Android settings to see the current " +
+            "WiFi network.",
+        "Copy your device name from iOS settings." to "Copy your device name from Android settings.",
+        "Download languages in iOS Settings → Apps → Translate → Languages." to
+            "Download on-device translation languages in Android settings.",
+        "Download enhanced and premium voices in iOS Settings → Accessibility → Live Speech → Preferred Voices." to
+            "Download more voices in Android settings → Text-to-speech output.",
+        "⚠️ Hijacks volume buttons. You can only change volume in Control Center when enabled." to
+            "⚠️ Hijacks volume buttons. You can only change volume in Android settings when enabled.",
+    )
+
     private val upstreamWord = Regex("""(?<![\p{L}\p{N}_./\\@-])Moblin(?![\p{L}\p{N}_]|[.-]\p{L})""")
 
     fun rename(text: String): String {
-        if (!text.contains(upstreamName)) {
-            return text
+        val android = androidTexts[text] ?: text
+        if (!android.contains(upstreamName)) {
+            return android
         }
-        val kept = keptPhrases.flatMap { phrase -> ranges(text, phrase) }
-        return upstreamWord.replace(text) { match ->
+        val kept = keptPhrases.flatMap { phrase -> ranges(android, phrase) }
+        return upstreamWord.replace(android) { match ->
             if (kept.any { match.range.first in it }) match.value else appName
         }
     }

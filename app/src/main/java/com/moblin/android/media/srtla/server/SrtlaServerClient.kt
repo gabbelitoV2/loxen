@@ -1,6 +1,6 @@
 package com.moblin.android.media.srtla.server
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.haishinkit.util.ByteWriter
 import com.moblin.android.media.srtla.common.SrtPacketType
 import com.moblin.android.media.srtla.common.getSrtControlPacketType
@@ -257,7 +257,7 @@ class SrtlaServerClient(srtPort: Int) : SrtlaServerClientConnectionDelegate {
                             }
                             output.flush()
                         }.onFailure {
-                            Log.i(tag, "srtla-server-client: Send $it")
+                            android.util.Log.i(tag, "srtla-server-client: Send $it")
                         }
                     }
                 }
@@ -273,7 +273,7 @@ class SrtlaServerClient(srtPort: Int) : SrtlaServerClientConnectionDelegate {
                         output.write(packet)
                         output.flush()
                     }.onFailure {
-                        Log.i(tag, "srtla-server-client: Send $it")
+                        android.util.Log.i(tag, "srtla-server-client: Send $it")
                     }
                 }
             }

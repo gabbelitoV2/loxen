@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.media.MediaCodecInfo
 import android.os.Build
 import android.os.SystemClock
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import android.util.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
@@ -50,7 +50,7 @@ import kotlin.math.pow
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.moblin.android.platform.swiftui.PublishedStateFlow as MutableStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.Request
 import okhttp3.Response

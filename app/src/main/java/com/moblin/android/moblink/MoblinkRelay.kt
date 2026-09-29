@@ -5,7 +5,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.remotecontrol.remoteControlHashPassword
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.network.WebSocketClient

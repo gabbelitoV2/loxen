@@ -1,7 +1,7 @@
 package com.moblin.android.various.network
 
 import android.content.Context
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.platform.network.NWError
 import com.moblin.android.platform.network.NWInterface
 import com.moblin.android.platform.network.NWProtocolWebSocket

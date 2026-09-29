@@ -1,6 +1,6 @@
 package com.moblin.android.media.haishinkit.srt
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.haishinkit.media.Processor
 import com.moblin.android.media.haishinkit.media.processorControlQueue
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue

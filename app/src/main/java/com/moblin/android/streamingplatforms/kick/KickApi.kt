@@ -2,7 +2,7 @@ package com.moblin.android.streamingplatforms.kick
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.httpGet
 import com.moblin.android.view.controlbar.quickbutton.chat.ChatterInfo
 import com.moblin.android.view.controlbar.quickbutton.chat.ChatterRole

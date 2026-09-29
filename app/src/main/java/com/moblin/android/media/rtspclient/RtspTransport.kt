@@ -1,6 +1,6 @@
 package com.moblin.android.media.rtspclient
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.haishinkit.util.ByteWriter
 import java.net.DatagramPacket
 import java.net.DatagramSocket

@@ -1,7 +1,7 @@
 package com.moblin.android.various.managers
 
 import android.location.Location
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.sleepSeconds
 import com.moblin.android.platform.weatherkit.Weather
 import com.moblin.android.platform.weatherkit.WeatherService

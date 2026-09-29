@@ -1,7 +1,7 @@
 package com.moblin.android.media.rtmpserver
 
 import android.media.MediaFormat
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.makeSampleBuffer
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.codec.video.VideoDecoder

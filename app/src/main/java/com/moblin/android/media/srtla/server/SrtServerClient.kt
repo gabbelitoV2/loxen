@@ -1,6 +1,6 @@
 package com.moblin.android.media.srtla.server
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReader
 import com.moblin.android.media.haishinkit.mpeg.MpegTsReaderDelegate

@@ -1,7 +1,7 @@
 package com.moblin.android.various.network
 
 import android.system.OsConstants
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress

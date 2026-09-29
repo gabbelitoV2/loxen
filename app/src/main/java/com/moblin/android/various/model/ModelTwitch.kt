@@ -1,6 +1,6 @@
 package com.moblin.android.various.model
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import androidx.compose.ui.graphics.Color
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.countFormatter

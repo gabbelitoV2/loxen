@@ -1,7 +1,7 @@
 package com.moblin.android.media.haishinkit.mpeg.hevc
 
 import android.media.MediaFormat
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.atoms
 import com.moblin.android.media.haishinkit.util.ByteReader
 import java.nio.ByteBuffer

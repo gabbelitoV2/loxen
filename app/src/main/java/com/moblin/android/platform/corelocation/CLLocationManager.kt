@@ -1,7 +1,11 @@
 package com.moblin.android.platform.corelocation
 
 import android.Manifest
+import android.app.AppOpsManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Build
@@ -72,10 +76,23 @@ object LocationAuthorization {
     private var activity: WeakReference<ComponentActivity>? = null
     private var requested = false
     private var requesting = false
+    private var receiver: BroadcastReceiver? = null
+    private var appOpsWatcher: AppOpsManager.OnOpChangedListener? = null
 
     fun install(activity: ComponentActivity) {
         this.activity = WeakReference(activity)
         requesting = false
+        watchLocationSettings(activity.applicationContext)
+        watchPermission(activity.applicationContext)
+        try {
+            activity.window.decorView.viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
+                if (hasFocus) {
+                    reportIfChanged()
+                }
+            }
+        } catch (error: RuntimeException) {
+            Log.i(TAG, "Failed to observe window focus: ${error.message}")
+        }
         activity.lifecycle.addObserver(
             LifecycleEventObserver { _, event ->
                 when (event) {
@@ -114,7 +131,11 @@ object LocationAuthorization {
     }
 
     internal fun requestWhenInUse() {
-        if (requesting || status() != CLAuthorizationStatus.notDetermined) {
+        if (requesting) {
+            return
+        }
+        if (status() != CLAuthorizationStatus.notDetermined) {
+            handler.post { reportIfChanged() }
             return
         }
         val activity = activity?.get() ?: return
@@ -161,6 +182,50 @@ object LocationAuthorization {
         }
     }
 
+    private fun watchLocationSettings(context: Context) {
+        if (receiver != null) {
+            return
+        }
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                reportIfChanged()
+            }
+        }
+        val filter = IntentFilter().apply {
+            addAction(LocationManager.MODE_CHANGED_ACTION)
+            addAction(LocationManager.PROVIDERS_CHANGED_ACTION)
+        }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                context.registerReceiver(receiver, filter)
+            }
+            this.receiver = receiver
+        } catch (error: RuntimeException) {
+            Log.i(TAG, "Failed to observe location settings: ${error.message}")
+        }
+    }
+
+    private fun watchPermission(context: Context) {
+        if (appOpsWatcher != null) {
+            return
+        }
+        val appOps = context.getSystemService(AppOpsManager::class.java) ?: return
+        val watcher = AppOpsManager.OnOpChangedListener { _, packageName ->
+            if (packageName == context.packageName) {
+                handler.post { reportIfChanged() }
+            }
+        }
+        try {
+            appOps.startWatchingMode(AppOpsManager.OPSTR_FINE_LOCATION, context.packageName, watcher)
+            appOps.startWatchingMode(AppOpsManager.OPSTR_COARSE_LOCATION, context.packageName, watcher)
+            appOpsWatcher = watcher
+        } catch (error: RuntimeException) {
+            Log.i(TAG, "Failed to observe the location permission: ${error.message}")
+        }
+    }
+
     private fun reportIfChanged() {
         managers.removeAll { it.get() == null }
         for (manager in managers.mapNotNull { it.get() }) {
@@ -175,6 +240,15 @@ object LocationAuthorization {
     }
 
     internal fun reset() {
+        val context = applicationContext()
+        receiver?.let { receiver ->
+            runCatching { context?.unregisterReceiver(receiver) }
+        }
+        receiver = null
+        appOpsWatcher?.let { watcher ->
+            runCatching { context?.getSystemService(AppOpsManager::class.java)?.stopWatchingMode(watcher) }
+        }
+        appOpsWatcher = null
         managers.clear()
         activity = null
         requested = false

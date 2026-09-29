@@ -1,7 +1,7 @@
 package com.moblin.android.media.haishinkit.media.video
 
 import android.media.MediaFormat
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import android.util.Size
 import com.moblin.android.common.various.clamped
 import com.moblin.android.common.various.create

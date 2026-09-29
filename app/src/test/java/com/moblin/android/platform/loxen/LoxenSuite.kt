@@ -3,6 +3,7 @@ package com.moblin.android.platform.loxen
 import com.moblin.android.localized
 import java.io.File
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import org.junit.Test
 
@@ -52,8 +53,8 @@ class LoxenSuite {
         "Use phones as additional SRTLA and RIST bonding connections. Install Moblink on Android phones to use them." to "Use phones as additional SRTLA and RIST bonding connections. Install Moblink on Android phones to use them.",
         "Widgets in selected scene will be shown on the Moblin device the remote control assistant is connected to." to "Widgets in selected scene will be shown on the Loxen device the remote control assistant is connected to.",
         "[Moblin website](https://moblin.app/#streamers)" to "[Moblin website](https://moblin.app/#streamers)",
-        "⚠️ Allow Moblin to access your location in iOS Settings to see the current WiFi network." to "⚠️ Allow Loxen to access your location in iOS Settings to see the current WiFi network.",
-        "⚠️ Allow Moblin to access your location in iOS Settings to use location." to "⚠️ Allow Loxen to access your location in iOS Settings to use location.",
+        "⚠️ Allow Moblin to access your location in iOS Settings to see the current WiFi network." to "⚠️ Allow Loxen to access your location and turn on location in Android settings to see the current WiFi network.",
+        "⚠️ Allow Moblin to access your location in iOS Settings to use location." to "⚠️ Allow Loxen to access your location and turn on location in Android settings to use location.",
         "⚠️ MetalPetal does not work when Moblin is in background." to "⚠️ MetalPetal does not work when Loxen is in background.",
         "⚠️ Moblin is not configured to stream to this stream." to "⚠️ Loxen is not configured to stream to this stream.",
         "⚠️ The \"Moblin\" implementation does not perform well with low latency. Select the \"Official\" implementation at the bottom of this page." to "⚠️ The \"Loxen\" implementation does not perform well with low latency. Select the \"Official\" implementation at the bottom of this page.",
@@ -147,5 +148,58 @@ class LoxenSuite {
         val file = listOf(File("../LICENSE"), File("LICENSE")).first { it.isFile }
         assertEquals(file.readText().replace("\r\n", "\n"), Loxen.license)
         assertTrue(Loxen.license.contains("Copyright (c) 2023 Erik Moqvist"))
+    }
+
+    @Test
+    fun iosSettingsTextsSayAndroidAndNameLoxen() {
+        val expected = mapOf(
+            "⚠️ Allow Moblin to access your location in iOS Settings to use location." to
+                "⚠️ Allow Loxen to access your location and turn on location in Android settings to use location.",
+            "Copy your device name from iOS settings." to "Copy your device name from Android settings.",
+            "Download languages in iOS Settings → Apps → Translate → Languages." to
+                "Download on-device translation languages in Android settings.",
+            "Download enhanced and premium voices in iOS Settings → Accessibility → Live Speech → Preferred Voices." to
+                "Download more voices in Android settings → Text-to-speech output.",
+            "⚠️ Hijacks volume buttons. You can only change volume in Control Center when enabled." to
+                "⚠️ Hijacks volume buttons. You can only change volume in Android settings when enabled.",
+        )
+        for ((text, android) in expected) {
+            assertEquals(android, localized(text), text)
+        }
+        for (text in Loxen.androidTexts.keys) {
+            val android = localized(text)
+            assertFalse("iOS" in android || "Control Center" in android || "Moblin" in android, android)
+            assertEquals(android, localized(android), text)
+        }
+    }
+
+    @Test
+    fun noAndroidTextIsAlsoAnIosText() {
+        for (android in Loxen.androidTexts.values) {
+            assertFalse(android in Loxen.androidTexts.keys, android)
+        }
+    }
+
+    @Test
+    fun iosTextsOutsideTheMapAreUntouched() {
+        for (text in listOf(
+            "  • Select Esperanto as app language in iOS settings.",
+            "Enable Override video stabilization to override Settings → Camera → Video stabilization in this scene.",
+            "Download languages in iOS Settings.",
+        )) {
+            assertTrue(localized(text) === text, text)
+        }
+    }
+
+    @Test
+    fun everyIosTextIsStillInTheGeneratedViews() {
+        val root = listOf(File("src/main/java"), File("app/src/main/java")).first { it.isDirectory }
+        val concatenation = Regex("\"\\s*\\+\\s*\"")
+        val sources = root.walkTopDown()
+            .filter { it.isFile && it.extension == "kt" && "platform" !in it.invariantSeparatorsPath.split("/") }
+            .joinToString("\n") { it.readText().replace(concatenation, "") }
+        for (text in Loxen.androidTexts.keys) {
+            assertTrue(text in sources, text)
+        }
     }
 }

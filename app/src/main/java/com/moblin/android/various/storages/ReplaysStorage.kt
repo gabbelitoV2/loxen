@@ -1,6 +1,6 @@
 package com.moblin.android.various.storages
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.platform.codable.JsonObjectSerializer
 import com.moblin.android.platform.codable.UUIDSerializer
 import com.moblin.android.platform.codable.codableJson

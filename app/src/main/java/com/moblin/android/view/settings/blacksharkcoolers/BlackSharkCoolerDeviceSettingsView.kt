@@ -1,6 +1,6 @@
 package com.moblin.android.view.settings.blacksharkcoolers
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer

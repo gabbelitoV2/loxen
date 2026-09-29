@@ -1,6 +1,6 @@
 package com.moblin.android.various.model
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.remotecontrol.RemoteControlAssistantStreamerState
 import com.moblin.android.remotecontrol.RemoteControlStateAutoSceneSwitcher
 import com.moblin.android.various.settings.SettingsAutoSceneSwitcher

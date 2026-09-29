@@ -1,6 +1,6 @@
 package com.moblin.android.media.webrtc.whepclient
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.util.BitrateStats
 import com.moblin.android.media.haishinkit.util.BitrateStatsInstant

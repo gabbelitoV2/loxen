@@ -2,7 +2,7 @@ package com.moblin.android.media.haishinkit.media
 
 import android.media.AudioFormat
 import android.media.MediaFormat
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.formatThreeDecimals
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.media.audio.makeChannelMap

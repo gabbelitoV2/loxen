@@ -2,7 +2,7 @@ package com.moblin.android.various
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import java.security.MessageDigest

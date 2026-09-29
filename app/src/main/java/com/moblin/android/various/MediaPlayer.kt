@@ -1,6 +1,6 @@
 package com.moblin.android.various
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.MediaSample
 import com.moblin.android.platform.avfoundation.AVAsset
 import com.moblin.android.platform.avfoundation.AVAssetReader

@@ -1,6 +1,6 @@
 package com.moblin.android.media.srtla.server
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.srtla.common.SrtlaPacketType
 import com.moblin.android.media.srtla.common.createSrtlaPacket
 import com.moblin.android.media.srtla.common.getSrtControlPacketType

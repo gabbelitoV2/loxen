@@ -2,7 +2,7 @@ package com.moblin.android.various.model
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.formatOneDecimal
 import com.moblin.android.common.various.isRtmpCameraOrMic
 import com.moblin.android.common.various.isSrtClientCameraOrMic

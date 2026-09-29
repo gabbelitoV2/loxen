@@ -8,7 +8,7 @@ import android.location.Location as AndroidLocation
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Looper
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.formatSpeed
 import com.moblin.android.platform.corelocation.CLAuthorizationStatus
 import com.moblin.android.platform.corelocation.CLBackgroundActivitySession

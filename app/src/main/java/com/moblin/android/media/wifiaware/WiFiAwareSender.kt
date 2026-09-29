@@ -1,6 +1,6 @@
 package com.moblin.android.media.wifiaware
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.util.concurrent.ConcurrentHashMap

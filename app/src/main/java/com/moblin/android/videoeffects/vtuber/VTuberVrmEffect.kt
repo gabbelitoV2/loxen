@@ -1,6 +1,6 @@
 package com.moblin.android.videoeffects.vtuber
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.haishinkit.media.processorPipelineQueue
 import com.moblin.android.platform.coregraphics.CGSize
 import com.moblin.android.platform.scenekit.BlendShapeKey

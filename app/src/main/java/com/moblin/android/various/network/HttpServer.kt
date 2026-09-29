@@ -2,7 +2,7 @@ package com.moblin.android.various.network
 
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.AppDelegate
 import com.moblin.android.various.SimpleTimer
 import com.moblin.android.various.settings.SettingsHttpHeader

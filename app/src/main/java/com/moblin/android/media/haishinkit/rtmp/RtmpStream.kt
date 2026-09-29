@@ -1,7 +1,7 @@
 package com.moblin.android.media.haishinkit.rtmp
 
 import android.media.MediaFormat
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.makeRtmpStreamKey
 import com.moblin.android.common.various.makeRtmpUri
 import com.moblin.android.media.MediaSample

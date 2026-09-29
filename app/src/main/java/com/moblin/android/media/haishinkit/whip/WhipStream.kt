@@ -1,7 +1,7 @@
 package com.moblin.android.media.haishinkit.whip
 
 import android.media.MediaFormat
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.codec.audio.AudioEncoderDelegate
 import com.moblin.android.media.haishinkit.codec.video.VideoEncoder

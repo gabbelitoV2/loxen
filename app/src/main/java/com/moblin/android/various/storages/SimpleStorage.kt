@@ -2,7 +2,7 @@ package com.moblin.android.various.storages
 
 import android.content.Context
 import java.io.File
-import android.util.Log
+import com.moblin.android.platform.log.Log
 
 internal object SimpleStorageContext {
     val applicationContext: Context get() = com.moblin.android.AppDelegate.context

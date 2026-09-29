@@ -4,7 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.AppDelegate
 import com.moblin.android.various.SimpleTimer
 import kotlinx.coroutines.CoroutineScope

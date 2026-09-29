@@ -3,7 +3,7 @@ package com.moblin.android.streamingplatforms.twitch
 import android.content.Context
 import android.util.JsonReader
 import android.util.JsonToken
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.OperationResult

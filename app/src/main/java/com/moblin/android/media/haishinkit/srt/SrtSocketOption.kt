@@ -1,7 +1,7 @@
 package com.moblin.android.media.haishinkit.srt
 
 import android.net.Uri
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.platform.srt.SrtNative
 import java.net.URI
 import java.nio.ByteBuffer

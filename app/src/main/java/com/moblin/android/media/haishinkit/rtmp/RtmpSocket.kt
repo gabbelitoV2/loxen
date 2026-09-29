@@ -1,6 +1,6 @@
 package com.moblin.android.media.haishinkit.rtmp
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.haishinkit.rtmp.amf.AsObject
 import com.moblin.android.platform.network.NWConnection
 import com.moblin.android.platform.network.NWEndpoint

@@ -2,7 +2,7 @@ package com.moblin.android.media.haishinkit.extension
 
 import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.media.MediaFormat
-import android.util.Log
+import com.moblin.android.platform.log.Log
 
 object CMVideoFormatDescription {
     private const val tag = "CMVideoFormatDescription"

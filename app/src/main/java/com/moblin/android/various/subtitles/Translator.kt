@@ -1,6 +1,6 @@
 package com.moblin.android.various.subtitles
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.platform.translation.TranslationError
 import com.moblin.android.platform.translation.TranslationSession
 import com.moblin.android.platform.translation.localeLanguage

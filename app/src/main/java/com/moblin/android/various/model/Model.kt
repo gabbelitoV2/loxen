@@ -3,7 +3,7 @@ package com.moblin.android.various.model
 import android.bluetooth.BluetoothAdapter
 import android.graphics.Bitmap
 import android.hardware.SensorManager
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import android.view.Surface
 import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
@@ -758,7 +758,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var bluetoothCentralManger: com.moblin.android.platform.corebluetooth.CBCentralManager? = null
     var sceneSettingsPanelScene = SettingsScene(name = "")
     var snapshotJobs: ArrayDeque<SnapshotJob> = ArrayDeque()
-    var gameControllers: MutableList<Any?> = mutableListOf()
+    var gameControllers: MutableList<com.moblin.android.platform.gamecontroller.GCController?> = mutableListOf()
     var moveToGimbalPresetQueue: ArrayDeque<UUID> = ArrayDeque()
     var moveToGimbalPresetQueueRunning = false
     var gimbalPresetLongPressTimers: MutableMap<String, MainTimer> = mutableMapOf()
@@ -1324,8 +1324,9 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
         ipMonitor.start()
         addObserver("UIDevice.batteryStateDidChangeNotification", "handleBatteryStateDidChange")
         updateBatteryState()
-        addObserver("GCControllerDidConnect", "handleGameControllerDidConnect")
-        addObserver("GCControllerDidDisconnect", "handleGameControllerDidDisconnect")
+        com.moblin.android.platform.gamecontroller.GCController.startWirelessControllerDiscovery {}
+        com.moblin.android.platform.core.NotificationCenter.default.addObserver(this, com.moblin.android.platform.gamecontroller.GCController.didConnectNotification, null) { handleGameControllerDidConnect(it) }
+        com.moblin.android.platform.core.NotificationCenter.default.addObserver(this, com.moblin.android.platform.gamecontroller.GCController.didDisconnectNotification, null) { handleGameControllerDidDisconnect(it) }
         reloadLocation()
         currentStreamId.value = stream.value.id
         lutUpdated()
@@ -2491,7 +2492,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     private var loggerDebugEnabled = false
 
     fun setDebugLogging(on: Boolean) {
-        loggerDebugEnabled = on
+        com.moblin.android.various.logger.debugEnabled = on
         remoteControlStateChanged(state = RemoteControlAssistantStreamerState(debugLogging = on))
     }
 
@@ -2601,7 +2602,7 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     }
 
     private fun logStatus() {
-        if (loggerDebugEnabled && isLive.value) {
+        if (com.moblin.android.various.logger.debugEnabled && isLive.value) {
             Log.d(
                 "Model",
                 "Status: Bitrate: ${bitrate.speedAndTotal.value}, Uptime: ${streamUptime.uptime.value}",

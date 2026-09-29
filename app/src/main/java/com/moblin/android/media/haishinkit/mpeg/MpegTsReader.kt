@@ -2,7 +2,7 @@ package com.moblin.android.media.haishinkit.mpeg
 
 import android.media.AudioFormat
 import android.media.MediaFormat
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.createSilent
 import com.moblin.android.common.various.makeSampleBuffer
 import com.moblin.android.media.MediaSample

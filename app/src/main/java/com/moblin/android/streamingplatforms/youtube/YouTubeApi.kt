@@ -1,6 +1,6 @@
 package com.moblin.android.streamingplatforms.youtube
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.localized
 import com.moblin.android.various.network.NetworkResponse
 import com.moblin.android.various.network.OperationResult

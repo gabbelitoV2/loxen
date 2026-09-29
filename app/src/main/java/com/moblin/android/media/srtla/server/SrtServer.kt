@@ -1,6 +1,6 @@
 package com.moblin.android.media.srtla.server
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.haishinkit.srt.SrtSocketOption
 import com.moblin.android.platform.srt.SrtError
 import com.moblin.android.platform.srt.SrtNative

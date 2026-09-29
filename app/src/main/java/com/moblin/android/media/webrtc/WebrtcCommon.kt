@@ -1,6 +1,6 @@
 package com.moblin.android.media.webrtc
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.platform.datachannel.*
 
 private const val TAG = "WebrtcCommon"

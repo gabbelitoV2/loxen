@@ -1,6 +1,6 @@
 package com.moblin.android.integrations.emotes
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.httpGet
 import com.moblin.android.localized
 import kotlinx.serialization.SerialName

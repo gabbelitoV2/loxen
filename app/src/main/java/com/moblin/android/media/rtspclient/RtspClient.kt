@@ -1,7 +1,7 @@
 package com.moblin.android.media.rtspclient
 
 import android.media.MediaFormat
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.localized
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.WrappingTimestamp

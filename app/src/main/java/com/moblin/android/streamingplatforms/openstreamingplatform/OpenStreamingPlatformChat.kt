@@ -1,6 +1,6 @@
 package com.moblin.android.streamingplatforms.openstreamingplatform
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.ChatPostSegment

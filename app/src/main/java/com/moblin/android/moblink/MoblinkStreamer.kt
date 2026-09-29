@@ -3,7 +3,7 @@ package com.moblin.android.moblink
 import android.content.Context
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.remotecontrol.remoteControlApiVersion
 import com.moblin.android.remotecontrol.remoteControlHashPassword
 import com.moblin.android.various.MainTimer

@@ -11,7 +11,7 @@ import com.moblin.android.various.settings.SettingsMacrosEvent
 import com.moblin.android.various.settings.SettingsQuickButtonType
 import java.io.File
 import java.time.Instant
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.moblin.android.platform.swiftui.PublishedStateFlow as MutableStateFlow
 import com.moblin.android.common.various.uptimeFormatter
 
 class RecordingProvider {

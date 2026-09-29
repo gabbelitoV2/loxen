@@ -1,6 +1,6 @@
 package com.moblin.android.media.haishinkit.mpeg.avc
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.haishinkit.mpeg.NalUnitReader
 import com.moblin.android.media.haishinkit.mpeg.NalUnitWriter
 import com.moblin.android.media.haishinkit.mpeg.hevc.writeMoreDataInPayload

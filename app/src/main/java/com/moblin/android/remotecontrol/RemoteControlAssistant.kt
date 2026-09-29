@@ -1,6 +1,6 @@
 package com.moblin.android.remotecontrol
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.digitalClockFormatter
 import com.moblin.android.common.various.formatDate

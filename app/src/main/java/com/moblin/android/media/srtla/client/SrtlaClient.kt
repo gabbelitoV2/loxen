@@ -1,6 +1,6 @@
 package com.moblin.android.media.srtla.client
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.srtla.common.isSrtDataPacket
 import com.moblin.android.platform.network.NWEndpoint
 import com.moblin.android.platform.network.NWInterface

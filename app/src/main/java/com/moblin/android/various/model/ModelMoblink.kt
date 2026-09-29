@@ -2,7 +2,7 @@ package com.moblin.android.various.model
 
 import android.content.Context
 import android.os.Build
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.noValue
 import com.moblin.android.moblink.MoblinkRelayServer
 import com.moblin.android.moblink.MoblinkRelayDelegate

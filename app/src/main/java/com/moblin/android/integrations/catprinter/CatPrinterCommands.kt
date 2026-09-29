@@ -1,6 +1,6 @@
 package com.moblin.android.integrations.catprinter
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.isBitSet
 import com.moblin.android.media.haishinkit.util.ByteReader
 import com.moblin.android.media.haishinkit.util.ByteWriter

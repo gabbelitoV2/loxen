@@ -1,7 +1,7 @@
 package com.moblin.android.various.model
 
 import android.graphics.PointF
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.localized
 import com.moblin.android.media.haishinkit.media.video.CaptureDevice
 import com.moblin.android.various.settings.SettingsCameraId

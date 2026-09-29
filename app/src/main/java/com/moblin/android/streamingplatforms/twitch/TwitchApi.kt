@@ -1,7 +1,7 @@
 package com.moblin.android.streamingplatforms.twitch
 
 import android.graphics.BitmapFactory
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import com.moblin.android.various.network.NetworkResponse

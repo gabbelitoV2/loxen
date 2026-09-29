@@ -28,8 +28,8 @@ fun createFileLog(): List<String> {
 }
 
 fun Model.setupLogging() {
-    logger.handler = { message -> debugLog(message) }
-    logger.debugEnabled = database.debug.debugLogging.value
+    com.moblin.android.various.logger.handler = { message -> debugLog(message) }
+    com.moblin.android.various.logger.debugEnabled = database.debug.debugLogging.value
 }
 
 fun Model.clearLog() {
@@ -38,7 +38,7 @@ fun Model.clearLog() {
 
 fun Model.formatLog(log: List<LogEntry>): String {
     var data = "Version: ${appVersion()}\n"
-    data += "Debug: ${logger.debugEnabled}\n\n"
+    data += "Debug: ${com.moblin.android.various.logger.debugEnabled}\n\n"
     data += log.joinToString(separator = "\n") { it.message }
     val file = File(System.getProperty("java.io.tmpdir"), "${com.moblin.android.platform.loxen.Loxen.appName}-log-${System.currentTimeMillis()}.txt")
     runCatching {

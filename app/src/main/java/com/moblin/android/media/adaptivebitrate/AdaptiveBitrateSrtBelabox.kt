@@ -1,6 +1,6 @@
 package com.moblin.android.media.adaptivebitrate
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.formatTwoDecimals
 import com.moblin.android.various.settings.defaultSrtLatency
 

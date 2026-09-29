@@ -2,7 +2,7 @@ package com.moblin.android.various.settings
 
 import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.os.Build
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import androidx.compose.ui.graphics.Color
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.common.various.formatOneDecimal

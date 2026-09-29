@@ -1,6 +1,6 @@
 package com.moblin.android.integrations.tesla
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.hexString
 import com.moblin.android.common.various.setUInt32Be
 import com.moblin.android.common.various.utf8Data

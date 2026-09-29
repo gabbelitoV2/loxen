@@ -26,7 +26,7 @@ import com.moblin.android.view.stream.StreamView
 import java.lang.ref.WeakReference
 import java.net.URI
 import android.content.Context
-import android.util.Log
+import com.moblin.android.platform.log.Log
 
 object MoblinApp {
     var globalModel: Model? = null

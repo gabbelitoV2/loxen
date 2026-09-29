@@ -1,6 +1,6 @@
 package com.moblin.android.media
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 
 class WrappingTimestamp(name: String, maximumTimestamp: Long) {
     private val name: String = name

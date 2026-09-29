@@ -11,6 +11,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 ASSETS = ROOT / "app/src/main/assets"
 VERSION = ROOT / "app/moblin-version.properties"
+LOOSE_MANIFEST = HERE / "loose_resources.json"
 MARKETING_VERSION = re.compile(r"^[ \t]*MARKETING_VERSION[ \t]*=[ \t]*(\d+(?:\.\d+)*)[ \t]*(?://.*)?$", re.MULTILINE)
 
 
@@ -69,12 +70,22 @@ def mirror_asset_catalog(catalog, target):
 
 
 LOOSE_RESOURCE_SUFFIXES = (".js",)
+WEB_APP = Path("RemoteControl/Web")
+MOBLIN_WEB_ARTWORK = (WEB_APP / "favicon.ico",)
 
 
-def mirror_loose_resources(app, target):
+def is_loose_resource(relative):
+    if relative in MOBLIN_WEB_ARTWORK:
+        return False
+    return relative.suffix in LOOSE_RESOURCE_SUFFIXES or WEB_APP in relative.parents
+
+
+def mirror_loose_resources(app, target, manifest=None):
     copied = {}
+    if not app.is_dir():
+        return copied
     for path in sorted(app.rglob("*")):
-        if not path.is_file() or path.suffix not in LOOSE_RESOURCE_SUFFIXES:
+        if not path.is_file() or not is_loose_resource(path.relative_to(app)):
             continue
         parts = path.relative_to(app).parts
         if any(part.endswith((".bundle", ".xcassets")) or part == "node_modules" or part.startswith(".") for part in parts):
@@ -85,7 +96,25 @@ def mirror_loose_resources(app, target):
         target.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(path, target / path.name)
         copied[path.name] = path.relative_to(app).as_posix()
+    if manifest is not None:
+        remove_stale_loose_resources(target, manifest, copied)
     return copied
+
+
+def remove_stale_loose_resources(target, manifest, copied):
+    previous = json.loads(manifest.read_text(encoding="utf-8")) if manifest.exists() else []
+    removed = []
+    for name in previous:
+        if name in copied or Path(name).name != name:
+            continue
+        stale = target / name
+        if stale.is_file():
+            stale.unlink()
+            removed.append(name)
+    manifest.write_text(json.dumps(sorted(copied), indent=2) + "\n", encoding="utf-8", newline="\n")
+    if removed:
+        print(f"loose resources removed: {', '.join(sorted(removed))}")
+    return removed
 
 
 def marketing_version(config):
@@ -140,7 +169,7 @@ def main():
     if catalog.is_dir():
         count = mirror_asset_catalog(catalog, ASSETS / "Assets")
         print(f"Assets.xcassets: {count} images")
-    loose = mirror_loose_resources(app, ASSETS)
+    loose = mirror_loose_resources(app, ASSETS, LOOSE_MANIFEST)
     print(f"loose resources: {len(loose)} files ({', '.join(sorted(loose))})")
     version = mirror_version(args.moblin / "Config", VERSION)
     print(f"MARKETING_VERSION: {version or 'not found, ' + VERSION.name + ' kept'}")

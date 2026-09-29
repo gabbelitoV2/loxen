@@ -8,7 +8,7 @@ import android.graphics.RectF
 import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.media.MediaFormat
 import android.os.SystemClock
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import android.util.Size
 import android.util.SizeF
 import com.moblin.android.media.MediaSample

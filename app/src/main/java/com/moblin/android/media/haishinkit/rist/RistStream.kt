@@ -1,7 +1,7 @@
 package com.moblin.android.media.haishinkit.rist
 
 import android.net.Uri
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.formatBytesPerSecond
 import com.moblin.android.media.adaptivebitrate.AdaptiveBitrateDelegate
 import com.moblin.android.media.adaptivebitrate.AdaptiveBitrateRistExperiment

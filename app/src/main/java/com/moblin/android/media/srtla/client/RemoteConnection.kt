@@ -1,6 +1,6 @@
 package com.moblin.android.media.srtla.client
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.getInt64Be
 import com.moblin.android.common.various.getUInt32Be
 import com.moblin.android.common.various.setInt64Be

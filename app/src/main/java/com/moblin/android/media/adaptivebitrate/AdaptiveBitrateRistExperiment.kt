@@ -1,6 +1,6 @@
 package com.moblin.android.media.adaptivebitrate
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 
 val adaptiveBitrateRistFastSettings = AdaptiveBitrateSettings(
     packetsInFlight = 200L,

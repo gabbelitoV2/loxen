@@ -1,7 +1,7 @@
 package com.moblin.android.streamingplatforms.kick
 
 import android.content.Context
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.RgbColor
 import com.moblin.android.integrations.emotes.Emotes
 import com.moblin.android.integrations.emotes.EmotesPlatform

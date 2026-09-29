@@ -1,7 +1,7 @@
 package com.moblin.android.obs
 
 import android.content.Context
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.localized
 import com.moblin.android.various.network.WebSocketClient
 import com.moblin.android.various.network.WebSocketClientDelegate

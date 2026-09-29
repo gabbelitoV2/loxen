@@ -1,7 +1,9 @@
 package com.moblin.android.platform.corelocation
 
 import android.Manifest
+import android.app.AppOpsManager
 import android.app.Application
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Looper
@@ -9,6 +11,7 @@ import androidx.activity.ComponentActivity
 import androidx.test.core.app.ApplicationProvider
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -221,5 +224,91 @@ class CLLocationManagerSuite {
         manager.requestWhenInUseAuthorization()
         runMain()
         assertEquals(emptyList(), reported)
+    }
+
+    @Test
+    fun turningLocationOnWhileTheAppStaysResumedIsReported() {
+        startActivity()
+        setLocationEnabled(false)
+        shadowOf(application).grantPermissions(Manifest.permission.ACCESS_FINE_LOCATION)
+        managerWithDelegate()
+        runMain()
+        assertEquals(listOf(CLAuthorizationStatus.denied), reported)
+        setLocationEnabled(true)
+        application.sendBroadcast(Intent(LocationManager.MODE_CHANGED_ACTION))
+        runMain()
+        assertEquals(listOf(CLAuthorizationStatus.denied, CLAuthorizationStatus.authorizedWhenInUse), reported)
+        application.sendBroadcast(Intent(LocationManager.PROVIDERS_CHANGED_ACTION))
+        runMain()
+        assertEquals(2, reported.size)
+    }
+
+    @Test
+    fun askingAgainReportsAGrantMadeWithoutAResumeAndShowsNoDialog() {
+        val activity = startActivity()
+        val manager = managerWithDelegate()
+        runMain()
+        manager.requestWhenInUseAuthorization()
+        answerPermissionRequest(activity, granted = false)
+        val firstRequest = shadowOf(activity).lastRequestedPermission
+        shadowOf(application).grantPermissions(Manifest.permission.ACCESS_FINE_LOCATION)
+        manager.requestWhenInUseAuthorization()
+        runMain()
+        assertEquals(
+            listOf(
+                CLAuthorizationStatus.notDetermined,
+                CLAuthorizationStatus.denied,
+                CLAuthorizationStatus.authorizedWhenInUse,
+            ),
+            reported,
+        )
+        assertEquals(firstRequest, shadowOf(activity).lastRequestedPermission)
+    }
+
+    @Test
+    fun regainingWindowFocusReportsAChange() {
+        startActivity()
+        managerWithDelegate()
+        runMain()
+        shadowOf(application).grantPermissions(Manifest.permission.ACCESS_FINE_LOCATION)
+        controller!!.windowFocusChanged(false)
+        controller!!.windowFocusChanged(true)
+        runMain()
+        assertEquals(
+            listOf(CLAuthorizationStatus.notDetermined, CLAuthorizationStatus.authorizedWhenInUse),
+            reported,
+        )
+    }
+
+    @Test
+    fun aPermissionChangeSeenByAppOpsIsReported() {
+        startActivity()
+        managerWithDelegate()
+        runMain()
+        shadowOf(application).grantPermissions(Manifest.permission.ACCESS_FINE_LOCATION)
+        val appOps = application.getSystemService(AppOpsManager::class.java)
+        shadowOf(appOps).setMode(
+            AppOpsManager.OPSTR_FINE_LOCATION,
+            application.applicationInfo.uid,
+            application.packageName,
+            AppOpsManager.MODE_ALLOWED,
+        )
+        runMain()
+        assertEquals(
+            listOf(CLAuthorizationStatus.notDetermined, CLAuthorizationStatus.authorizedWhenInUse),
+            reported,
+        )
+    }
+
+    @Test
+    fun theLocationSettingsReceiverIsRegisteredOnceAndRemovedOnReset() {
+        startActivity()
+        val second = Robolectric.buildActivity(ComponentActivity::class.java).setup()
+        LocationAuthorization.install(second.get())
+        val intent = Intent(LocationManager.MODE_CHANGED_ACTION)
+        assertEquals(1, shadowOf(application).getReceiversForIntent(intent).size)
+        LocationAuthorization.reset()
+        assertTrue(shadowOf(application).getReceiversForIntent(intent).isEmpty())
+        second.pause().stop().destroy()
     }
 }

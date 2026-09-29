@@ -1,6 +1,6 @@
 package com.moblin.android.integrations.emotes
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.localized
 import com.moblin.android.various.ChatPostSegment
 import com.moblin.android.various.ChatPostUrl

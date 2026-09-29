@@ -200,6 +200,246 @@
       "old": "const val twitchMoblinAppClientId = \"qv6bnocuwapqigeqjoamfhif0cv2xn\"",
       "new": "const val twitchMoblinAppClientId = com.moblin.android.platform.loxen.Loxen.twitchClientId",
       "note": "Twitch sign-in and the Twitch API use Loxen's own Twitch application (public client, redirect https://localhost), so Twitch shows Loxen and not Moblin."
+    },
+    {
+      "id": "G3",
+      "file": "*",
+      "op": "replace",
+      "old": "import android.util.Log",
+      "new": "import com.moblin.android.platform.log.Log",
+      "note": "Swift logger.info/debug go through EasyLogger into the in-app log, the remote control log and the log files. The translation made them android.util.Log calls, which only reach logcat, so the log files held only their header. The Log shim has the same calls and sends i/d to EasyLogger; isLoggable(tag, DEBUG) is logger.debugEnabled like the Swift checks."
+    },
+    {
+      "id": "HLOXEN.23",
+      "file": "various/model/ModelStream.kt",
+      "op": "replace",
+      "old": "import kotlinx.coroutines.flow.MutableStateFlow",
+      "new": "import com.moblin.android.platform.swiftui.PublishedStateFlow as MutableStateFlow",
+      "note": "CreateStreamWizard's @Published properties are private flows read through plain getters, which Compose does not observe; wizard text fields reverted every keystroke and toggles and sheets did not update. PublishedStateFlow is a MutableStateFlow whose value is also snapshot state, like SwiftUI's @ObservedObject."
+    },
+    {
+      "id": "HLOXEN.24",
+      "file": "various/model/ModelRecording.kt",
+      "op": "replace",
+      "old": "import kotlinx.coroutines.flow.MutableStateFlow",
+      "new": "import com.moblin.android.platform.swiftui.PublishedStateFlow as MutableStateFlow",
+      "note": "RecordingProvider.length is read by the stream overlay through a plain getter; same fix as HLOXEN.23 so the recording timer ticks."
+    },
+    {
+      "id": "HLOXEN.25",
+      "file": "various/model/ModelLog.kt",
+      "scope": "fun setupLogging",
+      "op": "replace",
+      "old": "    logger.handler = { message -> debugLog(message) }",
+      "new": "    com.moblin.android.various.logger.handler = { message -> debugLog(message) }",
+      "note": "The file declares its own private logger object, so the global EasyLogger never got the handler and the in-app log, the remote control log and the log files stayed empty."
+    },
+    {
+      "id": "HLOXEN.26",
+      "file": "various/model/ModelLog.kt",
+      "scope": "fun setupLogging",
+      "op": "replace",
+      "old": "    logger.debugEnabled = database.debug.debugLogging.value",
+      "new": "    com.moblin.android.various.logger.debugEnabled = database.debug.debugLogging.value",
+      "note": "See HLOXEN.25."
+    },
+    {
+      "id": "HLOXEN.27",
+      "file": "various/model/ModelLog.kt",
+      "scope": "fun formatLog",
+      "op": "replace",
+      "old": "    data += \"Debug: ${logger.debugEnabled}\\n\\n\"",
+      "new": "    data += \"Debug: ${com.moblin.android.various.logger.debugEnabled}\\n\\n\"",
+      "note": "See HLOXEN.25."
+    },
+    {
+      "id": "HLOXEN.28",
+      "file": "various/model/Model.kt",
+      "scope": "fun setDebugLogging",
+      "op": "replace",
+      "old": "        loggerDebugEnabled = on",
+      "new": "        com.moblin.android.various.logger.debugEnabled = on",
+      "note": "Swift logger.debugEnabled = on. The translation wrote a private flag that nothing else reads, so Debug logging never turned on debug lines."
+    },
+    {
+      "id": "HLOXEN.29",
+      "file": "various/model/Model.kt",
+      "scope": "fun logStatus",
+      "op": "replace",
+      "old": "        if (loggerDebugEnabled && isLive.value) {",
+      "new": "        if (com.moblin.android.various.logger.debugEnabled && isLive.value) {",
+      "note": "See HLOXEN.28."
+    },
+    {
+      "id": "HLOXEN.30",
+      "file": "various/Logger.kt",
+      "scope": "fun log",
+      "op": "replace",
+      "old": "        Log.d(TAG, line)",
+      "new": "        android.util.Log.d(TAG, line)",
+      "note": "G3 makes Log the shim that calls EasyLogger, so EasyLogger itself writes to logcat directly; otherwise every line would call itself until the stack overflows."
+    },
+    {
+      "id": "HLOXEN.31",
+      "file": "remotecontrol/RemoteControlWeb.kt",
+      "scope": "fun sendWebSocket",
+      "op": "replace",
+      "old": "            Log.i(TAG, \"remote-control-web: send failed\")",
+      "new": "            android.util.Log.i(TAG, \"remote-control-web: send failed\")",
+      "note": "The Swift send has no log line. Through G3 a failed send of a log line would log again and send that to every browser, over and over, so this Android-only line stays in logcat."
+    },
+    {
+      "id": "HLOXEN.32",
+      "file": "view/settings/SettingsView.kt",
+      "scope": "fun SettingsView",
+      "op": "replace",
+      "old": "                    if (isPad()) {",
+      "new": "                    if (isPad() && !com.moblin.android.platform.loxen.Loxen.hidesStreamDecks) {",
+      "note": "Moblin shows Stream decks only where it can drive one: on an iPad, and not on an iPhone or a Mac. Android has no Stream Deck support (StreamDeckSession and the key views are not ported), so tablets hide the entry like an iPhone instead of offering layouts that do nothing or telling the user to install an iPad driver from the App Store."
+    },
+    {
+      "id": "HLOXEN.33",
+      "file": "various/model/Model.kt",
+      "scope": "class Model",
+      "op": "replace",
+      "old": "    var gameControllers: MutableList<Any?> = mutableListOf()",
+      "new": "    var gameControllers: MutableList<com.moblin.android.platform.gamecontroller.GCController?> = mutableListOf()",
+      "note": "Swift var gameControllers: [GCController?]."
+    },
+    {
+      "id": "HLOXEN.34",
+      "file": "various/model/Model.kt",
+      "scope": "fun setup",
+      "op": "replace",
+      "old": "        addObserver(\"GCControllerDidConnect\", \"handleGameControllerDidConnect\")",
+      "new": "        com.moblin.android.platform.core.NotificationCenter.default.addObserver(this, com.moblin.android.platform.gamecontroller.GCController.didConnectNotification, null) { handleGameControllerDidConnect(it) }",
+      "note": "Swift addObserver(.GCControllerDidConnect, #selector(handleGameControllerDidConnect)). The generated Model.addObserver(name, selector) does nothing, so no game controller was ever seen."
+    },
+    {
+      "id": "HLOXEN.35",
+      "file": "various/model/Model.kt",
+      "scope": "fun setup",
+      "op": "replace",
+      "old": "        addObserver(\"GCControllerDidDisconnect\", \"handleGameControllerDidDisconnect\")",
+      "new": "        com.moblin.android.platform.core.NotificationCenter.default.addObserver(this, com.moblin.android.platform.gamecontroller.GCController.didDisconnectNotification, null) { handleGameControllerDidDisconnect(it) }",
+      "note": "See HLOXEN.34."
+    },
+    {
+      "id": "HLOXEN.36",
+      "file": "various/model/Model.kt",
+      "scope": "fun setup",
+      "op": "insert_after",
+      "anchor": "        updateBatteryState()",
+      "new": "        com.moblin.android.platform.gamecontroller.GCController.startWirelessControllerDiscovery {}",
+      "note": "Swift GCController.startWirelessControllerDiscovery {}, left out by the translation. The shim starts watching Android input devices here and announces the controllers that are already connected after setup, like iOS."
+    },
+    {
+      "id": "HLOXEN.37",
+      "file": "various/model/ModelGameController.kt",
+      "op": "replace",
+      "old": "import android.view.InputDevice",
+      "new": "import com.moblin.android.platform.gamecontroller.GCController as InputDevice",
+      "note": "The translation keyed game controllers by android.view.InputDevice and never received input. The GCController shim has the Swift API."
+    },
+    {
+      "id": "HLOXEN.38",
+      "file": "various/model/ModelGameController.kt",
+      "scope": "fun Model.handleGameControllerDidConnect",
+      "op": "replace",
+      "old": "fun Model.handleGameControllerDidConnect(device: InputDevice) {",
+      "new": "fun Model.handleGameControllerDidConnect(notification: com.moblin.android.platform.core.Notification) { val device = notification.obj as? com.moblin.android.platform.gamecontroller.GCController ?: return",
+      "note": "Swift handleGameControllerDidConnect(_ notification: Notification) with guard let gameController = notification.object as? GCController."
+    },
+    {
+      "id": "HLOXEN.39",
+      "file": "various/model/ModelGameController.kt",
+      "scope": "fun Model.handleGameControllerDidConnect",
+      "op": "insert_after",
+      "anchor": "    val emptyIndex = gameControllers.indexOf(null)",
+      "new": "    device.extendedGamepad?.rightThumbstick?.valueChangedHandler = { _, xValue, yValue -> getGameControllerIndex(device)?.let { index -> handleGameControllerThumbStick(function = database.gameControllers[index].rightThumbStickFunction.value, xValue = xValue, yValue = yValue) } }",
+      "note": "Swift gamepad.rightThumbstick.valueChangedHandler, left out by the translation."
+    },
+    {
+      "id": "HLOXEN.40",
+      "file": "various/model/ModelGameController.kt",
+      "scope": "fun Model.handleGameControllerDidConnect",
+      "op": "insert_after",
+      "anchor": "    val emptyIndex = gameControllers.indexOf(null)",
+      "new": "    device.extendedGamepad?.leftThumbstick?.valueChangedHandler = { _, xValue, yValue -> getGameControllerIndex(device)?.let { index -> handleGameControllerThumbStick(function = database.gameControllers[index].leftThumbStickFunction.value, xValue = xValue, yValue = yValue) } }",
+      "note": "Swift gamepad.leftThumbstick.valueChangedHandler, left out by the translation."
+    },
+    {
+      "id": "HLOXEN.41",
+      "file": "various/model/ModelGameController.kt",
+      "scope": "fun Model.handleGameControllerDidConnect",
+      "op": "insert_after",
+      "anchor": "    val emptyIndex = gameControllers.indexOf(null)",
+      "new": "    device.extendedGamepad?.let { gamepad -> listOf(gamepad.dpad.left, gamepad.dpad.right, gamepad.dpad.up, gamepad.dpad.down, gamepad.buttonA, gamepad.buttonB, gamepad.buttonX, gamepad.buttonY, gamepad.buttonMenu, gamepad.leftShoulder, gamepad.rightShoulder, gamepad.leftTrigger, gamepad.rightTrigger).forEach { it.pressedChangedHandler = { button, value, pressed -> button.sfSymbolsName?.let { name -> handleGameControllerButton(device, name, value, pressed) } } } }",
+      "note": "Swift sets pressedChangedHandler on the d-pad, A, B, X, Y, menu, shoulder and trigger buttons, and handleGameControllerButton matches button.sfSymbolsName; left out by the translation."
+    },
+    {
+      "id": "HLOXEN.42",
+      "file": "various/model/ModelGameController.kt",
+      "scope": "fun Model.handleGameControllerDidConnect",
+      "op": "insert_after",
+      "anchor": "    val emptyIndex = gameControllers.indexOf(null)",
+      "new": "    if (device.extendedGamepad == null) return",
+      "note": "Swift guard let gamepad = gameController.extendedGamepad else { return }. The hooks after the same anchor are listed from last to first, so the lines read in Swift order."
+    },
+    {
+      "id": "HLOXEN.43",
+      "file": "various/model/ModelGameController.kt",
+      "scope": "fun Model.handleGameControllerDidDisconnect",
+      "op": "replace",
+      "old": "fun Model.handleGameControllerDidDisconnect(device: InputDevice) {",
+      "new": "fun Model.handleGameControllerDidDisconnect(notification: com.moblin.android.platform.core.Notification) { val device = notification.obj as? com.moblin.android.platform.gamecontroller.GCController ?: return",
+      "note": "See HLOXEN.38."
+    },
+    {
+      "id": "HLOXEN.44",
+      "file": "media/srtla/server/SrtlaServerClient.kt",
+      "scope": "fun handlePacketFromSrtClient",
+      "op": "replace",
+      "old": "                            Log.i(tag, \"srtla-server-client: Send $it\")",
+      "new": "                            android.util.Log.i(tag, \"srtla-server-client: Send $it\")",
+      "note": "Swift sends to the local SRT server with completion .idempotent and logs nothing. Through G3 this Android-only line would add one line per packet batch to Moblin's log, the log file and every remote control client once the local connection breaks, so it stays in logcat."
+    },
+    {
+      "id": "HLOXEN.45",
+      "file": "media/srtla/server/SrtlaServerClient.kt",
+      "scope": "fun handlePacketFromSrtClient",
+      "op": "replace",
+      "old": "                        Log.i(tag, \"srtla-server-client: Send $it\")",
+      "new": "                        android.util.Log.i(tag, \"srtla-server-client: Send $it\")",
+      "note": "See HLOXEN.44, for the control packets."
+    },
+    {
+      "id": "HLOXEN.46",
+      "file": "remotecontrol/RemoteControlWeb.kt",
+      "scope": "fun setupWebsocketServer",
+      "op": "replace",
+      "old": "                    mainScope.launch {",
+      "new": "                    com.moblin.android.platform.network.OffMainSocket.readRequest(socket, ioScope, mainScope, { started }) {",
+      "occurrence": 1,
+      "note": "Swift's NWListener does the websocket I/O off the main queue. The translation read the handshake and wrote every frame on the main thread, which Android forbids (NetworkOnMainThreadException), so the handshake failed and the pages never got status, scenes or settings. readRequest reads the HTTP request head on the IO thread and then runs handleNewWebsocketConnection on main, but only while started: like NWListener.cancel(), a stop() during the handshake closes the socket instead of connecting it to the stopped server."
+    },
+    {
+      "id": "HLOXEN.47",
+      "file": "remotecontrol/RemoteControlWeb.kt",
+      "scope": "fun handleNewWebsocketConnection",
+      "op": "replace",
+      "old": "            val input = socket.getInputStream()",
+      "new": "            val input = com.moblin.android.platform.network.OffMainSocket.input(socket)",
+      "note": "See HLOXEN.46. The handshake reads the request head that was already read on the IO thread; the frames after it come from the socket in the IO receive loop."
+    },
+    {
+      "id": "HLOXEN.48",
+      "file": "remotecontrol/RemoteControlWeb.kt",
+      "scope": "fun handleNewWebsocketConnection",
+      "op": "replace",
+      "old": "            val output = socket.getOutputStream()",
+      "new": "            val output = com.moblin.android.platform.network.OffMainSocket.output(socket)",
+      "note": "See HLOXEN.46. Each flush of the handshake response or a frame is queued and written in order on the connection's own IO queue, like NWConnection.send."
     }
   ]
 }

@@ -1,6 +1,6 @@
 package com.moblin.android.various.storages
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.various.utils.createAndGetDirectory
 import java.io.File
 import java.nio.file.Files

@@ -1,7 +1,7 @@
 package com.moblin.android.remotecontrol
 
 import android.net.nsd.NsdServiceInfo
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.network.HttpServer
 import com.moblin.android.various.network.HttpServerRequest
@@ -246,7 +246,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
                 while (started) {
                     val socket = serverSocket.accept()
                     socket.tcpNoDelay = true
-                    mainScope.launch {
+                    com.moblin.android.platform.network.OffMainSocket.readRequest(socket, ioScope, mainScope, { started }) {
                         handleNewWebsocketConnection(socket)
                     }
                 }
@@ -368,8 +368,8 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
 
     private fun handleNewWebsocketConnection(socket: Socket) {
         val connection = try {
-            val input = socket.getInputStream()
-            val output = socket.getOutputStream()
+            val input = com.moblin.android.platform.network.OffMainSocket.input(socket)
+            val output = com.moblin.android.platform.network.OffMainSocket.output(socket)
             performWebsocketHandshake(input, output)
             connectionIdCounter += 1
             WebsocketConnection(
@@ -670,7 +670,7 @@ class RemoteControlWeb(delegate: RemoteControlWebDelegate) {
         try {
             writeWebsocketFrame(output = connection.output, opcode = opcode, payload = data)
         } catch (exception: Exception) {
-            Log.i(TAG, "remote-control-web: send failed")
+            android.util.Log.i(TAG, "remote-control-web: send failed")
         }
     }
 

@@ -3,7 +3,7 @@ package com.moblin.android.streamingplatforms.twitch
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient

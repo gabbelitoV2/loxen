@@ -1,6 +1,6 @@
 package com.moblin.android.streamingplatforms.soop
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.integrations.emotes.Emotes
 import com.moblin.android.streamingplatforms.Platform
 import com.moblin.android.various.ChatPostSegment

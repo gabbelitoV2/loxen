@@ -1,6 +1,6 @@
 package com.moblin.android.media.adaptivebitrate
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter

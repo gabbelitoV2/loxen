@@ -1,6 +1,6 @@
 package com.moblin.android.various.utils
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import java.io.File
 import java.nio.file.Files
 import java.util.UUID

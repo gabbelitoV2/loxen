@@ -1,6 +1,6 @@
 package com.moblin.android.media.haishinkit.rtmp.message
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.common.various.hexString
 import com.moblin.android.media.haishinkit.rtmp.amf.Amf0Decoder
 import com.moblin.android.media.haishinkit.rtmp.amf.Amf0Encoder

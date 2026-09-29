@@ -1,7 +1,7 @@
 package com.moblin.android.remotecontrol
 
 import android.util.Base64
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.localized
 import com.moblin.android.various.MainTimer
 import com.moblin.android.various.network.WebSocketClient

@@ -1,6 +1,6 @@
 package com.moblin.android.media.haishinkit.mpeg
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import java.time.Instant
 import kotlin.math.floor
 import kotlin.math.max

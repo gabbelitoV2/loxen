@@ -3,7 +3,7 @@ package com.moblin.android.media.haishinkit.media
 import android.graphics.Bitmap
 import com.moblin.android.platform.video.CVPixelBuffer as Image
 import android.media.MediaFormat
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import android.util.Size
 import com.moblin.android.media.MediaSample
 import com.moblin.android.media.haishinkit.codec.audio.AudioEncoder

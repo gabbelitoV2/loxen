@@ -6,7 +6,7 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Debug
 import android.speech.tts.TextToSpeech
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import androidx.compose.ui.geometry.Size
 import com.moblin.android.various.network.httpCall
 import java.io.ByteArrayOutputStream

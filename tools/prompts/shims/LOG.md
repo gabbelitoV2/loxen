@@ -1,0 +1,4 @@
+## Logging (LOXEN, package com.moblin.android.platform.log)
+- `logger.info(x)` -> `Log.i(TAG, x)` and `logger.debug(x)` -> `Log.d(TAG, x)` with `import android.util.Log`, which the post-processing turns into the Log shim that writes to Moblin's log (the in-app log, the remote control log and the log files). Never write `android.util.Log` fully qualified for them.
+- Reading `logger.debugEnabled` -> `com.moblin.android.various.logger.debugEnabled` in every file (`Log.isLoggable(TAG, Log.DEBUG)` is the same value where a file already has a `TAG`). Setting `logger.debugEnabled = x` and `logger.handler = f` -> `com.moblin.android.various.logger.debugEnabled = x` and `com.moblin.android.various.logger.handler = f`. Never declare a local `logger` object or flag.
+- Inside `EasyLogger`, `print(x)` -> `android.util.Log.d(TAG, x)` fully qualified, so the logger writes to logcat and not to itself.

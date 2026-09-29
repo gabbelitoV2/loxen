@@ -1,7 +1,7 @@
 package com.moblin.android.various
 
 import android.os.SystemClock
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.media.MediaSample
 import com.moblin.android.platform.speech.SFSpeechAudioBufferRecognitionRequest
 import com.moblin.android.platform.speech.SFSpeechRecognitionTask

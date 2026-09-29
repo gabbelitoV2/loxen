@@ -1,6 +1,6 @@
 package com.moblin.android.integrations.catprinter
 
-import android.util.Log
+import com.moblin.android.platform.log.Log
 import com.moblin.android.platform.Bundle
 import com.moblin.android.platform.corebluetooth.CBCentralManager
 import com.moblin.android.platform.corebluetooth.CBCentralManagerDelegate
