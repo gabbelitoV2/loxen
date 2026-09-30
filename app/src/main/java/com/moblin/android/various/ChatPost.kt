@@ -350,10 +350,6 @@ class ChatPost(
         return segments.mapNotNull { it.text }.joinToString(separator = "").trim()
     }
 
-    fun isRedLine(): Boolean {
-        return user == null
-    }
-
     fun displayName(nicknames: SettingsChatNicknames, displayStyle: SettingsChatDisplayStyle): String {
         val name = displayName
         val userName = user

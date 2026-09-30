@@ -417,9 +417,6 @@ class QuickButtonChat {
     val showAllChatMessages = MutableStateFlow(true)
     val showFirstTimeChatterMessage = MutableStateFlow(true)
     val showNewFollowerMessage = MutableStateFlow(true)
-    val chatAlertsPosts = MutableStateFlow<ArrayDeque<ChatPost>>(ArrayDeque())
-    val pausedChatAlertsPostsCount = MutableStateFlow(0)
-    val chatAlertsPaused = MutableStateFlow(false)
 }
 
 class ExternalDisplay {
@@ -615,15 +612,14 @@ class Model : FaxReceiverDelegate, AlertsEffectDelegate {
     var youTubeStreamUpdateTime = Instant.now()
     var obsWebSocket: ObsWebSocket? = null
     var chatPostId = 0
-    val chat = ChatProvider(maximumNumberOfMessages = maximumNumberOfChatMessages)
-    val chatActivityFeed = ChatProvider(maximumNumberOfMessages = maximumNumberOfChatMessages)
-    val quickButtonChat = ChatProvider(maximumNumberOfMessages = maximumNumberOfInteractiveChatMessages)
-    val externalDisplayChat = ChatProvider(maximumNumberOfMessages = 50)
-    val chatWidgetChat = ChatProvider(maximumNumberOfMessages = 5)
+    val chat = ChatProvider()
+    val chatActivityFeed = ChatProvider()
+    val quickButtonChat = ChatProvider()
+    val quickButtonChatAlerts = ChatProvider()
+    val externalDisplayChat = ChatProvider()
+    val chatWidgetChat = ChatProvider()
     private var externalDisplayWindow: Any? = null
     var chatBotMessages: ArrayDeque<ChatBotMessage> = ArrayDeque()
-    var newQuickButtonChatAlertsPosts: ArrayDeque<ChatPost> = ArrayDeque()
-    var pausedQuickButtonChatAlertsPosts: ArrayDeque<ChatPost> = ArrayDeque()
     var watchChatPosts: ArrayDeque<Any> = ArrayDeque()
     var nextWatchChatPostId = 1
     var previousBitrateStatusColorSrtDroppedPacketsTotal: Int = 0

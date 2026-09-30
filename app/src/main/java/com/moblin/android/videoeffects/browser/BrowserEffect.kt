@@ -32,11 +32,13 @@ import com.moblin.android.videoeffects.resizeMirror
 import com.moblin.android.videoeffects.resizeMirrorMoveComposited
 import com.moblin.android.videoeffects.toEffectImage
 import java.util.Base64
+import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import com.moblin.android.platform.uikit.cgImage
 import com.moblin.android.videoeffects.translated
+import com.moblin.android.common.various.seconds
 
 data class WidgetCrop(val crop: SettingsWidgetCrop, val sceneWidget: SettingsSceneWidget)
 
@@ -74,6 +76,7 @@ class BrowserEffect(
 ) : VideoEffect(), BrowserEffectServerDelegate {
     val webView: WKWebView
     private var snapshot: EffectImageCgImage? = null
+    private val snapshotQueue = ArrayDeque<EffectImageCgImage>()
     val width: Double
     val height: Double
     private val url: java.net.URI
@@ -84,6 +87,8 @@ class BrowserEffect(
     private var baseFps: Double
     private var fps: Double
     private val snapshotTimer = MainTimer()
+    private var snapshotInProgress = false
+    private var nextSnapshotTime: ContinuousClock.Instant = ContinuousClock.now
     var startLoadingTime: ContinuousClock.Instant = ContinuousClock.now
     private val scale: Double
     private var sceneWidget: SettingsSceneWidget? = null
@@ -106,6 +111,7 @@ class BrowserEffect(
         } else {
             widget.mode
         }
+        suspended = mode != SettingsWidgetBrowserMode.periodicAudioAndVideo
         speechToText = widget.speechToText
         width = widget.width.toDouble()
         height = widget.height.toDouble()
@@ -139,7 +145,7 @@ class BrowserEffect(
     }
 
     override fun isEnabled(): Boolean {
-        return mode != SettingsWidgetBrowserMode.audioOnly && snapshot != null
+        return mode != SettingsWidgetBrowserMode.audioOnly && (snapshot != null || snapshotQueue.isNotEmpty())
     }
 
     fun sendChatMessage(post: ChatPost) {
@@ -192,7 +198,7 @@ class BrowserEffect(
     }
 
     override fun execute(image: CIImage, info: VideoEffectInfo): CIImage {
-        val snapshot = snapshot?.getCiImage() ?: return image
+        val snapshot = nextSnapshot()?.getCiImage() ?: return image
         var image = image
         val sceneWidget = this.sceneWidget
         if (sceneWidget != null) {
@@ -220,7 +226,7 @@ class BrowserEffect(
     }
 
     override fun executeMetalPetal(image: MTIImage, info: VideoEffectInfo): MTIImage {
-        val snapshot = snapshot?.getMetalPetalImage() ?: return image
+        val snapshot = nextSnapshot()?.getMetalPetalImage() ?: return image
         var image = image
         val sceneWidget = this.sceneWidget
         if (sceneWidget != null) {
@@ -249,6 +255,19 @@ class BrowserEffect(
         return image
     }
 
+    private fun nextSnapshot(): EffectImageCgImage? {
+        val next = snapshotQueue.removeFirstOrNull()
+        if (next != null) {
+            snapshot = next
+        }
+        return snapshot
+    }
+
+    private fun clearSnapshots() {
+        snapshot = null
+        snapshotQueue.clear()
+    }
+
     private fun setSceneWidgetEnabled(sceneWidget: SettingsSceneWidget?, crops: List<WidgetCrop>) {
         processorPipelineQueue.launch {
             this@BrowserEffect.sceneWidget = sceneWidget
@@ -266,7 +285,7 @@ class BrowserEffect(
 
     private fun setSceneWidgetLoaded() {
         processorPipelineQueue.launch {
-            this@BrowserEffect.snapshot = null
+            this@BrowserEffect.clearSnapshots()
         }
         webView.loadHTMLString("<html></html>", baseURL = null)
         server.disable()
@@ -274,7 +293,7 @@ class BrowserEffect(
     }
 
     private fun startTakeSnapshots() {
-        if (stopped || mode != SettingsWidgetBrowserMode.periodicAudioAndVideo) {
+        if (suspended) {
             return
         }
         resumeTakeSnapshots()
@@ -289,30 +308,45 @@ class BrowserEffect(
         suspended = true
         snapshotTimer.stop()
         processorPipelineQueue.launch {
-            this@BrowserEffect.snapshot = null
+            this@BrowserEffect.clearSnapshots()
         }
     }
 
     private fun resumeTakeSnapshots() {
         suspended = false
-        takeSnapshots(0.0)
+        if (stopped) {
+            return
+        }
+        nextSnapshotTime = ContinuousClock.now
+        scheduleSnapshot()
     }
 
-    private fun takeSnapshots(takeSnapshotTime: Double) {
-        snapshotTimer.startSingleShot(maxOf(1 / fps - takeSnapshotTime, 0.001)) {
-            val takeSnapshotBeginTime = ContinuousClock.now
-            webView.takeSnapshot(with = snapshotConfiguration) { image, _ ->
-                if (stopped || suspended) {
-                    return@takeSnapshot
-                }
-                val takeSnapshotDuration = takeSnapshotBeginTime.duration(to = ContinuousClock.now)
-                takeSnapshots(takeSnapshotDuration.toDouble(DurationUnit.SECONDS))
-                if (image == null) {
-                    return@takeSnapshot
-                }
-                val snapshot = image.cgImage.toEffectImage()
-                processorPipelineQueue.launch {
-                    this@BrowserEffect.snapshot = snapshot
+    private fun scheduleSnapshot() {
+        if (snapshotInProgress) {
+            return
+        }
+        val now = ContinuousClock.now
+        val interval = 1 / fps
+        nextSnapshotTime = maxOf(nextSnapshotTime.advanced(bySeconds = interval), now.advanced(bySeconds = -interval))
+        val timeout = maxOf(now.duration(to = nextSnapshotTime).toDouble(DurationUnit.SECONDS), 0.0)
+        snapshotTimer.startSingleShot(timeout = timeout) {
+            takeSnapshot()
+        }
+    }
+
+    private fun takeSnapshot() {
+        snapshotInProgress = true
+        webView.takeSnapshot(with = snapshotConfiguration) { image, _ ->
+            snapshotInProgress = false
+            if (stopped || suspended) {
+                return@takeSnapshot
+            }
+            scheduleSnapshot()
+            val snapshot = image?.cgImage?.toEffectImage() ?: return@takeSnapshot
+            processorPipelineQueue.launch {
+                this@BrowserEffect.snapshotQueue.addLast(snapshot)
+                if (this@BrowserEffect.snapshotQueue.size > 2) {
+                    this@BrowserEffect.snapshotQueue.removeFirst()
                 }
             }
         }
@@ -328,8 +362,9 @@ class BrowserEffect(
     override fun browserEffectServerVideoEnded() {
         fps = baseFps
         if (mode == SettingsWidgetBrowserMode.periodicAudioAndVideo) {
-            return
+            resumeTakeSnapshots()
+        } else {
+            suspendTakeSnapshots()
         }
-        suspendTakeSnapshots()
     }
 }

@@ -197,6 +197,7 @@ class SettingsChatBotPermissions {
         SettingsChatBotPermissionsCommand(moderatorsEnabled = false)
     var send: SettingsChatBotPermissionsCommand = SettingsChatBotPermissionsCommand()
     var music: SettingsChatBotPermissionsCommand = SettingsChatBotPermissionsCommand()
+    var torch: SettingsChatBotPermissionsCommand = SettingsChatBotPermissionsCommand()
     var migrated: Boolean = false
 
     fun encode(): JsonObject = encodeContainer {
@@ -221,6 +222,7 @@ class SettingsChatBotPermissions {
         encode("macro", macro)
         encode("send", send)
         encode("music", music)
+        encode("torch", torch)
         encode("migrated", migrated)
     }
 
@@ -253,6 +255,7 @@ class SettingsChatBotPermissions {
             )
             permissions.send = container.decode("send", serializer, SettingsChatBotPermissionsCommand())
             permissions.music = container.decode("music", serializer, SettingsChatBotPermissionsCommand())
+            permissions.torch = container.decode("torch", serializer, SettingsChatBotPermissionsCommand())
             permissions.migrated = container.decode("migrated", false)
             if (!permissions.migrated) {
                 permissions.scene.moderatorsEnabled = false

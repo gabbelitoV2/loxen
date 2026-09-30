@@ -172,23 +172,8 @@ private fun PostView(
     state: ChatPostState,
     rotation: Double,
     scaleX: Double,
-    size: IntSize,
 ) {
     val deleted by state.deleted.collectAsState()
-    if (post.user == null) {
-        Box(
-            modifier = Modifier
-                .padding(2.dp)
-                .graphicsLayer {
-                    rotationZ = rotation.toFloat()
-                    this.scaleX = scaleX.toFloat()
-                }
-                .width(size.width.dp)
-                .height(1.5.dp)
-                .background(Color.Red),
-        )
-        return
-    }
     if (deleted && !chatSettings.showDeletedMessages) {
         return
     }
@@ -273,7 +258,6 @@ private fun MessagesView(
                 this.scaleX = (scaleX * chatSettings.isMirrored()).toFloat()
             },
     ) {
-        val size = IntSize(constraints.maxWidth, constraints.maxHeight)
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 Box(modifier = Modifier.height(1.dp)) {
@@ -298,7 +282,6 @@ private fun MessagesView(
                     state = post.state,
                     rotation = rotation,
                     scaleX = scaleX,
-                    size = size,
                 )
             }
         }
@@ -345,7 +328,6 @@ private fun AlertsPostView(
     state: ChatPostState,
     rotation: Double,
     scaleX: Double,
-    size: IntSize,
 ) {
     val deleted by state.deleted.collectAsState()
 
@@ -360,20 +342,6 @@ private fun AlertsPostView(
         return true
     }
 
-    if (post.user == null) {
-        Box(
-            modifier = Modifier
-                .padding(2.dp)
-                .graphicsLayer {
-                    rotationZ = rotation.toFloat()
-                    this.scaleX = scaleX.toFloat()
-                }
-                .width(size.width.dp)
-                .height(1.5.dp)
-                .background(Color.Red),
-        )
-        return
-    }
     if (deleted && !chatSettings.showDeletedMessages) {
         return
     }
@@ -452,7 +420,7 @@ private fun AlertsMessagesView(
     val rotation = chatSettings.getRotation()
     val scaleX = chatSettings.getScaleX()
     val style = makeChatLineStyle(chatSettings)
-    val posts by quickButtonChat.chatAlertsPosts.collectAsState()
+    val posts by chat.posts.collectAsState()
     val showFirstTimeChatterMessage by quickButtonChat.showFirstTimeChatterMessage.collectAsState()
     val showNewFollowerMessage by quickButtonChat.showNewFollowerMessage.collectAsState()
     val moreThanOneStreamingPlatform by chat.moreThanOneStreamingPlatform.collectAsState()
@@ -464,7 +432,6 @@ private fun AlertsMessagesView(
                 this.scaleX = (scaleX * chatSettings.isMirrored()).toFloat()
             },
     ) {
-        val size = IntSize(constraints.maxWidth, constraints.maxHeight)
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
                 Box(modifier = Modifier.height(1.dp)) {
@@ -491,7 +458,6 @@ private fun AlertsMessagesView(
                     state = post.state,
                     rotation = rotation,
                     scaleX = scaleX,
-                    size = size,
                 )
             }
         }
@@ -501,26 +467,25 @@ private fun AlertsMessagesView(
 @Composable
 private fun ChatAlertsView(
     model: Model = LocalModel.current,
+    chat: ChatProvider,
     quickButtonChat: QuickButtonChat,
     onSelectedPost: (ChatPost?) -> Unit,
     onLinkUrl: (String?) -> Unit,
 ) {
-    val chatAlertsPaused by quickButtonChat.chatAlertsPaused.collectAsState()
+    val paused by chat.paused.collectAsState()
     Box(modifier = Modifier.fillMaxSize()) {
         AlertsMessagesView(
             model = model,
             chatSettings = model.database.chat,
-            chat = model.quickButtonChat,
+            chat = chat,
             quickButtonChat = quickButtonChat,
             onSelectedPost = onSelectedPost,
             onLinkUrl = onLinkUrl,
         )
-        if (chatAlertsPaused) {
+        if (paused) {
             Box(modifier = Modifier.padding(2.dp)) {
                 ChatInfo(
-                    message = localized(
-                        "Chat paused: ${quickButtonChat.pausedChatAlertsPostsCount} new alerts"
-                    ),
+                    message = localized("Chat paused: ${chat.pausedPostsCount} new alerts"),
                 )
             }
         }
@@ -1067,6 +1032,7 @@ fun QuickButtonChatView(
                 } else {
                     ChatAlertsView(
                         model = model,
+                        chat = model.quickButtonChatAlerts,
                         quickButtonChat = quickButtonChat,
                         onSelectedPost = { selectedPost = it },
                         onLinkUrl = { linkUrl = it },

@@ -436,6 +436,33 @@ private fun MuteUnmutePermissionsSettingsView(
 }
 
 @Composable
+private fun TorchPermissionsSettingsView(
+    permissions: SettingsChatBotPermissionsCommand,
+    onNavigate: (String) -> Unit = LocalOnNavigate.current
+) {
+    Section(
+        footerContent = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = "!moblin torch on")
+                Text(text = "Turn the torch on.")
+                Text(text = "")
+                Text(text = "!moblin torch off")
+                Text(text = "Turn the torch off.")
+                Text(text = "")
+                Text(text = "!moblin torch level <level>")
+                Text(text = "Set torch level, from 1 to 100.")
+            }
+        },
+    ) {
+        PermissionsSettingsView(
+            title = "!moblin torch ...",
+            permissions = permissions,
+            onNavigate = onNavigate
+        )
+    }
+}
+
+@Composable
 private fun TeslaPermissionsSettingsView(
     permissions: SettingsChatBotPermissionsCommand,
     onNavigate: (String) -> Unit = LocalOnNavigate.current
@@ -617,6 +644,10 @@ private fun ChatBotCommandsSettingsView(
         )
         TeslaPermissionsSettingsView(
             permissions = permissions.tesla,
+            onNavigate = onNavigate
+        )
+        TorchPermissionsSettingsView(
+            permissions = permissions.torch,
             onNavigate = onNavigate
         )
         SendPermissionsSettingsView(

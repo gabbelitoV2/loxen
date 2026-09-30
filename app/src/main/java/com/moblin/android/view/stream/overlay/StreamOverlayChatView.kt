@@ -191,7 +191,6 @@ private fun PostView(
     moreThanOneStreamingPlatform: Boolean,
     post: ChatPost,
     state: ChatPostState,
-    width: Float,
     interactive: Boolean,
     selectedPost: ChatPost?,
     onSelectedPostChange: (ChatPost?) -> Unit,
@@ -199,49 +198,33 @@ private fun PostView(
     onLinkUrlChange: (String?) -> Unit,
 ) {
     val deleted by state.deleted.collectAsState()
-    if (post.user != null) {
-        if (!deleted || chatSettings.showDeletedMessages) {
-            val highlight = post.highlight
-            if (highlight != null) {
-                Row(
-                    modifier = Modifier.height(IntrinsicSize.Min),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(3.dp)
-                            .fillMaxHeight()
-                            .background(highlight.barColor),
-                    )
-                    if (chatSettings.compactEvents && highlight.titleSegments != null) {
-                        HighlightImageView(style = style, highlight = highlight)
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                        if (!chatSettings.compactEvents) {
-                            HighlightMessageView(
-                                deleted = deleted,
-                                style = style,
-                                highlight = highlight,
-                                interactive = interactive,
-                                linkUrl = linkUrl,
-                                onLinkUrlChange = onLinkUrlChange,
-                            )
-                        }
-                        LineView(
+    if (!deleted || chatSettings.showDeletedMessages) {
+        val highlight = post.highlight
+        if (highlight != null) {
+            Row(
+                modifier = Modifier.height(IntrinsicSize.Min),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(3.dp)
+                        .fillMaxHeight()
+                        .background(highlight.barColor),
+                )
+                if (chatSettings.compactEvents && highlight.titleSegments != null) {
+                    HighlightImageView(style = style, highlight = highlight)
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                    if (!chatSettings.compactEvents) {
+                        HighlightMessageView(
                             deleted = deleted,
-                            post = post,
                             style = style,
-                            platform = moreThanOneStreamingPlatform,
+                            highlight = highlight,
                             interactive = interactive,
-                            selectedPost = selectedPost,
-                            onSelectedPostChange = onSelectedPostChange,
                             linkUrl = linkUrl,
                             onLinkUrlChange = onLinkUrlChange,
                         )
                     }
-                }
-            } else {
-                Box(modifier = Modifier.padding(start = 3.dp)) {
                     LineView(
                         deleted = deleted,
                         post = post,
@@ -255,15 +238,20 @@ private fun PostView(
                     )
                 }
             }
-        }
-    } else {
-        Box(modifier = Modifier.padding(2.dp)) {
-            Box(
-                modifier = Modifier
-                    .width(width.dp)
-                    .height(1.5.dp)
-                    .background(Color.Red),
-            )
+        } else {
+            Box(modifier = Modifier.padding(start = 3.dp)) {
+                LineView(
+                    deleted = deleted,
+                    post = post,
+                    style = style,
+                    platform = moreThanOneStreamingPlatform,
+                    interactive = interactive,
+                    selectedPost = selectedPost,
+                    onSelectedPostChange = onSelectedPostChange,
+                    linkUrl = linkUrl,
+                    onLinkUrlChange = onLinkUrlChange,
+                )
+            }
         }
     }
 }
@@ -369,7 +357,6 @@ private fun MessagesView(
                     moreThanOneStreamingPlatform = moreThanOneStreamingPlatform,
                     post = post,
                     state = post.state,
-                    width = width,
                     interactive = interactive && interactiveChat,
                     selectedPost = selectedPost,
                     onSelectedPostChange = onSelectedPostChange,

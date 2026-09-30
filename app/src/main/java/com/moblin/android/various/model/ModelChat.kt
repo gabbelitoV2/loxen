@@ -50,12 +50,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 val maximumNumberOfChatMessages = 50
-val maximumNumberOfInteractiveChatMessages = 100
 
 private val mainScope = CoroutineScope(Dispatchers.Main)
 
 fun Model.pauseChat(chat: ChatProvider) {
-    chat.pause(redLine = createRedLineChatPost())
+    chat.pause()
 }
 
 fun Model.endOfChatReachedWhenPaused(chat: ChatProvider) {
@@ -68,7 +67,7 @@ fun Model.disableInteractiveChat() {
 }
 
 fun Model.pauseQuickButtonChat() {
-    quickButtonChat.pause(redLine = createRedLineChatPost())
+    quickButtonChat.pause()
 }
 
 fun Model.endOfQuickButtonChatReachedWhenPaused() {
@@ -76,34 +75,11 @@ fun Model.endOfQuickButtonChatReachedWhenPaused() {
 }
 
 fun Model.pauseQuickButtonChatAlerts() {
-    quickButtonChatState.chatAlertsPaused.value = true
-    quickButtonChatState.pausedChatAlertsPostsCount.value = 0
-    pausedQuickButtonChatAlertsPosts = ArrayDeque(listOf(createRedLineChatPost()))
-    while (true) {
-        val post = newQuickButtonChatAlertsPosts.removeFirstOrNull() ?: break
-        pausedQuickButtonChatAlertsPosts.addLast(post)
-    }
+    quickButtonChatAlerts.pause()
 }
 
 fun Model.endOfQuickButtonChatAlertsReachedWhenPaused() {
-    while (true) {
-        val post = pausedQuickButtonChatAlertsPosts.removeFirstOrNull() ?: break
-        if (post.isRedLine()) {
-            if (quickButtonChatState.chatAlertsPosts.value.firstOrNull()?.isRedLine() == true) {
-                continue
-            }
-            if (pausedQuickButtonChatAlertsPosts.isEmpty()) {
-                continue
-            }
-        }
-        if (quickButtonChatState.chatAlertsPosts.value.size > maximumNumberOfInteractiveChatMessages - 1) {
-            quickButtonChatState.chatAlertsPosts.value = ArrayDeque(quickButtonChatState.chatAlertsPosts.value)
-                .apply { removeLast() }
-        }
-        quickButtonChatState.chatAlertsPosts.value = ArrayDeque(quickButtonChatState.chatAlertsPosts.value)
-            .apply { addFirst(post) }
-    }
-    quickButtonChatState.chatAlertsPaused.value = false
+    quickButtonChatAlerts.endReachedWhenPaused()
 }
 
 fun Model.removeOldChatMessages(now: Instant) {
@@ -131,24 +107,9 @@ fun Model.updateChat() {
     chat.update()
     chatActivityFeed.update()
     quickButtonChat.update()
+    quickButtonChatAlerts.update()
     if (externalDisplay.chatEnabled.value) {
         externalDisplayChat.update()
-    }
-    if (quickButtonChatState.chatAlertsPaused.value) {
-        quickButtonChatState.pausedChatAlertsPostsCount.value = maxOf(
-            pausedQuickButtonChatAlertsPosts.size - 1,
-            0,
-        )
-    } else {
-        while (true) {
-            val post = newQuickButtonChatAlertsPosts.removeFirstOrNull() ?: break
-            if (quickButtonChatState.chatAlertsPosts.value.size > maximumNumberOfInteractiveChatMessages - 1) {
-                quickButtonChatState.chatAlertsPosts.value = ArrayDeque(quickButtonChatState.chatAlertsPosts.value)
-                    .apply { removeLast() }
-            }
-            quickButtonChatState.chatAlertsPosts.value = ArrayDeque(quickButtonChatState.chatAlertsPosts.value)
-                .apply { addFirst(post) }
-        }
     }
     chatWidgetChat.update()
 }
@@ -174,34 +135,9 @@ fun Model.updateChatMoreThanOneChatConfigured() {
     chat.moreThanOneStreamingPlatform.value = moreThanOneStreamingPlatform
     chatActivityFeed.moreThanOneStreamingPlatform.value = moreThanOneStreamingPlatform
     quickButtonChat.moreThanOneStreamingPlatform.value = moreThanOneStreamingPlatform
+    quickButtonChatAlerts.moreThanOneStreamingPlatform.value = moreThanOneStreamingPlatform
     externalDisplayChat.moreThanOneStreamingPlatform.value = moreThanOneStreamingPlatform
     chatWidgetChat.moreThanOneStreamingPlatform.value = moreThanOneStreamingPlatform
-}
-
-private fun Model.createRedLineChatPost(): ChatPost {
-    val post = ChatPost(
-        id = chatPostId,
-        messageId = null,
-        displayName = null,
-        user = null,
-        userId = null,
-        userColor = RgbColor(red = 0, green = 0, blue = 0),
-        userBadges = emptyList(),
-        segments = emptyList(),
-        timestamp = "",
-        timestampTime = Instant.now(),
-        isAction = false,
-        isSubscriber = false,
-        bits = null,
-        highlight = null,
-        live = true,
-        filter = null,
-        platform = null,
-        sourceChannelIcon = null,
-        state = ChatPostState(),
-    )
-    chatPostId += 1
-    return post
 }
 
 private fun Model.isMoreThanOneChatConfigured(): Boolean {
@@ -383,6 +319,7 @@ fun Model.appendChatMessage(
         val isAlert = highlight?.isAlert() == true
         if (isAlert) {
             chatActivityFeed.appendMessage(post = post)
+            quickButtonChatAlerts.appendMessage(post = post)
         }
         chat.appendMessage(post = post)
         quickButtonChat.appendMessage(post = post)
@@ -394,15 +331,6 @@ fun Model.appendChatMessage(
         }
         if (externalDisplay.chatEnabled.value) {
             externalDisplayChat.appendMessage(post = post)
-        }
-        if (isAlert) {
-            if (quickButtonChatState.chatAlertsPaused.value) {
-                if (pausedQuickButtonChatAlertsPosts.size < 2 * maximumNumberOfInteractiveChatMessages) {
-                    pausedQuickButtonChatAlertsPosts.addLast(post)
-                }
-            } else {
-                newQuickButtonChatAlertsPosts.addLast(post)
-            }
         }
         if (enabledChatEffects.isNotEmpty()) {
             chatWidgetChat.appendMessage(post = post)
@@ -424,9 +352,9 @@ fun Model.reloadChatMessages() {
     chat.posts.value = newPostIds(posts = chat.posts.value)
     chatActivityFeed.posts.value = newPostIds(posts = chatActivityFeed.posts.value)
     quickButtonChat.posts.value = newPostIds(posts = quickButtonChat.posts.value)
+    quickButtonChatAlerts.posts.value = newPostIds(posts = quickButtonChatAlerts.posts.value)
     externalDisplayChat.posts.value = newPostIds(posts = externalDisplayChat.posts.value)
     chatWidgetChat.posts.value = newPostIds(posts = chatWidgetChat.posts.value)
-    quickButtonChatState.chatAlertsPosts.value = newPostIds(posts = quickButtonChatState.chatAlertsPosts.value)
 }
 
 private fun Model.newPostIds(posts: List<ChatPost>): ArrayDeque<ChatPost> {
@@ -565,6 +493,7 @@ fun Model.deleteChatMessage(messageId: String) {
     chat.deleteMessage(messageId = messageId)
     chatActivityFeed.deleteMessage(messageId = messageId)
     quickButtonChat.deleteMessage(messageId = messageId)
+    quickButtonChatAlerts.deleteMessage(messageId = messageId)
     externalDisplayChat.deleteMessage(messageId = messageId)
     chatWidgetChat.deleteMessage(messageId = messageId)
     chatTextToSpeech.delete(messageId = messageId)
@@ -574,6 +503,7 @@ fun Model.deleteChatUser(userId: String) {
     chat.deleteUser(userId = userId)
     chatActivityFeed.deleteUser(userId = userId)
     quickButtonChat.deleteUser(userId = userId)
+    quickButtonChatAlerts.deleteUser(userId = userId)
     externalDisplayChat.deleteUser(userId = userId)
     chatWidgetChat.deleteUser(userId = userId)
     chatTextToSpeech.deleteByUserId(userId = userId)

@@ -2355,27 +2355,26 @@
   },
   "Moblin/Various/Model/Chat/ChatProvider.swift": {
     "status": "ok",
-    "sha256": "6e9d7f453de36aadd232cfae1ff2db6aee017c64187c3a4e98fd2c869d535278",
+    "sha256": "f8c2ee14856db561753700d543993440e05e76bad4e840462ae7dcf941ac0769",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/chat/ChatProvider.kt",
     "notes": [
-      "@MainActor has no Kotlin counterpart: the class is a plain class whose methods are expected to be invoked from the main dispatcher (Dispatchers.Main).",
-      "@Published properties are exposed as read-only StateFlow with private MutableStateFlow backing fields (_name / name).",
-      "posts is exposed as StateFlow<List<ChatPost>> where index 0 is the newest post, matching Swift Deque.prepend/first/removeLast semantics; posts.count maps to list.size and posts.removeLast() to removeAt(size - 1).",
-      "newPosts and pausedPosts keep Deque semantics via kotlin.collections.ArrayDeque (addLast/removeFirst/isEmpty/size).",
-      "MainTimer.startSingleShot is called positionally with 5.0 seconds plus a trailing lambda; adjust the literal if the ported MainTimer signature differs.",
-      "post.state.deleted and post.isRedLine() are used as-is from ChatPost/ChatPostState in com.moblin.android.various.",
-      "Every mutation of the published collection is applied in a single StateFlow assignment so observers see one update per update()/endReachedWhenPaused() call.",
-      "StateFlow suppresses assignments equal to the current value, so no redundant emissions occur when the list is unchanged."
+      "ChatProvider no longer takes maximumNumberOfMessages; the class has no primary constructor parameter and uses the global maximumNumberOfChatMessages from com.moblin.android.various.model.",
+      "Updated appendMessage now drops the oldest paused post once the paused queue exceeds 2 * maximumNumberOfChatMessages - 1, then appends.",
+      "update() in the paused branch now reports the full pausedPosts count instead of count - 1.",
+      "pause() takes no redLine argument and starts with an empty pausedPosts queue.",
+      "endReachedWhenPaused() lost the red line de-duplication logic and now only trims the posts list.",
+      "Removed the now unused kotlin.math.max import."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 2246,
-    "tokens_out": 13044,
-    "seconds": 49.7,
-    "ported_at": "2026-09-22T12:43:16+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 42081,
+    "tokens_out": 2571,
+    "seconds": 10.9,
+    "ported_at": "2026-09-30T23:15:01+00:00"
   },
   "Moblin/Various/Model/ModelMusic.swift": {
     "status": "ok",
@@ -4309,27 +4308,23 @@
   },
   "Moblin/Various/ChatBotCommand.swift": {
     "status": "ok",
-    "sha256": "193bf18b299d2b301fbb85c57727767a0df34c07b7065e19704015dd263fd57b",
+    "sha256": "7329de85425cb043a9dae65fcd2b7da4fec4d5b9d8b64672a2cbafb5c4dd790d",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "mode": "incremental",
     "tier": "logic",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatBotCommand.kt",
     "notes": [
-      "FuzzyMatchingSwift has no Android equivalent, so its matcher is reimplemented in-file: a case-insensitive subsequence test combined with a Levenshtein similarity ratio, gated by the same threshold (0.34) and distance (1000) options.",
-      "The failable initializer init?(message:aliases:) becomes a companion `operator fun invoke(...)` returning `ChatBotCommand?`, so the call syntax `ChatBotCommand(message, aliases)` is preserved.",
-      "Swift Deque<String> becomes kotlin.collections.ArrayDeque<String>, using addLast / removeFirstOrNull / firstOrNull.",
-      "Kotlin has no CaseIterable; matchArgument and popFirstArgument take a reified type parameter bounded by Enum<T> and use enumValues<T>(). Both are `internal` so the inline bodies may reference each other.",
-      "Enum raw values are preserved byte-identically through an `override val rawValue` constructor parameter, including irregular ones: \"wheelofluck\", \"4:3\", \"toggle-playback\".",
-      "Swift enum case names are kept verbatim (lower camel case) as Kotlin enum constant names so both files read side by side.",
-      "Swift's split(separator: \" \") drops empty subsequences; the Kotlin version filters empty strings before drop(1).",
-      "String.trim() / lowercased() map to Kotlin trim() / lowercase()."
+      "Added the torch entry to ChatBotMainArgument right after music, as in the Swift diff.",
+      "Declared ChatBotTorchArgument between ChatBotTeslaMediaArgument and ChatBotMessage, matching the Swift declaration order.",
+      "Everything else, including the hand-written FuzzyMatchingSwift port and the private constructor/invoke factory, is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 3309,
-    "tokens_out": 42609,
-    "seconds": 158.7,
-    "ported_at": "2026-09-22T12:52:55+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 39895,
+    "tokens_out": 3510,
+    "seconds": 10.2,
+    "ported_at": "2026-09-30T23:15:00+00:00"
   },
   "Moblin/Various/Model/ModelLog.swift": {
     "status": "ok",
@@ -11558,30 +11553,25 @@
   },
   "Moblin/Various/ChatPost.swift": {
     "status": "ok",
-    "sha256": "0c3afe5e1501a2a42e10e394a6925c6a573fab74bf369d7b3814bc7044d8ae60",
+    "sha256": "a124c1521252fe056348fea7e458802bf2a168719376af969897a1a210eefa99",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/ChatPost.kt",
     "notes": [
-      "ChatPostState exposes `deleted` as a MutableStateFlow so it stays externally mutable (`state.deleted.value = true`) and readable via collectAsState() in Compose.",
-      "ChatHighlight.barColor is androidx.compose.ui.graphics.Color; the RgbColor <-> Color conversions use the color() and toRgb() extension functions from com.moblin.android.common.various.",
-      "makeChatPostTextSegments(text:id:) returns Pair<List<ChatPostSegment>, Int> because Swift's inout Int has no Kotlin equivalent; callers destructure `val (segments, nextId) = ...`.",
-      "ContinuousClock.Instant is mapped to java.time.Instant; age checks become Duration.between(timestampTime, Instant.now()).",
-      "URL properties that are only stored/serialized are String (image loading through the shared urlImage()/image loader); userBadges is List<String>.",
-      "SettingsChatDisplayStyle entries are assumed to be InternationalNameAndUsername / InternationalName / Username, and SettingsChatNicknames.getNickname(user) returns String?.",
-      "ChatMessageEmote keeps `id` as a body property because Swift's memberwise initializer excludes a `let` that has a default value; the constructor is (url, stillUrl, range, isGif).",
-      "ChatHighlight's Swift extension init(remoteControl:) becomes a secondary constructor and toRemoteControl() stays a member function; ChatHighlight is a data class with the static factories in its companion object."
+      "Removed ChatPost.isRedLine() and the blank line that followed it, matching the Swift diff.",
+      "No other line changed: the file keeps every Kotlin port, import and helper as before."
     ],
     "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 6849,
-    "tokens_out": 20408,
-    "seconds": 78.3,
-    "ported_at": "2026-09-22T13:34:50+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
     "apple_only": [
       "WatchConnectivity: WatchProtocolChatHighlight / WatchProtocolChatHighlightKind do not exist on Android, so ChatHighlight.toWatchProtocol() is TODO()."
-    ]
+    ],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 48191,
+    "tokens_out": 3601,
+    "seconds": 11.6,
+    "ported_at": "2026-09-30T23:15:01+00:00"
   },
   "Moblin/Media/HaishinKit/Rtmp/RtmpConnection.swift": {
     "status": "ok",
@@ -11914,25 +11904,23 @@
   },
   "Moblin/Various/Settings/SettingsChat.swift": {
     "status": "ok",
-    "sha256": "57b80e542c804368718d8c24b6c99db43140717e35c3ba137ef84df251f88f1a",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "fef1c21bc85e2386ee543dc102c8bc36830b1b045f7e5e6d90b6f96d7a0ab20d",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/settings/SettingsChat.kt",
     "notes": [
-      "Added `font: SettingsFont` published property to SettingsChat, encoded as the separate `fontFamily`/`fontStyle` keys as in Swift.",
-      "Added `textToSpeechBluetoothSpeakerOnly` published property with its encode and decode entries in the same positions as the Swift source.",
-      "SettingsFont is mutable, so `chat.font.family = ...` / `chat.font.style = ...` are assigned in place after `fontSize`, matching the Swift decode order.",
-      "fontFamily is decoded as a nullable String with null default, matching the existing `textToSpeechDefaultLanguage` handling in this file.",
-      "No new imports were needed: SettingsFont lives in the same package."
+      "Applied only the SettingsChatBotPermissions change: added the `torch` permission command after `music` in the property list, the encode builder and the decode function.",
+      "Kotlin keeps the existing hand-written structure (companion decode first in some classes, encode before properties in SettingsChat); nothing else was touched.",
+      "`torch` uses the existing SettingsChatBotPermissionsCommand.serializer() call shape used by the neighbouring permissions."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 56979,
-    "tokens_out": 10569,
-    "seconds": 29.9,
-    "ported_at": "2026-09-24T15:40:23+00:00"
+    "tokens_in": 58721,
+    "tokens_out": 9289,
+    "seconds": 24.3,
+    "ported_at": "2026-09-30T23:15:14+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/ObsRemoteControl/StreamObsRemoteControlSettingsView.swift": {
     "status": "ok",
@@ -12219,24 +12207,24 @@
   },
   "Moblin/View/ExternalDisplay/ExternalDisplayView.swift": {
     "status": "ok",
-    "sha256": "816e03f37f3ff0880aae37234071a6c8469a5b4f94462a32e1bd00ba721b9ae7",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "f35614d47a3ad490e21832493f17c8a6151add759c49834445cbd72e5111f437",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/externaldisplay/ExternalDisplayView.kt",
     "notes": [
-      "Diff only adds the new ChatLineStyle constructor argument `font: chat.font` in makeChatLineStyle.",
-      "Kept the existing Android style of hoisting SettingsChat reads into locals, so `val font = chat.font` is passed as `font = font`.",
-      "No imports were added; type inference covers the new argument as in the rest of the file.",
-      "Everything else in the file is unchanged, byte-identical to the current Kotlin version."
+      "PostView lost its size parameter and the red placeholder rectangle; the deleted-or-visible check is now the outermost branch.",
+      "The Kotlin BoxWithConstraints wrapper in MessagesView remains (it stands in for Swift's GeometryReader) but its unused size value and the now-unused IntSize, LocalDensity and layout.size imports were dropped.",
+      "state.deleted is still read through collectAsState so the row recomposes when the post is deleted.",
+      "Everything else in the file is unchanged."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 42761,
-    "tokens_out": 4384,
-    "seconds": 16.7,
-    "ported_at": "2026-09-24T15:40:10+00:00"
+    "tokens_in": 50436,
+    "tokens_out": 3168,
+    "seconds": 11.4,
+    "ported_at": "2026-09-30T23:15:01+00:00"
   },
   "Moblin/View/Settings/Streams/Stream/Srt/StreamSrtConnectionPriority2View.swift": {
     "status": "ok",
@@ -12451,24 +12439,28 @@
   },
   "Moblin/Various/Model/ModelChat.swift": {
     "status": "ok",
-    "sha256": "df13c3ea6140a1a3851f3bd8efc4dea4212554d90ec23a1c31fd44e7cdb9ef5f",
-    "moblin_commit": "fe509be9e7364da4e57d0a0bffd0811e69a278ba",
+    "sha256": "30766972d156203ac666206b0b4fec13080176d4c3c2749e2f17d95011537fe4",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChat.kt",
     "notes": [
-      "Added the Platform.youTube branch to banUser and timeoutUser, calling banYouTubeUser with channelId = userId.",
-      "Kotlin keeps userId as a String (non-null after the early return), same as the other branches.",
-      "duration stays nullable: null for ban, the caller's Int for timeout.",
-      "No other line of the file changed."
+      "The Swift change moves the red-line and alert-queue logic out of ModelChat and into ChatProvider, so pauseQuickButtonChatAlerts/endOfQuickButtonChatAlertsReachedWhenPaused simply forward to the new Model.quickButtonChatAlerts ChatProvider.",
+      "maximumNumberOfInteractiveChatMessages was removed together with createRedLineChatPost(); both are gone from the Kotlin file, so any other file still referencing them must be updated in the same pass.",
+      "chat.pause() and quickButtonChat.pause() now call ChatProvider.pause() with no argument; the Kotlin ChatProvider must offer that no-argument overload (the previous redLine parameter is gone).",
+      "Model.quickButtonChatAlerts is used as a ChatProvider (update, pause, endReachedWhenPaused, moreThanOneStreamingPlatform, appendMessage, posts, deleteMessage, deleteUser); it has to exist on Model in Model.kt.",
+      "updateChat no longer drains newQuickButtonChatAlertsPosts into quickButtonChatState.chatAlertsPosts; ChatProvider.update() owns that now, so only the missing quickButtonChatAlerts.update() call was added.",
+      "quickButtonChatAlerts.appendMessage is called next to chatActivityFeed.appendMessage inside the isAlert branch, and the later isAlert enqueue block was deleted.",
+      "reloadChatMessages now renumbers quickButtonChatAlerts.posts instead of quickButtonChatState.chatAlertsPosts.",
+      "deleteChatMessage and deleteChatUser gained the quickButtonChatAlerts.deleteMessage / deleteUser calls in the same position as chatActivityFeed and quickButtonChat."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 63474,
-    "tokens_out": 5703,
-    "seconds": 15.6,
-    "ported_at": "2026-09-27T22:39:27+00:00"
+    "tokens_in": 66782,
+    "tokens_out": 7711,
+    "seconds": 25.3,
+    "ported_at": "2026-09-30T23:15:15+00:00"
   },
   "Moblin/VideoEffects/ImageEffect.swift": {
     "status": "ok",
@@ -12522,28 +12514,26 @@
   },
   "Moblin/VideoEffects/Browser/BrowserEffect.swift": {
     "status": "ok",
-    "sha256": "7dc7f3ea7f58735015b7a4a0782cc2f7c09bef424ac51e1ed5ecead79b4b8f8c",
-    "moblin_commit": "d0b4c451c8a9923e22dc4e572b2ca93f82a44265",
-    "mode": "full",
+    "sha256": "81745177950f598f66c4b3921f515f47386c82c7babe7a104f5a96e6201ea6de",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/videoeffects/browser/BrowserEffect.kt",
     "notes": [
-      "deinit is dropped: the WebKit shim removes script message handlers itself, per the shim rules.",
-      "String.data(using: .utf8) cannot fail in Kotlin, so createStyleSheetSource has no failure branch; the logger.info call in that unreachable branch is omitted and the base64 uses java.util.Base64 (standard alphabet, padded like Swift).",
-      "@Published private(set) var layout is ported to `val layout = MutableStateFlow<SettingsWidgetLayout?>(null)` and every `layout = x` writes `layout.value`.",
-      "Per the BrowserEffect port note, `proxyServer` and `setProxyServer(endpoint:)` take java.net.InetSocketAddress? and are converted to NWEndpoint with NWEndpoint.hostPort(NWEndpoint.Host(a.hostString), NWEndpoint.Port(a.port)) before configuration.setHttpProxy.",
-      "MetalPetalWidgetShape is imported from com.moblin.android.videoeffects (declared next to the MTIImage compositing helpers); adjust the import if it lives in media.haishinkit.media.video.",
-      "@MainActor is dropped: timers run through MainTimer and pipeline work through processorPipelineQueue.launch, matching the Swift queues.",
-      "WidgetCrop is a data class and SettingsWidgetCrop keeps Int x/y/width/height, so the crop rect maths stays integer exactly like the Swift `Int(snapshot.extent.height) - crop.crop.y - crop.crop.height`.",
-      "`url.host()` becomes java.net.URI.host (nullable), falling back to \"?\" as in Swift."
+      "Swift's Collections Deque<EffectImageCgImage> becomes kotlin.collections.ArrayDeque: popFirst() -> removeFirstOrNull(), append() -> addLast(), count -> size, removeAll() -> clear().",
+      "suspended keeps its Kotlin initializer (= false) and is now assigned in init from the resolved mode, because Kotlin has no uninitialized non-lateinit primitive property.",
+      "nextSnapshot() returns the stored snapshot property when the queue is empty, exactly as Swift does, so the last snapshot stays on screen instead of the effect becoming disabled.",
+      "Duration.seconds(1 / fps), nextSnapshotTime.advanced(by = interval) and now.advanced(by = -interval) use the ContinuousClock.Instant / kotlin.time.Duration shims; duration.seconds -> toDouble(DurationUnit.SECONDS).",
+      "The @MainActor snapshot timer and WKWebView.takeSnapshot callbacks deliver on main; the single-shot timer closure captures this directly as in the rest of this file, no WeakReference needed for a one-shot callback.",
+      "Added import kotlin.time.Duration for Duration.seconds; ArrayDeque comes from kotlin.collections and needs no import."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 51936,
-    "tokens_out": 26550,
-    "seconds": 96.5,
-    "ported_at": "2026-09-23T19:48:55+00:00"
+    "tokens_in": 68508,
+    "tokens_out": 11467,
+    "seconds": 41.3,
+    "ported_at": "2026-09-30T23:15:31+00:00"
   },
   "Moblin/VideoEffects/DrawOnStreamEffect.swift": {
     "status": "ok",
@@ -13938,23 +13928,27 @@
   },
   "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatView.swift": {
     "status": "ok",
-    "sha256": "d4a74570311f2f02a1a7b705c7836ed57372fd1e057d7f671fe85240c3025780",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "4cf7c08f5623f75be98cf47258821c16439248b50c0bb66bdaf463cbd8434464",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/controlbar/quickbutton/chat/QuickButtonChatView.kt",
     "notes": [
-      "Only makeChatLineStyle changed: the ChatLineStyle construction now passes font = chat.font after displayStyle, matching the new Swift argument.",
-      "Every other declaration, import and line is byte-identical to the previous Kotlin file.",
-      "ChatLineStyle.font is a SettingsFont field that already exists in com.moblin.android.view.utils.ChatLineStyle, so no new import is needed."
+      "PostView and AlertsPostView no longer take the GeometryReader size and no longer draw the red size-wide rule for posts without a user; those branches (and the size parameters) were removed.",
+      "The `val size = IntSize(...)` locals were dropped from MessagesView and AlertsMessagesView because nothing consumes the constraints any more.",
+      "PostView now starts directly with the `!deleted || showDeletedMessages` guard, as in the new Swift body.",
+      "AlertsMessagesView iterates `chat.posts` instead of `quickButtonChat.chatAlertsPosts`.",
+      "ChatAlertsView now takes the alerts ChatProvider (`chat`) and reads `chat.paused` / `chat.pausedPostsCount`; quickButtonChat is only passed through for the first-time-chatter and new-follower switches.",
+      "The ChatAlertsView call site passes `model.quickButtonChatAlerts` as the new `chat` argument.",
+      "No SwiftUI/UIKit API in this file lacks an Android counterpart."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 62538,
-    "tokens_out": 9040,
-    "seconds": 23.7,
-    "ported_at": "2026-09-24T15:40:32+00:00"
+    "tokens_in": 70525,
+    "tokens_out": 13134,
+    "seconds": 40.8,
+    "ported_at": "2026-09-30T23:15:43+00:00"
   },
   "Moblin/View/Utils/ChatActionButtonsView.swift": {
     "status": "ok",
@@ -14509,33 +14503,30 @@
   },
   "Moblin/Various/Model/ModelAppleWatch.swift": {
     "status": "ok",
-    "sha256": "07a8efea9497902f049233842ef3a7db9daf66eb1fdea0346f296d0ff0ba3ac9",
+    "sha256": "e6bba01e7af3ecfc558c751f841066891cd679a5ab0b7e48d09637cfeba90616",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelAppleWatch.kt",
     "notes": [
-      "WatchConnectivity has no Android counterpart, so every function keeps its Swift signature with a TODO(\"no Android counterpart for WatchConnectivity\") body.",
-      "sendMessageToWatch's type parameter (WatchMessageToWatch) is mapped to Any because the watch message enums are watch-only.",
-      "sendScenesToWatch takes List<Any> since WatchProtocolScene has no Android equivalent.",
-      "UIImage in makePng maps to Any; no direct Android UIImage type is introduced.",
-      "ProcessInfo.ThermalState maps to ThermalState from com.moblin.android.various.storages.",
-      "All members are top-level extension functions on Model; the file declares no Kotlin type.",
-      "This file declares no SwiftUI View, so no @Composable functions are generated despite the ui tier.",
-      "Data maps to ByteArray and UUID to java.util.UUID in the retained signatures."
+      "The Swift diff only removes the `guard !post.isRedLine()` check from `enqueueWatchChatPost`; that guard has no Kotlin counterpart because this file is still a stub whose method bodies are `Unit`, so no Kotlin line is removed.",
+      "The Kotlin file is returned byte-identical: nothing else in the diff touches translated code."
     ],
-    "unsupported": [],
-    "model": "deepseek-flash",
-    "backend": "api",
-    "tokens_in": 11511,
-    "tokens_out": 9381,
-    "seconds": 36.6,
-    "ported_at": "2026-09-22T13:52:01+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035",
+    "unsupported": [
+      "WatchConnectivity (WCSession) has no Android counterpart; the bodies remain stubs and makePng keeps its TODO()"
+    ],
     "apple_only": [
       "WatchConnectivity (WCSession, WCSessionDelegate, WCSessionActivationState)",
       "WatchMessageToWatch and WatchMessageFromWatch",
       "WatchProtocol* payload types (WatchProtocolScene, WatchProtocolChatMessage, WatchProtocolPadelScoreboard, ...)",
       "UIImage (UIKit)"
-    ]
+    ],
+    "model": "deepseek-flash",
+    "backend": "api",
+    "tokens_in": 68170,
+    "tokens_out": 1715,
+    "seconds": 6.7,
+    "ported_at": "2026-09-30T23:15:11+00:00"
   },
   "Moblin/View/Stream/Overlay/Right/ReplayView.swift": {
     "status": "ok",
@@ -14719,19 +14710,26 @@
   },
   "Moblin/Various/Model/ModelChatBot.swift": {
     "status": "ok",
-    "sha256": "22d91451b969ec947b8af33b5f9289a9f3286db38ab20838d72c3278d250ebc5",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "a1345c5ad787fe37ff043a0e5d8eac06ee26a94c8bfa93d4ed4772f70465435c",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChatBot.kt",
-    "notes": [],
+    "notes": [
+      "Applied the diff only: added the ChatBotMainArgument.torch branch, the three torch handler functions, and the ChatBotTorchArgument import.",
+      "Everything else is byte-identical to the current Kotlin file.",
+      "database.chat.botCommandPermissions.torch is used exactly as the Swift code does; the SettingsChatBotPermissions declaration snippet in the request does not list a torch member, so that settings class must carry it (or be updated alongside) for this to compile.",
+      "setTorch(on =), updateTorch() and SettingsQuickButtonType.torch are Model/Settings members from other files, called by name.",
+      "database.torchLevel is a Float, so level.toFloat() / 100 matches Swift's Float(level) / 100.",
+      "command.popFirstInt(1..100) returns Int?; the early return replaces Swift's guard let."
+    ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 56251,
-    "tokens_out": 10150,
-    "seconds": 29.7,
-    "ported_at": "2026-09-24T15:40:56+00:00"
+    "tokens_in": 65870,
+    "tokens_out": 9843,
+    "seconds": 27.3,
+    "ported_at": "2026-09-30T23:15:32+00:00"
   },
   "Moblin/View/ControlBar/QuickButton/QuickButtonAutoSceneSwitcherView.swift": {
     "status": "ok",
@@ -15915,22 +15913,24 @@
   },
   "Moblin/View/Stream/Overlay/StreamOverlayChatView.swift": {
     "status": "ok",
-    "sha256": "8e3028ea84c9791ac62d177d460923ea695033b5bff047c125f37c6fabb529f0",
-    "moblin_commit": "75939ca5be82a86acb57a2d2eb98b07593ad9471",
+    "sha256": "def941a67b1be9bd63b7dd6fd0740d464a8b525e282261656189374ebec9450a",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
     "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/stream/overlay/StreamOverlayChatView.kt",
     "notes": [
-      "Added `font: chat.font` to the ChatLineStyle construction in makeChatLineStyle.",
-      "Everything else is unchanged from the previous Kotlin file."
+      "PostView lost its width parameter and the red placeholder row: the body now starts directly with the deleted-message check, matching the new Swift file.",
+      "The MessagesView call site of PostView no longer passes width; everything else in the file is byte-identical.",
+      "Swift's `post.user` check disappeared with the placeholder branch, so the Kotlin no longer reads post.user there.",
+      "No other declaration, import or formatting changed."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 54564,
-    "tokens_out": 5391,
-    "seconds": 14.0,
-    "ported_at": "2026-09-24T15:40:50+00:00"
+    "tokens_in": 62240,
+    "tokens_out": 6387,
+    "seconds": 18.1,
+    "ported_at": "2026-09-30T23:15:23+00:00"
   },
   "Moblin/View/Settings/GameControllers/GameControllersSettingsView.swift": {
     "status": "ok",
@@ -16681,26 +16681,25 @@
   },
   "Moblin/Various/Model/Model.swift": {
     "status": "ok",
-    "sha256": "8df5c977f9b1d4cf623af08cded79f70b83f001e8df33e1a07b983b794874539",
-    "moblin_commit": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+    "sha256": "54618595cb6d2def822170bf5c5f0963bf3d193c1e65eb352ccc95131dd8e43c",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
     "mode": "incremental",
     "tier": "media",
     "kotlin_path": "app/src/main/java/com/moblin/android/various/model/Model.kt",
     "notes": [
-      "Added `val videoSources = VideoSources()` right after `ingests` in Model.",
-      "Removed the obsolete `backCameras`, `frontCameras` and `externalCameras` Camera lists from Model.",
-      "`setup()` now calls `updateVideoSources()` instead of the removed `updateCameraLists()`.",
-      "`handleCaptureDeviceWasConnected`/`handleCaptureDeviceWasDisconnected` now call `updateDeviceVideoSources()`.",
-      "The renamed helpers live in other Model extension files, so only the call sites in this file changed.",
-      "No import changes were needed; `VideoSources` resolves from the same package."
+      "QuickButtonChat lost its three chat-alert fields (chatAlertsPosts, pausedChatAlertsPostsCount, chatAlertsPaused) exactly as the Swift diff removes them.",
+      "The six chat providers now call ChatProvider() with no maximumNumberOfMessages argument, matching the new Swift initializers.",
+      "A new provider quickButtonChatAlerts = ChatProvider() was inserted right after quickButtonChat, keeping Swift declaration order.",
+      "Model's newQuickButtonChatAlertsPosts and pausedQuickButtonChatAlertsPosts ArrayDeque properties were removed.",
+      "Everything else in the file is byte-identical to the previous Kotlin port."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 143940,
-    "tokens_out": 34689,
-    "seconds": 86.8,
-    "ported_at": "2026-09-29T23:51:15+00:00"
+    "tokens_in": 145400,
+    "tokens_out": 33924,
+    "seconds": 86.9,
+    "ported_at": "2026-09-30T23:16:43+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/VTuber/WidgetVTuberSettingsView.swift": {
     "status": "ok",
@@ -16748,27 +16747,24 @@
   },
   "Moblin/View/Settings/Chat/ChatBotSettingsView.swift": {
     "status": "ok",
-    "sha256": "6a1b9f457ae1b12dbe6ad546ffd1e09939addf68cd00c6b84539c51dac4eb0dd",
+    "sha256": "f2ff0382c6468f4d096dc87ab0d421f32baa4d5f771ffe4176a7bdc373fe84c7",
+    "moblin_commit": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
+    "mode": "incremental",
     "tier": "ui",
     "kotlin_path": "app/src/main/java/com/moblin/android/view/settings/chat/ChatBotSettingsView.kt",
     "notes": [
-      "Every SwiftUI View became a file-private @Composable function in the same order as the Swift file; only ChatBotSettingsView stays public.",
-      "NavigationLink is expressed through onNavigate(destinationName) only, so the pushed destinations (commands, custom command editor, alias editor, AI settings) are not rendered in this file; the host screen must map the destination names to the composables declared here (the sub screens are private, so raise their visibility if the host needs them).",
-      "Section header/footer text is emitted as plain Text (titleSmall for headers, bodySmall for footers) next to the section content.",
-      "Forms are rendered with LazyColumn, and the ForEach lists used items() with the element id as key.",
-      "@Published settings values are assumed to be exposed as MutableStateFlow: values are read with collectAsState().value and written with .value = .",
-      "Toggles are Row + Switch, Pickers are ExposedDropdownMenuBox with MenuAnchorType.PrimaryNotEditable.",
-      "The TextWidget*/TextFormat* helper composables are called with the value plus an onChange lambda, following the @Binding rule.",
-      "contextMenuDeleteButton and the List editing gestures (onMove/onDelete) have no Compose counterpart and are marked with TODO()."
+      "Adds a new private composable TorchPermissionsSettingsView after MuteUnmutePermissionsSettingsView, matching the new Swift struct.",
+      "Adds the call TorchPermissionsSettingsView(permissions = permissions.torch, onNavigate = onNavigate) in ChatBotCommandsSettingsView between the Tesla and Send blocks.",
+      "The new footer with several Text lines becomes Section(footerContent = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) { ... } }), like the other multi-line footers.",
+      "No new imports are needed: SettingsChatBotPermissions.torch already exists and Column/Arrangement/Text/dp are imported."
     ],
     "unsupported": [],
     "model": "deepseek-flash",
     "backend": "api",
-    "tokens_in": 9865,
-    "tokens_out": 33443,
-    "seconds": 122.1,
-    "ported_at": "2026-09-22T14:10:40+00:00",
-    "moblin_commit": "c861d40e79a6198cbded1604ce80c3de3707b035"
+    "tokens_in": 58701,
+    "tokens_out": 7130,
+    "seconds": 18.9,
+    "ported_at": "2026-09-30T23:15:35+00:00"
   },
   "Moblin/View/Settings/Scenes/Widgets/Widget/Alerts/WidgetAlertsSoundSettingsView.swift": {
     "status": "ok",

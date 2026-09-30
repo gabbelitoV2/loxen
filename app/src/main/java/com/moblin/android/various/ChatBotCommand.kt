@@ -198,6 +198,7 @@ enum class ChatBotMainArgument(override val rawValue: String) : ChatBotArgument 
     macro("macro"),
     send("send"),
     music("music"),
+    torch("torch"),
     custom("custom"),
 }
 
@@ -313,6 +314,12 @@ enum class ChatBotTeslaMediaArgument(override val rawValue: String) : ChatBotArg
     next("next"),
     previous("previous"),
     togglePlayback("toggle-playback"),
+}
+
+enum class ChatBotTorchArgument(override val rawValue: String) : ChatBotArgument {
+    on("on"),
+    off("off"),
+    level("level"),
 }
 
 data class ChatBotMessage(

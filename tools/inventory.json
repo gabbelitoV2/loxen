@@ -1,6 +1,6 @@
 {
   "root": "/home/runner/work/loxen/loxen/.upstream",
-  "generated": "2026-09-29T23:45:18+00:00",
+  "generated": "2026-09-30T23:14:36+00:00",
   "files": [
     {
       "path": "Moblin Live Activity/MoblinLiveActivityApp.swift",
@@ -4734,29 +4734,6 @@
       "wave": 5
     },
     {
-      "path": "Moblin/Various/Model/Chat/ChatProvider.swift",
-      "lines": 106,
-      "sha256": "6e9d7f453de36aadd232cfae1ff2db6aee017c64187c3a4e98fd2c869d535278",
-      "imports": [
-        "Collections",
-        "Foundation"
-      ],
-      "tier": "logic",
-      "declared_types": [
-        "ChatProvider"
-      ],
-      "private_types": [],
-      "declared_functions": [],
-      "declared_globals": [],
-      "kotlin_package": "com.moblin.android.various.model.chat",
-      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/chat/ChatProvider.kt",
-      "deps": [
-        "Moblin/Various/ChatPost.swift",
-        "Moblin/Various/MainTimer.swift"
-      ],
-      "wave": 5
-    },
-    {
       "path": "Moblin/Various/Model/ModelAppIntents.swift",
       "lines": 8,
       "sha256": "bd5f65a2ba3b4693c5cae04d71f11ce9491e71e71b019aace1e40ef412e63fb1",
@@ -8812,6 +8789,30 @@
       "wave": 13
     },
     {
+      "path": "Moblin/Various/Model/Chat/ChatProvider.swift",
+      "lines": 93,
+      "sha256": "f8c2ee14856db561753700d543993440e05e76bad4e840462ae7dcf941ac0769",
+      "imports": [
+        "Collections",
+        "Foundation"
+      ],
+      "tier": "logic",
+      "declared_types": [
+        "ChatProvider"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model.chat",
+      "kotlin_path": "app/src/main/java/com/moblin/android/various/model/chat/ChatProvider.kt",
+      "deps": [
+        "Moblin/Various/ChatPost.swift",
+        "Moblin/Various/MainTimer.swift",
+        "Moblin/Various/Model/ModelChat.swift"
+      ],
+      "wave": 13
+    },
+    {
       "path": "Moblin/Various/Model/ModelAppMode.swift",
       "lines": 139,
       "sha256": "36fd6261ad87050752d3f1af10747c6889f7400c2184e2ba116dd9a9aa4e297d",
@@ -11018,8 +11019,8 @@
     },
     {
       "path": "Moblin/Various/ChatBotCommand.swift",
-      "lines": 275,
-      "sha256": "193bf18b299d2b301fbb85c57727767a0df34c07b7065e19704015dd263fd57b",
+      "lines": 282,
+      "sha256": "7329de85425cb043a9dae65fcd2b7da4fec4d5b9d8b64672a2cbafb5c4dd790d",
       "imports": [
         "Collections",
         "FuzzyMatchingSwift"
@@ -11048,6 +11049,7 @@
         "ChatBotTeslaArgument",
         "ChatBotTeslaTrunkArgument",
         "ChatBotTeslaMediaArgument",
+        "ChatBotTorchArgument",
         "ChatBotMessage",
         "ChatBotCommand"
       ],
@@ -11442,6 +11444,29 @@
         "Moblin/Various/Settings/SettingsChat.swift",
         "Moblin/View/Utils/MultiLineTextFieldView.swift",
         "Moblin/View/Utils/TextEditNavigationView.swift"
+      ],
+      "wave": 15
+    },
+    {
+      "path": "MoblinTests/Moblin/Various/Model/Chat/ChatProviderSuite.swift",
+      "lines": 84,
+      "sha256": "d56b83926a8409a6548647a3a5fafd3cbbf89a866b6a42ca041717642566567b",
+      "imports": [
+        "Testing"
+      ],
+      "tier": "test",
+      "declared_types": [
+        "ChatProviderSuite"
+      ],
+      "private_types": [],
+      "declared_functions": [],
+      "declared_globals": [],
+      "kotlin_package": "com.moblin.android.various.model.chat",
+      "kotlin_path": "app/src/test/java/com/moblin/android/various/model/chat/ChatProviderSuite.kt",
+      "deps": [
+        "Moblin/Various/ChatPost.swift",
+        "Moblin/Various/Model/Chat/ChatProvider.swift",
+        "Moblin/Various/Model/ModelChat.swift"
       ],
       "wave": 15
     },
@@ -12143,8 +12168,8 @@
     },
     {
       "path": "Moblin/Various/ChatPost.swift",
-      "lines": 330,
-      "sha256": "0c3afe5e1501a2a42e10e394a6925c6a573fab74bf369d7b3814bc7044d8ae60",
+      "lines": 326,
+      "sha256": "a124c1521252fe056348fea7e458802bf2a168719376af969897a1a210eefa99",
       "imports": [
         "SwiftUI"
       ],
@@ -12334,8 +12359,8 @@
     },
     {
       "path": "Moblin/Various/Settings/SettingsChat.swift",
-      "lines": 913,
-      "sha256": "57b80e542c804368718d8c24b6c99db43140717e35c3ba137ef84df251f88f1a",
+      "lines": 917,
+      "sha256": "fef1c21bc85e2386ee543dc102c8bc36830b1b045f7e5e6d90b6f96d7a0ab20d",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -13822,8 +13847,8 @@
     },
     {
       "path": "Moblin/View/ExternalDisplay/ExternalDisplayView.swift",
-      "lines": 181,
-      "sha256": "816e03f37f3ff0880aae37234071a6c8469a5b4f94462a32e1bd00ba721b9ae7",
+      "lines": 170,
+      "sha256": "f35614d47a3ad490e21832493f17c8a6151add759c49834445cbd72e5111f437",
       "imports": [
         "AVFoundation",
         "Foundation",
@@ -14205,8 +14230,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelChat.swift",
-      "lines": 583,
-      "sha256": "df13c3ea6140a1a3851f3bd8efc4dea4212554d90ec23a1c31fd44e7cdb9ef5f",
+      "lines": 520,
+      "sha256": "30766972d156203ac666206b0b4fec13080176d4c3c2749e2f17d95011537fe4",
       "imports": [
         "Collections",
         "Foundation",
@@ -14218,8 +14243,7 @@
       "private_types": [],
       "declared_functions": [],
       "declared_globals": [
-        "maximumNumberOfChatMessages",
-        "maximumNumberOfInteractiveChatMessages"
+        "maximumNumberOfChatMessages"
       ],
       "kotlin_package": "com.moblin.android.various.model",
       "kotlin_path": "app/src/main/java/com/moblin/android/various/model/ModelChat.kt",
@@ -14478,9 +14502,10 @@
     },
     {
       "path": "Moblin/VideoEffects/Browser/BrowserEffect.swift",
-      "lines": 326,
-      "sha256": "7dc7f3ea7f58735015b7a4a0782cc2f7c09bef424ac51e1ed5ecead79b4b8f8c",
+      "lines": 362,
+      "sha256": "81745177950f598f66c4b3921f515f47386c82c7babe7a104f5a96e6201ea6de",
       "imports": [
+        "Collections",
         "MetalPetal",
         "SwiftUI",
         "Vision",
@@ -16801,8 +16826,8 @@
     },
     {
       "path": "Moblin/View/ControlBar/QuickButton/Chat/QuickButtonChatView.swift",
-      "lines": 792,
-      "sha256": "d4a74570311f2f02a1a7b705c7836ed57372fd1e057d7f671fe85240c3025780",
+      "lines": 768,
+      "sha256": "4cf7c08f5623f75be98cf47258821c16439248b50c0bb66bdaf463cbd8434464",
       "imports": [
         "Foundation",
         "SwiftUI"
@@ -17628,8 +17653,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelAppleWatch.swift",
-      "lines": 680,
-      "sha256": "07a8efea9497902f049233842ef3a7db9daf66eb1fdea0346f296d0ff0ba3ac9",
+      "lines": 677,
+      "sha256": "e6bba01e7af3ecfc558c751f841066891cd679a5ab0b7e48d09637cfeba90616",
       "imports": [
         "SwiftUI",
         "WatchConnectivity"
@@ -17723,8 +17748,8 @@
     },
     {
       "path": "Moblin/Various/Model/ModelChatBot.swift",
-      "lines": 1009,
-      "sha256": "22d91451b969ec947b8af33b5f9289a9f3286db38ab20838d72c3278d250ebc5",
+      "lines": 1047,
+      "sha256": "a1345c5ad787fe37ff043a0e5d8eac06ee26a94c8bfa93d4ed4772f70465435c",
       "imports": [
         "AVFoundation",
         "Foundation"
@@ -19584,8 +19609,8 @@
     },
     {
       "path": "Moblin/View/Stream/Overlay/StreamOverlayChatView.swift",
-      "lines": 497,
-      "sha256": "8e3028ea84c9791ac62d177d460923ea695033b5bff047c125f37c6fabb529f0",
+      "lines": 488,
+      "sha256": "def941a67b1be9bd63b7dd6fd0740d464a8b525e282261656189374ebec9450a",
       "imports": [
         "Collections",
         "SwiftUI"
@@ -20847,8 +20872,8 @@
     },
     {
       "path": "Moblin/Various/Model/Model.swift",
-      "lines": 3470,
-      "sha256": "8df5c977f9b1d4cf623af08cded79f70b83f001e8df33e1a07b983b794874539",
+      "lines": 3466,
+      "sha256": "54618595cb6d2def822170bf5c5f0963bf3d193c1e65eb352ccc95131dd8e43c",
       "imports": [
         "AVKit",
         "ActivityKit",
@@ -20998,7 +21023,6 @@
         "Moblin/Various/Model/ModelAudio.swift",
         "Moblin/Various/Model/ModelAutoSceneSwitcher.swift",
         "Moblin/Various/Model/ModelCamera.swift",
-        "Moblin/Various/Model/ModelChat.swift",
         "Moblin/Various/Model/ModelLog.swift",
         "Moblin/Various/Model/ModelMediaPlayer.swift",
         "Moblin/Various/Model/ModelMoblink.swift",
@@ -22061,8 +22085,8 @@
     },
     {
       "path": "Moblin/View/Settings/Chat/ChatBotSettingsView.swift",
-      "lines": 764,
-      "sha256": "6a1b9f457ae1b12dbe6ad546ffd1e09939addf68cd00c6b84539c51dac4eb0dd",
+      "lines": 789,
+      "sha256": "f2ff0382c6468f4d096dc87ab0d421f32baa4d5f771ffe4176a7bdc373fe84c7",
       "imports": [
         "SwiftUI"
       ],
@@ -22087,6 +22111,7 @@
         "AiPermissionsSettingsView",
         "TwitchPermissionsSettingsView",
         "MuteUnmutePermissionsSettingsView",
+        "TorchPermissionsSettingsView",
         "TeslaPermissionsSettingsView",
         "MacroPermissionsSettingsView",
         "SendPermissionsSettingsView",
@@ -22119,6 +22144,7 @@
         "AiPermissionsSettingsView",
         "TwitchPermissionsSettingsView",
         "MuteUnmutePermissionsSettingsView",
+        "TorchPermissionsSettingsView",
         "TeslaPermissionsSettingsView",
         "MacroPermissionsSettingsView",
         "SendPermissionsSettingsView",

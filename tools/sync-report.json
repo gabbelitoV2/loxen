@@ -1,9 +1,26 @@
 {
-  "upstream": "b305b1de82289be7fca035b7880cf64a08e2f29f",
+  "upstream": "e1f555ffdd1fcc109f07f44f80124768bd7d539b",
   "sync_error": null,
   "build": [],
   "pbswift": null,
-  "held_back": [],
+  "held_back": [
+    {
+      "swift": "MoblinTests/Moblin/Various/Model/Chat/ChatProviderSuite.swift",
+      "kotlin": "app/src/test/java/com/moblin/android/various/model/chat/ChatProviderSuite.kt",
+      "reason": "compile",
+      "ported_from": null,
+      "errors": [
+        "3: Unresolved reference 'RgbColor'.",
+        "24: Unresolved reference 'RgbColor'.",
+        "37: No value passed for parameter 'userId'.",
+        "43: Too many arguments for 'constructor(): ChatProvider'.",
+        "53: Too many arguments for 'constructor(): ChatProvider'.",
+        "65: Too many arguments for 'constructor(): ChatProvider'.",
+        "82: Too many arguments for 'constructor(): ChatProvider'."
+      ],
+      "hooks": []
+    }
+  ],
   "port_failures": [],
   "hooks": [],
   "hand_ported": [],

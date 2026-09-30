@@ -22,6 +22,7 @@ import com.moblin.android.various.ChatBotStreamArgument
 import com.moblin.android.various.ChatBotTeslaArgument
 import com.moblin.android.various.ChatBotTeslaMediaArgument
 import com.moblin.android.various.ChatBotTeslaTrunkArgument
+import com.moblin.android.various.ChatBotTorchArgument
 import com.moblin.android.various.ChatBotTwitchArgument
 import com.moblin.android.various.ChatBotWidgetArgument
 import com.moblin.android.various.ChatBotWidgetTimerArgument
@@ -93,6 +94,7 @@ private fun Model.handleChatBotMessage(message: ChatBotMessage) {
         ChatBotMainArgument.macro -> handleChatBotMessageMacro(command = command)
         ChatBotMainArgument.send -> handleChatBotMessageSend(command = command)
         ChatBotMainArgument.music -> handleChatBotMessageMusic(command = command)
+        ChatBotMainArgument.torch -> handleChatBotMessageTorch(command = command)
         ChatBotMainArgument.custom -> handleChatBotMessageCustom(command = command)
         else -> Unit
     }
@@ -340,6 +342,37 @@ private fun Model.handleChatBotMessageUnmute(command: ChatBotCommand) {
             }
         }
     )
+}
+
+private fun Model.handleChatBotMessageTorch(command: ChatBotCommand) {
+    executeIfUserAllowedToUseChatBot(
+        permissions = database.chat.botCommandPermissions.torch,
+        command = command,
+        onCompleted = {
+            when (command.popFirstArgument<ChatBotTorchArgument>()) {
+                ChatBotTorchArgument.on -> handleChatBotMessageTorchOn()
+                ChatBotTorchArgument.off -> handleChatBotMessageTorchOff()
+                ChatBotTorchArgument.level -> handleChatBotMessageTorchLevel(command = command)
+                else -> Unit
+            }
+        }
+    )
+}
+
+private fun Model.handleChatBotMessageTorchOn() {
+    setTorch(on = true)
+    setQuickButton(type = SettingsQuickButtonType.torch, isOn = true)
+}
+
+private fun Model.handleChatBotMessageTorchOff() {
+    setTorch(on = false)
+    setQuickButton(type = SettingsQuickButtonType.torch, isOn = false)
+}
+
+private fun Model.handleChatBotMessageTorchLevel(command: ChatBotCommand) {
+    val level = command.popFirstInt(1..100) ?: return
+    database.torchLevel = level.toFloat() / 100
+    updateTorch()
 }
 
 private fun Model.handleChatBotMessageAi(command: ChatBotCommand) {

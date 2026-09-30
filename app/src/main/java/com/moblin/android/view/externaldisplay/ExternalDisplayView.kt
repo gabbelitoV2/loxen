@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,8 +18,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.moblin.android.various.ChatHighlight
@@ -103,54 +100,34 @@ private fun PostView(
     state: ChatPostState,
     rotation: Double,
     scaleX: Double,
-    size: IntSize,
 ) {
     val compactEvents = chatSettings.compactEvents
     val showDeletedMessages = chatSettings.showDeletedMessages
     val deleted by state.deleted.collectAsState()
-    if (post.user != null) {
-        if (!deleted || showDeletedMessages) {
-            val highlight = post.highlight
-            if (highlight != null) {
-                Row(
-                    modifier = Modifier.graphicsLayer(
-                        rotationZ = rotation.toFloat(),
-                        scaleX = scaleX.toFloat(),
-                        scaleY = 1f,
-                    ),
-                    horizontalArrangement = Arrangement.spacedBy(0.dp),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(3.dp)
-                            .fillMaxHeight()
-                            .background(highlight.barColor),
-                    )
-                    if (compactEvents && highlight.titleSegments != null) {
-                        HighlightImageView(style = style, highlight = highlight)
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
-                        if (!compactEvents) {
-                            HighlightMessageView(style = style, highlight = highlight)
-                        }
-                        LineView(
-                            deleted = deleted,
-                            post = post,
-                            style = style,
-                            platform = moreThanOneStreamingPlatform,
-                        )
-                    }
-                }
-            } else {
+    if (!deleted || showDeletedMessages) {
+        val highlight = post.highlight
+        if (highlight != null) {
+            Row(
+                modifier = Modifier.graphicsLayer(
+                    rotationZ = rotation.toFloat(),
+                    scaleX = scaleX.toFloat(),
+                    scaleY = 1f,
+                ),
+                horizontalArrangement = Arrangement.spacedBy(0.dp),
+            ) {
                 Box(
                     modifier = Modifier
-                        .padding(start = 3.dp)
-                        .graphicsLayer(
-                            rotationZ = rotation.toFloat(),
-                            scaleX = scaleX.toFloat(),
-                            scaleY = 1f,
-                        ),
-                ) {
+                        .width(3.dp)
+                        .fillMaxHeight()
+                        .background(highlight.barColor),
+                )
+                if (compactEvents && highlight.titleSegments != null) {
+                    HighlightImageView(style = style, highlight = highlight)
+                }
+                Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+                    if (!compactEvents) {
+                        HighlightMessageView(style = style, highlight = highlight)
+                    }
                     LineView(
                         deleted = deleted,
                         post = post,
@@ -159,23 +136,24 @@ private fun PostView(
                     )
                 }
             }
-        }
-    } else {
-        val density = LocalDensity.current
-        Box(
-            modifier = Modifier
-                .padding(2.dp)
-                .size(
-                    width = with(density) { size.width.toDp() },
-                    height = 1.5.dp,
+        } else {
+            Box(
+                modifier = Modifier
+                    .padding(start = 3.dp)
+                    .graphicsLayer(
+                        rotationZ = rotation.toFloat(),
+                        scaleX = scaleX.toFloat(),
+                        scaleY = 1f,
+                    ),
+            ) {
+                LineView(
+                    deleted = deleted,
+                    post = post,
+                    style = style,
+                    platform = moreThanOneStreamingPlatform,
                 )
-                .background(Color.Red)
-                .graphicsLayer(
-                    rotationZ = rotation.toFloat(),
-                    scaleX = scaleX.toFloat(),
-                    scaleY = 1f,
-                ),
-        )
+            }
+        }
     }
 }
 
@@ -187,7 +165,6 @@ private fun MessagesView(chatSettings: SettingsChat, chat: ChatProvider) {
     val posts by chat.posts.collectAsState()
     val moreThanOneStreamingPlatform by chat.moreThanOneStreamingPlatform.collectAsState()
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val size = IntSize(constraints.maxWidth, constraints.maxHeight)
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -207,7 +184,6 @@ private fun MessagesView(chatSettings: SettingsChat, chat: ChatProvider) {
                     state = post.state,
                     rotation = rotation,
                     scaleX = scaleX,
-                    size = size,
                 )
             }
         }
